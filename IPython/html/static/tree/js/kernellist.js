@@ -5,11 +5,11 @@ define([
     'base/js/namespace',
     'jquery',
     'tree/js/notebooklist',
-], function(IPython, $, NotebookList) {
+], function(IPython, $, notebooklist) {
     "use strict";
 
     var KernelList = function (selector, options, session_list) {
-        NotebookList.call(this, selector, options, 'running', session_list);
+        notebooklist.NotebookList.call(this, selector, options, 'running', session_list);
     };
 
     KernelList.prototype = Object.create(NotebookList.prototype);

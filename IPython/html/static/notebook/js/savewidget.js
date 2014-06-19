@@ -8,7 +8,7 @@ define([
     'base/js/dialog',
     'base/js/keyboard',
     'dateformat/date.format',
-], function(IPython, $, utils, Dialog, keyboard) {
+], function(IPython, $, utils, dialog, keyboard) {
     "use strict";
 
     var SaveWidget = function (selector, events) {
@@ -76,7 +76,7 @@ define([
             $('<input/>').attr('type','text').attr('size','25').addClass('form-control')
             .val(that.notebook.get_notebook_name())
         );
-        Dialog.modal({
+        dialog.modal({
             title: "Rename Notebook",
             body: dialog,
             buttons : {

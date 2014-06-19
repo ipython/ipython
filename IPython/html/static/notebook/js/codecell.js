@@ -57,7 +57,7 @@ define([
         this.kernel = kernel || null;
         this.notebook = notebook;
         this.collapsed = false;
-        this.tooltip = new Tooltip(events);
+        this.tooltip = new tooltip.Tooltip(events);
         this.events = events;
         this.config = config;
 
@@ -76,7 +76,7 @@ define([
 
         options = this.mergeopt(CodeCell, options, {cm_config:cm_overwrite_options});
 
-        Cell.apply(this,[options, keyboard_manager, events]);
+        cell.Cell.apply(this,[options, keyboard_manager, events]);
 
         // Attributes we want to override in this subclass.
         this.cell_type = "code";
@@ -106,7 +106,7 @@ define([
 
     CodeCell.msg_cells = {};
 
-    CodeCell.prototype = new Cell();
+    CodeCell.prototype = new cell.Cell();
 
     /**
      * @method auto_highlight
@@ -117,7 +117,7 @@ define([
 
     /** @method create_element */
     CodeCell.prototype.create_element = function () {
-        Cell.prototype.create_element.apply(this, arguments);
+        cell.Cell.prototype.create_element.apply(this, arguments);
 
         var cell =  $('<div></div>').addClass('cell border-box-sizing code_cell');
         cell.attr('tabindex','2');
@@ -125,7 +125,7 @@ define([
         var input = $('<div></div>').addClass('input');
         var prompt = $('<div/>').addClass('prompt input_prompt');
         var inner_cell = $('<div/>').addClass('inner_cell');
-        this.celltoolbar = new CellToolbar(this, this.events, this.notebook);
+        this.celltoolbar = new celltoolbar.CellToolbar(this, this.events, this.notebook);
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
         this.code_mirror = CodeMirror(input_area.get(0), this.cm_config);
@@ -155,13 +155,13 @@ define([
         var output = $('<div></div>');
         cell.append(input).append(widget_area).append(output);
         this.element = cell;
-        this.output_area = new OutputArea(output, true, this.events, this.keyboard_manager);
-        this.completer = new Completer(this, this.events);
+        this.output_area = new outputarea.OutputArea(output, true, this.events, this.keyboard_manager);
+        this.completer = new completer.Completer(this, this.events);
     };
 
     /** @method bind_events */
     CodeCell.prototype.bind_events = function () {
-        Cell.prototype.bind_events.apply(this);
+        cell.Cell.prototype.bind_events.apply(this);
         var that = this;
 
         this.element.focusout(
@@ -243,7 +243,7 @@ define([
         
         // keyboard event wasn't one of those unique to code cells, let's see
         // if it's one of the generic ones (i.e. check edit mode shortcuts)
-        return Cell.prototype.handle_codemirror_keyevent.apply(this, [editor, event]);
+        return cell.Cell.prototype.handle_codemirror_keyevent.apply(this, [editor, event]);
     };
 
     // Kernel related calls.
@@ -336,7 +336,7 @@ define([
     // Basic cell manipulation.
 
     CodeCell.prototype.select = function () {
-        var cont = Cell.prototype.select.apply(this);
+        var cont = cell.Cell.prototype.select.apply(this);
         if (cont) {
             this.code_mirror.refresh();
             this.auto_highlight();
@@ -345,7 +345,7 @@ define([
     };
 
     CodeCell.prototype.render = function () {
-        var cont = Cell.prototype.render.apply(this);
+        var cont = cell.Cell.prototype.render.apply(this);
         // Always execute, even if we are already in the rendered state
         return cont;
     };
@@ -448,7 +448,7 @@ define([
     // JSON serialization
 
     CodeCell.prototype.fromJSON = function (data) {
-        Cell.prototype.fromJSON.apply(this, arguments);
+        cell.Cell.prototype.fromJSON.apply(this, arguments);
         if (data.cell_type === 'code') {
             if (data.input !== undefined) {
                 this.set_text(data.input);
@@ -476,7 +476,7 @@ define([
 
 
     CodeCell.prototype.toJSON = function () {
-        var data = Cell.prototype.toJSON.apply(this);
+        var data = cell.Cell.prototype.toJSON.apply(this);
         data.input = this.get_text();
         // is finite protect against undefined and '*' value
         if (isFinite(this.input_prompt_number)) {
@@ -496,7 +496,7 @@ define([
      * @return is the action being taken
      */
     CodeCell.prototype.unselect = function () {
-        var cont = Cell.prototype.unselect.apply(this);
+        var cont = cell.Cell.prototype.unselect.apply(this);
         if (cont) {
             // When a code cell is usnelected, make sure that the corresponding
             // tooltip and completer to that cell is closed.

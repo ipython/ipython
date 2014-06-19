@@ -49,18 +49,18 @@ require([
     };
 
     var user_config = $.extend({}, config.default_config);
-    var page = new Page();
-    var layout_manager = new LayoutManager();
-    var events = $([new Events()]);
-    var pager = new Pager('div#pager', 'div#pager_splitter', layout_manager, events);
-    var keyboard_manager = new KeyboardManager(pager, events);
-    var save_widget = new SaveWidget('span#save_widget', events);
-    var notebook = new Notebook('div#notebook', options, events, keyboard_manager, save_widget, user_config);
-    var login_widget = new LoginWidget('span#login_widget', options);
-    var toolbar = new MainToolBar('#maintoolbar-container', layout_manager, notebook, events);
-    var quick_help = new QuickHelp(undefined, keyboard_manager, events);
-    var menubar = new MenuBar('#menubar', options, notebook, layout_manager, events, save_widget, quick_help);
-    var notification_area = new NotificationArea('#notification_area', events, save_widget, notebook);
+    var page = new page.Page();
+    var layout_manager = new layoutmanager.LayoutManager();
+    var events = $([new events.Events()]);
+    var pager = new pager.Pager('div#pager', 'div#pager_splitter', layout_manager, events);
+    var keyboard_manager = new keyboardmanager.KeyboardManager(pager, events);
+    var save_widget = new savewidget.SaveWidget('span#save_widget', events);
+    var notebook = new notebook.Notebook('div#notebook', options, events, keyboard_manager, save_widget, user_config);
+    var login_widget = new loginwidget.LoginWidget('span#login_widget', options);
+    var toolbar = new maintoolbar.MainToolBar('#maintoolbar-container', layout_manager, notebook, events);
+    var quick_help = new quickhelp.QuickHelp(undefined, keyboard_manager, events);
+    var menubar = new menubar.MenuBar('#menubar', options, notebook, layout_manager, events, save_widget, quick_help);
+    var notification_area = new notificationarea.NotificationArea('#notification_area', events, save_widget, notebook);
     notification_area.init_notification_widgets();
 
     layout_manager.do_resize();

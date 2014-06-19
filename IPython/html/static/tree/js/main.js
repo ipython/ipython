@@ -18,32 +18,32 @@ require([
 ], function(
     IPython, 
     $, 
-    Events,
-    Page, 
+    events,
+    page, 
     utils, 
-    NotebookList, 
-    ClusterList, 
-    SesssionList, 
-    KernelList, 
-    LoginWidget){
+    notebooklist, 
+    clusterlist, 
+    sesssionlist, 
+    kernellist, 
+    loginwidget){
 
-    page = new Page();
-
+    page = new page.Page();
+    
     var opts = {
         base_url: utils.get_body_data("baseUrl"),
         notebook_path: utils.get_body_data("notebookPath"),
     };
-    events = $([new Events()]);
-    session_list = new SesssionList(opts, events);
-    notebook_list = new NotebookList('#notebook_list', opts, undefined, session_list);
-    cluster_list = new ClusterList('#cluster_list', opts);
-    kernel_list = new KernelList('#running_list', opts, session_list);
-    login_widget = new LoginWidget('#login_widget', opts);
+    events = $([new events.Events()]);
+    session_list = new sesssionlist.SesssionList(opts, events);
+    notebook_list = new notebooklist.NotebookList('#notebook_list', opts, undefined, session_list);
+    cluster_list = new clusterlist.ClusterList('#cluster_list', opts);
+    kernel_list = new kernellist.KernelList('#running_list', opts, session_list);
+    login_widget = new loginwidget.LoginWidget('#login_widget', opts);
 
     $('#new_notebook').button().click(function (e) {
         notebook_list.new_notebook();
     });
-    
+
     var interval_id=0;
     // auto refresh every xx secondes, no need to be fast,
     //  update is done at least when page get focus

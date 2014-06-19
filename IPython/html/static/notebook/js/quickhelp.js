@@ -6,7 +6,7 @@ define([
     'jquery',
     'base/js/utils',
     'base/js/dialog',
-], function(IPython, $, utils, Dialog) {
+], function(IPython, $, utils, dialog) {
     "use strict";
     var platform = utils.platform;
 
@@ -99,7 +99,7 @@ define([
         var edit_div = this.build_edit_help(cm_shortcuts);
         element.append(edit_div);
 
-        this.shortcut_dialog = Dialog.modal({
+        this.shortcut_dialog = dialog.modal({
             title : "Keyboard shortcuts",
             body : element,
             destroy : false,

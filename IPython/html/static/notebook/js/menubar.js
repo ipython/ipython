@@ -7,7 +7,7 @@ define([
     'base/js/utils',
     'notebook/js/tour',
     'components/bootstrap-tour/build/js/bootstrap-tour.min',
-], function(IPython, $, utils, Tour) {
+], function(IPython, $, utils, tour) {
     "use strict";
     
     /**
@@ -35,7 +35,7 @@ define([
         this.quick_help = quick_help;
 
         try {
-            this.tour = new Tour(notebook, events);
+            this.tour = new tour.Tour(notebook, events);
         } catch (e) {
             this.tour = undefined;
             console.log("Failed to instantiate Notebook Tour", e);

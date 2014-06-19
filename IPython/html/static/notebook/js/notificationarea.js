@@ -7,7 +7,7 @@ define([
     'base/js/utils',
     'base/js/dialog',
     'notebook/js/notificationwidget',
-], function(IPython, $, utils, Dialog, NotificationWidget) {
+], function(IPython, $, utils, dialog, notificationwidget) {
     "use strict";
 
     var NotificationArea = function (selector, events, save_widget, notebook) {
@@ -62,7 +62,7 @@ define([
         }
         var div = $('<div/>').attr('id','notification_'+name);
         $(this.selector).append(div);
-        this.widget_dict[name] = new NotificationWidget('#notification_'+name);
+        this.widget_dict[name] = new notificationwidget.NotificationWidget('#notification_'+name);
         return this.widget_dict[name];
     };
 
@@ -123,7 +123,7 @@ define([
                 ' the notebook, but running code will no longer work until the notebook' +
                 ' is reopened.';
 
-            Dialog.modal({
+            dialog.modal({
                 title: "Dead kernel",
                 body : msg,
                 buttons : {
@@ -155,7 +155,7 @@ define([
             msg = "A WebSocket connection could not be established." +
                 " You will NOT be able to run code. Check your" +
                 " network connection or notebook server configuration.";
-            Dialog.modal({
+            dialog.modal({
                 title: "WebSocket connection failed",
                 body: msg,
                 buttons : {

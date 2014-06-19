@@ -7,7 +7,7 @@ define([
     'base/js/utils',
     'services/kernels/js/comm',
     'widgets/js/init',
-], function(IPython, $, utils, comm, WidgetManager) {
+], function(IPython, $, utils, comm, widgetmanager) {
     "use strict";
 
     // Initialization and connection.
@@ -39,7 +39,7 @@ define([
         this.bind_events();
         this.init_iopub_handlers();
         this.comm_manager = new comm.CommManager(this);
-        this.widget_manager = new WidgetManager(this.comm_manager, notebook);
+        this.widget_manager = new widgetmanager.WidgetManager(this.comm_manager, notebook);
         
         this.last_msg_id = null;
         this.last_msg_callbacks = {};

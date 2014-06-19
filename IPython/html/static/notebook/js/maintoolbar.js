@@ -10,7 +10,7 @@ define([
     "use strict";
 
     var MainToolBar = function (selector, layout_manager, notebook, events) {
-        Toolbar.apply(this, arguments);
+        toolbar.Toolbar.apply(this, arguments);
         this.events = events;
         this.notebook = notebook;
         this.construct();
@@ -19,7 +19,7 @@ define([
         this.bind_events();
     };
 
-    MainToolBar.prototype = new Toolbar();
+    MainToolBar.prototype = new toolbar.Toolbar();
 
     MainToolBar.prototype.construct = function () {
         this.add_buttons_group([
@@ -152,16 +152,16 @@ define([
         select.change(function() {
                 var val = $(this).val();
                 if (val ==='') {
-                    CellToolbar.global_hide();
+                    celltoolbar.CellToolbar.global_hide();
                     delete this.notebook.metadata.celltoolbar;
                 } else {
-                    CellToolbar.global_show();
-                    CellToolbar.activate_preset(val);
+                    celltoolbar.CellToolbar.global_show();
+                    celltoolbar.CellToolbar.activate_preset(val);
                     this.notebook.metadata.celltoolbar = val;
                 }
             });
         // Setup the currently registered presets.
-        var presets = CellToolbar.list_presets();
+        var presets = celltoolbar.CellToolbar.list_presets();
         for (var i=0; i<presets.length; i++) {
             var name = presets[i];
             select.append($('<option/>').attr('value', name).text(name));

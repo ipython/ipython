@@ -5,7 +5,7 @@ define([
     'jquery',
     'base/js/utils',
     'base/js/dialog',
-], function($, utils, Dialog) {
+], function($, utils, dialog) {
     "use strict";
 
     var init = function () {
@@ -68,7 +68,7 @@ define([
                         "which will prevent this dialog from appearing."
                     )
                 );
-            Dialog.modal({
+            dialog.modal({
                 title : "Failed to retrieve MathJax from '" + window.mathjax_url + "'",
                 body : message,
                 buttons : {

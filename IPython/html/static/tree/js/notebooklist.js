@@ -6,7 +6,7 @@ define([
     'jquery',
     'base/js/utils',
     'base/js/dialog',
-], function(IPython, $, utils, Dialog) {
+], function(IPython, $, utils, dialog) {
     "use strict";
     
     var NotebookList = function (selector, options, element_name, session_list) {
@@ -83,7 +83,7 @@ define([
                 };
             } else {
                 var dialog = 'Uploaded notebooks must be .ipynb files';
-                Dialog.modal({
+                dialog.modal({
                     title : 'Invalid file type',
                     body : dialog,
                     buttons : {'OK' : {'class' : 'btn-primary'}}
@@ -299,7 +299,7 @@ define([
                 var parent_item = that.parents('div.list_item');
                 var nbname = parent_item.data('nbname');
                 var message = 'Are you sure you want to permanently delete the notebook: ' + nbname + '?';
-                Dialog.modal({
+                dialog.modal({
                     title : "Delete notebook",
                     body : message,
                     buttons : {
@@ -424,7 +424,7 @@ define([
         } else {
             msg = xhr.statusText;
         }
-        Dialog.modal({
+        dialog.modal({
             title : 'Creating Notebook Failed',
             body : "The error was: " + msg,
             buttons : {'OK' : {'class' : 'btn-primary'}}

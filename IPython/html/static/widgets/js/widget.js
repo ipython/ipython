@@ -4,7 +4,7 @@
 define(["widgets/js/manager",
         "underscore",
         "backbone"], 
-function(WidgetManager, _, Backbone){
+function(widgetmanager, _, Backbone){
 
     var WidgetModel = Backbone.Model.extend({
         constructor: function (widget_manager, model_id, comm) {
@@ -261,7 +261,7 @@ function(WidgetManager, _, Backbone){
         },
 
     });
-    WidgetManager.register_widget_model('WidgetModel', WidgetModel);
+    widgetmanager.WidgetManager.register_widget_model('WidgetModel', WidgetModel);
 
 
     var WidgetView = Backbone.View.extend({

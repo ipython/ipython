@@ -5,7 +5,7 @@ define([
     'base/js/namespace',
     'jquery',
     'notebook/js/textcell',
-], function(IPython, $, TextCell) {
+], function(IPython, $, textcell) {
     "use strict";
 
     /**
@@ -276,7 +276,7 @@ define([
         }
 
         // If there are no controls or the cell is a rendered TextCell hide the toolbar.
-        if (!this.ui_controls_list.length || (this.cell instanceof TextCell && this.cell.rendered)) {
+        if (!this.ui_controls_list.length || (this.cell instanceof textcell.TextCell && this.cell.rendered)) {
             this.hide();
         } else {
             this.show();

@@ -19,11 +19,11 @@ define([
     IPython, 
     $, 
     utils, 
-    Dialog, 
-    Cells, 
-    CodeCell, 
-    Session, 
-    CellToolbar, 
+    dialog, 
+    cells, 
+    codecell, 
+    session, 
+    celltoolbar, 
     marked,
     mathjaxutils,
     keyboard
@@ -184,7 +184,7 @@ define([
         });
 
         this.events.on('status_autorestarting.Kernel', function () {
-            Dialog.modal({
+            dialog.modal({
                 title: "Kernel Restarting",
                 body: "The kernel appears to have died. It will restart automatically.",
                 buttons: {
@@ -307,7 +307,7 @@ define([
 
     Notebook.prototype.edit_metadata = function () {
         var that = this;
-        Dialog.edit_metadata(this.metadata, function (md) {
+        dialog.edit_metadata(this.metadata, function (md) {
             that.metadata = md;
         }, 'Notebook');
     };
@@ -348,7 +348,7 @@ define([
      * @return {Cell} Cell or null if no cell was found.
      */
     Notebook.prototype.get_msg_cell = function (msg_id) {
-        return CodeCell.msg_cells[msg_id] || null;
+        return codecell.CodeCell.msg_cells[msg_id] || null;
     };
 
     /**
@@ -807,14 +807,14 @@ define([
 
         if (ncells === 0 || this.is_valid_cell_index(index) || index === ncells) {
             if (type === 'code') {
-                cell = new CodeCell(this.kernel, this.options, this.events, this.config, this.keyboard_manager, this);
+                cell = new codecell.CodeCell(this.kernel, this.options, this.events, this.config, this.keyboard_manager, this);
                 cell.set_input_prompt();
             } else if (type === 'markdown') {
-                cell = new Cells.MarkdownCell(this.options, this.events, this.config, this.keyboard_manager, this);
+                cell = new cells.Cells.MarkdownCell(this.options, this.events, this.config, this.keyboard_manager, this);
             } else if (type === 'raw') {
-                cell = new Cells.RawCell(this.options, this.events, this.config, this.keyboard_manager, this);
+                cell = new cells.Cells.RawCell(this.options, this.events, this.config, this.keyboard_manager, this);
             } else if (type === 'heading') {
-                cell = new Cells.HeadingCell(this.options, this.events, this.config, this.keyboard_manager, this);
+                cell = new cells.Cells.HeadingCell(this.options, this.events, this.config, this.keyboard_manager, this);
             }
 
             if(this._insert_element_at_index(cell.element,index)) {
@@ -959,7 +959,7 @@ define([
         if (this.is_valid_cell_index(i)) {
             var source_element = this.get_cell_element(i);
             var source_cell = source_element.data("cell");
-            if (!(source_cell instanceof Cells.MarkdownCell)) {
+            if (!(source_cell instanceof cells.Cells.MarkdownCell)) {
                 var target_cell = this.insert_cell_below('markdown',i);
                 var text = source_cell.get_text();
                 if (text === source_cell.placeholder) {
@@ -973,7 +973,7 @@ define([
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.select(i);
-                if ((source_cell instanceof Cells.TextCell) && source_cell.rendered) {
+                if ((source_cell instanceof cells.Cells.TextCell) && source_cell.rendered) {
                     target_cell.render();
                 }
                 var cursor = source_cell.code_mirror.getCursor();
@@ -995,7 +995,7 @@ define([
             var source_element = this.get_cell_element(i);
             var source_cell = source_element.data("cell");
             var target_cell = null;
-            if (!(source_cell instanceof Cells.RawCell)) {
+            if (!(source_cell instanceof cells.Cells.RawCell)) {
                 target_cell = this.insert_cell_below('raw',i);
                 var text = source_cell.get_text();
                 if (text === source_cell.placeholder) {
@@ -1030,7 +1030,7 @@ define([
             var source_element = this.get_cell_element(i);
             var source_cell = source_element.data("cell");
             var target_cell = null;
-            if (source_cell instanceof Cells.HeadingCell) {
+            if (source_cell instanceof cells.Cells.HeadingCell) {
                 source_cell.set_level(level);
             } else {
                 target_cell = this.insert_cell_below('heading',i);
@@ -1049,7 +1049,7 @@ define([
                 this.select(i);
                 var cursor = source_cell.code_mirror.getCursor();
                 target_cell.code_mirror.setCursor(cursor);
-                if ((source_cell instanceof Cells.TextCell) && source_cell.rendered) {
+                if ((source_cell instanceof cells.Cells.TextCell) && source_cell.rendered) {
                     target_cell.render();
                 }
             }
@@ -1168,8 +1168,8 @@ define([
      * @method split_cell
      */
     Notebook.prototype.split_cell = function () {
-        var mdc = Cells.MarkdownCell;
-        var rc = Cells.RawCell;
+        var mdc = cells.Cells.MarkdownCell;
+        var rc = cells.Cells.RawCell;
         var cell = this.get_selected_cell();
         if (cell.is_splittable()) {
             var texta = cell.get_pre_cursor();
@@ -1197,8 +1197,8 @@ define([
      * @method merge_cell_above
      */
     Notebook.prototype.merge_cell_above = function () {
-        var mdc = Cells.MarkdownCell;
-        var rc = Cells.RawCell;
+        var mdc = cells.Cells.MarkdownCell;
+        var rc = cells.Cells.RawCell;
         var index = this.get_selected_index();
         var cell = this.get_cell(index);
         var render = cell.rendered;
@@ -1234,8 +1234,8 @@ define([
      * @method merge_cell_below
      */
     Notebook.prototype.merge_cell_below = function () {
-        var mdc = Cells.MarkdownCell;
-        var rc = Cells.RawCell;
+        var mdc = cells.Cells.MarkdownCell;
+        var rc = cells.Cells.RawCell;
         var index = this.get_selected_index();
         var cell = this.get_cell(index);
         var render = cell.rendered;
@@ -1465,7 +1465,7 @@ define([
      * @method start_session
      */
     Notebook.prototype.start_session = function () {
-        this.session = new Session(this, this.options);
+        this.session = new session.Session(this, this.options);
         this.session.start($.proxy(this._session_started, this));
     };
 
@@ -1493,7 +1493,7 @@ define([
      */
     Notebook.prototype.restart_kernel = function () {
         var that = this;
-        Dialog.modal({
+        dialog.modal({
             title : "Restart kernel or continue running?",
             body : $("<p/>").text(
                 'Do you want to restart the current kernel?  You will lose all variables defined in it.'
@@ -1716,7 +1716,7 @@ define([
             this.events.trigger("trust_changed.Notebook", trusted);
         }
         if (content.worksheets.length > 1) {
-            Dialog.modal({
+            dialog.modal({
                 title : "Multiple worksheets",
                 body : "This notebook has " + data.worksheets.length + " worksheets, " +
                     "but this version of IPython can only handle the first.  " +
@@ -1904,7 +1904,7 @@ define([
         );
 
         var nb = this;
-        Dialog.modal({
+        dialog.modal({
             title: "Trust this notebook?",
             body: body,
 
@@ -2049,7 +2049,7 @@ define([
             .text('This notebook name already exists.')
         );
         this.events.trigger('notebook_rename_failed.Notebook', [xhr, status, error]);
-        Dialog.modal({
+        dialog.modal({
             title: "Notebook Rename Error!",
             body: dialog,
             buttons : {
@@ -2130,7 +2130,7 @@ define([
             "newer notebook format will be used and older versions of IPython " +
             "may not be able to read it. To keep the older version, close the " +
             "notebook without saving it.";
-            Dialog.modal({
+            dialog.modal({
                 title : "Notebook converted",
                 body : msg,
                 buttons : {
@@ -2147,7 +2147,7 @@ define([
             this_vs + ".  You can still work with this notebook, but some features " +
             "introduced in later notebook versions may not be available.";
 
-            Dialog.modal({
+            dialog.modal({
                 title : "Newer Notebook",
                 body : msg,
                 buttons : {
@@ -2169,10 +2169,10 @@ define([
         
         // load toolbar state
         if (this.metadata.celltoolbar) {
-            CellToolbar.global_show();
-            CellToolbar.activate_preset(this.metadata.celltoolbar);
+            celltoolbar.CellToolbar.global_show();
+            celltoolbar.CellToolbar.activate_preset(this.metadata.celltoolbar);
         } else {
-            CellToolbar.global_hide();
+            celltoolbar.CellToolbar.global_hide();
         }
 
         // now that we're fully loaded, it is safe to restore save functionality
@@ -2198,7 +2198,7 @@ define([
             "This version can load notebook formats " +
             "v" + this.nbformat + " or earlier.";
         }
-        Dialog.modal({
+        dialog.modal({
             title: "Error loading notebook",
             body : msg,
             buttons : {
@@ -2362,7 +2362,7 @@ define([
             ).css("text-align", "center")
         );
         
-        Dialog.modal({
+        dialog.modal({
             title : "Revert notebook to checkpoint",
             body : body,
             buttons : {

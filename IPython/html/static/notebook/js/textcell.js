@@ -8,7 +8,7 @@ define([
     'base/js/security',
     'notebook/js/mathjaxutils',
     'notebook/js/celltoolbar',
-], function(IPython, $, Cell, Security, mathjaxutils, CellToolbar) {
+], function(IPython, $, cell, security, mathjaxutils, celltoolbar) {
     "use strict";
 
     /**
@@ -41,12 +41,12 @@ define([
         this.cell_type = this.cell_type || 'text';
         mathjaxutils = mathjaxutils;
 
-        Cell.apply(this, [options, keyboard_manager, events]);
+        cell.Cell.apply(this, [options, keyboard_manager, events]);
 
         this.rendered = false;
     };
 
-    TextCell.prototype = new Cell();
+    TextCell.prototype = new cell.Cell();
 
     TextCell.options_default = {
         cm_config : {
@@ -63,7 +63,7 @@ define([
      * @private
      */
     TextCell.prototype.create_element = function () {
-        Cell.prototype.create_element.apply(this, arguments);
+        cell.Cell.prototype.create_element.apply(this, arguments);
 
         var cell = $("<div>").addClass('cell text_cell border-box-sizing');
         cell.attr('tabindex','2');
@@ -71,7 +71,7 @@ define([
         var prompt = $('<div/>').addClass('prompt input_prompt');
         cell.append(prompt);
         var inner_cell = $('<div/>').addClass('inner_cell');
-        this.celltoolbar = new CellToolbar(this, this.events, this.notebook);
+        this.celltoolbar = new celltoolbar.CellToolbar(this, this.events, this.notebook);
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
         this.code_mirror = new CodeMirror(input_area.get(0), this.cm_config);
@@ -91,7 +91,7 @@ define([
      * @method bind_event
      */
     TextCell.prototype.bind_events = function () {
-        Cell.prototype.bind_events.apply(this);
+        cell.Cell.prototype.bind_events.apply(this);
         var that = this;
 
         this.element.dblclick(function () {
@@ -108,7 +108,7 @@ define([
     // Cell level actions
     
     TextCell.prototype.select = function () {
-        var cont = Cell.prototype.select.apply(this);
+        var cont = cell.Cell.prototype.select.apply(this);
         if (cont) {
             if (this.mode === 'edit') {
                 this.code_mirror.refresh();
@@ -119,7 +119,7 @@ define([
 
     TextCell.prototype.unrender = function () {
         if (this.read_only) return;
-        var cont = Cell.prototype.unrender.apply(this);
+        var cont = cell.Cell.prototype.unrender.apply(this);
         if (cont) {
             var text_cell = this.element;
             var output = text_cell.find("div.text_cell_render");
@@ -182,7 +182,7 @@ define([
      * @method fromJSON
      */
     TextCell.prototype.fromJSON = function (data) {
-        Cell.prototype.fromJSON.apply(this, arguments);
+        cell.Cell.prototype.fromJSON.apply(this, arguments);
         if (data.cell_type === this.cell_type) {
             if (data.source !== undefined) {
                 this.set_text(data.source);
@@ -202,7 +202,7 @@ define([
      * @return {object} cell data serialised to json
      */
     TextCell.prototype.toJSON = function () {
-        var data = Cell.prototype.toJSON.apply(this);
+        var data = cell.Cell.prototype.toJSON.apply(this);
         data.source = this.get_text();
         if (data.source == this.placeholder) {
             data.source = "";
@@ -246,7 +246,7 @@ define([
             math = text_and_math[1];
             var html = marked.parser(marked.lexer(text));
             html = mathjaxutils.replace_math(html, math);
-            html = Security.sanitize_html(html);
+            html = security.Security.sanitize_html(html);
             html = $($.parseHTML(html));
             // links in markdown cells should open in new tabs
             html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
@@ -417,7 +417,7 @@ define([
             math = text_and_math[1];
             var html = marked.parser(marked.lexer(text));
             html = mathjaxutils.replace_math(html, math);
-            html = Security.sanitize_html(html);
+            html = security.Security.sanitize_html(html);
             var h = $($.parseHTML(html));
             // add id and linkback anchor
             var hash = h.text().replace(/ /g, '-');

@@ -112,7 +112,7 @@ define([
                 title: "Fin.",
                 placement: 'bottom',
                 orphan: true,
-                content: "This concludes the IPython Notebook User Interface Tour. Happy hacking!",
+                content: "This concludes the IPython Notebook User Interface tour.Tour. Happy hacking!",
             }
         ];
 
@@ -164,7 +164,7 @@ define([
     // For backwards compatability.
     IPython.NotebookTour = NotebookTour;
 
-    return {'NotebookTour': NotebookTour};
+    return {'Tour': NotebookTour};
 
 });
 
