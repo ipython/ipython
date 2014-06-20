@@ -455,9 +455,9 @@ class IPythonInputTestCase(InputSplitterTestCase):
         isp = self.isp
         for raw, name, line, cell in [
             ("%%cellm a\nIn[1]:", u'cellm', u'a', u'In[1]:'),
-            ("%%cellm \nline\n>>>hi", u'cellm', u'', u'line\n>>>hi'),
-            (">>>%%cellm \nline\n>>>hi", u'cellm', u'', u'line\nhi'),
-            ("%%cellm \n>>>hi", u'cellm', u'', u'hi'),
+            ("%%cellm \nline\n>>> hi", u'cellm', u'', u'line\n>>> hi'),
+            (">>> %%cellm \nline\n>>> hi", u'cellm', u'', u'line\nhi'),
+            ("%%cellm \n>>> hi", u'cellm', u'', u'hi'),
             ("%%cellm \nline1\nline2", u'cellm', u'', u'line1\nline2'),
             ("%%cellm \nline1\\\\\nline2", u'cellm', u'', u'line1\\\\\nline2'),
         ]:
