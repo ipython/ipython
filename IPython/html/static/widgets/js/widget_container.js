@@ -21,7 +21,6 @@ define(["widgets/js/widget"], function(WidgetManager) {
             // Called when view is rendered.
             this.$el.addClass('widget-container')
                 .addClass('vbox');
-            this.children={};
             this.update_children([], this.model.get('children'));
             this.model.on('change:children', function(model, value, options) {
                 this.update_children(model.previous('children'), value);
@@ -80,7 +79,6 @@ define(["widgets/js/widget"], function(WidgetManager) {
         render: function(){
             // Called when view is rendered.
             var that = this;
-            this.children={};
             
             this.$el.on("remove", function(){
                     that.$backdrop.remove();

@@ -339,7 +339,7 @@ function(WidgetManager, _, Backbone){
             return null;
         },
 
-        do_diff: function(old_list, new_list, removed_callback, added_callback, respect_order) {
+        do_diff: function(old_list, new_list, removed_callback, added_callback) {
             // Difference a changed list and call remove and add callbacks for 
             // each removed and added item in the new list.
             //
@@ -351,60 +351,24 @@ function(WidgetManager, _, Backbone){
             //      Callback that is called for each item removed.
             // added_callback : Callback(item)
             //      Callback that is called for each item added.
-            // [respect_order] : bool [True]
-            //      Whether or not the order of the list matters.
 
-            if (respect_order || respect_order===undefined) {
-                // Walk the lists until an unequal entry is found.
-                var i;
-                for (i = 0; i < new_list.length; i++) {
-                    if (i < old_list.length || new_list[i] !== old_list[i]) {
-                        break;
-                    }
-                }
-
-                // Remove the non-matching items from the old list.
-                for (var j = i; j < old_list.length; j++) {
-                    removed_callback(old_list[j]);
-                }
-
-                // Add the rest of the new list items.
-                for (i; i < new_list.length; i++) {
-                    added_callback(new_list[i]);
-                }
-            } else {
-                // removed items
-                _.each(this.difference(old_list, new_list), function(item, index, list) {
-                    removed_callback(item);
-                }, this);
-
-                // added items
-                _.each(this.difference(new_list, old_list), function(item, index, list) {
-                    added_callback(item);
-                }, this);
-            }
-        },
-
-        difference: function(a, b) {
-            // Calculate the difference of two lists by contents.
-            //
-            // This function is like the underscore difference function
-            // except it will not fail when given a list with duplicates.
-            // i.e.:
-            //    diff([1, 2, 2, 3], [3, 2])
-            //    Underscores results:
-            //        [1]
-            //    This method:
-            //        [1, 2]
-            var contents = a.slice(0);
-            var found_index;
-            for (var i = 0; i < b.length; i++) {
-                found_index = _.indexOf(contents, b[i]);
-                if (found_index >= 0) {
-                    contents.splice(found_index, 1);
+            // Walk the lists until an unequal entry is found.
+            var i;
+            for (i = 0; i < new_list.length; i++) {
+                if (i < old_list.length || new_list[i] !== old_list[i]) {
+                    break;
                 }
             }
-            return contents;
+
+            // Remove the non-matching items from the old list.
+            for (var j = i; j < old_list.length; j++) {
+                removed_callback(old_list[j]);
+            }
+
+            // Add the rest of the new list items.
+            for (i; i < new_list.length; i++) {
+                added_callback(new_list[i]);
+            }
         },
 
         callbacks: function(){
