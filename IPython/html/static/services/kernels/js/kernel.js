@@ -15,13 +15,14 @@ define([
      * A Kernel Class to communicate with the Python kernel
      * @Class Kernel
      */
-    var Kernel = function (kernel_service_url, notebook) {
+    var Kernel = function (kernel_service_url, notebook, name) {
         this.events = notebook.events;
         this.kernel_id = null;
         this.shell_channel = null;
         this.iopub_channel = null;
         this.stdin_channel = null;
         this.kernel_service_url = kernel_service_url;
+        this.name = name;
         this.running = false;
         this.username = "username";
         this.session_id = utils.uuid();
