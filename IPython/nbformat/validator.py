@@ -12,7 +12,7 @@ except ImportError as e:
     
     Please install it first.
     """
-    raise ImportError(e.message + verbose_msg)
+    raise ImportError(str(e) + verbose_msg)
 
 try:
     import jsonpointer as jsonpointer
@@ -23,7 +23,7 @@ except ImportError as e:
     
     Please install it first.
     """
-    raise ImportError(e.message + verbose_msg)
+    raise ImportError(str(e) + verbose_msg)
 
 from IPython.utils.py3compat import iteritems
 
