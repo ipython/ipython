@@ -84,7 +84,7 @@ def module_list(path):
         # in its subdirectories. For performance reasons, do not
         # recurse more than one level into subdirectories.
         files = []
-        for root, dirs, nondirs in os.walk(path):
+        for root, dirs, nondirs in os.walk(path, followlinks=True):
             subdir = root[len(path)+1:]
             if subdir:
                 files.extend(pjoin(subdir, f) for f in nondirs)
