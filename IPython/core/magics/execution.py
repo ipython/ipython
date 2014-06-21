@@ -971,11 +971,11 @@ python-profiler package from non-free.""")
 
         if cell is None:
             # called as line magic
-            ast_setup = ast.parse("pass")
-            ast_stmt = ast.parse(transform(stmt))
+            ast_setup = self.shell.compile.ast_parse("pass")
+            ast_stmt = self.shell.compile.ast_parse(transform(stmt))
         else:
-            ast_setup = ast.parse(transform(stmt))
-            ast_stmt = ast.parse(transform(cell))
+            ast_setup = self.shell.compile.ast_parse(transform(stmt))
+            ast_stmt = self.shell.compile.ast_parse(transform(cell))
 
         ast_setup = self.shell.transform_ast(ast_setup)
         ast_stmt = self.shell.transform_ast(ast_stmt)
@@ -999,7 +999,7 @@ python-profiler package from non-free.""")
         tc_min = 0.1
 
         t0 = clock()
-        code = compile(timeit_ast, "<magic-timeit>", "exec")
+        code = self.shell.compile(timeit_ast, "<magic-timeit>", "exec")
         tc = clock()-t0
 
         ns = {}
@@ -1095,7 +1095,7 @@ python-profiler package from non-free.""")
         tp_min = 0.1
 
         t0 = clock()
-        expr_ast = ast.parse(expr)
+        expr_ast = self.shell.compile.ast_parse(expr)
         tp = clock()-t0
 
         # Apply AST transformations
@@ -1112,7 +1112,7 @@ python-profiler package from non-free.""")
             mode = 'exec'
             source = '<timed exec>'
         t0 = clock()
-        code = compile(expr_ast, source, mode)
+        code = self.shell.compile(expr_ast, source, mode)
         tc = clock()-t0
 
         # skew measurement as little as possible
