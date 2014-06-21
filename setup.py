@@ -274,7 +274,7 @@ extras_require = dict(
     terminal = [],
     nbformat = ['jsonschema>=2.0', 'jsonpointer>=1.3'],
     notebook = ['tornado>=3.1', 'pyzmq>=2.1.11', 'jinja2'],
-    nbconvert = ['pygments', 'jinja2', 'Sphinx>=0.3']
+    nbconvert = ['pygments', 'jinja2', 'Sphinx>=0.3', 'mistune']
 )
 
 if sys.version_info < (3, 3):

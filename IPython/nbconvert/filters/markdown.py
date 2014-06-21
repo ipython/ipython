@@ -18,13 +18,12 @@ from __future__ import print_function
 # Stdlib imports
 import os
 import subprocess
-import warnings
 from io import TextIOWrapper, BytesIO
 
-try:
-    import mistune
-except ImportError:
-    mistune = None
+import mistune
+from pygments import highlight
+from pygments.lexers import get_lexer_by_name
+from pygments.formatters import HtmlFormatter
 
 # IPython imports
 from IPython.nbconvert.utils.pandoc import pandoc
@@ -70,8 +69,25 @@ def markdown2latex(source):
     """
     return pandoc(source, 'markdown', 'latex')
 
-def markdown2html(source):
-    """Convert a markdown string to HTML"""
+
+class MyRenderer(mistune.Renderer):
+    def block_code(self, code, lang):
+        if not lang:
+            return '\n<pre><code>%s</code></pre>\n' % \
+                mistune.escape(code)
+        lexer = get_lexer_by_name(lang, stripall=True)
+        formatter = HtmlFormatter()
+        return highlight(code, lexer, formatter)
+
+def markdown2html_mistune(source):
+    """Convert a markdown string to HTML using mistune"""
+    return mistune.Markdown(renderer=MyRenderer()).render(source)
+
+def markdown2html_pandoc(source):
+    """Convert a markdown string to HTML via pandoc"""
+    return pandoc(source, 'markdown', 'html', extra_args=['--mathjax'])
+
+def _find_nodejs():
     global _node
     if _node is None:
         # prefer md2html via marked if node.js >= 0.9.12 is available
@@ -79,41 +95,11 @@ def markdown2html(source):
         _node = 'nodejs'
         if not _verify_node(_node):
             _node = 'node'
-            if not _verify_node(_node):
-                warnings.warn(  "Node.js 0.9.12 or later wasn't found.\n" +
-                                "Nbconvert will try to use Pandoc instead.")
-                _node = False
-    if _node:
-        return markdown2html_marked(source)
-    if mistune is not None:
-        return markdown2html_mistune(source)
-    else:
-        return markdown2html_pandoc(source)
-
-if mistune is not None:
-    from pygments import highlight
-    from pygments.lexers import get_lexer_by_name
-    from pygments.formatters import HtmlFormatter
-
-    class MyRenderer(mistune.Renderer):
-        def block_code(self, code, lang):
-            if not lang:
-                return '\n<pre><code>%s</code></pre>\n' % \
-                    mistune.escape(code)
-            lexer = get_lexer_by_name(lang, stripall=True)
-            formatter = HtmlFormatter()
-            return highlight(code, lexer, formatter)
-
-def markdown2html_mistune(source):
-    return mistune.Markdown(renderer=MyRenderer()).render(source)
-
-def markdown2html_pandoc(source):
-    """Convert a markdown string to HTML via pandoc"""
-    return pandoc(source, 'markdown', 'html', extra_args=['--mathjax'])
+    return _node
 
 def markdown2html_marked(source, encoding='utf-8'):
     """Convert a markdown string to HTML via marked"""
-    command = [_node, marked]
+    command = [_find_nodejs(), marked]
     try:
         p = subprocess.Popen(command,
                              stdin=subprocess.PIPE, stdout=subprocess.PIPE
@@ -126,6 +112,9 @@ def markdown2html_marked(source, encoding='utf-8'):
     out, _ = p.communicate(cast_bytes(source, encoding))
     out = TextIOWrapper(BytesIO(out), encoding, 'replace').read()
     return out.rstrip('\n')
+
+# The mistune renderer is the default, because it's simple to depend on it
+markdown2html = markdown2html_mistune
 
 def markdown2rst(source):
     """Convert a markdown string to ReST via pandoc.
