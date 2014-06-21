@@ -15,7 +15,7 @@ _ipython_get_flags()
     fi
     # matplotlib and profile don't need the = and the
     # version without simplifies the special cased completion
-    opts=$(ipython ${url} --help-all | grep -E "^-{1,2}[^-]" | sed -e "s/<.*//" -e "s/[^=]$/& /" -e "s/^--matplotlib=$//" -e "s/^--profile=$/--profile /")
+    opts=$(ipython ${url} --help-all | grep -E "^-{1,2}[^-]" | sed -e "s/<.*//" -e "s/[^=]$/& /" -e "s/^--matplotlib=$//" -e "s/^--profile=$/--profile /"  -e "$ s/^/\n-h\n--help\n--help-all\n/")
     __ipython_complete_last="$url $var"
     __ipython_complete_last_res="$opts"
 }
@@ -24,8 +24,8 @@ _ipython()
 {
     local cur=${COMP_WORDS[COMP_CWORD]}
     local prev=${COMP_WORDS[COMP_CWORD - 1]}
-    local subcommands="notebook qtconsole console kernel profile locate history nbconvert "
-    local opts=""
+    local subcommands="notebook qtconsole console kernel profile locate history nbconvert kernelspec install-nbextension trust "
+    local opts="help"
     if [ -z "$__ipython_complete_baseopts" ]; then
         _ipython_get_flags baseopts
         __ipython_complete_baseopts="${opts}"
@@ -50,13 +50,13 @@ _ipython()
                 _ipython_get_flags $mode
                 opts=$"${opts} ${baseopts}"
                 ;;
-            "locate" | "profile")
+            "locate" | "profile" | "install-nbextension" | "trust")
                 _ipython_get_flags $mode
                 ;;
-            "history")
+            "history" | "kernelspec")
                 if [[ $COMP_CWORD -ge 3 ]]; then
                     # 'history trim' and 'history clear' covered by next line
-                    _ipython_get_flags history\ "${COMP_WORDS[2]}"
+                    _ipython_get_flags $mode\ "${COMP_WORDS[2]}"
                 else
                     _ipython_get_flags $mode
 
@@ -83,8 +83,23 @@ _ipython()
         fi
         local IFS=$'\t\n'
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+    elif [[ $mode == "kernelspec" ]]; then
+        if [[ $COMP_CWORD -ge 3 ]]; then
+            # drop into flags
+            opts="--"
+        else
+            opts="list 	install "
+        fi
+        local IFS=$'\t\n'
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
     elif [[ $mode == "locate" ]]; then
-        opts="profile"
+        if [[ $COMP_CWORD -ge 3 ]]; then
+            # drop into flags
+            opts="--"
+        else
+            opts="profile "
+        fi
+        local IFS=$'\t\n'
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
     elif [[ ${prev} == "--matplotlib"* ]] || [[ ${prev} == "--gui"* ]]; then
         if [ -z "$__ipython_complete_matplotlib" ]; then
