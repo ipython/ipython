@@ -21,6 +21,11 @@ import subprocess
 import warnings
 from io import TextIOWrapper, BytesIO
 
+try:
+    import mistune
+except ImportError:
+    mistune = None
+
 # IPython imports
 from IPython.nbconvert.utils.pandoc import pandoc
 from IPython.nbconvert.utils.exceptions import ConversionException
@@ -38,6 +43,7 @@ __all__ = [
     'markdown2html',
     'markdown2html_pandoc',
     'markdown2html_marked',
+    'markdown2html_mistune',
     'markdown2latex',
     'markdown2rst',
 ]
@@ -79,8 +85,13 @@ def markdown2html(source):
                 _node = False
     if _node:
         return markdown2html_marked(source)
+    if mistune is not None:
+        return markdown2html_mistune(source)
     else:
         return markdown2html_pandoc(source)
+
+def markdown2html_mistune(source):
+    return mistune.markdown(source)
 
 def markdown2html_pandoc(source):
     """Convert a markdown string to HTML via pandoc"""
