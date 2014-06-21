@@ -453,8 +453,8 @@ def _strip_prompts(prompt_re, initial_re=None):
 def classic_prompt():
     """Strip the >>>/... prompts of the Python interactive shell."""
     # FIXME: non-capturing version (?:...) usable?
-    prompt_re = re.compile(r'^(>>> ?|\.\.\. ?)')
-    initial_re = re.compile(r'^(>>> ?)')
+    prompt_re = re.compile(r'^(>>>|\.\.\.)( |$)')
+    initial_re = re.compile(r'^>>>( |$)')
     return _strip_prompts(prompt_re, initial_re)
 
 @CoroutineInputTransformer.wrap
