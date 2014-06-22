@@ -39,7 +39,7 @@ Give it a shot--you'll love it or you'll hate it.
   Verbose).
 
 
-Installation instructions for ColorTB::
+Installation instructions for VerboseTB::
 
     import sys,ultratb
     sys.excepthook = ultratb.VerboseTB()
@@ -72,8 +72,8 @@ Inheritance diagram:
    :parts: 3
 """
 
-#*****************************************************************************
-#       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
+# *****************************************************************************
+# Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
 #       Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
 #
 #  Distributed under the terms of the BSD License.  The full license is in
@@ -95,14 +95,14 @@ import tokenize
 import traceback
 import types
 
-try:                           # Python 2
+try:  # Python 2
     generate_tokens = tokenize.generate_tokens
-except AttributeError:         # Python 3
+except AttributeError:  # Python 3
     generate_tokens = tokenize.tokenize
 
 # For purposes of monkeypatching inspect to fix a bug in it.
-from inspect import getsourcefile, getfile, getmodule,\
-     ismodule, isclass, ismethod, isfunction, istraceback, isframe, iscode
+from inspect import getsourcefile, getfile, getmodule, \
+    ismodule, isclass, ismethod, isfunction, istraceback, isframe, iscode
 
 # IPython's own modules
 # Modified pdb which doesn't damage IPython's readline handling
@@ -125,7 +125,7 @@ INDENT_SIZE = 8
 
 # Default color scheme.  This is used, for example, by the traceback
 # formatter.  When running in an actual IPython instance, the user's rc.colors
-# value is used, but havinga module global makes this functionality available
+# value is used, but having a module global makes this functionality available
 # to users of ultratb who are NOT running inside ipython.
 DEFAULT_SCHEME = 'NoColor'
 
@@ -140,6 +140,7 @@ def inspect_error():
 
     error('Internal Python error in the inspect module.\n'
           'Below is the traceback from this internal error.\n')
+
 
 # This function is a monkeypatch we apply to the Python inspect module. We have
 # now found when it's needed (see discussion on issue gh-1456), and we have a
@@ -212,7 +213,7 @@ def findsource(object):
         pmatch = pat.match
         # fperez - fix: sometimes, co_firstlineno can give a number larger than
         # the length of lines, which causes an error.  Safeguard against that.
-        lnum = min(object.co_firstlineno,len(lines))-1
+        lnum = min(object.co_firstlineno, len(lines)) - 1
         while lnum > 0:
             if pmatch(lines[lnum]): break
             lnum -= 1
@@ -220,9 +221,11 @@ def findsource(object):
         return lines, lnum
     raise IOError('could not find code object')
 
+
 # Monkeypatch inspect to apply our bugfix.
 def with_patch_inspect(f):
     """decorator for monkeypatching inspect.findsource"""
+
     def wrapped(*args, **kwargs):
         save_findsource = inspect.findsource
         inspect.findsource = findsource
@@ -230,7 +233,9 @@ def with_patch_inspect(f):
             return f(*args, **kwargs)
         finally:
             inspect.findsource = save_findsource
+
     return wrapped
+
 
 def fix_frame_records_filenames(records):
     """Try to fix the filenames in each record from inspect.getinnerframes().
@@ -253,10 +258,10 @@ def fix_frame_records_filenames(records):
 
 
 @with_patch_inspect
-def _fixed_getinnerframes(etb, context=1,tb_offset=0):
-    LNUM_POS, LINES_POS, INDEX_POS =  2, 4, 5
+def _fixed_getinnerframes(etb, context=1, tb_offset=0):
+    LNUM_POS, LINES_POS, INDEX_POS = 2, 4, 5
 
-    records  = fix_frame_records_filenames(inspect.getinnerframes(etb, context))
+    records = fix_frame_records_filenames(inspect.getinnerframes(etb, context))
 
     # If the error is at the console, don't build any context, since it would
     # otherwise produce 5 blank lines printed out (there is no file at the
@@ -272,9 +277,9 @@ def _fixed_getinnerframes(etb, context=1,tb_offset=0):
     aux = traceback.extract_tb(etb)
     assert len(records) == len(aux)
     for i, (file, lnum, _, _) in zip(range(len(records)), aux):
-        maybeStart = lnum-1 - context//2
-        start =  max(maybeStart, 0)
-        end   = start + context
+        maybeStart = lnum - 1 - context // 2
+        start = max(maybeStart, 0)
+        end = start + context
         lines = ulinecache.getlines(file)[start:end]
         buf = list(records[i])
         buf[LNUM_POS] = lnum
@@ -290,7 +295,8 @@ def _fixed_getinnerframes(etb, context=1,tb_offset=0):
 
 _parser = PyColorize.Parser()
 
-def _format_traceback_lines(lnum, index, lines, Colors, lvals=None,scheme=None):
+
+def _format_traceback_lines(lnum, index, lines, Colors, lvals=None, scheme=None):
     numbers_width = INDENT_SIZE - 1
     res = []
     i = lnum - index
@@ -315,7 +321,7 @@ def _format_traceback_lines(lnum, index, lines, Colors, lvals=None,scheme=None):
             # This is the line with the error
             pad = numbers_width - len(str(i))
             if pad >= 3:
-                marker = '-'*(pad-3) + '-> '
+                marker = '-' * (pad - 3) + '-> '
             elif pad == 2:
                 marker = '> '
             elif pad == 1:
@@ -323,12 +329,12 @@ def _format_traceback_lines(lnum, index, lines, Colors, lvals=None,scheme=None):
             else:
                 marker = ''
             num = marker + str(i)
-            line = '%s%s%s %s%s' %(Colors.linenoEm, num,
-                                   Colors.line, line, Colors.Normal)
+            line = '%s%s%s %s%s' % (Colors.linenoEm, num,
+                                    Colors.line, line, Colors.Normal)
         else:
-            num = '%*s' % (numbers_width,i)
-            line = '%s%s%s %s' %(Colors.lineno, num,
-                                 Colors.Normal, line)
+            num = '%*s' % (numbers_width, i)
+            line = '%s%s%s %s' % (Colors.lineno, num,
+                                  Colors.Normal, line)
 
         res.append(line)
         if lvals and i == lnum:
@@ -389,16 +395,16 @@ class TBTools(object):
 
     ostream = property(_get_ostream, _set_ostream)
 
-    def set_colors(self,*args,**kw):
+    def set_colors(self, *args, **kw):
         """Shorthand access to the color table scheme selector method."""
 
         # Set own color table
-        self.color_scheme_table.set_active_scheme(*args,**kw)
+        self.color_scheme_table.set_active_scheme(*args, **kw)
         # for convenience, set Colors to the active scheme
         self.Colors = self.color_scheme_table.active_colors
         # Also set colors of debugger
-        if hasattr(self,'pdb') and self.pdb is not None:
-            self.pdb.set_colors(*args,**kw)
+        if hasattr(self, 'pdb') and self.pdb is not None:
+            self.pdb.set_colors(*args, **kw)
 
     def color_toggle(self):
         """Toggle between the currently active color scheme and NoColor."""
@@ -453,7 +459,7 @@ class ListTB(TBTools):
     Because they are meant to be called without a full traceback (only a
     list), instances of this class can't call the interactive pdb debugger."""
 
-    def __init__(self,color_scheme = 'NoColor', call_pdb=False, ostream=None):
+    def __init__(self, color_scheme='NoColor', call_pdb=False, ostream=None):
         TBTools.__init__(self, color_scheme=color_scheme, call_pdb=call_pdb,
                          ostream=ostream)
 
@@ -497,7 +503,7 @@ class ListTB(TBTools):
                 elist = elist[tb_offset:]
 
             out_list.append('Traceback %s(most recent call last)%s:' %
-                                (Colors.normalEm, Colors.Normal) + '\n')
+                            (Colors.normalEm, Colors.Normal) + '\n')
             out_list.extend(self._format_list(elist))
         # The exception info should be a single entry in the list.
         lines = ''.join(self._format_exception_only(etype, value))
@@ -532,23 +538,23 @@ class ListTB(TBTools):
         list = []
         for filename, lineno, name, line in extracted_list[:-1]:
             item = '  File %s"%s"%s, line %s%d%s, in %s%s%s\n' % \
-                    (Colors.filename, filename, Colors.Normal,
-                     Colors.lineno, lineno, Colors.Normal,
-                     Colors.name, name, Colors.Normal)
+                   (Colors.filename, filename, Colors.Normal,
+                    Colors.lineno, lineno, Colors.Normal,
+                    Colors.name, name, Colors.Normal)
             if line:
                 item += '    %s\n' % line.strip()
             list.append(item)
         # Emphasize the last entry
         filename, lineno, name, line = extracted_list[-1]
         item = '%s  File %s"%s"%s, line %s%d%s, in %s%s%s%s\n' % \
-                (Colors.normalEm,
-                 Colors.filenameEm, filename, Colors.normalEm,
-                 Colors.linenoEm, lineno, Colors.normalEm,
-                 Colors.nameEm, name, Colors.normalEm,
-                 Colors.Normal)
+               (Colors.normalEm,
+                Colors.filenameEm, filename, Colors.normalEm,
+                Colors.linenoEm, lineno, Colors.normalEm,
+                Colors.nameEm, name, Colors.normalEm,
+                Colors.Normal)
         if line:
             item += '%s    %s%s\n' % (Colors.line, line.strip(),
-                                            Colors.Normal)
+                                      Colors.Normal)
         list.append(item)
         #from pprint import pformat; print 'LISTTB', pformat(list) # dbg
         return list
@@ -572,7 +578,7 @@ class ListTB(TBTools):
         stype = Colors.excName + etype.__name__ + Colors.Normal
         if value is None:
             # Not sure if this can still happen in Python 2.6 and above
-            list.append( py3compat.cast_unicode(stype) + '\n')
+            list.append(py3compat.cast_unicode(stype) + '\n')
         else:
             if issubclass(etype, SyntaxError):
                 have_filedata = True
@@ -585,9 +591,9 @@ class ListTB(TBTools):
                     lineno = 'unknown'
                     textline = ''
                 list.append('%s  File %s"%s"%s, line %s%s%s\n' % \
-                        (Colors.normalEm,
-                         Colors.filenameEm, py3compat.cast_unicode(value.filename), Colors.normalEm,
-                         Colors.linenoEm, lineno, Colors.Normal  ))
+                            (Colors.normalEm,
+                             Colors.filenameEm, py3compat.cast_unicode(value.filename), Colors.normalEm,
+                             Colors.linenoEm, lineno, Colors.Normal  ))
                 if textline == '':
                     textline = py3compat.cast_unicode(value.text, "utf-8")
 
@@ -600,13 +606,13 @@ class ListTB(TBTools):
                                                   Colors.Normal))
                     if value.offset is not None:
                         s = '    '
-                        for c in textline[i:value.offset-1]:
+                        for c in textline[i:value.offset - 1]:
                             if c.isspace():
                                 s += c
                             else:
                                 s += ' '
                         list.append('%s%s^%s\n' % (Colors.caret, s,
-                                                   Colors.Normal) )
+                                                   Colors.Normal))
 
             try:
                 s = value.msg
@@ -636,7 +642,6 @@ class ListTB(TBTools):
         """
         return ListTB.structured_traceback(self, etype, value, [])
 
-
     def show_exception_only(self, etype, evalue):
         """Only print the exception type and message, without a traceback.
 
@@ -659,6 +664,7 @@ class ListTB(TBTools):
         except:
             return '<unprintable %s object>' % type(value).__name__
 
+
 #----------------------------------------------------------------------------
 class VerboseTB(TBTools):
     """A port of Ka-Ping Yee's cgitb.py module that outputs color text instead
@@ -668,7 +674,7 @@ class VerboseTB(TBTools):
     traceback, to be used with alternate interpreters (because their own code
     would appear in the traceback)."""
 
-    def __init__(self,color_scheme = 'Linux', call_pdb=False, ostream=None,
+    def __init__(self, color_scheme='Linux', call_pdb=False, ostream=None,
                  tb_offset=0, long_header=False, include_vars=True,
                  check_cache=None):
         """Specify traceback offset, headers and color scheme.
@@ -702,13 +708,13 @@ class VerboseTB(TBTools):
             etype = etype.__name__
         except AttributeError:
             pass
-        Colors        = self.Colors   # just a shorthand + quicker name lookup
-        ColorsNormal  = Colors.Normal  # used a lot
-        col_scheme    = self.color_scheme_table.active_scheme_name
-        indent        = ' '*INDENT_SIZE
-        em_normal     = '%s\n%s%s' % (Colors.valEm, indent,ColorsNormal)
-        undefined     = '%sundefined%s' % (Colors.em, ColorsNormal)
-        exc = '%s%s%s' % (Colors.excName,etype,ColorsNormal)
+        Colors = self.Colors  # just a shorthand + quicker name lookup
+        ColorsNormal = Colors.Normal  # used a lot
+        col_scheme = self.color_scheme_table.active_scheme_name
+        indent = ' ' * INDENT_SIZE
+        em_normal = '%s\n%s%s' % (Colors.valEm, indent, ColorsNormal)
+        undefined = '%sundefined%s' % (Colors.em, ColorsNormal)
+        exc = '%s%s%s' % (Colors.excName, etype, ColorsNormal)
 
         # some internal-use functions
         def text_repr(value):
@@ -738,8 +744,12 @@ class VerboseTB(TBTools):
                         raise
                     except:
                         return 'UNRECOVERABLE REPR FAILURE'
-        def eqrepr(value, repr=text_repr): return '=%s' % repr(value)
-        def nullrepr(value, repr=text_repr): return ''
+
+        def eqrepr(value, repr=text_repr):
+            return '=%s' % repr(value)
+
+        def nullrepr(value, repr=text_repr):
+            return ''
 
         # meat of the code begins
         try:
@@ -752,16 +762,16 @@ class VerboseTB(TBTools):
             pyver = 'Python ' + sys.version.split()[0] + ': ' + sys.executable
             date = time.ctime(time.time())
 
-            head = '%s%s%s\n%s%s%s\n%s' % (Colors.topline, '-'*75, ColorsNormal,
-                                           exc, ' '*(75-len(str(etype))-len(pyver)),
+            head = '%s%s%s\n%s%s%s\n%s' % (Colors.topline, '-' * 75, ColorsNormal,
+                                           exc, ' ' * (75 - len(str(etype)) - len(pyver)),
                                            pyver, date.rjust(75) )
-            head += "\nA problem occured executing Python code.  Here is the sequence of function"\
+            head += "\nA problem occured executing Python code.  Here is the sequence of function" \
                     "\ncalls leading up to the error, with the most recent (innermost) call last."
         else:
             # Simplified header
-            head = '%s%s%s\n%s%s' % (Colors.topline, '-'*75, ColorsNormal,exc,
-                                     'Traceback (most recent call last)'.\
-                                                  rjust(75 - len(str(etype)) ) )
+            head = '%s%s%s\n%s%s' % (Colors.topline, '-' * 75, ColorsNormal, exc,
+                                     'Traceback (most recent call last)'. \
+                                     rjust(75 - len(str(etype))) )
         frames = []
         # Flush cache before calling inspect.  This helps alleviate some of the
         # problems with python 2.3's inspect.py.
@@ -789,18 +799,18 @@ class VerboseTB(TBTools):
             return ''
 
         # build some color string templates outside these nested loops
-        tpl_link       = '%s%%s%s' % (Colors.filenameEm,ColorsNormal)
-        tpl_call       = 'in %s%%s%s%%s%s' % (Colors.vName, Colors.valEm,
-                                              ColorsNormal)
-        tpl_call_fail  = 'in %s%%s%s(***failed resolving arguments***)%s' % \
-                         (Colors.vName, Colors.valEm, ColorsNormal)
-        tpl_local_var  = '%s%%s%s' % (Colors.vName, ColorsNormal)
+        tpl_link = '%s%%s%s' % (Colors.filenameEm, ColorsNormal)
+        tpl_call = 'in %s%%s%s%%s%s' % (Colors.vName, Colors.valEm,
+                                        ColorsNormal)
+        tpl_call_fail = 'in %s%%s%s(***failed resolving arguments***)%s' % \
+                        (Colors.vName, Colors.valEm, ColorsNormal)
+        tpl_local_var = '%s%%s%s' % (Colors.vName, ColorsNormal)
         tpl_global_var = '%sglobal%s %s%%s%s' % (Colors.em, ColorsNormal,
                                                  Colors.vName, ColorsNormal)
-        tpl_name_val   = '%%s %s= %%s%s' % (Colors.valEm, ColorsNormal)
-        tpl_line       = '%s%%s%s %%s' % (Colors.lineno, ColorsNormal)
-        tpl_line_em    = '%s%%s%s %%s%s' % (Colors.linenoEm,Colors.line,
-                                            ColorsNormal)
+        tpl_name_val = '%%s %s= %%s%s' % (Colors.valEm, ColorsNormal)
+        tpl_line = '%s%%s%s %%s' % (Colors.lineno, ColorsNormal)
+        tpl_line_em = '%s%%s%s %%s%s' % (Colors.linenoEm, Colors.line,
+                                         ColorsNormal)
 
         # now, loop over all records printing context and info
         abspath = os.path.abspath
@@ -808,7 +818,7 @@ class VerboseTB(TBTools):
             #print '*** record:',file,lnum,func,lines,index  # dbg
             if not file:
                 file = '?'
-            elif not(file.startswith(str("<")) and file.endswith(str(">"))):
+            elif not (file.startswith(str("<")) and file.endswith(str(">"))):
                 # Guess that filenames like <string> aren't real filenames, so
                 # don't call abspath on them.                    
                 try:
@@ -827,9 +837,9 @@ class VerboseTB(TBTools):
                 # Decide whether to include variable details or not
                 var_repr = self.include_vars and eqrepr or nullrepr
                 try:
-                    call = tpl_call % (func,inspect.formatargvalues(args,
-                                                varargs, varkw,
-                                                locals,formatvalue=var_repr))
+                    call = tpl_call % (func, inspect.formatargvalues(args,
+                                                                     varargs, varkw,
+                                                                     locals, formatvalue=var_repr))
                 except KeyError:
                     # This happens in situations like errors inside generator
                     # expressions, where local variables are listed in the
@@ -848,12 +858,12 @@ class VerboseTB(TBTools):
                     # will illustrate the error, if this exception catch is
                     # disabled.
                     call = tpl_call_fail % func
-            
+
             # Don't attempt to tokenize binary files.
             if file.endswith(('.so', '.pyd', '.dll')):
-                frames.append('%s %s\n' % (link,call))
+                frames.append('%s %s\n' % (link, call))
                 continue
-            elif file.endswith(('.pyc','.pyo')):
+            elif file.endswith(('.pyc', '.pyo')):
                 # Look up the corresponding source file.
                 file = openpy.source_from_cache(file)
 
@@ -867,7 +877,7 @@ class VerboseTB(TBTools):
             try:
                 names = []
                 name_cont = False
-                
+
                 for token_type, token, start, end, line in generate_tokens(linereader):
                     # build composite names
                     if token_type == tokenize.NAME and token not in keyword.kwlist:
@@ -890,7 +900,7 @@ class VerboseTB(TBTools):
                         name_cont = True
                     elif token_type == tokenize.NEWLINE:
                         break
-                        
+
             except (IndexError, UnicodeDecodeError):
                 # signals exit of tokenizer
                 pass
@@ -909,11 +919,11 @@ class VerboseTB(TBTools):
             lvals = []
             if self.include_vars:
                 for name_full in unique_names:
-                    name_base = name_full.split('.',1)[0]
+                    name_base = name_full.split('.', 1)[0]
                     if name_base in frame.f_code.co_varnames:
                         if name_base in locals:
                             try:
-                                value = repr(eval(name_full,locals))
+                                value = repr(eval(name_full, locals))
                             except:
                                 value = undefined
                         else:
@@ -922,34 +932,34 @@ class VerboseTB(TBTools):
                     else:
                         if name_base in frame.f_globals:
                             try:
-                                value = repr(eval(name_full,frame.f_globals))
+                                value = repr(eval(name_full, frame.f_globals))
                             except:
                                 value = undefined
                         else:
                             value = undefined
                         name = tpl_global_var % name_full
-                    lvals.append(tpl_name_val % (name,value))
+                    lvals.append(tpl_name_val % (name, value))
             if lvals:
-                lvals = '%s%s' % (indent,em_normal.join(lvals))
+                lvals = '%s%s' % (indent, em_normal.join(lvals))
             else:
                 lvals = ''
 
-            level = '%s %s\n' % (link,call)
+            level = '%s %s\n' % (link, call)
 
             if index is None:
                 frames.append(level)
             else:
-                frames.append('%s%s' % (level,''.join(
-                    _format_traceback_lines(lnum,index,lines,Colors,lvals,
+                frames.append('%s%s' % (level, ''.join(
+                    _format_traceback_lines(lnum, index, lines, Colors, lvals,
                                             col_scheme))))
 
         # Get (safely) a string form of the exception info
         try:
-            etype_str,evalue_str = map(str,(etype,evalue))
+            etype_str, evalue_str = map(str, (etype, evalue))
         except:
             # User exception is improperly defined.
-            etype,evalue = str,sys.exc_info()[:2]
-            etype_str,evalue_str = map(str,(etype,evalue))
+            etype, evalue = str, sys.exc_info()[:2]
+            etype_str, evalue_str = map(str, (etype, evalue))
         # ... and format it
         exception = ['%s%s%s: %s' % (Colors.excName, etype_str,
                                      ColorsNormal, py3compat.cast_unicode(evalue_str))]
@@ -961,10 +971,10 @@ class VerboseTB(TBTools):
                 # when dir() is called on it.  We do the best we can to report
                 # the problem and continue
                 _m = '%sException reporting error (object with broken dir())%s:'
-                exception.append(_m % (Colors.excName,ColorsNormal))
-                etype_str,evalue_str = map(str,sys.exc_info()[:2])
-                exception.append('%s%s%s: %s' % (Colors.excName,etype_str,
-                                     ColorsNormal, py3compat.cast_unicode(evalue_str)))
+                exception.append(_m % (Colors.excName, ColorsNormal))
+                etype_str, evalue_str = map(str, sys.exc_info()[:2])
+                exception.append('%s%s%s: %s' % (Colors.excName, etype_str,
+                                                 ColorsNormal, py3compat.cast_unicode(evalue_str)))
                 names = []
             for name in names:
                 value = text_repr(getattr(evalue, name))
@@ -972,19 +982,19 @@ class VerboseTB(TBTools):
 
         # vds: >>
         if records:
-             filepath, lnum = records[-1][1:3]
-             #print "file:", str(file), "linenb", str(lnum) # dbg
-             filepath = os.path.abspath(filepath)
-             ipinst = get_ipython()
-             if ipinst is not None:
-                 ipinst.hooks.synchronize_with_editor(filepath, lnum, 0)
+            filepath, lnum = records[-1][1:3]
+            #print "file:", str(file), "linenb", str(lnum) # dbg
+            filepath = os.path.abspath(filepath)
+            ipinst = get_ipython()
+            if ipinst is not None:
+                ipinst.hooks.synchronize_with_editor(filepath, lnum, 0)
         # vds: <<
 
         # return all our info assembled as a single string
         # return '%s\n\n%s\n%s' % (head,'\n'.join(frames),''.join(exception[0]) )
         return [head] + frames + [''.join(exception[0])]
 
-    def debugger(self,force=False):
+    def debugger(self, force=False):
         """Call up the pdb debugger if desired, always clean up the tb
         reference.
 
@@ -1014,7 +1024,7 @@ class VerboseTB(TBTools):
             with display_trap:
                 self.pdb.reset()
                 # Find the right frame so we don't pop up inside ipython itself
-                if hasattr(self,'tb') and self.tb is not None:
+                if hasattr(self, 'tb') and self.tb is not None:
                     etb = self.tb
                 else:
                     etb = self.tb = sys.last_traceback
@@ -1025,7 +1035,7 @@ class VerboseTB(TBTools):
                 self.pdb.botframe = etb.tb_frame
                 self.pdb.interaction(self.tb.tb_frame, self.tb)
 
-        if hasattr(self,'tb'):
+        if hasattr(self, 'tb'):
             del self.tb
 
     def handler(self, info=None):
@@ -1050,6 +1060,7 @@ class VerboseTB(TBTools):
         except KeyboardInterrupt:
             print("\nKeyboardInterrupt")
 
+
 #----------------------------------------------------------------------------
 class FormattedTB(VerboseTB, ListTB):
     """Subclass ListTB but allow calling with a traceback.
@@ -1069,7 +1080,7 @@ class FormattedTB(VerboseTB, ListTB):
                  check_cache=None):
 
         # NEVER change the order of this list. Put new modes at the end:
-        self.valid_modes = ['Plain','Context','Verbose']
+        self.valid_modes = ['Plain', 'Context', 'Verbose']
         self.verbose_modes = self.valid_modes[1:3]
 
         VerboseTB.__init__(self, color_scheme=color_scheme, call_pdb=call_pdb,
@@ -1083,7 +1094,7 @@ class FormattedTB(VerboseTB, ListTB):
         # set_mode also sets the tb_join_char attribute
         self.set_mode(mode)
 
-    def _extract_tb(self,tb):
+    def _extract_tb(self, tb):
         if tb:
             return traceback.extract_tb(tb)
         else:
@@ -1112,7 +1123,7 @@ class FormattedTB(VerboseTB, ListTB):
         return self.tb_join_char.join(stb)
 
 
-    def set_mode(self,mode=None):
+    def set_mode(self, mode=None):
         """Switch to the desired mode.
 
         If mode is not specified, cycles through the available modes."""
@@ -1122,8 +1133,8 @@ class FormattedTB(VerboseTB, ListTB):
                       len(self.valid_modes)
             self.mode = self.valid_modes[new_idx]
         elif mode not in self.valid_modes:
-            raise ValueError('Unrecognized mode in FormattedTB: <'+mode+'>\n'
-                             'Valid modes: '+str(self.valid_modes))
+            raise ValueError('Unrecognized mode in FormattedTB: <' + mode + '>\n'
+                                                                            'Valid modes: ' + str(self.valid_modes))
         else:
             self.mode = mode
         # include variable details only in 'Verbose' mode
@@ -1131,7 +1142,7 @@ class FormattedTB(VerboseTB, ListTB):
         # Set the join character for generating text tracebacks
         self.tb_join_char = self._join_chars[self.mode]
 
-    # some convenient shorcuts
+    # some convenient shortcuts
     def plain(self):
         self.set_mode(self.valid_modes[0])
 
@@ -1140,6 +1151,7 @@ class FormattedTB(VerboseTB, ListTB):
 
     def verbose(self):
         self.set_mode(self.valid_modes[2])
+
 
 #----------------------------------------------------------------------------
 class AutoFormattedTB(FormattedTB):
@@ -1156,8 +1168,8 @@ class AutoFormattedTB(FormattedTB):
           AutoTB()  # or AutoTB(out=logfile) where logfile is an open file object
     """
 
-    def __call__(self,etype=None,evalue=None,etb=None,
-                 out=None,tb_offset=None):
+    def __call__(self, etype=None, evalue=None, etb=None,
+                 out=None, tb_offset=None):
         """Print out a formatted exception traceback.
 
         Optional arguments:
@@ -1166,7 +1178,6 @@ class AutoFormattedTB(FormattedTB):
           - tb_offset: the number of frames to skip over in the stack, on a
           per-call basis (this overrides temporarily the instance's tb_offset
           given at initialization time.  """
-
 
         if out is None:
             out = self.ostream
@@ -1184,31 +1195,33 @@ class AutoFormattedTB(FormattedTB):
     def structured_traceback(self, etype=None, value=None, tb=None,
                              tb_offset=None, context=5):
         if etype is None:
-            etype,value,tb = sys.exc_info()
+            etype, value, tb = sys.exc_info()
         self.tb = tb
         return FormattedTB.structured_traceback(
             self, etype, value, tb, tb_offset, context)
+
 
 #---------------------------------------------------------------------------
 
 # A simple class to preserve Nathan's original functionality.
 class ColorTB(FormattedTB):
     """Shorthand to initialize a FormattedTB in Linux colors mode."""
-    def __init__(self,color_scheme='Linux',call_pdb=0):
-        FormattedTB.__init__(self,color_scheme=color_scheme,
+
+    def __init__(self, color_scheme='Linux', call_pdb=0):
+        FormattedTB.__init__(self, color_scheme=color_scheme,
                              call_pdb=call_pdb)
 
 
 class SyntaxTB(ListTB):
     """Extension which holds some state: the last exception value"""
 
-    def __init__(self,color_scheme = 'NoColor'):
-        ListTB.__init__(self,color_scheme)
+    def __init__(self, color_scheme='NoColor'):
+        ListTB.__init__(self, color_scheme)
         self.last_syntax_error = None
 
     def __call__(self, etype, value, elist):
         self.last_syntax_error = value
-        ListTB.__call__(self,etype,value,elist)
+        ListTB.__call__(self, etype, value, elist)
 
     def structured_traceback(self, etype, value, elist, tb_offset=None,
                              context=5):
@@ -1223,7 +1236,7 @@ class SyntaxTB(ListTB):
             if newtext:
                 value.text = newtext
         return super(SyntaxTB, self).structured_traceback(etype, value, elist,
-                             tb_offset=tb_offset, context=context)
+                                                          tb_offset=tb_offset, context=context)
 
     def clear_err_state(self):
         """Return the current error state and clear it"""
