@@ -8,7 +8,8 @@ define([
     'base/js/security',
     'notebook/js/mathjaxutils',
     'notebook/js/celltoolbar',
-], function(IPython, $, cell, security, mathjaxutils, celltoolbar) {
+    'components/marked/lib/marked',
+], function(IPython, $, cell, security, mathjaxutils, celltoolbar, marked) {
     "use strict";
     var Cell = cell.Cell;
 
