@@ -43,6 +43,7 @@ require([
 
     var common_options = {
         base_url : utils.get_body_data("baseUrl"),
+        ws_url : IPython.utils.get_body_data("wsUrl"),
         notebook_path : utils.get_body_data("notebookPath"),
         notebook_name : utils.get_body_data('notebookName')
     };
