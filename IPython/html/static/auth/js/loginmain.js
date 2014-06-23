@@ -3,8 +3,10 @@
 
 var ipython = ipython || {};
 require(['base/js/page'], function(page) {
-    ipython.page = new page.Page();
+    var page_instance = new page.Page();
     $('button#login_submit').addClass("btn btn-default");
-    ipython.page.show();
+    page_instance.show();
     $('input#password_input').focus();
+    
+    ipython.page = page_instance;
 });

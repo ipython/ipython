@@ -63,8 +63,6 @@ require([
     var notification_area = new notificationarea.NotificationArea('#notification_area', events, save_widget, notebook);
     notification_area.init_notification_widgets();
 
-    layout_manager.do_resize();
-
     $('body').append('<div id="fonttest"><pre><span id="test1">x</span>'+
                      '<span id="test2" style="font-weight: bold;">x</span>'+
                      '<span id="test3" style="font-style: italic;">x</span></pre></div>');

@@ -42,14 +42,14 @@ define([
         this.config = config;
         this.events = events;
         this.keyboard_manager = keyboard_manager;
+        // TODO: This code smells (and the other `= this` line a couple lines down)
+        // We need a better way to deal with circular instance references.
         keyboard_manager.notebook = this;
         this.save_widget = save_widget;
         save_widget.notebook = this;
         
         mathjaxutils.init();
 
-        
-        window.marked = window.marked || marked;
         if (marked) {
             marked.setOptions({
                 gfm : true,

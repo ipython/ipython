@@ -146,13 +146,13 @@ define([
         modal.on('shown.bs.modal', function(){ editor.refresh(); });
     };
     
-    var Dialog = {
+    var dialog = {
         modal : modal,
         edit_metadata : edit_metadata,
     };
 
     // Backwards compatability.
-    IPython.Dialog = Dialog;
+    IPython.Dialog = dialog;
 
-    return Dialog;
+    return dialog;
 });

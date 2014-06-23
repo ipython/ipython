@@ -526,7 +526,7 @@ define([
         console.log(msg);
     };
 
-    var Utils = {
+    var utils = {
         regex_split : regex_split,
         uuid : uuid,
         fixConsole : fixConsole,
@@ -551,7 +551,7 @@ define([
     };
 
     // Backwards compatability.
-    IPython.Utils = Utils;
+    IPython.Utils = utils;
     
-    return Utils;
+    return utils;
 }); 
