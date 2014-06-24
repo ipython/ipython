@@ -8,8 +8,8 @@ define([
 ], function(IPython, $, notebooklist) {
     "use strict";
 
-    var KernelList = function (selector, options, session_list) {
-        notebooklist.NotebookList.call(this, selector, options, 'running', session_list);
+    var KernelList = function (selector, options) {
+        notebooklist.NotebookList.call(this, selector, options, 'running', options.session_list);
     };
 
     KernelList.prototype = Object.create(notebooklist.NotebookList.prototype);

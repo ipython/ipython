@@ -24,18 +24,18 @@ define([
      *      $('body').data('baseUrl');
      *      does not support change for now is set through this option
      */
-    var MenuBar = function (selector, options, notebook, layout_manager, events, save_widget, quick_help) {
+    var MenuBar = function (selector, options) {
         options = options || {};
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
         this.selector = selector;
-        this.notebook = notebook;
-        this.layout_manager = layout_manager;
-        this.events = events;
-        this.save_widget = save_widget;
-        this.quick_help = quick_help;
+        this.notebook = options.notebook;
+        this.layout_manager = options.layout_manager;
+        this.events = options.events;
+        this.save_widget = options.save_widget;
+        this.quick_help = options.quick_help;
 
         try {
-            this.tour = new tour.Tour(notebook, events);
+            this.tour = new tour.Tour(options.notebook, options.events);
         } catch (e) {
             this.tour = undefined;
             console.log("Failed to instantiate Notebook Tour", e);

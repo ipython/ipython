@@ -1,7 +1,6 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-var ipython = ipython || {};
 require([
     'base/js/namespace',
     'jquery',
@@ -29,16 +28,19 @@ require([
 
     page = new page.Page();
     
-    var opts = {
+    var options = {
         base_url: utils.get_body_data("baseUrl"),
         notebook_path: utils.get_body_data("notebookPath"),
     };
+
     events = $([new events.Events()]);
-    session_list = new sesssionlist.SesssionList(opts, events);
-    notebook_list = new notebooklist.NotebookList('#notebook_list', opts, undefined, session_list);
-    cluster_list = new clusterlist.ClusterList('#cluster_list', opts);
-    kernel_list = new kernellist.KernelList('#running_list', opts, session_list);
-    login_widget = new loginwidget.LoginWidget('#login_widget', opts);
+    options.events = events;
+    session_list = new sesssionlist.SesssionList(options); 
+    options.session_list = session_list;
+    notebook_list = new notebooklist.NotebookList('#notebook_list', options, undefined);
+    cluster_list = new clusterlist.ClusterList('#cluster_list', options);
+    kernel_list = new kernellist.KernelList('#running_list', options); 
+    login_widget = new loginwidget.LoginWidget('#login_widget', options);
 
     $('#new_notebook').button().click(function (e) {
         notebook_list.new_notebook();
@@ -104,11 +106,11 @@ require([
     }
 
     // For backwards compatability.
-    ipython.page = page;
-    ipython.notebook_list = notebook_list;
-    ipython.cluster_list = cluster_list;
-    ipython.session_list = session_list;
-    ipython.kernel_list = kernel_list;
-    ipython.login_widget = login_widget;
-    ipython.events = events;
+    IPython.page = page;
+    IPython.notebook_list = notebook_list;
+    IPython.cluster_list = cluster_list;
+    IPython.session_list = session_list;
+    IPython.kernel_list = kernel_list;
+    IPython.login_widget = login_widget;
+    IPython.events = events;
 });
