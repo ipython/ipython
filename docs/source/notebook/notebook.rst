@@ -64,7 +64,7 @@ colleagues.
 .. _JSON: http://en.wikipedia.org/wiki/JSON
 
 Notebooks may be exported to a range of static formats, including HTML (for
-example, for blog posts), reStructeredText, LaTeX, PDF, and slide shows, via
+example, for blog posts), reStructuredText, LaTeX, PDF, and slide shows, via
 the new :ref:`nbconvert <nbconvert>` command.
 
 Furthermore, any  ``.ipynb`` notebook document available from a public 
