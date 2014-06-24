@@ -1,4 +1,3 @@
-import pprint
 from base64 import decodestring
 from unittest import TestCase
 
@@ -8,8 +7,6 @@ from .. import nbjson
 from .nbexamples import nb0
 
 from . import formattest
-
-from .nbexamples import nb0
 
 
 class TestJSON(formattest.NBFormatTest, TestCase):
@@ -36,13 +33,13 @@ class TestJSON(formattest.NBFormatTest, TestCase):
         s = writes(nb0)
         nb1 = nbjson.reads(s)
         found_png = False
-        for cell in nb1.worksheets[0].cells:
+        for cell in nb1.cells:
             if not 'outputs' in cell:
                 continue
             for output in cell.outputs:
-                if 'png' in output:
+                if 'image/png' in output:
                     found_png = True
-                    pngdata = output['png']
+                    pngdata = output['image/png']
                     self.assertEqual(type(pngdata), unicode_type)
                     # test that it is valid b64 data
                     b64bytes = pngdata.encode('ascii')
@@ -54,13 +51,13 @@ class TestJSON(formattest.NBFormatTest, TestCase):
         s = writes(nb0)
         nb1 = nbjson.reads(s)
         found_jpeg = False
-        for cell in nb1.worksheets[0].cells:
+        for cell in nb1.cells:
             if not 'outputs' in cell:
                 continue
             for output in cell.outputs:
-                if 'jpeg' in output:
+                if 'image/jpeg' in output:
                     found_jpeg = True
-                    jpegdata = output['jpeg']
+                    jpegdata = output['image/jpeg']
                     self.assertEqual(type(jpegdata), unicode_type)
                     # test that it is valid b64 data
                     b64bytes = jpegdata.encode('ascii')

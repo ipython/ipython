@@ -6,13 +6,7 @@ import tempfile
 
 pjoin = os.path.join
 
-from ..nbbase import (
-    NotebookNode,
-    new_code_cell, new_text_cell, new_worksheet, new_notebook
-)
-
-from ..nbpy import reads, writes, read, write
-from .nbexamples import nb0, nb0_py
+from .nbexamples import nb0
 
 
 def open_utf8(fname, mode):
