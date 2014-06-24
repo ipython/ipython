@@ -14,19 +14,11 @@ itself from the command line. There are two ways of running this script:
 
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2009-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 from __future__ import print_function
 
-# Stdlib
 import glob
 from io import BytesIO
 import os
@@ -35,7 +27,6 @@ import sys
 from threading import Thread, Lock, Event
 import warnings
 
-# Now, proceed to import nose itself
 import nose.plugins.builtin
 from nose.plugins.xunit import Xunit
 from nose import SkipTest
@@ -43,7 +34,6 @@ from nose.core import TestProgram
 from nose.plugins import Plugin
 from nose.util import safe_str
 
-# Our own imports
 from IPython.utils.process import is_cmd_found
 from IPython.utils.importstring import import_item
 from IPython.testing.plugin.ipdoctest import IPythonDoctest
@@ -148,7 +138,6 @@ have['mistune'] = test_for('mistune')
 have['requests'] = test_for('requests')
 have['sphinx'] = test_for('sphinx')
 have['jsonschema'] = test_for('jsonschema')
-have['jsonpointer'] = test_for('jsonpointer')
 have['casperjs'] = is_cmd_found('casperjs')
 have['phantomjs'] = is_cmd_found('phantomjs')
 have['slimerjs'] = is_cmd_found('slimerjs')
@@ -268,7 +257,7 @@ test_sections['qt'].requires('zmq', 'qt', 'pygments')
 
 # html:
 sec = test_sections['html']
-sec.requires('zmq', 'tornado', 'requests', 'sqlite3', 'jsonschema', 'jsonpointer')
+sec.requires('zmq', 'tornado', 'requests', 'sqlite3', 'jsonschema')
 # The notebook 'static' directory contains JS, css and other
 # files for web serving.  Occasionally projects may put a .py
 # file in there (MathJax ships a conf.py), so we might as
@@ -286,7 +275,7 @@ test_sections['config'].exclude('profile')
 
 # nbconvert:
 sec = test_sections['nbconvert']
-sec.requires('pygments', 'jinja2', 'jsonschema', 'jsonpointer', 'mistune')
+sec.requires('pygments', 'jinja2', 'jsonschema', 'mistune')
 # Exclude nbconvert directories containing config files used to test.
 # Executing the config files with iptest would cause an exception.
 sec.exclude('tests.files')
@@ -296,7 +285,7 @@ if not have['tornado']:
     sec.exclude('nbconvert.post_processors.tests.test_serve')
 
 # nbformat:
-test_sections['nbformat'].requires('jsonschema', 'jsonpointer')
+test_sections['nbformat'].requires('jsonschema')
 
 #-----------------------------------------------------------------------------
 # Functions and classes
