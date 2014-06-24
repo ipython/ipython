@@ -6,7 +6,7 @@ import json
 import os
 
 try:
-    from jsonschema import SchemaError
+    from jsonschema import ValidationError
     from jsonschema import Draft4Validator as Validator
 except ImportError as e:
     verbose_msg = """
@@ -25,6 +25,19 @@ schema_path = os.path.join(
     os.path.dirname(__file__), nbformat_schema,
 )
 
+validator = None
+
+def _load_schema():
+    """Load the JSON schema into the global Validator"""
+    global validator
+    if validator is None:
+        # load the schema file
+        with open(schema_path, 'r') as fh:
+            schema_json = json.load(fh)
+
+        # create the validator
+        validator = Validator(schema_json)
+    return validator
 
 def isvalid(nbjson, ref=None):
     """Checks whether the given notebook JSON conforms to the current
@@ -34,33 +47,23 @@ def isvalid(nbjson, ref=None):
     To see the individual errors that were encountered, please use the
     `validate` function instead.
     """
-
-    it = validate(nbjson, ref)
     try:
-        it.next()
-    except StopIteration:
-        return True
-    else:
+        validate(nbjson, ref)
+    except ValidationError:
         return False
+    else:
+        return True
 
 
 def validate(nbjson, ref=None):
     """Checks whether the given notebook JSON conforms to the current
     notebook format schema.
 
-    Returns a generator for errors.
+    Raises ValidationError if not valid.
     """
+    _load_schema()
 
-    # load the schema file
-    with open(schema_path, 'r') as fh:
-        schema_json = json.load(fh)
-
-    # create the validator
-    v = Validator(schema_json)
-
-    # return the iterator on errors
     if ref:
-        errors = v.iter_errors(nbjson, {'$ref' : '#/definitions/%s' % ref})
+        return validator.validate(nbjson, {'$ref' : '#/definitions/%s' % ref})
     else:
-        errors = v.iter_errors(nbjson)
-    return errors
+        return validator.validate(nbjson)
