@@ -22,7 +22,6 @@ from subprocess import Popen, PIPE
 import tempfile
 
 import zmq
-from zmq.ssh import tunnel
 
 # IPython imports
 from IPython.config import LoggingConfigurable
@@ -342,6 +341,7 @@ def tunnel_to_kernel(connection_info, sshserver, sshkey=None):
     (shell, iopub, stdin, hb) : ints
         The four ports on localhost that have been forwarded to the kernel.
     """
+    from zmq.ssh import tunnel
     if isinstance(connection_info, string_types):
         # it's a path, unpack it
         with open(connection_info) as f:

@@ -18,7 +18,6 @@ from pprint import pprint
 pjoin = os.path.join
 
 import zmq
-from zmq.ssh import tunnel
 
 from IPython.config.configurable import MultipleInstanceError
 from IPython.core.application import BaseIPythonApplication
@@ -443,6 +442,7 @@ class Client(HasTraits):
             # default to ssh via localhost
             sshserver = addr
         if self._ssh and password is None:
+            from zmq.ssh import tunnel
             if tunnel.try_passwordless_ssh(sshserver, sshkey, paramiko):
                 password=False
             else:
@@ -467,6 +467,7 @@ class Client(HasTraits):
         self._query_socket = self._context.socket(zmq.DEALER)
 
         if self._ssh:
+            from zmq.ssh import tunnel
             tunnel.tunnel_connection(self._query_socket, cfg['registration'], sshserver, **ssh_kwargs)
         else:
             self._query_socket.connect(cfg['registration'])
@@ -589,6 +590,7 @@ class Client(HasTraits):
 
         def connect_socket(s, url):
             if self._ssh:
+                from zmq.ssh import tunnel
                 return tunnel.tunnel_connection(s, url, sshserver, **ssh_kwargs)
             else:
                 return s.connect(url)

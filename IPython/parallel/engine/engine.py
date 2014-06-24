@@ -14,11 +14,10 @@ from getpass import getpass
 
 import zmq
 from zmq.eventloop import ioloop, zmqstream
-from zmq.ssh import tunnel
 
 from IPython.utils.localinterfaces import localhost
 from IPython.utils.traitlets import (
-    Instance, Dict, Integer, Type, Float, Integer, Unicode, CBytes, Bool
+    Instance, Dict, Integer, Type, Float, Unicode, CBytes, Bool
 )
 from IPython.utils.py3compat import cast_bytes
 
@@ -58,6 +57,11 @@ class EngineFactory(RegistrationFactory):
         help="""The SSH private key file to use when tunneling connections to the Controller.""")
     paramiko=Bool(sys.platform == 'win32', config=True,
         help="""Whether to use paramiko instead of openssh for tunnels.""")
+    
+    @property
+    def tunnel_mod(self):
+        from zmq.ssh import tunnel
+        return tunnel
 
 
     # not configurable:
@@ -97,7 +101,7 @@ class EngineFactory(RegistrationFactory):
             self.sshserver = self.url.split('://')[1].split(':')[0]
 
         if self.using_ssh:
-            if tunnel.try_passwordless_ssh(self.sshserver, self.sshkey, self.paramiko):
+            if self.tunnel_mod.try_passwordless_ssh(self.sshserver, self.sshkey, self.paramiko):
                 password=False
             else:
                 password = getpass("SSH Password for %s: "%self.sshserver)
@@ -108,7 +112,7 @@ class EngineFactory(RegistrationFactory):
             url = disambiguate_url(url, self.location)
             if self.using_ssh:
                 self.log.debug("Tunneling connection to %s via %s", url, self.sshserver)
-                return tunnel.tunnel_connection(s, url, self.sshserver,
+                return self.tunnel_mod.tunnel_connection(s, url, self.sshserver,
                             keyfile=self.sshkey, paramiko=self.paramiko,
                             password=password,
                 )
@@ -120,7 +124,7 @@ class EngineFactory(RegistrationFactory):
             url = disambiguate_url(url, self.location)
             if self.using_ssh:
                 self.log.debug("Tunneling connection to %s via %s", url, self.sshserver)
-                url,tunnelobj = tunnel.open_tunnel(url, self.sshserver,
+                url, tunnelobj = self.tunnel_mod.open_tunnel(url, self.sshserver,
                             keyfile=self.sshkey, paramiko=self.paramiko,
                             password=password,
                 )
