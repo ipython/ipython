@@ -19,6 +19,7 @@ from __future__ import print_function
 import os
 import subprocess
 from io import TextIOWrapper, BytesIO
+import re
 
 import mistune
 from pygments import highlight
@@ -69,6 +70,48 @@ def markdown2latex(source):
     """
     return pandoc(source, 'markdown', 'latex')
 
+class MathBlockGrammar(mistune.BlockGrammar):
+    block_math = re.compile("^\$\$(.*?)\$\$")
+
+class MathBlockLexer(mistune.BlockLexer):
+    default_features = ['block_math'] + mistune.BlockLexer.default_features
+
+    def __init__(self, rules=None, **kwargs):
+        if rules is None:
+            rules = MathBlockGrammar()
+        super(MathBlockLexer, self).__init__(rules, **kwargs)
+
+    def parse_block_math(self, m):
+        """Parse a $$math$$ block"""
+        self.tokens.append({
+            'type': 'block_math',
+            'text': m.group(1)
+        })
+
+class MathInlineGrammar(mistune.InlineGrammar):
+    math = re.compile("^\$(.+?)\$")
+
+class MathInlineLexer(mistune.InlineLexer):
+    default_features = ['math'] + mistune.InlineLexer.default_features
+
+    def __init__(self, renderer, rules=None, **kwargs):
+        if rules is None:
+            rules = MathInlineGrammar()
+        super(MathInlineLexer, self).__init__(renderer, rules, **kwargs)
+
+    def output_math(self, m):
+        self.renderer.inline_math(m.group(1))
+
+class MarkdownWithMath(mistune.Markdown):
+    def __init__(self, renderer, **kwargs):
+        if 'inline' not in kwargs:
+            kwargs['inline'] = MathInlineLexer(renderer, **kwargs)
+        if 'block' not in kwargs:
+            kwargs['block'] = MathBlockLexer(**kwargs)
+        super(MarkdownWithMath, self).__init__(renderer, **kwargs)
+
+    def parse_block_math(self):
+        return self.renderer.block_math(self.token['text'])
 
 class MyRenderer(mistune.Renderer):
     def block_code(self, code, lang):
@@ -79,9 +122,16 @@ class MyRenderer(mistune.Renderer):
         formatter = HtmlFormatter()
         return highlight(code, lexer, formatter)
 
+    # Pass math through unaltered - mathjax does the rendering in the browser
+    def block_math(self, text):
+        return '$$%s$$' % text
+
+    def inline_math(self, text):
+        return '$%s$' % text
+
 def markdown2html_mistune(source):
     """Convert a markdown string to HTML using mistune"""
-    return mistune.Markdown(renderer=MyRenderer()).render(source)
+    return MarkdownWithMath(renderer=MyRenderer()).render(source)
 
 def markdown2html_pandoc(source):
     """Convert a markdown string to HTML via pandoc"""
@@ -114,7 +164,7 @@ def markdown2html_marked(source, encoding='utf-8'):
     return out.rstrip('\n')
 
 # The mistune renderer is the default, because it's simple to depend on it
-markdown2html = markdown2html_mistune
+markdown2html = markdown2html_marked
 
 def markdown2rst(source):
     """Convert a markdown string to ReST via pandoc.
