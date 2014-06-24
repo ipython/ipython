@@ -178,15 +178,7 @@
                 "outputs": {
                     "description": "Execution, display, or stream outputs.",
                     "type": "array",
-                    "items": {
-                        "type": "object",
-                        "oneOf": [
-                            {"$ref": "#/definitions/execute_result"},
-                            {"$ref": "#/definitions/display_data_output"},
-                            {"$ref": "#/definitions/stream_output"},
-                            {"$ref": "#/definitions/error_output"}
-                        ]
-                    }
+                    "items": {"$ref": "#/definitions/output"}
                 },
                 "prompt_number": {
                     "description": "The code cell's prompt number. Will be null if the cell has not been run.",
@@ -195,7 +187,15 @@
                 }
             }
         },
-
+        "output": {
+            "type": "object",
+            "oneOf": [
+                {"$ref": "#/definitions/execute_result"},
+                {"$ref": "#/definitions/display_data"},
+                {"$ref": "#/definitions/stream"},
+                {"$ref": "#/definitions/error"}
+            ]
+        },
         "execute_result": {
             "description": "Result of executing a code cell.",
             "type": "object",
@@ -211,20 +211,20 @@
                     "type": ["integer"],
                     "minimum": 0
                 },
-                "metadata": {"$ref": "#/definitions/misc/output_metadata"},
                 "application/json": {
                     "type": "object"
-                }
+                },
+                "metadata": {"$ref": "#/definitions/misc/output_metadata"}
             },
             "patternProperties": {
-                "^[a-zA-Z0-9\\-\\+]+/[a-zA-Z0-9\\-\\+]+": {
+                "^(?!application/json$)[a-zA-Z0-9]+/[a-zA-Z0-9\\-\\+\\.]+$": {
                     "description": "mimetype output (e.g. text/plain), represented as either an array of strings or a string.",
                     "$ref": "#/definitions/misc/multiline_string"
                 }
             }
         },
 
-        "display_data_output": {
+        "display_data": {
             "description": "Data displayed as a result of code cell execution.",
             "type": "object",
             "additionalProperties": false,
@@ -234,17 +234,20 @@
                     "description": "Type of cell output.",
                     "enum": ["display_data"]
                 },
+                "application/json": {
+                    "type": "object"
+                },
                 "metadata": {"$ref": "#/definitions/misc/output_metadata"}
             },
             "patternProperties": {
-                "^[a-zA-Z0-9\\-\\+]+/[a-zA-Z0-9\\-\\+]+": {
+                "^(?!application/json$)[a-zA-Z0-9]+/[a-zA-Z0-9\\-\\+\\.]+$": {
                     "description": "mimetype output (e.g. text/plain), represented as either an array of strings or a string.",
                     "$ref": "#/definitions/misc/multiline_string"
                 }
             }
         },
 
-        "stream_output": {
+        "stream": {
             "description": "Stream output from a code cell.",
             "type": "object",
             "additionalProperties": false,
@@ -266,7 +269,7 @@
             }
         },
 
-        "error_output": {
+        "error": {
             "description": "Output of an error that occurred during code cell execution.",
             "type": "object",
             "additionalProperties": false,
