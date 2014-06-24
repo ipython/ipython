@@ -72,7 +72,7 @@
             "description": "Notebook raw nbconvert cell.",
             "type": "object",
             "additionalProperties": false,
-            "required": ["cell_type", "metadata"],
+            "required": ["cell_type", "metadata", "source"],
             "properties": {
                 "cell_type": {
                     "description": "String identifying the type of cell.",
@@ -99,7 +99,7 @@
             "description": "Notebook markdown cell.",
             "type": "object",
             "additionalProperties": false,
-            "required": ["cell_type", "metadata"],
+            "required": ["cell_type", "metadata", "source"],
             "properties": {
                 "cell_type": {
                     "description": "String identifying the type of cell.",
