@@ -1,28 +1,13 @@
-"""
-Module with tests for the revealhelp preprocessor
-"""
+"""Tests for the revealhelp preprocessor"""
 
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
+# Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 from IPython.nbformat import current as nbformat
 
 from .base import PreprocessorTestsBase
 from ..revealhelp import RevealHelpPreprocessor
 
-
-#-----------------------------------------------------------------------------
-# Class
-#-----------------------------------------------------------------------------
 
 class Testrevealhelp(PreprocessorTestsBase):
     """Contains test functions for revealhelp.py"""
@@ -41,7 +26,7 @@ class Testrevealhelp(PreprocessorTestsBase):
                nbformat.new_code_cell(input="", prompt_number=2, outputs=outputs),
                nbformat.new_text_cell('markdown', source="", metadata=slide_metadata),
                nbformat.new_text_cell('markdown', source="", metadata=subslide_metadata)]
-        worksheets = [nbformat.new_worksheet(name="worksheet1", cells=cells)]
+        worksheets = [nbformat.new_worksheet(cells=cells)]
 
         return nbformat.new_notebook(name="notebook1", worksheets=worksheets)
 

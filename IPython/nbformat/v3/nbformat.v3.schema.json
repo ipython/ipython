@@ -117,7 +117,7 @@
             "properties": {
                 "cell_type": {
                     "description": "String identifying the type of cell.",
-                    "enum": ["markdown"]
+                    "enum": ["markdown", "html"]
                 },
                 "metadata": {
                     "description": "Cell-level metadata.",

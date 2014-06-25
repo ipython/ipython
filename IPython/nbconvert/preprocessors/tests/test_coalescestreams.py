@@ -1,27 +1,14 @@
-"""
-Module with tests for the coalescestreams preprocessor
-"""
+"""Tests for the coalescestreams preprocessor"""
 
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
+# Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 from IPython.nbformat import current as nbformat
 
 from .base import PreprocessorTestsBase
 from ..coalescestreams import coalesce_streams
 
 
-#-----------------------------------------------------------------------------
-# Class
-#-----------------------------------------------------------------------------
 class TestCoalesceStreams(PreprocessorTestsBase):
     """Contains test functions for coalescestreams.py"""
 
@@ -47,7 +34,7 @@ class TestCoalesceStreams(PreprocessorTestsBase):
                    nbformat.new_output(output_type="stream", stream="stdout", output_text="6"),
                    nbformat.new_output(output_type="stream", stream="stdout", output_text="7")]
         cells=[nbformat.new_code_cell(input="# None", prompt_number=1,outputs=outputs)]
-        worksheets = [nbformat.new_worksheet(name="worksheet1", cells=cells)]
+        worksheets = [nbformat.new_worksheet(cells=cells)]
 
         nb = nbformat.new_notebook(name="notebook1", worksheets=worksheets)
         res = self.build_resources()
@@ -64,7 +51,7 @@ class TestCoalesceStreams(PreprocessorTestsBase):
                    nbformat.new_output(output_type="stream", stream="stdout", output_text="\rc\n"),
                    nbformat.new_output(output_type="stream", stream="stdout", output_text="z\rz\rd")]
         cells=[nbformat.new_code_cell(input="# None", prompt_number=1,outputs=outputs)]
-        worksheets = [nbformat.new_worksheet(name="worksheet1", cells=cells)]
+        worksheets = [nbformat.new_worksheet(cells=cells)]
 
         nb = nbformat.new_notebook(name="notebook1", worksheets=worksheets)
         res = self.build_resources()
