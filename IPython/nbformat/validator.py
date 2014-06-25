@@ -53,6 +53,39 @@ def isvalid(nbjson, ref=None, version=None):
         return True
 
 
+def better_validation_error(error, version):
+    """Get better ValidationError on oneOf failures
+
+    oneOf errors aren't informative.
+    if it's a cell type or output_type error,
+    try validating directly based on the type for a better error message
+    """
+    key = error.schema_path[-1]
+    if key.endswith('Of'):
+
+        ref = None
+        if isinstance(error.instance, dict):
+            if 'cell_type' in error.instance:
+                ref = error.instance['cell_type'] + "_cell"
+            elif 'output_type' in error.instance:
+                ref = error.instance['output_type']
+
+        if ref:
+            try:
+                validate(error.instance,
+                    ref,
+                    version=version
+                )
+            except ValidationError as e:
+                return better_validation_error(e, version)
+            except:
+                # if it fails for some reason,
+                # let the original error through
+                pass
+
+    return error
+
+
 def validate(nbjson, ref=None, version=None):
     """Checks whether the given notebook JSON conforms to the current
     notebook format schema.
@@ -65,8 +98,11 @@ def validate(nbjson, ref=None, version=None):
 
     validator = get_validator(version)
 
-    if ref:
-        return validator.validate(nbjson, {'$ref' : '#/definitions/%s' % ref})
-    else:
-        return validator.validate(nbjson)
+    try:
+        if ref:
+            return validator.validate(nbjson, {'$ref' : '#/definitions/%s' % ref})
+        else:
+            return validator.validate(nbjson)
+    except ValidationError as e:
+        raise better_validation_error(e, version)
 
