@@ -23,7 +23,7 @@ from inspect import getcallargs
 from IPython.core.getipython import get_ipython
 from IPython.html.widgets import (Widget, TextWidget,
     FloatSliderWidget, IntSliderWidget, CheckboxWidget, DropdownWidget,
-    ContainerWidget, DOMWidget)
+    ContainerWidget, DOMWidget, ButtonWidget)
 from IPython.display import display, clear_output
 from IPython.utils.py3compat import string_types, unicode_type
 from IPython.utils.traitlets import HasTraits, Any, Unicode
@@ -114,7 +114,7 @@ def _widget_from_abbrev(abbrev, default=empty):
     """Build a Widget instance given an abbreviation or Widget."""
     if isinstance(abbrev, Widget) or isinstance(abbrev, fixed):
         return abbrev
-    
+
     widget = _widget_abbrev(abbrev)
     if default is not empty and isinstance(abbrev, (list, tuple, dict)):
         # if it's not a single-value abbreviation,
@@ -175,6 +175,7 @@ def interactive(__interact_f, **kwargs):
     """Build a group of widgets to interact with a function."""
     f = __interact_f
     co = kwargs.pop('clear_output', True)
+    on_demand = kwargs.pop('on_demand', False)
     kwargs_widgets = []
     container = ContainerWidget()
     container.result = None
@@ -194,10 +195,15 @@ def interactive(__interact_f, **kwargs):
     # so that traitlets notices the update. We skip any objects (such as fixed) that
     # are not DOMWidgets.
     c = [w for w in kwargs_widgets if isinstance(w, DOMWidget)]
+
+    # If we are only to run the function on demand, add a button to request this
+    if on_demand:
+        on_demand_button = ButtonWidget(description="Run %s" % f.__name__)
+        c.append(on_demand_button)
     container.children = c
 
     # Build the callback
-    def call_f(name, old, new):
+    def call_f(name=None, old=None, new=None):
         container.kwargs = {}
         for widget in kwargs_widgets:
             value = widget.value
@@ -214,16 +220,22 @@ def interactive(__interact_f, **kwargs):
                 ip.showtraceback()
 
     # Wire up the widgets
-    for widget in kwargs_widgets:
-        widget.on_trait_change(call_f, 'value')
+    # If we are doing on demand running, the callback is only triggered by the button
+    # Otherwise, it is triggered for every trait change received
+    # On-demand running also suppresses running the fucntion with the initial parameters
+    if on_demand:
+        on_demand_button.on_click(call_f)
+    else:
+        for widget in kwargs_widgets:
+            widget.on_trait_change(call_f, 'value')
 
-    container.on_displayed(lambda _: call_f(None, None, None))
+        container.on_displayed(lambda _: call_f(None, None, None))
 
     return container
 
 def interact(__interact_f=None, **kwargs):
     """interact(f, **kwargs)
-    
+
     Interact with a function using widgets."""
     # positional arg support in: https://gist.github.com/8851331
     if __interact_f is not None:
