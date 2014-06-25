@@ -3,15 +3,15 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import json
+
 from .nbbase import (
     nbformat, nbformat_minor,
+    NotebookNode,
 )
 
 from IPython.nbformat import v3
 
-#-----------------------------------------------------------------------------
-# Code
-#-----------------------------------------------------------------------------
 
 def upgrade(nb, from_version=3, from_minor=0):
     """Convert a notebook to v4.
@@ -25,12 +25,17 @@ def upgrade(nb, from_version=3, from_minor=0):
     from_minor : int
         The original minor version of the notebook to convert (only relevant for v >= 3).
     """
+    from IPython.nbformat.current import validate
     if from_version == 3:
+        # Validate the notebook before conversion
+        validate(nb, version=from_version)
+
         # Mark the original nbformat so consumers know it has been converted.
+        nb.metadata.orig_nbformat = 3
+        # Mark the new format
         nb.nbformat = nbformat
         nb.nbformat_minor = nbformat_minor
 
-        nb.orig_nbformat = 3
         # remove worksheet(s)
         nb['cells'] = cells = []
         # In the unlikely event of multiple worksheets,
@@ -39,14 +44,17 @@ def upgrade(nb, from_version=3, from_minor=0):
             # upgrade each cell
             for cell in ws['cells']:
                 cells.append(upgrade_cell(cell))
-        # upgrade metadata?
+        # upgrade metadata
         nb.metadata.pop('name', '')
+        # Validate the converted notebook before returning it
+        validate(nb, version=nbformat)
         return nb
     elif from_version == 4:
         # nothing to do
         if from_minor != nbformat_minor:
-            nb.orig_nbformat_minor = from_minor
+            nb.metadata.orig_nbformat_minor = from_minor
         nb.nbformat_minor = nbformat_minor
+
         return nb
     else:
         raise ValueError('Cannot convert a notebook directly from v%s to v4.  ' \
@@ -60,16 +68,24 @@ def upgrade_cell(cell):
         - cell.input -> cell.source
         - update outputs
     """
+    cell.setdefault('metadata', NotebookNode())
     if cell.cell_type == 'code':
-        cell.metadata.pop('language', '')
+        cell.pop('language', '')
+        cell.metadata.collapsed = cell.pop('collapsed')
         cell.source = cell.pop('input')
-        cell.outputs = upgrade_outputs(cell)
+        cell.setdefault('prompt_number', None)
+        cell.outputs = upgrade_outputs(cell.outputs)
+    elif cell.cell_type == 'html':
+        # Technically, this exists. It will never happen in practice.
+        cell.cell_type = 'markdown'
     return cell
 
 def downgrade_cell(cell):
     if cell.cell_type == 'code':
-        cell.input = cell.pop('source')
-        cell.outputs = downgrade_outputs(cell)
+        cell.language = 'python'
+        cell.input = cell.pop('source', '')
+        cell.collapsed = cell.metadata.pop('collapsed', False)
+        cell.outputs = downgrade_outputs(cell.outputs)
     return cell
 
 _mime_map = {
@@ -103,16 +119,24 @@ def upgrade_output(output):
     - pyout -> execute_result
     - pyerr -> error
     - mime-type keys
+    - stream.stream -> stream.name
     """
-    if output['output_type'] == 'pyout':
-        output['output_type'] = 'execute_result'
+    output.setdefault('metadata', NotebookNode())
+    if output['output_type'] in {'pyout', 'display_data'}:
+        if output['output_type'] == 'pyout':
+            output['output_type'] = 'execute_result'
         to_mime_key(output)
-        to_mime_key(output.get('metadata', {}))
+        to_mime_key(output.metadata)
+        if 'application/json' in output:
+            output['application/json'] = json.loads(output['application/json'])
+        # promote ascii bytes (from v2) to unicode
+        for key in ('image/png', 'image/jpeg'):
+            if key in output and isinstance(output[key], bytes):
+                output[key] = output[key].decode('ascii')
     elif output['output_type'] == 'pyerr':
         output['output_type'] = 'error'
-    elif output['output_type'] == 'display_data':
-        to_mime_key(output)
-        to_mime_key(output.get('metadata', {}))
+    elif output['output_type'] == 'stream':
+        output['name'] = output.pop('stream')
     return output
 
 def downgrade_output(output):
@@ -121,16 +145,24 @@ def downgrade_output(output):
     - pyout <- execute_result
     - pyerr <- error
     - un-mime-type keys
+    - stream.stream <- stream.name
     """
     if output['output_type'] == 'execute_result':
         output['output_type'] = 'pyout'
+        if 'application/json' in output:
+            output['application/json'] = json.dumps(output['application/json'])
         from_mime_key(output)
         from_mime_key(output.get('metadata', {}))
     elif output['output_type'] == 'error':
         output['output_type'] = 'pyerr'
     elif output['output_type'] == 'display_data':
+        if 'application/json' in output:
+            output['application/json'] = json.dumps(output['application/json'])
         from_mime_key(output)
         from_mime_key(output.get('metadata', {}))
+    elif output['output_type'] == 'stream':
+        output['stream'] = output.pop('name')
+        output.pop('metadata')
     return output
 
 def upgrade_outputs(outputs):
@@ -149,11 +181,20 @@ def downgrade(nb):
     nb : NotebookNode
         The Python representation of the notebook to convert.
     """
+    from IPython.nbformat.current import validate
+    # Validate the notebook before conversion
+    validate(nb, version=nbformat)
+
     if nb.nbformat != 4:
         return nb
     nb.nbformat = v3.nbformat
     nb.nbformat_minor = v3.nbformat_minor
-    cells = [ downgrade_cell(cell) for cell in nb.cells ]
+    cells = [ downgrade_cell(cell) for cell in nb.pop('cells') ]
     nb.worksheets = [v3.new_worksheet(cells=cells)]
     nb.metadata.setdefault('name', '')
+    nb.metadata.pop('orig_nbformat', None)
+    nb.metadata.pop('orig_nbformat_minor', None)
+
+    # Validate the converted notebook before returning it
+    validate(nb, version=v3.nbformat)
     return nb
