@@ -6,9 +6,6 @@
 from .nbbase import (
     NotebookNode,
     nbformat, nbformat_minor, nbformat_schema,
-)
-
-from .compose import (
     new_code_cell, new_heading_cell, new_markdown_cell, new_notebook,
     new_output,
 )

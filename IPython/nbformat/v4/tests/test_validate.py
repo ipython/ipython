@@ -10,8 +10,8 @@ import nose.tools as nt
 
 from IPython.nbformat.validator import validate, ValidationError
 from ..nbjson import reads
-from ..nbbase import nbformat
-from ..compose import (
+from ..nbbase import (
+    nbformat,
     new_code_cell, new_heading_cell, new_markdown_cell, new_notebook,
     new_output, new_raw_cell,
 )
@@ -125,6 +125,6 @@ def test_invalid_raw_cell():
 
 def test_sample_notebook():
     here = os.path.dirname(__file__)
-    with io.open(os.path.join(here, "v4-test.ipynb"), encoding='utf-8') as f:
+    with io.open(os.path.join(here, os.pardir, os.pardir, 'tests', "test4.ipynb"), encoding='utf-8') as f:
         nb = reads(f.read())
     validate4(nb)

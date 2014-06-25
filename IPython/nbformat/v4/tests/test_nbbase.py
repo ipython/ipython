@@ -3,8 +3,8 @@
 
 import nose.tools as nt
 
-from ..validator import isvalid, validate, ValidationError
-from ..compose import (
+from IPython.nbformat.validator import isvalid, validate, ValidationError
+from ..nbbase import (
     NotebookNode, nbformat,
     new_code_cell, new_heading_cell, new_markdown_cell, new_notebook,
     new_output, new_raw_cell,
