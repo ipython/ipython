@@ -9,7 +9,7 @@ define([
     "use strict";
 
     var SesssionList = function (options, events) {
-        this.events = events;
+        this.events = options.events;
         this.sessions = {};
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
     };

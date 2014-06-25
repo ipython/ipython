@@ -10,10 +10,10 @@ define([
     "use strict";
     var platform = utils.platform;
 
-    var QuickHelp = function (selector, keyboard_manager, events) {
-        this.keyboard_manager = keyboard_manager;
-        keyboard_manager.quick_help = this;
-        this.events = events;
+    var QuickHelp = function (options) {
+        this.keyboard_manager = options.keyboard_manager;
+        this.keyboard_manager.quick_help = this;
+        this.events = options.events;
     };
 
     var cmd_ctrl = 'Ctrl-';

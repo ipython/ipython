@@ -38,23 +38,24 @@ define([
      * @param {object|undefined} [options]
      *     @param [options.cm_config] {object} config to pass to CodeMirror, will extend default parameters
      */
-    var Cell = function (options, keyboard_manager, events) {
-        this.keyboard_manager = keyboard_manager;
-        this.events = events;
-        options = this.mergeopt(Cell, options);
+    var Cell = function (options) {
+        options = options || {};
+        this.keyboard_manager = options.keyboard_manager;
+        this.events = options.events;
+        var config = this.mergeopt(Cell, options.config);
         // superclass default overwrite our default
         
-        this.placeholder = options.placeholder || '';
-        this.read_only = options.cm_config.readOnly;
+        this.placeholder = config.placeholder || '';
+        this.read_only = config.cm_config.readOnly;
         this.selected = false;
         this.rendered = false;
         this.mode = 'command';
         this.metadata = {};
         // load this from metadata later ?
         this.user_highlight = 'auto';
-        this.cm_config = options.cm_config;
+        this.cm_config = config.cm_config;
         this.cell_id = utils.uuid();
-        this._options = options;
+        this._options = config;
 
         // For JS VM engines optimization, attributes should be all set (even
         // to null) in the constructor, and if possible, if different subclass

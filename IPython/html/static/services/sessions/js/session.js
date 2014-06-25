@@ -9,10 +9,10 @@ define([
 ], function(IPython, $, utils, kernel) {
     "use strict";
 
-    var Session = function(notebook, options){
+    var Session = function(options){
         this.kernel = null;
         this.id = null;
-        this.notebook = notebook;
+        this.notebook = options.notebook;
         this.name = notebook.notebook_name;
         this.path = notebook.notebook_path;
         this.base_url = notebook.base_url;

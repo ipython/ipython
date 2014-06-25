@@ -9,11 +9,11 @@ define([
 ], function(IPython, $, utils, dialog) {
     "use strict";
     
-    var NotebookList = function (selector, options, element_name, session_list) {
+    var NotebookList = function (selector, options) {
         var that = this;
-        this.session_list = session_list;
+        this.session_list = options.session_list;
         // allow code re-use by just changing element_name in kernellist.js
-        this.element_name = element_name || 'notebook';
+        this.element_name = options.element_name || 'notebook';
         this.selector = selector;
         if (this.selector !== undefined) {
             this.element = $(selector);

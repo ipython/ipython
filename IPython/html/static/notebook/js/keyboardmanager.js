@@ -15,17 +15,17 @@ define([
     // Main keyboard manager for the notebook
     var keycodes = keyboard.keycodes;
 
-    var KeyboardManager = function (pager, events) {
+    var KeyboardManager = function (options) {
         this.mode = 'command';
         this.enabled = true;
-        this.pager = pager;
+        this.pager = options.pager;
         this.quick_help = undefined;
         this.notebook = undefined;
         this.bind_events();
-        this.command_shortcuts = new keyboard.ShortcutManager(undefined, events);
+        this.command_shortcuts = new keyboard.ShortcutManager(undefined, options.events);
         this.command_shortcuts.add_shortcuts(this.get_default_common_shortcuts());
         this.command_shortcuts.add_shortcuts(this.get_default_command_shortcuts());
-        this.edit_shortcuts = new keyboard.ShortcutManager(undefined, events);
+        this.edit_shortcuts = new keyboard.ShortcutManager(undefined, options.events);
         this.edit_shortcuts.add_shortcuts(this.get_default_common_shortcuts());
         this.edit_shortcuts.add_shortcuts(this.get_default_edit_shortcuts());
     };

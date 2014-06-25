@@ -38,15 +38,18 @@ define([
      * @param {Object} [options] A config object
      * @param {Object} [events] An events object
      */
-    var Notebook = function (selector, options, events, keyboard_manager, save_widget, config) {
-        this.config = config;
-        this.events = events;
-        this.keyboard_manager = keyboard_manager;
+    var Notebook = function (selector, options) {
+        this.config = options.config || {};
+        this.base_url = options.base_url;
+        this.notebook_path = options.notebook_path;
+        this.notebook_name = options.notebook_name;
+        this.events = options.events;
+        this.keyboard_manager = options.keyboard_manager;
+        this.save_widget = options.save_widget;
         // TODO: This code smells (and the other `= this` line a couple lines down)
         // We need a better way to deal with circular instance references.
-        keyboard_manager.notebook = this;
-        this.save_widget = save_widget;
-        save_widget.notebook = this;
+        this.keyboard_manager.notebook = this;
+        this.save_widget.notebook = this;
         
         mathjaxutils.init();
 
@@ -76,10 +79,6 @@ define([
         IPython.save_widget = this.save_widget;
         IPython.keyboard = this.keyboard;
 
-        this.options = options = options || {};
-        this.base_url = options.base_url;
-        this.notebook_path = options.notebook_path;
-        this.notebook_name = options.notebook_name;
         this.element = $(selector);
         this.element.scroll();
         this.element.data("notebook", this);
@@ -806,15 +805,24 @@ define([
         type = type || this.get_selected_cell().cell_type;
 
         if (ncells === 0 || this.is_valid_cell_index(index) || index === ncells) {
+            var cell_options = {
+                base_url: base_url,
+                notebook_path: notebook_path,
+                notebook_name: notebook_name,
+                events: this.events, 
+                config: this.config, 
+                keyboard_manager: this.keyboard_manager, 
+                notebook: this
+            };
             if (type === 'code') {
-                cell = new codecell.CodeCell(this.kernel, this.options, this.events, this.config, this.keyboard_manager, this);
+                cell = new codecell.CodeCell(this.kernel, cell_options);
                 cell.set_input_prompt();
             } else if (type === 'markdown') {
-                cell = new cells.MarkdownCell(this.options, this.events, this.config, this.keyboard_manager, this);
+                cell = new cells.MarkdownCell(cell_options);
             } else if (type === 'raw') {
-                cell = new cells.RawCell(this.options, this.events, this.config, this.keyboard_manager, this);
+                cell = new cells.RawCell(cell_options);
             } else if (type === 'heading') {
-                cell = new cells.HeadingCell(this.options, this.events, this.config, this.keyboard_manager, this);
+                cell = new cells.HeadingCell(cell_options);
             }
 
             if(this._insert_element_at_index(cell.element,index)) {
@@ -1465,7 +1473,11 @@ define([
      * @method start_session
      */
     Notebook.prototype.start_session = function () {
-        this.session = new session.Session(this, this.options);
+        this.session = new session.Session(this, {
+            base_url: base_url,
+            notebook_path: notebook_path,
+            notebook_name: notebook_name,
+            notebook: this});
         this.session.start($.proxy(this._session_started, this));
     };
 

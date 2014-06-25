@@ -8,13 +8,13 @@ define([
 ], function(IPython, $, utils) {
     "use strict";
 
-    var Pager = function (pager_selector, pager_splitter_selector, layout_manager, events) {
-        this.events = events;
+    var Pager = function (pager_selector, pager_splitter_selector, options) {
+        this.events = options.events;
         this.pager_element = $(pager_selector);
         this.pager_button_area = $('#pager_button_area');
         var that = this;
         this.percentage_height = 0.40;
-        layout_manager.pager = this;
+        options.layout_manager.pager = this;
         this.pager_splitter_element = $(pager_splitter_selector)
             .draggable({
                         containment: 'window',
@@ -23,7 +23,7 @@ define([
                         drag: function(event, ui) {
                             // recalculate the amount of space the pager should take
                             var pheight = ($(document.body).height()-event.clientY-4);
-                            var downprct = pheight/layout_manager.app_height();
+                            var downprct = pheight/options.layout_manager.app_height();
                                 downprct = Math.min(0.9, downprct);
                             if (downprct < 0.1) {
                                 that.percentage_height = 0.1;
@@ -32,7 +32,7 @@ define([
                                 that.percentage_height = downprct;
                                 that.expand({'duration':0});
                             }
-                            layout_manager.do_resize();
+                            options.layout_manager.do_resize();
                        }
             });
         this.expanded = false;
