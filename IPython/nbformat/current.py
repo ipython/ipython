@@ -2,7 +2,6 @@
 
 from __future__ import print_function
 
-from xml.etree import ElementTree as ET
 import re
 
 from IPython.utils.py3compat import unicode_type
@@ -32,16 +31,6 @@ __all__ = ['NotebookNode', 'new_code_cell', 'new_text_cell', 'new_notebook',
 current_nbformat = nbformat
 current_nbformat_minor = nbformat_minor
 current_nbformat_module = _v_latest.__name__
-
-
-def docstring_nbformat_mod(func):
-    """Decorator for docstrings referring to classes/functions accessed through
-    nbformat.current.
-
-    Put {nbformat_mod} in the docstring in place of 'IPython.nbformat.v3'.
-    """
-    func.__doc__ = func.__doc__.format(nbformat_mod=current_nbformat_module)
-    return func
 
 
 class NBFormatError(ValueError):
