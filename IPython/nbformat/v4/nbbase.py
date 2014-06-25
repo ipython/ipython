@@ -44,7 +44,7 @@ def new_output(output_type, mime_bundle=None, **kwargs):
     # populate defaults:
     output.setdefault('metadata', NotebookNode())
     if output_type == 'stream':
-        output.setdefault('stream', 'stdout')
+        output.setdefault('name', 'stdout')
         output.setdefault('text', '')
     validate(output, output_type)
     return output

@@ -250,15 +250,15 @@
             "description": "Stream output from a code cell.",
             "type": "object",
             "additionalProperties": false,
-            "required": ["output_type", "metadata", "stream", "text"],
+            "required": ["output_type", "metadata", "name", "text"],
             "properties": {
                 "output_type": {
                     "description": "Type of cell output.",
                     "enum": ["stream"]
                 },
                 "metadata": {"$ref": "#/definitions/misc/output_metadata"},
-                "stream": {
-                    "description": "The stream type/destination.",
+                "name": {
+                    "description": "The name of the stream (stdout, stderr).",
                     "type": "string"
                 },
                 "text": {

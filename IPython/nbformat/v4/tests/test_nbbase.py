@@ -55,8 +55,10 @@ def test_empty_display_data():
     nt.assert_equal(output.output_type, 'display_data')
 
 def test_empty_stream():
-    output = new_output('stream', stream='stdout', text='')
+    output = new_output('stream')
     nt.assert_equal(output.output_type, 'stream')
+    nt.assert_equal(output.name, 'stdout')
+    nt.assert_equal(output.text, '')
 
 def test_empty_execute_result():
     output = new_output('execute_result', prompt_number=1)
@@ -103,3 +105,8 @@ def test_code_cell_with_outputs():
     er = cell.outputs[-1]
     nt.assert_equal(er.prompt_number, 10)
     nt.assert_equal(er['output_type'], 'execute_result')
+
+def test_stream():
+    output = new_output('stream', name='stderr', text='hello there')
+    nt.assert_equal(output.name, 'stderr')
+    nt.assert_equal(output.text, 'hello there')

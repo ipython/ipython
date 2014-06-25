@@ -91,7 +91,7 @@ cells.append(new_code_cell(
         text='foo\rbar\r\n'
     ),new_output(
         output_type=u'stream',
-        stream='stderr',
+        name='stderr',
         text='\rfoo\rbar\n'
     )]
 ))
