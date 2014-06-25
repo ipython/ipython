@@ -10,11 +10,11 @@ define([
 ], function(IPython, $, utils, dialog, notificationwidget) {
     "use strict";
 
-    var NotificationArea = function (selector, options) {
+    var NotificationArea = function (selector, events, save_widget, notebook) {
         this.selector = selector;
-        this.events = options.events;
-        this.save_widget = options.save_widget;
-        this.notebook = options.notebook;
+        this.events = events;
+        this.save_widget = save_widget;
+        this.notebook = notebook;
         if (this.selector !== undefined) {
             this.element = $(selector);
         }

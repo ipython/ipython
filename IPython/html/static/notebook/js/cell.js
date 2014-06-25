@@ -38,9 +38,9 @@ define([
      * @param {object|undefined} [options]
      *     @param [options.cm_config] {object} config to pass to CodeMirror, will extend default parameters
      */
-    var Cell = function (options) {
-        this.keyboard_manager = options.keyboard_manager;
-        this.events = options.events;
+    var Cell = function (options, keyboard_manager, events) {
+        this.keyboard_manager = keyboard_manager;
+        this.events = events;
         options = this.mergeopt(Cell, options);
         // superclass default overwrite our default
         

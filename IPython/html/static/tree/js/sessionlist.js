@@ -8,8 +8,8 @@ define([
 ], function(IPython, $, utils) {
     "use strict";
 
-    var SesssionList = function (options) {
-        this.events = options.events;
+    var SesssionList = function (options, events) {
+        this.events = events;
         this.sessions = {};
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
     };

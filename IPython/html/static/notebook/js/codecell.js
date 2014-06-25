@@ -54,13 +54,13 @@ define([
      * @param {object|undefined} [options]
      *      @param [options.cm_config] {object} config to pass to CodeMirror
      */
-    var CodeCell = function (kernel, options) {
+    var CodeCell = function (kernel, options, events, config, keyboard_manager, notebook) {
         this.kernel = kernel || null;
-        this.notebook = options.notebook;
+        this.notebook = notebook;
         this.collapsed = false;
-        this.tooltip = new tooltip.Tooltip(options.events);
-        this.events = options.events;
-        this.config = options.config;
+        this.tooltip = new tooltip.Tooltip(events);
+        this.events = events;
+        this.config = config;
 
         // create all attributed in constructor function
         // even if null for V8 VM optimisation
@@ -77,7 +77,7 @@ define([
 
         options = this.mergeopt(CodeCell, options, {cm_config:cm_overwrite_options});
 
-        Cell.apply(this,[options]); 
+        Cell.apply(this,[options, keyboard_manager, events]);
 
         // Attributes we want to override in this subclass.
         this.cell_type = "code";

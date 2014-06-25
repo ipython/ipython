@@ -9,10 +9,10 @@ define([
 ], function(IPython, $, toolbar, celltoolbar) {
     "use strict";
 
-    var MainToolBar = function (selector, options) {
+    var MainToolBar = function (selector, layout_manager, notebook, events) {
         toolbar.ToolBar.apply(this, arguments);
-        this.events = options.events;
-        this.notebook = options.notebook;
+        this.events = events;
+        this.notebook = notebook;
         this.construct();
         this.add_celltype_list();
         this.add_celltoolbar_list();

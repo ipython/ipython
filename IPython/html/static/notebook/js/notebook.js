@@ -38,15 +38,15 @@ define([
      * @param {Object} [options] A config object
      * @param {Object} [events] An events object
      */
-    var Notebook = function (selector, options) {
-        this.config = options.config;
-        this.events = options.events;
-        this.keyboard_manager = options.keyboard_manager;
+    var Notebook = function (selector, options, events, keyboard_manager, save_widget, config) {
+        this.config = config;
+        this.events = events;
+        this.keyboard_manager = keyboard_manager;
         // TODO: This code smells (and the other `= this` line a couple lines down)
         // We need a better way to deal with circular instance references.
-        this.keyboard_manager.notebook = this;
-        this.save_widget = options.save_widget;
-        options.save_widget.notebook = this; 
+        keyboard_manager.notebook = this;
+        this.save_widget = save_widget;
+        save_widget.notebook = this;
         
         mathjaxutils.init();
 
@@ -807,14 +807,14 @@ define([
 
         if (ncells === 0 || this.is_valid_cell_index(index) || index === ncells) {
             if (type === 'code') {
-                cell = new codecell.CodeCell(this.kernel, this.options); 
+                cell = new codecell.CodeCell(this.kernel, this.options, this.events, this.config, this.keyboard_manager, this);
                 cell.set_input_prompt();
             } else if (type === 'markdown') {
-                cell = new cells.MarkdownCell(this.options); 
+                cell = new cells.MarkdownCell(this.options, this.events, this.config, this.keyboard_manager, this);
             } else if (type === 'raw') {
-                cell = new cells.RawCell(this.options); 
+                cell = new cells.RawCell(this.options, this.events, this.config, this.keyboard_manager, this);
             } else if (type === 'heading') {
-                cell = new cells.HeadingCell(this.options); 
+                cell = new cells.HeadingCell(this.options, this.events, this.config, this.keyboard_manager, this);
             }
 
             if(this._insert_element_at_index(cell.element,index)) {

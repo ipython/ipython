@@ -24,14 +24,14 @@ define([
      *      @param [options.cm_config] {object} config to pass to CodeMirror, will extend/overwrite default config
      *      @param [options.placeholder] {string} default string to use when souce in empty for rendering (only use in some TextCell subclass)
      */
-    var TextCell = function (options) {
+    var TextCell = function (options, events, config, keyboard_manager, notebook) {
         // in all TextCell/Cell subclasses
         // do not assign most of members here, just pass it down
         // in the options dict potentially overwriting what you wish.
         // they will be assigned in the base class.
-        this.notebook = options.notebook;
-        this.events = options.events;
-        this.config = options.config;
+        this.notebook = notebook;
+        this.events = events;
+        this.config = config;
         
         // we cannot put this as a class key as it has handle to "this".
         var cm_overwrite_options  = {
@@ -43,7 +43,7 @@ define([
         this.cell_type = this.cell_type || 'text';
         mathjaxutils = mathjaxutils;
 
-        Cell.apply(this, [options]);
+        Cell.apply(this, [options, keyboard_manager, events]);
 
         this.rendered = false;
     };
@@ -218,11 +218,11 @@ define([
      * @constructor MarkdownCell
      * @extends IPython.HTMLCell
      */
-    var MarkdownCell = function (options) {
+    var MarkdownCell = function (options, events, config, keyboard_manager) {
         options = this.mergeopt(MarkdownCell, options);
 
         this.cell_type = 'markdown';
-        TextCell.apply(this, [options]);
+        TextCell.apply(this, [options, events, config, keyboard_manager]);
     };
 
     MarkdownCell.options_default = {
@@ -268,10 +268,10 @@ define([
      * @constructor RawCell
      * @extends TextCell
      */
-    var RawCell = function (options) {
+    var RawCell = function (options, events, config, keyboard_manager) {
 
         options = this.mergeopt(RawCell,options);
-        TextCell.apply(this, [options]);
+        TextCell.apply(this, [options, events, config, keyboard_manager]);
         this.cell_type = 'raw';
         // RawCell should always hide its rendered div
         this.element.find('div.text_cell_render').hide();
@@ -327,12 +327,12 @@ define([
      * @constructor HeadingCell
      * @extends TextCell
      */
-    var HeadingCell = function (options) {
+    var HeadingCell = function (options, events, config, keyboard_manager) {
         options = this.mergeopt(HeadingCell, options);
 
         this.level = 1;
         this.cell_type = 'heading';
-        TextCell.apply(this, [options]);
+        TextCell.apply(this, [options, events, config, keyboard_manager]);
 
         /**
          * heading level of the cell, use getter and setter to access
