@@ -21,6 +21,7 @@ from __future__ import print_function
 
 # Stdlib imports
 import ast
+import inspect
 import os
 import re
 
@@ -85,6 +86,7 @@ class ApiDocWriter(object):
                  rst_extension='.rst',
                  package_skip_patterns=None,
                  module_skip_patterns=None,
+                 names_from__all__=None,
                  ):
         ''' Initialize package for parsing
 
@@ -111,6 +113,12 @@ class ApiDocWriter(object):
             ``.util.console``
             If is None, gives default. Default is:
             ['\.setup$', '\._']
+        names_from__all__ : set, optional
+            Modules listed in here will be scanned by doing ``from mod import *``,
+            rather than finding function and class definitions by scanning the
+            AST. This is intended for API modules which expose things defined in
+            other files. Modules listed here must define ``__all__`` to avoid
+            exposing everything they import.
         '''
         if package_skip_patterns is None:
             package_skip_patterns = ['\\.tests$']
@@ -120,6 +128,7 @@ class ApiDocWriter(object):
         self.rst_extension = rst_extension
         self.package_skip_patterns = package_skip_patterns
         self.module_skip_patterns = module_skip_patterns
+        self.names_from__all__ = names_from__all__ or set()
 
     def get_package_name(self):
         return self._package_name
@@ -204,6 +213,29 @@ class ApiDocWriter(object):
             mod = ast.parse(f.read())
         return FuncClsScanner().scan(mod)
 
+    def _import_funcs_classes(self, uri):
+        """Import * from uri, and separate out functions and classes."""
+        ns = {}
+        exec('from %s import *' % uri, ns)
+        funcs, classes = [], []
+        for name, obj in ns.items():
+            if inspect.isclass(obj):
+                cls = Obj(name=name, has_init='__init__' in obj.__dict__)
+                classes.append(cls)
+            elif inspect.isfunction(obj):
+                funcs.append(name)
+
+        return sorted(funcs), sorted(classes, key=lambda x: x.name)
+
+    def find_funcs_classes(self, uri):
+        """Find the functions and classes defined in the module ``uri``"""
+        if uri in self.names_from__all__:
+            # For API modules which expose things defined elsewhere, import them
+            return self._import_funcs_classes(uri)
+        else:
+            # For other modules, scan their AST to see what they define
+            return self._parse_module(uri)
+
     def generate_api_doc(self, uri):
         '''Make autodoc documentation template string for a module
 
@@ -218,7 +250,7 @@ class ApiDocWriter(object):
             Contents of API doc
         '''
         # get the names of all classes and functions
-        functions, classes = self._parse_module(uri)
+        functions, classes = self.find_funcs_classes(uri)
         if not len(functions) and not len(classes):
             #print ('WARNING: Empty -', uri)  # dbg
             return ''

@@ -22,6 +22,12 @@ from .validator import validate
 
 from IPython.utils.log import get_logger
 
+__all__ = ['NotebookNode', 'new_code_cell', 'new_text_cell', 'new_notebook',
+'new_output', 'new_worksheet', 'parse_filename', 'new_metadata', 'new_author',
+'new_heading_cell', 'nbformat', 'nbformat_minor', 'nbformat_schema',
+'to_notebook_json', 'convert', 'validate', 'NBFormatError', 'parse_py',
+'reads_json', 'writes_json', 'reads_py', 'writes_py', 'reads', 'writes', 'read',
+'write']
 
 current_nbformat = nbformat
 current_nbformat_minor = nbformat_minor
