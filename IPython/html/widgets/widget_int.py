@@ -1,4 +1,4 @@
-"""IntWidget class.  
+"""IntWidget class.
 
 Represents an unbounded int using a widget.
 """
@@ -14,13 +14,13 @@ Represents an unbounded int using a widget.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget
-from IPython.utils.traitlets import Unicode, CInt, Bool, Enum
+from IPython.utils.traitlets import Unicode, CInt, Bool, Enum, Tuple
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 class _IntWidget(DOMWidget):
-    value = CInt(0, help="Int value", sync=True) 
+    value = CInt(0, help="Int value", sync=True)
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
 
@@ -51,10 +51,40 @@ class BoundedIntTextWidget(_BoundedIntWidget):
 
 class IntSliderWidget(_BoundedIntWidget):
     _view_name = Unicode('IntSliderView', sync=True)
-    orientation = Enum([u'horizontal', u'vertical'], u'horizontal', 
+    orientation = Enum([u'horizontal', u'vertical'], u'horizontal',
         help="Vertical or horizontal.", sync=True)
+    range = Bool(False, help="Display a range selector", sync=True)
     readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
 
 
 class IntProgressWidget(_BoundedIntWidget):
     _view_name = Unicode('ProgressView', sync=True)
+
+class _IntRangeWidget(_IntWidget):
+    value = Tuple(CInt, CInt, default_value=(0, 1), help="Low and high int values", sync=True)
+
+class _BoundedIntRangeWidget(_IntRangeWidget):
+    step = CInt(1, help="Minimum step that the value can take (ignored by some views)", sync=True)
+    max = CInt(100, help="Max value", sync=True)
+    min = CInt(0, help="Min value", sync=True)
+
+    def __init__(self, *pargs, **kwargs):
+        """Constructor"""
+        DOMWidget.__init__(self, *pargs, **kwargs)
+        self.on_trait_change(self._validate, ['value', 'min', 'max'])
+
+    def _validate(self, name, old, new):
+        """Validate min <= low <= high <= max"""
+        if name == "value":
+            low, high = new
+            low = max(low, self.min)
+            high = min(high, self.max)
+            self.value = (min(low, high), max(low, high))
+
+
+class IntRangeSliderWidget(_BoundedIntRangeWidget):
+    _view_name = Unicode('IntSliderView', sync=True)
+    orientation = Enum([u'horizontal', u'vertical'], u'horizontal',
+        help="Vertical or horizontal.", sync=True)
+    range = Bool(True, help="Display a range selector", sync=True)
+    readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
