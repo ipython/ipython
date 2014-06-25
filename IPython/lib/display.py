@@ -7,6 +7,9 @@ from os import walk, sep
 
 from IPython.core.display import DisplayObject
 
+__all__ = ['Audio', 'IFrame', 'YouTubeVideo', 'VimeoVideo', 'ScribdDocument',
+           'FileLink', 'FileLinks']
+
 
 class Audio(DisplayObject):
     """Create an audio object.

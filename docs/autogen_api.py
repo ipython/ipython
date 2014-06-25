@@ -38,6 +38,9 @@ if __name__ == '__main__':
                                         # These are exposed by nbformat.current
                                         r'\.nbformat\.convert',
                                         r'\.nbformat\.validator',
+                                        # These are exposed in display
+                                        r'\.core\.display',
+                                        r'\.lib\.display',
                                         ]
 
     # These modules import functions and classes from other places to expose
@@ -46,6 +49,7 @@ if __name__ == '__main__':
     # above.
     docwriter.names_from__all__.update({
         'IPython.nbformat.current',
+        'IPython.display',
     })
     
     # Now, generate the outputs
