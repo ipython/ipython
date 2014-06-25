@@ -19,7 +19,7 @@ from IPython.utils.py3compat import cast_unicode, unicode_type
 # Change this when incrementing the nbformat version
 nbformat = 4
 nbformat_minor = 0
-nbformat_schema = 'v4.withref.json'
+nbformat_schema = 'nbformat.v4.schema.json'
 
 class NotebookNode(Struct):
     pass

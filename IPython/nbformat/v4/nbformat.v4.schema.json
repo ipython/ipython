@@ -141,8 +141,7 @@
                 "level": {
                     "description": "Level of heading cells.",
                     "type": "integer",
-                    "minimum": 1,
-                    "maximum": 6
+                    "minimum": 1
                 }
             }
         },

@@ -199,6 +199,7 @@ def find_package_data():
         'IPython.nbformat' : [
             'tests/*.ipynb',
             'v3/nbformat.v3.schema.json',
+            'v4/nbformat.v4.schema.json',
             ]
     }
     
