@@ -33,6 +33,8 @@ if __name__ == '__main__':
                                         r'\.testing\.plugin',
                                         # This just prints a deprecation msg:
                                         r'\.frontend$',
+                                        # Deprecated:
+                                        r'\.core\.magics\.deprecated'
                                         # We document this manually.
                                         r'\.utils\.py3compat',
                                         # These are exposed by nbformat.current
