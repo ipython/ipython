@@ -218,7 +218,7 @@ def all_js_groups():
 class JSController(TestController):
     """Run CasperJS tests """
     requirements =  ['zmq', 'tornado', 'jinja2', 'casperjs', 'sqlite3',
-                     'jsonschema', 'jsonpointer']
+                     'jsonschema']
     display_slimer_output = False
 
     def __init__(self, section, xunit=True, engine='phantomjs'):

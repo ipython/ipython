@@ -194,7 +194,10 @@ def find_package_data():
                 'preprocessors/tests/files/*.*',
             ],
         'IPython.nbconvert.filters' : ['marked.js'],
-        'IPython.nbformat' : ['tests/*.ipynb','v3/v3.withref.json']
+        'IPython.nbformat' : [
+            'tests/*.ipynb',
+            'v3/nbformat.v3.schema.json',
+            ]
     }
     
     return package_data

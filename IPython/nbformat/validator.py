@@ -1,112 +1,72 @@
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from __future__ import print_function
 import json
 import os
 
 try:
-    from jsonschema import SchemaError
-    from jsonschema import Draft3Validator as Validator
+    from jsonschema import ValidationError
+    from jsonschema import Draft4Validator as Validator
 except ImportError as e:
     verbose_msg = """
 
-    IPython depends on the jsonschema package: https://pypi.python.org/pypi/jsonschema
+    IPython notebook format depends on the jsonschema package:
+    
+        https://pypi.python.org/pypi/jsonschema
     
     Please install it first.
     """
     raise ImportError(str(e) + verbose_msg)
 
-try:
-    import jsonpointer as jsonpointer
-except ImportError as e:
-    verbose_msg = """
-
-    IPython depends on the jsonpointer package: https://pypi.python.org/pypi/jsonpointer
-    
-    Please install it first.
-    """
-    raise ImportError(str(e) + verbose_msg)
-
-from IPython.utils.py3compat import iteritems
+from IPython.utils.importstring import import_item
 
 
-from .current import nbformat, nbformat_schema
-schema_path = os.path.join(
-    os.path.dirname(__file__), "v%d" % nbformat, nbformat_schema)
+validators = {}
 
+def get_validator(version=None):
+    """Load the JSON schema into a Validator"""
+    if version is None:
+        from .current import nbformat as version
 
-def isvalid(nbjson):
+    if version not in validators:
+        v = import_item("IPython.nbformat.v%s" % version)
+        schema_path = os.path.join(os.path.dirname(v.__file__), v.nbformat_schema)
+        with open(schema_path) as f:
+            schema_json = json.load(f)
+        validators[version] = Validator(schema_json)
+    return validators[version]
+
+def isvalid(nbjson, ref=None, version=None):
     """Checks whether the given notebook JSON conforms to the current
     notebook format schema. Returns True if the JSON is valid, and
     False otherwise.
 
     To see the individual errors that were encountered, please use the
     `validate` function instead.
-
     """
-
-    errors = validate(nbjson)
-    return errors == []
-
-
-def validate(nbjson):
-    """Checks whether the given notebook JSON conforms to the current
-    notebook format schema, and returns the list of errors.
-
-    """
-
-    # load the schema file
-    with open(schema_path, 'r') as fh:
-        schema_json = json.load(fh)
-
-    # resolve internal references
-    schema = resolve_ref(schema_json)
-    schema = jsonpointer.resolve_pointer(schema, '/notebook')
-
-    # count how many errors there are
-    v = Validator(schema)
-    errors = list(v.iter_errors(nbjson))
-    return errors
-
-
-def resolve_ref(json, schema=None):
-    """Resolve internal references within the given JSON. This essentially
-    means that dictionaries of this form:
-
-    {"$ref": "/somepointer"}
-
-    will be replaced with the resolved reference to `/somepointer`.
-    This only supports local reference to the same JSON file.
-
-    """
-
-    if not schema:
-        schema = json
-
-    # if it's a list, resolve references for each item in the list
-    if type(json) is list:
-        resolved = []
-        for item in json:
-            resolved.append(resolve_ref(item, schema=schema))
-
-    # if it's a dictionary, resolve references for each item in the
-    # dictionary
-    elif type(json) is dict:
-        resolved = {}
-        for key, ref in iteritems(json):
-
-            # if the key is equal to $ref, then replace the entire
-            # dictionary with the resolved value
-            if key == '$ref':
-                if len(json) != 1:
-                    raise SchemaError(
-                        "objects containing a $ref should only have one item")
-                pointer = jsonpointer.resolve_pointer(schema, ref)
-                resolved = resolve_ref(pointer, schema=schema)
-
-            else:
-                resolved[key] = resolve_ref(ref, schema=schema)
-
-    # otherwise it's a normal object, so just return it
+    try:
+        validate(nbjson, ref, version)
+    except ValidationError:
+        return False
     else:
-        resolved = json
+        return True
 
-    return resolved
+
+def validate(nbjson, ref=None, version=None):
+    """Checks whether the given notebook JSON conforms to the current
+    notebook format schema.
+
+    Raises ValidationError if not valid.
+    """
+    if version is None:
+        from .current import nbformat
+        version = nbjson.get('nbformat', nbformat)
+
+    validator = get_validator(version)
+
+    if ref:
+        return validator.validate(nbjson, {'$ref' : '#/definitions/%s' % ref})
+    else:
+        return validator.validate(nbjson)
+

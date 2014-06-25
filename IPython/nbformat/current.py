@@ -1,5 +1,8 @@
 """The official API for working with notebooks in the current format version."""
 
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from __future__ import print_function
 
 import re
@@ -17,7 +20,7 @@ from IPython.nbformat import v3 as _v_latest
 from .reader import reads as reader_reads
 from .reader import versions
 from .convert import convert
-from .validator import validate
+from .validator import validate, ValidationError
 
 from IPython.utils.log import get_logger
 
@@ -60,11 +63,10 @@ def reads_json(nbjson, **kwargs):
     """
     nb = reader_reads(nbjson, **kwargs)
     nb_current = convert(nb, current_nbformat)
-    errors = validate(nb_current)
-    if errors:
-        get_logger().error(
-            "Notebook JSON is invalid (%d errors detected during read)",
-            len(errors))
+    try:
+        validate(nb_current)
+    except ValidationError as e:
+        get_logger().error("Notebook JSON is invalid: %s", e)
     return nb_current
 
 
@@ -73,11 +75,10 @@ def writes_json(nb, **kwargs):
     any JSON format errors are detected.
 
     """
-    errors = validate(nb)
-    if errors:
-        get_logger().error(
-            "Notebook JSON is invalid (%d errors detected during write)",
-            len(errors))
+    try:
+        validate(nb)
+    except ValidationError as e:
+        get_logger().error("Notebook JSON is invalid: %s", e)
     nbjson = versions[current_nbformat].writes_json(nb, **kwargs)
     return nbjson
 
