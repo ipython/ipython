@@ -115,10 +115,10 @@ relevant section of the :doc:`messaging spec <messaging>`.
 
    .. method:: do_inspect(code, cusor_pos, detail_level=0)
 
-     Object inspection
+     Object introspection
      
      :param str code: The code
-     :param int cursor_pos: The position in the code where inspection is requested
+     :param int cursor_pos: The position in the code where introspection is requested
      :param int detail_level: 0 or 1 for more or less detail. In IPython, 1 gets
          the source code.
      
