@@ -8,12 +8,13 @@ from IPython.core import release
 from IPython.utils.py3compat import builtin_mod, PY3
 from IPython.utils.tokenutil import token_at_cursor
 from IPython.utils.traitlets import Instance, Type, Any
+from IPython.utils.decorators import undoc
 
-from .kernelbase import KernelBase
+from .kernelbase import Kernel as KernelBase
 from .serialize import serialize_object, unpack_apply_message
 from .zmqshell import ZMQInteractiveShell
 
-class Kernel(KernelBase):
+class IPythonKernel(KernelBase):
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
     shell_class = Type(ZMQInteractiveShell)
 
@@ -34,7 +35,7 @@ class Kernel(KernelBase):
     _sys_eval_input = Any()
 
     def __init__(self, **kwargs):
-        super(Kernel, self).__init__(**kwargs)
+        super(IPythonKernel, self).__init__(**kwargs)
 
         # Initialize the InteractiveShell subclass
         self.shell = self.shell_class.instance(parent=self,
@@ -70,13 +71,13 @@ class Kernel(KernelBase):
 
     def start(self):
         self.shell.exit_now = False
-        super(Kernel, self).start()
+        super(IPythonKernel, self).start()
 
     def set_parent(self, ident, parent):
         """Overridden from parent to tell the display hook and output streams
         about the parent message.
         """
-        super(Kernel, self).set_parent(ident, parent)
+        super(IPythonKernel, self).set_parent(ident, parent)
         self.shell.set_parent(parent)
 
     def _forward_input(self, allow_stdin=False):
@@ -288,3 +289,14 @@ class Kernel(KernelBase):
     def do_clear(self):
         self.shell.reset(False)
         return dict(status='ok')
+
+
+# This exists only for backwards compatibility - use IPythonKernel instead
+
+@undoc
+class Kernel(IPythonKernel):
+    def __init__(self, *args, **kwargs):
+        import warnings
+        warnings.warn('Kernel is a deprecated alias of IPython.kernel.zmq.ipkernel.IPythonKernel',
+                      DeprecationWarning)
+        super(Kernel, self).__init__(*args, **kwargs)

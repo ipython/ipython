@@ -45,7 +45,7 @@ class InProcessKernelClient(KernelClient):
     stdin_channel_class = Type(InProcessStdInChannel)
     hb_channel_class = Type(InProcessHBChannel)
 
-    kernel = Instance('IPython.kernel.inprocess.ipkernel.Kernel')
+    kernel = Instance('IPython.kernel.inprocess.ipkernel.InProcessKernel')
 
     #--------------------------------------------------------------------------
     # Channel management methods

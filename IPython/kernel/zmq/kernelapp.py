@@ -33,7 +33,7 @@ from IPython.kernel.connect import ConnectionFileMixin
 
 # local imports
 from .heartbeat import Heartbeat
-from .ipkernel import Kernel
+from .ipkernel import IPythonKernel
 from .parentpoller import ParentPollerUnix, ParentPollerWindows
 from .session import (
     Session, session_flags, session_aliases, default_secure,
@@ -100,10 +100,10 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
     name='ipkernel'
     aliases = Dict(kernel_aliases)
     flags = Dict(kernel_flags)
-    classes = [Kernel, ZMQInteractiveShell, ProfileDir, Session]
+    classes = [IPythonKernel, ZMQInteractiveShell, ProfileDir, Session]
     # the kernel class, as an importstring
-    kernel_class = Type('IPython.kernel.zmq.ipkernel.Kernel', config=True,
-                        klass='IPython.kernel.zmq.kernelbase.KernelBase',
+    kernel_class = Type('IPython.kernel.zmq.ipkernel.IPythonKernel', config=True,
+                        klass='IPython.kernel.zmq.kernelbase.Kernel',
     help="""The Kernel subclass to be used.
     
     This should allow easy re-use of the IPKernelApp entry point

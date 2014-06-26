@@ -27,7 +27,7 @@ from IPython.parallel.factory import RegistrationFactory
 from IPython.parallel.util import disambiguate_url
 
 from IPython.kernel.zmq.session import Message
-from IPython.kernel.zmq.ipkernel import Kernel
+from IPython.kernel.zmq.ipkernel import IPythonKernel as Kernel
 from IPython.kernel.zmq.kernelapp import IPKernelApp
 
 class EngineFactory(RegistrationFactory):

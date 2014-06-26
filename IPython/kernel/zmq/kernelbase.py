@@ -32,11 +32,7 @@ from IPython.utils.traitlets import (
 from .session import Session
 
 
-#-----------------------------------------------------------------------------
-# Main kernel class
-#-----------------------------------------------------------------------------
-
-class KernelBase(Configurable):
+class Kernel(Configurable):
 
     #---------------------------------------------------------------------------
     # Kernel interface
@@ -111,7 +107,7 @@ class KernelBase(Configurable):
 
 
     def __init__(self, **kwargs):
-        super(KernelBase, self).__init__(**kwargs)
+        super(Kernel, self).__init__(**kwargs)
 
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request',
