@@ -6,6 +6,7 @@ Module with tests for the execute preprocessor.
 # Distributed under the terms of the Modified BSD License.
 
 import copy
+import glob
 import os
 import re
 
@@ -15,7 +16,6 @@ from .base import PreprocessorTestsBase
 from ..execute import ExecutePreprocessor
 
 from IPython.nbconvert.filters import strip_ansi
-
 
 addr_pat = re.compile(r'0x[0-9a-f]{7,9}')
 
@@ -71,16 +71,12 @@ class TestExecute(PreprocessorTestsBase):
     def test_run_notebooks(self):
         """Runs a series of test notebooks and compares them to their actual output"""
         current_dir = os.path.dirname(__file__)
-        input_files = os.listdir(os.path.join(current_dir, 'input'))
+        input_files = glob.glob(os.path.join(current_dir, 'files', '*.ipynb'))
         for filename in input_files:
-            if not filename.endswith(".ipynb"):
-                continue
-            with open(os.path.join(current_dir, 'input', filename)) as f:
+            with open(os.path.join(current_dir, 'files', filename)) as f:
                 input_nb = nbformat.read(f, 'ipynb')
-            with open(os.path.join(current_dir, 'expected', filename)) as f:
-                expected_nb = nbformat.read(f, 'ipynb')
             res = self.build_resources()
             preprocessor = self.build_preprocessor()
-            output_nb, _ = preprocessor(input_nb, res)
-            self.assert_notebooks_equal(output_nb, expected_nb)
+            output_nb, _ = preprocessor(copy.deepcopy(input_nb), res)
+            self.assert_notebooks_equal(output_nb, input_nb)
 
