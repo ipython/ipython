@@ -11,6 +11,7 @@ from .nbbase import (
 )
 
 from IPython.nbformat import v3
+from IPython.utils.log import get_logger
 
 
 def upgrade(nb, from_version=3, from_minor=0):
@@ -25,12 +26,16 @@ def upgrade(nb, from_version=3, from_minor=0):
     from_minor : int
         The original minor version of the notebook to convert (only relevant for v >= 3).
     """
-    from IPython.nbformat.current import validate
+    from IPython.nbformat.current import validate, ValidationError
     if from_version == 3:
         # Validate the notebook before conversion
-        validate(nb, version=from_version)
+        try:
+            validate(nb, version=from_version)
+        except ValidationError as e:
+            get_logger().error("Notebook JSON is not valid v%i: %s", from_version, e)
 
         # Mark the original nbformat so consumers know it has been converted.
+        nb.pop('orig_nbformat', None)
         nb.metadata.orig_nbformat = 3
         # Mark the new format
         nb.nbformat = nbformat
@@ -47,7 +52,10 @@ def upgrade(nb, from_version=3, from_minor=0):
         # upgrade metadata
         nb.metadata.pop('name', '')
         # Validate the converted notebook before returning it
-        validate(nb, version=nbformat)
+        try:
+            validate(nb, version=nbformat)
+        except ValidationError as e:
+            get_logger().error("Notebook JSON is not valid v%i: %s", nbformat, e)
         return nb
     elif from_version == 4:
         # nothing to do
