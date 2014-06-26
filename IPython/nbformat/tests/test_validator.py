@@ -11,14 +11,10 @@ from ..current import read
 from ..validator import isvalid, validate
 
 
-#-----------------------------------------------------------------------------
-# Classes and functions
-#-----------------------------------------------------------------------------
-
 class TestValidator(TestsBase):
 
     def test_nb2(self):
-        """Test that a v2 notebook converted to v3 passes validation"""
+        """Test that a v2 notebook converted to current passes validation"""
         with self.fopen(u'test2.ipynb', u'r') as f:
             nb = read(f, u'json')
         validate(nb)
@@ -27,6 +23,13 @@ class TestValidator(TestsBase):
     def test_nb3(self):
         """Test that a v3 notebook passes validation"""
         with self.fopen(u'test3.ipynb', u'r') as f:
+            nb = read(f, u'json')
+        validate(nb)
+        self.assertEqual(isvalid(nb), True)
+
+    def test_nb4(self):
+        """Test that a v3 notebook passes validation"""
+        with self.fopen(u'test4.ipynb', u'r') as f:
             nb = read(f, u'json')
         validate(nb)
         self.assertEqual(isvalid(nb), True)

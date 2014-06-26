@@ -1,36 +1,22 @@
-"""API for reading notebooks.
+"""API for reading notebooks of different versions"""
 
-Authors:
-
-* Jonathan Frederic
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import json
 
 from . import v1
 from . import v2
 from . import v3
+from . import v4
 
 versions = {
     1: v1,
     2: v2,
     3: v3,
+    4: v4,
     }
 
-#-----------------------------------------------------------------------------
-# Code
-#-----------------------------------------------------------------------------
 
 class NotJSONError(ValueError):
     pass

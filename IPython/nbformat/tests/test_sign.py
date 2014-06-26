@@ -1,14 +1,7 @@
 """Test Notebook signing"""
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2014, The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from .. import sign
 from .base import TestsBase
@@ -16,9 +9,6 @@ from .base import TestsBase
 from ..current import read
 from IPython.core.getipython import get_ipython
 
-#-----------------------------------------------------------------------------
-# Classes and functions
-#-----------------------------------------------------------------------------
 
 class TestNotary(TestsBase):
     
@@ -80,7 +70,7 @@ class TestNotary(TestsBase):
         self.assertTrue(check_signature(nb))
     
     def test_mark_cells_untrusted(self):
-        cells = self.nb.worksheets[0].cells
+        cells = self.nb.cells
         self.notary.mark_cells(self.nb, False)
         for cell in cells:
             self.assertNotIn('trusted', cell)
@@ -91,7 +81,7 @@ class TestNotary(TestsBase):
                 self.assertNotIn('trusted', cell.metadata)
     
     def test_mark_cells_trusted(self):
-        cells = self.nb.worksheets[0].cells
+        cells = self.nb.cells
         self.notary.mark_cells(self.nb, True)
         for cell in cells:
             self.assertNotIn('trusted', cell)
@@ -105,17 +95,17 @@ class TestNotary(TestsBase):
         nb = self.nb
         self.notary.mark_cells(nb, True)
         self.assertTrue(self.notary.check_cells(nb))
-        for cell in nb.worksheets[0].cells:
+        for cell in nb.cells:
             self.assertNotIn('trusted', cell)
         self.notary.mark_cells(nb, False)
         self.assertFalse(self.notary.check_cells(nb))
-        for cell in nb.worksheets[0].cells:
+        for cell in nb.cells:
             self.assertNotIn('trusted', cell)
     
     def test_trust_no_output(self):
         nb = self.nb
         self.notary.mark_cells(nb, False)
-        for cell in nb.worksheets[0].cells:
+        for cell in nb.cells:
             if cell.cell_type == 'code':
                 cell.outputs = []
         self.assertTrue(self.notary.check_cells(nb))

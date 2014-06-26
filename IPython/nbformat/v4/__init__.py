@@ -4,7 +4,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 from .nbbase import (
-    NotebookNode,
+    NotebookNode, from_dict,
     nbformat, nbformat_minor, nbformat_schema,
     new_code_cell, new_heading_cell, new_markdown_cell, new_notebook,
     new_output,

@@ -17,7 +17,6 @@ from IPython.core.application import BaseIPythonApplication, base_flags
 
 from .current import read, write
 
-
 try:
     # Python 3
     algorithms = hashlib.algorithms_guaranteed
@@ -181,10 +180,10 @@ class NotebookNotary(LoggingConfigurable):
         
         This function is the inverse of check_cells
         """
-        if not nb['worksheets']:
+        if not nb['cells']:
             # nothing to mark if there are no cells
             return
-        for cell in nb['worksheets'][0]['cells']:
+        for cell in nb['cells']:
             if cell['cell_type'] == 'code':
                 cell['metadata']['trusted'] = trusted
     
@@ -206,12 +205,11 @@ class NotebookNotary(LoggingConfigurable):
         # explicitly safe output
         safe = {
             'text/plain', 'image/png', 'image/jpeg',
-            'text', 'png', 'jpg', # v3-style short keys
         }
         
         for output in cell['outputs']:
             output_type = output['output_type']
-            if output_type in ('pyout', 'display_data'):
+            if output_type in {'execute_result', 'display_data'}:
                 # if there are any data keys not in the safe whitelist
                 output_keys = set(output).difference({"output_type", "prompt_number", "metadata"})
                 if output_keys.difference(safe):
@@ -226,10 +224,10 @@ class NotebookNotary(LoggingConfigurable):
         
         This function is the inverse of mark_cells.
         """
-        if not nb['worksheets']:
+        if not nb['cells']:
             return True
         trusted = True
-        for cell in nb['worksheets'][0]['cells']:
+        for cell in nb['cells']:
             if cell['cell_type'] != 'code':
                 continue
             # only distrust a cell if it actually has some output to distrust
