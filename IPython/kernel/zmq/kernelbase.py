@@ -125,7 +125,7 @@ class Kernel(Configurable):
         for msg_type in control_msg_types:
             self.control_handlers[msg_type] = getattr(self, msg_type)
 
-
+    
     def dispatch_control(self, msg):
         """dispatch control requests"""
         idents,msg = self.session.feed_identities(msg, copy=False)
@@ -162,6 +162,10 @@ class Kernel(Configurable):
             self.log.error("Invalid Message", exc_info=True)
             return
 
+        # Set the parent message for side effects.
+        self.set_parent(idents, msg)
+        self._publish_status(u'busy')
+        
         header = msg['header']
         msg_id = header['msg_id']
         msg_type = msg['header']['msg_type']
@@ -196,6 +200,10 @@ class Kernel(Configurable):
                 self.log.error("Exception in message handler:", exc_info=True)
             finally:
                 signal(SIGINT, sig)
+        
+        sys.stdout.flush()
+        sys.stderr.flush()
+        self._publish_status(u'idle')
     
     def enter_eventloop(self):
         """enter eventloop"""
@@ -281,7 +289,7 @@ class Kernel(Configurable):
         self.session.send(self.iopub_socket,
                           u'status',
                           {u'execution_state': status},
-                          parent=parent,
+                          parent=parent or self._parent_header,
                           ident=self._topic('status'),
                           )
     
@@ -313,8 +321,6 @@ class Kernel(Configurable):
     def execute_request(self, stream, ident, parent):
         """handle an execute_request"""
         
-        self._publish_status(u'busy', parent)
-        
         try:
             content = parent[u'content']
             code = py3compat.cast_unicode_py2(content[u'code'])
@@ -328,9 +334,6 @@ class Kernel(Configurable):
             return
         
         md = self._make_metadata(parent['metadata'])
-        
-        # Set the parent message of the display hook and out streams.
-        self.set_parent(ident, parent)
         
         # Re-broadcast our input for the benefit of listening clients, and
         # start computing output
@@ -366,8 +369,6 @@ class Kernel(Configurable):
 
         if not silent and reply_msg['content']['status'] == u'error':
             self._abort_queues()
-
-        self._publish_status(u'idle', parent)
 
     def do_execute(self, code, silent, store_history=True,
                    user_experssions=None, allow_stdin=False):
@@ -484,11 +485,6 @@ class Kernel(Configurable):
             self.log.error("Got bad msg: %s", parent, exc_info=True)
             return
 
-        self._publish_status(u'busy', parent)
-
-        # Set the parent message of the display hook and out streams.
-        self.set_parent(ident, parent)
-
         md = self._make_metadata(parent['metadata'])
 
         reply_content, result_buf = self.do_apply(content, bufs, msg_id, md)
@@ -502,8 +498,6 @@ class Kernel(Configurable):
         
         self.session.send(stream, u'apply_reply', reply_content,
                     parent=parent, ident=ident,buffers=result_buf, metadata=md)
-
-        self._publish_status(u'idle', parent)
 
     def do_apply(self, content, bufs, msg_id, reply_metadata):
         """Override in subclasses to support the IPython parallel framework.
