@@ -9,6 +9,15 @@ define([
     "use strict";
 
     var Pager = function (pager_selector, pager_splitter_selector, options) {
+        // Constructor
+        //
+        // Parameters:
+        //  pager_selector: string
+        //  pager_splitter_selector: string
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          events: $(Events) instance
+        //          layout_manager: LayoutManager instance
         this.events = options.events;
         this.pager_element = $(pager_selector);
         this.pager_button_area = $('#pager_button_area');

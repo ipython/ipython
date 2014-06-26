@@ -12,6 +12,7 @@ define([
     "use strict";
 
     var SaveWidget = function (selector, events) {
+        // TODO: Remove circulat ref.
         this.notebook = undefined;
         this.selector = selector;
         this.events = events;

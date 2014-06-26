@@ -4,7 +4,8 @@
 define([
     'base/js/namespace',
     'jquery',
-], function(IPython, $) {
+    'components/bootstrap-tour/build/js/bootstrap-tour.min',
+], function(IPython, $, Tour) {
     "use strict";
 
     var tour_style = "<div class='popover tour'>\n" +

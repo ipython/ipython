@@ -11,6 +11,15 @@ define([
     "use strict";
 
     var NotificationArea = function (selector, options) {
+        // Constructor
+        //
+        // Parameters:
+        //  selector: string
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          notebook: Notebook instance
+        //          events: $(Events) instance
+        //          save_widget: SaveWidget instance
         this.selector = selector;
         this.events = options.events;
         this.save_widget = options.save_widget;

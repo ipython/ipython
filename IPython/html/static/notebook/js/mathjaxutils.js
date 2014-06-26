@@ -2,10 +2,11 @@
 // Distributed under the terms of the Modified BSD License.
 
 define([
+    'base/js/namespace',
     'jquery',
     'base/js/utils',
     'base/js/dialog',
-], function($, utils, dialog) {
+], function(IPython, $, utils, dialog) {
     "use strict";
 
     var init = function () {
@@ -235,9 +236,13 @@ define([
         return text;
     };
 
-    return {
+    var mathjaxutils = {
         init : init,
         remove_math : remove_math,
         replace_math : replace_math
     };
+
+    IPython.mathjaxutils = mathjaxutils;
+
+    return mathjaxutils;
 });

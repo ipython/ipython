@@ -27,18 +27,17 @@ define([
         };
     // end monkey patching CodeMirror
 
-    /**
-     * The Base `Cell` class from which to inherit
-     * @class Cell
-     **/
-
-    /*
-     * @constructor
-     *
-     * @param {object|undefined} [options]
-     *     @param [options.cm_config] {object} config to pass to CodeMirror, will extend default parameters
-     */
     var Cell = function (options) {
+        // Constructor
+        //
+        // The Base `Cell` class from which to inherit.
+        //
+        // Parameters:
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          events: $(Events) instance 
+        //          config: dictionary
+        //          keyboard_manager: KeyboardManager instance 
         options = options || {};
         this.keyboard_manager = options.keyboard_manager;
         this.events = options.events;

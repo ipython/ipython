@@ -16,6 +16,13 @@ define([
     var keycodes = keyboard.keycodes;
 
     var KeyboardManager = function (options) {
+        // Constructor
+        //
+        // Parameters:
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          events: $(Events) instance
+        //          pager: Pager instance
         this.mode = 'command';
         this.enabled = true;
         this.pager = options.pager;

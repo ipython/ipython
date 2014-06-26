@@ -20,7 +20,7 @@ define([
     $, 
     utils, 
     dialog, 
-    cells, 
+    textcell, 
     codecell, 
     session, 
     celltoolbar, 
@@ -29,16 +29,22 @@ define([
     keyboard
     ) {
 
-    /**
-     * A notebook contains and manages cells.
-     * 
-     * @class Notebook
-     * @constructor
-     * @param {String} selector A jQuery selector for the notebook's DOM element
-     * @param {Object} [options] A config object
-     * @param {Object} [events] An events object
-     */
     var Notebook = function (selector, options) {
+        // Constructor
+        //
+        // A notebook contains and manages cells.
+        //
+        // Parameters:
+        //  selector: string
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          events: $(Events) instance
+        //          keyboard_manager: KeyboardManager instance
+        //          save_widget: SaveWidget instance
+        //          config: dictionary
+        //          base_url : string
+        //          notebook_path : string
+        //          notebook_name : string
         this.config = options.config || {};
         this.base_url = options.base_url;
         this.notebook_path = options.notebook_path;
@@ -806,9 +812,6 @@ define([
 
         if (ncells === 0 || this.is_valid_cell_index(index) || index === ncells) {
             var cell_options = {
-                base_url: base_url,
-                notebook_path: notebook_path,
-                notebook_name: notebook_name,
                 events: this.events, 
                 config: this.config, 
                 keyboard_manager: this.keyboard_manager, 
@@ -818,11 +821,11 @@ define([
                 cell = new codecell.CodeCell(this.kernel, cell_options);
                 cell.set_input_prompt();
             } else if (type === 'markdown') {
-                cell = new cells.MarkdownCell(cell_options);
+                cell = new textcell.MarkdownCell(cell_options);
             } else if (type === 'raw') {
-                cell = new cells.RawCell(cell_options);
+                cell = new textcell.RawCell(cell_options);
             } else if (type === 'heading') {
-                cell = new cells.HeadingCell(cell_options);
+                cell = new textcell.HeadingCell(cell_options);
             }
 
             if(this._insert_element_at_index(cell.element,index)) {
@@ -967,7 +970,7 @@ define([
         if (this.is_valid_cell_index(i)) {
             var source_element = this.get_cell_element(i);
             var source_cell = source_element.data("cell");
-            if (!(source_cell instanceof cells.MarkdownCell)) {
+            if (!(source_cell instanceof textcell.MarkdownCell)) {
                 var target_cell = this.insert_cell_below('markdown',i);
                 var text = source_cell.get_text();
                 if (text === source_cell.placeholder) {
@@ -981,7 +984,7 @@ define([
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.select(i);
-                if ((source_cell instanceof cells.TextCell) && source_cell.rendered) {
+                if ((source_cell instanceof textcell.TextCell) && source_cell.rendered) {
                     target_cell.render();
                 }
                 var cursor = source_cell.code_mirror.getCursor();
@@ -1003,7 +1006,7 @@ define([
             var source_element = this.get_cell_element(i);
             var source_cell = source_element.data("cell");
             var target_cell = null;
-            if (!(source_cell instanceof cells.RawCell)) {
+            if (!(source_cell instanceof textcell.RawCell)) {
                 target_cell = this.insert_cell_below('raw',i);
                 var text = source_cell.get_text();
                 if (text === source_cell.placeholder) {
@@ -1038,7 +1041,7 @@ define([
             var source_element = this.get_cell_element(i);
             var source_cell = source_element.data("cell");
             var target_cell = null;
-            if (source_cell instanceof cells.HeadingCell) {
+            if (source_cell instanceof textcell.HeadingCell) {
                 source_cell.set_level(level);
             } else {
                 target_cell = this.insert_cell_below('heading',i);
@@ -1057,7 +1060,7 @@ define([
                 this.select(i);
                 var cursor = source_cell.code_mirror.getCursor();
                 target_cell.code_mirror.setCursor(cursor);
-                if ((source_cell instanceof cells.TextCell) && source_cell.rendered) {
+                if ((source_cell instanceof textcell.TextCell) && source_cell.rendered) {
                     target_cell.render();
                 }
             }
@@ -1176,8 +1179,8 @@ define([
      * @method split_cell
      */
     Notebook.prototype.split_cell = function () {
-        var mdc = cells.MarkdownCell;
-        var rc = cells.RawCell;
+        var mdc = textcell.MarkdownCell;
+        var rc = textcell.RawCell;
         var cell = this.get_selected_cell();
         if (cell.is_splittable()) {
             var texta = cell.get_pre_cursor();
@@ -1205,8 +1208,8 @@ define([
      * @method merge_cell_above
      */
     Notebook.prototype.merge_cell_above = function () {
-        var mdc = cells.MarkdownCell;
-        var rc = cells.RawCell;
+        var mdc = textcell.MarkdownCell;
+        var rc = textcell.RawCell;
         var index = this.get_selected_index();
         var cell = this.get_cell(index);
         var render = cell.rendered;
@@ -1242,8 +1245,8 @@ define([
      * @method merge_cell_below
      */
     Notebook.prototype.merge_cell_below = function () {
-        var mdc = cells.MarkdownCell;
-        var rc = cells.RawCell;
+        var mdc = textcell.MarkdownCell;
+        var rc = textcell.RawCell;
         var index = this.get_selected_index();
         var cell = this.get_cell(index);
         var render = cell.rendered;

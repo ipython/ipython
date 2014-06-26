@@ -9,6 +9,15 @@ define([
     "use strict";
 
     var KernelList = function (selector, options) {
+        // Constructor
+        //
+        // Parameters:
+        //  selector: string
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          session_list: SessionList instance
+        //          base_url: string
+        //          notebook_path: string
         notebooklist.NotebookList.call(this, selector, $.extend({
             element_name: 'running'}, 
             options));

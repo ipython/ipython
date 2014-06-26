@@ -10,6 +10,16 @@ define([
     "use strict";
     
     var NotebookList = function (selector, options) {
+        // Constructor
+        //
+        // Parameters:
+        //  selector: string
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          session_list: SessionList instance
+        //          element_name: string
+        //          base_url: string
+        //          notebook_path: string
         var that = this;
         this.session_list = options.session_list;
         // allow code re-use by just changing element_name in kernellist.js

@@ -6,25 +6,26 @@ define([
     'jquery',
     'base/js/utils',
     'notebook/js/tour',
-    'components/bootstrap-tour/build/js/bootstrap-tour.min',
 ], function(IPython, $, utils, tour) {
     "use strict";
     
-    /**
-     * A MenuBar Class to generate the menubar of IPython notebook
-     * @Class MenuBar
-     *
-     * @constructor
-     *
-     *
-     * @param selector {string} selector for the menubar element in DOM
-     * @param {object} [options]
-     *      @param [options.base_url] {String} String to use for the
-     *      base project url. Default is to inspect
-     *      $('body').data('baseUrl');
-     *      does not support change for now is set through this option
-     */
     var MenuBar = function (selector, options) {
+        // Constructor
+        //
+        // A MenuBar Class to generate the menubar of IPython notebook
+        //
+        // Parameters:
+        //  selector: string
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          notebook: Notebook instance
+        //          layout_manager: LayoutManager instance
+        //          events: $(Events) instance
+        //          save_widget: SaveWidget instance
+        //          quick_help: QuickHelp instance
+        //          base_url : string
+        //          notebook_path : string
+        //          notebook_name : string
         options = options || {};
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
         this.selector = selector;

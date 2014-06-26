@@ -11,6 +11,13 @@ define([
     var platform = utils.platform;
 
     var QuickHelp = function (options) {
+        // Constructor
+        //
+        // Parameters:
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          events: $(Events) instance
+        //          keyboard_manager: KeyboardManager instance
         this.keyboard_manager = options.keyboard_manager;
         this.keyboard_manager.quick_help = this;
         this.events = options.events;

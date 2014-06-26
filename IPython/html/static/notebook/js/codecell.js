@@ -41,21 +41,21 @@ define([
 
     var keycodes = keyboard.keycodes;
 
-    /**
-     * A Cell conceived to write code.
-     *
-     * The kernel doesn't have to be set at creation time, in that case
-     * it will be null and set_kernel has to be called later.
-     * @class CodeCell
-     * @extends Cell
-     *
-     * @constructor
-     * @param {Object|null} kernel
-     * @param {object|undefined} [options]
-     *      @param [options.cm_config] {object} config to pass to CodeMirror
-     */
     var CodeCell = function (kernel, options) {
-        options = options || {};
+        // Constructor
+        //
+        // A Cell conceived to write code.
+        //
+        // Parameters:
+        //  kernel: Kernel instance
+        //      The kernel doesn't have to be set at creation time, in that case
+        //      it will be null and set_kernel has to be called later.
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          events: $(Events) instance 
+        //          config: dictionary
+        //          keyboard_manager: KeyboardManager instance 
+        //          notebook: Notebook instance
         this.kernel = kernel || null;
         this.notebook = options.notebook;
         this.collapsed = false;

@@ -13,19 +13,21 @@ define([
     "use strict";
     var Cell = cell.Cell;
 
-    /**
-     * Construct a new TextCell, codemirror mode is by default 'htmlmixed', and cell type is 'text'
-     * cell start as not redered.
-     *
-     * @class TextCell
-     * @constructor TextCell
-     * @extend Cell
-     * @param {object|undefined} [options]
-     *      @param [options.cm_config] {object} config to pass to CodeMirror, will extend/overwrite default config
-     *      @param [options.placeholder] {string} default string to use when souce in empty for rendering (only use in some TextCell subclass)
-     */
     var TextCell = function (options) {
+        // Constructor
+        //
+        // Construct a new TextCell, codemirror mode is by default 'htmlmixed', 
+        // and cell type is 'text' cell start as not redered.
+        //
+        // Parameters:
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          events: $(Events) instance 
+        //          config: dictionary
+        //          keyboard_manager: KeyboardManager instance 
+        //          notebook: Notebook instance
         options = options || {};
+
         // in all TextCell/Cell subclasses
         // do not assign most of members here, just pass it down
         // in the options dict potentially overwriting what you wish.
@@ -214,12 +216,16 @@ define([
     };
 
 
-    /**
-     * @class MarkdownCell
-     * @constructor MarkdownCell
-     * @extends IPython.HTMLCell
-     */
     var MarkdownCell = function (options) {
+        // Constructor
+        //
+        // Parameters:
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          events: $(Events) instance 
+        //          config: dictionary
+        //          keyboard_manager: KeyboardManager instance 
+        //          notebook: Notebook instance
         options = options || {};
         var config = this.mergeopt(MarkdownCell, options.config);
         TextCell.apply(this, [$.extend({}, options, {config: config})]);
@@ -263,14 +269,16 @@ define([
     };
 
 
-    // RawCell
-
-    /**
-     * @class RawCell
-     * @constructor RawCell
-     * @extends TextCell
-     */
     var RawCell = function (options) {
+        // Constructor
+        //
+        // Parameters:
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          events: $(Events) instance 
+        //          config: dictionary
+        //          keyboard_manager: KeyboardManager instance 
+        //          notebook: Notebook instance
         options = options || {};
         var config = this.mergeopt(RawCell, options.config);
         TextCell.apply(this, [$.extend({}, options, {config: config})]);
@@ -321,16 +329,16 @@ define([
     };
 
 
-    /**
-     * @class HeadingCell
-     * @extends TextCell
-     */
-
-    /**
-     * @constructor HeadingCell
-     * @extends TextCell
-     */
     var HeadingCell = function (options) {
+        // Constructor
+        //
+        // Parameters:
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          events: $(Events) instance 
+        //          config: dictionary
+        //          keyboard_manager: KeyboardManager instance 
+        //          notebook: Notebook instance
         options = options || {};
         var config = this.mergeopt(HeadingCell, options.config);
         TextCell.apply(this, [$.extend({}, options, {config: config})]);
