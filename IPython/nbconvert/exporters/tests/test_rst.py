@@ -20,9 +20,6 @@ from .base import ExportersTestsBase
 from ..rst import RSTExporter
 from IPython.testing.decorators import onlyif_cmds_exist
 
-#-----------------------------------------------------------------------------
-# Class
-#-----------------------------------------------------------------------------
 
 class TestRSTExporter(ExportersTestsBase):
     """Tests for RSTExporter"""
@@ -56,8 +53,8 @@ class TestRSTExporter(ExportersTestsBase):
         
         (output, resources) = exporter.from_notebook_node(nb)
         # add an empty code cell
-        nb.worksheets[0].cells.append(
-            current.new_code_cell(input="")
+        nb.cells.append(
+            current.new_code_cell(source="")
         )
         (output2, resources) = exporter.from_notebook_node(nb)
         # adding an empty code cell shouldn't change output

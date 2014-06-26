@@ -20,7 +20,7 @@
 %===============================================================================
 
 ((* block input scoped *))
-    ((( add_prompt(cell.input | highlight_code(strip_verbatim=True), cell, 'In ', 'incolor') )))
+    ((( add_prompt(cell.source | highlight_code(strip_verbatim=True), cell, 'In ', 'incolor') )))
 ((* endblock input *))
 
 
@@ -28,7 +28,7 @@
 % Output
 %===============================================================================
 
-((* block pyout scoped *))
+((* block execute_result scoped *))
     ((*- for type in output | filter_data_type -*))
         ((*- if type in ['text']*))
             ((( add_prompt(output.text | escape_latex, cell, 'Out', 'outcolor') )))
@@ -36,7 +36,7 @@
 \texttt{\color{outcolor}Out[{\color{outcolor}((( cell.prompt_number )))}]:}((( super() )))
         ((*- endif -*))
     ((*- endfor -*))
-((* endblock pyout *))
+((* endblock execute_result *))
 
 
 %==============================================================================

@@ -8,23 +8,23 @@
 {%- endblock output_prompt %}
 
 {% block input %}
-{{ cell.input | indent(4)}}
+{{ cell.source | indent(4)}}
 {% endblock input %}
 
-{% block pyerr %}
+{% block error %}
 {{ super() }}
-{% endblock pyerr %}
+{% endblock error %}
 
 {% block traceback_line %}
 {{ line | indent | strip_ansi }}
 {% endblock traceback_line %}
 
-{% block pyout %}
+{% block execute_result %}
 
 {% block data_priority scoped %}
 {{ super() }}
 {% endblock %}
-{% endblock pyout %}
+{% endblock execute_result %}
 
 {% block stream %}
 {{ output.text | indent }}

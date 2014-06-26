@@ -9,7 +9,7 @@
 {% endblock in_prompt %}
 
 {% block input %}
-{{ cell.input | ipython2python }}
+{{ cell.source | ipython2python }}
 {% endblock input %}
 
 {% block markdowncell scoped %}

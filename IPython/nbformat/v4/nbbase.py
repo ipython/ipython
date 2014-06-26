@@ -38,7 +38,8 @@ def from_dict(d):
 
 def new_output(output_type, mime_bundle=None, **kwargs):
     """Create a new output, to go in the ``cell.outputs`` list of a code cell."""
-    output = NotebookNode(output_type=output_type, **kwargs)
+    output = NotebookNode(output_type=output_type)
+    output.update(from_dict(kwargs))
     if mime_bundle:
         output.update(mime_bundle)
     # populate defaults:
@@ -51,7 +52,8 @@ def new_output(output_type, mime_bundle=None, **kwargs):
 
 def new_code_cell(source='', **kwargs):
     """Create a new code cell"""
-    cell = NotebookNode(cell_type='code', source=source, **kwargs)
+    cell = NotebookNode(cell_type='code', source=source)
+    cell.update(from_dict(kwargs))
     cell.setdefault('metadata', NotebookNode())
     cell.setdefault('source', '')
     cell.setdefault('prompt_number', None)
@@ -62,7 +64,8 @@ def new_code_cell(source='', **kwargs):
 
 def new_markdown_cell(source='', **kwargs):
     """Create a new markdown cell"""
-    cell = NotebookNode(cell_type='markdown', source=source, **kwargs)
+    cell = NotebookNode(cell_type='markdown', source=source)
+    cell.update(from_dict(kwargs))
     cell.setdefault('metadata', NotebookNode())
 
     validate(cell, 'markdown_cell')
@@ -70,7 +73,8 @@ def new_markdown_cell(source='', **kwargs):
 
 def new_heading_cell(source='', **kwargs):
     """Create a new heading cell"""
-    cell = NotebookNode(cell_type='heading', source=source, **kwargs)
+    cell = NotebookNode(cell_type='heading', source=source)
+    cell.update(from_dict(kwargs))
     cell.setdefault('metadata', NotebookNode())
     cell.setdefault('level', 1)
 
@@ -79,7 +83,8 @@ def new_heading_cell(source='', **kwargs):
 
 def new_raw_cell(source='', **kwargs):
     """Create a new raw cell"""
-    cell = NotebookNode(cell_type='raw', source=source, **kwargs)
+    cell = NotebookNode(cell_type='raw', source=source)
+    cell.update(from_dict(kwargs))
     cell.setdefault('metadata', NotebookNode())
 
     validate(cell, 'raw_cell')
@@ -87,7 +92,7 @@ def new_raw_cell(source='', **kwargs):
 
 def new_notebook(**kwargs):
     """Create a new notebook"""
-    nb = NotebookNode(**kwargs)
+    nb = from_dict(kwargs)
     nb.nbformat = nbformat
     nb.nbformat_minor = nbformat_minor
     nb.setdefault('cells', [])

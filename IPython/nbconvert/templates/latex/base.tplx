@@ -140,11 +140,11 @@ This template does not define a docclass, the inheriting class must define this.
 ((* endblock data_text *))
 
 % Display python error text as-is
-((* block pyerr *))
+((* block error *))
     \begin{Verbatim}[commandchars=\\\{\}]
 ((( super() )))
     \end{Verbatim}
-((* endblock pyerr *))
+((* endblock error *))
 ((* block traceback_line *))
     ((( line | indent | strip_ansi | escape_latex )))
 ((* endblock traceback_line *))
@@ -206,12 +206,12 @@ This template does not define a docclass, the inheriting class must define this.
 
 ((* endblock headingcell *))
 
-% Redirect pyout to display data priority.
-((* block pyout scoped *))
+% Redirect execute_result to display data priority.
+((* block execute_result scoped *))
     ((* block data_priority scoped *))
     ((( super() )))
     ((* endblock *))
-((* endblock pyout *))
+((* endblock execute_result *))
 
 % Render markdown
 ((* block markdowncell scoped *))

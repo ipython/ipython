@@ -13,7 +13,7 @@ except ImportError:
 
 from IPython.utils.traitlets import List, Unicode
 
-from IPython.nbformat.current import reads, NotebookNode, writes
+from IPython.nbformat.current import reads, writes, new_output
 from .base import Preprocessor
 from IPython.utils.traitlets import Integer
 
@@ -25,25 +25,6 @@ class ExecutePreprocessor(Preprocessor):
     timeout = Integer(30, config=True,
         help="The time to wait (in seconds) for output from executions."
     )
-    # FIXME: to be removed with nbformat v4
-    # map msg_type to v3 output_type
-    msg_type_map = {
-        "error" : "pyerr",
-        "execute_result" : "pyout",
-    }
-    
-    # FIXME: to be removed with nbformat v4
-    # map mime-type to v3 mime-type keys
-    mime_map = {
-        "text/plain" : "text",
-        "text/html" : "html",
-        "image/svg+xml" : "svg",
-        "image/png" : "png",
-        "image/jpeg" : "jpeg",
-        "text/latex" : "latex",
-        "application/json" : "json",
-        "application/javascript" : "javascript",
-    }
     
     extra_arguments = List(Unicode)
 
@@ -68,14 +49,14 @@ class ExecutePreprocessor(Preprocessor):
             outputs = self.run_cell(self.kc.shell_channel, self.kc.iopub_channel, cell)
         except Exception as e:
             self.log.error("failed to run cell: " + repr(e))
-            self.log.error(str(cell.input))
+            self.log.error(str(cell.source))
             raise
         cell.outputs = outputs
         return cell, resources
 
     def run_cell(self, shell, iopub, cell):
-        msg_id = shell.execute(cell.input)
-        self.log.debug("Executing cell:\n%s", cell.input)
+        msg_id = shell.execute(cell.source)
+        self.log.debug("Executing cell:\n%s", cell.source)
         # wait for finish, with timeout
         while True:
             try:
@@ -104,7 +85,6 @@ class ExecutePreprocessor(Preprocessor):
             msg_type = msg['msg_type']
             self.log.debug("output: %s", msg_type)
             content = msg['content']
-            out = NotebookNode(output_type=self.msg_type_map.get(msg_type, msg_type))
 
             # set the prompt number for the input and the output
             if 'execution_count' in content:
@@ -116,26 +96,37 @@ class ExecutePreprocessor(Preprocessor):
                     break
                 else:
                     continue
-            elif msg_type in {'execute_input', 'pyin'}:
+            elif msg_type in {'execute_input'}:
                 continue
             elif msg_type == 'clear_output':
                 outs = []
                 continue
 
-            if msg_type == 'stream':
-                out.stream = content['name']
-                out.text = content['text']
-            elif msg_type in ('display_data', 'execute_result'):
-                out['metadata'] = content['metadata']
-                for mime, data in content['data'].items():
-                    # map mime-type keys to nbformat v3 keys
-                    # this will be unnecessary in nbformat v4
-                    key = self.mime_map.get(mime, mime)
-                    out[key] = data
+            # set the prompt number for the input and the output
+            if msg_type == 'execute_result':
+                cell['prompt_number'] = content['execution_count']
+                out = new_output(output_type=msg_type,
+                    metadata=content['metadata'],
+                    mime_bundle=content['data'],
+                    prompt_number=content['execution_count'],
+                )
+
+            elif msg_type == 'stream':
+                out = new_output(output_type=msg_type,
+                    name=content['name'],
+                    data=content['data'],
+                )
+            elif msg_type == 'display_data':
+                out = new_output(output_type=msg_type,
+                    metadata=content['metadata'],
+                    mime_bundle=content['data'],
+                )
             elif msg_type == 'error':
-                out.ename = content['ename']
-                out.evalue = content['evalue']
-                out.traceback = content['traceback']
+                out = new_output(output_type=msg_type,
+                    ename=content['ename'],
+                    evalue=content['evalue'],
+                    traceback=content['traceback'],
+                )
             else:
                 self.log.error("unhandled iopub msg: " + msg_type)
 

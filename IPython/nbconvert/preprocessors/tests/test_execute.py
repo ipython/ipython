@@ -30,10 +30,8 @@ class TestExecute(PreprocessorTestsBase):
         output = dict(output)
         if 'metadata' in output:
             del output['metadata']
-        if 'text' in output:
-            output['text'] = re.sub(addr_pat, '<HEXADDR>', output['text'])
-        if 'svg' in output:
-            del output['text']
+        if 'text/plain' in output:
+            output['text/plain'] = re.sub(addr_pat, '<HEXADDR>', output['text/plain'])
         if 'traceback' in output:
             tb = []
             for line in output['traceback']:
@@ -44,8 +42,8 @@ class TestExecute(PreprocessorTestsBase):
 
 
     def assert_notebooks_equal(self, expected, actual):
-        expected_cells = expected['worksheets'][0]['cells']
-        actual_cells = actual['worksheets'][0]['cells']
+        expected_cells = expected['cells']
+        actual_cells = actual['cells']
         assert len(expected_cells) == len(actual_cells)
 
         for expected_cell, actual_cell in zip(expected_cells, actual_cells):
@@ -82,7 +80,7 @@ class TestExecute(PreprocessorTestsBase):
             res = self.build_resources()
             preprocessor = self.build_preprocessor()
             cleaned_input_nb = copy.deepcopy(input_nb)
-            for cell in cleaned_input_nb.worksheets[0].cells:
+            for cell in cleaned_input_nb.cells:
                 if 'prompt_number' in cell:
                     del cell['prompt_number']
                 cell['outputs'] = []

@@ -1,17 +1,9 @@
-"""Module containing a preprocessor that extracts all of the outputs from the
+"""A preprocessor that extracts all of the outputs from the
 notebook file.  The extracted outputs are returned in the 'resources' dictionary.
 """
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
-# Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import base64
 import sys
@@ -22,9 +14,6 @@ from IPython.utils.traitlets import Unicode, Set
 from .base import Preprocessor
 from IPython.utils import py3compat
 
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
 
 class ExtractOutputPreprocessor(Preprocessor):
     """
@@ -35,7 +24,7 @@ class ExtractOutputPreprocessor(Preprocessor):
     output_filename_template = Unicode(
         "{unique_key}_{cell_index}_{index}{extension}", config=True)
 
-    extract_output_types = Set({'png', 'jpeg', 'svg', 'application/pdf'}, config=True)
+    extract_output_types = Set({'image/png', 'image/jpeg', 'image/svg+xml', 'application/pdf'}, config=True)
 
     def preprocess_cell(self, cell, resources, cell_index):
         """
@@ -71,7 +60,7 @@ class ExtractOutputPreprocessor(Preprocessor):
                     data = out[out_type]
 
                     #Binary files are base64-encoded, SVG is already XML
-                    if out_type in {'png', 'jpeg', 'application/pdf'}:
+                    if out_type in {'image/png', 'image/jpeg', 'application/pdf'}:
 
                         # data is b64-encoded as text (str, unicode)
                         # decodestring only accepts bytes

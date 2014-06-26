@@ -46,14 +46,14 @@ In&nbsp;[&nbsp;]:
 {% block input %}
 <div class="inner_cell">
     <div class="input_area">
-{{ cell.input | highlight_code(metadata=cell.metadata) }}
+{{ cell.source | highlight_code(metadata=cell.metadata) }}
 </div>
 </div>
 {%- endblock input %}
 
 {% block output %}
 <div class="output_area">
-{%- if output.output_type == 'pyout' -%}
+{%- if output.output_type == 'execute_result' -%}
     <div class="prompt output_prompt">
 {%- if cell.prompt_number is defined -%}
     Out[{{ cell.prompt_number|replace(None, "&nbsp;") }}]:
@@ -94,13 +94,13 @@ In&nbsp;[&nbsp;]:
 unknown type  {{ cell.type }}
 {% endblock unknowncell %}
 
-{% block pyout -%}
-{%- set extra_class="output_pyout" -%}
+{% block execute_result -%}
+{%- set extra_class="output_execute_result" -%}
 {% block data_priority scoped %}
 {{ super() }}
 {% endblock %}
 {%- set extra_class="" -%}
-{%- endblock pyout %}
+{%- endblock execute_result %}
 
 {% block stream_stdout -%}
 <div class="output_subarea output_stream output_stdout output_text">
@@ -174,13 +174,13 @@ height={{output.metadata['jpeg']['height']}}
 </div>
 {%- endblock data_latex %}
 
-{% block pyerr -%}
-<div class="output_subarea output_text output_pyerr">
+{% block error -%}
+<div class="output_subarea output_text output_error">
 <pre>
 {{- super() -}}
 </pre>
 </div>
-{%- endblock pyerr %}
+{%- endblock error %}
 
 {%- block traceback_line %}
 {{ line | ansi2html }}

@@ -8,28 +8,28 @@
 {% endblock output_prompt %}
 
 {% block input %}
-{%- if cell.input.strip() -%}
+{%- if cell.source.strip() -%}
 .. code:: python
 
-{{ cell.input | indent}}
+{{ cell.source | indent}}
 {%- endif -%}
 {% endblock input %}
 
-{% block pyerr %}
+{% block error %}
 ::
 
 {{ super() }}
-{% endblock pyerr %}
+{% endblock error %}
 
 {% block traceback_line %}
 {{ line | indent | strip_ansi }}
 {% endblock traceback_line %}
 
-{% block pyout %}
+{% block execute_result %}
 {% block data_priority scoped %}
 {{ super() }}
 {% endblock %}
-{% endblock pyout %}
+{% endblock execute_result %}
 
 {% block stream %}
 .. parsed-literal::

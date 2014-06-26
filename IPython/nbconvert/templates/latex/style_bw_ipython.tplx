@@ -7,7 +7,7 @@
 %===============================================================================
 
 ((* block input scoped *))
-((( add_prompt(cell.input, cell, 'In ') )))
+((( add_prompt(cell.source, cell, 'In ') )))
 ((* endblock input *))
 
 
@@ -15,7 +15,7 @@
 % Output
 %===============================================================================
 
-((* block pyout scoped *))
+((* block execute_result scoped *))
     ((*- for type in output | filter_data_type -*))
         ((*- if type in ['text']*))
 ((( add_prompt(output.text, cell, 'Out') )))
@@ -23,7 +23,7 @@
 \verb+Out[((( cell.prompt_number )))]:+((( super() )))
         ((*- endif -*))
     ((*- endfor -*))
-((* endblock pyout *))
+((* endblock execute_result *))
 
 
 %==============================================================================

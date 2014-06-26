@@ -1,26 +1,11 @@
-"""
-Module with tests for the latex preprocessor
-"""
+"""Tests for the latex preprocessor"""
 
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
+# Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 from .base import PreprocessorTestsBase
 from ..latex import LatexPreprocessor
 
-
-#-----------------------------------------------------------------------------
-# Class
-#-----------------------------------------------------------------------------
 
 class TestLatex(PreprocessorTestsBase):
     """Contains test functions for latex.py"""
@@ -45,7 +30,7 @@ class TestLatex(PreprocessorTestsBase):
         nb, res = preprocessor(nb, res)
 
         # Make sure the code cell wasn't modified.
-        self.assertEqual(nb.worksheets[0].cells[0].input, '$ e $')
+        self.assertEqual(nb.cells[0].source, '$ e $')
 
         # Verify that the markdown cell wasn't processed.
-        self.assertEqual(nb.worksheets[0].cells[1].source, '$ e $')
+        self.assertEqual(nb.cells[1].source, '$ e $')

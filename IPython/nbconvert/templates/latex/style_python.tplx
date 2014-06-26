@@ -16,6 +16,6 @@
 
 ((* block input scoped *))
     \begin{Verbatim}[commandchars=\\\{\}]
-((( cell.input | highlight_code(strip_verbatim=True) | add_prompts )))
+((( cell.source | highlight_code(strip_verbatim=True) | add_prompts )))
     \end{Verbatim}
 ((* endblock input *))

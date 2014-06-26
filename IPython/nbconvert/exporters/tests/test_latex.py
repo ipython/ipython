@@ -86,10 +86,8 @@ class TestLatexExporter(ExportersTestsBase):
 
         notebook_name = "lorem_ipsum_long.ipynb"
         nb = current.new_notebook(
-            worksheets=[
-                current.new_worksheet(cells=[
-                    current.new_text_cell('markdown',source=large_lorem_ipsum_text)
-                ])
+            cells=[
+                    current.new_markdown_cell(source=large_lorem_ipsum_text)
             ]
         )
 
