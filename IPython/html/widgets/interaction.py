@@ -110,7 +110,7 @@ def _widget_abbrev(o):
         elif _matches(o, [float_or_int]*4):
             min, low, high, max = o
             if not min <= low <= high <= max:
-                raise ValueError("Range input expects min <= low <= high <= max, got %r" % o)
+                raise ValueError("Range input expects min <= low <= high <= max, got {0}".format(o))
             if all(isinstance(_, int) for _ in o):
                 cls = IntRangeSliderWidget
             else:
@@ -119,7 +119,7 @@ def _widget_abbrev(o):
         elif _matches(o, [float_or_int]*5):
             min, low, high, max, step = o
             if not min <= low <= high <= max:
-                raise ValueError("Range input expects min <= low <= high <= max, got %r" % o)
+                raise ValueError("Range input expects min <= low <= high <= max, got {0}".format(o))
             if step <= 0:
                 raise ValueError("step must be >= 0, not %r" % step)
             if all(isinstance(_, int) for _ in o):
