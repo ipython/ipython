@@ -15,15 +15,16 @@ from IPython.utils.traitlets import List, Unicode
 
 from IPython.nbformat.current import reads, NotebookNode, writes
 from .base import Preprocessor
-
-# default timeout for reply and output: 10s
-TIMEOUT = 10
+from IPython.utils.traitlets import Integer
 
 class ExecutePreprocessor(Preprocessor):
     """
     Executes all the cells in a notebook
     """
     
+    timeout = Integer(30, config=True,
+        help="The time to wait (in seconds) for output from executions."
+    )
     # FIXME: to be removed with nbformat v4
     # map msg_type to v3 output_type
     msg_type_map = {
@@ -49,22 +50,24 @@ class ExecutePreprocessor(Preprocessor):
     def _create_client(self):
         from IPython.kernel import KernelManager
         self.km = KernelManager()
-        self.km.start_kernel(extra_arguments=self.extra_arguments, stderr=open(os.devnull, 'w'))
+        self.km.write_connection_file()
         self.kc = self.km.client()
         self.kc.start_channels()
-        self.log.debug('kc.start_channels: %s', self.kc.session.session)
+        self.km.start_kernel(extra_arguments=self.extra_arguments, stderr=open(os.devnull, 'w'))
         self.iopub = self.kc.iopub_channel
         self.shell = self.kc.shell_channel
         self.shell.kernel_info()
         try:
-            self.shell.get_msg(timeout=TIMEOUT)
+            self.shell.get_msg(timeout=self.timeout)
         except Empty:
             self.log.error("Timeout waiting for kernel_info reply")
             raise
-        try:
-            self.iopub.get_msg(timeout=TIMEOUT)
-        except Empty:
-            self.log.warn("Timeout waiting for IOPub on startup")
+        # flush IOPub
+        while True:
+            try:
+                self.iopub.get_msg(block=True, timeout=0.25)
+            except Empty:
+                break
 
     def _shutdown_client(self):
         self.kc.stop_channels()
@@ -98,7 +101,7 @@ class ExecutePreprocessor(Preprocessor):
         # wait for finish, with timeout
         while True:
             try:
-                msg = shell.get_msg(timeout=TIMEOUT)
+                msg = shell.get_msg(timeout=self.timeout)
             except Empty:
                 self.log.error("Timeout waiting for execute reply")
                 raise
@@ -112,7 +115,7 @@ class ExecutePreprocessor(Preprocessor):
 
         while True:
             try:
-                msg = iopub.get_msg(timeout=TIMEOUT)
+                msg = iopub.get_msg(timeout=self.timeout)
             except Empty:
                 self.log.warn("Timeout waiting for IOPub output")
                 break
