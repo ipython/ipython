@@ -1,12 +1,12 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-var ipython = ipython || {};
 require([
     'base/js/namespace',
     'jquery',
     'notebook/js/notebook',
     'base/js/utils',
+    'base/js/keyboard',
     'base/js/page',
     'notebook/js/layoutmanager',
     'base/js/events',
@@ -24,6 +24,7 @@ require([
     $,
     notebook, 
     utils, 
+    keyboard, 
     page, 
     layoutmanager, 
     events,
@@ -71,7 +72,8 @@ require([
         events: events}); 
     var quick_help = new quickhelp.QuickHelp({
         keyboard_manager: keyboard_manager, 
-        events: events});
+        events: events,
+        notebook: notebook});
     var menubar = new menubar.MenuBar('#menubar', $.extend({
         notebook: notebook, 
         layout_manager: layout_manager, 
@@ -83,7 +85,8 @@ require([
         '#notification_area', {
         events: events, 
         save_widget: save_widget, 
-        notebook: notebook});
+        notebook: notebook,
+        keyboard_manager: keyboard_manager});
     notification_area.init_notification_widgets();
 
     $('body').append('<div id="fonttest"><pre><span id="test1">x</span>'+
@@ -116,17 +119,18 @@ require([
     events.trigger('app_initialized.NotebookApp');
     notebook.load_notebook(common_options.notebook_name, common_options.notebook_path);
 
-    ipython.page = page;
-    ipython.layout_manager = layout_manager;
-    ipython.notebook = notebook;
-    ipython.pager = pager;
-    ipython.quick_help = quick_help;
-    ipython.login_widget = login_widget;
-    ipython.menubar = menubar;
-    ipython.toolbar = toolbar;
-    ipython.notification_area = notification_area;
-    ipython.events = events;
-    ipython.keyboard_manager = keyboard_manager;
-    ipython.save_widget = save_widget;
-    ipython.config = user_config;
+    IPython.page = page;
+    IPython.layout_manager = layout_manager;
+    IPython.notebook = notebook;
+    IPython.pager = pager;
+    IPython.quick_help = quick_help;
+    IPython.login_widget = login_widget;
+    IPython.menubar = menubar;
+    IPython.toolbar = toolbar;
+    IPython.notification_area = notification_area;
+    IPython.events = events;
+    IPython.keyboard_manager = keyboard_manager;
+    IPython.save_widget = save_widget;
+    IPython.config = user_config;
+    IPython.keyboard = keyboard;
 });

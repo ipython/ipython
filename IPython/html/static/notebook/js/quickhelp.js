@@ -18,7 +18,9 @@ define([
         //      Dictionary of keyword arguments.
         //          events: $(Events) instance
         //          keyboard_manager: KeyboardManager instance
+        //          notebook: Notebook instance
         this.keyboard_manager = options.keyboard_manager;
+        this.notebook = options.notebook;
         this.keyboard_manager.quick_help = this;
         this.events = options.events;
     };
@@ -112,7 +114,9 @@ define([
             destroy : false,
             buttons : {
                 Close : {}
-            }
+            },
+            notebook: this.notebook,
+            keyboard_manager: this.keyboard_manager,
         });
         this.shortcut_dialog.addClass("modal_stretch");
         

@@ -23,6 +23,7 @@
             underscore : 'components/underscore/underscore-min',
             backbone : 'components/backbone/backbone-min',
             jquery: 'components/jquery/jquery.min',
+            bootstraptour: 'components/bootstrap-tour/build/js/bootstrap-tour.min',
           },
           shim: {
             underscore: {
@@ -31,6 +32,9 @@
             backbone: {
               deps: ["underscore", "jquery"],
               exports: "Backbone"
+            },
+            bootstraptour: {
+              exports: "Tour"
             }
           }
       });

@@ -24,6 +24,7 @@ define([
         this.events = options.events;
         this.save_widget = options.save_widget;
         this.notebook = options.notebook;
+        this.keyboard_manager = options.keyboard_manager;
         if (this.selector !== undefined) {
             this.element = $(selector);
         }
@@ -135,6 +136,8 @@ define([
             dialog.modal({
                 title: "Dead kernel",
                 body : msg,
+                keyboard_manager: that.keyboard_manager,
+                notebook: that.notebook,
                 buttons : {
                     "Manual Restart": {
                         class: "btn-danger",
@@ -167,6 +170,8 @@ define([
             dialog.modal({
                 title: "WebSocket connection failed",
                 body: msg,
+                keyboard_manager: that.keyboard_manager,
+                notebook: that.notebook,
                 buttons : {
                     "OK": {},
                     "Reconnect": {

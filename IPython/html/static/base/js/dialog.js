@@ -7,7 +7,8 @@ define([
 ], function(IPython, $) {
     "use strict";
     
-    var modal = function (options, keyboard_manager, notebook) {
+    var modal = function (options) {
+
         var modal = $("<div/>")
             .addClass("modal")
             .addClass("fade")
@@ -72,16 +73,18 @@ define([
             });
         }
         modal.on("hidden.bs.modal", function () {
-            if (notebook) {
-                var cell = notebook.get_selected_cell();
+            if (options.notebook) {
+                var cell = options.notebook.get_selected_cell();
                 if (cell) cell.select();
-                keyboard_manager.enable();
-                keyboard_manager.command_mode();
+                if (options.keyboard_manager) {
+                    options.keyboard_manager.enable();
+                    options.keyboard_manager.command_mode();
+                }
             }
         });
         
-        if (keyboard_manager) {
-            keyboard_manager.disable();
+        if (options.keyboard_manager) {
+            options.keyboard_manager.disable();
         }
         
         return modal.modal(options);

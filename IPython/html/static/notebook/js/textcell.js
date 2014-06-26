@@ -44,7 +44,7 @@ define([
         Cell.apply(this, [{
                     config: config, 
                     keyboard_manager: options.keyboard_manager, 
-                    events: events}]);
+                    events: this.events}]);
 
         this.cell_type = this.cell_type || 'text';
         mathjaxutils = mathjaxutils;

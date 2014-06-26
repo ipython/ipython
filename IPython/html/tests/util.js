@@ -12,6 +12,7 @@ casper.open_new_notebook = function () {
     // Create and open a new notebook.
     var baseUrl = this.get_notebook_server();
     this.start(baseUrl);
+    this.waitFor(this.page_loaded);
     this.thenClick('button#new_notebook');
     this.waitForPopup('');
 
@@ -19,11 +20,13 @@ casper.open_new_notebook = function () {
     this.then(function () {
         this.open(this.popups[0].url);
     });
+    this.waitFor(this.page_loaded);
 
     // Make sure the kernel has started
-    this.waitFor( this.kernel_running  );
+    this.waitFor(this.kernel_running);
     // track the IPython busy/idle state
     this.thenEvaluate(function () {
+        IPython._status = 'idle';
         $([IPython.events]).on('status_idle.Kernel',function () {
             IPython._status = 'idle';
         });
@@ -42,9 +45,18 @@ casper.open_new_notebook = function () {
     });
 };
 
-casper.kernel_running = function kernel_running() {
+casper.page_loaded = function() {
     // Return whether or not the kernel is running.
-    return this.evaluate(function kernel_running() {
+    return this.evaluate(function() {
+        return IPython !== undefined && 
+            IPython.page !== undefined && 
+            IPython.events !== undefined;
+    });
+};
+
+casper.kernel_running = function() {
+    // Return whether or not the kernel is running.
+    return this.evaluate(function() {
         return IPython.notebook.kernel.running;
     });
 };
@@ -503,6 +515,7 @@ casper.open_dashboard = function () {
     // Start casper by opening the dashboard page.
     var baseUrl = this.get_notebook_server();
     this.start(baseUrl);
+    this.waitFor(this.page_loaded);
     this.wait_for_dashboard();
 };
 

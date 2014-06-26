@@ -190,6 +190,8 @@ define([
 
         this.events.on('status_autorestarting.Kernel', function () {
             dialog.modal({
+                notebook: that,
+                keyboard_manager: that.keyboard_manager,
                 title: "Kernel Restarting",
                 body: "The kernel appears to have died. It will restart automatically.",
                 buttons: {
@@ -1476,10 +1478,10 @@ define([
      * @method start_session
      */
     Notebook.prototype.start_session = function () {
-        this.session = new session.Session(this, {
-            base_url: base_url,
-            notebook_path: notebook_path,
-            notebook_name: notebook_name,
+        this.session = new session.Session({
+            base_url: this.base_url,
+            notebook_path: this.notebook_path,
+            notebook_name: this.notebook_name,
             notebook: this});
         this.session.start($.proxy(this._session_started, this));
     };
@@ -1509,6 +1511,8 @@ define([
     Notebook.prototype.restart_kernel = function () {
         var that = this;
         dialog.modal({
+            notebook: this,
+            keyboard_manager: this.keyboard_manager,
             title : "Restart kernel or continue running?",
             body : $("<p/>").text(
                 'Do you want to restart the current kernel?  You will lose all variables defined in it.'
@@ -1732,6 +1736,8 @@ define([
         }
         if (content.worksheets.length > 1) {
             dialog.modal({
+                notebook: this,
+                keyboard_manager: this.keyboard_manager,
                 title : "Multiple worksheets",
                 body : "This notebook has " + data.worksheets.length + " worksheets, " +
                     "but this version of IPython can only handle the first.  " +
@@ -1920,6 +1926,8 @@ define([
 
         var nb = this;
         dialog.modal({
+            notebook: this,
+            keyboard_manager: this.keyboard_manager,
             title: "Trust this notebook?",
             body: body,
 
@@ -2065,6 +2073,8 @@ define([
         );
         this.events.trigger('notebook_rename_failed.Notebook', [xhr, status, error]);
         dialog.modal({
+            notebook: this,
+            keyboard_manager: this.keyboard_manager,
             title: "Notebook Rename Error!",
             body: dialog_body,
             buttons : {
@@ -2146,6 +2156,8 @@ define([
             "may not be able to read it. To keep the older version, close the " +
             "notebook without saving it.";
             dialog.modal({
+                notebook: this,
+                keyboard_manager: this.keyboard_manager,
                 title : "Notebook converted",
                 body : msg,
                 buttons : {
@@ -2163,6 +2175,8 @@ define([
             "introduced in later notebook versions may not be available.";
 
             dialog.modal({
+                notebook: this,
+                keyboard_manager: this.keyboard_manager,
                 title : "Newer Notebook",
                 body : msg,
                 buttons : {
@@ -2214,6 +2228,8 @@ define([
             "v" + this.nbformat + " or earlier.";
         }
         dialog.modal({
+            notebook: this,
+            keyboard_manager: this.keyboard_manager,
             title: "Error loading notebook",
             body : msg,
             buttons : {
@@ -2378,6 +2394,8 @@ define([
         );
         
         dialog.modal({
+            notebook: this,
+            keyboard_manager: this.keyboard_manager,
             title : "Revert notebook to checkpoint",
             body : body,
             buttons : {

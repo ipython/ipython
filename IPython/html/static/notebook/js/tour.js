@@ -4,7 +4,7 @@
 define([
     'base/js/namespace',
     'jquery',
-    'components/bootstrap-tour/build/js/bootstrap-tour.min',
+    'bootstraptour',
 ], function(IPython, $, Tour) {
     "use strict";
 

@@ -13,9 +13,9 @@ define([
         this.kernel = null;
         this.id = null;
         this.notebook = options.notebook;
-        this.name = notebook.notebook_name;
-        this.path = notebook.notebook_path;
-        this.base_url = notebook.base_url;
+        this.name = options.notebook_name;
+        this.path = options.notebook_path;
+        this.base_url = options.base_url;
     };
     
     Session.prototype.start = function(callback) {

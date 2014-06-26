@@ -110,8 +110,12 @@ define([
         return sanitized;
     };
     
-    return {
+    var security = {
         caja: caja,
         sanitize_html: sanitize_html
     };
+
+    IPython.security = security;
+
+    return security;
 });
