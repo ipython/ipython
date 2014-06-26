@@ -25,7 +25,7 @@ from IPython.core.shellapp import (
 from IPython.utils import io
 from IPython.utils.path import filefind
 from IPython.utils.traitlets import (
-    Any, Instance, Dict, Unicode, Integer, Bool, DottedObjectName,
+    Any, Instance, Dict, Unicode, Integer, Bool, DottedObjectName, Type,
 )
 from IPython.utils.importstring import import_item
 from IPython.kernel import write_connection_file
@@ -33,7 +33,7 @@ from IPython.kernel.connect import ConnectionFileMixin
 
 # local imports
 from .heartbeat import Heartbeat
-from .ipkernel import Kernel
+from .ipkernel import IPythonKernel
 from .parentpoller import ParentPollerUnix, ParentPollerWindows
 from .session import (
     Session, session_flags, session_aliases, default_secure,
@@ -100,9 +100,10 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
     name='ipkernel'
     aliases = Dict(kernel_aliases)
     flags = Dict(kernel_flags)
-    classes = [Kernel, ZMQInteractiveShell, ProfileDir, Session]
+    classes = [IPythonKernel, ZMQInteractiveShell, ProfileDir, Session]
     # the kernel class, as an importstring
-    kernel_class = DottedObjectName('IPython.kernel.zmq.ipkernel.Kernel', config=True,
+    kernel_class = Type('IPython.kernel.zmq.ipkernel.IPythonKernel', config=True,
+                        klass='IPython.kernel.zmq.kernelbase.Kernel',
     help="""The Kernel subclass to be used.
     
     This should allow easy re-use of the IPKernelApp entry point
@@ -315,7 +316,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
         shell_stream = ZMQStream(self.shell_socket)
         control_stream = ZMQStream(self.control_socket)
         
-        kernel_factory = import_item(str(self.kernel_class))
+        kernel_factory = self.kernel_class
 
         kernel = kernel_factory(parent=self, session=self.session,
                                 shell_streams=[shell_stream, control_stream],
@@ -351,8 +352,9 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
             shell._showtraceback = _showtraceback
 
     def init_shell(self):
-        self.shell = self.kernel.shell
-        self.shell.configurables.append(self)
+        self.shell = getattr(self.kernel, 'shell', None)
+        if self.shell:
+            self.shell.configurables.append(self)
 
     @catch_config_error
     def initialize(self, argv=None):
@@ -372,9 +374,10 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
         # shell init steps
         self.init_path()
         self.init_shell()
-        self.init_gui_pylab()
-        self.init_extensions()
-        self.init_code()
+        if self.shell:
+            self.init_gui_pylab()
+            self.init_extensions()
+            self.init_code()
         # flush stdout/stderr, so that anything written to these streams during
         # initialization do not get associated with the first execution request
         sys.stdout.flush()

@@ -10,7 +10,7 @@ import sys
 from IPython.core.interactiveshell import InteractiveShellABC
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.traitlets import Any, Enum, Instance, List, Type
-from IPython.kernel.zmq.ipkernel import Kernel
+from IPython.kernel.zmq.ipkernel import IPythonKernel
 from IPython.kernel.zmq.zmqshell import ZMQInteractiveShell
 
 from .socket import DummySocket
@@ -19,7 +19,7 @@ from .socket import DummySocket
 # Main kernel class
 #-----------------------------------------------------------------------------
 
-class InProcessKernel(Kernel):
+class InProcessKernel(IPythonKernel):
 
     #-------------------------------------------------------------------------
     # InProcessKernel interface

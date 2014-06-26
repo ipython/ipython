@@ -409,6 +409,7 @@ When status is 'error', the following extra fields are present::
 When status is 'abort', there are for now no additional data fields.  This
 happens when the kernel was interrupted by a signal.
 
+.. _msging_inspection:
 
 Introspection
 -------------
@@ -465,6 +466,8 @@ Message type: ``inspect_reply``::
 
     Reply is changed from structured data to a mime bundle,  allowing formatting decisions to be made by the kernel.
 
+.. _msging_completion:
+
 Completion
 ----------
 
@@ -512,6 +515,7 @@ Message type: ``complete_reply``::
     - ``matched_text`` is removed in favor of ``cursor_start`` and ``cursor_end``.
     - ``metadata`` is added for extended information.
 
+.. _msging_history:
 
 History
 -------
@@ -590,6 +594,7 @@ Message type: ``connect_reply``::
         'hb_port' : int,      # The port the heartbeat socket is listening on.
     }
 
+.. _msging_kernel_info:
 
 Kernel info
 -----------
@@ -650,6 +655,7 @@ Message type: ``kernel_info_reply``::
 
     ``implementation``, ``implementation_version``, and ``banner`` keys are added.
 
+.. _msging_shutdown:
 
 Kernel shutdown
 ---------------
