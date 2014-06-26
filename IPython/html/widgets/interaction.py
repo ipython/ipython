@@ -210,6 +210,8 @@ def interactive(__interact_f, **kwargs):
             container.kwargs[widget.description] = value
         if co:
             clear_output(wait=True)
+        if on_demand:
+            on_demand_button.disabled = True
         try:
             container.result = f(**container.kwargs)
         except Exception as e:
@@ -218,6 +220,9 @@ def interactive(__interact_f, **kwargs):
                 container.log.warn("Exception in interact callback: %s", e, exc_info=True)
             else:
                 ip.showtraceback()
+        finally:
+            if on_demand:
+                on_demand_button.disabled = False
 
     # Wire up the widgets
     # If we are doing on demand running, the callback is only triggered by the button
