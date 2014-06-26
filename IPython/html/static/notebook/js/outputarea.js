@@ -794,7 +794,7 @@ var IPython = (function (IPython) {
         }
         var content = {
             output_type : 'stream',
-            name : 'stdout',
+            stream : 'stdout',
             text : theprompt.text() + echo + '\n'
         }
         // remove form container
