@@ -31,7 +31,7 @@ __all__ = ['display', 'display_pretty', 'display_html', 'display_markdown',
 'display_svg', 'display_png', 'display_jpeg', 'display_latex', 'display_json',
 'display_javascript', 'display_pdf', 'DisplayObject', 'TextDisplayObject',
 'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'JSON', 'Javascript',
-'clear_output', 'set_matplotlib_formats', 'set_matplotlib_close',
+'Image', 'clear_output', 'set_matplotlib_formats', 'set_matplotlib_close',
 'publish_display_data']
 
 #-----------------------------------------------------------------------------
