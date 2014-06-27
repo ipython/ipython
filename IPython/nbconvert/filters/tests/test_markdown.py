@@ -63,8 +63,6 @@ class TestMarkdown(TestsBase):
         for index, test in enumerate(self.tests):
             self._try_markdown(markdown2latex, test, self.tokens[index])
 
-
-    @dec.onlyif_cmds_exist('pandoc')
     def test_markdown2html(self):
         """markdown2html test"""
         for index, test in enumerate(self.tests):
