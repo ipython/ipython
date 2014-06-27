@@ -72,9 +72,10 @@ def markdown2latex(source):
 
 class MathBlockGrammar(mistune.BlockGrammar):
     block_math = re.compile("^\$\$(.*?)\$\$")
+    block_math2 = re.compile(r"^\\begin(.*?)\\end")
 
 class MathBlockLexer(mistune.BlockLexer):
-    default_features = ['block_math'] + mistune.BlockLexer.default_features
+    default_features = ['block_math', 'block_math2'] + mistune.BlockLexer.default_features
 
     def __init__(self, rules=None, **kwargs):
         if rules is None:
@@ -87,6 +88,8 @@ class MathBlockLexer(mistune.BlockLexer):
             'type': 'block_math',
             'text': m.group(1)
         })
+
+    parse_block_math2 = parse_block_math
 
 class MathInlineGrammar(mistune.InlineGrammar):
     math = re.compile("^\$(.+?)\$")
