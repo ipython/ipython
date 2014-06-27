@@ -2082,7 +2082,7 @@ define([
                 "OK": {
                     class: "btn-primary",
                     click: function () {
-                        this.save_widget.rename_notebook();
+                        this.save_widget.rename_notebook({notebook:that});
                 }}
                 },
             open : function (event, ui) {

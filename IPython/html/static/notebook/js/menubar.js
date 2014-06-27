@@ -134,7 +134,7 @@ define([
         });
 
         this.element.find('#rename_notebook').click(function () {
-            that.save_widget.rename_notebook();
+            that.save_widget.rename_notebook({notebook: that.notebook});
         });
         this.element.find('#save_checkpoint').click(function () {
             that.notebook.save_checkpoint();

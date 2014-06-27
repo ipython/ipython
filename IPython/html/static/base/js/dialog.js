@@ -76,10 +76,10 @@ define([
             if (options.notebook) {
                 var cell = options.notebook.get_selected_cell();
                 if (cell) cell.select();
-                if (options.keyboard_manager) {
-                    options.keyboard_manager.enable();
-                    options.keyboard_manager.command_mode();
-                }
+            }
+            if (options.keyboard_manager) {
+                options.keyboard_manager.enable();
+                options.keyboard_manager.command_mode();
             }
         });
         

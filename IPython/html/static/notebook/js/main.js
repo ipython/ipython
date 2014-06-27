@@ -59,7 +59,9 @@ require([
     var keyboard_manager = new keyboardmanager.KeyboardManager({
         pager: pager, 
         events: events});
-    var save_widget = new savewidget.SaveWidget('span#save_widget', events);
+    var save_widget = new savewidget.SaveWidget('span#save_widget', {
+        events: events, 
+        keyboard_manager: keyboard_manager});
     var notebook = new notebook.Notebook('div#notebook', $.extend({
         events: events,
         keyboard_manager: keyboard_manager,

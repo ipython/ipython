@@ -11,11 +11,12 @@ define([
 ], function(IPython, $, utils, dialog, keyboard) {
     "use strict";
 
-    var SaveWidget = function (selector, events) {
+    var SaveWidget = function (selector, options) {
         // TODO: Remove circulat ref.
         this.notebook = undefined;
         this.selector = selector;
-        this.events = events;
+        this.events = options.events;
+        this.keyboard_manager = options.keyboard_manager;
         if (this.selector !== undefined) {
             this.element = $(selector);
             this.style();
@@ -66,7 +67,8 @@ define([
     };
 
 
-    SaveWidget.prototype.rename_notebook = function () {
+    SaveWidget.prototype.rename_notebook = function (options) {
+        options = options || {};
         var that = this;
         var dialog_body = $('<div/>').append(
             $("<p/>").addClass("rename-message")
@@ -80,6 +82,8 @@ define([
         dialog.modal({
             title: "Rename Notebook",
             body: dialog_body,
+            notebook: options.notebook,
+            keyboard_manager: this.keyboard_manager,
             buttons : {
                 "Cancel": {},
                 "OK": {
@@ -102,7 +106,7 @@ define([
                 var that = $(this);
                 // Upon ENTER, click the OK button.
                 that.find('input[type="text"]').keydown(function (event, ui) {
-                    if (event.which === that.keyboard.keycodes.enter) {
+                    if (event.which === keyboard.keycodes.enter) {
                         that.find('.btn-primary').first().click();
                         return false;
                     }
