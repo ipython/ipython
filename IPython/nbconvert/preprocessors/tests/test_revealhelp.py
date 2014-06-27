@@ -28,11 +28,11 @@ class Testrevealhelp(PreprocessorTestsBase):
     """Contains test functions for revealhelp.py"""
 
     def build_notebook(self):
-        """Build a reveal slides notebook in memory for use with tests.  
+        """Build a reveal slides notebook in memory for use with tests.
         Overrides base in PreprocessorTestsBase"""
 
         outputs = [nbformat.new_output(output_type="stream", stream="stdout", output_text="a")]
-        
+
         slide_metadata = {'slideshow' : {'slide_type': 'slide'}}
         subslide_metadata = {'slideshow' : {'slide_type': 'subslide'}}
 
@@ -56,7 +56,7 @@ class Testrevealhelp(PreprocessorTestsBase):
     def test_constructor(self):
         """Can a RevealHelpPreprocessor be constructed?"""
         self.build_preprocessor()
-    
+
 
     def test_reveal_attribute(self):
         """Make sure the reveal url_prefix resources is set"""
@@ -82,7 +82,8 @@ class Testrevealhelp(PreprocessorTestsBase):
 
         # Make sure slide end is only applied to the cells preceeding slide 
         # cells.
-        assert 'slide_helper' not in cells[1].metadata
+        assert 'slide_helper' in cells[1].metadata
+        self.assertEqual(cells[1].metadata['slide_helper'], '-')
 
         # Verify 'slide-end'
         assert 'slide_helper' in cells[0].metadata
