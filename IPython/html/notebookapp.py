@@ -714,8 +714,6 @@ class NotebookApp(BaseIPythonApplication):
         
         This doesn't work on Windows.
         """
-        # FIXME: remove this delay when pyzmq dependency is >= 2.1.11
-        time.sleep(0.1)
         info = self.log.info
         info('interrupted')
         print(self.notebook_info())
