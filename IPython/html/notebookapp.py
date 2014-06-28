@@ -12,6 +12,7 @@ import json
 import logging
 import os
 import random
+import re
 import select
 import signal
 import socket
@@ -333,8 +334,34 @@ class NotebookApp(BaseIPythonApplication):
             self.file_to_run = base
             self.notebook_dir = path
 
-    # Network related information.
-
+    # Network related information
+    
+    cors_origin = Unicode('', config=True,
+        help="""Set the Access-Control-Allow-Origin header
+        
+        Use '*' to allow any origin to access your server.
+        
+        Mutually exclusive with cors_origin_pat.
+        """
+    )
+    
+    cors_origin_pat = Unicode('', config=True,
+        help="""Use a regular expression for the Access-Control-Allow-Origin header
+        
+        Requests from an origin matching the expression will get replies with:
+        
+            Access-Control-Allow-Origin: origin
+        
+        where `origin` is the origin of the request.
+        
+        Mutually exclusive with cors_origin.
+        """
+    )
+    
+    cors_credentials = Bool(False, config=True,
+        help="Set the Access-Control-Allow-Credentials: true header"
+    )
+    
     ip = Unicode('localhost', config=True,
         help="The IP address the notebook server will listen on."
     )
@@ -622,6 +649,10 @@ class NotebookApp(BaseIPythonApplication):
     
     def init_webapp(self):
         """initialize tornado webapp and httpserver"""
+        self.webapp_settings['cors_origin'] = self.cors_origin
+        self.webapp_settings['cors_origin_pat'] = re.compile(self.cors_origin_pat)
+        self.webapp_settings['cors_credentials'] = self.cors_credentials
+        
         self.web_app = NotebookWebApplication(
             self, self.kernel_manager, self.notebook_manager, 
             self.cluster_manager, self.session_manager, self.kernel_spec_manager,
