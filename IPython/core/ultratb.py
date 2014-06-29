@@ -934,6 +934,7 @@ class VerboseTB(TBTools):
             for name in names:
                 value = text_repr(getattr(evalue, name))
                 exception.append('\n%s%s = %s' % (indent, name, value))
+
         return exception
 
     def format_exception_as_a_whole(self, etype, evalue, etb, number_of_lines_of_context, tb_offset):
@@ -968,7 +969,6 @@ class VerboseTB(TBTools):
             # (5 blanks lines) where none should be returned.
             return _fixed_getinnerframes(etb, number_of_lines_of_context, tb_offset)
         except:
-
             # FIXME: I've been getting many crash reports from python 2.3
             # users, traceable to inspect.py.  If I can find a small test-case
             # to reproduce this, I should either write a better workaround or
@@ -995,8 +995,6 @@ class VerboseTB(TBTools):
     def structured_traceback(self, etype, evalue, etb, tb_offset=None,
                              number_of_lines_of_context=5):
         """Return a nice text document describing the traceback."""
-
-
         structured_traceback_parts = []
 
         if py3compat.PY3:
@@ -1018,8 +1016,7 @@ class VerboseTB(TBTools):
         else:
             formatted_exception = self.format_exception_as_a_whole(etype, evalue, etb, number_of_lines_of_context,
                                                                    tb_offset)
-            structured_traceback_parts.append(formatted_exception)
-
+            structured_traceback_parts = formatted_exception[0]
         return structured_traceback_parts
 
     def debugger(self, force=False):
