@@ -981,7 +981,7 @@ class VerboseTB(TBTools):
             return None
 
     def get_exception_from_context(self, evalue):
-        if hasattr(evalue, '__context__') and not evalue.__suppress_context__:
+        if hasattr(evalue, '__context__'):
             context = evalue.__context__
             if not context:
                 return None
