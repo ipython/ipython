@@ -203,7 +203,7 @@ define([
             nnw.set_message("Notebook saved",2000);
         });
         this.events.on('notebook_save_failed.Notebook', function (evt, xhr, status, data) {
-            nnw.set_message(data || "Notebook save failed");
+            nnw.warning(data || "Notebook save failed");
         });
         
         // Checkpoint events
@@ -216,19 +216,19 @@ define([
             nnw.set_message(msg, 2000);
         });
         this.events.on('checkpoint_failed.Notebook', function () {
-            nnw.set_message("Checkpoint failed");
+            nnw.warning("Checkpoint failed");
         });
         this.events.on('checkpoint_deleted.Notebook', function () {
             nnw.set_message("Checkpoint deleted", 500);
         });
         this.events.on('checkpoint_delete_failed.Notebook', function () {
-            nnw.set_message("Checkpoint delete failed");
+            nnw.warning("Checkpoint delete failed");
         });
         this.events.on('checkpoint_restoring.Notebook', function () {
             nnw.set_message("Restoring to checkpoint...", 500);
         });
         this.events.on('checkpoint_restore_failed.Notebook', function () {
-            nnw.set_message("Checkpoint restore failed");
+            nnw.warning("Checkpoint restore failed");
         });
 
         // Autosave events
