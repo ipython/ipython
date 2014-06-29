@@ -72,7 +72,7 @@ Inheritance diagram:
    :parts: 3
 """
 
-# *****************************************************************************
+#*****************************************************************************
 # Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
 # Copyright (C) 2001-2004 Fernando Perez <fperez@colorado.edu>
 #
@@ -129,7 +129,7 @@ INDENT_SIZE = 8
 # to users of ultratb who are NOT running inside ipython.
 DEFAULT_SCHEME = 'NoColor'
 
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # Code begins
 
 # Utility functions
@@ -936,6 +936,31 @@ class VerboseTB(TBTools):
                 exception.append('\n%s%s = %s' % (indent, name, value))
         return exception
 
+    def format_exception_as_a_whole(self, etype, evalue, etb, number_of_lines_of_context, tb_offset):
+        # some locals
+        try:
+            etype = etype.__name__
+        except AttributeError:
+            pass
+
+        tb_offset = self.tb_offset if tb_offset is None else tb_offset
+        head = self.prepare_header(etype, self.long_header)
+        records = self.get_records(etb, number_of_lines_of_context, tb_offset)
+
+        frames = self.format_records(records)
+        if records is None:
+            return ""
+
+        formatted_exception = self.format_exception(etype, evalue)
+        if records:
+            filepath, lnum = records[-1][1:3]
+            filepath = os.path.abspath(filepath)
+            ipinst = get_ipython()
+            if ipinst is not None:
+                ipinst.hooks.synchronize_with_editor(filepath, lnum, 0)
+
+        return [[head] + frames + [''.join(formatted_exception[0])]]
+
     def get_records(self, etb, number_of_lines_of_context, tb_offset):
         try:
             # Try the default getinnerframes and Alex's: Alex's fixes some
@@ -956,13 +981,13 @@ class VerboseTB(TBTools):
             return None
 
     def get_exception_from_context(self, evalue):
-        if hasattr(evalue, '__context__'): # and not evalue.__suppress_context__:
+        if hasattr(evalue, '__context__') and not evalue.__suppress_context__:
             context = evalue.__context__
             if not context:
                 return None
             else:
                 exception_traceback = context.__traceback__
-                exception_type = context.__class__.__name__
+                exception_type = context.__class__
                 return exception_type, context, exception_traceback
         else:
             return None
@@ -970,62 +995,30 @@ class VerboseTB(TBTools):
     def structured_traceback(self, etype, evalue, etb, tb_offset=None,
                              number_of_lines_of_context=5):
         """Return a nice text document describing the traceback."""
-        tb_offset = self.tb_offset if tb_offset is None else tb_offset
 
-        # some locals
-        try:
-            etype = etype.__name__
-        except AttributeError:
-            pass
 
         structured_traceback_parts = []
 
-        exceptions = []
-        current_exception_value = evalue
         if py3compat.PY3:
-            while current_exception_value:
-                head = self.prepare_header(etype, self.long_header)
-                records = self.get_records(etb, number_of_lines_of_context, tb_offset)
-
-                frames = self.format_records(records)
-                if records is None:
-                    return ""
-
-                formatted_exception = self.format_exception(etype, current_exception_value)
-                if records:
-                    filepath, lnum = records[-1][1:3]
-                    filepath = os.path.abspath(filepath)
-                    ipinst = get_ipython()
-                    if ipinst is not None:
-                        ipinst.hooks.synchronize_with_editor(filepath, lnum, 0)
-
-                exceptions += [[head] + frames + [''.join(formatted_exception[0])]]
-
-                exception = self.get_exception_from_context(current_exception_value)
+            formatted_exceptions = []
+            while evalue:
+                formatted_exceptions += self.format_exception_as_a_whole(etype, evalue, etb, number_of_lines_of_context,
+                                                                         tb_offset)
+                exception = self.get_exception_from_context(evalue)
                 if exception:
-                    exceptions += self.prepare_chained_exception_message(current_exception_value.__cause__)
-                    etype, current_exception_value, etb = exception
+                    formatted_exceptions += self.prepare_chained_exception_message(evalue.__cause__)
+                    etype, evalue, etb = exception
                 else:
-                    break
+                    evalue = None
 
-            for exception in reversed(exceptions):
-                structured_traceback_parts += exception
+            # we want to see exceptions in a reversed order:
+            # the first exception should be on top
+            for formatted_exception in reversed(formatted_exceptions):
+                structured_traceback_parts += formatted_exception
         else:
-            head = self.prepare_header(etype, self.long_header)
-            records = self.get_records(etb, number_of_lines_of_context, tb_offset)
-
-            frames = self.format_records(records)
-            if records is None:
-                return ""
-
-            exception = self.format_exception(etype, evalue)
-            if records:
-                filepath, lnum = records[-1][1:3]
-                filepath = os.path.abspath(filepath)
-                ipinst = get_ipython()
-                if ipinst is not None:
-                    ipinst.hooks.synchronize_with_editor(filepath, lnum, 0)
-            structured_traceback_parts.append([head] + frames + [''.join(exception[0])])
+            formatted_exception = self.format_exception_as_a_whole(etype, evalue, etb, number_of_lines_of_context,
+                                                                   tb_offset)
+            structured_traceback_parts.append(formatted_exception)
 
         return structured_traceback_parts
 
@@ -1321,8 +1314,6 @@ def eqrepr(value, repr=text_repr):
 
 def nullrepr(value, repr=text_repr):
     return ''
-
-
 
 
 #----------------------------------------------------------------------------
