@@ -10,29 +10,30 @@ pjoin = os.path.join
 static_dir = 'static'
 components_dir = os.path.join(static_dir, 'components')
 
-min_less_version = '1.4.0'
-max_less_version = '1.5.0' # exclusive
+min_less_version = '1.7.0'
+max_less_version = '1.8.0' # exclusive
 
 def css(minify=True, verbose=False):
     """generate the css from less files"""
     for name in ('style', 'ipython'):
         source = pjoin('style', "%s.less" % name)
         target = pjoin('style', "%s.min.css" % name)
-        _compile_less(source, target, minify, verbose)
+        sourcemap = pjoin('style', "%s.min.css.map" % name)
+        _compile_less(source, target, sourcemap, minify, verbose)
 
 def _to_bool(b):
     if not b in ['True', 'False', True, False]:
         abort('boolean expected, got: %s' % b)
     return (b in ['True', True])
 
-def _compile_less(source, target, minify=True, verbose=False):
+def _compile_less(source, target, sourcemap, minify=True, verbose=False):
     """Compile a less file by source and target relative to static_dir"""
     minify = _to_bool(minify)
     verbose = _to_bool(verbose)
     min_flag = '-x' if minify is True else ''
     ver_flag = '--verbose' if verbose is True else ''
     
-    # pin less to 1.4
+    # pin less to version number from above
     try:
         out = check_output(['lessc', '--version'])
     except OSError as err:
@@ -45,6 +46,7 @@ def _compile_less(source, target, minify=True, verbose=False):
     if V(less_version) >= V(max_less_version):
         raise ValueError("lessc too new: %s >= %s. Use `$ npm install lesscss@X.Y.Z` to install a specific version of less" % (less_version, max_less_version))
     
+    static_path = pjoin(os.getcwd(), static_dir)
     with lcd(static_dir):
-        local('lessc {min_flag} {ver_flag} {source} {target}'.format(**locals()))
+        local('lessc {min_flag} {ver_flag} --source-map={sourcemap} --source-map-basepath={static_path} --source-map-rootpath="../" {source} {target}'.format(**locals()))
 
