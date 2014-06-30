@@ -336,16 +336,16 @@ class NotebookApp(BaseIPythonApplication):
 
     # Network related information
     
-    cors_origin = Unicode('', config=True,
+    allow_origin = Unicode('', config=True,
         help="""Set the Access-Control-Allow-Origin header
         
         Use '*' to allow any origin to access your server.
         
-        Mutually exclusive with cors_origin_pat.
+        Takes precedence over allow_origin_pat.
         """
     )
     
-    cors_origin_pat = Unicode('', config=True,
+    allow_origin_pat = Unicode('', config=True,
         help="""Use a regular expression for the Access-Control-Allow-Origin header
         
         Requests from an origin matching the expression will get replies with:
@@ -354,11 +354,11 @@ class NotebookApp(BaseIPythonApplication):
         
         where `origin` is the origin of the request.
         
-        Mutually exclusive with cors_origin.
+        Ignored if allow_origin is set.
         """
     )
     
-    cors_credentials = Bool(False, config=True,
+    allow_credentials = Bool(False, config=True,
         help="Set the Access-Control-Allow-Credentials: true header"
     )
     
@@ -649,9 +649,9 @@ class NotebookApp(BaseIPythonApplication):
     
     def init_webapp(self):
         """initialize tornado webapp and httpserver"""
-        self.webapp_settings['cors_origin'] = self.cors_origin
-        self.webapp_settings['cors_origin_pat'] = re.compile(self.cors_origin_pat)
-        self.webapp_settings['cors_credentials'] = self.cors_credentials
+        self.webapp_settings['allow_origin'] = self.allow_origin
+        self.webapp_settings['allow_origin_pat'] = re.compile(self.allow_origin_pat)
+        self.webapp_settings['allow_credentials'] = self.allow_credentials
         
         self.web_app = NotebookWebApplication(
             self, self.kernel_manager, self.notebook_manager, 

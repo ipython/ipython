@@ -157,30 +157,30 @@ class IPythonHandler(AuthenticatedHandler):
     #---------------------------------------------------------------
     
     @property
-    def cors_origin(self):
+    def allow_origin(self):
         """Normal Access-Control-Allow-Origin"""
-        return self.settings.get('cors_origin', '')
+        return self.settings.get('allow_origin', '')
     
     @property
-    def cors_origin_pat(self):
-        """Regular expression version of cors_origin"""
-        return self.settings.get('cors_origin_pat', None)
+    def allow_origin_pat(self):
+        """Regular expression version of allow_origin"""
+        return self.settings.get('allow_origin_pat', None)
     
     @property
-    def cors_credentials(self):
+    def allow_credentials(self):
         """Whether to set Access-Control-Allow-Credentials"""
-        return self.settings.get('cors_credentials', False)
+        return self.settings.get('allow_credentials', False)
     
     def set_default_headers(self):
         """Add CORS headers, if defined"""
         super(IPythonHandler, self).set_default_headers()
-        if self.cors_origin:
-            self.set_header("Access-Control-Allow-Origin", self.cors_origin)
-        elif self.cors_origin_pat:
+        if self.allow_origin:
+            self.set_header("Access-Control-Allow-Origin", self.allow_origin)
+        elif self.allow_origin_pat:
             origin = self.get_origin()
-            if origin and self.cors_origin_pat.match(origin):
+            if origin and self.allow_origin_pat.match(origin):
                 self.set_header("Access-Control-Allow-Origin", origin)
-        if self.cors_credentials:
+        if self.allow_credentials:
             self.set_header("Access-Control-Allow-Credentials", 'true')
     
     def get_origin(self):
