@@ -165,16 +165,16 @@ class ContentsManager(LoggingConfigurable):
         path = path.strip('/')
         if model is None:
             model = {}
-        if 'content' not in model:
+        if 'content' not in model and model.get('type', None) != 'directory':
             if ext == '.ipynb':
                 metadata = current.new_metadata(name=u'')
                 model['content'] = current.new_notebook(metadata=metadata)
-                model.setdefault('type', 'notebook')
-                model.setdefault('format', 'json')
+                model['type'] = 'notebook'
+                model['format'] = 'json'
             else:
                 model['content'] = ''
-                model.setdefault('type', 'file')
-                model.setdefault('format', 'text')
+                model['type'] = 'file'
+                model['format'] = 'text'
         if 'name' not in model:
             model['name'] = self.increment_filename('Untitled' + ext, path)
 
@@ -185,7 +185,7 @@ class ContentsManager(LoggingConfigurable):
     def copy(self, from_name, to_name=None, path=''):
         """Copy an existing file and return its new model.
 
-        If to_name not specified, increment `from_name-Copy#.ipynb`.
+        If to_name not specified, increment `from_name-Copy#.ext`.
         """
         path = path.strip('/')
         model = self.get_model(from_name, path)

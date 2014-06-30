@@ -309,10 +309,10 @@ class FileContentsManager(ContentsManager):
         """Save the file model and return the model with no content."""
         path = path.strip('/')
 
-        if 'content' not in model:
-            raise web.HTTPError(400, u'No file content provided')
         if 'type' not in model:
             raise web.HTTPError(400, u'No file type provided')
+        if 'content' not in model and model['type'] != 'directory':
+            raise web.HTTPError(400, u'No file content provided')
 
         # One checkpoint should always exist
         if self.file_exists(name, path) and not self.list_checkpoints(name, path):
