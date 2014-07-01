@@ -136,7 +136,11 @@ class Kernel(Configurable):
             return
 
         self.log.debug("Control received: %s", msg)
-
+        
+        # Set the parent message for side effects.
+        self.set_parent(idents, msg)
+        self._publish_status(u'busy')
+        
         header = msg['header']
         msg_type = header['msg_type']
 
@@ -148,6 +152,10 @@ class Kernel(Configurable):
                 handler(self.control_stream, idents, msg)
             except Exception:
                 self.log.error("Exception in control handler:", exc_info=True)
+        
+        sys.stdout.flush()
+        sys.stderr.flush()
+        self._publish_status(u'idle')
     
     def dispatch_shell(self, stream, msg):
         """dispatch shell requests"""

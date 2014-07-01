@@ -894,7 +894,7 @@ Message type: ``status``::
 
 .. versionchanged:: 5.0
 
-    Busy and idle messages should be sent before/after handling every shell message,
+    Busy and idle messages should be sent before/after handling every message,
     not just execution.
 
 Clear output
