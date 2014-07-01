@@ -1,15 +1,7 @@
 """test serialization tools"""
 
-#-------------------------------------------------------------------------------
-#  Copyright (C) 2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-------------------------------------------------------------------------------
-
-#-------------------------------------------------------------------------------
-# Imports
-#-------------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import pickle
 from collections import namedtuple
@@ -43,9 +35,14 @@ class C(object):
 
 SHAPES = ((100,), (1024,10), (10,8,6,5), (), (0,))
 DTYPES = ('uint8', 'float64', 'int32', [('g', 'float32')], '|S10')
+
 #-------------------------------------------------------------------------------
 # Tests
 #-------------------------------------------------------------------------------
+
+def new_array(shape, dtype):
+    import numpy
+    return numpy.random.random(shape).astype(dtype)
 
 def test_roundtrip_simple():
     for obj in [
@@ -77,28 +74,13 @@ def test_roundtrip_buffered():
         nt.assert_equal(remainder, [])
         nt.assert_equal(obj, obj2)
 
-def _scrub_nan(A):
-    """scrub nans out of empty arrays
-    
-    since nan != nan
-    """
-    import numpy
-    if A.dtype.fields and A.shape:
-        for field in A.dtype.fields.keys():
-            try:
-                A[field][numpy.isnan(A[field])] = 0
-            except (TypeError, NotImplementedError):
-                # e.g. str dtype
-                pass
-
 @dec.skip_without('numpy')
 def test_numpy():
     import numpy
     from numpy.testing.utils import assert_array_equal
     for shape in SHAPES:
         for dtype in DTYPES:
-            A = numpy.empty(shape, dtype=dtype)
-            _scrub_nan(A)
+            A = new_array(shape, dtype=dtype)
             bufs = serialize_object(A)
             B, r = unserialize_object(bufs)
             nt.assert_equal(r, [])
@@ -115,8 +97,7 @@ def test_recarray():
             [('f', float), ('s', '|S10')],
             [('n', int), ('s', '|S1'), ('u', 'uint32')],
         ]:
-            A = numpy.empty(shape, dtype=dtype)
-            _scrub_nan(A)
+            A = new_array(shape, dtype=dtype)
             
             bufs = serialize_object(A)
             B, r = unserialize_object(bufs)
@@ -131,8 +112,7 @@ def test_numpy_in_seq():
     from numpy.testing.utils import assert_array_equal
     for shape in SHAPES:
         for dtype in DTYPES:
-            A = numpy.empty(shape, dtype=dtype)
-            _scrub_nan(A)
+            A = new_array(shape, dtype=dtype)
             bufs = serialize_object((A,1,2,b'hello'))
             canned = pickle.loads(bufs[0])
             nt.assert_is_instance(canned[0], CannedArray)
@@ -149,8 +129,7 @@ def test_numpy_in_dict():
     from numpy.testing.utils import assert_array_equal
     for shape in SHAPES:
         for dtype in DTYPES:
-            A = numpy.empty(shape, dtype=dtype)
-            _scrub_nan(A)
+            A = new_array(shape, dtype=dtype)
             bufs = serialize_object(dict(a=A,b=1,c=range(20)))
             canned = pickle.loads(bufs[0])
             nt.assert_is_instance(canned['a'], CannedArray)
