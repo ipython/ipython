@@ -90,11 +90,11 @@ define([
         return modal.modal(options);
     };
 
-    var edit_metadata = function (md, callback, name, keyboard_manager, notebook) {
-        name = name || "Cell";
+    var edit_metadata = function (options) {
+        options.name = options.name || "Cell";
         var error_div = $('<div/>').css('color', 'red');
         var message = 
-            "Manually edit the JSON below to manipulate the metadata for this " + name + "." +
+            "Manually edit the JSON below to manipulate the metadata for this " + options.name + "." +
             " We recommend putting custom metadata attributes in an appropriately named sub-structure," +
             " so they don't conflict with those of others.";
 
@@ -102,7 +102,7 @@ define([
             .attr('rows', '13')
             .attr('cols', '80')
             .attr('name', 'metadata')
-            .text(JSON.stringify(md || {}, null, 2));
+            .text(JSON.stringify(options.md || {}, null, 2));
         
         var dialogform = $('<div/>').attr('title', 'Edit the metadata')
             .append(
@@ -125,7 +125,7 @@ define([
             mode: 'application/json',
         });
         var modal = modal({
-            title: "Edit " + name + " Metadata",
+            title: "Edit " + options.name + " Metadata",
             body: dialogform,
             buttons: {
                 OK: { class : "btn-primary",
@@ -139,12 +139,14 @@ define([
                             error_div.text('WARNING: Could not save invalid JSON.');
                             return false;
                         }
-                        callback(new_md);
+                        options.callback(new_md);
                     }
                 },
                 Cancel: {}
-            }
-        }, keyboard_manager, notebook);
+            },
+            notebook: options.notebook,
+            keyboard_manager: options.keyboard_manager,
+        });
 
         modal.on('shown.bs.modal', function(){ editor.refresh(); });
     };
@@ -155,7 +157,7 @@ define([
     };
 
     // Backwards compatability.
-    IPython.Dialog = dialog;
+    IPython.dialog = dialog;
 
     return dialog;
 });

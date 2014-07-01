@@ -76,7 +76,10 @@ define([
         var prompt = $('<div/>').addClass('prompt input_prompt');
         cell.append(prompt);
         var inner_cell = $('<div/>').addClass('inner_cell');
-        this.celltoolbar = new celltoolbar.CellToolbar(this, this.events, this.notebook);
+        this.celltoolbar = new celltoolbar.CellToolbar({
+            cell: this, 
+            events: this.events, 
+            notebook: this.notebook});
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
         this.code_mirror = new CodeMirror(input_area.get(0), this.cm_config);
@@ -451,11 +454,11 @@ define([
     IPython.RawCell = RawCell;
     IPython.HeadingCell = HeadingCell;
 
-    var Cells = {
+    var textcell = {
         'TextCell': TextCell,
         'MarkdownCell': MarkdownCell,
         'RawCell': RawCell,
         'HeadingCell': HeadingCell,
     };
-    return Cells;
+    return textcell;
 });

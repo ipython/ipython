@@ -129,7 +129,10 @@ define([
         var input = $('<div></div>').addClass('input');
         var prompt = $('<div/>').addClass('prompt input_prompt');
         var inner_cell = $('<div/>').addClass('inner_cell');
-        this.celltoolbar = new celltoolbar.CellToolbar(this, this.events, this.notebook);
+        this.celltoolbar = new celltoolbar.CellToolbar({
+            cell: this, 
+            events: this.events, 
+            notebook: this.notebook});
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
         this.code_mirror = CodeMirror(input_area.get(0), this.cm_config);
@@ -159,7 +162,11 @@ define([
         var output = $('<div></div>');
         cell.append(input).append(widget_area).append(output);
         this.element = cell;
-        this.output_area = new outputarea.OutputArea(output, true, this.events, this.keyboard_manager);
+        this.output_area = new outputarea.OutputArea({
+            selector: output, 
+            prompt_area: true, 
+            events: this.events, 
+            keyboard_manager: this.keyboard_manager});
         this.completer = new completer.Completer(this, this.events);
     };
 

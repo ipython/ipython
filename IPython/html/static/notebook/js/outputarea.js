@@ -17,20 +17,20 @@ define([
      * @constructor
      */
 
-    var OutputArea = function (selector, prompt_area, events, keyboard_manager) {
-        this.selector = selector;
-        this.events = events;
-        this.keyboard_manager = keyboard_manager;
-        this.wrapper = $(selector);
+    var OutputArea = function (options) {
+        this.selector = options.selector;
+        this.events = options.events;
+        this.keyboard_manager = options.keyboard_manager;
+        this.wrapper = $(options.selector);
         this.outputs = [];
         this.collapsed = false;
         this.scrolled = false;
         this.trusted = true;
         this.clear_queued = null;
-        if (prompt_area === undefined) {
+        if (options.prompt_area === undefined) {
             this.prompt_area = true;
         } else {
-            this.prompt_area = prompt_area;
+            this.prompt_area = options.prompt_area;
         }
         this.create_elements();
         this.style();

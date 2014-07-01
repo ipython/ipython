@@ -7,7 +7,7 @@ define([
     'base/js/utils',
     'base/js/dialog',
     'base/js/keyboard',
-    'dateformat/date.format',
+    'dateformat',
 ], function(IPython, $, utils, dialog, keyboard) {
     "use strict";
 

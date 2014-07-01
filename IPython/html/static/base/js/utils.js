@@ -551,7 +551,7 @@ define([
     };
 
     // Backwards compatability.
-    IPython.Utils = utils;
+    IPython.utils = utils;
     
     return utils;
 }); 

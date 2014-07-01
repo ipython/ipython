@@ -192,7 +192,9 @@ define([
             that.notebook.move_cell_down();
         });
         this.element.find('#edit_nb_metadata').click(function () {
-            that.notebook.edit_metadata();
+            that.notebook.edit_metadata({
+                notebook: that.notebook,
+                keyboard_manager: that.notebook.keyboard_manager});
         });
         
         // View

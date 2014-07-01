@@ -8,16 +8,19 @@ define([
 ], function(IPython, $, textcell) {
     "use strict";
 
-    /**
-     * @constructor
-     * @class CellToolbar
-     * @param {The cell to attach the metadata UI to} cell
-     */
-    var CellToolbar = function (cell, events, notebook) {
+    var CellToolbar = function (options) {
+        // Constructor
+        //
+        // Parameters:
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          events: $(Events) instance 
+        //          cell: Cell instance
+        //          notebook: Notebook instance 
         CellToolbar._instances.push(this);
-        this.notebook = notebook;
-        this.events = events;
-        this.cell = cell;
+        this.notebook = options.notebook;
+        this.events = options.events;
+        this.cell = options.cell;
         this.create_element();
         this.rebuild();
         return this;

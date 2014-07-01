@@ -35,12 +35,12 @@ define([
     // if timeout <= 0
     // click_callback : function called if user click on notification
     // could return false to prevent the notification to be dismissed
-    NotificationWidget.prototype.set_message = function (msg, timeout, click_callback, opts) {
-        opts = opts || {};
+    NotificationWidget.prototype.set_message = function (msg, timeout, click_callback, options) {
+        options = options || {};
         var callback = click_callback || function() {return false;};
         var that = this;
-        this.inner.attr('class', opts.icon);
-        this.inner.attr('title', opts.title);
+        this.inner.attr('class', options.icon);
+        this.inner.attr('title', options.title);
         this.inner.text(msg);
         this.element.fadeIn(100);
         if (this.timeout !== null) {

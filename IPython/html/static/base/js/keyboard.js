@@ -242,7 +242,7 @@ define([
         return !( data === undefined || data.handler === undefined );
     };
 
-    return {
+    var keyboard = {
         keycodes : keycodes,
         inv_keycodes : inv_keycodes,
         ShortcutManager : ShortcutManager,
@@ -251,4 +251,9 @@ define([
         shortcut_to_event : shortcut_to_event,
         event_to_shortcut : event_to_shortcut
     };
+
+    // For backwards compatability.
+    IPython.keyboard = keyboard;
+
+    return keyboard;
 });

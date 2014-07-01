@@ -6,7 +6,6 @@ require([
     'jquery',
     'notebook/js/notebook',
     'base/js/utils',
-    'base/js/keyboard',
     'base/js/page',
     'notebook/js/layoutmanager',
     'base/js/events',
@@ -24,7 +23,6 @@ require([
     $,
     notebook, 
     utils, 
-    keyboard, 
     page, 
     layoutmanager, 
     events,
@@ -134,5 +132,4 @@ require([
     IPython.keyboard_manager = keyboard_manager;
     IPython.save_widget = save_widget;
     IPython.config = user_config;
-    IPython.keyboard = keyboard;
 });

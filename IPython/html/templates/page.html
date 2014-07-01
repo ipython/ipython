@@ -24,6 +24,7 @@
             backbone : 'components/backbone/backbone-min',
             jquery: 'components/jquery/jquery.min',
             bootstraptour: 'components/bootstrap-tour/build/js/bootstrap-tour.min',
+            dateformat: 'dateformat/date.format',
           },
           shim: {
             underscore: {
@@ -35,6 +36,9 @@
             },
             bootstraptour: {
               exports: "Tour"
+            },
+            dateformat: {
+              exports: "dateFormat"
             }
           }
       });

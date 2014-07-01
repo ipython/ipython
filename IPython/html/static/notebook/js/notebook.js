@@ -13,8 +13,6 @@ define([
     'components/marked/lib/marked',
     'notebook/js/mathjaxutils',
     'base/js/keyboard',
-    'components/jquery-ui/ui/minified/jquery-ui.min',
-    'components/bootstrap/js/bootstrap.min',
 ], function (
     IPython, 
     $, 
@@ -79,11 +77,6 @@ define([
                 }
             });
         }
-
-        // Backwards compatability.
-        IPython.keyboard_manager = this.keyboard_manager;
-        IPython.save_widget = this.save_widget;
-        IPython.keyboard = this.keyboard;
 
         this.element = $(selector);
         this.element.scroll();
@@ -314,9 +307,14 @@ define([
 
     Notebook.prototype.edit_metadata = function () {
         var that = this;
-        dialog.edit_metadata(this.metadata, function (md) {
-            that.metadata = md;
-        }, 'Notebook');
+        dialog.edit_metadata({
+            md: this.metadata, 
+            callback: function (md) {
+                that.metadata = md;
+            }, 
+            name: 'Notebook',
+            notebook: this,
+            keyboard_manager: this.keyboard_manager});
     };
 
     // Cell indexing, retrieval, etc.
