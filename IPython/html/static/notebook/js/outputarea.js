@@ -280,12 +280,15 @@ define([
             needs_height_reset = true;
         }
 
+        var record_output = true;
+
         if (json.output_type === 'execute_result') {
             this.append_execute_result(json);
         } else if (json.output_type === 'error') {
             this.append_error(json);
         } else if (json.output_type === 'stream') {
-            this.append_stream(json);
+            // append_stream might have merged the output with earlier stream output
+            record_output = this.append_stream(json);
         }
 
         // We must release the animation fixed height in a callback since Gecko
@@ -306,7 +309,9 @@ define([
             handle_appended();
         }
         
-        this.outputs.push(json);
+        if (record_output) {
+            this.outputs.push(json);
+        }
     };
 
 
@@ -457,20 +462,23 @@ define([
                 // latest output was in the same stream,
                 // so append directly into its pre tag
                 // escape ANSI & HTML specials:
+                last.text = utils.fixCarriageReturn(last.text + json.text);
                 var pre = this.element.find('div.'+subclass).last().find('pre');
-                var html = utils.fixCarriageReturn(
-                    pre.html() + utils.fixConsole(text));
+                var html = utils.fixConsole(last.text);
                 // The only user content injected with this HTML call is
                 // escaped by the fixConsole() method.
                 pre.html(html);
-                return;
+                // return false signals that we merged this output with the previous one,
+                // and the new output shouldn't be recorded.
+                return false;
             }
         }
 
         if (!text.replace("\r", "")) {
             // text is nothing (empty string, \r, etc.)
             // so don't append any elements, which might add undesirable space
-            return;
+            // return true to indicate the output should be recorded.
+            return true;
         }
 
         // If we got here, attach a new div
@@ -480,6 +488,7 @@ define([
             append_text.apply(this, [text, {}, toinsert]).addClass("output_stream " + subclass);
         }
         this._safe_append(toinsert);
+        return true;
     };
 
 
