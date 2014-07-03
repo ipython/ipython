@@ -7,8 +7,8 @@ Licenses and Copyright
 Licenses
 ========
 
-IPython source code is licensed under the terms of the new or revised
-BSD license, as follows::
+IPython source code and examples are licensed under the terms of the
+new or revised BSD license, as follows::
 
     Copyright (c) 2011, IPython Development Team
 
@@ -44,6 +44,9 @@ BSD license, as follows::
 IPython documentation, examples and other materials are licensed under
 the terms of the Attribution 4.0 International (CC BY 4.0) license, as
 follows::
+
+* http://creativecommons.org/licenses/by/4.0/
+* http://creativecommons.org/licenses/by/4.0/legalcode.txt
 
     Creative Commons Attribution 4.0 International Public License
     
