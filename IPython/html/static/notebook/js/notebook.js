@@ -52,7 +52,7 @@ define([
         this.events = options.events;
         this.keyboard_manager = options.keyboard_manager;
         this.save_widget = options.save_widget;
-        this.tooltip = tooltip.Tooltip(this.events);
+        this.tooltip = new tooltip.Tooltip(this.events);
         // TODO: This code smells (and the other `= this` line a couple lines down)
         // We need a better way to deal with circular instance references.
         this.keyboard_manager.notebook = this;

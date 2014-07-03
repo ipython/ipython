@@ -4,7 +4,8 @@
 define([
     "underscore",
     "backbone",
-], function (_, Backbone) {
+    "base/js/namespace"
+], function (_, Backbone, IPython) {
 
     //--------------------------------------------------------------------
     // WidgetManager class
@@ -192,6 +193,9 @@ define([
         });
         this._models[model_id] = widget_model;
     };
+
+    // Backwards compatability.
+    IPython.WidgetManager = WidgetManager;
 
     return {'WidgetManager': WidgetManager};
 });

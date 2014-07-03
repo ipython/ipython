@@ -3,7 +3,9 @@
 
 define([
     "widgets/js/widget",
-], function(widget){
+    "jqueryui",
+    "components/bootstrap/js/bootstrap.min",
+], function(widget, $){
     
     var IntSliderView = widget.DOMWidgetView.extend({
         render : function(){

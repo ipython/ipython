@@ -3,7 +3,8 @@
 
 define([
     "widgets/js/widget",
-], function(widget){
+    "jquery",
+], function(widget, $){
     
     var ImageView = widget.DOMWidgetView.extend({  
         render : function(){

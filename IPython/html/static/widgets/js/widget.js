@@ -3,8 +3,10 @@
 
 define(["widgets/js/manager",
         "underscore",
-        "backbone"], 
-function(widgetmanager, _, Backbone){
+        "backbone", 
+        "jquery",   
+        "base/js/namespace",
+], function(widgetmanager, _, Backbone, $, IPython){
 
     var WidgetModel = Backbone.Model.extend({
         constructor: function (widget_manager, model_id, comm) {
@@ -458,9 +460,14 @@ function(widgetmanager, _, Backbone){
         },
     });
 
-    return {
+    var widget = {
         'WidgetModel': WidgetModel,
         'WidgetView': WidgetView,
         'DOMWidgetView': DOMWidgetView,
     };
+
+    // For backwards compatability.
+    $.extend(IPython, widget);
+
+    return widget;
 });
