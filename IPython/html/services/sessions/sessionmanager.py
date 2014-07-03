@@ -53,7 +53,6 @@ class SessionManager(LoggingConfigurable):
         """Start a database connection"""
         if self._connection is None:
             self._connection = sqlite3.connect(':memory:')
-            self._connection.row_factory = self.row_factory
         return self._connection
         
     def __del__(self):
@@ -141,7 +140,12 @@ class SessionManager(LoggingConfigurable):
         query = "SELECT * FROM session WHERE %s" % (' AND '.join(conditions))
 
         self.cursor.execute(query, list(kwargs.values()))
-        model = self.cursor.fetchone()
+        try:
+            model = self.row_to_model(self.cursor, self.cursor.fetchone())
+        except KeyError:
+            # The kernel is missing, so the session just got deleted.
+            model = None
+
         if model is None:
             q = []
             for key, value in kwargs.items():
@@ -179,9 +183,14 @@ class SessionManager(LoggingConfigurable):
         query = "UPDATE session SET %s WHERE session_id=?" % (', '.join(sets))
         self.cursor.execute(query, list(kwargs.values()) + [session_id])
 
-    def row_factory(self, cursor, row):
+    def row_to_model(self, cursor, row):
         """Takes sqlite database session row and turns it into a dictionary"""
         row = sqlite3.Row(cursor, row)
+        if row['kernel_id'] not in self.kernel_manager:
+            # The kernel was killed without deleting the session. Should never occur.
+            self.delete_session(row['session_id'])
+            raise KeyError
+
         model = {
             'id': row['session_id'],
             'notebook': {
@@ -196,7 +205,13 @@ class SessionManager(LoggingConfigurable):
         """Returns a list of dictionaries containing all the information from
         the session database"""
         c = self.cursor.execute("SELECT * FROM session")
-        return list(c.fetchall())
+        result = []
+        for row in c:
+            try:
+                result.append(self.row_to_model(c, row))
+            except KeyError:
+                pass
+        return result
 
     def delete_session(self, session_id):
         """Deletes the row in the session database with given session_id"""
