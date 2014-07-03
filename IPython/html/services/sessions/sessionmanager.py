@@ -53,6 +53,7 @@ class SessionManager(LoggingConfigurable):
         """Start a database connection"""
         if self._connection is None:
             self._connection = sqlite3.connect(':memory:')
+            self._connection.row_factory = sqlite3.Row
         return self._connection
         
     def __del__(self):
@@ -141,18 +142,19 @@ class SessionManager(LoggingConfigurable):
 
         self.cursor.execute(query, list(kwargs.values()))
         try:
-            model = self.row_to_model(self.cursor, self.cursor.fetchone())
+            row = self.cursor.fetchone()
         except KeyError:
             # The kernel is missing, so the session just got deleted.
-            model = None
+            row = None
 
-        if model is None:
+        if row is None:
             q = []
             for key, value in kwargs.items():
                 q.append("%s=%r" % (key, value))
 
             raise web.HTTPError(404, u'Session not found: %s' % (', '.join(q)))
-        return model
+
+        return self.row_to_model(row)
 
     def update_session(self, session_id, **kwargs):
         """Updates the values in the session database.
@@ -183,9 +185,8 @@ class SessionManager(LoggingConfigurable):
         query = "UPDATE session SET %s WHERE session_id=?" % (', '.join(sets))
         self.cursor.execute(query, list(kwargs.values()) + [session_id])
 
-    def row_to_model(self, cursor, row):
+    def row_to_model(self, row):
         """Takes sqlite database session row and turns it into a dictionary"""
-        row = sqlite3.Row(cursor, row)
         if row['kernel_id'] not in self.kernel_manager:
             # The kernel was killed without deleting the session. Should never occur.
             self.delete_session(row['session_id'])
@@ -208,7 +209,7 @@ class SessionManager(LoggingConfigurable):
         result = []
         for row in c:
             try:
-                result.append(self.row_to_model(c, row))
+                result.append(self.row_to_model(row))
             except KeyError:
                 pass
         return result
