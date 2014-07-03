@@ -23,7 +23,7 @@ from inspect import getcallargs
 from IPython.core.getipython import get_ipython
 from IPython.html.widgets import (Widget, TextWidget,
     FloatSliderWidget, IntSliderWidget, CheckboxWidget, DropdownWidget,
-    ContainerWidget, DOMWidget, IntRangeSliderWidget, FloatRangeSliderWidget)
+    ContainerWidget, DOMWidget)
 from IPython.display import display, clear_output
 from IPython.utils.py3compat import string_types, unicode_type
 from IPython.utils.traitlets import HasTraits, Any, Unicode
@@ -107,26 +107,6 @@ def _widget_abbrev(o):
             else:
                 cls = FloatSliderWidget
             return cls(value=value, min=min, max=max, step=step)
-        elif _matches(o, [float_or_int]*4):
-            min, low, high, max = o
-            if not min <= low <= high <= max:
-                raise ValueError("Range input expects min <= low <= high <= max, got {0}".format(o))
-            if all(isinstance(_, int) for _ in o):
-                cls = IntRangeSliderWidget
-            else:
-                cls = FloatRangeSliderWidget
-            return cls(value=(low, high), min=min, max=max)
-        elif _matches(o, [float_or_int]*5):
-            min, low, high, max, step = o
-            if not min <= low <= high <= max:
-                raise ValueError("Range input expects min <= low <= high <= max, got {0}".format(o))
-            if step <= 0:
-                raise ValueError("step must be >= 0, not %r" % step)
-            if all(isinstance(_, int) for _ in o):
-                cls = IntRangeSliderWidget
-            else:
-                cls = FloatRangeSliderWidget
-            return cls(value=(low, high), min=min, max=max, step=step)
     else:
         return _widget_abbrev_single_value(o)
 
