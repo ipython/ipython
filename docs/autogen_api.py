@@ -21,6 +21,8 @@ if __name__ == '__main__':
                                         # Extensions are documented elsewhere.
                                         r'\.extensions',
                                         r'\.config\.profile',
+                                        # These should be accessed via nbformat.current
+                                        r'\.nbformat\.v\d+',
                                         ]
 
     # The inputhook* modules often cause problems on import, such as trying to
@@ -31,9 +33,26 @@ if __name__ == '__main__':
                                         r'\.testing\.plugin',
                                         # This just prints a deprecation msg:
                                         r'\.frontend$',
+                                        # Deprecated:
+                                        r'\.core\.magics\.deprecated'
                                         # We document this manually.
                                         r'\.utils\.py3compat',
+                                        # These are exposed by nbformat.current
+                                        r'\.nbformat\.convert',
+                                        r'\.nbformat\.validator',
+                                        # These are exposed in display
+                                        r'\.core\.display',
+                                        r'\.lib\.display',
                                         ]
+
+    # These modules import functions and classes from other places to expose
+    # them as part of the public API. They must have __all__ defined. The
+    # non-API modules they import from should be excluded by the skip patterns
+    # above.
+    docwriter.names_from__all__.update({
+        'IPython.nbformat.current',
+        'IPython.display',
+    })
     
     # Now, generate the outputs
     docwriter.write_api_docs(outdir)

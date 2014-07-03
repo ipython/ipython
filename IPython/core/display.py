@@ -26,7 +26,13 @@ from IPython.core.formatters import _safe_get_formatter_method
 from IPython.utils.py3compat import (string_types, cast_bytes_py2, cast_unicode,
                                      unicode_type)
 from IPython.testing.skipdoctest import skip_doctest
-from .displaypub import publish_display_data
+
+__all__ = ['display', 'display_pretty', 'display_html', 'display_markdown',
+'display_svg', 'display_png', 'display_jpeg', 'display_latex', 'display_json',
+'display_javascript', 'display_pdf', 'DisplayObject', 'TextDisplayObject',
+'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'JSON', 'Javascript',
+'Image', 'clear_output', 'set_matplotlib_formats', 'set_matplotlib_close',
+'publish_display_data']
 
 #-----------------------------------------------------------------------------
 # utility functions
@@ -77,6 +83,48 @@ def _display_mimetype(mimetype, objs, raw=False, metadata=None):
 #-----------------------------------------------------------------------------
 # Main functions
 #-----------------------------------------------------------------------------
+
+def publish_display_data(data, metadata=None, source=None):
+    """Publish data and metadata to all frontends.
+
+    See the ``display_data`` message in the messaging documentation for
+    more details about this message type.
+
+    The following MIME types are currently implemented:
+
+    * text/plain
+    * text/html
+    * text/markdown
+    * text/latex
+    * application/json
+    * application/javascript
+    * image/png
+    * image/jpeg
+    * image/svg+xml
+
+    Parameters
+    ----------
+    data : dict
+        A dictionary having keys that are valid MIME types (like
+        'text/plain' or 'image/svg+xml') and values that are the data for
+        that MIME type. The data itself must be a JSON'able data
+        structure. Minimally all data should have the 'text/plain' data,
+        which can be displayed by all frontends. If more than the plain
+        text is given, it is up to the frontend to decide which
+        representation to use.
+    metadata : dict
+        A dictionary for metadata related to the data. This can contain
+        arbitrary key, value pairs that frontends can use to interpret
+        the data. mime-type keys matching those in data can be used
+        to specify metadata about particular representations.
+    source : str, deprecated
+        Unused.
+        """
+    from IPython.core.interactiveshell import InteractiveShell
+    InteractiveShell.instance().display_pub.publish(
+        data=data,
+        metadata=metadata,
+    )
 
 def display(*objs, **kwargs):
     """Display a Python object in all frontends.
