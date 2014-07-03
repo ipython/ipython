@@ -95,7 +95,7 @@ def assert_http_error(status, msg=None):
     except requests.HTTPError as e:
         real_status = e.response.status_code
         assert real_status == status, \
-                    "Expected status %d, got %d" % (real_status, status)
+                    "Expected status %d, got %d" % (status, real_status)
         if msg:
             assert msg in str(e), e
     else:
