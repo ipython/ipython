@@ -6,6 +6,7 @@
 
 from __future__ import print_function
 
+import base64
 import errno
 import io
 import json
@@ -357,6 +358,14 @@ class NotebookApp(BaseIPythonApplication):
         help="""The full path to a private key file for usage with SSL/TLS."""
     )
     
+    cookie_secret_file = Unicode(config=True,
+        help="""The file where the cookie secret is stored."""
+    )
+    def _cookie_secret_file_default(self):
+        if self.profile_dir is None:
+            return ''
+        return os.path.join(self.profile_dir.security_dir, 'notebook_cookie_secret')
+    
     cookie_secret = Bytes(b'', config=True,
         help="""The random bytes used to secure cookies.
         By default this is a new random number every time you start the Notebook.
@@ -367,7 +376,26 @@ class NotebookApp(BaseIPythonApplication):
         """
     )
     def _cookie_secret_default(self):
-        return os.urandom(1024)
+        if os.path.exists(self.cookie_secret_file):
+            with io.open(self.cookie_secret_file, 'rb') as f:
+                return f.read()
+        else:
+            secret = base64.encodestring(os.urandom(1024))
+            self._write_cookie_secret_file(secret)
+            return secret
+    
+    def _write_cookie_secret_file(self, secret):
+        """write my secret to my secret_file"""
+        self.log.info("Writing notebook server cookie secret to %s", self.cookie_secret_file)
+        with io.open(self.cookie_secret_file, 'wb') as f:
+            f.write(secret)
+        try:
+            os.chmod(self.cookie_secret_file, 0o600)
+        except OSError:
+            self.log.warn(
+                "Could not set permissions on %s",
+                self.cookie_secret_file
+            )
 
     password = Unicode(u'', config=True,
                       help="""Hashed password to use for web authentication.
