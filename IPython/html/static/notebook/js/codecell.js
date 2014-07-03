@@ -293,6 +293,7 @@ var IPython = (function (IPython) {
                 reply : $.proxy(this._handle_execute_reply, this),
                 payload : {
                     set_next_input : $.proxy(this._handle_set_next_input, this),
+                    auto_rewrite_input : $.proxy(this._handle_auto_rewrite_input, this),
                     page : $.proxy(this._open_with_pager, this)
                 }
             },
@@ -325,6 +326,19 @@ var IPython = (function (IPython) {
     CodeCell.prototype._handle_set_next_input = function (payload) {
         var data = {'cell': this, 'text': payload.text};
         $([IPython.events]).trigger('set_next_input.Notebook', data);
+    };
+
+    /**
+     * @method _handle_auto_rewrite_input
+     * @private
+     */
+    CodeCell.prototype._handle_auto_rewrite_input = function (payload) {
+        var data = {
+            'cell': this, 
+            'transformed_input': payload.transformed_input,
+            'raw_input': payload.raw_input
+        };
+        $([IPython.events]).trigger('auto_rewrite_input.Notebook', data);
     };
 
     /**
