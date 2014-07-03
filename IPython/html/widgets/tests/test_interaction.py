@@ -220,84 +220,6 @@ def test_list_tuple_3_float():
         )
         check_widgets(c, tup=d, lis=d)
 
-def test_list_tuple_4_int():
-    with nt.assert_raises(ValueError):
-        c = interactive(f, tup=(4, 3, 2, 1))
-    with nt.assert_raises(ValueError):
-        c = interactive(f, tup=(1, 2, 3, 2))
-    with nt.assert_raises(ValueError):
-        c = interactive(f, tup=(2, 1, 3, 4))
-    for min, low, high, max in [(0, 1, 2, 3), (0, 0, 0, 0), (1, 2, 2, 3), (-2, -1, 1, 2)]:
-        c = interactive(f, tup=(min, low, high, max), lis=[min, low, high, max])
-        nt.assert_equal(len(c.children), 2)
-        d = dict(
-            cls=widgets.IntRangeSliderWidget,
-            min=min,
-            max=max,
-            value=(low, high),
-            range=True,
-            readout=True
-        )
-        check_widgets(c, tup=d, lis=d)
-
-def test_list_tuple_5_int():
-    with nt.assert_raises(ValueError):
-        c = interactive(f, tup=(1, 2, 3, 4, 0))
-    with nt.assert_raises(ValueError):
-        c = interactive(f, tup=(1, 2, 3, 4, -1))
-    for min, low, high, max, step in [(0, 1, 2, 3, 1), (0, 0, 0, 0, 1), (1, 2, 2, 3, 2), (-2, -1, 1, 2, 3)]:
-        c = interactive(f, tup=(min, low, high, max, step), lis=[min, low, high, max, step])
-        nt.assert_equal(len(c.children), 2)
-        d = dict(
-            cls=widgets.IntRangeSliderWidget,
-            min=min,
-            max=max,
-            value=(low, high),
-            step=step,
-            range=True,
-            readout=True
-        )
-        check_widgets(c, tup=d, lis=d)
-        
-def test_list_tuple_4_float():
-    with nt.assert_raises(ValueError):
-        c = interactive(f, tup=(4, 3., 2, 1))
-    with nt.assert_raises(ValueError):
-        c = interactive(f, tup=(1, 2, 3, 2.))
-    with nt.assert_raises(ValueError):
-        c = interactive(f, tup=(2, 1., 3, 4))
-    for min, low, high, max in [(0, 1., 2, 3), (0, 0, 0., 0), (1., 2., 2., 3.1415), (-2.5, -1, 1, 2.5)]:
-        c = interactive(f, tup=(min, low, high, max), lis=[min, low, high, max])
-        nt.assert_equal(len(c.children), 2)
-        d = dict(
-            cls=widgets.FloatRangeSliderWidget,
-            min=min,
-            max=max,
-            value=(low, high),
-            range=True,
-            readout=True
-        )
-        check_widgets(c, tup=d, lis=d)
-
-def test_list_tuple_5_float():
-    with nt.assert_raises(ValueError):
-        c = interactive(f, tup=(1, 2., 3., 4, 0))
-    with nt.assert_raises(ValueError):
-        c = interactive(f, tup=(1, 2, 3., 4., -0.5))
-    for min, low, high, max, step in [(0, 1, 2, 3, 0.01), (0, 0, 0, 0, 0.1), (1, 2, 2, 3, 2.718), (-2, -1.5, 1.5, 2, 2)]:
-        c = interactive(f, tup=(min, low, high, max, step), lis=[min, low, high, max, step])
-        nt.assert_equal(len(c.children), 2)
-        d = dict(
-            cls=widgets.FloatRangeSliderWidget,
-            min=min,
-            max=max,
-            value=(low, high),
-            step=step,
-            range=True,
-            readout=True
-        )
-        check_widgets(c, tup=d, lis=d)
-
 def test_list_tuple_str():
     values = ['hello', 'there', 'guy']
     first = values[0]
@@ -558,3 +480,25 @@ def test_custom_description():
         value='text',
         description='foo',
     )
+
+def test_int_range_logic():
+    irsw = widgets.IntRangeSliderWidget
+    w = irsw(value=(2, 4), min=0, max=6)
+    check_widget(w, cls=irsw, value=(2, 4), min=0, max=6)
+    w.value = (4, 2)
+    check_widget(w, cls=irsw, value=(2, 4), min=0, max=6)
+    w.min = 3
+    check_widget(w, cls=irsw, value=(3, 4), min=3, max=6)
+    w.max = 3
+    check_widget(w, cls=irsw, value=(3, 3), min=3, max=3)
+
+def test_float_range_logic():
+    frsw = widgets.FloatRangeSliderWidget
+    w = frsw(value=(.2, .4), min=0., max=.6)
+    check_widget(w, cls=frsw, value=(.2, .4), min=0., max=.6)
+    w.value = (.4, .2)
+    check_widget(w, cls=frsw, value=(.2, .4), min=0., max=.6)
+    w.min = .3
+    check_widget(w, cls=frsw, value=(.3, .4), min=.3, max=.6)
+    w.max = .3
+    check_widget(w, cls=frsw, value=(.3, .3), min=.3, max=.3)
