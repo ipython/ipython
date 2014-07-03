@@ -77,9 +77,11 @@ class _BoundedIntRangeWidget(_IntRangeWidget):
         """Validate min <= low <= high <= max"""
         if name == "value":
             low, high = new
-            low = max(low, self.min)
-            high = min(high, self.max)
-            self.value = (min(low, high), max(low, high))
+        else:
+            low, high = self.value
+        low = max(low, self.min)
+        high = min(high, self.max)
+        self.value = (min(low, high), max(low, high))
 
 
 class IntRangeSliderWidget(_BoundedIntRangeWidget):
