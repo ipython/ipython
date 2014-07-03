@@ -1,16 +1,8 @@
-"""Utilities to manipulate JSON objects.
-"""
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING.txt, distributed as part of this software.
-#-----------------------------------------------------------------------------
+"""Utilities to manipulate JSON objects."""
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-# stdlib
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 import math
 import re
 import types
@@ -247,14 +239,14 @@ def json_clean(obj):
         # key collisions after stringification.  This can happen with keys like
         # True and 'true' or 1 and '1', which collide in JSON.
         nkeys = len(obj)
-        nkeys_collapsed = len(set(map(str, obj)))
+        nkeys_collapsed = len(set(map(unicode_type, obj)))
         if nkeys != nkeys_collapsed:
-            raise ValueError('dict can not be safely converted to JSON: '
+            raise ValueError('dict cannot be safely converted to JSON: '
                              'key collision would lead to dropped values')
         # If all OK, proceed by making the new dict that will be json-safe
         out = {}
         for k,v in iteritems(obj):
-            out[str(k)] = json_clean(v)
+            out[unicode_type(k)] = json_clean(v)
         return out
 
     # If we get here, we don't know how to handle the object, so we just get
