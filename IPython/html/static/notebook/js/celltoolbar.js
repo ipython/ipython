@@ -4,8 +4,7 @@
 define([
     'base/js/namespace',
     'jquery',
-    'notebook/js/textcell',
-], function(IPython, $, textcell) {
+], function(IPython, $) {
     "use strict";
 
     var CellToolbar = function (options) {
@@ -176,13 +175,13 @@ define([
      *      CellToolbar.register_preset('foo.foo_preset1', ['foo.c1', 'foo.c2', 'foo.c5'])
      *      CellToolbar.register_preset('foo.foo_preset2', ['foo.c4', 'foo.c5'])
      */
-    CellToolbar.register_preset = function(name, preset_list) {
+    CellToolbar.register_preset = function(name, preset_list, notebook, events) {
         CellToolbar._presets[name] = preset_list;
-        this.events.trigger('preset_added.CellToolbar', {name: name});
+        events.trigger('preset_added.CellToolbar', {name: name});
         // When "register_callback" is called by a custom extension, it may be executed after notebook is loaded.
         // In that case, activate the preset if needed.
-        if (this.notebook && this.notebook.metadata && this.notebook.metadata.celltoolbar === name)
-            this.activate_preset(name);
+        if (notebook && notebook.metadata && notebook.metadata.celltoolbar === name)
+            CellToolbar.activate_preset(name, events);
     };
 
 
@@ -215,7 +214,7 @@ define([
      *
      *      CellToolbar.activate_preset('foo.foo_preset1');
      */
-    CellToolbar.activate_preset = function(preset_name){
+    CellToolbar.activate_preset = function(preset_name, events){
         var preset = CellToolbar._presets[preset_name];
 
         if(preset !== undefined){
@@ -223,8 +222,8 @@ define([
             CellToolbar.rebuild_all();
         }
 
-        if (this.events) {
-            this.events.trigger('preset_activated.CellToolbar', {name: preset_name});
+        if (events) {
+            events.trigger('preset_activated.CellToolbar', {name: preset_name});
         }
     };
 
@@ -279,7 +278,7 @@ define([
         }
 
         // If there are no controls or the cell is a rendered TextCell hide the toolbar.
-        if (!this.ui_controls_list.length || (this.cell instanceof textcell.TextCell && this.cell.rendered)) {
+        if (!this.ui_controls_list.length || (this.cell_type != 'code' && this.cell.rendered)) {
             this.hide();
         } else {
             this.show();

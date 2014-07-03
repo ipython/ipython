@@ -1,18 +1,15 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2012  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// CellToolbar Example
-//============================================================================
+define([
+    'jquery',
+    'notebook/js/celltoolbar',
+    'base/js/dialog',
+    'base/js/keyboard',
+], function($, celltoolbar, dialog, keyboard) {
+    "use strict";
 
-(function(IPython) {
-  "use strict";
-
-  var CellToolbar = IPython.CellToolbar;
+  var CellToolbar = celltoolbar.CellToolbar;
   var raw_cell_preset = [];
 
   var select_type = CellToolbar.utils.select_ui_generator([
@@ -39,7 +36,7 @@
                 $('<input/>').attr('type','text').attr('size','25')
                 .val(cell.metadata.raw_mimetype || "-")
             );
-            IPython.dialog.modal({
+            dialog.modal({
                 title: "Raw Cell MIME Type",
                 body: dialog,
                 buttons : {
@@ -57,7 +54,7 @@
                     var that = $(this);
                     // Upon ENTER, click the OK button.
                     that.find('input[type="text"]').keydown(function (event, ui) {
-                        if (event.which === IPython.keyboard.keycodes.enter) {
+                        if (event.which === keyboard.keycodes.enter) {
                             that.find('.btn-primary').first().click();
                             return false;
                         }
@@ -77,11 +74,13 @@
       "Raw NBConvert Format"
   );
 
-  CellToolbar.register_callback('raw_cell.select', select_type, ['raw']);
+  var register = function (notebook, events) {
+    CellToolbar.register_callback('raw_cell.select', select_type, ['raw']);
+    raw_cell_preset.push('raw_cell.select');
 
-  raw_cell_preset.push('raw_cell.select');
+    CellToolbar.register_preset('Raw Cell Format', raw_cell_preset, notebook, events);
+    console.log('Raw Cell Format toolbar preset loaded.');
+  };
+  return {'register': register};
 
-  CellToolbar.register_preset('Raw Cell Format', raw_cell_preset);
-  console.log('Raw Cell Format toolbar preset loaded.');
-
-}(IPython));
+});

@@ -158,6 +158,7 @@ define([
             .addClass('form-control select-xs')
             .append($('<option/>').attr('value', '').text('None'));
         this.element.append(label).append(select);
+        var that = this;
         select.change(function() {
                 var val = $(this).val();
                 if (val ==='') {
@@ -165,7 +166,7 @@ define([
                     delete that.notebook.metadata.celltoolbar;
                 } else {
                     celltoolbar.CellToolbar.global_show();
-                    celltoolbar.CellToolbar.activate_preset(val);
+                    celltoolbar.CellToolbar.activate_preset(val, that.events);
                     that.notebook.metadata.celltoolbar = val;
                 }
             });

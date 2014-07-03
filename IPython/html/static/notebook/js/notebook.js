@@ -14,6 +14,9 @@ define([
     'notebook/js/mathjaxutils',
     'base/js/keyboard',
     'notebook/js/tooltip',
+    'notebook/js/celltoolbarpresets/default',
+    'notebook/js/celltoolbarpresets/rawcell',
+    'notebook/js/celltoolbarpresets/slideshow',
 ], function (
     IPython, 
     $, 
@@ -26,7 +29,10 @@ define([
     marked,
     mathjaxutils,
     keyboard,
-    tooltip
+    tooltip,
+    default_celltoolbar,
+    rawcell_celltoolbar,
+    slideshow_celltoolbar
     ) {
 
     var Notebook = function (selector, options) {
@@ -115,6 +121,11 @@ define([
         this.save_notebook = function() { // don't allow save until notebook_loaded
             this.save_notebook_error(null, null, "Load failed, save is disabled");
         };
+
+        // Trigger cell toolbar registration.
+        default_celltoolbar.register(this, options.events);
+        rawcell_celltoolbar.register(this, options.events);
+        slideshow_celltoolbar.register(this, options.events);
     };
 
     /**
@@ -2201,7 +2212,7 @@ define([
         // load toolbar state
         if (this.metadata.celltoolbar) {
             celltoolbar.CellToolbar.global_show();
-            celltoolbar.CellToolbar.activate_preset(this.metadata.celltoolbar);
+            celltoolbar.CellToolbar.activate_preset(this.metadata.celltoolbar, this.events);
         } else {
             celltoolbar.CellToolbar.global_hide();
         }
