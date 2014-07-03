@@ -13,6 +13,7 @@ define([
     'components/marked/lib/marked',
     'notebook/js/mathjaxutils',
     'base/js/keyboard',
+    'notebook/js/tooltip',
 ], function (
     IPython, 
     $, 
@@ -24,7 +25,8 @@ define([
     celltoolbar, 
     marked,
     mathjaxutils,
-    keyboard
+    keyboard,
+    tooltip
     ) {
 
     var Notebook = function (selector, options) {
@@ -50,6 +52,7 @@ define([
         this.events = options.events;
         this.keyboard_manager = options.keyboard_manager;
         this.save_widget = options.save_widget;
+        this.tooltip = tooltip.Tooltip(this.events);
         // TODO: This code smells (and the other `= this` line a couple lines down)
         // We need a better way to deal with circular instance references.
         this.keyboard_manager.notebook = this;
@@ -815,7 +818,8 @@ define([
                 events: this.events, 
                 config: this.config, 
                 keyboard_manager: this.keyboard_manager, 
-                notebook: this
+                notebook: this,
+                tooltip: this.tooltip,
             };
             if (type === 'code') {
                 cell = new codecell.CodeCell(this.kernel, cell_options);

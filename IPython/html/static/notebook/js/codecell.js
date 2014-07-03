@@ -5,13 +5,12 @@ define([
     'base/js/namespace',
     'jquery',
     'base/js/utils',
-    'notebook/js/tooltip',
     'base/js/keyboard',
     'notebook/js/cell',
     'notebook/js/outputarea',
     'notebook/js/completer',
     'notebook/js/celltoolbar',
-], function(IPython, $, utils, tooltip, keyboard, cell, outputarea, completer, celltoolbar) {
+], function(IPython, $, utils, keyboard, cell, outputarea, completer, celltoolbar) {
     "use strict";
     var Cell = cell.Cell;
 
@@ -56,11 +55,12 @@ define([
         //          config: dictionary
         //          keyboard_manager: KeyboardManager instance 
         //          notebook: Notebook instance
+        //          tooltip: Tooltip instance
         this.kernel = kernel || null;
         this.notebook = options.notebook;
         this.collapsed = false;
         this.events = options.events;
-        this.tooltip = new tooltip.Tooltip(this.events);
+        this.tooltip = options.tooltip;
         this.config = options.config;
 
         // create all attributed in constructor function

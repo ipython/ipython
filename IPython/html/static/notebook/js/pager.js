@@ -3,7 +3,7 @@
 
 define([
     'base/js/namespace',
-    'jquery',
+    'jqueryui',
     'base/js/utils',
 ], function(IPython, $, utils) {
     "use strict";

@@ -132,4 +132,5 @@ require([
     IPython.keyboard_manager = keyboard_manager;
     IPython.save_widget = save_widget;
     IPython.config = user_config;
+    IPython.tooltip = notebook.tooltip;
 });

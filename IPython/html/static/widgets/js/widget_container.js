@@ -3,7 +3,8 @@
 
 define([
     "widgets/js/widget",
-], function(widget){
+    "jqueryui"
+], function(widget, $){
 
     var ContainerView = widget.DOMWidgetView.extend({
         render: function(){

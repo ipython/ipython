@@ -11,10 +11,10 @@ casper.notebook_test(function () {
     this.evaluate(function (nbname) {
         IPython.notebook.notebook_name = nbname;
         IPython._save_success = IPython._save_failed = false;
-        $([IPython.events]).on('notebook_saved.Notebook', function () {
+        IPython.events.on('notebook_saved.Notebook', function () {
             IPython._save_success = true;
         });
-        $([IPython.events]).on('notebook_save_failed.Notebook',
+        IPython.events.on('notebook_save_failed.Notebook',
             function (event, xhr, status, error) {
                 IPython._save_failed = "save failed with " + xhr.status + xhr.responseText;
         });
@@ -41,7 +41,7 @@ casper.notebook_test(function () {
     });
     
     this.thenEvaluate(function(){
-        $([IPython.events]).on('checkpoint_created.Notebook', function (evt, data) {
+        IPython.events.on('checkpoint_created.Notebook', function (evt, data) {
             IPython._checkpoint_created = true;
         });
         IPython._checkpoint_created = false;

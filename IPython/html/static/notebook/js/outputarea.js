@@ -3,7 +3,7 @@
 
 define([
     'base/js/namespace',
-    'jquery',
+    'jqueryui',
     'base/js/utils',
     'base/js/security',
     'base/js/keyboard',
