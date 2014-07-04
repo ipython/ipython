@@ -64,6 +64,13 @@ def test():
         json.loads(json.dumps(out))
 
 
+def test_rekey():
+    # This could fail due to modifying the dict keys in-place on Python 3
+    d = { i:i for i in map(str, range(128)) }
+    d = jsonutil.rekey(d)
+    for key in d:
+        nt.assert_is_instance(key, int)
+
 
 def test_encode_images():
     # invalid data, but the header and footer are from real files
