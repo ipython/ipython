@@ -80,6 +80,7 @@ from IPython.core.error import TryNext
 from IPython.core.inputsplitter import ESC_MAGIC
 from IPython.utils import generics
 from IPython.utils import io
+from IPython.utils.decorators import undoc
 from IPython.utils.dir2 import dir2
 from IPython.utils.process import arg_split
 from IPython.utils.py3compat import builtin_mod, string_types
@@ -216,7 +217,7 @@ def penalize_magics_key(word):
     return word
 
 
-
+@undoc
 class Bunch(object): pass
 
 
@@ -1009,9 +1010,6 @@ class IPCompleter(Completer):
 
     def complete(self, text=None, line_buffer=None, cursor_pos=None):
         """Find completions for the given text and line context.
-
-        This is called successively with state == 0, 1, 2, ... until it
-        returns None.  The completion should begin with 'text'.
 
         Note that both the text and the line_buffer are optional, but at least
         one of them must be given.
