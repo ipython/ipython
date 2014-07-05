@@ -273,15 +273,6 @@ def _fixed_getinnerframes(etb, context=1, tb_offset=0):
     except IndexError:
         pass
 
-    # we don't want to truncate too much
-    # when normal exception occurs there are two records usually
-    # first is from ipython and has pre_hooks information and so on
-    # however sometimes we have tracebacks without additional ipython information
-    # for example from nested traceback (python3 exceptions have __context__ which
-    # stores information about previous exceptions)
-    if tb_offset >= len(records):
-        tb_offset = len(records) - 2
-
     aux = traceback.extract_tb(etb)
     assert len(records) == len(aux)
     for i, (file, lnum, _, _) in zip(range(len(records)), aux):
@@ -995,13 +986,24 @@ class VerboseTB(TBTools):
     def structured_traceback(self, etype, evalue, etb, tb_offset=None,
                              number_of_lines_of_context=5):
         """Return a nice text document describing the traceback."""
-        structured_traceback_parts = []
+
+        formatted_exception = self.format_exception_as_a_whole(etype, evalue, etb, number_of_lines_of_context,
+                                                               tb_offset)
 
         if py3compat.PY3:
-            formatted_exceptions = []
+            chained_exceptions_tb_offset = 0
+            lines_of_context = 3
+            formatted_exceptions = formatted_exception
+            structured_traceback_parts = []
+            exception = self.get_exception_from_context(evalue)
+            if exception:
+                formatted_exceptions += self.prepare_chained_exception_message(evalue.__cause__)
+                etype, evalue, etb = exception
+            else:
+                evalue = None
             while evalue:
-                formatted_exceptions += self.format_exception_as_a_whole(etype, evalue, etb, number_of_lines_of_context,
-                                                                         tb_offset)
+                formatted_exceptions += self.format_exception_as_a_whole(etype, evalue, etb, lines_of_context,
+                                                                         chained_exceptions_tb_offset)
                 exception = self.get_exception_from_context(evalue)
                 if exception:
                     formatted_exceptions += self.prepare_chained_exception_message(evalue.__cause__)
@@ -1014,9 +1016,8 @@ class VerboseTB(TBTools):
             for formatted_exception in reversed(formatted_exceptions):
                 structured_traceback_parts += formatted_exception
         else:
-            formatted_exception = self.format_exception_as_a_whole(etype, evalue, etb, number_of_lines_of_context,
-                                                                   tb_offset)
             structured_traceback_parts = formatted_exception[0]
+
         return structured_traceback_parts
 
     def debugger(self, force=False):
