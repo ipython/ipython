@@ -866,6 +866,7 @@ class IPCompleter(Completer):
         return argMatches
 
     def dict_key_matches(self, text):
+        "Match string keys in a dictionary, after e.g. 'foo[' "
         def get_keys(obj):
             # Only allow completion for known in-memory dict-like types
             if isinstance(obj, dict) or\
