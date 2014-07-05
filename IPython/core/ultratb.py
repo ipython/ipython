@@ -863,13 +863,10 @@ class VerboseTB(TBTools):
         direct_cause = "\nThe above exception was the direct cause of the following exception:\n"
         exception_during_handling = "\nDuring handling of the above exception, another exception occurred:\n"
 
-        colors = self.Colors  # just a shorthand + quicker name lookup
-        colorsnormal = colors.Normal  # used a lot
-        head = '%s%s%s' % (colors.topline, '-' * 75, colorsnormal)
         if cause:
-            message = [[head, direct_cause]]
+            message = [[direct_cause]]
         else:
-            message = [[head, exception_during_handling]]
+            message = [[exception_during_handling]]
         return message
 
     def prepare_header(self, etype, long_version=False):
@@ -888,9 +885,8 @@ class VerboseTB(TBTools):
                     "\ncalls leading up to the error, with the most recent (innermost) call last."
         else:
             # Simplified header
-            head = '%s%s%s\n%s%s' % (colors.topline, '-' * 75, colorsnormal, exc,
-                                     'Traceback (most recent call last)'. \
-                                     rjust(75 - len(str(etype))) )
+            head = '%s%s' % (exc, 'Traceback (most recent call last)'. \
+                             rjust(75 - len(str(etype))) )
 
         return head
 
@@ -990,11 +986,14 @@ class VerboseTB(TBTools):
         formatted_exception = self.format_exception_as_a_whole(etype, evalue, etb, number_of_lines_of_context,
                                                                tb_offset)
 
+        colors = self.Colors  # just a shorthand + quicker name lookup
+        colorsnormal = colors.Normal  # used a lot
+        head = '%s%s%s' % (colors.topline, '-' * 75, colorsnormal)
+        structured_traceback_parts = [head]
         if py3compat.PY3:
             chained_exceptions_tb_offset = 0
             lines_of_context = 3
             formatted_exceptions = formatted_exception
-            structured_traceback_parts = []
             exception = self.get_exception_from_context(evalue)
             if exception:
                 formatted_exceptions += self.prepare_chained_exception_message(evalue.__cause__)
@@ -1016,7 +1015,7 @@ class VerboseTB(TBTools):
             for formatted_exception in reversed(formatted_exceptions):
                 structured_traceback_parts += formatted_exception
         else:
-            structured_traceback_parts = formatted_exception[0]
+            structured_traceback_parts += formatted_exception[0]
 
         return structured_traceback_parts
 
