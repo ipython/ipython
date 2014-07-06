@@ -967,17 +967,17 @@ class VerboseTB(TBTools):
             info('\nUnfortunately, your original traceback can not be constructed.\n')
             return None
 
-    def get_exception_from_context(self, evalue):
-        if hasattr(evalue, '__context__'):
-            context = evalue.__context__
-            if not context:
-                return None
-            else:
-                exception_traceback = context.__traceback__
-                exception_type = context.__class__
-                return exception_type, context, exception_traceback
-        else:
-            return None
+    def get_parts_of_chained_exception(self, evalue):
+        def get_chained_exception(exception_value):
+            cause = getattr(exception_value, '__cause__', None)
+            if cause:
+                return cause
+            return getattr(exception_value, '__context__', None)
+
+        chained_evalue = get_chained_exception(evalue)
+
+        if chained_evalue:
+            return chained_evalue.__class__, chained_evalue, chained_evalue.__traceback__
 
     def structured_traceback(self, etype, evalue, etb, tb_offset=None,
                              number_of_lines_of_context=5):
@@ -994,7 +994,7 @@ class VerboseTB(TBTools):
             chained_exceptions_tb_offset = 0
             lines_of_context = 3
             formatted_exceptions = formatted_exception
-            exception = self.get_exception_from_context(evalue)
+            exception = self.get_parts_of_chained_exception(evalue)
             if exception:
                 formatted_exceptions += self.prepare_chained_exception_message(evalue.__cause__)
                 etype, evalue, etb = exception
@@ -1003,7 +1003,8 @@ class VerboseTB(TBTools):
             while evalue:
                 formatted_exceptions += self.format_exception_as_a_whole(etype, evalue, etb, lines_of_context,
                                                                          chained_exceptions_tb_offset)
-                exception = self.get_exception_from_context(evalue)
+                exception = self.get_parts_of_chained_exception(evalue)
+
                 if exception:
                     formatted_exceptions += self.prepare_chained_exception_message(evalue.__cause__)
                     etype, evalue, etb = exception
