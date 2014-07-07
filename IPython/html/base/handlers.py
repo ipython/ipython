@@ -153,6 +153,48 @@ class IPythonHandler(AuthenticatedHandler):
         return self.notebook_manager.notebook_dir
     
     #---------------------------------------------------------------
+    # CORS
+    #---------------------------------------------------------------
+    
+    @property
+    def allow_origin(self):
+        """Normal Access-Control-Allow-Origin"""
+        return self.settings.get('allow_origin', '')
+    
+    @property
+    def allow_origin_pat(self):
+        """Regular expression version of allow_origin"""
+        return self.settings.get('allow_origin_pat', None)
+    
+    @property
+    def allow_credentials(self):
+        """Whether to set Access-Control-Allow-Credentials"""
+        return self.settings.get('allow_credentials', False)
+    
+    def set_default_headers(self):
+        """Add CORS headers, if defined"""
+        super(IPythonHandler, self).set_default_headers()
+        if self.allow_origin:
+            self.set_header("Access-Control-Allow-Origin", self.allow_origin)
+        elif self.allow_origin_pat:
+            origin = self.get_origin()
+            if origin and self.allow_origin_pat.match(origin):
+                self.set_header("Access-Control-Allow-Origin", origin)
+        if self.allow_credentials:
+            self.set_header("Access-Control-Allow-Credentials", 'true')
+    
+    def get_origin(self):
+        # Handle WebSocket Origin naming convention differences
+        # The difference between version 8 and 13 is that in 8 the
+        # client sends a "Sec-Websocket-Origin" header and in 13 it's
+        # simply "Origin".
+        if "Origin" in self.request.headers:
+            origin = self.request.headers.get("Origin")
+        else:
+            origin = self.request.headers.get("Sec-Websocket-Origin", None)
+        return origin
+    
+    #---------------------------------------------------------------
     # template rendering
     #---------------------------------------------------------------
     
