@@ -49,6 +49,12 @@ the IPython profile's security directory. By default, this is::
 
     ~/.ipython/profile_default/security/notebook_secret
 
+.. note::
+
+    The notebook secret being stored in the profile means that
+    loading a notebook in another profile results in it being untrusted,
+    unless you copy or symlink the notebook secret to share it across profiles.
+
 When a notebook is opened by a user, the server computes a signature
 with the user's key, and compares it with the signature stored in the
 notebook's metadata. If the signature matches, HTML and Javascript
