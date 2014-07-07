@@ -42,7 +42,7 @@ data-notebook-path="{{notebook_path}}"
             <div class="col-sm-4 no-padding tree-buttons">
                 <span id="notebook_buttons" class="pull-right">
                     <button id="new_notebook" title="Create new notebook" class="btn btn-default btn-xs">New Notebook</button>
-                    <button id="refresh_notebook_list" title="Refresh notebook list" class="btn btn-default btn-xs"><i class="icon-refresh"></i></button>
+                    <button id="refresh_notebook_list" title="Refresh notebook list" class="btn btn-default btn-xs"><i class="fa fa-refresh"></i></button>
                 </span>
             </div>
         </div>
@@ -51,7 +51,7 @@ data-notebook-path="{{notebook_path}}"
           <div id="notebook_list_header" class="row list_header">
               <div id="project_name">
                 <ul class="breadcrumb">
-                    <li><a href="{{breadcrumbs[0][0]}}"><i class="icon-home"></i></a></li>
+                    <li><a href="{{breadcrumbs[0][0]}}"><i class="fa fa-home"></i></a></li>
                     {% for crumb in breadcrumbs[1:] %}
                         <li><a href="{{crumb[0]}}">{{crumb[1]}}</a></li>
                     {% endfor %}
@@ -69,7 +69,7 @@ data-notebook-path="{{notebook_path}}"
             </div>
             <div class="col-sm-4 no-padding tree-buttons">
                 <span id="running_buttons" class="pull-right">
-                    <button id="refresh_running_list" title="Refresh running list" class="btn btn-default btn-xs"><i class="icon-refresh"></i></button>
+                    <button id="refresh_running_list" title="Refresh running list" class="btn btn-default btn-xs"><i class="fa fa-refresh"></i></button>
                 </span>
             </div>
         </div>
@@ -89,7 +89,7 @@ data-notebook-path="{{notebook_path}}"
             </div>
             <div class="col-xs-4 no-padding tree-buttons">
                 <span id="cluster_buttons" class="pull-right">
-                    <button id="refresh_cluster_list" title="Refresh cluster list" class="btn btn-default btn-xs"><i class="icon-refresh"></i></button>
+                    <button id="refresh_cluster_list" title="Refresh cluster list" class="btn btn-default btn-xs"><i class="fa fa-refresh"></i></button>
                 </span>
             </div>
         </div>

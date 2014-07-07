@@ -88,7 +88,7 @@ define([
                     that.bring_to_front();
                 });
             this.$close = $('<button />')
-                .addClass('close icon-remove')
+                .addClass('close fa fa-remove')
                 .css('margin-left', '5px')
                 .appendTo(this.$title_bar)
                 .click(function(){
@@ -96,14 +96,14 @@ define([
                     event.stopPropagation();
                 });
             this.$minimize = $('<button />')
-                .addClass('close icon-arrow-down')
+                .addClass('close fa fa-arrow-down')
                 .appendTo(this.$title_bar)
                 .click(function(){
                     that.popped_out = !that.popped_out;
                     if (!that.popped_out) {
                         that.$minimize
-                            .removeClass('icon-arrow-down')
-                            .addClass('icon-arrow-up');
+                            .removeClass('fa fa-arrow-down')
+                            .addClass('fa fa-arrow-up');
                             
                         that.$window
                             .draggable('destroy')
@@ -116,8 +116,8 @@ define([
                         that.$close.hide();
                     } else {
                         that.$minimize
-                            .addClass('icon-arrow-down')
-                            .removeClass('icon-arrow-up');
+                            .addClass('fa fa-arrow-down')
+                            .removeClass('fa fa-arrow-up');
 
                         that.$window
                             .removeClass('docked-widget-modal')
