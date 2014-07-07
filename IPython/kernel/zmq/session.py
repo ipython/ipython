@@ -55,6 +55,7 @@ from IPython.utils.traitlets import (CBytes, Unicode, Bool, Any, Instance, Set,
                                         DottedObjectName, CUnicode, Dict, Integer,
                                         TraitError,
 )
+from IPython.utils.pickleutil import PICKLE_PROTOCOL
 from IPython.kernel.zmq.serialize import MAX_ITEMS, MAX_BYTES
 
 #-----------------------------------------------------------------------------
@@ -83,7 +84,7 @@ def squash_unicode(obj):
 json_packer = lambda obj: jsonapi.dumps(obj, default=date_default)
 json_unpacker = lambda s: jsonapi.loads(s)
 
-pickle_packer = lambda o: pickle.dumps(squash_dates(o),-1)
+pickle_packer = lambda o: pickle.dumps(squash_dates(o), PICKLE_PROTOCOL)
 pickle_unpacker = pickle.loads
 
 default_packer = json_packer

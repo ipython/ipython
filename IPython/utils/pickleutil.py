@@ -31,6 +31,11 @@ else:
     class_type = (type, ClassType)
     closure_attr = 'func_closure'
 
+try:
+    PICKLE_PROTOCOL = pickle.DEFAULT_PROTOCOL
+except AttributeError:
+    PICKLE_PROTOCOL = pickle.HIGHEST_PROTOCOL
+
 #-------------------------------------------------------------------------------
 # Functions
 #-------------------------------------------------------------------------------
@@ -197,7 +202,7 @@ class CannedArray(CannedObject):
             self.pickled = True
         if self.pickled:
             # just pickle it
-            self.buffers = [pickle.dumps(obj, -1)]
+            self.buffers = [pickle.dumps(obj, PICKLE_PROTOCOL)]
         else:
             # ensure contiguous
             obj = ascontiguousarray(obj, dtype=None)
