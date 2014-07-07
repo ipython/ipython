@@ -1364,13 +1364,12 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
 
             elif key == QtCore.Qt.Key_Right:
                 original_block_number = cursor.blockNumber()
-                cursor.movePosition(QtGui.QTextCursor.Right,
+                self._control.moveCursor(QtGui.QTextCursor.Right,
                                 mode=anchormode)
                 if cursor.blockNumber() != original_block_number:
-                    cursor.movePosition(QtGui.QTextCursor.Right,
+                    self._control.moveCursor(QtGui.QTextCursor.Right,
                                         n=len(self._continuation_prompt),
                                         mode=anchormode)
-                self._set_cursor(cursor)
                 intercepted = True
 
             elif key == QtCore.Qt.Key_Home:
