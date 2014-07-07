@@ -27,7 +27,7 @@ from IPython.utils.capture import RichOutput
 from IPython.utils.coloransi import TermColors
 from IPython.utils.jsonutil import rekey, extract_dates, parse_date
 from IPython.utils.localinterfaces import localhost, is_local_ip
-from IPython.utils.path import get_ipython_dir
+from IPython.utils.path import get_ipython_dir, compress_user
 from IPython.utils.py3compat import cast_bytes, string_types, xrange, iteritems
 from IPython.utils.traitlets import (HasTraits, Integer, Instance, Unicode,
                                     Dict, List, Bool, Set, Any)
@@ -393,6 +393,11 @@ class Client(HasTraits):
             raise ValueError(
                 "I can't find enough information to connect to a hub!"
                 " Please specify at least one of url_file or profile."
+            )
+        
+        if not os.path.exists(url_file):
+            raise IOError("Connection file %r not found. Is a controller running?" % \
+                compress_user(url_file)
             )
         
         with open(url_file) as f:
