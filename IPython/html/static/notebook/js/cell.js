@@ -70,7 +70,12 @@ var IPython = (function (IPython) {
         cm_config : {
             indentUnit : 4,
             readOnly: false,
-            theme: "default"
+            theme: "default",
+            extraKeys: {
+                "Cmd-Right":"goLineRight",
+                "End":"goLineRight",
+                "Cmd-Left":"goLineLeft"
+            }
         }
     };
     
