@@ -189,18 +189,6 @@ def json_clean(obj):
       encoded as JSON.  Note that this function does not *encode* its inputs,
       it simply sanitizes it so that there will be no encoding errors later.
 
-    Examples
-    --------
-    >>> json_clean(4)
-    4
-    >>> json_clean(list(range(10)))
-    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    >>> sorted(json_clean(dict(x=1, y=2)).items())
-    [('x', 1), ('y', 2)]
-    >>> sorted(json_clean(dict(x=1, y=2, z=[1,2,3])).items())
-    [('x', 1), ('y', 2), ('z', [1, 2, 3])]
-    >>> json_clean(True)
-    True
     """
     # types that are 'atomic' and ok in json as-is.
     atomic_ok = (unicode_type, type(None))
