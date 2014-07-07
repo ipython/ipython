@@ -287,6 +287,7 @@ class IPythonConsoleApp(ConnectionFileMixin):
         try:
             self.kernel_manager = self.kernel_manager_class(
                                     ip=self.ip,
+                                    session=self.session,
                                     transport=self.transport,
                                     shell_port=self.shell_port,
                                     iopub_port=self.iopub_port,
@@ -324,6 +325,7 @@ class IPythonConsoleApp(ConnectionFileMixin):
             self.kernel_client = self.kernel_manager.client()
         else:
             self.kernel_client = self.kernel_client_class(
+                                session=self.session,
                                 ip=self.ip,
                                 transport=self.transport,
                                 shell_port=self.shell_port,
