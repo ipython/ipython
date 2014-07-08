@@ -50,7 +50,7 @@ define(["widgets/js/widget"], function(WidgetManager) {
 
         remove_child_model: function(model) {
             // Called when a model is removed from the children list.
-            this.delete_child_view(model).remove();
+            this.pop_child_view(model).remove();
         },
 
         add_child_model: function(model) {
@@ -254,7 +254,7 @@ define(["widgets/js/widget"], function(WidgetManager) {
 
         remove_child_model: function(model) {
             // Called when a child is removed from children list.
-            this.delete_child_view(model).remove();
+            this.pop_child_view(model).remove();
         },
 
         add_child_model: function(model) {

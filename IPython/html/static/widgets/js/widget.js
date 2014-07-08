@@ -304,8 +304,8 @@ function(WidgetManager, _, Backbone){
             // TODO: this is hacky, and makes the view depend on this cell attribute and widget manager behavior
             // it would be great to have the widget manager add the cell metadata
             // to the subview without having to add it here.
-            var child_view = this.model.widget_manager.create_view(child_model, options || {}, this);
-            child_view.id = child_view.id || IPython.utils.uuid();
+            options = $.merge({ parent: this }, options || {});
+            var child_view = this.model.widget_manager.create_view(child_model, options, this);
             
             // Associate the view id with the model id.
             if (this.child_model_views[child_model.id] === undefined) {
@@ -318,7 +318,7 @@ function(WidgetManager, _, Backbone){
             return child_view;
         },
 
-        delete_child_view: function(child_model, options) {
+        pop_child_view: function(child_model) {
             // Delete a child view that was previously created using create_child_view.
             var view_ids = this.child_model_views[child_model.id];
             if (view_ids !== undefined) {

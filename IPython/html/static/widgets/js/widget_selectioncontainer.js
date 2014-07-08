@@ -92,7 +92,7 @@ define(["widgets/js/widget"], function(WidgetManager){
             this.containers.splice(accordion_group.container_index, 1);
             delete this.model_containers[model.id];
             accordion_group.remove();
-            this.delete_child_view(model);
+            this.pop_child_view(model);
         },
 
         add_child_model: function(model) {
@@ -190,7 +190,7 @@ define(["widgets/js/widget"], function(WidgetManager){
 
         remove_child_model: function(model) {
             // Called when a child is removed from children list.
-            var view = this.delete_child_view(model);
+            var view = this.pop_child_view(model);
             this.containers.splice(view.parent_tab.tab_text_index, 1);
             view.parent_tab.remove();
             view.parent_container.remove();
