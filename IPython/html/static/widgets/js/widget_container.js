@@ -30,11 +30,11 @@ define(["widgets/js/widget"], function(WidgetManager) {
             // Trigger model displayed events for any models that are child to 
             // this model when this model is displayed.
             var that = this;
-            this.model.on('displayed', function(){
+            this.on('displayed', function(){
                 that.is_displayed = true;
                 for (var property in that.child_views) {
                     if (that.child_views.hasOwnProperty(property)) {
-                        that.child_views[property].model.trigger('displayed');
+                        that.child_views[property].trigger('displayed');
                     }
                 }
             });
@@ -60,7 +60,7 @@ define(["widgets/js/widget"], function(WidgetManager) {
 
             // Trigger the displayed event if this model is displayed.
             if (this.is_displayed) {
-                model.trigger('displayed');
+                view.trigger('displayed');
             }
         },
         
@@ -192,11 +192,11 @@ define(["widgets/js/widget"], function(WidgetManager) {
 
             // Trigger model displayed events for any models that are child to 
             // this model when this model is displayed.
-            this.model.on('displayed', function(){
+            this.on('displayed', function(){
                 that.is_displayed = true;
                 for (var property in that.child_views) {
                     if (that.child_views.hasOwnProperty(property)) {
-                        that.child_views[property].model.trigger('displayed');
+                        that.child_views[property].trigger('displayed');
                     }
                 }
             });
@@ -264,7 +264,7 @@ define(["widgets/js/widget"], function(WidgetManager) {
 
             // Trigger the displayed event if this model is displayed.
             if (this.is_displayed) {
-                model.trigger('displayed');
+                view.trigger('displayed');
             }
         },
         

@@ -86,6 +86,7 @@
                     cell.widget_area.show();
                     this._handle_display_view(view);
                     cell.widget_subarea.append(view.$el);
+                    view.trigger('displayed');
                 }
             }
         };
