@@ -678,7 +678,8 @@ class NotebookApp(BaseIPythonApplication):
     def init_webapp(self):
         """initialize tornado webapp and httpserver"""
         self.webapp_settings['allow_origin'] = self.allow_origin
-        self.webapp_settings['allow_origin_pat'] = re.compile(self.allow_origin_pat)
+        if self.allow_origin_pat:
+            self.webapp_settings['allow_origin_pat'] = re.compile(self.allow_origin_pat)
         self.webapp_settings['allow_credentials'] = self.allow_credentials
         
         self.web_app = NotebookWebApplication(
