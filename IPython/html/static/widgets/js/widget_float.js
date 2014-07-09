@@ -9,6 +9,10 @@ define([
     var IntTextView = int_widgets.IntTextView;
 
     var FloatSliderView = IntSliderView.extend({
+        _validate_text_input: function(x) {
+            return parseFloat(x);
+        },
+
         _validate_slide_value: function(x) {
             // Validate the value of the slider before sending it to the back-end
             // and applying it to the other views on the page.
