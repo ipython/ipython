@@ -29,6 +29,7 @@ define([
             this.$readout = $('<div/>')
                 .appendTo(this.$el)
                 .addClass('widget-readout')
+                .attr('contentEditable', true)
                 .hide();
 
             this.model.on('change:slider_color', function(sender, value) {
@@ -156,8 +157,39 @@ define([
         
         events: {
             // Dictionary of events and their handlers.
-            "slide" : "handleSliderChange"
+            "slide" : "handleSliderChange",
+            "blur [contentEditable=true]": "handleTextChange"
         }, 
+
+        handleTextChange: function(e) {
+            var text = $(e.target).text().trim();
+            var value = this._validate_text_input(text);
+            if (isNaN(value)) {
+                this.$readout.text(this.model.get('value'));
+            } else {
+                //check for outside range
+                if (value > this.model.get('max')) value = this.model.get('max');
+                if (value < this.model.get('min')) value = this.model.get('min');
+
+                //update the readout unconditionally
+                //this covers eg, entering a float value which rounds to the
+                //existing int value, which will not trigger an update since the model
+                //doesn't change, but we should update the text to reflect that
+                //a float value isn't being used
+                this.$readout.text(value);
+
+                //note that the step size currently isn't enforced, so if an
+                //off-step value is input it will be retained
+
+                //update the model
+                this.model.set('value', value, {updated_view: this});
+                this.touch();
+            }
+        },
+
+        _validate_text_input: function(x) {
+            return parseInt(x);
+        },
 
         handleSliderChange: function(e, ui) { 
             // Called when the slider value is changed.
