@@ -165,12 +165,12 @@ define([
         handleKeyDown: function(e) {
             if (e.keyCode == 13) {
                 e.preventDefault();
-                this.handleTextChange(e);
+                this.handleTextChange();
             }
         },
 
-        handleTextChange: function(e) {
-            var text = $(e.target).text().trim();
+        handleTextChange: function() {
+            var text = this.$readout.text();
             var value = this._validate_text_input(text);
             if (isNaN(value)) {
                 this.$readout.text(this.model.get('value'));
