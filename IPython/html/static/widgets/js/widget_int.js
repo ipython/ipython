@@ -158,8 +158,16 @@ define([
         events: {
             // Dictionary of events and their handlers.
             "slide" : "handleSliderChange",
-            "blur [contentEditable=true]": "handleTextChange"
+            "blur [contentEditable=true]": "handleTextChange",
+            "keydown [contentEditable=true]": "handleKeyDown"
         }, 
+
+        handleKeyDown: function(e) {
+            if (e.keyCode == 13) {
+                e.preventDefault();
+                this.handleTextChange(e);
+            }
+        },
 
         handleTextChange: function(e) {
             var text = $(e.target).text().trim();
