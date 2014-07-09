@@ -16,6 +16,8 @@ This file is only meant to be imported by process.py, not by end-users.
 from __future__ import print_function
 
 # Stdlib
+import errno
+import os
 import subprocess as sp
 import sys
 
@@ -209,5 +211,15 @@ class ProcessHandler(object):
 # (ls is a good example) that makes them hard.
 system = ProcessHandler().system
 
-
-
+def check_pid(pid):
+    try:
+        os.kill(pid, 0)
+    except OSError as err:
+        if err.errno == errno.ESRCH:
+            return False
+        elif err.errno == errno.EPERM:
+            # Don't have permission to signal the process - probably means it exists
+            return True
+        raise
+    else:
+        return True
