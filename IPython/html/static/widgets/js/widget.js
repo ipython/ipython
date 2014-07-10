@@ -283,7 +283,7 @@ function(WidgetManager, _, Backbone){
             // Public constructor.
             this.model.on('change',this.update,this);
             this.options = parameters.options;
-            this.child_views = [];
+            this.child_views = {};
             this.model.views.push(this);
         },
 
