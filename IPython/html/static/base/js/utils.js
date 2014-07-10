@@ -553,7 +553,44 @@ define([
             ], callback, errback
         );
     };
-
+    
+    var decode_utf8 = function (array) {
+        // Decode UTF8 Uint8Array to String
+        // I can't believe Javascript makes us do this
+        // From http://stackoverflow.com/questions/17191945
+        
+        var out, i, len, c;
+        var char2, char3;
+        
+        out = "";
+        len = array.length;
+        i = 0;
+        while(i < len) {
+            c = array[i++];
+            switch(c >> 4) {
+              case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
+                // 0xxxxxxx
+                out += String.fromCharCode(c);
+                break;
+              case 12: case 13:
+                // 110x xxxx   10xx xxxx
+                char2 = array[i++];
+                out += String.fromCharCode(((c & 0x1F) << 6) | (char2 & 0x3F));
+                break;
+              case 14:
+                // 1110 xxxx  10xx xxxx  10xx xxxx
+                char2 = array[i++];
+                char3 = array[i++];
+                out += String.fromCharCode(((c & 0x0F) << 12) |
+                               ((char2 & 0x3F) << 6) |
+                               ((char3 & 0x3F) << 0));
+                break;
+            }
+        }
+        
+        return out;
+    };
+    
     var utils = {
         regex_split : regex_split,
         uuid : uuid,
@@ -579,6 +616,7 @@ define([
         ajax_error_msg : ajax_error_msg,
         log_ajax_error : log_ajax_error,
         requireCodeMirrorMode : requireCodeMirrorMode,
+        decode_utf8: decode_utf8,
     };
 
     // Backwards compatability.

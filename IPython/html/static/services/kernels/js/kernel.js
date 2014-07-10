@@ -846,12 +846,60 @@ define([
         }
     };
 
+    Kernel.prototype._unserialize_binary_message = function(blob, callback) {
+        // unserialize the binary message format
+        // callback will be called with a message whose buffers attribute
+        // will be an array of DataViews.
+        var reader = new FileReader();
+        reader.onload  = function(e) {
+            var data = new DataView(this.result);
+            // read the header: 1 + nbufs 32b integers
+            var nbufs = data.getInt32(0);
+            var offsets = [];
+            var i;
+            for (i = 1; i <= nbufs; i++) {
+                offsets.push(data.getInt32(i * 4));
+            }
+            // the first chunk is the message as utf-8 JSON
+            var msg = $.parseJSON(
+                utis.decode_utf8(
+                    new Uint8Array(this.result.slice(offsets[0], offsets[1]))
+                )
+            );
+            // the remaining chunks are stored as DataViews in msg.buffers
+            msg.buffers = [];
+            var start, stop;
+            for (i = 1; i < nbufs; i++) {
+                start = offsets[i];
+                stop = offsets[i+1];
+                msg.buffers.push(new DataView(this.result.slice(start, stop)));
+            }
+            callback(msg);
+        };
+        reader.readAsArrayBuffer(blob);
+    };
+
+
+    Kernel.prototype._unserialize_msg = function (e, callback) {
+        // unserialze a message and pass the unpacked message object to callback
+        if (typeof e.data === "string") {
+            // text JSON message
+            callback($.parseJSON(e.data));
+        } else {
+            // binary message
+            this._unserialize_binary_message(e.data, callback);
+        }
+    };
+
     /**
      * @function _handle_shell_reply
      */
     Kernel.prototype._handle_shell_reply = function (e) {
-        var reply = $.parseJSON(e.data);
-        this.events.trigger('shell_reply.Kernel', {kernel: this, reply: reply});
+        this._unserialize_msg(e, $.proxy(this._finish_shell_reply, this));
+    };
+
+    Kernel.prototype._finish_shell_reply = function (reply) {
+        this.events.trigger('shell_reply.Kernel', {kernel: this, reply:reply});
         var content = reply.content;
         var metadata = reply.metadata;
         var parent_id = reply.parent_header.msg_id;
@@ -978,8 +1026,11 @@ define([
      * @function _handle_iopub_message
      */
     Kernel.prototype._handle_iopub_message = function (e) {
-        var msg = $.parseJSON(e.data);
+        this._unserialize_msg(e, $.proxy(this._finish_iopub_message, this));
+    };
 
+
+    Kernel.prototype._finish_iopub_message = function (msg) {
         var handler = this.get_iopub_handler(msg.header.msg_type);
         if (handler !== undefined) {
             handler(msg);
@@ -990,7 +1041,11 @@ define([
      * @function _handle_input_request
      */
     Kernel.prototype._handle_input_request = function (e) {
-        var request = $.parseJSON(e.data);
+        this._unserialize_msg(e, $.proxy(this._finish_input_request, this));
+    };
+
+
+    Kernel.prototype._finish_input_request = function (request) {
         var header = request.header;
         var content = request.content;
         var metadata = request.metadata;

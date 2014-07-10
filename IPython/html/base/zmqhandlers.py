@@ -4,6 +4,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 import json
+import struct
 
 try:
     from urllib.parse import urlparse # Py 3
@@ -26,6 +27,61 @@ from IPython.utils.jsonutil import date_default
 from IPython.utils.py3compat import PY3, cast_unicode
 
 from .handlers import IPythonHandler
+
+
+def serialize_binary_message(msg):
+    """serialize a message as a binary blob
+
+    Header:
+
+    4 bytes: number of msg parts (nbufs) as 32b int
+    4 * nbufs bytes: offset for each buffer as integer as 32b int
+
+    Offsets are from the start of the buffer, including the header.
+
+    Returns
+    -------
+
+    The message serialized to bytes.
+
+    """
+    buffers = msg.pop('buffers')
+    bmsg = json.dumps(msg, default=date_default).encode('utf8')
+    buffers.insert(0, bmsg)
+    nbufs = len(buffers)
+    sizes = (len(buf) for buf in buffers)
+    offsets = [4 * (nbufs + 1)]
+    for buf in buffers[:-1]:
+        offsets.append(offsets[-1] + len(buf))
+    offsets_buf = struct.pack('!' + 'i' * (nbufs + 1), nbufs, *offsets)
+    buffers.insert(0, offsets_buf)
+    return b''.join(buffers)
+
+
+def unserialize_binary_message(bmsg):
+    """unserialize a message from a binary blog
+
+    Header:
+
+    4 bytes: number of msg parts (nbufs) as 32b int
+    4 * nbufs bytes: offset for each buffer as integer as 32b int
+
+    Offsets are from the start of the buffer, including the header.
+
+    Returns
+    -------
+
+    message dictionary
+    """
+    nbufs = struct.unpack('i', bmsg[:4])[0]
+    offsets = list(struct.unpack('!' + 'i' * nbufs, bmsg[4:4*(nbufs+1)]))
+    offsets.append(None)
+    bufs = []
+    for start, stop in zip(offsets[:-1], offsets[1:]):
+        bufs.append(bmsg[start:stop])
+    msg = json.loads(bufs[0])
+    msg['buffers'] = bufs[1:]
+    return msg
 
 
 class ZMQStreamHandler(websocket.WebSocketHandler):
@@ -92,8 +148,12 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
             msg['parent_header'].pop('date')
         except KeyError:
             pass
-        msg.pop('buffers')
-        return json.dumps(msg, default=date_default)
+        if msg['buffers']:
+            buf = serialize_binary_message(msg)
+            return buf
+        else:
+            smsg = json.dumps(msg, default=date_default)
+            return cast_unicode(smsg)
 
     def _on_zmq_reply(self, msg_list):
         # Sometimes this gets triggered when the on_close method is scheduled in the
@@ -104,7 +164,7 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         except Exception:
             self.log.critical("Malformed message: %r" % msg_list, exc_info=True)
         else:
-            self.write_message(msg)
+            self.write_message(msg, binary=isinstance(msg, bytes))
 
     def allow_draft76(self):
         """Allow draft 76, until browsers such as Safari update to RFC 6455.

@@ -57,7 +57,7 @@ class Comm(LoggingConfigurable):
             # I am primary, open my peer.
             self.open(data)
     
-    def _publish_msg(self, msg_type, data=None, metadata=None, **keys):
+    def _publish_msg(self, msg_type, data=None, metadata=None, buffers=None, **keys):
         """Helper for sending a comm message on IOPub"""
         data = {} if data is None else data
         metadata = {} if metadata is None else metadata
@@ -67,6 +67,7 @@ class Comm(LoggingConfigurable):
             metadata=json_clean(metadata),
             parent=self.kernel._parent_header,
             ident=self.topic,
+            buffers=buffers,
         )
     
     def __del__(self):
@@ -75,7 +76,7 @@ class Comm(LoggingConfigurable):
     
     # publishing messages
     
-    def open(self, data=None, metadata=None):
+    def open(self, data=None, metadata=None, buffers=None):
         """Open the frontend-side version of this comm"""
         if data is None:
             data = self._open_data
@@ -86,22 +87,29 @@ class Comm(LoggingConfigurable):
 
         comm_manager.register_comm(self)
         self._closed = False
-        self._publish_msg('comm_open', data, metadata, target_name=self.target_name)
+        self._publish_msg('comm_open',
+            data=data, metadata=metadata, buffers=buffers,
+            target_name=self.target_name,
+        )
     
-    def close(self, data=None, metadata=None):
+    def close(self, data=None, metadata=None, buffers=None):
         """Close the frontend-side version of this comm"""
         if self._closed:
             # only close once
             return
         if data is None:
             data = self._close_data
-        self._publish_msg('comm_close', data, metadata)
+        self._publish_msg('comm_close',
+            data=data, metadata=metadata, buffers=buffers,
+        )
         self.kernel.comm_manager.unregister_comm(self)
         self._closed = True
     
-    def send(self, data=None, metadata=None):
+    def send(self, data=None, metadata=None, buffers=None):
         """Send a message to the frontend-side version of this comm"""
-        self._publish_msg('comm_msg', data, metadata)
+        self._publish_msg('comm_msg',
+            data=data, metadata=metadata, buffers=buffers,
+        )
     
     # registering callbacks
     
