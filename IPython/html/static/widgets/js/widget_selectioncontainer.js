@@ -25,9 +25,9 @@ define(["widgets/js/widget"], function(WidgetManager){
                 .addClass('panel-group');
             this.containers = [];
             this.model_containers = {};
-            this.update_children([], this.model.get('_children'));
-            this.model.on('change:_children', function(model, value, options) {
-                this.update_children(model.previous('_children'), value);
+            this.update_children([], this.model.get('children'));
+            this.model.on('change:children', function(model, value, options) {
+                this.update_children(model.previous('children'), value);
             }, this);
             this.model.on('change:selected_index', function(model, value, options) {
                 this.update_selected_index(model.previous('selected_index'), value, options);
@@ -36,14 +36,14 @@ define(["widgets/js/widget"], function(WidgetManager){
                 this.update_titles(value);
             }, this);
             var that = this;
-            this.model.on('displayed', function() {
+            this.on('displayed', function() {
                 this.update_titles();
                 // Trigger model displayed events for any models that are child to 
                 // this model when this model is displayed.
                 that.is_displayed = true;
                 for (var property in that.child_views) {
                     if (that.child_views.hasOwnProperty(property)) {
-                        that.child_views[property].model.trigger('displayed');
+                        that.child_views[property].trigger('displayed');
                     }
                 }
             }, this);
@@ -92,7 +92,7 @@ define(["widgets/js/widget"], function(WidgetManager){
             this.containers.splice(accordion_group.container_index, 1);
             delete this.model_containers[model.id];
             accordion_group.remove();
-            this.delete_child_view(model);
+            this.pop_child_view(model);
         },
 
         add_child_model: function(model) {
@@ -137,7 +137,7 @@ define(["widgets/js/widget"], function(WidgetManager){
 
             // Trigger the displayed event if this model is displayed.
             if (this.is_displayed) {
-                model.trigger('displayed');
+                view.trigger('displayed');
             }
         },
     });
@@ -163,18 +163,18 @@ define(["widgets/js/widget"], function(WidgetManager){
                 .addClass('tab-content')
                 .appendTo(this.$el);
             this.containers = [];
-            this.update_children([], this.model.get('_children'));
-            this.model.on('change:_children', function(model, value, options) {
-                this.update_children(model.previous('_children'), value);
+            this.update_children([], this.model.get('children'));
+            this.model.on('change:children', function(model, value, options) {
+                this.update_children(model.previous('children'), value);
             }, this);
 
             // Trigger model displayed events for any models that are child to 
             // this model when this model is displayed.
-            this.model.on('displayed', function(){
+            this.on('displayed', function(){
                 that.is_displayed = true;
                 for (var property in that.child_views) {
                     if (that.child_views.hasOwnProperty(property)) {
-                        that.child_views[property].model.trigger('displayed');
+                        that.child_views[property].trigger('displayed');
                     }
                 }
             });
@@ -190,12 +190,11 @@ define(["widgets/js/widget"], function(WidgetManager){
 
         remove_child_model: function(model) {
             // Called when a child is removed from children list.
-            var view = this.child_views[model.id];
+            var view = this.pop_child_view(model);
             this.containers.splice(view.parent_tab.tab_text_index, 1);
             view.parent_tab.remove();
             view.parent_container.remove();
             view.remove();
-            this.delete_child_view(model);
         },
 
         add_child_model: function(model) {
@@ -234,7 +233,7 @@ define(["widgets/js/widget"], function(WidgetManager){
 
             // Trigger the displayed event if this model is displayed.
             if (this.is_displayed) {
-                model.trigger('displayed');
+                view.trigger('displayed');
             }
         },
 

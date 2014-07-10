@@ -83,7 +83,6 @@ function(WidgetManager, _, Backbone){
                     break;
                 case 'display':
                     this.widget_manager.display_view(msg, this);
-                    this.trigger('displayed');
                     break;
             }
         },
@@ -283,8 +282,10 @@ function(WidgetManager, _, Backbone){
             // Public constructor.
             this.model.on('change',this.update,this);
             this.options = parameters.options;
-            this.child_views = [];
+            this.child_model_views = {};
+            this.child_views = {};
             this.model.views.push(this);
+            this.id = this.id || IPython.utils.uuid();
         },
 
         update: function(){
@@ -302,19 +303,39 @@ function(WidgetManager, _, Backbone){
             // TODO: this is hacky, and makes the view depend on this cell attribute and widget manager behavior
             // it would be great to have the widget manager add the cell metadata
             // to the subview without having to add it here.
-            var child_view = this.model.widget_manager.create_view(child_model, options || {}, this);
-            this.child_views[child_model.id] = child_view;
+            options = $.extend({ parent: this }, options || {});
+            var child_view = this.model.widget_manager.create_view(child_model, options, this);
+            
+            // Associate the view id with the model id.
+            if (this.child_model_views[child_model.id] === undefined) {
+                this.child_model_views[child_model.id] = [];
+            }
+            this.child_model_views[child_model.id].push(child_view.id);
+
+            // Remember the view by id.
+            this.child_views[child_view.id] = child_view;
             return child_view;
         },
 
-        delete_child_view: function(child_model, options) {
+        pop_child_view: function(child_model) {
             // Delete a child view that was previously created using create_child_view.
-            var view = this.child_views[child_model.id];
-            if (view !== undefined) {
-                delete this.child_views[child_model.id];
-                view.remove();
+            var view_ids = this.child_model_views[child_model.id];
+            if (view_ids !== undefined) {
+
+                // Only delete the first view in the list.
+                var view_id = view_ids[0];
+                var view = this.child_views[view_id];
+                delete this.child_views[view_id];
+                view_ids.splice(0,1);
                 child_model.views.pop(view);
+            
+                // Remove the view list specific to this model if it is empty.
+                if (view_ids.length === 0) {
+                    delete this.child_model_views[child_model.id];
+                }
+                return view;
             }
+            return null;
         },
 
         do_diff: function(old_list, new_list, removed_callback, added_callback) {
@@ -330,16 +351,23 @@ function(WidgetManager, _, Backbone){
             // added_callback : Callback(item)
             //      Callback that is called for each item added.
 
+            // Walk the lists until an unequal entry is found.
+            var i;
+            for (i = 0; i < new_list.length; i++) {
+                if (i < old_list.length || new_list[i] !== old_list[i]) {
+                    break;
+                }
+            }
 
-            // removed items
-            _.each(_.difference(old_list, new_list), function(item, index, list) {
-                removed_callback(item);
-            }, this);
+            // Remove the non-matching items from the old list.
+            for (var j = i; j < old_list.length; j++) {
+                removed_callback(old_list[j]);
+            }
 
-            // added items
-            _.each(_.difference(new_list, old_list), function(item, index, list) {
-                added_callback(item);
-            }, this);
+            // Add the rest of the new list items.
+            for (i; i < new_list.length; i++) {
+                added_callback(new_list[i]);
+            }
         },
 
         callbacks: function(){
