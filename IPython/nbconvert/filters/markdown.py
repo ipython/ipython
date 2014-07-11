@@ -116,7 +116,7 @@ class MarkdownWithMath(mistune.Markdown):
     def parse_block_math(self):
         return self.renderer.block_math(self.token['text'])
 
-class MyRenderer(mistune.Renderer):
+class IPythonRenderer(mistune.Renderer):
     def block_code(self, code, lang):
         if not lang:
             return '\n<pre><code>%s</code></pre>\n' % \
@@ -134,7 +134,7 @@ class MyRenderer(mistune.Renderer):
 
 def markdown2html_mistune(source):
     """Convert a markdown string to HTML using mistune"""
-    return MarkdownWithMath(renderer=MyRenderer()).render(source)
+    return MarkdownWithMath(renderer=IPythonRenderer()).render(source)
 
 def markdown2html_pandoc(source):
     """Convert a markdown string to HTML via pandoc"""
