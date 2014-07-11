@@ -1,3 +1,6 @@
+.. image:: https://badge.waffle.io/ipython/ipython.png?label=ready&title=Ready 
+ :target: https://waffle.io/ipython/ipython
+ :alt: 'Stories in Ready'
 ===========================================
  IPython: Productive Interactive Computing
 ===========================================
