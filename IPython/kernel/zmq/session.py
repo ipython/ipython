@@ -31,6 +31,10 @@ try:
     from hmac import compare_digest
 except ImportError:
     # Python < 2.7.7
+    import warnings
+    warnings.warn("You are using Python older than 2.7.7, please consider "
+            "updating to the latest version as it reduces a possible security"
+            " vulnerability.")
     def compare_digest(a,b):
         return a == b
 
