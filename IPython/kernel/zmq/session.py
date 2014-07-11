@@ -39,7 +39,7 @@ from zmq.utils import jsonapi
 from zmq.eventloop.ioloop import IOLoop
 from zmq.eventloop.zmqstream import ZMQStream
 
-from IPython.core.release import kernel_protocol_version, kernel_protocol_version_info
+from IPython.core.release import kernel_protocol_version
 from IPython.config.configurable import Configurable, LoggingConfigurable
 from IPython.utils import io
 from IPython.utils.importstring import import_item
@@ -223,7 +223,7 @@ class Session(Configurable):
     dict-based IPython message spec. The Session will handle
     serialization/deserialization, security, and metadata.
 
-    Sessions support configurable serialiization via packer/unpacker traits,
+    Sessions support configurable serialization via packer/unpacker traits,
     and signing with HMAC digests via the key/keyfile traits.
 
     Parameters
@@ -531,7 +531,7 @@ class Session(Configurable):
         Parameters
         ----------
         msg : dict or Message
-            The nexted message dict as returned by the self.msg method.
+            The next message dict as returned by the self.msg method.
 
         Returns
         -------
