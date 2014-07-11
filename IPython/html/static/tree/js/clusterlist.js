@@ -1,18 +1,12 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2011  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// NotebookList
-//============================================================================
-
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'jquery',
+    'base/js/utils',
+], function(IPython, $, utils) {
     "use strict";
-    
-    var utils = IPython.utils;
 
     var ClusterList = function (selector, options) {
         this.selector = selector;
@@ -188,11 +182,12 @@ var IPython = (function (IPython) {
         });
     };
 
-
+    // For backwards compatability.
     IPython.ClusterList = ClusterList;
     IPython.ClusterItem = ClusterItem;
 
-    return IPython;
-
-}(IPython));
-
+    return {
+        'ClusterList': ClusterList,
+        'ClusterItem': ClusterItem,
+    };
+});

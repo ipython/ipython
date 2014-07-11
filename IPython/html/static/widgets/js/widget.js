@@ -1,23 +1,12 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2013 The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
-
-//============================================================================
-// Base Widget Model and View classes
-//============================================================================
-
-/**
- * @module IPython
- * @namespace IPython
- **/
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
 define(["widgets/js/manager",
         "underscore",
-        "backbone"], 
-function(WidgetManager, _, Backbone){
+        "backbone", 
+        "jquery",   
+        "base/js/namespace",
+], function(widgetmanager, _, Backbone, $, IPython){
 
     var WidgetModel = Backbone.Model.extend({
         constructor: function (widget_manager, model_id, comm) {
@@ -221,20 +210,20 @@ function(WidgetManager, _, Backbone){
 
         _pack_models: function(value) {
             // Replace models with model ids recursively.
+            var that = this;
+            var packed;
             if (value instanceof Backbone.Model) {
                 return value.id;
 
             } else if ($.isArray(value)) {
-                var packed = [];
-                var that = this;
+                packed = [];
                 _.each(value, function(sub_value, key) {
                     packed.push(that._pack_models(sub_value));
                 });
                 return packed;
 
             } else if (value instanceof Object) {
-                var packed = {};
-                var that = this;
+                packed = {};
                 _.each(value, function(sub_value, key) {
                     packed[key] = that._pack_models(sub_value);
                 });
@@ -247,17 +236,17 @@ function(WidgetManager, _, Backbone){
 
         _unpack_models: function(value) {
             // Replace model ids with models recursively.
+            var that = this;
+            var unpacked;
             if ($.isArray(value)) {
-                var unpacked = [];
-                var that = this;
+                unpacked = [];
                 _.each(value, function(sub_value, key) {
                     unpacked.push(that._unpack_models(sub_value));
                 });
                 return unpacked;
 
             } else if (value instanceof Object) {
-                var unpacked = {};
-                var that = this;
+                unpacked = {};
                 _.each(value, function(sub_value, key) {
                     unpacked[key] = that._unpack_models(sub_value);
                 });
@@ -274,7 +263,7 @@ function(WidgetManager, _, Backbone){
         },
 
     });
-    WidgetManager.register_widget_model('WidgetModel', WidgetModel);
+    widgetmanager.WidgetManager.register_widget_model('WidgetModel', WidgetModel);
 
 
     var WidgetView = Backbone.View.extend({
@@ -471,10 +460,14 @@ function(WidgetManager, _, Backbone){
         },
     });
 
-    IPython.WidgetModel = WidgetModel;
-    IPython.WidgetView = WidgetView;
-    IPython.DOMWidgetView = DOMWidgetView;
+    var widget = {
+        'WidgetModel': WidgetModel,
+        'WidgetView': WidgetView,
+        'DOMWidgetView': DOMWidgetView,
+    };
 
-    // Pass through WidgetManager namespace.
-    return WidgetManager;
+    // For backwards compatability.
+    $.extend(IPython, widget);
+
+    return widget;
 });

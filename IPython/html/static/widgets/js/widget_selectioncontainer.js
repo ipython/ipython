@@ -1,25 +1,17 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2013 The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// SelectionContainerWidget
-//============================================================================
+define([
+    "widgets/js/widget",
+    "base/js/utils",
+    "jquery",
+    "components/bootstrap/js/bootstrap.min",
+], function(widget, utils, $){
 
-/**
- * @module IPython
- * @namespace IPython
- **/
-
-define(["widgets/js/widget"], function(WidgetManager){
-
-    var AccordionView = IPython.DOMWidgetView.extend({
+    var AccordionView = widget.DOMWidgetView.extend({
         render: function(){
             // Called when view is rendered.
-            var guid = 'panel-group' + IPython.utils.uuid();
+            var guid = 'panel-group' + utils.uuid();
             this.$el
                 .attr('id', guid)
                 .addClass('panel-group');
@@ -99,7 +91,7 @@ define(["widgets/js/widget"], function(WidgetManager){
             // Called when a child is added to children list.
             var view = this.create_child_view(model);
             var index = this.containers.length;
-            var uuid = IPython.utils.uuid();
+            var uuid = utils.uuid();
             var accordion_group = $('<div />')
                 .addClass('panel panel-default')
                 .appendTo(this.$el);
@@ -141,10 +133,9 @@ define(["widgets/js/widget"], function(WidgetManager){
             }
         },
     });
-    WidgetManager.register_widget_view('AccordionView', AccordionView);
     
 
-    var TabView = IPython.DOMWidgetView.extend({    
+    var TabView = widget.DOMWidgetView.extend({    
         initialize: function() {
             // Public constructor.
             this.containers = [];
@@ -153,7 +144,7 @@ define(["widgets/js/widget"], function(WidgetManager){
 
         render: function(){
             // Called when view is rendered.
-            var uuid = 'tabs'+IPython.utils.uuid();
+            var uuid = 'tabs'+utils.uuid();
             var that = this;
             this.$tabs = $('<div />', {id: uuid})
                 .addClass('nav')
@@ -201,7 +192,7 @@ define(["widgets/js/widget"], function(WidgetManager){
             // Called when a child is added to children list.
             var view = this.create_child_view(model);
             var index = this.containers.length;
-            var uuid = IPython.utils.uuid();
+            var uuid = utils.uuid();
 
             var that = this;
             var tab = $('<li />')
@@ -268,5 +259,9 @@ define(["widgets/js/widget"], function(WidgetManager){
             this.containers[index].tab('show');
         },
     });
-    WidgetManager.register_widget_view('TabView', TabView);
+
+    return {
+        'AccordionView': AccordionView,
+        'TabView': TabView,
+    };
 });

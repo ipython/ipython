@@ -1,18 +1,11 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2008-2011  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// Notification widget
-//============================================================================
-
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'jquery',
+], function(IPython, $) {
     "use strict";
-    var utils = IPython.utils;
-
 
     var NotificationWidget = function (selector) {
         this.selector = selector;
@@ -31,7 +24,6 @@ var IPython = (function (IPython) {
 
     };
 
-
     NotificationWidget.prototype.style = function () {
         this.element.addClass('notification_widget pull-right');
         this.element.addClass('border-box-sizing');
@@ -43,12 +35,12 @@ var IPython = (function (IPython) {
     // if timeout <= 0
     // click_callback : function called if user click on notification
     // could return false to prevent the notification to be dismissed
-    NotificationWidget.prototype.set_message = function (msg, timeout, click_callback, opts) {
-        var opts = opts || {};
+    NotificationWidget.prototype.set_message = function (msg, timeout, click_callback, options) {
+        options = options || {};
         var callback = click_callback || function() {return false;};
         var that = this;
-        this.inner.attr('class', opts.icon);
-        this.inner.attr('title', opts.title);
+        this.inner.attr('class', options.icon);
+        this.inner.attr('title', options.title);
         this.inner.text(msg);
         this.element.fadeIn(100);
         if (this.timeout !== null) {
@@ -62,7 +54,7 @@ var IPython = (function (IPython) {
             }, timeout);
         } else {
             this.element.click(function() {
-                if( callback() != false ) {
+                if( callback() !== false ) {
                     that.element.fadeOut(100, function () {that.inner.text('');});
                     that.element.unbind('click');
                 }
@@ -74,15 +66,12 @@ var IPython = (function (IPython) {
         }
     };
 
-
     NotificationWidget.prototype.get_message = function () {
         return this.inner.html();
     };
 
-
+    // For backwards compatability.
     IPython.NotificationWidget = NotificationWidget;
 
-    return IPython;
-
-}(IPython));
-
+    return {'NotificationWidget': NotificationWidget};
+});

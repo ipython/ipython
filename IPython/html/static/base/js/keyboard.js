@@ -1,18 +1,13 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2011  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// Keyboard management
-//============================================================================
-
-IPython.namespace('IPython.keyboard');
-
-IPython.keyboard = (function (IPython) {
+define([
+    'base/js/namespace',
+    'jquery',
+    'base/js/utils',
+], function(IPython, $, utils) {
     "use strict";
+
 
     // Setup global keycodes and inverse keycodes.
 
@@ -51,8 +46,8 @@ IPython.keyboard = (function (IPython) {
         '; :': 186, '= +': 187, '- _': 189
     };
     
-    var browser = IPython.utils.browser[0];
-    var platform = IPython.utils.platform;
+    var browser = utils.browser[0];
+    var platform = utils.platform;
     
     if (browser === 'Firefox' || browser === 'Opera' || browser === 'Netscape') {
         $.extend(_keycodes, _mozilla_keycodes);
@@ -130,18 +125,19 @@ IPython.keyboard = (function (IPython) {
 
     // Shortcut manager class
 
-    var ShortcutManager = function (delay) {
+    var ShortcutManager = function (delay, events) {
         this._shortcuts = {};
         this._counts = {};
         this._timers = {};
         this.delay = delay || 800; // delay in milliseconds
+        this.events = events;
     };
 
     ShortcutManager.prototype.help = function () {
         var help = [];
         for (var shortcut in this._shortcuts) {
-            var help_string = this._shortcuts[shortcut]['help'];
-            var help_index = this._shortcuts[shortcut]['help_index'];
+            var help_string = this._shortcuts[shortcut].help;
+            var help_index = this._shortcuts[shortcut].help_index;
             if (help_string) {
                 if (platform === 'MacOS') {
                     shortcut = shortcut.replace('meta', 'cmd');
@@ -182,7 +178,7 @@ IPython.keyboard = (function (IPython) {
         this._shortcuts[shortcut] = data;
         if (!suppress_help_update) {
             // update the keyboard shortcuts notebook help
-            $([IPython.events]).trigger('rebuild.QuickHelp');
+            this.events.trigger('rebuild.QuickHelp');
         }
     };
 
@@ -191,7 +187,7 @@ IPython.keyboard = (function (IPython) {
             this.add_shortcut(shortcut, data[shortcut], true);
         }
         // update the keyboard shortcuts notebook help
-        $([IPython.events]).trigger('rebuild.QuickHelp');
+        this.events.trigger('rebuild.QuickHelp');
     };
 
     ShortcutManager.prototype.remove_shortcut = function (shortcut, suppress_help_update) {
@@ -200,7 +196,7 @@ IPython.keyboard = (function (IPython) {
         delete this._shortcuts[shortcut];
         if (!suppress_help_update) {
             // update the keyboard shortcuts notebook help
-            $([IPython.events]).trigger('rebuild.QuickHelp');
+            this.events.trigger('rebuild.QuickHelp');
         }
     };
 
@@ -211,7 +207,7 @@ IPython.keyboard = (function (IPython) {
         var timer = null;
         if (c[shortcut] === data.count-1) {
             c[shortcut] = 0;
-            var timer = t[shortcut];
+            timer = t[shortcut];
             if (timer) {clearTimeout(timer); delete t[shortcut];}
             return data.handler(event);
         } else {
@@ -228,7 +224,7 @@ IPython.keyboard = (function (IPython) {
         var shortcut = event_to_shortcut(event);
         var data = this._shortcuts[shortcut];
         if (data) {
-            var handler = data['handler'];
+            var handler = data.handler;
             if (handler) {
                 if (data.count === 1) {
                     return handler(event);
@@ -243,10 +239,10 @@ IPython.keyboard = (function (IPython) {
     ShortcutManager.prototype.handles = function (event) {
         var shortcut = event_to_shortcut(event);
         var data = this._shortcuts[shortcut];
-        return !( data === undefined || data.handler === undefined )
-    }
+        return !( data === undefined || data.handler === undefined );
+    };
 
-    return {
+    var keyboard = {
         keycodes : keycodes,
         inv_keycodes : inv_keycodes,
         ShortcutManager : ShortcutManager,
@@ -256,4 +252,8 @@ IPython.keyboard = (function (IPython) {
         event_to_shortcut : event_to_shortcut
     };
 
-}(IPython));
+    // For backwards compatability.
+    IPython.keyboard = keyboard;
+
+    return keyboard;
+});

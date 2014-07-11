@@ -1,31 +1,23 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2012  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// CellToolbar Default
-//============================================================================
-
-/**
- * Example Use for the CellToolbar library
- */
- // IIFE without asignement, we don't modifiy the IPython namespace
-(function (IPython) {
+define([
+    'jquery',
+    'notebook/js/celltoolbar',
+    'base/js/dialog',
+], function($, celltoolbar, dialog) {
     "use strict";
 
-    var CellToolbar = IPython.CellToolbar;
+    var CellToolbar = celltoolbar.CellToolbar;
 
     var raw_edit = function(cell){
-        IPython.dialog.edit_metadata(cell.metadata, function (md) {
+        dialog.edit_metadata(cell.metadata, function (md) {
             cell.metadata = md;
         });
     };
 
     var add_raw_edit_button = function(div, cell) {
-        var button_container = div;
+        var button_container = $(div);
         var button = $('<button/>')
             .addClass("btn btn-default btn-xs")
             .text("Edit Metadata")
@@ -36,11 +28,13 @@
         button_container.append(button);
     };
 
-    CellToolbar.register_callback('default.rawedit', add_raw_edit_button);
-    var example_preset = [];
-    example_preset.push('default.rawedit');
+    var register = function (notebook, events) {
+        CellToolbar.register_callback('default.rawedit', add_raw_edit_button);
+        var example_preset = [];
+        example_preset.push('default.rawedit');
 
-    CellToolbar.register_preset('Edit Metadata', example_preset);
-    console.log('Default extension for cell metadata editing loaded.');
-
-}(IPython));
+        CellToolbar.register_preset('Edit Metadata', example_preset, notebook, events);
+        console.log('Default extension for cell metadata editing loaded.');
+    };
+    return {'register': register};
+});

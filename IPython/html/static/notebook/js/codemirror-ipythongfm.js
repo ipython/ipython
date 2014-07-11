@@ -8,7 +8,6 @@
 
 CodeMirror.requireMode('gfm', function(){ 
     CodeMirror.requireMode('stex', function(){ 
-        console.log('defining custom mode...');
         CodeMirror.defineMode("ipythongfm", function(config, parserConfig) {
             
             var gfm_mode = CodeMirror.getMode(config, "gfm");

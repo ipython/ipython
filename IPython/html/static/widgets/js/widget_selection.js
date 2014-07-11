@@ -1,22 +1,14 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2013 The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// SelectionWidget
-//============================================================================
+define([
+    "widgets/js/widget",
+    "base/js/utils",
+    "jquery",
+    "components/bootstrap/js/bootstrap.min",
+], function(widget, utils, $){
 
-/**
- * @module IPython
- * @namespace IPython
- **/
-
-define(["widgets/js/widget"], function(WidgetManager){
-
-    var DropdownView = IPython.DOMWidgetView.extend({
+    var DropdownView = widget.DOMWidgetView.extend({
         render : function(){
             // Called when view is rendered.
             this.$el
@@ -113,10 +105,9 @@ define(["widgets/js/widget"], function(WidgetManager){
         },
         
     });
-    WidgetManager.register_widget_view('DropdownView', DropdownView);
 
 
-    var RadioButtonsView = IPython.DOMWidgetView.extend({    
+    var RadioButtonsView = widget.DOMWidgetView.extend({    
         render : function(){
             // Called when view is rendered.
             this.$el
@@ -204,10 +195,9 @@ define(["widgets/js/widget"], function(WidgetManager){
             this.touch();
         },
     });
-    WidgetManager.register_widget_view('RadioButtonsView', RadioButtonsView);
+    
 
-
-    var ToggleButtonsView = IPython.DOMWidgetView.extend({
+    var ToggleButtonsView = widget.DOMWidgetView.extend({
         render : function(){
             // Called when view is rendered.
             this.$el
@@ -239,7 +229,7 @@ define(["widgets/js/widget"], function(WidgetManager){
                     if (item.trim().length == 0) {
                         item_html = "&nbsp;";
                     } else {
-                        item_html = IPython.utils.escape_html(item);
+                        item_html = utils.escape_html(item);
                     }
                     var item_query = '[data-value="' + item + '"]';
                     var $item_element = that.$buttongroup.find(item_query);
@@ -297,10 +287,9 @@ define(["widgets/js/widget"], function(WidgetManager){
             this.touch();
         },    
     });
-    WidgetManager.register_widget_view('ToggleButtonsView', ToggleButtonsView);
+    
 
-
-    var SelectView = IPython.DOMWidgetView.extend({    
+    var SelectView = widget.DOMWidgetView.extend({    
         render : function(){
             // Called when view is rendered.
             this.$el
@@ -381,5 +370,11 @@ define(["widgets/js/widget"], function(WidgetManager){
             this.touch();
         },    
     });
-    WidgetManager.register_widget_view('SelectView', SelectView);
+    
+    return {
+        'DropdownView': DropdownView,
+        'RadioButtonsView': RadioButtonsView,
+        'ToggleButtonsView': ToggleButtonsView,
+        'SelectView': SelectView,
+    };
 });

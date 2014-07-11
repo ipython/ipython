@@ -1,22 +1,13 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2013 The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// IntWidget
-//============================================================================
-
-/**
- * @module IPython
- * @namespace IPython
- **/
-
-define(["widgets/js/widget"], function(WidgetManager){
-
-    var IntSliderView = IPython.DOMWidgetView.extend({
+define([
+    "widgets/js/widget",
+    "jqueryui",
+    "components/bootstrap/js/bootstrap.min",
+], function(widget, $){
+    
+    var IntSliderView = widget.DOMWidgetView.extend({
         render : function(){
             // Called when view is rendered.
             this.$el
@@ -152,10 +143,9 @@ define(["widgets/js/widget"], function(WidgetManager){
             return ~~x;
         },
     });
-    WidgetManager.register_widget_view('IntSliderView', IntSliderView);
 
 
-    var IntTextView = IPython.DOMWidgetView.extend({    
+    var IntTextView = widget.DOMWidgetView.extend({    
         render : function(){
             // Called when view is rendered.
             this.$el
@@ -257,10 +247,9 @@ define(["widgets/js/widget"], function(WidgetManager){
             return  parseInt(value);
         },
     });
-    WidgetManager.register_widget_view('IntTextView', IntTextView);
 
 
-    var ProgressView = IPython.DOMWidgetView.extend({
+    var ProgressView = widget.DOMWidgetView.extend({
         render : function(){
             // Called when view is rendered.
             this.$el
@@ -303,10 +292,10 @@ define(["widgets/js/widget"], function(WidgetManager){
             return ProgressView.__super__.update.apply(this);
         }, 
     });
-    WidgetManager.register_widget_view('ProgressView', ProgressView);
 
-
-    // Return the slider and text views so they can be inheritted to create the
-    // float versions.
-    return [IntSliderView, IntTextView];
+    return {
+        'IntSliderView': IntSliderView, 
+        'IntTextView': IntTextView,
+        'ProgressView': ProgressView,
+    };
 });
