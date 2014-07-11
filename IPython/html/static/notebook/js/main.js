@@ -50,7 +50,6 @@ require([
     var user_config = $.extend({}, config.default_config);
     var page = new page.Page();
     var layout_manager = new layoutmanager.LayoutManager();
-    var events = $([new events.Events()]);
     var pager = new pager.Pager('div#pager', 'div#pager_splitter', {
         layout_manager: layout_manager, 
         events: events});

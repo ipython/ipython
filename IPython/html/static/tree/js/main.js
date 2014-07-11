@@ -32,7 +32,6 @@ require([
         base_url: utils.get_body_data("baseUrl"),
         notebook_path: utils.get_body_data("notebookPath"),
     };
-    events = $([new events.Events()]);
     session_list = new sesssionlist.SesssionList($.extend({
         events: events}, 
         common_options));
