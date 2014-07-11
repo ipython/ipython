@@ -1498,7 +1498,7 @@ define([
             // For now, create all sessions with the 'python' kernel, which is the
             // default. Later, the user will be able to select kernels. This is
             // overridden if KernelManager.kernel_cmd is specified for the server.
-            kernel_name: 'python'
+            kernel_name: 'python',
             notebook: this});
 
         this.session.start($.proxy(this._session_started, this));
