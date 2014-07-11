@@ -25,6 +25,7 @@ import mistune
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
+from pygments.util import ClassNotFound
 
 # IPython imports
 from IPython.nbconvert.utils.pandoc import pandoc
@@ -118,10 +119,17 @@ class MarkdownWithMath(mistune.Markdown):
 
 class IPythonRenderer(mistune.Renderer):
     def block_code(self, code, lang):
+        if lang:
+            try:
+                lexer = get_lexer_by_name(lang, stripall=True)
+            except ClassNotFound:
+                code = lang + '\n' + code
+                lang = None
+
         if not lang:
             return '\n<pre><code>%s</code></pre>\n' % \
                 mistune.escape(code)
-        lexer = get_lexer_by_name(lang, stripall=True)
+
         formatter = HtmlFormatter()
         return highlight(code, lexer, formatter)
 
