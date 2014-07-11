@@ -167,7 +167,7 @@ def markdown2html_marked(source, encoding='utf-8'):
     return out.rstrip('\n')
 
 # The mistune renderer is the default, because it's simple to depend on it
-markdown2html = markdown2html_marked
+markdown2html = markdown2html_mistune
 
 def markdown2rst(source):
     """Convert a markdown string to ReST via pandoc.
