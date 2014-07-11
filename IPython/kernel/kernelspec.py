@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import shutil
 import sys
 
 pjoin = os.path.join
@@ -12,11 +13,13 @@ from IPython.utils.traitlets import HasTraits, List, Unicode, Dict
 if os.name == 'nt':
     programdata = os.environ.get('PROGRAMDATA', None)
     if programdata:
-        SYSTEM_KERNEL_DIR = pjoin(programdata, 'ipython', 'kernels')
+        SYSTEM_KERNEL_DIRS = [pjoin(programdata, 'ipython', 'kernels')]
     else:  # PROGRAMDATA is not defined by default on XP.
-        SYSTEM_KERNEL_DIR = None
+        SYSTEM_KERNEL_DIRS = []
 else:
-    SYSTEM_KERNEL_DIR = "/usr/share/ipython/kernels"
+    SYSTEM_KERNEL_DIRS = ["/usr/share/ipython/kernels",
+                          "/usr/local/share/ipython/kernels",
+                         ]
     
 NATIVE_KERNEL_NAME = 'python3' if PY3 else 'python2'
 
@@ -47,6 +50,17 @@ class KernelSpec(HasTraits):
         with io.open(kernel_file, 'r', encoding='utf-8') as f:
             kernel_dict = json.load(f)
         return cls(resource_dir=resource_dir, **kernel_dict)
+    
+    def to_dict(self):
+        return dict(argv=self.argv,
+                    env=self.env,
+                    display_name=self.display_name,
+                    language=self.language,
+                    codemirror_mode=self.codemirror_mode,
+                   )
+
+    def to_json(self):
+        return json.dumps(self.to_dict())
 
 def _is_kernel_dir(path):
     """Is ``path`` a kernel directory?"""
@@ -79,8 +93,7 @@ class KernelSpecManager(HasTraits):
         help="List of kernel directories to search. Later ones take priority over earlier."    
     )    
     def _kernel_dirs_default(self):
-        return [
-            SYSTEM_KERNEL_DIR,
+        return SYSTEM_KERNEL_DIRS + [
             self.user_kernel_dir,
         ]
 
@@ -130,6 +143,38 @@ class KernelSpecManager(HasTraits):
             raise NoSuchKernel(kernel_name)
         return KernelSpec.from_resource_dir(resource_dir)
 
+    def install_kernel_spec(self, source_dir, kernel_name=None, system=False,
+                            replace=False):
+        """Install a kernel spec by copying its directory.
+        
+        If ``kernel_name`` is not given, the basename of ``source_dir`` will
+        be used.
+        
+        If ``system`` is True, it will attempt to install into the systemwide
+        kernel registry. If the process does not have appropriate permissions,
+        an :exc:`OSError` will be raised.
+        
+        If ``replace`` is True, this will replace an existing kernel of the same
+        name. Otherwise, if the destination already exists, an :exc:`OSError`
+        will be raised.
+        """
+        if not kernel_name:
+            kernel_name = os.path.basename(source_dir)
+        kernel_name = kernel_name.lower()
+
+        if system:
+            if SYSTEM_KERNEL_DIRS:
+                destination = os.path.join(SYSTEM_KERNEL_DIRS[-1], kernel_name)
+            else:
+                raise EnvironmentError("No system kernel directory is available")
+        else:
+            destination = os.path.join(self.user_kernel_dir, kernel_name)
+
+        if replace and os.path.isdir(destination):
+            shutil.rmtree(destination)
+
+        shutil.copytree(source_dir, destination)
+
 def find_kernel_specs():
     """Returns a dict mapping kernel names to resource directories."""
     return KernelSpecManager().find_kernel_specs()
@@ -140,3 +185,9 @@ def get_kernel_spec(kernel_name):
     Raises KeyError if the given kernel name is not found.
     """
     return KernelSpecManager().get_kernel_spec(kernel_name)
+
+def install_kernel_spec(source_dir, kernel_name=None, system=False, replace=False):
+    return KernelSpecManager().install_kernel_spec(source_dir, kernel_name,
+                                                    system, replace)
+
+install_kernel_spec.__doc__ = KernelSpecManager.install_kernel_spec.__doc__

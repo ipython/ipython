@@ -569,11 +569,6 @@ var IPython = (function (IPython) {
         var toinsert = this.create_output_subarea(md, "output_javascript", type);
         IPython.keyboard_manager.register_events(toinsert);
         element.append(toinsert);
-        // FIXME TODO : remove `container element for 3.0` 
-        //backward compat, js should be eval'ed in a context where `container` is defined.
-        var container = element;
-        container.show = function(){console.log('Warning "container.show()" is deprecated.')};
-        // end backward compat
 
         // Fix for ipython/issues/5293, make sure `element` is the area which
         // output can be inserted into at the time of JS execution.
@@ -794,7 +789,7 @@ var IPython = (function (IPython) {
         }
         var content = {
             output_type : 'stream',
-            name : 'stdout',
+            stream : 'stdout',
             text : theprompt.text() + echo + '\n'
         }
         // remove form container

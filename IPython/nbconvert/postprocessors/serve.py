@@ -53,7 +53,7 @@ class ServePostProcessor(PostProcessorBase):
     open_in_browser = Bool(True, config=True,
         help="""Should the browser be opened automatically?"""
     )
-    reveal_cdn = Unicode("https://cdn.jsdelivr.net/reveal.js/2.5.0", config=True,
+    reveal_cdn = Unicode("https://cdn.jsdelivr.net/reveal.js/2.6.2", config=True,
         help="""URL for reveal.js CDN."""
     )
     reveal_prefix = Unicode("reveal.js", config=True, help="URL prefix for reveal.js")

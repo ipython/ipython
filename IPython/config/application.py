@@ -311,7 +311,7 @@ class Application(SingletonConfigurable):
         lines.append('-'*len(lines[0]))
         lines.append('')
         for p in wrap_paragraphs(self.subcommand_description.format(
-                    app=os.path.basename(self.argv[0]))):
+                    app=self.name)):
             lines.append(p)
             lines.append('')
         for subc, (cls, help) in iteritems(self.subcommands):

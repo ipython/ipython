@@ -41,9 +41,9 @@ def _compile_less(source, target, minify=True, verbose=False):
     out = out.decode('utf8', 'replace')
     less_version = out.split()[1]
     if V(less_version) < V(min_less_version):
-        raise ValueError("lessc too old: %s < %s" % (less_version, min_less_version))
+        raise ValueError("lessc too old: %s < %s. Use `$ npm install lesscss@X.Y.Z` to install a specific version of less" % (less_version, min_less_version))
     if V(less_version) >= V(max_less_version):
-        raise ValueError("lessc too new: %s >= %s" % (less_version, max_less_version))
+        raise ValueError("lessc too new: %s >= %s. Use `$ npm install lesscss@X.Y.Z` to install a specific version of less" % (less_version, max_less_version))
     
     with lcd(static_dir):
         local('lessc {min_flag} {ver_flag} {source} {target}'.format(**locals()))

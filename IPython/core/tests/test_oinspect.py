@@ -313,6 +313,54 @@ def test_getdoc():
     nt.assert_equal(oinspect.getdoc(b), "custom docstring")
     nt.assert_equal(oinspect.getdoc(c), "standard docstring")
 
+
+def test_empty_property_has_no_source():
+    i = inspector.info(property(), detail_level=1)
+    nt.assert_is(i['source'], None)
+
+
+def test_property_sources():
+    import zlib
+
+    class A(object):
+        @property
+        def foo(self):
+            return 'bar'
+
+        foo = foo.setter(lambda self, v: setattr(self, 'bar', v))
+
+        id = property(id)
+        compress = property(zlib.compress)
+
+    i = inspector.info(A.foo, detail_level=1)
+    nt.assert_in('def foo(self):', i['source'])
+    nt.assert_in('lambda self, v:', i['source'])
+
+    i = inspector.info(A.id, detail_level=1)
+    nt.assert_in('fget = <function id>', i['source'])
+
+    i = inspector.info(A.compress, detail_level=1)
+    nt.assert_in('fget = <function zlib.compress>', i['source'])
+
+
+def test_property_docstring_is_in_info_for_detail_level_0():
+    class A(object):
+        @property
+        def foobar():
+            """This is `foobar` property."""
+            pass
+
+    ip.user_ns['a_obj'] = A()
+    nt.assert_equals(
+        'This is `foobar` property.',
+        ip.object_inspect('a_obj.foobar', detail_level=0)['docstring'])
+
+    ip.user_ns['a_cls'] = A
+    nt.assert_equals(
+        'This is `foobar` property.',
+        ip.object_inspect('a_cls.foobar', detail_level=0)['docstring'])
+
+
 def test_pdef():
     # See gh-1914
     def foo(): pass

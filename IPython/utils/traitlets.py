@@ -755,6 +755,12 @@ class Type(ClassBasedTraitType):
 
     def validate(self, obj, value):
         """Validates that the value is a valid object instance."""
+        if isinstance(value, py3compat.string_types):
+            try:
+                value = import_item(value)
+            except ImportError:
+                raise TraitError("The '%s' trait of %s instance must be a type, but "
+                                "%r could not be imported" % (self.name, obj, value))
         try:
             if issubclass(value, self.klass):
                 return value

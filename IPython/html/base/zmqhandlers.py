@@ -3,6 +3,8 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import json
+
 try:
     from urllib.parse import urlparse # Py 3
 except ImportError:
@@ -15,8 +17,6 @@ except ImportError:
 import logging
 from tornado import web
 from tornado import websocket
-
-from zmq.utils import jsonapi
 
 from IPython.kernel.zmq.session import Session
 from IPython.utils.jsonutil import date_default
@@ -73,7 +73,7 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         except KeyError:
             pass
         msg.pop('buffers')
-        return jsonapi.dumps(msg, default=date_default)
+        return json.dumps(msg, default=date_default)
 
     def _on_zmq_reply(self, msg_list):
         # Sometimes this gets triggered when the on_close method is scheduled in the
@@ -98,12 +98,12 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
 class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
 
     def open(self, kernel_id):
+        self.kernel_id = cast_unicode(kernel_id, 'ascii')
         # Check to see that origin matches host directly, including ports
         if not self.same_origin():
             self.log.warn("Cross Origin WebSocket Attempt.")
             raise web.HTTPError(404)
 
-        self.kernel_id = cast_unicode(kernel_id, 'ascii')
         self.session = Session(config=self.config)
         self.save_on_message = self.on_message
         self.on_message = self.on_first_message

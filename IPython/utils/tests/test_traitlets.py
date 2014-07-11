@@ -531,6 +531,15 @@ class TestType(TestCase):
 
         self.assertRaises(TraitError, setattr, a, 'klass', 10)
 
+    def test_set_str_klass(self):
+
+        class A(HasTraits):
+            klass = Type()
+
+        a = A(klass='IPython.utils.ipstruct.Struct')
+        from IPython.utils.ipstruct import Struct
+        self.assertEqual(a.klass, Struct)
+
 class TestInstance(TestCase):
 
     def test_basic(self):
