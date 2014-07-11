@@ -27,6 +27,13 @@ except:
     cPickle = None
     import pickle
 
+try:
+    from hmac import compare_digest
+except ImportError:
+    # Python < 2.7.7
+    def compare_digest(a,b):
+        return a == b
+
 import zmq
 from zmq.utils import jsonapi
 from zmq.eventloop.ioloop import IOLoop
@@ -818,7 +825,7 @@ class Session(Configurable):
                 raise ValueError("Duplicate Signature: %r" % signature)
             self._add_digest(signature)
             check = self.sign(msg_list[1:5])
-            if not hmac.compare_digest(signature, check):
+            if not compare_digest(signature, check):
                 raise ValueError("Invalid Signature: %r" % signature)
         if not len(msg_list) >= minlen:
             raise TypeError("malformed message, must have at least %i elements"%minlen)
