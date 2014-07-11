@@ -818,7 +818,7 @@ class Session(Configurable):
                 raise ValueError("Duplicate Signature: %r" % signature)
             self._add_digest(signature)
             check = self.sign(msg_list[1:5])
-            if not signature == check:
+            if not hmac.compare_digest(signature, check):
                 raise ValueError("Invalid Signature: %r" % signature)
         if not len(msg_list) >= minlen:
             raise TypeError("malformed message, must have at least %i elements"%minlen)
