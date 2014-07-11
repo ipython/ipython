@@ -80,7 +80,7 @@ casper.notebook_test(function () {
             });
             return return_this_thing;
         }, {nbname:nbname});
-        this.test.assertEquals(notebook_url == null, false, "Escaped URL in notebook list");
+        this.test.assertNotEquals(notebook_url, null, "Escaped URL in notebook list");
         // open the notebook
         this.open(notebook_url);
     });

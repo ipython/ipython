@@ -23,12 +23,16 @@ from tornado import web
 
 from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.py3compat import unicode_type
+from IPython.utils.traitlets import Instance
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
 class SessionManager(LoggingConfigurable):
+
+    kernel_manager = Instance('IPython.html.services.kernels.kernelmanager.MappingKernelManager')
+    notebook_manager = Instance('IPython.html.services.notebooks.nbmanager.NotebookManager', args=())
     
     # Session database initialized below
     _cursor = None
@@ -69,10 +73,15 @@ class SessionManager(LoggingConfigurable):
         "Create a uuid for a new session"
         return unicode_type(uuid.uuid4())
 
-    def create_session(self, name=None, path=None, kernel_id=None):
+    def create_session(self, name=None, path=None, kernel_name='python'):
         """Creates a session and returns its model"""
         session_id = self.new_session_id()
-        return self.save_session(session_id, name=name, path=path, kernel_id=kernel_id)
+        # allow nbm to specify kernels cwd
+        kernel_path = self.notebook_manager.get_kernel_path(name=name, path=path)
+        kernel_id = self.kernel_manager.start_kernel(path=kernel_path,
+                                                     kernel_name=kernel_name)
+        return self.save_session(session_id, name=name, path=path,
+                                 kernel_id=kernel_id)
 
     def save_session(self, session_id, name=None, path=None, kernel_id=None):
         """Saves the items for the session with the given session_id
@@ -170,8 +179,7 @@ class SessionManager(LoggingConfigurable):
         query = "UPDATE session SET %s WHERE session_id=?" % (', '.join(sets))
         self.cursor.execute(query, list(kwargs.values()) + [session_id])
 
-    @staticmethod
-    def row_factory(cursor, row):
+    def row_factory(self, cursor, row):
         """Takes sqlite database session row and turns it into a dictionary"""
         row = sqlite3.Row(cursor, row)
         model = {
@@ -180,9 +188,7 @@ class SessionManager(LoggingConfigurable):
                 'name': row['name'],
                 'path': row['path']
             },
-            'kernel': {
-                'id': row['kernel_id'],
-            }
+            'kernel': self.kernel_manager.kernel_model(row['kernel_id'])
         }
         return model
 
@@ -195,5 +201,6 @@ class SessionManager(LoggingConfigurable):
     def delete_session(self, session_id):
         """Deletes the row in the session database with given session_id"""
         # Check that session exists before deleting
-        self.get_session(session_id=session_id)
+        session = self.get_session(session_id=session_id)
+        self.kernel_manager.shutdown_kernel(session['kernel']['id'])
         self.cursor.execute("DELETE FROM session WHERE session_id=?", (session_id,))
