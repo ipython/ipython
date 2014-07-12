@@ -9436,6 +9436,12 @@ p {
 .completions select option.context {
   color: #3071a9;
 }
+span#kernel_selector_widget {
+  padding: 0px 5px;
+  margin-top: 12px;
+  margin-right: 1em;
+  font-size: 120%;
+}
 #menubar {
   margin-top: 0px;
   margin-bottom: -19px;
