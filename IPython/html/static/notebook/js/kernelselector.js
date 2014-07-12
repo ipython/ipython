@@ -12,12 +12,14 @@ define([
         this.selector = selector;
         this.notebook = notebook;
         this.kernelspecs = {};
-        this.current = "python";
         if (this.selector !== undefined) {
             this.element = $(selector);
             this.style();
             this.request_kernelspecs();
         }
+
+        // For now, this is how we make this object available elsewhere
+        IPython.kernelselector = this;
     };
     
     KernelSelector.prototype.style = function() {
@@ -43,16 +45,19 @@ define([
     };
 
     KernelSelector.prototype.change_kernel = function(kernel_name) {
-        console.log("change_kernel " + kernel_name + " from " + this.current);
-        if (kernel_name === this.current) {
+        if (kernel_name === this.notebook.kernel.name) {
             return;
         }
         this.notebook.session.delete();
         this.notebook.start_session(kernel_name);
-        this.current = kernel_name;
-        var display_name = this.kernelspecs[kernel_name].display_name;
-        this.element.find("#current_kernel_spec").text(display_name);
     };
     
+    KernelSelector.prototype.set_displayed_name = function(kernel_name) {
+        var ks = this.kernelspecs[kernel_name]
+        if (ks !== undefined) {
+            this.element.find("#current_kernel_spec").text(ks.display_name);
+        }
+    };
+
     return {'KernelSelector': KernelSelector};
 });
