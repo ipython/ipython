@@ -97,6 +97,7 @@ define([
         this.kernel = new kernel.Kernel(kernel_service_url, this.ws_url, this.notebook, this.kernel_name);
         this.kernel._kernel_started(data.kernel);
         IPython.kernelselector.set_displayed_name(this.kernel_name);
+        this.notebook.set_kernelspec_metadata(this.kernel_name);
     };
     
     /**

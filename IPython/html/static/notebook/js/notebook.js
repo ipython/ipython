@@ -336,6 +336,17 @@ define([
             notebook: this,
             keyboard_manager: this.keyboard_manager});
     };
+    
+    Notebook.prototype.set_kernelspec_metadata = function(kernel_name) {
+        var ks = IPython.kernelselector.kernelspecs[kernel_name]
+        var tostore = {};
+        for (field in ks) {
+            if (field !== 'argv' && field !== 'env') {
+                tostore[field] = ks[field]
+            }
+        }
+        this.metadata.kernelspec = tostore;
+    }
 
     // Cell indexing, retrieval, etc.
 
