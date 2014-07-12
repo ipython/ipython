@@ -124,7 +124,7 @@ define([
             autoIndent: true,
             mode: 'application/json',
         });
-        var modal = modal({
+        var modal_obj = modal({
             title: "Edit " + options.name + " Metadata",
             body: dialogform,
             buttons: {
@@ -148,7 +148,7 @@ define([
             keyboard_manager: options.keyboard_manager,
         });
 
-        modal.on('shown.bs.modal', function(){ editor.refresh(); });
+        modal_obj.on('shown.bs.modal', function(){ editor.refresh(); });
     };
     
     var dialog = {
