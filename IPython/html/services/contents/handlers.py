@@ -205,6 +205,9 @@ class ContentsHandler(IPythonHandler):
                 self._copy(copy_from, path, name)
             elif self.contents_manager.file_exists(name, path):
                 self._save(model, path, name)
+                checkpoint = model.get('_checkpoint_after_save')
+                if checkpoint:
+                    nbm.create_checkpoint(path, name)
             else:
                 self._upload(model, path, name)
         else:
