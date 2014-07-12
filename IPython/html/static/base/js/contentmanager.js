@@ -15,7 +15,6 @@ define([
         // with the normal file operations.
         //
         // Parameters:
-<<<<<<< HEAD
         //  options: dictionary
         //      Dictionary of keyword arguments.
         //          events: $(Events) instance
