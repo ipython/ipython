@@ -1,6 +1,106 @@
 .. _how_ipython_works:
 
-=================
+
+========================
+What is Project Jupyter?
+========================
+
+The goal of this document is to give you intuition behind what Jupyter
+is and a feel for its history so that you can dive deeply into the
+internals through the other developer documents.
+
+
+Origins: the IPython REPL
+-------------------------
+
+In the beginning was the IPython REPL: an interactive application for
+executing Python code. Like most revolutions, IPython world domination
+had humble beginnings: it begin as a simple quest for a better
+interactive Python interpreter, one that would take advantage of
+Python's dynamic features and excellent documentation mechanisms. The
+goal of the folks who created IPython was to create an extended
+interpreter for interactive computing that would support live
+exploration through object introspection, live help, shell-like system
+command execution, and persistent history.
+
+At it's core, IPython is a thing that executes code, a beefy
+**Read-Eval-Print-Loop** (**REPL**). When you type something into the
+IPython terminal, that thing that you typed is a "message" that is *read*,
+*evaluated* by the kernel, then *printed* somehow.
+
+::
+
+    +-----------------------------+
+    | IPython app                 |
+    |                             |
+    | console <-----> interpreter |
+    |           msg               |
+    +-----------------------------+
+
+While a REPL is usually associated with typing in a command and then
+pressing enter, the read-eval-print-loop is [called] whenever the user
+makes any input that requires IPython to return something, such as when
+the user presses `<TAB>` to see the auto-complete options for a
+function. We'll use the example of pressing TAB after typing `ma` in the
+IPython console. From using IPython, we know that the result in the
+terminal is,
+
+.. code-block:: python
+
+    In [1]: ma<TAB>
+    %macro       %magic       %man         %matplotlib  map          max
+
+How does a REPL work? Python's dynamic nature and native introspection
+capabilities provide an incredible support infrastructure for building
+interactive computing tools like IPython provides. Here is an example of a
+naïve Python expression REPL:
+
+.. FIXME: link this
+
+.. code-block:: python
+
+    # Naïve Python expression REPL: repeat forever…
+    while True:
+        # read a message from the user
+        message = input('>>> ')
+
+        # evaluate the expression in the interpreter
+        result = eval(message)
+
+        # print out the result
+        print(repr(result))
+
+While this implementation is laughably naïve (and incredibly insecure,
+incidentally), it nevertheless demonstrates the main features of a Python REPL:
+a message is read from the user via the console, that message is evaluated by
+the Python interpreter, and the result is printed back to the user.
+
+IPython's classic interpreter is, roughly speaking, a set of sophisticated
+extensions to these three basic concepts:
+
+* *read*: as noted above, IPython's input handling is finer grained then
+  merely calling `input()` allows, offering the ability to read and process
+  messages per keystroke (rather than per line). It can also dynamically
+  evaluate input from other sources, e.g. file evaluation using the `%run`
+  line magic.
+
+* *eval*: while our simple REPL merely called `eval()` on whatever
+  message it received, IPython offers extended processing capabilities,
+  including the ability to handle statements (not merely expressions), line
+  navigation and history, the magic system, and direct execution of system
+  commands.
+
+* *print*: IPython's print facilities offer pretty printing of
+  compatible data structures; many commands provide color output if
+  supported by the environment.
+
+
+The Road to Jupyter: Abstraction
+--------------------------------
+
+
+
+
 How IPython works
 =================
 
@@ -12,10 +112,10 @@ At it's core, IPython is a thing that executes code. It is a beefy **Read-Eval-P
 
 While a REPL is usually associated with typing in a command and then pressing enter, the read-eval-print-loop is [called] whenever the user makes any input that requires IPython to return something, such as when the user presses `<TAB>` to see the auto-complete options for a function. We'll use the example of pressing TAB after typing `ma` in the IPython console. From using IPython, we know that the result in the terminal is,
 
-.. code
+.. code-block:: python
 
 	In [1]: ma<TAB>
-	%macro       %magic       %man         %matplotlib  map          max 
+	%macro       %magic       %man         %matplotlib  map          max
 
 And in the browser,
 
@@ -62,13 +162,13 @@ Eval(uate)
 
 Evaluation is [accomplished in tandem by the Interactive side of the IPython console] and the programming language of choice (e.g., Python).
 
-To return the 
+To return the
 
 
 Print
 =====
 
-After evaluating your message, now IPython needs to return the result to you somehow. Depending on what your message was, you will get a different output. 
+After evaluating your message, now IPython needs to return the result to you somehow. Depending on what your message was, you will get a different output.
 
 
 Loop
@@ -84,7 +184,7 @@ Parallel
 nbconvert
 =========
 
-Converting IPython notebooks to other formats is accomplished via the ``nbconvert`` program. 
+Converting IPython notebooks to other formats is accomplished via the ``nbconvert`` program.
 
 The program `nbviewer` is `nbconvert`, as a service via the web.
 
@@ -104,7 +204,7 @@ Unofficial
 - nbdiff_: Tool for comparing and merging IPython notebooks
 - vim_ipython_: Send command to IPython directly from vim
 - singlecell_: Simple webapps backed by an IPython Kernel
-- 
+-
 
 
 
