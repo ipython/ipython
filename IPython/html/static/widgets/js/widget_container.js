@@ -19,7 +19,7 @@ define([
 
         render: function(){
             // Called when view is rendered.
-            this.$el.addClass('widget-container').addClass('vbox');
+            this.$el.addClass('widget-container');
         },
         
         update_children: function(old_list, new_list) {
@@ -43,6 +43,56 @@ define([
             this.after_displayed(function() {
                 view.trigger('displayed');
             });
+        },
+    });
+
+
+    var FlexContainerView = ContainerView.extend({
+        render: function(){
+            FlexContainerView.__super__.render.apply(this);
+            this.model.on('change:flex', this._flex_changed, this);
+            this.model.on('change:pack', this._pack_changed, this);
+            this.model.on('change:align', this._align_changed, this);
+            this._flex_changed();
+            this._pack_changed();
+            this._align_changed();
+        },
+
+        _flex_changed: function(){
+            if (this.model.previous('flex')) {
+                this.$el.removeClass('box-flex' + this.model.previous('flex'));
+            }
+            this.$el.addClass('box-flex' + this.model.get('flex'));
+        },
+
+        _pack_changed: function(){
+            if (this.model.previous('pack')) {
+                this.$el.removeClass(this.model.previous('pack'));
+            }
+            this.$el.addClass(this.model.get('pack'));
+        },
+
+        _align_changed: function(){
+            if (this.model.previous('align')) {
+                this.$el.removeClass('align-' + this.model.previous('align'));
+            }
+            this.$el.addClass('align-' + this.model.get('align'));
+        },
+    });
+
+
+    var VBoxContainerView = FlexContainerView.extend({
+        render: function(){
+            this.$el.addClass('vbox');
+            FlexContainerView.__super__.render.apply(this);
+        },
+    });
+
+
+    var HBoxContainerView = FlexContainerView.extend({
+        render: function(){
+            this.$el.addClass('hbox');
+            FlexContainerView.__super__.render.apply(this);
         },
     });
     
@@ -279,5 +329,8 @@ define([
     return {
         'ContainerView': ContainerView,
         'PopupView': PopupView,
+        'FlexContainerView': FlexContainerView,
+        'VBoxContainerView': VBoxContainerView,
+        'HBoxContainerView': HBoxContainerView,
     };
 });
