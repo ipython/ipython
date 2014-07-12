@@ -1496,7 +1496,11 @@ define([
      * 
      * @method start_session
      */
-    Notebook.prototype.start_session = function () {
+    Notebook.prototype.start_session = function (kernel_name) {
+        if (kernel_name === undefined) {
+            kernel_name = this.default_kernel_name;
+        }
+        console.log("start_session", kernel_name);
         this.session = new session.Session({
             base_url: this.base_url,
             ws_url: this.ws_url,
@@ -1505,7 +1509,7 @@ define([
             // For now, create all sessions with the 'python' kernel, which is the
             // default. Later, the user will be able to select kernels. This is
             // overridden if KernelManager.kernel_cmd is specified for the server.
-            kernel_name: this.default_kernel_name,
+            kernel_name: kernel_name,
             notebook: this});
 
         this.session.start($.proxy(this._session_started, this));

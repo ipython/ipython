@@ -18,6 +18,7 @@ require([
     'notebook/js/savewidget',
     'notebook/js/keyboardmanager',
     'notebook/js/config',
+    'notebook/js/kernelselector',
     // only loaded, not used:
     'custom/custom',
 ], function(
@@ -36,7 +37,8 @@ require([
     notificationarea, 
     savewidget, 
     keyboardmanager,
-    config
+    config,
+    kernelselector
     ) {
     "use strict";
 
@@ -90,6 +92,8 @@ require([
         notebook: notebook,
         keyboard_manager: keyboard_manager});
     notification_area.init_notification_widgets();
+    var kernel_selector = new kernelselector.KernelSelector(
+        '#kernel_selector_widget', notebook);
 
     $('body').append('<div id="fonttest"><pre><span id="test1">x</span>'+
                      '<span id="test2" style="font-weight: bold;">x</span>'+
