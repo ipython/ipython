@@ -196,6 +196,11 @@ class NotebookWebApplication(web.Application):
         handlers.extend(load_handlers('services.sessions.handlers'))
         handlers.extend(load_handlers('services.nbconvert.handlers'))
         handlers.extend(load_handlers('services.kernelspecs.handlers'))
+
+        # TODO: move this into handler for separate port, so output iframes
+        # have a different origin to the notebook.
+        handlers.extend(load_handlers('notebook.output_handlers'))
+
         # FIXME: /files/ should be handled by the Contents service when it exists
         nbm = settings['notebook_manager']
         if hasattr(nbm, 'notebook_dir'):

@@ -17,55 +17,25 @@ define([
      * @constructor
      */
 
-    var OutputArea = function (options) {
-        this.selector = options.selector;
-        this.events = options.events;
-        this.keyboard_manager = options.keyboard_manager;
-        this.wrapper = $(options.selector);
+    var OutputArea = function (element) {
+        this.element = element;
         this.outputs = [];
-        this.collapsed = false;
-        this.scrolled = false;
-        this.trusted = true;
-        this.clear_queued = null;
-        if (options.prompt_area === undefined) {
-            this.prompt_area = true;
-        } else {
-            this.prompt_area = options.prompt_area;
-        }
-        this.create_elements();
-        this.style();
         this.bind_events();
-    };
 
+        // TODO: specify origin instead of '*'
+        this.events = {
+            'trigger': function(type, data) {
+                window.parent.postMessage({
+                    'type': 'event',
+                    'data': {'type': type, 'data': data}
+                }, '*')
+            }
+        };
 
-    /**
-     * Class prototypes
-     **/
-
-    OutputArea.prototype.create_elements = function () {
-        this.outputframe = $('<iframe src="/outputframe"></iframe>');
-        this.collapse_button = $("<div/>");
-        this.prompt_overlay = $("<div/>");
-        this.wrapper.append(this.prompt_overlay);
-        this.wrapper.append(this.outputframe);
-        this.wrapper.append(this.collapse_button);
-    };
-
-
-    OutputArea.prototype.style = function () {
-        this.collapse_button.hide();
-        this.prompt_overlay.hide();
-        
-        this.wrapper.addClass('output_wrapper');
-        
-        this.collapse_button.addClass("btn btn-default output_collapsed");
-        this.collapse_button.attr('title', 'click to expand output');
-        this.collapse_button.text('. . .');
-        
-        this.prompt_overlay.addClass('out_prompt_overlay prompt');
-        this.prompt_overlay.attr('title', 'click to expand output; double click to hide output');
-        
-        this.collapse();
+        // TODO: figure out what keyboard manager is and if it is needed
+        this.keyboard_manager = {
+            'register_events': function() { }
+        }
     };
 
     /**
@@ -84,34 +54,17 @@ define([
             lines = 100;
         }
         // line-height from http://stackoverflow.com/questions/1185151
-        var fontSize = this.outputframe.css('font-size');
+        var fontSize = this.element.css('font-size');
         var lineHeight = Math.floor(parseInt(fontSize.replace('px','')) * 1.5);
         
-        return (this.outputframe.height() > lines * lineHeight);
+        return (this.element.height() > lines * lineHeight);
     };
 
 
     OutputArea.prototype.bind_events = function () {
         var that = this;
 
-        window.addEventListener('message', function(e) {
-            // TODO: check origin of message
-            if (e.source != that.outputframe[0].contentWindow) {
-                return;
-            }
-
-            if (e.data['type'] == 'event') {
-                var data = e.data['data'];
-                that.events.trigger(data['type'], data['data']);
-            } else if (e.data['type'] == 'unscroll_area') {
-                that.unscroll_area()
-            }
-
-        });
-        this.prompt_overlay.dblclick(function () { that.toggle_output(); });
-        this.prompt_overlay.click(function () { that.toggle_scroll(); });
-
-        this.outputframe.resize(function () {
+        this.element.resize(function () {
             // FIXME: Firefox on Linux misbehaves, so automatic scrolling is disabled
             if ( utils.browser[0] === "Firefox" ) {
                 return;
@@ -122,17 +75,23 @@ define([
                 that.scroll_area();
             }
         });
-        this.collapse_button.click(function () {
-            that.expand();
+
+        window.addEventListener('message', function(e){
+            // TODO: check e.origin AND e.source
+            if (e.data['type'] == 'handle_output') {
+                that.handle_output(e.data['data']);
+            } else if (e.data['type'] == 'clear_output') {
+                that.clear_output(e.data['data']);
+            }
         });
     };
 
 
     OutputArea.prototype.collapse = function () {
         if (!this.collapsed) {
-            this.outputframe.hide();
+            this.element.hide();
             this.prompt_overlay.hide();
-            if (this.outputframe.html()){
+            if (this.element.html()){
                 this.collapse_button.show();
             }
             this.collapsed = true;
@@ -143,7 +102,7 @@ define([
     OutputArea.prototype.expand = function () {
         if (this.collapsed) {
             this.collapse_button.hide();
-            this.outputframe.show();
+            this.element.show();
             this.prompt_overlay.show();
             this.collapsed = false;
         }
@@ -160,16 +119,14 @@ define([
 
 
     OutputArea.prototype.scroll_area = function () {
-        this.outputframe.addClass('output_scroll');
+        this.element.addClass('output_scroll');
         this.prompt_overlay.attr('title', 'click to unscroll output; double click to hide');
         this.scrolled = true;
     };
 
 
     OutputArea.prototype.unscroll_area = function () {
-        this.outputframe.removeClass('output_scroll');
-        this.prompt_overlay.attr('title', 'click to scroll output; double click to hide');
-        this.scrolled = false;
+        window.parent.postMessage({'type': 'unscroll_area'}, '*');
     };
 
     /**
@@ -219,12 +176,30 @@ define([
 
 
     OutputArea.prototype.handle_output = function (msg) {
-        // TODO: change second argument from '*' to the known
-        // origin of the iframe
-        this.outputframe[0].contentWindow.postMessage({
-            'type': 'handle_output',
-            'data': msg
-        }, '*');
+        var json = {};
+        var msg_type = json.output_type = msg.header.msg_type;
+        var content = msg.content;
+        if (msg_type === "stream") {
+            json.text = content.data;
+            json.stream = content.name;
+        } else if (msg_type === "display_data") {
+            json = content.data;
+            json.output_type = msg_type;
+            json.metadata = content.metadata;
+        } else if (msg_type === "execute_result") {
+            json = content.data;
+            json.output_type = msg_type;
+            json.metadata = content.metadata;
+            json.prompt_number = content.execution_count;
+        } else if (msg_type === "error") {
+            json.ename = content.ename;
+            json.evalue = content.evalue;
+            json.traceback = content.traceback;
+        } else {
+            console.log("unhandled output message", msg);
+            return;
+        }
+        this.append_output(json);
     };
     
     
@@ -292,9 +267,9 @@ define([
             // Only reset the height to automatic if the height is currently
             // fixed (done by wait=True flag on clear_output).
             if (needs_height_reset) {
-                that.outputframe.height('');
+                that.element.height('');
             }
-            that.outputframe.trigger('resize');
+            that.element.trigger('resize');
         };
         if (json.output_type === 'display_data') {
             this.append_display_data(json, handle_appended);
@@ -385,7 +360,7 @@ define([
         // and may have errors, which should not be raised
         // under any circumstances.
         try {
-            this.outputframe.append(toinsert);
+            this.element.append(toinsert);
         } catch(err) {
             console.log(err);
             // Create an actual output_area and output_subarea, which creates
@@ -394,7 +369,7 @@ define([
             var subarea = $('<div/>').addClass('output_subarea');
             toinsert.append(subarea);
             this._append_javascript_error(err, subarea);
-            this.outputframe.append(toinsert);
+            this.element.append(toinsert);
         }
     };
 
@@ -453,7 +428,7 @@ define([
                 // latest output was in the same stream,
                 // so append directly into its pre tag
                 // escape ANSI & HTML specials:
-                var pre = this.outputframe.find('div.'+subclass).last().find('pre');
+                var pre = this.element.find('div.'+subclass).last().find('pre');
                 var html = utils.fixCarriageReturn(
                     pre.html() + utils.fixConsole(text));
                 // The only user content injected with this HTML call is
@@ -525,7 +500,7 @@ define([
                 if (['image/png', 'image/jpeg'].indexOf(type) < 0 && handle_inserted !== undefined) {
                     setTimeout(handle_inserted, 0);
                 }
-                this.events.trigger('output_appended.OutputArea', [type, value, md, toinsert]);
+                this.events.trigger('output_appended.OutputArea', [type, value, md]);
                 return toinsert;
             }
         }
@@ -760,10 +735,11 @@ define([
             )
         );
         
-        this.outputframe.append(area);
+        this.element.append(area);
         var raw_input = area.find('input.raw_input');
         // Register events that enable/disable the keyboard manager while raw
         // input is focused.
+        //keyboard_
         this.keyboard_manager.register_events(raw_input);
         // Note, the following line used to read raw_input.focus().focus().
         // This seemed to be needed otherwise only the cell would be focused.
@@ -772,7 +748,7 @@ define([
     }
 
     OutputArea.prototype._submit_raw_input = function (evt) {
-        var container = this.outputframe.find("div.raw_input_container");
+        var container = this.element.find("div.raw_input_container");
         var theprompt = container.find("span.raw_input_prompt");
         var theinput = container.find("input.raw_input");
         var value = theinput.val();
@@ -805,10 +781,34 @@ define([
 
 
     OutputArea.prototype.clear_output = function(wait) {
-        this.outputframe[0].contentWindow.postMessage({
-            'type': 'clear_output',
-            'data': wait
-        }, '*');
+        if (wait) {
+
+            // If a clear is queued, clear before adding another to the queue.
+            if (this.clear_queued) {
+                this.clear_output(false);
+            };
+
+            this.clear_queued = true;
+        } else {
+
+            // Fix the output div's height if the clear_output is waiting for
+            // new output (it is being used in an animation).
+            if (this.clear_queued) {
+                var height = this.element.height();
+                this.element.height(height);
+                this.clear_queued = false;
+            }
+            
+            // Clear all
+            // Remove load event handlers from img tags because we don't want
+            // them to fire if the image is never added to the page.
+            this.element.find('img').off('load');
+            this.element.html("");
+            this.outputs = [];
+            this.trusted = true;
+            this.unscroll_area();
+            return;
+        };
     };
 
 
