@@ -26,7 +26,7 @@ from IPython.core import release
 from IPython.utils.warn import warn, error
 from IPython.utils import io
 from IPython.utils.py3compat import string_types, input
-from IPython.utils.traitlets import List, Enum, Any, Instance, Unicode, Float
+from IPython.utils.traitlets import List, Enum, Any, Instance, Unicode, Float, Bool
 from IPython.utils.tempdir import NamedFileInTemporaryDirectory
 
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
@@ -212,8 +212,37 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                     print(frame, file=io.stderr)
             
             self.execution_count = int(content["execution_count"] + 1)
-
-
+    
+    include_other_output = Bool(False, config=True,
+        help="""Whether to include output from clients
+        other than this one sharing the same kernel.
+        
+        Outputs are not displayed until enter is pressed.
+        """
+    )
+    other_output_prefix = Unicode("[remote] ", config=True,
+        help="""Prefix to add to outputs coming from clients other than this one.
+        
+        Only relevant if include_other_output is True.
+        """
+    )
+    
+    def from_here(self, msg):
+        """Return whether a message is from this session"""
+        return msg['parent_header'].get("session", self.session_id) == self.session_id
+    
+    def include_output(self, msg):
+        """Return whether we should include a given output message"""
+        from_here = self.from_here(msg)
+        if msg['msg_type'] == 'execute_input':
+            # only echo inputs not from here
+            return self.include_other_output and not from_here
+        
+        if self.include_other_output:
+            return True
+        else:
+            return from_here
+    
     def handle_iopub(self, msg_id=''):
         """Process messages on the IOPub channel
 
@@ -227,7 +256,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
             msg_type = sub_msg['header']['msg_type']
             parent = sub_msg["parent_header"]
             
-            if parent.get("session", self.session_id) == self.session_id:
+            if self.include_output(sub_msg):
                 if msg_type == 'status':
                     self._execution_state = sub_msg["content"]["execution_state"]
                 elif msg_type == 'stream':
@@ -249,8 +278,11 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                         print("\r", file=io.stdout, end="")
                         self._pending_clearoutput = False
                     self.execution_count = int(sub_msg["content"]["execution_count"])
+                    if not self.from_here(sub_msg):
+                        sys.stdout.write(self.other_output_prefix)
                     format_dict = sub_msg["content"]["data"]
                     self.handle_rich_data(format_dict)
+                    
                     # taken from DisplayHook.__call__:
                     hook = self.displayhook
                     hook.start_displayhook()
@@ -263,10 +295,20 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                     data = sub_msg["content"]["data"]
                     handled = self.handle_rich_data(data)
                     if not handled:
+                        if not self.from_here(sub_msg):
+                            sys.stdout.write(self.other_output_prefix)
                         # if it was an image, we handled it by now
                         if 'text/plain' in data:
                             print(data['text/plain'])
-
+                
+                elif msg_type == 'execute_input':
+                    content = sub_msg['content']
+                    self.execution_count = content['execution_count']
+                    if not self.from_here(sub_msg):
+                        sys.stdout.write(self.other_output_prefix)
+                    sys.stdout.write(self.prompt_manager.render('in'))
+                    sys.stdout.write(content['code'])
+                
                 elif msg_type == 'clear_output':
                     if sub_msg["content"]["wait"]:
                         self._pending_clearoutput = True
