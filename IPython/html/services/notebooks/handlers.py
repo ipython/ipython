@@ -207,6 +207,9 @@ class NotebookHandler(IPythonHandler):
                 self._copy_notebook(copy_from, path, name)
             elif self.notebook_manager.notebook_exists(name, path):
                 self._save_notebook(model, path, name)
+                checkpoint = model.get('_checkpoint_after_save')
+                if checkpoint:
+                    nbm.create_checkpoint(path, name)
             else:
                 self._upload_notebook(model, path, name)
         else:
