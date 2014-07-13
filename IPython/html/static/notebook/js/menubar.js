@@ -21,6 +21,7 @@ define([
         //  options: dictionary
         //      Dictionary of keyword arguments.
         //          notebook: Notebook instance
+        //          content_manager: ContentManager instance
         //          layout_manager: LayoutManager instance
         //          events: $(Events) instance
         //          save_widget: SaveWidget instance
@@ -32,6 +33,7 @@ define([
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
         this.selector = selector;
         this.notebook = options.notebook;
+        this.content_manager = options.content_manager;
         this.layout_manager = options.layout_manager;
         this.events = options.events;
         this.save_widget = options.save_widget;
@@ -85,7 +87,9 @@ define([
         //  File
         var that = this;
         this.element.find('#new_notebook').click(function () {
-            that.notebook.new_notebook();
+            // Create a new notebook in the same path as the current
+            // notebook's path.
+            that.content_manager.new_notebook(that.notebook.notebook_path);
         });
         this.element.find('#open_notebook').click(function () {
             window.open(utils.url_join_encode(

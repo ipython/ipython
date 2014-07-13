@@ -487,53 +487,7 @@ define([
     };
 
 
-    NotebookList.prototype.new_notebook = function(){
-        var path = this.notebook_path;
-        var base_url = this.base_url;
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "POST",
-            dataType : "json",
-            async : false,
-            success : function (data, status, xhr) {
-                var notebook_name = data.name;
-                window.open(
-                    utils.url_join_encode(
-                        base_url,
-                        'notebooks',
-                        path,
-                        notebook_name),
-                    '_blank'
-                );
-            },
-            error : $.proxy(this.new_notebook_failed, this),
-        };
-        var url = utils.url_join_encode(
-            base_url,
-            'api/contents',
-            path
-        );
-        $.ajax(url, settings);
-    };
-    
-    
-    NotebookList.prototype.new_notebook_failed = function (xhr, status, error) {
-        utils.log_ajax_error(xhr, status, error);
-        var msg;
-        if (xhr.responseJSON && xhr.responseJSON.message) {
-            msg = xhr.responseJSON.message;
-        } else {
-            msg = xhr.statusText;
-        }
-        dialog.modal({
-            title : 'Creating Notebook Failed',
-            body : "The error was: " + msg,
-            buttons : {'OK' : {'class' : 'btn-primary'}}
-        });
-    };
-
-    // Backwards compatability.
+    // Backwards compatability.    
     IPython.NotebookList = NotebookList;
 
     return {'NotebookList': NotebookList};

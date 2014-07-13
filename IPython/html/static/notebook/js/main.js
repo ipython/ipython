@@ -5,6 +5,7 @@ require([
     'base/js/namespace',
     'jquery',
     'notebook/js/notebook',
+    'base/js/contentmanager',
     'base/js/utils',
     'base/js/page',
     'notebook/js/layoutmanager',
@@ -27,6 +28,7 @@ require([
     IPython, 
     $,
     notebook, 
+    contentmanager,
     utils, 
     page, 
     layoutmanager, 
@@ -76,6 +78,9 @@ require([
         save_widget: save_widget,
         config: user_config},
         common_options));
+    var content_manager = new contentmanager.ContentManager($.extend({
+        events: events},
+        common_options));
     var login_widget = new loginwidget.LoginWidget('span#login_widget', common_options);
     var toolbar = new maintoolbar.MainToolBar('#maintoolbar-container', {
         notebook: notebook, 
@@ -86,6 +91,7 @@ require([
         notebook: notebook});
     var menubar = new menubar.MenuBar('#menubar', $.extend({
         notebook: notebook, 
+        content_manager: content_manager,
         layout_manager: layout_manager, 
         events: events, 
         save_widget: save_widget, 
