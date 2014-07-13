@@ -16,15 +16,21 @@ define([
         // Parameters:
         //  options: dictionary
         //      Dictionary of keyword arguments.
-        //          notebook_path: string
+        //          events: $(Events) instance
         //          base_url: string
         this.version = 0.1;
-        this.notebook_path = options.notebook_path;
+        this.events = options.events;
         this.base_url = options.base_url;
     };
  
-    ContentManager.prototype.new_notebook = function() {
-        var path = this.notebook_path;
+    /**
+     * Creates a new notebook file at the specified path, and
+     * opens that notebook in a new window.
+     *
+     * @method scroll_to_cell
+     * @param {String} path The path to create the new notebook at
+     */
+    ContentManager.prototype.new_notebook = function(path) {
         var base_url = this.base_url;
         var settings = {
             processData : false,
