@@ -63,7 +63,7 @@ casper.kernel_running = function() {
 casper.shutdown_current_kernel = function () {
     // Shut down the current notebook's kernel.
     this.thenEvaluate(function() {
-        IPython.notebook.kernel.kill();
+        IPython.notebook.session.delete();
     });
     // We close the page right after this so we need to give it time to complete.
     this.wait(1000);

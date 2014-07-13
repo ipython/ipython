@@ -72,8 +72,8 @@ class MappingKernelManager(MultiKernelManager):
             os_path = os.path.dirname(os_path)
         return os_path
 
-    def start_kernel(self, kernel_id=None, path=None, **kwargs):
-        """Start a kernel for a session an return its kernel_id.
+    def start_kernel(self, kernel_id=None, path=None, kernel_name='python', **kwargs):
+        """Start a kernel for a session and return its kernel_id.
 
         Parameters
         ----------
@@ -84,12 +84,16 @@ class MappingKernelManager(MultiKernelManager):
         path : API path
             The API path (unicode, '/' delimited) for the cwd.
             Will be transformed to an OS path relative to root_dir.
+        kernel_name : str
+            The name identifying which kernel spec to launch. This is ignored if
+            an existing kernel is returned, but it may be checked in the future.
         """
         if kernel_id is None:
             kwargs['extra_arguments'] = self.kernel_argv
             if path is not None:
                 kwargs['cwd'] = self.cwd_for_path(path)
-            kernel_id = super(MappingKernelManager, self).start_kernel(**kwargs)
+            kernel_id = super(MappingKernelManager, self).start_kernel(
+                                            kernel_name=kernel_name, **kwargs)
             self.log.info("Kernel started: %s" % kernel_id)
             self.log.debug("Kernel args: %r" % kwargs)
             # register callback for failed auto-restart
@@ -111,7 +115,8 @@ class MappingKernelManager(MultiKernelManager):
         """Return a dictionary of kernel information described in the
         JSON standard model."""
         self._check_kernel_id(kernel_id)
-        model = {"id":kernel_id}
+        model = {"id":kernel_id,
+                 "name": self._kernels[kernel_id].kernel_name}
         return model
 
     def list_kernels(self):

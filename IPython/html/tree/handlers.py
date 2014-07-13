@@ -97,5 +97,5 @@ default_handlers = [
     (r"/tree%s" % notebook_path_regex, TreeHandler),
     (r"/tree%s" % path_regex, TreeHandler),
     (r"/tree", TreeHandler),
-    (r"/", TreeRedirectHandler),
+    (r"", TreeRedirectHandler),
     ]

@@ -59,6 +59,9 @@ define([
         this.keyboard_manager = options.keyboard_manager;
         this.save_widget = options.save_widget;
         this.tooltip = new tooltip.Tooltip(this.events);
+        // default_kernel_name is a temporary measure while we implement proper
+        // kernel selection and delayed start. Do not rely on it.
+        this.default_kernel_name = 'python';
         // TODO: This code smells (and the other `= this` line a couple lines down)
         // We need a better way to deal with circular instance references.
         this.keyboard_manager.notebook = this;
@@ -1495,7 +1498,12 @@ define([
             base_url: this.base_url,
             notebook_path: this.notebook_path,
             notebook_name: this.notebook_name,
+            // For now, create all sessions with the 'python' kernel, which is the
+            // default. Later, the user will be able to select kernels. This is
+            // overridden if KernelManager.kernel_cmd is specified for the server.
+            kernel_name: this.default_kernel_name,
             notebook: this});
+
         this.session.start($.proxy(this._session_started, this));
     };
 
