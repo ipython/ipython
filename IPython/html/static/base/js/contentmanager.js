@@ -5,7 +5,8 @@ define([
     'base/js/namespace',
     'jquery',
     'base/js/utils',
-], function(IPython, $, utils) {
+    'base/js/dialog',
+], function(IPython, $, utils, dialog) {
     var ContentManager = function(options) {
         // Constructor
         //
@@ -50,7 +51,20 @@ define([
                     '_blank'
                 );
             },
-            error : utils.log_ajax_error,
+            error : function(xhr, status, error) {
+                utils.log_ajax_error(xhr, status, error);
+                var msg;
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                } else {
+                    msg = xhr.statusText;
+                }
+                dialog.modal({
+                    title : 'Creating Notebook Failed',
+                    body : "The error was: " + msg,
+                    buttons : {'OK' : {'class' : 'btn-primary'}}
+                });
+            }
         };
         var url = utils.url_join_encode(
             base_url,
