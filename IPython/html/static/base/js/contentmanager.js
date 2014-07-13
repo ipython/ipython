@@ -6,7 +6,7 @@ define([
     'jquery',
     'base/js/utils',
 ], function(IPython, $, utils) {
-    var ContentManager = function(notebook_path, base_url) {
+    var ContentManager = function(options) {
         // Constructor
         //
         // A contentmanager handles passing file operations
@@ -14,13 +14,15 @@ define([
         // with the normal file operations.
         //
         // Parameters:
-        //        notebook_path
-        //        base_url
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          notebook_path: string
+        //          base_url: string
         this.version = 0.1;
-        this.notebook_path = notebook_path;
-        this.base_url = base_url;
+        this.notebook_path = options.notebook_path;
+        this.base_url = options.base_url;
     };
-
+ 
     ContentManager.prototype.new_notebook = function() {
         var path = this.notebook_path;
         var base_url = this.base_url;
