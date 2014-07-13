@@ -7,6 +7,7 @@ require([
     'base/js/events',
     'base/js/page',
     'base/js/utils',
+    'base/js/contentmanager',
     'tree/js/notebooklist',
     'tree/js/clusterlist',
     'tree/js/sessionlist',
@@ -22,6 +23,7 @@ require([
     events,
     page, 
     utils, 
+    contentmanager,
     notebooklist, 
     clusterlist, 
     sesssionlist, 
@@ -37,6 +39,9 @@ require([
     session_list = new sesssionlist.SesssionList($.extend({
         events: events}, 
         common_options));
+    content_manager = new contentmanager.ContentManager($.extend({
+        events: events},
+        common_options));
     notebook_list = new notebooklist.NotebookList('#notebook_list', $.extend({
         session_list:  session_list}, 
         common_options));
@@ -46,8 +51,8 @@ require([
         common_options));
     login_widget = new loginwidget.LoginWidget('#login_widget', common_options);
 
-    $('#new_notebook').click(function (e) {
-        notebook_list.new_notebook();
+    $('#new_notebook').button().click(function (e) {
+        content_manager.new_notebook(common_options.notebook_path);
     });
 
     var interval_id=0;
