@@ -4,7 +4,8 @@
 define([
     'base/js/namespace',
     'jquery',
-], function(IPython, $) {
+    'base/js/utils',
+], function(IPython, $, utils) {
     var ContentManager = function(notebook_path, base_url) {
         // Constructor
         //
@@ -18,7 +19,7 @@ define([
         this.version = 0.1;
         this.notebook_path = notebook_path;
         this.base_url = base_url;
-    }
+    };
 
     ContentManager.prototype.new_notebook = function() {
         var path = this.notebook_path;
@@ -49,7 +50,7 @@ define([
             path
         );
         $.ajax(url,settings);
-    }
+    };
 
     ContentManager.prototype.delete_notebook = function(notebook) {
         var that = notebook;
@@ -67,7 +68,7 @@ define([
             that.notebook_name
         );
         $.ajax(url, settings);
-    }
+    };
 
     ContentManager.prototype.rename_notebook = function(notebook, nbname) {
         var that = notebook;
@@ -93,7 +94,7 @@ define([
             this.notebook_name
         );
         $.ajax(url, settings);
-    }
+    };
 
     ContentManager.prototype.save_notebook = function(notebook, extra_settings) {
         // Create a JSON model to be sent to the server.
@@ -129,11 +130,10 @@ define([
         );
         $.ajax(url, settings);
     };
-     }
 
     ContentManager.prototype.save_checkpoint = function() {
         // This is not necessary - integrated into save
-    }
+    };
 
     ContentManager.prototype.restore_checkpoint = function(notebook, id) {
         that = notebook;
@@ -151,7 +151,7 @@ define([
         ).fail(
             $.proxy(that.restore_checkpoint_error, that)
         );
-    }
+    };
 
     ContentManager.prototype.list_checkpoints = function(notebook) {
         that = notebook;
@@ -167,7 +167,9 @@ define([
         ).fail(
             $.proxy(that.list_checkpoints_error, that)
         );
-    }
+    };
 
-    return ContentManager;
+    IPython.ContentManager = ContentManager;
+
+    return {'ContentManager': ContentManager};
 }); 
