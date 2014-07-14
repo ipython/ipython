@@ -163,7 +163,7 @@ define([
         this.element.append(this.container);
         this.container.append(end_space);
 
-        this.manager_frame = manager_frame.WidgetManagerFrame();
+        this.manager_frame = new manager_frame.WidgetManagerFrame();
         this.container.append(this.manager_frame.$el);
     };
 
