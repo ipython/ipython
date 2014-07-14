@@ -25,8 +25,8 @@ command execution, and persistent history.
 
 At it's core, IPython is a thing that executes code, a beefy
 **Read-Eval-Print-Loop** (**REPL**). When you type something into the
-IPython terminal, that thing that you typed is a "message" that is *read*,
-*evaluated* by the kernel, then *printed* somehow.
+IPython terminal, that thing that you typed is a "message" that is
+*read*, *evaluated* by the kernel, then *printed* somehow.
 
 ::
 
@@ -52,8 +52,8 @@ terminal is,
 
 How does a REPL work? Python's dynamic nature and native introspection
 capabilities provide an incredible support infrastructure for building
-interactive computing tools like IPython provides. Here is an example of a
-naïve Python expression REPL:
+interactive computing tools like IPython provides. Here is an example of
+a naïve Python expression REPL:
 
 .. FIXME: link this
 
@@ -97,6 +97,73 @@ extensions to these three basic concepts:
 
 The Road to Jupyter: Abstraction
 --------------------------------
+
+The next stage in the evolution of Jupyter originated with two distinct
+needs: parallelization and alternate interfaces. Since IPython began in
+the scientific community—where parallelization is a key ingredient to
+high-performance data processing and analysis—there was naturally an
+interest in bringing the advantages of interactive computing to the
+traditionally batch-oriented world of high-performance computing.
+Simultaneously, users began exploring the possibility of developing
+alternative interfaces to the console-oriented IPython shell.
+
+While it took time for these ideas to coalesce, eventually a clean
+abstraction was developed that could satisfy both of these broad use
+classes: IPython was split conceptually into distinct components
+separated by a message bus:
+
+::
+
+    +---------+         +--------+
+    | IPython |         | Kernel |
+    | app     | <-----> |        |
+    |         |   msg   |        |
+    +---------+         +--------+
+
+* an execution *kernel* provides the core IPython functionality, including
+  command execution and processing
+
+* the user interacts with an IPython *application* such as the terminal or Qt
+  consoles
+
+* coordination between these two systems relies on IPython's *messaging
+  protocol*, the specification of the command format and transport
+
+Notice the similarity to the prior REPL implementation: while this
+refined architecture breaks the tight coupling between the I/O
+components and the evaluation components, the core idea is the same:
+read input from the user, evaluate commands, and display results. These
+two approaches are preserved in modern IPython: the command `ipython`
+brings up the traditional REPL while `ipython console` offers
+essentially the same interface but connected via the message bus.
+
+
+Notebook and the Jupyter Ecosystem
+----------------------------------
+
+::
+
+    +---------+         +--------+
+    | IPython |         | Kernel |
+    | app     | <-----> |        |
+    |         |   msg   |        |
+    +---------+         +--------+
+         ^
+         |
+         | Recording
+         | Format
+         |
+         v
+    +---------+
+    | File    |
+    |         |
+    |         |
+    +---------+
+
+
+The Future is Now: Literate Computing
+-------------------------------------
+
 
 
 
