@@ -4,8 +4,10 @@
 define([
     'base/js/namespace',
     'jquery',
-], function(IPython, $) {
-    var ContentManager = function(notebook_path, base_url) {
+    'base/js/utils',
+    'base/js/dialog',
+], function(IPython, $, utils, dialog) {
+    var ContentManager = function(options) {
         // Constructor
         //
         // A contentmanager handles passing file operations
@@ -13,15 +15,23 @@ define([
         // with the normal file operations.
         //
         // Parameters:
-        //        notebook_path
-        //        base_url
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          events: $(Events) instance
+        //          base_url: string
         this.version = 0.1;
-        this.notebook_path = notebook_path;
-        this.base_url = base_url;
-    }
-
-    ContentManager.prototype.new_notebook = function() {
-        var path = this.notebook_path;
+        this.events = options.events;
+        this.base_url = options.base_url;
+    };
+ 
+    /**
+     * Creates a new notebook file at the specified path, and
+     * opens that notebook in a new window.
+     *
+     * @method scroll_to_cell
+     * @param {String} path The path to create the new notebook at
+     */
+    ContentManager.prototype.new_notebook = function(path) {
         var base_url = this.base_url;
         var settings = {
             processData : false,
@@ -41,7 +51,20 @@ define([
                     '_blank'
                 );
             },
-            error : utils.log_ajax_error,
+            error : function(xhr, status, error) {
+                utils.log_ajax_error(xhr, status, error);
+                var msg;
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                } else {
+                    msg = xhr.statusText;
+                }
+                dialog.modal({
+                    title : 'Creating Notebook Failed',
+                    body : "The error was: " + msg,
+                    buttons : {'OK' : {'class' : 'btn-primary'}}
+                });
+            }
         };
         var url = utils.url_join_encode(
             base_url,
@@ -49,7 +72,7 @@ define([
             path
         );
         $.ajax(url,settings);
-    }
+    };
 
     ContentManager.prototype.delete_notebook = function(notebook) {
         var that = notebook;
@@ -67,7 +90,7 @@ define([
             that.notebook_name
         );
         $.ajax(url, settings);
-    }
+    };
 
     ContentManager.prototype.rename_notebook = function(notebook, nbname) {
         var that = notebook;
@@ -93,7 +116,7 @@ define([
             this.notebook_name
         );
         $.ajax(url, settings);
-    }
+    };
 
     ContentManager.prototype.save_notebook = function(notebook, extra_settings) {
         // Create a JSON model to be sent to the server.
@@ -129,11 +152,10 @@ define([
         );
         $.ajax(url, settings);
     };
-     }
 
     ContentManager.prototype.save_checkpoint = function() {
         // This is not necessary - integrated into save
-    }
+    };
 
     ContentManager.prototype.restore_checkpoint = function(notebook, id) {
         that = notebook;
@@ -151,7 +173,7 @@ define([
         ).fail(
             $.proxy(that.restore_checkpoint_error, that)
         );
-    }
+    };
 
     ContentManager.prototype.list_checkpoints = function(notebook) {
         that = notebook;
@@ -167,7 +189,9 @@ define([
         ).fail(
             $.proxy(that.list_checkpoints_error, that)
         );
-    }
+    };
 
-    return ContentManager;
+    IPython.ContentManager = ContentManager;
+
+    return {'ContentManager': ContentManager};
 }); 
