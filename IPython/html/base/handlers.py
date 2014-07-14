@@ -39,6 +39,10 @@ class AuthenticatedHandler(web.RequestHandler):
 
     def set_default_headers(self):
         headers = self.settings.get('headers', {})
+
+        if "X-Frame-Options" not in headers:
+            headers["X-Frame-Options"] = "SAMEORIGIN"
+
         for header_name,value in headers.items() :
             try:
                 self.set_header(header_name, value)
