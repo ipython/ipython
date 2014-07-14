@@ -17,11 +17,10 @@ define([
      * @constructor
      */
 
-    var OutputArea = function (options) {
-        this.selector = options.selector;
+    var OutputAreaFrame = function (options) {
         this.events = options.events;
         this.keyboard_manager = options.keyboard_manager;
-        this.wrapper = $(options.selector);
+        this.$el = $('</div>');
         this.outputs = [];
         this.collapsed = false;
         this.scrolled = false;
@@ -42,21 +41,21 @@ define([
      * Class prototypes
      **/
 
-    OutputArea.prototype.create_elements = function () {
-        this.outputframe = $('<iframe src="/outputframe"></iframe>');
+    OutputAreaFrame.prototype.create_elements = function () {
+        this.outputframe = $('<iframe src="/outputarea"></iframe>');
         this.collapse_button = $("<div/>");
         this.prompt_overlay = $("<div/>");
-        this.wrapper.append(this.prompt_overlay);
-        this.wrapper.append(this.outputframe);
-        this.wrapper.append(this.collapse_button);
+        this.$el.append(this.prompt_overlay);
+        this.$el.append(this.outputframe);
+        this.$el.append(this.collapse_button);
     };
 
 
-    OutputArea.prototype.style = function () {
+    OutputAreaFrame.prototype.style = function () {
         this.collapse_button.hide();
         this.prompt_overlay.hide();
         
-        this.wrapper.addClass('output_wrapper');
+        this.$el.addClass('output_$el');
         
         this.collapse_button.addClass("btn btn-default output_collapsed");
         this.collapse_button.attr('title', 'click to expand output');
@@ -69,7 +68,7 @@ define([
     };
 
     /**
-     * Should the OutputArea scroll?
+     * Should the OutputAreaFrame scroll?
      * Returns whether the height (in lines) exceeds a threshold.
      *
      * @private
@@ -78,8 +77,8 @@ define([
      * @return {Bool}
      *
      */
-    OutputArea.prototype._should_scroll = function (lines) {
-        if (lines <=0 ){ return }
+    OutputAreaFrame.prototype._should_scroll = function (lines) {
+        if (lines <=0 ){ return; }
         if (!lines) {
             lines = 100;
         }
@@ -91,7 +90,7 @@ define([
     };
 
 
-    OutputArea.prototype.bind_events = function () {
+    OutputAreaFrame.prototype.bind_events = function () {
         var that = this;
 
         window.addEventListener('message', function(e) {
@@ -118,7 +117,7 @@ define([
             }
             // maybe scroll output,
             // if it's grown large enough and hasn't already been scrolled.
-            if ( !that.scrolled && that._should_scroll(OutputArea.auto_scroll_threshold)) {
+            if ( !that.scrolled && that._should_scroll(OutputAreaFrame.auto_scroll_threshold)) {
                 that.scroll_area();
             }
         });
@@ -128,7 +127,7 @@ define([
     };
 
 
-    OutputArea.prototype.collapse = function () {
+    OutputAreaFrame.prototype.collapse = function () {
         if (!this.collapsed) {
             this.outputframe.hide();
             this.prompt_overlay.hide();
@@ -140,7 +139,7 @@ define([
     };
 
 
-    OutputArea.prototype.expand = function () {
+    OutputAreaFrame.prototype.expand = function () {
         if (this.collapsed) {
             this.collapse_button.hide();
             this.outputframe.show();
@@ -150,7 +149,7 @@ define([
     };
 
 
-    OutputArea.prototype.toggle_output = function () {
+    OutputAreaFrame.prototype.toggle_output = function () {
         if (this.collapsed) {
             this.expand();
         } else {
@@ -159,14 +158,14 @@ define([
     };
 
 
-    OutputArea.prototype.scroll_area = function () {
+    OutputAreaFrame.prototype.scroll_area = function () {
         this.outputframe.addClass('output_scroll');
         this.prompt_overlay.attr('title', 'click to unscroll output; double click to hide');
         this.scrolled = true;
     };
 
 
-    OutputArea.prototype.unscroll_area = function () {
+    OutputAreaFrame.prototype.unscroll_area = function () {
         this.outputframe.removeClass('output_scroll');
         this.prompt_overlay.attr('title', 'click to scroll output; double click to hide');
         this.scrolled = false;
@@ -174,12 +173,12 @@ define([
 
     /**
      *
-     * Scroll OutputArea if height supperior than a threshold (in lines).
+     * Scroll OutputAreaFrame if height supperior than a threshold (in lines).
      *
      * Threshold is a maximum number of lines. If unspecified, defaults to
-     * OutputArea.minimum_scroll_threshold.
+     * OutputAreaFrame.minimum_scroll_threshold.
      *
-     * Negative threshold will prevent the OutputArea from ever scrolling.
+     * Negative threshold will prevent the OutputAreaFrame from ever scrolling.
      *
      * @method scroll_if_long
      *
@@ -187,8 +186,8 @@ define([
      * behavior undefined for value of `0`.
      *
      **/
-    OutputArea.prototype.scroll_if_long = function (lines) {
-        var n = lines | OutputArea.minimum_scroll_threshold;
+    OutputAreaFrame.prototype.scroll_if_long = function (lines) {
+        var n = lines | OutputAreaFrame.minimum_scroll_threshold;
         if(n <= 0){
             return;
         }
@@ -200,7 +199,7 @@ define([
     };
 
 
-    OutputArea.prototype.toggle_scroll = function () {
+    OutputAreaFrame.prototype.toggle_scroll = function () {
         if (this.scrolled) {
             this.unscroll_area();
         } else {
@@ -211,14 +210,14 @@ define([
 
 
     // typeset with MathJax if MathJax is available
-    OutputArea.prototype.typeset = function () {
+    OutputAreaFrame.prototype.typeset = function () {
         if (window.MathJax){
             MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
         }
     };
 
 
-    OutputArea.prototype.handle_output = function (msg) {
+    OutputAreaFrame.prototype.handle_output = function (msg) {
         // TODO: change second argument from '*' to the known
         // origin of the iframe
         this.outputframe[0].contentWindow.postMessage({
@@ -228,7 +227,7 @@ define([
     };
     
     
-    OutputArea.prototype.rename_keys = function (data, key_map) {
+    OutputAreaFrame.prototype.rename_keys = function (data, key_map) {
         var remapped = {};
         for (var key in data) {
             var new_key = key_map[key] || key;
@@ -238,7 +237,7 @@ define([
     };
 
 
-    OutputArea.output_types = [
+    OutputAreaFrame.output_types = [
         'application/javascript',
         'text/html',
         'text/markdown',
@@ -250,11 +249,11 @@ define([
         'text/plain'
     ];
 
-    OutputArea.prototype.validate_output = function (json) {
+    OutputAreaFrame.prototype.validate_output = function (json) {
         // scrub invalid outputs
         // TODO: right now everything is a string, but JSON really shouldn't be.
         // nbformat 4 will fix that.
-        $.map(OutputArea.output_types, function(key){
+        $.map(OutputAreaFrame.output_types, function(key){
             if (json[key] !== undefined && typeof json[key] !== 'string') {
                 console.log("Invalid type for " + key, json[key]);
                 delete json[key];
@@ -263,7 +262,7 @@ define([
         return json;
     };
     
-    OutputArea.prototype.append_output = function (json) {
+    OutputAreaFrame.prototype.append_output = function (json) {
         this.expand();
         
         // validate output data types
@@ -306,7 +305,7 @@ define([
     };
 
 
-    OutputArea.prototype.create_output_area = function () {
+    OutputAreaFrame.prototype.create_output_area = function () {
         var oa = $("<div/>").addClass("output_area");
         if (this.prompt_area) {
             oa.append($('<div/>').addClass('prompt'));
@@ -325,7 +324,7 @@ define([
         return metadata[key];
     }
 
-    OutputArea.prototype.create_output_subarea = function(md, classes, mime) {
+    OutputAreaFrame.prototype.create_output_subarea = function(md, classes, mime) {
         var subarea = $('<div/>').addClass('output_subarea').addClass(classes);
         if (_get_metadata_key(md, 'isolated', mime)) {
             // Create an iframe to isolate the subarea from the rest of the
@@ -369,7 +368,7 @@ define([
     };
 
 
-    OutputArea.prototype._append_javascript_error = function (err, element) {
+    OutputAreaFrame.prototype._append_javascript_error = function (err, element) {
         // display a message when a javascript error occurs in display output
         var msg = "Javascript error adding output!";
         if ( element === undefined ) return;
@@ -379,7 +378,7 @@ define([
             .append($('<div/>').text('See your browser Javascript console for more details.').addClass('js-error'));
     };
     
-    OutputArea.prototype._safe_append = function (toinsert) {
+    OutputAreaFrame.prototype._safe_append = function (toinsert) {
         // safely append an item to the document
         // this is an object created by user code,
         // and may have errors, which should not be raised
@@ -399,7 +398,7 @@ define([
     };
 
 
-    OutputArea.prototype.append_execute_result = function (json) {
+    OutputAreaFrame.prototype.append_execute_result = function (json) {
         var n = json.prompt_number || ' ';
         var toinsert = this.create_output_area();
         if (this.prompt_area) {
@@ -419,7 +418,7 @@ define([
     };
 
 
-    OutputArea.prototype.append_error = function (json) {
+    OutputAreaFrame.prototype.append_error = function (json) {
         var tb = json.traceback;
         if (tb !== undefined && tb.length > 0) {
             var s = '';
@@ -429,7 +428,7 @@ define([
             }
             s = s + '\n';
             var toinsert = this.create_output_area();
-            var append_text = OutputArea.append_map['text/plain'];
+            var append_text = OutputAreaFrame.append_map['text/plain'];
             if (append_text) {
                 append_text.apply(this, [s, {}, toinsert]).addClass('output_error');
             }
@@ -438,7 +437,7 @@ define([
     };
 
 
-    OutputArea.prototype.append_stream = function (json) {
+    OutputAreaFrame.prototype.append_stream = function (json) {
         // temporary fix: if stream undefined (json file written prior to this patch),
         // default to most likely stdout:
         if (json.stream === undefined){
@@ -471,7 +470,7 @@ define([
 
         // If we got here, attach a new div
         var toinsert = this.create_output_area();
-        var append_text = OutputArea.append_map['text/plain'];
+        var append_text = OutputAreaFrame.append_map['text/plain'];
         if (append_text) {
             append_text.apply(this, [text, {}, toinsert]).addClass("output_stream " + subclass);
         }
@@ -479,7 +478,7 @@ define([
     };
 
 
-    OutputArea.prototype.append_display_data = function (json, handle_inserted) {
+    OutputAreaFrame.prototype.append_display_data = function (json, handle_inserted) {
         var toinsert = this.create_output_area();
         if (this.append_mime_type(json, toinsert, handle_inserted)) {
             this._safe_append(toinsert);
@@ -493,20 +492,20 @@ define([
     };
 
 
-    OutputArea.safe_outputs = {
+    OutputAreaFrame.safe_outputs = {
         'text/plain' : true,
         'text/latex' : true,
         'image/png' : true,
         'image/jpeg' : true
     };
     
-    OutputArea.prototype.append_mime_type = function (json, element, handle_inserted) {
-        for (var i=0; i < OutputArea.display_order.length; i++) {
-            var type = OutputArea.display_order[i];
-            var append = OutputArea.append_map[type];
+    OutputAreaFrame.prototype.append_mime_type = function (json, element, handle_inserted) {
+        for (var i=0; i < OutputAreaFrame.display_order.length; i++) {
+            var type = OutputAreaFrame.display_order[i];
+            var append = OutputAreaFrame.append_map[type];
             if ((json[type] !== undefined) && append) {
                 var value = json[type];
-                if (!this.trusted && !OutputArea.safe_outputs[type]) {
+                if (!this.trusted && !OutputAreaFrame.safe_outputs[type]) {
                     // not trusted, sanitize HTML
                     if (type==='text/html' || type==='text/svg') {
                         value = security.sanitize_html(value);
@@ -525,7 +524,7 @@ define([
                 if (['image/png', 'image/jpeg'].indexOf(type) < 0 && handle_inserted !== undefined) {
                     setTimeout(handle_inserted, 0);
                 }
-                this.events.trigger('output_appended.OutputArea', [type, value, md, toinsert]);
+                this.events.trigger('output_appended.OutputAreaFrame', [type, value, md, toinsert]);
                 return toinsert;
             }
         }
@@ -621,7 +620,7 @@ define([
         return toinsert;
     };
 
-    OutputArea.prototype._dblclick_to_reset_size = function (img, immediately, resize_parent) {
+    OutputAreaFrame.prototype._dblclick_to_reset_size = function (img, immediately, resize_parent) {
         // Add a resize handler to an element
         //
         // img: jQuery element
@@ -642,7 +641,7 @@ define([
                 autoHide: true
             });
             img.dblclick(function () {
-                // resize wrapper & image together for some reason:
+                // resize $el & image together for some reason:
                 img.height(h0);
                 img.width(w0);
                 if (resize_parent === undefined || resize_parent) {
@@ -725,7 +724,7 @@ define([
     };
 
 
-    OutputArea.prototype.append_raw_input = function (msg) {
+    OutputAreaFrame.prototype.append_raw_input = function (msg) {
         var that = this;
         this.expand();
         var content = msg.content;
@@ -771,7 +770,7 @@ define([
         raw_input.focus();
     };
 
-    OutputArea.prototype._submit_raw_input = function (evt) {
+    OutputAreaFrame.prototype._submit_raw_input = function (evt) {
         var container = this.outputframe.find("div.raw_input_container");
         var theprompt = container.find("span.raw_input_prompt");
         var theinput = container.find("input.raw_input");
@@ -794,7 +793,7 @@ define([
     };
 
 
-    OutputArea.prototype.handle_clear_output = function (msg) {
+    OutputAreaFrame.prototype.handle_clear_output = function (msg) {
         // msg spec v4 had stdout, stderr, display keys
         // v4.1 replaced these with just wait
         // The default behavior is the same (stdout=stderr=display=True, wait=False),
@@ -804,7 +803,7 @@ define([
     };
 
 
-    OutputArea.prototype.clear_output = function(wait) {
+    OutputAreaFrame.prototype.clear_output = function(wait) {
         this.outputframe[0].contentWindow.postMessage({
             'type': 'clear_output',
             'data': wait
@@ -814,7 +813,7 @@ define([
 
     // JSON serialization
 
-    OutputArea.prototype.fromJSON = function (outputs) {
+    OutputAreaFrame.prototype.fromJSON = function (outputs) {
         var len = outputs.length;
         var data;
 
@@ -835,8 +834,8 @@ define([
             if (msg_type === "display_data" || msg_type === "execute_result") {
                 // convert short keys to mime keys
                 // TODO: remove mapping of short keys when we update to nbformat 4
-                 data = this.rename_keys(data, OutputArea.mime_map_r);
-                 data.metadata = this.rename_keys(data.metadata, OutputArea.mime_map_r);
+                 data = this.rename_keys(data, OutputAreaFrame.mime_map_r);
+                 data.metadata = this.rename_keys(data.metadata, OutputAreaFrame.mime_map_r);
                  // msg spec JSON is an object, nbformat v3 JSON is a JSON string
                  if (data["application/json"] !== undefined && typeof data["application/json"] === 'string') {
                      data["application/json"] = JSON.parse(data["application/json"]);
@@ -848,7 +847,7 @@ define([
     };
 
 
-    OutputArea.prototype.toJSON = function () {
+    OutputAreaFrame.prototype.toJSON = function () {
         var outputs = [];
         var len = this.outputs.length;
         var data;
@@ -857,8 +856,8 @@ define([
             var msg_type = data.output_type;
             if (msg_type === "display_data" || msg_type === "execute_result") {
                   // convert mime keys to short keys
-                 data = this.rename_keys(data, OutputArea.mime_map);
-                 data.metadata = this.rename_keys(data.metadata, OutputArea.mime_map);
+                 data = this.rename_keys(data, OutputAreaFrame.mime_map);
+                 data.metadata = this.rename_keys(data.metadata, OutputAreaFrame.mime_map);
                  // msg spec JSON is an object, nbformat v3 JSON is a JSON string
                  if (data.json !== undefined && typeof data.json !== 'string') {
                      data.json = JSON.stringify(data.json);
@@ -885,7 +884,7 @@ define([
      **/
 
     /**
-     * Threshold to trigger autoscroll when the OutputArea is resized,
+     * Threshold to trigger autoscroll when the OutputAreaFrame is resized,
      * typically when new outputs are added.
      *
      * Behavior is undefined if autoscroll is lower than minimum_scroll_threshold,
@@ -896,10 +895,10 @@ define([
      * @default 100
      *
      **/
-    OutputArea.auto_scroll_threshold = 100;
+    OutputAreaFrame.auto_scroll_threshold = 100;
 
     /**
-     * Lower limit (in lines) for OutputArea to be made scrollable. OutputAreas
+     * Lower limit (in lines) for OutputAreaFrame to be made scrollable. OutputAreas
      * shorter than this are never scrolled.
      *
      * @property minimum_scroll_threshold
@@ -907,11 +906,11 @@ define([
      * @default 20
      *
      **/
-    OutputArea.minimum_scroll_threshold = 20;
+    OutputAreaFrame.minimum_scroll_threshold = 20;
 
 
 
-    OutputArea.mime_map = {
+    OutputAreaFrame.mime_map = {
         "text/plain" : "text",
         "text/html" : "html",
         "image/svg+xml" : "svg",
@@ -922,7 +921,7 @@ define([
         "application/javascript" : "javascript",
     };
 
-    OutputArea.mime_map_r = {
+    OutputAreaFrame.mime_map_r = {
         "text" : "text/plain",
         "html" : "text/html",
         "svg" : "image/svg+xml",
@@ -933,7 +932,7 @@ define([
         "javascript" : "application/javascript",
     };
 
-    OutputArea.display_order = [
+    OutputAreaFrame.display_order = [
         'application/javascript',
         'text/html',
         'text/markdown',
@@ -945,7 +944,7 @@ define([
         'text/plain'
     ];
 
-    OutputArea.append_map = {
+    OutputAreaFrame.append_map = {
         "text/plain" : append_text,
         "text/html" : append_html,
         "text/markdown": append_markdown,
@@ -958,7 +957,7 @@ define([
     };
 
     // For backwards compatability.
-    IPython.OutputArea = OutputArea;
+    IPython.OutputAreaFrame = OutputAreaFrame;
 
-    return {'OutputArea': OutputArea};
+    return {'OutputAreaFrame': OutputAreaFrame};
 });
