@@ -16,6 +16,14 @@ define([
         }, '*');
     };
 
+    WidgetAreaFrame.prototype.display = function(view) {
+        // TODO: Set * to the known origin.
+        this.iframe[0].contentWindow.postMessage({
+            'type': 'display',
+            'view': 'view'
+        }, '*');
+    };
+
     return {
         'WidgetAreaFrame': WidgetAreaFrame,
     };
