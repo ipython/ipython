@@ -537,13 +537,7 @@ class NotebookApp(BaseIPythonApplication):
                 return url
         
         # no local mathjax, serve from CDN
-        if self.certfile:
-            # HTTPS: load from Rackspace CDN, because SSL certificate requires it
-            host = u"https://c328740.ssl.cf1.rackcdn.com"
-        else:
-            host = u"http://cdn.mathjax.org"
-        
-        url = host + u"/mathjax/latest/MathJax.js"
+        url = u"//cdn.mathjax.org/mathjax/latest/MathJax.js"
         self.log.info("Using MathJax from CDN: %s", url)
         return url
     
