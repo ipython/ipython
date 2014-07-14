@@ -17,6 +17,7 @@ define([
     'notebook/js/celltoolbarpresets/default',
     'notebook/js/celltoolbarpresets/rawcell',
     'notebook/js/celltoolbarpresets/slideshow',
+    'widgets/js/manager_frame'
 ], function (
     IPython, 
     $, 
@@ -32,7 +33,8 @@ define([
     tooltip,
     default_celltoolbar,
     rawcell_celltoolbar,
-    slideshow_celltoolbar
+    slideshow_celltoolbar,
+    manager_frame
     ) {
 
     var Notebook = function (selector, options) {
@@ -160,6 +162,9 @@ define([
         });
         this.element.append(this.container);
         this.container.append(end_space);
+
+        this.manager_frame = manager_frame.WidgetManagerFrame();
+        this.container.append(this.manager_frame.$el);
     };
 
     /**
@@ -1522,6 +1527,9 @@ define([
                 cell.set_kernel(this.session.kernel);
             }
         }
+
+        // Create widget manager with kernel's comm manager.
+        this.manager_frame.init(this.kernel.comm_manager, this);
     };
     
     /**

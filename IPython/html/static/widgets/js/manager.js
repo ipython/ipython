@@ -10,13 +10,12 @@ define([
     //--------------------------------------------------------------------
     // WidgetManager class
     //--------------------------------------------------------------------
-    var WidgetManager = function (comm_manager, notebook) {
+    var WidgetManager = function (comm_manager, get_msg_cell) {
         // Public constructor
         WidgetManager._managers.push(this);
 
         // Attach a comm manager to the 
-        this.keyboard_manager = notebook.keyboard_manager;
-        this.notebook = notebook;
+        this.get_msg_cell = get_msg_cell;
         this.comm_manager = comm_manager;
         this._models = {}; /* Dictionary of model ids and model instances */
 
@@ -66,26 +65,11 @@ define([
             if (view === null) {
                 console.error("View creation failed", model);
             }
-            this._handle_display_view(view);
-            if (cell.widget_subarea) {
-                cell.widget_subarea.append(view.$el);
+
+            if (cell.widgets) {
+                cell.widgets.display(view);
             }
             view.trigger('displayed');
-        }
-    };
-
-    WidgetManager.prototype._handle_display_view = function (view) {
-        // Have the IPython keyboard manager disable its event
-        // handling so the widget can capture keyboard input.
-        // Note, this is only done on the outer most widgets.
-        if (this.keyboard_manager) {
-            this.keyboard_manager.register_events(view.$el);
-        
-        if (view.additional_elements) {
-            for (var i = 0; i < view.additional_elements.length; i++) {
-                    this.keyboard_manager.register_events(view.additional_elements[i]);
-            }
-        } 
         }
     };
 
@@ -115,8 +99,8 @@ define([
     WidgetManager.prototype.get_msg_cell = function (msg_id) {
         var cell = null;
         // First, check to see if the msg was triggered by cell execution.
-        if (this.notebook) {
-            cell = this.notebook.get_msg_cell(msg_id);
+        if (this.get_msg_cell) {
+            cell = this.get_msg_cell(msg_id);
         }
         if (cell !== null) {
             return cell;

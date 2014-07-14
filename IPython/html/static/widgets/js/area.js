@@ -40,6 +40,7 @@ require([
         if (e.data.type == 'display') {
             this.widget_area.show();
             var view = e.data.view;
+            this.widget_subarea.append(view.$el);
         } else if (e.data.type == 'clear_output') {
             this.widget_subarea.html('');
             this.widget_subarea.height('');
