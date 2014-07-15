@@ -121,6 +121,7 @@ define([
         this.notebook_name_blacklist_re = /[\/\\:]/;
         this.nbformat = 3; // Increment this when changing the nbformat
         this.nbformat_minor = 0; // Increment this when changing the nbformat
+        this.codemirror_mode = 'ipython'
         this.style();
         this.create_elements();
         this.bind_events();
@@ -1498,6 +1499,35 @@ define([
      */
     Notebook.prototype.cell_toggle_line_numbers = function() {
         this.get_selected_cell().toggle_line_numbers();
+    };
+    
+    /**
+     * Set the codemirror mode for all code cells, including the default for
+     * new code cells.
+     * 
+     * @method set_codemirror_mode
+     */
+    Notebook.prototype.set_codemirror_mode = function(newmode){
+        if (newmode === this.codemirror_mode) {
+            return;
+        }
+        this.codemirror_mode = newmode;
+        IPython.CodeCell.options_default.cm_config.mode = newmode;
+        modename = newmode.name || newmode
+
+        CodeMirror.requireMode(modename, function(){
+            cells = IPython.notebook.get_cells();
+            for(var i in cells){
+                c = cells[i];
+                if (c.cell_type === 'code'){
+                    c.code_mirror.setOption('mode', newmode);
+                    // This is currently redundant, because cm_config ends up as
+                    // codemirror's own .options object, but I don't want to
+                    // rely on that.
+                    c.cm_config.mode = newmode;
+                }
+            }
+        })
     };
 
     // Session related things
