@@ -10,19 +10,20 @@ define([
     //--------------------------------------------------------------------
     // WidgetManager class
     //--------------------------------------------------------------------
-    var WidgetManager = function (comm_manager, get_msg_cell) {
+    var WidgetManager = function (options) {
         // Public constructor
         WidgetManager._managers.push(this);
 
-        // Attach a comm manager to the 
-        this.get_msg_cell = get_msg_cell;
-        this.comm_manager = comm_manager;
+        this.register_target = options.register_target;
+        this.get_msg_cell = options.get_msg_cell;
+        this.get_widget_msg_cell = options.get_widget_msg_cell;
+
         this._models = {}; /* Dictionary of model ids and model instances */
 
         // Register already-registered widget model types with the comm manager.
         var that = this;
         _.each(WidgetManager._model_types, function(model_type, model_name) {
-            that.comm_manager.register_target(model_name, $.proxy(that._handle_comm_open, that));
+            that.register_target(model_name, $.proxy(that._handle_comm_open, that));
         });
     };
 
@@ -40,8 +41,8 @@ define([
         // Register the widget with the comm manager.  Make sure to pass this object's context
         // in so `this` works in the call back.
         _.each(WidgetManager._managers, function(instance, i) {
-            if (instance.comm_manager !== null) {
-                instance.comm_manager.register_target(model_name, $.proxy(instance._handle_comm_open, instance));
+            if (instance.register_target !== null) {
+                instance.register_target(model_name, $.proxy(instance._handle_comm_open, instance));
             }
         });
     };
@@ -109,18 +110,8 @@ define([
         // for the message.  get_cell callbacks are registered for
         // widget messages, so this block is actually checking to see if the
         // message was triggered by a widget.
-        var kernel = this.comm_manager.kernel;
-        if (kernel) {
-            var callbacks = kernel.get_callbacks_for_msg(msg_id);
-            if (callbacks && callbacks.iopub &&
-                callbacks.iopub.get_cell !== undefined) {
-                return callbacks.iopub.get_cell();
-            }
-        }
-        
-        // Not triggered by a cell or widget (no get_cell callback 
-        // exists).
-        return null;
+        cell = this.get_widget_msg_cell(msg_id);
+        return cell;
     };
 
     WidgetManager.prototype.callbacks = function (view) {

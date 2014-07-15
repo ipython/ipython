@@ -19,8 +19,8 @@ require([
      */
 
     var OutputArea = function (element) {
-        this.communicator = new frame.FrameCommunicator(parent);
         this.element = element;
+        this.communicator = new frame.FrameCommunicator(parent);
         this.outputs = [];
         this.bind_events();
 
@@ -962,6 +962,7 @@ require([
     // For backwards compatability.
     IPython.OutputArea = OutputArea;
 
-    var output_area = new OutputArea($('#output_frame'));
+    $('#outputarea').append($('<div>&nbsp;</div>'));
+    var output_area = new OutputArea($('#outputarea'));
     return {'OutputArea': OutputArea};
 });
