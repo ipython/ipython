@@ -347,6 +347,11 @@ define([
             }
         }
         this.metadata.kernelspec = tostore;
+        
+        // Update the codemirror mode for code cells
+        if (tostore.codemirror_mode) {
+            this.set_codemirror_mode(tostore.codemirror_mode);
+        }
     }
 
     // Cell indexing, retrieval, etc.
@@ -1775,6 +1780,13 @@ define([
         this.metadata = content.metadata;
         this.notebook_name = data.name;
         var trusted = true;
+        
+        // Set the default codemirror mode before we load the cells
+        var cm_mode = (this.metadata.kernelspec || {}).codemirror_mode;
+        if (cm_mode) {
+            this.set_codemirror_mode(cm_mode);
+        }
+        
         // Only handle 1 worksheet for now.
         var worksheet = content.worksheets[0];
         if (worksheet !== undefined) {
