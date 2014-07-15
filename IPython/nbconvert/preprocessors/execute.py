@@ -13,7 +13,7 @@ except ImportError:
 
 from IPython.utils.traitlets import List, Unicode
 
-from IPython.nbformat.current import reads, writes, new_output
+from IPython.nbformat.current import reads, writes, output_from_msg
 from .base import Preprocessor
 from IPython.utils.traitlets import Integer
 
@@ -96,39 +96,19 @@ class ExecutePreprocessor(Preprocessor):
                     break
                 else:
                     continue
-            elif msg_type in {'execute_input'}:
+            elif msg_type == 'execute_input':
                 continue
             elif msg_type == 'clear_output':
                 outs = []
                 continue
-
-            # set the prompt number for the input and the output
-            if msg_type == 'execute_result':
+            elif msg_type == 'execute_result':
                 cell['prompt_number'] = content['execution_count']
-                out = new_output(output_type=msg_type,
-                    metadata=content['metadata'],
-                    mime_bundle=content['data'],
-                    prompt_number=content['execution_count'],
-                )
 
-            elif msg_type == 'stream':
-                out = new_output(output_type=msg_type,
-                    name=content['name'],
-                    data=content['data'],
-                )
-            elif msg_type == 'display_data':
-                out = new_output(output_type=msg_type,
-                    metadata=content['metadata'],
-                    mime_bundle=content['data'],
-                )
-            elif msg_type == 'error':
-                out = new_output(output_type=msg_type,
-                    ename=content['ename'],
-                    evalue=content['evalue'],
-                    traceback=content['traceback'],
-                )
-            else:
+            try:
+                out = output_from_msg(msg)
+            except ValueError:
                 self.log.error("unhandled iopub msg: " + msg_type)
+            else:
+                outs.append(out)
 
-            outs.append(out)
         return outs

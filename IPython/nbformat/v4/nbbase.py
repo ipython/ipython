@@ -16,10 +16,12 @@ nbformat = 4
 nbformat_minor = 0
 nbformat_schema = 'nbformat.v4.schema.json'
 
+
 def validate(node, ref=None):
     """validate a v4 node"""
     from ..current import validate
     return validate(node, ref=ref, version=nbformat)
+
 
 class NotebookNode(Struct):
     pass
@@ -49,6 +51,51 @@ def new_output(output_type, mime_bundle=None, **kwargs):
         output.setdefault('text', '')
     validate(output, output_type)
     return output
+
+
+def output_from_msg(msg):
+    """Create a NotebookNode for an output from a kernel's IOPub message.
+
+    Returns
+    -------
+
+    NotebookNode: the output as a notebook node.
+
+    Raises
+    ------
+
+    ValueError: if the message is not an output message.
+
+    """
+    msg_type = msg['header']['msg_type']
+    content = msg['content']
+
+    if msg_type == 'execute_result':
+        return new_output(output_type=msg_type,
+            metadata=content['metadata'],
+            mime_bundle=content['data'],
+            prompt_number=content['execution_count'],
+        )
+
+    elif msg_type == 'stream':
+        return new_output(output_type=msg_type,
+            name=content['name'],
+            data=content['data'],
+        )
+    elif msg_type == 'display_data':
+        return new_output(output_type=msg_type,
+            metadata=content['metadata'],
+            mime_bundle=content['data'],
+        )
+    elif msg_type == 'error':
+        return new_output(output_type=msg_type,
+            ename=content['ename'],
+            evalue=content['evalue'],
+            traceback=content['traceback'],
+        )
+    else:
+        raise ValueError("Unrecognized output msg type: %r" % msg_type)
+
 
 def new_code_cell(source='', **kwargs):
     """Create a new code cell"""

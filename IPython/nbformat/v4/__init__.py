@@ -7,7 +7,7 @@ from .nbbase import (
     NotebookNode, from_dict,
     nbformat, nbformat_minor, nbformat_schema,
     new_code_cell, new_heading_cell, new_markdown_cell, new_notebook,
-    new_output,
+    new_output, output_from_msg,
 )
 
 from .nbjson import reads as reads_json, writes as writes_json
