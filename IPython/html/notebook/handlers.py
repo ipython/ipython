@@ -1,31 +1,17 @@
-"""Tornado handlers for the live notebook view.
+"""Tornado handlers for the live notebook view."""
 
-Authors:
-
-* Brian Granger
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import os
 from tornado import web
 HTTPError = web.HTTPError
 
-from ..base.handlers import IPythonHandler, notebook_path_regex, path_regex
-from ..utils import url_path_join, url_escape
-
-#-----------------------------------------------------------------------------
-# Handlers
-#-----------------------------------------------------------------------------
+from ..base.handlers import (
+    IPythonHandler, FilesRedirectHandler,
+    notebook_path_regex, path_regex,
+)
+from ..utils import url_escape
 
 
 class NotebookHandler(IPythonHandler):
@@ -53,33 +39,6 @@ class NotebookHandler(IPythonHandler):
             )
         )
 
-class NotebookRedirectHandler(IPythonHandler):
-    def get(self, path=''):
-        cm = self.contents_manager
-        if cm.path_exists(path):
-            # it's a *directory*, redirect to /tree
-            url = url_path_join(self.base_url, 'tree', path)
-        else:
-            orig_path = path
-            # otherwise, redirect to /files
-            parts = path.split('/')
-            path = '/'.join(parts[:-1])
-            name = parts[-1]
-
-            if not cm.file_exists(name=name, path=path) and 'files' in parts:
-                # redirect without files/ iff it would 404
-                # this preserves pre-2.0-style 'files/' links
-                self.log.warn("Deprecated files/ URL: %s", orig_path)
-                parts.remove('files')
-                path = '/'.join(parts[:-1])
-
-            if not cm.file_exists(name=name, path=path):
-                raise web.HTTPError(404)
-            
-            url = url_path_join(self.base_url, 'files', path, name)
-        url = url_escape(url)
-        self.log.debug("Redirecting %s to %s", self.request.path, url)
-        self.redirect(url)
 
 #-----------------------------------------------------------------------------
 # URL to handler mappings
@@ -88,6 +47,6 @@ class NotebookRedirectHandler(IPythonHandler):
 
 default_handlers = [
     (r"/notebooks%s" % notebook_path_regex, NotebookHandler),
-    (r"/notebooks%s" % path_regex, NotebookRedirectHandler),
+    (r"/notebooks%s" % path_regex, FilesRedirectHandler),
 ]
 
