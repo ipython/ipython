@@ -3,18 +3,14 @@
 
 require([
     "widgets/js/init",
-], function(widgetmanager) { 
+    "base/js/frame"
+], function(widgetmanager, frame) { 
+    var communicator = new frame.FrameCommunicator(parent);
     var widget_manager = null;
-    
-    // Register message listener.
-    window.addEventListener('message', function(e){
-        // Handle when a window message is recieved.
-        
-        // TODO: check e.origin AND e.source
-        if (e.data.type == 'init') {
-            widget_manager = new widgetmanager.WidgetManager(
-                e.data.comm_manager, 
-                e.data.get_msg_cell);
-        }
+
+    communicator.on_msg(function (msg, respond) {
+        widget_manager = new widgetmanager.WidgetManager(
+            msg.comm_manager, 
+            msg.get_msg_cell);
     });
 });

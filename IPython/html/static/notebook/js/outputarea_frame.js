@@ -8,7 +8,8 @@ define([
     'base/js/security',
     'base/js/keyboard',
     'notebook/js/mathjaxutils',
-], function(IPython, $, utils, security, keyboard, mathjaxutils) {
+    'base/js/frame'
+], function(IPython, $, utils, security, keyboard, mathjaxutils, frame) {
     "use strict";
 
     /**
@@ -20,7 +21,7 @@ define([
     var OutputAreaFrame = function (options) {
         this.events = options.events;
         this.keyboard_manager = options.keyboard_manager;
-        this.$el = $('</div>');
+        this.$el = $('<div />');
         this.outputs = [];
         this.collapsed = false;
         this.scrolled = false;
@@ -42,7 +43,7 @@ define([
      **/
 
     OutputAreaFrame.prototype.create_elements = function () {
-        this.outputframe = $('<iframe src="/outputarea"></iframe>');
+        this.outputframe = $('<iframe />').attr('src', '/outputarea');
         this.collapse_button = $("<div/>");
         this.prompt_overlay = $("<div/>");
         this.$el.append(this.prompt_overlay);
@@ -93,20 +94,15 @@ define([
     OutputAreaFrame.prototype.bind_events = function () {
         var that = this;
 
-        window.addEventListener('message', function(e) {
-            // TODO: check origin of message
-            if (e.source != that.outputframe[0].contentWindow) {
-                return;
+        this.communicator = new frame.FrameCommunicator(this.outputframe, true);
+        this.communicator.on_msg(function (msg, respond) {
+            if (msg.type == 'event') {
+                that.events.trigger(msg.type, msg.data);
+            } else if (msg.type == 'unscroll_area') {
+                that.unscroll_area();
             }
-
-            if (e.data['type'] == 'event') {
-                var data = e.data['data'];
-                that.events.trigger(data['type'], data['data']);
-            } else if (e.data['type'] == 'unscroll_area') {
-                that.unscroll_area()
-            }
-
         });
+
         this.prompt_overlay.dblclick(function () { that.toggle_output(); });
         this.prompt_overlay.click(function () { that.toggle_scroll(); });
 
@@ -220,10 +216,10 @@ define([
     OutputAreaFrame.prototype.handle_output = function (msg) {
         // TODO: change second argument from '*' to the known
         // origin of the iframe
-        this.outputframe[0].contentWindow.postMessage({
+        this.communicator.msg({
             'type': 'handle_output',
             'data': msg
-        }, '*');
+        });
     };
     
     
@@ -804,10 +800,10 @@ define([
 
 
     OutputAreaFrame.prototype.clear_output = function(wait) {
-        this.outputframe[0].contentWindow.postMessage({
+        this.communicator.msg({
             'type': 'clear_output',
             'data': wait
-        }, '*');
+        });
     };
 
 

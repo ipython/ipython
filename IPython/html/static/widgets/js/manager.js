@@ -132,10 +132,11 @@ define([
             var cell = view.options.cell;
             var handle_output = null;
             var handle_clear_output = null;
-            if (cell.output_area) {
-                handle_output = $.proxy(cell.output_area.handle_output, cell.output_area);
-                handle_clear_output = $.proxy(cell.output_area.handle_clear_output, cell.output_area);
-            }
+            // TODO: WIRE UP CALLBACKS SOME HOW!!
+            // if (cell.output_area) {
+            //     handle_output = $.proxy(cell.output_area.handle_output, cell.output_area);
+            //     handle_clear_output = $.proxy(cell.output_area.handle_clear_output, cell.output_area);
+            // }
 
             // Create callback dict using what is known
             var that = this;

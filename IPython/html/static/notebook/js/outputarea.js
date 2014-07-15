@@ -8,7 +8,8 @@ require([
     'base/js/security',
     'base/js/keyboard',
     'notebook/js/mathjaxutils',
-], function(IPython, $, utils, security, keyboard, mathjaxutils) {
+    'base/js/frame'
+], function(IPython, $, utils, security, keyboard, mathjaxutils, frame) {
     "use strict";
 
     /**
@@ -18,17 +19,19 @@ require([
      */
 
     var OutputArea = function (element) {
+        this.communicator = new frame.FrameCommunicator(parent);
         this.element = element;
         this.outputs = [];
         this.bind_events();
 
         // TODO: specify origin instead of '*'
+        var that = this;
         this.events = {
             'trigger': function(type, data) {
-                window.parent.postMessage({
+                that.communicator.msg({
                     'type': 'event',
                     'data': {'type': type, 'data': data}
-                }, '*');
+                });
             }
         };
 
@@ -76,12 +79,11 @@ require([
             }
         });
 
-        window.addEventListener('message', function(e){
-            // TODO: check e.origin AND e.source
-            if (e.data['type'] == 'handle_output') {
-                that.handle_output(e.data['data']);
-            } else if (e.data['type'] == 'clear_output') {
-                that.clear_output(e.data['data']);
+        this.communicator.on_msg(function (msg, respond) {
+            if (msg.type == 'handle_output') {
+                that.handle_output(msg.data);
+            } else if (msg.type == 'clear_output') {
+                that.clear_output(msg.data);
             }
         });
     };
@@ -126,7 +128,7 @@ require([
 
 
     OutputArea.prototype.unscroll_area = function () {
-        window.parent.postMessage({'type': 'unscroll_area'}, '*');
+        this.communicator.msg({'type': 'unscroll_area'});
     };
 
     /**

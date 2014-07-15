@@ -3,13 +3,15 @@
 
 require([
     "jquery",
-], function($){
+    "base/js/frame"
+], function($, frame){
 
     var WidgetArea = function (){
         // Constructor
 
         // Register message listener.
-        window.addEventListener('message', $.proxy(this._handle_msg, this));
+        this.communicator = new frame.FrameCommunicator(parent);
+        this.communicator.on_msg($.proxy(this._handle_msg, this));
 
         // Create widget area.
         var widget_area = $('<div/>')
@@ -33,15 +35,15 @@ require([
         $('body').append(widget_area);
     };
 
-    WidgetArea.prototype._handle_msg = function(e) {
+    WidgetArea.prototype.display_view = function(view) {
+        this.widget_area.show();
+        this.widget_subarea.append(view.$el);
+    };
+
+    WidgetArea.prototype._handle_msg = function(msg, respond) {
         // Handle when a window message is recieved.
         
-        // TODO: check e.origin AND e.source
-        if (e.data.type == 'display') {
-            this.widget_area.show();
-            var view = e.data.view;
-            this.widget_subarea.append(view.$el);
-        } else if (e.data.type == 'clear_output') {
+        if (msg.type == 'clear_output') {
             this.widget_subarea.html('');
             this.widget_subarea.height('');
             this.widget_area.height('');

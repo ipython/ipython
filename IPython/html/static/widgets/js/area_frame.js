@@ -3,25 +3,21 @@
 
 define([
     "jquery",
-], function($){
+    "base/js/utils",
+    "base/js/frame"
+], function($, utils, frame){
 
     var WidgetAreaFrame = function() {
-        this.$el = $('<iframe src="/widgetarea"></iframe>');
+        var guid = utils.uuid();
+        this.name = 'widgetarea_' + guid;
+        this.$el = $('<iframe />')
+            .attr('src', '/widgetarea')
+            .attr('name', this.name);
+        this.communicator = new frame.FrameCommunicator(this.$el, true);
     };
 
     WidgetAreaFrame.prototype.clear = function() {
-        // TODO: Set * to the known origin.
-        this.$el[0].contentWindow.postMessage({
-            'type': 'clear',
-        }, '*');
-    };
-
-    WidgetAreaFrame.prototype.display = function(view) {
-        // TODO: Set * to the known origin.
-        this.$el[0].contentWindow.postMessage({
-            'type': 'display',
-            'view': 'view'
-        }, '*');
+        this.communicator.msg({type: 'clear'});
     };
 
     return {
