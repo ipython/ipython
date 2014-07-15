@@ -34,7 +34,7 @@
                     "type": "string"
                 },
                 "orig_nbformat": {
-                    "description": "Original notebook format (major number) before converting the notebook between versions.",
+                    "description": "Original notebook format (major number) before converting the notebook between versions. This should never be written to a file.",
                     "type": "integer",
                     "minimum": 1
                 }

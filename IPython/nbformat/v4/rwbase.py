@@ -75,6 +75,18 @@ def split_lines(nb):
     return nb
 
 
+def strip_transient(nb):
+    """Strip transient values that shouldn't be stored in files.
+
+    This should be called in *both* read and write.
+    """
+    nb.metadata.pop('orig_nbformat', None)
+    nb.metadata.pop('orig_nbformat_minor', None)
+    for cell in nb.cells:
+        cell.metadata.pop('trusted', None)
+    return nb
+
+
 class NotebookReader(object):
     """A class for reading notebooks."""
 

@@ -10,7 +10,7 @@ from IPython.utils import py3compat
 
 from .nbbase import from_dict
 from .rwbase import (
-    NotebookReader, NotebookWriter, rejoin_lines, split_lines
+    NotebookReader, NotebookWriter, rejoin_lines, split_lines, strip_transient
 )
 
 
@@ -30,7 +30,9 @@ class JSONReader(NotebookReader):
         return nb
 
     def to_notebook(self, d, **kwargs):
-        return rejoin_lines(from_dict(d))
+        nb = rejoin_lines(from_dict(d))
+        nb = strip_transient(nb)
+        return nb
 
 
 class JSONWriter(NotebookWriter):
@@ -40,8 +42,11 @@ class JSONWriter(NotebookWriter):
         kwargs['indent'] = 1
         kwargs['sort_keys'] = True
         kwargs['separators'] = (',',': ')
+        # don't modify in-memory dict
+        nb = copy.deepcopy(nb)
         if kwargs.pop('split_lines', True):
-            nb = split_lines(copy.deepcopy(nb))
+            nb = split_lines(nb)
+        nb = strip_transient(nb)
         return py3compat.str_to_unicode(json.dumps(nb, **kwargs), 'utf-8')
 
 
