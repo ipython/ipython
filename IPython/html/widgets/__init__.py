@@ -2,7 +2,7 @@ from .widget import Widget, DOMWidget, CallbackDispatcher
 
 from .widget_bool import CheckboxWidget, ToggleButtonWidget
 from .widget_button import ButtonWidget
-from .widget_container import ContainerWidget, PopupWidget, FlexContainerWidget, HBoxContainerWidget, VBoxContainerWidget
+from .widget_container import ContainerWidget, PopupWidget, FlexContainerWidget, HBoxWidget, VBoxWidget
 from .widget_float import FloatTextWidget, BoundedFloatTextWidget, FloatSliderWidget, FloatProgressWidget
 from .widget_image import ImageWidget
 from .widget_int import IntTextWidget, BoundedIntTextWidget, IntSliderWidget, IntProgressWidget

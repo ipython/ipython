@@ -42,14 +42,18 @@ class FlexContainerWidget(ContainerWidget):
         if self.flex != new:
             self.flex = new
 
-    _locations = ['start', 'center', 'end']
-    pack = CaselessStrEnum(values=_locations, default_value='start', allow_none=False, sync=True)
-    align = CaselessStrEnum(values=_locations, default_value='start', allow_none=False, sync=True)
+    _locations = ['start', 'center', 'end', 'baseline', 'stretch']
+    pack = CaselessStrEnum(
+        values=_locations, 
+        default_value='start', allow_none=False, sync=True)
+    align = CaselessStrEnum(
+        values=_locations, 
+        default_value='start', allow_none=False, sync=True)
 
 
-class VBoxContainerWidget(FlexContainerWidget):
+class VBoxWidget(FlexContainerWidget):
     _view_name = Unicode('VBoxContainerView', sync=True)
 
 
-class HBoxContainerWidget(FlexContainerWidget):
+class HBoxWidget(FlexContainerWidget):
     _view_name = Unicode('HBoxContainerView', sync=True)
