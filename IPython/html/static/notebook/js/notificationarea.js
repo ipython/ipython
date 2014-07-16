@@ -35,7 +35,7 @@ define([
         if( css_class == 'danger') {css_class = 'ui-state-error';}
         if( css_class == 'warning') {css_class = 'ui-state-highlight';}
         var tdiv = $('<div>')
-            .addClass('notification_widget ui-widget ui-widget-content ui-corner-all')
+            .addClass('notification_widget')
             .addClass(css_class)
             .hide()
             .text(msg);
