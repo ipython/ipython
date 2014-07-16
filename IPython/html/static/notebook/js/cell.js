@@ -6,6 +6,7 @@ define([
     'jquery',
     'base/js/utils',
 ], function(IPython, $, utils) {
+    // TODO: remove IPython dependency here 
     "use strict";
 
     // monkey patch CM to be able to syntax highlight cell magics
@@ -556,7 +557,7 @@ define([
         this.code_mirror.setOption('mode', default_mode);
     };
 
-    // Backwards compatability.
+    // Backwards compatibility.
     IPython.Cell = Cell;
 
     return {'Cell': Cell};

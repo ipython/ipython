@@ -16,6 +16,9 @@ define([
         //          events: $(Events) instance 
         //          cell: Cell instance
         //          notebook: Notebook instance 
+        //
+        //  TODO: This leaks, when cell are deleted
+        //  There is still a reference to each celltoolbars. 
         CellToolbar._instances.push(this);
         this.notebook = options.notebook;
         this.events = options.events;
