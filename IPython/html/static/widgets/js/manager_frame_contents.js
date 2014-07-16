@@ -3,8 +3,9 @@
 
 require([
     "widgets/js/init",
-    "base/js/frame"
-], function(widgetmanager, frame) { 
+    "base/js/frame",
+    "base/js/utils"
+], function(widgetmanager, frame, utils) { 
     var communicator = new frame.FrameCommunicator(parent);
     var widget_manager = null;
 
@@ -12,15 +13,15 @@ require([
 
     };
 
-    var get_msg_cell = function (msg_id) {
+    var get_msg_cell = function (msg_id, callback) {
         return CellProxy();
     };
 
-    var get_widget_msg_cell = function (msg_id) {
-
+    var get_widget_msg_cell = function (msg_id, callback) {
+        return CellProxy();
     };
 
-    var register_target = function () {
+    var register_target = function (model_name, callback) {
 
     };
 
