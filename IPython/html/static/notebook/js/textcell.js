@@ -70,7 +70,7 @@ define([
     TextCell.prototype.create_element = function () {
         Cell.prototype.create_element.apply(this, arguments);
 
-        var cell = $("<div>").addClass('cell text_cell border-box-sizing');
+        var cell = $("<div>").addClass('cell text_cell');
         cell.attr('tabindex','2');
 
         var prompt = $('<div/>').addClass('prompt input_prompt');
