@@ -18,6 +18,7 @@ require([
     'notebook/js/savewidget',
     'notebook/js/keyboardmanager',
     'notebook/js/config',
+    'custom/custom',
 ], function(
     IPython, 
     $,
@@ -113,11 +114,8 @@ require([
         // only do this once
         events.off('notebook_loaded.Notebook', first_load);
     };
-    
     events.on('notebook_loaded.Notebook', first_load);
-    events.trigger('app_initialized.NotebookApp');
-    notebook.load_notebook(common_options.notebook_name, common_options.notebook_path);
-
+    
     IPython.page = page;
     IPython.layout_manager = layout_manager;
     IPython.notebook = notebook;
@@ -132,4 +130,8 @@ require([
     IPython.save_widget = save_widget;
     IPython.config = user_config;
     IPython.tooltip = notebook.tooltip;
+
+    events.trigger('app_initialized.NotebookApp');
+    notebook.load_notebook(common_options.notebook_name, common_options.notebook_path);
+
 });

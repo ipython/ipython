@@ -14,6 +14,7 @@ require([
     'auth/js/loginwidget',
     'jqueryui',
     'bootstrap',
+    'custom/custom',
 ], function(
     IPython, 
     $, 
@@ -90,6 +91,16 @@ require([
     enable_autorefresh();
 
     page.show();
+
+    // For backwards compatability.
+    IPython.page = page;
+    IPython.notebook_list = notebook_list;
+    IPython.cluster_list = cluster_list;
+    IPython.session_list = session_list;
+    IPython.kernel_list = kernel_list;
+    IPython.login_widget = login_widget;
+    IPython.events = events;
+
     events.trigger('app_initialized.DashboardApp');
     
     // bound the upload method to the on change of the file select list
@@ -107,12 +118,4 @@ require([
         $("#tabs").find("a[href=" + window.location.hash + "]").click();
     }
 
-    // For backwards compatability.
-    IPython.page = page;
-    IPython.notebook_list = notebook_list;
-    IPython.cluster_list = cluster_list;
-    IPython.session_list = session_list;
-    IPython.kernel_list = kernel_list;
-    IPython.login_widget = login_widget;
-    IPython.events = events;
 });
