@@ -84,8 +84,8 @@ define([
         var input_area = $('<div/>').addClass('input_area');
         this.code_mirror = new CodeMirror(input_area.get(0), this.cm_config);
         // The tabindex=-1 makes this div focusable.
-        var render_area = $('<div/>').addClass('text_cell_render border-box-sizing').
-            addClass('rendered_html').attr('tabindex','-1');
+        var render_area = $('<div/>').addClass('text_cell_render rendered_html')
+            .attr('tabindex','-1');
         inner_cell.append(input_area).append(render_area);
         cell.append(inner_cell);
         this.element = cell;
