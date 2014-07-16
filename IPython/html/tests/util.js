@@ -480,7 +480,7 @@ casper.notebook_test = function(test) {
     this.then(function(){
         this.evaluate(function(){
             window.onbeforeunload = function(){};
-        });    
+        });
     });
 
     this.then(test);
@@ -546,3 +546,56 @@ casper.print_log = function () {
         this.echo('Remote message caught: ' + msg);
     });
 };
+
+casper.on("page.error", function onError(msg, trace) {
+    // show errors in the browser
+    this.echo("Page Error!");
+    for (var i = 0; i < trace.length; i++) {
+        var frame = trace[i];
+        var file = frame.file;
+        // shorten common phantomjs evaluate url
+        // this will have a different value on slimerjs
+        if (file === "phantomjs://webpage.evaluate()") {
+            file = "evaluate";
+        }
+        this.echo("line " + frame.line + " of " + file);
+        if (frame.function.length > 0) {
+            this.echo("in " + frame.function);
+        }
+    }
+    this.echo(msg);
+});
+
+
+casper.capture_log = function () {
+    // show captured errors
+    var captured_log = [];
+    var seen_errors = 0;
+    this.on('remote.message', function(msg) {
+        captured_log.push(msg);
+    });
+    
+    this.test.on("test.done", function (result) {
+        // test.done runs per-file,
+        // but suiteResults is per-suite (directory)
+        var current_errors;
+        if (this.suiteResults) {
+            // casper 1.1 has suiteResults
+            current_errors = this.suiteResults.countErrors() + this.suiteResults.countFailed();
+        } else {
+            // casper 1.0 has testResults instead
+            current_errors = this.testResults.failed;
+        }
+
+        if (current_errors > seen_errors && captured_log.length > 0) {
+            casper.echo("\nCaptured console.log:");
+            for (var i = 0; i < captured_log.length; i++) {
+                casper.echo("    " + captured_log[i]);
+            }
+        }
+        seen_errors = current_errors;
+        captured_log = [];
+    });
+};
+
+casper.capture_log();
