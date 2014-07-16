@@ -7940,21 +7940,22 @@ div.cell {
   /* Modern browsers */
   flex: none;
   border-radius: 4px;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
   border-width: thin;
   border-style: solid;
+  width: 100%;
+  padding: 5px 5px 5px 0px;
+  /* This acts as a spacer between cells, that is outside the border */
+  margin: 0px;
+  outline: none;
 }
 div.cell.selected {
   border-color: #ababab;
 }
 div.cell.edit_mode {
   border-color: green;
-}
-div.cell {
-  width: 100%;
-  padding: 5px 5px 5px 0px;
-  /* This acts as a spacer between cells, that is outside the border */
-  margin: 0px;
-  outline: none;
 }
 div.prompt {
   /* This needs to be wide enough for 3 digit prompt numbers: In[100]: */
@@ -9385,6 +9386,11 @@ body.notebook_app {
     padding-right: 0px;
   }
 }
+#ipython-main-app {
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+}
 span#notebook_name {
   height: 1em;
   line-height: 1em;
@@ -9397,6 +9403,9 @@ div#notebook_panel {
   padding: 0px;
   -webkit-box-shadow: inset 1px 4px 9px -6px rgba(0, 0, 0, 0.25);
   box-shadow: inset 1px 4px 9px -6px rgba(0, 0, 0, 0.25);
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
 }
 div#notebook {
   font-size: 14px;
@@ -9591,24 +9600,6 @@ fieldset[disabled] #kernel_selector_widget > button {
   filter: alpha(opacity=65);
   -webkit-box-shadow: none;
   box-shadow: none;
-}
-#kernel_selector_widget > button [class^="icon-"].icon-large,
-#kernel_selector_widget > button [class*=" icon-"].icon-large {
-  line-height: .9em;
-}
-#kernel_selector_widget > button [class^="icon-"].icon-spin,
-#kernel_selector_widget > button [class*=" icon-"].icon-spin {
-  display: inline-block;
-}
-#kernel_selector_widget > button [class^="icon-"].pull-left.icon-2x,
-#kernel_selector_widget > button [class*=" icon-"].pull-left.icon-2x,
-#kernel_selector_widget > button [class^="icon-"].pull-right.icon-2x,
-#kernel_selector_widget > button [class*=" icon-"].pull-right.icon-2x {
-  margin-top: .18em;
-}
-#kernel_selector_widget > button [class^="icon-"].icon-spin.icon-large,
-#kernel_selector_widget > button [class*=" icon-"].icon-spin.icon-large {
-  line-height: .8em;
 }
 #kernel_selector_widget > button:hover,
 #kernel_selector_widget > button:focus,

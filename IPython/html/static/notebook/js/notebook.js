@@ -121,8 +121,7 @@ define([
         this.notebook_name_blacklist_re = /[\/\\:]/;
         this.nbformat = 3; // Increment this when changing the nbformat
         this.nbformat_minor = 0; // Increment this when changing the nbformat
-        this.codemirror_mode = 'ipython'
-        this.style();
+        this.codemirror_mode = 'ipython';
         this.create_elements();
         this.bind_events();
         this.save_notebook = function() { // don't allow save until notebook_loaded
@@ -141,7 +140,7 @@ define([
      * @method style
      */
     Notebook.prototype.style = function () {
-        $('div#notebook').addClass('border-box-sizing');
+        console.log('Notebook.style() is now a empty function, please consider removing.');
     };
 
     /**
