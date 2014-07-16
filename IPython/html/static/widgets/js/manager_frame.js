@@ -24,7 +24,16 @@ define([
             .attr('name', 'widgetmanager');
         this.communicator = new frame.FrameCommunicator(this.$el, true);
         this.communicator.on_msg(function (msg, respond) {
+            switch (msg.type) {
+                case 'comm_send':
+                    break;
 
+                case 'register_target':
+                    break;
+
+                case 'get_msg_cell':
+                    break;
+            }
         });
     };
 

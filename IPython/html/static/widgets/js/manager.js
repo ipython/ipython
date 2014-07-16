@@ -14,10 +14,13 @@ define([
         // Public constructor
         WidgetManager._managers.push(this);
 
-        this.register_target = options.register_target;
-        this.get_msg_cell = options.get_msg_cell;
-        this.display_view = options.display_view;
-        this.show_widgetarea = options.show_widgetarea;
+        var nop = function(){};
+        this.register_target = options.register_target || nop;
+        this.display_view = options.display_view || nop;
+        this.show_widgetarea = options.show_widgetarea || nop;
+        this.get_msg_cell = options.get_msg_cell || function(msg_id, callback) {
+            callback(null);
+        };
 
         this._models = {}; /* Dictionary of model ids and model instances */
 
