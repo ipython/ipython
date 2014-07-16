@@ -42,7 +42,6 @@ require([
     ) {
     "use strict";
 
-    $('#ipython-main-app').addClass('border-box-sizing');
     $('div#notebook_panel').addClass('border-box-sizing');
 
     var common_options = {
