@@ -111,8 +111,8 @@ define(["widgets/js/manager",
 
         callbacks: function(view) {
             // Create msg callbacks for a comm msg.
-            var callbacks = this.widget_manager.callbacks(view);
-
+            var callbacks = {'view': view};
+            
             if (callbacks.iopub === undefined) {
                 callbacks.iopub = {};
             }
@@ -370,14 +370,6 @@ define(["widgets/js/manager",
             // By default, this is only called the first time the view is created
         },
 
-        show: function(){
-            // Show the widget-area
-            if (this.options && this.options.cell &&
-                this.options.cell.widget_area !== undefined) {
-                this.options.cell.widget_area.show();
-            }
-        },
-
         send: function (content) {
             // Send a custom msg associated with this view.
             this.model.send(content, this.callbacks());
@@ -398,7 +390,10 @@ define(["widgets/js/manager",
             this.model.on('change', this.update, this);
             this.model.on('msg:custom', this.on_msg, this);
             DOMWidgetView.__super__.initialize.apply(this, arguments);
-            this.on('displayed', this.show, this);
+            var that = this;
+            this.on('displayed', function() {
+                that.model.widget_manager.show_widgetarea(that);
+            });
         },
         
         on_msg: function(msg) {

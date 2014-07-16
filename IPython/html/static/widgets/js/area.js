@@ -1,6 +1,7 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
+widget_area = null;
 require([
     "jquery",
     "base/js/frame"
@@ -36,8 +37,11 @@ require([
     };
 
     WidgetArea.prototype.display_view = function(view) {
-        this.widget_area.show();
         this.widget_subarea.append(view.$el);
+    };
+
+    WidgetArea.prototype.show = function() {
+        this.widget_area.show();
     };
 
     WidgetArea.prototype._handle_msg = function(msg, respond) {
@@ -51,7 +55,5 @@ require([
         }
     };
 
-    return {
-        'WidgetArea': WidgetArea,
-    };
+    widget_area = WidgetArea();
 });

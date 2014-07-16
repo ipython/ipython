@@ -16,7 +16,8 @@ define([
 
         this.register_target = options.register_target;
         this.get_msg_cell = options.get_msg_cell;
-        this.get_widget_msg_cell = options.get_widget_msg_cell;
+        this.display_view = options.display_view;
+        this.show_widgetarea = options.show_widgetarea;
 
         this._models = {}; /* Dictionary of model ids and model instances */
 
@@ -57,21 +58,21 @@ define([
     //--------------------------------------------------------------------
     WidgetManager.prototype.display_view = function(msg, model) {
         // Displays a view for a particular model.
-        var cell = this.get_msg_cell(msg.parent_header.msg_id);
-        if (cell === null) {
-            console.log("Could not determine where the display" + 
-                " message was from.  Widget will not be displayed");
-        } else {
-            var view = this.create_view(model, {cell: cell});
-            if (view === null) {
-                console.error("View creation failed", model);
-            }
+        var that = this;
+        this.get_msg_cell(msg.parent_header.msg_id, function (cell) {
+            if (cell === null) {
+                console.log("Could not determine where the display" + 
+                    " message was from.  Widget will not be displayed");
+            } else {
+                var view = that.create_view(model, {cell: cell});
+                if (view === null) {
+                    console.error("View creation failed", model);
+                }
 
-            if (cell.widgets) {
-                cell.widgets.display(view);
+                this.display_view(cell, view);
+                view.trigger('displayed');
             }
-            view.trigger('displayed');
-        }
+        });
     };
 
     WidgetManager.prototype.create_view = function(model, options, view) {
@@ -95,57 +96,6 @@ define([
             return view;
         }
         return null;
-    };
-
-    WidgetManager.prototype.get_msg_cell = function (msg_id) {
-        var cell = null;
-        // First, check to see if the msg was triggered by cell execution.
-        if (this.get_msg_cell) {
-            cell = this.get_msg_cell(msg_id);
-        }
-        if (cell !== null) {
-            return cell;
-        }
-        // Second, check to see if a get_cell callback was defined
-        // for the message.  get_cell callbacks are registered for
-        // widget messages, so this block is actually checking to see if the
-        // message was triggered by a widget.
-        cell = this.get_widget_msg_cell(msg_id);
-        return cell;
-    };
-
-    WidgetManager.prototype.callbacks = function (view) {
-        // callback handlers specific a view
-        var callbacks = {};
-        if (view && view.options.cell) {
-
-            // Try to get output handlers
-            var cell = view.options.cell;
-            var handle_output = null;
-            var handle_clear_output = null;
-            // TODO: WIRE UP CALLBACKS SOME HOW!!
-            // if (cell.output_area) {
-            //     handle_output = $.proxy(cell.output_area.handle_output, cell.output_area);
-            //     handle_clear_output = $.proxy(cell.output_area.handle_clear_output, cell.output_area);
-            // }
-
-            // Create callback dict using what is known
-            var that = this;
-            callbacks = {
-                iopub : {
-                    output : handle_output,
-                    clear_output : handle_clear_output,
-
-                    // Special function only registered by widget messages.
-                    // Allows us to get the cell for a message so we know
-                    // where to add widgets if the code requires it.
-                    get_cell : function () {
-                        return cell;
-                    },
-                },
-            };
-        }
-        return callbacks;
     };
 
     WidgetManager.prototype.get_model = function (model_id) {
