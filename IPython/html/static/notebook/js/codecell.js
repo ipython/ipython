@@ -141,7 +141,7 @@ define([
         inner_cell.append(input_area);
         input.append(prompt).append(inner_cell);
 
-        this.widgets = new widget_area_frame.WidgetAreaFrame();
+        this.widgets = new widget_area_frame.WidgetAreaFrame(this.cell_id);
         this.output_area = new outputarea_frame.OutputAreaFrame({
             prompt_area: true, 
             events: this.events, 

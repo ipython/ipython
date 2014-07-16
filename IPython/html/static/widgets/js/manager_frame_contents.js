@@ -18,6 +18,7 @@ require([
        < comm_opened(callback_id, comm_id, msg)
        < iopub_status(callback_id, msg) 
        < new_widget_area(cell_id, frame_name)
+       < del_widget_area(cell_id)
     */
 
     var communicator = new frame.FrameCommunicator(parent);
@@ -130,6 +131,11 @@ require([
             case 'new_widget_area':
                 // msg.cell_id, msg.frame_name
                 cell_frames[msg.cell_id] = msg.frame_name;
+                break;
+
+            case 'del_widget_area':
+                // msg.cell_id
+                delete cell_frames[msg.cell_id];
                 break;
         }
     });

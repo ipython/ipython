@@ -7,8 +7,7 @@ define([
     "base/js/frame"
 ], function($, utils, frame){
 
-    var WidgetAreaFrame = function() {
-        var guid = utils.uuid();
+    var WidgetAreaFrame = function(guid) {
         this.name = 'widgetarea_' + guid;
         this.$el = $('<iframe />')
             .attr('src', '/widgetarea')
