@@ -52,7 +52,6 @@ define([
 
     MenuBar.prototype.style = function () {
         var that = this;
-        this.element.addClass('border-box-sizing');
         this.element.find("li").click(function (event, ui) {
                 // The selected cell loses focus when the menu is entered, so we
                 // re-select it upon selection.
