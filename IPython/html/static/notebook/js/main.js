@@ -42,8 +42,6 @@ require([
     ) {
     "use strict";
 
-    $('div#notebook_panel').addClass('border-box-sizing');
-
     var common_options = {
         base_url : utils.get_body_data("baseUrl"),
         ws_url : IPython.utils.get_body_data("wsUrl"),
