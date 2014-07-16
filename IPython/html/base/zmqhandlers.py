@@ -17,6 +17,7 @@ except ImportError:
 import logging
 
 import tornado
+from tornado import ioloop
 from tornado import web
 from tornado import websocket
 
@@ -103,8 +104,12 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         """
         return True
 
+# ping interval for keeping websockets alive (30 seconds)
+WS_PING_INTERVAL = 30000
 
 class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
+    ping_callback = None
+
     def set_default_headers(self):
         """Undo the set_default_headers in IPythonHandler
         
@@ -124,6 +129,16 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
         self.session = Session(config=self.config)
         self.save_on_message = self.on_message
         self.on_message = self.on_first_message
+        self.ping_callback = ioloop.PeriodicCallback(self.send_ping, WS_PING_INTERVAL)
+        self.ping_callback.start()
+
+    def send_ping(self):
+        """send a ping to keep the websocket alive"""
+        if self.stream.closed() and self.ping_callback is not None:
+            self.ping_callback.stop()
+            return
+
+        self.ping(b'')
 
     def _inject_cookie_message(self, msg):
         """Inject the first message, which is the document cookie,
