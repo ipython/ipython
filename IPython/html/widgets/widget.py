@@ -197,7 +197,7 @@ class Widget(LoggingConfigurable):
         keys = self.keys if key is None else [key]
         state = {}
         for k in keys:
-            f = self.trait_metadata(k, 'to_json')
+            f = self.trait_metadata(k, 'serialize')
             value = getattr(self, k)       
             if f is not None:
                 state[k] = f(value)
@@ -288,11 +288,11 @@ class Widget(LoggingConfigurable):
         """Called when a state is received from the front-end."""
         for name in self.keys:
             if name in sync_data:
-                f = self.trait_metadata(name, 'from_json')
+                f = self.trait_metadata(name, 'deserialize')
                 if f is not None:
                     value = f(sync_data[name])
                 else:
-                    value = self._unserialize_trait(sync_data[name])
+                    value = self._deserialize_trait(sync_data[name])
                 with self._lock_property(name, value):
                     setattr(self, name, value)
 
@@ -326,15 +326,15 @@ class Widget(LoggingConfigurable):
         else:
             return x # Value must be JSON-able
 
-    def _unserialize_trait(self, x):
+    def _deserialize_trait(self, x):
         """Convert json values to objects
 
         We explicitly support converting valid string widget UUIDs to Widget references.
         """
         if isinstance(x, dict):
-            return {k: self._unserialize_trait(v) for k, v in x.items()}
+            return {k: self._deserialize_trait(v) for k, v in x.items()}
         elif isinstance(x, (list, tuple)):
-            return [self._unserialize_trait(v) for v in x]
+            return [self._deserialize_trait(v) for v in x]
         elif isinstance(x, string_types) and x.startswith('IPY_MODEL_') and x[10:] in Widget.widgets:
             # we want to support having child widgets at any level in a hierarchy
             # trusting that a widget UUID will not appear out in the wild
