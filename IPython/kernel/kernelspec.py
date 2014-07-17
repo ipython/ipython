@@ -109,9 +109,9 @@ class KernelSpecManager(HasTraits):
             json.dump({'argv':[NATIVE_KERNEL_NAME, '-c',
                                'from IPython.kernel.zmq.kernelapp import main; main()',
                                 '-f', '{connection_file}'],
-                       'display_name': 'Python 3' if PY3 else 'Python 2',
+                       'display_name': 'IPython (Python %d)' % (3 if PY3 else 2),
                        'language': 'python',
-                       'codemirror_mode': {'name': 'python',
+                       'codemirror_mode': {'name': 'ipython',
                                            'version': sys.version_info[0]},
                       },
                       f, indent=1)
