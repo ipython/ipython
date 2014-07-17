@@ -309,7 +309,7 @@ class Widget(LoggingConfigurable):
         elif isinstance(x, (list, tuple)):
             return [self._pack_widgets(v) for v in x]
         elif isinstance(x, Widget):
-            return x.model_id
+            return 'IPY_MODEL_' + x.model_id
         else:
             return x # Value must be JSON-able
 
