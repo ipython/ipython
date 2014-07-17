@@ -17,7 +17,8 @@ class ContainerWidget(DOMWidget):
     # When a proper notifying-list trait exists, that is what should be used here.
     children = Tuple(sync=True)
 
-    def __init__(self, **kwargs):
+    def __init__(self, children = None, **kwargs):
+        kwargs['children'] = children
         super(ContainerWidget, self).__init__(**kwargs)
         self.on_displayed(ContainerWidget._fire_children_displayed)
 
