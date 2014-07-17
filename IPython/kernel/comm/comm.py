@@ -77,7 +77,9 @@ class Comm(LoggingConfigurable):
         if data is None:
             data = self._open_data
         self._closed = False
-        get_ipython().comm_manager.register_comm(self)
+        ip = get_ipython()
+        if hasattr(ip, 'comm_manager'):
+            ip.comm_manager.register_comm(self)
         self._publish_msg('comm_open', data, metadata, target_name=self.target_name)
     
     def close(self, data=None, metadata=None):
@@ -88,7 +90,9 @@ class Comm(LoggingConfigurable):
         if data is None:
             data = self._close_data
         self._publish_msg('comm_close', data, metadata)
-        get_ipython().comm_manager.unregister_comm(self)
+        ip = get_ipython()
+        if hasattr(ip, 'comm_manager'):
+            ip.comm_manager.unregister_comm(self)
         self._closed = True
     
     def send(self, data=None, metadata=None):
