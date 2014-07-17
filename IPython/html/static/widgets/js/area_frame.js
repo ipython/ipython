@@ -16,7 +16,7 @@ define([
     };
 
     WidgetAreaFrame.prototype.clear = function() {
-        this.communicator.msg({type: 'clear'});
+        this.communicator.send({type: 'clear'});
     };
 
     return {

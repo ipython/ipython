@@ -48,16 +48,11 @@ define([
         });
 
         events.on('create.Cell', function(event, data) {
-            var id = data.cell.cell_id;
-            this.communicator.msg({
-                type: 'new_widget_area',
-                cell_id: id, 
-                frame_name: 'widgetarea_' + id
-            });
+            that.register_cell(data.cell.cell_id);
         });
         events.on('delete.Cell', function(event, data) {
             var id = data.cell.cell_id;
-            this.communicator.msg({
+            that.communicator.send({
                 type: 'del_widget_area',
                 cell_id: id, 
             });
@@ -65,8 +60,16 @@ define([
     };
 
     WidgetManagerFrame.prototype.init = function() {
-        this.communicator.msg({
+        this.communicator.send({
             'type': 'init',
+        });
+    };
+
+    WidgetManagerFrame.prototype.register_cell = function(cell_id) {
+        this.communicator.send({
+            type: 'new_widget_area',
+            'cell_id': cell_id, 
+            frame_name: 'widgetarea_' + cell_id
         });
     };
 
@@ -79,12 +82,13 @@ define([
     };
 
     WidgetManagerFrame.prototype._handle_register_target = function(model_name, callback_id) {
-        that.comm_manager.register_target(model_name, function(comm, comm_msg) {
+        var that = this;
+        this.comm_manager.register_target(model_name, function(comm, comm_msg) {
             comm.on_close(function(msg) {
                 that.communicator.send({
                     type: 'comm_on_close',
                     comm_id: comm.comm_id,
-                    'msg': comm_msg
+                    'msg': msg
                 });
             });
             
@@ -92,7 +96,7 @@ define([
                 that.communicator.send({
                     type: 'comm_on_msg',
                     comm_id: comm.comm_id,
-                    'msg': comm_msg
+                    'msg': msg
                 });
             });
 
@@ -160,7 +164,7 @@ define([
                 },
 
                 status: function(msg) {
-                    that.communicator.msg({
+                    that.communicator.send({
                         'type': 'iopub_status',
                         'callback_id': iopub_status_callback_id, 
                         'msg': msg 

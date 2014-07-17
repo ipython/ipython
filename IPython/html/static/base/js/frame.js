@@ -22,7 +22,7 @@ define(['base/js/utils'], function(utils) {
         });
     };
     
-    FrameCommunicator.prototype.msg = function(msg, callback, id) {
+    FrameCommunicator.prototype.send = function(msg, callback, id) {
         id = id || utils.uuid();
         if (callback) {
             this.callbacks[id] = callback;
@@ -33,6 +33,7 @@ define(['base/js/utils'], function(utils) {
             destination_window = this.destination[0].contentWindow;
         }
         // TODO: Set * to the known origin.
+        console.log('message out: ', msg);
         destination_window.postMessage({data: msg, id: id}, '*');
     };
 
@@ -46,14 +47,15 @@ define(['base/js/utils'], function(utils) {
 
     FrameCommunicator.prototype._handle_msg = function(id, msg) {
         var that = this;
+        console.log('message in : ', msg);
         var respond = function(response_msg, callback) {
-            that.msg(response_msg, callback, id);
+            that.send(response_msg, callback, id);
         };
 
         // If a msg capturing callback is registered, call that instead of
         // calling the generic message handler.
         if (this.callbacks[id]) {
-            this.callbacks[id](msg, repsond);
+            this.callbacks[id](msg, respond);
             delete this.callbacks[id];
         } else if (this.msg_callback) {
             this.msg_callback(msg, respond);

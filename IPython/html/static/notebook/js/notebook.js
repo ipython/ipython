@@ -162,9 +162,6 @@ define([
         });
         this.element.append(this.container);
         this.container.append(end_space);
-
-        this.manager_frame = new manager_frame.WidgetManagerFrame();
-        this.container.append(this.manager_frame.$el);
     };
 
     /**
@@ -1529,7 +1526,16 @@ define([
         }
 
         // Create widget manager with kernel's comm manager.
-        this.manager_frame.init(this.kernel.comm_manager, this);
+        this.manager_frame = new manager_frame.WidgetManagerFrame(this.kernel.comm_manager, this, this.events);
+        this.container.append(this.manager_frame.$el);
+        var that = this;
+        this.manager_frame.$el.on('load', function() {
+            that.manager_frame.init(that.kernel.comm_manager, that);
+            for (var i = 0; i < that.ncells(); i++) {
+                var cell = that.get_cell(i);
+                that.manager_frame.register_cell(cell.cell_id);
+            }
+        });
     };
     
     /**

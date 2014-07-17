@@ -216,7 +216,7 @@ define([
     OutputAreaFrame.prototype.handle_output = function (msg) {
         // TODO: change second argument from '*' to the known
         // origin of the iframe
-        this.communicator.msg({
+        this.communicator.send({
             'type': 'handle_output',
             'data': msg
         });
@@ -800,7 +800,7 @@ define([
 
 
     OutputAreaFrame.prototype.clear_output = function(wait) {
-        this.communicator.msg({
+        this.communicator.send({
             'type': 'clear_output',
             'data': wait
         });

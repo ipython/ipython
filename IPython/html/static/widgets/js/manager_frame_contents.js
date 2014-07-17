@@ -22,7 +22,7 @@ require([
     */
 
     var communicator = new frame.FrameCommunicator(parent);
-    var widget_manager = null;
+    var widgetmanager_inst = null;
 
     var comms = {};
     var iopub_status_callbacks = {};
@@ -52,29 +52,38 @@ require([
         if (callbacks && callbacks.view) {
             cell = callbacks.view.options.cell;
         }
-        communicator.send(this.id, msg, status_callback_id, cell);
+        communicator.send({
+            'type': 'comm_send', 
+            'comm_id': this.id, 
+            'msg': msg, 
+            'iopub_status_callback_id': status_callback_id, 
+            'cell_id': cell});
     };
 
 
-    var show_widgetarea = function (cell) {
-        parent[cell_frames[cell]].widget_area.show();
+    var show_widgetarea = function (view) {
+        var frame = cell_frames[view.options.cell];
+        console.log(frame);
+        parent[frame].widget_area.show();
     };
 
     var get_msg_cell = function (msg_id, callback) {
-        communicator.send({'msg_id': msg_id}, function (msg, respond) {
+        communicator.send({'type': 'get_msg_cell', 'msg_id': msg_id}, function (msg, respond) {
             callback(msg.cell_id);
         });
     };
 
     var display_view = function (cell, view) {
-        parent[cell_frames[cell]].widget_area.display_view(view);
+        var frame = cell_frames[cell];
+        console.log(cell, frame);
+        parent[frame].widget_area.display_view(view);
     };
 
     var comm_callbacks = {};
     var register_target = function (model_name, callback) {
         var id = utils.uuid();
         comm_callbacks[id] = callback;
-        communicator.send({'model_name': model_name, 'callback_id': id});
+        communicator.send({'type': 'register_target', 'model_name': model_name, 'callback_id': id});
     };
 
     var cell_frames = {};
@@ -83,11 +92,11 @@ require([
         var callback;
         switch (msg.type) {
             case 'init':
-                widget_manager = new widgetmanager.WidgetManager({
-                    'get_widget_msg_cell': get_widget_msg_cell,
+                widgetmanager_inst = new widgetmanager.WidgetManager({
                     'get_msg_cell': get_msg_cell,
                     'register_target': register_target,
-                    'display_view': display_view
+                    'display_view': display_view,
+                    'show_widgetarea': show_widgetarea
                 });    
                 break;
 
@@ -106,6 +115,7 @@ require([
                 if (comms[msg.comm_id]) {
                     comm = comms[msg.comm_id];
                     if (comm.msg_callback) {
+                        console.log('onmsg callback: ', msg.msg);
                         comm.msg_callback(msg.msg);
                     }
                 }
@@ -113,7 +123,7 @@ require([
 
             case 'comm_opened':
                 // msg.callback_id, msg.comm_id, msg.msg
-                comm = CommProxy(msg.comm_id);
+                comm = new CommProxy(msg.comm_id);
                 callback = comm_callbacks[msg.callback_id];
                 if (callback) {
                     callback(comm, msg.msg);

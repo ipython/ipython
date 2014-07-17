@@ -62,6 +62,7 @@ define(["widgets/js/manager",
 
         _handle_comm_msg: function (msg) {
             // Handle incoming comm msg.
+            console.log('_handle_comm_msg: ', msg)
             var method = msg.content.data.method;
             switch (method) {
                 case 'update':

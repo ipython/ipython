@@ -1,7 +1,7 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-widget_area = null;
+window.widget_area = null;
 require([
     "jquery",
     "base/js/frame"
@@ -55,5 +55,5 @@ require([
         }
     };
 
-    widget_area = WidgetArea();
+    window.widget_area = new WidgetArea();
 });

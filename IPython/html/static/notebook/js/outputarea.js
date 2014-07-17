@@ -28,7 +28,7 @@ require([
         var that = this;
         this.events = {
             'trigger': function(type, data) {
-                that.communicator.msg({
+                that.communicator.send({
                     'type': 'event',
                     'data': {'type': type, 'data': data}
                 });
@@ -128,7 +128,7 @@ require([
 
 
     OutputArea.prototype.unscroll_area = function () {
-        this.communicator.msg({'type': 'unscroll_area'});
+        this.communicator.send({'type': 'unscroll_area'});
     };
 
     /**

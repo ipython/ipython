@@ -16,7 +16,7 @@ define([
 
         this.register_target = options.register_target;
         this.get_msg_cell = options.get_msg_cell;
-        this.display_view = options.display_view;
+        this.notebook_display_view = options.display_view;
         this.show_widgetarea = options.show_widgetarea;
 
         this._models = {}; /* Dictionary of model ids and model instances */
@@ -68,8 +68,7 @@ define([
                 if (view === null) {
                     console.error("View creation failed", model);
                 }
-
-                this.display_view(cell, view);
+                that.notebook_display_view(cell, view);
                 view.trigger('displayed');
             }
         });

@@ -1,7 +1,7 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-require([
+define([
     "widgets/js/manager",
     "widgets/js/widget_bool",
     "widgets/js/widget_button",
@@ -23,5 +23,5 @@ require([
         }
     }
 
-    return {'WidgetManager': widgetmanager.WidgetManager}; 
+    return widgetmanager;
 });
