@@ -40,7 +40,7 @@ class WidgetManagerHandler(IPythonHandler):
             framerequire = 'static/widgets/js/manager_frame_contents.js',
             frameid = 'widgetmanager'))
 
-
+# TODO: Create the types dynamically to avoid so much code duplication.
 default_handlers = [
     (r"/outputarea", OutputAreaHandler),
     (r"/widgetarea", WidgetAreaHandler),

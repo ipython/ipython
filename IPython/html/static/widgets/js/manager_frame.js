@@ -8,15 +8,15 @@ define([
 ], function($, frame, utils){
     /* Messages
        --------
-       < *comm_send(comm_id, msg, iopub_status_callback_id, cell_id)
-       < *register_target(model_name, callback_id)
-       < *get_msg_cell(msg_id) as cell_id
+       < comm_send(comm_id, msg, iopub_status_callback_id, cell_id)
+       < register_target(model_name, callback_id)
+       < get_msg_cell(msg_id) as cell_id
 
-       > *init()
-       > *comm_opened(callback_id, comm_id, msg)
-       > *new_widget_area(cell_id, frame_name)
-       > *del_widget_area(cell_id)
-       > *iopub_status(callback_id, msg) 
+       > init()
+       > comm_opened(callback_id, comm_id, msg)
+       > new_widget_area(cell_id, frame_name)
+       > del_widget_area(cell_id)
+       > iopub_status(callback_id, msg) 
        > comm_on_close(comm_id, msg)
        > comm_on_msg(comm_id, msg) 
     */
