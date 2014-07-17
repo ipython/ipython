@@ -4,7 +4,28 @@
 {%- block any_cell scoped -%}
 {%- if cell.metadata.slide_type in ['slide'] -%}
     <section>
-    <section>
+    <section
+        {%- if cell.metadata.slideshow.slide_background -%}
+            {{" "}}data-background="{{ cell.metadata.slideshow.slide_background }}"
+        {%- endif -%}
+
+        {%- if cell.metadata.slideshow.slide_background_repeat -%}
+            {{" "}}data-background-repeat="{{ cell.metadata.slideshow.slide_background_repeat }}"
+        {%- endif -%}
+
+        {%- if cell.metadata.slideshow.slide_background_size -%}
+            {{" "}}data-background-size="{{ cell.metadata.slideshow.slide_background_size }}"
+        {%- endif -%}
+
+        {%- if cell.metadata.slideshow.slide_transition -%}
+            {{" "}}data-transition="{{ cell.metadata.slideshow.slide_transition }}"
+        {%- endif -%}
+
+        {%- if cell.metadata.slideshow.slide_transition_speed -%}
+            {{" "}}data-transition-speed="{{ cell.metadata.slideshow.slide_transition_speed }}"
+        {%- endif -%}
+    >
+
     {{ super() }}
 {%- elif cell.metadata.slide_type in ['subslide'] -%}
     <section>
