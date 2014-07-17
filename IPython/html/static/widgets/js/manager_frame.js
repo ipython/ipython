@@ -27,7 +27,8 @@ define([
 
         this.$el = $('<iframe />')
             .attr('src', '/widgetmanager')
-            .attr('name', 'widgetmanager');
+            .attr('name', 'widgetmanager')
+            .css('display', 'none');
         this.communicator = new frame.FrameCommunicator(this.$el, true);
         var that = this;
         this.communicator.on_msg(function (msg, respond) {
@@ -74,9 +75,9 @@ define([
     };
 
     WidgetManagerFrame.prototype._handle_comm_send = function(comm_id, msg, iopub_status_callback_id, cell_id) {
-        var comm = that.comm_manager.comms[comm_id];
+        var comm = this.comm_manager.comms[comm_id];
         if (comm) {
-            var callbacks = that._make_callbacks(cell_id, iopub_status_callback_id);
+            var callbacks = this._make_callbacks(cell_id, iopub_status_callback_id);
             comm.send(msg, callbacks);
         }
     };

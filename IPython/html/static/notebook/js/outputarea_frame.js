@@ -43,7 +43,9 @@ define([
      **/
 
     OutputAreaFrame.prototype.create_elements = function () {
-        this.outputframe = $('<iframe />').attr('src', '/outputarea');
+        this.outputframe = $('<iframe />')
+            .attr('src', '/outputarea')
+            .css('width', '100%');
         this.collapse_button = $("<div/>");
         this.prompt_overlay = $("<div/>");
         this.$el.append(this.prompt_overlay);

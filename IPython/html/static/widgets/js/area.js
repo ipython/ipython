@@ -34,6 +34,21 @@ require([
                 })
             .appendTo(widget_prompt);
         $('body').append(widget_area);
+
+        // create an observer instance
+        var that = this;
+        var observer = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            console.log('mutation! ', mutation.type);
+          });    
+        });
+         
+        // configuration of the observer:
+        var config = { attributes: true, childList: true, characterData: true, subtree: true };
+         
+        // pass in the target node, as well as the observer options
+        var target = $('body')[0];
+        observer.observe(target, config);
     };
 
     WidgetArea.prototype.display_view = function(view) {

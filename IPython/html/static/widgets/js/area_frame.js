@@ -11,7 +11,8 @@ define([
         this.name = 'widgetarea_' + guid;
         this.$el = $('<iframe />')
             .attr('src', '/widgetarea')
-            .attr('name', this.name);
+            .attr('name', this.name)
+            .css('width', '100%');
         this.communicator = new frame.FrameCommunicator(this.$el, true);
     };
 
