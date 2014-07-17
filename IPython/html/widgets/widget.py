@@ -322,7 +322,7 @@ class Widget(LoggingConfigurable):
         elif isinstance(x, (list, tuple)):
             return [self._serialize_trait(v) for v in x]
         elif isinstance(x, Widget):
-            return x.model_id
+            return "IPY_MODEL_" + x.model_id
         else:
             return x # Value must be JSON-able
 
@@ -335,7 +335,7 @@ class Widget(LoggingConfigurable):
             return {k: self._unserialize_trait(v) for k, v in x.items()}
         elif isinstance(x, (list, tuple)):
             return [self._unserialize_trait(v) for v in x]
-        elif isinstance(x, string_types) and x in Widget.widgets:
+        elif isinstance(x, string_types) and x.startswith('IPY_MODEL_') and x[10:] in Widget.widgets:
             # we want to support having child widgets at any level in a hierarchy
             # trusting that a widget UUID will not appear out in the wild
             return Widget.widgets[x]
