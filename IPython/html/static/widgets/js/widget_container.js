@@ -50,12 +50,23 @@ define([
     var FlexContainerView = ContainerView.extend({
         render: function(){
             FlexContainerView.__super__.render.apply(this);
+            this.model.on('change:orientation', this.update_orientation, this);
             this.model.on('change:flex', this._flex_changed, this);
             this.model.on('change:pack', this._pack_changed, this);
             this.model.on('change:align', this._align_changed, this);
             this._flex_changed();
             this._pack_changed();
             this._align_changed();
+            that.update_orientation();
+        },
+
+        update_orientation: function(){
+            var orientation = this.model.get("orientation");
+            if (orientation == "vertical") {
+                this.$el.removeClass("hbox").addClass("vbox");
+            } else {
+                this.$el.removeClass("vbox").addClass("hbox");
+            }
         },
 
         _flex_changed: function(){

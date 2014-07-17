@@ -37,6 +37,7 @@ class Popup(Container):
 
 class FlexContainer(Container):
     _view_name = Unicode('FlexContainerView', sync=True)
+    orientation = Unicode('vertical', sync=True)
     flex = Int(0, sync=True, help="""Specify the flexible-ness of the model.""")
     def _flex_changed(self, name, old, new):
         new = min(max(0, new), 2)
