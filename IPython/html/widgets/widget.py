@@ -123,6 +123,7 @@ class Widget(LoggingConfigurable):
 
         self.on_trait_change(self._handle_property_changed, self.keys)
         Widget._call_widget_constructed(self)
+        self.open()
 
     def __del__(self):
         """Object disposal"""
@@ -137,6 +138,11 @@ class Widget(LoggingConfigurable):
         """Gets the Comm associated with this widget.
 
         If a Comm doesn't exist yet, a Comm will be created automagically."""
+        self.open()
+        return self._comm
+    
+    def open(self):
+        """Open a comm to the frontend if one isn't already open."""
         if self._comm is None:
             # Create a comm.
             self._comm = Comm(target_name=self._model_name)
@@ -145,8 +151,7 @@ class Widget(LoggingConfigurable):
 
             # first update
             self.send_state()
-        return self._comm
-    
+
     @property
     def model_id(self):
         """Gets the model id of this widget.
