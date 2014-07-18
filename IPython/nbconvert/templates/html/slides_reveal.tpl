@@ -29,6 +29,12 @@
     {%- endif -%}
 {%- endmacro %}
 
+{%- macro fragment_style(cell) -%}
+    {%- if cell.metadata.slideshow.fragment_style -%}
+        {{" "+cell.metadata.slideshow.fragment_style}}
+    {%- endif -%}
+{%- endmacro %}
+
 {%- if cell.metadata.slide_type in ['slide'] -%}
     <section>
     <section {{ slide_opts(cell) }}>
@@ -39,7 +45,7 @@
     {{ super() }}
 {%- elif cell.metadata.slide_type in ['-'] -%}
     {%- if cell.metadata.frag_helper in ['fragment_end'] -%}
-        <div class="fragment" data-fragment-index="{{ cell.metadata.frag_number }}">
+        <div class="fragment{{ fragment_style(cell) }}" data-fragment-index="{{ cell.metadata.frag_number }}">
         {{ super() }}
         </div>
     {%- else -%}
@@ -54,7 +60,7 @@
     {{ super() }}
     </aside>
 {%- elif cell.metadata.slide_type in ['fragment'] -%}
-    <div class="fragment" data-fragment-index="{{ cell.metadata.frag_number }}">
+    <div class="fragment{{ fragment_style(cell) }}" data-fragment-index="{{ cell.metadata.frag_number }}">
     {{ super() }}
     </div>
 {%- endif -%}
