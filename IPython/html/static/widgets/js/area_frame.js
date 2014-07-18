@@ -12,8 +12,15 @@ define([
         this.$el = $('<iframe />')
             .attr('src', '/widgetarea')
             .attr('name', this.name)
-            .css('width', '100%');
+            .css('width', '100%')
+            .css('height', 0);
         this.communicator = new frame.FrameCommunicator(this.$el, true);
+        var that = this;
+        this.communicator.on_msg(function(msg, respond) {
+            if (msg.type == 'resize') {
+                that.$el.height(msg.height);
+            }
+        });
     };
 
     WidgetAreaFrame.prototype.clear = function() {
