@@ -854,15 +854,19 @@ class Client(HasTraits):
             if self.debug:
                 pprint(msg)
             parent = msg['parent_header']
-            # ignore IOPub messages with no parent.
-            # Caused by print statements or warnings from before the first execution.
-            if not parent:
+            if not parent or parent['session'] != self.session.session:
+                # ignore IOPub messages not from here
                 idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
                 continue
             msg_id = parent['msg_id']
             content = msg['content']
             header = msg['header']
             msg_type = msg['header']['msg_type']
+            
+            if msg_type == 'status' and msg_id not in self.metadata:
+                # ignore status messages if they aren't mine
+                idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+                continue
 
             # init metadata:
             md = self.metadata[msg_id]
