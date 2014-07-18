@@ -17,18 +17,6 @@ define([
                 this.update_children(model.previous('children'), value);
             }, this);
             this.update();
-
-            // Trigger model displayed events for any models that are child to 
-            // this model when this model is displayed.
-            var that = this;
-            this.on('displayed', function(){
-                that.is_displayed = true;
-                for (var property in that.child_views) {
-                    if (that.child_views.hasOwnProperty(property)) {
-                        that.child_views[property].trigger('displayed');
-                    }
-                }
-            });
         },
         
         update_children: function(old_list, new_list) {
@@ -49,10 +37,8 @@ define([
             var view = this.create_child_view(model);
             this.$el.append(view.$el);
 
-            // Trigger the displayed event if this model is displayed.
-            if (this.is_displayed) {
-                view.trigger('displayed');
-            }
+            // Trigger the displayed event once this model is displayed.
+            this.once_displayed(function() { view.trigger('displayed'); }, this);
         },
         
         update: function(){
@@ -179,17 +165,6 @@ define([
                 this.update_children(model.previous('children'), value);
             }, this);
             this.update();
-
-            // Trigger model displayed events for any models that are child to 
-            // this model when this model is displayed.
-            this.on('displayed', function(){
-                that.is_displayed = true;
-                for (var property in that.child_views) {
-                    if (that.child_views.hasOwnProperty(property)) {
-                        that.child_views[property].trigger('displayed');
-                    }
-                }
-            });
         },
         
         hide: function() {
@@ -252,10 +227,10 @@ define([
             var view = this.create_child_view(model);
             this.$body.append(view.$el);
 
-            // Trigger the displayed event if this model is displayed.
-            if (this.is_displayed) {
-                view.trigger('displayed');
-            }
+            // Trigger the displayed event once this model is displayed.
+            this.once_displayed(function() { 
+                view.trigger('displayed'); 
+            }, this);
         },
         
         update: function(){

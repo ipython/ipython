@@ -275,6 +275,9 @@ define(["widgets/js/manager",
             this.child_views = {};
             this.model.views.push(this);
             this.id = this.id || IPython.utils.uuid();
+            this.on('displayed', function() { 
+                this.is_displayed = true; 
+            }, this);
         },
 
         update: function(){
@@ -385,6 +388,16 @@ define(["widgets/js/manager",
 
         touch: function () {
             this.model.save_changes(this.callbacks());
+        },
+
+        once_displayed: function (callback, context) {
+            // Calls the callback right away is the view is already displayed
+            // otherwise, register the callback to the 'displayed' event.
+            if (this.is_displayed) {
+                callback.apply(context);
+            } else {
+                this.on('displayed', callback, context);
+            }
         },
     });
 
