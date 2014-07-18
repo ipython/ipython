@@ -15,6 +15,10 @@
     {%- if cell.metadata.slideshow.slide_background_size -%}
         {{" "}}data-background-size="{{ cell.metadata.slideshow.slide_background_size }}"
     {%- endif -%}
+    
+    {%- if cell.metadata.slideshow.slide_background_transition -%}
+        {{" "}}data-background-transition="{{ cell.metadata.slideshow.slide_background_transition }}"
+    {%- endif -%}
 
     {%- if cell.metadata.slideshow.slide_transition -%}
         {{" "}}data-transition="{{ cell.metadata.slideshow.slide_transition }}"
