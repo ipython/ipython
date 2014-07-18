@@ -2,33 +2,36 @@
 {% from 'mathjax.tpl' import mathjax %}
 
 {%- block any_cell scoped -%}
+
+{% macro slide_opts(cell) -%}
+    {%- if cell.metadata.slideshow.slide_background -%}
+        {{" "}}data-background="{{ cell.metadata.slideshow.slide_background }}"
+    {%- endif -%}
+
+    {%- if cell.metadata.slideshow.slide_background_repeat -%}
+        {{" "}}data-background-repeat="{{ cell.metadata.slideshow.slide_background_repeat }}"
+    {%- endif -%}
+
+    {%- if cell.metadata.slideshow.slide_background_size -%}
+        {{" "}}data-background-size="{{ cell.metadata.slideshow.slide_background_size }}"
+    {%- endif -%}
+
+    {%- if cell.metadata.slideshow.slide_transition -%}
+        {{" "}}data-transition="{{ cell.metadata.slideshow.slide_transition }}"
+    {%- endif -%}
+
+    {%- if cell.metadata.slideshow.slide_transition_speed -%}
+        {{" "}}data-transition-speed="{{ cell.metadata.slideshow.slide_transition_speed }}"
+    {%- endif -%}
+{%- endmacro %}
+
 {%- if cell.metadata.slide_type in ['slide'] -%}
     <section>
-    <section
-        {%- if cell.metadata.slideshow.slide_background -%}
-            {{" "}}data-background="{{ cell.metadata.slideshow.slide_background }}"
-        {%- endif -%}
-
-        {%- if cell.metadata.slideshow.slide_background_repeat -%}
-            {{" "}}data-background-repeat="{{ cell.metadata.slideshow.slide_background_repeat }}"
-        {%- endif -%}
-
-        {%- if cell.metadata.slideshow.slide_background_size -%}
-            {{" "}}data-background-size="{{ cell.metadata.slideshow.slide_background_size }}"
-        {%- endif -%}
-
-        {%- if cell.metadata.slideshow.slide_transition -%}
-            {{" "}}data-transition="{{ cell.metadata.slideshow.slide_transition }}"
-        {%- endif -%}
-
-        {%- if cell.metadata.slideshow.slide_transition_speed -%}
-            {{" "}}data-transition-speed="{{ cell.metadata.slideshow.slide_transition_speed }}"
-        {%- endif -%}
-    >
+    <section {{ slide_opts(cell) }}>
 
     {{ super() }}
 {%- elif cell.metadata.slide_type in ['subslide'] -%}
-    <section>
+    <section {{ slide_opts(cell) }}>
     {{ super() }}
 {%- elif cell.metadata.slide_type in ['-'] -%}
     {%- if cell.metadata.frag_helper in ['fragment_end'] -%}
