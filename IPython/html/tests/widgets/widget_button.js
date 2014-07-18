@@ -7,7 +7,7 @@ casper.notebook_test(function () {
     this.execute_cell_then(index);
 
     var button_index = this.append_cell(
-        'button = widgets.ButtonWidget(description="Title")\n' +
+        'button = widgets.Button(description="Title")\n' +
         'display(button)\n' +
         'print("Success")\n' +
         'def handle_click(sender):\n' +

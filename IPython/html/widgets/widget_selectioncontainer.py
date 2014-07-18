@@ -1,4 +1,4 @@
-"""SelectionContainerWidget class.  
+"""SelectionContainer class.  
 
 Represents a multipage container that can be used to group other widgets into
 pages.
@@ -16,11 +16,12 @@ pages.
 #-----------------------------------------------------------------------------
 from .widget_container import ContainerWidget
 from IPython.utils.traitlets import Unicode, Dict, CInt
+from IPython.utils.warn import DeprecatedClass
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class _SelectionContainerWidget(ContainerWidget):
+class _SelectionContainer(ContainerWidget):
     _titles = Dict(help="Titles of the pages", sync=True)
     selected_index = CInt(0, sync=True)
 
@@ -50,9 +51,13 @@ class _SelectionContainerWidget(ContainerWidget):
             return None
 
 
-class AccordionWidget(_SelectionContainerWidget):
+class Accordion(_SelectionContainer):
     _view_name = Unicode('AccordionView', sync=True)
 
 
-class TabWidget(_SelectionContainerWidget):
+class Tab(_SelectionContainer):
     _view_name = Unicode('TabView', sync=True)
+
+_SelectionContainerWidget = DeprecatedClass(_SelectionContainer, '_SelectionContainerWidget')
+AccordionWidget = DeprecatedClass(Accordion, 'AccordionWidget')
+TabWidget = DeprecatedClass(Tab, 'TabWidget')

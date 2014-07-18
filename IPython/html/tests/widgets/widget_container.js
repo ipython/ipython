@@ -7,8 +7,8 @@ casper.notebook_test(function () {
     this.execute_cell_then(index);
 
     var container_index = this.append_cell(
-        'container = widgets.ContainerWidget()\n' +
-        'button = widgets.ButtonWidget()\n'+
+        'container = widgets.Container()\n' +
+        'button = widgets.Button()\n'+
         'container.children = [button]\n'+
         'display(container)\n'+
         'container.add_class("my-test-class")\n'+

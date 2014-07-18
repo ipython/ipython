@@ -1,4 +1,4 @@
-"""BoolWidget class.  
+"""Bool class.  
 
 Represents a boolean using a widget.
 """
@@ -15,20 +15,23 @@ Represents a boolean using a widget.
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget
 from IPython.utils.traitlets import Unicode, Bool
+from IPython.utils.warn import DeprecatedClass
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class _BoolWidget(DOMWidget):
+class _Bool(DOMWidget):
     value = Bool(False, help="Bool value", sync=True)
     description = Unicode('', help="Description of the boolean (label).", sync=True) 
     disabled = Bool(False, help="Enable or disable user changes.", sync=True)
 
 
-class CheckboxWidget(_BoolWidget):
+class Checkbox(_Bool):
     _view_name = Unicode('CheckboxView', sync=True)
 
 
-class ToggleButtonWidget(_BoolWidget):
+class ToggleButton(_Bool):
     _view_name = Unicode('ToggleButtonView', sync=True)
     
+CheckboxWidget = DeprecatedClass(Checkbox, 'CheckboxWidget')
+ToggleButtonWidget = DeprecatedClass(ToggleButton, 'ToggleButtonWidget')

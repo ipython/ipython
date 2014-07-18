@@ -21,9 +21,9 @@ except ImportError:
 from inspect import getcallargs
 
 from IPython.core.getipython import get_ipython
-from IPython.html.widgets import (Widget, TextWidget,
-    FloatSliderWidget, IntSliderWidget, CheckboxWidget, DropdownWidget,
-    ContainerWidget, DOMWidget)
+from IPython.html.widgets import (Widget, Text,
+    FloatSlider, IntSlider, Checkbox, Dropdown,
+    Container, DOMWidget)
 from IPython.display import display, clear_output
 from IPython.utils.py3compat import string_types, unicode_type
 from IPython.utils.traitlets import HasTraits, Any, Unicode
@@ -70,17 +70,17 @@ def _get_min_max_value(min, max, value=None, step=None):
 def _widget_abbrev_single_value(o):
     """Make widgets from single values, which can be used as parameter defaults."""
     if isinstance(o, string_types):
-        return TextWidget(value=unicode_type(o))
+        return Text(value=unicode_type(o))
     elif isinstance(o, dict):
-        return DropdownWidget(values=o)
+        return Dropdown(values=o)
     elif isinstance(o, bool):
-        return CheckboxWidget(value=o)
+        return Checkbox(value=o)
     elif isinstance(o, float):
         min, max, value = _get_min_max_value(None, None, o)
-        return FloatSliderWidget(value=o, min=min, max=max)
+        return FloatSlider(value=o, min=min, max=max)
     elif isinstance(o, int):
         min, max, value = _get_min_max_value(None, None, o)
-        return IntSliderWidget(value=o, min=min, max=max)
+        return IntSlider(value=o, min=min, max=max)
     else:
         return None
 
@@ -89,13 +89,13 @@ def _widget_abbrev(o):
     float_or_int = (float, int)
     if isinstance(o, (list, tuple)):
         if o and all(isinstance(x, string_types) for x in o):
-            return DropdownWidget(values=[unicode_type(k) for k in o])
+            return Dropdown(values=[unicode_type(k) for k in o])
         elif _matches(o, (float_or_int, float_or_int)):
             min, max, value = _get_min_max_value(o[0], o[1])
             if all(isinstance(_, int) for _ in o):
-                cls = IntSliderWidget
+                cls = IntSlider
             else:
-                cls = FloatSliderWidget
+                cls = FloatSlider
             return cls(value=value, min=min, max=max)
         elif _matches(o, (float_or_int, float_or_int, float_or_int)):
             step = o[2]
@@ -103,9 +103,9 @@ def _widget_abbrev(o):
                 raise ValueError("step must be >= 0, not %r" % step)
             min, max, value = _get_min_max_value(o[0], o[1], step=step)
             if all(isinstance(_, int) for _ in o):
-                cls = IntSliderWidget
+                cls = IntSlider
             else:
-                cls = FloatSliderWidget
+                cls = FloatSlider
             return cls(value=value, min=min, max=max, step=step)
     else:
         return _widget_abbrev_single_value(o)
@@ -176,7 +176,7 @@ def interactive(__interact_f, **kwargs):
     f = __interact_f
     co = kwargs.pop('clear_output', True)
     kwargs_widgets = []
-    container = ContainerWidget()
+    container = Container()
     container.result = None
     container.args = []
     container.kwargs = dict()

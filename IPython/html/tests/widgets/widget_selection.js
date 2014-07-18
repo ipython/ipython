@@ -44,10 +44,10 @@ casper.notebook_test(function () {
 //values=["' + selection_values + '"[i] for i in range(4)]
     selection_index = this.append_cell(
         'values=["' + selection_values + '"[i] for i in range(4)]\n' +
-        'selection = [widgets.DropdownWidget(values=values),\n' +
-        '    widgets.ToggleButtonsWidget(values=values),\n' +
-        '    widgets.RadioButtonsWidget(values=values),\n' +
-        '    widgets.SelectWidget(values=values)]\n' +
+        'selection = [widgets.Dropdown(values=values),\n' +
+        '    widgets.ToggleButtons(values=values),\n' +
+        '    widgets.RadioButtons(values=values),\n' +
+        '    widgets.Select(values=values)]\n' +
         '[display(selection[i]) for i in range(4)]\n' +
         'for widget in selection:\n' +
         '    def handle_change(name,old,new):\n' +

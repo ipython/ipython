@@ -9,7 +9,7 @@ casper.notebook_test(function () {
     var float_text = {};
     float_text.query = '.widget-area .widget-subarea .widget-hbox-single .my-second-float-text';
     float_text.index = this.append_cell(
-        'float_widget = widgets.FloatTextWidget()\n' +
+        'float_widget = widgets.FloatText()\n' +
         'display(float_widget)\n' + 
         'float_widget.add_class("my-second-float-text", selector="input")\n' + 
         'print(float_widget.model_id)\n');
@@ -59,8 +59,8 @@ casper.notebook_test(function () {
     var slider = {};
     slider.query = '.widget-area .widget-subarea .widget-hbox-single .slider';
     slider.index = this.append_cell(
-        'floatrange = [widgets.BoundedFloatTextWidget(), \n' +
-        '    widgets.FloatSliderWidget()]\n' +
+        'floatrange = [widgets.BoundedFloatText(), \n' +
+        '    widgets.FloatSlider()]\n' +
         '[display(floatrange[i]) for i in range(2)]\n' + 
         'print("Success")\n');
     this.execute_cell_then(slider.index, function(index){

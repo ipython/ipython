@@ -1,4 +1,4 @@
-"""ContainerWidget class.  
+"""Container class.  
 
 Represents a container that can be used to group other widgets.
 """
@@ -8,8 +8,9 @@ Represents a container that can be used to group other widgets.
 
 from .widget import DOMWidget
 from IPython.utils.traitlets import Unicode, Tuple, TraitError, Int, CaselessStrEnum
+from IPython.utils.warn import DeprecatedClass
 
-class ContainerWidget(DOMWidget):
+class Container(DOMWidget):
     _view_name = Unicode('ContainerView', sync=True)
 
     # Child widgets in the container.
@@ -19,22 +20,22 @@ class ContainerWidget(DOMWidget):
 
     def __init__(self, children = (), **kwargs):
         kwargs['children'] = children
-        super(ContainerWidget, self).__init__(**kwargs)
-        self.on_displayed(ContainerWidget._fire_children_displayed)
+        super(Container, self).__init__(**kwargs)
+        self.on_displayed(Container._fire_children_displayed)
 
     def _fire_children_displayed(self):
         for child in self.children:
             child._handle_displayed()
 
 
-class PopupWidget(ContainerWidget):
+class Popup(Container):
     _view_name = Unicode('PopupView', sync=True)
     
     description = Unicode(sync=True)
     button_text = Unicode(sync=True)
 
 
-class FlexContainerWidget(ContainerWidget):
+class FlexContainer(Container):
     _view_name = Unicode('FlexContainerView', sync=True)
     flex = Int(0, sync=True, help="""Specify the flexible-ness of the model.""")
     def _flex_changed(self, name, old, new):
@@ -51,9 +52,13 @@ class FlexContainerWidget(ContainerWidget):
         default_value='start', allow_none=False, sync=True)
 
 
-class VBoxWidget(FlexContainerWidget):
+class VBox(FlexContainer):
     _view_name = Unicode('VBoxContainerView', sync=True)
 
 
-class HBoxWidget(FlexContainerWidget):
+class HBox(FlexContainer):
     _view_name = Unicode('HBoxContainerView', sync=True)
+
+ContainerWidget = DeprecatedClass(Container, 'ContainerWidget')
+PopupWidget = DeprecatedClass(Popup, 'PopupWidget')
+

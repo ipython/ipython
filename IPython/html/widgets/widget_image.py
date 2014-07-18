@@ -1,4 +1,4 @@
-"""ImageWidget class.  
+"""Image class.  
 
 Represents an image in the frontend using a widget.
 """
@@ -17,11 +17,12 @@ import base64
 
 from .widget import DOMWidget
 from IPython.utils.traitlets import Unicode, CUnicode, Bytes
+from IPython.utils.warn import DeprecatedClass
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class ImageWidget(DOMWidget):
+class Image(DOMWidget):
     _view_name = Unicode('ImageView', sync=True)
     
     # Define the custom state properties to sync with the front-end
@@ -33,3 +34,5 @@ class ImageWidget(DOMWidget):
     value = Bytes()
     def _value_changed(self, name, old, new):
         self._b64value = base64.b64encode(new)
+
+ImageWidget = DeprecatedClass(Image, 'ImageWidget')
