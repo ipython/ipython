@@ -45,6 +45,7 @@ require([
         events: events},
         common_options));
     notebook_list = new notebooklist.NotebookList('#notebook_list', $.extend({
+        content_manager: content_manager,
         session_list:  session_list}, 
         common_options));
     cluster_list = new clusterlist.ClusterList('#cluster_list', common_options);
@@ -124,4 +125,13 @@ require([
         $("#tabs").find("a[href=" + window.location.hash + "]").click();
     }
 
+    // For backwards compatability.
+    IPython.page = page;
+    IPython.content_manager = content_manager;
+    IPython.notebook_list = notebook_list;
+    IPython.cluster_list = cluster_list;
+    IPython.session_list = session_list;
+    IPython.kernel_list = kernel_list;
+    IPython.login_widget = login_widget;
+    IPython.events = events;
 });

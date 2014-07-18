@@ -34,6 +34,7 @@ define([
         this.sessions = {};
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
         this.notebook_path = options.notebook_path || utils.get_body_data("notebookPath");
+        this.content_manager = options.content_manager;
         if (this.session_list && this.session_list.events) {
             this.session_list.events.on('sessions_loaded.Dashboard', 
                 function(e, d) { that.sessions_loaded(d); });
@@ -329,8 +330,10 @@ define([
                 // We use the filename from the parent list_item element's
                 // data because the outer scope's values change as we iterate through the loop.
                 var parent_item = that.parents('div.list_item');
-                var name = parent_item.data('name');
-                var message = 'Are you sure you want to permanently delete the file: ' + name + '?';
+                var nbname = parent_item.data('nbname');
+                var path = parent_item.data('path');
+                var base_url = utils.get_body_data("baseUrl");
+                var message = 'Are you sure you want to permanently delete the notebook: ' + nbname + '?';
                 dialog.modal({
                     title : "Delete file",
                     body : message,
@@ -338,23 +341,7 @@ define([
                         Delete : {
                             class: "btn-danger",
                             click: function() {
-                                var settings = {
-                                    processData : false,
-                                    cache : false,
-                                    type : "DELETE",
-                                    dataType : "json",
-                                    success : function (data, status, xhr) {
-                                        parent_item.remove();
-                                    },
-                                    error : utils.log_ajax_error,
-                                };
-                                var url = utils.url_join_encode(
-                                    notebooklist.base_url,
-                                    'api/contents',
-                                    notebooklist.notebook_path,
-                                    name
-                                );
-                                $.ajax(url, settings);
+                                notebooklist.content_manager.delete_notebook(nbname, path, base_url);
                             }
                         },
                         Cancel : {}
