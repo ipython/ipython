@@ -74,8 +74,7 @@ define([
         $.ajax(url,settings);
     };
 
-    ContentManager.prototype.delete_notebook = function(notebook) {
-        var that = notebook;
+    ContentManager.prototype.delete_notebook = function(name, path, base_url) {
         var settings = {
             processData : false,
             cache : false,
@@ -84,10 +83,10 @@ define([
             error : utils.log_ajax_error,
         };
         var url = utils.url_join_encode(
-            that.base_url,
+            base_url,
             'api/notebooks',
-            that.notebook_path,
-            that.notebook_name
+            path,
+            name
         );
         $.ajax(url, settings);
     };
