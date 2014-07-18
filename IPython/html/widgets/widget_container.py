@@ -37,7 +37,7 @@ class Popup(Container):
 
 class FlexContainer(Container):
     _view_name = Unicode('FlexContainerView', sync=True)
-    orientation = Unicode('vertical', sync=True)
+    orientation = CaselessStrEnum(values=['vertical', 'horizontal'], default_value='vertical', sync=True)
     flex = Int(0, sync=True, help="""Specify the flexible-ness of the model.""")
     def _flex_changed(self, name, old, new):
         new = min(max(0, new), 2)
@@ -53,12 +53,14 @@ class FlexContainer(Container):
         default_value='start', allow_none=False, sync=True)
 
 
-class VBox(FlexContainer):
-    _view_name = Unicode('VBoxContainerView', sync=True)
+def VBox(*pargs, **kwargs):
+    kwargs['orientation'] = 'vertical'
+    return FlexContainer(*pargs, **kwargs)
 
+def HBox(*pargs, **kwargs):
+    kwargs['orientation'] = 'horizontal'
+    return FlexContainer(*pargs, **kwargs)
 
-class HBox(FlexContainer):
-    _view_name = Unicode('HBoxContainerView', sync=True)
 
 ContainerWidget = DeprecatedClass(Container, 'ContainerWidget')
 PopupWidget = DeprecatedClass(Popup, 'PopupWidget')
