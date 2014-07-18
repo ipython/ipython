@@ -37,7 +37,7 @@ define([
             var view = this.create_child_view(model);
             this.$el.append(view.$el);
 
-            // Trigger the displayed event once this model is displayed.
+            // Trigger the displayed event once this view is displayed.
             this.once_displayed(function() {
                 view.trigger('displayed');
             });
@@ -229,7 +229,7 @@ define([
             var view = this.create_child_view(model);
             this.$body.append(view.$el);
 
-            // Trigger the displayed event once this model is displayed.
+            // Trigger the displayed event once this view is displayed.
             this.once_displayed(function() {
                 view.trigger('displayed');
             });
