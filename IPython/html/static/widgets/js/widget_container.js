@@ -38,7 +38,9 @@ define([
             this.$el.append(view.$el);
 
             // Trigger the displayed event once this model is displayed.
-            this.once_displayed(function() { view.trigger('displayed'); }, this);
+            this.once_displayed(function() {
+                view.trigger('displayed');
+            });
         },
         
         update: function(){
@@ -228,9 +230,9 @@ define([
             this.$body.append(view.$el);
 
             // Trigger the displayed event once this model is displayed.
-            this.once_displayed(function() { 
-                view.trigger('displayed'); 
-            }, this);
+            this.once_displayed(function() {
+                view.trigger('displayed');
+            });
         },
         
         update: function(){
