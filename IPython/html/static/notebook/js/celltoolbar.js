@@ -342,7 +342,7 @@ define([
                         setter(cell, !v);
                         chkb.attr("checked", !v);
             });
-            button_container.append($('<div/>').append(lbl));
+            button_container.append($('<span/>').append(lbl));
         };
     };
 
@@ -406,7 +406,7 @@ define([
             select.change(function(){
                         setter(cell, select.val());
                     });
-            button_container.append($('<div/>').append(lbl).append(select));
+            button_container.append($('<span/>').append(lbl).append(select));
         };
     };
 
