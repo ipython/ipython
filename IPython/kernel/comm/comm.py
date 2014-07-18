@@ -50,7 +50,9 @@ class Comm(LoggingConfigurable):
         if target_name:
             kwargs['target_name'] = target_name
         super(Comm, self).__init__(**kwargs)
-        get_ipython().comm_manager.register_comm(self)
+        ip = get_ipython()
+        if hasattr(ip, 'comm_manager'):
+            ip.comm_manager.register_comm(self)
         if self.primary:
             # I am primary, open my peer.
             self.open(data)
