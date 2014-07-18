@@ -1,32 +1,95 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2011  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// Notebook
-//============================================================================
+define([
+    'base/js/namespace',
+    'jquery',
+    'base/js/utils',
+    'base/js/dialog',
+    'notebook/js/textcell',
+    'notebook/js/codecell',
+    'services/sessions/js/session',
+    'notebook/js/celltoolbar',
+    'components/marked/lib/marked',
+    'notebook/js/mathjaxutils',
+    'base/js/keyboard',
+    'notebook/js/tooltip',
+    'notebook/js/celltoolbarpresets/default',
+    'notebook/js/celltoolbarpresets/rawcell',
+    'notebook/js/celltoolbarpresets/slideshow',
+], function (
+    IPython, 
+    $, 
+    utils, 
+    dialog, 
+    textcell, 
+    codecell, 
+    session, 
+    celltoolbar, 
+    marked,
+    mathjaxutils,
+    keyboard,
+    tooltip,
+    default_celltoolbar,
+    rawcell_celltoolbar,
+    slideshow_celltoolbar
+    ) {
 
-var IPython = (function (IPython) {
-    "use strict";
-
-    var utils = IPython.utils;
-
-    /**
-     * A notebook contains and manages cells.
-     * 
-     * @class Notebook
-     * @constructor
-     * @param {String} selector A jQuery selector for the notebook's DOM element
-     * @param {Object} [options] A config object
-     */
     var Notebook = function (selector, options) {
-        this.options = options = options || {};
+        // Constructor
+        //
+        // A notebook contains and manages cells.
+        //
+        // Parameters:
+        //  selector: string
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          events: $(Events) instance
+        //          keyboard_manager: KeyboardManager instance
+        //          save_widget: SaveWidget instance
+        //          config: dictionary
+        //          base_url : string
+        //          notebook_path : string
+        //          notebook_name : string
+        this.config = options.config || {};
         this.base_url = options.base_url;
         this.notebook_path = options.notebook_path;
         this.notebook_name = options.notebook_name;
+        this.events = options.events;
+        this.keyboard_manager = options.keyboard_manager;
+        this.save_widget = options.save_widget;
+        this.tooltip = new tooltip.Tooltip(this.events);
+        // default_kernel_name is a temporary measure while we implement proper
+        // kernel selection and delayed start. Do not rely on it.
+        this.default_kernel_name = 'python';
+        // TODO: This code smells (and the other `= this` line a couple lines down)
+        // We need a better way to deal with circular instance references.
+        this.keyboard_manager.notebook = this;
+        this.save_widget.notebook = this;
+        
+        mathjaxutils.init();
+
+        if (marked) {
+            marked.setOptions({
+                gfm : true,
+                tables: true,
+                langPrefix: "language-",
+                highlight: function(code, lang) {
+                    if (!lang) {
+                        // no language, no highlight
+                        return code;
+                    }
+                    var highlighted;
+                    try {
+                        highlighted = hljs.highlight(lang, code, false);
+                    } catch(err) {
+                        highlighted = hljs.highlightAuto(code);
+                    }
+                    return highlighted.value;
+                }
+            });
+        }
+
         this.element = $(selector);
         this.element.scroll();
         this.element.data("notebook", this);
@@ -61,6 +124,11 @@ var IPython = (function (IPython) {
         this.save_notebook = function() { // don't allow save until notebook_loaded
             this.save_notebook_error(null, null, "Load failed, save is disabled");
         };
+
+        // Trigger cell toolbar registration.
+        default_celltoolbar.register(this, options.events);
+        rawcell_celltoolbar.register(this, options.events);
+        slideshow_celltoolbar.register(this, options.events);
     };
 
     /**
@@ -102,36 +170,38 @@ var IPython = (function (IPython) {
     Notebook.prototype.bind_events = function () {
         var that = this;
 
-        $([IPython.events]).on('set_next_input.Notebook', function (event, data) {
+        this.events.on('set_next_input.Notebook', function (event, data) {
             var index = that.find_cell_index(data.cell);
             var new_cell = that.insert_cell_below('code',index);
             new_cell.set_text(data.text);
             that.dirty = true;
         });
 
-        $([IPython.events]).on('set_dirty.Notebook', function (event, data) {
+        this.events.on('set_dirty.Notebook', function (event, data) {
             that.dirty = data.value;
         });
 
-        $([IPython.events]).on('trust_changed.Notebook', function (event, data) {
+        this.events.on('trust_changed.Notebook', function (event, data) {
             that.trusted = data.value;
         });
 
-        $([IPython.events]).on('select.Cell', function (event, data) {
+        this.events.on('select.Cell', function (event, data) {
             var index = that.find_cell_index(data.cell);
             that.select(index);
         });
 
-        $([IPython.events]).on('edit_mode.Cell', function (event, data) {
+        this.events.on('edit_mode.Cell', function (event, data) {
             that.handle_edit_mode(data.cell);
         });
 
-        $([IPython.events]).on('command_mode.Cell', function (event, data) {
+        this.events.on('command_mode.Cell', function (event, data) {
             that.handle_command_mode(data.cell);
         });
 
-        $([IPython.events]).on('status_autorestarting.Kernel', function () {
-            IPython.dialog.modal({
+        this.events.on('status_autorestarting.Kernel', function () {
+            dialog.modal({
+                notebook: that,
+                keyboard_manager: that.keyboard_manager,
                 title: "Kernel Restarting",
                 body: "The kernel appears to have died. It will restart automatically.",
                 buttons: {
@@ -211,7 +281,7 @@ var IPython = (function (IPython) {
         if (this.dirty == value) {
             return;
         }
-        $([IPython.events]).trigger('set_dirty.Notebook', {value: value});
+        this.events.trigger('set_dirty.Notebook', {value: value});
     };
 
     /**
@@ -254,9 +324,14 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.edit_metadata = function () {
         var that = this;
-        IPython.dialog.edit_metadata(this.metadata, function (md) {
-            that.metadata = md;
-        }, 'Notebook');
+        dialog.edit_metadata({
+            md: this.metadata, 
+            callback: function (md) {
+                that.metadata = md;
+            }, 
+            name: 'Notebook',
+            notebook: this,
+            keyboard_manager: this.keyboard_manager});
     };
 
     // Cell indexing, retrieval, etc.
@@ -295,7 +370,7 @@ var IPython = (function (IPython) {
      * @return {Cell} Cell or null if no cell was found.
      */
     Notebook.prototype.get_msg_cell = function (msg_id) {
-        return IPython.CodeCell.msg_cells[msg_id] || null;
+        return codecell.CodeCell.msg_cells[msg_id] || null;
     };
 
     /**
@@ -474,11 +549,11 @@ var IPython = (function (IPython) {
             var cell = this.get_cell(index);
             cell.select();
             if (cell.cell_type === 'heading') {
-                $([IPython.events]).trigger('selected_cell_type_changed.Notebook',
+                this.events.trigger('selected_cell_type_changed.Notebook',
                     {'cell_type':cell.cell_type,level:cell.level}
                 );
             } else {
-                $([IPython.events]).trigger('selected_cell_type_changed.Notebook',
+                this.events.trigger('selected_cell_type_changed.Notebook',
                     {'cell_type':cell.cell_type}
                 );
             }
@@ -540,8 +615,8 @@ var IPython = (function (IPython) {
         if (this.mode !== 'command') {
             cell.command_mode();
             this.mode = 'command';
-            $([IPython.events]).trigger('command_mode.Notebook');
-            IPython.keyboard_manager.command_mode();
+            this.events.trigger('command_mode.Notebook');
+            this.keyboard_manager.command_mode();
         }
     };
 
@@ -570,8 +645,8 @@ var IPython = (function (IPython) {
         if (cell && this.mode !== 'edit') {
             cell.edit_mode();
             this.mode = 'edit';
-            $([IPython.events]).trigger('edit_mode.Notebook');
-            IPython.keyboard_manager.edit_mode();
+            this.events.trigger('edit_mode.Notebook');
+            this.keyboard_manager.edit_mode();
         }
     };
 
@@ -686,7 +761,7 @@ var IPython = (function (IPython) {
                 this.undelete_index = i;
                 this.undelete_below = false;
             }
-            $([IPython.events]).trigger('delete.Cell', {'cell': cell, 'index': i});
+            this.events.trigger('delete.Cell', {'cell': cell, 'index': i});
             this.set_dirty(true);
         }
         return this;
@@ -753,20 +828,27 @@ var IPython = (function (IPython) {
         type = type || this.get_selected_cell().cell_type;
 
         if (ncells === 0 || this.is_valid_cell_index(index) || index === ncells) {
+            var cell_options = {
+                events: this.events, 
+                config: this.config, 
+                keyboard_manager: this.keyboard_manager, 
+                notebook: this,
+                tooltip: this.tooltip,
+            };
             if (type === 'code') {
-                cell = new IPython.CodeCell(this.kernel);
+                cell = new codecell.CodeCell(this.kernel, cell_options);
                 cell.set_input_prompt();
             } else if (type === 'markdown') {
-                cell = new IPython.MarkdownCell();
+                cell = new textcell.MarkdownCell(cell_options);
             } else if (type === 'raw') {
-                cell = new IPython.RawCell();
+                cell = new textcell.RawCell(cell_options);
             } else if (type === 'heading') {
-                cell = new IPython.HeadingCell();
+                cell = new textcell.HeadingCell(cell_options);
             }
 
             if(this._insert_element_at_index(cell.element,index)) {
                 cell.render();
-                $([IPython.events]).trigger('create.Cell', {'cell': cell, 'index': index});
+                this.events.trigger('create.Cell', {'cell': cell, 'index': index});
                 cell.refresh();
                 // We used to select the cell after we refresh it, but there
                 // are now cases were this method is called where select is
@@ -876,7 +958,7 @@ var IPython = (function (IPython) {
         if (this.is_valid_cell_index(i)) {
             var source_element = this.get_cell_element(i);
             var source_cell = source_element.data("cell");
-            if (!(source_cell instanceof IPython.CodeCell)) {
+            if (!(source_cell instanceof codecell.CodeCell)) {
                 var target_cell = this.insert_cell_below('code',i);
                 var text = source_cell.get_text();
                 if (text === source_cell.placeholder) {
@@ -906,7 +988,7 @@ var IPython = (function (IPython) {
         if (this.is_valid_cell_index(i)) {
             var source_element = this.get_cell_element(i);
             var source_cell = source_element.data("cell");
-            if (!(source_cell instanceof IPython.MarkdownCell)) {
+            if (!(source_cell instanceof textcell.MarkdownCell)) {
                 var target_cell = this.insert_cell_below('markdown',i);
                 var text = source_cell.get_text();
                 if (text === source_cell.placeholder) {
@@ -920,7 +1002,7 @@ var IPython = (function (IPython) {
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.select(i);
-                if ((source_cell instanceof IPython.TextCell) && source_cell.rendered) {
+                if ((source_cell instanceof textcell.TextCell) && source_cell.rendered) {
                     target_cell.render();
                 }
                 var cursor = source_cell.code_mirror.getCursor();
@@ -942,7 +1024,7 @@ var IPython = (function (IPython) {
             var source_element = this.get_cell_element(i);
             var source_cell = source_element.data("cell");
             var target_cell = null;
-            if (!(source_cell instanceof IPython.RawCell)) {
+            if (!(source_cell instanceof textcell.RawCell)) {
                 target_cell = this.insert_cell_below('raw',i);
                 var text = source_cell.get_text();
                 if (text === source_cell.placeholder) {
@@ -977,7 +1059,7 @@ var IPython = (function (IPython) {
             var source_element = this.get_cell_element(i);
             var source_cell = source_element.data("cell");
             var target_cell = null;
-            if (source_cell instanceof IPython.HeadingCell) {
+            if (source_cell instanceof textcell.HeadingCell) {
                 source_cell.set_level(level);
             } else {
                 target_cell = this.insert_cell_below('heading',i);
@@ -996,12 +1078,12 @@ var IPython = (function (IPython) {
                 this.select(i);
                 var cursor = source_cell.code_mirror.getCursor();
                 target_cell.code_mirror.setCursor(cursor);
-                if ((source_cell instanceof IPython.TextCell) && source_cell.rendered) {
+                if ((source_cell instanceof textcell.TextCell) && source_cell.rendered) {
                     target_cell.render();
                 }
             }
             this.set_dirty(true);
-            $([IPython.events]).trigger('selected_cell_type_changed.Notebook',
+            this.events.trigger('selected_cell_type_changed.Notebook',
                 {'cell_type':'heading',level:level}
             );
         }
@@ -1115,13 +1197,13 @@ var IPython = (function (IPython) {
      * @method split_cell
      */
     Notebook.prototype.split_cell = function () {
-        var mdc = IPython.MarkdownCell;
-        var rc = IPython.RawCell;
+        var mdc = textcell.MarkdownCell;
+        var rc = textcell.RawCell;
         var cell = this.get_selected_cell();
         if (cell.is_splittable()) {
             var texta = cell.get_pre_cursor();
             var textb = cell.get_post_cursor();
-            if (cell instanceof IPython.CodeCell) {
+            if (cell instanceof codecell.CodeCell) {
                 // In this case the operations keep the notebook in its existing mode
                 // so we don't need to do any post-op mode changes.
                 cell.set_text(textb);
@@ -1144,8 +1226,8 @@ var IPython = (function (IPython) {
      * @method merge_cell_above
      */
     Notebook.prototype.merge_cell_above = function () {
-        var mdc = IPython.MarkdownCell;
-        var rc = IPython.RawCell;
+        var mdc = textcell.MarkdownCell;
+        var rc = textcell.RawCell;
         var index = this.get_selected_index();
         var cell = this.get_cell(index);
         var render = cell.rendered;
@@ -1159,7 +1241,7 @@ var IPython = (function (IPython) {
             }
             var upper_text = upper_cell.get_text();
             var text = cell.get_text();
-            if (cell instanceof IPython.CodeCell) {
+            if (cell instanceof codecell.CodeCell) {
                 cell.set_text(upper_text+'\n'+text);
             } else if ((cell instanceof mdc) || (cell instanceof rc)) {
                 cell.unrender(); // Must unrender before we set_text.
@@ -1181,8 +1263,8 @@ var IPython = (function (IPython) {
      * @method merge_cell_below
      */
     Notebook.prototype.merge_cell_below = function () {
-        var mdc = IPython.MarkdownCell;
-        var rc = IPython.RawCell;
+        var mdc = textcell.MarkdownCell;
+        var rc = textcell.RawCell;
         var index = this.get_selected_index();
         var cell = this.get_cell(index);
         var render = cell.rendered;
@@ -1196,7 +1278,7 @@ var IPython = (function (IPython) {
             }
             var lower_text = lower_cell.get_text();
             var text = cell.get_text();
-            if (cell instanceof IPython.CodeCell) {
+            if (cell instanceof codecell.CodeCell) {
                 cell.set_text(text+'\n'+lower_text);
             } else if ((cell instanceof mdc) || (cell instanceof rc)) {
                 cell.unrender(); // Must unrender before we set_text.
@@ -1224,7 +1306,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.collapse_output = function (index) {
         var i = this.index_or_selected(index);
         var cell = this.get_cell(i);
-        if (cell !== null && (cell instanceof IPython.CodeCell)) {
+        if (cell !== null && (cell instanceof codecell.CodeCell)) {
             cell.collapse_output();
             this.set_dirty(true);
         }
@@ -1237,7 +1319,7 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.collapse_all_output = function () {
         $.map(this.get_cells(), function (cell, i) {
-            if (cell instanceof IPython.CodeCell) {
+            if (cell instanceof codecell.CodeCell) {
                 cell.collapse_output();
             }
         });
@@ -1254,7 +1336,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.expand_output = function (index) {
         var i = this.index_or_selected(index);
         var cell = this.get_cell(i);
-        if (cell !== null && (cell instanceof IPython.CodeCell)) {
+        if (cell !== null && (cell instanceof codecell.CodeCell)) {
             cell.expand_output();
             this.set_dirty(true);
         }
@@ -1267,7 +1349,7 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.expand_all_output = function () {
         $.map(this.get_cells(), function (cell, i) {
-            if (cell instanceof IPython.CodeCell) {
+            if (cell instanceof codecell.CodeCell) {
                 cell.expand_output();
             }
         });
@@ -1284,7 +1366,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.clear_output = function (index) {
         var i = this.index_or_selected(index);
         var cell = this.get_cell(i);
-        if (cell !== null && (cell instanceof IPython.CodeCell)) {
+        if (cell !== null && (cell instanceof codecell.CodeCell)) {
             cell.clear_output();
             this.set_dirty(true);
         }
@@ -1297,7 +1379,7 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.clear_all_output = function () {
         $.map(this.get_cells(), function (cell, i) {
-            if (cell instanceof IPython.CodeCell) {
+            if (cell instanceof codecell.CodeCell) {
                 cell.clear_output();
             }
         });
@@ -1313,7 +1395,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.scroll_output = function (index) {
         var i = this.index_or_selected(index);
         var cell = this.get_cell(i);
-        if (cell !== null && (cell instanceof IPython.CodeCell)) {
+        if (cell !== null && (cell instanceof codecell.CodeCell)) {
             cell.scroll_output();
             this.set_dirty(true);
         }
@@ -1326,7 +1408,7 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.scroll_all_output = function () {
         $.map(this.get_cells(), function (cell, i) {
-            if (cell instanceof IPython.CodeCell) {
+            if (cell instanceof codecell.CodeCell) {
                 cell.scroll_output();
             }
         });
@@ -1342,7 +1424,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.toggle_output = function (index) {
         var i = this.index_or_selected(index);
         var cell = this.get_cell(i);
-        if (cell !== null && (cell instanceof IPython.CodeCell)) {
+        if (cell !== null && (cell instanceof codecell.CodeCell)) {
             cell.toggle_output();
             this.set_dirty(true);
         }
@@ -1355,7 +1437,7 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.toggle_all_output = function () {
         $.map(this.get_cells(), function (cell, i) {
-            if (cell instanceof IPython.CodeCell) {
+            if (cell instanceof codecell.CodeCell) {
                 cell.toggle_output();
             }
         });
@@ -1372,7 +1454,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.toggle_output_scroll = function (index) {
         var i = this.index_or_selected(index);
         var cell = this.get_cell(i);
-        if (cell !== null && (cell instanceof IPython.CodeCell)) {
+        if (cell !== null && (cell instanceof codecell.CodeCell)) {
             cell.toggle_output_scroll();
             this.set_dirty(true);
         }
@@ -1385,7 +1467,7 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.toggle_all_output_scroll = function () {
         $.map(this.get_cells(), function (cell, i) {
-            if (cell instanceof IPython.CodeCell) {
+            if (cell instanceof codecell.CodeCell) {
                 cell.toggle_output_scroll();
             }
         });
@@ -1412,7 +1494,16 @@ var IPython = (function (IPython) {
      * @method start_session
      */
     Notebook.prototype.start_session = function () {
-        this.session = new IPython.Session(this, this.options);
+        this.session = new session.Session({
+            base_url: this.base_url,
+            notebook_path: this.notebook_path,
+            notebook_name: this.notebook_name,
+            // For now, create all sessions with the 'python' kernel, which is the
+            // default. Later, the user will be able to select kernels. This is
+            // overridden if KernelManager.kernel_cmd is specified for the server.
+            kernel_name: this.default_kernel_name,
+            notebook: this});
+
         this.session.start($.proxy(this._session_started, this));
     };
 
@@ -1427,7 +1518,7 @@ var IPython = (function (IPython) {
         var ncells = this.ncells();
         for (var i=0; i<ncells; i++) {
             var cell = this.get_cell(i);
-            if (cell instanceof IPython.CodeCell) {
+            if (cell instanceof codecell.CodeCell) {
                 cell.set_kernel(this.session.kernel);
             }
         }
@@ -1440,7 +1531,9 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.restart_kernel = function () {
         var that = this;
-        IPython.dialog.modal({
+        dialog.modal({
+            notebook: this,
+            keyboard_manager: this.keyboard_manager,
             title : "Restart kernel or continue running?",
             body : $("<p/>").text(
                 'Do you want to restart the current kernel?  You will lose all variables defined in it.'
@@ -1660,10 +1753,12 @@ var IPython = (function (IPython) {
         }
         if (trusted != this.trusted) {
             this.trusted = trusted;
-            $([IPython.events]).trigger("trust_changed.Notebook", trusted);
+            this.events.trigger("trust_changed.Notebook", trusted);
         }
         if (content.worksheets.length > 1) {
-            IPython.dialog.modal({
+            dialog.modal({
+                notebook: this,
+                keyboard_manager: this.keyboard_manager,
                 title : "Multiple worksheets",
                 body : "This notebook has " + data.worksheets.length + " worksheets, " +
                     "but this version of IPython can only handle the first.  " +
@@ -1705,7 +1800,7 @@ var IPython = (function (IPython) {
         };
         if (trusted != this.trusted) {
             this.trusted = trusted;
-            $([IPython.events]).trigger("trust_changed.Notebook", trusted);
+            this.events.trigger("trust_changed.Notebook", trusted);
         }
         return data;
     };
@@ -1730,10 +1825,10 @@ var IPython = (function (IPython) {
                     that.save_notebook();
                 }
             }, interval);
-            $([IPython.events]).trigger("autosave_enabled.Notebook", interval);
+            this.events.trigger("autosave_enabled.Notebook", interval);
         } else {
             this.autosave_timer = null;
-            $([IPython.events]).trigger("autosave_disabled.Notebook");
+            this.events.trigger("autosave_disabled.Notebook");
         }
     };
     
@@ -1768,7 +1863,7 @@ var IPython = (function (IPython) {
                 settings[key] = extra_settings[key];
             }
         }
-        $([IPython.events]).trigger('notebook_saving.Notebook');
+        this.events.trigger('notebook_saving.Notebook');
         var url = utils.url_join_encode(
             this.base_url,
             'api/notebooks',
@@ -1789,7 +1884,7 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.save_notebook_success = function (start, data, status, xhr) {
         this.set_dirty(false);
-        $([IPython.events]).trigger('notebook_saved.Notebook');
+        this.events.trigger('notebook_saved.Notebook');
         this._update_autosave_interval(start);
         if (this._checkpoint_after_save) {
             this.create_checkpoint();
@@ -1826,7 +1921,7 @@ var IPython = (function (IPython) {
      * @param {String} error HTTP error message
      */
     Notebook.prototype.save_notebook_error = function (xhr, status, error) {
-        $([IPython.events]).trigger('notebook_save_failed.Notebook', [xhr, status, error]);
+        this.events.trigger('notebook_save_failed.Notebook', [xhr, status, error]);
     };
 
     /**
@@ -1851,7 +1946,9 @@ var IPython = (function (IPython) {
         );
 
         var nb = this;
-        IPython.dialog.modal({
+        dialog.modal({
+            notebook: this,
+            keyboard_manager: this.keyboard_manager,
             title: "Trust this notebook?",
             body: body,
 
@@ -1867,7 +1964,7 @@ var IPython = (function (IPython) {
                                 cell.output_area.trusted = true;
                             }
                         }
-                        $([IPython.events]).on('notebook_saved.Notebook', function () {
+                        this.events.on('notebook_saved.Notebook', function () {
                             window.location.reload();
                         });
                         nb.save_notebook();
@@ -1953,7 +2050,7 @@ var IPython = (function (IPython) {
             success : $.proxy(that.rename_success, this),
             error : $.proxy(that.rename_error, this)
         };
-        $([IPython.events]).trigger('rename_notebook.Notebook', data);
+        this.events.trigger('rename_notebook.Notebook', data);
         var url = utils.url_join_encode(
             this.base_url,
             'api/notebooks',
@@ -1986,32 +2083,34 @@ var IPython = (function (IPython) {
         var name = this.notebook_name = json.name;
         var path = json.path;
         this.session.rename_notebook(name, path);
-        $([IPython.events]).trigger('notebook_renamed.Notebook', json);
+        this.events.trigger('notebook_renamed.Notebook', json);
     };
 
     Notebook.prototype.rename_error = function (xhr, status, error) {
         var that = this;
-        var dialog = $('<div/>').append(
+        var dialog_body = $('<div/>').append(
             $("<p/>").addClass("rename-message")
             .text('This notebook name already exists.')
         );
-        $([IPython.events]).trigger('notebook_rename_failed.Notebook', [xhr, status, error]);
-        IPython.dialog.modal({
+        this.events.trigger('notebook_rename_failed.Notebook', [xhr, status, error]);
+        dialog.modal({
+            notebook: this,
+            keyboard_manager: this.keyboard_manager,
             title: "Notebook Rename Error!",
-            body: dialog,
+            body: dialog_body,
             buttons : {
                 "Cancel": {},
                 "OK": {
                     class: "btn-primary",
                     click: function () {
-                        IPython.save_widget.rename_notebook();
+                        this.save_widget.rename_notebook({notebook:that});
                 }}
                 },
             open : function (event, ui) {
                 var that = $(this);
                 // Upon ENTER, click the OK button.
                 that.find('input[type="text"]').keydown(function (event, ui) {
-                    if (event.which === IPython.keyboard.keycodes.enter) {
+                    if (event.which === this.keyboard.keycodes.enter) {
                         that.find('.btn-primary').first().click();
                     }
                 });
@@ -2039,7 +2138,7 @@ var IPython = (function (IPython) {
             success : $.proxy(this.load_notebook_success,this),
             error : $.proxy(this.load_notebook_error,this),
         };
-        $([IPython.events]).trigger('notebook_loading.Notebook');
+        this.events.trigger('notebook_loading.Notebook');
         var url = utils.url_join_encode(
             this.base_url,
             'api/notebooks',
@@ -2077,7 +2176,9 @@ var IPython = (function (IPython) {
             "newer notebook format will be used and older versions of IPython " +
             "may not be able to read it. To keep the older version, close the " +
             "notebook without saving it.";
-            IPython.dialog.modal({
+            dialog.modal({
+                notebook: this,
+                keyboard_manager: this.keyboard_manager,
                 title : "Notebook converted",
                 body : msg,
                 buttons : {
@@ -2094,7 +2195,9 @@ var IPython = (function (IPython) {
             this_vs + ".  You can still work with this notebook, but some features " +
             "introduced in later notebook versions may not be available.";
 
-            IPython.dialog.modal({
+            dialog.modal({
+                notebook: this,
+                keyboard_manager: this.keyboard_manager,
                 title : "Newer Notebook",
                 body : msg,
                 buttons : {
@@ -2116,15 +2219,15 @@ var IPython = (function (IPython) {
         
         // load toolbar state
         if (this.metadata.celltoolbar) {
-            IPython.CellToolbar.global_show();
-            IPython.CellToolbar.activate_preset(this.metadata.celltoolbar);
+            celltoolbar.CellToolbar.global_show();
+            celltoolbar.CellToolbar.activate_preset(this.metadata.celltoolbar, this.events);
         } else {
-            IPython.CellToolbar.global_hide();
+            celltoolbar.CellToolbar.global_hide();
         }
 
         // now that we're fully loaded, it is safe to restore save functionality
         delete(this.save_notebook);
-        $([IPython.events]).trigger('notebook_loaded.Notebook');
+        this.events.trigger('notebook_loaded.Notebook');
     };
 
     /**
@@ -2136,7 +2239,7 @@ var IPython = (function (IPython) {
      * @param {String} error HTTP error message
      */
     Notebook.prototype.load_notebook_error = function (xhr, status, error) {
-        $([IPython.events]).trigger('notebook_load_failed.Notebook', [xhr, status, error]);
+        this.events.trigger('notebook_load_failed.Notebook', [xhr, status, error]);
         var msg;
         if (xhr.status === 400) {
             msg = error;
@@ -2145,7 +2248,9 @@ var IPython = (function (IPython) {
             "This version can load notebook formats " +
             "v" + this.nbformat + " or earlier.";
         }
-        IPython.dialog.modal({
+        dialog.modal({
+            notebook: this,
+            keyboard_manager: this.keyboard_manager,
             title: "Error loading notebook",
             body : msg,
             buttons : {
@@ -2224,7 +2329,7 @@ var IPython = (function (IPython) {
         } else {
             this.last_checkpoint = null;
         }
-        $([IPython.events]).trigger('checkpoints_listed.Notebook', [data]);
+        this.events.trigger('checkpoints_listed.Notebook', [data]);
     };
 
     /**
@@ -2236,7 +2341,7 @@ var IPython = (function (IPython) {
      * @param {String} error_msg HTTP error message
      */
     Notebook.prototype.list_checkpoints_error = function (xhr, status, error_msg) {
-        $([IPython.events]).trigger('list_checkpoints_failed.Notebook');
+        this.events.trigger('list_checkpoints_failed.Notebook');
     };
     
     /**
@@ -2270,7 +2375,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.create_checkpoint_success = function (data, status, xhr) {
         data = $.parseJSON(data);
         this.add_checkpoint(data);
-        $([IPython.events]).trigger('checkpoint_created.Notebook', data);
+        this.events.trigger('checkpoint_created.Notebook', data);
     };
 
     /**
@@ -2282,7 +2387,7 @@ var IPython = (function (IPython) {
      * @param {String} error_msg HTTP error message
      */
     Notebook.prototype.create_checkpoint_error = function (xhr, status, error_msg) {
-        $([IPython.events]).trigger('checkpoint_failed.Notebook');
+        this.events.trigger('checkpoint_failed.Notebook');
     };
     
     Notebook.prototype.restore_checkpoint_dialog = function (checkpoint) {
@@ -2309,7 +2414,9 @@ var IPython = (function (IPython) {
             ).css("text-align", "center")
         );
         
-        IPython.dialog.modal({
+        dialog.modal({
+            notebook: this,
+            keyboard_manager: this.keyboard_manager,
             title : "Revert notebook to checkpoint",
             body : body,
             buttons : {
@@ -2331,7 +2438,7 @@ var IPython = (function (IPython) {
      * @param {String} checkpoint ID
      */
     Notebook.prototype.restore_checkpoint = function (checkpoint) {
-        $([IPython.events]).trigger('notebook_restoring.Notebook', checkpoint);
+        this.events.trigger('notebook_restoring.Notebook', checkpoint);
         var url = utils.url_join_encode(
             this.base_url,
             'api/notebooks',
@@ -2356,7 +2463,7 @@ var IPython = (function (IPython) {
      * @param {jqXHR} xhr jQuery Ajax object
      */
     Notebook.prototype.restore_checkpoint_success = function (data, status, xhr) {
-        $([IPython.events]).trigger('checkpoint_restored.Notebook');
+        this.events.trigger('checkpoint_restored.Notebook');
         this.load_notebook(this.notebook_name, this.notebook_path);
     };
 
@@ -2369,7 +2476,7 @@ var IPython = (function (IPython) {
      * @param {String} error_msg HTTP error message
      */
     Notebook.prototype.restore_checkpoint_error = function (xhr, status, error_msg) {
-        $([IPython.events]).trigger('checkpoint_restore_failed.Notebook');
+        this.events.trigger('checkpoint_restore_failed.Notebook');
     };
     
     /**
@@ -2379,7 +2486,7 @@ var IPython = (function (IPython) {
      * @param {String} checkpoint ID
      */
     Notebook.prototype.delete_checkpoint = function (checkpoint) {
-        $([IPython.events]).trigger('notebook_restoring.Notebook', checkpoint);
+        this.events.trigger('notebook_restoring.Notebook', checkpoint);
         var url = utils.url_join_encode(
             this.base_url,
             'api/notebooks',
@@ -2404,7 +2511,7 @@ var IPython = (function (IPython) {
      * @param {jqXHR} xhr jQuery Ajax object
      */
     Notebook.prototype.delete_checkpoint_success = function (data, status, xhr) {
-        $([IPython.events]).trigger('checkpoint_deleted.Notebook', data);
+        this.events.trigger('checkpoint_deleted.Notebook', data);
         this.load_notebook(this.notebook_name, this.notebook_path);
     };
 
@@ -2417,14 +2524,12 @@ var IPython = (function (IPython) {
      * @param {String} error_msg HTTP error message
      */
     Notebook.prototype.delete_checkpoint_error = function (xhr, status, error_msg) {
-        $([IPython.events]).trigger('checkpoint_delete_failed.Notebook');
+        this.events.trigger('checkpoint_delete_failed.Notebook');
     };
 
 
+    // For backwards compatability.
     IPython.Notebook = Notebook;
 
-
-    return IPython;
-
-}(IPython));
-
+    return {'Notebook': Notebook};
+});

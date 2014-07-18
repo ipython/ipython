@@ -1,20 +1,10 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2008 The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// ToolBar
-//============================================================================
-/**
- * @module IPython
- * @namespace IPython
- * @submodule ToolBar
- */
-
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'jquery',
+], function(IPython, $) {
     "use strict";
 
     /**
@@ -23,8 +13,9 @@ var IPython = (function (IPython) {
      * @constructor
      * @param {Dom object} selector
      */
-    var ToolBar = function (selector) {
+    var ToolBar = function (selector, layout_manager) {
         this.selector = selector;
+        this.layout_manager = layout_manager;
         if (this.selector !== undefined) {
             this.element = $(selector);
             this.style();
@@ -98,14 +89,13 @@ var IPython = (function (IPython) {
      */
     ToolBar.prototype.toggle = function () {
         this.element.toggle();
-        if (IPython.layout_manager !== undefined) {
-            IPython.layout_manager.do_resize();
+        if (this.layout_manager !== undefined) {
+            this.layout_manager.do_resize();
         }
     };
 
-
+    // Backwards compatability.
     IPython.ToolBar = ToolBar;
 
-    return IPython;
-
-}(IPython));
+    return {'ToolBar': ToolBar};
+});

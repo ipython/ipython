@@ -1,20 +1,22 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2014  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// Running Kernels List
-//============================================================================
-
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'jquery',
+    'base/js/utils',
+], function(IPython, $, utils) {
     "use strict";
 
-    var utils = IPython.utils;
-        
     var SesssionList = function (options) {
+        // Constructor
+        //
+        // Parameters:
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          events: $(Events) instance
+        //          base_url : string
+        this.events = options.events;
         this.sessions = {};
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
     };
@@ -44,10 +46,11 @@ var IPython = (function (IPython) {
             );
             this.sessions[nb_path] = data[i].id;
         }
-        $([IPython.events]).trigger('sessions_loaded.Dashboard', this.sessions);
+        this.events.trigger('sessions_loaded.Dashboard', this.sessions);
     };
+
+    // Backwards compatability.
     IPython.SesssionList = SesssionList;
 
-    return IPython;
-
-}(IPython));
+    return {'SesssionList': SesssionList};
+});

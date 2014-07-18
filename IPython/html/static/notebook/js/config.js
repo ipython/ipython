@@ -1,28 +1,9 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2012  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// Notebook
-//============================================================================
-
-/**
- * @module IPython
- * @namespace IPython
- **/
-
-var IPython = (function (IPython) {
+define([], function() {
     "use strict";
-        /**
-         * A place where some stuff can be confugured.
-         *
-         * @class config
-         * @static
-         *
-         **/
+
     var default_config = {
         /**
          * Dictionary of object to autodetect highlight mode for code cell.
@@ -50,30 +31,25 @@ var IPython = (function (IPython) {
          *     cell_magic_highlight['javascript'] = {'reg':[/^var/]}
          */
         cell_magic_highlight : {
-              'magic_javascript'    :{'reg':[/^%%javascript/]}
-             ,'magic_perl'          :{'reg':[/^%%perl/]}
-             ,'magic_ruby'          :{'reg':[/^%%ruby/]}
-             ,'magic_python'        :{'reg':[/^%%python3?/]}
-             ,'magic_shell'         :{'reg':[/^%%bash/]}
-             ,'magic_r'             :{'reg':[/^%%R/]}
-             ,'magic_text/x-cython' :{'reg':[/^%%cython/]}
-            },
+            'magic_javascript'    :{'reg':[/^%%javascript/]},
+            'magic_perl'          :{'reg':[/^%%perl/]},
+            'magic_ruby'          :{'reg':[/^%%ruby/]},
+            'magic_python'        :{'reg':[/^%%python3?/]},
+            'magic_shell'         :{'reg':[/^%%bash/]},
+            'magic_r'             :{'reg':[/^%%R/]},
+            'magic_text/x-cython' :{'reg':[/^%%cython/]},
+        },
 
         /**
          * same as `cell_magic_highlight` but for raw cells
          * @attribute raw_cell_highlight
          */
         raw_cell_highlight : {
-             'diff'         :{'reg':[/^diff/]}
-            },
+            'diff'         :{'reg':[/^diff/]}
+        },
+    };
 
-        };
-
-    // use the same method to merge user configuration
-    IPython.config = {};
-    $.extend(IPython.config, default_config);
-
-    return IPython;
-
-}(IPython));
-
+    return {
+        'default_config': default_config,
+    };
+});

@@ -1,16 +1,28 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// QuickHelp button
-//============================================================================
-
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'jquery',
+    'base/js/utils',
+    'base/js/dialog',
+], function(IPython, $, utils, dialog) {
     "use strict";
+    var platform = utils.platform;
 
-    var platform = IPython.utils.platform;
-
-    var QuickHelp = function (selector) {
+    var QuickHelp = function (options) {
+        // Constructor
+        //
+        // Parameters:
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          events: $(Events) instance
+        //          keyboard_manager: KeyboardManager instance
+        //          notebook: Notebook instance
+        this.keyboard_manager = options.keyboard_manager;
+        this.notebook = options.notebook;
+        this.keyboard_manager.quick_help = this;
+        this.events = options.events;
     };
 
     var cmd_ctrl = 'Ctrl-';
@@ -70,8 +82,8 @@ var IPython = (function (IPython) {
             $(this.shortcut_dialog).modal("toggle");
             return;
         }
-        var command_shortcuts = IPython.keyboard_manager.command_shortcuts.help();
-        var edit_shortcuts = IPython.keyboard_manager.edit_shortcuts.help();
+        var command_shortcuts = this.keyboard_manager.command_shortcuts.help();
+        var edit_shortcuts = this.keyboard_manager.edit_shortcuts.help();
         var help, shortcut;
         var i, half, n;
         var element = $('<div/>');
@@ -96,21 +108,23 @@ var IPython = (function (IPython) {
         var edit_div = this.build_edit_help(cm_shortcuts);
         element.append(edit_div);
 
-        this.shortcut_dialog = IPython.dialog.modal({
+        this.shortcut_dialog = dialog.modal({
             title : "Keyboard shortcuts",
             body : element,
             destroy : false,
             buttons : {
                 Close : {}
-            }
+            },
+            notebook: this.notebook,
+            keyboard_manager: this.keyboard_manager,
         });
         this.shortcut_dialog.addClass("modal_stretch");
         
-        $([IPython.events]).on('rebuild.QuickHelp', function() { that.force_rebuild = true;});
+        this.events.on('rebuild.QuickHelp', function() { that.force_rebuild = true;});
     };
 
     QuickHelp.prototype.build_command_help = function () {
-        var command_shortcuts = IPython.keyboard_manager.command_shortcuts.help();
+        var command_shortcuts = this.keyboard_manager.command_shortcuts.help();
         return build_div('<h4>Command Mode (press <code>Esc</code> to enable)</h4>', command_shortcuts);
     };
 
@@ -134,7 +148,7 @@ var IPython = (function (IPython) {
     };
 
     QuickHelp.prototype.build_edit_help = function (cm_shortcuts) {
-        var edit_shortcuts = IPython.keyboard_manager.edit_shortcuts.help();
+        var edit_shortcuts = this.keyboard_manager.edit_shortcuts.help();
         jQuery.merge(cm_shortcuts, edit_shortcuts);
         return build_div('<h4>Edit Mode (press <code>Enter</code> to enable)</h4>', cm_shortcuts);
     };
@@ -163,9 +177,8 @@ var IPython = (function (IPython) {
         return div;
     };
 
-    // Set module variables
+    // Backwards compatability.
     IPython.QuickHelp = QuickHelp;
 
-    return IPython;
-
-}(IPython));
+    return {'QuickHelp': QuickHelp};
+});

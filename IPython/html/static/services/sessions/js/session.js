@@ -1,26 +1,22 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2013  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// Notebook
-//============================================================================
-
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'jquery',
+    'base/js/utils',
+    'services/kernels/js/kernel',
+], function(IPython, $, utils, kernel) {
     "use strict";
-    
-    var utils = IPython.utils;
-    
-    var Session = function(notebook, options){
+
+    var Session = function(options){
         this.kernel = null;
         this.id = null;
-        this.notebook = notebook;
-        this.name = notebook.notebook_name;
-        this.path = notebook.notebook_path;
-        this.base_url = notebook.base_url;
+        this.notebook = options.notebook;
+        this.name = options.notebook_name;
+        this.path = options.notebook_path;
+        this.kernel_name = options.kernel_name;
+        this.base_url = options.base_url;
     };
     
     Session.prototype.start = function(callback) {
@@ -29,6 +25,9 @@ var IPython = (function (IPython) {
             notebook : {
                 name : this.name,
                 path : this.path
+            },
+            kernel : {
+                name : this.kernel_name
             }
         };
         var settings = {
@@ -92,7 +91,7 @@ var IPython = (function (IPython) {
     Session.prototype._handle_start_success = function (data, status, xhr) {
         this.id = data.id;
         var kernel_service_url = utils.url_path_join(this.base_url, "api/kernels");
-        this.kernel = new IPython.Kernel(kernel_service_url);
+        this.kernel = new kernel.Kernel(kernel_service_url, this.notebook, this.kernel_name);
         this.kernel._kernel_started(data.kernel);
     };
     
@@ -114,8 +113,8 @@ var IPython = (function (IPython) {
         this.kernel.kill();
     };
     
+    // For backwards compatability.
     IPython.Session = Session;
 
-    return IPython;
-
-}(IPython));
+    return {'Session': Session};
+});

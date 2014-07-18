@@ -1,53 +1,60 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2008-2011  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// Cell
-//============================================================================
-/**
- * An extendable module that provide base functionnality to create cell for notebook.
- * @module IPython
- * @namespace IPython
- * @submodule Cell
- */
-
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'jquery',
+    'base/js/utils',
+], function(IPython, $, utils) {
     "use strict";
 
-    var utils = IPython.utils;
-    var keycodes = IPython.keyboard.keycodes;
+    // monkey patch CM to be able to syntax highlight cell magics
+    // bug reported upstream,
+    // see https://github.com/marijnh/CodeMirror2/issues/670
+    if(CodeMirror.getMode(1,'text/plain').indent === undefined ){
+        CodeMirror.modes.null = function() {
+            return {token: function(stream) {stream.skipToEnd();},indent : function(){return 0;}};
+        };
+    }
 
-    /**
-     * The Base `Cell` class from which to inherit
-     * @class Cell
-     **/
+    CodeMirror.patchedGetMode = function(config, mode){
+            var cmmode = CodeMirror.getMode(config, mode);
+            if(cmmode.indent === null) {
+                console.log('patch mode "' , mode, '" on the fly');
+                cmmode.indent = function(){return 0;};
+            }
+            return cmmode;
+        };
+    // end monkey patching CodeMirror
 
-    /*
-     * @constructor
-     *
-     * @param {object|undefined} [options]
-     *     @param [options.cm_config] {object} config to pass to CodeMirror, will extend default parameters
-     */
     var Cell = function (options) {
-
-        options = this.mergeopt(Cell, options);
+        // Constructor
+        //
+        // The Base `Cell` class from which to inherit.
+        //
+        // Parameters:
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          events: $(Events) instance 
+        //          config: dictionary
+        //          keyboard_manager: KeyboardManager instance 
+        options = options || {};
+        this.keyboard_manager = options.keyboard_manager;
+        this.events = options.events;
+        var config = this.mergeopt(Cell, options.config);
         // superclass default overwrite our default
         
-        this.placeholder = options.placeholder || '';
-        this.read_only = options.cm_config.readOnly;
+        this.placeholder = config.placeholder || '';
+        this.read_only = config.cm_config.readOnly;
         this.selected = false;
         this.rendered = false;
         this.mode = 'command';
         this.metadata = {};
         // load this from metadata later ?
         this.user_highlight = 'auto';
-        this.cm_config = options.cm_config;
+        this.cm_config = config.cm_config;
         this.cell_id = utils.uuid();
-        this._options = options;
+        this._options = config;
 
         // For JS VM engines optimization, attributes should be all set (even
         // to null) in the constructor, and if possible, if different subclass
@@ -132,27 +139,27 @@ var IPython = (function (IPython) {
         // We trigger events so that Cell doesn't have to depend on Notebook.
         that.element.click(function (event) {
             if (!that.selected) {
-                $([IPython.events]).trigger('select.Cell', {'cell':that});
+                that.events.trigger('select.Cell', {'cell':that});
             }
         });
         that.element.focusin(function (event) {
             if (!that.selected) {
-                $([IPython.events]).trigger('select.Cell', {'cell':that});
+                that.events.trigger('select.Cell', {'cell':that});
             }
         });
         if (this.code_mirror) {
             this.code_mirror.on("change", function(cm, change) {
-                $([IPython.events]).trigger("set_dirty.Notebook", {value: true});
+                that.events.trigger("set_dirty.Notebook", {value: true});
             });
         }
         if (this.code_mirror) {
             this.code_mirror.on('focus', function(cm, change) {
-                $([IPython.events]).trigger('edit_mode.Cell', {cell: that});
+                that.events.trigger('edit_mode.Cell', {cell: that});
             });
         }
         if (this.code_mirror) {
             this.code_mirror.on('blur', function(cm, change) {
-                $([IPython.events]).trigger('command_mode.Cell', {cell: that});
+                that.events.trigger('command_mode.Cell', {cell: that});
             });
         }
     };
@@ -171,7 +178,7 @@ var IPython = (function (IPython) {
      */
     Cell.prototype.handle_codemirror_keyevent = function (editor, event) {
         var that = this;
-        var shortcuts = IPython.keyboard_manager.edit_shortcuts;
+        var shortcuts = this.keyboard_manager.edit_shortcuts;
 
         // if this is an edit_shortcuts shortcut, the global keyboard/shortcut
         // manager will handle it
@@ -549,9 +556,8 @@ var IPython = (function (IPython) {
         this.code_mirror.setOption('mode', default_mode);
     };
 
+    // Backwards compatability.
     IPython.Cell = Cell;
 
-    return IPython;
-
-}(IPython));
-
+    return {'Cell': Cell};
+});

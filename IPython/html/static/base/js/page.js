@@ -1,15 +1,10 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2008-2011  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// Global header/site setup.
-//============================================================================
-
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'jquery',
+], function(IPython, $){
     "use strict";
 
     var Page = function () {
@@ -22,10 +17,8 @@ var IPython = (function (IPython) {
         $('div#site').addClass('border-box-sizing');
     };
 
-
     Page.prototype.bind_events = function () {
     };
-
 
     Page.prototype.show = function () {
         // The header and site divs start out hidden to prevent FLOUC.
@@ -34,13 +27,11 @@ var IPython = (function (IPython) {
         this.show_site();
     };
 
-
     Page.prototype.show_header = function () {
         // The header and site divs start out hidden to prevent FLOUC.
         // Main scripts should call this method after styling everything.
         $('div#header').css('display','block');
     };
-
 
     Page.prototype.show_site = function () {
         // The header and site divs start out hidden to prevent FLOUC.
@@ -48,9 +39,7 @@ var IPython = (function (IPython) {
         $('div#site').css('display','block');
     };
 
-
+    // Register self in the global namespace for convenience.
     IPython.Page = Page;
-
-    return IPython;
-
-}(IPython));
+    return {'Page': Page};
+});

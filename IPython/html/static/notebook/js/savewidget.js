@@ -1,28 +1,28 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2008-2011  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// SaveWidget
-//============================================================================
-
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'jquery',
+    'base/js/utils',
+    'base/js/dialog',
+    'base/js/keyboard',
+    'dateformat',
+], function(IPython, $, utils, dialog, keyboard) {
     "use strict";
 
-    var utils = IPython.utils;
-
-    var SaveWidget = function (selector) {
+    var SaveWidget = function (selector, options) {
+        // TODO: Remove circulat ref.
+        this.notebook = undefined;
         this.selector = selector;
+        this.events = options.events;
+        this.keyboard_manager = options.keyboard_manager;
         if (this.selector !== undefined) {
             this.element = $(selector);
             this.style();
             this.bind_events();
         }
     };
-
 
     SaveWidget.prototype.style = function () {
     };
@@ -38,56 +38,59 @@ var IPython = (function (IPython) {
         }, function () {
             $(this).removeClass("ui-state-hover");
         });
-        $([IPython.events]).on('notebook_loaded.Notebook', function () {
+        this.events.on('notebook_loaded.Notebook', function () {
             that.update_notebook_name();
             that.update_document_title();
         });
-        $([IPython.events]).on('notebook_saved.Notebook', function () {
+        this.events.on('notebook_saved.Notebook', function () {
             that.update_notebook_name();
             that.update_document_title();
         });
-        $([IPython.events]).on('notebook_renamed.Notebook', function () {
+        this.events.on('notebook_renamed.Notebook', function () {
             that.update_notebook_name();
             that.update_document_title();
             that.update_address_bar();
         });
-        $([IPython.events]).on('notebook_save_failed.Notebook', function () {
+        this.events.on('notebook_save_failed.Notebook', function () {
             that.set_save_status('Autosave Failed!');
         });
-        $([IPython.events]).on('checkpoints_listed.Notebook', function (event, data) {
+        this.events.on('checkpoints_listed.Notebook', function (event, data) {
             that.set_last_checkpoint(data[0]);
         });
 
-        $([IPython.events]).on('checkpoint_created.Notebook', function (event, data) {
+        this.events.on('checkpoint_created.Notebook', function (event, data) {
             that.set_last_checkpoint(data);
         });
-        $([IPython.events]).on('set_dirty.Notebook', function (event, data) {
+        this.events.on('set_dirty.Notebook', function (event, data) {
             that.set_autosaved(data.value);
         });
     };
 
 
-    SaveWidget.prototype.rename_notebook = function () {
+    SaveWidget.prototype.rename_notebook = function (options) {
+        options = options || {};
         var that = this;
-        var dialog = $('<div/>').append(
+        var dialog_body = $('<div/>').append(
             $("<p/>").addClass("rename-message")
                 .text('Enter a new notebook name:')
         ).append(
             $("<br/>")
         ).append(
             $('<input/>').attr('type','text').attr('size','25').addClass('form-control')
-            .val(IPython.notebook.get_notebook_name())
+            .val(that.notebook.get_notebook_name())
         );
-        IPython.dialog.modal({
+        dialog.modal({
             title: "Rename Notebook",
-            body: dialog,
+            body: dialog_body,
+            notebook: options.notebook,
+            keyboard_manager: this.keyboard_manager,
             buttons : {
                 "Cancel": {},
                 "OK": {
                     class: "btn-primary",
                     click: function () {
                     var new_name = $(this).find('input').val();
-                    if (!IPython.notebook.test_notebook_name(new_name)) {
+                    if (!that.notebook.test_notebook_name(new_name)) {
                         $(this).find('.rename-message').text(
                             "Invalid notebook name. Notebook names must "+
                             "have 1 or more characters and can contain any characters " +
@@ -95,7 +98,7 @@ var IPython = (function (IPython) {
                         );
                         return false;
                     } else {
-                        IPython.notebook.rename(new_name);
+                        that.notebook.rename(new_name);
                     }
                 }}
                 },
@@ -103,7 +106,7 @@ var IPython = (function (IPython) {
                 var that = $(this);
                 // Upon ENTER, click the OK button.
                 that.find('input[type="text"]').keydown(function (event, ui) {
-                    if (event.which === IPython.keyboard.keycodes.enter) {
+                    if (event.which === keyboard.keycodes.enter) {
                         that.find('.btn-primary').first().click();
                         return false;
                     }
@@ -111,24 +114,24 @@ var IPython = (function (IPython) {
                 that.find('input[type="text"]').focus().select();
             }
         });
-    }
+    };
 
 
     SaveWidget.prototype.update_notebook_name = function () {
-        var nbname = IPython.notebook.get_notebook_name();
+        var nbname = this.notebook.get_notebook_name();
         this.element.find('span#notebook_name').text(nbname);
     };
 
 
     SaveWidget.prototype.update_document_title = function () {
-        var nbname = IPython.notebook.get_notebook_name();
+        var nbname = this.notebook.get_notebook_name();
         document.title = nbname;
     };
     
     SaveWidget.prototype.update_address_bar = function(){
-        var base_url = IPython.notebook.base_url;
-        var nbname = IPython.notebook.notebook_name;
-        var path = IPython.notebook.notebook_path;
+        var base_url = this.notebook.base_url;
+        var nbname = this.notebook.notebook_name;
+        var path = this.notebook.notebook_path;
         var state = {path : path, name: nbname};
         window.history.replaceState(state, "", utils.url_join_encode(
             base_url,
@@ -141,11 +144,11 @@ var IPython = (function (IPython) {
 
     SaveWidget.prototype.set_save_status = function (msg) {
         this.element.find('span#autosave_status').text(msg);
-    }
+    };
 
     SaveWidget.prototype.set_checkpoint_status = function (msg) {
         this.element.find('span#checkpoint_status').text(msg);
-    }
+    };
 
     SaveWidget.prototype.set_last_checkpoint = function (checkpoint) {
         if (!checkpoint) {
@@ -156,7 +159,7 @@ var IPython = (function (IPython) {
         this.set_checkpoint_status(
             "Last Checkpoint: " + d.format('mmm dd HH:MM')
         );
-    }
+    };
 
     SaveWidget.prototype.set_autosaved = function (dirty) {
         if (dirty) {
@@ -166,10 +169,9 @@ var IPython = (function (IPython) {
         }
     };
 
-
+    // Backwards compatability.
     IPython.SaveWidget = SaveWidget;
 
-    return IPython;
+    return {'SaveWidget': SaveWidget};
 
-}(IPython));
-
+});

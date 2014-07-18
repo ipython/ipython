@@ -1,68 +1,67 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2008-2011  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// CodeCell
-//============================================================================
-/**
- * An extendable module that provide base functionnality to create cell for notebook.
- * @module IPython
- * @namespace IPython
- * @submodule CodeCell
- */
-
-
-/* local util for codemirror */
-var posEq = function(a, b) {return a.line == b.line && a.ch == b.ch;};
-
-/**
- *
- * function to delete until previous non blanking space character
- * or first multiple of 4 tabstop.
- * @private
- */
-CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
-    var from = cm.getCursor(true), to = cm.getCursor(false), sel = !posEq(from, to);
-    if (!posEq(from, to)) { cm.replaceRange("", from, to); return; }
-    var cur = cm.getCursor(), line = cm.getLine(cur.line);
-    var tabsize = cm.getOption('tabSize');
-    var chToPrevTabStop = cur.ch-(Math.ceil(cur.ch/tabsize)-1)*tabsize;
-    from = {ch:cur.ch-chToPrevTabStop,line:cur.line};
-    var select = cm.getRange(from,cur);
-    if( select.match(/^\ +$/) !== null){
-        cm.replaceRange("",from,cur);
-    } else {
-        cm.deleteH(-1,"char");
-    }
-};
-
-
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'jquery',
+    'base/js/utils',
+    'base/js/keyboard',
+    'notebook/js/cell',
+    'notebook/js/outputarea',
+    'notebook/js/completer',
+    'notebook/js/celltoolbar',
+], function(IPython, $, utils, keyboard, cell, outputarea, completer, celltoolbar) {
     "use strict";
+    var Cell = cell.Cell;
 
-    var utils = IPython.utils;
-    var keycodes = IPython.keyboard.keycodes;
+    /* local util for codemirror */
+    var posEq = function(a, b) {return a.line == b.line && a.ch == b.ch;};
 
     /**
-     * A Cell conceived to write code.
      *
-     * The kernel doesn't have to be set at creation time, in that case
-     * it will be null and set_kernel has to be called later.
-     * @class CodeCell
-     * @extends IPython.Cell
-     *
-     * @constructor
-     * @param {Object|null} kernel
-     * @param {object|undefined} [options]
-     *      @param [options.cm_config] {object} config to pass to CodeMirror
+     * function to delete until previous non blanking space character
+     * or first multiple of 4 tabstop.
+     * @private
      */
+    CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
+        var from = cm.getCursor(true), to = cm.getCursor(false), sel = !posEq(from, to);
+        if (!posEq(from, to)) { cm.replaceRange("", from, to); return; }
+        var cur = cm.getCursor(), line = cm.getLine(cur.line);
+        var tabsize = cm.getOption('tabSize');
+        var chToPrevTabStop = cur.ch-(Math.ceil(cur.ch/tabsize)-1)*tabsize;
+        from = {ch:cur.ch-chToPrevTabStop,line:cur.line};
+        var select = cm.getRange(from,cur);
+        if( select.match(/^\ +$/) !== null){
+            cm.replaceRange("",from,cur);
+        } else {
+            cm.deleteH(-1,"char");
+        }
+    };
+
+    var keycodes = keyboard.keycodes;
+
     var CodeCell = function (kernel, options) {
+        // Constructor
+        //
+        // A Cell conceived to write code.
+        //
+        // Parameters:
+        //  kernel: Kernel instance
+        //      The kernel doesn't have to be set at creation time, in that case
+        //      it will be null and set_kernel has to be called later.
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          events: $(Events) instance 
+        //          config: dictionary
+        //          keyboard_manager: KeyboardManager instance 
+        //          notebook: Notebook instance
+        //          tooltip: Tooltip instance
         this.kernel = kernel || null;
+        this.notebook = options.notebook;
         this.collapsed = false;
+        this.events = options.events;
+        this.tooltip = options.tooltip;
+        this.config = options.config;
 
         // create all attributed in constructor function
         // even if null for V8 VM optimisation
@@ -77,9 +76,11 @@ var IPython = (function (IPython) {
             onKeyEvent: $.proxy(this.handle_keyevent,this)
         };
 
-        options = this.mergeopt(CodeCell, options, {cm_config:cm_overwrite_options});
-
-        IPython.Cell.apply(this,[options]);
+        var config = this.mergeopt(CodeCell, this.config, {cm_config: cm_overwrite_options});
+        Cell.apply(this,[{
+            config: config, 
+            keyboard_manager: options.keyboard_manager, 
+            events: this.events}]);
 
         // Attributes we want to override in this subclass.
         this.cell_type = "code";
@@ -109,18 +110,18 @@ var IPython = (function (IPython) {
 
     CodeCell.msg_cells = {};
 
-    CodeCell.prototype = new IPython.Cell();
+    CodeCell.prototype = new Cell();
 
     /**
      * @method auto_highlight
      */
     CodeCell.prototype.auto_highlight = function () {
-        this._auto_highlight(IPython.config.cell_magic_highlight);
+        this._auto_highlight(this.config.cell_magic_highlight);
     };
 
     /** @method create_element */
     CodeCell.prototype.create_element = function () {
-        IPython.Cell.prototype.create_element.apply(this, arguments);
+        Cell.prototype.create_element.apply(this, arguments);
 
         var cell =  $('<div></div>').addClass('cell border-box-sizing code_cell');
         cell.attr('tabindex','2');
@@ -128,10 +129,13 @@ var IPython = (function (IPython) {
         var input = $('<div></div>').addClass('input');
         var prompt = $('<div/>').addClass('prompt input_prompt');
         var inner_cell = $('<div/>').addClass('inner_cell');
-        this.celltoolbar = new IPython.CellToolbar(this);
+        this.celltoolbar = new celltoolbar.CellToolbar({
+            cell: this, 
+            events: this.events, 
+            notebook: this.notebook});
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
-        this.code_mirror = CodeMirror(input_area.get(0), this.cm_config);
+        this.code_mirror = new CodeMirror(input_area.get(0), this.cm_config);
         $(this.code_mirror.getInputField()).attr("spellcheck", "false");
         inner_cell.append(input_area);
         input.append(prompt).append(inner_cell);
@@ -158,13 +162,17 @@ var IPython = (function (IPython) {
         var output = $('<div></div>');
         cell.append(input).append(widget_area).append(output);
         this.element = cell;
-        this.output_area = new IPython.OutputArea(output, true);
-        this.completer = new IPython.Completer(this);
+        this.output_area = new outputarea.OutputArea({
+            selector: output, 
+            prompt_area: true, 
+            events: this.events, 
+            keyboard_manager: this.keyboard_manager});
+        this.completer = new completer.Completer(this, this.events);
     };
 
     /** @method bind_events */
     CodeCell.prototype.bind_events = function () {
-        IPython.Cell.prototype.bind_events.apply(this);
+        Cell.prototype.bind_events.apply(this);
         var that = this;
 
         this.element.focusout(
@@ -187,7 +195,7 @@ var IPython = (function (IPython) {
         // they are sent, and remove tooltip if any, except for tab again
         var tooltip_closed = null;
         if (event.type === 'keydown' && event.which != keycodes.tab ) {
-            tooltip_closed = IPython.tooltip.remove_and_cancel_tooltip();
+            tooltip_closed = this.tooltip.remove_and_cancel_tooltip();
         }
 
         var cur = editor.getCursor();
@@ -195,21 +203,21 @@ var IPython = (function (IPython) {
             this.auto_highlight();
         }
 
-        if (event.which === keycodes.down && event.type === 'keypress' && IPython.tooltip.time_before_tooltip >= 0) {
+        if (event.which === keycodes.down && event.type === 'keypress' && this.tooltip.time_before_tooltip >= 0) {
             // triger on keypress (!) otherwise inconsistent event.which depending on plateform
             // browser and keyboard layout !
             // Pressing '(' , request tooltip, don't forget to reappend it
             // The second argument says to hide the tooltip if the docstring
             // is actually empty
-            IPython.tooltip.pending(that, true);
+            this.tooltip.pending(that, true);
         } else if ( tooltip_closed && event.which === keycodes.esc && event.type === 'keydown') {
             // If tooltip is active, cancel it.  The call to
             // remove_and_cancel_tooltip above doesn't pass, force=true.
             // Because of this it won't actually close the tooltip
             // if it is in sticky mode. Thus, we have to check again if it is open
             // and close it with force=true.
-            if (!IPython.tooltip._hidden) {
-                IPython.tooltip.remove_and_cancel_tooltip(true);
+            if (!this.tooltip._hidden) {
+                this.tooltip.remove_and_cancel_tooltip(true);
             }
             // If we closed the tooltip, don't let CM or the global handlers
             // handle this event.
@@ -223,12 +231,12 @@ var IPython = (function (IPython) {
                         return false;
                     }
                 }
-                IPython.tooltip.request(that);
+                this.tooltip.request(that);
                 event.stop();
                 return true;
         } else if (event.keyCode === keycodes.tab && event.type == 'keydown') {
             // Tab completion.
-            IPython.tooltip.remove_and_cancel_tooltip();
+            this.tooltip.remove_and_cancel_tooltip();
             if (editor.somethingSelected()) {
                 return false;
             }
@@ -246,7 +254,7 @@ var IPython = (function (IPython) {
         
         // keyboard event wasn't one of those unique to code cells, let's see
         // if it's one of the generic ones (i.e. check edit mode shortcuts)
-        return IPython.Cell.prototype.handle_codemirror_keyevent.apply(this, [editor, event]);
+        return Cell.prototype.handle_codemirror_keyevent.apply(this, [editor, event]);
     };
 
     // Kernel related calls.
@@ -305,7 +313,7 @@ var IPython = (function (IPython) {
     };
     
     CodeCell.prototype._open_with_pager = function (payload) {
-        $([IPython.events]).trigger('open_with_text.Pager', payload);
+        this.events.trigger('open_with_text.Pager', payload);
     };
 
     /**
@@ -315,7 +323,7 @@ var IPython = (function (IPython) {
     CodeCell.prototype._handle_execute_reply = function (msg) {
         this.set_input_prompt(msg.content.execution_count);
         this.element.removeClass("running");
-        $([IPython.events]).trigger('set_dirty.Notebook', {value: true});
+        this.events.trigger('set_dirty.Notebook', {value: true});
     };
 
     /**
@@ -324,7 +332,7 @@ var IPython = (function (IPython) {
      */
     CodeCell.prototype._handle_set_next_input = function (payload) {
         var data = {'cell': this, 'text': payload.text};
-        $([IPython.events]).trigger('set_next_input.Notebook', data);
+        this.events.trigger('set_next_input.Notebook', data);
     };
 
     /**
@@ -339,7 +347,7 @@ var IPython = (function (IPython) {
     // Basic cell manipulation.
 
     CodeCell.prototype.select = function () {
-        var cont = IPython.Cell.prototype.select.apply(this);
+        var cont = Cell.prototype.select.apply(this);
         if (cont) {
             this.code_mirror.refresh();
             this.auto_highlight();
@@ -348,7 +356,7 @@ var IPython = (function (IPython) {
     };
 
     CodeCell.prototype.render = function () {
-        var cont = IPython.Cell.prototype.render.apply(this);
+        var cont = Cell.prototype.render.apply(this);
         // Always execute, even if we are already in the rendered state
         return cont;
     };
@@ -451,7 +459,7 @@ var IPython = (function (IPython) {
     // JSON serialization
 
     CodeCell.prototype.fromJSON = function (data) {
-        IPython.Cell.prototype.fromJSON.apply(this, arguments);
+        Cell.prototype.fromJSON.apply(this, arguments);
         if (data.cell_type === 'code') {
             if (data.input !== undefined) {
                 this.set_text(data.input);
@@ -479,7 +487,7 @@ var IPython = (function (IPython) {
 
 
     CodeCell.prototype.toJSON = function () {
-        var data = IPython.Cell.prototype.toJSON.apply(this);
+        var data = Cell.prototype.toJSON.apply(this);
         data.input = this.get_text();
         // is finite protect against undefined and '*' value
         if (isFinite(this.input_prompt_number)) {
@@ -499,11 +507,11 @@ var IPython = (function (IPython) {
      * @return is the action being taken
      */
     CodeCell.prototype.unselect = function () {
-        var cont = IPython.Cell.prototype.unselect.apply(this);
+        var cont = Cell.prototype.unselect.apply(this);
         if (cont) {
             // When a code cell is usnelected, make sure that the corresponding
             // tooltip and completer to that cell is closed.
-            IPython.tooltip.remove_and_cancel_tooltip(true);
+            this.tooltip.remove_and_cancel_tooltip(true);
             if (this.completer !== null) {
                 this.completer.close();
             }
@@ -511,7 +519,8 @@ var IPython = (function (IPython) {
         return cont;
     };
 
+    // Backwards compatability.
     IPython.CodeCell = CodeCell;
 
-    return IPython;
-}(IPython));
+    return {'CodeCell': CodeCell};
+});

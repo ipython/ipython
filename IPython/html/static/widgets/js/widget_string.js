@@ -1,22 +1,13 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2013 The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// StringWidget
-//============================================================================
+define([
+    "widgets/js/widget",
+    "jquery",
+    "components/bootstrap/js/bootstrap.min",
+], function(widget, $){
 
-/**
- * @module IPython
- * @namespace IPython
- **/
-
-define(["widgets/js/widget"], function(WidgetManager){
-
-    var HTMLView = IPython.DOMWidgetView.extend({  
+    var HTMLView = widget.DOMWidgetView.extend({  
         render : function(){
             // Called when view is rendered.
             this.update(); // Set defaults.
@@ -31,10 +22,9 @@ define(["widgets/js/widget"], function(WidgetManager){
             return HTMLView.__super__.update.apply(this);
         },
     });
-    WidgetManager.register_widget_view('HTMLView', HTMLView);
 
 
-    var LatexView = IPython.DOMWidgetView.extend({  
+    var LatexView = widget.DOMWidgetView.extend({  
         render : function(){
             // Called when view is rendered.
             this.update(); // Set defaults.
@@ -51,10 +41,9 @@ define(["widgets/js/widget"], function(WidgetManager){
             return LatexView.__super__.update.apply(this);
         }, 
     });
-    WidgetManager.register_widget_view('LatexView', LatexView);
 
 
-    var TextareaView = IPython.DOMWidgetView.extend({  
+    var TextareaView = widget.DOMWidgetView.extend({  
         render: function(){
             // Called when view is rendered.
             this.$el
@@ -136,10 +125,9 @@ define(["widgets/js/widget"], function(WidgetManager){
             this.touch();
         },
     });
-    WidgetManager.register_widget_view('TextareaView', TextareaView);
 
 
-    var TextView = IPython.DOMWidgetView.extend({  
+    var TextView = widget.DOMWidgetView.extend({  
         render: function(){
             // Called when view is rendered.
             this.$el
@@ -244,5 +232,11 @@ define(["widgets/js/widget"], function(WidgetManager){
             }
         },
     });
-    WidgetManager.register_widget_view('TextView', TextView);
+
+    return {
+        'HTMLView': HTMLView,
+        'LatexView': LatexView,
+        'TextareaView': TextareaView,
+        'TextView': TextView,
+    };
 });
