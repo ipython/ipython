@@ -14,12 +14,10 @@ define([
         this.selector = selector;
         if (this.selector !== undefined) {
             this.element = $(selector);
-            this.style();
             this.bind_events();
         }
     };
 
-    LoginWidget.prototype.style = function () {};
 
 
     LoginWidget.prototype.bind_events = function () {
