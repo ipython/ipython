@@ -50,6 +50,7 @@ define([
         }
     };
 
+    // TODO: This has definitively nothing to do with style ...
     MenuBar.prototype.style = function () {
         var that = this;
         this.element.find("li").click(function (event, ui) {
