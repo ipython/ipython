@@ -7,7 +7,8 @@ define([
     'base/js/utils',
     'base/js/dialog',
     'base/js/keyboard',
-], function(IPython, $, utils, dialog, keyboard) {
+    'dateformat',
+], function(IPython, $, utils, dialog, keyboard, dateformat) {
     "use strict";
 
     var SaveWidget = function (selector, options) {
@@ -152,7 +153,7 @@ define([
         }
         var d = new Date(checkpoint.last_modified);
         this.set_checkpoint_status(
-            "Last Checkpoint: " + d.format('mmm dd HH:MM')
+            "Last Checkpoint: " + dateformat(d,'mmm dd HH:MM')
         );
     };
 
@@ -164,7 +165,7 @@ define([
         }
     };
 
-    // Backwards compatability.
+    // Backwards compatibility.
     IPython.SaveWidget = SaveWidget;
 
     return {'SaveWidget': SaveWidget};
