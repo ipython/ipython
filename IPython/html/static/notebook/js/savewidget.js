@@ -19,12 +19,8 @@ define([
         this.keyboard_manager = options.keyboard_manager;
         if (this.selector !== undefined) {
             this.element = $(selector);
-            this.style();
             this.bind_events();
         }
-    };
-
-    SaveWidget.prototype.style = function () {
     };
 
 
