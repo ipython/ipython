@@ -74,6 +74,7 @@ from IPython.kernel.zmq.session import default_secure, Session
 from IPython.nbformat.sign import NotebookNotary
 from IPython.utils.importstring import import_item
 from IPython.utils import submodule
+from IPython.utils.process import check_pid
 from IPython.utils.traitlets import (
     Dict, Unicode, Integer, List, Bool, Bytes, Instance,
     DottedObjectName, TraitError,
@@ -841,6 +842,7 @@ class NotebookApp(BaseIPythonApplication):
                 'secure': bool(self.certfile),
                 'base_url': self.base_url,
                 'notebook_dir': os.path.abspath(self.notebook_dir),
+                'pid': os.getpid()
                }
 
     def write_server_info_file(self):
@@ -914,8 +916,17 @@ def list_running_servers(profile='default'):
     for file in os.listdir(pd.security_dir):
         if file.startswith('nbserver-'):
             with io.open(os.path.join(pd.security_dir, file), encoding='utf-8') as f:
-                yield json.load(f)
+                info = json.load(f)
 
+            # Simple check whether that process is really still running
+            if check_pid(info['pid']):
+                yield info
+            else:
+                # If the process has died, try to delete its info file
+                try:
+                    os.unlink(file)
+                except OSError:
+                    pass  # TODO: This should warn or log or something
 #-----------------------------------------------------------------------------
 # Main entry point
 #-----------------------------------------------------------------------------

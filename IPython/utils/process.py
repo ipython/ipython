@@ -21,11 +21,11 @@ import sys
 
 # Our own
 if sys.platform == 'win32':
-    from ._process_win32 import _find_cmd, system, getoutput, arg_split
+    from ._process_win32 import _find_cmd, system, getoutput, arg_split, check_pid
 elif sys.platform == 'cli':
     from ._process_cli import _find_cmd, system, getoutput, arg_split
 else:
-    from ._process_posix import _find_cmd, system, getoutput, arg_split
+    from ._process_posix import _find_cmd, system, getoutput, arg_split, check_pid
 
 from ._process_common import getoutputerror, get_output_error_code, process_handler
 from . import py3compat
