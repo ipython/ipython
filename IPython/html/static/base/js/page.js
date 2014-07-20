@@ -11,10 +11,6 @@ define([
         this.bind_events();
     };
 
-    Page.prototype.style = function () {
-        console.log('page.style() is know an empty function, plese consider removing call.')
-    };
-
     Page.prototype.bind_events = function () {
     };
 
