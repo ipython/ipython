@@ -2095,36 +2095,13 @@ define([
     };
 
     Notebook.prototype.rename = function (nbname) {
-        var that = this;
-        if (!nbname.match(/\.ipynb$/)) {
-            nbname = nbname + ".ipynb";
-        }
-        var data = {name: nbname};
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "PATCH",
-            data : JSON.stringify(data),
-            dataType: "json",
-            contentType: 'application/json',
-            success : $.proxy(that.rename_success, this),
-            error : $.proxy(that.rename_error, this)
-        };
-        this.events.trigger('rename_notebook.Notebook', data);
-        var url = utils.url_join_encode(
-            this.base_url,
-            'api/contents',
-            this.notebook_path,
-            this.notebook_name
-        );
-        $.ajax(url, settings);
+        this.content_manager.rename_notebook(this, nbname);
     };
 
     Notebook.prototype.delete = function () {
         this.content_manager.delete_notebook(this.notebook_name, this.notebook_path, this.base_url);
     };
 
-    
     Notebook.prototype.rename_success = function (json, status, xhr) {
         var name = this.notebook_name = json.name;
         var path = json.path;
