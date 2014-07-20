@@ -104,15 +104,15 @@ define([
             data : JSON.stringify(data),
             dataType: "json",
             headers : {'Content-Type': 'application/json'},
-            success : $.proxy(that.rename_success, this),
-            error : $.proxy(that.rename_error, this)
+            success : $.proxy(that.rename_success, that),
+            error : $.proxy(that.rename_error, that)
         };
         this.events.trigger('rename_notebook.Notebook', data);
         var url = utils.url_join_encode(
-            this.base_url,
+            that.base_url,
             'api/notebooks',
-            this.notebook_path,
-            this.notebook_name
+            that.notebook_path,
+            that.notebook_name
         );
         $.ajax(url, settings);
     };
