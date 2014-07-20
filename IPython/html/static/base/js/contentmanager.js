@@ -118,6 +118,7 @@ define([
     };
 
     ContentManager.prototype.save_notebook = function(notebook, extra_settings) {
+        var that = notebook;
         // Create a JSON model to be sent to the server.
         var model = {};
         model.name = notebook.notebook_name;
@@ -134,8 +135,8 @@ define([
             type : "PUT",
             data : JSON.stringify(model),
             contentType: 'application/json',
-            success : $.proxy(notebook.save_notebook_success, this, start),
-            error : $.proxy(notebook.save_notebook_error, this)
+            success : $.proxy(notebook.save_notebook_success, that, start),
+            error : $.proxy(notebook.save_notebook_error, that)
         };
         if (extra_settings) {
             for (var key in extra_settings) {

@@ -1904,41 +1904,7 @@ define([
      * @method save_notebook
      */
     Notebook.prototype.save_notebook = function (extra_settings) {
-        // Create a JSON model to be sent to the server.
-        var model = {};
-        model.name = this.notebook_name;
-        model.path = this.notebook_path;
-        model.type = 'notebook';
-        model.format = 'json';
-        model.content = this.toJSON();
-        model.content.nbformat = this.nbformat;
-        model.content.nbformat_minor = this.nbformat_minor;
-        // time the ajax call for autosave tuning purposes.
-        var start =  new Date().getTime();
-        // We do the call with settings so we can set cache to false.
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "PUT",
-            data : JSON.stringify(model),
-            contentType: 'application/json',
-            dataType : "json",
-            success : $.proxy(this.save_notebook_success, this, start),
-            error : $.proxy(this.save_notebook_error, this)
-        };
-        if (extra_settings) {
-            for (var key in extra_settings) {
-                settings[key] = extra_settings[key];
-            }
-        }
-        this.events.trigger('notebook_saving.Notebook');
-        var url = utils.url_join_encode(
-            this.base_url,
-            'api/contents',
-            this.notebook_path,
-            this.notebook_name
-        );
-        $.ajax(url, settings);
+        this.content_manager.save_notebook(this, extra_settings);
     };
     
     /**
