@@ -93,7 +93,7 @@ define([
         }
     };
 
-    // Backwards compatability.
+    // Backwards compatibility.
     IPython.ToolBar = ToolBar;
 
     return {'ToolBar': ToolBar};
