@@ -2140,8 +2140,7 @@ define([
     Notebook.prototype.rename_error = function (xhr, status, error) {
         var that = this;
         var dialog_body = $('<div/>').append(
-            $("<p/>").addClass("rename-message")
-            .text('This notebook name already exists.')
+            $("<p/>").text('This notebook name already exists.')
         );
         this.events.trigger('notebook_rename_failed.Notebook', [xhr, status, error]);
         dialog.modal({

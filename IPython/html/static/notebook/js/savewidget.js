@@ -7,12 +7,11 @@ define([
     'base/js/utils',
     'base/js/dialog',
     'base/js/keyboard',
-    'dateformat',
 ], function(IPython, $, utils, dialog, keyboard) {
     "use strict";
 
     var SaveWidget = function (selector, options) {
-        // TODO: Remove circulat ref.
+        // TODO: Remove circular ref.
         this.notebook = undefined;
         this.selector = selector;
         this.events = options.events;
