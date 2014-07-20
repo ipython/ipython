@@ -61,6 +61,7 @@ define([
         this.notebook_name = options.notebook_name;
         this.events = options.events;
         this.keyboard_manager = options.keyboard_manager;
+        this.content_manager = options.content_manager;
         this.save_widget = options.save_widget;
         this.tooltip = new tooltip.Tooltip(this.events);
         this.ws_url = options.ws_url;
@@ -2120,21 +2121,7 @@ define([
     };
 
     Notebook.prototype.delete = function () {
-        var that = this;
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "DELETE",
-            dataType: "json",
-            error : utils.log_ajax_error,
-        };
-        var url = utils.url_join_encode(
-            this.base_url,
-            'api/contents',
-            this.notebook_path,
-            this.notebook_name
-        );
-        $.ajax(url, settings);
+        this.content_manager.delete_notebook(this.notebook_name, this.notebook_path, this.base_url);
     };
 
     

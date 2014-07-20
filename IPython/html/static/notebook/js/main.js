@@ -72,14 +72,15 @@ require([
     var save_widget = new savewidget.SaveWidget('span#save_widget', {
         events: events, 
         keyboard_manager: keyboard_manager});
+    var content_manager = new contentmanager.ContentManager($.extend({
+        events: events},
+        common_options));
     var notebook = new notebook.Notebook('div#notebook', $.extend({
         events: events,
         keyboard_manager: keyboard_manager,
         save_widget: save_widget,
+        content_manager: content_manager,
         config: user_config},
-        common_options));
-    var content_manager = new contentmanager.ContentManager($.extend({
-        events: events},
         common_options));
     var login_widget = new loginwidget.LoginWidget('span#login_widget', common_options);
     var toolbar = new maintoolbar.MainToolBar('#maintoolbar-container', {
@@ -137,6 +138,7 @@ require([
     IPython.page = page;
     IPython.layout_manager = layout_manager;
     IPython.notebook = notebook;
+    IPython.content_manager = content_manager;
     IPython.pager = pager;
     IPython.quick_help = quick_help;
     IPython.login_widget = login_widget;
