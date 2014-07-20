@@ -178,7 +178,6 @@ define([
      * @return {Boolean} `true` if CodeMirror should ignore the event, `false` Otherwise
      */
     Cell.prototype.handle_codemirror_keyevent = function (editor, event) {
-        var that = this;
         var shortcuts = this.keyboard_manager.edit_shortcuts;
 
         // if this is an edit_shortcuts shortcut, the global keyboard/shortcut
