@@ -134,14 +134,6 @@ define([
         slideshow_celltoolbar.register(this, options.events);
     };
 
-    /**
-     * Tweak the notebook's CSS style.
-     * 
-     * @method style
-     */
-    Notebook.prototype.style = function () {
-        console.log('Notebook.style() is now a empty function, please consider removing.');
-    };
 
     /**
      * Create an HTML and CSS representation of the notebook.
