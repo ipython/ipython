@@ -19,9 +19,7 @@ define([
         }
     };
 
-    LoginWidget.prototype.style = function () {
-        this.element.find("button").addClass("btn btn-default btn-sm");
-    };
+    LoginWidget.prototype.style = function () {};
 
 
     LoginWidget.prototype.bind_events = function () {
