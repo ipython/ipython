@@ -46,7 +46,7 @@ require([
         common_options));
     login_widget = new loginwidget.LoginWidget('#login_widget', common_options);
 
-    $('#new_notebook').button().click(function (e) {
+    $('#new_notebook').click(function (e) {
         notebook_list.new_notebook();
     });
 
