@@ -68,8 +68,13 @@ define([
                 this.$slider.slider('option', 'value', min);
                 this.$slider.slider('option', 'orientation', orientation);
                 value = this.model.get('value');
-                if(value > max) value = max;
-                else if(value < min) value = min;
+                if(value > max) { 
+                    value = max; 
+                }
+                else if(value < min){ 
+                    value = min; 
+                }
+                this.model.set('value', value, {updated_view: this});
                 this.$slider.slider('option', 'value', value);
                 this.$readout.text(value);
 
