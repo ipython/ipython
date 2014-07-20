@@ -79,8 +79,7 @@ define([
     };
 
     ToolBar.prototype.style = function () {
-        this.element.addClass('border-box-sizing')
-            .addClass('toolbar');
+        this.element.addClass('toolbar');
     };
 
     /**
