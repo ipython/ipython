@@ -1,25 +1,24 @@
 """Markdown filters
+
 This file contains a collection of utility filters for dealing with 
 markdown within Jinja templates.
 """
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
+# Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 from __future__ import print_function
 
 # Stdlib imports
 import os
 import subprocess
-import warnings
 from io import TextIOWrapper, BytesIO
+import re
+
+import mistune
+from pygments import highlight
+from pygments.lexers import get_lexer_by_name
+from pygments.formatters import HtmlFormatter
+from pygments.util import ClassNotFound
 
 # IPython imports
 from IPython.nbconvert.utils.pandoc import pandoc
@@ -28,9 +27,7 @@ from IPython.utils.process import get_output_error_code
 from IPython.utils.py3compat import cast_bytes
 from IPython.utils.version import check_version
 
-#-----------------------------------------------------------------------------
-# Functions
-#-----------------------------------------------------------------------------
+
 marked = os.path.join(os.path.dirname(__file__), "marked.js")
 _node = None
 
@@ -38,6 +35,7 @@ __all__ = [
     'markdown2html',
     'markdown2html_pandoc',
     'markdown2html_marked',
+    'markdown2html_mistune',
     'markdown2latex',
     'markdown2rst',
 ]
@@ -64,8 +62,96 @@ def markdown2latex(source):
     """
     return pandoc(source, 'markdown', 'latex')
 
-def markdown2html(source):
-    """Convert a markdown string to HTML"""
+class MathBlockGrammar(mistune.BlockGrammar):
+    block_math = re.compile("^\$\$(.*?)\$\$", re.DOTALL)
+    latex_environment = re.compile(r"^\\begin\{([a-z]*\*?)\}(.*?)\\end\{\1\}",
+                                                re.DOTALL)
+
+class MathBlockLexer(mistune.BlockLexer):
+    default_features = ['block_math', 'latex_environment'] + mistune.BlockLexer.default_features
+
+    def __init__(self, rules=None, **kwargs):
+        if rules is None:
+            rules = MathBlockGrammar()
+        super(MathBlockLexer, self).__init__(rules, **kwargs)
+
+    def parse_block_math(self, m):
+        """Parse a $$math$$ block"""
+        self.tokens.append({
+            'type': 'block_math',
+            'text': m.group(1)
+        })
+
+    def parse_latex_environment(self, m):
+        self.tokens.append({
+            'type': 'latex_environment',
+            'name': m.group(1),
+            'text': m.group(2)
+        })
+
+class MathInlineGrammar(mistune.InlineGrammar):
+    math = re.compile("^\$(.+?)\$")
+
+class MathInlineLexer(mistune.InlineLexer):
+    default_features = ['math'] + mistune.InlineLexer.default_features
+
+    def __init__(self, renderer, rules=None, **kwargs):
+        if rules is None:
+            rules = MathInlineGrammar()
+        super(MathInlineLexer, self).__init__(renderer, rules, **kwargs)
+
+    def output_math(self, m):
+        return self.renderer.inline_math(m.group(1))
+
+class MarkdownWithMath(mistune.Markdown):
+    def __init__(self, renderer, **kwargs):
+        if 'inline' not in kwargs:
+            kwargs['inline'] = MathInlineLexer(renderer, **kwargs)
+        if 'block' not in kwargs:
+            kwargs['block'] = MathBlockLexer(**kwargs)
+        super(MarkdownWithMath, self).__init__(renderer, **kwargs)
+
+    def parse_block_math(self):
+        return self.renderer.block_math(self.token['text'])
+
+    def parse_latex_environment(self):
+        return self.renderer.latex_environment(self.token['name'], self.token['text'])
+
+class IPythonRenderer(mistune.Renderer):
+    def block_code(self, code, lang):
+        if lang:
+            try:
+                lexer = get_lexer_by_name(lang, stripall=True)
+            except ClassNotFound:
+                code = lang + '\n' + code
+                lang = None
+
+        if not lang:
+            return '\n<pre><code>%s</code></pre>\n' % \
+                mistune.escape(code)
+
+        formatter = HtmlFormatter()
+        return highlight(code, lexer, formatter)
+
+    # Pass math through unaltered - mathjax does the rendering in the browser
+    def block_math(self, text):
+        return '$$%s$$' % text
+
+    def latex_environment(self, name, text):
+        return r'\begin{%s}%s\end{%s}' % (name, text, name)
+
+    def inline_math(self, text):
+        return '$%s$' % text
+
+def markdown2html_mistune(source):
+    """Convert a markdown string to HTML using mistune"""
+    return MarkdownWithMath(renderer=IPythonRenderer()).render(source)
+
+def markdown2html_pandoc(source):
+    """Convert a markdown string to HTML via pandoc"""
+    return pandoc(source, 'markdown', 'html', extra_args=['--mathjax'])
+
+def _find_nodejs():
     global _node
     if _node is None:
         # prefer md2html via marked if node.js >= 0.9.12 is available
@@ -73,22 +159,11 @@ def markdown2html(source):
         _node = 'nodejs'
         if not _verify_node(_node):
             _node = 'node'
-            if not _verify_node(_node):
-                warnings.warn(  "Node.js 0.9.12 or later wasn't found.\n" +
-                                "Nbconvert will try to use Pandoc instead.")
-                _node = False
-    if _node:
-        return markdown2html_marked(source)
-    else:
-        return markdown2html_pandoc(source)
-
-def markdown2html_pandoc(source):
-    """Convert a markdown string to HTML via pandoc"""
-    return pandoc(source, 'markdown', 'html', extra_args=['--mathjax'])
+    return _node
 
 def markdown2html_marked(source, encoding='utf-8'):
     """Convert a markdown string to HTML via marked"""
-    command = [_node, marked]
+    command = [_find_nodejs(), marked]
     try:
         p = subprocess.Popen(command,
                              stdin=subprocess.PIPE, stdout=subprocess.PIPE
@@ -101,6 +176,9 @@ def markdown2html_marked(source, encoding='utf-8'):
     out, _ = p.communicate(cast_bytes(source, encoding))
     out = TextIOWrapper(BytesIO(out), encoding, 'replace').read()
     return out.rstrip('\n')
+
+# The mistune renderer is the default, because it's simple to depend on it
+markdown2html = markdown2html_mistune
 
 def markdown2rst(source):
     """Convert a markdown string to ReST via pandoc.
