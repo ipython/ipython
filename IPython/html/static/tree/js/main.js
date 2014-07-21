@@ -99,7 +99,6 @@ require([
     IPython.session_list = session_list;
     IPython.kernel_list = kernel_list;
     IPython.login_widget = login_widget;
-    IPython.events = events;
 
     events.trigger('app_initialized.DashboardApp');
     

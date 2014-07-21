@@ -13,7 +13,7 @@ define(['base/js/namespace', 'jquery'], function(IPython, $) {
 
     var Events = function () {};
     
-    var events = $([new Events()]);
+    var events = new Events();
     
     // Backwards compatability.
     IPython.Events = Events;

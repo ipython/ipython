@@ -125,7 +125,6 @@ require([
     IPython.menubar = menubar;
     IPython.toolbar = toolbar;
     IPython.notification_area = notification_area;
-    IPython.events = events;
     IPython.keyboard_manager = keyboard_manager;
     IPython.save_widget = save_widget;
     IPython.config = user_config;
