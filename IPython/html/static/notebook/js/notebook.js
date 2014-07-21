@@ -215,6 +215,13 @@ define([
                 }
             });
         });
+        
+        this.events.on('spec_changed.Kernel', function(event, data) {
+            that.set_kernelspec_metadata(data);
+            if (data.codemirror_mode) {
+                that.set_codemirror_mode(data.codemirror_mode);
+            }
+        });
 
         var collapse_time = function (time) {
             var app_height = $('#ipython-main-app').height(); // content height
@@ -338,8 +345,7 @@ define([
             keyboard_manager: this.keyboard_manager});
     };
     
-    Notebook.prototype.set_kernelspec_metadata = function(kernel_name) {
-        var ks = IPython.kernelselector.kernelspecs[kernel_name]
+    Notebook.prototype.set_kernelspec_metadata = function(ks) {
         var tostore = {};
         for (field in ks) {
             if (field !== 'argv' && field !== 'env') {
@@ -347,11 +353,6 @@ define([
             }
         }
         this.metadata.kernelspec = tostore;
-        
-        // Update the codemirror mode for code cells
-        if (tostore.codemirror_mode) {
-            this.set_codemirror_mode(tostore.codemirror_mode);
-        }
     }
 
     // Cell indexing, retrieval, etc.
@@ -1781,10 +1782,10 @@ define([
         this.notebook_name = data.name;
         var trusted = true;
         
-        // Set the default codemirror mode before we load the cells
-        var cm_mode = (this.metadata.kernelspec || {}).codemirror_mode;
-        if (cm_mode) {
-            this.set_codemirror_mode(cm_mode);
+        // Trigger an event changing the kernel spec - this will set the default
+        // codemirror mode
+        if (this.metadata.kernelspec !== undefined) {
+            this.events.trigger('spec_changed.Kernel', this.metadata.kernelspec);
         }
         
         // Only handle 1 worksheet for now.

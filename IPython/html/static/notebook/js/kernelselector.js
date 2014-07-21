@@ -11,12 +11,13 @@ define([
     var KernelSelector = function(selector, notebook) {
         this.selector = selector;
         this.notebook = notebook;
+        this.events = notebook.events;
         this.kernelspecs = {};
         if (this.selector !== undefined) {
             this.element = $(selector);
             this.request_kernelspecs();
         }
-
+        this.bind_events();
         // For now, this is how we make this object available elsewhere
         IPython.kernelselector = this;
     };
@@ -44,15 +45,17 @@ define([
         if (kernel_name === this.notebook.kernel.name) {
             return;
         }
+        var ks = this.kernelspecs[kernel_name];
+        this.events.trigger('spec_changed.Kernel', ks);
         this.notebook.session.delete();
         this.notebook.start_session(kernel_name);
     };
     
-    KernelSelector.prototype.set_displayed_name = function(kernel_name) {
-        var ks = this.kernelspecs[kernel_name]
-        if (ks !== undefined) {
-            this.element.find("#current_kernel_spec").text(ks.display_name);
-        }
+    KernelSelector.prototype.bind_events = function() {
+        var that = this;
+        this.events.on('spec_changed.Kernel', function(event, data) {
+            that.element.find("#current_kernel_spec").text(data.display_name);
+        });
     };
 
     return {'KernelSelector': KernelSelector};

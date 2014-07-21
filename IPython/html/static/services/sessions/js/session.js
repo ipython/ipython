@@ -91,13 +91,17 @@ define([
      */
     Session.prototype._handle_start_success = function (data, status, xhr) {
         this.id = data.id;
-        // If we asked for 'python', the response will have 'python3' or 'python2'
-        this.kernel_name = data.kernel.name;
+        // If we asked for 'python', the response will have 'python3' or 'python2'.
+        // In this case, fire the spec changed event again to update the name
+        // and highlighting.
+        if (data.kernel.name !== this.kernel_name) {
+            this.kernel_name = data.kernel.name;
+            var ks = IPython.kernelselector.kernelspecs[this.kernel_name];
+            this.notebook.events.trigger('spec_changed.Kernel', ks);
+        }
         var kernel_service_url = utils.url_path_join(this.base_url, "api/kernels");
         this.kernel = new kernel.Kernel(kernel_service_url, this.ws_url, this.notebook, this.kernel_name);
         this.kernel._kernel_started(data.kernel);
-        IPython.kernelselector.set_displayed_name(this.kernel_name);
-        this.notebook.set_kernelspec_metadata(this.kernel_name);
     };
     
     /**
