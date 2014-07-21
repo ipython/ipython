@@ -14,15 +14,11 @@ define([
         this.kernelspecs = {};
         if (this.selector !== undefined) {
             this.element = $(selector);
-            this.style();
             this.request_kernelspecs();
         }
 
         // For now, this is how we make this object available elsewhere
         IPython.kernelselector = this;
-    };
-    
-    KernelSelector.prototype.style = function() {
     };
     
     KernelSelector.prototype.request_kernelspecs = function() {
