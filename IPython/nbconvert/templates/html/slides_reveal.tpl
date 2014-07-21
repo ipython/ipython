@@ -5,36 +5,40 @@
 
 {% macro slide_opts(cell) -%}
 {# examines a slide cell's metadata for reveal.js formatting options #}
-    {%- if cell.metadata.slideshow.slide_background -%}
-        {{" "}}data-background="{{ cell.metadata.slideshow.slide_background }}"
-    {%- endif -%}
+    {%- if cell.metadata.slideshow is defined -%}
+        {%- if cell.metadata.slideshow.slide_background -%}
+            {{" "}}data-background="{{ cell.metadata.slideshow.slide_background }}"
+        {%- endif -%}
 
-    {%- if cell.metadata.slideshow.slide_background_repeat -%}
-        {{" "}}data-background-repeat="{{ cell.metadata.slideshow.slide_background_repeat }}"
-    {%- endif -%}
+        {%- if cell.metadata.slideshow.slide_background_repeat -%}
+            {{" "}}data-background-repeat="{{ cell.metadata.slideshow.slide_background_repeat }}"
+        {%- endif -%}
 
-    {%- if cell.metadata.slideshow.slide_background_size -%}
-        {{" "}}data-background-size="{{ cell.metadata.slideshow.slide_background_size }}"
-    {%- endif -%}
-    
-    {%- if cell.metadata.slideshow.slide_background_transition -%}
-        {{" "}}data-background-transition="{{ cell.metadata.slideshow.slide_background_transition }}"
-    {%- endif -%}
+        {%- if cell.metadata.slideshow.slide_background_size -%}
+            {{" "}}data-background-size="{{ cell.metadata.slideshow.slide_background_size }}"
+        {%- endif -%}
 
-    {%- if cell.metadata.slideshow.slide_transition -%}
-        {{" "}}data-transition="{{ cell.metadata.slideshow.slide_transition }}"
-    {%- endif -%}
+        {%- if cell.metadata.slideshow.slide_background_transition -%}
+            {{" "}}data-background-transition="{{ cell.metadata.slideshow.slide_background_transition }}"
+        {%- endif -%}
 
-    {%- if cell.metadata.slideshow.slide_transition_speed -%}
-        {{" "}}data-transition-speed="{{ cell.metadata.slideshow.slide_transition_speed }}"
+        {%- if cell.metadata.slideshow.slide_transition -%}
+            {{" "}}data-transition="{{ cell.metadata.slideshow.slide_transition }}"
+        {%- endif -%}
+
+        {%- if cell.metadata.slideshow.slide_transition_speed -%}
+            {{" "}}data-transition-speed="{{ cell.metadata.slideshow.slide_transition_speed }}"
+        {%- endif -%}
     {%- endif -%}
 {%- endmacro %}
 
 {%- macro fragment_style(cell) -%}
 {# examines a fragment cell's metadata for reveal.js fragment highlight style option.
 "higlight-red", "highlight-blue" and "higlight-green" not supported #}
-    {%- if cell.metadata.slideshow.fragment_style -%}
-        {{" "+cell.metadata.slideshow.fragment_style}}
+    {%- if cell.metadata.slideshow is defined -%}
+        {%- if cell.metadata.slideshow.fragment_style -%}
+            {{" "+cell.metadata.slideshow.fragment_style}}
+        {%- endif -%}
     {%- endif -%}
 {%- endmacro %}
 
@@ -303,7 +307,6 @@ Reveal.initialize({
         {%- if nb.metadata.slideshow.parallax_background_image -%}
             parallaxBackgroundImage: {{ nb.metadata.slideshow.parallax_background_image }},
         {%- endif -%}
-
 
         {%- if nb.metadata.slideshow.parallax_background_size -%}
             parallaxBackgroundSize: {{ nb.metadata.slideshow.parallax_background_size }},
