@@ -77,7 +77,7 @@ define([
                 this.model.set('value', value, {updated_view: this});
                 this.$slider.slider('option', 'value', value);
                 this.$readout.text(value);
-                this.touch()
+                this.touch();
 
                 // Use the right CSS classes for vertical & horizontal sliders
                 if (orientation=='vertical') {
