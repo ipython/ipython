@@ -23,6 +23,15 @@ else:
     
 NATIVE_KERNEL_NAME = 'python3' if PY3 else 'python2'
 
+def _pythonfirst(s):
+    "Sort key function that will put strings starting with 'python' first."
+    if s == NATIVE_KERNEL_NAME:
+        return '  ' + s  # Two spaces to sort this first of all
+    elif s.startswith('python'):
+        # Space is not valid in kernel names, so this should sort first
+        return ' ' + s
+    return s
+
 class KernelSpec(HasTraits):
     argv = List()
     display_name = Unicode()
