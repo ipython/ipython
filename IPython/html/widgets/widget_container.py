@@ -11,6 +11,7 @@ from IPython.utils.traitlets import Unicode, Tuple, TraitError, Int, CaselessStr
 from IPython.utils.warn import DeprecatedClass
 
 class Container(DOMWidget):
+    """Displays multiple widgets in a group."""
     _view_name = Unicode('ContainerView', sync=True)
 
     # Child widgets in the container.
@@ -29,6 +30,7 @@ class Container(DOMWidget):
 
 
 class Popup(Container):
+    """Displays multiple widgets in an in page popup div."""
     _view_name = Unicode('PopupView', sync=True)
     
     description = Unicode(sync=True)
@@ -36,6 +38,7 @@ class Popup(Container):
 
 
 class FlexContainer(Container):
+    """Displays multiple widgets using the flexible box model."""
     _view_name = Unicode('FlexContainerView', sync=True)
     orientation = CaselessStrEnum(values=['vertical', 'horizontal'], default_value='vertical', sync=True)
     flex = Int(0, sync=True, help="""Specify the flexible-ness of the model.""")
@@ -54,14 +57,17 @@ class FlexContainer(Container):
 
 
 def VBox(*pargs, **kwargs):
+    """Displays multiple widgets vertically using the flexible box model."""
     kwargs['orientation'] = 'vertical'
     return FlexContainer(*pargs, **kwargs)
 
 def HBox(*pargs, **kwargs):
+    """Displays multiple widgets horizontally using the flexible box model."""
     kwargs['orientation'] = 'horizontal'
     return FlexContainer(*pargs, **kwargs)
 
 
+# Remove in IPython 4.0
 ContainerWidget = DeprecatedClass(Container, 'ContainerWidget')
 PopupWidget = DeprecatedClass(Popup, 'PopupWidget')
 

@@ -21,17 +21,23 @@ from IPython.utils.warn import DeprecatedClass
 # Classes
 #-----------------------------------------------------------------------------
 class _Bool(DOMWidget):
+    """A base class for creating widgets that represent booleans."""
     value = Bool(False, help="Bool value", sync=True)
-    description = Unicode('', help="Description of the boolean (label).", sync=True) 
+    description = Unicode('', help="Description of the boolean (label).", sync=True)
     disabled = Bool(False, help="Enable or disable user changes.", sync=True)
 
 
 class Checkbox(_Bool):
+    """Displays a boolean `value`."""
     _view_name = Unicode('CheckboxView', sync=True)
 
 
 class ToggleButton(_Bool):
-    _view_name = Unicode('ToggleButtonView', sync=True)
+    """Displays a boolean `value`."""
     
+    _view_name = Unicode('ToggleButtonView', sync=True)
+
+
+# Remove in IPython 4.0
 CheckboxWidget = DeprecatedClass(Checkbox, 'CheckboxWidget')
 ToggleButtonWidget = DeprecatedClass(ToggleButton, 'ToggleButtonWidget')

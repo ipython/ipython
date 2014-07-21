@@ -21,6 +21,7 @@ from IPython.utils.warn import DeprecatedClass
 # Classes
 #-----------------------------------------------------------------------------
 class _String(DOMWidget):
+    """Base class used to create widgets that represent a string."""
     value = Unicode(help="String value", sync=True)
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
@@ -28,14 +29,18 @@ class _String(DOMWidget):
 
 
 class HTML(_String):
+    """Renders the string `value` as HTML."""
     _view_name = Unicode('HTMLView', sync=True)
 
 
 class Latex(_String):
+    """Renders math inside the string `value` as Latex (requires $ $ or $$ $$ 
+    and similar latex tags)."""
     _view_name = Unicode('LatexView', sync=True)
 
 
 class Textarea(_String):
+    """Multiline text area widget."""
     _view_name = Unicode('TextareaView', sync=True)
 
     def scroll_to_bottom(self):
@@ -43,6 +48,7 @@ class Textarea(_String):
 
 
 class Text(_String):
+    """Single line textbox widget."""
     _view_name = Unicode('TextView', sync=True)
 
     def __init__(self, **kwargs):
@@ -73,7 +79,8 @@ class Text(_String):
             Whether to unregister the callback"""
         self._submission_callbacks.register_callback(callback, remove=remove)
 
-_StringWidget = DeprecatedClass(_String, '_StringWidget')
+
+# Remove in IPython 4.0
 HTMLWidget = DeprecatedClass(HTML, 'HTMLWidget')
 LatexWidget = DeprecatedClass(Latex, 'LatexWidget')
 TextareaWidget = DeprecatedClass(Textarea, 'TextareaWidget')

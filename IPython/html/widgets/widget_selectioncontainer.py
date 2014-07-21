@@ -22,6 +22,7 @@ from IPython.utils.warn import DeprecatedClass
 # Classes
 #-----------------------------------------------------------------------------
 class _SelectionContainer(ContainerWidget):
+    """Base class used to display multiple child widgets."""
     _titles = Dict(help="Titles of the pages", sync=True)
     selected_index = CInt(0, sync=True)
 
@@ -52,12 +53,15 @@ class _SelectionContainer(ContainerWidget):
 
 
 class Accordion(_SelectionContainer):
+    """Displays children each on a separate accordion page."""
     _view_name = Unicode('AccordionView', sync=True)
 
 
 class Tab(_SelectionContainer):
+    """Displays children each on a separate accordion tab."""
     _view_name = Unicode('TabView', sync=True)
 
-_SelectionContainerWidget = DeprecatedClass(_SelectionContainer, '_SelectionContainerWidget')
+
+# Remove in IPython 4.0
 AccordionWidget = DeprecatedClass(Accordion, 'AccordionWidget')
 TabWidget = DeprecatedClass(Tab, 'TabWidget')

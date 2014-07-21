@@ -21,12 +21,15 @@ from IPython.utils.warn import DeprecatedClass
 # Classes
 #-----------------------------------------------------------------------------
 class _Int(DOMWidget):
+    """Base class used to create widgets that represent an int."""
     value = CInt(0, help="Int value", sync=True) 
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
 
 
 class _BoundedInt(_Int):
+    """Base class used to create widgets that represent a int that is bounded
+    by a minium and maximum."""
     step = CInt(1, help="Minimum step that the value can take (ignored by some views)", sync=True)
     max = CInt(100, help="Max value", sync=True)
     min = CInt(0, help="Min value", sync=True)
@@ -43,14 +46,17 @@ class _BoundedInt(_Int):
 
 
 class IntText(_Int):
+    """Textbox widget that represents a int."""
     _view_name = Unicode('IntTextView', sync=True)
 
 
 class BoundedIntText(_BoundedInt):
+    """Textbox widget that represents a int bounded by a minimum and maximum value."""
     _view_name = Unicode('IntTextView', sync=True)
 
 
 class IntSlider(_BoundedInt):
+    """Slider widget that represents a int bounded by a minimum and maximum value."""
     _view_name = Unicode('IntSliderView', sync=True)
     orientation = Enum([u'horizontal', u'vertical'], u'horizontal', 
         help="Vertical or horizontal.", sync=True)
@@ -58,10 +64,11 @@ class IntSlider(_BoundedInt):
 
 
 class IntProgress(_BoundedInt):
+    """Progress bar that represents a int bounded by a minimum and maximum value."""
     _view_name = Unicode('ProgressView', sync=True)
 
-_IntWidget = DeprecatedClass(_Int, '_IntWidget')
-_BoundedIntWidget = DeprecatedClass(_BoundedInt, '_BoundedIntWidget')
+
+# Remove in IPython 4.0
 IntTextWidget = DeprecatedClass(IntText, 'IntTextWidget')
 BoundedIntTextWidget = DeprecatedClass(BoundedIntText, 'BoundedIntTextWidget')
 IntSliderWidget = DeprecatedClass(IntSlider, 'IntSliderWidget')

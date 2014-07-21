@@ -22,6 +22,10 @@ from IPython.utils.warn import DeprecatedClass
 # Classes
 #-----------------------------------------------------------------------------
 class Button(DOMWidget):
+    """Button widget.
+
+    This widget has an `on_click` method that allows you to listen for the 
+    user clicking on the button.  The click event itself is stateless."""
     _view_name = Unicode('ButtonView', sync=True)
 
     # Keys
@@ -56,5 +60,6 @@ class Button(DOMWidget):
         if content.get('event', '') == 'click':
             self._click_handlers(self)
 
-    
+
+# Remove in IPython 4.0
 ButtonWidget = DeprecatedClass(Button, 'ButtonWidget')

@@ -61,8 +61,8 @@ class FloatSlider(_BoundedFloat):
 class FloatProgress(_BoundedFloat):
     _view_name = Unicode('ProgressView', sync=True)
 
-_FloatWidget = DeprecatedClass(_Float, '_FloatWidget')
-_BoundedFloatWidget = DeprecatedClass(_BoundedFloat, '_BoundedFloatWidget')
+
+# Remove in IPython 4.0
 FloatTextWidget = DeprecatedClass(FloatText, 'FloatTextWidget')
 BoundedFloatTextWidget = DeprecatedClass(BoundedFloatText, 'BoundedFloatTextWidget')
 FloatSliderWidget = DeprecatedClass(FloatSlider, 'FloatSliderWidget')

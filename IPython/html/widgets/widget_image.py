@@ -23,6 +23,12 @@ from IPython.utils.warn import DeprecatedClass
 # Classes
 #-----------------------------------------------------------------------------
 class Image(DOMWidget):
+    """Displays an image as a widget.
+
+    The `value` of this widget accepts a byte string.  The byte string is the raw
+    image data that you want the browser to display.  You can explicitly define
+    the format of the byte string using the `format` trait (which defaults to
+    "png")."""
     _view_name = Unicode('ImageView', sync=True)
     
     # Define the custom state properties to sync with the front-end
@@ -35,4 +41,6 @@ class Image(DOMWidget):
     def _value_changed(self, name, old, new):
         self._b64value = base64.b64encode(new)
 
+
+# Remove in IPython 4.0
 ImageWidget = DeprecatedClass(Image, 'ImageWidget')

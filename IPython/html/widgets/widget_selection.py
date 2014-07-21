@@ -111,21 +111,28 @@ class _Selection(DOMWidget):
 
 
 class ToggleButtons(_Selection):
+    """Group of toggle buttons that represent an enumeration.  Only one toggle
+    button can be toggled at any point in time.""" 
     _view_name = Unicode('ToggleButtonsView', sync=True)
 
 
 class Dropdown(_Selection):
+    """Allows you to select a single item from a dropdown."""
     _view_name = Unicode('DropdownView', sync=True)
 
 
 class RadioButtons(_Selection):
+    """Group of radio buttons that represent an enumeration.  Only one radio
+    button can be toggled at any point in time.""" 
     _view_name = Unicode('RadioButtonsView', sync=True)
     
 
 class Select(_Selection):
+    """Listbox that only allows one item to be selected at any given time."""
     _view_name = Unicode('SelectView', sync=True)
 
-_SelectionWidget = DeprecatedClass(_Selection, '_SelectionWidget')
+
+# Remove in IPython 4.0
 ToggleButtonsWidget = DeprecatedClass(ToggleButtons, 'ToggleButtonsWidget')
 DropdownWidget = DeprecatedClass(Dropdown, 'DropdownWidget')
 RadioButtonsWidget = DeprecatedClass(RadioButtons, 'RadioButtonsWidget')
