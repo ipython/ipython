@@ -18,6 +18,7 @@ require([
     'notebook/js/savewidget',
     'notebook/js/keyboardmanager',
     'notebook/js/config',
+    // only loaded, not used:
     'custom/custom',
 ], function(
     IPython, 

@@ -12,6 +12,7 @@ require([
     'tree/js/sessionlist',
     'tree/js/kernellist',
     'auth/js/loginwidget',
+    // only loaded, not used:
     'jqueryui',
     'bootstrap',
     'custom/custom',
