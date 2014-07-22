@@ -1,4 +1,0 @@
-New preprocessor for nbconvert that executes all the code cells in a notebook.
-To run a notebook and save its output in a new notebook::
-
-    ipython nbconvert InputNotebook --ExecutePreprocessor.enabled=True --to notebook --output Executed
