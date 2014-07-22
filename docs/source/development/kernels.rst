@@ -70,7 +70,14 @@ stdin socket to prompt the user for textual input.
 .. seealso::
 
    :doc:`messaging`
-     Details of the different sockets and the messages that come over them.
+     Details of the different sockets and the messages that come over them
+
+   `Creating Language Kernels for IPython <http://andrew.gibiansky.com/blog/ipython/ipython-kernels/>`_
+     A blog post by the author of `IHaskell <https://github.com/gibiansky/IHaskell>`_,
+     a Haskell kernel
+
+   `simple_kernel <https://github.com/dsblank/simple_kernel>`_
+     A simple example implementation of the kernel machinery in Python
 
 
 .. _kernelspecs:
