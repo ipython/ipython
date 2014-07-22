@@ -120,7 +120,7 @@ class Widget(LoggingConfigurable):
     def __init__(self, **kwargs):
         """Public constructor"""
         super(Widget, self).__init__(**kwargs)
-
+        self._model_id = kwargs.get('_model_id')
         self.on_trait_change(self._handle_property_changed, self.keys)
         Widget._call_widget_constructed(self)
 
@@ -139,7 +139,11 @@ class Widget(LoggingConfigurable):
         If a Comm doesn't exist yet, a Comm will be created automagically."""
         if self._comm is None:
             # Create a comm.
-            self._comm = Comm(target_name=self._model_name)
+            if self._model_id is None:
+                self._comm = Comm(target_name=self._model_name)
+            else:
+                self._comm = Comm(target_name=self._model_name,
+                                  comm_id=self._model_id)
             self._comm.on_msg(self._handle_msg)
             self._comm.on_close(self._close)
             Widget.widgets[self.model_id] = self
