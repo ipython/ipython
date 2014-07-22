@@ -54,16 +54,16 @@ class ContentsHandler(IPythonHandler):
     @web.authenticated
     @json_errors
     def get(self, path='', name=None):
-        """Return a file or list of files.
+        """Return a model for a file or directory.
 
-        * GET with path and no filename lists files in a directory
-        * GET with path and filename returns file contents model
+        A directory model contains a list of models (without content)
+        of the files and directories it contains.
         """
         path = path or ''
         model = self.contents_manager.get_model(name=name, path=path)
         if model['type'] == 'directory':
             # group listing by type, then by name (case-insensitive)
-            # FIXME: front-ends shouldn't rely on this sorting
+            # FIXME: sorting should be done in the frontends
             model['content'].sort(key=sort_key)
         self._finish_model(model, location=False)
 
@@ -81,22 +81,22 @@ class ContentsHandler(IPythonHandler):
         self._finish_model(model)
 
     def _copy(self, copy_from, path, copy_to=None):
-        """Copy a file in path, optionally specifying the new name.
-
-        Only support copying within the same directory.
+        """Copy a file, optionally specifying the new name.
         """
-        self.log.info(u"Copying from %s/%s to %s/%s",
-            path, copy_from,
-            path, copy_to or '',
-        )
+        self.log.info(u"Copying {copy_from} to {path}/{copy_to}".format(
+            copy_from=copy_from,
+            path=path,
+            copy_to=copy_to or '',
+        ))
         model = self.contents_manager.copy(copy_from, copy_to, path)
         self.set_status(201)
         self._finish_model(model)
 
     def _upload(self, model, path, name=None):
-        """Upload a file
+        """Handle upload of a new file
 
-        If name specified, create it in path/name.
+        If name specified, create it in path/name,
+        otherwise create a new untitled file in path.
         """
         self.log.info(u"Uploading file to %s/%s", path, name or '')
         if name:
@@ -151,7 +151,7 @@ class ContentsHandler(IPythonHandler):
         cm = self.contents_manager
 
         if cm.file_exists(path):
-            raise web.HTTPError(400, "Only POST to directories. Use PUT for full names.")
+            raise web.HTTPError(400, "Cannot POST to existing files, use PUT instead.")
 
         if not cm.path_exists(path):
             raise web.HTTPError(404, "No such directory: %s" % path)
@@ -184,11 +184,17 @@ class ContentsHandler(IPythonHandler):
           Save notebook at ``path/Name.ipynb``. Notebook structure is specified
           in `content` key of JSON request body. If content is not specified,
           create a new empty notebook.
-        PUT /api/contents/path/Name.ipynb?copy=OtherNotebook.ipynb
+        PUT /api/contents/path/Name.ipynb
+          with JSON body::
+
+            {
+              "copy_from" : "[path/to/]OtherNotebook.ipynb"
+            }
+
           Copy OtherNotebook to Name
         """
         if name is None:
-            raise web.HTTPError(400, "Only PUT to full names. Use POST for directories.")
+            raise web.HTTPError(400, "name must be specified with PUT.")
 
         model = self.get_json_body()
         if model:

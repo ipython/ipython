@@ -54,7 +54,7 @@ class FileContentsManager(ContentsManager):
             self.log.debug("copystat on %s failed", dest, exc_info=True)
 
     def _get_os_path(self, name=None, path=''):
-        """Given a filename and a URL path, return its file system
+        """Given a filename and API path, return its file system
         path.
 
         Parameters
@@ -62,8 +62,7 @@ class FileContentsManager(ContentsManager):
         name : string
             A filename
         path : string
-            The relative URL path (with '/' as separator) to the named
-            file.
+            The relative API path to the named file.
 
         Returns
         -------
@@ -76,6 +75,8 @@ class FileContentsManager(ContentsManager):
 
     def path_exists(self, path):
         """Does the API-style path refer to an extant directory?
+
+        API-style wrapper for os.path.isdir
 
         Parameters
         ----------
@@ -114,6 +115,8 @@ class FileContentsManager(ContentsManager):
     def file_exists(self, name, path=''):
         """Returns True if the file exists, else returns False.
 
+        API-style wrapper for os.path.isfile
+
         Parameters
         ----------
         name : string
@@ -123,7 +126,8 @@ class FileContentsManager(ContentsManager):
 
         Returns
         -------
-        bool
+        exists : bool
+            Whether the file exists.
         """
         path = path.strip('/')
         nbpath = self._get_os_path(name, path=path)
@@ -132,6 +136,8 @@ class FileContentsManager(ContentsManager):
     def exists(self, name=None, path=''):
         """Returns True if the path [and name] exists, else returns False.
 
+        API-style wrapper for os.path.exists
+
         Parameters
         ----------
         name : string
@@ -141,7 +147,8 @@ class FileContentsManager(ContentsManager):
 
         Returns
         -------
-        bool
+        exists : bool
+            Whether the target exists.
         """
         path = path.strip('/')
         os_path = self._get_os_path(name, path=path)
@@ -246,7 +253,7 @@ class FileContentsManager(ContentsManager):
         name : str
             the name of the target
         path : str
-            the URL path that describes the relative path for the target
+            the API path that describes the relative path for the target
 
         Returns
         -------
@@ -344,7 +351,11 @@ class FileContentsManager(ContentsManager):
         return model
 
     def update(self, model, name, path=''):
-        """Update the file's path and/or name"""
+        """Update the file's path and/or name
+
+        For use in PATCH requests, to enable renaming a file without
+        re-uploading its contents. Only used for renaming at the moment.
+        """
         path = path.strip('/')
         new_name = model.get('name', name)
         new_path = model.get('path', path).strip('/')
@@ -393,7 +404,7 @@ class FileContentsManager(ContentsManager):
 
         # Should we proceed with the move?
         if os.path.isfile(new_os_path):
-            raise web.HTTPError(409, u'Notebook with name already exists: %s' % new_os_path)
+            raise web.HTTPError(409, u'File with name already exists: %s' % new_os_path)
 
         # Move the file
         try:

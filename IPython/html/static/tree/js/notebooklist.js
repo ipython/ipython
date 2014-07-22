@@ -80,7 +80,7 @@ define([
             var name_and_ext = utils.splitext(f.name);
             var file_ext = name_and_ext[1];
             if (file_ext === '.ipynb') {
-                var item = that.new_notebook_item(0);
+                var item = that.new_item(0);
                 item.addClass('new-file');
                 that.add_name_input(f.name, item);
                 // Store the notebook item in the reader so we can use it later
@@ -236,7 +236,7 @@ define([
         var icon = NotebookList.icons[model.type];
         var uri_prefix = NotebookList.uri_prefixes[model.type];
         item.find(".item_icon").addClass(icon).addClass('icon-fixed-width');
-        item.find("a.item_link")
+        var link = item.find("a.item_link")
             .attr('href',
                 utils.url_join_encode(
                     this.base_url,
@@ -245,6 +245,11 @@ define([
                     name
                 )
             );
+        // directory nav doesn't open new tabs
+        // files, notebooks do
+        if (model.type !== "directory") {
+            link.attr('target','_blank');
+        }
         var path_name = utils.url_path_join(path, name);
         if (model.type == 'file') {
             this.add_delete_button(item);
@@ -362,7 +367,10 @@ define([
                 var nbdata = item.data('nbdata');
                 var content_type = 'application/json';
                 var model = {
+                    path: path,
+                    name: nbname,
                     content : JSON.parse(nbdata),
+                    type : 'notebook'
                 };
                 var settings = {
                     processData : false,
@@ -372,7 +380,7 @@ define([
                     data : JSON.stringify(model),
                     headers : {'Content-Type': content_type},
                     success : function (data, status, xhr) {
-                        that.add_link(path, nbname, item);
+                        that.add_link(model, item);
                         that.add_delete_button(item);
                     },
                     error : utils.log_ajax_error,

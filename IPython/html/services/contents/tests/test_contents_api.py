@@ -22,8 +22,6 @@ from IPython.utils import py3compat
 from IPython.utils.data import uniq_stable
 
 
-# TODO: Remove this after we create the contents web service and directories are
-# no longer listed by the notebook web service.
 def notebooks_only(dir_model):
     return [nb for nb in dir_model['content'] if nb['type']=='notebook']
 
@@ -279,9 +277,9 @@ class APITest(NotebookTestBase):
 
     def test_create_untitled_txt(self):
         resp = self.api.create_untitled(path='foo/bar', ext='.txt')
-        self._check_created(resp, 'Untitled0.txt', 'foo/bar', type='file')
+        self._check_created(resp, 'untitled0.txt', 'foo/bar', type='file')
 
-        resp = self.api.read(path='foo/bar', name='Untitled0.txt')
+        resp = self.api.read(path='foo/bar', name='untitled0.txt')
         model = resp.json()
         self.assertEqual(model['type'], 'file')
         self.assertEqual(model['format'], 'text')
@@ -362,6 +360,10 @@ class APITest(NotebookTestBase):
     def test_copy(self):
         resp = self.api.copy(u'ç d.ipynb', u'cøpy.ipynb', path=u'å b')
         self._check_created(resp, u'cøpy.ipynb', u'å b')
+
+    def test_copy_path(self):
+        resp = self.api.copy(u'foo/a.ipynb', u'cøpyfoo.ipynb', path=u'å b')
+        self._check_created(resp, u'cøpyfoo.ipynb', u'å b')
 
     def test_copy_dir_400(self):
         # can't copy directories

@@ -15,6 +15,31 @@ from IPython.utils.traitlets import Instance, Unicode, List
 
 
 class ContentsManager(LoggingConfigurable):
+    """Base class for serving files and directories.
+
+    This serves any text or binary file,
+    as well as directories,
+    with special handling for JSON notebook documents.
+
+    Most APIs take a path argument,
+    which is always an API-style unicode path,
+    and always refers to a directory.
+
+    - unicode, not url-escaped
+    - '/'-separated
+    - leading and trailing '/' will be stripped
+    - if unspecified, path defaults to '',
+      indicating the root path.
+
+    name is also unicode, and refers to a specfic target:
+
+    - unicode, not url-escaped
+    - must not contain '/'
+    - It refers to an individual filename
+    - It may refer to a directory name,
+      in the case of listing or creating directories.
+
+    """
 
     notary = Instance(sign.NotebookNotary)
     def _notary_default(self):
@@ -27,11 +52,25 @@ class ContentsManager(LoggingConfigurable):
         Glob patterns to hide in file and directory listings.
     """)
 
+    untitled_notebook = Unicode("Untitled", config=True,
+        help="The base name used when creating untitled notebooks."
+    )
+
+    untitled_file = Unicode("untitled", config=True,
+        help="The base name used when creating untitled files."
+    )
+
+    untitled_directory = Unicode("Untitled Folder", config=True,
+        help="The base name used when creating untitled directories."
+    )
+
     # ContentsManager API part 1: methods that must be
     # implemented in subclasses.
 
     def path_exists(self, path):
         """Does the API-style path (directory) actually exist?
+
+        Like os.path.isdir
 
         Override this method in subclasses.
 
@@ -58,14 +97,18 @@ class ContentsManager(LoggingConfigurable):
 
         Returns
         -------
-        exists : bool
+        hidden : bool
             Whether the path is hidden.
 
         """
         raise NotImplementedError
 
     def file_exists(self, name, path=''):
-        """Returns a True if the file exists. Else, returns False.
+        """Does a file exist at the given name and path?
+
+        Like os.path.isfile
+
+        Override this method in subclasses.
 
         Parameters
         ----------
@@ -76,20 +119,29 @@ class ContentsManager(LoggingConfigurable):
 
         Returns
         -------
-        bool
+        exists : bool
+            Whether the file exists.
         """
         raise NotImplementedError('must be implemented in a subclass')
 
-    def list(self, path=''):
-        """Return a list of contents dicts without content.
+    def exists(self, name, path=''):
+        """Does a file or directory exist at the given name and path?
 
-        This returns a list of dicts
+        Like os.path.exists
 
-        This list of dicts should be sorted by name::
+        Parameters
+        ----------
+        name : string
+            The name of the file you are checking.
+        path : string
+            The relative path to the file's directory (with '/' as separator)
 
-            data = sorted(data, key=lambda item: item['name'])
+        Returns
+        -------
+        exists : bool
+            Whether the target exists.
         """
-        raise NotImplementedError('must be implemented in a subclass')
+        return self.file_exists(name, path) or self.path_exists("%s/%s" % (path, name))
 
     def get_model(self, name, path='', content=True):
         """Get the model of a file or directory with or without content."""
@@ -100,7 +152,11 @@ class ContentsManager(LoggingConfigurable):
         raise NotImplementedError('must be implemented in a subclass')
 
     def update(self, model, name, path=''):
-        """Update the file or directory and return the model with no content."""
+        """Update the file or directory and return the model with no content.
+
+        For use in PATCH requests, to enable renaming a file without
+        re-uploading its contents. Only used for renaming at the moment.
+        """
         raise NotImplementedError('must be implemented in a subclass')
 
     def delete(self, name, path=''):
@@ -126,11 +182,11 @@ class ContentsManager(LoggingConfigurable):
         """delete a checkpoint for a file"""
         raise NotImplementedError("must be implemented in a subclass")
 
-    def info_string(self):
-        return "Serving notebooks"
-
     # ContentsManager API part 2: methods that have useable default
     # implementations, but can be overridden in subclasses.
+
+    def info_string(self):
+        return "Serving contents"
 
     def get_kernel_path(self, name, path='', model=None):
         """ Return the path to start kernel in """
@@ -144,7 +200,7 @@ class ContentsManager(LoggingConfigurable):
         filename : unicode
             The name of a file, including extension
         path : unicode
-            The URL path of the target's directory
+            The API path of the target's directory
 
         Returns
         -------
@@ -176,7 +232,15 @@ class ContentsManager(LoggingConfigurable):
                 model['type'] = 'file'
                 model['format'] = 'text'
         if 'name' not in model:
-            model['name'] = self.increment_filename('Untitled' + ext, path)
+            if model['type'] == 'directory':
+                untitled = self.untitled_directory
+            elif model['type'] == 'notebook':
+                untitled = self.untitled_notebook
+            elif model['type'] == 'file':
+                untitled = self.untitled_file
+            else:
+                raise HTTPError(400, "Unexpected model type: %r" % model['type'])
+            model['name'] = self.increment_filename(untitled + ext, path)
 
         model['path'] = path
         model = self.save(model, model['name'], model['path'])
@@ -186,9 +250,16 @@ class ContentsManager(LoggingConfigurable):
         """Copy an existing file and return its new model.
 
         If to_name not specified, increment `from_name-Copy#.ext`.
+
+        copy_from can be a full path to a file,
+        or just a base name. If a base name, `path` is used.
         """
         path = path.strip('/')
-        model = self.get_model(from_name, path)
+        if '/' in from_name:
+            from_path, from_name = from_name.rsplit('/', 1)
+        else:
+            from_path = path
+        model = self.get_model(from_name, from_path)
         if model['type'] == 'directory':
             raise HTTPError(400, "Can't copy directories")
         if not to_name:
@@ -196,6 +267,7 @@ class ContentsManager(LoggingConfigurable):
             copy_name = u'{0}-Copy{1}'.format(base, ext)
             to_name = self.increment_filename(copy_name, path)
         model['name'] = to_name
+        model['path'] = path
         model = self.save(model, to_name, path)
         return model
 
@@ -218,7 +290,7 @@ class ContentsManager(LoggingConfigurable):
         self.notary.mark_cells(nb, True)
         self.save(model, name, path)
 
-    def check_and_sign(self, nb, name, path=''):
+    def check_and_sign(self, nb, name='', path=''):
         """Check for trusted cells, and sign the notebook.
 
         Called as a part of saving notebooks.
@@ -226,18 +298,18 @@ class ContentsManager(LoggingConfigurable):
         Parameters
         ----------
         nb : dict
-            The notebook structure
+            The notebook object (in nbformat.current format)
         name : string
-            The filename of the notebook
+            The filename of the notebook (for logging)
         path : string
-            The notebook's directory
+            The notebook's directory (for logging)
         """
         if self.notary.check_cells(nb):
             self.notary.sign(nb)
         else:
             self.log.warn("Saving untrusted notebook %s/%s", path, name)
 
-    def mark_trusted_cells(self, nb, name, path=''):
+    def mark_trusted_cells(self, nb, name='', path=''):
         """Mark cells as trusted if the notebook signature matches.
 
         Called as a part of loading notebooks.
@@ -245,11 +317,11 @@ class ContentsManager(LoggingConfigurable):
         Parameters
         ----------
         nb : dict
-            The notebook structure
+            The notebook object (in nbformat.current format)
         name : string
-            The filename of the notebook
+            The filename of the notebook (for logging)
         path : string
-            The notebook's directory
+            The notebook's directory (for logging)
         """
         trusted = self.notary.check_signature(nb)
         if not trusted:
