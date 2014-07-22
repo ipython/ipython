@@ -43,6 +43,8 @@ if __name__ == '__main__':
                                         # These are exposed in display
                                         r'\.core\.display',
                                         r'\.lib\.display',
+                                        # This isn't actually a module
+                                        r'\.html\.fabfile',
                                         ]
 
     # These modules import functions and classes from other places to expose
