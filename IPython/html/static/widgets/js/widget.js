@@ -343,7 +343,7 @@ define(["widgets/js/manager",
             // Walk the lists until an unequal entry is found.
             var i;
             for (i = 0; i < new_list.length; i++) {
-                if (i < old_list.length || new_list[i] !== old_list[i]) {
+                if (i >= old_list.length || new_list[i] !== old_list[i]) {
                     break;
                 }
             }
