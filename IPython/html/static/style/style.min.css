@@ -9436,12 +9436,121 @@ p {
 .completions select option.context {
   color: #3071a9;
 }
-span#kernel_selector_widget {
-  padding: 0px 5px;
-  margin-top: 12px;
+#kernel_selector_widget {
   margin-right: 1em;
-  font-size: 120%;
-  position: relative;
+  float: right;
+}
+#kernel_selector_widget > button {
+  display: inline-block;
+  margin-bottom: 0;
+  font-weight: normal;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+  background-image: none;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  padding: 6px 12px;
+  font-size: 13px;
+  line-height: 1.42857143;
+  border-radius: 4px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  color: #333333;
+  background-color: #ffffff;
+  border-color: #cccccc;
+  padding: 5px 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+#kernel_selector_widget > button:focus,
+#kernel_selector_widget > button:active:focus,
+#kernel_selector_widget > button.active:focus {
+  outline: thin dotted;
+  outline: 5px auto -webkit-focus-ring-color;
+  outline-offset: -2px;
+}
+#kernel_selector_widget > button:hover,
+#kernel_selector_widget > button:focus {
+  color: #333333;
+  text-decoration: none;
+}
+#kernel_selector_widget > button:active,
+#kernel_selector_widget > button.active {
+  outline: 0;
+  background-image: none;
+  -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+}
+#kernel_selector_widget > button.disabled,
+#kernel_selector_widget > button[disabled],
+fieldset[disabled] #kernel_selector_widget > button {
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.65;
+  filter: alpha(opacity=65);
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+#kernel_selector_widget > button [class^="icon-"].icon-large,
+#kernel_selector_widget > button [class*=" icon-"].icon-large {
+  line-height: .9em;
+}
+#kernel_selector_widget > button [class^="icon-"].icon-spin,
+#kernel_selector_widget > button [class*=" icon-"].icon-spin {
+  display: inline-block;
+}
+#kernel_selector_widget > button [class^="icon-"].pull-left.icon-2x,
+#kernel_selector_widget > button [class*=" icon-"].pull-left.icon-2x,
+#kernel_selector_widget > button [class^="icon-"].pull-right.icon-2x,
+#kernel_selector_widget > button [class*=" icon-"].pull-right.icon-2x {
+  margin-top: .18em;
+}
+#kernel_selector_widget > button [class^="icon-"].icon-spin.icon-large,
+#kernel_selector_widget > button [class*=" icon-"].icon-spin.icon-large {
+  line-height: .8em;
+}
+#kernel_selector_widget > button:hover,
+#kernel_selector_widget > button:focus,
+#kernel_selector_widget > button:active,
+#kernel_selector_widget > button.active,
+.open .dropdown-toggle#kernel_selector_widget > button {
+  color: #333333;
+  background-color: #ebebeb;
+  border-color: #adadad;
+}
+#kernel_selector_widget > button:active,
+#kernel_selector_widget > button.active,
+.open .dropdown-toggle#kernel_selector_widget > button {
+  background-image: none;
+}
+#kernel_selector_widget > button.disabled,
+#kernel_selector_widget > button[disabled],
+fieldset[disabled] #kernel_selector_widget > button,
+#kernel_selector_widget > button.disabled:hover,
+#kernel_selector_widget > button[disabled]:hover,
+fieldset[disabled] #kernel_selector_widget > button:hover,
+#kernel_selector_widget > button.disabled:focus,
+#kernel_selector_widget > button[disabled]:focus,
+fieldset[disabled] #kernel_selector_widget > button:focus,
+#kernel_selector_widget > button.disabled:active,
+#kernel_selector_widget > button[disabled]:active,
+fieldset[disabled] #kernel_selector_widget > button:active,
+#kernel_selector_widget > button.disabled.active,
+#kernel_selector_widget > button[disabled].active,
+fieldset[disabled] #kernel_selector_widget > button.active {
+  background-color: #ffffff;
+  border-color: #cccccc;
+}
+#kernel_selector_widget > button .badge {
+  color: #ffffff;
+  background-color: #333333;
+}
+#kernel_selector_widget > button > span.caret {
+  margin-top: 0px;
 }
 #menubar {
   margin-top: 0px;

@@ -54,7 +54,7 @@ define([
     KernelSelector.prototype.bind_events = function() {
         var that = this;
         this.events.on('spec_changed.Kernel', function(event, data) {
-            that.element.find("#current_kernel_spec").text(data.display_name);
+            that.element.find("#current_kernel_spec").find('.kernel_name').text(data.display_name);
         });
     };
 
