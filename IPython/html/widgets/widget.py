@@ -198,11 +198,10 @@ class Widget(LoggingConfigurable):
         state = {}
         for k in keys:
             f = self.trait_metadata(k, 'serialize')
-            value = getattr(self, k)       
-            if f is not None:
-                state[k] = f(value)
-            else:
-                state[k] = self._serialize_trait(value)
+            if f is None:
+                f = self._serialize_trait
+            value = getattr(self, k)
+            state[k] = f(value)
         return state
     
     def send(self, content):
@@ -289,10 +288,9 @@ class Widget(LoggingConfigurable):
         for name in self.keys:
             if name in sync_data:
                 f = self.trait_metadata(name, 'deserialize')
-                if f is not None:
-                    value = f(sync_data[name])
-                else:
-                    value = self._deserialize_trait(sync_data[name])
+                if f is None:
+                    f = self._deserialize_trait
+                value = f(sync_data[name])
                 with self._lock_property(name, value):
                     setattr(self, name, value)
 
