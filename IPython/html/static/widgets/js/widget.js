@@ -462,6 +462,8 @@ define(["widgets/js/manager",
                 } else {
                     elements = this.$el_to_style;
                 }
+            } else if (selector===":top") {
+                elements = this.$el;
             } else {
                 elements = this.$el.find(selector).addBack(selector);
             }
