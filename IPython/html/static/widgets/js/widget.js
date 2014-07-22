@@ -463,7 +463,7 @@ define(["widgets/js/manager",
                     elements = this.$el_to_style;
                 }
             } else {
-                elements = this.$el.find(selector);
+                elements = this.$el.find(selector).addBack(selector);
             }
             return elements;
         },
