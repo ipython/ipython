@@ -10,6 +10,11 @@ This is useful for languages that have Python bindings, such as `Octave
 where the REPL can be controlled in a tty using `pexpect <http://pexpect.readthedocs.org/en/latest/>`_,
 such as bash.
 
+.. seealso::
+
+   `bash_kernel <https://github.com/takluyver/bash_kernel>`_
+     A simple kernel for bash, written using this machinery
+
 Required steps
 --------------
 
