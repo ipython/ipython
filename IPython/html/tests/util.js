@@ -26,11 +26,14 @@ casper.open_new_notebook = function () {
     this.waitFor(this.kernel_running);
     // track the IPython busy/idle state
     this.thenEvaluate(function () {
-        IPython.events.on('status_idle.Kernel',function () {
-            IPython._status = 'idle';
-        });
-        IPython.events.on('status_busy.Kernel',function () {
-            IPython._status = 'busy';
+        require(['base/js/namespace', 'base/js/events'], function (IPython, events) {
+        
+            events.on('status_idle.Kernel',function () {
+                IPython._status = 'idle';
+            });
+            events.on('status_busy.Kernel',function () {
+                IPython._status = 'busy';
+            });
         });
     });
 
