@@ -15,7 +15,7 @@ define([
      * A Kernel Class to communicate with the Python kernel
      * @Class Kernel
      */
-    var Kernel = function (kernel_service_url, notebook, name) {
+    var Kernel = function (kernel_service_url, ws_url, notebook, name) {
         this.events = notebook.events;
         this.kernel_id = null;
         this.shell_channel = null;
@@ -23,7 +23,7 @@ define([
         this.stdin_channel = null;
         this.kernel_service_url = kernel_service_url;
         this.name = name;
-        this.ws_url = IPython.utils.get_body_data("wsUrl");
+        this.ws_url = ws_url || IPython.utils.get_body_data("wsUrl");
         if (!this.ws_url) {
             // trailing 's' in https will become wss for secure web sockets
             this.ws_url = location.protocol.replace('http', 'ws') + "//" + location.host;

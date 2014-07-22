@@ -59,6 +59,7 @@ define([
         this.keyboard_manager = options.keyboard_manager;
         this.save_widget = options.save_widget;
         this.tooltip = new tooltip.Tooltip(this.events);
+        this.ws_url = options.ws_url;
         // default_kernel_name is a temporary measure while we implement proper
         // kernel selection and delayed start. Do not rely on it.
         this.default_kernel_name = 'python';
@@ -1496,6 +1497,7 @@ define([
     Notebook.prototype.start_session = function () {
         this.session = new session.Session({
             base_url: this.base_url,
+            ws_url: this.ws_url,
             notebook_path: this.notebook_path,
             notebook_name: this.notebook_name,
             // For now, create all sessions with the 'python' kernel, which is the
