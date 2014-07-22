@@ -195,11 +195,22 @@ define([
         }
     };
 
-
+    OutputArea.prototype.mathjax_align = "left";
+    
     // typeset with MathJax if MathJax is available
     OutputArea.prototype.typeset = function () {
         if (window.MathJax){
-            MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+            var that = this;
+            var cfg = {};
+            // math output is left-aligned
+            MathJax.Hub.Queue(function () {
+                cfg.displayAlign = MathJax.Hub.config.displayAlign;
+                MathJax.Hub.Config({displayAlign: that.mathjax_align})
+            });
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, this.element[0]]);
+            MathJax.Hub.Queue(function () {
+                MathJax.Hub.Config({displayAlign: cfg.displayAlign})
+            });
         }
     };
 
