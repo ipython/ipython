@@ -5,7 +5,7 @@ define([
     "widgets/js/widget",
     "base/js/utils",
     "jquery",
-    "components/bootstrap/js/bootstrap.min",
+    "bootstrap",
 ], function(widget, utils, $){
 
     var DropdownView = widget.DOMWidgetView.extend({

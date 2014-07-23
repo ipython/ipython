@@ -12,8 +12,8 @@ require([
     'tree/js/sessionlist',
     'tree/js/kernellist',
     'auth/js/loginwidget',
-    'components/jquery-ui/ui/minified/jquery-ui.min',
-    'components/bootstrap/js/bootstrap.min',
+    'jqueryui',
+    'bootstrap',
 ], function(
     IPython, 
     $, 

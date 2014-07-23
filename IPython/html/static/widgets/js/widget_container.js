@@ -4,7 +4,7 @@
 define([
     "widgets/js/widget",
     "jqueryui",
-    "components/bootstrap/js/bootstrap.min",
+    "bootstrap",
 ], function(widget, $){
 
     var ContainerView = widget.DOMWidgetView.extend({
