@@ -560,6 +560,27 @@ class TestInstance(TestCase):
         self.assertRaises(TraitError, setattr, a, 'inst', Bar)
         self.assertRaises(TraitError, setattr, a, 'inst', Bah())
 
+    def test_default_klass(self):
+        class Foo(object): pass
+        class Bar(Foo): pass
+        class Bah(object): pass
+
+        class FooInstance(Instance):
+            klass = Foo
+
+        class A(HasTraits):
+            inst = FooInstance()
+
+        a = A()
+        self.assertTrue(a.inst is None)
+        a.inst = Foo()
+        self.assertTrue(isinstance(a.inst, Foo))
+        a.inst = Bar()
+        self.assertTrue(isinstance(a.inst, Foo))
+        self.assertRaises(TraitError, setattr, a, 'inst', Foo)
+        self.assertRaises(TraitError, setattr, a, 'inst', Bar)
+        self.assertRaises(TraitError, setattr, a, 'inst', Bah())
+
     def test_unique_default_value(self):
         class Foo(object): pass
         class A(HasTraits):
