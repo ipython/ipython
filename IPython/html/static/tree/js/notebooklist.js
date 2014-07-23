@@ -332,7 +332,6 @@ define([
                 var parent_item = that.parents('div.list_item');
                 var nbname = parent_item.data('nbname');
                 var path = parent_item.data('path');
-                var base_url = utils.get_body_data("baseUrl");
                 var message = 'Are you sure you want to permanently delete the notebook: ' + nbname + '?';
                 dialog.modal({
                     title : "Delete file",
@@ -341,7 +340,7 @@ define([
                         Delete : {
                             class: "btn-danger",
                             click: function() {
-                                notebooklist.content_manager.delete_notebook(nbname, path, base_url);
+                                notebooklist.content_manager.delete_notebook(nbname, path);
                             }
                         },
                         Cancel : {}
