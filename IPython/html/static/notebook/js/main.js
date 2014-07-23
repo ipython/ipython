@@ -1,12 +1,6 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-requirejs.config({
-    shim: {
-	'components/highlight.js/build/highlight.pack': {exports: 'hljs'}
-    }
-});
-
 require([
     'base/js/namespace',
     'jquery',

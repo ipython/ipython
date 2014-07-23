@@ -11,7 +11,7 @@ define([
     'services/sessions/js/session',
     'notebook/js/celltoolbar',
     'components/marked/lib/marked',
-    'components/highlight.js/build/highlight.pack',
+    'highlight',
     'notebook/js/mathjaxutils',
     'base/js/keyboard',
     'notebook/js/tooltip',
