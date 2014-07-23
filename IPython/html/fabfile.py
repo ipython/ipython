@@ -13,7 +13,7 @@ components_dir = os.path.join(static_dir, 'components')
 min_less_version = '1.7.0'
 max_less_version = '1.8.0' # exclusive
 
-def css(minify=True, verbose=False):
+def css(minify=False, verbose=False):
     """generate the css from less files"""
     for name in ('style', 'ipython'):
         source = pjoin('style', "%s.less" % name)

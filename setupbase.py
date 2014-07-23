@@ -25,7 +25,7 @@ from distutils.command.install_scripts import install_scripts
 from distutils.cmd import Command
 from fnmatch import fnmatch
 from glob import glob
-from subprocess import call
+from subprocess import check_call
 
 from setupext import install_data_ext
 
@@ -666,16 +666,22 @@ class CompileCSS(Command):
     Requires various dev dependencies, such as fabric and lessc.
     """
     description = "Recompile Notebook CSS"
-    user_options = []
+    user_options = [
+        ('minify', 'x', "minify CSS"),
+        ]
     
     def initialize_options(self):
-        pass
+        self.minify = False
     
     def finalize_options(self):
-        pass
+        self.minify = bool(self.minify)
     
     def run(self):
-        call("fab css", shell=True, cwd=pjoin(repo_root, "IPython", "html"))
+        check_call("fab css:minify=%s" % self.minify,
+            shell=True,
+            cwd=pjoin(repo_root, "IPython", "html"),
+        )
+
 
 class JavascriptVersion(Command):
     """write the javascript version to notebook javascript"""
@@ -697,4 +703,15 @@ class JavascriptVersion(Command):
                 if line.startswith("IPython.version"):
                     line = 'IPython.version = "{0}";\n'.format(version)
                 f.write(line)
-            
+
+
+def css_js_prerelease(command):
+    """decorator for building js/minified css prior to a release"""
+    class DecoratedCommand(command):
+        def run(self):
+            self.distribution.run_command('jsversion')
+            css = self.distribution.get_command_obj('css')
+            css.minify = True
+            self.distribution.run_command('css')
+            command.run(self)
+    return DecoratedCommand
