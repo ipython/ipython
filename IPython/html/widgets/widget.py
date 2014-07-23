@@ -197,9 +197,9 @@ class Widget(LoggingConfigurable):
         keys = self.keys if key is None else [key]
         state = {}
         for k in keys:
-            f = self.trait_metadata(k, 'serialize')
+            f = self.trait_metadata(k, 'to_json')
             if f is None:
-                f = self._serialize_trait
+                f = self._trait_to_json
             value = getattr(self, k)
             state[k] = f(value)
         return state
@@ -287,9 +287,9 @@ class Widget(LoggingConfigurable):
         """Called when a state is received from the front-end."""
         for name in self.keys:
             if name in sync_data:
-                f = self.trait_metadata(name, 'deserialize')
+                f = self.trait_metadata(name, 'from_json')
                 if f is None:
-                    f = self._deserialize_trait
+                    f = self._trait_from_json
                 value = f(sync_data[name])
                 with self._lock_property(name, value):
                     setattr(self, name, value)
@@ -309,30 +309,30 @@ class Widget(LoggingConfigurable):
         """Called when a view has been displayed for this widget instance"""
         self._display_callbacks(self, **kwargs)
 
-    def _serialize_trait(self, x):
-        """Serialize a trait value to json
+    def _trait_to_json(self, x):
+        """Convert a trait value to json
 
         Traverse lists/tuples and dicts and serialize their values as well.
         Replace any widgets with their model_id
         """
         if isinstance(x, dict):
-            return {k: self._serialize_trait(v) for k, v in x.items()}
+            return {k: self._trait_to_json(v) for k, v in x.items()}
         elif isinstance(x, (list, tuple)):
-            return [self._serialize_trait(v) for v in x]
+            return [self._trait_to_json(v) for v in x]
         elif isinstance(x, Widget):
             return "IPY_MODEL_" + x.model_id
         else:
             return x # Value must be JSON-able
 
-    def _deserialize_trait(self, x):
+    def _trait_from_json(self, x):
         """Convert json values to objects
 
-        We explicitly support converting valid string widget UUIDs to Widget references.
+        Replace any strings representing valid model id values to Widget references.
         """
         if isinstance(x, dict):
-            return {k: self._deserialize_trait(v) for k, v in x.items()}
+            return {k: self._trait_from_json(v) for k, v in x.items()}
         elif isinstance(x, (list, tuple)):
-            return [self._deserialize_trait(v) for v in x]
+            return [self._trait_from_json(v) for v in x]
         elif isinstance(x, string_types) and x.startswith('IPY_MODEL_') and x[10:] in Widget.widgets:
             # we want to support having child widgets at any level in a hierarchy
             # trusting that a widget UUID will not appear out in the wild
