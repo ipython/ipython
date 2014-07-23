@@ -309,7 +309,7 @@ class Widget(LoggingConfigurable):
         elif isinstance(x, (list, tuple)):
             return [self._pack_widgets(v) for v in x]
         elif isinstance(x, Widget):
-            return x.model_id
+            return 'IPY_MODEL_' + x.model_id
         else:
             return x # Value must be JSON-able
 
@@ -323,7 +323,7 @@ class Widget(LoggingConfigurable):
         elif isinstance(x, (list, tuple)):
             return [self._unpack_widgets(v) for v in x]
         elif isinstance(x, string_types):
-            return x if x not in Widget.widgets else Widget.widgets[x]
+            return x if len(x) < 11 or x[10:] not in Widget.widgets else Widget.widgets[x[10:]]
         else:
             return x
 
