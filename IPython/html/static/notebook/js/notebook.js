@@ -46,6 +46,7 @@ define([
         //      Dictionary of keyword arguments.
         //          events: $(Events) instance
         //          keyboard_manager: KeyboardManager instance
+        //          content_manager: ContentManager instance
         //          save_widget: SaveWidget instance
         //          config: dictionary
         //          base_url : string
