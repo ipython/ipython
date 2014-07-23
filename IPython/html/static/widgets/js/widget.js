@@ -390,7 +390,7 @@ define(["widgets/js/manager",
             this.model.save_changes(this.callbacks());
         },
 
-        once_displayed: function (callback, context) {
+        after_displayed: function (callback, context) {
             // Calls the callback right away is the view is already displayed
             // otherwise, register the callback to the 'displayed' event.
             if (this.is_displayed) {

@@ -38,7 +38,7 @@ define([
             this.$el.append(view.$el);
 
             // Trigger the displayed event once this view is displayed.
-            this.once_displayed(function() {
+            this.after_displayed(function() {
                 view.trigger('displayed');
             });
         },
@@ -230,7 +230,7 @@ define([
             this.$body.append(view.$el);
 
             // Trigger the displayed event once this view is displayed.
-            this.once_displayed(function() {
+            this.after_displayed(function() {
                 view.trigger('displayed');
             });
         },
