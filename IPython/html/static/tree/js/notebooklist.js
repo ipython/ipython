@@ -39,6 +39,21 @@ define([
             this.session_list.events.on('sessions_loaded.Dashboard', 
                 function(e, d) { that.sessions_loaded(d); });
         }
+
+
+        if (this.content_manager && this.content_manager.events) {
+            this.content_manager.events.on('notebook_deleted.ContentManager',
+                function(e, d) {
+                    // Remove the deleted notebook.
+                    $( ":data(nbname)" ).each(function() {
+                        var element = $( this );
+                        if (element.data( "nbname" ) == d.name &&
+                            element.data( "path" ) == d.path) {
+                            element.remove();
+                        }
+                    });
+                });
+        }
     };
 
     NotebookList.prototype.style = function () {
