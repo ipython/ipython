@@ -125,15 +125,15 @@ define([
         $.ajax(url, settings);
     };
 
-    ContentManager.prototype.save_notebook = function(notebook, extra_settings) {
+    ContentManager.prototype.save_notebook = function(path, name, content,
+        extra_settings) {
         var that = notebook;
         // Create a JSON model to be sent to the server.
-        var model = {};
-        model.name = notebook.notebook_name;
-        model.path = notebook.notebook_path;
-        model.content = notebook.toJSON();
-        model.content.nbformat = notebook.nbformat;
-        model.content.nbformat_minor = notebook.nbformat_minor;
+        var model = {
+            name : name,
+            path : path,
+            content : content
+        };
         // time the ajax call for autosave tuning purposes.
         var start =  new Date().getTime();
         // We do the call with settings so we can set cache to false.
@@ -143,20 +143,24 @@ define([
             type : "PUT",
             data : JSON.stringify(model),
             contentType: 'application/json',
-            success : $.proxy(notebook.save_notebook_success, that, start),
-            error : $.proxy(notebook.save_notebook_error, that)
+            success : $.proxy(this.events.trigger, this.events,
+                'notebook_save_success.ContentManager',
+                $.extend(model, { start : start })),
+            error : function (xhr, status, error) {
+                that.events.trigger('notebook_save_error.ContentManager',
+                    [xhr, status, error, model]);
+            }
         };
         if (extra_settings) {
             for (var key in extra_settings) {
                 settings[key] = extra_settings[key];
             }
         }
-        notebook.events.trigger('notebook_saving.Notebook');
         var url = utils.url_join_encode(
-            notebook.base_url,
+            this.base_url,
             'api/notebooks',
-            notebook.notebook_path,
-            notebook.notebook_name
+            path,
+            name
         );
         $.ajax(url, settings);
     };
