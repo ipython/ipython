@@ -354,7 +354,7 @@ define(["widgets/js/manager",
             }
 
             // Add the rest of the new list items.
-            for (i; i < new_list.length; i++) {
+            for (; i < new_list.length; i++) {
                 added_callback(new_list[i]);
             }
         },
