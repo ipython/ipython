@@ -18,6 +18,7 @@ import errno
 import os
 import sys
 
+from distutils import log
 from distutils.command.build_py import build_py
 from distutils.command.build_scripts import build_scripts
 from distutils.command.install import install
@@ -705,13 +706,19 @@ class JavascriptVersion(Command):
                 f.write(line)
 
 
-def css_js_prerelease(command):
+def css_js_prerelease(command, strict=True):
     """decorator for building js/minified css prior to a release"""
     class DecoratedCommand(command):
         def run(self):
             self.distribution.run_command('jsversion')
             css = self.distribution.get_command_obj('css')
             css.minify = True
-            self.distribution.run_command('css')
+            try:
+                self.distribution.run_command('css')
+            except Exception as e:
+                if strict:
+                    raise
+                else:
+                    log.warn("Failed to build css sourcemaps: %s" % e)
             command.run(self)
     return DecoratedCommand
