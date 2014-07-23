@@ -669,16 +669,19 @@ class CompileCSS(Command):
     description = "Recompile Notebook CSS"
     user_options = [
         ('minify', 'x', "minify CSS"),
-        ]
+        ('force', 'f', "force recompilation of CSS"),
+    ]
     
     def initialize_options(self):
         self.minify = False
+        self.force = False
     
     def finalize_options(self):
         self.minify = bool(self.minify)
+        self.force = bool(self.force)
     
     def run(self):
-        check_call("fab css:minify=%s" % self.minify,
+        check_call("fab css:minify=%s,force=%s" % (self.minify, self.force),
             shell=True,
             cwd=pjoin(repo_root, "IPython", "html"),
         )
