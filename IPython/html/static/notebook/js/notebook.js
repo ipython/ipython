@@ -2065,7 +2065,7 @@ define([
     };
 
     Notebook.prototype.delete = function () {
-        this.content_manager.delete_notebook(this.notebook_name, this.notebook_path, this.base_url);
+        this.content_manager.delete_notebook(this.notebook_name, this.notebook_path);
     };
 
     Notebook.prototype.rename_success = function (json, status, xhr) {
