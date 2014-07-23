@@ -114,7 +114,6 @@ define([
             success : $.proxy(that.rename_success, that),
             error : $.proxy(that.rename_error, that)
         };
-        this.events.trigger('rename_notebook.Notebook', data);
         var url = utils.url_join_encode(
             that.base_url,
             'api/notebooks',
