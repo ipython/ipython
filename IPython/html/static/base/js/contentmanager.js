@@ -75,18 +75,17 @@ define([
     };
 
     ContentManager.prototype.delete_notebook = function(name, path) {
-        var that = this;
         var settings = {
             processData : false,
             cache : false,
             type : "DELETE",
             dataType : "json",
-            success : function (data, status, xhr) {
-                that.events.trigger('notebook_deleted.ContentManager', {
+            success : $.proxy(this.events.trigger, this.events,
+                'notebook_deleted.ContentManager',
+                {
                     name: name,
                     path: path
-                });
-            },
+                }),
             error : utils.log_ajax_error
         };
         var url = utils.url_join_encode(
