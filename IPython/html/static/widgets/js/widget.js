@@ -213,7 +213,7 @@ define(["widgets/js/manager",
             var that = this;
             var packed;
             if (value instanceof Backbone.Model) {
-                return value.id;
+                return "IPY_MODEL_" + value.id;
 
             } else if ($.isArray(value)) {
                 packed = [];
@@ -252,13 +252,15 @@ define(["widgets/js/manager",
                 });
                 return unpacked;
 
+            } else if (typeof value === 'string' && value.slice(0,10) === "IPY_MODEL_") {
+		var model = this.widget_manager.get_model(value.slice(10, value.length));
+		if (model) {
+		    return model;
+		} else {
+		    return value;
+		}
             } else {
-                var model = this.widget_manager.get_model(value);
-                if (model) {
-                    return model;
-                } else {
                     return value;
-                }
             }
         },
 
