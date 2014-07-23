@@ -20,6 +20,7 @@ define([
         //          element_name: string
         //          base_url: string
         //          notebook_path: string
+        //          content_manager: ContentManager instance
         var that = this;
         this.session_list = options.session_list;
         // allow code re-use by just changing element_name in kernellist.js
