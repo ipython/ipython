@@ -178,6 +178,19 @@ define([
     Notebook.prototype.bind_events = function () {
         var that = this;
 
+        this.content_manager.events.on('notebook_rename_success.ContentManager',
+            function (event, data) {
+                var name = that.notebook_name = data.name;
+                var path = data.path;
+                that.session.rename_notebook(name, path);
+                that.events.trigger('notebook_renamed.Notebook', data);
+            });
+
+        this.content_manager.events.on('notebook_rename_error.ContentManager',
+            function (event, data) {
+                that.rename_error(data[0], data[1], data[2]);
+            });
+
         this.events.on('set_next_input.Notebook', function (event, data) {
             var index = that.find_cell_index(data.cell);
             var new_cell = that.insert_cell_below('code',index);
@@ -2062,18 +2075,17 @@ define([
     };
 
     Notebook.prototype.rename = function (nbname) {
-        this.content_manager.rename_notebook(this, nbname);
+        if (!nbname.match(/\.ipynb$/)) {
+            nbname = nbname + ".ipynb";
+        }
+
+        this.content_manager.rename_notebook(this.notebook_path,
+            this.notebook_name, nbname);
     };
 
     Notebook.prototype.delete = function () {
-        this.content_manager.delete_notebook(this.notebook_name, this.notebook_path);
-    };
-
-    Notebook.prototype.rename_success = function (json, status, xhr) {
-        var name = this.notebook_name = json.name;
-        var path = json.path;
-        this.session.rename_notebook(name, path);
-        this.events.trigger('notebook_renamed.Notebook', json);
+        this.content_manager.delete_notebook(this.notebook_name,
+            this.notebook_path);
     };
 
     Notebook.prototype.rename_error = function (xhr, status, error) {
@@ -2092,7 +2104,7 @@ define([
                 "OK": {
                     class: "btn-primary",
                     click: function () {
-                        this.save_widget.rename_notebook({notebook:that});
+                        that.save_widget.rename_notebook({notebook:that});
                 }}
                 },
             open : function (event, ui) {

@@ -97,12 +97,9 @@ define([
         $.ajax(url, settings);
     };
 
-    ContentManager.prototype.rename_notebook = function(notebook, nbname) {
-        var that = notebook;
-        if (!nbname.match(/\.ipynb$/)) {
-            nbname = nbname + ".ipynb";
-        }
-        var data = {name: nbname};
+    ContentManager.prototype.rename_notebook = function(path, name, new_name) {
+        var that = this;
+        var data = {name: new_name};
         var settings = {
             processData : false,
             cache : false,
@@ -110,14 +107,20 @@ define([
             data : JSON.stringify(data),
             dataType: "json",
             contentType: 'application/json',
-            success : $.proxy(that.rename_success, that),
-            error : $.proxy(that.rename_error, that)
+            success :  function (json, status, xhr) {
+                that.events.trigger('notebook_rename_success.ContentManager',
+                    json);
+            },
+            error : function (xhr, status, error) {
+                that.events.trigger('notebook_rename_error.ContentManager',
+                    [xhr, status, error]);
+            }
         };
         var url = utils.url_join_encode(
-            that.base_url,
+            this.base_url,
             'api/notebooks',
-            that.notebook_path,
-            that.notebook_name
+            path,
+            name
         );
         $.ajax(url, settings);
     };
