@@ -681,9 +681,10 @@ class CompileCSS(Command):
         self.force = bool(self.force)
     
     def run(self):
-        check_call("fab css:minify=%s,force=%s" % (self.minify, self.force),
-            shell=True,
-            cwd=pjoin(repo_root, "IPython", "html"),
+        check_call([
+                "fab",
+                "css:minify=%s,force=%s" % (self.minify, self.force),
+            ], cwd=pjoin(repo_root, "IPython", "html"),
         )
 
 
