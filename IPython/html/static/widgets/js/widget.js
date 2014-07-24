@@ -405,7 +405,7 @@ define(["widgets/js/manager",
 
 
     var DOMWidgetView = WidgetView.extend({
-        initialize: function (options) {
+        initialize: function () {
             // Public constructor
             DOMWidgetView.__super__.initialize.apply(this, arguments);
             this.on('displayed', this.show, this);

@@ -8,20 +8,23 @@ define([
 ], function(widget, $){
 
     var ContainerView = widget.DOMWidgetView.extend({
-        render: function(){
-            // Called when view is rendered.
-            this.$el.addClass('widget-container')
-                .addClass('vbox');
+        initialize: function(){
+            // Public constructor
+            ContainerView.__super__.initialize.apply(this, arguments);
             this.update_children([], this.model.get('children'));
             this.model.on('change:children', function(model, value) {
                 this.update_children(model.previous('children'), value);
             }, this);
         },
+
+        render: function(){
+            // Called when view is rendered.
+            this.$el.addClass('widget-container').addClass('vbox');
+        },
         
         update_children: function(old_list, new_list) {
             // Called when the children list changes.
-            this.do_diff(old_list,
-                new_list, 
+            this.do_diff(old_list, new_list, 
                 $.proxy(this.remove_child_model, this),
                 $.proxy(this.add_child_model, this));
         },
@@ -203,8 +206,7 @@ define([
         
         update_children: function(old_list, new_list) {
             // Called when the children list is modified.
-            this.do_diff(old_list, 
-                new_list, 
+            this.do_diff(old_list, new_list, 
                 $.proxy(this.remove_child_model, this),
                 $.proxy(this.add_child_model, this));
         },
