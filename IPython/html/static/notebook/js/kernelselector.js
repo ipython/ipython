@@ -12,6 +12,7 @@ define([
         this.selector = selector;
         this.notebook = notebook;
         this.events = notebook.events;
+        this.current_selection = notebook.default_kernel_name;
         this.kernelspecs = {};
         if (this.selector !== undefined) {
             this.element = $(selector);
@@ -42,7 +43,7 @@ define([
     };
 
     KernelSelector.prototype.change_kernel = function(kernel_name) {
-        if (kernel_name === this.notebook.kernel.name) {
+        if (kernel_name === this.current_selection) {
             return;
         }
         var ks = this.kernelspecs[kernel_name];
@@ -54,7 +55,18 @@ define([
     KernelSelector.prototype.bind_events = function() {
         var that = this;
         this.events.on('spec_changed.Kernel', function(event, data) {
+            that.current_selection = data.name;
             that.element.find("#current_kernel_spec").find('.kernel_name').text(data.display_name);
+        });
+        
+        this.events.on('started.Session', function(events, session) {
+            if (session.kernel_name !== that.current_selection) {
+                // If we created a 'python' session, we only know if it's Python
+                // 3 or 2 on the server's reply, so we fire the event again to
+                // set things up.
+                var ks = that.kernelspecs[session.kernel_name];
+                that.events.trigger('spec_changed.Kernel', ks);
+            }
         });
     };
 
