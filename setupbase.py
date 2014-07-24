@@ -18,6 +18,7 @@ import errno
 import os
 import sys
 
+from distutils import log
 from distutils.command.build_py import build_py
 from distutils.command.build_scripts import build_scripts
 from distutils.command.install import install
@@ -25,7 +26,7 @@ from distutils.command.install_scripts import install_scripts
 from distutils.cmd import Command
 from fnmatch import fnmatch
 from glob import glob
-from subprocess import call
+from subprocess import check_call
 
 from setupext import install_data_ext
 
@@ -666,16 +667,26 @@ class CompileCSS(Command):
     Requires various dev dependencies, such as fabric and lessc.
     """
     description = "Recompile Notebook CSS"
-    user_options = []
+    user_options = [
+        ('minify', 'x', "minify CSS"),
+        ('force', 'f', "force recompilation of CSS"),
+    ]
     
     def initialize_options(self):
-        pass
+        self.minify = False
+        self.force = False
     
     def finalize_options(self):
-        pass
+        self.minify = bool(self.minify)
+        self.force = bool(self.force)
     
     def run(self):
-        call("fab css", shell=True, cwd=pjoin(repo_root, "IPython", "html"))
+        check_call([
+                "fab",
+                "css:minify=%s,force=%s" % (self.minify, self.force),
+            ], cwd=pjoin(repo_root, "IPython", "html"),
+        )
+
 
 class JavascriptVersion(Command):
     """write the javascript version to notebook javascript"""
@@ -697,4 +708,21 @@ class JavascriptVersion(Command):
                 if line.startswith("IPython.version"):
                     line = 'IPython.version = "{0}";\n'.format(version)
                 f.write(line)
-            
+
+
+def css_js_prerelease(command, strict=True):
+    """decorator for building js/minified css prior to a release"""
+    class DecoratedCommand(command):
+        def run(self):
+            self.distribution.run_command('jsversion')
+            css = self.distribution.get_command_obj('css')
+            css.minify = True
+            try:
+                self.distribution.run_command('css')
+            except Exception as e:
+                if strict:
+                    raise
+                else:
+                    log.warn("Failed to build css sourcemaps: %s" % e)
+            command.run(self)
+    return DecoratedCommand

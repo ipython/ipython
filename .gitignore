@@ -7,6 +7,7 @@ docs/source/api/generated
 docs/source/config/options
 docs/gh-pages
 IPython/html/notebook/static/mathjax
+IPython/html/static/style/*.map
 *.py[co]
 __pycache__
 *.egg-info

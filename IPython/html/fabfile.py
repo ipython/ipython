@@ -8,13 +8,48 @@ from subprocess import check_output
 
 pjoin = os.path.join
 static_dir = 'static'
-components_dir = os.path.join(static_dir, 'components')
+components_dir = pjoin(static_dir, 'components')
+here = os.path.dirname(__file__)
 
 min_less_version = '1.7.0'
 max_less_version = '1.8.0' # exclusive
 
-def css(minify=True, verbose=False):
+def _need_css_update():
+    """Does less need to run?"""
+    
+    static_path = pjoin(here, static_dir)
+    css_targets = [ 
+        pjoin(static_path, 'style', '%s.min.css' % name)
+        for name in ('style', 'ipython')
+    ]
+    css_maps = [t + '.map' for t in css_targets]
+    targets = css_targets + css_maps
+    if not all(os.path.exists(t) for t in targets):
+        # some generated files don't exist
+        return True
+    earliest_target = sorted(os.stat(t).st_mtime for t in targets)[0]
+    
+    # check if any .less files are newer than the generated targets
+    for (dirpath, dirnames, filenames) in os.walk(static_path):
+        for f in filenames:
+            if f.endswith('.less'):
+                path = pjoin(static_path, dirpath, f)
+                timestamp = os.stat(path).st_mtime
+                if timestamp > earliest_target:
+                    return True
+    
+    return False
+
+def css(minify=False, verbose=False, force=False):
     """generate the css from less files"""
+    minify = _to_bool(minify)
+    verbose = _to_bool(verbose)
+    force = _to_bool(force)
+    # minify implies force because it's not the default behavior
+    if not force and not minify and not _need_css_update():
+        print("css up-to-date")
+        return
+    
     for name in ('style', 'ipython'):
         source = pjoin('style', "%s.less" % name)
         target = pjoin('style', "%s.min.css" % name)
@@ -28,8 +63,6 @@ def _to_bool(b):
 
 def _compile_less(source, target, sourcemap, minify=True, verbose=False):
     """Compile a less file by source and target relative to static_dir"""
-    minify = _to_bool(minify)
-    verbose = _to_bool(verbose)
     min_flag = '-x' if minify is True else ''
     ver_flag = '--verbose' if verbose is True else ''
     
@@ -46,7 +79,7 @@ def _compile_less(source, target, sourcemap, minify=True, verbose=False):
     if V(less_version) >= V(max_less_version):
         raise ValueError("lessc too new: %s >= %s. Use `$ npm install lesscss@X.Y.Z` to install a specific version of less" % (less_version, max_less_version))
     
-    static_path = pjoin(os.getcwd(), static_dir)
+    static_path = pjoin(here, static_dir)
     with lcd(static_dir):
         local('lessc {min_flag} {ver_flag} --source-map={sourcemap} --source-map-basepath={static_path} --source-map-rootpath="../" {source} {target}'.format(**locals()))
 
