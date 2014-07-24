@@ -2275,12 +2275,6 @@ define([
         if (this.session === null) {
             var kernelspec = this.metadata.kernelspec || {};
             var kernel_name = kernelspec.name || this.default_kernel_name;
-            
-            // If we don't already know about this kernel spec, store its info
-            var kernelspecs = IPython.kernelselector.kernelspecs;
-            if (kernelspec !== {} && !(kernel_name in kernelspecs)) {
-                kernelspecs[kernel_name] = kernelspec;
-            }
 
             this.start_session(kernel_name);
         }

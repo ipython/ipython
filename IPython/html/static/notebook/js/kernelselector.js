@@ -19,8 +19,6 @@ define([
             this.request_kernelspecs();
         }
         this.bind_events();
-        // For now, this is how we make this object available elsewhere
-        IPython.kernelselector = this;
     };
     
     KernelSelector.prototype.request_kernelspecs = function() {
