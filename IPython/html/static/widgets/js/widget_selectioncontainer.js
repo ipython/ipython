@@ -30,7 +30,7 @@ define([
             var that = this;
             this.on('displayed', function() {
                 this.update_titles();
-            }
+            }, this);
         },
 
         update_titles: function(titles) {

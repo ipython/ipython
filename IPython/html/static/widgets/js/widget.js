@@ -409,9 +409,11 @@ define(["widgets/js/manager",
             // Public constructor
             DOMWidgetView.__super__.initialize.apply(this, arguments);
             this.on('displayed', this.show, this);
+
             this.model.on('msg:custom', this.on_msg, this);
             this.model.on('change:visible', this.update_visible, this);
             this.model.on('change:_css', this.update_css, this);
+
             this.update_visible(this.model, this.model.get("visible"));
             this.update_css(this.model, this.model.get("_css"));
         },
