@@ -407,13 +407,15 @@ define(["widgets/js/manager",
     var DOMWidgetView = WidgetView.extend({
         initialize: function (options) {
             // Public constructor
-
-            // In the future we may want to make changes more granular 
-            // (e.g., trigger on visible:change).
-            this.model.on('change', this.update, this);
-            this.model.on('msg:custom', this.on_msg, this);
             DOMWidgetView.__super__.initialize.apply(this, arguments);
             this.on('displayed', this.show, this);
+
+            this.model.on('msg:custom', this.on_msg, this);
+            this.model.on('change:visible', this.update_visible, this);
+            this.model.on('change:_css', this.update_css, this);
+
+            this.update_visible(this.model, this.model.get("visible"));
+            this.update_css(this.model, this.model.get("_css"));
         },
         
         on_msg: function(msg) {
@@ -438,19 +440,18 @@ define(["widgets/js/manager",
             this._get_selector_element(selector).removeClass(class_list);
         },
     
-        update: function () {
-            // Update the contents of this view
-            //
-            // Called when the model is changed.  The model may have been 
-            // changed by another view or by a state update from the back-end.
+        update_visible: function(model, value) {
+            // Update visibility
             //      The very first update seems to happen before the element is 
             // finished rendering so we use setTimeout to give the element time 
             // to render
             var e = this.$el;
-            var visible = this.model.get('visible');
-            setTimeout(function() {e.toggle(visible);},0);
-     
-            var css = this.model.get('_css');
+            setTimeout(function() {e.toggle(value);},0);
+         },
+
+        update_css: function (model, css) {
+            // Update the contents of this view
+            var e = this.$el;
             if (css === undefined) {return;}
             for (var i = 0; i < css.length; i++) {
                 // Apply the css traits to all elements that match the selector.

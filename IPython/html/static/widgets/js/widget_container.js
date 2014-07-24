@@ -13,10 +13,9 @@ define([
             this.$el.addClass('widget-container')
                 .addClass('vbox');
             this.update_children([], this.model.get('children'));
-            this.model.on('change:children', function(model, value, options) {
+            this.model.on('change:children', function(model, value) {
                 this.update_children(model.previous('children'), value);
             }, this);
-            this.update();
         },
         
         update_children: function(old_list, new_list) {
@@ -41,14 +40,6 @@ define([
             this.after_displayed(function() {
                 view.trigger('displayed');
             });
-        },
-        
-        update: function(){
-            // Update the contents of this view
-            //
-            // Called when the model is changed.  The model may have been 
-            // changed by another view or by a state update from the back-end.
-            return ContainerView.__super__.update.apply(this);
         },
     });
     
@@ -163,10 +154,9 @@ define([
             this.popped_out = true;
 
             this.update_children([], this.model.get('children'));
-            this.model.on('change:children', function(model, value, options) {
+            this.model.on('change:children', function(model, value) {
                 this.update_children(model.previous('children'), value);
             }, this);
-            this.update();
         },
         
         hide: function() {
