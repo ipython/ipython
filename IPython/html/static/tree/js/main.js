@@ -12,8 +12,10 @@ require([
     'tree/js/sessionlist',
     'tree/js/kernellist',
     'auth/js/loginwidget',
+    // only loaded, not used:
     'jqueryui',
     'bootstrap',
+    'custom/custom',
 ], function(
     IPython, 
     $, 
@@ -32,7 +34,6 @@ require([
         base_url: utils.get_body_data("baseUrl"),
         notebook_path: utils.get_body_data("notebookPath"),
     };
-    events = $([new events.Events()]);
     session_list = new sesssionlist.SesssionList($.extend({
         events: events}, 
         common_options));
@@ -91,6 +92,15 @@ require([
     enable_autorefresh();
 
     page.show();
+
+    // For backwards compatability.
+    IPython.page = page;
+    IPython.notebook_list = notebook_list;
+    IPython.cluster_list = cluster_list;
+    IPython.session_list = session_list;
+    IPython.kernel_list = kernel_list;
+    IPython.login_widget = login_widget;
+
     events.trigger('app_initialized.DashboardApp');
     
     // bound the upload method to the on change of the file select list
@@ -108,12 +118,4 @@ require([
         $("#tabs").find("a[href=" + window.location.hash + "]").click();
     }
 
-    // For backwards compatability.
-    IPython.page = page;
-    IPython.notebook_list = notebook_list;
-    IPython.cluster_list = cluster_list;
-    IPython.session_list = session_list;
-    IPython.kernel_list = kernel_list;
-    IPython.login_widget = login_widget;
-    IPython.events = events;
 });
