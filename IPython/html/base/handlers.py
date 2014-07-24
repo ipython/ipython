@@ -127,6 +127,10 @@ class IPythonHandler(AuthenticatedHandler):
     @property
     def base_url(self):
         return self.settings.get('base_url', '/')
+
+    @property
+    def ws_url(self):
+        return self.settings.get('websocket_url', '')
     
     #---------------------------------------------------------------
     # Manager objects
@@ -215,6 +219,7 @@ class IPythonHandler(AuthenticatedHandler):
     def template_namespace(self):
         return dict(
             base_url=self.base_url,
+            ws_url=self.ws_url,
             logged_in=self.logged_in,
             login_available=self.login_available,
             static_url=self.static_url,

@@ -172,6 +172,7 @@ class NotebookWebApplication(web.Application):
 
             # IPython stuff
             nbextensions_path = ipython_app.nbextensions_path,
+            websocket_url=ipython_app.websocket_url,
             mathjax_url=ipython_app.mathjax_url,
             config=ipython_app.config,
             jinja2_env=env,
@@ -512,6 +513,13 @@ class NotebookApp(BaseIPythonApplication):
     def _nbextensions_path_default(self):
         return [os.path.join(get_ipython_dir(), 'nbextensions')]
 
+    websocket_url = Unicode("", config=True,
+        help="""The base URL for websockets,
+        if it differs from the HTTP server (hint: it almost certainly doesn't).
+        
+        Should be in the form of an HTTP origin: ws[s]://hostname[:port]
+        """
+    )
     mathjax_url = Unicode("", config=True,
         help="""The url for MathJax.js."""
     )
