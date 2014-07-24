@@ -28,15 +28,12 @@ except:
     import pickle
 
 try:
+    # We are using compare_digest to limit the surface of timing attacks
     from hmac import compare_digest
 except ImportError:
-    # Python < 2.7.7
-    import warnings
-    warnings.warn("You are using Python older than 2.7.7, please consider "
-            "updating to the latest version as it reduces a possible security"
-            " vulnerability.")
-    def compare_digest(a,b):
-        return a == b
+    # Python < 2.7.7: When digests don't match no feedback is provided,
+    # limiting the surface of attack
+    def compare_digest(a,b): return a == b
 
 import zmq
 from zmq.utils import jsonapi
