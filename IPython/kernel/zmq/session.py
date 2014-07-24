@@ -40,6 +40,14 @@ except:
     cPickle = None
     import pickle
 
+try:
+    # We are using compare_digest to limit the surface of timing attacks
+    from hmac import compare_digest
+except ImportError:
+    # Python < 2.7.7: When digests don't match no feedback is provided,
+    # limiting the surface of attack
+    def compare_digest(a,b): return a == b
+
 import zmq
 from zmq.utils import jsonapi
 from zmq.eventloop.ioloop import IOLoop
@@ -222,7 +230,7 @@ class Session(Configurable):
     dict-based IPython message spec. The Session will handle
     serialization/deserialization, security, and metadata.
 
-    Sessions support configurable serialiization via packer/unpacker traits,
+    Sessions support configurable serialization via packer/unpacker traits,
     and signing with HMAC digests via the key/keyfile traits.
 
     Parameters
@@ -523,7 +531,7 @@ class Session(Configurable):
         Parameters
         ----------
         msg : dict or Message
-            The nexted message dict as returned by the self.msg method.
+            The next message dict as returned by the self.msg method.
 
         Returns
         -------
@@ -815,7 +823,7 @@ class Session(Configurable):
                 raise ValueError("Duplicate Signature: %r" % signature)
             self._add_digest(signature)
             check = self.sign(msg_list[1:5])
-            if not signature == check:
+            if not compare_digest(signature, check):
                 raise ValueError("Invalid Signature: %r" % signature)
         if not len(msg_list) >= minlen:
             raise TypeError("malformed message, must have at least %i elements"%minlen)
