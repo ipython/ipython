@@ -27,6 +27,7 @@
             bootstraptour: 'components/bootstrap-tour/build/js/bootstrap-tour.min',
             dateformat: 'dateformat/date.format',
             jqueryui: 'components/jquery-ui/ui/minified/jquery-ui.min',
+            highlight: 'components/highlight.js/build/highlight.pack',
           },
           shim: {
             underscore: {
@@ -50,7 +51,10 @@
             jqueryui: {
               deps: ["jquery"],
               exports: "$"
-            }
+            },
+            highlight: {
+              exports: "hljs"
+            },
           }
       });
     </script>
