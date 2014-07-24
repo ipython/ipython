@@ -347,11 +347,11 @@ define([
     
     Notebook.prototype.set_kernelspec_metadata = function(ks) {
         var tostore = {};
-        for (field in ks) {
+        $.map(ks, function(value, field) {
             if (field !== 'argv' && field !== 'env') {
-                tostore[field] = ks[field]
+                tostore[field] = value;
             }
-        }
+        });
         this.metadata.kernelspec = tostore;
     }
 
@@ -1518,21 +1518,20 @@ define([
             return;
         }
         this.codemirror_mode = newmode;
-        IPython.CodeCell.options_default.cm_config.mode = newmode;
+        codecell.CodeCell.options_default.cm_config.mode = newmode;
         modename = newmode.name || newmode
 
+        that = this;
         CodeMirror.requireMode(modename, function(){
-            cells = IPython.notebook.get_cells();
-            for(var i in cells){
-                c = cells[i];
-                if (c.cell_type === 'code'){
-                    c.code_mirror.setOption('mode', newmode);
+            $.map(that.get_cells(), function(cell, i) {
+                if (cell.cell_type === 'code'){
+                    cell.code_mirror.setOption('mode', newmode);
                     // This is currently redundant, because cm_config ends up as
                     // codemirror's own .options object, but I don't want to
                     // rely on that.
-                    c.cm_config.mode = newmode;
+                    cell.cm_config.mode = newmode;
                 }
-            }
+            });
         })
     };
 
