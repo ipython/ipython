@@ -3,7 +3,12 @@
 git submodule init
 git submodule update
 
-PREVIOUS_HEAD=$1
+if [[ "$(basename $0)" == "post-merge" ]]; then
+  PREVIOUS_HEAD=ORIG_HEAD
+else
+  PREVIOUS_HEAD=$1
+fi
+
 # if style changed (and less/fabric available), rebuild sourcemaps
 if [[
   ! -z "$(git diff $PREVIOUS_HEAD IPython/html/static/style/ipython.min.css)"
@@ -13,5 +18,5 @@ if [[
 ]]; then
   echo "rebuilding sourcemaps"
   cd IPython/html
-  fab css
+  fab css || echo "failed to compile css"
 fi
