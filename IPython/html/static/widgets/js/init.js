@@ -23,5 +23,5 @@ define([
         }
     }
 
-    return {'WidgetManager': widgetmanager.WidgetManager}; 
+    return widgetmanager;
 });

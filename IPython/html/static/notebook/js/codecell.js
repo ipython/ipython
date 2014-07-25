@@ -7,10 +7,11 @@ define([
     'base/js/utils',
     'base/js/keyboard',
     'notebook/js/cell',
-    'notebook/js/outputarea',
+    'notebook/js/outputarea_frame',
     'notebook/js/completer',
     'notebook/js/celltoolbar',
-], function(IPython, $, utils, keyboard, cell, outputarea, completer, celltoolbar) {
+    'widgets/js/area_frame'
+], function(IPython, $, utils, keyboard, cell, outputarea_frame, completer, celltoolbar, widget_area_frame) {
     "use strict";
     var Cell = cell.Cell;
 
@@ -140,33 +141,14 @@ define([
         inner_cell.append(input_area);
         input.append(prompt).append(inner_cell);
 
-        var widget_area = $('<div/>')
-            .addClass('widget-area')
-            .hide();
-        this.widget_area = widget_area;
-        var widget_prompt = $('<div/>')
-            .addClass('prompt')
-            .appendTo(widget_area);
-        var widget_subarea = $('<div/>')
-            .addClass('widget-subarea')
-            .appendTo(widget_area);
-        this.widget_subarea = widget_subarea;
-        var widget_clear_buton = $('<button />')
-            .addClass('close')
-            .html('&times;')
-            .click(function() {
-                widget_area.slideUp('', function(){ widget_subarea.html(''); });
-                })
-            .appendTo(widget_prompt);
-
-        var output = $('<div></div>');
-        cell.append(input).append(widget_area).append(output);
-        this.element = cell;
-        this.output_area = new outputarea.OutputArea({
-            selector: output, 
+        this.widgets = new widget_area_frame.WidgetAreaFrame(this.cell_id);
+        this.output_area = new outputarea_frame.OutputAreaFrame({
             prompt_area: true, 
             events: this.events, 
             keyboard_manager: this.keyboard_manager});
+
+        cell.append(input).append(this.widgets.$el).append(this.output_area.$el);
+        this.element = cell;
         this.completer = new completer.Completer(this, this.events);
     };
 
@@ -269,13 +251,10 @@ define([
      */
     CodeCell.prototype.execute = function () {
         this.output_area.clear_output();
-        
-        // Clear widget area
-        this.widget_subarea.html('');
-        this.widget_subarea.height('');
-        this.widget_area.height('');
-        this.widget_area.hide();
 
+        // Clear widget area
+        this.widgets.clear();
+        
         this.set_input_prompt('*');
         this.element.addClass("running");
         if (this.last_msg_id) {
