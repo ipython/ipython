@@ -45,7 +45,7 @@ define([
         this.element.fadeIn(100);
 
         // reset previous set style
-        this.element.removeClass(),
+        this.element.removeClass();
         this.style();
         if (options.class){
 
