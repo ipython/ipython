@@ -1546,7 +1546,6 @@ define([
         if (kernel_name === undefined) {
             kernel_name = this.default_kernel_name;
         }
-        console.log("start_session", kernel_name);
         this.session = new session.Session({
             base_url: this.base_url,
             ws_url: this.ws_url,

@@ -19,18 +19,19 @@ define([
             this.request_kernelspecs();
         }
         this.bind_events();
+        // Make the object globally available for user convenience & inspection
+        IPython.kernelselector = this;
     };
     
     KernelSelector.prototype.request_kernelspecs = function() {
         var url = utils.url_join_encode(this.notebook.base_url, 'api/kernelspecs');
-        $.ajax(url, {success: $.proxy(this.got_kernelspecs, this)});
+        $.ajax(url, {success: $.proxy(this._got_kernelspecs, this)});
     };
     
-    KernelSelector.prototype.got_kernelspecs = function(data, status, xhr) {
+    KernelSelector.prototype._got_kernelspecs = function(data, status, xhr) {
         this.kernelspecs = {};
         var menu = this.element.find("#kernel_selector");
         var change_kernel_submenu = $("#menu-change-kernel-submenu");
-        console.log(change_kernel_submenu);
         for (var i = 0; i < data.length; i++) {
             var ks = data[i];
             this.kernelspecs[ks.name] = ks;
