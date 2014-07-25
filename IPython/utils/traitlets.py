@@ -910,6 +910,18 @@ class Instance(ClassBasedTraitType):
         else:
             return dv
 
+class CInstance(Instance):
+    def _cast(self, value):
+        return self.klass(value)
+
+    def validate(self, obj, value):
+        if isinstance(value, self.klass):
+            return value
+        try:
+            return self._cast(value)
+        except:
+            self.error(obj, value)
+
 
 class This(ClassBasedTraitType):
     """A trait for instances of the class containing this trait.
