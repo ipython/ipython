@@ -526,6 +526,60 @@ define([
         console.log(msg);
     };
 
+    var diff = function(old_list, new_list, removed_callback, added_callback) {
+        // Difference a changed list and call remove and add callbacks for 
+        // each removed and added item in the new list.
+        //
+        // Parameters
+        // ----------
+        // old_list : array
+        // new_list : array
+        // removed_callback : Callback(item)
+        //      Callback that is called for each item removed.
+        // added_callback : Callback(item)
+        //      Callback that is called for each item added.
+
+	/* A very simple diff algorithm, optimized for finding insertions in the old list
+	     TODO: adapt Myer's algorithm, or use one of the public js diff packages like:
+	         * https://github.com/kpdecker/jsdiff
+		 * https://code.google.com/p/google-diff-match-patch/
+		 * http://ejohn.org/projects/javascript-diff-algorithm/
+	   In this function, we have two pointers, current_old and current_new
+	   and we continually compare elements at those positions in the lists
+	    * when the elements compare equally, both pointers increment
+	    * when they don't, we just advance the new pointer and remember
+	      the index of the first nonequal comparison in this run
+	    * when the elements compare equally again, we know we had a run of additions
+	      so we call the added callback from the first nonequal comparison up to 
+	      the current new element
+	    * when either pointer reaches the end of its respective list,
+	      we call the added callback on everything on the new list since the last
+	      nonequal compare, and the removed callback on everything left in the old list
+	*/
+	var current_old = 0;
+	var current_new = 0;
+	var first_added = 0;
+	var i;
+	while(current_old < old_list.length && current_new < new_list.length) {
+	    if (old_list[current_old] === new_list[current_new]) {
+		for(i = first_added; i < current_new; i++) {
+		    added_callback(new_list[i])
+		}
+		current_new += 1;
+		current_old += 1;
+		first_added = current_new;
+	    } else {
+		current_new += 1;
+	    }
+	}
+	for(i=first_added; i<new_list.length; i++) {
+	    added_callback(new_list[i])
+	}
+	for(i=current_old; i<old_list.length; i++) {
+	    removed_callback(old_list[i])
+	}
+    };
+
     var utils = {
         regex_split : regex_split,
         uuid : uuid,
@@ -548,6 +602,7 @@ define([
         is_or_has : is_or_has,
         is_focused : is_focused,
         log_ajax_error : log_ajax_error,
+	diff : diff,
     };
 
     // Backwards compatability.
