@@ -8,7 +8,8 @@ define([
     'base/js/security',
     'base/js/keyboard',
     'notebook/js/mathjaxutils',
-], function(IPython, $, utils, security, keyboard, mathjaxutils) {
+    'components/marked/lib/marked',
+], function(IPython, $, utils, security, keyboard, mathjaxutils, marked) {
     "use strict";
 
     /**
