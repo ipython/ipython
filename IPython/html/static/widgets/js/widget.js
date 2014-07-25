@@ -348,7 +348,7 @@ define(["widgets/js/manager",
             // Walk the lists until an unequal entry is found.
             var i;
             for (i = 0; i < new_list.length; i++) {
-                if (i < old_list.length || new_list[i] !== old_list[i]) {
+                if (i >= old_list.length || new_list[i] !== old_list[i]) {
                     break;
                 }
             }
@@ -359,7 +359,7 @@ define(["widgets/js/manager",
             }
 
             // Add the rest of the new list items.
-            for (i; i < new_list.length; i++) {
+            for (; i < new_list.length; i++) {
                 added_callback(new_list[i]);
             }
         },
