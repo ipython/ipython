@@ -409,15 +409,15 @@ define(["widgets/js/manager",
             // Public constructor
             DOMWidgetView.__super__.initialize.apply(this, arguments);
             this.on('displayed', this.show, this);
-
+            this.after_displayed(function() {
+                this.update_visible(this.model, this.model.get("visible"));
+                this.update_css(this.model, this.model.get("_css"));
+            }, this);
             this.model.on('msg:custom', this.on_msg, this);
             this.model.on('change:visible', this.update_visible, this);
             this.model.on('change:_css', this.update_css, this);
-
-            this.update_visible(this.model, this.model.get("visible"));
-            this.update_css(this.model, this.model.get("_css"));
         },
-        
+
         on_msg: function(msg) {
             // Handle DOM specific msgs.
             switch(msg.msg_type) {
@@ -434,19 +434,15 @@ define(["widgets/js/manager",
             // Add a DOM class to an element.
             this._get_selector_element(selector).addClass(class_list);
         },
-        
+
         remove_class: function (selector, class_list) {
             // Remove a DOM class from an element.
             this._get_selector_element(selector).removeClass(class_list);
         },
-    
+
         update_visible: function(model, value) {
             // Update visibility
-            //      The very first update seems to happen before the element is 
-            // finished rendering so we use setTimeout to give the element time 
-            // to render
-            var e = this.$el;
-            setTimeout(function() {e.toggle(value);},0);
+            this.$el.toggle(value);
          },
 
         update_css: function (model, css) {
