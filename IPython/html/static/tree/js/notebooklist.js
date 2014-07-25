@@ -156,37 +156,26 @@ define([
     };
 
     NotebookList.prototype.load_list = function () {
-        var that = this;
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "GET",
-            dataType : "json",
-            success : $.proxy(this.list_loaded, this),
-            error : $.proxy( function(xhr, status, error){
+        this.content_manager.list_contents(
+            this.notebook_path,
+            $.proxy(this.draw_notebook_list, this),
+            $.proxy( function(xhr, status, error) { 
                 utils.log_ajax_error(xhr, status, error);
-                that.list_loaded([], null, null, {msg:"Error connecting to server."});
-                             },this)
-        };
-
-        var url = utils.url_join_encode(
-                this.base_url,
-                'api',
-                'contents',
-                this.notebook_path
+                that.draw_notebook_list([], "Error connecting to server.");
+            }, this)
         );
-        $.ajax(url, settings);
     };
 
-
-    NotebookList.prototype.list_loaded = function (data, status, xhr, param) {
-        var message = 'Notebook list empty.';
-        if (param !== undefined && param.msg) {
-            message = param.msg;
-        }
+    /**
+     * Draw the list of notebooks
+     * @method draw_notebook_list
+     * @param {Array} list An array of dictionaries representing files or
+     *     direcotories.
+     * @param {String} error_msg An error message
+     */
+    NotebookList.prototype.draw_notebook_list = function (list, error_msg) {
+        var message = error_msg || 'Notebook list empty.';
         var item = null;
-        var model = null;
-        var list = data.content;
         var len = list.length;
         this.clear_list();
         var n_uploads = this.element.children('.list_item').length;
@@ -209,9 +198,21 @@ define([
             offset += 1;
         }
         for (var i=0; i<len; i++) {
-            model = list[i];
-            item = this.new_item(i+offset);
-            this.add_link(model, item);
+            if (list[i].type === 'directory') {
+                var name = list[i].name;
+                item = this.new_notebook_item(i+offset);
+                this.add_dir(path, name, item);
+            } else {
+                var name = list[i].name;
+                item = this.new_notebook_item(i+offset);
+                this.add_link(path, name, item);
+                name = utils.url_path_join(path, name);
+                if(this.sessions[name] === undefined){
+                    this.add_delete_button(item);
+                } else {
+                    this.add_shutdown_button(item,this.sessions[name]);
+                }
+            }
         }
     };
 

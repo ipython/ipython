@@ -25,6 +25,10 @@ define([
     };
  
     /**
+     * Notebook Functions
+     */
+
+    /**
      * Creates a new notebook file at the specified path, and
      * opens that notebook in a new window.
      *
@@ -165,6 +169,10 @@ define([
         $.ajax(url, settings);
     };
 
+    /**
+     * Checkpointing Functions
+     */
+
     ContentManager.prototype.save_checkpoint = function() {
         // This is not necessary - integrated into save
     };
@@ -202,6 +210,44 @@ define([
             $.proxy(that.list_checkpoints_error, that)
         );
     };
+
+    /**
+     * File management functions
+     */
+
+    /**
+     * List notebooks and directories at a given path
+     *
+     * On success, load_callback is called with an array of dictionaries
+     * representing individual files or directories.  Each dictionary has
+     * the keys:
+     *     type: "notebook" or "directory"
+     *     name: the name of the file or directory
+     *     created: created date
+     *     last_modified: last modified dat
+     *     path: the path
+     * @method list_notebooks
+     * @param {String} path The path to list notebooks in
+     * @param {Function} load_callback called with list of notebooks on success
+     * @param {Function} error_callback called with ajax results on error
+     */
+    ContentManager.prototype.list_contents = function(path, load_callback,
+        error_callback) {
+        var that = this;
+        var settings = {
+            processData : false,
+            cache : false,
+            type : "GET",
+            dataType : "json",
+            success : load_callback,
+            error : error_callback
+        };
+
+        var url = utils.url_join_encode(this.base_url, 'api', 'notebooks',
+            path);
+        $.ajax(url, settings);
+    }
+
 
     IPython.ContentManager = ContentManager;
 
