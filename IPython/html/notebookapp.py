@@ -280,6 +280,7 @@ aliases.update({
     'notebook-dir': 'NotebookApp.notebook_dir',
     'browser': 'NotebookApp.browser',
     'pylab': 'NotebookApp.pylab',
+    'passwordHash': 'NotebookApp.password',
 })
 
 #-----------------------------------------------------------------------------
