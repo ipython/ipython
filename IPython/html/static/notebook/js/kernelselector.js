@@ -29,6 +29,8 @@ define([
     KernelSelector.prototype.got_kernelspecs = function(data, status, xhr) {
         this.kernelspecs = {};
         var menu = this.element.find("#kernel_selector");
+        var change_kernel_submenu = $("#menu-change-kernel-submenu");
+        console.log(change_kernel_submenu);
         for (var i = 0; i < data.length; i++) {
             var ks = data[i];
             this.kernelspecs[ks.name] = ks;
@@ -37,6 +39,12 @@ define([
                 .click($.proxy(this.change_kernel, this, ks.name))
                 .text(ks.display_name));
             menu.append(ksentry);
+
+            var ks_submenu_entry = $("<li>").attr("id", "kernel-submenu-"+ks.name).append($('<a>')
+                .attr('href', '#')
+                .click($.proxy(this.change_kernel, this, ks.name))
+                .text(ks.display_name));
+            change_kernel_submenu.append(ks_submenu_entry);
         }
     };
 
