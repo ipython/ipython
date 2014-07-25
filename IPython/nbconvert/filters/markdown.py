@@ -23,6 +23,7 @@ from pygments.util import ClassNotFound
 # IPython imports
 from IPython.nbconvert.utils.pandoc import pandoc
 from IPython.nbconvert.utils.exceptions import ConversionException
+from IPython.utils.decorators import undoc
 from IPython.utils.process import get_output_error_code
 from IPython.utils.py3compat import cast_bytes
 from IPython.utils.version import check_version
@@ -62,11 +63,14 @@ def markdown2latex(source):
     """
     return pandoc(source, 'markdown', 'latex')
 
+
+@undoc
 class MathBlockGrammar(mistune.BlockGrammar):
     block_math = re.compile("^\$\$(.*?)\$\$", re.DOTALL)
     latex_environment = re.compile(r"^\\begin\{([a-z]*\*?)\}(.*?)\\end\{\1\}",
                                                 re.DOTALL)
 
+@undoc
 class MathBlockLexer(mistune.BlockLexer):
     default_features = ['block_math', 'latex_environment'] + mistune.BlockLexer.default_features
 
@@ -89,9 +93,11 @@ class MathBlockLexer(mistune.BlockLexer):
             'text': m.group(2)
         })
 
+@undoc
 class MathInlineGrammar(mistune.InlineGrammar):
     math = re.compile("^\$(.+?)\$")
 
+@undoc
 class MathInlineLexer(mistune.InlineLexer):
     default_features = ['math'] + mistune.InlineLexer.default_features
 
@@ -103,6 +109,7 @@ class MathInlineLexer(mistune.InlineLexer):
     def output_math(self, m):
         return self.renderer.inline_math(m.group(1))
 
+@undoc
 class MarkdownWithMath(mistune.Markdown):
     def __init__(self, renderer, **kwargs):
         if 'inline' not in kwargs:
@@ -117,6 +124,7 @@ class MarkdownWithMath(mistune.Markdown):
     def parse_latex_environment(self):
         return self.renderer.latex_environment(self.token['name'], self.token['text'])
 
+@undoc
 class IPythonRenderer(mistune.Renderer):
     def block_code(self, code, lang):
         if lang:
