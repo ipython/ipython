@@ -8,7 +8,7 @@ define([
     'base/js/keyboard',
 ], function(IPython, $, utils, keyboard) {
     "use strict";
-
+    
     var browser = utils.browser[0];
     var platform = utils.platform;
 
@@ -40,63 +40,63 @@ define([
     KeyboardManager.prototype.get_default_common_shortcuts = function() {
         var that = this;
         var shortcuts = {
-        'shift' : {
-            help    : '',
-            help_index : '',
-            handler : function (event) {
-                // ignore shift keydown
-                return true;
-            }
-        },
-        'shift-enter' : {
-            help    : 'run cell, select below',
-            help_index : 'ba',
-            handler : function (event) {
+            'shift' : {
+                help    : '',
+                help_index : '',
+                handler : function (event) {
+                    // ignore shift keydown
+                    return true;
+                }
+            },
+            'shift-enter' : {
+                help    : 'run cell, select below',
+                help_index : 'ba',
+                handler : function (event) {
                     that.notebook.execute_cell_and_select_below();
-                return false;
-            }
-        },
-        'ctrl-enter' : {
-            help    : 'run cell',
-            help_index : 'bb',
-            handler : function (event) {
+                    return false;
+                }
+            },
+            'ctrl-enter' : {
+                help    : 'run cell',
+                help_index : 'bb',
+                handler : function (event) {
                     that.notebook.execute_cell();
-                return false;
-            }
-        },
-        'alt-enter' : {
-            help    : 'run cell, insert below',
-            help_index : 'bc',
-            handler : function (event) {
+                    return false;
+                }
+            },
+            'alt-enter' : {
+                help    : 'run cell, insert below',
+                help_index : 'bc',
+                handler : function (event) {
                     that.notebook.execute_cell_and_insert_below();
-                return false;
+                    return false;
+                }
             }
-        }
-    };
+        };
 
-    if (platform === 'MacOS') {
+        if (platform === 'MacOS') {
             shortcuts['cmd-s'] =
-            {
-                help    : 'save notebook',
-                help_index : 'fb',
-                handler : function (event) {
+                {
+                    help    : 'save notebook',
+                    help_index : 'fb',
+                    handler : function (event) {
                         that.notebook.save_checkpoint();
-                    event.preventDefault();
-                    return false;
-                }
-            };
-    } else {
+                        event.preventDefault();
+                        return false;
+                    }
+                };
+        } else {
             shortcuts['ctrl-s'] =
-            {
-                help    : 'save notebook',
-                help_index : 'fb',
-                handler : function (event) {
+                {
+                    help    : 'save notebook',
+                    help_index : 'fb',
+                    handler : function (event) {
                         that.notebook.save_checkpoint();
-                    event.preventDefault();
-                    return false;
-                }
-            };
-    }
+                        event.preventDefault();
+                        return false;
+                    }
+                };
+        }
         return shortcuts;
     };
 
@@ -107,7 +107,7 @@ define([
                 help    : 'command mode',
                 help_index : 'aa',
                 handler : function (event) {
-                        that.notebook.command_mode();
+                    that.notebook.command_mode();
                     return false;
                 }
             },
@@ -115,7 +115,7 @@ define([
                 help    : 'command mode',
                 help_index : 'ab',
                 handler : function (event) {
-                        that.notebook.command_mode();
+                    that.notebook.command_mode();
                     return false;
                 }
             },
@@ -123,14 +123,14 @@ define([
                 help    : '',
                 help_index : '',
                 handler : function (event) {
-                        var index = that.notebook.get_selected_index();
-                        var cell = that.notebook.get_cell(index);
+                    var index = that.notebook.get_selected_index();
+                    var cell = that.notebook.get_cell(index);
                     if (cell && cell.at_top() && index !== 0) {
                         event.preventDefault();
-                            that.notebook.command_mode();
-                            that.notebook.select_prev();
-                            that.notebook.edit_mode();
-                            var cm = that.notebook.get_selected_cell().code_mirror;
+                        that.notebook.command_mode();
+                        that.notebook.select_prev();
+                        that.notebook.edit_mode();
+                        var cm = that.notebook.get_selected_cell().code_mirror;
                         cm.setCursor(cm.lastLine(), 0);
                         return false;
                     } else if (cell) {
@@ -144,14 +144,14 @@ define([
                 help    : '',
                 help_index : '',
                 handler : function (event) {
-                        var index = that.notebook.get_selected_index();
-                        var cell = that.notebook.get_cell(index);
-                        if (cell.at_bottom() && index !== (that.notebook.ncells()-1)) {
+                    var index = that.notebook.get_selected_index();
+                    var cell = that.notebook.get_cell(index);
+                    if (cell.at_bottom() && index !== (that.notebook.ncells()-1)) {
                         event.preventDefault();
-                            that.notebook.command_mode();
-                            that.notebook.select_next();
-                            that.notebook.edit_mode();
-                            var cm = that.notebook.get_selected_cell().code_mirror;
+                        that.notebook.command_mode();
+                        that.notebook.select_next();
+                        that.notebook.edit_mode();
+                        var cm = that.notebook.get_selected_cell().code_mirror;
                         cm.setCursor(0, 0);
                         return false;
                     } else {
@@ -165,7 +165,7 @@ define([
                 help    : 'split cell',
                 help_index : 'ea',
                 handler : function (event) {
-                        that.notebook.split_cell();
+                    that.notebook.split_cell();
                     return false;
                 }
             },
@@ -173,7 +173,7 @@ define([
                 help    : '',
                 help_index : 'eb',
                 handler : function (event) {
-                        that.notebook.split_cell();
+                    that.notebook.split_cell();
                     return false;
                 }
             },
@@ -184,13 +184,13 @@ define([
         var that = this;
         return {
             'space': {
-                help: "Scroll down to next H1 cell",
+                help: "Scroll down",
                 handler: function(event) {
                     return that.notebook.scrollmanager.scroll(1);
                 },
             },
             'shift-space': {
-                help: "Scroll up to previous H1 cell",
+                help: "Scroll up",
                 handler: function(event) {
                     return that.notebook.scrollmanager.scroll(-1);
                 },
@@ -199,7 +199,7 @@ define([
                 help    : 'edit mode',
                 help_index : 'aa',
                 handler : function (event) {
-                        that.notebook.edit_mode();
+                    that.notebook.edit_mode();
                     return false;
                 }
             },
@@ -207,10 +207,10 @@ define([
                 help    : 'select previous cell',
                 help_index : 'da',
                 handler : function (event) {
-                        var index = that.notebook.get_selected_index();
+                    var index = that.notebook.get_selected_index();
                     if (index !== 0 && index !== null) {
-                            that.notebook.select_prev();
-                            that.notebook.focus_cell();
+                        that.notebook.select_prev();
+                        that.notebook.focus_cell();
                     }
                     return false;
                 }
@@ -219,10 +219,10 @@ define([
                 help    : 'select next cell',
                 help_index : 'db',
                 handler : function (event) {
-                        var index = that.notebook.get_selected_index();
-                        if (index !== (that.notebook.ncells()-1) && index !== null) {
-                            that.notebook.select_next();
-                            that.notebook.focus_cell();
+                    var index = that.notebook.get_selected_index();
+                    if (index !== (that.notebook.ncells()-1) && index !== null) {
+                        that.notebook.select_next();
+                        that.notebook.focus_cell();
                     }
                     return false;
                 }
@@ -231,10 +231,10 @@ define([
                 help    : 'select previous cell',
                 help_index : 'dc',
                 handler : function (event) {
-                        var index = that.notebook.get_selected_index();
+                    var index = that.notebook.get_selected_index();
                     if (index !== 0 && index !== null) {
-                            that.notebook.select_prev();
-                            that.notebook.focus_cell();
+                        that.notebook.select_prev();
+                        that.notebook.focus_cell();
                     }
                     return false;
                 }
@@ -243,10 +243,10 @@ define([
                 help    : 'select next cell',
                 help_index : 'dd',
                 handler : function (event) {
-                        var index = that.notebook.get_selected_index();
-                        if (index !== (that.notebook.ncells()-1) && index !== null) {
-                            that.notebook.select_next();
-                            that.notebook.focus_cell();
+                    var index = that.notebook.get_selected_index();
+                    if (index !== (that.notebook.ncells()-1) && index !== null) {
+                        that.notebook.select_next();
+                        that.notebook.focus_cell();
                     }
                     return false;
                 }
@@ -255,7 +255,7 @@ define([
                 help    : 'cut cell',
                 help_index : 'ee',
                 handler : function (event) {
-                        that.notebook.cut_cell();
+                    that.notebook.cut_cell();
                     return false;
                 }
             },
@@ -263,7 +263,7 @@ define([
                 help    : 'copy cell',
                 help_index : 'ef',
                 handler : function (event) {
-                        that.notebook.copy_cell();
+                    that.notebook.copy_cell();
                     return false;
                 }
             },
@@ -271,7 +271,7 @@ define([
                 help    : 'paste cell above',
                 help_index : 'eg',
                 handler : function (event) {
-                        that.notebook.paste_cell_above();
+                    that.notebook.paste_cell_above();
                     return false;
                 }
             },
@@ -279,7 +279,7 @@ define([
                 help    : 'paste cell below',
                 help_index : 'eh',
                 handler : function (event) {
-                        that.notebook.paste_cell_below();
+                    that.notebook.paste_cell_below();
                     return false;
                 }
             },
@@ -288,7 +288,7 @@ define([
                 help_index : 'ej',
                 count: 2,
                 handler : function (event) {
-                        that.notebook.delete_cell();
+                    that.notebook.delete_cell();
                     return false;
                 }
             },
@@ -296,9 +296,9 @@ define([
                 help    : 'insert cell above',
                 help_index : 'ec',
                 handler : function (event) {
-                        that.notebook.insert_cell_above();
-                        that.notebook.select_prev();
-                        that.notebook.focus_cell();
+                    that.notebook.insert_cell_above();
+                    that.notebook.select_prev();
+                    that.notebook.focus_cell();
                     return false;
                 }
             },
@@ -306,9 +306,9 @@ define([
                 help    : 'insert cell below',
                 help_index : 'ed',
                 handler : function (event) {
-                        that.notebook.insert_cell_below();
-                        that.notebook.select_next();
-                        that.notebook.focus_cell();
+                    that.notebook.insert_cell_below();
+                    that.notebook.select_next();
+                    that.notebook.focus_cell();
                     return false;
                 }
             },
@@ -316,7 +316,7 @@ define([
                 help    : 'to code',
                 help_index : 'ca',
                 handler : function (event) {
-                        that.notebook.to_code();
+                    that.notebook.to_code();
                     return false;
                 }
             },
@@ -324,7 +324,7 @@ define([
                 help    : 'to markdown',
                 help_index : 'cb',
                 handler : function (event) {
-                        that.notebook.to_markdown();
+                    that.notebook.to_markdown();
                     return false;
                 }
             },
@@ -332,7 +332,7 @@ define([
                 help    : 'to raw',
                 help_index : 'cc',
                 handler : function (event) {
-                        that.notebook.to_raw();
+                    that.notebook.to_raw();
                     return false;
                 }
             },
@@ -340,7 +340,7 @@ define([
                 help    : 'to heading 1',
                 help_index : 'cd',
                 handler : function (event) {
-                        that.notebook.to_heading(undefined, 1);
+                    that.notebook.to_heading(undefined, 1);
                     return false;
                 }
             },
@@ -348,7 +348,7 @@ define([
                 help    : 'to heading 2',
                 help_index : 'ce',
                 handler : function (event) {
-                        that.notebook.to_heading(undefined, 2);
+                    that.notebook.to_heading(undefined, 2);
                     return false;
                 }
             },
@@ -356,7 +356,7 @@ define([
                 help    : 'to heading 3',
                 help_index : 'cf',
                 handler : function (event) {
-                        that.notebook.to_heading(undefined, 3);
+                    that.notebook.to_heading(undefined, 3);
                     return false;
                 }
             },
@@ -364,7 +364,7 @@ define([
                 help    : 'to heading 4',
                 help_index : 'cg',
                 handler : function (event) {
-                        that.notebook.to_heading(undefined, 4);
+                    that.notebook.to_heading(undefined, 4);
                     return false;
                 }
             },
@@ -372,7 +372,7 @@ define([
                 help    : 'to heading 5',
                 help_index : 'ch',
                 handler : function (event) {
-                        that.notebook.to_heading(undefined, 5);
+                    that.notebook.to_heading(undefined, 5);
                     return false;
                 }
             },
@@ -380,7 +380,7 @@ define([
                 help    : 'to heading 6',
                 help_index : 'ci',
                 handler : function (event) {
-                        that.notebook.to_heading(undefined, 6);
+                    that.notebook.to_heading(undefined, 6);
                     return false;
                 }
             },
@@ -388,7 +388,7 @@ define([
                 help    : 'toggle output',
                 help_index : 'gb',
                 handler : function (event) {
-                        that.notebook.toggle_output();
+                    that.notebook.toggle_output();
                     return false;
                 }
             },
@@ -396,7 +396,7 @@ define([
                 help    : 'toggle output scrolling',
                 help_index : 'gc',
                 handler : function (event) {
-                        that.notebook.toggle_output_scroll();
+                    that.notebook.toggle_output_scroll();
                     return false;
                 }
             },
@@ -404,7 +404,7 @@ define([
                 help    : 'save notebook',
                 help_index : 'fa',
                 handler : function (event) {
-                        that.notebook.save_checkpoint();
+                    that.notebook.save_checkpoint();
                     return false;
                 }
             },
@@ -412,7 +412,7 @@ define([
                 help    : 'move cell down',
                 help_index : 'eb',
                 handler : function (event) {
-                        that.notebook.move_cell_down();
+                    that.notebook.move_cell_down();
                     return false;
                 }
             },
@@ -420,7 +420,7 @@ define([
                 help    : 'move cell up',
                 help_index : 'ea',
                 handler : function (event) {
-                        that.notebook.move_cell_up();
+                    that.notebook.move_cell_up();
                     return false;
                 }
             },
@@ -428,7 +428,7 @@ define([
                 help    : 'toggle line numbers',
                 help_index : 'ga',
                 handler : function (event) {
-                        that.notebook.cell_toggle_line_numbers();
+                    that.notebook.cell_toggle_line_numbers();
                     return false;
                 }
             },
@@ -437,7 +437,7 @@ define([
                 help_index : 'ha',
                 count: 2,
                 handler : function (event) {
-                        that.notebook.kernel.interrupt();
+                    that.notebook.kernel.interrupt();
                     return false;
                 }
             },
@@ -446,7 +446,7 @@ define([
                 help_index : 'hb',
                 count: 2,
                 handler : function (event) {
-                        that.notebook.restart_kernel();
+                    that.notebook.restart_kernel();
                     return false;
                 }
             },
@@ -454,7 +454,7 @@ define([
                 help    : 'keyboard shortcuts',
                 help_index : 'ge',
                 handler : function (event) {
-                        that.quick_help.show_keyboard_shortcuts();
+                    that.quick_help.show_keyboard_shortcuts();
                     return false;
                 }
             },
@@ -462,7 +462,7 @@ define([
                 help    : 'undo last delete',
                 help_index : 'ei',
                 handler : function (event) {
-                        that.notebook.undelete_cell();
+                    that.notebook.undelete_cell();
                     return false;
                 }
             },
@@ -470,7 +470,7 @@ define([
                 help    : 'merge cell below',
                 help_index : 'ek',
                 handler : function (event) {
-                        that.notebook.merge_cell_below();
+                    that.notebook.merge_cell_below();
                     return false;
                 }
             },
@@ -478,7 +478,7 @@ define([
                 help    : 'close pager',
                 help_index : 'gd',
                 handler : function (event) {
-                        that.pager.collapse();
+                    that.pager.collapse();
                     return false;
                 }
             },

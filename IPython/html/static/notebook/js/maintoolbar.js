@@ -150,7 +150,6 @@ define([
             );
     };
 
-
     MainToolBar.prototype.add_celltoolbar_list = function () {
         var label = $('<span/>').addClass("navbar-text").text('Cell Toolbar:');
         var select = $('<select/>')
@@ -188,11 +187,9 @@ define([
         });
     };
 
-
     MainToolBar.prototype.add_scrollmanager_list = function () {
         this._scrollselector = new scrollmanager.ScrollSelector(this.element, this.notebook);
     };
-
 
     MainToolBar.prototype.bind_events = function () {
         var that = this;
