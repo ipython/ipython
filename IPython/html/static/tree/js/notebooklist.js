@@ -20,6 +20,7 @@ define([
         //          element_name: string
         //          base_url: string
         //          notebook_path: string
+        //          content_manager: ContentManager instance
         var that = this;
         this.session_list = options.session_list;
         // allow code re-use by just changing element_name in kernellist.js
@@ -38,6 +39,21 @@ define([
         if (this.session_list && this.session_list.events) {
             this.session_list.events.on('sessions_loaded.Dashboard', 
                 function(e, d) { that.sessions_loaded(d); });
+        }
+
+
+        if (this.content_manager && this.content_manager.events) {
+            this.content_manager.events.on('notebook_deleted.ContentManager',
+                function(e, d) {
+                    // Remove the deleted notebook.
+                    $( ":data(nbname)" ).each(function() {
+                        var element = $( this );
+                        if (element.data( "nbname" ) == d.name &&
+                            element.data( "path" ) == d.path) {
+                            element.remove();
+                        }
+                    });
+                });
         }
     };
 
@@ -310,7 +326,6 @@ define([
                 var parent_item = that.parents('div.list_item');
                 var nbname = parent_item.data('nbname');
                 var path = parent_item.data('path');
-                var base_url = utils.get_body_data("baseUrl");
                 var message = 'Are you sure you want to permanently delete the notebook: ' + nbname + '?';
                 dialog.modal({
                     title : "Delete notebook",
@@ -319,7 +334,7 @@ define([
                         Delete : {
                             class: "btn-danger",
                             click: function() {
-                                notebooklist.content_manager.delete_notebook(nbname, path, base_url);
+                                notebooklist.content_manager.delete_notebook(nbname, path);
                             }
                         },
                         Cancel : {}

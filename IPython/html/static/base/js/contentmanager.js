@@ -74,16 +74,22 @@ define([
         $.ajax(url,settings);
     };
 
-    ContentManager.prototype.delete_notebook = function(name, path, base_url) {
+    ContentManager.prototype.delete_notebook = function(name, path) {
         var settings = {
             processData : false,
             cache : false,
             type : "DELETE",
-            dataType: "json",
-            error : utils.log_ajax_error,
+            dataType : "json",
+            success : $.proxy(this.events.trigger, this.events,
+                'notebook_deleted.ContentManager',
+                {
+                    name: name,
+                    path: path
+                }),
+            error : utils.log_ajax_error
         };
         var url = utils.url_join_encode(
-            base_url,
+            this.base_url,
             'api/notebooks',
             path,
             name
@@ -91,12 +97,9 @@ define([
         $.ajax(url, settings);
     };
 
-    ContentManager.prototype.rename_notebook = function(notebook, nbname) {
-        var that = notebook;
-        if (!nbname.match(/\.ipynb$/)) {
-            nbname = nbname + ".ipynb";
-        }
-        var data = {name: nbname};
+    ContentManager.prototype.rename_notebook = function(path, name, new_name) {
+        var that = this;
+        var data = {name: new_name};
         var settings = {
             processData : false,
             cache : false,
@@ -104,28 +107,33 @@ define([
             data : JSON.stringify(data),
             dataType: "json",
             headers : {'Content-Type': 'application/json'},
-            success : $.proxy(that.rename_success, that),
-            error : $.proxy(that.rename_error, that)
-        };
-        this.events.trigger('rename_notebook.Notebook', data);
+            success :  function (json, status, xhr) {
+                that.events.trigger('notebook_rename_success.ContentManager',
+                    json);
+            },
+            error : function (xhr, status, error) {
+                that.events.trigger('notebook_rename_error.ContentManager',
+                    [xhr, status, error]);
+            }
+        }
         var url = utils.url_join_encode(
-            that.base_url,
+            this.base_url,
             'api/notebooks',
-            that.notebook_path,
-            that.notebook_name
+            path,
+            name
         );
         $.ajax(url, settings);
     };
 
-    ContentManager.prototype.save_notebook = function(notebook, extra_settings) {
+    ContentManager.prototype.save_notebook = function(path, name, content,
+        extra_settings) {
         var that = notebook;
         // Create a JSON model to be sent to the server.
-        var model = {};
-        model.name = notebook.notebook_name;
-        model.path = notebook.notebook_path;
-        model.content = notebook.toJSON();
-        model.content.nbformat = notebook.nbformat;
-        model.content.nbformat_minor = notebook.nbformat_minor;
+        var model = {
+            name : name,
+            path : path,
+            content : content
+        };
         // time the ajax call for autosave tuning purposes.
         var start =  new Date().getTime();
         // We do the call with settings so we can set cache to false.
@@ -135,20 +143,24 @@ define([
             type : "PUT",
             data : JSON.stringify(model),
             headers : {'Content-Type': 'application/json'},
-            success : $.proxy(notebook.save_notebook_success, that, start),
-            error : $.proxy(notebook.save_notebook_error, that)
+            success : $.proxy(this.events.trigger, this.events,
+                'notebook_save_success.ContentManager',
+                $.extend(model, { start : start })),
+            error : function (xhr, status, error) {
+                that.events.trigger('notebook_save_error.ContentManager',
+                    [xhr, status, error, model]);
+            }
         };
         if (extra_settings) {
             for (var key in extra_settings) {
                 settings[key] = extra_settings[key];
             }
         }
-        notebook.events.trigger('notebook_saving.Notebook');
         var url = utils.url_join_encode(
-            notebook.base_url,
+            this.base_url,
             'api/notebooks',
-            notebook.notebook_path,
-            notebook.notebook_name
+            path,
+            name
         );
         $.ajax(url, settings);
     };
