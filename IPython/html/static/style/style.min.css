@@ -9588,12 +9588,286 @@ ul#help_menu li a i {
   padding: 1px 12px;
   margin: 2px 4px;
   z-index: 10;
-  border: 1px solid #ccc;
-  border-radius: 4px;
   background: rgba(240, 240, 240, 0.5);
+  float: right !important;
+  float: right;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  display: inline-block;
+  margin-bottom: 0;
+  font-weight: normal;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+  background-image: none;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  padding: 6px 12px;
+  font-size: 13px;
+  line-height: 1.42857143;
+  border-radius: 4px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  color: #333333;
+  background-color: #ffffff;
+  border-color: #cccccc;
+  padding: 1px 5px;
+  font-size: 12px;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.notification_widget:focus,
+.notification_widget:active:focus,
+.notification_widget.active:focus {
+  outline: thin dotted;
+  outline: 5px auto -webkit-focus-ring-color;
+  outline-offset: -2px;
+}
+.notification_widget:hover,
+.notification_widget:focus {
+  color: #333333;
+  text-decoration: none;
+}
+.notification_widget:active,
+.notification_widget.active {
+  outline: 0;
+  background-image: none;
+  -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+}
+.notification_widget.disabled,
+.notification_widget[disabled],
+fieldset[disabled] .notification_widget {
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.65;
+  filter: alpha(opacity=65);
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+.notification_widget [class^="icon-"].icon-large,
+.notification_widget [class*=" icon-"].icon-large {
+  line-height: .9em;
+}
+.notification_widget [class^="icon-"].icon-spin,
+.notification_widget [class*=" icon-"].icon-spin {
+  display: inline-block;
+}
+.notification_widget [class^="icon-"].pull-left.icon-2x,
+.notification_widget [class*=" icon-"].pull-left.icon-2x,
+.notification_widget [class^="icon-"].pull-right.icon-2x,
+.notification_widget [class*=" icon-"].pull-right.icon-2x {
+  margin-top: .18em;
+}
+.notification_widget [class^="icon-"].icon-spin.icon-large,
+.notification_widget [class*=" icon-"].icon-spin.icon-large {
+  line-height: .8em;
+}
+.notification_widget:hover,
+.notification_widget:focus,
+.notification_widget:active,
+.notification_widget.active,
+.open .dropdown-toggle.notification_widget {
+  color: #333333;
+  background-color: #ebebeb;
+  border-color: #adadad;
+}
+.notification_widget:active,
+.notification_widget.active,
+.open .dropdown-toggle.notification_widget {
+  background-image: none;
+}
+.notification_widget.disabled,
+.notification_widget[disabled],
+fieldset[disabled] .notification_widget,
+.notification_widget.disabled:hover,
+.notification_widget[disabled]:hover,
+fieldset[disabled] .notification_widget:hover,
+.notification_widget.disabled:focus,
+.notification_widget[disabled]:focus,
+fieldset[disabled] .notification_widget:focus,
+.notification_widget.disabled:active,
+.notification_widget[disabled]:active,
+fieldset[disabled] .notification_widget:active,
+.notification_widget.disabled.active,
+.notification_widget[disabled].active,
+fieldset[disabled] .notification_widget.active {
+  background-color: #ffffff;
+  border-color: #cccccc;
+}
+.notification_widget .badge {
+  color: #ffffff;
+  background-color: #333333;
 }
 .notification_widget.span {
   padding-right: 2px;
+}
+.notification_widget.warning {
+  color: #ffffff;
+  background-color: #f0ad4e;
+  border-color: #eea236;
+}
+.notification_widget.warning:hover,
+.notification_widget.warning:focus,
+.notification_widget.warning:active,
+.notification_widget.warning.active,
+.open .dropdown-toggle.notification_widget.warning {
+  color: #ffffff;
+  background-color: #ed9c28;
+  border-color: #d58512;
+}
+.notification_widget.warning:active,
+.notification_widget.warning.active,
+.open .dropdown-toggle.notification_widget.warning {
+  background-image: none;
+}
+.notification_widget.warning.disabled,
+.notification_widget.warning[disabled],
+fieldset[disabled] .notification_widget.warning,
+.notification_widget.warning.disabled:hover,
+.notification_widget.warning[disabled]:hover,
+fieldset[disabled] .notification_widget.warning:hover,
+.notification_widget.warning.disabled:focus,
+.notification_widget.warning[disabled]:focus,
+fieldset[disabled] .notification_widget.warning:focus,
+.notification_widget.warning.disabled:active,
+.notification_widget.warning[disabled]:active,
+fieldset[disabled] .notification_widget.warning:active,
+.notification_widget.warning.disabled.active,
+.notification_widget.warning[disabled].active,
+fieldset[disabled] .notification_widget.warning.active {
+  background-color: #f0ad4e;
+  border-color: #eea236;
+}
+.notification_widget.warning .badge {
+  color: #f0ad4e;
+  background-color: #ffffff;
+}
+.notification_widget.success {
+  color: #ffffff;
+  background-color: #5cb85c;
+  border-color: #4cae4c;
+}
+.notification_widget.success:hover,
+.notification_widget.success:focus,
+.notification_widget.success:active,
+.notification_widget.success.active,
+.open .dropdown-toggle.notification_widget.success {
+  color: #ffffff;
+  background-color: #47a447;
+  border-color: #398439;
+}
+.notification_widget.success:active,
+.notification_widget.success.active,
+.open .dropdown-toggle.notification_widget.success {
+  background-image: none;
+}
+.notification_widget.success.disabled,
+.notification_widget.success[disabled],
+fieldset[disabled] .notification_widget.success,
+.notification_widget.success.disabled:hover,
+.notification_widget.success[disabled]:hover,
+fieldset[disabled] .notification_widget.success:hover,
+.notification_widget.success.disabled:focus,
+.notification_widget.success[disabled]:focus,
+fieldset[disabled] .notification_widget.success:focus,
+.notification_widget.success.disabled:active,
+.notification_widget.success[disabled]:active,
+fieldset[disabled] .notification_widget.success:active,
+.notification_widget.success.disabled.active,
+.notification_widget.success[disabled].active,
+fieldset[disabled] .notification_widget.success.active {
+  background-color: #5cb85c;
+  border-color: #4cae4c;
+}
+.notification_widget.success .badge {
+  color: #5cb85c;
+  background-color: #ffffff;
+}
+.notification_widget.info {
+  color: #ffffff;
+  background-color: #5bc0de;
+  border-color: #46b8da;
+}
+.notification_widget.info:hover,
+.notification_widget.info:focus,
+.notification_widget.info:active,
+.notification_widget.info.active,
+.open .dropdown-toggle.notification_widget.info {
+  color: #ffffff;
+  background-color: #39b3d7;
+  border-color: #269abc;
+}
+.notification_widget.info:active,
+.notification_widget.info.active,
+.open .dropdown-toggle.notification_widget.info {
+  background-image: none;
+}
+.notification_widget.info.disabled,
+.notification_widget.info[disabled],
+fieldset[disabled] .notification_widget.info,
+.notification_widget.info.disabled:hover,
+.notification_widget.info[disabled]:hover,
+fieldset[disabled] .notification_widget.info:hover,
+.notification_widget.info.disabled:focus,
+.notification_widget.info[disabled]:focus,
+fieldset[disabled] .notification_widget.info:focus,
+.notification_widget.info.disabled:active,
+.notification_widget.info[disabled]:active,
+fieldset[disabled] .notification_widget.info:active,
+.notification_widget.info.disabled.active,
+.notification_widget.info[disabled].active,
+fieldset[disabled] .notification_widget.info.active {
+  background-color: #5bc0de;
+  border-color: #46b8da;
+}
+.notification_widget.info .badge {
+  color: #5bc0de;
+  background-color: #ffffff;
+}
+.notification_widget.danger {
+  color: #ffffff;
+  background-color: #d9534f;
+  border-color: #d43f3a;
+}
+.notification_widget.danger:hover,
+.notification_widget.danger:focus,
+.notification_widget.danger:active,
+.notification_widget.danger.active,
+.open .dropdown-toggle.notification_widget.danger {
+  color: #ffffff;
+  background-color: #d2322d;
+  border-color: #ac2925;
+}
+.notification_widget.danger:active,
+.notification_widget.danger.active,
+.open .dropdown-toggle.notification_widget.danger {
+  background-image: none;
+}
+.notification_widget.danger.disabled,
+.notification_widget.danger[disabled],
+fieldset[disabled] .notification_widget.danger,
+.notification_widget.danger.disabled:hover,
+.notification_widget.danger[disabled]:hover,
+fieldset[disabled] .notification_widget.danger:hover,
+.notification_widget.danger.disabled:focus,
+.notification_widget.danger[disabled]:focus,
+fieldset[disabled] .notification_widget.danger:focus,
+.notification_widget.danger.disabled:active,
+.notification_widget.danger[disabled]:active,
+fieldset[disabled] .notification_widget.danger:active,
+.notification_widget.danger.disabled.active,
+.notification_widget.danger[disabled].active,
+fieldset[disabled] .notification_widget.danger.active {
+  background-color: #d9534f;
+  border-color: #d43f3a;
+}
+.notification_widget.danger .badge {
+  color: #d9534f;
+  background-color: #ffffff;
 }
 div#pager_splitter {
   height: 8px;
