@@ -29,6 +29,40 @@ define([
      */
 
     /**
+     * Load a notebook.
+     *
+     * Calls success_callback with notebook JSON object (as string), or
+     * error_callback with error.
+     *
+     * @method load_notebook
+     * @param {String} path
+     * @param {String} name
+     * @param {Function} success_callback
+     * @param {Function} error_callback
+     */
+    ContentManager.prototype.load_notebook = function (path, name, success_callback, 
+        error_callback) {
+        // We do the call with settings so we can set cache to false.
+        var settings = {
+            processData : false,
+            cache : false,
+            type : "GET",
+            dataType : "json",
+            success : success_callback,
+            error : error_callback,
+        };
+        this.events.trigger('notebook_loading.Notebook');
+        var url = utils.url_join_encode(
+            this.base_url,
+            'api/notebooks',
+            path,
+            name
+        );
+        $.ajax(url, settings);
+    };
+
+
+    /**
      * Creates a new notebook file at the specified path, and
      * opens that notebook in a new window.
      *

@@ -2140,26 +2140,13 @@ define([
      * @param {String} notebook_name and path A notebook to load
      */
     Notebook.prototype.load_notebook = function (notebook_name, notebook_path) {
-        var that = this;
         this.notebook_name = notebook_name;
         this.notebook_path = notebook_path;
-        // We do the call with settings so we can set cache to false.
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "GET",
-            dataType : "json",
-            success : $.proxy(this.load_notebook_success,this),
-            error : $.proxy(this.load_notebook_error,this),
-        };
-        this.events.trigger('notebook_loading.Notebook');
-        var url = utils.url_join_encode(
-            this.base_url,
-            'api/contents',
-            this.notebook_path,
-            this.notebook_name
-        );
-        $.ajax(url, settings);
+        this.content_manager.load_notebook(
+            notebook_path,
+            notebook_name,
+            $.proxy(this.load_notebook_success,this),
+            $.proxy(this.load_notebook_error,this));
     };
 
     /**
