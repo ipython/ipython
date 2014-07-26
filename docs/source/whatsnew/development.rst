@@ -11,12 +11,82 @@ This document describes in-flight development work.
     `docs/source/whatsnew/pr` folder
 
 
+* :class:`~.TextWidget` and :class:`~.TextareaWidget` objects now include a
+  ``placeholder`` attribute, for displaying placeholder text before the
+  user has typed anything.
+
+* The %load magic can now find the source for objects in the user namespace.
+  To enable searching the namespace, use the ``-n`` option.
+
+  .. sourcecode:: ipython
+
+      In [1]: %load -n my_module.some_function
+
+* :class:`~.DirectView` objects have a new :meth:`~.DirectView.use_cloudpickle`
+  method, which works like ``view.use_dill()``, but causes the ``cloudpickle``
+  module from PiCloud's `cloud`__ library to be used rather than dill or the
+  builtin pickle module.
+
+  __ https://pypi.python.org/pypi/cloud
+
+* Added a .ipynb exporter to nbconvert.  It can be used by passing `--to notebook`
+  as a commandline argument to nbconvert.
+
+* New nbconvert preprocessor called :class:`~.ClearOutputPreprocessor`. This
+  clears the output from IPython notebooks.
+
+* New preprocessor for nbconvert that executes all the code cells in a notebook.
+  To run a notebook and save its output in a new notebook::
+
+      ipython nbconvert InputNotebook --ExecutePreprocessor.enabled=True --to notebook --output Executed
+
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.
 
 
 Backwards incompatible changes
 ------------------------------
 
+* :func:`IPython.core.oinspect.getsource` call specification has changed:
+
+  * `oname` keyword argument has been added for property source formatting
+  * `is_binary` keyword argument has been dropped, passing ``True`` had
+    previously short-circuited the function to return ``None`` unconditionally
+
+* Removed the octavemagic extension: it is now available as ``oct2py.ipython``.
+
+* Creating PDFs with LaTeX no longer uses a post processor.
+  Use `nbconvert --to pdf` instead of `nbconvert --to latex --post pdf`.
+
+* Used https://github.com/jdfreder/bootstrap2to3 to migrate the Notebook to Bootstrap 3.
+
+  Additional changes:
+
+  - Set `.tab-content .row` `0px;` left and right margin (bootstrap default is `-15px;`)
+  - Removed `height: @btn_mini_height;` from `.list_header>div, .list_item>div` in `tree.less`
+  - Set `#header` div `margin-bottom: 0px;`
+  - Set `#menus` to `float: left;`
+  - Set `#maintoolbar .navbar-text` to `float: none;`
+  - Added no-padding convienence class.
+  - Set border of #maintoolbar to 0px
+
+* Accessing the `container` DOM object when displaying javascript has been
+  deprecated in IPython 2.0 in favor of accessing `element`. Starting with
+  IPython 3.0 trying to access `container` will raise an error in browser
+  javascript console.
+
+IFrame embedding
+````````````````
+
+The IPython Notebook and its APIs by default will only be allowed to be
+embedded in an iframe on the same origin.
+
+To override this, set ``headers[X-Frame-Options]`` to one of
+
+* DENY
+* SAMEORIGIN
+* ALLOW-FROM uri
+
+See `Mozilla's guide to X-Frame-Options <https://developer.mozilla.org/en-US/docs/Web/HTTP/X-Frame-Options>`_ for more examples.
+
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. INCOMPAT INSERTION POINT.
 
- 

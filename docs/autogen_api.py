@@ -34,7 +34,7 @@ if __name__ == '__main__':
                                         # This just prints a deprecation msg:
                                         r'\.frontend$',
                                         # Deprecated:
-                                        r'\.core\.magics\.deprecated'
+                                        r'\.core\.magics\.deprecated',
                                         # We document this manually.
                                         r'\.utils\.py3compat',
                                         # These are exposed by nbformat.current
@@ -43,6 +43,8 @@ if __name__ == '__main__':
                                         # These are exposed in display
                                         r'\.core\.display',
                                         r'\.lib\.display',
+                                        # This isn't actually a module
+                                        r'\.html\.fabfile',
                                         ]
 
     # These modules import functions and classes from other places to expose

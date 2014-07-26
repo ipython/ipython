@@ -127,6 +127,16 @@ class TestNbConvertApp(TestsBase):
             with open('notebook2.slides.html') as f:
                 assert '/reveal.css' in f.read()
 
+    def test_output_ext(self):
+        """test --output=outputfile[.ext]"""
+        with self.create_temp_cwd(['notebook1.ipynb']):
+            self.call('nbconvert --log-level 0 --to python '
+                      'notebook1.ipynb --output nb.py')
+            assert os.path.exists('nb.py')
+
+            self.call('nbconvert --log-level 0 --to python '
+                      'notebook1.ipynb --output nb2')
+            assert os.path.exists('nb2.py')
 
     def test_glob_explicit(self):
         """

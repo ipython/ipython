@@ -151,7 +151,7 @@ casper.notebook_test(function () {
         'display(textbox)\n' +
         'textbox.add_class("my-throttle-textbox")\n' +
         'def handle_change(name, old, new):\n' +
-        '    print(len(new))\n' +
+        '    display(len(new))\n' +
         '    time.sleep(0.5)\n' +
         'textbox.on_trait_change(handle_change, "value")\n' +
         'print(textbox.model_id)');
@@ -182,7 +182,7 @@ casper.notebook_test(function () {
         this.test.assert(outputs.length <= 5, 'Messages throttled.');
 
         // We also need to verify that the last state sent was correct.
-        var last_state = outputs[outputs.length-1].text;
-        this.test.assertEquals(last_state, "20\n", "Last state sent when throttling.");
+        var last_state = outputs[outputs.length-1]['text/plain'];
+        this.test.assertEquals(last_state, "20", "Last state sent when throttling.");
     });
 });

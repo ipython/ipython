@@ -137,11 +137,6 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         if self.has_readline:
             self.set_readline_completer()
     
-    def ask_exit(self):
-        super(ZMQTerminalInteractiveShell, self).ask_exit()
-        if self.exit_now and self.manager:
-            self.client.shutdown()
-    
     def run_cell(self, cell, store_history=True):
         """Run a complete IPython cell.
         
@@ -158,11 +153,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
             # pressing enter flushes any pending display
             self.handle_iopub()
             return
-
-        if cell.strip() == 'exit':
-            # explicitly handle 'exit' command
-            return self.ask_exit()
-
+        
         # flush stale replies, which could have been ignored, due to missed heartbeats
         while self.client.shell_channel.msg_ready():
             self.client.shell_channel.get_msg()
@@ -213,6 +204,8 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                         page.page(item['data']['text/plain'])
                     elif source == 'set_next_input':
                         self.set_next_input(item['text'])
+                    elif source == 'ask_exit':
+                        self.ask_exit()
                
             elif status == 'error':
                 for frame in content["traceback"]:

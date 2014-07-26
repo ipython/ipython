@@ -3,7 +3,7 @@ git hooks for IPython
 add these to your `.git/hooks`
 
 For now, we just have `post-checkout` and `post-merge`,
-both of which just update submodules,
+both of which update submodules and attempt to rebuild css sourcemaps,
 so make sure that you have a fully synced repo whenever you checkout or pull.
 
 To use these hooks, run `./install-hooks.sh`. 

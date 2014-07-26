@@ -4,8 +4,9 @@
 define([
     "underscore",
     "backbone",
+    "jquery",
     "base/js/namespace"
-], function (_, Backbone, IPython) {
+], function (_, Backbone, $, IPython) {
 
     //--------------------------------------------------------------------
     // WidgetManager class
@@ -66,12 +67,11 @@ define([
             if (view === null) {
                 console.error("View creation failed", model);
             }
+            this._handle_display_view(view);
             if (cell.widget_subarea) {
-                cell.widget_area.show();
-                this._handle_display_view(view);
                 cell.widget_subarea.append(view.$el);
-                    view.trigger('displayed');
             }
+            view.trigger('displayed');
         }
     };
 

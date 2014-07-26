@@ -278,7 +278,7 @@ define([
         }
 
         // If there are no controls or the cell is a rendered TextCell hide the toolbar.
-        if (!this.ui_controls_list.length || (this.cell_type != 'code' && this.cell.rendered)) {
+        if (!this.ui_controls_list.length || (this.cell.cell_type != 'code' && this.cell.rendered)) {
             this.hide();
         } else {
             this.show();
@@ -342,7 +342,7 @@ define([
                         setter(cell, !v);
                         chkb.attr("checked", !v);
             });
-            button_container.append($('<div/>').append(lbl));
+            button_container.append($('<span/>').append(lbl));
         };
     };
 
@@ -406,7 +406,7 @@ define([
             select.change(function(){
                         setter(cell, select.val());
                     });
-            button_container.append($('<div/>').append(lbl).append(select));
+            button_container.append($('<span/>').append(lbl).append(select));
         };
     };
 

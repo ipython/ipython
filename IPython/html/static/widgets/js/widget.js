@@ -213,7 +213,7 @@ define(["widgets/js/manager",
             var that = this;
             var packed;
             if (value instanceof Backbone.Model) {
-                return value.id;
+                return "IPY_MODEL_" + value.id;
 
             } else if ($.isArray(value)) {
                 packed = [];
@@ -252,13 +252,15 @@ define(["widgets/js/manager",
                 });
                 return unpacked;
 
+            } else if (typeof value === 'string' && value.slice(0,10) === "IPY_MODEL_") {
+		var model = this.widget_manager.get_model(value.slice(10, value.length));
+		if (model) {
+		    return model;
+		} else {
+		    return value;
+		}
             } else {
-                var model = this.widget_manager.get_model(value);
-                if (model) {
-                    return model;
-                } else {
                     return value;
-                }
             }
         },
 
@@ -275,6 +277,9 @@ define(["widgets/js/manager",
             this.child_views = {};
             this.model.views.push(this);
             this.id = this.id || IPython.utils.uuid();
+            this.on('displayed', function() { 
+                this.is_displayed = true; 
+            }, this);
         },
 
         update: function(){
@@ -343,7 +348,7 @@ define(["widgets/js/manager",
             // Walk the lists until an unequal entry is found.
             var i;
             for (i = 0; i < new_list.length; i++) {
-                if (i < old_list.length || new_list[i] !== old_list[i]) {
+                if (i >= old_list.length || new_list[i] !== old_list[i]) {
                     break;
                 }
             }
@@ -354,7 +359,7 @@ define(["widgets/js/manager",
             }
 
             // Add the rest of the new list items.
-            for (i; i < new_list.length; i++) {
+            for (; i < new_list.length; i++) {
                 added_callback(new_list[i]);
             }
         },
@@ -370,6 +375,14 @@ define(["widgets/js/manager",
             // By default, this is only called the first time the view is created
         },
 
+        show: function(){
+            // Show the widget-area
+            if (this.options && this.options.cell &&
+                this.options.cell.widget_area !== undefined) {
+                this.options.cell.widget_area.show();
+            }
+        },
+
         send: function (content) {
             // Send a custom msg associated with this view.
             this.model.send(content, this.callbacks());
@@ -377,6 +390,16 @@ define(["widgets/js/manager",
 
         touch: function () {
             this.model.save_changes(this.callbacks());
+        },
+
+        after_displayed: function (callback, context) {
+            // Calls the callback right away is the view is already displayed
+            // otherwise, register the callback to the 'displayed' event.
+            if (this.is_displayed) {
+                callback.apply(context);
+            } else {
+                this.on('displayed', callback, context);
+            }
         },
     });
 
@@ -390,6 +413,7 @@ define(["widgets/js/manager",
             this.model.on('change', this.update, this);
             this.model.on('msg:custom', this.on_msg, this);
             DOMWidgetView.__super__.initialize.apply(this, arguments);
+            this.on('displayed', this.show, this);
         },
         
         on_msg: function(msg) {

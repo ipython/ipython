@@ -128,6 +128,8 @@ exclude_patterns = ['whatsnew/pr']
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
+# Set the default role so we can use `foo` instead of ``foo``
+default_role = 'literal'
 
 # Options for HTML output
 # -----------------------

@@ -19,6 +19,8 @@ require([
     'notebook/js/savewidget',
     'notebook/js/keyboardmanager',
     'notebook/js/config',
+    // only loaded, not used:
+    'custom/custom',
 ], function(
     IPython, 
     $,
@@ -45,6 +47,7 @@ require([
 
     var common_options = {
         base_url : utils.get_body_data("baseUrl"),
+        ws_url : IPython.utils.get_body_data("wsUrl"),
         notebook_path : utils.get_body_data("notebookPath"),
         notebook_name : utils.get_body_data('notebookName')
     };
@@ -52,7 +55,6 @@ require([
     var user_config = $.extend({}, config.default_config);
     var page = new page.Page();
     var layout_manager = new layoutmanager.LayoutManager();
-    var events = $([new events.Events()]);
     var pager = new pager.Pager('div#pager', 'div#pager_splitter', {
         layout_manager: layout_manager, 
         events: events});
@@ -121,11 +123,8 @@ require([
         // only do this once
         events.off('notebook_loaded.Notebook', first_load);
     };
-    
     events.on('notebook_loaded.Notebook', first_load);
-    events.trigger('app_initialized.NotebookApp');
-    notebook.load_notebook(common_options.notebook_name, common_options.notebook_path);
-
+    
     IPython.page = page;
     IPython.layout_manager = layout_manager;
     IPython.notebook = notebook;
@@ -136,9 +135,12 @@ require([
     IPython.menubar = menubar;
     IPython.toolbar = toolbar;
     IPython.notification_area = notification_area;
-    IPython.events = events;
     IPython.keyboard_manager = keyboard_manager;
     IPython.save_widget = save_widget;
     IPython.config = user_config;
     IPython.tooltip = notebook.tooltip;
+
+    events.trigger('app_initialized.NotebookApp');
+    notebook.load_notebook(common_options.notebook_name, common_options.notebook_path);
+
 });

@@ -4,7 +4,7 @@
 define([
     "widgets/js/widget",
     "jquery",
-    "components/bootstrap/js/bootstrap.min",
+    "bootstrap",
 ], function(widget, $){
 
     var HTMLView = widget.DOMWidgetView.extend({  

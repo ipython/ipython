@@ -74,6 +74,7 @@ from IPython.kernel.zmq.session import default_secure, Session
 from IPython.nbformat.sign import NotebookNotary
 from IPython.utils.importstring import import_item
 from IPython.utils import submodule
+from IPython.utils.process import check_pid
 from IPython.utils.traitlets import (
     Dict, Unicode, Integer, List, Bool, Bytes, Instance,
     DottedObjectName, TraitError,
@@ -171,6 +172,7 @@ class NotebookWebApplication(web.Application):
 
             # IPython stuff
             nbextensions_path = ipython_app.nbextensions_path,
+            websocket_url=ipython_app.websocket_url,
             mathjax_url=ipython_app.mathjax_url,
             config=ipython_app.config,
             jinja2_env=env,
@@ -511,6 +513,13 @@ class NotebookApp(BaseIPythonApplication):
     def _nbextensions_path_default(self):
         return [os.path.join(get_ipython_dir(), 'nbextensions')]
 
+    websocket_url = Unicode("", config=True,
+        help="""The base URL for websockets,
+        if it differs from the HTTP server (hint: it almost certainly doesn't).
+        
+        Should be in the form of an HTTP origin: ws[s]://hostname[:port]
+        """
+    )
     mathjax_url = Unicode("", config=True,
         help="""The url for MathJax.js."""
     )
@@ -537,13 +546,7 @@ class NotebookApp(BaseIPythonApplication):
                 return url
         
         # no local mathjax, serve from CDN
-        if self.certfile:
-            # HTTPS: load from Rackspace CDN, because SSL certificate requires it
-            host = u"https://c328740.ssl.cf1.rackcdn.com"
-        else:
-            host = u"http://cdn.mathjax.org"
-        
-        url = host + u"/mathjax/latest/MathJax.js"
+        url = u"//cdn.mathjax.org/mathjax/latest/MathJax.js"
         self.log.info("Using MathJax from CDN: %s", url)
         return url
     
@@ -847,6 +850,7 @@ class NotebookApp(BaseIPythonApplication):
                 'secure': bool(self.certfile),
                 'base_url': self.base_url,
                 'notebook_dir': os.path.abspath(self.notebook_dir),
+                'pid': os.getpid()
                }
 
     def write_server_info_file(self):
@@ -920,8 +924,17 @@ def list_running_servers(profile='default'):
     for file in os.listdir(pd.security_dir):
         if file.startswith('nbserver-'):
             with io.open(os.path.join(pd.security_dir, file), encoding='utf-8') as f:
-                yield json.load(f)
+                info = json.load(f)
 
+            # Simple check whether that process is really still running
+            if check_pid(info['pid']):
+                yield info
+            else:
+                # If the process has died, try to delete its info file
+                try:
+                    os.unlink(file)
+                except OSError:
+                    pass  # TODO: This should warn or log or something
 #-----------------------------------------------------------------------------
 # Main entry point
 #-----------------------------------------------------------------------------
