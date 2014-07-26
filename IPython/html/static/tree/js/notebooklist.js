@@ -75,30 +75,27 @@ define([
         }
         for (var i = 0; i < files.length; i++) {
             var f = files[i];
-            var reader = new FileReader();
-            reader.readAsText(f);
             var name_and_ext = utils.splitext(f.name);
             var file_ext = name_and_ext[1];
+
+            var reader = new FileReader();
             if (file_ext === '.ipynb') {
-                var item = that.new_item(0);
-                item.addClass('new-file');
-                that.add_name_input(f.name, item);
-                // Store the notebook item in the reader so we can use it later
-                // to know which item it belongs to.
-                $(reader).data('item', item);
-                reader.onload = function (event) {
-                    var nbitem = $(event.target).data('item');
-                    that.add_notebook_data(event.target.result, nbitem);
-                    that.add_upload_button(nbitem);
-                };
+                reader.readAsText(f);
             } else {
-                var dialog_body = 'Uploaded notebooks must be .ipynb files';
-                dialog.modal({
-                    title : 'Invalid file type',
-                    body : dialog_body,
-                    buttons : {'OK' : {'class' : 'btn-primary'}}
-                });
+                // read non-notebook files as binary
+                reader.readAsArrayBuffer(f);
             }
+            var item = that.new_item(0);
+            item.addClass('new-file');
+            that.add_name_input(f.name, item);
+            // Store the list item in the reader so we can use it later
+            // to know which item it belongs to.
+            $(reader).data('item', item);
+            reader.onload = function (event) {
+                var item = $(event.target).data('item');
+                that.add_file_data(event.target.result, item);
+                that.add_upload_button(item);
+            };
         }
         // Replace the file input form wth a clone of itself. This is required to
         // reset the form. Otherwise, if you upload a file, delete it and try to 
@@ -268,16 +265,16 @@ define([
         item.find(".item_icon").addClass('notebook_icon').addClass('icon-fixed-width');
         item.find(".item_name").empty().append(
             $('<input/>')
-            .addClass("nbname_input")
-            .attr('value', utils.splitext(name)[0])
+            .addClass("filename_input")
+            .attr('value', name)
             .attr('size', '30')
             .attr('type', 'text')
         );
     };
 
 
-    NotebookList.prototype.add_notebook_data = function (data, item) {
-        item.data('nbdata', data);
+    NotebookList.prototype.add_file_data = function (data, item) {
+        item.data('filedata', data);
     };
 
 
@@ -314,8 +311,8 @@ define([
             click(function (e) {
                 // $(this) is the button that was clicked.
                 var that = $(this);
-                // We use the nbname and notebook_id from the parent notebook_item element's
-                // data because the outer scopes values change as we iterate through the loop.
+                // We use the filename from the parent list_item element's
+                // data because the outer scope's values change as we iterate through the loop.
                 var parent_item = that.parents('div.list_item');
                 var name = parent_item.data('name');
                 var message = 'Are you sure you want to permanently delete the file: ' + name + '?';
@@ -354,32 +351,55 @@ define([
     };
 
 
-    NotebookList.prototype.add_upload_button = function (item) {
+    NotebookList.prototype.add_upload_button = function (item, type) {
         var that = this;
         var upload_button = $('<button/>').text("Upload")
             .addClass('btn btn-primary btn-xs upload_button')
             .click(function (e) {
-                var nbname = item.find('.item_name > input').val();
-                if (nbname.slice(nbname.length-6, nbname.length) != ".ipynb") {
-                    nbname = nbname + ".ipynb";
-                }
                 var path = that.notebook_path;
-                var nbdata = item.data('nbdata');
-                var content_type = 'application/json';
+                var filename = item.find('.item_name > input').val();
+                var filedata = item.data('filedata');
+                var format = 'text';
+                if (filedata instanceof ArrayBuffer) {
+                    // base64-encode binary file data
+                    var bytes = '';
+                    var buf = new Uint8Array(filedata);
+                    var nbytes = buf.byteLength;
+                    for (var i=0; i<nbytes; i++) {
+                        bytes += String.fromCharCode(buf[i]);
+                    }
+                    filedata = btoa(bytes);
+                    format = 'base64';
+                }
                 var model = {
                     path: path,
-                    name: nbname,
-                    content : JSON.parse(nbdata),
-                    type : 'notebook'
+                    name: filename
                 };
+
+                var name_and_ext = utils.splitext(filename);
+                var file_ext = name_and_ext[1];
+                var content_type;
+                if (file_ext === '.ipynb') {
+                    model.type = 'notebook';
+                    model.format = 'json';
+                    model.content = JSON.parse(filedata);
+                    content_type = 'application/json';
+                } else {
+                    model.type = 'file';
+                    model.format = format;
+                    model.content = filedata;
+                    content_type = 'application/octet-stream';
+                }
+                var filedata = item.data('filedata');
+
                 var settings = {
                     processData : false,
                     cache : false,
                     type : 'PUT',
-                    dataType : 'json',
                     data : JSON.stringify(model),
                     headers : {'Content-Type': content_type},
                     success : function (data, status, xhr) {
+                        item.removeClass('new-file');
                         that.add_link(model, item);
                         that.add_delete_button(item);
                     },
@@ -390,7 +410,7 @@ define([
                     that.base_url,
                     'api/contents',
                     that.notebook_path,
-                    nbname
+                    filename
                 );
                 $.ajax(url, settings);
                 return false;
@@ -398,7 +418,6 @@ define([
         var cancel_button = $('<button/>').text("Cancel")
             .addClass("btn btn-default btn-xs")
             .click(function (e) {
-                console.log('cancel click');
                 item.remove();
                 return false;
             });
