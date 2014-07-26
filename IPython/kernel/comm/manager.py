@@ -76,7 +76,6 @@ class CommManager(LoggingConfigurable):
         """Unregister a comm, and close its counterpart"""
         # unlike get_comm, this should raise a KeyError
         comm = self.comms.pop(comm_id)
-        comm.close()
     
     def get_comm(self, comm_id):
         """Get a comm with a particular id

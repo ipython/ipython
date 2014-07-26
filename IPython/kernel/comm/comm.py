@@ -70,6 +70,7 @@ class Comm(LoggingConfigurable):
     def __del__(self):
         """trigger close on gc"""
         self.close()
+        get_ipython().comm_manager.unregister_comm(self)
     
     # publishing messages
     
