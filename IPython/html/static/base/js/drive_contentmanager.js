@@ -45,11 +45,40 @@ define([
     };
 
     /**
+     * Name of newly created notebook files.
+     * @type {string}
+     */
+    ContentManager.NEW_NOTEBOOK_TITLE = 'Untitled';
+
+    /**
+     * Extension for notebook files.
+     * @type {string}
+     */
+    ContentManager.NOTEBOOK_EXTENSION = 'ipynb';
+
+
+    ContentManager.MULTIPART_BOUNDARY = '-------314159265358979323846';
+
+    ContentManager.NOTEBOOK_MIMETYPE = 'application/ipynb';
+
+
+    /**
      * low level Google Drive functions
+     *
+     * NOTE: these functions should only be called after gapi_ready has been
+     * resolved, with the excpetion of authorize(), and on_gapi_load() which
+     * is private and should not be called at all.  Typical usage is:
+     *
+     * var that = this;
+     * this.gapi_ready.done(function () {
+     *     that.get_id_for_path(...)
+     *     ...
+     * });
      */
 
     /*
      * Load Google Drive client library
+     * @private
      * @method on_gapi_load
      */
     ContentManager.prototype.on_gapi_load = function() {
@@ -111,6 +140,10 @@ define([
      * Gets the Google Drive folder ID corresponding to a path.  Since
      * the Google Drive API doesn't expose a path structure, it is necessary
      * to manually walk the path from root.
+     * @method get_id_for_path
+     * @param {String} path The path
+     * @param {Function} onSuccess called with the folder Id on success
+     * @param {Function} onFailure called with the error on Failure
      */
     ContentManager.prototype.get_id_for_path = function(path, onSuccess, onFailure) {
         // Use recursive strategy, with helper function
@@ -134,7 +167,8 @@ define([
             }
 
             var query = ('mimeType = \'' + FOLDER_MIME_TYPE + '\''
-                + ' and title = \'' + this_component + '\'');
+                + ' and title = \'' + this_component + '\''
+                + ' and trashed = false');
             var request = gapi.client.drive.children.list({
                 'folderId': base_id,
                 'q': query
@@ -164,11 +198,218 @@ define([
         };
         get_id_for_relative_path('root', path.split('/').reverse());
     }
- 
+
+    /**
+     * Gets the Google Drive folder ID corresponding to a path.  Since
+     * the Google Drive API doesn't expose a path structure, it is necessary
+     * to manually walk the path from root.
+     * @method get_id_for_path
+     * @param {String} folder_id The google Drive folder id to search
+     * @param {String} filename The filename to find in folder_id
+     * @param {Function} onSuccess called with a files resource on success (see
+     *     Google Drive API documentation for more information on the files
+     *     resource).
+     * @param {Function} onFailure called with the error on Failure
+     */
+    ContentManager.prototype.get_resource_for_filename = function(
+        folder_id,
+        filename,
+        onSuccess,
+        onFailure) {
+        var query = ('title = \'' + filename + '\''
+                + ' and \'' + folder_id + '\' in parents'
+                + ' and trashed = false');
+        var request = gapi.client.drive.files.list({
+            'q': query
+        });
+        request.execute(function(response) {
+            if (!response || response['error']) {
+                onFailure(response ? response['error'] : null);
+                return;
+            }
+
+            var files = response['items'];
+            if (!files) {
+                // 'directory does not exist' error.
+                onFailure();
+                return;
+            }
+
+            if (files.length > 1) {
+                // 'runtime error' this should not happen
+                onFailure();
+                return;
+            }
+
+            onSuccess(files[0]);
+
+        });
+    };
+
+    /**
+    * Uploads a notebook to Drive, either creating a new one or saving an
+    * existing one.
+    *
+    * @method upload_to_drive
+    * @param {string} data The file contents as a string
+    * @param {Object} metadata File metadata
+    * @param {function(gapi.client.drive.files.Resource)} success_callback callback for
+    *     success
+    * @param {function(?):?} error_callback callback for error, takes response object
+    * @param {string=} opt_fileId file Id.  If false, a new file is created.
+    * @param {Object?} opt_params a dictionary containing the following keys
+    *     pinned: whether this save should be pinned
+    */
+    ContentManager.prototype.upload_to_drive = function(data, metadata,
+        success_callback, error_callback, opt_fileId, opt_params) {
+        var params = opt_params || {};
+        var delimiter = '\r\n--' + ContentManager.MULTIPART_BOUNDARY + '\r\n';
+        var close_delim = '\r\n--' + ContentManager.MULTIPART_BOUNDARY + '--';
+        var body = delimiter +
+            'Content-Type: application/json\r\n\r\n' +
+            JSON.stringify(metadata) +
+            delimiter +
+            'Content-Type: ' + ContentManager.NOTEBOOK_MIMETYPE + '\r\n' +
+            '\r\n' +
+            data +
+            close_delim;
+
+        var path = '/upload/drive/v2/files';
+        var method = 'POST';
+        if (opt_fileId) {
+            path += '/' + opt_fileId;
+            method = 'PUT';
+        }
+
+        var request = gapi.client.request({
+            'path': path,
+            'method': method,
+            'params': {
+                'uploadType': 'multipart',
+                'pinned' : params['pinned']
+            },
+            'headers': {
+                'Content-Type': 'multipart/mixed; boundary="' +
+                ContentManager.MULTIPART_BOUNDARY + '"'
+            },
+            'body': body
+        });
+        request.execute(function(response) {
+            if (!response || response['error']) {
+                error_callback(response ? response['error'] : null);
+                return;
+            }
+
+            success_callback(response);
+        });
+    };
+
+    /**
+     * Obtains the filename that should be used for a new file in a given folder.
+     * This is the next file in the series Untitled0, Untitled1, ... in the given
+     * drive folder.  As a fallback, returns Untitled.
+     *
+     * @method get_new_filename
+     * @param {function(string)} callback Called with the name for the new file.
+     * @param {string} opt_folderId optinal Drive folder Id to search for
+     *     filenames.  Uses root, if none is specified.
+     */
+    ContentManager.prototype.get_new_filename = function(callback, opt_folderId) {
+        /** @type {string} */
+        var folderId = opt_folderId || 'root';
+        var query = 'title contains \'' + ContentManager.NEW_NOTEBOOK_TITLE + '\'' +
+            ' and \'' + folderId + '\' in parents' +
+            ' and trashed = false';
+        var request = gapi.client.drive.files.list({
+            'maxResults': 1000,
+            'folderId' : folderId,
+            'q': query
+        });
+
+        request.execute(function(response) {
+            // Use 'Untitled.ipynb' as a fallback in case of error
+            var fallbackFilename = ContentManager.NEW_NOTEBOOK_TITLE + '.' +
+            ContentManager.NOTEBOOK_EXTENSION;
+            if (!response || response['error']) {
+                callback(fallbackFilename);
+                return;
+            }
+
+            var files = response['items'] || [];
+            var existingFilenames = $.map(files, function(filesResource) {
+                return filesResource['title'];
+            });
+
+            // Loop over file names Untitled0, ... , UntitledN where N is the number of
+            // elements in existingFilenames.  Select the first file name that does not
+            // belong to existingFilenames.  This is guaranteed to find a file name
+            // that does not belong to existingFilenames, since there are N + 1 file
+            // names tried, and existingFilenames contains N elements.
+            for (var i = 0; i <= existingFilenames.length; i++) {
+                /** @type {string} */
+                var filename = ContentManager.NEW_NOTEBOOK_TITLE + i + '.' +
+                    ContentManager.NOTEBOOK_EXTENSION;
+                if (existingFilenames.indexOf(filename) == -1) {
+                    callback(filename);
+                    return;
+                }
+            }
+
+            // Control should not reach this point, so an error has occured
+            callback(fallbackFilename);
+        });
+    };
  
     /**
      * Notebook Functions 
      */
+
+    /**
+     * Load a notebook.
+     *
+     * Calls success_callback with notebook JSON object (as string), or
+     * error_callback with error.
+     *
+     * @method load_notebook
+     * @param {String} path
+     * @param {String} name
+     * @param {Function} success_callback
+     * @param {Function} error_callback
+     */
+    ContentManager.prototype.load_notebook = function (path, name, success_callback, 
+        error_callback) {
+        var that = this;
+        this.gapi_ready.done(function() {
+            that.get_id_for_path(path, function(folder_id) {
+                that.get_resource_for_filename(folder_id, name, function(file_resource) {
+                    // Sends request to load file to drive.
+                    var token = gapi.auth.getToken()['access_token'];
+                    var xhrRequest = new XMLHttpRequest();
+                    xhrRequest.open('GET', file_resource['downloadUrl'], true);
+                    xhrRequest.setRequestHeader('Authorization', 'Bearer ' + token);
+                    xhrRequest.onreadystatechange = function(e) {
+                        if (xhrRequest.readyState == 4) {
+                            if (xhrRequest.status == 200) {
+                                var notebook_contents = xhrRequest.responseText;
+                                //colab.nbformat.convertJsonNotebookToRealtime(
+                                //    notebook_contents, model);
+                                var model = JSON.parse(notebook_contents);
+
+                                success_callback({
+                                    content: model,
+                                    // A hack to deal with file/memory format conversions
+                                    name: model.metadata.name
+                                });
+                            } else {
+                                error_callback(xhrRequest);
+                            }
+                        }
+                    };
+                    xhrRequest.send();
+                }, error_callback)
+            }, error_callback);
+        });
+    };
 
     /**
      * Creates a new notebook file at the specified path, and
@@ -178,46 +419,46 @@ define([
      * @param {String} path The path to create the new notebook at
      */
     ContentManager.prototype.new_notebook = function(path) {
-        var base_url = this.base_url;
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "POST",
-            dataType : "json",
-            async : false,
-            success : function (data, status, xhr){
-                var notebook_name = data.name;
-                window.open(
-                    utils.url_join_encode(
-                        base_url,
-                        'notebooks',
-                        path,
-                        notebook_name
-                    ),
-                    '_blank'
-                );
-            },
-            error : function(xhr, status, error) {
-                utils.log_ajax_error(xhr, status, error);
-                var msg;
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    msg = xhr.responseJSON.message;
-                } else {
-                    msg = xhr.statusText;
-                }
-                dialog.modal({
-                    title : 'Creating Notebook Failed',
-                    body : "The error was: " + msg,
-                    buttons : {'OK' : {'class' : 'btn-primary'}}
-                });
-            }
-        };
-        var url = utils.url_join_encode(
-            base_url,
-            'api/notebooks',
-            path
-        );
-        $.ajax(url,settings);
+        var that = this;
+        this.gapi_ready.done(function() {
+            that.get_id_for_path(path, function(folder_id) {
+                that.get_new_filename(function(filename) {
+                    var data = {
+                        'worksheets': [{
+                            'cells' : [{
+                                'cell_type': 'code',
+                                'input': '',
+                                'outputs': [],
+                                'language': 'python'
+                            }],
+                        }],
+                        'metadata': {
+                            'name': filename,
+                        },
+                        'nbformat': 3,
+                        'nbformat_minor': 0
+                    };
+                    var metadata = {
+                        'parents' : [{'id' : folder_id}],
+                        'title' : filename,
+                        'description': 'IP[y] file',
+                        'mimeType': ContentManager.NOTEBOOK_MIMETYPE
+                    }
+                    that.upload_to_drive(JSON.stringify(data), metadata, function (data, status, xhr) {
+                        var notebook_name = data.name;
+                        window.open(
+                            utils.url_join_encode(
+                                that.base_url,
+                                'notebooks',
+                                path,
+                                filename
+                            ),
+                            '_blank'
+                        );
+                    }, function(){});
+                }, folder_id);
+            })
+        });
     };
 
     ContentManager.prototype.delete_notebook = function(name, path) {
@@ -380,7 +621,8 @@ define([
             that.get_id_for_path(path, function(folder_id) {
                 query = ('(fileExtension = \'ipynb\' or'
                     + ' mimeType = \'' + FOLDER_MIME_TYPE + '\')' 
-                    + ' and \'' + folder_id + '\' in parents');
+                    + ' and \'' + folder_id + '\' in parents'
+                    + ' and trashed = false');
                 var request = gapi.client.drive.files.list({
                     'maxResults' : 1000,
                     'q' : query
