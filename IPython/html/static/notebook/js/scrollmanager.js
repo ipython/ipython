@@ -27,7 +27,7 @@ define(['jquery'], function($){
         var that = this;
         this._combo.change(function(){
             var manager = that._registered[$(this).find("option:selected").val()];
-            that.notebook.ScrollSelector = manager;
+            that.notebook.scrollmanager = manager;
         });
     };
 
@@ -80,97 +80,94 @@ define(['jquery'], function($){
         // is found.  To guess the index, get the top of the last cell, and
         // divide that by the number of cells to get an average cell height.  
         // Then divide the scroll height by the average cell height.
-        var cell_count = that.notebook.ncells();
-        var first_cell_top = that.notebook.get_cell(0).element.offset.top();
-        var last_cell_top = that.notebook.get_cell(cell_count-1).element.offset.top();
+        var cell_count = this.notebook.ncells();
+        var first_cell_top = this.notebook.get_cell(0).element.offset().top;
+        var last_cell_top = this.notebook.get_cell(cell_count-1).element.offset().top;
         var avg_cell_height = (last_cell_top - first_cell_top) / cell_count;
-        var $notebook = $('#notebook').scrollTop();
-        var i = Math.ceil($notebook.scrollTop() / avg_cell_height);
-        i = min(max(i , 0), cell_count - 1);
+        var notebook = $('#notebook');
+        var i = Math.ceil(notebook.scrollTop() / avg_cell_height);
+        i = Math.min(Math.max(i , 0), cell_count - 1);
 
-        while (that.notebook.get_cell(i).element.offset.top() - first_cell_top < $notebook.scrollTop() && i < cell_count - 1) {
+        while (this.notebook.get_cell(i).element.offset().top - first_cell_top < notebook.scrollTop() && i < cell_count - 1) {
             i += 1;
         } 
 
-        while (that.notebook.get_cell(i).element.offset.top() - first_cell_top > $notebook.scrollTop() && i >= 0) {
+        while (this.notebook.get_cell(i).element.offset().top - first_cell_top > notebook.scrollTop() - 50 && i >= 0) {
             i -= 1;
         } 
-        return min(i + 1, cell_count - 1);
+        return Math.min(i + 1, cell_count - 1);
     };
 
 
-    var HeadingScrollManager = function(notebook, heading_level) {
+    var TargetScrollManager = function(notebook) {
         // Public constructor.
+        ScrollManager.apply(this, [notebook]);
+    };
+    TargetScrollManager.prototype = new ScrollManager();
+
+    TargetScrollManager.prototype.is_target = function (index) {
+        return false;
     };
 
-
-    var SlideScrollManager = function(notebook) {
-        // Public constructor.
-    };
-
-/*// Scroll the document.
+    TargetScrollManager.prototype.scroll = function (delta) {
+        // Scroll the document.
         //
         // Parameters
         // ----------
         // delta: integer
         //  direction to scroll the document.  Positive is downwards.
 
-        // If one or more slides exist, scroll to the slide.
-        var $slide_cells = $('.slideshow-slide');
-        if ($slide_cells.length > 0) {
-            var i, cell;
+        // Try to scroll to the next slide.
+        var cell_count = this.notebook.ncells();
+        var selected_index = this.get_first_visible_cell() + delta;
+        while (0 <= selected_index && selected_index < cell_count && !this.is_target(selected_index)) {
+            selected_index += delta;
+        }
 
-            // Get the active slide cell index.
-            var selected_index = this.notebook.find_cell_index(this.notebook.get_selected_cell());
-            var active_slide = -1;
-            var cells = this.notebook.get_cells();
-            for (i = selected_index; i >= 0; i--) {
-                cell = cells[i];
-                var ns = cell.metadata.slideshow;
-                if (ns && ns.slide_type == 'slide') {
-                    active_slide = i;
-                    break;
-                }
-            }
+        if (selected_index < 0 || cell_count <= selected_index) {
+            return ScrollManager.prototype.scroll.apply(this, [delta]);
+        } else {
+            this.scroll_to(this.notebook.get_cell(selected_index).element);
             
-            // Translate cell index into slide cell index.
-            if (active_slide != -1) {
-                for (i = 0; i < $slide_cells.length; i++) {
-                    if (cells[active_slide].element[0] == $slide_cells[i]) {
-                        active_slide = i;
-                        break;
-                    }
-                } 
-            }
-        
-            // Scroll.
-            if (active_slide != -1 || delta > 0) {
-                active_slide += delta;
-                active_slide = Math.max(0, Math.min($slide_cells.length-1, active_slide));
-                
-                var cell_element = $slide_cells[active_slide];
-                cell = $(cell_element).data('cell');
-                this.notebook.select(this.notebook.find_cell_index(cell));
-                
-                this.scroll_to(cell_element);
-                //cell_element.scrollIntoView(true);
-            }
-
             // Cancel browser keyboard scroll.
             return false;
-        
-        // No slides exist, scroll up or down one page height.  Instead of using
-        // the browser's built in method to do this, animate it using jQuery.
-        } else {
-            this.scroll_some(delta);
-            return false;
-        }*/
+        }
+    };
+
+
+    var SlideScrollManager = function(notebook) {
+        // Public constructor.
+        TargetScrollManager.apply(this, [notebook]);
+    };
+    SlideScrollManager.prototype = new TargetScrollManager();
+
+    SlideScrollManager.prototype.is_target = function (index) {
+        var cell = this.notebook.get_cell(index);
+        return cell.metadata && cell.metadata.slideshow && 
+            cell.metadata.slideshow.slide_type && 
+            cell.metadata.slideshow.slide_type === "slide";
+    };
+
+
+    var HeadingScrollManager = function(notebook, heading_level) {
+        // Public constructor.
+        TargetScrollManager.apply(this, [notebook]);
+        this._level = heading_level;
+    };
+    HeadingScrollManager.prototype = new TargetScrollManager();
+
+    HeadingScrollManager.prototype.is_target = function (index) {
+        var cell = this.notebook.get_cell(index);
+        return cell.cell_type === "heading" && cell.level == this._level;
+    };
+
 
     // Return naemspace for require.js loads
     return {
         'ScrollSelector': ScrollSelector,
         'ScrollManager': ScrollManager,
         'SlideScrollManager': SlideScrollManager,
-        'HeadingScrollManager': HeadingScrollManager
+        'HeadingScrollManager': HeadingScrollManager,
+        'TargetScrollManager': TargetScrollManager
     };
 });

@@ -1625,7 +1625,7 @@ define([
         this._session_starting = false;
         utils.log_ajax_error(jqxhr, status, error);
     };
-
+    
     /**
      * Prompt the user to restart the IPython kernel.
      * 
