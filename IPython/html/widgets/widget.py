@@ -127,6 +127,8 @@ class Widget(LoggingConfigurable):
     def __del__(self):
         """Object disposal"""
         self.close()
+        del Widget.widgets[self.model_id]
+        self._comm = None
 
     #-------------------------------------------------------------------------
     # Properties
@@ -141,7 +143,6 @@ class Widget(LoggingConfigurable):
             # Create a comm.
             self._comm = Comm(target_name=self._model_name)
             self._comm.on_msg(self._handle_msg)
-            self._comm.on_close(self._close)
             Widget.widgets[self.model_id] = self
 
             # first update
@@ -158,20 +159,15 @@ class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
     # Methods
     #-------------------------------------------------------------------------
-    def _close(self):
-        """Private close - cleanup objects, registry entries"""
-        del Widget.widgets[self.model_id]
-        self._comm = None
 
     def close(self):
         """Close method.
 
-        Closes the widget which closes the underlying comm.
+        Closes the underlying comm.
         When the comm is closed, all of the widget views are automatically
         removed from the front-end."""
         if self._comm is not None:
             self._comm.close()
-            self._close()
 
     def send_state(self, key=None):
         """Sends the widget state, or a piece of it, to the front-end.
