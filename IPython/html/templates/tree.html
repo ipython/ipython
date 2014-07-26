@@ -2,6 +2,10 @@
 
 {% block title %}{{page_title}}{% endblock %}
 
+{% block icon %}
+{{super()}}
+<link rel="shortcut icon" type="image/x-icon" href="{{static_url("base/images/faviconInv.ico") }}">
+{% endblock %}
 
 {% block stylesheet %}
 {{super()}}
