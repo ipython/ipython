@@ -158,11 +158,11 @@ This template does not define a docclass, the inheriting class must define this.
 
 % Display latex
 ((* block data_latex -*))
-    ((*- if output.latex.startswith('$'): -*)) 
+    ((*- if output.latex.startswith('$'): -*))
         ((= Replace $ symbols with more explicit, equation block. =))
-        \begin{equation*}
+        \begin{equation*}\adjustbox{max width=\hsize}{$
         ((( output.latex | strip_dollars )))
-        \end{equation*}
+        $}\end{equation*}
     ((*- else -*))
         ((( output.latex )))
     ((*- endif *))
