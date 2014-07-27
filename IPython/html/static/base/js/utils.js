@@ -4,7 +4,8 @@
 define([
     'base/js/namespace',
     'jquery',
-], function(IPython, $){
+    'codemirror/lib/codemirror',
+], function(IPython, $, CodeMirror){
     "use strict";
     
     IPython.load_extensions = function () {

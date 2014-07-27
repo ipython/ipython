@@ -1,11 +1,24 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
+/**
+ *
+ *
+ * @module cell
+ * @namespace cell
+ * @class Cell
+ */
+
+
 define([
     'base/js/namespace',
     'jquery',
     'base/js/utils',
-], function(IPython, $, utils) {
+    'codemirror/lib/codemirror',
+    'codemirror/addon/edit/matchbrackets',
+    'codemirror/addon/edit/closebrackets',
+    'codemirror/addon/comment/comment'
+], function(IPython, $, utils, CodeMirror, cm_match, cm_closeb, cm_comment) {
     // TODO: remove IPython dependency here 
     "use strict";
 
@@ -29,16 +42,17 @@ define([
     // end monkey patching CodeMirror
 
     var Cell = function (options) {
-        // Constructor
-        //
-        // The Base `Cell` class from which to inherit.
-        //
-        // Parameters:
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance 
-        //          config: dictionary
-        //          keyboard_manager: KeyboardManager instance 
+        /* Constructor
+         *
+         * The Base `Cell` class from which to inherit.
+         * @constructor
+         * @param:
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          events: $(Events) instance 
+         *          config: dictionary
+         *          keyboard_manager: KeyboardManager instance 
+         */
         options = options || {};
         this.keyboard_manager = options.keyboard_manager;
         this.events = options.events;
@@ -277,8 +291,6 @@ define([
      * @return {Boolean} `true` if CodeMirror should ignore the event, `false` Otherwise
      */
     Cell.prototype.handle_keyevent = function (editor, event) {
-
-        // console.log('CM', this.mode, event.which, event.type)
 
         if (this.mode === 'command') {
             return true;

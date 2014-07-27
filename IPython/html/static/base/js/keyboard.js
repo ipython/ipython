@@ -1,5 +1,12 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
+/**
+ *
+ *
+ * @module keyboard
+ * @namespace keyboard
+ * @class ShortcutManager
+ */
 
 define([
     'base/js/namespace',
@@ -126,6 +133,12 @@ define([
     // Shortcut manager class
 
     var ShortcutManager = function (delay, events) {
+        /**
+         * A class to deal with keyboard event and shortcut
+         *
+         * @class ShortcutManager
+         * @constructor
+         */
         this._shortcuts = {};
         this._counts = {};
         this._timers = {};
@@ -201,6 +214,16 @@ define([
     };
 
     ShortcutManager.prototype.count_handler = function (shortcut, event, data) {
+        /**
+         * Seem to allow to call an handler only after several key press.
+         * like, I suppose `dd` that delete the current cell only after
+         * `d` has been pressed twice..
+         * @method count_handler
+         * @return {Boolean} `true|false`, whether or not the event has been handled.
+         * @param shortcut {shortcut}
+         * @param event {event}
+         * @param data {data}
+         */
         var that = this;
         var c = this._counts;
         var t = this._timers;
@@ -221,6 +244,12 @@ define([
     };
 
     ShortcutManager.prototype.call_handler = function (event) {
+        /**
+         * Call the corresponding shortcut handler for a keyboard event
+         * @method call_handler
+         * @return {Boolean} `true|false`, `false` if no handler was found, otherwise the  value return by the handler. 
+         * @param event {event}
+         */
         var shortcut = event_to_shortcut(event);
         var data = this._shortcuts[shortcut];
         if (data) {
@@ -252,7 +281,7 @@ define([
         event_to_shortcut : event_to_shortcut
     };
 
-    // For backwards compatability.
+    // For backwards compatibility.
     IPython.keyboard = keyboard;
 
     return keyboard;

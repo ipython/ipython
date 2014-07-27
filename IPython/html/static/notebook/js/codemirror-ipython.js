@@ -3,9 +3,20 @@
 // callback to auto-load python mode, which is more likely not the best things
 // to do, but at least the simple one for now.
 
-CodeMirror.requireMode('python',function(){
+(function(mod) {
+  if (typeof exports == "object" && typeof module == "object"){ // CommonJS
+    mod(require("codemirror/lib/codemirror"), 
+        require("codemirror/mode/python/python")
+        );
+  } else if (typeof define == "function" && define.amd){ // AMD
+    define(["codemirror/lib/codemirror", 
+            "codemirror/mode/python/python"], mod);
+  } else {// Plain browser env
+    mod(CodeMirror);
+  }
+})(function(CodeMirror) {
     "use strict";
-
+    
     CodeMirror.defineMode("ipython", function(conf, parserConf) {
         var pythonConf = {};
         for (var prop in parserConf) {
@@ -25,3 +36,4 @@ CodeMirror.requireMode('python',function(){
 
     CodeMirror.defineMIME("text/x-ipython", "ipython");
 })
+

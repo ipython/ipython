@@ -19,8 +19,10 @@ require([
     'notebook/js/keyboardmanager',
     'notebook/js/config',
     'notebook/js/kernelselector',
-    // only loaded, not used:
-    'custom/custom',
+    'codemirror/lib/codemirror',
+    'codemirror/addon/mode/loadmode',
+    // only loaded, not used, please keep sure this is loaded last
+    'custom/custom'
 ], function(
     IPython, 
     $,
@@ -38,9 +40,17 @@ require([
     savewidget, 
     keyboardmanager,
     config,
-    kernelselector
+    kernelselector,
+    CodeMirror,
+    cm_loadmode,
+    // please keep sure that even if not used, this is loaded last
+    custom
     ) {
     "use strict";
+
+    window.CodeMirror = CodeMirror;
+    $('#ipython-main-app').addClass('border-box-sizing');
+    $('div#notebook_panel').addClass('border-box-sizing');
 
     var common_options = {
         base_url : utils.get_body_data("baseUrl"),

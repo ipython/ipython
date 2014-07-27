@@ -7,7 +7,8 @@ define([
     'base/js/utils',
     'base/js/keyboard',
     'notebook/js/contexthint',
-], function(IPython, $, utils, keyboard) {
+    'codemirror/lib/codemirror',
+], function(IPython, $, utils, keyboard, CodeMirror) {
     "use strict";
 
     // easier key mapping
@@ -316,11 +317,13 @@ define([
 
         // Enter
         if (code == keycodes.enter) {
-            CodeMirror.e_stop(event);
+            event.codemirrorIgnore = true;
+            event.preventDefault();
             this.pick();
         // Escape or backspace
         } else if (code == keycodes.esc || code == keycodes.backspace) {
-            CodeMirror.e_stop(event);
+            event.codemirrorIgnore = true;
+            event.preventDefault();
             this.close();
         } else if (code == keycodes.tab) {
             //all the fastforwarding operation,
@@ -339,7 +342,8 @@ define([
         } else if (code == keycodes.up || code == keycodes.down) {
             // need to do that to be able to move the arrow
             // when on the first or last line ofo a code cell
-            CodeMirror.e_stop(event);
+            event.codemirrorIgnore = true;
+            event.preventDefault();
 
             var options = this.sel.find('option');
             var index = this.sel[0].selectedIndex;

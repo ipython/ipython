@@ -311,25 +311,17 @@ class="notebook_app"
 {% block script %}
 {{super()}}
 
-<script src="{{ static_url("components/codemirror/lib/codemirror.js") }}" charset="utf-8"></script>
+
 <script type="text/javascript">
-    CodeMirror.modeURL = "{{ static_url("components/codemirror/mode/%N/%N.js", include_version=False) }}";
+	require(['codemirror/lib/codemirror',
+ 		], function(CodeMirror){
+    		CodeMirror.modeURL = "{{ static_url("components/codemirror/mode/%N/%N.js", include_version=False) }}";
+//		require([
+//			 'notebook/js/codemirror-ipython',
+//			 'notebook/js/codemirror-ipythongfm'
+//], function(){})
+	});
 </script>
-<script src="{{ static_url("components/codemirror/addon/mode/loadmode.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/addon/mode/multiplex.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/addon/mode/overlay.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/addon/edit/matchbrackets.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/addon/edit/closebrackets.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/addon/comment/comment.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/mode/htmlmixed/htmlmixed.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/mode/xml/xml.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/mode/javascript/javascript.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/mode/css/css.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/mode/rst/rst.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/mode/markdown/markdown.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/mode/python/python.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("notebook/js/codemirror-ipython.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("notebook/js/codemirror-ipythongfm.js") }}" charset="utf-8"></script>
 
 <script src="{{ static_url("notebook/js/main.js") }}" charset="utf-8"></script>
 
