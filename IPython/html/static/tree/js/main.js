@@ -7,7 +7,7 @@ require([
     'base/js/events',
     'base/js/page',
     'base/js/utils',
-    'base/js/contentmanager',
+    'contentmanager',
     'tree/js/notebooklist',
     'tree/js/clusterlist',
     'tree/js/sessionlist',
