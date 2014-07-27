@@ -34,9 +34,10 @@ def upgrade(nb, from_version=3, from_minor=0):
         except ValidationError as e:
             get_logger().error("Notebook JSON is not valid v%i: %s", from_version, e)
 
-        # Mark the original nbformat so consumers know it has been converted.
-        nb.pop('orig_nbformat', None)
-        nb.metadata.orig_nbformat = 3
+        # Mark the original nbformat so consumers know it has been converted
+        orig_nbformat = nb.pop('orig_nbformat', None)
+        nb.metadata.orig_nbformat = orig_nbformat or 3
+
         # Mark the new format
         nb.nbformat = nbformat
         nb.nbformat_minor = nbformat_minor
