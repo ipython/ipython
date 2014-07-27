@@ -66,7 +66,7 @@ define([
                 .addClass('btn btn-default')
                 .attr("title", el.label)
                 .append(
-                    $("<i/>").addClass(el.icon)
+                    $("<i/>").addClass(el.icon).addClass('fa')
                 );
             var id = el.id;
             if( id !== undefined )
