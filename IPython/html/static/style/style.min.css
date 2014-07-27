@@ -7609,6 +7609,9 @@ div#header {
   padding-left: 30px;
   padding-bottom: 5px;
   border-bottom: 1px solid #e7e7e7;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
 }
 #ipython_notebook {
   padding-left: 0px;
@@ -7631,6 +7634,9 @@ div#header {
 #site {
   width: 100%;
   display: none;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
 }
 /* Smaller buttons */
 .ui-button .ui-button-text {
@@ -7645,6 +7651,97 @@ input.ui-button {
 }
 span#login_widget {
   float: right;
+}
+span#login_widget > .button {
+  display: inline-block;
+  margin-bottom: 0;
+  font-weight: normal;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+  background-image: none;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  padding: 6px 12px;
+  font-size: 13px;
+  line-height: 1.42857143;
+  border-radius: 4px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  color: #333333;
+  background-color: #ffffff;
+  border-color: #cccccc;
+  padding: 5px 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+span#login_widget > .button:focus,
+span#login_widget > .button:active:focus,
+span#login_widget > .button.active:focus {
+  outline: thin dotted;
+  outline: 5px auto -webkit-focus-ring-color;
+  outline-offset: -2px;
+}
+span#login_widget > .button:hover,
+span#login_widget > .button:focus {
+  color: #333333;
+  text-decoration: none;
+}
+span#login_widget > .button:active,
+span#login_widget > .button.active {
+  outline: 0;
+  background-image: none;
+  -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+}
+span#login_widget > .button.disabled,
+span#login_widget > .button[disabled],
+fieldset[disabled] span#login_widget > .button {
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.65;
+  filter: alpha(opacity=65);
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+span#login_widget > .button:hover,
+span#login_widget > .button:focus,
+span#login_widget > .button:active,
+span#login_widget > .button.active,
+.open .dropdown-togglespan#login_widget > .button {
+  color: #333333;
+  background-color: #ebebeb;
+  border-color: #adadad;
+}
+span#login_widget > .button:active,
+span#login_widget > .button.active,
+.open .dropdown-togglespan#login_widget > .button {
+  background-image: none;
+}
+span#login_widget > .button.disabled,
+span#login_widget > .button[disabled],
+fieldset[disabled] span#login_widget > .button,
+span#login_widget > .button.disabled:hover,
+span#login_widget > .button[disabled]:hover,
+fieldset[disabled] span#login_widget > .button:hover,
+span#login_widget > .button.disabled:focus,
+span#login_widget > .button[disabled]:focus,
+fieldset[disabled] span#login_widget > .button:focus,
+span#login_widget > .button.disabled:active,
+span#login_widget > .button[disabled]:active,
+fieldset[disabled] span#login_widget > .button:active,
+span#login_widget > .button.disabled.active,
+span#login_widget > .button[disabled].active,
+fieldset[disabled] span#login_widget > .button.active {
+  background-color: #ffffff;
+  border-color: #cccccc;
+}
+span#login_widget > .button .badge {
+  color: #ffffff;
+  background-color: #333333;
 }
 .nav-header {
   text-transform: none;
@@ -8734,6 +8831,9 @@ div.text_cell_render {
   border-style: none;
   padding: 0.5em 0.5em 0.5em 0.4em;
   color: #000000;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
 }
 a.anchor-link:link {
   text-decoration: none;
@@ -9644,6 +9744,9 @@ fieldset[disabled] #kernel_selector_widget > button.active {
   margin-top: 0px;
   margin-bottom: -19px;
   position: relative;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
 }
 #menubar .navbar {
   border-top: 1px;
@@ -10085,16 +10188,25 @@ fieldset[disabled] .notification_widget.danger.active {
 }
 div#pager_splitter {
   height: 8px;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
 }
 #pager-container {
   position: relative;
   padding: 15px 0px;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
 }
 div#pager {
   font-size: 14px;
   line-height: 20px;
   overflow: auto;
   display: none;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
 }
 div#pager pre {
   line-height: 1.21429em;
@@ -10174,6 +10286,9 @@ span#autosave_status {
   padding: 0px;
   margin-left: -5px;
   margin-top: -5px;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
 }
 .toolbar select,
 .toolbar label {

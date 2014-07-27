@@ -1110,6 +1110,9 @@ div.text_cell_render {
   border-style: none;
   padding: 0.5em 0.5em 0.5em 0.4em;
   color: #000000;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
 }
 a.anchor-link:link {
   text-decoration: none;
