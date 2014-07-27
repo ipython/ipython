@@ -313,9 +313,8 @@ Qt
 
 Also with 0.11, a new GUI was added using the work in :mod:`IPython.kernel.zmq`, which
 can be launched with ``ipython qtconsole``. The GUI is built on Qt, and works
-with either PyQt, which can be installed from the `PyQt website
-<http://www.riverbankcomputing.co.uk/>`_, or `PySide
-<http://www.pyside.org/>`_, from Nokia.
+with either `PyQt <http://www.riverbankcomputing.co.uk/>`_, or `PySide
+<http://qt-project.org/wiki/PySide>`_.
 
 pygments
 --------

@@ -15,7 +15,7 @@ define([
      * A Kernel Class to communicate with the Python kernel
      * @Class Kernel
      */
-    var Kernel = function (kernel_service_url, notebook, name) {
+    var Kernel = function (kernel_service_url, ws_url, notebook, name) {
         this.events = notebook.events;
         this.kernel_id = null;
         this.shell_channel = null;
@@ -23,6 +23,11 @@ define([
         this.stdin_channel = null;
         this.kernel_service_url = kernel_service_url;
         this.name = name;
+        this.ws_url = ws_url || IPython.utils.get_body_data("wsUrl");
+        if (!this.ws_url) {
+            // trailing 's' in https will become wss for secure web sockets
+            this.ws_url = location.protocol.replace('http', 'ws') + "//" + location.host;
+        }
         this.running = false;
         this.username = "username";
         this.session_id = utils.uuid();
@@ -122,8 +127,6 @@ define([
         console.log("Kernel started: ", json.id);
         this.running = true;
         this.kernel_id = json.id;
-        // trailing 's' in https will become wss for secure web sockets
-        this.ws_host = location.protocol.replace('http', 'ws') + "//" + location.host;
         this.kernel_url = utils.url_path_join(this.kernel_service_url, this.kernel_id);
         this.start_channels();
     };
@@ -145,16 +148,16 @@ define([
     Kernel.prototype.start_channels = function () {
         var that = this;
         this.stop_channels();
-        var ws_host_url = this.ws_host + this.kernel_url;
+        var ws_host_url = this.ws_url + this.kernel_url;
         console.log("Starting WebSockets:", ws_host_url);
         this.shell_channel = new this.WebSocket(
-            this.ws_host + utils.url_join_encode(this.kernel_url, "shell")
+            this.ws_url + utils.url_join_encode(this.kernel_url, "shell")
         );
         this.stdin_channel = new this.WebSocket(
-            this.ws_host + utils.url_join_encode(this.kernel_url, "stdin")
+            this.ws_url + utils.url_join_encode(this.kernel_url, "stdin")
         );
         this.iopub_channel = new this.WebSocket(
-            this.ws_host + utils.url_join_encode(this.kernel_url, "iopub")
+            this.ws_url + utils.url_join_encode(this.kernel_url, "iopub")
         );
         
         var already_called_onclose = false; // only alert once

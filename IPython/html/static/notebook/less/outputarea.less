@@ -38,7 +38,7 @@ div.out_prompt_overlay:hover {
 }
 
 div.output_prompt {
-    color: darkred;
+    color: @output_prompt_color;
 }
 
 /* This class is the outer container of all output sections. */
@@ -84,7 +84,7 @@ div.output_area pre {
     padding: 0;
     border: 0;
     vertical-align: baseline;
-    color: black;
+    color: @output_pre_color;
     background-color: transparent;
     .border-radius(0);
 }

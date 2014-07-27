@@ -92,16 +92,16 @@ define([
 
     ClusterItem.prototype.state_stopped = function () {
         var that = this;
-        var profile_col = $('<div/>').addClass('profile_col col-md-4').text(this.data.profile);
-        var status_col = $('<div/>').addClass('status_col col-md-3').text('stopped');
-        var engines_col = $('<div/>').addClass('engine_col col-md-3');
+        var profile_col = $('<div/>').addClass('profile_col col-xs-4').text(this.data.profile);
+        var status_col = $('<div/>').addClass('status_col col-xs-3').text('stopped');
+        var engines_col = $('<div/>').addClass('engine_col col-xs-3');
         var input = $('<input/>').attr('type','number')
                 .attr('min',1)
                 .attr('size',3)
                 .addClass('engine_num_input form-control');
         engines_col.append(input);
         var start_button = $('<button/>').addClass("btn btn-default btn-xs").text("Start");
-        var action_col = $('<div/>').addClass('action_col col-md-2').append(
+        var action_col = $('<div/>').addClass('action_col col-xs-2').append(
             $("<span/>").addClass("item_buttons btn-group").append(
                 start_button
             )
@@ -144,11 +144,11 @@ define([
 
     ClusterItem.prototype.state_running = function () {
         var that = this;
-        var profile_col = $('<div/>').addClass('profile_col col-md-4').text(this.data.profile);
-        var status_col = $('<div/>').addClass('status_col col-md-3').text('running');
-        var engines_col = $('<div/>').addClass('engines_col col-md-3').text(this.data.n);
+        var profile_col = $('<div/>').addClass('profile_col col-xs-4').text(this.data.profile);
+        var status_col = $('<div/>').addClass('status_col col-xs-3').text('running');
+        var engines_col = $('<div/>').addClass('engines_col col-xs-3').text(this.data.n);
         var stop_button = $('<button/>').addClass("btn btn-default btn-xs").text("Stop");
-        var action_col = $('<div/>').addClass('action_col col-md-2').append(
+        var action_col = $('<div/>').addClass('action_col col-xs-2').append(
             $("<span/>").addClass("item_buttons btn-group").append(
                 stop_button
             )

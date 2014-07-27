@@ -26,7 +26,7 @@ within and between hosts.
    IPython messaging protocol, and all developers are strongly encouraged to
    keep it updated as the implementation evolves, so that we have a single
    common reference for all protocol details.
-   
+
 The basic design is explained in the following diagram:
 
 .. image:: figs/frontend-kernel.png
@@ -125,6 +125,8 @@ A message is defined by the following four-dictionary structure::
 .. versionchanged:: 5.0
 
     ``version`` key added to the header.
+
+.. _wire_protocol:
 
 The Wire Protocol
 =================
@@ -886,11 +888,16 @@ This message type is used by frontends to monitor the status of the kernel.
 Message type: ``status``::
 
     content = {
-        # When the kernel starts to execute code, it will enter the 'busy'
+        # When the kernel starts to handle a message, it will enter the 'busy'
         # state and when it finishes, it will enter the 'idle' state.
         # The kernel will publish state 'starting' exactly once at process startup.
         execution_state : ('busy', 'idle', 'starting')
     }
+
+.. versionchanged:: 5.0
+
+    Busy and idle messages should be sent before/after handling every message,
+    not just execution.
 
 Clear output
 ------------
@@ -966,6 +973,7 @@ When ``password`` is True, the frontend should not echo the input as it is enter
    transported over the zmq connection), raw ``stdin`` isn't expected to be
    available.
 
+.. _kernel_heartbeat:
 
 Heartbeat for kernels
 =====================

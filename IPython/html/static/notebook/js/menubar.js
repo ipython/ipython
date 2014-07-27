@@ -6,7 +6,7 @@ define([
     'jquery',
     'base/js/utils',
     'notebook/js/tour',
-    'components/bootstrap/js/bootstrap.min',
+    'bootstrap',
 ], function(IPython, $, utils, tour) {
     "use strict";
     

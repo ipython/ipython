@@ -23,9 +23,11 @@
             underscore : 'components/underscore/underscore-min',
             backbone : 'components/backbone/backbone-min',
             jquery: 'components/jquery/jquery.min',
+            bootstrap: 'components/bootstrap/js/bootstrap.min',
             bootstraptour: 'components/bootstrap-tour/build/js/bootstrap-tour.min',
             dateformat: 'dateformat/date.format',
             jqueryui: 'components/jquery-ui/ui/minified/jquery-ui.min',
+            highlight: 'components/highlight.js/build/highlight.pack',
             contentmanager: '{{ contentmanager_js_source }}',
           },
           shim: {
@@ -36,7 +38,12 @@
               deps: ["underscore", "jquery"],
               exports: "Backbone"
             },
+            bootstrap: {
+              deps: ["jquery"],
+              exports: "bootstrap"
+            },
             bootstraptour: {
+              deps: ["bootstrap"],
               exports: "Tour"
             },
             dateformat: {
@@ -45,7 +52,10 @@
             jqueryui: {
               deps: ["jquery"],
               exports: "$"
-            }
+            },
+            highlight: {
+              exports: "hljs"
+            },
           }
       });
     </script>
@@ -91,10 +101,7 @@
 </div>
 
 {% block script %}
-<script src="{{static_url("base/js/pagemain.js") }}" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
-
-<script src="{{static_url("custom/custom.js") }}" type="text/javascript" charset="utf-8"></script>
 
 </body>
 

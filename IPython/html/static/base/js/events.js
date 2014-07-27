@@ -3,17 +3,22 @@
 
 // Give us an object to bind all events to. This object should be created
 // before all other objects so it exists when others register event handlers.
-// To trigger an event handler:
-// $([IPython.events]).trigger('event.Namespace');
-// To handle it:
-// $([IPython.events]).on('event.Namespace',function () {});
-define(['base/js/namespace'], function(IPython) {
+// To register an event handler:
+//
+// require(['base/js/events'], function (events) {
+//     events.on("event.Namespace", function () { do_stuff(); });
+// });
+
+define(['base/js/namespace', 'jquery'], function(IPython, $) {
     "use strict";
 
     var Events = function () {};
     
+    var events = new Events();
+    
     // Backwards compatability.
     IPython.Events = Events;
+    IPython.events = events;
     
-    return {'Events': Events};
+    return $([events]);
 });
