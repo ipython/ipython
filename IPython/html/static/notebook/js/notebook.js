@@ -181,7 +181,9 @@ define([
         });
 
         this.events.on('auto_rewrite_input.Notebook', function (event, data) {
-            data.cell.set_text(data.raw_input);
+            if ( data.raw_input){
+                data.cell.set_text(data.raw_input);
+            }
             that.dirty = true;
         });
         
