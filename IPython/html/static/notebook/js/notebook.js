@@ -1203,20 +1203,11 @@ define([
         if (cell.is_splittable()) {
             var texta = cell.get_pre_cursor();
             var textb = cell.get_post_cursor();
-            if (cell instanceof codecell.CodeCell) {
-                // In this case the operations keep the notebook in its existing mode
-                // so we don't need to do any post-op mode changes.
-                cell.set_text(textb);
-                var new_cell = this.insert_cell_above('code');
-                new_cell.set_text(texta);
-            } else if ((cell instanceof mdc && !cell.rendered) || (cell instanceof rc)) {
-                // We know cell is !rendered so we can use set_text.
-                cell.set_text(textb);
-                var new_cell = this.insert_cell_above(cell.cell_type);
-                // Unrender the new cell so we can call set_text.
-                new_cell.unrender();
-                new_cell.set_text(texta);
-            }
+            cell.set_text(textb);
+            var new_cell = this.insert_cell_above(cell.cell_type);
+            // Unrender the new cell so we can call set_text.
+            new_cell.unrender();
+            new_cell.set_text(texta);
         }
     };
 
@@ -1243,7 +1234,7 @@ define([
             var text = cell.get_text();
             if (cell instanceof codecell.CodeCell) {
                 cell.set_text(upper_text+'\n'+text);
-            } else if ((cell instanceof mdc) || (cell instanceof rc)) {
+            } else {
                 cell.unrender(); // Must unrender before we set_text.
                 cell.set_text(upper_text+'\n\n'+text);
                 if (render) {
@@ -1280,7 +1271,7 @@ define([
             var text = cell.get_text();
             if (cell instanceof codecell.CodeCell) {
                 cell.set_text(text+'\n'+lower_text);
-            } else if ((cell instanceof mdc) || (cell instanceof rc)) {
+            } else {
                 cell.unrender(); // Must unrender before we set_text.
                 cell.set_text(text+'\n\n'+lower_text);
                 if (render) {
