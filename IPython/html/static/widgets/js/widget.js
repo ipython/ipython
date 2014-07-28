@@ -405,9 +405,9 @@ define(["widgets/js/manager",
 
 
     var DOMWidgetView = WidgetView.extend({
-        initialize: function (options) {
+        initialize: function (parameters) {
             // Public constructor
-            DOMWidgetView.__super__.initialize.apply(this, arguments);
+            DOMWidgetView.__super__.initialize.apply(this, [parameters]);
             this.on('displayed', this.show, this);
             this.after_displayed(function() {
                 this.update_visible(this.model, this.model.get("visible"));
