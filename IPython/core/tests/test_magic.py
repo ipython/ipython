@@ -632,35 +632,6 @@ class NotebookExportMagicTests(TestCase):
             _ip.ex(py3compat.u_format(u"u = {u}'héllo'"))
             _ip.magic("notebook -e %s" % outfile)
 
-    def test_notebook_export_py(self):
-        with TemporaryDirectory() as td:
-            outfile = os.path.join(td, "nb.py")
-            _ip.ex(py3compat.u_format(u"u = {u}'héllo'"))
-            _ip.magic("notebook -e %s" % outfile)
-
-    def test_notebook_reformat_py(self):
-        from IPython.nbformat.v3.tests.nbexamples import nb0
-        from IPython.nbformat import current
-        with TemporaryDirectory() as td:
-            infile = os.path.join(td, "nb.ipynb")
-            with io.open(infile, 'w', encoding='utf-8') as f:
-                current.write(nb0, f, 'json')
-
-            _ip.ex(py3compat.u_format(u"u = {u}'héllo'"))
-            _ip.magic("notebook -f py %s" % infile)
-
-    def test_notebook_reformat_json(self):
-        from IPython.nbformat.v3.tests.nbexamples import nb0
-        from IPython.nbformat import current
-        with TemporaryDirectory() as td:
-            infile = os.path.join(td, "nb.py")
-            with io.open(infile, 'w', encoding='utf-8') as f:
-                current.write(nb0, f, 'py')
-
-            _ip.ex(py3compat.u_format(u"u = {u}'héllo'"))
-            _ip.magic("notebook -f ipynb %s" % infile)
-            _ip.magic("notebook -f json %s" % infile)
-
 
 def test_env():
     env = _ip.magic("env")

@@ -377,14 +377,12 @@ tclass.py: deleting object: C-third
         """Test %run notebook.ipynb"""
         from IPython.nbformat import current
         nb = current.new_notebook(
-            worksheets=[
-                current.new_worksheet(cells=[
-                    current.new_text_cell("The Ultimate Question of Everything"),
-                    current.new_code_cell("answer=42")
-                ])
+           cells=[
+                current.new_markdown_cell("The Ultimate Question of Everything"),
+                current.new_code_cell("answer=42")
             ]
         )
-        src = current.writes(nb, 'json')
+        src = current.writes(nb)
         self.mktmp(src, ext='.ipynb')
         
         _ip.magic("run %s" % self.fname)

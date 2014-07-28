@@ -2651,12 +2651,12 @@ class InteractiveShell(SingletonConfigurable):
             if fname.endswith('.ipynb'):
                 from IPython.nbformat import current
                 with open(fname) as f:
-                    nb = current.read(f, 'json')
-                    if not nb.worksheets:
+                    nb = current.read(f)
+                    if not nb.cells:
                         return
-                    for cell in nb.worksheets[0].cells:
+                    for cell in nb.cells:
                         if cell.cell_type == 'code':
-                            yield cell.input
+                            yield cell.source
             else:
                 with open(fname) as f:
                     yield f.read()
