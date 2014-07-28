@@ -5,7 +5,7 @@ require([
     'base/js/namespace',
     'jquery',
     'notebook/js/notebook',
-    'base/js/contentmanager',
+    'contentmanager',
     'base/js/utils',
     'base/js/page',
     'notebook/js/layoutmanager',
