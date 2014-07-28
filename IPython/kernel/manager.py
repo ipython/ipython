@@ -58,7 +58,7 @@ class KernelManager(ConnectionFileMixin):
     def _kernel_spec_manager_default(self):
         return kernelspec.KernelSpecManager(ipython_dir=self.ipython_dir)
     
-    kernel_name = Unicode('python')
+    kernel_name = Unicode(kernelspec.NATIVE_KERNEL_NAME)
     
     kernel_spec = Instance(kernelspec.KernelSpec)
     
@@ -66,6 +66,10 @@ class KernelManager(ConnectionFileMixin):
         return self.kernel_spec_manager.get_kernel_spec(self.kernel_name)
     
     def _kernel_name_changed(self, name, old, new):
+        if new == 'python':
+            self.kernel_name = kernelspec.NATIVE_KERNEL_NAME
+            # This triggered another run of this function, so we can exit now
+            return
         self.kernel_spec = self.kernel_spec_manager.get_kernel_spec(new)
         self.ipython_kernel = new in {'python', 'python2', 'python3'}
 
