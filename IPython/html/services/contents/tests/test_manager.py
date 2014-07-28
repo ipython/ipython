@@ -95,11 +95,9 @@ class TestContentsManager(TestCase):
         return os_path
 
     def add_code_cell(self, nb):
-        output = current.new_output("display_data", output_javascript="alert('hi');")
+        output = current.new_output("display_data", {'application/javascript': "alert('hi');"})
         cell = current.new_code_cell("print('hi')", outputs=[output])
-        if not nb.worksheets:
-            nb.worksheets.append(current.new_worksheet())
-        nb.worksheets[0].cells.append(cell)
+        nb.cells.append(cell)
 
     def new_notebook(self):
         cm = self.contents_manager
@@ -309,13 +307,13 @@ class TestContentsManager(TestCase):
         nb, name, path = self.new_notebook()
 
         cm.mark_trusted_cells(nb, name, path)
-        for cell in nb.worksheets[0].cells:
+        for cell in nb.cells:
             if cell.cell_type == 'code':
                 assert not cell.metadata.trusted
 
         cm.trust_notebook(name, path)
         nb = cm.get_model(name, path)['content']
-        for cell in nb.worksheets[0].cells:
+        for cell in nb.cells:
             if cell.cell_type == 'code':
                 assert cell.metadata.trusted
 

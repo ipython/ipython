@@ -62,7 +62,7 @@ class SessionAPITest(NotebookTestBase):
 
         with io.open(pjoin(nbdir, 'foo', 'nb1.ipynb'), 'w',
                      encoding='utf-8') as f:
-            nb = new_notebook(name='nb1')
+            nb = new_notebook()
             write(nb, f, format='ipynb')
 
         self.sess_api = SessionAPI(self.base_url())

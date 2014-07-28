@@ -114,6 +114,7 @@ class NbconvertPostHandler(IPythonHandler):
         exporter = get_exporter(format, config=self.config)
         
         model = self.get_json_body()
+        name = model.get('name', 'notebook.ipynb')
         nbnode = to_notebook_json(model['content'])
         
         try:
@@ -121,7 +122,7 @@ class NbconvertPostHandler(IPythonHandler):
         except Exception as e:
             raise web.HTTPError(500, "nbconvert failed: %s" % e)
 
-        if respond_zip(self, nbnode.metadata.name, output, resources):
+        if respond_zip(self, name, output, resources):
             return
 
         # MIME type

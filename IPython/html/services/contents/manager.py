@@ -234,8 +234,7 @@ class ContentsManager(LoggingConfigurable):
             model = {}
         if 'content' not in model and model.get('type', None) != 'directory':
             if ext == '.ipynb':
-                metadata = current.new_metadata(name=u'')
-                model['content'] = current.new_notebook(metadata=metadata)
+                model['content'] = current.new_notebook()
                 model['type'] = 'notebook'
                 model['format'] = 'json'
             else:

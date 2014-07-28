@@ -121,10 +121,8 @@ define([
         this.autosave_timer = null;
         // autosave *at most* every two minutes
         this.minimum_autosave_interval = 120000;
-        // single worksheet for now
-        this.worksheet_metadata = {};
         this.notebook_name_blacklist_re = /[\/\\:]/;
-        this.nbformat = 3; // Increment this when changing the nbformat
+        this.nbformat = 4; // Increment this when changing the nbformat
         this.nbformat_minor = 0; // Increment this when changing the nbformat
         this.codemirror_mode = 'ipython';
         this.create_elements();
@@ -1785,8 +1783,6 @@ define([
     /**
      * Load a notebook from JSON (.ipynb).
      * 
-     * This currently handles one worksheet: others are deleted.
-     * 
      * @method fromJSON
      * @param {Object} data JSON representation of a notebook
      */
@@ -1818,49 +1814,21 @@ define([
             this.set_codemirror_mode(cm_mode);
         }
         
-        // Only handle 1 worksheet for now.
-        var worksheet = content.worksheets[0];
-        if (worksheet !== undefined) {
-            if (worksheet.metadata) {
-                this.worksheet_metadata = worksheet.metadata;
-            }
-            var new_cells = worksheet.cells;
-            ncells = new_cells.length;
-            var cell_data = null;
-            var new_cell = null;
-            for (i=0; i<ncells; i++) {
-                cell_data = new_cells[i];
-                // VERSIONHACK: plaintext -> raw
-                // handle never-released plaintext name for raw cells
-                if (cell_data.cell_type === 'plaintext'){
-                    cell_data.cell_type = 'raw';
-                }
-
-                new_cell = this.insert_cell_at_index(cell_data.cell_type, i);
-                new_cell.fromJSON(cell_data);
-                if (new_cell.cell_type == 'code' && !new_cell.output_area.trusted) {
-                    trusted = false;
-                }
+        var new_cells = content.cells;
+        ncells = new_cells.length;
+        var cell_data = null;
+        var new_cell = null;
+        for (i=0; i<ncells; i++) {
+            cell_data = new_cells[i];
+            new_cell = this.insert_cell_at_index(cell_data.cell_type, i);
+            new_cell.fromJSON(cell_data);
+            if (new_cell.cell_type == 'code' && !new_cell.output_area.trusted) {
+                trusted = false;
             }
         }
         if (trusted !== this.trusted) {
             this.trusted = trusted;
             this.events.trigger("trust_changed.Notebook", trusted);
-        }
-        if (content.worksheets.length > 1) {
-            dialog.modal({
-                notebook: this,
-                keyboard_manager: this.keyboard_manager,
-                title : "Multiple worksheets",
-                body : "This notebook has " + data.worksheets.length + " worksheets, " +
-                    "but this version of IPython can only handle the first.  " +
-                    "If you save this notebook, worksheets after the first will be lost.",
-                buttons : {
-                    OK : {
-                        class : "btn-danger"
-                    }
-                }
-            });
         }
     };
 
@@ -1871,6 +1839,10 @@ define([
      * @return {Object} A JSON-friendly representation of this notebook.
      */
     Notebook.prototype.toJSON = function () {
+        // remove the conversion indicator, which only belongs in-memory
+        delete this.metadata.orig_nbformat;
+        delete this.metadata.orig_nbformat_minor;
+
         var cells = this.get_cells();
         var ncells = cells.length;
         var cell_array = new Array(ncells);
@@ -1883,11 +1855,7 @@ define([
             cell_array[i] = cell.toJSON();
         }
         var data = {
-            // Only handle 1 worksheet for now.
-            worksheets : [{
-                cells: cell_array,
-                metadata: this.worksheet_metadata
-            }],
+            cells: cell_array,
             metadata : this.metadata
         };
         if (trusted != this.trusted) {
@@ -2337,10 +2305,13 @@ define([
         }
         this.set_dirty(false);
         this.scroll_to_top();
-        if (data.orig_nbformat !== undefined && data.nbformat !== data.orig_nbformat) {
+        var nbmodel = data.content;
+        var orig_nbformat = nbmodel.metadata.orig_nbformat;
+        var orig_nbformat_minor = nbmodel.metadata.orig_nbformat_minor;
+        if (orig_nbformat !== undefined && nbmodel.nbformat !== orig_nbformat) {
             var msg = "This notebook has been converted from an older " +
-            "notebook format (v"+data.orig_nbformat+") to the current notebook " +
-            "format (v"+data.nbformat+"). The next time you save this notebook, the " +
+            "notebook format (v"+orig_nbformat+") to the current notebook " +
+            "format (v"+nbmodel.nbformat+"). The next time you save this notebook, the " +
             "newer notebook format will be used and older versions of IPython " +
             "may not be able to read it. To keep the older version, close the " +
             "notebook without saving it.";
@@ -2355,10 +2326,10 @@ define([
                     }
                 }
             });
-        } else if (data.orig_nbformat_minor !== undefined && data.nbformat_minor !== data.orig_nbformat_minor) {
+        } else if (orig_nbformat_minor !== undefined && nbmodel.nbformat_minor !== orig_nbformat_minor) {
             var that = this;
-            var orig_vs = 'v' + data.nbformat + '.' + data.orig_nbformat_minor;
-            var this_vs = 'v' + data.nbformat + '.' + this.nbformat_minor;
+            var orig_vs = 'v' + nbmodel.nbformat + '.' + orig_nbformat_minor;
+            var this_vs = 'v' + nbmodel.nbformat + '.' + this.nbformat_minor;
             var msg = "This notebook is version " + orig_vs + ", but we only fully support up to " +
             this_vs + ".  You can still work with this notebook, but some features " +
             "introduced in later notebook versions may not be available.";

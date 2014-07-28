@@ -14,7 +14,7 @@ mime =  {
         "json" : "application/json",
         "javascript" : "application/javascript",
     };
-    
+
 var black_dot_jpeg="u\"\"\"/9j/4AAQSkZJRgABAQEASABIAAD/2wBDACodICUgGiolIiUvLSoyP2lEPzo6P4FcYUxpmYagnpaG\nk5GovfLNqLPltZGT0v/V5fr/////o8v///////L/////2wBDAS0vLz83P3xERHz/rpOu////////\n////////////////////////////////////////////////////////////wgARCAABAAEDAREA\nAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAABP/EABQBAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEA\nAhADEAAAARn/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAEFAn//xAAUEQEAAAAAAAAAAAAA\nAAAAAAAA/9oACAEDAQE/AX//xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAECAQE/AX//xAAUEAEA\nAAAAAAAAAAAAAAAAAAAA/9oACAEBAAY/An//xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAE/\nIX//2gAMAwEAAgADAAAAEB//xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAEDAQE/EH//xAAUEQEA\nAAAAAAAAAAAAAAAAAAAA/9oACAECAQE/EH//xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAE/\nEH//2Q==\"\"\"";
 var black_dot_png = 'u\"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAWJLR0QA\\niAUdSAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB94BCRQnOqNu0b4AAAAKSURBVAjXY2AA\\nAAACAAHiIbwzAAAAAElFTkSuQmCC\"';
 var svg = "\"<svg width='1cm' height='1cm' viewBox='0 0 1000 500'><defs><style>rect {fill:red;}; </style></defs><rect id='r1' x='200' y='100' width='600' height='300' /></svg>\"";
@@ -24,8 +24,10 @@ var svg = "\"<svg width='1cm' height='1cm' viewBox='0 0 1000 500'><defs><style>r
 // name, and that fromJSON also gets its long mimetype name
 function assert_has(short_name, json, result, result2) {
     long_name = mime[short_name];
-    this.test.assertTrue(json[0].hasOwnProperty(short_name),
-            'toJSON()   representation uses ' + short_name);
+    this.test.assertFalse(json[0].hasOwnProperty(short_name),
+            "toJSON()   representation doesn't use " + short_name);
+    this.test.assertTrue(json[0].hasOwnProperty(long_name),
+            'toJSON()   representation uses ' + long_name);
     this.test.assertTrue(result.hasOwnProperty(long_name),
             'toJSON()   original embedded JSON keeps ' + long_name);
     this.test.assertTrue(result2.hasOwnProperty(long_name),
@@ -34,8 +36,8 @@ function assert_has(short_name, json, result, result2) {
           
 // helper function for checkout that the first two cells have a particular
 // output_type (either 'execute_result' or 'display_data'), and checks the to/fromJSON
-// for a set of mimetype keys, using their short names ('javascript', 'text',
-// 'png', etc).
+// for a set of mimetype keys, ensuring the old short names ('javascript', 'text',
+// 'png', etc) are not used.
 function check_output_area(output_type, keys) {
     this.wait_for_output(0);
     json = this.evaluate(function() {

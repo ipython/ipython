@@ -382,13 +382,11 @@ define([
 
 
     CodeCell.prototype.collapse_output = function () {
-        this.collapsed = true;
         this.output_area.collapse();
     };
 
 
     CodeCell.prototype.expand_output = function () {
-        this.collapsed = false;
         this.output_area.expand();
         this.output_area.unscroll_area();
     };
@@ -399,7 +397,6 @@ define([
     };
 
     CodeCell.prototype.toggle_output = function () {
-        this.collapsed = Boolean(1 - this.collapsed);
         this.output_area.toggle_output();
     };
 
@@ -467,22 +464,18 @@ define([
     CodeCell.prototype.fromJSON = function (data) {
         Cell.prototype.fromJSON.apply(this, arguments);
         if (data.cell_type === 'code') {
-            if (data.input !== undefined) {
-                this.set_text(data.input);
+            if (data.source !== undefined) {
+                this.set_text(data.source);
                 // make this value the starting point, so that we can only undo
                 // to this state, instead of a blank cell
                 this.code_mirror.clearHistory();
                 this.auto_highlight();
             }
-            if (data.prompt_number !== undefined) {
-                this.set_input_prompt(data.prompt_number);
-            } else {
-                this.set_input_prompt();
-            }
+            this.set_input_prompt(data.prompt_number);
             this.output_area.trusted = data.metadata.trusted || false;
             this.output_area.fromJSON(data.outputs);
-            if (data.collapsed !== undefined) {
-                if (data.collapsed) {
+            if (data.metadata.collapsed !== undefined) {
+                if (data.metadata.collapsed) {
                     this.collapse_output();
                 } else {
                     this.expand_output();
@@ -494,16 +487,17 @@ define([
 
     CodeCell.prototype.toJSON = function () {
         var data = Cell.prototype.toJSON.apply(this);
-        data.input = this.get_text();
+        data.source = this.get_text();
         // is finite protect against undefined and '*' value
         if (isFinite(this.input_prompt_number)) {
             data.prompt_number = this.input_prompt_number;
+        } else {
+            data.prompt_number = null;
         }
         var outputs = this.output_area.toJSON();
         data.outputs = outputs;
-        data.language = 'python';
         data.metadata.trusted = this.output_area.trusted;
-        data.collapsed = this.output_area.collapsed;
+        data.metadata.collapsed = this.output_area.collapsed;
         return data;
     };
 

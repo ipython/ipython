@@ -15,7 +15,7 @@ import requests
 from IPython.html.utils import url_path_join, url_escape
 from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
 from IPython.nbformat import current
-from IPython.nbformat.current import (new_notebook, write, read, new_worksheet,
+from IPython.nbformat.current import (new_notebook, write, read,
                                       new_heading_cell, to_notebook_json)
 from IPython.nbformat import v2
 from IPython.utils import py3compat
@@ -142,7 +142,7 @@ class APITest(NotebookTestBase):
             # create a notebook
             with io.open(pjoin(nbdir, d, '%s.ipynb' % name), 'w',
                          encoding='utf-8') as f:
-                nb = new_notebook(name=name)
+                nb = new_notebook()
                 write(nb, f, format='ipynb')
 
             # create a text file
@@ -286,14 +286,14 @@ class APITest(NotebookTestBase):
         self.assertEqual(model['content'], '')
 
     def test_upload_untitled(self):
-        nb = new_notebook(name='Upload test')
+        nb = new_notebook()
         nbmodel = {'content': nb, 'type': 'notebook'}
         resp = self.api.upload_untitled(path=u'å b',
                                               body=json.dumps(nbmodel))
         self._check_created(resp, 'Untitled0.ipynb', u'å b')
 
     def test_upload(self):
-        nb = new_notebook(name=u'ignored')
+        nb = new_notebook()
         nbmodel = {'content': nb, 'type': 'notebook'}
         resp = self.api.upload(u'Upload tést.ipynb', path=u'å b',
                                               body=json.dumps(nbmodel))
@@ -355,7 +355,6 @@ class APITest(NotebookTestBase):
         resp = self.api.read(u'Upload tést.ipynb', u'å b')
         data = resp.json()
         self.assertEqual(data['content']['nbformat'], current.nbformat)
-        self.assertEqual(data['content']['orig_nbformat'], 2)
 
     def test_copy_untitled(self):
         resp = self.api.copy_untitled(u'ç d.ipynb', path=u'å b')
@@ -416,9 +415,7 @@ class APITest(NotebookTestBase):
         resp = self.api.read('a.ipynb', 'foo')
         nbcontent = json.loads(resp.text)['content']
         nb = to_notebook_json(nbcontent)
-        ws = new_worksheet()
-        nb.worksheets = [ws]
-        ws.cells.append(new_heading_cell(u'Created by test ³'))
+        nb.cells.append(new_heading_cell(u'Created by test ³'))
 
         nbmodel= {'name': 'a.ipynb', 'path':'foo', 'content': nb, 'type': 'notebook'}
         resp = self.api.save('a.ipynb', path='foo', body=json.dumps(nbmodel))
@@ -426,11 +423,11 @@ class APITest(NotebookTestBase):
         nbfile = pjoin(self.notebook_dir.name, 'foo', 'a.ipynb')
         with io.open(nbfile, 'r', encoding='utf-8') as f:
             newnb = read(f, format='ipynb')
-        self.assertEqual(newnb.worksheets[0].cells[0].source,
+        self.assertEqual(newnb.cells[0].source,
                          u'Created by test ³')
         nbcontent = self.api.read('a.ipynb', 'foo').json()['content']
         newnb = to_notebook_json(nbcontent)
-        self.assertEqual(newnb.worksheets[0].cells[0].source,
+        self.assertEqual(newnb.cells[0].source,
                          u'Created by test ³')
 
         # Save and rename
@@ -455,10 +452,8 @@ class APITest(NotebookTestBase):
         # Modify it
         nbcontent = json.loads(resp.text)['content']
         nb = to_notebook_json(nbcontent)
-        ws = new_worksheet()
-        nb.worksheets = [ws]
         hcell = new_heading_cell('Created by test')
-        ws.cells.append(hcell)
+        nb.cells.append(hcell)
         # Save
         nbmodel= {'name': 'a.ipynb', 'path':'foo', 'content': nb, 'type': 'notebook'}
         resp = self.api.save('a.ipynb', path='foo', body=json.dumps(nbmodel))
@@ -469,14 +464,14 @@ class APITest(NotebookTestBase):
 
         nbcontent = self.api.read('a.ipynb', 'foo').json()['content']
         nb = to_notebook_json(nbcontent)
-        self.assertEqual(nb.worksheets[0].cells[0].source, 'Created by test')
+        self.assertEqual(nb.cells[0].source, 'Created by test')
 
         # Restore cp1
         r = self.api.restore_checkpoint('a.ipynb', 'foo', cp1['id'])
         self.assertEqual(r.status_code, 204)
         nbcontent = self.api.read('a.ipynb', 'foo').json()['content']
         nb = to_notebook_json(nbcontent)
-        self.assertEqual(nb.worksheets, [])
+        self.assertEqual(nb.cells, [])
 
         # Delete cp1
         r = self.api.delete_checkpoint('a.ipynb', 'foo', cp1['id'])
