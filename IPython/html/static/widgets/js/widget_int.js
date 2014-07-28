@@ -24,7 +24,6 @@ define([
             this.$slider_container = $('<div />')
                 .addClass('widget-hslider')
                 .append(this.$slider);
-            this.$el_to_style = this.$slider_container; // Set default element to style
             this.$el.append(this.$slider_container);
             
             this.$readout = $('<div/>')
@@ -158,7 +157,6 @@ define([
                 .addClass('form-control')
                 .addClass('widget-numeric-text')
                 .appendTo(this.$el);
-            this.$el_to_style = this.$textbox; // Set default element to style
             this.update(); // Set defaults.
         },
         
@@ -262,7 +260,6 @@ define([
                 .addClass('progress')
                 .addClass('widget-progress')
                 .appendTo(this.$el);
-            this.$el_to_style = this.$progress; // Set default element to style
             this.$bar = $('<div />')
                 .addClass('progress-bar')
                 .css('width', '50%')
