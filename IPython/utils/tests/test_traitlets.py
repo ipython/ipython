@@ -19,7 +19,7 @@ from IPython.utils.traitlets import (
     HasTraits, MetaHasTraits, TraitType, Any, CBytes, Dict,
     Int, Long, Integer, Float, Complex, Bytes, Unicode, TraitError,
     Undefined, Type, This, Instance, TCPAddress, List, Tuple,
-    ObjectName, DottedObjectName, CRegExp, link
+    ObjectName, DottedObjectName, CRegExp, link, EventfulList, EventfulDict
 )
 from IPython.utils import py3compat
 from IPython.testing.decorators import skipif
@@ -1034,7 +1034,7 @@ class TestCRegExp(TraitTestBase):
 
     _default_value = re.compile(r'')
     _good_values = [r'\d+', re.compile(r'\d+')]
-    _bad_values = [r'(', None, ()]
+    _bad_values = ['(', None, ()]
 
 class DictTrait(HasTraits):
     value = Dict()
@@ -1171,4 +1171,83 @@ def test_pickle_hastraits():
         c2 = pickle.loads(p)
         nt.assert_equal(c2.i, c.i)
         nt.assert_equal(c2.j, c.j)
-    
+
+class TestEventful(TestCase):
+
+    def test_list(self):
+        """Does the EventfulList work?"""
+        event_cache = []
+
+        class A(HasTraits):
+            x = EventfulList([c for c in 'abc'])
+        a = A()
+
+        def handle_insert(index, value):
+            event_cache.append('insert')
+        def handle_del(index):
+            event_cache.append('del')
+        def handle_set(index, value):
+            event_cache.append('set')
+        def handle_reverse():
+            event_cache.append('reverse')
+        def handle_sort(*pargs, **kwargs):
+            event_cache.append('sort')
+        a.x.on_insert(handle_insert)
+        a.x.on_del(handle_del)
+        a.x.on_set(handle_set)
+        a.x.on_reverse(handle_reverse)
+        a.x.on_sort(handle_sort)
+
+        a.x.remove('c')
+        # ab
+        a.x.insert(0, 'z')
+        # zab
+        del a.x[1]
+        # zb
+        a.x.reverse()
+        # bz 
+        a.x[1] = 'o'
+        # bo
+        a.x.append('a')
+        # boa
+        a.x.sort()
+        # abo
+
+        # Were the correct events captured?
+        self.assertEqual(event_cache, ['del', 'insert', 'del', 'reverse', 'set', 'set', 'sort'])
+
+        # Is the output correct?
+        self.assertEqual(a.x, [c for c in 'abo'])
+
+    def test_dict(self):
+        """Does the EventfulDict work?"""
+        event_cache = []
+
+        class A(HasTraits):
+            x = EventfulDict({c: c for c in 'abc'})
+        a = A()
+
+        def handle_add(key, value):
+            event_cache.append('add')
+        def handle_del(key):
+            event_cache.append('del')
+        def handle_set(key, value):
+            event_cache.append('set')
+        a.x.on_add(handle_add)
+        a.x.on_del(handle_del)
+        a.x.on_set(handle_set)
+
+        del a.x['c']
+        # ab
+        a.x['z'] = 1
+        # abz
+        a.x['z'] = 'z'
+        # abz
+        a.x.pop('a')
+        # bz 
+
+        # Were the correct events captured?
+        self.assertEqual(event_cache, ['del', 'add', 'set', 'del'])
+
+        # Is the output correct?
+        self.assertEqual(a.x, {c: c for c in 'bz'})
