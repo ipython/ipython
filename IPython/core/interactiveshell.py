@@ -741,7 +741,11 @@ class InteractiveShell(SingletonConfigurable):
         while os.path.islink(p):
             p = os.path.join(os.path.dirname(p), os.readlink(p))
             paths.append(p)
-        if any(p.startswith(os.environ['VIRTUAL_ENV']) for p in paths):
+        # Resolve VIRTUAL_ENV.
+        virtualenv = os.environ['VIRTUAL_ENV']
+        if os.path.islink(virtualenv):
+            virtualenv = os.readlink(virtualenv)
+        if any(p.startswith(virtualenv) for p in paths):
             # Running properly in the virtualenv, don't need to do anything
             return
         
