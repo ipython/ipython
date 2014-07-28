@@ -405,17 +405,19 @@ define(["widgets/js/manager",
 
 
     var DOMWidgetView = WidgetView.extend({
-        initialize: function (options) {
+        initialize: function (parameters) {
             // Public constructor
-
-            // In the future we may want to make changes more granular 
-            // (e.g., trigger on visible:change).
-            this.model.on('change', this.update, this);
-            this.model.on('msg:custom', this.on_msg, this);
-            DOMWidgetView.__super__.initialize.apply(this, arguments);
+            DOMWidgetView.__super__.initialize.apply(this, [parameters]);
             this.on('displayed', this.show, this);
+            this.after_displayed(function() {
+                this.update_visible(this.model, this.model.get("visible"));
+                this.update_css(this.model, this.model.get("_css"));
+            }, this);
+            this.model.on('msg:custom', this.on_msg, this);
+            this.model.on('change:visible', this.update_visible, this);
+            this.model.on('change:_css', this.update_css, this);
         },
-        
+
         on_msg: function(msg) {
             // Handle DOM specific msgs.
             switch(msg.msg_type) {
@@ -432,25 +434,20 @@ define(["widgets/js/manager",
             // Add a DOM class to an element.
             this._get_selector_element(selector).addClass(class_list);
         },
-        
+
         remove_class: function (selector, class_list) {
             // Remove a DOM class from an element.
             this._get_selector_element(selector).removeClass(class_list);
         },
-    
-        update: function () {
-            // Update the contents of this view
-            //
-            // Called when the model is changed.  The model may have been 
-            // changed by another view or by a state update from the back-end.
-            //      The very first update seems to happen before the element is 
-            // finished rendering so we use setTimeout to give the element time 
-            // to render
+
+        update_visible: function(model, value) {
+            // Update visibility
+            this.$el.toggle(value);
+         },
+
+        update_css: function (model, css) {
+            // Update the css styling of this view.
             var e = this.$el;
-            var visible = this.model.get('visible');
-            setTimeout(function() {e.toggle(visible);},0);
-     
-            var css = this.model.get('_css');
             if (css === undefined) {return;}
             for (var i = 0; i < css.length; i++) {
                 // Apply the css traits to all elements that match the selector.

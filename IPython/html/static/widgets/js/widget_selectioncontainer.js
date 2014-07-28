@@ -30,14 +30,6 @@ define([
             var that = this;
             this.on('displayed', function() {
                 this.update_titles();
-                // Trigger model displayed events for any models that are child to 
-                // this model when this model is displayed.
-                that.is_displayed = true;
-                for (var property in that.child_views) {
-                    if (that.child_views.hasOwnProperty(property)) {
-                        that.child_views[property].trigger('displayed');
-                    }
-                }
             }, this);
         },
 
@@ -127,10 +119,10 @@ define([
             this.update();
             this.update_titles();
 
-            // Trigger the displayed event if this model is displayed.
-            if (this.is_displayed) {
+            // Trigger the displayed event of the child view.
+            this.after_displayed(function() {
                 view.trigger('displayed');
-            }
+            });
         },
     });
     
@@ -158,17 +150,6 @@ define([
             this.model.on('change:children', function(model, value, options) {
                 this.update_children(model.previous('children'), value);
             }, this);
-
-            // Trigger model displayed events for any models that are child to 
-            // this model when this model is displayed.
-            this.on('displayed', function(){
-                that.is_displayed = true;
-                for (var property in that.child_views) {
-                    if (that.child_views.hasOwnProperty(property)) {
-                        that.child_views[property].trigger('displayed');
-                    }
-                }
-            });
         },
 
         update_children: function(old_list, new_list) {
@@ -222,10 +203,10 @@ define([
                 .appendTo(this.$tab_contents);
             view.parent_container = contents_div;
 
-            // Trigger the displayed event if this model is displayed.
-            if (this.is_displayed) {
+            // Trigger the displayed event of the child view.
+            this.after_displayed(function() {
                 view.trigger('displayed');
-            }
+            });
         },
 
         update: function(options) {
