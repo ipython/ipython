@@ -1,25 +1,19 @@
 """
 Contains tests class for current.py
 """
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
+import io
+import json
+import tempfile
 
 from .base import TestsBase
 
 from ..reader import get_version
-from ..current import read, current_nbformat
+from ..current import read, current_nbformat, validate, writes
 
-#-----------------------------------------------------------------------------
-# Classes and functions
-#-----------------------------------------------------------------------------
 
 class TestCurrent(TestsBase):
 
@@ -29,8 +23,19 @@ class TestCurrent(TestsBase):
 
         # Open a version 2 notebook.
         with self.fopen(u'test2.ipynb', u'r') as f:
-            nb = read(f, u'json')
+            nb = read(f)
 
         # Check that the notebook was upgraded to the latest version automatically.
         (major, minor) = get_version(nb)
         self.assertEqual(major, current_nbformat)
+
+    def test_write_downgrade_2(self):
+        """dowgrade a v3 notebook to v2"""
+        # Open a version 3 notebook.
+        with self.fopen(u'test3.ipynb', 'r') as f:
+            nb = read(f, u'json')
+
+        jsons = writes(nb, version=2)
+        nb2 = json.loads(jsons)
+        (major, minor) = get_version(nb2)
+        self.assertEqual(major, 2)

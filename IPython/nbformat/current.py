@@ -101,7 +101,7 @@ def writes_py(nb, **kwargs):
 # High level API
 
 
-def reads(s, format, **kwargs):
+def reads(s, format='DEPRECATED', version=current_nbformat, **kwargs):
     """Read a notebook from a string and return the NotebookNode object.
 
     This function properly handles notebooks of any version. The notebook
@@ -111,24 +111,22 @@ def reads(s, format, **kwargs):
     ----------
     s : unicode
         The raw unicode string to read the notebook from.
-    format : (u'json', u'ipynb', u'py')
-        The format that the string is in.
 
     Returns
     -------
     nb : NotebookNode
         The notebook that was read.
     """
-    format = unicode_type(format)
-    if format == u'json' or format == u'ipynb':
-        return reads_json(s, **kwargs)
-    elif format == u'py':
-        return reads_py(s, **kwargs)
-    else:
-        raise NBFormatError('Unsupported format: %s' % format)
+    nb = versions[version].reads_json(s, **kwargs)
+    nb = convert(nb, version)
+    try:
+        validate(nb)
+    except ValidationError as e:
+        get_logger().error("Notebook JSON is invalid: %s", e)
+    return nb
 
 
-def writes(nb, format, **kwargs):
+def writes(nb, format='DEPRECATED', version=current_nbformat, **kwargs):
     """Write a notebook to a string in a given format in the current nbformat version.
 
     This function always writes the notebook in the current nbformat version.
@@ -137,24 +135,24 @@ def writes(nb, format, **kwargs):
     ----------
     nb : NotebookNode
         The notebook to write.
-    format : (u'json', u'ipynb', u'py')
-        The format to write the notebook in.
+    version : int
+        The nbformat version to write.
+        Used for downgrading notebooks.
 
     Returns
     -------
     s : unicode
         The notebook string.
     """
-    format = unicode_type(format)
-    if format == u'json' or format == u'ipynb':
-        return writes_json(nb, **kwargs)
-    elif format == u'py':
-        return writes_py(nb, **kwargs)
-    else:
-        raise NBFormatError('Unsupported format: %s' % format)
+    try:
+        validate(nb)
+    except ValidationError as e:
+        get_logger().error("Notebook JSON is invalid: %s", e)
+    nb = convert(nb, version)
+    return versions[version].writes_json(nb, **kwargs)
 
 
-def read(fp, format, **kwargs):
+def read(fp, format='DEPRECATED', **kwargs):
     """Read a notebook from a file and return the NotebookNode object.
 
     This function properly handles notebooks of any version. The notebook
@@ -164,18 +162,16 @@ def read(fp, format, **kwargs):
     ----------
     fp : file
         Any file-like object with a read method.
-    format : (u'json', u'ipynb', u'py')
-        The format that the string is in.
 
     Returns
     -------
     nb : NotebookNode
         The notebook that was read.
     """
-    return reads(fp.read(), format, **kwargs)
+    return reads(fp.read(), **kwargs)
 
 
-def write(nb, fp, format, **kwargs):
+def write(nb, fp, format='DEPRECATED', **kwargs):
     """Write a notebook to a file in a given format in the current nbformat version.
 
     This function always writes the notebook in the current nbformat version.
@@ -194,7 +190,7 @@ def write(nb, fp, format, **kwargs):
     s : unicode
         The notebook string.
     """
-    return fp.write(writes(nb, format, **kwargs))
+    return fp.write(writes(nb, **kwargs))
 
 def _convert_to_metadata():
     """Convert to a notebook having notebook metadata."""
