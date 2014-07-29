@@ -732,26 +732,16 @@ class InteractiveShell(SingletonConfigurable):
             # Not in a virtualenv
             return
         
-        # Handle no symbolic link case first.
-        if not os.path.islink(sys.executable):
-            # Adapted from pip.locations.running_under_virtualenv
-            if hasattr(sys, 'real_prefix'):
-                # Running properly in a virtualenv
-                return
-            elif sys.prefix != getattr(sys, "base_prefix", sys.prefix):
-                # Running properly in a venv
-                return
-
         # venv detection:
         # stdlib venv may symlink sys.executable, so we can't use realpath.
         # but others can symlink *to* the venv Python, so we can't just use sys.executable.
         # So we just check every item in the symlink tree (generally <= 3)
-        p = sys.executable
+        p = os.path.normcase(sys.executable)
         paths = [p]
         while os.path.islink(p):
-            p = os.path.join(os.path.dirname(p), os.readlink(p))
+            p = os.path.normcase(os.path.join(os.path.dirname(p), os.readlink(p)))
             paths.append(p)
-        if any(p.startswith(os.environ['VIRTUAL_ENV']) for p in paths):
+        if any(p.startswith(os.path.normcase(os.environ['VIRTUAL_ENV'])) for p in paths):
             # Running properly in the virtualenv, don't need to do anything
             return
         
