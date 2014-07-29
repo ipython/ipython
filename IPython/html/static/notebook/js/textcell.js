@@ -164,8 +164,8 @@ define([
      * */
     TextCell.prototype.set_text = function(text) {
         this.code_mirror.setValue(text);
+        this.unrender();
         this.code_mirror.refresh();
-        this.rendered = false;
     };
 
     /**
