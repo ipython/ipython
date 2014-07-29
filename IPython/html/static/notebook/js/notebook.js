@@ -130,9 +130,9 @@ define([
         };
 
         // Trigger cell toolbar registration.
-        default_celltoolbar.register(this, options.events);
-        rawcell_celltoolbar.register(this, options.events);
-        slideshow_celltoolbar.register(this, options.events);
+        default_celltoolbar.register(this);
+        rawcell_celltoolbar.register(this);
+        slideshow_celltoolbar.register(this);
     };
 
     /**
@@ -2274,7 +2274,7 @@ define([
         // load toolbar state
         if (this.metadata.celltoolbar) {
             celltoolbar.CellToolbar.global_show();
-            celltoolbar.CellToolbar.activate_preset(this.metadata.celltoolbar, this.events);
+            celltoolbar.CellToolbar.activate_preset(this.metadata.celltoolbar);
         } else {
             celltoolbar.CellToolbar.global_hide();
         }

@@ -4,7 +4,8 @@
 define([
     'base/js/namespace',
     'jquery',
-], function(IPython, $) {
+    'base/js/events'
+], function(IPython, $, events) {
     "use strict";
 
     var CellToolbar = function (options) {
@@ -18,7 +19,6 @@ define([
         //          notebook: Notebook instance 
         CellToolbar._instances.push(this);
         this.notebook = options.notebook;
-        this.events = options.events;
         this.cell = options.cell;
         this.create_element();
         this.rebuild();
@@ -175,13 +175,14 @@ define([
      *      CellToolbar.register_preset('foo.foo_preset1', ['foo.c1', 'foo.c2', 'foo.c5'])
      *      CellToolbar.register_preset('foo.foo_preset2', ['foo.c4', 'foo.c5'])
      */
-    CellToolbar.register_preset = function(name, preset_list, notebook, events) {
+    CellToolbar.register_preset = function(name, preset_list, notebook) {
         CellToolbar._presets[name] = preset_list;
         events.trigger('preset_added.CellToolbar', {name: name});
         // When "register_callback" is called by a custom extension, it may be executed after notebook is loaded.
         // In that case, activate the preset if needed.
-        if (notebook && notebook.metadata && notebook.metadata.celltoolbar === name)
-            CellToolbar.activate_preset(name, events);
+        if (notebook && notebook.metadata && notebook.metadata.celltoolbar === name){
+            CellToolbar.activate_preset(name);
+        }
     };
 
 
@@ -214,7 +215,7 @@ define([
      *
      *      CellToolbar.activate_preset('foo.foo_preset1');
      */
-    CellToolbar.activate_preset = function(preset_name, events){
+    CellToolbar.activate_preset = function(preset_name){
         var preset = CellToolbar._presets[preset_name];
 
         if(preset !== undefined){
@@ -222,9 +223,7 @@ define([
             CellToolbar.rebuild_all();
         }
 
-        if (events) {
-            events.trigger('preset_activated.CellToolbar', {name: preset_name});
-        }
+        events.trigger('preset_activated.CellToolbar', {name: preset_name});
     };
 
 

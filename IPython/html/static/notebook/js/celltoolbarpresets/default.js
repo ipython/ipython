@@ -34,7 +34,7 @@ define([
         button_container.append(button);
     };
 
-    var register = function (notebook, events) {
+    var register = function (notebook) {
         CellToolbar.register_callback('default.rawedit', add_raw_edit_button);
         raw_edit = $.proxy(raw_edit, {
             notebook: notebook,
@@ -44,7 +44,7 @@ define([
         var example_preset = [];
         example_preset.push('default.rawedit');
 
-        CellToolbar.register_preset('Edit Metadata', example_preset, notebook, events);
+        CellToolbar.register_preset('Edit Metadata', example_preset, notebook);
         console.log('Default extension for cell metadata editing loaded.');
     };
     return {'register': register};

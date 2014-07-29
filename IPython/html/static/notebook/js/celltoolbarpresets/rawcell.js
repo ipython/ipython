@@ -74,11 +74,11 @@ define([
       "Raw NBConvert Format"
   );
 
-  var register = function (notebook, events) {
+  var register = function (notebook) {
     CellToolbar.register_callback('raw_cell.select', select_type, ['raw']);
     raw_cell_preset.push('raw_cell.select');
 
-    CellToolbar.register_preset('Raw Cell Format', raw_cell_preset, notebook, events);
+    CellToolbar.register_preset('Raw Cell Format', raw_cell_preset, notebook);
     console.log('Raw Cell Format toolbar preset loaded.');
   };
   return {'register': register};
