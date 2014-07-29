@@ -53,7 +53,6 @@ class TreeHandler(IPythonHandler):
             breadcrumbs = self.generate_breadcrumbs(path)
             page_title = self.generate_page_title(path)
             self.write(self.render_template('tree.html',
-                project=self.project_dir,
                 page_title=page_title,
                 notebook_path=path,
                 breadcrumbs=breadcrumbs

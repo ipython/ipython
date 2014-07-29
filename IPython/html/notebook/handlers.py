@@ -31,7 +31,6 @@ class NotebookHandler(IPythonHandler):
         name = url_escape(name)
         path = url_escape(path)
         self.write(self.render_template('notebook.html',
-            project=self.project_dir,
             notebook_path=path,
             notebook_name=name,
             kill_kernel=False,

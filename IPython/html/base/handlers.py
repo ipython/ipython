@@ -156,10 +156,6 @@ class IPythonHandler(AuthenticatedHandler):
     def kernel_spec_manager(self):
         return self.settings['kernel_spec_manager']
 
-    @property
-    def project_dir(self):
-        return getattr(self.contents_manager, 'root_dir', '/')
-    
     #---------------------------------------------------------------
     # CORS
     #---------------------------------------------------------------
