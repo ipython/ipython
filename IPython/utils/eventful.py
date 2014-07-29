@@ -1,5 +1,8 @@
 """Contains eventful dict and list implementations."""
 
+# void function used as a callback placeholder.
+def _void(*p, **k): return None
+
 class EventfulDict(dict):
     """Eventful dictionary.
 
@@ -17,9 +20,9 @@ class EventfulDict(dict):
 
     def __init__(self, *args, **kwargs):
         """Public constructor"""
-        self._add_callback = None
-        self._del_callback = None
-        self._set_callback = None
+        self._add_callback = _void
+        self._del_callback = _void
+        self._set_callback = _void
         dict.__init__(self, *args, **kwargs)
 
     def on_add(self, callback):
@@ -33,7 +36,10 @@ class EventfulDict(dict):
             The callback should have a signature of callback(key, value).  The
             callback should return a boolean True if the additon should be
             canceled, False or None otherwise."""
-        self._add_callback = callback
+        if callable(callback):
+            self._add_callback = callback
+        else:
+            self._add_callback = _void
 
     def on_del(self, callback):
         """Register a callback for when an item is deleted from the dict.
@@ -46,7 +52,10 @@ class EventfulDict(dict):
             The callback should have a signature of callback(key).  The
             callback should return a boolean True if the deletion should be
             canceled, False or None otherwise."""
-        self._del_callback = callback
+        if callable(callback):
+            self._del_callback = callback
+        else:
+            self._del_callback = _void
 
     def on_set(self, callback):
         """Register a callback for when an item is changed in the dict.
@@ -59,28 +68,10 @@ class EventfulDict(dict):
             The callback should have a signature of callback(key, value).  The
             callback should return a boolean True if the change should be
             canceled, False or None otherwise."""
-        self._set_callback = callback
-
-    def _can_add(self, key, value):
-        """Check if the item can be added to the dict."""
-        if callable(self._add_callback):
-            return not bool(self._add_callback(key, value))
+        if callable(callback):
+            self._set_callback = callback
         else:
-            return True
-
-    def _can_del(self, key):
-        """Check if the item can be deleted from the dict."""
-        if callable(self._del_callback):
-            return not bool(self._del_callback(key))
-        else:
-            return True
-
-    def _can_set(self, key, value):
-        """Check if the item can be changed in the dict."""
-        if callable(self._set_callback):
-            return not bool(self._set_callback(key, value))
-        else:
-            return True
+            self._set_callback = _void
 
     def pop(self, key):
         """Returns the value of an item in the dictionary and then deletes the
@@ -92,7 +83,7 @@ class EventfulDict(dict):
 
     def popitem(self):
         """Pop the next key/value pair from the dictionary."""
-        key = dict.keys(self)[0]
+        key = next(iter(self))
         return key, self.pop(key)
 
     def update(self, other_dict):
@@ -115,6 +106,18 @@ class EventfulDict(dict):
         if self._can_del(key):
             return dict.__delitem__(self, key)
 
+    def _can_add(self, key, value):
+        """Check if the item can be added to the dict."""
+        return not bool(self._add_callback(key, value))
+
+    def _can_del(self, key):
+        """Check if the item can be deleted from the dict."""
+        return not bool(self._del_callback(key))
+
+    def _can_set(self, key, value):
+        """Check if the item can be changed in the dict."""
+        return not bool(self._set_callback(key, value))
+
 
 class EventfulList(list):
     """Eventful list.
@@ -131,11 +134,11 @@ class EventfulList(list):
 
     def __init__(self, *pargs, **kwargs):
         """Public constructor"""
-        self._insert_callback = None
-        self._set_callback = None
-        self._del_callback = None
-        self._sort_callback = None
-        self._reverse_callback = None
+        self._insert_callback = _void
+        self._set_callback = _void
+        self._del_callback = _void
+        self._sort_callback = _void
+        self._reverse_callback = _void
         list.__init__(self, *pargs, **kwargs)
 
     def on_insert(self, callback):
@@ -149,7 +152,10 @@ class EventfulList(list):
             The callback should have a signature of callback(index, value).  The
             callback should return a boolean True if the insertion should be
             canceled, False or None otherwise."""
-        self._insert_callback = callback
+        if callable(callback):
+            self._insert_callback = callback
+        else:
+            self._insert_callback = _void
 
     def on_del(self, callback):
         """Register a callback for item deletion.
@@ -162,7 +168,10 @@ class EventfulList(list):
             The callback should have a signature of callback(index).  The
             callback should return a boolean True if the deletion should be
             canceled, False or None otherwise."""
-        self._del_callback = callback
+        if callable(callback):
+            self._del_callback = callback
+        else:
+            self._del_callback = _void
         
     def on_set(self, callback):
         """Register a callback for items are set.
@@ -176,7 +185,10 @@ class EventfulList(list):
             The callback should have a signature of callback(index, value).  The
             callback should return a boolean True if the set should be
             canceled, False or None otherwise."""
-        self._set_callback = callback
+        if callable(callback):
+            self._set_callback = callback
+        else:
+            self._set_callback = _void
         
     def on_reverse(self, callback):
         """Register a callback for list reversal.
@@ -186,7 +198,10 @@ class EventfulList(list):
             The callback should have a signature of callback().  The
             callback should return a boolean True if the reverse should be
             canceled, False or None otherwise."""
-        self._reverse_callback = callback
+        if callable(callback):
+            self._reverse_callback = callback
+        else:
+            self._reverse_callback = _void
         
     def on_sort(self, callback):
         """Register a callback for sortting of the list.
@@ -197,42 +212,10 @@ class EventfulList(list):
             method or `callback(*pargs, **kwargs)` as a catch all. The callback 
             should return a boolean True if the reverse should be canceled, 
             False or None otherwise."""
-        self._sort_callback = callback
-    
-    def _can_insert(self, index, value):
-        """Check if the item can be inserted."""
-        if callable(self._insert_callback):
-            return not bool(self._insert_callback(index, value))
+        if callable(callback):
+            self._sort_callback = callback
         else:
-            return True
-
-    def _can_del(self, index):
-        """Check if the item can be deleted."""
-        if callable(self._del_callback):
-            return not bool(self._del_callback(index))
-        else:
-            return True
-
-    def _can_set(self, index, value):
-        """Check if the item can be set."""
-        if callable(self._set_callback):
-            return not bool(self._set_callback(index, value))
-        else:
-            return True
-
-    def _can_reverse(self):
-        """Check if the list can be reversed."""
-        if callable(self._reverse_callback):
-            return not bool(self._reverse_callback())
-        else:
-            return True
-
-    def _can_sort(self, *pargs, **kwargs):
-        """Check if the list can be sorted."""
-        if callable(self._sort_callback):
-            return not bool(self._sort_callback(*pargs, **kwargs))
-        else:
-            return True
+            self._sort_callback = _void
         
     def append(self, x):
         """Add an item to the end of the list."""
@@ -287,3 +270,23 @@ class EventfulList(list):
     def __setslice__(self, start, end, value):
         if self._can_set(slice(start, end), value):
             list.__setslice__(self, start, end, value)
+    
+    def _can_insert(self, index, value):
+        """Check if the item can be inserted."""
+        return not bool(self._insert_callback(index, value))
+
+    def _can_del(self, index):
+        """Check if the item can be deleted."""
+        return not bool(self._del_callback(index))
+
+    def _can_set(self, index, value):
+        """Check if the item can be set."""
+        return not bool(self._set_callback(index, value))
+
+    def _can_reverse(self):
+        """Check if the list can be reversed."""
+        return not bool(self._reverse_callback())
+
+    def _can_sort(self, *pargs, **kwargs):
+        """Check if the list can be sorted."""
+        return not bool(self._sort_callback(*pargs, **kwargs))
