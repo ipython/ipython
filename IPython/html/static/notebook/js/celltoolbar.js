@@ -5,7 +5,7 @@ define([
     'base/js/namespace',
     'jquery',
     'base/js/events'
-], function(IPython, $, ipevents) {
+], function(IPython, $, events) {
     "use strict";
 
     var CellToolbar = function (options) {
@@ -177,7 +177,7 @@ define([
      */
     CellToolbar.register_preset = function(name, preset_list, notebook) {
         CellToolbar._presets[name] = preset_list;
-        ipevents.trigger('preset_added.CellToolbar', {name: name});
+        events.trigger('preset_added.CellToolbar', {name: name});
         // When "register_callback" is called by a custom extension, it may be executed after notebook is loaded.
         // In that case, activate the preset if needed.
         if (notebook && notebook.metadata && notebook.metadata.celltoolbar === name){
@@ -223,7 +223,7 @@ define([
             CellToolbar.rebuild_all();
         }
 
-        ipevents.trigger('preset_activated.CellToolbar', {name: preset_name});
+        events.trigger('preset_activated.CellToolbar', {name: preset_name});
     };
 
 
