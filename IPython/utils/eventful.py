@@ -25,19 +25,18 @@ class EventfulDict(dict):
         self._set_callback = _void
         dict.__init__(self, *args, **kwargs)
 
-    def on_events(self, *callbacks):
+    def on_events(self, add_callback=None, set_callback=None, del_callback=None):
         """Register callbacks for add, set, and del actions.
 
         See the doctstrings for on_(add/set/del) for details about each 
         callback.
 
-        add_callback: callback or None
-        set_callback: callback or None
-        del_callback: callback or None"""
-        registers = ['on_add', 'on_set', 'on_del']
-        if len(callbacks) < len(registers):
-            raise ValueError('on_events takes {} callbacks'.format(len(registers)))
-        [getattr(self, n)(callbacks[i]) for i, n in enumerate(registers)]
+        add_callback: [callback = None]
+        set_callback: [callback = None]
+        del_callback: [callback = None]"""
+        self.on_add(add_callback)
+        self.on_set(set_callback)
+        self.on_del(del_callback)
 
     def on_add(self, callback):
         """Register a callback for when an item is added to the dict.
@@ -146,21 +145,23 @@ class EventfulList(list):
         self._reverse_callback = _void
         list.__init__(self, *pargs, **kwargs)
 
-    def on_events(self, *callbacks):
+    def on_events(self, insert_callback=None, set_callback=None, 
+        del_callback=None, reverse_callback=None, sort_callback=None):
         """Register callbacks for add, set, and del actions.
 
         See the doctstrings for on_(insert/set/del/reverse/sort) for details 
         about each callback.
 
-        insert_callback: callback or None
-        set_callback: callback or None
-        del_callback: callback or None
-        reverse_callback: callback or None
-        sort_callback: callback or None"""
-        registers = ['on_insert', 'on_set', 'on_del', 'on_reverse', 'on_sort']
-        if len(callbacks) < len(registers):
-            raise ValueError('on_events takes {} callbacks'.format(len(registers)))
-        [getattr(self, n)(callbacks[i]) for i, n in enumerate(registers)]
+        insert_callback: [callback = None]
+        set_callback: [callback = None]
+        del_callback: [callback = None]
+        reverse_callback: [callback = None]
+        sort_callback: [callback = None]"""
+        this.on_insert(insert_callback)
+        this.on_set(set_callback)
+        this.on_del(del_callback)
+        this.on_reverse(reverse_callback)
+        this.on_sort(sort_callback)
 
     def on_insert(self, callback):
         """Register a callback for when an item is inserted into the list.
