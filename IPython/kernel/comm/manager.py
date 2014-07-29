@@ -109,13 +109,11 @@ class CommManager(LoggingConfigurable):
             self.log.error("No such comm target registered: %s", target_name)
             comm.close()
             return
-        self.register_comm(comm)
         try:
             f(comm, msg)
         except Exception:
             self.log.error("Exception opening comm with target: %s", target_name, exc_info=True)
             comm.close()
-            self.unregister_comm(comm)
     
     def comm_msg(self, stream, ident, msg):
         """Handler for comm_msg messages"""
