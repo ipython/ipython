@@ -157,11 +157,11 @@ class EventfulList(list):
         del_callback: [callback = None]
         reverse_callback: [callback = None]
         sort_callback: [callback = None]"""
-        this.on_insert(insert_callback)
-        this.on_set(set_callback)
-        this.on_del(del_callback)
-        this.on_reverse(reverse_callback)
-        this.on_sort(sort_callback)
+        self.on_insert(insert_callback)
+        self.on_set(set_callback)
+        self.on_del(del_callback)
+        self.on_reverse(reverse_callback)
+        self.on_sort(sort_callback)
 
     def on_insert(self, callback):
         """Register a callback for when an item is inserted into the list.
