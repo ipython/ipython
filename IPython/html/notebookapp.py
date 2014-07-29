@@ -265,6 +265,11 @@ flags['no-mathjax']=(
     """
 )
 
+# Add notebook manager flags
+flags.update(boolean_flag('script', 'FileContentsManager.save_script',
+               'DEPRECATED, IGNORED',
+               'DEPRECATED, IGNORED'))
+
 aliases = dict(base_aliases)
 
 aliases.update({

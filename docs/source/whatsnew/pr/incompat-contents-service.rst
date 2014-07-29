@@ -3,4 +3,4 @@
   which supports all kinds of files.
 - The Dashboard now lists all files, not just notebooks and directories.
 - The ``--script`` hook for saving notebooks to Python scripts is removed,
-  use ``ipython nbconvert --to python [notebook]`` instead.
+  use :samp:`ipython nbconvert --to python {notebook}` instead.

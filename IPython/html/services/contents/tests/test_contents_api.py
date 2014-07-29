@@ -303,6 +303,10 @@ class APITest(NotebookTestBase):
         resp = self.api.mkdir(u'New ∂ir', path=u'å b')
         self._check_created(resp, u'New ∂ir', u'å b', type='directory')
 
+    def test_mkdir_hidden_400(self):
+        with assert_http_error(400):
+            resp = self.api.mkdir(u'.hidden', path=u'å b')
+
     def test_upload_txt(self):
         body = u'ünicode téxt'
         model = {

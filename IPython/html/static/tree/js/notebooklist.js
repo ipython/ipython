@@ -382,7 +382,20 @@ define([
                 if (file_ext === '.ipynb') {
                     model.type = 'notebook';
                     model.format = 'json';
-                    model.content = JSON.parse(filedata);
+                    try {
+                        model.content = JSON.parse(filedata);
+                    } catch (e) {
+                        dialog.modal({
+                            title : 'Cannot upload invalid Notebook',
+                            body : "The error was: " + e,
+                            buttons : {'OK' : {
+                                'class' : 'btn-primary',
+                                click: function () {
+                                    item.remove();
+                                }
+                            }}
+                        });
+                    }
                     content_type = 'application/json';
                 } else {
                     model.type = 'file';

@@ -113,6 +113,9 @@ def is_hidden(abs_path, abs_root=''):
     # check UF_HIDDEN on any location up to root
     path = abs_path
     while path and path.startswith(abs_root) and path != abs_root:
+        if not os.path.exists(path):
+            path = os.path.dirname(path)
+            continue
         try:
             # may fail on Windows junctions
             st = os.stat(path)

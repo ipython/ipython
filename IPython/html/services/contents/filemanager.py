@@ -17,12 +17,19 @@ from IPython.utils.path import ensure_dir_exists
 from IPython.utils.traitlets import Unicode, Bool, TraitError
 from IPython.utils.py3compat import getcwd
 from IPython.utils import tz
-from IPython.html.utils import is_hidden, to_os_path
+from IPython.html.utils import is_hidden, to_os_path, url_path_join
 
 
 class FileContentsManager(ContentsManager):
 
     root_dir = Unicode(getcwd(), config=True)
+
+    save_script = Bool(False, config=True, help='DEPRECATED, IGNORED')
+    def _save_script_changed(self):
+        self.log.warn("""
+        Automatically saving notebooks as scripts has been removed.
+        Use `ipython nbconvert --to python [notebook]` instead.
+        """)
 
     def _root_dir_changed(self, name, old, new):
         """Do a bit of validation of the root_dir."""
@@ -30,7 +37,7 @@ class FileContentsManager(ContentsManager):
             # If we receive a non-absolute path, make it absolute.
             self.root_dir = os.path.abspath(new)
             return
-        if not os.path.exists(new) or not os.path.isdir(new):
+        if not os.path.isdir(new):
             raise TraitError("%r is not a directory" % new)
 
     checkpoint_dir = Unicode('.ipynb_checkpoints', config=True,
@@ -70,7 +77,7 @@ class FileContentsManager(ContentsManager):
             API path to be evaluated relative to root_dir.
         """
         if name is not None:
-            path = path + '/' + name
+            path = url_path_join(path, name)
         return to_os_path(path, self.root_dir)
 
     def path_exists(self, path):
@@ -177,11 +184,15 @@ class FileContentsManager(ContentsManager):
         """
         os_path = self._get_os_path(name, path)
 
+        four_o_four = u'directory does not exist: %r' % os_path
+
         if not os.path.isdir(os_path):
-            raise web.HTTPError(404, u'directory does not exist: %r' % os_path)
+            raise web.HTTPError(404, four_o_four)
         elif is_hidden(os_path, self.root_dir):
-            self.log.info("Refusing to serve hidden directory, via 404 Error")
-            raise web.HTTPError(404, u'directory does not exist: %r' % os_path)
+            self.log.info("Refusing to serve hidden directory %r, via 404 Error",
+                os_path
+            )
+            raise web.HTTPError(404, four_o_four)
 
         if name is None:
             if '/' in path:
@@ -212,14 +223,13 @@ class FileContentsManager(ContentsManager):
         model['type'] = 'file'
         if content:
             os_path = self._get_os_path(name, path)
+            with io.open(os_path, 'rb') as f:
+                bcontent = f.read()
             try:
-                with io.open(os_path, 'r', encoding='utf-8') as f:
-                    model['content'] = f.read()
+                model['content'] = bcontent.decode('utf8')
             except UnicodeError as e:
-                with io.open(os_path, 'rb') as f:
-                    bcontent = f.read()
-                    model['content'] = base64.encodestring(bcontent).decode('ascii')
-                    model['format'] = 'base64'
+                model['content'] = base64.encodestring(bcontent).decode('ascii')
+                model['format'] = 'base64'
             else:
                 model['format'] = 'text'
         return model
@@ -307,10 +317,14 @@ class FileContentsManager(ContentsManager):
 
     def _save_directory(self, os_path, model, name='', path=''):
         """create a directory"""
+        if is_hidden(os_path, self.root_dir):
+            raise web.HTTPError(400, u'Cannot create hidden directory %r' % os_path)
         if not os.path.exists(os_path):
             os.mkdir(os_path)
         elif not os.path.isdir(os_path):
             raise web.HTTPError(400, u'Not a directory: %s' % (os_path))
+        else:
+            self.log.debug("Directory %r already exists", os_path)
 
     def save(self, model, name='', path=''):
         """Save the file model and return the model with no content."""
@@ -372,7 +386,7 @@ class FileContentsManager(ContentsManager):
         if os.path.isdir(os_path):
             listing = os.listdir(os_path)
             # don't delete non-empty directories (checkpoints dir doesn't count)
-            if listing and listing != ['.ipynb_checkpoints']:
+            if listing and listing != [self.checkpoint_dir]:
                 raise web.HTTPError(400, u'Directory %s not empty' % os_path)
         elif not os.path.isfile(os_path):
             raise web.HTTPError(404, u'File does not exist: %s' % os_path)
