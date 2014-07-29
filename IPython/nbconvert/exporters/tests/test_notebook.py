@@ -3,6 +3,8 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import json
+
 from .base import ExportersTestsBase
 from ..notebook import NotebookExporter
 
@@ -17,6 +19,18 @@ class TestNotebookExporter(ExportersTestsBase):
         """
         with open(self._get_notebook()) as f:
             file_contents = f.read()
-        (output, resources) = NotebookExporter().from_filename(self._get_notebook())
+        (output, resources) = self.exporter_class().from_filename(self._get_notebook())
         assert len(output) > 0
-        assert output == file_contents
+        self.assertEqual(output, file_contents)
+
+    def test_downgrade_3(self):
+        exporter = self.exporter_class(nbformat_version=3)
+        (output, resources) = exporter.from_filename(self._get_notebook())
+        nb = json.loads(output)
+        self.assertEqual(nb['nbformat'], 3)
+
+    def test_downgrade_2(self):
+        exporter = self.exporter_class(nbformat_version=2)
+        (output, resources) = exporter.from_filename(self._get_notebook())
+        nb = json.loads(output)
+        self.assertEqual(nb['nbformat'], 2)
