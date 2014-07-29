@@ -15,8 +15,8 @@ class EventfulDict(dict):
     set `EventfulDict`s that wrap those `dict`s.  Then you can wire the events
     to the same handlers if necessary.
 
-    See the on_add, on_set, and on_del methods for registering an event
-    handler."""
+    See the on_events, on_add, on_set, and on_del methods for registering 
+    event handlers."""
 
     def __init__(self, *args, **kwargs):
         """Public constructor"""
@@ -24,6 +24,20 @@ class EventfulDict(dict):
         self._del_callback = _void
         self._set_callback = _void
         dict.__init__(self, *args, **kwargs)
+
+    def on_events(self, *callbacks):
+        """Register callbacks for add, set, and del actions.
+
+        See the doctstrings for on_(add/set/del) for details about each 
+        callback.
+
+        add_callback: callback or None
+        set_callback: callback or None
+        del_callback: callback or None"""
+        registers = ['on_add', 'on_set', 'on_del']
+        if len(callbacks) < len(registers):
+            raise ValueError('on_events takes {} callbacks'.format(len(registers)))
+        [getattr(self, n)(callbacks[i]) for i, n in enumerate(registers)]
 
     def on_add(self, callback):
         """Register a callback for when an item is added to the dict.
@@ -140,6 +154,22 @@ class EventfulList(list):
         self._sort_callback = _void
         self._reverse_callback = _void
         list.__init__(self, *pargs, **kwargs)
+
+    def on_events(self, *callbacks):
+        """Register callbacks for add, set, and del actions.
+
+        See the doctstrings for on_(insert/set/del/reverse/sort) for details 
+        about each callback.
+
+        insert_callback: callback or None
+        set_callback: callback or None
+        del_callback: callback or None
+        reverse_callback: callback or None
+        sort_callback: callback or None"""
+        registers = ['on_insert', 'on_set', 'on_del', 'on_reverse', 'on_sort']
+        if len(callbacks) < len(registers):
+            raise ValueError('on_events takes {} callbacks'.format(len(registers)))
+        [getattr(self, n)(callbacks[i]) for i, n in enumerate(registers)]
 
     def on_insert(self, callback):
         """Register a callback for when an item is inserted into the list.

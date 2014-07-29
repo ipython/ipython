@@ -1181,22 +1181,11 @@ class TestEventful(TestCase):
         class A(HasTraits):
             x = EventfulList([c for c in 'abc'])
         a = A()
-
-        def handle_insert(index, value):
-            event_cache.append('insert')
-        def handle_del(index):
-            event_cache.append('del')
-        def handle_set(index, value):
-            event_cache.append('set')
-        def handle_reverse():
-            event_cache.append('reverse')
-        def handle_sort(*pargs, **kwargs):
-            event_cache.append('sort')
-        a.x.on_insert(handle_insert)
-        a.x.on_del(handle_del)
-        a.x.on_set(handle_set)
-        a.x.on_reverse(handle_reverse)
-        a.x.on_sort(handle_sort)
+        a.x.on_events(lambda i, x: event_cache.append('insert'), \
+            lambda i, x: event_cache.append('set'), \
+            lambda i: event_cache.append('del'), \
+            lambda: event_cache.append('reverse'), \
+            lambda *p, **k: event_cache.append('sort'))
 
         a.x.remove('c')
         # ab
@@ -1226,16 +1215,9 @@ class TestEventful(TestCase):
         class A(HasTraits):
             x = EventfulDict({c: c for c in 'abc'})
         a = A()
-
-        def handle_add(key, value):
-            event_cache.append('add')
-        def handle_del(key):
-            event_cache.append('del')
-        def handle_set(key, value):
-            event_cache.append('set')
-        a.x.on_add(handle_add)
-        a.x.on_del(handle_del)
-        a.x.on_set(handle_set)
+        a.x.on_events(lambda k, v: event_cache.append('add'), \
+            lambda k, v: event_cache.append('set'), \
+            lambda k: event_cache.append('del'))
 
         del a.x['c']
         # ab
