@@ -163,7 +163,7 @@ class KernelManager(ConnectionFileMixin):
         """replace templated args (e.g. {connection_file})"""
         if self.kernel_cmd:
             cmd = self.kernel_cmd
-        elif self.kernel_name == 'python':
+        elif self.kernel_name == kernelspec.NATIVE_KERNEL_NAME:
             # The native kernel gets special handling
             cmd = make_ipkernel_cmd(
                 'from IPython.kernel.zmq.kernelapp import main; main()',
