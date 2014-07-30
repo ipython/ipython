@@ -32,13 +32,10 @@ define([
     };
 
     NotificationArea.prototype.temp_message = function (msg, timeout, css_class) {
-        var uuid = utils.uuid();
         if( css_class == 'danger') {css_class = 'ui-state-error';}
         if( css_class == 'warning') {css_class = 'ui-state-highlight';}
         var tdiv = $('<div>')
-            .attr('id',uuid)
-            .addClass('notification_widget ui-widget ui-widget-content ui-corner-all')
-            .addClass('border-box-sizing')
+            .addClass('notification_widget')
             .addClass(css_class)
             .hide()
             .text(msg);
@@ -94,7 +91,7 @@ define([
         });
 
         // Implicitly start off in Command mode, switching to Edit mode will trigger event
-        $modal_ind_icon.attr('class','command-mode_icon').attr('title','Command Mode');
+        $modal_ind_icon.attr('class','command_mode_icon').attr('title','Command Mode');
 
         // Kernel events
         this.events.on('status_idle.Kernel',function () {

@@ -121,8 +121,7 @@ define([
         this.notebook_name_blacklist_re = /[\/\\:]/;
         this.nbformat = 3; // Increment this when changing the nbformat
         this.nbformat_minor = 0; // Increment this when changing the nbformat
-        this.codemirror_mode = 'ipython'
-        this.style();
+        this.codemirror_mode = 'ipython';
         this.create_elements();
         this.bind_events();
         this.save_notebook = function() { // don't allow save until notebook_loaded
@@ -135,14 +134,6 @@ define([
         slideshow_celltoolbar.register(this);
     };
 
-    /**
-     * Tweak the notebook's CSS style.
-     * 
-     * @method style
-     */
-    Notebook.prototype.style = function () {
-        $('div#notebook').addClass('border-box-sizing');
-    };
 
     /**
      * Create an HTML and CSS representation of the notebook.
@@ -2140,8 +2131,7 @@ define([
     Notebook.prototype.rename_error = function (xhr, status, error) {
         var that = this;
         var dialog_body = $('<div/>').append(
-            $("<p/>").addClass("rename-message")
-            .text('This notebook name already exists.')
+            $("<p/>").text('This notebook name already exists.')
         );
         this.events.trigger('notebook_rename_failed.Notebook', [xhr, status, error]);
         dialog.modal({
