@@ -190,15 +190,46 @@ Haskell. Project Jupyter exists to recognize and foster this diversity: by
 separating Python-specific concepts and code from the language-agnostic
 portions—again enabled by the clean abstraction of the messaging protocol and
 file format—the Jupyter mission is to provide interactive computing tools for
-whatever communities might wish for them, thereby beginning a new era of
+whatever communities might wish for them, thereby helping to begin a new era of
 literate computing, data-driven journalism, and reproducible research.
 
 
 The Future is Now: Literate Computing
 -------------------------------------
 
-    (discuss growing trends in reproducible research, data-driven journalism,
-    etc.)
+As these technologies have matured and grown, they have served to highlight the
+differences between traditional software development practices and the needs
+and use pattern of scientists and data analysits. For decades, software
+thinkers have wrestled with the paradigms used to define the terms of
+development, the frame of reference employed to capture software problems and
+solutions. Paradigms like procedural, functional, and object oriented
+programming help us describe the kinds of problems we want to solve and the
+framework in which we attempt to solve them.
+
+These paradigms have served the software community well by offering a common
+language for articulating problems and solution approaches. However, as the
+availablility of computing technology has grown to a wider and more diverse
+audience, it has become evident that scientists and data analysts approach
+computing differently than software engineers; it is therefore unsurprising that
+the tools they need are different.
+
+*Literate computing* is the term of art used to describe this new approach. With
+a nod to Donald Knuth's concept of *literate programming*, this description
+captures the essential features of the growing trends in data-driven journalism
+and reproducible research. The key elements of literate computing are the
+ability of a researcher or journalist to
+
+* describe an idea or hypothesis, the approach to the problem, relevant
+  mathematical underpinnings, or any other narrative text that is useful for
+  communicating the purpose of the work to others
+
+* demonstrate an idea with powerful analysis and visualization tools fully
+  integrated into the description
+
+* explore an idea with live inspection and iterative refinement, gradually
+  building up a namespace that gathers, cleans, organizes, and processes data
+
+* share an idea in a portable format that enables reproducibility
 
 
 You Are Here: Finding Your Way around Jupyter
