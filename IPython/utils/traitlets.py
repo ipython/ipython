@@ -274,7 +274,7 @@ class unilink(object):
                 setattr(obj, attr, new)
 
     def unlink(self):
-        self.source[0].on_trait_change(self.update, self.source[1], remove=True)
+        self.source[0].on_trait_change(self._update, self.source[1], remove=True)
         self.source = None
         self.targets = []
 
