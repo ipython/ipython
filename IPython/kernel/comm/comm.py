@@ -23,7 +23,7 @@ class Comm(LoggingConfigurable):
         return self.shell.kernel.iopub_socket
     session = Instance('IPython.kernel.zmq.session.Session')
     def _session_default(self):
-        if self.shell is None:
+        if self.shell is None or not hasattr(self.shell, 'kernel'):
             return
         return self.shell.kernel.session
     
@@ -50,22 +50,25 @@ class Comm(LoggingConfigurable):
         if target_name:
             kwargs['target_name'] = target_name
         super(Comm, self).__init__(**kwargs)
-        get_ipython().comm_manager.register_comm(self)
+        ip = get_ipython()
+        if hasattr(ip, 'comm_manager'):
+            ip.comm_manager.register_comm(self)
         if self.primary:
             # I am primary, open my peer.
             self.open(data)
     
     def _publish_msg(self, msg_type, data=None, metadata=None, **keys):
         """Helper for sending a comm message on IOPub"""
-        data = {} if data is None else data
-        metadata = {} if metadata is None else metadata
-        content = json_clean(dict(data=data, comm_id=self.comm_id, **keys))
-        self.session.send(self.iopub_socket, msg_type,
-            content,
-            metadata=json_clean(metadata),
-            parent=self.shell.get_parent(),
-            ident=self.topic,
-        )
+        if self.session is not None:
+            data = {} if data is None else data
+            metadata = {} if metadata is None else metadata
+            content = json_clean(dict(data=data, comm_id=self.comm_id, **keys))
+            self.session.send(self.iopub_socket, msg_type,
+                content,
+                metadata=json_clean(metadata),
+                parent=self.shell.get_parent(),
+                ident=self.topic,
+            )
     
     def __del__(self):
         """trigger close on gc"""

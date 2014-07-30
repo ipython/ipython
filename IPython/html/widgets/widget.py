@@ -100,7 +100,7 @@ class Widget(LoggingConfigurable):
         registered in the front-end to create and sync this widget with.""")
     _view_name = Unicode(help="""Default view registered in the front-end
         to use to represent the widget.""", sync=True)
-    _comm = Instance('IPython.kernel.comm.Comm')
+    comm = Instance('IPython.kernel.comm.Comm')
     
     msg_throttle = Int(3, sync=True, help="""Maximum number of msgs the 
         front-end can send before receiving an idle msg from the back-end.""")
@@ -123,6 +123,7 @@ class Widget(LoggingConfigurable):
 
         self.on_trait_change(self._handle_property_changed, self.keys)
         Widget._call_widget_constructed(self)
+        self.open()
 
     def __del__(self):
         """Object disposal"""
@@ -132,22 +133,18 @@ class Widget(LoggingConfigurable):
     # Properties
     #-------------------------------------------------------------------------
 
-    @property
-    def comm(self):
-        """Gets the Comm associated with this widget.
-
-        If a Comm doesn't exist yet, a Comm will be created automagically."""
-        if self._comm is None:
+    def open(self):
+        """Open a comm to the frontend if one isn't already open."""
+        if self.comm is None:
             # Create a comm.
-            self._comm = Comm(target_name=self._model_name)
-            self._comm.on_msg(self._handle_msg)
-            self._comm.on_close(self._close)
+            self.comm = Comm(target_name=self._model_name)
+            self.comm.on_msg(self._handle_msg)
+            self.comm.on_close(self._close)
             Widget.widgets[self.model_id] = self
 
             # first update
             self.send_state()
-        return self._comm
-    
+
     @property
     def model_id(self):
         """Gets the model id of this widget.
@@ -161,7 +158,7 @@ class Widget(LoggingConfigurable):
     def _close(self):
         """Private close - cleanup objects, registry entries"""
         del Widget.widgets[self.model_id]
-        self._comm = None
+        self.comm = None
 
     def close(self):
         """Close method.
@@ -169,8 +166,8 @@ class Widget(LoggingConfigurable):
         Closes the widget which closes the underlying comm.
         When the comm is closed, all of the widget views are automatically
         removed from the front-end."""
-        if self._comm is not None:
-            self._comm.close()
+        if self.comm is not None:
+            self.comm.close()
             self._close()
 
     def send_state(self, key=None):
