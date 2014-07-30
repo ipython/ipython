@@ -14,7 +14,6 @@ from __future__ import print_function
 
 # Stdlib imports
 import subprocess
-import re
 import warnings
 from io import TextIOWrapper, BytesIO
 
@@ -87,9 +86,11 @@ def get_pandoc_version():
         if not is_cmd_found('pandoc'):
             raise PandocMissing()
 
-        out = subprocess.check_output( ['pandoc', '-v'], universal_newlines=True)
-        pv_re = re.compile(r'(\d{0,3}\.\d{0,3}\.\d{0,3})')
-        __version = pv_re.search(out).group(0)
+        out = subprocess.check_output(['pandoc', '-v'],
+                                      universal_newlines=True)
+        out_lines = out.splitlines()
+        pandoc_line = out_lines[0]
+        __version = pandoc_line.lstrip("pandoc ")
     return __version
 
 
