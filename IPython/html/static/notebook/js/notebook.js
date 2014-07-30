@@ -1065,7 +1065,7 @@ define([
      * @param {Number} [level] A heading level (e.g., 1 becomes &lt;h1&gt;)
      */
     Notebook.prototype.to_heading = function (index, level) {
-        var level = level || 1;
+        level = level || 1;
         var i = this.index_or_selected(index);
         if (this.is_valid_cell_index(i)) {
             var source_element = this.get_cell_element(i);
