@@ -127,8 +127,6 @@ class Widget(LoggingConfigurable):
     def __del__(self):
         """Object disposal"""
         self.close()
-        del Widget.widgets[self.model_id]
-        self._comm = None
 
     #-------------------------------------------------------------------------
     # Properties
@@ -166,9 +164,10 @@ class Widget(LoggingConfigurable):
         Closes the underlying comm.
         When the comm is closed, all of the widget views are automatically
         removed from the front-end."""
+        del Widget.widgets[self.model_id]
         if self._comm is not None:
             self._comm.close()
-
+    
     def send_state(self, key=None):
         """Sends the widget state, or a piece of it, to the front-end.
 
