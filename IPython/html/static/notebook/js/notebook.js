@@ -123,6 +123,7 @@ define([
         this.notebook_name_blacklist_re = /[\/\\:]/;
         this.nbformat = 3; // Increment this when changing the nbformat
         this.nbformat_minor = 0; // Increment this when changing the nbformat
+        this.codemirror_mode = 'ipython'
         this.style();
         this.create_elements();
         this.bind_events();
@@ -235,6 +236,13 @@ define([
                     }
                 }
             });
+        });
+        
+        this.events.on('spec_changed.Kernel', function(event, data) {
+            that.set_kernelspec_metadata(data);
+            if (data.codemirror_mode) {
+                that.set_codemirror_mode(data.codemirror_mode);
+            }
         });
 
         var collapse_time = function (time) {
@@ -358,6 +366,16 @@ define([
             notebook: this,
             keyboard_manager: this.keyboard_manager});
     };
+    
+    Notebook.prototype.set_kernelspec_metadata = function(ks) {
+        var tostore = {};
+        $.map(ks, function(value, field) {
+            if (field !== 'argv' && field !== 'env') {
+                tostore[field] = value;
+            }
+        });
+        this.metadata.kernelspec = tostore;
+    }
 
     // Cell indexing, retrieval, etc.
 
@@ -1228,20 +1246,11 @@ define([
         if (cell.is_splittable()) {
             var texta = cell.get_pre_cursor();
             var textb = cell.get_post_cursor();
-            if (cell instanceof codecell.CodeCell) {
-                // In this case the operations keep the notebook in its existing mode
-                // so we don't need to do any post-op mode changes.
-                cell.set_text(textb);
-                var new_cell = this.insert_cell_above('code');
-                new_cell.set_text(texta);
-            } else if ((cell instanceof mdc && !cell.rendered) || (cell instanceof rc)) {
-                // We know cell is !rendered so we can use set_text.
-                cell.set_text(textb);
-                var new_cell = this.insert_cell_above(cell.cell_type);
-                // Unrender the new cell so we can call set_text.
-                new_cell.unrender();
-                new_cell.set_text(texta);
-            }
+            cell.set_text(textb);
+            var new_cell = this.insert_cell_above(cell.cell_type);
+            // Unrender the new cell so we can call set_text.
+            new_cell.unrender();
+            new_cell.set_text(texta);
         }
     };
 
@@ -1268,7 +1277,7 @@ define([
             var text = cell.get_text();
             if (cell instanceof codecell.CodeCell) {
                 cell.set_text(upper_text+'\n'+text);
-            } else if ((cell instanceof mdc) || (cell instanceof rc)) {
+            } else {
                 cell.unrender(); // Must unrender before we set_text.
                 cell.set_text(upper_text+'\n\n'+text);
                 if (render) {
@@ -1305,7 +1314,7 @@ define([
             var text = cell.get_text();
             if (cell instanceof codecell.CodeCell) {
                 cell.set_text(text+'\n'+lower_text);
-            } else if ((cell instanceof mdc) || (cell instanceof rc)) {
+            } else {
                 cell.unrender(); // Must unrender before we set_text.
                 cell.set_text(text+'\n\n'+lower_text);
                 if (render) {
@@ -1510,6 +1519,34 @@ define([
     Notebook.prototype.cell_toggle_line_numbers = function() {
         this.get_selected_cell().toggle_line_numbers();
     };
+    
+    /**
+     * Set the codemirror mode for all code cells, including the default for
+     * new code cells.
+     * 
+     * @method set_codemirror_mode
+     */
+    Notebook.prototype.set_codemirror_mode = function(newmode){
+        if (newmode === this.codemirror_mode) {
+            return;
+        }
+        this.codemirror_mode = newmode;
+        codecell.CodeCell.options_default.cm_config.mode = newmode;
+        modename = newmode.name || newmode
+
+        that = this;
+        CodeMirror.requireMode(modename, function(){
+            $.map(that.get_cells(), function(cell, i) {
+                if (cell.cell_type === 'code'){
+                    cell.code_mirror.setOption('mode', newmode);
+                    // This is currently redundant, because cm_config ends up as
+                    // codemirror's own .options object, but I don't want to
+                    // rely on that.
+                    cell.cm_config.mode = newmode;
+                }
+            });
+        })
+    };
 
     // Session related things
 
@@ -1518,7 +1555,10 @@ define([
      * 
      * @method start_session
      */
-    Notebook.prototype.start_session = function () {
+    Notebook.prototype.start_session = function (kernel_name) {
+        if (kernel_name === undefined) {
+            kernel_name = this.default_kernel_name;
+        }
         this.session = new session.Session({
             base_url: this.base_url,
             ws_url: this.ws_url,
@@ -1527,7 +1567,7 @@ define([
             // For now, create all sessions with the 'python' kernel, which is the
             // default. Later, the user will be able to select kernels. This is
             // overridden if KernelManager.kernel_cmd is specified for the server.
-            kernel_name: this.default_kernel_name,
+            kernel_name: kernel_name,
             notebook: this});
 
         this.session.start($.proxy(this._session_started, this));
@@ -1752,6 +1792,13 @@ define([
         this.metadata = content.metadata;
         this.notebook_name = data.name;
         var trusted = true;
+        
+        // Trigger an event changing the kernel spec - this will set the default
+        // codemirror mode
+        if (this.metadata.kernelspec !== undefined) {
+            this.events.trigger('spec_changed.Kernel', this.metadata.kernelspec);
+        }
+        
         // Only handle 1 worksheet for now.
         var worksheet = content.worksheets[0];
         if (worksheet !== undefined) {
@@ -2131,7 +2178,10 @@ define([
         // Create the session after the notebook is completely loaded to prevent
         // code execution upon loading, which is a security risk.
         if (this.session === null) {
-            this.start_session();
+            var kernelspec = this.metadata.kernelspec || {};
+            var kernel_name = kernelspec.name || this.default_kernel_name;
+
+            this.start_session(kernel_name);
         }
         // load our checkpoint list
         this.list_checkpoints();

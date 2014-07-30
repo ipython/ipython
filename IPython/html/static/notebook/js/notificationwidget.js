@@ -15,7 +15,6 @@ define([
             this.element = $(selector);
             this.style();
         }
-        this.element.button();
         this.element.hide();
         var that = this;
 
@@ -25,8 +24,7 @@ define([
     };
 
     NotificationWidget.prototype.style = function () {
-        this.element.addClass('notification_widget pull-right');
-        this.element.addClass('border-box-sizing');
+        this.element.addClass('notification_widget');
     };
 
     // msg : message to display
@@ -36,13 +34,23 @@ define([
     // click_callback : function called if user click on notification
     // could return false to prevent the notification to be dismissed
     NotificationWidget.prototype.set_message = function (msg, timeout, click_callback, options) {
-        options = options || {};
-        var callback = click_callback || function() {return false;};
+        var options = options || {};
+        var callback = click_callback || function() {return true;};
         var that = this;
+        // unbind potential previous callback
+        this.element.unbind('click');
         this.inner.attr('class', options.icon);
         this.inner.attr('title', options.title);
         this.inner.text(msg);
         this.element.fadeIn(100);
+
+        // reset previous set style
+        this.element.removeClass();
+        this.style();
+        if (options.class){
+
+            this.element.addClass(options.class)
+        }
         if (this.timeout !== null) {
             clearTimeout(this.timeout);
             this.timeout = null;
@@ -66,11 +74,30 @@ define([
         }
     };
 
+
+    NotificationWidget.prototype.info = function (msg, timeout, click_callback, options) {
+        var options = options || {};
+        options.class = options.class +' info';
+        var timeout = timeout || 3500;
+        this.set_message(msg, timeout, click_callback, options);
+    }
+    NotificationWidget.prototype.warning = function (msg, timeout, click_callback, options) {
+        var options = options || {};
+        options.class = options.class +' warning';
+        this.set_message(msg, timeout, click_callback, options);
+    }
+    NotificationWidget.prototype.danger = function (msg, timeout, click_callback, options) {
+        var options = options || {};
+        options.class = options.class +' danger';
+        this.set_message(msg, timeout, click_callback, options);
+    }
+
+
     NotificationWidget.prototype.get_message = function () {
         return this.inner.html();
     };
 
-    // For backwards compatability.
+    // For backwards compatibility.
     IPython.NotificationWidget = NotificationWidget;
 
     return {'NotificationWidget': NotificationWidget};

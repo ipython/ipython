@@ -23,6 +23,8 @@ if __name__ == '__main__':
                                         r'\.config\.profile',
                                         # These should be accessed via nbformat.current
                                         r'\.nbformat\.v\d+',
+                                        # Public API for this is in kernel.zmq.eventloops
+                                        r'\.kernel\.zmq\.gui',
                                         ]
 
     # The inputhook* modules often cause problems on import, such as trying to

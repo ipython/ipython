@@ -3,11 +3,29 @@
     padding: 1px 12px;
     margin: 2px 4px;
     z-index: 10;
-    border: 1px solid #ccc;
     border-radius: @border-radius-base;
     background: @notification_widget_bg;
+    .pull-right();
+    .border-box-sizing();
+    .btn();
+    .btn-default();
+    .btn-xs();
 
     &.span {
         padding-right:2px;
     }
 }
+
+.notification_widget.warning {
+    .btn-warning();
+}
+.notification_widget.success {
+    .btn-success();
+}
+.notification_widget.info {
+    .btn-info();
+}
+.notification_widget.danger {
+    .btn-danger();
+}
+

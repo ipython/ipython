@@ -11,14 +11,7 @@ from IPython.core.application import (
 )
 from IPython.utils.traitlets import Instance, Dict, Unicode, Bool
 
-from .kernelspec import KernelSpecManager
-
-def _pythonfirst(s):
-    "Sort key function that will put strings starting with 'python' first."
-    if s.startswith('python'):
-        # Space is not valid in kernel names, so this should sort first
-        return ' ' + s
-    return s
+from .kernelspec import KernelSpecManager, _pythonfirst
 
 class ListKernelSpecs(BaseIPythonApplication):
     description = """List installed kernel specifications."""
