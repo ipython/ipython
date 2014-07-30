@@ -6,12 +6,12 @@ casper.notebook_test(function () {
         'print("Success")');
     this.execute_cell_then(index);
 
-    var int_text = {}
+    var int_text = {};
     int_text.query = '.widget-area .widget-subarea .widget-hbox-single .my-second-int-text';
     int_text.index = this.append_cell(
         'int_widget = widgets.IntTextWidget()\n' +
         'display(int_widget)\n' + 
-        'int_widget.add_class("my-second-int-text")\n' + 
+        'int_widget.add_class("my-second-int-text", selector="input")\n' + 
         'print(int_widget.model_id)\n');
     this.execute_cell_then(int_text.index, function(index){
         int_text.model_id = this.get_output_cell(index).text.trim();
@@ -69,7 +69,7 @@ casper.notebook_test(function () {
         'intrange = [widgets.BoundedIntTextWidget(),\n' +
         '    widgets.IntSliderWidget()]\n' +
         '[display(intrange[i]) for i in range(2)]\n' +
-        'intrange[0].add_class("my-second-num-test-text")\n' +  
+        'intrange[0].add_class("my-second-num-test-text", selector="input")\n' +  
         'print(intrange[0].model_id)\n');
     this.execute_cell_then(int_text2.index, function(index){
         int_text2.model_id = this.get_output_cell(index).text.trim();
