@@ -167,6 +167,7 @@ class Widget(LoggingConfigurable):
         del Widget.widgets[self.model_id]
         if self._comm is not None:
             self._comm.close()
+        self._comm = None
     
     def send_state(self, key=None):
         """Sends the widget state, or a piece of it, to the front-end.
