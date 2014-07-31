@@ -50,7 +50,6 @@ class Comm(LoggingConfigurable):
         if target_name:
             kwargs['target_name'] = target_name
         super(Comm, self).__init__(**kwargs)
-        get_ipython().comm_manager.register_comm(self)
         if self.primary:
             # I am primary, open my peer.
             self.open(data)
@@ -77,6 +76,8 @@ class Comm(LoggingConfigurable):
         """Open the frontend-side version of this comm"""
         if data is None:
             data = self._open_data
+        self._closed = False
+        get_ipython().comm_manager.register_comm(self)
         self._publish_msg('comm_open', data, metadata, target_name=self.target_name)
     
     def close(self, data=None, metadata=None):
@@ -87,6 +88,7 @@ class Comm(LoggingConfigurable):
         if data is None:
             data = self._close_data
         self._publish_msg('comm_close', data, metadata)
+        get_ipython().comm_manager.unregister_comm(self)
         self._closed = True
     
     def send(self, data=None, metadata=None):

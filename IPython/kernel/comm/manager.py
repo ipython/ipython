@@ -72,11 +72,10 @@ class CommManager(LoggingConfigurable):
         self.comms[comm_id] = comm
         return comm_id
     
-    def unregister_comm(self, comm_id):
+    def unregister_comm(self, comm):
         """Unregister a comm, and close its counterpart"""
         # unlike get_comm, this should raise a KeyError
-        comm = self.comms.pop(comm_id)
-        comm.close()
+        comm = self.comms.pop(comm.comm_id)
     
     def get_comm(self, comm_id):
         """Get a comm with a particular id
@@ -110,13 +109,11 @@ class CommManager(LoggingConfigurable):
             self.log.error("No such comm target registered: %s", target_name)
             comm.close()
             return
-        self.register_comm(comm)
         try:
             f(comm, msg)
         except Exception:
             self.log.error("Exception opening comm with target: %s", target_name, exc_info=True)
             comm.close()
-            self.unregister_comm(comm_id)
     
     def comm_msg(self, stream, ident, msg):
         """Handler for comm_msg messages"""
