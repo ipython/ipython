@@ -149,7 +149,7 @@ casper.notebook_test(function () {
         'import time\n' +
         'textbox = widgets.TextWidget()\n' +
         'display(textbox)\n' +
-        'textbox.add_class("my-throttle-textbox")\n' +
+        'textbox.add_class("my-throttle-textbox", selector="input")\n' +
         'def handle_change(name, old, new):\n' +
         '    display(len(new))\n' +
         '    time.sleep(0.5)\n' +
