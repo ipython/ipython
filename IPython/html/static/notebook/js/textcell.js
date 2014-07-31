@@ -365,6 +365,7 @@ define([
             this.level = data.level;
         }
         TextCell.prototype.fromJSON.apply(this, arguments);
+        this.code_mirror.setOption("theme", "heading-"+this.level);
     };
 
 
