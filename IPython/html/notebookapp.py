@@ -546,7 +546,7 @@ class NotebookApp(BaseIPythonApplication):
                 return url
         
         # no local mathjax, serve from CDN
-        url = u"//cdn.mathjax.org/mathjax/latest/MathJax.js"
+        url = u"https://cdn.mathjax.org/mathjax/latest/MathJax.js"
         self.log.info("Using MathJax from CDN: %s", url)
         return url
     
