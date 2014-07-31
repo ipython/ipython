@@ -1885,6 +1885,8 @@ define([
         var model = {};
         model.name = this.notebook_name;
         model.path = this.notebook_path;
+        model.type = 'notebook';
+        model.format = 'json';
         model.content = this.toJSON();
         model.content.nbformat = this.nbformat;
         model.content.nbformat_minor = this.nbformat_minor;
@@ -1908,7 +1910,7 @@ define([
         this.events.trigger('notebook_saving.Notebook');
         var url = utils.url_join_encode(
             this.base_url,
-            'api/notebooks',
+            'api/contents',
             this.notebook_path,
             this.notebook_name
         );
@@ -2041,7 +2043,7 @@ define([
         };
         var url = utils.url_join_encode(
             base_url,
-            'api/notebooks',
+            'api/contents',
             path
         );
         $.ajax(url,settings);
@@ -2070,7 +2072,7 @@ define([
         };
         var url = utils.url_join_encode(
             base_url,
-            'api/notebooks',
+            'api/contents',
             path
         );
         $.ajax(url,settings);
@@ -2095,7 +2097,7 @@ define([
         this.events.trigger('rename_notebook.Notebook', data);
         var url = utils.url_join_encode(
             this.base_url,
-            'api/notebooks',
+            'api/contents',
             this.notebook_path,
             this.notebook_name
         );
@@ -2113,7 +2115,7 @@ define([
         };
         var url = utils.url_join_encode(
             this.base_url,
-            'api/notebooks',
+            'api/contents',
             this.notebook_path,
             this.notebook_name
         );
@@ -2182,7 +2184,7 @@ define([
         this.events.trigger('notebook_loading.Notebook');
         var url = utils.url_join_encode(
             this.base_url,
-            'api/notebooks',
+            'api/contents',
             this.notebook_path,
             this.notebook_name
         );
@@ -2345,7 +2347,7 @@ define([
     Notebook.prototype.list_checkpoints = function () {
         var url = utils.url_join_encode(
             this.base_url,
-            'api/notebooks',
+            'api/contents',
             this.notebook_path,
             this.notebook_name,
             'checkpoints'
@@ -2396,7 +2398,7 @@ define([
     Notebook.prototype.create_checkpoint = function () {
         var url = utils.url_join_encode(
             this.base_url,
-            'api/notebooks',
+            'api/contents',
             this.notebook_path,
             this.notebook_name,
             'checkpoints'
@@ -2485,7 +2487,7 @@ define([
         this.events.trigger('notebook_restoring.Notebook', checkpoint);
         var url = utils.url_join_encode(
             this.base_url,
-            'api/notebooks',
+            'api/contents',
             this.notebook_path,
             this.notebook_name,
             'checkpoints',
@@ -2533,7 +2535,7 @@ define([
         this.events.trigger('notebook_restoring.Notebook', checkpoint);
         var url = utils.url_join_encode(
             this.base_url,
-            'api/notebooks',
+            'api/contents',
             this.notebook_path,
             this.notebook_name,
             'checkpoints',

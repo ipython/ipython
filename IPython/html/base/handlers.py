@@ -1,4 +1,4 @@
-"""Base Tornado handlers for the notebook."""
+"""Base Tornado handlers for the notebook server."""
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
@@ -27,7 +27,7 @@ except ImportError:
 from IPython.config import Application
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import string_types
-from IPython.html.utils import is_hidden
+from IPython.html.utils import is_hidden, url_path_join, url_escape
 
 #-----------------------------------------------------------------------------
 # Top-level handlers
@@ -141,8 +141,8 @@ class IPythonHandler(AuthenticatedHandler):
         return self.settings['kernel_manager']
 
     @property
-    def notebook_manager(self):
-        return self.settings['notebook_manager']
+    def contents_manager(self):
+        return self.settings['contents_manager']
     
     @property
     def cluster_manager(self):
@@ -156,10 +156,6 @@ class IPythonHandler(AuthenticatedHandler):
     def kernel_spec_manager(self):
         return self.settings['kernel_spec_manager']
 
-    @property
-    def project_dir(self):
-        return self.notebook_manager.notebook_dir
-    
     #---------------------------------------------------------------
     # CORS
     #---------------------------------------------------------------
@@ -409,6 +405,37 @@ class TrailingSlashHandler(web.RequestHandler):
     def get(self):
         self.redirect(self.request.uri.rstrip('/'))
 
+
+class FilesRedirectHandler(IPythonHandler):
+    """Handler for redirecting relative URLs to the /files/ handler"""
+    def get(self, path=''):
+        cm = self.contents_manager
+        if cm.path_exists(path):
+            # it's a *directory*, redirect to /tree
+            url = url_path_join(self.base_url, 'tree', path)
+        else:
+            orig_path = path
+            # otherwise, redirect to /files
+            parts = path.split('/')
+            path = '/'.join(parts[:-1])
+            name = parts[-1]
+
+            if not cm.file_exists(name=name, path=path) and 'files' in parts:
+                # redirect without files/ iff it would 404
+                # this preserves pre-2.0-style 'files/' links
+                self.log.warn("Deprecated files/ URL: %s", orig_path)
+                parts.remove('files')
+                path = '/'.join(parts[:-1])
+
+            if not cm.file_exists(name=name, path=path):
+                raise web.HTTPError(404)
+
+            url = url_path_join(self.base_url, 'files', path, name)
+        url = url_escape(url)
+        self.log.debug("Redirecting %s to %s", self.request.path, url)
+        self.redirect(url)
+
+
 #-----------------------------------------------------------------------------
 # URL pattern fragments for re-use
 #-----------------------------------------------------------------------------
@@ -416,6 +443,8 @@ class TrailingSlashHandler(web.RequestHandler):
 path_regex = r"(?P<path>(?:/.*)*)"
 notebook_name_regex = r"(?P<name>[^/]+\.ipynb)"
 notebook_path_regex = "%s/%s" % (path_regex, notebook_name_regex)
+file_name_regex = r"(?P<name>[^/]+)"
+file_path_regex = "%s/%s" % (path_regex, file_name_regex)
 
 #-----------------------------------------------------------------------------
 # URL to handler mappings

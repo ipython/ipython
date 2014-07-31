@@ -7955,6 +7955,22 @@ input.engine_num_input {
 .notebook_icon:before.pull-right {
   margin-left: .3em;
 }
+.file_icon:before {
+  display: inline-block;
+  font-family: FontAwesome;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  content: "\f016";
+}
+.file_icon:before.pull-left {
+  margin-right: .3em;
+}
+.file_icon:before.pull-right {
+  margin-left: .3em;
+}
 /*!
 *
 * IPython notebook
