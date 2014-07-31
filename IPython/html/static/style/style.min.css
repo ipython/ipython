@@ -8757,6 +8757,7 @@ div.cell.text_cell.rendered {
 .cm-s-heading-5,
 .cm-s-heading-6 {
   font-weight: bold;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 .cm-s-heading-1 {
   font-size: 150%;
