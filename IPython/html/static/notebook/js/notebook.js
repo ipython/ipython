@@ -1499,6 +1499,15 @@ define([
         if (newmode === this.codemirror_mode) {
             return;
         }
+        if ("object" === typeof newmode) {
+            // Copy the object so that codemirror can't modify the original
+            var newmode_copy = {};
+            for (var attr in newmode) {
+                if (newmode.hasOwnProperty(attr)) newmode_copy[attr] = newmode[attr];
+            }
+            newmode = newmode_copy;
+        }
+
         this.codemirror_mode = newmode;
         codecell.CodeCell.options_default.cm_config.mode = newmode;
         modename = newmode.name || newmode
