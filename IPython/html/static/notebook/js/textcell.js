@@ -351,6 +351,9 @@ define([
     };
 
     HeadingCell.options_default = {
+        cm_config: {
+            theme: 'heading-1'
+        },
         placeholder: "Type Heading Here"
     };
 
@@ -362,6 +365,7 @@ define([
             this.level = data.level;
         }
         TextCell.prototype.fromJSON.apply(this, arguments);
+        this.code_mirror.setOption("theme", "heading-"+this.level);
     };
 
 
@@ -378,6 +382,8 @@ define([
      */
     HeadingCell.prototype.set_level = function (level) {
         this.level = level;
+        this.code_mirror.setOption("theme", "heading-"+level);
+
         if (this.rendered) {
             this.rendered = false;
             this.render();
