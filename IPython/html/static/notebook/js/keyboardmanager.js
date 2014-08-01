@@ -22,10 +22,8 @@ define([
         //  options: dictionary
         //      Dictionary of keyword arguments.
         //          events: $(Events) instance
-        //          pager: Pager instance
         this.mode = 'command';
         this.enabled = true;
-        this.pager = options.pager;
         this.quick_help = undefined;
         this.notebook = undefined;
         this.bind_events();
@@ -471,14 +469,6 @@ define([
                 help_index : 'ek',
                 handler : function (event) {
                     that.notebook.merge_cell_below();
-                    return false;
-                }
-            },
-            'q' : {
-                help    : 'close pager',
-                help_index : 'gd',
-                handler : function (event) {
-                    that.pager.collapse();
                     return false;
                 }
             },

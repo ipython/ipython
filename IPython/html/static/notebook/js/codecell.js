@@ -300,7 +300,7 @@ define([
                 reply : $.proxy(this._handle_execute_reply, this),
                 payload : {
                     set_next_input : $.proxy(this._handle_set_next_input, this),
-                    page : $.proxy(this._open_with_pager, this)
+                    page : $.proxy(this._open_with_popup, this)
                 }
             },
             iopub : {
@@ -311,8 +311,8 @@ define([
         };
     };
     
-    CodeCell.prototype._open_with_pager = function (payload) {
-        this.events.trigger('open_with_text.Pager', payload);
+    CodeCell.prototype._open_with_popup = function (payload) {
+        // TODO: Open the content in a popup. (EX PAGER CODE)
     };
 
     /**

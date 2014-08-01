@@ -81,7 +81,7 @@ define([
      *
      */
     OutputArea.prototype._should_scroll = function (lines) {
-        if (lines <=0 ){ return }
+        if (lines <=0 ){ return; }
         if (!lines) {
             lines = 100;
         }

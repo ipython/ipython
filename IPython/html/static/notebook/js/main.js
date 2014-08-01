@@ -11,7 +11,6 @@ require([
     'base/js/events',
     'auth/js/loginwidget',
     'notebook/js/maintoolbar',
-    'notebook/js/pager',
     'notebook/js/quickhelp',
     'notebook/js/menubar',
     'notebook/js/notificationarea',
@@ -31,7 +30,6 @@ require([
     events,
     loginwidget, 
     maintoolbar, 
-    pager, 
     quickhelp, 
     menubar, 
     notificationarea, 
@@ -52,11 +50,7 @@ require([
     var user_config = $.extend({}, config.default_config);
     var page = new page.Page();
     var layout_manager = new layoutmanager.LayoutManager();
-    var pager = new pager.Pager('div#pager', 'div#pager_splitter', {
-        layout_manager: layout_manager, 
-        events: events});
     var keyboard_manager = new keyboardmanager.KeyboardManager({
-        pager: pager, 
         events: events});
     var save_widget = new savewidget.SaveWidget('span#save_widget', {
         events: events, 
@@ -122,7 +116,6 @@ require([
     IPython.page = page;
     IPython.layout_manager = layout_manager;
     IPython.notebook = notebook;
-    IPython.pager = pager;
     IPython.quick_help = quick_help;
     IPython.login_widget = login_widget;
     IPython.menubar = menubar;

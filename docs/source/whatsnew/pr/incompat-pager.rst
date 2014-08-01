@@ -1,0 +1,1 @@
+- The Pager was removed from the IPython Notebook.

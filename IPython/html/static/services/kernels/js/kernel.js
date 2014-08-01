@@ -516,7 +516,7 @@ define([
     Kernel.prototype._handle_payloads = function (payloads, payload_callbacks, msg) {
         var l = payloads.length;
         // Payloads are handled by triggering events because we don't want the Kernel
-        // to depend on the Notebook or Pager classes.
+        // to depend on the Notebook class.
         for (var i=0; i<l; i++) {
             var payload = payloads[i];
             var callback = payload_callbacks[payload.source];
