@@ -11,7 +11,7 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-slider');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
@@ -30,7 +30,7 @@ define([
                 .appendTo(this.$el)
                 .addClass('widget-readout')
                 .hide();
-
+            
             this.model.on('change:slider_color', function(sender, value) {
                 this.$slider.find('a').css('background', value);
             }, this);
@@ -39,7 +39,7 @@ define([
             // Set defaults.
             this.update();
         },
-
+        
         update_attr: function(name, value) {
             // Set a css attr of the widget view.
             if (name == 'color') {
@@ -108,8 +108,8 @@ define([
                     else if(value < min){ 
                         value = min; 
                     }
-                    this.$slider.slider('option', 'value', value);
-                    this.$readout.text(value);
+                this.$slider.slider('option', 'value', value);
+                this.$readout.text(value);
                 }
 
                 if(this.model.get('value')!=value) {
@@ -168,7 +168,7 @@ define([
                 var actual_value = ui.values.map(this._validate_slide_value);
                 this.$readout.text(actual_value.join("-"));
             } else {
-                var actual_value = this._validate_slide_value(ui.value);
+            var actual_value = this._validate_slide_value(ui.value);
                 this.$readout.text(actual_value);
             }
             this.model.set('value', actual_value, {updated_view: this});
@@ -189,7 +189,7 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-text');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
@@ -297,7 +297,7 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-progress');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')

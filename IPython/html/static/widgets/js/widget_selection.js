@@ -12,7 +12,7 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-dropdown');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
@@ -36,7 +36,7 @@ define([
             this.$droplist = $('<ul />')
                 .addClass('dropdown-menu')
                 .appendTo(this.$buttongroup);
-
+            
             this.model.on('change:button_style', function(model, value) {
                 this.update_button_style();
             }, this);
@@ -251,7 +251,7 @@ define([
         render: function() {
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-toggle-buttons');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
