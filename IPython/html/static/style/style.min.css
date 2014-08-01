@@ -10418,34 +10418,6 @@ fieldset[disabled] .notification_widget.danger.active {
   color: #d9534f;
   background-color: #ffffff;
 }
-div#pager_splitter {
-  height: 8px;
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-}
-#pager-container {
-  position: relative;
-  padding: 15px 0px;
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-}
-div#pager {
-  font-size: 14px;
-  line-height: 20px;
-  overflow: auto;
-  display: none;
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-}
-div#pager pre {
-  line-height: 1.21429em;
-  color: #000000;
-  background-color: #f7f7f7;
-  padding: 0.4em;
-}
 .quickhelp {
   /* Old browsers */
   display: -webkit-box;
