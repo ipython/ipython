@@ -119,6 +119,7 @@ class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
     def __init__(self, **kwargs):
         """Public constructor"""
+        self._model_id = kwargs.pop('model_id', None)
         super(Widget, self).__init__(**kwargs)
 
         self.on_trait_change(self._handle_property_changed, self.keys)
@@ -136,8 +137,11 @@ class Widget(LoggingConfigurable):
     def open(self):
         """Open a comm to the frontend if one isn't already open."""
         if self.comm is None:
-            # Create a comm.
-            self.comm = Comm(target_name=self._model_name)
+            if self._model_id is None:
+                self.comm = Comm(target_name=self._model_name)
+                self._model_id = self.model_id
+            else:
+                self.comm = Comm(target_name=self._model_name, comm_id=self._model_id)
             self.comm.on_msg(self._handle_msg)
             Widget.widgets[self.model_id] = self
 
