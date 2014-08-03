@@ -7652,7 +7652,8 @@ input.ui-button {
 span#login_widget {
   float: right;
 }
-span#login_widget > .button {
+span#login_widget > .button,
+#logout {
   display: inline-block;
   margin-bottom: 0;
   font-weight: normal;
@@ -7679,27 +7680,37 @@ span#login_widget > .button {
   border-radius: 3px;
 }
 span#login_widget > .button:focus,
+#logout:focus,
 span#login_widget > .button:active:focus,
-span#login_widget > .button.active:focus {
+#logout:active:focus,
+span#login_widget > .button.active:focus,
+#logout.active:focus {
   outline: thin dotted;
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
 }
 span#login_widget > .button:hover,
-span#login_widget > .button:focus {
+#logout:hover,
+span#login_widget > .button:focus,
+#logout:focus {
   color: #333333;
   text-decoration: none;
 }
 span#login_widget > .button:active,
-span#login_widget > .button.active {
+#logout:active,
+span#login_widget > .button.active,
+#logout.active {
   outline: 0;
   background-image: none;
   -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
   box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
 }
 span#login_widget > .button.disabled,
+#logout.disabled,
 span#login_widget > .button[disabled],
-fieldset[disabled] span#login_widget > .button {
+#logout[disabled],
+fieldset[disabled] span#login_widget > .button,
+fieldset[disabled] #logout {
   cursor: not-allowed;
   pointer-events: none;
   opacity: 0.65;
@@ -7708,38 +7719,62 @@ fieldset[disabled] span#login_widget > .button {
   box-shadow: none;
 }
 span#login_widget > .button:hover,
+#logout:hover,
 span#login_widget > .button:focus,
+#logout:focus,
 span#login_widget > .button:active,
+#logout:active,
 span#login_widget > .button.active,
-.open .dropdown-togglespan#login_widget > .button {
+#logout.active,
+.open .dropdown-togglespan#login_widget > .button,
+.open .dropdown-toggle#logout {
   color: #333333;
   background-color: #ebebeb;
   border-color: #adadad;
 }
 span#login_widget > .button:active,
+#logout:active,
 span#login_widget > .button.active,
-.open .dropdown-togglespan#login_widget > .button {
+#logout.active,
+.open .dropdown-togglespan#login_widget > .button,
+.open .dropdown-toggle#logout {
   background-image: none;
 }
 span#login_widget > .button.disabled,
+#logout.disabled,
 span#login_widget > .button[disabled],
+#logout[disabled],
 fieldset[disabled] span#login_widget > .button,
+fieldset[disabled] #logout,
 span#login_widget > .button.disabled:hover,
+#logout.disabled:hover,
 span#login_widget > .button[disabled]:hover,
+#logout[disabled]:hover,
 fieldset[disabled] span#login_widget > .button:hover,
+fieldset[disabled] #logout:hover,
 span#login_widget > .button.disabled:focus,
+#logout.disabled:focus,
 span#login_widget > .button[disabled]:focus,
+#logout[disabled]:focus,
 fieldset[disabled] span#login_widget > .button:focus,
+fieldset[disabled] #logout:focus,
 span#login_widget > .button.disabled:active,
+#logout.disabled:active,
 span#login_widget > .button[disabled]:active,
+#logout[disabled]:active,
 fieldset[disabled] span#login_widget > .button:active,
+fieldset[disabled] #logout:active,
 span#login_widget > .button.disabled.active,
+#logout.disabled.active,
 span#login_widget > .button[disabled].active,
-fieldset[disabled] span#login_widget > .button.active {
+#logout[disabled].active,
+fieldset[disabled] span#login_widget > .button.active,
+fieldset[disabled] #logout.active {
   background-color: #ffffff;
   border-color: #cccccc;
 }
-span#login_widget > .button .badge {
+span#login_widget > .button .badge,
+#logout .badge {
   color: #ffffff;
   background-color: #333333;
 }
