@@ -33,8 +33,6 @@ define([
     };
 
     NotificationArea.prototype.temp_message = function (msg, timeout, css_class) {
-        if( css_class == 'danger') {css_class = 'ui-state-error';}
-        if( css_class == 'warning') {css_class = 'ui-state-highlight';}
         var tdiv = $('<div>')
             .addClass('notification_widget')
             .addClass(css_class)

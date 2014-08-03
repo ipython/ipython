@@ -136,7 +136,6 @@ define([
             .append($('<select/>')
                 .attr('id','cell_type')
                 .addClass('form-control select-xs')
-                // .addClass('ui-widget-content')
                 .append($('<option/>').attr('value','code').text('Code'))
                 .append($('<option/>').attr('value','markdown').text('Markdown'))
                 .append($('<option/>').attr('value','raw').text('Raw NBConvert'))
@@ -153,7 +152,6 @@ define([
     MainToolBar.prototype.add_celltoolbar_list = function () {
         var label = $('<span/>').addClass("navbar-text").text('Cell Toolbar:');
         var select = $('<select/>')
-            // .addClass('ui-widget-content')
             .attr('id', 'ctb_select')
             .addClass('form-control select-xs')
             .append($('<option/>').attr('value', '').text('None'));

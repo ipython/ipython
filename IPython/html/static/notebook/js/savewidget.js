@@ -30,11 +30,6 @@ define([
         this.element.find('span#notebook_name').click(function () {
             that.rename_notebook();
         });
-        this.element.find('span#notebook_name').hover(function () {
-            $(this).addClass("ui-state-hover");
-        }, function () {
-            $(this).removeClass("ui-state-hover");
-        });
         this.events.on('notebook_loaded.Notebook', function () {
             that.update_notebook_name();
             that.update_document_title();
