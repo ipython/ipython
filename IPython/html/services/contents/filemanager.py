@@ -13,6 +13,7 @@ from tornado import web
 
 from .manager import ContentsManager
 from IPython.nbformat import current
+from IPython.utils.io import atomic_writing
 from IPython.utils.path import ensure_dir_exists
 from IPython.utils.traitlets import Unicode, Bool, TraitError
 from IPython.utils.py3compat import getcwd
@@ -295,7 +296,7 @@ class FileContentsManager(ContentsManager):
         if 'name' in nb['metadata']:
             nb['metadata']['name'] = u''
 
-        with io.open(os_path, 'w', encoding='utf-8') as f:
+        with atomic_writing(os_path, encoding='utf-8') as f:
             current.write(nb, f, u'json')
 
     def _save_file(self, os_path, model, name='', path=''):
@@ -312,7 +313,7 @@ class FileContentsManager(ContentsManager):
                 bcontent = base64.decodestring(b64_bytes)
         except Exception as e:
             raise web.HTTPError(400, u'Encoding error saving %s: %s' % (os_path, e))
-        with io.open(os_path, 'wb') as f:
+        with atomic_writing(os_path, 'wb') as f:
             f.write(bcontent)
 
     def _save_directory(self, os_path, model, name='', path=''):

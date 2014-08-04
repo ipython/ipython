@@ -16,6 +16,7 @@ from __future__ import absolute_import
 # Imports
 #-----------------------------------------------------------------------------
 import codecs
+from contextlib import contextmanager
 import os
 import sys
 import tempfile
@@ -216,6 +217,23 @@ def temp_pyfile(src, ext='.py'):
     f.write(src)
     f.flush()
     return fname, f
+
+@contextmanager
+def atomic_writing(path, mode='w', encoding='utf-8', **kwargs):
+    tmp_file = path + '.tmp-write'
+    if 'b' in mode:
+        encoding = None
+
+    with open(tmp_file, mode, encoding=encoding, **kwargs) as f:
+        yield f
+
+    # Written successfully, now rename it
+
+    if os.name == 'nt' and os.path.exists(path):
+        # Rename over existing file doesn't work on Windows
+        os.remove(path)
+
+    os.rename(tmp_file, path)
 
 
 def raw_print(*args, **kw):
