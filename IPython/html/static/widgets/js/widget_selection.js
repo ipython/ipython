@@ -21,7 +21,6 @@ define([
                 .addClass('widget_item')
                 .addClass('btn-group')
                 .appendTo(this.$el);
-            this.$el_to_style = this.$buttongroup; // Set default element to style
             this.$droplabel = $('<button />')
                 .addClass('btn btn-default')
                 .addClass('widget-combo-btn')
@@ -119,7 +118,6 @@ define([
             this.$container = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-radio-box');
-            this.$el_to_style = this.$container; // Set default element to style
             this.update();
         },
         
@@ -210,7 +208,6 @@ define([
                 .addClass('btn-group')
                 .attr('data-toggle', 'buttons-radio')
                 .appendTo(this.$el);
-            this.$el_to_style = this.$buttongroup; // Set default element to style
             this.update();
         },
         
@@ -302,7 +299,6 @@ define([
                 .addClass('widget-listbox form-control')
                 .attr('size', 6)
                 .appendTo(this.$el);
-            this.$el_to_style = this.$listbox; // Set default element to style
             this.update();
         },
         

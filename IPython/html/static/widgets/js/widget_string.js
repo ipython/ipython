@@ -56,7 +56,6 @@ define([
                 .attr('rows', 5)
                 .addClass('widget-text form-control')
                 .appendTo(this.$el);
-            this.$el_to_style = this.$textbox; // Set default element to style
             this.update(); // Set defaults.
 
             this.model.on('msg:custom', $.proxy(this._handle_textarea_msg, this));
@@ -140,7 +139,6 @@ define([
                 .addClass('input')
                 .addClass('widget-text form-control')
                 .appendTo(this.$el);
-            this.$el_to_style = this.$textbox; // Set default element to style
             this.update(); // Set defaults.
             this.model.on('change:placeholder', function(model, value, options) {
                 this.update_placeholder(value);

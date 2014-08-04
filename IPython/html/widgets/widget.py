@@ -388,10 +388,7 @@ class DOMWidget(Widget):
         selector: unicode (optional, kwarg only)
             JQuery selector to use to apply the CSS key/value.  If no selector 
             is provided, an empty selector is used.  An empty selector makes the 
-            front-end try to apply the css to a default element.  The default
-            element is an attribute unique to each view, which is a DOM element
-            of the view that should be styled with common CSS (see 
-            `$el_to_style` in the Javascript code).
+            front-end try to apply the css to the top-level element.
         """
         if value is None:
             css_dict = dict_or_key

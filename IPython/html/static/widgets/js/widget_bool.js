@@ -21,7 +21,6 @@ define([
                 .appendTo(this.$el)
                 .click($.proxy(this.handle_click, this));
 
-            this.$el_to_style = this.$checkbox; // Set default element to style
             this.update(); // Set defaults.
         },
 
