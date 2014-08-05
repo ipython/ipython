@@ -313,7 +313,7 @@ class FileContentsManager(ContentsManager):
                 bcontent = base64.decodestring(b64_bytes)
         except Exception as e:
             raise web.HTTPError(400, u'Encoding error saving %s: %s' % (os_path, e))
-        with atomic_writing(os_path, 'wb') as f:
+        with atomic_writing(os_path, text=False) as f:
             f.write(bcontent)
 
     def _save_directory(self, os_path, model, name='', path=''):

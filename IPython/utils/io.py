@@ -17,6 +17,7 @@ from __future__ import absolute_import
 #-----------------------------------------------------------------------------
 import codecs
 from contextlib import contextmanager
+import io
 import os
 import sys
 import tempfile
@@ -219,21 +220,55 @@ def temp_pyfile(src, ext='.py'):
     return fname, f
 
 @contextmanager
-def atomic_writing(path, mode='w', encoding='utf-8', **kwargs):
-    tmp_file = path + '.tmp-write'
-    if 'b' in mode:
-        encoding = None
+def atomic_writing(path, text=True, encoding='utf-8', **kwargs):
+    """Context manager to write to a file only if the entire write is successful.
+    
+    This works by creating a temporary file in the same directory, and renaming
+    it over the old file if the context is exited without an error. If the
+    target file is a symlink or a hardlink, this will not be preserved: it will
+    be replaced by a new regular file.
+    
+    On Windows, there is a small chink in the atomicity: the target file is
+    deleted before renaming the temporary file over it. This appears to be
+    unavoidable.
+    
+    Parameters
+    ----------
+    path : str
+      The target file to write to.
+     
+    text : bool, optional
+      Whether to open the file in text mode (i.e. to write unicode). Default is
+      True.
+    
+    encoding : str, optional
+      The encoding to use for files opened in text mode. Default is UTF-8.
+     
+    **kwargs
+      Passed to :func:`io.open`.
+    """
+    dirname, basename = os.path.split(path)
+    handle, tmp_path = tempfile.mkstemp(prefix=basename, dir=dirname, text=text)
+    if text:
+        fileobj = io.open(handle, 'w', encoding=encoding, **kwargs)
+    else:
+        fileobj = io.open(handle, 'wb', **kwargs)
 
-    with open(tmp_file, mode, encoding=encoding, **kwargs) as f:
-        yield f
+    try:
+        yield fileobj
+    except:
+        fileobj.close()
+        os.remove(tmp_path)
+        raise
+    else:
+        # Written successfully, now rename it
+        fileobj.close()
 
-    # Written successfully, now rename it
+        if os.name == 'nt' and os.path.exists(path):
+            # Rename over existing file doesn't work on Windows
+            os.remove(path)
 
-    if os.name == 'nt' and os.path.exists(path):
-        # Rename over existing file doesn't work on Windows
-        os.remove(path)
-
-    os.rename(tmp_file, path)
+        os.rename(tmp_path, path)
 
 
 def raw_print(*args, **kw):
