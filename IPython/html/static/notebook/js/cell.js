@@ -101,17 +101,25 @@ define([
     };
 
     
-    /**Element of the DOM that have to be common to all cell,
-     * regardless of the type of the cell.
-     * Subclasses should get the common element and fill them. 
-     * @method create_element
-     * FIXME: put the celltoolbar in there 
+     /**
+     * Subclasses must implement create_element.
+     * This should contain all the code to create the DOM element in notebook
+     * and will be called by Base Class constructor.
+     * 
+     * In this base class constructor, should be
+     * element of the DOM having to be common to all cell,
+     * regardless of their type.
+     * Subclasses should get the common element and fill them.
+     * @method create_element 
      **/
+    
     Cell.prototype.create_element = function () {
         var cell =  $('<div></div>').addClass('cell');
         cell.attr('tabindex','2');
         
-        this.element = cell
+        this.element = cell;
+        
+        console.log(this.metadata);
     };
 
     Cell.prototype.init_classes = function () {
