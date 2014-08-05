@@ -14,7 +14,8 @@
  * 
  * Classes and functions are available at load time and may be accessed plainly: 
  * 
- *     IPython.Cell.options_default.cm_config.extraKeys = {Home: "goLineLeft", End: "goLineRight"};
+ *     IPython.Cell.options_default.cm_config.extraKeys['Home'] = 'goLineLeft';
+ *     IPython.Cell.options_default.cm_config.extraKeys['End'] = 'goLineRight';
  * 
  * Instances are created later however and must be accessed using events:
  * 
