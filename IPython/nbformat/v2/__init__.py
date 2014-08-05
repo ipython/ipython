@@ -74,6 +74,7 @@ def parse_filename(fname):
     elif ext == u'.py':
         format = u'py'
     else:
+        basename = fname
         fname = fname + u'.ipynb'
         format = u'json'
     return fname, basename, format
