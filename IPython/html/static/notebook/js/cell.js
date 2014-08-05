@@ -100,13 +100,18 @@ define([
         return $.extend(true, {}, _class.options_default, options, overwrite);
     };
 
-    /**
-     * Empty. Subclasses must implement create_element.
-     * This should contain all the code to create the DOM element in notebook
-     * and will be called by Base Class constructor.
+    
+    /**Element of the DOM that have to be common to all cell,
+     * regardless of the type of the cell.
+     * Subclasses should get the common element and fill them. 
      * @method create_element
-     */
+     * FIXME: put the celltoolbar in there 
+     **/
     Cell.prototype.create_element = function () {
+        var cell =  $('<div></div>').addClass('cell');
+        cell.attr('tabindex','2');
+        
+        this.element = cell
     };
 
     Cell.prototype.init_classes = function () {
