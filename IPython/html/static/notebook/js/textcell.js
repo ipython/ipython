@@ -70,7 +70,7 @@ define([
     TextCell.prototype.create_element = function () {
         Cell.prototype.create_element.apply(this, arguments);
 
-        var cell = $("<div>").addClass('cell text_cell border-box-sizing');
+        var cell = $("<div>").addClass('cell text_cell');
         cell.attr('tabindex','2');
 
         var prompt = $('<div/>').addClass('prompt input_prompt');
@@ -78,14 +78,13 @@ define([
         var inner_cell = $('<div/>').addClass('inner_cell');
         this.celltoolbar = new celltoolbar.CellToolbar({
             cell: this, 
-            events: this.events, 
             notebook: this.notebook});
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
         this.code_mirror = new CodeMirror(input_area.get(0), this.cm_config);
         // The tabindex=-1 makes this div focusable.
-        var render_area = $('<div/>').addClass('text_cell_render border-box-sizing').
-            addClass('rendered_html').attr('tabindex','-1');
+        var render_area = $('<div/>').addClass('text_cell_render rendered_html')
+            .attr('tabindex','-1');
         inner_cell.append(input_area).append(render_area);
         cell.append(inner_cell);
         this.element = cell;
@@ -164,6 +163,7 @@ define([
      * */
     TextCell.prototype.set_text = function(text) {
         this.code_mirror.setValue(text);
+        this.unrender();
         this.code_mirror.refresh();
     };
 
@@ -351,6 +351,9 @@ define([
     };
 
     HeadingCell.options_default = {
+        cm_config: {
+            theme: 'heading-1'
+        },
         placeholder: "Type Heading Here"
     };
 
@@ -362,6 +365,7 @@ define([
             this.level = data.level;
         }
         TextCell.prototype.fromJSON.apply(this, arguments);
+        this.code_mirror.setOption("theme", "heading-"+this.level);
     };
 
 
@@ -373,28 +377,13 @@ define([
     };
 
     /**
-     * can the cell be split into two cells
-     * @method is_splittable
-     **/
-    HeadingCell.prototype.is_splittable = function () {
-        return false;
-    };
-
-
-    /**
-     * can the cell be merged with other cells
-     * @method is_mergeable
-     **/
-    HeadingCell.prototype.is_mergeable = function () {
-        return false;
-    };
-
-    /**
      * Change heading level of cell, and re-render
      * @method set_level
      */
     HeadingCell.prototype.set_level = function (level) {
         this.level = level;
+        this.code_mirror.setOption("theme", "heading-"+level);
+
         if (this.rendered) {
             this.rendered = false;
             this.render();

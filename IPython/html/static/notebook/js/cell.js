@@ -6,6 +6,7 @@ define([
     'jquery',
     'base/js/utils',
 ], function(IPython, $, utils) {
+    // TODO: remove IPython dependency here 
     "use strict";
 
     // monkey patch CM to be able to syntax highlight cell magics
@@ -177,7 +178,6 @@ define([
      * @return {Boolean} `true` if CodeMirror should ignore the event, `false` Otherwise
      */
     Cell.prototype.handle_codemirror_keyevent = function (editor, event) {
-        var that = this;
         var shortcuts = this.keyboard_manager.edit_shortcuts;
 
         // if this is an edit_shortcuts shortcut, the global keyboard/shortcut
@@ -556,7 +556,7 @@ define([
         this.code_mirror.setOption('mode', default_mode);
     };
 
-    // Backwards compatability.
+    // Backwards compatibility.
     IPython.Cell = Cell;
 
     return {'Cell': Cell};

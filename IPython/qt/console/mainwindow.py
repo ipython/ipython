@@ -892,6 +892,7 @@ class MainWindow(QtGui.QMainWindow):
         title = self.window().windowTitle()
         cancel = QtGui.QMessageBox.Cancel
         okay = QtGui.QMessageBox.Ok
+        accept_role = QtGui.QMessageBox.AcceptRole
         
         if self.confirm_exit:
             if self.tab_widget.count() > 1:
@@ -917,7 +918,7 @@ class MainWindow(QtGui.QMainWindow):
         if reply == cancel:
             event.ignore()
             return
-        if reply == okay:
+        if reply == okay or reply == accept_role:
             while self.tab_widget.count() >= 1:
                 # prevent further confirmations:
                 widget = self.active_frontend

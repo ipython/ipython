@@ -13,19 +13,18 @@ Developers of the IPython Notebook will need to install the following tools:
 
 We are moving to a model where our JavaScript dependencies are managed using 
 [bower](http://bower.io/). These packages are installed in `static/components`
-and committed into our git repo. Our dependencies are described in the file
+and committed into a separate git repo [ipython/ipython-components](ipython/ipython-components).
+Our dependencies are described in the file
 `static/components/bower.json`. To update our bower packages, run `fab update`
 in this directory.
-
-Because CodeMirror does not use proper semantic versioning for its GitHub tags,
-we maintain our own fork of CodeMirror that is used with bower. This fork should
-track the upstream CodeMirror exactly; the only difference is that we are adding
-semantic versioned tags to our repo.
 
 ## less
 
 If you edit our `.less` files you will need to run the less compiler to build
-our minified css files.  This can be done by running `fab css` from this directory.
+our minified css files.  This can be done by running `fab css` from this directory,
+or `python setup.py css` from the root of the repository. 
+If you are working frequently with `.less` files please consider installing git hooks that
+rebuild the css files and corresponding maps in `${RepoRoot}/git-hooks/install-hooks.sh`.
 
 ## JavaScript Documentation
 

@@ -14,14 +14,10 @@ define([
         this.selector = selector;
         if (this.selector !== undefined) {
             this.element = $(selector);
-            this.style();
             this.bind_events();
         }
     };
 
-    LoginWidget.prototype.style = function () {
-        this.element.find("button").addClass("btn btn-default btn-sm");
-    };
 
 
     LoginWidget.prototype.bind_events = function () {

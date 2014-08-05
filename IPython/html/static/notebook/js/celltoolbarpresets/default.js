@@ -10,9 +10,15 @@ define([
 
     var CellToolbar = celltoolbar.CellToolbar;
 
-    var raw_edit = function(cell){
-        dialog.edit_metadata(cell.metadata, function (md) {
-            cell.metadata = md;
+    var raw_edit = function (cell) {
+        dialog.edit_metadata({
+            md: cell.metadata,
+            callback: function (md) {
+                cell.metadata = md;
+            },
+            name: 'Cell',
+            notebook: this.notebook,
+            keyboard_manager: this.keyboard_manager
         });
     };
 
@@ -28,12 +34,17 @@ define([
         button_container.append(button);
     };
 
-    var register = function (notebook, events) {
+    var register = function (notebook) {
         CellToolbar.register_callback('default.rawedit', add_raw_edit_button);
+        raw_edit = $.proxy(raw_edit, {
+            notebook: notebook,
+            keyboard_manager: notebook.keyboard_manager
+        });
+
         var example_preset = [];
         example_preset.push('default.rawedit');
 
-        CellToolbar.register_preset('Edit Metadata', example_preset, notebook, events);
+        CellToolbar.register_preset('Edit Metadata', example_preset, notebook);
         console.log('Default extension for cell metadata editing loaded.');
     };
     return {'register': register};

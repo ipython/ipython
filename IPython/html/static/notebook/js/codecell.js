@@ -123,7 +123,7 @@ define([
     CodeCell.prototype.create_element = function () {
         Cell.prototype.create_element.apply(this, arguments);
 
-        var cell =  $('<div></div>').addClass('cell border-box-sizing code_cell');
+        var cell =  $('<div></div>').addClass('cell code_cell');
         cell.attr('tabindex','2');
 
         var input = $('<div></div>').addClass('input');
@@ -131,7 +131,6 @@ define([
         var inner_cell = $('<div/>').addClass('inner_cell');
         this.celltoolbar = new celltoolbar.CellToolbar({
             cell: this, 
-            events: this.events, 
             notebook: this.notebook});
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');

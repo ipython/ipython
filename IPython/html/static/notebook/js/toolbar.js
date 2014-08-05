@@ -66,7 +66,7 @@ define([
                 .addClass('btn btn-default')
                 .attr("title", el.label)
                 .append(
-                    $("<i/>").addClass(el.icon)
+                    $("<i/>").addClass(el.icon).addClass('fa')
                 );
             var id = el.id;
             if( id !== undefined )
@@ -79,8 +79,7 @@ define([
     };
 
     ToolBar.prototype.style = function () {
-        this.element.addClass('border-box-sizing')
-            .addClass('toolbar');
+        this.element.addClass('toolbar');
     };
 
     /**
@@ -94,7 +93,7 @@ define([
         }
     };
 
-    // Backwards compatability.
+    // Backwards compatibility.
     IPython.ToolBar = ToolBar;
 
     return {'ToolBar': ToolBar};

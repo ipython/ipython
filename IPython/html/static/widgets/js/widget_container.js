@@ -4,37 +4,27 @@
 define([
     "widgets/js/widget",
     "jqueryui",
-    "components/bootstrap/js/bootstrap.min",
+    "bootstrap",
 ], function(widget, $){
 
     var ContainerView = widget.DOMWidgetView.extend({
-        render: function(){
-            // Called when view is rendered.
-            this.$el.addClass('widget-container')
-                .addClass('vbox');
+        initialize: function(){
+            // Public constructor
+            ContainerView.__super__.initialize.apply(this, arguments);
             this.update_children([], this.model.get('children'));
-            this.model.on('change:children', function(model, value, options) {
+            this.model.on('change:children', function(model, value) {
                 this.update_children(model.previous('children'), value);
             }, this);
-            this.update();
+        },
 
-            // Trigger model displayed events for any models that are child to 
-            // this model when this model is displayed.
-            var that = this;
-            this.on('displayed', function(){
-                that.is_displayed = true;
-                for (var property in that.child_views) {
-                    if (that.child_views.hasOwnProperty(property)) {
-                        that.child_views[property].trigger('displayed');
-                    }
-                }
-            });
+        render: function(){
+            // Called when view is rendered.
+            this.$el.addClass('widget-container').addClass('vbox');
         },
         
         update_children: function(old_list, new_list) {
             // Called when the children list changes.
-            this.do_diff(old_list,
-                new_list, 
+            this.do_diff(old_list, new_list, 
                 $.proxy(this.remove_child_model, this),
                 $.proxy(this.add_child_model, this));
         },
@@ -49,18 +39,10 @@ define([
             var view = this.create_child_view(model);
             this.$el.append(view.$el);
 
-            // Trigger the displayed event if this model is displayed.
-            if (this.is_displayed) {
+            // Trigger the displayed event of the child view.
+            this.after_displayed(function() {
                 view.trigger('displayed');
-            }
-        },
-        
-        update: function(){
-            // Update the contents of this view
-            //
-            // Called when the model is changed.  The model may have been 
-            // changed by another view or by a state update from the back-end.
-            return ContainerView.__super__.update.apply(this);
+            });
         },
     });
     
@@ -100,7 +82,7 @@ define([
                     that.bring_to_front();
                 });
             this.$close = $('<button />')
-                .addClass('close icon-remove')
+                .addClass('close fa fa-remove')
                 .css('margin-left', '5px')
                 .appendTo(this.$title_bar)
                 .click(function(){
@@ -108,14 +90,14 @@ define([
                     event.stopPropagation();
                 });
             this.$minimize = $('<button />')
-                .addClass('close icon-arrow-down')
+                .addClass('close fa fa-arrow-down')
                 .appendTo(this.$title_bar)
                 .click(function(){
                     that.popped_out = !that.popped_out;
                     if (!that.popped_out) {
                         that.$minimize
-                            .removeClass('icon-arrow-down')
-                            .addClass('icon-arrow-up');
+                            .removeClass('fa fa-arrow-down')
+                            .addClass('fa fa-arrow-up');
                             
                         that.$window
                             .draggable('destroy')
@@ -128,8 +110,8 @@ define([
                         that.$close.hide();
                     } else {
                         that.$minimize
-                            .addClass('icon-arrow-down')
-                            .removeClass('icon-arrow-up');
+                            .addClass('fa fa-arrow-down')
+                            .removeClass('fa fa-arrow-up');
 
                         that.$window
                             .removeClass('docked-widget-modal')
@@ -170,26 +152,13 @@ define([
                 that.$body.outerHeight(that.$window.innerHeight() - that.$title_bar.outerHeight());
             });
 
-            this.$el_to_style = this.$body;
             this._shown_once = false;
             this.popped_out = true;
 
             this.update_children([], this.model.get('children'));
-            this.model.on('change:children', function(model, value, options) {
+            this.model.on('change:children', function(model, value) {
                 this.update_children(model.previous('children'), value);
             }, this);
-            this.update();
-
-            // Trigger model displayed events for any models that are child to 
-            // this model when this model is displayed.
-            this.on('displayed', function(){
-                that.is_displayed = true;
-                for (var property in that.child_views) {
-                    if (that.child_views.hasOwnProperty(property)) {
-                        that.child_views[property].trigger('displayed');
-                    }
-                }
-            });
         },
         
         hide: function() {
@@ -236,8 +205,7 @@ define([
         
         update_children: function(old_list, new_list) {
             // Called when the children list is modified.
-            this.do_diff(old_list, 
-                new_list, 
+            this.do_diff(old_list, new_list, 
                 $.proxy(this.remove_child_model, this),
                 $.proxy(this.add_child_model, this));
         },
@@ -252,10 +220,10 @@ define([
             var view = this.create_child_view(model);
             this.$body.append(view.$el);
 
-            // Trigger the displayed event if this model is displayed.
-            if (this.is_displayed) {
+            // Trigger the displayed event of the child view.
+            this.after_displayed(function() {
                 view.trigger('displayed');
-            }
+            });
         },
         
         update: function(){
@@ -295,7 +263,7 @@ define([
             // "modal" - select the modal div
             // "modal [selector]" - select element(s) within the modal div.
             // "[selector]" - select elements within $el
-            // "" - select the $el_to_style
+            // "" - select the $el
             if (selector.substring(0, 5) == 'modal') {
                 if (selector == 'modal') {
                     return this.$window;

@@ -19,7 +19,7 @@ define([
         //          base_url: string
         //          notebook_path: string
         notebooklist.NotebookList.call(this, selector, $.extend({
-            element_name: 'running'}, 
+            element_name: 'running'},
             options));
     };
 
@@ -28,13 +28,20 @@ define([
     KernelList.prototype.sessions_loaded = function (d) {
         this.sessions = d;
         this.clear_list();
-        var item;
-        for (var path in d) {
-            item = this.new_notebook_item(-1);
-            this.add_link('', path, item);
-            this.add_shutdown_button(item, this.sessions[path]);
+        var item, path_name;
+        for (path_name in d) {
+            if (!d.hasOwnProperty(path_name)) {
+                // nothing is safe in javascript
+                continue;
+            }
+            item = this.new_item(-1);
+            this.add_link({
+                name: path_name,
+                path: '',
+                type: 'notebook',
+            }, item);
+            this.add_shutdown_button(item, this.sessions[path_name]);
         }
-       
         $('#running_list_header').toggle($.isEmptyObject(d));
     };
     

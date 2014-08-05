@@ -4,8 +4,9 @@
 define([
     "underscore",
     "backbone",
+    "jquery",
     "base/js/namespace"
-], function (_, Backbone, IPython) {
+], function (_, Backbone, $, IPython) {
 
     //--------------------------------------------------------------------
     // WidgetManager class

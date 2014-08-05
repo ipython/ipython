@@ -242,6 +242,7 @@ sec.requires('zmq')
 sec.exclude('inprocess')
 # importing gtk sets the default encoding, which we want to avoid
 sec.exclude('zmq.gui.gtkembed')
+sec.exclude('zmq.gui.gtk3embed')
 if not have['matplotlib']:
     sec.exclude('zmq.pylab')
 

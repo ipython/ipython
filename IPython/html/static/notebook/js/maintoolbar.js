@@ -35,7 +35,7 @@ define([
                 {
                     id : 'save_b',
                     label : 'Save and Checkpoint',
-                    icon : 'icon-save',
+                    icon : 'fa-save',
                     callback : function () {
                         that.notebook.save_checkpoint();
                         }
@@ -46,7 +46,7 @@ define([
                 {
                     id : 'insert_below_b',
                     label : 'Insert Cell Below',
-                    icon : 'icon-plus-sign',
+                    icon : 'fa-plus',
                     callback : function () {
                         that.notebook.insert_cell_below('code');
                         that.notebook.select_next();
@@ -59,7 +59,7 @@ define([
                 {
                     id : 'cut_b',
                     label : 'Cut Cell',
-                    icon : 'icon-cut',
+                    icon : 'fa-cut',
                     callback : function () {
                         that.notebook.cut_cell();
                         }
@@ -67,7 +67,7 @@ define([
                 {
                     id : 'copy_b',
                     label : 'Copy Cell',
-                    icon : 'icon-copy',
+                    icon : 'fa-copy',
                     callback : function () {
                         that.notebook.copy_cell();
                         }
@@ -75,7 +75,7 @@ define([
                 {
                     id : 'paste_b',
                     label : 'Paste Cell Below',
-                    icon : 'icon-paste',
+                    icon : 'fa-paste',
                     callback : function () {
                         that.notebook.paste_cell_below();
                         }
@@ -86,7 +86,7 @@ define([
                 {
                     id : 'move_up_b',
                     label : 'Move Cell Up',
-                    icon : 'icon-arrow-up',
+                    icon : 'fa-arrow-up',
                     callback : function () {
                         that.notebook.move_cell_up();
                         }
@@ -94,7 +94,7 @@ define([
                 {
                     id : 'move_down_b',
                     label : 'Move Cell Down',
-                    icon : 'icon-arrow-down',
+                    icon : 'fa-arrow-down',
                     callback : function () {
                         that.notebook.move_cell_down();
                         }
@@ -106,7 +106,7 @@ define([
                 {
                     id : 'run_b',
                     label : 'Run Cell',
-                    icon : 'icon-play',
+                    icon : 'fa-play',
                     callback : function () {
                         // emulate default shift-enter behavior
                         that.notebook.execute_cell_and_select_below();
@@ -115,7 +115,7 @@ define([
                 {
                     id : 'interrupt_b',
                     label : 'Interrupt',
-                    icon : 'icon-stop',
+                    icon : 'fa-stop',
                     callback : function () {
                         that.notebook.session.interrupt_kernel();
                         }
@@ -123,7 +123,7 @@ define([
                 {
                     id : 'repeat_b',
                     label : 'Restart Kernel',
-                    icon : 'icon-repeat',
+                    icon : 'fa-repeat',
                     callback : function () {
                         that.notebook.restart_kernel();
                         }

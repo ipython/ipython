@@ -489,7 +489,7 @@ class ZMQInteractiveShell(InteractiveShell):
 
     def ask_exit(self):
         """Engage the exit actions."""
-        self.exit_now = True
+        self.exit_now = (not self.keepkernel_on_exit)
         payload = dict(
             source='ask_exit',
             exit=True,

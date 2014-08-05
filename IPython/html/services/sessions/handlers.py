@@ -1,20 +1,7 @@
-"""Tornado handlers for the sessions web service.
+"""Tornado handlers for the sessions web service."""
 
-Authors:
-
-* Zach Sailer
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import json
 
@@ -23,10 +10,6 @@ from tornado import web
 from ...base.handlers import IPythonHandler, json_errors
 from IPython.utils.jsonutil import date_default
 from IPython.html.utils import url_path_join, url_escape
-
-#-----------------------------------------------------------------------------
-# Session web service handlers
-#-----------------------------------------------------------------------------
 
 
 class SessionRootHandler(IPythonHandler):
@@ -45,6 +28,8 @@ class SessionRootHandler(IPythonHandler):
         # Creates a new session
         #(unless a session already exists for the named nb)
         sm = self.session_manager
+        cm = self.contents_manager
+        km = self.kernel_manager
 
         model = self.get_json_body()
         if model is None:

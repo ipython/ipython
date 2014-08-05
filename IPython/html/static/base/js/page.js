@@ -8,13 +8,7 @@ define([
     "use strict";
 
     var Page = function () {
-        this.style();
         this.bind_events();
-    };
-
-    Page.prototype.style = function () {
-        $('div#header').addClass('border-box-sizing');
-        $('div#site').addClass('border-box-sizing');
     };
 
     Page.prototype.bind_events = function () {
@@ -30,12 +24,14 @@ define([
     Page.prototype.show_header = function () {
         // The header and site divs start out hidden to prevent FLOUC.
         // Main scripts should call this method after styling everything.
+        // TODO: selector are hardcoded, pass as constructor argument
         $('div#header').css('display','block');
     };
 
     Page.prototype.show_site = function () {
         // The header and site divs start out hidden to prevent FLOUC.
         // Main scripts should call this method after styling everything.
+        // TODO: selector are hardcoded, pass as constructor argument
         $('div#site').css('display','block');
     };
 
