@@ -1,3 +1,4 @@
+import os
 from unittest import TestCase
 
 from IPython.utils.py3compat import unicode_type
@@ -23,8 +24,9 @@ class MiscTests(TestCase):
         self.check_filename("test.nb", "test.nb.ipynb", "test.nb", "json")
 
         # check parsing a full file path
-        self.check_filename("/tmp/test.ipynb", "/tmp/test.ipynb", "/tmp/test",
-                            "json")
+        abs_path = os.path.abspath("test.ipynb")
+        basename, ext = os.path.splitext(abs_path)
+        self.check_filename(abs_path, abs_path, basename, "json")
 
         # check parsing a file name containing dots
         self.check_filename("test.nb.ipynb", "test.nb.ipynb", "test.nb",
