@@ -70,8 +70,12 @@ class _BoundedFloatRangeWidget(_FloatRangeWidget):
     min = CFloat(0.0, help="Min value", sync=True)
 
     def __init__(self, *pargs, **kwargs):
-        """Constructor"""
+        set_value = 'value' not in kwargs
         DOMWidget.__init__(self, *pargs, **kwargs)
+        if set_value:
+            # if no value is set, use 25-75% to avoid the handles overlapping
+            self.value = (0.75*self.min + 0.25*self.max,
+                          0.25*self.min + 0.75*self.max)
         self.on_trait_change(self._validate, ['value', 'min', 'max'])
 
     def _validate(self, name, old, new):
