@@ -260,15 +260,19 @@ def atomic_writing(path, text=True, encoding='utf-8', **kwargs):
         fileobj.close()
         os.remove(tmp_path)
         raise
-    else:
-        # Written successfully, now rename it
-        fileobj.close()
 
-        if os.name == 'nt' and os.path.exists(path):
-            # Rename over existing file doesn't work on Windows
-            os.remove(path)
+    # Flush to disk
+    fileobj.flush()
+    os.fsync(fileobj.fileno())
 
-        os.rename(tmp_path, path)
+    # Written successfully, now rename it
+    fileobj.close()
+
+    if os.name == 'nt' and os.path.exists(path):
+        # Rename over existing file doesn't work on Windows
+        os.remove(path)
+
+    os.rename(tmp_path, path)
 
 
 def raw_print(*args, **kw):
