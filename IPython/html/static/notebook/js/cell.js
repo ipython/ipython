@@ -139,6 +139,8 @@ define([
         } else {
             this.element.addClass('command_mode');
         }
+        
+
     };
 
     /**
@@ -417,6 +419,26 @@ define([
         if (data.metadata !== undefined) {
             this.metadata = data.metadata;
         }
+        
+        // Csstag
+        
+        
+        if (this.metadata.hasOwnProperty('jupyter')){
+            
+            for (name in this.metadata.jupyter){
+                
+                if(typeof(this.metadata.jupyter[name]) == 'string'){
+                    this.element.addClass(this.metadata.jupyter[name]);
+                    
+                }else if((typeof(this.metadata.jupyter[name])=='boolean')&&(this.metadata.jupyter[name] == true)){
+                    this.element.addClass(name);
+                    
+                }else{//should never append
+                    console.log('Error: bad csstag metadata, '+name+' tag is avoided ');
+                }
+            }
+        }
+        
         this.celltoolbar.rebuild();
     };
 
@@ -496,19 +518,6 @@ define([
     };
     
     /**
-     * Add a tag to the cell.
-     * A tag consist in:
-     *   - a metadata element 
-     *   - a corresponding class added to the cell DOM element
-     * This function is a general API, particular usecase should call it
-     * @method add_tag
-     * @param {String} the tag name
-     * @param {String} the value associated with the tag
-     * @param {String} the dedicated namespace in metadata
-     * @param {String} to avoid namespace collision in html, the class_name is the tag prefixed by this string.
-     */
-
-    /**
      * Try to autodetect cell highlight mode, or use selected mode
      * @methods _auto_highlight
      * @private
@@ -568,102 +577,7 @@ define([
                 }
             }
             
-            Cell.prototype.add_tag = function(tag, value, metadata_prefix, class_tag_prefix){
-            	var class_name = class_tag_prefix +'_'+ tag;
-            	var meta = this.metadata;
-            	
-            	if('metadata_prefix' == ''){
-            		console.log("Empty metadata prefix is forbidden, to avoid name collision")
-            		}
-            	else if(meta.hasOwnProperty(metadata_prefix)){	
-        			meta[metadata_prefix][tag] = value;
-        			this.element.addClass(class_name);
-        		}
-            	else{
-            		meta[metadata_prefix] = {};
-        			meta[metadata_prefix][tag] = value;
-        			this.element.addClass(class_name);
-            	}
-            };
             
-            /**
-             * Remove a tag from the cell.
-             * A tag consist in:
-             *   - a metadata element 
-             *   - a corresponding class added to the cell DOM element
-             * This function is a general API, particular usecase should call it
-             * @method add_tag
-             * @param {String} the tag name
-             * @param {String} the value associated with the tag
-             * @param {String} the dedicated namespace in metadata
-             * @param {String} to avoid namespace collision in html, the class_name is the tag prefixed by this string.
-             */
-            Cell.prototype.remove_tag = function(tag, metadata_prefix, class_tag_prefix){
-            	var class_name = class_tag_prefix +'_'+ tag;
-            	var meta = this.metadata;
-            	
-            	if('metadata_prefix' == ''){
-            		console.log("Empty metadata prefix is forbidden, to avoid name collision")
-            		}
-            	else if(meta.hasOwnProperty(metadata_prefix)){	
-        			delete meta[metadata_prefix][tag];
-        			this.element.removeClass(class_name);
-        		}
-            	else{
-            		console.log("Warning, attempt to remove tag from unexisting metadata namespace")
-            	}
-            };
-            
-            /**
-             * API: The css tag
-             * ================
-             * 
-             * 
-             * These tag's class should correspond **exclusively** with css selectors.
-             * The purpose, is notebook presentation without beeing invasive in the DOM but instead by 
-             * adding and remove class from the **cell div**. 
-             * 
-             * A class called 'csstag_present' activate the css. If removed, all css should be unactivated.
-             * 
-             * The possible css tag are of two types:
-             *  
-             *  - a single modal css selector tag. It consists in css rules that are not compatible with each other. 
-             *   In metadata, it is implemented by the key 'type' and the value is a string containing the name of the tag
-             *   
-             *  - several optional css selector tag. In metadata it should be implemented by a key which is the name tag, and a boolean value. 
-             */
-            
-            /**
-             * Set (add if doesn't exist) a css tag to the value.
-             * If the tag name is 'type' value should be a string, else value should be boolean
-             * See 'API: The css tag' for details
-             *  
-             * @method set_csstag
-             * @param {String} the tag name
-             * @param {String} the value associated with the tag
-             */
-            Cell.prototype.set_csstag = function(tag, value){
-            	// Check for incorrect API call
-            	if(!( (tag == 'type' && typeof(value) == 'string') || (tag != 'type' && typeof(value)=='boolean'))){
-            		console.log("Error, 'type' is a reserved tag name corresponding with modal css selector tag, should not be used this way");
-            	}else{
-            		// API Here the tag prefix is set
-            		this.add_tag(tag, value, 'csstag', 'csstag');
-            	}
-            }
-
-            /**
-             * Remove the tag from DOM and metadata. Usualy, you might 
-             * set the csstag to an other value.
-             *  
-             * @method remove_csstag
-             * @param {String} the tag name
-             */
-
-            Cell.prototype.remove_csstag = function(tag){
-            	this.add_tag(tag, 'csstag', 'csstag');
-            }
-
         }
         // fallback on default
         var default_mode;
@@ -676,6 +590,114 @@ define([
             return;
         }
         this.code_mirror.setOption('mode', default_mode);
+    };
+    
+    /**
+     * Add a tag to the cell.
+     * A tag consist in:
+     *   - a metadata element 
+     *   - a corresponding class added to the cell DOM element
+     * This function is a general API, particular usecase should call it
+     * @method add_tag
+     * @param {String} the tag name
+     * @param {String} the value associated with the tag
+     * @param {String} the dedicated namespace in metadata
+     * @param {String} to avoid namespace collision in html, the class_name is the tag prefixed by this string.
+     */
+    Cell.prototype.add_tag = function(tag, value, metadata_prefix, class_tag_prefix){
+        var class_name = class_tag_prefix +'-'+ tag;
+        var meta = this.metadata;
+        
+        if('metadata_prefix' == ''){
+            console.log("Empty metadata prefix is forbidden, to avoid name collision")
+        }
+        else if(meta.hasOwnProperty(metadata_prefix)){
+            meta[metadata_prefix][tag] = value;
+            this.element.addClass(class_name);
+        }
+        else{
+            meta[metadata_prefix] = {};
+            meta[metadata_prefix][tag] = value;
+            this.element.addClass(class_name);
+        }
+    };
+    
+    /**
+     * Remove a tag from the cell.
+     * A tag consist in:
+     *   - a metadata element 
+     *   - a corresponding class added to the cell DOM element
+     * This function is a general API, particular usecase should call it
+     * @method add_tag
+     * @param {String} the tag name
+     * @param {String} the value associated with the tag
+     * @param {String} the dedicated namespace in metadata
+     * @param {String} to avoid namespace collision in html, the class_name is the tag prefixed by this string.
+     */
+    Cell.prototype.remove_tag = function(tag, metadata_prefix, class_tag_prefix){
+        var class_name = class_tag_prefix +'-'+ tag;
+        var meta = this.metadata;
+        
+        if('metadata_prefix' == ''){
+            console.log("Empty metadata prefix is forbidden, to avoid name collision")
+        }
+        else if(meta.hasOwnProperty(metadata_prefix)){  
+            delete meta[metadata_prefix][tag];
+            this.element.removeClass(class_name);
+        }
+        else{
+            console.log("Warning, attempt to remove tag from unexisting metadata namespace")
+        }
+    };
+    
+    /**
+     * API: The css tag
+     * ================
+     * 
+     * 
+     * These tag's class should correspond **exclusively** with css selectors.
+     * The purpose, is notebook presentation without beeing invasive in the DOM but instead by 
+     * adding and remove class from the **cell div**. 
+     * 
+     * A class called 'csstag_present' activate the css. If removed, all css should be unactivated.
+     * 
+     * The possible css tag are of two types:
+     *  
+     *  - a single modal css selector tag. It consists in css rules that are not compatible with each other. 
+     *   In metadata, it is implemented by the key 'type' and the value is a string containing the name of the tag
+     *   
+     *  - several optional css selector tag. In metadata it should be implemented by a key which is the name tag, and a boolean value. 
+     *
+     * Set (add if doesn't exist) a css tag to the value.
+     * If the tag name is 'type' value should be a string, else value should be boolean
+     * See 'API: The css tag' for details
+     *  
+     * @method set_csstag
+     * @param {String} the tag name
+     * @param {String} the value associated with the tag
+     */
+    Cell.prototype.set_csstag = function(tag, value){
+        // Check for incorrect API call
+        // Right now the API is to have a reserved modal name 'type' for
+        // the all cell and options. It could evolve in the future
+        if(!( (tag == 'type' && typeof(value) == 'string') || (tag != 'type' && typeof(value)=='boolean'))){
+            console.log("Error, 'type' is a reserved tag name corresponding with modal css selector tag, should not be used this way");
+        }else{
+            // API Here the tag prefix is set
+            this.add_tag(tag, value, 'jupyter', 'jupyter');
+        }
+    }
+
+    /**
+     * Remove the tag from DOM and metadata. Usualy, you might 
+     * set the csstag to an other value.
+     *  
+     * @method remove_csstag
+     * @param {String} the tag name
+     */
+
+    Cell.prototype.remove_csstag = function(tag){
+        this.add_tag(tag, 'jupyter', 'jupyter');
     };
 
     // Backwards compatibility.
