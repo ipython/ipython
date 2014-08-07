@@ -150,7 +150,7 @@ define([
             .addClass('widget-subarea')
             .appendTo(widget_area);
         this.widget_subarea = widget_subarea;
-        var widget_clear_buton = $('<button />')
+        $('<button />')
             .addClass('close')
             .html('&times;')
             .click(function() {
@@ -167,6 +167,7 @@ define([
             events: this.events, 
             keyboard_manager: this.keyboard_manager});
         this.completer = new completer.Completer(this, this.events);
+        this.events.trigger('new_code_cell.Cell', this);
     };
 
     /** @method bind_events */
