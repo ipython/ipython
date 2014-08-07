@@ -27,6 +27,7 @@ except:
 import zmq
 from zmq.log import handlers
 
+from IPython.utils.log import get_logger
 from IPython.external.decorator import decorator
 
 from IPython.config.application import Application
@@ -296,7 +297,7 @@ def select_random_ports(n):
 def signal_children(children):
     """Relay interupt/term signals to children, for more solid process cleanup."""
     def terminate_children(sig, frame):
-        log = Application.instance().log
+        log = get_logger()
         log.critical("Got signal %i, terminating children..."%sig)
         for child in children:
             child.terminate()

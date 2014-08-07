@@ -11,7 +11,7 @@ casper.notebook_test(function () {
     float_text.index = this.append_cell(
         'float_widget = widgets.FloatTextWidget()\n' +
         'display(float_widget)\n' + 
-        'float_widget.add_class("my-second-float-text")\n' + 
+        'float_widget.add_class("my-second-float-text", selector="input")\n' + 
         'print(float_widget.model_id)\n');
     this.execute_cell_then(float_text.index, function(index){
         float_text.model_id = this.get_output_cell(index).text.trim();

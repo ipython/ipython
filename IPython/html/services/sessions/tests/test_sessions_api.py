@@ -37,8 +37,9 @@ class SessionAPI(object):
     def get(self, id):
         return self._req('GET', id)
 
-    def create(self, name, path):
-        body = json.dumps({'notebook': {'name':name, 'path':path}})
+    def create(self, name, path, kernel_name='python'):
+        body = json.dumps({'notebook': {'name':name, 'path':path},
+                           'kernel': {'name': kernel_name}})
         return self._req('POST', '', body)
 
     def modify(self, id, name, path):

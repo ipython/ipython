@@ -1,23 +1,29 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2011  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// NotebookList
-//============================================================================
-
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'jquery',
+    'base/js/utils',
+    'base/js/dialog',
+], function(IPython, $, utils, dialog) {
     "use strict";
     
-    var utils = IPython.utils;
-
-    var NotebookList = function (selector, options, element_name) {
-        var that = this
+    var NotebookList = function (selector, options) {
+        // Constructor
+        //
+        // Parameters:
+        //  selector: string
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          session_list: SessionList instance
+        //          element_name: string
+        //          base_url: string
+        //          notebook_path: string
+        var that = this;
+        this.session_list = options.session_list;
         // allow code re-use by just changing element_name in kernellist.js
-        this.element_name = element_name || 'notebook';
+        this.element_name = options.element_name || 'notebook';
         this.selector = selector;
         if (this.selector !== undefined) {
             this.element = $(selector);
@@ -28,12 +34,14 @@ var IPython = (function (IPython) {
         this.sessions = {};
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
         this.notebook_path = options.notebook_path || utils.get_body_data("notebookPath");
-        $([IPython.events]).on('sessions_loaded.Dashboard', 
-            function(e, d) { that.sessions_loaded(d); });
+        if (this.session_list && this.session_list.events) {
+            this.session_list.events.on('sessions_loaded.Dashboard', 
+                function(e, d) { that.sessions_loaded(d); });
+        }
     };
 
     NotebookList.prototype.style = function () {
-        var prefix = '#' + this.element_name
+        var prefix = '#' + this.element_name;
         $(prefix + '_toolbar').addClass('list_toolbar');
         $(prefix + '_list_info').addClass('toolbar_info');
         $(prefix + '_buttons').addClass('toolbar_buttons');
@@ -67,30 +75,27 @@ var IPython = (function (IPython) {
         }
         for (var i = 0; i < files.length; i++) {
             var f = files[i];
-            var reader = new FileReader();
-            reader.readAsText(f);
             var name_and_ext = utils.splitext(f.name);
             var file_ext = name_and_ext[1];
+
+            var reader = new FileReader();
             if (file_ext === '.ipynb') {
-                var item = that.new_notebook_item(0);
-                item.addClass('new-file');
-                that.add_name_input(f.name, item);
-                // Store the notebook item in the reader so we can use it later
-                // to know which item it belongs to.
-                $(reader).data('item', item);
-                reader.onload = function (event) {
-                    var nbitem = $(event.target).data('item');
-                    that.add_notebook_data(event.target.result, nbitem);
-                    that.add_upload_button(nbitem);
-                };
+                reader.readAsText(f);
             } else {
-                var dialog = 'Uploaded notebooks must be .ipynb files';
-                IPython.dialog.modal({
-                    title : 'Invalid file type',
-                    body : dialog,
-                    buttons : {'OK' : {'class' : 'btn-primary'}}
-                });
+                // read non-notebook files as binary
+                reader.readAsArrayBuffer(f);
             }
+            var item = that.new_item(0);
+            item.addClass('new-file');
+            that.add_name_input(f.name, item);
+            // Store the list item in the reader so we can use it later
+            // to know which item it belongs to.
+            $(reader).data('item', item);
+            reader.onload = function (event) {
+                var item = $(event.target).data('item');
+                that.add_file_data(event.target.result, item);
+                that.add_upload_button(item);
+            };
         }
         // Replace the file input form wth a clone of itself. This is required to
         // reset the form. Otherwise, if you upload a file, delete it and try to 
@@ -114,7 +119,7 @@ var IPython = (function (IPython) {
     };
 
     NotebookList.prototype.load_sessions = function(){
-        IPython.session_list.load_sessions();
+        this.session_list.load_sessions();
     };
 
 
@@ -140,7 +145,7 @@ var IPython = (function (IPython) {
         var url = utils.url_join_encode(
                 this.base_url,
                 'api',
-                'notebooks',
+                'contents',
                 this.notebook_path
         );
         $.ajax(url, settings);
@@ -153,10 +158,12 @@ var IPython = (function (IPython) {
             message = param.msg;
         }
         var item = null;
-        var len = data.length;
+        var model = null;
+        var list = data.content;
+        var len = list.length;
         this.clear_list();
         if (len === 0) {
-            item = this.new_notebook_item(0);
+            item = this.new_item(0);
             var span12 = item.children().first();
             span12.empty();
             span12.append($('<div style="margin:auto;text-align:center;color:grey"/>').text(message));
@@ -164,31 +171,24 @@ var IPython = (function (IPython) {
         var path = this.notebook_path;
         var offset = 0;
         if (path !== '') {
-            item = this.new_notebook_item(0);
-            this.add_dir(path, '..', item);
+            item = this.new_item(0);
+            model = {
+                type: 'directory',
+                name: '..',
+                path: path,
+            };
+            this.add_link(model, item);
             offset = 1;
         }
         for (var i=0; i<len; i++) {
-            if (data[i].type === 'directory') {
-                var name = data[i].name;
-                item = this.new_notebook_item(i+offset);
-                this.add_dir(path, name, item);
-            } else {
-                var name = data[i].name;
-                item = this.new_notebook_item(i+offset);
-                this.add_link(path, name, item);
-                name = utils.url_path_join(path, name);
-                if(this.sessions[name] === undefined){
-                    this.add_delete_button(item);
-                } else {
-                    this.add_shutdown_button(item,this.sessions[name]);
-                }
-            }
+            model = list[i];
+            item = this.new_item(i+offset);
+            this.add_link(model, item);
         }
     };
 
 
-    NotebookList.prototype.new_notebook_item = function (index) {
+    NotebookList.prototype.new_item = function (index) {
         var item = $('<div/>').addClass("list_item").addClass("row");
         // item.addClass('list_item ui-widget ui-widget-content ui-helper-clearfix');
         // item.css('border-top-style','none');
@@ -211,55 +211,70 @@ var IPython = (function (IPython) {
     };
 
 
-    NotebookList.prototype.add_dir = function (path, name, item) {
+    NotebookList.icons = {
+        directory: 'folder_icon',
+        notebook: 'notebook_icon',
+        file: 'file_icon',
+    };
+
+    NotebookList.uri_prefixes = {
+        directory: 'tree',
+        notebook: 'notebooks',
+        file: 'files',
+    };
+
+
+    NotebookList.prototype.add_link = function (model, item) {
+        var path = model.path,
+            name = model.name;
         item.data('name', name);
         item.data('path', path);
         item.find(".item_name").text(name);
-        item.find(".item_icon").addClass('folder_icon').addClass('icon-fixed-width');
-        item.find("a.item_link")
+        var icon = NotebookList.icons[model.type];
+        var uri_prefix = NotebookList.uri_prefixes[model.type];
+        item.find(".item_icon").addClass(icon).addClass('icon-fixed-width');
+        var link = item.find("a.item_link")
             .attr('href',
                 utils.url_join_encode(
                     this.base_url,
-                    "tree",
+                    uri_prefix,
                     path,
                     name
                 )
             );
+        // directory nav doesn't open new tabs
+        // files, notebooks do
+        if (model.type !== "directory") {
+            link.attr('target','_blank');
+        }
+        var path_name = utils.url_path_join(path, name);
+        if (model.type == 'file') {
+            this.add_delete_button(item);
+        } else if (model.type == 'notebook') {
+            if(this.sessions[path_name] === undefined){
+                this.add_delete_button(item);
+            } else {
+                this.add_shutdown_button(item, this.sessions[path_name]);
+            }
+        }
     };
 
 
-    NotebookList.prototype.add_link = function (path, nbname, item) {
-        item.data('nbname', nbname);
-        item.data('path', path);
-        item.find(".item_name").text(nbname);
-        item.find(".item_icon").addClass('notebook_icon').addClass('icon-fixed-width');
-        item.find("a.item_link")
-            .attr('href',
-                utils.url_join_encode(
-                    this.base_url,
-                    "notebooks",
-                    path,
-                    nbname
-                )
-            ).attr('target','_blank');
-    };
-
-
-    NotebookList.prototype.add_name_input = function (nbname, item) {
-        item.data('nbname', nbname);
+    NotebookList.prototype.add_name_input = function (name, item) {
+        item.data('name', name);
         item.find(".item_icon").addClass('notebook_icon').addClass('icon-fixed-width');
         item.find(".item_name").empty().append(
             $('<input/>')
-            .addClass("nbname_input")
-            .attr('value', utils.splitext(nbname)[0])
+            .addClass("filename_input")
+            .attr('value', name)
             .attr('size', '30')
             .attr('type', 'text')
         );
     };
 
 
-    NotebookList.prototype.add_notebook_data = function (data, item) {
-        item.data('nbdata', data);
+    NotebookList.prototype.add_file_data = function (data, item) {
+        item.data('filedata', data);
     };
 
 
@@ -296,13 +311,13 @@ var IPython = (function (IPython) {
             click(function (e) {
                 // $(this) is the button that was clicked.
                 var that = $(this);
-                // We use the nbname and notebook_id from the parent notebook_item element's
-                // data because the outer scopes values change as we iterate through the loop.
+                // We use the filename from the parent list_item element's
+                // data because the outer scope's values change as we iterate through the loop.
                 var parent_item = that.parents('div.list_item');
-                var nbname = parent_item.data('nbname');
-                var message = 'Are you sure you want to permanently delete the notebook: ' + nbname + '?';
-                IPython.dialog.modal({
-                    title : "Delete notebook",
+                var name = parent_item.data('name');
+                var message = 'Are you sure you want to permanently delete the file: ' + name + '?';
+                dialog.modal({
+                    title : "Delete file",
                     body : message,
                     buttons : {
                         Delete : {
@@ -320,9 +335,9 @@ var IPython = (function (IPython) {
                                 };
                                 var url = utils.url_join_encode(
                                     notebooklist.base_url,
-                                    'api/notebooks',
+                                    'api/contents',
                                     notebooklist.notebook_path,
-                                    nbname
+                                    name
                                 );
                                 $.ajax(url, settings);
                             }
@@ -336,30 +351,69 @@ var IPython = (function (IPython) {
     };
 
 
-    NotebookList.prototype.add_upload_button = function (item) {
+    NotebookList.prototype.add_upload_button = function (item, type) {
         var that = this;
         var upload_button = $('<button/>').text("Upload")
             .addClass('btn btn-primary btn-xs upload_button')
             .click(function (e) {
-                var nbname = item.find('.item_name > input').val();
-                if (nbname.slice(nbname.length-6, nbname.length) != ".ipynb") {
-                    nbname = nbname + ".ipynb";
-                }
                 var path = that.notebook_path;
-                var nbdata = item.data('nbdata');
-                var content_type = 'application/json';
+                var filename = item.find('.item_name > input').val();
+                var filedata = item.data('filedata');
+                var format = 'text';
+                if (filedata instanceof ArrayBuffer) {
+                    // base64-encode binary file data
+                    var bytes = '';
+                    var buf = new Uint8Array(filedata);
+                    var nbytes = buf.byteLength;
+                    for (var i=0; i<nbytes; i++) {
+                        bytes += String.fromCharCode(buf[i]);
+                    }
+                    filedata = btoa(bytes);
+                    format = 'base64';
+                }
                 var model = {
-                    content : JSON.parse(nbdata),
+                    path: path,
+                    name: filename
                 };
+
+                var name_and_ext = utils.splitext(filename);
+                var file_ext = name_and_ext[1];
+                var content_type;
+                if (file_ext === '.ipynb') {
+                    model.type = 'notebook';
+                    model.format = 'json';
+                    try {
+                        model.content = JSON.parse(filedata);
+                    } catch (e) {
+                        dialog.modal({
+                            title : 'Cannot upload invalid Notebook',
+                            body : "The error was: " + e,
+                            buttons : {'OK' : {
+                                'class' : 'btn-primary',
+                                click: function () {
+                                    item.remove();
+                                }
+                            }}
+                        });
+                    }
+                    content_type = 'application/json';
+                } else {
+                    model.type = 'file';
+                    model.format = format;
+                    model.content = filedata;
+                    content_type = 'application/octet-stream';
+                }
+                var filedata = item.data('filedata');
+
                 var settings = {
                     processData : false,
                     cache : false,
                     type : 'PUT',
-                    dataType : 'json',
                     data : JSON.stringify(model),
                     headers : {'Content-Type': content_type},
                     success : function (data, status, xhr) {
-                        that.add_link(path, nbname, item);
+                        item.removeClass('new-file');
+                        that.add_link(model, item);
                         that.add_delete_button(item);
                     },
                     error : utils.log_ajax_error,
@@ -367,9 +421,9 @@ var IPython = (function (IPython) {
 
                 var url = utils.url_join_encode(
                     that.base_url,
-                    'api/notebooks',
+                    'api/contents',
                     that.notebook_path,
-                    nbname
+                    filename
                 );
                 $.ajax(url, settings);
                 return false;
@@ -377,7 +431,6 @@ var IPython = (function (IPython) {
         var cancel_button = $('<button/>').text("Cancel")
             .addClass("btn btn-default btn-xs")
             .click(function (e) {
-                console.log('cancel click');
                 item.remove();
                 return false;
             });
@@ -411,7 +464,7 @@ var IPython = (function (IPython) {
         };
         var url = utils.url_join_encode(
             base_url,
-            'api/notebooks',
+            'api/contents',
             path
         );
         $.ajax(url, settings);
@@ -426,16 +479,16 @@ var IPython = (function (IPython) {
         } else {
             msg = xhr.statusText;
         }
-        IPython.dialog.modal({
+        dialog.modal({
             title : 'Creating Notebook Failed',
             body : "The error was: " + msg,
             buttons : {'OK' : {'class' : 'btn-primary'}}
         });
-    }
+    };
     
-    
+
+    // Backwards compatability.
     IPython.NotebookList = NotebookList;
 
-    return IPython;
-
-}(IPython));
+    return {'NotebookList': NotebookList};
+});

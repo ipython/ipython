@@ -72,6 +72,7 @@ from setupbase import (
     get_bdist_wheel,
     CompileCSS,
     JavascriptVersion,
+    css_js_prerelease,
     install_symlinked,
     install_lib_symlink,
     install_scripts_for_symlink,
@@ -227,8 +228,10 @@ class UploadWindowsInstallers(upload):
             self.upload_file('bdist_wininst', 'any', dist_file)
 
 setup_args['cmdclass'] = {
-    'build_py': check_package_data_first(git_prebuild('IPython')),
-    'sdist' : git_prebuild('IPython', sdist),
+    'build_py': css_js_prerelease(
+            check_package_data_first(git_prebuild('IPython')),
+        strict=False),
+    'sdist' : css_js_prerelease(git_prebuild('IPython', sdist)),
     'upload_wininst' : UploadWindowsInstallers,
     'submodule' : UpdateSubmodules,
     'css' : CompileCSS,
@@ -273,8 +276,8 @@ extras_require = dict(
     test = ['nose>=0.10.1'],
     terminal = [],
     nbformat = ['jsonschema>=2.0', 'jsonpointer>=1.3'],
-    notebook = ['tornado>=3.1', 'pyzmq>=2.1.11', 'jinja2'],
-    nbconvert = ['pygments', 'jinja2', 'Sphinx>=0.3']
+    notebook = ['tornado>=3.1', 'pyzmq>=2.1.11', 'jinja2', 'pygments', 'mistune>=0.3.1'],
+    nbconvert = ['pygments', 'jinja2', 'mistune>=0.3.1']
 )
 
 if sys.version_info < (3, 3):
@@ -302,7 +305,7 @@ if 'setuptools' in sys.modules:
     # setup.py develop should check for submodules
     from setuptools.command.develop import develop
     setup_args['cmdclass']['develop'] = require_submodules(develop)
-    setup_args['cmdclass']['bdist_wheel'] = get_bdist_wheel()
+    setup_args['cmdclass']['bdist_wheel'] = css_js_prerelease(get_bdist_wheel())
     
     setuptools_extra_args['zip_safe'] = False
     setuptools_extra_args['entry_points'] = {'console_scripts':find_entry_points()}

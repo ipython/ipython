@@ -141,7 +141,6 @@ class Widget(LoggingConfigurable):
             # Create a comm.
             self._comm = Comm(target_name=self._model_name)
             self._comm.on_msg(self._handle_msg)
-            self._comm.on_close(self._close)
             Widget.widgets[self.model_id] = self
 
             # first update
@@ -158,21 +157,18 @@ class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
     # Methods
     #-------------------------------------------------------------------------
-    def _close(self):
-        """Private close - cleanup objects, registry entries"""
-        del Widget.widgets[self.model_id]
-        self._comm = None
 
     def close(self):
         """Close method.
 
-        Closes the widget which closes the underlying comm.
+        Closes the underlying comm.
         When the comm is closed, all of the widget views are automatically
         removed from the front-end."""
         if self._comm is not None:
+            Widget.widgets.pop(self.model_id, None)
             self._comm.close()
-            self._close()
-
+        self._comm = None
+    
     def send_state(self, key=None):
         """Sends the widget state, or a piece of it, to the front-end.
 
@@ -195,8 +191,15 @@ class Widget(LoggingConfigurable):
             A single property's name to get.
         """
         keys = self.keys if key is None else [key]
-        return {k: self._pack_widgets(getattr(self, k)) for k in keys} 
-
+        state = {}
+        for k in keys:
+            f = self.trait_metadata(k, 'to_json')
+            if f is None:
+                f = self._trait_to_json
+            value = getattr(self, k)
+            state[k] = f(value)
+        return state
+    
     def send(self, content):
         """Sends a custom msg to the widget model in the front-end.
 
@@ -280,7 +283,10 @@ class Widget(LoggingConfigurable):
         """Called when a state is received from the front-end."""
         for name in self.keys:
             if name in sync_data:
-                value = self._unpack_widgets(sync_data[name])
+                f = self.trait_metadata(name, 'from_json')
+                if f is None:
+                    f = self._trait_from_json
+                value = f(sync_data[name])
                 with self._lock_property(name, value):
                     setattr(self, name, value)
 
@@ -299,31 +305,34 @@ class Widget(LoggingConfigurable):
         """Called when a view has been displayed for this widget instance"""
         self._display_callbacks(self, **kwargs)
 
-    def _pack_widgets(self, x):
-        """Recursively converts all widget instances to model id strings.
+    def _trait_to_json(self, x):
+        """Convert a trait value to json
 
-        Children widgets will be stored and transmitted to the front-end by 
-        their model ids.  Return value must be JSON-able."""
+        Traverse lists/tuples and dicts and serialize their values as well.
+        Replace any widgets with their model_id
+        """
         if isinstance(x, dict):
-            return {k: self._pack_widgets(v) for k, v in x.items()}
+            return {k: self._trait_to_json(v) for k, v in x.items()}
         elif isinstance(x, (list, tuple)):
-            return [self._pack_widgets(v) for v in x]
+            return [self._trait_to_json(v) for v in x]
         elif isinstance(x, Widget):
-            return x.model_id
+            return "IPY_MODEL_" + x.model_id
         else:
             return x # Value must be JSON-able
 
-    def _unpack_widgets(self, x):
-        """Recursively converts all model id strings to widget instances.
+    def _trait_from_json(self, x):
+        """Convert json values to objects
 
-        Children widgets will be stored and transmitted to the front-end by 
-        their model ids."""
+        Replace any strings representing valid model id values to Widget references.
+        """
         if isinstance(x, dict):
-            return {k: self._unpack_widgets(v) for k, v in x.items()}
+            return {k: self._trait_from_json(v) for k, v in x.items()}
         elif isinstance(x, (list, tuple)):
-            return [self._unpack_widgets(v) for v in x]
-        elif isinstance(x, string_types):
-            return x if x not in Widget.widgets else Widget.widgets[x]
+            return [self._trait_from_json(v) for v in x]
+        elif isinstance(x, string_types) and x.startswith('IPY_MODEL_') and x[10:] in Widget.widgets:
+            # we want to support having child widgets at any level in a hierarchy
+            # trusting that a widget UUID will not appear out in the wild
+            return Widget.widgets[x]
         else:
             return x
 
@@ -379,10 +388,7 @@ class DOMWidget(Widget):
         selector: unicode (optional, kwarg only)
             JQuery selector to use to apply the CSS key/value.  If no selector 
             is provided, an empty selector is used.  An empty selector makes the 
-            front-end try to apply the css to a default element.  The default
-            element is an attribute unique to each view, which is a DOM element
-            of the view that should be styled with common CSS (see 
-            `$el_to_style` in the Javascript code).
+            front-end try to apply the css to the top-level element.
         """
         if value is None:
             css_dict = dict_or_key

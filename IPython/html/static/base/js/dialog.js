@@ -1,20 +1,14 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2013  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// Utility for modal dialogs with bootstrap
-//============================================================================
-
-IPython.namespace('IPython.dialog');
-
-IPython.dialog = (function (IPython) {
+define([
+    'base/js/namespace',
+    'jquery',
+], function(IPython, $) {
     "use strict";
     
     var modal = function (options) {
+
         var modal = $("<div/>")
             .addClass("modal")
             .addClass("fade")
@@ -79,26 +73,28 @@ IPython.dialog = (function (IPython) {
             });
         }
         modal.on("hidden.bs.modal", function () {
-            if (IPython.notebook) {
-                var cell = IPython.notebook.get_selected_cell();
+            if (options.notebook) {
+                var cell = options.notebook.get_selected_cell();
                 if (cell) cell.select();
-                IPython.keyboard_manager.enable();
-                IPython.keyboard_manager.command_mode();
+            }
+            if (options.keyboard_manager) {
+                options.keyboard_manager.enable();
+                options.keyboard_manager.command_mode();
             }
         });
         
-        if (IPython.keyboard_manager) {
-            IPython.keyboard_manager.disable();
+        if (options.keyboard_manager) {
+            options.keyboard_manager.disable();
         }
         
         return modal.modal(options);
     };
 
-    var edit_metadata = function (md, callback, name) {
-        name = name || "Cell";
+    var edit_metadata = function (options) {
+        options.name = options.name || "Cell";
         var error_div = $('<div/>').css('color', 'red');
         var message = 
-            "Manually edit the JSON below to manipulate the metadata for this " + name + "." +
+            "Manually edit the JSON below to manipulate the metadata for this " + options.name + "." +
             " We recommend putting custom metadata attributes in an appropriately named sub-structure," +
             " so they don't conflict with those of others.";
 
@@ -106,7 +102,7 @@ IPython.dialog = (function (IPython) {
             .attr('rows', '13')
             .attr('cols', '80')
             .attr('name', 'metadata')
-            .text(JSON.stringify(md || {}, null, 2));
+            .text(JSON.stringify(options.md || {}, null, 2));
         
         var dialogform = $('<div/>').attr('title', 'Edit the metadata')
             .append(
@@ -128,8 +124,8 @@ IPython.dialog = (function (IPython) {
             autoIndent: true,
             mode: 'application/json',
         });
-        var modal = IPython.dialog.modal({
-            title: "Edit " + name + " Metadata",
+        var modal_obj = modal({
+            title: "Edit " + options.name + " Metadata",
             body: dialogform,
             buttons: {
                 OK: { class : "btn-primary",
@@ -143,19 +139,25 @@ IPython.dialog = (function (IPython) {
                             error_div.text('WARNING: Could not save invalid JSON.');
                             return false;
                         }
-                        callback(new_md);
+                        options.callback(new_md);
                     }
                 },
                 Cancel: {}
-            }
+            },
+            notebook: options.notebook,
+            keyboard_manager: options.keyboard_manager,
         });
 
-        modal.on('shown.bs.modal', function(){ editor.refresh(); });
+        modal_obj.on('shown.bs.modal', function(){ editor.refresh(); });
     };
     
-    return {
+    var dialog = {
         modal : modal,
         edit_metadata : edit_metadata,
     };
 
-}(IPython));
+    // Backwards compatability.
+    IPython.dialog = dialog;
+
+    return dialog;
+});

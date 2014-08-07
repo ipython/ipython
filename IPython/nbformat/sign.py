@@ -263,10 +263,17 @@ class TrustNotebookApp(BaseIPythonApplication):
     description="""Sign one or more IPython notebooks with your key,
     to trust their dynamic (HTML, Javascript) output.
     
+    Trusting a notebook only applies to the current IPython profile.
+    To trust a notebook for use with a profile other than default,
+    add `--profile [profile name]`.
+    
     Otherwise, you will have to re-execute the notebook to see output.
     """
     
-    examples = """ipython trust mynotebook.ipynb and_this_one.ipynb"""
+    examples = """
+    ipython trust mynotebook.ipynb and_this_one.ipynb
+    ipython trust --profile myprofile mynotebook.ipynb
+    """
     
     flags = trust_flags
     

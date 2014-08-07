@@ -2,19 +2,18 @@ div.cell {
     border: 1px solid transparent;
     .vbox();
     .corner-all();
+    .border-box-sizing();
     border-width: thin;
     border-style: solid;
-    
+
     &.selected {
         border-color: @border_color;
     }
-    
+
     &.edit_mode {
         border-color: green;
     }
-}
 
-div.cell {
     width: 100%;
     padding: 5px 5px 5px 0px;
     /* This acts as a spacer between cells, that is outside the border */

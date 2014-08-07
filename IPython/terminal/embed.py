@@ -1,26 +1,9 @@
 # encoding: utf-8
 """
 An embedded IPython shell.
-
-Authors:
-
-* Brian Granger
-* Fernando Perez
-
-Notes
------
 """
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from __future__ import with_statement
 from __future__ import print_function
@@ -37,10 +20,6 @@ from IPython.terminal.ipapp import load_default_config
 from IPython.utils.traitlets import Bool, CBool, Unicode
 from IPython.utils.io import ask_yes_no
 
-
-#-----------------------------------------------------------------------------
-# Classes and functions
-#-----------------------------------------------------------------------------
 
 # This is an additional magic that is exposed in embedded shells.
 @magics_class
@@ -220,16 +199,6 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         if compile_flags is not None:
             self.compile.flags = compile_flags
 
-        # Patch for global embedding to make sure that things don't overwrite
-        # user globals accidentally. Thanks to Richard <rxe@renre-europe.com>
-        # FIXME. Test this a bit more carefully (the if.. is new)
-        # N.B. This can't now ever be called. Not sure what it was for.
-        # And now, since it wasn't called in the previous version, I'm
-        # commenting out these lines so they can't be called with my new changes
-        # --TK, 2011-12-10
-        #if local_ns is None and module is None:
-        #    self.user_global_ns.update(__main__.__dict__)
-
         # make sure the tab-completer has the correct frame information, so it
         # actually completes using the frame's locals/globals
         self.set_completer_frame()
@@ -265,10 +234,10 @@ def embed(**kwargs):
         from IPython import embed
         a = 10
         b = 20
-        embed('First time')
+        embed(header='First time')
         c = 30
         d = 40
-        embed
+        embed()
 
     Full customization can be done by passing a :class:`Config` in as the
     config argument.

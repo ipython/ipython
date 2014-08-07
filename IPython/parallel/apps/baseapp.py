@@ -36,6 +36,7 @@ from IPython.core.application import (
     base_flags as base_ip_flags
 )
 from IPython.utils.path import expand_path
+from IPython.utils.process import check_pid
 from IPython.utils import py3compat
 from IPython.utils.py3compat import unicode_type
 
@@ -249,28 +250,11 @@ class BaseParallelApplication(BaseIPythonApplication):
             raise PIDFileError('pid file not found: %s' % pid_file)
     
     def check_pid(self, pid):
-        if os.name == 'nt':
-            try:
-                import ctypes
-                # returns 0 if no such process (of ours) exists
-                # positive int otherwise
-                p = ctypes.windll.kernel32.OpenProcess(1,0,pid)
-            except Exception:
-                self.log.warn(
-                    "Could not determine whether pid %i is running via `OpenProcess`. "
-                    " Making the likely assumption that it is."%pid
-                )
-                return True
-            return bool(p)
-        else:
-            try:
-                p = Popen(['ps','x'], stdout=PIPE, stderr=PIPE)
-                output,_ = p.communicate()
-            except OSError:
-                self.log.warn(
-                    "Could not determine whether pid %i is running via `ps x`. "
-                    " Making the likely assumption that it is."%pid
-                )
-                return True
-            pids = list(map(int, re.findall(br'^\W*\d+', output, re.MULTILINE)))
-            return pid in pids
+        try:
+            return check_pid(pid)
+        except Exception:
+            self.log.warn(
+                "Could not determine whether pid %i is running. "
+                " Making the likely assumption that it is."%pid
+            )
+            return True

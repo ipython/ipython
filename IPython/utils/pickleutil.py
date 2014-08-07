@@ -20,6 +20,7 @@ from .importstring import import_item
 from .py3compat import string_types, iteritems
 
 from IPython.config import Application
+from IPython.utils.log import get_logger
 
 if py3compat.PY3:
     buffer = memoryview
@@ -27,6 +28,11 @@ if py3compat.PY3:
 else:
     from types import ClassType
     class_type = (type, ClassType)
+
+try:
+    PICKLE_PROTOCOL = pickle.DEFAULT_PROTOCOL
+except AttributeError:
+    PICKLE_PROTOCOL = pickle.HIGHEST_PROTOCOL
 
 def _get_cell_type(a=None):
     """the type of a closure cell doesn't seem to be importable,
@@ -244,7 +250,7 @@ class CannedArray(CannedObject):
             self.pickled = True
         if self.pickled:
             # just pickle it
-            self.buffers = [pickle.dumps(obj, -1)]
+            self.buffers = [pickle.dumps(obj, PICKLE_PROTOCOL)]
         else:
             # ensure contiguous
             obj = ascontiguousarray(obj, dtype=None)
@@ -276,25 +282,11 @@ def CannedBuffer(CannedBytes):
 # Functions
 #-------------------------------------------------------------------------------
 
-def _logger():
-    """get the logger for the current Application
-    
-    the root logger will be used if no Application is running
-    """
-    if Application.initialized():
-        logger = Application.instance().log
-    else:
-        logger = logging.getLogger()
-        if not logger.handlers:
-            logging.basicConfig()
-    
-    return logger
-
 def _import_mapping(mapping, original=None):
     """import any string-keys in a type mapping
     
     """
-    log = _logger()
+    log = get_logger()
     log.debug("Importing canning map")
     for key,value in list(mapping.items()):
         if isinstance(key, string_types):

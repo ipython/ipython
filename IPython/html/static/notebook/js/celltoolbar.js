@@ -1,32 +1,28 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2012  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// CellToolbar
-//============================================================================
-
-
-/**
- * A Module to control the per-cell toolbar.
- * @module IPython
- * @namespace IPython
- * @submodule CellToolbar
- */
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'jquery',
+    'base/js/events'
+], function(IPython, $, events) {
     "use strict";
 
-    /**
-     * @constructor
-     * @class CellToolbar
-     * @param {The cell to attach the metadata UI to} cell
-     */
-    var CellToolbar = function (cell) {
+    var CellToolbar = function (options) {
+        // Constructor
+        //
+        // Parameters:
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          events: $(Events) instance 
+        //          cell: Cell instance
+        //          notebook: Notebook instance 
+        //
+        //  TODO: This leaks, when cell are deleted
+        //  There is still a reference to each celltoolbars. 
         CellToolbar._instances.push(this);
-        this.cell = cell;
+        this.notebook = options.notebook;
+        this.cell = options.cell;
         this.create_element();
         this.rebuild();
         return this;
@@ -34,7 +30,7 @@ var IPython = (function (IPython) {
 
 
     CellToolbar.prototype.create_element = function () {
-        this.inner_element = $('<div/>').addClass('celltoolbar')
+        this.inner_element = $('<div/>').addClass('celltoolbar');
         this.element = $('<div/>').addClass('ctb_hideshow')
             .append(this.inner_element);
     };
@@ -182,13 +178,14 @@ var IPython = (function (IPython) {
      *      CellToolbar.register_preset('foo.foo_preset1', ['foo.c1', 'foo.c2', 'foo.c5'])
      *      CellToolbar.register_preset('foo.foo_preset2', ['foo.c4', 'foo.c5'])
      */
-    CellToolbar.register_preset = function(name, preset_list) {
+    CellToolbar.register_preset = function(name, preset_list, notebook) {
         CellToolbar._presets[name] = preset_list;
-        $([IPython.events]).trigger('preset_added.CellToolbar', {name: name});
+        events.trigger('preset_added.CellToolbar', {name: name});
         // When "register_callback" is called by a custom extension, it may be executed after notebook is loaded.
         // In that case, activate the preset if needed.
-        if (IPython.notebook && IPython.notebook.metadata && IPython.notebook.metadata.celltoolbar === name)
-            this.activate_preset(name);
+        if (notebook && notebook.metadata && notebook.metadata.celltoolbar === name){
+            CellToolbar.activate_preset(name);
+        }
     };
 
 
@@ -229,7 +226,7 @@ var IPython = (function (IPython) {
             CellToolbar.rebuild_all();
         }
 
-        $([IPython.events]).trigger('preset_activated.CellToolbar', {name: preset_name});
+        events.trigger('preset_activated.CellToolbar', {name: preset_name});
     };
 
 
@@ -283,7 +280,7 @@ var IPython = (function (IPython) {
         }
 
         // If there are no controls or the cell is a rendered TextCell hide the toolbar.
-        if (!this.ui_controls_list.length || (this.cell instanceof IPython.TextCell && this.cell.rendered)) {
+        if (!this.ui_controls_list.length || (this.cell.cell_type != 'code' && this.cell.rendered)) {
             this.hide();
         } else {
             this.show();
@@ -347,7 +344,7 @@ var IPython = (function (IPython) {
                         setter(cell, !v);
                         chkb.attr("checked", !v);
             });
-            button_container.append($('<div/>').append(lbl));
+            button_container.append($('<span/>').append(lbl));
         };
     };
 
@@ -411,12 +408,12 @@ var IPython = (function (IPython) {
             select.change(function(){
                         setter(cell, select.val());
                     });
-            button_container.append($('<div/>').append(lbl).append(select));
+            button_container.append($('<span/>').append(lbl).append(select));
         };
     };
 
-
+    // Backwards compatability.
     IPython.CellToolbar = CellToolbar;
 
-    return IPython;
-}(IPython));
+    return {'CellToolbar': CellToolbar};
+});

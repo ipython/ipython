@@ -1,20 +1,7 @@
-"""Tornado handlers for the sessions web service.
+"""Tornado handlers for the sessions web service."""
 
-Authors:
-
-* Zach Sailer
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import json
 
@@ -23,10 +10,6 @@ from tornado import web
 from ...base.handlers import IPythonHandler, json_errors
 from IPython.utils.jsonutil import date_default
 from IPython.html.utils import url_path_join, url_escape
-
-#-----------------------------------------------------------------------------
-# Session web service handlers
-#-----------------------------------------------------------------------------
 
 
 class SessionRootHandler(IPythonHandler):
@@ -45,27 +28,30 @@ class SessionRootHandler(IPythonHandler):
         # Creates a new session
         #(unless a session already exists for the named nb)
         sm = self.session_manager
-        nbm = self.notebook_manager
+        cm = self.contents_manager
         km = self.kernel_manager
+
         model = self.get_json_body()
         if model is None:
             raise web.HTTPError(400, "No JSON data provided")
         try:
             name = model['notebook']['name']
         except KeyError:
-            raise web.HTTPError(400, "Missing field in JSON data: name")
+            raise web.HTTPError(400, "Missing field in JSON data: notebook.name")
         try:
             path = model['notebook']['path']
         except KeyError:
-            raise web.HTTPError(400, "Missing field in JSON data: path")
+            raise web.HTTPError(400, "Missing field in JSON data: notebook.path")
+        try:
+            kernel_name = model['kernel']['name']
+        except KeyError:
+            raise web.HTTPError(400, "Missing field in JSON data: kernel.name")
+
         # Check to see if session exists
         if sm.session_exists(name=name, path=path):
             model = sm.get_session(name=name, path=path)
         else:
-            # allow nbm to specify kernels cwd
-            kernel_path = nbm.get_kernel_path(name=name, path=path)
-            kernel_id = km.start_kernel(path=kernel_path)
-            model = sm.create_session(name=name, path=path, kernel_id=kernel_id)
+            model = sm.create_session(name=name, path=path, kernel_name=kernel_name)
         location = url_path_join(self.base_url, 'api', 'sessions', model['id'])
         self.set_header('Location', url_escape(location))
         self.set_status(201)
@@ -108,10 +94,7 @@ class SessionHandler(IPythonHandler):
     def delete(self, session_id):
         # Deletes the session with given session_id
         sm = self.session_manager
-        km = self.kernel_manager
-        session = sm.get_session(session_id=session_id)
         sm.delete_session(session_id)
-        km.shutdown_kernel(session['kernel']['id'])
         self.set_status(204)
         self.finish()
 

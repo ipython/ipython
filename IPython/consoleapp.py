@@ -165,8 +165,6 @@ class IPythonConsoleApp(ConnectionFileMixin):
         if argv is None:
             argv = sys.argv[1:]
         self.kernel_argv = swallow_argv(argv, self.frontend_aliases, self.frontend_flags)
-        # kernel should inherit default config file from frontend
-        self.kernel_argv.append("--IPKernelApp.parent_appname='%s'" % self.name)
     
     def init_connection_file(self):
         """find the connection file, and load the info if found.
@@ -289,6 +287,7 @@ class IPythonConsoleApp(ConnectionFileMixin):
         try:
             self.kernel_manager = self.kernel_manager_class(
                                     ip=self.ip,
+                                    session=self.session,
                                     transport=self.transport,
                                     shell_port=self.shell_port,
                                     iopub_port=self.iopub_port,
@@ -326,6 +325,7 @@ class IPythonConsoleApp(ConnectionFileMixin):
             self.kernel_client = self.kernel_manager.client()
         else:
             self.kernel_client = self.kernel_client_class(
+                                session=self.session,
                                 ip=self.ip,
                                 transport=self.transport,
                                 shell_port=self.shell_port,

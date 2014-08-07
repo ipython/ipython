@@ -7,6 +7,8 @@ from tornado import web
 
 from ...base.handlers import IPythonHandler, json_errors
 
+from IPython.kernel.kernelspec import _pythonfirst
+
 
 class MainKernelSpecHandler(IPythonHandler):
     SUPPORTED_METHODS = ('GET',)
@@ -16,7 +18,7 @@ class MainKernelSpecHandler(IPythonHandler):
     def get(self):
         ksm = self.kernel_spec_manager
         results = []
-        for kernel_name in ksm.find_kernel_specs():
+        for kernel_name in sorted(ksm.find_kernel_specs(), key=_pythonfirst):
             d = ksm.get_kernel_spec(kernel_name).to_dict()
             d['name'] = kernel_name
             results.append(d)

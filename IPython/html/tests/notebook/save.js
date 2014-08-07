@@ -9,16 +9,18 @@ casper.notebook_test(function () {
     var nbname = "has#hash and space and unicø∂e.ipynb";
     
     this.evaluate(function (nbname) {
-        IPython.notebook.notebook_name = nbname;
-        IPython._save_success = IPython._save_failed = false;
-        $([IPython.events]).on('notebook_saved.Notebook', function () {
-            IPython._save_success = true;
+        require(['base/js/events'], function (events) {
+            IPython.notebook.notebook_name = nbname;
+            IPython._save_success = IPython._save_failed = false;
+            events.on('notebook_saved.Notebook', function () {
+                IPython._save_success = true;
+            });
+            events.on('notebook_save_failed.Notebook',
+                function (event, xhr, status, error) {
+                    IPython._save_failed = "save failed with " + xhr.status + xhr.responseText;
+            });
+            IPython.notebook.save_notebook();
         });
-        $([IPython.events]).on('notebook_save_failed.Notebook',
-            function (event, xhr, status, error) {
-                IPython._save_failed = "save failed with " + xhr.status + xhr.responseText;
-        });
-        IPython.notebook.save_notebook();
     }, {nbname:nbname});
     
     this.waitFor(function () {
@@ -41,10 +43,12 @@ casper.notebook_test(function () {
     });
     
     this.thenEvaluate(function(){
-        $([IPython.events]).on('checkpoint_created.Notebook', function (evt, data) {
-            IPython._checkpoint_created = true;
-        });
         IPython._checkpoint_created = false;
+        require(['base/js/events'], function (events) {
+            events.on('checkpoint_created.Notebook', function (evt, data) {
+                IPython._checkpoint_created = true;
+            });
+        });
         IPython.notebook.save_checkpoint();
     });
     
@@ -71,7 +75,7 @@ casper.notebook_test(function () {
     this.then(function(){
         var notebook_url = this.evaluate(function(nbname){
             var escaped_name = encodeURIComponent(nbname);
-            var return_this_thing;
+            var return_this_thing = null;
             $("a.item_link").map(function (i,a) {
                 if (a.href.indexOf(escaped_name) >= 0) {
                     return_this_thing = a.href;
@@ -80,7 +84,7 @@ casper.notebook_test(function () {
             });
             return return_this_thing;
         }, {nbname:nbname});
-        this.test.assertEquals(notebook_url == null, false, "Escaped URL in notebook list");
+        this.test.assertNotEquals(notebook_url, null, "Escaped URL in notebook list");
         // open the notebook
         this.open(notebook_url);
     });

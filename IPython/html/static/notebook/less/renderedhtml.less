@@ -38,8 +38,8 @@
     * + ol {margin-top: 1em;}
 
     hr {
-        color: black;
-        background-color: black;
+        color: @rendered_html_border_color;
+        background-color: @rendered_html_border_color;
     }
 
     pre {margin: 1em 2em;}
@@ -57,11 +57,11 @@
     table {
         margin-left: auto;
         margin-right: auto;
-        border: 1px solid black;
+        border: 1px solid @rendered_html_border_color;
         border-collapse: collapse;
     }
     tr, th, td {
-        border: 1px solid black;
+        border: 1px solid @rendered_html_border_color;
         border-collapse: collapse;
         margin: 1em 2em;
     }

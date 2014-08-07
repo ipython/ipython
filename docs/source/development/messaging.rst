@@ -26,7 +26,7 @@ within and between hosts.
    IPython messaging protocol, and all developers are strongly encouraged to
    keep it updated as the implementation evolves, so that we have a single
    common reference for all protocol details.
-   
+
 The basic design is explained in the following diagram:
 
 .. image:: figs/frontend-kernel.png
@@ -125,6 +125,8 @@ A message is defined by the following four-dictionary structure::
 .. versionchanged:: 5.0
 
     ``version`` key added to the header.
+
+.. _wire_protocol:
 
 The Wire Protocol
 =================
@@ -409,6 +411,7 @@ When status is 'error', the following extra fields are present::
 When status is 'abort', there are for now no additional data fields.  This
 happens when the kernel was interrupted by a signal.
 
+.. _msging_inspection:
 
 Introspection
 -------------
@@ -465,6 +468,8 @@ Message type: ``inspect_reply``::
 
     Reply is changed from structured data to a mime bundle,  allowing formatting decisions to be made by the kernel.
 
+.. _msging_completion:
+
 Completion
 ----------
 
@@ -512,6 +517,7 @@ Message type: ``complete_reply``::
     - ``matched_text`` is removed in favor of ``cursor_start`` and ``cursor_end``.
     - ``metadata`` is added for extended information.
 
+.. _msging_history:
 
 History
 -------
@@ -590,6 +596,7 @@ Message type: ``connect_reply``::
         'hb_port' : int,      # The port the heartbeat socket is listening on.
     }
 
+.. _msging_kernel_info:
 
 Kernel info
 -----------
@@ -650,6 +657,7 @@ Message type: ``kernel_info_reply``::
 
     ``implementation``, ``implementation_version``, and ``banner`` keys are added.
 
+.. _msging_shutdown:
 
 Kernel shutdown
 ---------------
@@ -880,11 +888,16 @@ This message type is used by frontends to monitor the status of the kernel.
 Message type: ``status``::
 
     content = {
-        # When the kernel starts to execute code, it will enter the 'busy'
+        # When the kernel starts to handle a message, it will enter the 'busy'
         # state and when it finishes, it will enter the 'idle' state.
         # The kernel will publish state 'starting' exactly once at process startup.
         execution_state : ('busy', 'idle', 'starting')
     }
+
+.. versionchanged:: 5.0
+
+    Busy and idle messages should be sent before/after handling every message,
+    not just execution.
 
 Clear output
 ------------
@@ -960,6 +973,7 @@ When ``password`` is True, the frontend should not echo the input as it is enter
    transported over the zmq connection), raw ``stdin`` isn't expected to be
    available.
 
+.. _kernel_heartbeat:
 
 Heartbeat for kernels
 =====================

@@ -531,6 +531,15 @@ class TestType(TestCase):
 
         self.assertRaises(TraitError, setattr, a, 'klass', 10)
 
+    def test_set_str_klass(self):
+
+        class A(HasTraits):
+            klass = Type()
+
+        a = A(klass='IPython.utils.ipstruct.Struct')
+        from IPython.utils.ipstruct import Struct
+        self.assertEqual(a.klass, Struct)
+
 class TestInstance(TestCase):
 
     def test_basic(self):
@@ -540,6 +549,27 @@ class TestInstance(TestCase):
 
         class A(HasTraits):
             inst = Instance(Foo)
+
+        a = A()
+        self.assertTrue(a.inst is None)
+        a.inst = Foo()
+        self.assertTrue(isinstance(a.inst, Foo))
+        a.inst = Bar()
+        self.assertTrue(isinstance(a.inst, Foo))
+        self.assertRaises(TraitError, setattr, a, 'inst', Foo)
+        self.assertRaises(TraitError, setattr, a, 'inst', Bar)
+        self.assertRaises(TraitError, setattr, a, 'inst', Bah())
+
+    def test_default_klass(self):
+        class Foo(object): pass
+        class Bar(Foo): pass
+        class Bah(object): pass
+
+        class FooInstance(Instance):
+            klass = Foo
+
+        class A(HasTraits):
+            inst = FooInstance()
 
         a = A()
         self.assertTrue(a.inst is None)

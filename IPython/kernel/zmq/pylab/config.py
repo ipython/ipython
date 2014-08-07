@@ -53,6 +53,7 @@ class InlineBackend(InlineBackendConfig):
         # play nicely with white background in the Qt and notebook frontend
         'figure.facecolor': (1,1,1,0),
         'figure.edgecolor': (1,1,1,0),
+        'axes.facecolor': (1,1,1,0),
         # 12pt labels get cutoff on 6x4 logplots, so use 10pt.
         'font.size': 10,
         # 72 dpi matches SVG/qtconsole

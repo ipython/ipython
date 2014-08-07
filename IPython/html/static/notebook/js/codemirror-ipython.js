@@ -7,10 +7,15 @@ CodeMirror.requireMode('python',function(){
     "use strict";
 
     CodeMirror.defineMode("ipython", function(conf, parserConf) {
-
-        parserConf.singleOperators = new RegExp("^[\\+\\-\\*/%&|\\^~<>!\\?]");
-        parserConf.name = 'python'
-        return CodeMirror.getMode(conf, parserConf);
+        var pythonConf = {};
+        for (var prop in parserConf) {
+            if (parserConf.hasOwnProperty(prop)) {
+                pythonConf[prop] = parserConf[prop];
+            }
+        }
+        pythonConf.name = 'python';
+        pythonConf.singleOperators = new RegExp("^[\\+\\-\\*/%&|\\^~<>!\\?]");
+        return CodeMirror.getMode(conf, pythonConf);
     }, 'python');
 
     CodeMirror.defineMIME("text/x-ipython", "ipython");

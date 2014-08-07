@@ -23,6 +23,15 @@ else:
     
 NATIVE_KERNEL_NAME = 'python3' if PY3 else 'python2'
 
+def _pythonfirst(s):
+    "Sort key function that will put strings starting with 'python' first."
+    if s == NATIVE_KERNEL_NAME:
+        return '  ' + s  # Two spaces to sort this first of all
+    elif s.startswith('python'):
+        # Space is not valid in kernel names, so this should sort first
+        return ' ' + s
+    return s
+
 class KernelSpec(HasTraits):
     argv = List()
     display_name = Unicode()
@@ -109,9 +118,9 @@ class KernelSpecManager(HasTraits):
             json.dump({'argv':[NATIVE_KERNEL_NAME, '-c',
                                'from IPython.kernel.zmq.kernelapp import main; main()',
                                 '-f', '{connection_file}'],
-                       'display_name': 'Python 3' if PY3 else 'Python 2',
+                       'display_name': 'IPython (Python %d)' % (3 if PY3 else 2),
                        'language': 'python',
-                       'codemirror_mode': {'name': 'python',
+                       'codemirror_mode': {'name': 'ipython',
                                            'version': sys.version_info[0]},
                       },
                       f, indent=1)
@@ -186,7 +195,8 @@ def get_kernel_spec(kernel_name):
     """
     return KernelSpecManager().get_kernel_spec(kernel_name)
 
-def install_kernel_spec(source_dir, kernel_name=None, system=False):
-    return KernelSpecManager().install_kernel_spec(source_dir, kernel_name, system)
+def install_kernel_spec(source_dir, kernel_name=None, system=False, replace=False):
+    return KernelSpecManager().install_kernel_spec(source_dir, kernel_name,
+                                                    system, replace)
 
 install_kernel_spec.__doc__ = KernelSpecManager.install_kernel_spec.__doc__

@@ -15,6 +15,10 @@ body.notebook_app {
     }
 }
 
+#ipython-main-app {
+    .border-box-sizing();
+}
+
 span#notebook_name {
     height: 1em;
     line-height: 1em;
@@ -27,6 +31,7 @@ div#notebook_panel {
     margin: 0px 0px 0px 0px;
     padding: 0px;
     .box-shadow(@notebook-shadow);
+    .border-box-sizing();
 }
 div#notebook {
     font-size: @notebook_font_size;

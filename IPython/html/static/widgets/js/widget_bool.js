@@ -1,22 +1,13 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2013 The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// BoolWidget
-//============================================================================
+define([
+    "widgets/js/widget",
+    "jquery",
+    "bootstrap",
+], function(widget, $){
 
-/**
- * @module IPython
- * @namespace IPython
- **/
-
-define(["widgets/js/widget"], function(WidgetManager){
-
-    var CheckboxView = IPython.DOMWidgetView.extend({
+    var CheckboxView = widget.DOMWidgetView.extend({
         render : function(){
             // Called when view is rendered.
             this.$el
@@ -30,7 +21,6 @@ define(["widgets/js/widget"], function(WidgetManager){
                 .appendTo(this.$el)
                 .click($.proxy(this.handle_click, this));
 
-            this.$el_to_style = this.$checkbox; // Set default element to style
             this.update(); // Set defaults.
         },
 
@@ -68,10 +58,9 @@ define(["widgets/js/widget"], function(WidgetManager){
         },
         
     });
-    WidgetManager.register_widget_view('CheckboxView', CheckboxView);
 
 
-    var ToggleButtonView = IPython.DOMWidgetView.extend({
+    var ToggleButtonView = widget.DOMWidgetView.extend({
         render : function() {
             // Called when view is rendered.
             var that = this;
@@ -122,5 +111,9 @@ define(["widgets/js/widget"], function(WidgetManager){
             this.touch();
         },
     });
-    WidgetManager.register_widget_view('ToggleButtonView', ToggleButtonView);
+
+    return {
+        'CheckboxView': CheckboxView,
+        'ToggleButtonView': ToggleButtonView,
+    };
 });

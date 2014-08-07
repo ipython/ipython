@@ -1,18 +1,11 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2008-2011  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// Notification widget
-//============================================================================
-
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'jquery',
+], function(IPython, $) {
     "use strict";
-    var utils = IPython.utils;
-
 
     var NotificationWidget = function (selector) {
         this.selector = selector;
@@ -22,7 +15,6 @@ var IPython = (function (IPython) {
             this.element = $(selector);
             this.style();
         }
-        this.element.button();
         this.element.hide();
         var that = this;
 
@@ -31,10 +23,8 @@ var IPython = (function (IPython) {
 
     };
 
-
     NotificationWidget.prototype.style = function () {
-        this.element.addClass('notification_widget pull-right');
-        this.element.addClass('border-box-sizing');
+        this.element.addClass('notification_widget');
     };
 
     // msg : message to display
@@ -43,14 +33,24 @@ var IPython = (function (IPython) {
     // if timeout <= 0
     // click_callback : function called if user click on notification
     // could return false to prevent the notification to be dismissed
-    NotificationWidget.prototype.set_message = function (msg, timeout, click_callback, opts) {
-        var opts = opts || {};
-        var callback = click_callback || function() {return false;};
+    NotificationWidget.prototype.set_message = function (msg, timeout, click_callback, options) {
+        var options = options || {};
+        var callback = click_callback || function() {return true;};
         var that = this;
-        this.inner.attr('class', opts.icon);
-        this.inner.attr('title', opts.title);
+        // unbind potential previous callback
+        this.element.unbind('click');
+        this.inner.attr('class', options.icon);
+        this.inner.attr('title', options.title);
         this.inner.text(msg);
         this.element.fadeIn(100);
+
+        // reset previous set style
+        this.element.removeClass();
+        this.style();
+        if (options.class){
+
+            this.element.addClass(options.class)
+        }
         if (this.timeout !== null) {
             clearTimeout(this.timeout);
             this.timeout = null;
@@ -62,7 +62,7 @@ var IPython = (function (IPython) {
             }, timeout);
         } else {
             this.element.click(function() {
-                if( callback() != false ) {
+                if( callback() !== false ) {
                     that.element.fadeOut(100, function () {that.inner.text('');});
                     that.element.unbind('click');
                 }
@@ -75,14 +75,30 @@ var IPython = (function (IPython) {
     };
 
 
+    NotificationWidget.prototype.info = function (msg, timeout, click_callback, options) {
+        var options = options || {};
+        options.class = options.class +' info';
+        var timeout = timeout || 3500;
+        this.set_message(msg, timeout, click_callback, options);
+    }
+    NotificationWidget.prototype.warning = function (msg, timeout, click_callback, options) {
+        var options = options || {};
+        options.class = options.class +' warning';
+        this.set_message(msg, timeout, click_callback, options);
+    }
+    NotificationWidget.prototype.danger = function (msg, timeout, click_callback, options) {
+        var options = options || {};
+        options.class = options.class +' danger';
+        this.set_message(msg, timeout, click_callback, options);
+    }
+
+
     NotificationWidget.prototype.get_message = function () {
         return this.inner.html();
     };
 
-
+    // For backwards compatibility.
     IPython.NotificationWidget = NotificationWidget;
 
-    return IPython;
-
-}(IPython));
-
+    return {'NotificationWidget': NotificationWidget};
+});

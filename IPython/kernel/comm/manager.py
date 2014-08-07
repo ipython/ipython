@@ -1,15 +1,7 @@
 """Base class to manage comms"""
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import sys
 
@@ -23,9 +15,6 @@ from IPython.utils.traitlets import Instance, Unicode, Dict, Any
 
 from .comm import Comm
 
-#-----------------------------------------------------------------------------
-# Code
-#-----------------------------------------------------------------------------
 
 def lazy_keys(dikt):
     """Return lazy-evaluated string representation of a dictionary's keys
@@ -34,27 +23,6 @@ def lazy_keys(dikt):
     Used for debug-logging.
     """
     return LazyEvaluate(lambda d: list(d.keys()))
-
-
-def with_output(method):
-    """method decorator for ensuring output is handled properly in a message handler
-    
-    - sets parent header before entering the method
-    - publishes busy/idle
-    - flushes stdout/stderr after
-    """
-    def method_with_output(self, stream, ident, msg):
-        parent = msg['header']
-        self.shell.set_parent(parent)
-        self.shell.kernel._publish_status('busy', parent)
-        try:
-            return method(self, stream, ident, msg)
-        finally:
-            sys.stdout.flush()
-            sys.stderr.flush()
-            self.shell.kernel._publish_status('idle', parent)
-    
-    return method_with_output
 
 
 class CommManager(LoggingConfigurable):
@@ -104,11 +72,10 @@ class CommManager(LoggingConfigurable):
         self.comms[comm_id] = comm
         return comm_id
     
-    def unregister_comm(self, comm_id):
+    def unregister_comm(self, comm):
         """Unregister a comm, and close its counterpart"""
         # unlike get_comm, this should raise a KeyError
-        comm = self.comms.pop(comm_id)
-        comm.close()
+        comm = self.comms.pop(comm.comm_id)
     
     def get_comm(self, comm_id):
         """Get a comm with a particular id
@@ -127,7 +94,6 @@ class CommManager(LoggingConfigurable):
         return comm
     
     # Message handlers
-    @with_output
     def comm_open(self, stream, ident, msg):
         """Handler for comm_open messages"""
         content = msg['content']
@@ -143,15 +109,12 @@ class CommManager(LoggingConfigurable):
             self.log.error("No such comm target registered: %s", target_name)
             comm.close()
             return
-        self.register_comm(comm)
         try:
             f(comm, msg)
         except Exception:
             self.log.error("Exception opening comm with target: %s", target_name, exc_info=True)
             comm.close()
-            self.unregister_comm(comm_id)
     
-    @with_output
     def comm_msg(self, stream, ident, msg):
         """Handler for comm_msg messages"""
         content = msg['content']
@@ -165,7 +128,6 @@ class CommManager(LoggingConfigurable):
         except Exception:
             self.log.error("Exception in comm_msg for %s", comm_id, exc_info=True)
     
-    @with_output
     def comm_close(self, stream, ident, msg):
         """Handler for comm_close messages"""
         content = msg['content']

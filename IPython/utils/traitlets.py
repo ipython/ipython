@@ -755,6 +755,12 @@ class Type(ClassBasedTraitType):
 
     def validate(self, obj, value):
         """Validates that the value is a valid object instance."""
+        if isinstance(value, py3compat.string_types):
+            try:
+                value = import_item(value)
+            except ImportError:
+                raise TraitError("The '%s' trait of %s instance must be a type, but "
+                                "%r could not be imported" % (self.name, obj, value))
         try:
             if issubclass(value, self.klass):
                 return value
@@ -803,7 +809,11 @@ class Instance(ClassBasedTraitType):
     """A trait whose value must be an instance of a specified class.
 
     The value can also be an instance of a subclass of the specified class.
+
+    Subclasses can declare default classes by overriding the klass attribute
     """
+
+    klass = None
 
     def __init__(self, klass=None, args=None, kw=None,
                  allow_none=True, **metadata ):
@@ -830,14 +840,17 @@ class Instance(ClassBasedTraitType):
         -----
         If both ``args`` and ``kw`` are None, then the default value is None.
         If ``args`` is a tuple and ``kw`` is a dict, then the default is
-        created as ``klass(*args, **kw)``.  If either ``args`` or ``kw`` is
-        not (but not both), None is replace by ``()`` or ``{}``.
+        created as ``klass(*args, **kw)``.  If exactly one of ``args`` or ``kw`` is
+        None, the None is replaced by ``()`` or ``{}``, respectively.
         """
-
-        if (klass is None) or (not (inspect.isclass(klass) or isinstance(klass, py3compat.string_types))):
-            raise TraitError('The klass argument must be a class'
-                                ' you gave: %r' % klass)
-        self.klass = klass
+        if klass is None:
+            klass = self.klass
+        
+        if (klass is not None) and (inspect.isclass(klass) or isinstance(klass, py3compat.string_types)):
+            self.klass = klass
+        else:
+            raise TraitError('The klass attribute must be a class'
+                                ' not: %r' % klass)
 
         # self.klass is a class, so handle default_value
         if args is None and kw is None:

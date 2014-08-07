@@ -1,16 +1,8 @@
-"""Utilities to manipulate JSON objects.
-"""
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING.txt, distributed as part of this software.
-#-----------------------------------------------------------------------------
+"""Utilities to manipulate JSON objects."""
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-# stdlib
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 import math
 import re
 import types
@@ -47,22 +39,18 @@ datetime.strptime("1", "%d")
 def rekey(dikt):
     """Rekey a dict that has been forced to use str keys where there should be
     ints by json."""
-    for k in dikt:
+    for k in list(dikt):
         if isinstance(k, string_types):
-            ik=fk=None
+            nk = None
             try:
-                ik = int(k)
+                nk = int(k)
             except ValueError:
                 try:
-                    fk = float(k)
+                    nk = float(k)
                 except ValueError:
                     continue
-            if ik is not None:
-                nk = ik
-            else:
-                nk = fk
             if nk in dikt:
-                raise KeyError("already have key %r"%nk)
+                raise KeyError("already have key %r" % nk)
             dikt[nk] = dikt.pop(k)
     return dikt
 
@@ -197,18 +185,6 @@ def json_clean(obj):
       encoded as JSON.  Note that this function does not *encode* its inputs,
       it simply sanitizes it so that there will be no encoding errors later.
 
-    Examples
-    --------
-    >>> json_clean(4)
-    4
-    >>> json_clean(list(range(10)))
-    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    >>> sorted(json_clean(dict(x=1, y=2)).items())
-    [('x', 1), ('y', 2)]
-    >>> sorted(json_clean(dict(x=1, y=2, z=[1,2,3])).items())
-    [('x', 1), ('y', 2), ('z', [1, 2, 3])]
-    >>> json_clean(True)
-    True
     """
     # types that are 'atomic' and ok in json as-is.
     atomic_ok = (unicode_type, type(None))
@@ -247,14 +223,14 @@ def json_clean(obj):
         # key collisions after stringification.  This can happen with keys like
         # True and 'true' or 1 and '1', which collide in JSON.
         nkeys = len(obj)
-        nkeys_collapsed = len(set(map(str, obj)))
+        nkeys_collapsed = len(set(map(unicode_type, obj)))
         if nkeys != nkeys_collapsed:
-            raise ValueError('dict can not be safely converted to JSON: '
+            raise ValueError('dict cannot be safely converted to JSON: '
                              'key collision would lead to dropped values')
         # If all OK, proceed by making the new dict that will be json-safe
         out = {}
         for k,v in iteritems(obj):
-            out[str(k)] = json_clean(v)
+            out[unicode_type(k)] = json_clean(v)
         return out
 
     # If we get here, we don't know how to handle the object, so we just get

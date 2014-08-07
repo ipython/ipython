@@ -188,8 +188,8 @@ class AsyncResultTest(ClusterTestCase):
         ar = v.apply_async(time.sleep, 0.25)
         while not ar.ready():
             time.sleep(0.01)
-            self.assertTrue(ar.elapsed < 1)
-        self.assertTrue(ar.elapsed < 1)
+            self.assertLess(ar.elapsed, 1)
+        self.assertLess(ar.elapsed, 1)
         ar.get(2)
 
     def test_hubresult_timestamps(self):

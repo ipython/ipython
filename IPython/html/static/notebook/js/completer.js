@@ -1,17 +1,17 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-// Completer
-//
-// Completer is be a class that takes a cell instance.
-
-var IPython = (function (IPython) {
-    // that will prevent us from misspelling
+define([
+    'base/js/namespace',
+    'jquery',
+    'base/js/utils',
+    'base/js/keyboard',
+    'notebook/js/contexthint',
+], function(IPython, $, utils, keyboard) {
     "use strict";
 
     // easier key mapping
-    var keycodes = IPython.keyboard.keycodes;
-    var utils = IPython.utils;
+    var keycodes = keyboard.keycodes;
 
     var prepend_n_prc = function(str, n) {
         for( var i =0 ; i< n ; i++){
@@ -78,14 +78,14 @@ var IPython = (function (IPython) {
     }
 
 
-    var Completer = function (cell) {
+    var Completer = function (cell, events) {
         this.cell = cell;
         this.editor = cell.code_mirror;
         var that = this;
-        $([IPython.events]).on('status_busy.Kernel', function () {
+        events.on('status_busy.Kernel', function () {
             that.skip_kernel_completion = true;
         });
-        $([IPython.events]).on('status_idle.Kernel', function () {
+        events.on('status_idle.Kernel', function () {
             that.skip_kernel_completion = false;
         });
     };
@@ -351,6 +351,18 @@ var IPython = (function (IPython) {
             }
             index = Math.min(Math.max(index, 0), options.length-1);
             this.sel[0].selectedIndex = index;
+        } else if (code == keycodes.pageup || code == keycodes.pagedown) {
+            CodeMirror.e_stop(event);
+
+            var options = this.sel.find('option');
+            var index = this.sel[0].selectedIndex;
+            if (code == keycodes.pageup) {
+                index -= 10; // As 10 is the hard coded size of the drop down menu
+            } else {
+                index += 10;
+            }
+            index = Math.min(Math.max(index, 0), options.length-1);
+            this.sel[0].selectedIndex = index;
         } else if (code == keycodes.left || code == keycodes.right) {
             this.close();
         }
@@ -379,7 +391,9 @@ var IPython = (function (IPython) {
             that.carry_on_completion();
         }, 50);
     };
+
+    // For backwards compatability.
     IPython.Completer = Completer;
 
-    return IPython;
-}(IPython));
+    return {'Completer': Completer};
+});

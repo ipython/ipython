@@ -92,7 +92,7 @@ class MultiKernelManager(LoggingConfigurable):
     def __contains__(self, kernel_id):
         return kernel_id in self._kernels
 
-    def start_kernel(self, **kwargs):
+    def start_kernel(self, kernel_name='python', **kwargs):
         """Start a new kernel.
 
         The caller can pick a kernel_id by passing one in as a keyword arg,
@@ -111,7 +111,7 @@ class MultiKernelManager(LoggingConfigurable):
         # including things like its transport and ip.
         km = self.kernel_manager_factory(connection_file=os.path.join(
                     self.connection_dir, "kernel-%s.json" % kernel_id),
-                    parent=self, autorestart=True, log=self.log
+                    parent=self, autorestart=True, log=self.log, kernel_name=kernel_name,
         )
         km.start_kernel(**kwargs)
         self._kernels[kernel_id] = km

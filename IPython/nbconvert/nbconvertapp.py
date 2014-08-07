@@ -278,6 +278,11 @@ class NbConvertApp(BaseIPythonApplication):
             basename = os.path.basename(notebook_filename)
             notebook_name = basename[:basename.rfind('.')]
             if self.output_base:
+                # strip duplicate extension from output_base, to avoid Basname.ext.ext
+                if getattr(exporter, 'file_extension', False):
+                    base, ext = os.path.splitext(self.output_base)
+                    if ext == '.' + exporter.file_extension:
+                        self.output_base = base
                 notebook_name = self.output_base
             resources = {}
             resources['profile_dir'] = self.profile_dir.location
@@ -293,11 +298,11 @@ class NbConvertApp(BaseIPythonApplication):
                       exc_info=True)
                 self.exit(1)
             else:
-                write_resultes = self.writer.write(output, resources, notebook_name=notebook_name)
+                write_results = self.writer.write(output, resources, notebook_name=notebook_name)
 
                 #Post-process if post processor has been defined.
                 if hasattr(self, 'postprocessor') and self.postprocessor:
-                    self.postprocessor(write_resultes)
+                    self.postprocessor(write_results)
                 conversion_success += 1
 
         # If nothing was converted successfully, help the user.

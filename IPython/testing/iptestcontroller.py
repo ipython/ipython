@@ -304,7 +304,7 @@ class JSController(TestController):
             command.append('--KernelManager.transport=ipc')
         self.stream_capturer = c = StreamCapturer()
         c.start()
-        self.server = subprocess.Popen(command, stdout=c.writefd, stderr=subprocess.STDOUT)
+        self.server = subprocess.Popen(command, stdout=c.writefd, stderr=subprocess.STDOUT, cwd=self.nbdir.name)
         self.server_info_file = os.path.join(self.ipydir.name,
             'profile_default', 'security', 'nbserver-%i.json' % self.server.pid
         )
