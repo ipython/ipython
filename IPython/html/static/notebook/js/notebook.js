@@ -67,8 +67,9 @@ define([
         this._session_starting = false;
         this.default_cell_type = this.config.default_cell_type || 'code';
 
-        //  Create and register scroll managers.
-        this.scrollmanager = new scrollmanager.ScrollManager(this);
+        //  Create default scroll manager.
+        this.scrollmanager = new scrollmanager.SlideScrollManager(this);
+
         // default_kernel_name is a temporary measure while we implement proper
         // kernel selection and delayed start. Do not rely on it.
         this.default_kernel_name = 'python';

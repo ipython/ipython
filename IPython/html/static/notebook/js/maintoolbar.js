@@ -6,8 +6,7 @@ define([
     'jquery',
     'notebook/js/toolbar',
     'notebook/js/celltoolbar',
-    'notebook/js/scrollmanager'
-], function(IPython, $, toolbar, celltoolbar, scrollmanager) {
+], function(IPython, $, toolbar, celltoolbar) {
     "use strict";
 
     var MainToolBar = function (selector, options) {
@@ -25,7 +24,6 @@ define([
         this.construct();
         this.add_celltype_list();
         this.add_celltoolbar_list();
-        this.add_scrollmanager_list();
         this.bind_events();
     };
 
@@ -185,10 +183,6 @@ define([
             if (select.val() !== data.name)
                 select.val(data.name);
         });
-    };
-
-    MainToolBar.prototype.add_scrollmanager_list = function () {
-        this._scrollselector = new scrollmanager.ScrollSelector(this.element, this.notebook);
     };
 
     MainToolBar.prototype.bind_events = function () {

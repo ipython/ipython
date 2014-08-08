@@ -3,48 +3,6 @@
 define(['jquery'], function($){
     "use strict";
 
-    var ScrollSelector = function(element, notebook) {
-        // Public constructor.
-        this.notebook = notebook;
-        $('<span />')
-            .addClass('nabar-text')
-            .text('Scrolling Mode:')
-            .appendTo(element);
-        this._combo = $('<select />')
-            .addClass('form-control select-xs')
-            .appendTo(element);
-
-        // Redirect class level manager registration to this instance.
-        this._registered = {};
-        ScrollSelector.register = $.proxy(this.register, this);
-
-        // Register cached managers.
-        for (var i =0; i < ScrollSelector.registered.length; i++) {
-            this.register.apply(this, ScrollSelector.registered[i]);
-        }
-
-        // Listen for scroll manager change, apply it to the notebook.
-        var that = this;
-        this._combo.change(function(){
-            var manager = that._registered[$(this).find("option:selected").val()];
-            that.notebook.scrollmanager = manager;
-        });
-    };
-
-    // Cache scroll managers registered before the construction of a scroll 
-    // manager.
-    ScrollSelector.registered = [];
-    ScrollSelector.register = function(name, manager) {
-        ScrollSelector.registered.push(arguments);
-    };
-    ScrollSelector.prototype.register = function(name, manager) {
-        this._registered[name] = manager;
-        this._combo.append($('<option />')
-            .val(name)
-            .text(name));
-    };
-
-
     var ScrollManager = function(notebook) {
         // Public constructor.
         this.notebook = notebook;
@@ -164,7 +122,6 @@ define(['jquery'], function($){
 
     // Return naemspace for require.js loads
     return {
-        'ScrollSelector': ScrollSelector,
         'ScrollManager': ScrollManager,
         'SlideScrollManager': SlideScrollManager,
         'HeadingScrollManager': HeadingScrollManager,
