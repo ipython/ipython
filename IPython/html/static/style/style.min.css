@@ -9631,11 +9631,6 @@ body.notebook_app {
     padding-right: 0px;
   }
 }
-#ipython-main-app {
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-}
 span#notebook_name {
   height: 1em;
   line-height: 1em;

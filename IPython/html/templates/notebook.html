@@ -50,11 +50,6 @@ class="notebook_app"
     </ul>
 </span>
 
-{% endblock %}
-
-
-{% block site %}
-
 <div id="menubar-container" class="container">
 <div id="menubar">
     <div id="menus" class="navbar navbar-default" role="navigation">
@@ -288,17 +283,13 @@ class="notebook_app"
   </div>
 </div>
 </div>
+{% endblock %}
 
-<div id="ipython-main-app">
 
-    <div id="notebook_panel">
-        <div id="notebook"></div>
-    </div>
+{% block site %}
+<div id="notebook"></div>
 
-</div>
 <div id='tooltip' class='ipython_tooltip' style='display:none'></div>
-
-
 {% endblock %}
 
 
