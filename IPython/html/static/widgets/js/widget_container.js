@@ -91,23 +91,6 @@ define([
         },
     });
 
-
-    var VBoxContainerView = FlexContainerView.extend({
-        render: function(){
-            this.$el.addClass('vbox');
-            FlexContainerView.__super__.render.apply(this);
-        },
-    });
-
-
-    var HBoxContainerView = FlexContainerView.extend({
-        render: function(){
-            this.$el.addClass('hbox');
-            FlexContainerView.__super__.render.apply(this);
-        },
-    });
-    
-
     var PopupView = widget.DOMWidgetView.extend({
         render: function(){
             // Called when view is rendered.
@@ -341,7 +324,5 @@ define([
         'ContainerView': ContainerView,
         'PopupView': PopupView,
         'FlexContainerView': FlexContainerView,
-        'VBoxContainerView': VBoxContainerView,
-        'HBoxContainerView': HBoxContainerView,
     };
 });
