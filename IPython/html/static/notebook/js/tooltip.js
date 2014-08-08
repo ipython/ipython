@@ -48,7 +48,7 @@ define([
         var morespan = $('<span/>').text('Open in a popup').addClass('ui-icon').addClass('ui-icon-arrowstop-l-n');
         morelink.append(morespan);
         morelink.click(function () {
-            that.show_in_popup(that._old_cell);
+            that.show_in_cell(that._old_cell);
         });
 
         // close the tooltip
@@ -100,7 +100,8 @@ define([
             that.stick();
         }, function (cell) {
             that.cancel_stick();
-            that.show_in_popup(cell);
+            that._hide();
+            that.show_in_cell(cell);
         }];
         // call after all the tabs function above have bee call to clean their effects
         // if necessary
@@ -115,9 +116,8 @@ define([
         return !this._hidden;
     };
 
-    Tooltip.prototype.show_in_popup = function (cell) {
-        // TODO: Show the contents in a popup. (EX PAGER CODE)
-        // payload.text = that._reply.content.data['text/plain'];        
+    Tooltip.prototype.show_in_cell = function (cell) {
+        cell.display_page(this._reply.content);
     };
 
     // grow the tooltip verticaly
@@ -236,11 +236,11 @@ define([
             this.reset_tabs_function (cell, text);
         }
 
-        this.tabs_functions[this._consecutive_counter](cell, text, cursor_pos);
-
         // then if we are at the end of list function, reset
         if (this._consecutive_counter == this.tabs_functions.length) {
             this.reset_tabs_function (cell, text, cursor);
+        } else {            
+            this.tabs_functions[this._consecutive_counter](cell, text, cursor_pos);
         }
 
         return;

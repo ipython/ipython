@@ -537,6 +537,104 @@ define([
         console.log(msg);
     };
 
+    var _dockables = [];
+    var _bring_to_front = function($dockable) {
+        // Make the modal top-most, z-ordered about the other modals.
+        var max_zindex = 0;
+        var index;
+        var $el;
+        for (index = 0; index < _dockables.length; index++) {
+            $el = _dockables[index];
+            var zindex = parseInt($el.css('z-index'));
+            if (!isNaN(zindex)) {
+                max_zindex = Math.max(max_zindex, zindex);
+            }
+        }
+        
+        // Start z-index of widget modals at 2000
+        max_zindex = Math.max(max_zindex, 2000);
+        
+        for (index = 0; index < _dockables.length; index++) {
+            $el = _dockables[index];
+            if (max_zindex == parseInt($el.css('z-index'))) {
+                $el.css('z-index', max_zindex - 1);
+            }
+        }
+        $dockable.css('z-index', max_zindex);
+    };
+
+    var make_dockable = function($el, drag_selector, on_dock, on_undock) {
+        $el.docked = true;
+        $el.addClass('docked-dockable');
+        if (on_dock) { on_dock($el); }                    
+        var $previous = $el.prev();
+        var $parent = $el.parent();
+
+        var do_dock = function() {
+            dock_button_icon
+                .addClass('fa-arrow-up')
+                .removeClass('fa-arrow-down');
+            $el
+                .css('z-index', '')
+                .detach();
+            if ($previous.length > 0) {
+                $el.insertAfter($previous);
+            } else {
+                $parent.prepend($el);
+            }
+            $el
+                .removeClass('undocked-dockable')
+                .addClass('docked-dockable');
+            $el.docked = true;
+            if (on_dock) { on_dock($el); }   
+        };
+
+        var do_undock = function() {
+            dock_button_icon
+                .removeClass('fa-arrow-up')
+                .addClass('fa-arrow-down');
+            $previous = $el.prev();
+            $parent = $el.parent();
+            $el
+                .removeClass('docked-dockable')
+                .addClass('undocked-dockable')
+                .detach()
+                .appendTo($('body'))
+                .draggable({handle: drag_selector, snap: '#notebook, .modal', snapMode: 'both'});
+            $el.find(drag_selector)
+                .click(function() {
+                    if (!$el.docked) { _bring_to_front($el); }
+                });
+            _bring_to_front($el);
+            $el.docked = false;
+            if (on_undock) { on_undock($el); }
+        };
+
+        _dockables.push($el);
+        var dock_button_icon = $('<span />')
+                .attr('aria-hidden', 'true')
+                .addClass('fa fa-arrow-up docking-button');
+        var dock_button = $('<button />')
+            .attr('type', 'button')
+            .addClass('close')
+            .css('float', 'right')
+            .click(function() {
+                $el.docked = !$el.docked;
+                if ($el.docked) {
+                    do_dock();                 
+                } else {
+                    do_undock();
+                }
+            })
+            .append(dock_button_icon)
+            .appendTo($el);
+
+        $el.dock_button = dock_button;
+        $el.dock = do_dock;
+        $el.undock = do_undock;
+    };
+
+
     var utils = {
         regex_split : regex_split,
         uuid : uuid,
@@ -561,6 +659,7 @@ define([
         mergeopt: mergeopt,
         ajax_error_msg : ajax_error_msg,
         log_ajax_error : log_ajax_error,
+        make_dockable: make_dockable,
     };
 
     // Backwards compatability.

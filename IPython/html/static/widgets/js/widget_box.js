@@ -128,7 +128,7 @@ define([
                     that.bring_to_front();
                 });
             this.$close = $('<button />')
-                .addClass('close fa fa-remove')
+                .addClass('close fa fa-times')
                 .css('margin-left', '5px')
                 .appendTo(this.$title_bar)
                 .click(function(){
