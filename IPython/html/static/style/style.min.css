@@ -7657,18 +7657,24 @@ body {
   right: 0px;
   top: 0px;
   bottom: 0px;
-  overflow: visible;
 }
 div#header {
   /* Initially hidden to prevent FLOUC */
   display: none;
+  position: fixed;
+  background-color: white;
   margin-bottom: 0px;
-  padding-left: 30px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid #e7e7e7;
+  width: 100%;
+  min-height: initial !important;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
+}
+div#upperheader {
+  border-bottom: 1px solid #e7e7e7;
+  min-height: 36px;
+  padding-bottom: 5px;
+  margin-bottom: -1px;
 }
 #ipython_notebook {
   padding-left: 0px;
@@ -7912,6 +7918,9 @@ span#login_widget > .button .badge,
  *
  * Author: IPython Development Team
  */
+#tab_content {
+  margin-top: 53px;
+}
 ul#tabs {
   margin-bottom: 4px;
 }
@@ -9622,9 +9631,6 @@ div.cell.text_cell.rendered {
 body {
   background-color: #ffffff;
 }
-body.notebook_app {
-  overflow: hidden;
-}
 @media (max-width: 767px) {
   body.notebook_app {
     padding-left: 0px;
@@ -9660,7 +9666,7 @@ div#notebook {
   /* This spaces the cell away from the edge of the notebook area */
   padding: 1em 0 1em 0;
   margin: 0px;
-  border-top: 1px solid #e7e7e7;
+  margin-top: 117px;
   outline: none;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -9977,6 +9983,11 @@ ul#help_menu li a i {
 }
 #menus {
   min-height: 30px;
+}
+#topbar {
+  border-bottom: 1px solid #e7e7e7;
+  margin-bottom: -1px;
+  margin-top: 1px;
 }
 .dropdown-submenu {
   position: relative;
