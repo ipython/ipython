@@ -200,10 +200,12 @@ define([
         
         // View
         this.element.find('#toggle_header').click(function () {
-            $('div#header').toggle();
+            $('div#upperheader').toggle();
+            $('#notebook').css('margin-top', $('#header').height() + 10);
         });
         this.element.find('#toggle_toolbar').click(function () {
             $('div#maintoolbar').toggle();
+            $('#notebook').css('margin-top', $('#header').height() + 10);
         });
         // Insert
         this.element.find('#insert_cell_above').click(function () {

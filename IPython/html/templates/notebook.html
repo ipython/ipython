@@ -31,9 +31,8 @@ class="notebook_app"
 
 {% endblock %}
 
-
-{% block header %}
-
+{% block upperheader %}
+{{ super() }}
 
 <span id="save_widget" class="nav pull-left">
     <span id="notebook_name"></span>
@@ -49,7 +48,11 @@ class="notebook_app"
     <ul id="kernel_selector" class="dropdown-menu">
     </ul>
 </span>
+{% endblock %}
 
+{% block header %}
+
+<div id="topbar">
 <div id="menubar-container" class="container">
 <div id="menubar">
     <div id="menus" class="navbar navbar-default" role="navigation">
@@ -281,6 +284,7 @@ class="notebook_app"
   <div class="toolbar-inner navbar-inner navbar-nobg">
     <div id="maintoolbar-container" class="container"></div>
   </div>
+</div>
 </div>
 </div>
 {% endblock %}
