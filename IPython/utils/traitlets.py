@@ -228,7 +228,7 @@ class link(object):
             obj.on_trait_change(callback, attr, remove=True)
 
 @skip_doctest
-class unilink(object):
+class directional_link(object):
     """Link the trait of a source object with traits of target objects.
 
     Parameters
@@ -239,7 +239,7 @@ class unilink(object):
     Examples
     --------
 
-    >>> c = unilink((src, 'value'), (tgt1, 'value'), (tgt2, 'value'))
+    >>> c = directional_link((src, 'value'), (tgt1, 'value'), (tgt2, 'value'))
     >>> src.value = 5  # updates target objects
     >>> tgt1.value = 6 # does not update other objects
     """
@@ -277,6 +277,10 @@ class unilink(object):
         self.source[0].on_trait_change(self._update, self.source[1], remove=True)
         self.source = None
         self.targets = []
+
+def dlink(source, *targets):
+    """Shorter helper function returning a directional_link object"""
+    return directional_link(source, *targets)
 
 #-----------------------------------------------------------------------------
 # Base TraitType for all traits
