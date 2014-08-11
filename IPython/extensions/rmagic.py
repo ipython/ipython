@@ -691,7 +691,8 @@ __doc__ = __doc__.format(
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
     warnings.warn("The rmagic extension in IPython is deprecated in favour of "
-            "rpy2.ipython. If available, that will be loaded instead.")
+            "rpy2.ipython. If available, that will be loaded instead.\n"
+            "http://rpy.sourceforge.net/")
     try:
         import rpy2.ipython
     except ImportError:
