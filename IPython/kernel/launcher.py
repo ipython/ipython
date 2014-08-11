@@ -97,14 +97,11 @@ def make_ipkernel_cmd(code, executable=None, extra_arguments=[], **kw):
     
     A Popen command list
     """
-    
-    # Build the kernel launch command.
     if executable is None:
         executable = sys.executable
     arguments = [ executable, '-c', code, '-f', '{connection_file}' ]
     arguments.extend(extra_arguments)
 
-    # Spawn a kernel.
     if sys.platform == 'win32':
 
         # If the kernel is running on pythonw and stdout/stderr are not been

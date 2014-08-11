@@ -9,6 +9,7 @@ pjoin = os.path.join
 from IPython.utils.path import get_ipython_dir
 from IPython.utils.py3compat import PY3
 from IPython.utils.traitlets import HasTraits, List, Unicode, Dict, Any
+from .launcher import make_ipkernel_cmd
 
 if os.name == 'nt':
     programdata = os.environ.get('PROGRAMDATA', None)
@@ -107,9 +108,8 @@ class KernelSpecManager(HasTraits):
         The native kernel is the kernel using the same Python runtime as this
         process. This will put its informatino in the user kernels directory.
         """
-        return {'argv':[sys.executable, '-c',
-                       'from IPython.kernel.zmq.kernelapp import main; main()',
-                        '-f', '{connection_file}'],
+        return {'argv':make_ipkernel_cmd(
+                       'from IPython.kernel.zmq.kernelapp import main; main()'),
                'display_name': 'IPython (Python %d)' % (3 if PY3 else 2),
                'language': 'python',
                'codemirror_mode': {'name': 'ipython',
