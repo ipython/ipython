@@ -472,6 +472,12 @@ class InteractiveShellTestCase(unittest.TestCase):
         with open(filename, 'r') as f:
             self.assertEqual(f.read(), 'blah')
 
+    def test_new_main_mod(self):
+        # Smoketest to check that this accepts a unicode module name
+        name = u'jiefmw'
+        mod = ip.new_main_mod(u'%s.py' % name, name)
+        self.assertEqual(mod.__name__, name)
+
 class TestSafeExecfileNonAsciiPath(unittest.TestCase):
 
     @onlyif_unicode_paths

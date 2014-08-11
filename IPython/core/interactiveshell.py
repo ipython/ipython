@@ -911,7 +911,8 @@ class InteractiveShell(SingletonConfigurable):
         try:
             main_mod = self._main_mod_cache[filename]
         except KeyError:
-            main_mod = self._main_mod_cache[filename] = types.ModuleType(modname,
+            main_mod = self._main_mod_cache[filename] = types.ModuleType(
+                        py3compat.cast_bytes_py2(modname),
                         doc="Module created for script run in IPython")
         else:
             main_mod.__dict__.clear()
