@@ -98,7 +98,7 @@ class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
     _model_name = Unicode('WidgetModel', help="""Name of the backbone model 
         registered in the front-end to create and sync this widget with.""")
-    _view_name = Unicode(help="""Default view registered in the front-end
+    _view_name = Unicode('WidgetView', help="""Default view registered in the front-end
         to use to represent the widget.""", sync=True)
     _comm = Instance('IPython.kernel.comm.Comm')
     
