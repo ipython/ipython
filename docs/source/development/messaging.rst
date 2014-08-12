@@ -9,7 +9,7 @@ Versioning
 ==========
 
 The IPython message specification is versioned independently of IPython.
-The current version of the specification is 5.0.
+The current version of the specification is 5.1.
 
 
 Introduction
@@ -573,6 +573,35 @@ Message type: ``history_reply``::
       'history' : list,
     }
 
+.. _msging_is_complete:
+
+Code completeness
+-----------------
+
+.. versionadded:: 5.1
+
+When the user enters a line in a console style interface, the console must
+decide whether to immediately execute the current code, or whether to show a
+continuation prompt for further input. For instance, in Python ``a = 5`` would
+be executed immediately, while ``for i in range(5):`` would expect further input.
+
+Frontends may have ways to override this, forcing the code to be sent for
+execution or forcing a continuation prompt. If the kernel does not reply promptly,
+the frontend will probably default to sending the code to be executed.
+
+Message type: ``is_complete_request``::
+
+    content = {
+        # The code entered so far as a multiline string
+        'code' : str,
+    }
+
+Message type: ``complete_reply``::
+
+    content = {
+        # True if the code is ready to execute, False if not
+        'complete' : bool,
+    }
 
 Connect
 -------
