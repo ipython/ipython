@@ -355,6 +355,13 @@ class InputSplitterTestCase(unittest.TestCase):
         isp.push(r"(1 \ ")
         self.assertFalse(isp.push_accepts_more())
 
+    def test_is_complete(self):
+        isp = self.isp
+        assert isp.is_complete("a = 1")
+        assert not isp.is_complete("for a in range(5):")
+        assert isp.is_complete("raise = 2")  # SyntaxError should mean complete
+        assert not isp.is_complete("a = [1,\n2,")
+
 class InteractiveLoopTestCase(unittest.TestCase):
     """Tests for an interactive loop like a python shell.
     """

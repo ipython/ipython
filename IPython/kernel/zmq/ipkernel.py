@@ -229,6 +229,10 @@ class IPythonKernel(KernelBase):
         self.shell.exit_now = True
         return dict(status='ok', restart=restart)
 
+    def do_is_complete(self, code):
+        complete = self.shell.input_transformer_manager.is_complete(code)
+        return {'complete': complete}
+
     def do_apply(self, content, bufs, msg_id, reply_metadata):
         shell = self.shell
         try:

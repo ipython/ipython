@@ -248,6 +248,22 @@ class InputSplitter(object):
         self.reset()
         return out
 
+    def is_complete(self, source):
+        """Return whether a block of code is ready to execute, or should be continued
+        
+        This is a non-stateful API, and will reset the state of this InputSplitter.
+        """
+        self.reset()
+        try:
+            self.push(source)
+            return not self.push_accepts_more()
+        except SyntaxError:
+            # Transformers in IPythonInputSplitter can raise SyntaxError,
+            # which push() will not catch.
+            return True
+        finally:
+            self.reset()
+
     def push(self, lines):
         """Push one or more lines of input.
 
