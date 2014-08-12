@@ -280,10 +280,13 @@ class Widget(LoggingConfigurable):
 
     def _should_send_property(self, key, value):
         """Check the property lock (property_lock)"""
-        if self._send_state_lock > 0:
+        if (key == self._property_lock[0] and value == self._property_lock[1]):
+            return False
+        elif self._send_state_lock > 0:
             self._states_to_send.add(key)
             return False
-        return key != self._property_lock[0] or value != self._property_lock[1]
+        else:
+            return True
     
     # Event handlers
     @_show_traceback
