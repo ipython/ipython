@@ -40,6 +40,8 @@ class AuthenticatedHandler(web.RequestHandler):
     def set_default_headers(self):
         headers = self.settings.get('headers', {})
 
+        headers['Strict-Transport-Security'] =  "max-age=10886400; includeSubDomains"
+
         if "X-Frame-Options" not in headers:
             headers["X-Frame-Options"] = "SAMEORIGIN"
 
