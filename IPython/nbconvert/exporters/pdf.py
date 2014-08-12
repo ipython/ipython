@@ -19,7 +19,7 @@ class PDFExporter(LatexExporter):
         help="How many times latex will be called."
     )
 
-    latex_command = List([u"pdflatex", u"{filename}"], config=True, 
+    latex_command = List([u"pdflatex", u"{filename}", u"--interaction=batchmode"], config=True, 
         help="Shell command used to compile latex."
     )
 
