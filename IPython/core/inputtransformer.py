@@ -363,11 +363,11 @@ def help_end(line):
 @CoroutineInputTransformer.wrap
 def cellmagic(end_on_blank_line=False):
     """Captures & transforms cell magics.
-    
+
     After a cell magic is started, this stores up any lines it gets until it is
     reset (sent None).
     """
-    tpl = 'get_ipython().run_cell_magic(%r, %r, %r)'
+    tpl = 'get_ipython().run_cell_magic(%r, %r, u"""\\\n%s\n""")'
     cellmagic_help_re = re.compile('%%\w+\?')
     line = ''
     while True:
