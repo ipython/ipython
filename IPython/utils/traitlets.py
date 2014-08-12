@@ -54,6 +54,7 @@ except:
 
 from .importstring import import_item
 from IPython.utils import py3compat
+from IPython.utils import eventful
 from IPython.utils.py3compat import iteritems
 from IPython.testing.skipdoctest import skip_doctest
 
@@ -1489,6 +1490,49 @@ class Dict(Instance):
 
         super(Dict,self).__init__(klass=dict, args=args,
                                   allow_none=allow_none, **metadata)
+
+
+class EventfulDict(Instance):
+    """An instance of an EventfulDict."""
+
+    def __init__(self, default_value=None, allow_none=True, **metadata):
+        """Create a EventfulDict trait type from a dict.
+
+        The default value is created by doing 
+        ``eventful.EvenfulDict(default_value)``, which creates a copy of the 
+        ``default_value``.
+        """
+        if default_value is None:
+            args = ((),)
+        elif isinstance(default_value, dict):
+            args = (default_value,)
+        elif isinstance(default_value, SequenceTypes):
+            args = (default_value,)
+        else:
+            raise TypeError('default value of EventfulDict was %s' % default_value)
+
+        super(EventfulDict, self).__init__(klass=eventful.EventfulDict, args=args,
+                                  allow_none=allow_none, **metadata)
+
+
+class EventfulList(Instance):
+    """An instance of an EventfulList."""
+
+    def __init__(self, default_value=None, allow_none=True, **metadata):
+        """Create a EventfulList trait type from a dict.
+
+        The default value is created by doing 
+        ``eventful.EvenfulList(default_value)``, which creates a copy of the 
+        ``default_value``.
+        """
+        if default_value is None:
+            args = ((),)
+        else:
+            args = (default_value,)
+
+        super(EventfulList, self).__init__(klass=eventful.EventfulList, args=args,
+                                  allow_none=allow_none, **metadata)
+
 
 class TCPAddress(TraitType):
     """A trait for an (ip, port) tuple.
