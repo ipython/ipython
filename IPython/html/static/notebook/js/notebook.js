@@ -2286,17 +2286,14 @@ define([
      */
     Notebook.prototype.load_notebook_error = function (xhr, status, error) {
         this.events.trigger('notebook_load_failed.Notebook', [xhr, status, error]);
+        utils.log_ajax_error(xhr, status, error);
         var msg;
         if (xhr.status === 400) {
-            if (xhr.responseJSON && xhr.responseJSON.message) {
-                msg = escape(xhr.responseJSON.message);
-            } else {
-                msg = escape(error);
-            }
+            msg = escape(utils.ajax_error_msg(xhr));
         } else if (xhr.status === 500) {
             msg = "An unknown error occurred while loading this notebook. " +
             "This version can load notebook formats " +
-            "v" + this.nbformat + " or earlier.";
+            "v" + this.nbformat + " or earlier. See the server log for details.";
         }
         dialog.modal({
             notebook: this,
