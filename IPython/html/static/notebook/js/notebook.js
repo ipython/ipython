@@ -2288,7 +2288,11 @@ define([
         this.events.trigger('notebook_load_failed.Notebook', [xhr, status, error]);
         var msg;
         if (xhr.status === 400) {
-            msg = error;
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                msg = escape(xhr.responseJSON.message);
+            } else {
+                msg = escape(error);
+            }
         } else if (xhr.status === 500) {
             msg = "An unknown error occurred while loading this notebook. " +
             "This version can load notebook formats " +
@@ -2567,10 +2571,10 @@ define([
      * @method delete_checkpoint_error
      * @param {jqXHR} xhr jQuery Ajax object
      * @param {String} status Description of response status
-     * @param {String} error_msg HTTP error message
+     * @param {String} error HTTP error message
      */
-    Notebook.prototype.delete_checkpoint_error = function (xhr, status, error_msg) {
-        this.events.trigger('checkpoint_delete_failed.Notebook');
+    Notebook.prototype.delete_checkpoint_error = function (xhr, status, error) {
+        this.events.trigger('checkpoint_delete_failed.Notebook', [xhr, status, error]);
     };
 
 
