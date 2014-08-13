@@ -14,7 +14,7 @@ pages.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from .widget_container import Box
+from .widget_box import Box
 from IPython.utils.traitlets import Unicode, Dict, CInt
 from IPython.utils.warn import DeprecatedClass
 

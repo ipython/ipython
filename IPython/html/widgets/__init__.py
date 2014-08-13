@@ -2,7 +2,7 @@ from .widget import Widget, DOMWidget, CallbackDispatcher
 
 from .widget_bool import Checkbox, ToggleButton
 from .widget_button import Button
-from .widget_container import Box, Popup, FlexBox, HBox, VBox
+from .widget_box import Box, Popup, FlexBox, HBox, VBox
 from .widget_float import FloatText, BoundedFloatText, FloatSlider, FloatProgress
 from .widget_image import Image
 from .widget_int import IntText, BoundedIntText, IntSlider, IntProgress
@@ -14,7 +14,7 @@ from .interaction import interact, interactive, fixed
 # Deprecated classes
 from .widget_bool import CheckBox, ToggleButtonWidget
 from .widget_button import ButtonWidget
-from .widget_container import ContainerWidget, PopupWidget
+from .widget_box import ContainerWidget, PopupWidget
 from .widget_float import FloatTextWidget, BoundedFloatTextWidget, FloatSliderWidget, FloatProgressWidget
 from .widget_image import ImageWidget
 from .widget_int import IntTextWidget, BoundedIntTextWidget, IntSliderWidget, IntProgressWidget
