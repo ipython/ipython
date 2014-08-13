@@ -805,8 +805,10 @@ class VerboseTB(TBTools):
                     elif token_type == tokenize.NEWLINE:
                         break
 
-            except (IndexError, UnicodeDecodeError):
+            except (IndexError, UnicodeDecodeError, SyntaxError):
                 # signals exit of tokenizer
+                # SyntaxError can occur if the file is not actually Python
+                #  - see gh-6300
                 pass
             except tokenize.TokenError as msg:
                 _m = ("An unexpected error occurred while tokenizing input\n"
