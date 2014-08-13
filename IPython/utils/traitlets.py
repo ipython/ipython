@@ -227,6 +227,61 @@ class link(object):
             (obj,attr) = key
             obj.on_trait_change(callback, attr, remove=True)
 
+@skip_doctest
+class directional_link(object):
+    """Link the trait of a source object with traits of target objects.
+
+    Parameters
+    ----------
+    source : pair of object, name
+    targets : pairs of objects/attributes
+
+    Examples
+    --------
+
+    >>> c = directional_link((src, 'value'), (tgt1, 'value'), (tgt2, 'value'))
+    >>> src.value = 5  # updates target objects
+    >>> tgt1.value = 6 # does not update other objects
+    """
+    updating = False
+
+    def __init__(self, source, *targets):
+        self.source = source
+        self.targets = targets
+
+        # Update current value
+        src_attr_value = getattr(source[0], source[1])
+        for obj, attr in targets:
+            if getattr(obj, attr) != src_attr_value:
+                setattr(obj, attr, src_attr_value)
+
+        # Wire
+        self.source[0].on_trait_change(self._update, self.source[1])
+
+    @contextlib.contextmanager
+    def _busy_updating(self):
+        self.updating = True
+        try:
+            yield
+        finally:
+            self.updating = False
+
+    def _update(self, name, old, new):
+        if self.updating:
+            return
+        with self._busy_updating():
+            for obj, attr in self.targets:
+                setattr(obj, attr, new)
+
+    def unlink(self):
+        self.source[0].on_trait_change(self._update, self.source[1], remove=True)
+        self.source = None
+        self.targets = []
+
+def dlink(source, *targets):
+    """Shorter helper function returning a directional_link object"""
+    return directional_link(source, *targets)
+
 #-----------------------------------------------------------------------------
 # Base TraitType for all traits
 #-----------------------------------------------------------------------------
