@@ -19,7 +19,8 @@ from IPython.utils.traitlets import (
     HasTraits, MetaHasTraits, TraitType, Any, CBytes, Dict,
     Int, Long, Integer, Float, Complex, Bytes, Unicode, TraitError,
     Undefined, Type, This, Instance, TCPAddress, List, Tuple,
-    ObjectName, DottedObjectName, CRegExp, link, EventfulList, EventfulDict
+    ObjectName, DottedObjectName, CRegExp, link, directional_link,
+    EventfulList, EventfulDict
 )
 from IPython.utils import py3compat
 from IPython.testing.decorators import skipif
@@ -1146,6 +1147,71 @@ class TestLink(TestCase):
         a.value = 4
         self.assertEqual(''.join(callback_count), 'ab')
         del callback_count[:]
+
+class TestDirectionalLink(TestCase):
+    def test_connect_same(self):
+        """Verify two traitlets of the same type can be linked together using directional_link."""
+
+        # Create two simple classes with Int traitlets.
+        class A(HasTraits):
+            value = Int()
+        a = A(value=9)
+        b = A(value=8)
+
+        # Conenct the two classes.
+        c = directional_link((a, 'value'), (b, 'value'))
+
+        # Make sure the values are the same at the point of linking.
+        self.assertEqual(a.value, b.value)
+
+        # Change one the value of the source and check that it synchronizes the target.
+        a.value = 5
+        self.assertEqual(b.value, 5)
+        # Change one the value of the target and check that it has no impact on the source
+        b.value = 6
+        self.assertEqual(a.value, 5)
+
+    def test_link_different(self):
+        """Verify two traitlets of different types can be linked together using link."""
+
+        # Create two simple classes with Int traitlets.
+        class A(HasTraits):
+            value = Int()
+        class B(HasTraits):
+            count = Int()
+        a = A(value=9)
+        b = B(count=8)
+
+        # Conenct the two classes.
+        c = directional_link((a, 'value'), (b, 'count'))
+
+        # Make sure the values are the same at the point of linking.
+        self.assertEqual(a.value, b.count)
+
+        # Change one the value of the source and check that it synchronizes the target.
+        a.value = 5
+        self.assertEqual(b.count, 5)
+        # Change one the value of the target and check that it has no impact on the source
+        b.value = 6
+        self.assertEqual(a.value, 5)
+
+    def test_unlink(self):
+        """Verify two linked traitlets can be unlinked."""
+
+        # Create two simple classes with Int traitlets.
+        class A(HasTraits):
+            value = Int()
+        a = A(value=9)
+        b = A(value=8)
+
+        # Connect the two classes.
+        c = directional_link((a, 'value'), (b, 'value'))
+        a.value = 4
+        c.unlink()
+
+        # Change one of the values to make sure they don't stay in sync.
+        a.value = 5
+        self.assertNotEqual(a.value, b.value)
 
 class Pickleable(HasTraits):
     i = Int()
