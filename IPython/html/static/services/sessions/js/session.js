@@ -80,6 +80,7 @@ define([
             error : utils.log_ajax_error,
         };
         this.kernel.running = false;
+        this.kernel.stop_channels();
         var url = utils.url_join_encode(this.base_url, 'api/sessions', this.id);
         $.ajax(url, settings);
     };

@@ -394,6 +394,7 @@ define([
                 error : utils.log_ajax_error,
             };
             $.ajax(utils.url_join_encode(this.kernel_url), settings);
+            this.stop_channels();
         }
     };
 
