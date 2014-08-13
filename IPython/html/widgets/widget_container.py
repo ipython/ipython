@@ -1,4 +1,4 @@
-"""Container class.  
+"""Box class.  
 
 Represents a container that can be used to group other widgets.
 """
@@ -10,9 +10,9 @@ from .widget import DOMWidget
 from IPython.utils.traitlets import Unicode, Tuple, TraitError, Int, CaselessStrEnum
 from IPython.utils.warn import DeprecatedClass
 
-class Container(DOMWidget):
+class Box(DOMWidget):
     """Displays multiple widgets in a group."""
-    _view_name = Unicode('ContainerView', sync=True)
+    _view_name = Unicode('BoxView', sync=True)
 
     # Child widgets in the container.
     # Using a tuple here to force reassignment to update the list.
@@ -21,15 +21,15 @@ class Container(DOMWidget):
 
     def __init__(self, children = (), **kwargs):
         kwargs['children'] = children
-        super(Container, self).__init__(**kwargs)
-        self.on_displayed(Container._fire_children_displayed)
+        super(Box, self).__init__(**kwargs)
+        self.on_displayed(Box._fire_children_displayed)
 
     def _fire_children_displayed(self):
         for child in self.children:
             child._handle_displayed()
 
 
-class Popup(Container):
+class Popup(Box):
     """Displays multiple widgets in an in page popup div."""
     _view_name = Unicode('PopupView', sync=True)
     
@@ -37,9 +37,9 @@ class Popup(Container):
     button_text = Unicode(sync=True)
 
 
-class FlexContainer(Container):
+class FlexBox(Box):
     """Displays multiple widgets using the flexible box model."""
-    _view_name = Unicode('FlexContainerView', sync=True)
+    _view_name = Unicode('FlexBoxView', sync=True)
     orientation = CaselessStrEnum(values=['vertical', 'horizontal'], default_value='vertical', sync=True)
     flex = Int(0, sync=True, help="""Specify the flexible-ness of the model.""")
     def _flex_changed(self, name, old, new):
@@ -59,15 +59,15 @@ class FlexContainer(Container):
 def VBox(*pargs, **kwargs):
     """Displays multiple widgets vertically using the flexible box model."""
     kwargs['orientation'] = 'vertical'
-    return FlexContainer(*pargs, **kwargs)
+    return FlexBox(*pargs, **kwargs)
 
 def HBox(*pargs, **kwargs):
     """Displays multiple widgets horizontally using the flexible box model."""
     kwargs['orientation'] = 'horizontal'
-    return FlexContainer(*pargs, **kwargs)
+    return FlexBox(*pargs, **kwargs)
 
 
 # Remove in IPython 4.0
-ContainerWidget = DeprecatedClass(Container, 'ContainerWidget')
+ContainerWidget = DeprecatedClass(Box, 'ContainerWidget')
 PopupWidget = DeprecatedClass(Popup, 'PopupWidget')
 

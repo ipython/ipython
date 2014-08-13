@@ -7,10 +7,10 @@ define([
     "bootstrap",
 ], function(widget, $){
 
-    var ContainerView = widget.DOMWidgetView.extend({
+    var BoxView = widget.DOMWidgetView.extend({
         initialize: function(){
             // Public constructor
-            ContainerView.__super__.initialize.apply(this, arguments);
+            BoxView.__super__.initialize.apply(this, arguments);
             this.update_children([], this.model.get('children'));
             this.model.on('change:children', function(model, value) {
                 this.update_children(model.previous('children'), value);
@@ -47,9 +47,9 @@ define([
     });
 
 
-    var FlexContainerView = ContainerView.extend({
+    var FlexBoxView = BoxView.extend({
         render: function(){
-            FlexContainerView.__super__.render.apply(this);
+            FlexBoxView.__super__.render.apply(this);
             this.model.on('change:orientation', this.update_orientation, this);
             this.model.on('change:flex', this._flex_changed, this);
             this.model.on('change:pack', this._pack_changed, this);
@@ -321,8 +321,8 @@ define([
     });
 
     return {
-        'ContainerView': ContainerView,
+        'BoxView': BoxView,
         'PopupView': PopupView,
-        'FlexContainerView': FlexContainerView,
+        'FlexBoxView': FlexBoxView,
     };
 });

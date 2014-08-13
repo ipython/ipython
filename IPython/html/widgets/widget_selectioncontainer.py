@@ -14,14 +14,14 @@ pages.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from .widget_container import ContainerWidget
+from .widget_container import Box
 from IPython.utils.traitlets import Unicode, Dict, CInt
 from IPython.utils.warn import DeprecatedClass
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class _SelectionContainer(ContainerWidget):
+class _SelectionContainer(Box):
     """Base class used to display multiple child widgets."""
     _titles = Dict(help="Titles of the pages", sync=True)
     selected_index = CInt(0, sync=True)

@@ -23,7 +23,7 @@ from inspect import getcallargs
 from IPython.core.getipython import get_ipython
 from IPython.html.widgets import (Widget, Text,
     FloatSlider, IntSlider, Checkbox, Dropdown,
-    Container, DOMWidget)
+    Box, DOMWidget)
 from IPython.display import display, clear_output
 from IPython.utils.py3compat import string_types, unicode_type
 from IPython.utils.traitlets import HasTraits, Any, Unicode
@@ -176,7 +176,7 @@ def interactive(__interact_f, **kwargs):
     f = __interact_f
     co = kwargs.pop('clear_output', True)
     kwargs_widgets = []
-    container = Container()
+    container = Box()
     container.result = None
     container.args = []
     container.kwargs = dict()

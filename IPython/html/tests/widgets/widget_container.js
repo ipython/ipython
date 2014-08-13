@@ -7,7 +7,7 @@ casper.notebook_test(function () {
     this.execute_cell_then(index);
 
     var container_index = this.append_cell(
-        'container = widgets.Container()\n' +
+        'container = widgets.Box()\n' +
         'button = widgets.Button()\n'+
         'container.children = [button]\n'+
         'display(container)\n'+
