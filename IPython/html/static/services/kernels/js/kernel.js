@@ -385,13 +385,14 @@ define([
     };
 
 
-    Kernel.prototype.kill = function () {
+    Kernel.prototype.kill = function (success, faiure) {
         if (this.running) {
             this.running = false;
             var settings = {
                 cache : false,
                 type : "DELETE",
-                error : utils.log_ajax_error,
+                success : success,
+                error : error || utils.log_ajax_error,
             };
             $.ajax(utils.url_join_encode(this.kernel_url), settings);
             this.stop_channels();

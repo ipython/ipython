@@ -21,7 +21,7 @@ define([
         this.ws_url = options.ws_url;
     };
     
-    Session.prototype.start = function(callback) {
+    Session.prototype.start = function (success, error) {
         var that = this;
         var model = {
             notebook : {
@@ -40,11 +40,11 @@ define([
             dataType : "json",
             success : function (data, status, xhr) {
                 that._handle_start_success(data);
-                if (callback) {
-                    callback(data, status, xhr);
+                if (success) {
+                    success(data, status, xhr);
                 }
             },
-            error : utils.log_ajax_error,
+            error : error || utils.log_ajax_error,
         };
         var url = utils.url_join_encode(this.base_url, 'api/sessions');
         $.ajax(url, settings);
@@ -71,13 +71,14 @@ define([
         $.ajax(url, settings);
     };
     
-    Session.prototype.delete = function() {
+    Session.prototype.delete = function (success, error) {
         var settings = {
             processData : false,
             cache : false,
             type : "DELETE",
             dataType : "json",
-            error : utils.log_ajax_error,
+            success : success,
+            error : error || utils.log_ajax_error,
         };
         this.kernel.running = false;
         this.kernel.stop_channels();
@@ -119,8 +120,18 @@ define([
         this.kernel.kill();
     };
     
+    var SessionAlreadyStarting = function (message) {
+        this.name = "SessionAlreadyStarting";
+        this.message = (message || "");
+    };
+    
+    SessionAlreadyStarting.prototype = Error.prototype;
+    
     // For backwards compatability.
     IPython.Session = Session;
 
-    return {'Session': Session};
+    return {
+        Session: Session,
+        SessionAlreadyStarting: SessionAlreadyStarting,
+    };
 });
