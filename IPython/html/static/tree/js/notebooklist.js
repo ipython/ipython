@@ -269,7 +269,10 @@ define([
             .attr('value', name)
             .attr('size', '30')
             .attr('type', 'text')
-            .keyup(function(event){if(event.keyCode == 13){item.find('.upload_button').click();}})
+            .keyup(function(event){
+                if(event.keyCode == 13){item.find('.upload_button').click();}
+                else if(event.keyCode == 27){item.remove();}
+            })
         );
     };
 
