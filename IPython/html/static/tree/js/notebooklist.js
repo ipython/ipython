@@ -172,6 +172,7 @@ define([
         var list = data.content;
         var len = list.length;
         this.clear_list();
+        var n_uploads = this.element.children('.list_item').length;
         if (len === 0) {
             item = this.new_item(0);
             var span12 = item.children().first();
@@ -179,16 +180,16 @@ define([
             span12.append($('<div style="margin:auto;text-align:center;color:grey"/>').text(message));
         }
         var path = this.notebook_path;
-        var offset = 0;
+        var offset = n_uploads;
         if (path !== '') {
-            item = this.new_item(0);
+            item = this.new_item(offset);
             model = {
                 type: 'directory',
                 name: '..',
                 path: path,
             };
             this.add_link(model, item);
-            offset = 1;
+            offset += 1;
         }
         for (var i=0; i<len; i++) {
             model = list[i];
