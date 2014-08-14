@@ -23,7 +23,7 @@ casper.notebook_test(function () {
             'Widget subarea exists.');
 
         this.test.assert(this.cell_element_exists(index, 
-            '.widget-area .widget-subarea .widget-container'),
+            '.widget-area .widget-subarea .widget-box'),
             'Widget container exists.');
 
         this.test.assert(this.cell_element_exists(index, 
@@ -70,7 +70,7 @@ casper.notebook_test(function () {
             'Display container child executed with correct output.');
 
         this.test.assert(! this.cell_element_exists(index, 
-            '.widget-area .widget-subarea .widget-container'),
+            '.widget-area .widget-subarea .widget-box'),
             'Parent container not displayed.');
 
         this.test.assert(this.cell_element_exists(index, 

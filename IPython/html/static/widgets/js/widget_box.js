@@ -19,7 +19,8 @@ define([
 
         render: function(){
             // Called when view is rendered.
-            this.$el.addClass('widget-container');
+            this.$box = this.$el;
+            this.$el.addClass('widget-box');
         },
         
         update_children: function(old_list, new_list) {
@@ -37,7 +38,7 @@ define([
         add_child_model: function(model) {
             // Called when a model is added to the children list.
             var view = this.create_child_view(model);
-            this.$el.append(view.$el);
+            this.$box.append(view.$el);
 
             // Trigger the displayed event of the child view.
             this.after_displayed(function() {
@@ -178,9 +179,10 @@ define([
             this.$body = $('<div />')
                 .addClass('modal-body')
                 .addClass('widget-modal-body')
-                .addClass('widget-container')
+                .addClass('widget-box')
                 .addClass('vbox')
                 .appendTo(this.$window);
+            this.$box = this.$body;
             
             this.$show_button = $('<button />')
                 .html("&nbsp;")
@@ -245,29 +247,6 @@ define([
                 }
             });
             this.$window.css('z-index', max_zindex);
-        },
-        
-        update_children: function(old_list, new_list) {
-            // Called when the children list is modified.
-            this.do_diff(old_list, new_list, 
-                $.proxy(this.remove_child_model, this),
-                $.proxy(this.add_child_model, this));
-        },
-
-        remove_child_model: function(model) {
-            // Called when a child is removed from children list.
-            this.pop_child_view(model).remove();
-        },
-
-        add_child_model: function(model) {
-            // Called when a child is added to children list.
-            var view = this.create_child_view(model);
-            this.$body.append(view.$el);
-
-            // Trigger the displayed event of the child view.
-            this.after_displayed(function() {
-                view.trigger('displayed');
-            });
         },
         
         update: function(){
