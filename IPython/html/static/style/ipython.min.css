@@ -1727,7 +1727,7 @@ div.cell.text_cell.rendered {
   /* Box - ModalView Body */
   max-height: none !important;
 }
-.widget-container {
+.widget-box {
   /* Box */
   box-sizing: border-box;
   -moz-box-sizing: border-box;
