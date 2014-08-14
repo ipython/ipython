@@ -92,7 +92,7 @@ define([
         },
     });
 
-    var PopupView = widget.DOMWidgetView.extend({
+    var PopupView = BoxView.extend({
         render: function(){
             // Called when view is rendered.
             var that = this;
