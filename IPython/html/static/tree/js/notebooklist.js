@@ -430,7 +430,29 @@ define([
                     that.notebook_path,
                     filename
                 );
-                $.ajax(url, settings);
+                
+                var exists = false;
+                $.each(that.element.find('.list_item:not(.new-file)'), function(k,v){
+                    if ($(v).data('name') === filename) { exists = true; return false; }
+                });
+                if (exists) {
+                    dialog.modal({
+                        title : "Replace file",
+                        body : 'There is already a file named ' + filename + ', do you want to replace it?',
+                        buttons : {
+                            Overwrite : {
+                                class: "btn-danger",
+                                click: function() { $.ajax(url, settings); }
+                            },
+                            Cancel : {
+                                click: function() { item.remove(); }
+                            }
+                        }
+                    });
+                } else {
+                    $.ajax(url, settings);
+                }
+                
                 return false;
             });
         var cancel_button = $('<button/>').text("Cancel")
