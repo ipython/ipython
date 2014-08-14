@@ -74,10 +74,15 @@ define([
                 else if(value < min){ 
                     value = min; 
                 }
-                this.model.set('value', value, {updated_view: this});
                 this.$slider.slider('option', 'value', value);
                 this.$readout.text(value);
-                this.touch();
+
+                if(this.model.get('value')!=value) {
+                    alert(this.model.get('value'));
+                    this.model.set('value', value, {updated_view: this});
+                    alert("touched");
+                    this.touch();
+                }
 
                 // Use the right CSS classes for vertical & horizontal sliders
                 if (orientation=='vertical') {
