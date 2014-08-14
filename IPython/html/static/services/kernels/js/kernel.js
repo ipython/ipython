@@ -179,10 +179,18 @@ define([
                 that._websocket_closed(ws_host_url, false);
             }
         };
+        var ws_error = function(evt){
+            if (already_called_onclose){
+                return;
+            }
+            already_called_onclose = true;
+            that._websocket_closed(ws_host_url, false);
+        };
         var channels = [this.shell_channel, this.iopub_channel, this.stdin_channel];
         for (var i=0; i < channels.length; i++) {
             channels[i].onopen = $.proxy(this._ws_opened, this);
             channels[i].onclose = ws_closed_early;
+            channels[i].onerror = ws_error;
         }
         // switch from early-close to late-close message after 1s
         setTimeout(function() {
@@ -211,7 +219,7 @@ define([
         var channels = [this.shell_channel, this.iopub_channel, this.stdin_channel];
         for (var i=0; i < channels.length; i++) {
             // if any channel is not ready, don't trigger event.
-            if ( !channels[i].readyState ) return;
+            if ( channels[i].readyState == WebSocket.OPEN ) return;
         }
         // all events ready, trigger started event.
         this.events.trigger('status_started.Kernel', {kernel: this});
@@ -385,7 +393,7 @@ define([
     };
 
 
-    Kernel.prototype.kill = function (success, faiure) {
+    Kernel.prototype.kill = function (success, error) {
         if (this.running) {
             this.running = false;
             var settings = {

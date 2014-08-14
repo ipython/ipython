@@ -44,7 +44,13 @@ define([
                     success(data, status, xhr);
                 }
             },
-            error : error || utils.log_ajax_error,
+            error : function (xhr, status, err) {
+                that._handle_start_failure(xhr, status, err);
+                if (error !== undefined) {
+                    error(xhr, status, err);
+                }
+                utils.log_ajax_error(xhr, status, err);
+            }
         };
         var url = utils.url_join_encode(this.base_url, 'api/sessions');
         $.ajax(url, settings);
@@ -80,8 +86,10 @@ define([
             success : success,
             error : error || utils.log_ajax_error,
         };
-        this.kernel.running = false;
-        this.kernel.stop_channels();
+        if (this.kernel) {
+            this.kernel.running = false;
+            this.kernel.stop_channels();
+        }
         var url = utils.url_join_encode(this.base_url, 'api/sessions', this.id);
         $.ajax(url, settings);
     };
@@ -100,6 +108,11 @@ define([
         var kernel_service_url = utils.url_path_join(this.base_url, "api/kernels");
         this.kernel = new kernel.Kernel(kernel_service_url, this.ws_url, this.notebook, this.kernel_name);
         this.kernel._kernel_started(data.kernel);
+    };
+
+    Session.prototype._handle_start_failure = function (xhr, status, error) {
+        this.events.trigger('start_failed.Session', [this, xhr, status, error]);
+        this.events.trigger('status_dead.Kernel');
     };
     
     /**
