@@ -96,6 +96,16 @@ define([
                 that.add_file_data(event.target.result, item);
                 that.add_upload_button(item);
             };
+            reader.onerror = function (event) {
+                var item = $(event.target).data('item');
+                var name = item.data('name')
+                item.remove();
+                dialog.modal({
+                    title : 'Failed to read file',
+                    body : "Failed to read file '" + name + "'",
+                    buttons : {'OK' : { 'class' : 'btn-primary' }}
+                });
+            };
         }
         // Replace the file input form wth a clone of itself. This is required to
         // reset the form. Otherwise, if you upload a file, delete it and try to 
@@ -364,6 +374,14 @@ define([
                 var filename = item.find('.item_name > input').val();
                 var filedata = item.data('filedata');
                 var format = 'text';
+                if (filename.length === 0 || filename[0] === '.') {
+                    dialog.modal({
+                        title : 'Invalid file name',
+                        body : "File names must be at least one character and not start with a dot",
+                        buttons : {'OK' : { 'class' : 'btn-primary' }}
+                    });
+                    return false;
+                }
                 if (filedata instanceof ArrayBuffer) {
                     // base64-encode binary file data
                     var bytes = '';
@@ -399,6 +417,7 @@ define([
                                 }
                             }}
                         });
+                        return false;
                     }
                     content_type = 'application/json';
                 } else {
