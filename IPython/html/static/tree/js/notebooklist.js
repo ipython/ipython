@@ -87,7 +87,7 @@ define([
             }
             var item = that.new_item(0);
             item.addClass('new-file');
-            that.add_name_input(f.name, item);
+            that.add_name_input(f.name, item, file_ext == '.ipynb' ? 'notebook' : 'file');
             // Store the list item in the reader so we can use it later
             // to know which item it belongs to.
             $(reader).data('item', item);
@@ -260,15 +260,16 @@ define([
     };
 
 
-    NotebookList.prototype.add_name_input = function (name, item) {
+    NotebookList.prototype.add_name_input = function (name, item, icon_type) {
         item.data('name', name);
-        item.find(".item_icon").addClass('notebook_icon').addClass('icon-fixed-width');
+        item.find(".item_icon").addClass(NotebookList.icons[icon_type]).addClass('icon-fixed-width');
         item.find(".item_name").empty().append(
             $('<input/>')
             .addClass("filename_input")
             .attr('value', name)
             .attr('size', '30')
             .attr('type', 'text')
+            .keyup(function(event){if(event.keyCode == 13){item.find('.upload_button').click();}})
         );
     };
 
@@ -415,6 +416,7 @@ define([
                         item.removeClass('new-file');
                         that.add_link(model, item);
                         that.add_delete_button(item);
+                        that.session_list.load_sessions();
                     },
                     error : utils.log_ajax_error,
                 };
@@ -485,7 +487,6 @@ define([
             buttons : {'OK' : {'class' : 'btn-primary'}}
         });
     };
-    
 
     // Backwards compatability.
     IPython.NotebookList = NotebookList;
