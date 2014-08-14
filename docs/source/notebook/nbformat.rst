@@ -1,0 +1,278 @@
+.. _nbformat:
+
+===========================
+The Jupyter Notebook Format
+===========================
+
+Introduction
+============
+
+Jupyter (née IPython) notebook files are simple JSON documents,
+containing text, source code, rich media output, and metadata.
+each segment of the document is stored in a cell.
+
+Some general points about the notebook format:
+
+.. note::
+
+    *All* metadata fields are optional.
+    While the type and values of some metadata are defined,
+    no metadata values are required to be defined.
+
+
+Top-level structure
+===================
+
+At the highest level, a Jupyter notebook is a dictionary with a few keys:
+
+- metadata (dict)
+- nbformat (int)
+- nbformat_minor (int)
+- cells (list)
+
+.. sourcecode:: python
+
+    {
+      "metadata" : {
+        "signature": "hex-digest", # used for authenticating unsafe outputs on load
+        "kernel_info": {
+            # if kernel_info is defined, its name and language fields are required.
+            "name" : "the name of the kernel",
+            "language" : "the programming language of the kernel",
+            "codemirror_mode": "The name of the codemirror mode to use [optional]"
+        },
+      },
+      "nbformat": 4,
+      "nbformat_minor": 0,
+      "cells" : [
+          # list of cell dictionaries, see below
+      ],
+    }
+
+
+Cell Types
+==========
+
+There are a few basic cell types for encapsulating code and text.
+All cells have the following basic structure:
+
+.. sourcecode:: python
+
+    {
+      "cell_type" : "name",
+      "metadata" : {},
+      "source" : "single string or [list, of, strings]",
+    }
+
+
+Markdown cells
+--------------
+
+Markdown cells are used for body-text, and contain markdown,
+as defined in `GitHub-flavored markdown`_, and implemented in marked_.
+
+.. _GitHub-flavored markdown: https://help.github.com/articles/github-flavored-markdown
+.. _marked: https://github.com/chjj/marked
+
+.. sourcecode:: python
+
+    {
+      "cell_type" : "markdown",
+      "metadata" : {},
+      "source" : ["some *markdown*"],
+    }
+
+
+Heading cells
+-------------
+
+Heading cells are single lines describing a section header (mapping onto h1-h6 tags in HTML).
+These cells indicate structure of the document,
+and are used for things like outline-views and automatically generating HTML anchors
+within the page for quick navigation.
+They have a ``level`` field, with an integer value from 1-6 (inclusive).
+
+.. sourcecode:: python
+
+    {
+      "cell_type" : "markdown",
+      "metadata" : {},
+      "level" : 1, # An integer on [1-6]
+      "source" : ["A simple heading"],
+    }
+
+
+Code cells
+----------
+
+Code cells are the primary content of Jupyter notebooks.
+They contain source code int e language of the document's associated kernel,
+and a list of outputs associated with executing.
+They also have a prompt_number, which must be an integer or ``null``.
+
+.. sourcecode:: python
+
+    {
+      "cell_type" : "code",
+      "prompt_number": 1, # integer or null
+      "metadata" : {
+          "collapsed" : True, # whether the output of the cell is collapsed
+          "autoscroll": False, # any of true, false or "auto"
+      },
+      "source" : ["some code"],
+      "outputs": [{
+          # list of output dicts (described below)
+          "output_type": "stream",
+          ...
+      }],
+    }
+
+.. versionchanged:: 4.0
+
+    ``input`` was renamed to ``source``, for consistency among cell types.
+
+Code cell outputs
+-----------------
+
+A code cell can have a variety of outputs (stream data or rich mime-type output).
+These correspond to :ref:`messages <messaging>` produced as a result of executing the cell.
+
+All outputs have an ``output_type`` field,
+which is a string defining what type of output it is.
+
+
+stream output
+*************
+
+.. sourcecode:: python
+
+    {
+      "output_type" : "stream",
+      "name" : "stdout", # or stderr
+      "data" : ["multiline stream text"],
+    }
+
+.. versionchanged:: 4.0
+
+    The keys ``stream`` and ``text`` were changed to ``name`` and ``data`` to match
+    the stream message specification.
+
+
+display_data
+************
+
+Rich display messages (as created by ``display_data`` messages)
+contain data keyed by mime-type. All mime-type data should
+The metadata of these messages may be keyed by mime-type as well.
+
+
+.. sourcecode:: python
+
+    {
+      "output_type" : "display_data",
+      "text/plain" : ["multiline text data"],
+      "image/png": ["base64-encoded-png-data"],
+      "application/json": {
+        # JSON data is included as-is
+        "json": "data",
+      },
+      "metadata" : {
+        "image/png": {
+          "width": 640,
+          "height": 480,
+        },
+      },
+    }
+
+
+.. versionchanged:: 4.0
+
+    ``application/json`` output is no longer double-serialized into a string.
+
+.. versionchanged:: 4.0
+
+    mime-types are used for keys, instead of a combination of short names (``text``)
+    and mime-types.
+
+
+execute_result
+**************
+
+Results of executing a cell (as created by ``displayhook`` in Python)
+are stored in ``execute_result`` outputs.
+`execute_result` outputs are identical to ``display_data``,
+adding only a ``prompt_number`` field, which must be an integer.
+
+.. sourcecode:: python
+
+    {
+      "output_type" : "execute_result",
+      "prompt_number": 42,
+      "text/plain" : ["multiline text data"],
+      "image/png": ["base64-encoded-png-data"],
+      "application/json": {
+        # JSON data is included as-is
+        "json": "data",
+      },
+      "metadata" : {
+        "image/png": {
+          "width": 640,
+          "height": 480,
+        },
+      },
+    }
+
+.. versionchanged:: 4.0
+
+    ``pyout`` renamed to ``execute_result``
+
+
+error
+*****
+
+Failed execution may show a traceback
+
+.. sourcecode:: python
+
+    {
+      'ename' : str,   # Exception name, as a string
+      'evalue' : str,  # Exception value, as a string
+
+      # The traceback will contain a list of frames,
+      # represented each as a string.
+      'traceback' : list,
+    }
+
+.. versionchanged:: 4.0
+
+    ``pyerr`` renamed to ``error``
+
+
+Raw NBConvert cells
+-------------------
+
+A raw cell is defined as content that should be included *unmodified* in :ref:`nbconvert <nbconvert>` output.
+For example, this cell could include raw LaTeX for nbconvert to pdf via latex,
+or restructured text for use in Sphinx documentation.
+
+The notebook authoring environment does not render raw cells.
+
+The only logic in a raw cell is the `format` metadata field.
+If defined, it specifies which nbconvert output format is the intended target
+for the raw cell. When outputting to any other format,
+the raw cell's contents will be excluded.
+In the default case when this value is undefined,
+a raw cell's contents will be included in any nbconvert output,
+regardless of format.
+
+.. sourcecode:: python
+
+    {
+      "cell_type" : "raw",
+      "metadata" : {
+        # the mime-type of the target nbconvert format.
+        # nbconvert to formats other than this will exclude this cell.
+        "format" : "mime/type"
+      },
+      "source" : ["some nbformat mime-type data"]
+    }
