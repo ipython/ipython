@@ -80,7 +80,6 @@ define([
                 if(this.model.get('value')!=value) {
                     alert(this.model.get('value'));
                     this.model.set('value', value, {updated_view: this});
-                    alert("touched");
                     this.touch();
                 }
 
