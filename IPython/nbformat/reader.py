@@ -80,6 +80,8 @@ def reads(s, **kwargs):
     nb : NotebookNode
         The notebook that was read.
     """
+    from .current import NBFormatError
+    
     nb_dict = parse_json(s, **kwargs)
     (major, minor) = get_version(nb_dict)
     if major in versions:

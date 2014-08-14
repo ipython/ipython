@@ -2286,13 +2286,14 @@ define([
      */
     Notebook.prototype.load_notebook_error = function (xhr, status, error) {
         this.events.trigger('notebook_load_failed.Notebook', [xhr, status, error]);
+        utils.log_ajax_error(xhr, status, error);
         var msg;
         if (xhr.status === 400) {
-            msg = error;
+            msg = escape(utils.ajax_error_msg(xhr));
         } else if (xhr.status === 500) {
             msg = "An unknown error occurred while loading this notebook. " +
             "This version can load notebook formats " +
-            "v" + this.nbformat + " or earlier.";
+            "v" + this.nbformat + " or earlier. See the server log for details.";
         }
         dialog.modal({
             notebook: this,
@@ -2567,10 +2568,10 @@ define([
      * @method delete_checkpoint_error
      * @param {jqXHR} xhr jQuery Ajax object
      * @param {String} status Description of response status
-     * @param {String} error_msg HTTP error message
+     * @param {String} error HTTP error message
      */
-    Notebook.prototype.delete_checkpoint_error = function (xhr, status, error_msg) {
-        this.events.trigger('checkpoint_delete_failed.Notebook');
+    Notebook.prototype.delete_checkpoint_error = function (xhr, status, error) {
+        this.events.trigger('checkpoint_delete_failed.Notebook', [xhr, status, error]);
     };
 
 
