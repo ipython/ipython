@@ -67,7 +67,7 @@ define([
                 var max = this.model.get('max');
                 this.$slider.slider('option', 'value', min);
                 this.$slider.slider('option', 'orientation', orientation);
-                value = this.model.get('value');
+                var value = this.model.get('value');
                 if(value > max) { 
                     value = max; 
                 }
