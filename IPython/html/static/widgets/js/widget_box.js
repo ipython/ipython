@@ -18,7 +18,7 @@ define([
 
         render: function(){
             // Called when view is rendered.
-            this.$box = $el;
+            this.$box = this.$el;
             this.$box.addClass('widget-box');
             this.update_children([], this.model.get('children'));
         },
