@@ -14,29 +14,29 @@ define([
     "use strict";
     var Cell = cell.Cell;
 
-/* local util for codemirror */
-var posEq = function(a, b) {return a.line == b.line && a.ch == b.ch;};
+    /* local util for codemirror */
+    var posEq = function(a, b) {return a.line == b.line && a.ch == b.ch;};
 
-/**
- *
- * function to delete until previous non blanking space character
- * or first multiple of 4 tabstop.
- * @private
- */
-CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
-    var from = cm.getCursor(true), to = cm.getCursor(false), sel = !posEq(from, to);
-    if (!posEq(from, to)) { cm.replaceRange("", from, to); return; }
-    var cur = cm.getCursor(), line = cm.getLine(cur.line);
-    var tabsize = cm.getOption('tabSize');
-    var chToPrevTabStop = cur.ch-(Math.ceil(cur.ch/tabsize)-1)*tabsize;
-    from = {ch:cur.ch-chToPrevTabStop,line:cur.line};
-    var select = cm.getRange(from,cur);
-    if( select.match(/^\ +$/) !== null){
-        cm.replaceRange("",from,cur);
-    } else {
-        cm.deleteH(-1,"char");
-    }
-};
+    /**
+     *
+     * function to delete until previous non blanking space character
+     * or first multiple of 4 tabstop.
+     * @private
+     */
+    CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
+        var from = cm.getCursor(true), to = cm.getCursor(false), sel = !posEq(from, to);
+        if (!posEq(from, to)) { cm.replaceRange("", from, to); return; }
+        var cur = cm.getCursor(), line = cm.getLine(cur.line);
+        var tabsize = cm.getOption('tabSize');
+        var chToPrevTabStop = cur.ch-(Math.ceil(cur.ch/tabsize)-1)*tabsize;
+        from = {ch:cur.ch-chToPrevTabStop,line:cur.line};
+        var select = cm.getRange(from,cur);
+        if( select.match(/^\ +$/) !== null){
+            cm.replaceRange("",from,cur);
+        } else {
+            cm.deleteH(-1,"char");
+        }
+    };
 
     var keycodes = keyboard.keycodes;
 
@@ -292,7 +292,7 @@ CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
         
         // Remove widgets and clear widget area
         if (this.clear_widgets()) {
-            $([IPython.events]).trigger('set_dirty.Notebook', {value: true});
+            this.events.trigger('set_dirty.Notebook', {value: true});
         }
 
         this.set_input_prompt('*');
@@ -533,7 +533,7 @@ CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
 
 
     CodeCell.prototype.toJSON = function () {
-        var data = IPython.Cell.prototype.toJSON.apply(this);
+        var data = Cell.prototype.toJSON.apply(this);
         data.widgets = this.widgets;
         data.input = this.get_text();
         // is finite protect against undefined and '*' value

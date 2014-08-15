@@ -63,6 +63,7 @@ define(["widgets/js/manager",
             this.trigger('comm:close');
             // Don't actually clean-up the widget when the underlying comm is
             // closed.  Instead just "disable" it.
+            // TODO: Unlinked instead of disabled.
             this.set('disabled', true);
         },
 
@@ -278,14 +279,14 @@ define(["widgets/js/manager",
                 return unpacked;
 
             } else if (typeof value === 'string' && value.slice(0,10) === "IPY_MODEL_") {
-		var model = this.widget_manager.get_model(value.slice(10, value.length));
+		        var model = this.widget_manager.get_model(value.slice(10, value.length));
                 if (model) {
                     return model;
                 } else {
                     return value;
                 }
             } else {
-                    return value;
+                return value;
             }
         },
 
@@ -351,7 +352,7 @@ define(["widgets/js/manager",
                 // Remove the view list specific to this model if it is empty.
                 if (view_ids.length === 0) {
                     delete this.child_model_views[child_model.id];
-            }
+                }
                 return view;
             }
             return null;
@@ -490,8 +491,8 @@ define(["widgets/js/manager",
             // Get the elements via the css selector.
             var elements;
             if (!selector) {
-                    elements = this.$el;
-                } else {
+                elements = this.$el;
+            } else {
                 elements = this.$el.find(selector).addBack(selector);
             }
             return elements;

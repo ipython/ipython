@@ -16,7 +16,7 @@ from contextlib import contextmanager
 import collections
 
 from IPython.core.getipython import get_ipython
-from IPython.kernel.comm import Comm, CommManager
+from IPython.kernel.comm import Comm
 from IPython.config import LoggingConfigurable
 from IPython.utils.traitlets import Unicode, Dict, Instance, Bool, List, Tuple, Int, Set
 from IPython.utils.py3compat import string_types

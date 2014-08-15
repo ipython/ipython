@@ -155,7 +155,7 @@ define([
         } else {
             var that = this;
             var that_args = arguments;
-            $([IPython.events]).on('status_started.Kernel', function () {
+            this.events.on('status_started.Kernel', function () {
                 return that.kernel.send_shell_message.apply(that.kernel, that_args);
             });
             // Message was queued for when the sockets finish connecting, return
