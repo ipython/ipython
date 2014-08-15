@@ -11,7 +11,6 @@ define([
         initialize: function(){
             // Public constructor
             BoxView.__super__.initialize.apply(this, arguments);
-            this.update_children([], this.model.get('children'));
             this.model.on('change:children', function(model, value) {
                 this.update_children(model.previous('children'), value);
             }, this);
@@ -19,8 +18,9 @@ define([
 
         render: function(){
             // Called when view is rendered.
-            this.$box = this.$el;
-            this.$el.addClass('widget-box');
+            this.$box = $el;
+            this.$box.addClass('widget-box');
+            this.update_children([], this.model.get('children'));
         },
         
         update_children: function(old_list, new_list) {
@@ -64,35 +64,36 @@ define([
         update_orientation: function(){
             var orientation = this.model.get("orientation");
             if (orientation == "vertical") {
-                this.$el.removeClass("hbox").addClass("vbox");
+                this.$box.removeClass("hbox").addClass("vbox");
             } else {
-                this.$el.removeClass("vbox").addClass("hbox");
+                this.$box.removeClass("vbox").addClass("hbox");
             }
         },
 
         _flex_changed: function(){
             if (this.model.previous('flex')) {
-                this.$el.removeClass('box-flex' + this.model.previous('flex'));
+                this.$box.removeClass('box-flex' + this.model.previous('flex'));
             }
-            this.$el.addClass('box-flex' + this.model.get('flex'));
+            this.$box.addClass('box-flex' + this.model.get('flex'));
         },
 
         _pack_changed: function(){
             if (this.model.previous('pack')) {
-                this.$el.removeClass(this.model.previous('pack'));
+                this.$box.removeClass(this.model.previous('pack'));
             }
-            this.$el.addClass(this.model.get('pack'));
+            this.$box.addClass(this.model.get('pack'));
         },
 
         _align_changed: function(){
             if (this.model.previous('align')) {
-                this.$el.removeClass('align-' + this.model.previous('align'));
+                this.$box.removeClass('align-' + this.model.previous('align'));
             }
-            this.$el.addClass('align-' + this.model.get('align'));
+            this.$box.addClass('align-' + this.model.get('align'));
         },
     });
 
     var PopupView = BoxView.extend({
+
         render: function(){
             // Called when view is rendered.
             var that = this;
@@ -175,14 +176,13 @@ define([
             this.$title = $('<div />')
                 .addClass('widget-modal-title')
                 .html("&nbsp;")
-                .appendTo(this.$title_bar);
-            this.$body = $('<div />')
+                .appendTo(this.$title_bar);     
+            this.$box = $('<div />')
                 .addClass('modal-body')
                 .addClass('widget-modal-body')
                 .addClass('widget-box')
                 .addClass('vbox')
                 .appendTo(this.$window);
-            this.$box = this.$body;
             
             this.$show_button = $('<button />')
                 .html("&nbsp;")
@@ -195,7 +195,7 @@ define([
             this.$window.draggable({handle: '.popover-title', snap: '#notebook, .modal', snapMode: 'both'});
             this.$window.resizable();
             this.$window.on('resize', function(){
-                that.$body.outerHeight(that.$window.innerHeight() - that.$title_bar.outerHeight());
+                that.$box.outerHeight(that.$window.innerHeight() - that.$title_bar.outerHeight());
             });
 
             this._shown_once = false;
