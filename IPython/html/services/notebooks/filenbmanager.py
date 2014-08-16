@@ -6,6 +6,7 @@
 import io
 import os
 import glob
+import re
 import shutil
 
 from tornado import web
@@ -411,10 +412,24 @@ class FileNotebookManager(NotebookManager):
         """Create a checkpoint from the current state of a notebook"""
         path = path.strip('/')
         nb_path = self._get_os_path(name, path)
-        # only the one checkpoint ID:
-        checkpoint_id = u"checkpoint"
+        nb_dir = os.path.dirname(nb_path)
+        basename, _ = os.path.splitext(name)
+        # Get existing checkpoints
+        glob_string = "{path}/.ipynb_checkpoints/{name}-checkpoint_[0-9]*.ipynb".format(
+            name=basename,
+            path=nb_dir
+            )
+        checkpoint_list = glob.glob(glob_string)
+        index = 0
+        for f in checkpoint_list :
+            number = int(re.match(".*-checkpoint_([0-9]*).ipynb", f).group(1))
+            if (number > index) :
+                index = number
+        index = index + 1
+        checkpoint_id = u"checkpoint_{0}".format(index)
         cp_path = self.get_checkpoint_path(checkpoint_id, name, path)
         self.log.debug("creating checkpoint for notebook %s", name)
+        self.log.info("creating checkpoint for notebook %s", name)
         self._copy(nb_path, cp_path)
         
         # return the checkpoint info
@@ -422,16 +437,23 @@ class FileNotebookManager(NotebookManager):
     
     def list_checkpoints(self, name, path=''):
         """list the checkpoints for a given notebook
-        
-        This notebook manager currently only supports one checkpoint per notebook.
         """
         path = path.strip('/')
-        checkpoint_id = "checkpoint"
-        os_path = self.get_checkpoint_path(checkpoint_id, name, path)
-        if not os.path.exists(os_path):
-            return []
-        else:
-            return [self.get_checkpoint_model(checkpoint_id, name, path)]
+        nb_path = self._get_os_path(name, path)
+        nb_dir = os.path.dirname(nb_path)
+        basename, _ = os.path.splitext(name)
+        # Get list of checkpoints for this notebook
+        glob_string = "{path}/.ipynb_checkpoints/{name}-checkpoint_[0-9]*.ipynb".format(
+            name=basename,
+            path=nb_dir
+            )
+        checkpoint_list = glob.glob(glob_string)
+        # and create a list of checkpoint models
+        results = list()
+        for f in checkpoint_list :
+            checkpoint_id = re.match(".*-(checkpoint_[0-9]*).ipynb", f).group(1)
+            results.append(self.get_checkpoint_model(checkpoint_id, name, path))
+        return results
         
     
     def restore_checkpoint(self, checkpoint_id, name, path=''):
