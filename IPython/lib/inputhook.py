@@ -104,7 +104,7 @@ class InputHookManager(object):
     This class installs various hooks under ``PyOSInputHook`` to handle
     GUI event loop integration.
     """
-    
+
     def __init__(self):
         if ctypes is None:
             warn("IPython GUI event loop requires ctypes, %gui will not be available")
@@ -204,14 +204,16 @@ class InputHookManager(object):
             app = wx.App(redirect=False, clearSigInt=False)
         """
         import wx
-        
+
         wx_version = V(wx.__version__).version
-        
+
         if wx_version < [2, 8]:
             raise ValueError("requires wxPython >= 2.8, but you have %s" % wx.__version__)
-        
+
         from IPython.lib.inputhookwx import inputhook_wx
+        from IPython.external.appnope import nope
         self.set_inputhook(inputhook_wx)
+        nope()
         self._current_gui = GUI_WX
         import wx
         if app is None:
@@ -227,13 +229,15 @@ class InputHookManager(object):
 
         This merely sets PyOS_InputHook to NULL.
         """
+        from IPython.external.appnope import nap
         if GUI_WX in self._apps:
             self._apps[GUI_WX]._in_event_loop = False
         self.clear_inputhook()
+        nap()
 
     def enable_qt4(self, app=None):
         """Enable event loop integration with PyQt4.
-        
+
         Parameters
         ----------
         app : Qt Application, optional.
@@ -254,8 +258,10 @@ class InputHookManager(object):
             app = QtGui.QApplication(sys.argv)
         """
         from IPython.lib.inputhookqt4 import create_inputhook_qt4
+        from IPython.external.appnope import nope
         app, inputhook_qt4 = create_inputhook_qt4(self, app)
         self.set_inputhook(inputhook_qt4)
+        nope()
 
         self._current_gui = GUI_QT4
         app._in_event_loop = True
@@ -267,9 +273,11 @@ class InputHookManager(object):
 
         This merely sets PyOS_InputHook to NULL.
         """
+        from IPython.external.appnope import nap
         if GUI_QT4 in self._apps:
             self._apps[GUI_QT4]._in_event_loop = False
         self.clear_inputhook()
+        nap()
 
     def enable_gtk(self, app=None):
         """Enable event loop integration with PyGTK.
@@ -299,7 +307,7 @@ class InputHookManager(object):
 
     def disable_gtk(self):
         """Disable event loop integration with PyGTK.
-        
+
         This merely sets PyOS_InputHook to NULL.
         """
         self.clear_inputhook()
@@ -333,7 +341,7 @@ class InputHookManager(object):
 
     def disable_tk(self):
         """Disable event loop integration with Tkinter.
-        
+
         This merely sets PyOS_InputHook to NULL.
         """
         self.clear_inputhook()
@@ -359,7 +367,7 @@ class InputHookManager(object):
         without first creating a window. You should thus not create another
         window but use instead the created one. See 'gui-glut.py' in the
         docs/examples/lib directory.
-        
+
         The default screen mode is set to:
         glut.GLUT_DOUBLE | glut.GLUT_RGBA | glut.GLUT_DEPTH
         """
@@ -393,7 +401,7 @@ class InputHookManager(object):
 
     def disable_glut(self):
         """Disable event loop integration with glut.
-        
+
         This sets PyOS_InputHook to NULL and set the display function to a
         dummy one and set the timer to a dummy timer that will be triggered
         very far in the future.
