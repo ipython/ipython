@@ -483,7 +483,8 @@ class IPythonWidget(FrontendWidget):
             body = self.in_prompt % number
         except TypeError:
             # allow in_prompt to leave out number, e.g. '>>> '
-            body = self.in_prompt
+            from xml.sax.saxutils import escape
+            body = escape(self.in_prompt)
         return '<span class="in-prompt">%s</span>' % body
 
     def _make_continuation_prompt(self, prompt):
@@ -498,7 +499,12 @@ class IPythonWidget(FrontendWidget):
     def _make_out_prompt(self, number):
         """ Given a prompt number, returns an HTML Out prompt.
         """
-        body = self.out_prompt % number
+        try:
+            body = self.out_prompt % number
+        except TypeError:
+            # allow out_prompt to leave out number, e.g. '<<< '
+            from xml.sax.saxutils import escape
+            body = escape(self.out_prompt)
         return '<span class="out-prompt">%s</span>' % body
 
     #------ Payload handlers --------------------------------------------------
