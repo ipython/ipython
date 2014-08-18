@@ -2400,6 +2400,46 @@ define([
         });
     };
     
+    Notebook.prototype.delete_checkpoint_dialog = function (checkpoint) {
+        var that = this;
+        checkpoint = checkpoint || this.last_checkpoint;
+        if ( ! checkpoint ) {
+            console.log("delete dialog, but no checkpoint to delete!");
+            return;
+        }
+        var body = $('<div/>').append(
+            $('<p/>').addClass("p-space").text(
+                "Are you sure you want to delete this checkpoint?"
+            ).append(
+                $("<strong/>").text(
+                    " This cannot be undone."
+                )
+            )
+        ).append(
+            $('<p/>').addClass("p-space").text("The checkpoint was last updated at:")
+        ).append(
+            $('<p/>').addClass("p-space").text(
+                Date(checkpoint.last_modified)
+            ).css("text-align", "center")
+        );
+        
+        dialog.modal({
+            notebook: this,
+            keyboard_manager: this.keyboard_manager,
+            title : "delete notebook checkpoint",
+            body : body,
+            buttons : {
+                Delete : {
+                    class : "btn-danger",
+                    click : function () {
+                        that.delete_checkpoint(checkpoint.id);
+                    }
+                },
+                Cancel : {}
+                }
+        });
+    };
+    
     /**
      * Restore the notebook to a checkpoint state.
      * 

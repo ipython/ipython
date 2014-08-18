@@ -310,10 +310,12 @@ define([
         
         this.events.on('checkpoints_listed.Notebook', function (event, data) {
             that.update_restore_checkpoint(that.notebook.checkpoints);
+            that.update_delete_checkpoint(that.notebook.checkpoints);
         });
         
         this.events.on('checkpoint_created.Notebook', function (event, data) {
             that.update_restore_checkpoint(that.notebook.checkpoints);
+            that.update_delete_checkpoint(that.notebook.checkpoints);
         });
     };
 
@@ -342,6 +344,37 @@ define([
                     .text(d.format("mmm dd HH:MM:ss"))
                     .click(function () {
                         that.notebook.restore_checkpoint_dialog(checkpoint);
+                    })
+                )
+            );
+        });
+    };
+
+    MenuBar.prototype.update_delete_checkpoint = function(checkpoints) {
+        var ul = this.element.find("#delete_checkpoint").find("ul");
+        ul.empty();
+        if (!checkpoints || checkpoints.length === 0) {
+            ul.append(
+                $("<li/>")
+                .addClass("disabled")
+                .append(
+                    $("<a/>")
+                    .text("No checkpoints")
+                )
+            );
+            return;
+        }
+        
+        var that = this;
+        checkpoints.map(function (checkpoint) {
+            var d = new Date(checkpoint.last_modified);
+            ul.append(
+                $("<li/>").append(
+                    $("<a/>")
+                    .attr("href", "#")
+                    .text(d.format("mmm dd HH:MM:ss"))
+                    .click(function () {
+                        that.notebook.delete_checkpoint_dialog(checkpoint);
                     })
                 )
             );
