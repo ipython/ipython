@@ -202,9 +202,7 @@ class Widget(LoggingConfigurable):
             raise ValueError("key must be a string, an iterable of keys, or None")
         state = {}
         for k in keys:
-            f = self.trait_metadata(k, 'to_json')
-            if f is None:
-                f = self._trait_to_json
+            f = self.trait_metadata(k, 'to_json', self._trait_to_json)
             value = getattr(self, k)
             state[k] = f(value)
         return state
@@ -255,6 +253,8 @@ class Widget(LoggingConfigurable):
     def _lock_property(self, key, value):
         """Lock a property-value pair.
 
+        The value should be the JSON state of the property.
+
         NOTE: This, in addition to the single lock for all state changes, is 
         flawed.  In the future we may want to look into buffering state changes 
         back to the front-end."""
@@ -280,7 +280,9 @@ class Widget(LoggingConfigurable):
 
     def _should_send_property(self, key, value):
         """Check the property lock (property_lock)"""
-        if (key == self._property_lock[0] and value == self._property_lock[1]):
+        to_json = self.trait_metadata(key, 'to_json', self._trait_to_json)
+        if (key == self._property_lock[0]
+            and to_json(value) == self._property_lock[1]):
             return False
         elif self._send_state_lock > 0:
             self._states_to_send.add(key)
@@ -311,12 +313,10 @@ class Widget(LoggingConfigurable):
         """Called when a state is received from the front-end."""
         for name in self.keys:
             if name in sync_data:
-                f = self.trait_metadata(name, 'from_json')
-                if f is None:
-                    f = self._trait_from_json
-                value = f(sync_data[name])
-                with self._lock_property(name, value):
-                    setattr(self, name, value)
+                json_value = sync_data[name]
+                from_json = self.trait_metadata(name, 'from_json', self._trait_from_json)
+                with self._lock_property(name, json_value):
+                    setattr(self, name, from_json(json_value))
 
     def _handle_custom_msg(self, content):
         """Called when a custom msg is received."""
