@@ -42,10 +42,10 @@ class KernelSpec(HasTraits):
     resource_dir = Unicode()
     
     def __init__(self, resource_dir, argv, display_name, language,
-                 codemirror_mode=None):
+                 codemirror_mode=None, env=None):
         super(KernelSpec, self).__init__(resource_dir=resource_dir, argv=argv,
                 display_name=display_name, language=language,
-                codemirror_mode=codemirror_mode)
+                codemirror_mode=codemirror_mode, env=env)
         if not self.codemirror_mode:
             self.codemirror_mode = self.language
     
