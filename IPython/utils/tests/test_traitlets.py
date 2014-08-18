@@ -406,6 +406,13 @@ class TestHasTraits(TestCase):
         a = A()
         self.assertEqual(a.trait_metadata('i','config_key'), 'MY_VALUE')
 
+    def test_trait_metadata_default(self):
+        class A(HasTraits):
+            i = Int()
+        a = A()
+        self.assertEqual(a.trait_metadata('i', 'config_key'), None)
+        self.assertEqual(a.trait_metadata('i', 'config_key', 'default'), 'default')
+
     def test_traits(self):
         class A(HasTraits):
             i = Int
