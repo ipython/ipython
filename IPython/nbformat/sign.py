@@ -211,7 +211,7 @@ class NotebookNotary(LoggingConfigurable):
             output_type = output['output_type']
             if output_type in {'execute_result', 'display_data'}:
                 # if there are any data keys not in the safe whitelist
-                output_keys = set(output).difference({"output_type", "prompt_number", "metadata"})
+                output_keys = set(output).difference({"output_type", "execution_count", "metadata"})
                 if output_keys.difference(safe):
                     return False
         

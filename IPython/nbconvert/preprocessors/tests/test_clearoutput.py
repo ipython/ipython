@@ -32,4 +32,4 @@ class TestClearOutput(PreprocessorTestsBase):
         preprocessor = self.build_preprocessor()
         nb, res = preprocessor(nb, res)
         assert nb.cells[0].outputs == []
-        assert nb.cells[0].prompt_number is None
+        assert nb.cells[0].execution_count is None

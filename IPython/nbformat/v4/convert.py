@@ -75,6 +75,7 @@ def upgrade_cell(cell):
     code cell:
         - remove language metadata
         - cell.input -> cell.source
+        - cell.prompt_number -> cell.execution_count
         - update outputs
     """
     cell.setdefault('metadata', NotebookNode())
@@ -82,7 +83,7 @@ def upgrade_cell(cell):
         cell.pop('language', '')
         cell.metadata.collapsed = cell.pop('collapsed')
         cell.source = cell.pop('input')
-        cell.setdefault('prompt_number', None)
+        cell.execution_count = cell.pop('prompt_number', None)
         cell.outputs = upgrade_outputs(cell.outputs)
     elif cell.cell_type == 'html':
         # Technically, this exists. It will never happen in practice.
@@ -90,9 +91,18 @@ def upgrade_cell(cell):
     return cell
 
 def downgrade_cell(cell):
+    """downgrade a cell from v4 to v3
+
+    code cell:
+        - set cell.language
+        - cell.input <- cell.source
+        - cell.prompt_number <- cell.execution_count
+        - update outputs
+    """
     if cell.cell_type == 'code':
         cell.language = 'python'
         cell.input = cell.pop('source', '')
+        cell.prompt_number = cell.pop('execution_count', None)
         cell.collapsed = cell.metadata.pop('collapsed', False)
         cell.outputs = downgrade_outputs(cell.outputs)
     return cell
@@ -134,6 +144,7 @@ def upgrade_output(output):
     if output['output_type'] in {'pyout', 'display_data'}:
         if output['output_type'] == 'pyout':
             output['output_type'] = 'execute_result'
+            output['execution_count'] = output.pop('prompt_number', None)
         to_mime_key(output)
         to_mime_key(output.metadata)
         if 'application/json' in output:
@@ -158,6 +169,7 @@ def downgrade_output(output):
     """
     if output['output_type'] == 'execute_result':
         output['output_type'] = 'pyout'
+        output['prompt_number'] = output.pop('execution_count', None)
         if 'application/json' in output:
             output['application/json'] = json.dumps(output['application/json'])
         from_mime_key(output)

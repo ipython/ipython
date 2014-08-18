@@ -3,16 +3,8 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
 from .base import Preprocessor
 
-
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
 class ClearOutputPreprocessor(Preprocessor):
     """
     Removes the output from all code cells in a notebook.
@@ -24,5 +16,5 @@ class ClearOutputPreprocessor(Preprocessor):
         """
         if cell.cell_type == 'code':
             cell.outputs = []
-            cell.prompt_number = None
+            cell.execution_count = None
         return cell, resources

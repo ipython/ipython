@@ -33,7 +33,7 @@ class TestCoalesceStreams(PreprocessorTestsBase):
                    nbformat.new_output(output_type="stream", name="stdout", text="5"),
                    nbformat.new_output(output_type="stream", name="stdout", text="6"),
                    nbformat.new_output(output_type="stream", name="stdout", text="7")]
-        cells=[nbformat.new_code_cell(source="# None", prompt_number=1,outputs=outputs)]
+        cells=[nbformat.new_code_cell(source="# None", execution_count=1,outputs=outputs)]
 
         nb = nbformat.new_notebook(cells=cells)
         res = self.build_resources()
@@ -49,7 +49,7 @@ class TestCoalesceStreams(PreprocessorTestsBase):
                    nbformat.new_output(output_type="stream", name="stdout", text="\nz"),
                    nbformat.new_output(output_type="stream", name="stdout", text="\rc\n"),
                    nbformat.new_output(output_type="stream", name="stdout", text="z\rz\rd")]
-        cells=[nbformat.new_code_cell(source="# None", prompt_number=1,outputs=outputs)]
+        cells=[nbformat.new_code_cell(source="# None", execution_count=1,outputs=outputs)]
 
         nb = nbformat.new_notebook(cells=cells)
         res = self.build_resources()

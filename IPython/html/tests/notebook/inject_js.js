@@ -13,7 +13,7 @@ casper.notebook_test(function () {
     this.evaluate(function () {
         var cell = IPython.notebook.get_cell(0);
         var json = cell.toJSON();
-        json.prompt_number = "<script> alert('hello from input prompts !')</script>";
+        json.execution_count = "<script> alert('hello from input prompts !')</script>";
         cell.fromJSON(json);
     });
 

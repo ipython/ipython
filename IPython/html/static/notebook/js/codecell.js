@@ -471,7 +471,7 @@ define([
                 this.code_mirror.clearHistory();
                 this.auto_highlight();
             }
-            this.set_input_prompt(data.prompt_number);
+            this.set_input_prompt(data.execution_count);
             this.output_area.trusted = data.metadata.trusted || false;
             this.output_area.fromJSON(data.outputs);
             if (data.metadata.collapsed !== undefined) {
@@ -490,9 +490,9 @@ define([
         data.source = this.get_text();
         // is finite protect against undefined and '*' value
         if (isFinite(this.input_prompt_number)) {
-            data.prompt_number = this.input_prompt_number;
+            data.execution_count = this.input_prompt_number;
         } else {
-            data.prompt_number = null;
+            data.execution_count = null;
         }
         var outputs = this.output_area.toJSON();
         data.outputs = outputs;

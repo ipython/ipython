@@ -74,7 +74,7 @@ def output_from_msg(msg):
         return new_output(output_type=msg_type,
             metadata=content['metadata'],
             mime_bundle=content['data'],
-            prompt_number=content['execution_count'],
+            execution_count=content['execution_count'],
         )
 
     elif msg_type == 'stream':
@@ -103,7 +103,7 @@ def new_code_cell(source='', **kwargs):
     cell.update(from_dict(kwargs))
     cell.setdefault('metadata', NotebookNode())
     cell.setdefault('source', '')
-    cell.setdefault('prompt_number', None)
+    cell.setdefault('execution_count', None)
     cell.setdefault('outputs', [])
 
     validate(cell, 'code_cell')

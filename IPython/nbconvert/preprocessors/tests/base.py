@@ -27,7 +27,7 @@ class PreprocessorTestsBase(TestsBase):
         out['application/pdf'] = 'aA=='
         outputs.append(out)
         
-        cells=[nbformat.new_code_cell(source="$ e $", prompt_number=1, outputs=outputs),
+        cells=[nbformat.new_code_cell(source="$ e $", execution_count=1, outputs=outputs),
                nbformat.new_markdown_cell(source="$ e $")]
 
         return nbformat.new_notebook(cells=cells)

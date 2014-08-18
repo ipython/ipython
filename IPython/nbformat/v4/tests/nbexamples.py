@@ -20,7 +20,7 @@ cells.append(new_markdown_cell(
 
 cells.append(new_code_cell(
     source='import numpy',
-    prompt_number=1,
+    execution_count=1,
 ))
 
 cells.append(new_markdown_cell(
@@ -38,20 +38,20 @@ cells.append(new_heading_cell(
 
 cells.append(new_code_cell(
     source='a = numpy.random.rand(100)',
-    prompt_number=2,
+    execution_count=2,
 ))
 cells.append(new_code_cell(
     source='a = 10\nb = 5\n',
-    prompt_number=3,
+    execution_count=3,
 ))
 cells.append(new_code_cell(
     source='a = 10\nb = 5',
-    prompt_number=4,
+    execution_count=4,
 ))
 
 cells.append(new_code_cell(
     source=u'print "ünîcødé"',
-    prompt_number=3,
+    execution_count=3,
     outputs=[new_output(
         output_type=u'execute_result',
         mime_bundle={
@@ -66,7 +66,7 @@ cells.append(new_code_cell(
             },
             'application/javascript': u'var i=0;'
         },
-        prompt_number=3
+        execution_count=3
     ),new_output(
         output_type=u'display_data',
         mime_bundle={

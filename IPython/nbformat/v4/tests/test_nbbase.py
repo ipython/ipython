@@ -61,7 +61,7 @@ def test_empty_stream():
     nt.assert_equal(output.text, '')
 
 def test_empty_execute_result():
-    output = new_output('execute_result', prompt_number=1)
+    output = new_output('execute_result', execution_count=1)
     nt.assert_equal(output.output_type, 'execute_result')
 
 mimebundle = {
@@ -80,8 +80,8 @@ def test_display_data():
         nt.assert_equal(output[key], expected)
 
 def test_execute_result():
-    output = new_output('execute_result', mimebundle, prompt_number=10)
-    nt.assert_equal(output.prompt_number, 10)
+    output = new_output('execute_result', mimebundle, execution_count=10)
+    nt.assert_equal(output.execution_count, 10)
     for key, expected in mimebundle.items():
         nt.assert_equal(output[key], expected)
 
@@ -95,15 +95,15 @@ def test_error():
     nt.assert_equal(o.traceback, [u'frame 0', u'frame 1', u'frame 2'])
 
 def test_code_cell_with_outputs():
-    cell = new_code_cell(prompt_number=10, outputs=[
+    cell = new_code_cell(execution_count=10, outputs=[
         new_output('display_data', mimebundle),
         new_output('stream', text='hello'),
-        new_output('execute_result', mimebundle, prompt_number=10),
+        new_output('execute_result', mimebundle, execution_count=10),
     ])
-    nt.assert_equal(cell.prompt_number, 10)
+    nt.assert_equal(cell.execution_count, 10)
     nt.assert_equal(len(cell.outputs), 3)
     er = cell.outputs[-1]
-    nt.assert_equal(er.prompt_number, 10)
+    nt.assert_equal(er.execution_count, 10)
     nt.assert_equal(er['output_type'], 'execute_result')
 
 def test_stream():

@@ -60,7 +60,7 @@ class APITest(NotebookTestBase):
         cc1.outputs.append(new_output(output_type="stream", data=u'12'))
         cc1.outputs.append(new_output(output_type="execute_result",
             mime_bundle={'image/png' : png_green_pixel},
-            prompt_number=1,
+            execution_count=1,
         ))
         nb.cells.append(cc1)
         

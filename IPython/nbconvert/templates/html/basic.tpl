@@ -23,8 +23,8 @@
 
 {% block in_prompt -%}
 <div class="prompt input_prompt">
-{%- if cell.prompt_number is defined -%}
-In&nbsp;[{{ cell.prompt_number|replace(None, "&nbsp;") }}]:
+{%- if cell.execution_count is defined -%}
+In&nbsp;[{{ cell.execution_count|replace(None, "&nbsp;") }}]:
 {%- else -%}
 In&nbsp;[&nbsp;]:
 {%- endif -%}
@@ -55,8 +55,8 @@ In&nbsp;[&nbsp;]:
 <div class="output_area">
 {%- if output.output_type == 'execute_result' -%}
     <div class="prompt output_prompt">
-{%- if cell.prompt_number is defined -%}
-    Out[{{ cell.prompt_number|replace(None, "&nbsp;") }}]:
+{%- if cell.execution_count is defined -%}
+    Out[{{ cell.execution_count|replace(None, "&nbsp;") }}]:
 {%- else -%}
     Out[&nbsp;]:
 {%- endif -%}

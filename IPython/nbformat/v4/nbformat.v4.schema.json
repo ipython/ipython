@@ -150,7 +150,7 @@
             "description": "Notebook code cell.",
             "type": "object",
             "additionalProperties": false,
-            "required": ["cell_type", "metadata", "source", "outputs", "prompt_number"],
+            "required": ["cell_type", "metadata", "source", "outputs", "execution_count"],
             "properties": {
                 "cell_type": {
                     "description": "String identifying the type of cell.",
@@ -179,7 +179,7 @@
                     "type": "array",
                     "items": {"$ref": "#/definitions/output"}
                 },
-                "prompt_number": {
+                "execution_count": {
                     "description": "The code cell's prompt number. Will be null if the cell has not been run.",
                     "type": ["integer", "null"],
                     "minimum": 0
@@ -199,15 +199,15 @@
             "description": "Result of executing a code cell.",
             "type": "object",
             "additionalProperties": false,
-            "required": ["output_type", "metadata", "prompt_number"],
+            "required": ["output_type", "metadata", "execution_count"],
             "properties": {
                 "output_type": {
                     "description": "Type of cell output.",
                     "enum": ["execute_result"]
                 },
-                "prompt_number": {
+                "execution_count": {
                     "description": "A result's prompt number.",
-                    "type": ["integer"],
+                    "type": ["integer", "null"],
                     "minimum": 0
                 },
                 "application/json": {
@@ -314,7 +314,7 @@
                 "description": "Contents of the cell, represented as an array of lines.",
                 "$ref": "#/definitions/misc/multiline_string"
             },
-            "prompt_number": {
+            "execution_count": {
                 "description": "The code cell's prompt number. Will be null if the cell has not been run.",
                 "type": ["integer", "null"],
                 "minimum": 0

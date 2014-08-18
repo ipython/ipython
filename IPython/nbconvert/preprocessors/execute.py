@@ -88,8 +88,7 @@ class ExecutePreprocessor(Preprocessor):
 
             # set the prompt number for the input and the output
             if 'execution_count' in content:
-                cell['prompt_number'] = content['execution_count']
-                out.prompt_number = content['execution_count']
+                cell['execution_count'] = content['execution_count']
 
             if msg_type == 'status':
                 if content['execution_state'] == 'idle':
@@ -101,8 +100,6 @@ class ExecutePreprocessor(Preprocessor):
             elif msg_type == 'clear_output':
                 outs = []
                 continue
-            elif msg_type == 'execute_result':
-                cell['prompt_number'] = content['execution_count']
 
             try:
                 out = output_from_msg(msg)

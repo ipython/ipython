@@ -53,9 +53,9 @@ class TestExecute(PreprocessorTestsBase):
             normalized_actual_outputs = list(map(self.normalize_output, actual_outputs))
             assert normalized_expected_outputs == normalized_actual_outputs
 
-            expected_prompt_number = expected_cell.get('prompt_number', None)
-            actual_prompt_number = actual_cell.get('prompt_number', None)
-            assert expected_prompt_number == actual_prompt_number
+            expected_execution_count = expected_cell.get('execution_count', None)
+            actual_execution_count = actual_cell.get('execution_count', None)
+            assert expected_execution_count == actual_execution_count
 
 
     def build_preprocessor(self):
@@ -81,8 +81,8 @@ class TestExecute(PreprocessorTestsBase):
             preprocessor = self.build_preprocessor()
             cleaned_input_nb = copy.deepcopy(input_nb)
             for cell in cleaned_input_nb.cells:
-                if 'prompt_number' in cell:
-                    del cell['prompt_number']
+                if 'execution_count' in cell:
+                    del cell['execution_count']
                 cell['outputs'] = []
             output_nb, _ = preprocessor(cleaned_input_nb, res)
             self.assert_notebooks_equal(output_nb, input_nb)

@@ -5,7 +5,7 @@
 {% endblock header %}
 
 {% block in_prompt %}
-# In[{{ cell.prompt_number if cell.prompt_number else ' ' }}]:
+# In[{{ cell.execution_count if cell.execution_count else ' ' }}]:
 {% endblock in_prompt %}
 
 {% block input %}

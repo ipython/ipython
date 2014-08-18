@@ -220,7 +220,7 @@ define([
             json = content.data;
             json.output_type = msg_type;
             json.metadata = content.metadata;
-            json.prompt_number = content.execution_count;
+            json.execution_count = content.execution_count;
         } else if (msg_type === "error") {
             json.ename = content.ename;
             json.evalue = content.evalue;
@@ -414,7 +414,7 @@ define([
 
 
     OutputArea.prototype.append_execute_result = function (json) {
-        var n = json.prompt_number || ' ';
+        var n = json.execution_count || ' ';
         var toinsert = this.create_output_area();
         if (this.prompt_area) {
             toinsert.find('div.prompt').addClass('output_prompt').text('Out[' + n + ']:');
