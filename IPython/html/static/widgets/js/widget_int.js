@@ -62,12 +62,24 @@ define([
                 // handle in the vertical slider is always 
                 // consistent.
                 var orientation = this.model.get('orientation');
-                var value = this.model.get('min');
-                this.$slider.slider('option', 'value', value);
+                var min = this.model.get('min');
+                var max = this.model.get('max');
+                this.$slider.slider('option', 'value', min);
                 this.$slider.slider('option', 'orientation', orientation);
-                value = this.model.get('value');
+                var value = this.model.get('value');
+                if(value > max) { 
+                    value = max; 
+                }
+                else if(value < min){ 
+                    value = min; 
+                }
                 this.$slider.slider('option', 'value', value);
                 this.$readout.text(value);
+
+                if(this.model.get('value')!=value) {
+                    this.model.set('value', value, {updated_view: this});
+                    this.touch();
+                }
 
                 // Use the right CSS classes for vertical & horizontal sliders
                 if (orientation=='vertical') {
