@@ -496,9 +496,7 @@ define([
         // Display a widget view in this cell.
         this.widget_area.show();
         this.widget_subarea.append(view.$el);
-        this._displayed_widgets.push({
-            id: view.model.id
-        });
+        this._displayed_widgets.push(view.model.id);
         this.events.trigger('set_dirty.Notebook', {value: true});
     };
 

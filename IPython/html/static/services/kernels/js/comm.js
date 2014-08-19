@@ -150,12 +150,12 @@ define([
 
         // If the kernel exists and is ready, send the message.  Otherwise,
         // cache the message and send it when the kernel is ready.
-        if (this.kernel && this.kernel.channels_ready()) {
+        if (this.kernel.channels_ready()) {
             return this.kernel.send_shell_message.apply(this.kernel, arguments);
         } else {
             var that = this;
             var that_args = arguments;
-            this.events.on('status_started.Kernel', function () {
+            this.kernel.events.on('status_started.Kernel', function () {
                 return that.kernel.send_shell_message.apply(that.kernel, that_args);
             });
             // Message was queued for when the sockets finish connecting, return

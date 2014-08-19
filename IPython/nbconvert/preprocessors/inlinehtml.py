@@ -110,7 +110,7 @@ class InlineHTMLPreprocessor(Preprocessor):
                 with io.open(src_staticwidgets, encoding='utf-8') as f:
                     self.js_code.append(('IPython static widgets', f.read()))
 
-            else:
+        else:
             self.js_urls += [
             "https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js",
             "https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js",
