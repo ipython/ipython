@@ -13,9 +13,9 @@
     
     paths: {
         backbone    : "components/backbone/backbone",
-        bootstrap   : "components/bootstrap/bootstrap/js/bootstrap.min",
+        bootstrap   : "components/bootstrap/js/bootstrap.min",
         jquery      : "components/jquery/jquery.min",
-        "jquery-ui" : "components/jquery-ui/ui/minified/jquery-ui.min",
+        jqueryui    : "components/jquery-ui/ui/minified/jquery-ui.min",
         underscore  : "components/underscore/underscore"
     },
 
