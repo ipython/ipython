@@ -75,8 +75,7 @@ define([
         if (view === null) {
             console.error("View creation failed", model);
         }
-        if (cell.widget_subarea) {
-            cell.widget_area.show();
+        if (cell.display_widget_view) {
             this._handle_display_view(view);
             cell.display_widget_view(view);
             view.trigger('displayed');
@@ -115,7 +114,6 @@ define([
             var parameters = {model: model, options: options};
             view = new ViewType(parameters);
             view.render();
-            model.views.push(view);
             model.on('destroy', view.remove, view);
             return view;
         }
@@ -214,7 +212,7 @@ define([
             }
 
             // The comm wasn't created, so create a dummy model instead.
-            // One which isn't connect to any comm.
+            // One which isn't connected to any comm.
             model = new WidgetManager._model_types[target](this, model_id);
             this._models[model_id] = model;
             return model;

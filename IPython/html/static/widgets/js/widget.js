@@ -54,7 +54,6 @@ define(["widgets/js/manager",
             if (this.comm !== undefined) {
                 var data = {method: 'reconnect', 'model_id': model_id};
                 this.comm.send(data);
-                this.pending_msgs++;
             }
         },
 
@@ -279,7 +278,7 @@ define(["widgets/js/manager",
                 return unpacked;
 
             } else if (typeof value === 'string' && value.slice(0,10) === "IPY_MODEL_") {
-		        var model = this.widget_manager.get_model(value.slice(10, value.length));
+                var model = this.widget_manager.get_model(value.slice(10, value.length));
                 if (model) {
                     return model;
                 } else {
@@ -301,7 +300,6 @@ define(["widgets/js/manager",
             this.options = parameters.options;
             this.child_model_views = {};
             this.child_views = {};
-            this.model.views.push(this);
             this.id = this.id || IPython.utils.uuid();
             this.on('displayed', function() { 
                 this.is_displayed = true; 
@@ -347,7 +345,6 @@ define(["widgets/js/manager",
                 var view = this.child_views[view_id];
                 delete this.child_views[view_id];
                 view_ids.splice(0,1);
-                child_model.views.pop(view);
             
                 // Remove the view list specific to this model if it is empty.
                 if (view_ids.length === 0) {
@@ -443,7 +440,7 @@ define(["widgets/js/manager",
             this.model.on('change:visible', this.update_visible, this);
             this.model.on('change:_css', this.update_css, this);
         },
-        
+
         on_msg: function(msg) {
             // Handle DOM specific msgs.
             switch(msg.msg_type) {
@@ -460,12 +457,12 @@ define(["widgets/js/manager",
             // Add a DOM class to an element.
             this._get_selector_element(selector).addClass(class_list);
         },
-        
+
         remove_class: function (selector, class_list) {
             // Remove a DOM class from an element.
             this._get_selector_element(selector).removeClass(class_list);
         },
-    
+
         update_visible: function(model, value) {
             // Update visibility
             this.$el.toggle(value);

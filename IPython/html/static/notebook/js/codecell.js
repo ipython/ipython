@@ -70,8 +70,13 @@ define([
         this.output_area = null;
         this.last_msg_id = null;
         this.completer = null;
-        this.widgets = [];
 
+        // Lists of widgets (model ids):
+        // - displayed with this codecell, but not necessary saved.
+        this._displayed_widgets = [];
+        // - saved with this codecell in it's json, but not necessarily 
+        //   displayed in the widget area yet.
+        this._saved_widgets = [];
 
         var cm_overwrite_options  = {
             onKeyEvent: $.proxy(this.handle_keyevent,this)
@@ -91,10 +96,7 @@ define([
             function() { that.auto_highlight(); }
         );
 
-        this.events.on('status_restarting.Kernel', function(){
-            that.clear_widgets();
-            that._load_widgets();
-        });
+        this.events.on('status_restarting.Kernel', $.proxy(this._reconnect_widgets, this));
     };
 
     CodeCell.options_default = {
@@ -156,15 +158,10 @@ define([
             .addClass('widget-subarea')
             .appendTo(widget_area);
         this.widget_subarea = widget_subarea;
-        var that = this;
         var widget_clear_buton = $('<button />')
             .addClass('close')
             .html('&times;')
-            .click(function() {
-                widget_area.slideUp('', function(){ 
-                    that.clear_widgets();
-                });
-            })
+            .click($.proxy(this._try_clear_widgets, this))
             .appendTo(widget_prompt);
 
         var output = $('<div></div>');
@@ -269,18 +266,7 @@ define([
 
     CodeCell.prototype.set_kernel = function (kernel) {
         this.kernel = kernel;
-        this.clear_widgets();
-        this._load_widgets();
-    };
-
-    CodeCell.prototype.clear_widgets = function() {
-        this.widgets = [];
-        var old_html = this.widget_subarea.html();
-        this.widget_subarea.html('');
-        this.widget_subarea.height('');
-        this.widget_area.height('');
-        this.widget_area.hide();
-        return old_html !== '';
+        this._reconnect_widgets();
     };
 
     /**
@@ -291,7 +277,7 @@ define([
         this.output_area.clear_output();
         
         // Remove widgets and clear widget area
-        if (this.clear_widgets()) {
+        if (this._try_clear_widgets()) {
             this.events.trigger('set_dirty.Notebook', {value: true});
         }
 
@@ -501,28 +487,30 @@ define([
                     this.expand_output();
                 }
             }
-            this.saved_widgets = data.widgets;
+            this._saved_widgets = data.widgets;
         }
-        this._load_widgets();
+        this._reconnect_widgets();
     };
-
 
     CodeCell.prototype.display_widget_view = function (view) {
         // Display a widget view in this cell.
+        this.widget_area.show();
         this.widget_subarea.append(view.$el);
-        this.widgets.push({
+        this._displayed_widgets.push({
             id: view.model.id
         });
         this.events.trigger('set_dirty.Notebook', {value: true});
     };
 
+    CodeCell.prototype._reconnect_widgets = function () {
+        // Reconnect the widgets to the backend.
 
-    CodeCell.prototype._load_widgets = function () {
-        // Load the widgets stored in the cell data.
-        if (this.kernel && this.saved_widgets) {
-            for (var i = 0; i < this.saved_widgets.length; i++) {
-                var widget_manager = this.kernel.widget_manager;
-                var model_id = this.saved_widgets[i];
+        // Remove the widgets and then re-create them and reconnect them.
+        this._try_clear_widgets();
+        if (this.kernel && this._saved_widgets) {
+            var widget_manager = this.kernel.widget_manager;
+            for (var i = 0; i < this._saved_widgets.length; i++) {
+                var model_id = this._saved_widgets[i];
                 var model = widget_manager.get_model(model_id);
                 if (model) {
                     widget_manager.display_cell_view(this, model);
@@ -531,10 +519,23 @@ define([
         }
     };
 
+    CodeCell.prototype._try_clear_widgets = function() {
+        // Try to clear the widgets.
+        //
+        // Returns true if widgets existed prior to clear and they were
+        // removed successfully.
+        var had_widgets = this.widget_subarea.html() !== '';
+        this._displayed_widgets = [];
+        this.widget_subarea.html('');
+        this.widget_subarea.height('');
+        this.widget_area.height('');
+        this.widget_area.hide();
+        return had_widgets;
+    };
 
     CodeCell.prototype.toJSON = function () {
         var data = Cell.prototype.toJSON.apply(this);
-        data.widgets = this.widgets;
+        data.widgets = this._displayed_widgets;
         data.input = this.get_text();
         // is finite protect against undefined and '*' value
         if (isFinite(this.input_prompt_number)) {

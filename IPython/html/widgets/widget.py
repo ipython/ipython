@@ -166,7 +166,7 @@ class Widget(LoggingConfigurable):
 
         Closes the underlying comm.
         When the comm is closed, all of the widget views are automatically
-        removed from the front-end."""
+        unlinked in the front-end."""
         self._send({ "method" : "close" })
         if self.comm is not None:
             Widget.widgets.pop(self.model_id, None)

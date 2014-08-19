@@ -104,6 +104,8 @@ define([
         this.undelete_index = null;
         this.undelete_below = false;
         this.paste_enabled = false;
+        // Dict of widget model states.
+        this._widget_states = {};
         // It is important to start out in command mode to match the intial mode
         // of the KeyboardManager.
         this.mode = 'command';
@@ -1550,7 +1552,7 @@ define([
      */
     Notebook.prototype._session_started = function(){
         this.kernel = this.session.kernel;
-        this._load_widgets();
+        this._create_widgets();
         var ncells = this.ncells();
         for (var i=0; i<ncells; i++) {
             var cell = this.get_cell(i);
@@ -1759,8 +1761,8 @@ define([
             this.delete_cell(0);
         }
 
-        this.widgets = content.widgets;
-        this._load_widgets();
+        this._widget_states = content.widgets;
+        this._create_widgets();
 
         // Save the metadata and name.
         this.metadata = content.metadata;
@@ -1822,20 +1824,21 @@ define([
     /**
      * Load the widgets in the widget dict.
      * 
-     * @method _load_widgets
+     * @method _create_widgets
      * @return {null} 
      */
-    Notebook.prototype._load_widgets = function () {
+    Notebook.prototype._create_widgets = function () {
         // Read in the widget model information.
         if (this.kernel) {
 
             // Create a list of model ids.  Create a model for each id.
+            var model_id;
             var model_ids = [];
             var widget_manager = this.kernel.widget_manager;
-            for (var model_id in this.widgets) {
-                if (this.widgets.hasOwnProperty(model_id)) {
+            for (model_id in this._widget_states) {
+                if (this._widget_states.hasOwnProperty(model_id)) {
                     model_ids.push(model_id);
-                    var target = this.widgets[model_id].target;
+                    var target = this._widget_states[model_id].target;
                     widget_manager.get_model(model_id, target);
                 }
             }
@@ -1847,12 +1850,13 @@ define([
             // be abled to find the child model for the guid string, and the
             // guid string will be left in place.
             for (var i = 0; i < model_ids.length; i++) {
-                var model_id = model_ids[i];
+                model_id = model_ids[i];
                 var model = widget_manager.get_model(model_id);
                 
+                // TODO: Unlinked instead of disabled.
                 // Set the state as disabled since a comm doesn't exist for this
                 // model at this point.
-                model.set_state($.extend(this.widgets[model_id].state, {disabled: true}));
+                model.set_state($.extend(this._widget_states[model_id].state, {disabled: true}));
             }
         }
     };
@@ -1860,10 +1864,10 @@ define([
     /**
      * Save the widgets in the widget dict.
      * 
-     * @method _save_widgets
+     * @method _save_widget_states
      * @return {null} 
      */
-    Notebook.prototype._save_widgets = function () {
+    Notebook.prototype._save_widget_states = function () {
         // Create a dictionary of the widget models and their current states.
         var widget_states = {};
         if (this.kernel) {
@@ -1878,7 +1882,7 @@ define([
                 }
             }
         }
-        this.widgets = widget_states;
+        this._widget_states = widget_states;
     };
 
     /**
@@ -1899,7 +1903,7 @@ define([
             }
             cell_array[i] = cell.toJSON();
         }
-        this._save_widgets();
+        this._save_widget_states();
         var data = {
             // Only handle 1 worksheet for now.
             worksheets : [{
@@ -1907,7 +1911,7 @@ define([
                 metadata: this.worksheet_metadata
             }],
             metadata : this.metadata,
-            widgets: this.widgets
+            widgets: this._widget_states
         };
         if (trusted != this.trusted) {
             this.trusted = trusted;
