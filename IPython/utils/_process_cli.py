@@ -68,6 +68,11 @@ def check_pid(pid):
     """
     try:
         System.Diagnostics.Process.GetProcessById(pid)
+        # process with given pid is running
+        return True
+    except System.InvalidOperationException:
+        # process wasn't started by this object (but is running)
         return True
     except System.ArgumentException:
+        # process with given pid isn't running
         return False 
