@@ -104,6 +104,8 @@ define([
         this.undelete_index = null;
         this.undelete_below = false;
         this.paste_enabled = false;
+        // Dict of widget model states.
+        this._widget_states = {};
         // It is important to start out in command mode to match the intial mode
         // of the KeyboardManager.
         this.mode = 'command';
@@ -1550,6 +1552,7 @@ define([
      */
     Notebook.prototype._session_started = function(){
         this.kernel = this.session.kernel;
+        this._create_widgets();
         var ncells = this.ncells();
         for (var i=0; i<ncells; i++) {
             var cell = this.get_cell(i);
@@ -1757,6 +1760,10 @@ define([
             // Always delete cell 0 as they get renumbered as they are deleted.
             this.delete_cell(0);
         }
+
+        this._widget_states = content.widgets;
+        this._create_widgets();
+
         // Save the metadata and name.
         this.metadata = content.metadata;
         this.notebook_name = data.name;
@@ -1815,6 +1822,71 @@ define([
     };
 
     /**
+     * Load the widgets in the widget dict.
+     * 
+     * @method _create_widgets
+     * @return {null} 
+     */
+    Notebook.prototype._create_widgets = function () {
+        // Read in the widget model information.
+        if (this.kernel) {
+
+            // Create a list of model ids.  Create a model for each id.
+            var model_id;
+            var model_ids = [];
+            var widget_manager = this.kernel.widget_manager;
+            for (model_id in this._widget_states) {
+                if (this._widget_states.hasOwnProperty(model_id)) {
+                    model_ids.push(model_id);
+                    var target = this._widget_states[model_id].target;
+                    widget_manager.get_model(model_id, target);
+                }
+            }
+
+            // Set the widget initial states.  This must be done after ALL of
+            // the widget models have been created by the loop above so
+            // child model lists work.  In other words, if a child model doesn't
+            // exist when the state of the model is set, the unpack method won't
+            // be abled to find the child model for the guid string, and the
+            // guid string will be left in place.
+            for (var i = 0; i < model_ids.length; i++) {
+                model_id = model_ids[i];
+                var model = widget_manager.get_model(model_id);
+                model.set_state(this._widget_states[model_id].state);
+            }
+        }
+    };
+
+    /**
+     * Save the widgets in the widget dict.
+     * 
+     * @method _save_widget_states
+     * @return {null} 
+     */
+    Notebook.prototype._save_widget_states = function () {
+        // Create a dictionary of the widget models and their current states.
+        var widget_states = {};
+        if (this.kernel) {
+            var widget_manager = this.kernel.widget_manager;
+            for (var model_id in widget_manager._models) {
+                if (widget_manager._models.hasOwnProperty(model_id)) {
+                    var model = widget_manager._models[model_id];
+
+                    // Only save the widget's state if the widget is being used
+                    // by atleast one cell.
+                    if (model.active && model.active > 0) {
+                        widget_states[model_id] = {
+                            state: model.get_state(),
+                            target: widget_manager.get_model_target(model)
+                        };    
+                    }
+                }
+            }
+        }
+        this._widget_states = widget_states;
+    };
+
+    /**
      * Dump this notebook into a JSON-friendly object.
      * 
      * @method toJSON
@@ -1832,13 +1904,15 @@ define([
             }
             cell_array[i] = cell.toJSON();
         }
+        this._save_widget_states();
         var data = {
             // Only handle 1 worksheet for now.
             worksheets : [{
                 cells: cell_array,
                 metadata: this.worksheet_metadata
             }],
-            metadata : this.metadata
+            metadata : this.metadata,
+            widgets: this._widget_states
         };
         if (trusted != this.trusted) {
             this.trusted = trusted;

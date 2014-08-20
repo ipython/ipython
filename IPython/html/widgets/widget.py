@@ -109,6 +109,9 @@ class Widget(LoggingConfigurable):
     keys = List()
     def _keys_default(self):
         return [name for name in self.traits(sync=True)]
+
+    _linked = Bool(True, sync=True, help=""""Whether or not the widget is 
+        linked to the front-end""")
     
     _property_lock = Tuple((None, None))
     _send_state_lock = Int(0)
@@ -149,7 +152,7 @@ class Widget(LoggingConfigurable):
 
             # first update
             self.send_state()
-
+    
     @property
     def model_id(self):
         """Gets the model id of this widget.
@@ -166,12 +169,26 @@ class Widget(LoggingConfigurable):
 
         Closes the underlying comm.
         When the comm is closed, all of the widget views are automatically
-        removed from the front-end."""
+        unlinked in the front-end."""
+        self._send({ "method" : "close" })
         if self.comm is not None:
             Widget.widgets.pop(self.model_id, None)
             self.comm.close()
+            del Widget.widgets[self.model_id]
             self.comm = None
     
+    def set_comm(self, comm):
+        """Set the comm for this widget and sends an initial state msg."""
+        self.comm = comm
+        self.comm.on_msg(self._handle_msg)
+        # The closure of a comm shouldn't clean-up the related widget 
+        # because the front-end may want to reconnect to that widget.
+        # self.comm.on_close(self._close)
+        Widget.widgets[self.model_id] = self
+
+        # first update
+        self.send_state()
+
     def send_state(self, key=None):
         """Sends the widget state, or a piece of it, to the front-end.
 
@@ -417,10 +434,7 @@ class DOMWidget(Widget):
         selector: unicode (optional, kwarg only)
             JQuery selector to use to apply the CSS key/value.  If no selector 
             is provided, an empty selector is used.  An empty selector makes the 
-            front-end try to apply the css to a default element.  The default
-            element is an attribute unique to each view, which is a DOM element
-            of the view that should be styled with common CSS (see 
-            `$el_to_style` in the Javascript code).
+            front-end try to apply the css to the top-level element.
         """
         if value is None:
             css_dict = dict_or_key
@@ -476,3 +490,32 @@ class DOMWidget(Widget):
             "class_list" : class_list,
             "selector"   : selector,
         })
+
+# Register a module level comm target for the basic WidgetModel.  This target
+# is used by the front-end to reconnect comms.
+ip = get_ipython()
+def _handle_reconnection(comm, msg):
+    ip.kernel.log.warn('comm connect from frontend %s' % comm.comm_id)
+    def _handle_msg(msg):
+        """Called when a msg is received from the front-end"""
+        data = msg['content']['data']
+        method = data['method']
+
+        # Handle a custom msg from the front-end
+        ip.kernel.log.warn('maybe reconnect?')
+        if method == 'reconnect' and 'model_id' in data:
+            ip.kernel.log.warn('reconnect')
+            model_id = data['model_id']
+            if model_id in Widget.widgets:
+                widget = Widget.widgets[model_id]
+                widget.set_comm(comm)
+    comm.on_msg(_handle_msg)
+    def _handle_close(*p):
+        ip.kernel.log.warn('comm close %s' % comm.comm_id)
+    comm.on_close(_handle_close)
+
+if hasattr(ip, 'comm_manager'):
+    ip.kernel.log.warn('regi')
+    ip.comm_manager.register_target('WidgetModel', _handle_reconnection)
+else:
+    ip.kernel.log.warn('unreg')  

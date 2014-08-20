@@ -27,6 +27,7 @@ define(["widgets/js/manager",
             this.key_value_lock = null;
             this.id = model_id;
             this.views = [];
+            this.active = 0;
 
             if (comm !== undefined) {
                 // Remember comm associated with the model.
@@ -49,8 +50,24 @@ define(["widgets/js/manager",
             }
         },
 
+        reconnect: function (model_id) {
+            // Send a custom msg over the comm.
+            if (this.comm !== undefined) {
+                var data = {method: 'reconnect', 'model_id': model_id};
+                this.comm.send(data);
+            }
+        },
+
         _handle_comm_closed: function (msg) {
             // Handle when a widget is closed.
+            this.trigger('comm:close');
+            // Don't actually clean-up the widget when the underlying comm is
+            // closed.  Instead just "unlink" it.
+            this.set('_linked', false);
+        },
+
+        _handle_close: function () {
+            // Handle when a widget is closed from the back-end.
             this.trigger('comm:close');
             delete this.comm.model; // Delete ref so GC will collect widget model.
             delete this.comm;
@@ -65,7 +82,7 @@ define(["widgets/js/manager",
             var method = msg.content.data.method;
             switch (method) {
                 case 'update':
-                    this.apply_update(msg.content.data.state);
+                    this.set_state(msg.content.data.state);
                     break;
                 case 'custom':
                     this.trigger('msg:custom', msg.content.data.content);
@@ -73,10 +90,13 @@ define(["widgets/js/manager",
                 case 'display':
                     this.widget_manager.display_view(msg, this);
                     break;
+                case 'close':
+                    this._handle_close();
+                    break;
             }
         },
 
-        apply_update: function (state) {
+        set_state: function (state) {
             // Handle when a widget is updated via the python side.
             var that = this;
             _.each(state, function(value, key) {
@@ -87,6 +107,11 @@ define(["widgets/js/manager",
                     that.key_value_lock = null;
                 }
             });
+        },
+
+        get_state: function () {
+            // Get the state of the model
+            return this._pack_models(this.toJSON());
         },
 
         _handle_status: function (msg, callbacks) {
@@ -253,14 +278,14 @@ define(["widgets/js/manager",
                 return unpacked;
 
             } else if (typeof value === 'string' && value.slice(0,10) === "IPY_MODEL_") {
-		var model = this.widget_manager.get_model(value.slice(10, value.length));
-		if (model) {
-		    return model;
-		} else {
-		    return value;
-		}
-            } else {
+                var model = this.widget_manager.get_model(value.slice(10, value.length));
+                if (model) {
+                    return model;
+                } else {
                     return value;
+                }
+            } else {
+                return value;
             }
         },
 
@@ -272,10 +297,10 @@ define(["widgets/js/manager",
         initialize: function(parameters) {
             // Public constructor.
             this.model.on('change',this.update,this);
+            this.model.on('change:_linked', this._update_linked, this);
             this.options = parameters.options;
             this.child_model_views = {};
             this.child_views = {};
-            this.model.views.push(this);
             this.id = this.id || IPython.utils.uuid();
             this.on('displayed', function() { 
                 this.is_displayed = true; 
@@ -286,6 +311,12 @@ define(["widgets/js/manager",
             // Triggered on model change.
             //
             // Update view to be consistent with this.model
+        },
+
+        setElement: function($el){
+            // Set the view's element.
+            WidgetView.__super__.setElement.apply(this, arguments);
+            this._update_linked();            
         },
 
         create_child_view: function(child_model, options) {
@@ -321,7 +352,6 @@ define(["widgets/js/manager",
                 var view = this.child_views[view_id];
                 delete this.child_views[view_id];
                 view_ids.splice(0,1);
-                child_model.views.pop(view);
             
                 // Remove the view list specific to this model if it is empty.
                 if (view_ids.length === 0) {
@@ -399,6 +429,17 @@ define(["widgets/js/manager",
                 callback.apply(context);
             } else {
                 this.on('displayed', callback, context);
+            }
+        },
+
+        _update_linked: function(){
+            // Handles when the underlying model is un/linked from/to a backend.
+            if (this.$el) {
+                if (this.model.get('_linked')) {
+                    this.$el.removeClass('fa fa-chain-broken widget-unlinked');
+                } else {
+                    this.$el.addClass('fa fa-chain-broken widget-unlinked');
+                }
             }
         },
     });

@@ -33,6 +33,14 @@ consider calling super even if it is a leave block, we might insert more blocks 
                         {%- block in_prompt -%}{%- endblock in_prompt -%}
                         {%- block input -%}{%- endblock input -%}
                     {%- endblock input_group -%}
+                    {%- if cell.widgets is defined and cell.widgets | length > 0 -%}
+                        {%- block widget_group scoped -%}
+                            {%- for model_id in cell.widgets -%}
+                                {%- block widget scoped -%}
+                                {%- endblock widget -%}
+                            {%- endfor -%}
+                        {%- endblock widget_group -%}
+                    {%- endif -%}
                     {%- if cell.outputs -%}
                     {%- block output_group -%}
                         {%- block output_prompt -%}{%- endblock output_prompt -%}

@@ -22,10 +22,12 @@ define([
         this._models = {}; /* Dictionary of model ids and model instances */
 
         // Register already-registered widget model types with the comm manager.
-        var that = this;
-        _.each(WidgetManager._model_types, function(model_type, model_name) {
-            that.comm_manager.register_target(model_name, $.proxy(that._handle_comm_open, that));
-        });
+        if (this.comm_manager) {
+            var that = this;
+            _.each(WidgetManager._model_types, function(model_type, model_name) {
+                that.comm_manager.register_target(model_name, $.proxy(that._handle_comm_open, that));
+            });
+        }
     };
 
     //--------------------------------------------------------------------
@@ -63,14 +65,19 @@ define([
             console.log("Could not determine where the display" + 
                 " message was from.  Widget will not be displayed");
         } else {
-            var view = this.create_view(model, {cell: cell});
-            if (view === null) {
-                console.error("View creation failed", model);
-            }
+            this.display_cell_view(cell, model);
+        }
+    };
+
+    WidgetManager.prototype.display_cell_view = function(cell, model) {
+        // Displays a view for a particular model.
+        var view = this.create_view(model, {cell: cell});
+        if (view === null) {
+            console.error("View creation failed", model);
+        }
+        if (cell.display_widget_view) {
             this._handle_display_view(view);
-            if (cell.widget_subarea) {
-                cell.widget_subarea.append(view.$el);
-            }
+            cell.display_widget_view(view);
             view.trigger('displayed');
         }
     };
@@ -82,11 +89,11 @@ define([
         if (this.keyboard_manager) {
             this.keyboard_manager.register_events(view.$el);
         
-        if (view.additional_elements) {
-            for (var i = 0; i < view.additional_elements.length; i++) {
+            if (view.additional_elements) {
+                for (var i = 0; i < view.additional_elements.length; i++) {
                     this.keyboard_manager.register_events(view.additional_elements[i]);
-            }
-        } 
+                }
+            } 
         }
     };
 
@@ -114,6 +121,7 @@ define([
     };
 
     WidgetManager.prototype.get_msg_cell = function (msg_id) {
+        // Get the cell associated with a msg id.
         var cell = null;
         // First, check to see if the msg was triggered by cell execution.
         if (this.notebook) {
@@ -173,11 +181,53 @@ define([
         return callbacks;
     };
 
-    WidgetManager.prototype.get_model = function (model_id) {
+    WidgetManager.prototype.get_model = function (model_id, target) {
         // Look-up a model instance by its id.
+        //
+        // Parameters
+        // model_id: string
+        // target: string=undefined
+        //      Create a model of the specified target using the model_id if
+        //      a model doesn't alread exist.
         var model = this._models[model_id];
-        if (model !== undefined && model.id == model_id) {
+        if (model) {
             return model;
+        }
+
+        if (target) {
+            // Try creating a new comm to reconnect the widget to the 
+            // back-end.
+            if (this.comm_manager) {
+                var comm = this.comm_manager.new_comm(target); 
+                if (comm) {
+                    model = new WidgetManager._model_types[target](this, comm.comm_id, comm);
+                    // Register the model under the original id and the id
+                    // of the new comm that will be used.
+                    this._models[comm.comm_id] = model;
+                    this._models[model_id] = model;
+                    // Try to reconnect.
+                    model.reconnect(model_id);
+                    return model;
+                }
+            }
+
+            // The comm wasn't created, so create a dummy model instead.
+            // One which isn't connected to any comm.
+            model = new WidgetManager._model_types[target](this, model_id);
+            this._models[model_id] = model;
+            return model;
+        }
+        return null;
+    };
+
+    WidgetManager.prototype.get_model_target = function (model) {
+        // Lookup the target name for a model.
+        for (var model_type in WidgetManager._model_types) {
+            if (WidgetManager._model_types.hasOwnProperty(model_type)) {
+                if (model instanceof WidgetManager._model_types[model_type]) {
+                    return model_type;
+                }
+            }
         }
         return null;
     };
@@ -189,11 +239,11 @@ define([
         var widget_type_name = msg.content.target_name;
         var widget_model = new WidgetManager._model_types[widget_type_name](this, model_id, comm);
         widget_model.on('comm:close', function () {
-          delete that._models[model_id];
+            delete that._models[model_id];
         });
         this._models[model_id] = widget_model;
     };
-
+    
     // Backwards compatability.
     IPython.WidgetManager = WidgetManager;
 

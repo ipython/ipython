@@ -5,7 +5,7 @@ from .svg2pdf import SVG2PDFPreprocessor
 from .extractoutput import ExtractOutputPreprocessor
 from .revealhelp import RevealHelpPreprocessor
 from .latex import LatexPreprocessor
-from .csshtmlheader import CSSHTMLHeaderPreprocessor
+from .inlinehtml import InlineHTMLPreprocessor
 from .highlightmagics import HighlightMagicsPreprocessor
 from .clearoutput import ClearOutputPreprocessor
 from .execute import ExecutePreprocessor

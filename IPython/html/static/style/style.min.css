@@ -9009,6 +9009,12 @@ div.cell.text_cell.rendered {
 }
 /* THE CLASSES BELOW CAN APPEAR ANYWHERE IN THE DOM (POSSIBLEY OUTSIDE OF
    THE WIDGET AREA). */
+.widget-unlinked:before {
+  opacity: 0.2;
+  filter: alpha(opacity=20);
+  padding-top: 5px;
+  padding-right: 5px;
+}
 .widget-hlabel {
   /* Horizontal Label */
   min-width: 10ex;

@@ -1,18 +1,8 @@
 """This module defines a base Exporter class. For Jinja template-based export,
 see templateexporter.py.
 """
-
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
+# Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 from __future__ import print_function, absolute_import
 
@@ -32,9 +22,6 @@ from IPython.utils.traitlets import MetaHasTraits, Unicode, List
 from IPython.utils.importstring import import_item
 from IPython.utils import text, py3compat
 
-#-----------------------------------------------------------------------------
-# Class
-#-----------------------------------------------------------------------------
 
 class ResourcesDict(collections.defaultdict):
     def __missing__(self, key):
@@ -67,7 +54,7 @@ class Exporter(LoggingConfigurable):
     default_preprocessors = List(['IPython.nbconvert.preprocessors.coalesce_streams',
                                   'IPython.nbconvert.preprocessors.SVG2PDFPreprocessor',
                                   'IPython.nbconvert.preprocessors.ExtractOutputPreprocessor',
-                                  'IPython.nbconvert.preprocessors.CSSHTMLHeaderPreprocessor',
+                                  'IPython.nbconvert.preprocessors.InlineHTMLPreprocessor',
                                   'IPython.nbconvert.preprocessors.RevealHelpPreprocessor',
                                   'IPython.nbconvert.preprocessors.LatexPreprocessor',
                                   'IPython.nbconvert.preprocessors.ClearOutputPreprocessor',
@@ -94,7 +81,6 @@ class Exporter(LoggingConfigurable):
         super(Exporter, self).__init__(config=with_default_config, **kw)
 
         self._init_preprocessors()
-
 
     @property
     def default_config(self):
@@ -125,7 +111,6 @@ class Exporter(LoggingConfigurable):
 
         return nb_copy, resources
 
-
     def from_filename(self, filename, resources=None, **kw):
         """
         Convert a notebook from a notebook file.
@@ -151,7 +136,6 @@ class Exporter(LoggingConfigurable):
         with io.open(filename, encoding='utf-8') as f:
             return self.from_notebook_node(nbformat.read(f, 'json'), resources=resources, **kw)
 
-
     def from_file(self, file_stream, resources=None, **kw):
         """
         Convert a notebook from a notebook file.
@@ -162,7 +146,6 @@ class Exporter(LoggingConfigurable):
             Notebook file-like object to convert.
         """
         return self.from_notebook_node(nbformat.read(file_stream, 'json'), resources=resources, **kw)
-
 
     def register_preprocessor(self, preprocessor, enabled=False):
         """
@@ -210,7 +193,6 @@ class Exporter(LoggingConfigurable):
             # attribute.  
             raise TypeError('preprocessor')
 
-
     def _init_preprocessors(self):
         """
         Register all of the preprocessors needed for this exporter, disabled
@@ -225,7 +207,6 @@ class Exporter(LoggingConfigurable):
         # Load user-specified preprocessors.  Enable by default.
         for preprocessor in self.preprocessors:
             self.register_preprocessor(preprocessor, enabled=True)
-
 
     def _init_resources(self, resources):
 
@@ -249,7 +230,6 @@ class Exporter(LoggingConfigurable):
         #Set the output extension
         resources['output_extension'] = self.file_extension
         return resources
-
 
     def _preprocess(self, nb, resources):
         """

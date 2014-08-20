@@ -1,16 +1,6 @@
 """HTML Exporter class"""
-
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
+# Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 import os
 
@@ -19,9 +9,6 @@ from IPython.config import Config
 
 from .templateexporter import TemplateExporter
 
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
 
 class HTMLExporter(TemplateExporter):
     """
@@ -48,7 +35,7 @@ class HTMLExporter(TemplateExporter):
             'NbConvertBase': {
                 'display_data_priority' : ['javascript', 'html', 'application/pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg' , 'text']
                 },
-            'CSSHTMLHeaderPreprocessor':{
+            'InlineHTMLPreprocessor':{
                 'enabled':True
                 },
             'HighlightMagicsPreprocessor': {

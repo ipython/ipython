@@ -18,6 +18,7 @@ from __future__ import print_function, absolute_import
 
 # Stdlib imports
 import os
+import json
 
 # other libs/dependencies are imported at runtime
 # to move ImportErrors to runtime when the requirement is actually needed
@@ -62,6 +63,7 @@ default_filters = {
         'path2url': filters.path2url,
         'add_prompts': filters.add_prompts,
         'ascii_only': filters.ascii_only,
+        'tojson': json.dumps,
 }
 
 #-----------------------------------------------------------------------------
