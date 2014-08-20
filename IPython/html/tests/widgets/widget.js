@@ -147,7 +147,7 @@ casper.notebook_test(function () {
     var textbox = {};
     throttle_index = this.append_cell(
         'import time\n' +
-        'textbox = widgets.TextWidget()\n' +
+        'textbox = widgets.Text()\n' +
         'display(textbox)\n' +
         'textbox.add_class("my-throttle-textbox", selector="input")\n' +
         'def handle_change(name, old, new):\n' +

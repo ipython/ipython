@@ -7,8 +7,8 @@ casper.notebook_test(function () {
     this.execute_cell_then(index);
 
     var container_index = this.append_cell(
-        'container = widgets.ContainerWidget()\n' +
-        'button = widgets.ButtonWidget()\n'+
+        'container = widgets.Box()\n' +
+        'button = widgets.Button()\n'+
         'container.children = [button]\n'+
         'display(container)\n'+
         'container.add_class("my-test-class")\n'+
@@ -23,7 +23,7 @@ casper.notebook_test(function () {
             'Widget subarea exists.');
 
         this.test.assert(this.cell_element_exists(index, 
-            '.widget-area .widget-subarea .widget-container'),
+            '.widget-area .widget-subarea .widget-box'),
             'Widget container exists.');
 
         this.test.assert(this.cell_element_exists(index, 
@@ -70,7 +70,7 @@ casper.notebook_test(function () {
             'Display container child executed with correct output.');
 
         this.test.assert(! this.cell_element_exists(index, 
-            '.widget-area .widget-subarea .widget-container'),
+            '.widget-area .widget-subarea .widget-box'),
             'Parent container not displayed.');
 
         this.test.assert(this.cell_element_exists(index, 
