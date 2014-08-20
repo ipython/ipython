@@ -61,7 +61,34 @@ class IntProgressWidget(_BoundedIntWidget):
     _view_name = Unicode('ProgressView', sync=True)
 
 class _IntRangeWidget(_IntWidget):
-    value = Tuple(CInt, CInt, default_value=(0, 1), help="Low and high int values", sync=True)
+    value = Tuple(CInt, CInt, default_value=(0, 1), help="Tuple of (lower, upper) bounds", sync=True)
+    lower = CInt(0, help="Lower bound", sync=False)
+    upper = CInt(1, help="Upper bound", sync=False)
+    
+    def __init__(self, *pargs, **kwargs):
+        if 'value' in kwargs and ('lower' in kwargs or 'upper' in kwargs):
+            raise ValueError("Cannot specify both 'value' and 'lower'/'upper' for range widget")
+        
+        value_given = 'value' in kwargs
+        
+        DOMWidget.__init__(self, *pargs, **kwargs)
+        
+        # ensure the traits match, preferring whichever (if any) was given in kwargs
+        if value_given:
+            self.lower, self.upper = self.value
+        else:
+            self.value = (self.lower, self.upper)
+
+        self.on_trait_change(self._validate, ['value', 'upper', 'lower'])
+    
+    def _validate(self, name, old, new):
+        print '_IntRangeWidget::_validate', name, old, new
+        if name == 'value':
+            self.lower, self.upper = min(new), max(new)
+        elif name == 'lower':
+            self.value = (new, self.value[1])
+        elif name == 'upper':
+            self.value = (self.value[0], new)
 
 class _BoundedIntRangeWidget(_IntRangeWidget):
     step = CInt(1, help="Minimum step that the value can take (ignored by some views)", sync=True)
@@ -69,24 +96,63 @@ class _BoundedIntRangeWidget(_IntRangeWidget):
     min = CInt(0, help="Min value", sync=True)
 
     def __init__(self, *pargs, **kwargs):
-        set_value = 'value' not in kwargs
-        DOMWidget.__init__(self, *pargs, **kwargs)
-        if set_value:
-            # if no value is set, use 25-75% to avoid the handles overlapping
+        any_value_given = 'value' in kwargs or 'upper' in kwargs or 'lower' in kwargs
+        _IntRangeWidget.__init__(self, *pargs, **kwargs)
+        
+        # ensure a minimal amount of sanity
+        if self.min > self.max:
+            raise ValueError("min must be <= max")
+        
+        # ensure the initial values within bounds
+        if self.lower < self.min:
+            self.lower = self.min
+            
+        if self.upper > self.max:
+            self.upper = self.max
+        
+        # if no value (or upper/lower) is set, use 25-75% to avoid the handles overlapping
+        if not any_value_given:
             self.value = (0.75*self.min + 0.25*self.max,
                           0.25*self.min + 0.75*self.max)
-        self.on_trait_change(self._validate, ['value', 'min', 'max'])
+        # callback already set for 'value', 'lower', 'upper'
+        self.on_trait_change(self._validate, ['min', 'max'])
 
     def _validate(self, name, old, new):
-        """Validate min <= low <= high <= max"""
+        if name == "min":
+            if new > self.max:
+                raise ValueError("setting min > max")
+            self.min = new
+        elif name == "max":
+            if new < self.min:
+                raise ValueError("setting max < min")
+            self.max = new
+        
+        low, high = self.value
         if name == "value":
-            low, high = new
+            low, high = min(new), max(new)
+        elif name == "upper":
+            if new < self.lower:
+                raise ValueError("setting upper < lower")
+            high = new
+        elif name == "lower":
+            if new > self.upper:
+                raise ValueError("setting lower > upper")
+            low = new
+        
+        low = max(self.min, min(low, self.max))
+        high = min(self.max, max(high, self.min))
+        
+        # determine the order in which we should update the
+        # lower, upper traits to avoid a temporary inverted overlap
+        lower_first = high < self.lower
+        
+        self.value = (low, high)
+        if lower_first:
+            self.lower = low
+            self.upper = high
         else:
-            low, high = self.value
-        low = max(low, self.min)
-        high = min(high, self.max)
-        self.value = (min(low, high), max(low, high))
-
+            self.upper = high
+            self.lower = low
 
 class IntRangeSliderWidget(_BoundedIntRangeWidget):
     _view_name = Unicode('IntSliderView', sync=True)
