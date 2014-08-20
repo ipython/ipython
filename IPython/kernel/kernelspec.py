@@ -8,7 +8,7 @@ pjoin = os.path.join
 
 from IPython.utils.path import get_ipython_dir
 from IPython.utils.py3compat import PY3
-from IPython.utils.traitlets import HasTraits, List, Unicode, Dict
+from IPython.utils.traitlets import HasTraits, List, Unicode, Dict, Any
 
 if os.name == 'nt':
     programdata = os.environ.get('PROGRAMDATA', None)
@@ -36,18 +36,12 @@ class KernelSpec(HasTraits):
     argv = List()
     display_name = Unicode()
     language = Unicode()
-    codemirror_mode = None
+    codemirror_mode = Any() # can be unicode or dict
     env = Dict()
-    
     resource_dir = Unicode()
     
-    def __init__(self, resource_dir, argv, display_name, language,
-                 codemirror_mode=None, env=None):
-        super(KernelSpec, self).__init__(resource_dir=resource_dir, argv=argv,
-                display_name=display_name, language=language,
-                codemirror_mode=codemirror_mode, env=env)
-        if not self.codemirror_mode:
-            self.codemirror_mode = self.language
+    def _codemirror_mode_default(self):
+        return self.language
     
     @classmethod
     def from_resource_dir(cls, resource_dir):
