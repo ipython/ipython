@@ -16,7 +16,8 @@ define(['jquery'], function($){
         // Parameters
         // ----------
         // delta: integer
-        //  direction to scroll the document.  Positive is downwards.
+        //  direction to scroll the document.  Positive is downwards. 
+        //  Unit is one page length.
         this.scroll_some(delta);
         return false;
     };
@@ -89,6 +90,7 @@ define(['jquery'], function($){
         // ----------
         // delta: integer
         //  direction to scroll the document.  Positive is downwards.
+        //  Units are targets.
 
         // Try to scroll to the next slide.
         var cell_count = this.notebook.ncells();
