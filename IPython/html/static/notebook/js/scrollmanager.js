@@ -6,6 +6,7 @@ define(['jquery'], function($){
     var ScrollManager = function(notebook, options) {
         // Public constructor.
         this.notebook = notebook;
+        options = options = {};
         this.animation_speed = options.animation_speed || 250; //ms
     };
 
@@ -125,6 +126,7 @@ define(['jquery'], function($){
     var HeadingScrollManager = function(notebook, options) {
         // Public constructor.
         TargetScrollManager.apply(this, [notebook, options]);
+        options = options = {};
         this._level = options.heading_level || 1;
     };
     HeadingScrollManager.prototype = new TargetScrollManager();
