@@ -27,6 +27,7 @@ define(["widgets/js/manager",
             this.key_value_lock = null;
             this.id = model_id;
             this.views = [];
+            this.active = 0;
 
             if (comm !== undefined) {
                 // Remember comm associated with the model.
@@ -61,9 +62,8 @@ define(["widgets/js/manager",
             // Handle when a widget is closed.
             this.trigger('comm:close');
             // Don't actually clean-up the widget when the underlying comm is
-            // closed.  Instead just "disable" it.
-            // TODO: Unlinked instead of disabled.
-            this.set('disabled', true);
+            // closed.  Instead just "unlink" it.
+            this.set('_linked', false);
         },
 
         _handle_close: function () {
@@ -297,6 +297,7 @@ define(["widgets/js/manager",
         initialize: function(parameters) {
             // Public constructor.
             this.model.on('change',this.update,this);
+            this.model.on('change:_linked', this._update_linked, this);
             this.options = parameters.options;
             this.child_model_views = {};
             this.child_views = {};
@@ -310,6 +311,12 @@ define(["widgets/js/manager",
             // Triggered on model change.
             //
             // Update view to be consistent with this.model
+        },
+
+        setElement: function($el){
+            // Set the view's element.
+            WidgetView.__super__.setElement.apply(this, arguments);
+            this._update_linked();            
         },
 
         create_child_view: function(child_model, options) {
@@ -422,6 +429,17 @@ define(["widgets/js/manager",
                 callback.apply(context);
             } else {
                 this.on('displayed', callback, context);
+            }
+        },
+
+        _update_linked: function(){
+            // Handles when the underlying model is un/linked from/to a backend.
+            if (this.$el) {
+                if (this.model.get('_linked')) {
+                    this.$el.removeClass('fa fa-chain-broken widget-unlinked');
+                } else {
+                    this.$el.addClass('fa fa-chain-broken widget-unlinked');
+                }
             }
         },
     });

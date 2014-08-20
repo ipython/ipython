@@ -1852,11 +1852,7 @@ define([
             for (var i = 0; i < model_ids.length; i++) {
                 model_id = model_ids[i];
                 var model = widget_manager.get_model(model_id);
-                
-                // TODO: Unlinked instead of disabled.
-                // Set the state as disabled since a comm doesn't exist for this
-                // model at this point.
-                model.set_state($.extend(this._widget_states[model_id].state, {disabled: true}));
+                model.set_state(this._widget_states[model_id].state);
             }
         }
     };
@@ -1875,10 +1871,15 @@ define([
             for (var model_id in widget_manager._models) {
                 if (widget_manager._models.hasOwnProperty(model_id)) {
                     var model = widget_manager._models[model_id];
-                    widget_states[model_id] = {
-                        state: model.get_state(),
-                        target: widget_manager.get_model_target(model)
-                    };
+
+                    // Only save the widget's state if the widget is being used
+                    // by atleast one cell.
+                    if (model.active && model.active > 0) {
+                        widget_states[model_id] = {
+                            state: model.get_state(),
+                            target: widget_manager.get_model_target(model)
+                        };    
+                    }
                 }
             }
         }

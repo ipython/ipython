@@ -109,6 +109,9 @@ class Widget(LoggingConfigurable):
     keys = List()
     def _keys_default(self):
         return [name for name in self.traits(sync=True)]
+
+    _linked = Bool(True, sync=True, help=""""Whether or not the widget is 
+        linked to the front-end""")
     
     _property_lock = Tuple((None, None))
     _send_state_lock = Int(0)
@@ -490,20 +493,29 @@ class DOMWidget(Widget):
 
 # Register a module level comm target for the basic WidgetModel.  This target
 # is used by the front-end to reconnect comms.
+ip = get_ipython()
 def _handle_reconnection(comm, msg):
+    ip.kernel.log.warn('comm connect from frontend %s' % comm.comm_id)
     def _handle_msg(msg):
         """Called when a msg is received from the front-end"""
         data = msg['content']['data']
         method = data['method']
 
         # Handle a custom msg from the front-end
+        ip.kernel.log.warn('maybe reconnect?')
         if method == 'reconnect' and 'model_id' in data:
+            ip.kernel.log.warn('reconnect')
             model_id = data['model_id']
             if model_id in Widget.widgets:
                 widget = Widget.widgets[model_id]
                 widget.set_comm(comm)
     comm.on_msg(_handle_msg)
+    def _handle_close(*p):
+        ip.kernel.log.warn('comm close %s' % comm.comm_id)
+    comm.on_close(_handle_close)
 
-ip = get_ipython()
 if hasattr(ip, 'comm_manager'):
+    ip.kernel.log.warn('regi')
     ip.comm_manager.register_target('WidgetModel', _handle_reconnection)
+else:
+    ip.kernel.log.warn('unreg')  

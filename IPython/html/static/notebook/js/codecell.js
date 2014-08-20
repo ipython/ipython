@@ -496,6 +496,9 @@ define([
         // Display a widget view in this cell.
         this.widget_area.show();
         this.widget_subarea.append(view.$el);
+        // Increase the model's active count.  This is used to determine which
+        // models are actually being used by the document.
+        view.model.active++;
         this._displayed_widgets.push(view.model.id);
         this.events.trigger('set_dirty.Notebook', {value: true});
     };
@@ -523,6 +526,18 @@ define([
         // Returns true if widgets existed prior to clear and they were
         // removed successfully.
         var had_widgets = this.widget_subarea.html() !== '';
+
+        // Decrease the active counter for the widgets that are going to be 
+        // removed from the widget area.
+        if (this.kernel) {
+            var widget_manager = this.kernel.widget_manager;
+            for (var i = 0; i < this._displayed_widgets.length; i++) {
+                var model = widget_manager.get_model(this._displayed_widgets[i]);
+                if (model) {
+                    model.active--;
+                }
+            }
+        }
         this._displayed_widgets = [];
         this.widget_subarea.html('');
         this.widget_subarea.height('');
