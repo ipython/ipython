@@ -61,3 +61,13 @@ def getoutput(cmd):
     myError = reg.StandardError
     error = myError.ReadToEnd()
     return output
+
+def check_pid(pid):
+    """
+    Check if a process with the given PID (pid) exists
+    """
+    try:
+        System.Diagnostics.Process.GetProcessById(pid)
+        return True
+    except System.ArgumentException:
+        return False 
