@@ -82,7 +82,6 @@ class _IntRangeWidget(_IntWidget):
         self.on_trait_change(self._validate, ['value', 'upper', 'lower'])
     
     def _validate(self, name, old, new):
-        print '_IntRangeWidget::_validate', name, old, new
         if name == 'value':
             self.lower, self.upper = min(new), max(new)
         elif name == 'lower':
