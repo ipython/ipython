@@ -12,7 +12,7 @@ from .widget_string import HTML, Latex, Text, Textarea
 from .interaction import interact, interactive, fixed
 
 # Deprecated classes
-from .widget_bool import CheckBox, ToggleButtonWidget
+from .widget_bool import CheckboxWidget, ToggleButtonWidget
 from .widget_button import ButtonWidget
 from .widget_box import ContainerWidget, PopupWidget
 from .widget_float import FloatTextWidget, BoundedFloatTextWidget, FloatSliderWidget, FloatProgressWidget

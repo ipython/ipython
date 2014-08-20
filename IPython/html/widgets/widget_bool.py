@@ -39,5 +39,5 @@ class ToggleButton(_Bool):
 
 
 # Remove in IPython 4.0
-CheckBox = DeprecatedClass(Checkbox, 'CheckBox')
+CheckboxWidget = DeprecatedClass(Checkbox, 'CheckboxWidget')
 ToggleButtonWidget = DeprecatedClass(ToggleButton, 'ToggleButtonWidget')
