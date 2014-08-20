@@ -62,22 +62,35 @@ define([
                 // handle in the vertical slider is always 
                 // consistent.
                 var orientation = this.model.get('orientation');
-                var value = this.model.get('min');
+                var min = this.model.get('min');
+                var max = this.model.get('max');
                 if (this.model.get('range')) {
-                    this.$slider.slider('option', 'values', [value, value]);
+                    this.$slider.slider('option', 'values', [min, min]);
                 } else {
-                    this.$slider.slider('option', 'value', value);
+                    this.$slider.slider('option', 'value', min);
                 }
                 this.$slider.slider('option', 'orientation', orientation);
-                value = this.model.get('value');
+                var value = this.model.get('value');
                 if (this.model.get('range')) {
+                	// values for the range case are validated python-side in
+                	// _Bounded{Int,Float}RangeWidget._validate
                     this.$slider.slider('option', 'values', value);
                     this.$readout.text(value.join("-"));
                 } else {
+	                if(value > max) { 
+	                    value = max; 
+	                }
+	                else if(value < min){ 
+	                    value = min; 
+	                }	
                     this.$slider.slider('option', 'value', value);
                     this.$readout.text(value);
                 }
 
+                if(this.model.get('value')!=value) {
+                    this.model.set('value', value, {updated_view: this});
+                    this.touch();
+                }
 
                 // Use the right CSS classes for vertical & horizontal sliders
                 if (orientation=='vertical') {

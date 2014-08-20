@@ -235,12 +235,13 @@ class IPythonHandler(AuthenticatedHandler):
             raise web.HTTPError(400, u'Invalid JSON in body of request')
         return model
 
-    def get_error_html(self, status_code, **kwargs):
+    def write_error(self, status_code, **kwargs):
         """render custom error pages"""
-        exception = kwargs.get('exception')
+        exc_info = kwargs.get('exc_info')
         message = ''
         status_message = responses.get(status_code, 'Unknown HTTP Error')
-        if exception:
+        if exc_info:
+            exception = exc_info[1]
             # get the custom message, if defined
             try:
                 message = exception.log_message % exception.args
@@ -260,13 +261,16 @@ class IPythonHandler(AuthenticatedHandler):
             exception=exception,
         )
         
+        self.set_header('Content-Type', 'text/html')
         # render the template
         try:
             html = self.render_template('%s.html' % status_code, **ns)
         except TemplateNotFound:
             self.log.debug("No template for %d", status_code)
             html = self.render_template('error.html', **ns)
-        return html
+        
+        self.write(html)
+        
 
 
 class Template404(IPythonHandler):

@@ -42,7 +42,7 @@ def get_ipdir():
     try:
         ipdir = sys.argv[1]
     except IndexError:
-        ipdir = '..'
+        ipdir = pjoin(os.path.dirname(__file__), os.pardir)
 
     ipdir = os.path.abspath(ipdir)
 
