@@ -172,6 +172,7 @@ input.raw_input:focus {
 p.p-space {
     margin-bottom: 10px;
 }
+
 div.undocked_output {
     .corner-all();
     border: 1px solid @border_color;
@@ -181,3 +182,10 @@ div.undocked_output {
 
 }
 
+div.cell div.docked-dockable.output button.close span {
+    visibility: hidden;
+}
+
+div.cell:hover div.docked-dockable.output button.close span {
+    visibility: inherit;
+}
