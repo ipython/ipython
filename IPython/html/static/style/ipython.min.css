@@ -947,6 +947,12 @@ div.undocked_output {
   padding: 0.4em;
   box-shadow: 2.5px 2.5px 20px #e7e7e7;
 }
+div.cell div.docked-dockable.output button.close span {
+  visibility: hidden;
+}
+div.cell:hover div.docked-dockable.output button.close span {
+  visibility: inherit;
+}
 .rendered_html {
   color: #000000;
   /* any extras will just be numbers: */
@@ -1203,6 +1209,12 @@ div.cell.text_cell.rendered {
 .cm-s-heading-6 {
   font-size: 90%;
   font-style: italic;
+}
+div.cell div.widget-area div.prompt button.close {
+  visibility: hidden;
+}
+div.cell:hover div.widget-area div.prompt button.close {
+  visibility: inherit;
 }
 .widget-area {
   /*
