@@ -3,10 +3,10 @@
 define(['jquery'], function($){
     "use strict";
 
-    var ScrollManager = function(notebook) {
+    var ScrollManager = function(notebook, options) {
         // Public constructor.
         this.notebook = notebook;
-        this.animation_speed = 250; //ms
+        this.animation_speed = options.animation_speed || 250; //ms
     };
 
     ScrollManager.prototype.scroll = function (delta) {
@@ -20,13 +20,18 @@ define(['jquery'], function($){
         return false;
     };
 
-    ScrollManager.prototype.scroll_to = function(destination) {
+    ScrollManager.prototype.scroll_to = function(selector) {
         // Scroll to an element in the notebook.
-        $('#notebook').animate({'scrollTop': $(destination).offset().top + $('#notebook').scrollTop() - $('#notebook').offset().top}, this.animation_speed);
+        $('#notebook').animate({'scrollTop': $(selector).offset().top + $('#notebook').scrollTop() - $('#notebook').offset().top}, this.animation_speed);
     };
 
     ScrollManager.prototype.scroll_some = function(pages) {
         // Scroll up or down a given number of pages.
+        //
+        // Parameters
+        // ----------
+        // pages: integer
+        //  number of pages to scroll the document, may be positive or negative.
         $('#notebook').animate({'scrollTop': $('#notebook').scrollTop() + pages * $('#notebook').height()}, this.animation_speed);
     };
 
@@ -57,13 +62,22 @@ define(['jquery'], function($){
     };
 
 
-    var TargetScrollManager = function(notebook) {
+    var TargetScrollManager = function(notebook, options) {
         // Public constructor.
-        ScrollManager.apply(this, [notebook]);
+        ScrollManager.apply(this, [notebook, options]);
     };
     TargetScrollManager.prototype = new ScrollManager();
 
     TargetScrollManager.prototype.is_target = function (index) {
+        // Check if a cell should be a scroll stop.
+        //
+        // Returns `true` if the cell is a cell that the scroll manager
+        // should scroll to.  Otherwise, false is returned. 
+        //
+        // Parameters
+        // ----------
+        // index: integer
+        //  index of the cell to test.
         return false;
     };
 
@@ -93,9 +107,9 @@ define(['jquery'], function($){
     };
 
 
-    var SlideScrollManager = function(notebook) {
+    var SlideScrollManager = function(notebook, options) {
         // Public constructor.
-        TargetScrollManager.apply(this, [notebook]);
+        TargetScrollManager.apply(this, [notebook, options]);
     };
     SlideScrollManager.prototype = new TargetScrollManager();
 
@@ -103,14 +117,15 @@ define(['jquery'], function($){
         var cell = this.notebook.get_cell(index);
         return cell.metadata && cell.metadata.slideshow && 
             cell.metadata.slideshow.slide_type && 
-            cell.metadata.slideshow.slide_type === "slide";
+            (cell.metadata.slideshow.slide_type === "slide" ||
+            cell.metadata.slideshow.slide_type === "subslide");
     };
 
 
-    var HeadingScrollManager = function(notebook, heading_level) {
+    var HeadingScrollManager = function(notebook, options) {
         // Public constructor.
-        TargetScrollManager.apply(this, [notebook]);
-        this._level = heading_level;
+        TargetScrollManager.apply(this, [notebook, options]);
+        this._level = options.heading_level || 1;
     };
     HeadingScrollManager.prototype = new TargetScrollManager();
 
