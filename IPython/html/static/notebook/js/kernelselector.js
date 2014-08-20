@@ -54,9 +54,19 @@ define([
             return;
         }
         var ks = this.kernelspecs[kernel_name];
+        try {
+            this.notebook.start_session(kernel_name);
+        } catch (e) {
+            if (e.name === 'SessionAlreadyStarting') {
+                console.log("Cannot change kernel while waiting for pending session start.");
+            } else {
+                // unhandled error
+                throw e;
+            }
+            // only trigger spec_changed if change was successful
+            return;
+        }
         this.events.trigger('spec_changed.Kernel', ks);
-        this.notebook.session.delete();
-        this.notebook.start_session(kernel_name);
     };
     
     KernelSelector.prototype.bind_events = function() {
