@@ -58,7 +58,7 @@ define([
             this._flex_changed();
             this._pack_changed();
             this._align_changed();
-            that.update_orientation();
+            this.update_orientation();
         },
 
         update_orientation: function(){
