@@ -186,13 +186,13 @@ define([
             'space': {
                 help: "Scroll down",
                 handler: function(event) {
-                    return that.notebook.scrollmanager.scroll(1);
+                    return that.notebook.scroll_manager.scroll(1);
                 },
             },
             'shift-space': {
                 help: "Scroll up",
                 handler: function(event) {
-                    return that.notebook.scrollmanager.scroll(-1);
+                    return that.notebook.scroll_manager.scroll(-1);
                 },
             },
             'enter' : {
