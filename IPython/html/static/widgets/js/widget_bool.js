@@ -11,7 +11,7 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox-single');
+                .addClass('widget-hbox-single widget-checkbox');
             this.$label = $('<div />')
                 .addClass('widget-hlabel')
                 .appendTo(this.$el)
