@@ -1,3 +1,4 @@
+# encoding: utf-8
 """Word completion for IPython.
 
 This module is a fork of the rlcompleter module in the Python standard
@@ -594,12 +595,14 @@ class IPCompleter(Completer):
         #= re.compile(r'[\s|\[]*(\w+)(?:\s*=?\s*.*)')
 
         # All active matcher routines for completion
-        self.matchers = [self.python_matches,
-                         self.file_matches,
-                         self.magic_matches,
-                         self.python_func_kw_matches,
-                         self.dict_key_matches,
-                         ]
+        self.matchers = [
+                          self.python_matches,
+                          self.file_matches,
+                          self.magic_matches,
+                          self.python_func_kw_matches,
+                          self.dict_key_matches,
+                          self.latex_matches
+                        ]
 
     def all_completions(self, text):
         """
@@ -966,6 +969,12 @@ class IPCompleter(Completer):
         
         return [leading + k + suf for k in matches]
 
+    def latex_matches(self, text):
+        if text.startswith('\\foo'):
+            return ['foo']
+        else:
+            return []
+
     def dispatch_custom_completer(self, text):
         #io.rprint("Custom! '%s' %s" % (text, self.custom_completers)) # dbg
         line = self.line_buffer
@@ -1039,7 +1048,7 @@ class IPCompleter(Completer):
         matches : list
           A list of completion matches.
         """
-        #io.rprint('\nCOMP1 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
+        io.rprint('\nCOMP1 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
 
         # if the cursor position isn't given, the only sane assumption we can
         # make is that it's at the end of the line (the common case)
@@ -1056,7 +1065,7 @@ class IPCompleter(Completer):
 
         self.line_buffer = line_buffer
         self.text_until_cursor = self.line_buffer[:cursor_pos]
-        #io.rprint('COMP2 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
+        io.rprint('COMP2 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
 
         # Start with a clean slate of completions
         self.matches[:] = []

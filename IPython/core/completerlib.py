@@ -1,3 +1,4 @@
+# encoding: utf-8
 """Implementations for various useful completers.
 
 These are all loaded by default by IPython.
