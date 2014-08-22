@@ -16,6 +16,11 @@ define([
             }, this);
         },
 
+        update_attr: function(name, value) {
+            // Set a css attr of the widget view.
+            this.$box.css(name, value);
+        },
+
         render: function(){
             // Called when view is rendered.
             this.$box = this.$el;

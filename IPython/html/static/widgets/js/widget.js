@@ -419,7 +419,34 @@ define(["widgets/js/manager",
                 var old_classes = model.previous('children');
                 this.update_classes(old_classes, new_classes);
             }, this);
+            this.model.on('change:fore_color', function (model, value) { 
+                this.update_attr('color', value); }, this);
+            this.model.on('change:back_color', function (model, value) { 
+                this.update_attr('background', value); }, this);
+            this.model.on('change:width', function (model, value) { 
+                this.update_attr('width', value); }, this);
+            this.model.on('change:height', function (model, value) { 
+                this.update_attr('height', value); }, this);
+            this.model.on('change:border_color', function (model, value) { 
+                this.update_attr('border-color', value); }, this);
+            this.model.on('change:border_width', function (model, value) { 
+                this.update_attr('border-width', value); }, this);
+            this.model.on('change:border_style', function (model, value) { 
+                this.update_attr('border-style', value); }, this);
+            this.model.on('change:font_style', function (model, value) { 
+                this.update_attr('font-style', value); }, this);
+            this.model.on('change:font_weight', function (model, value) { 
+                this.update_attr('font-weight', value); }, this);
+            this.model.on('change:font_size', function (model, value) { 
+                this.update_attr('font-size', value); }, this);
+            this.model.on('change:font_family', function (model, value) { 
+                this.update_attr('font-family', value); }, this);
             this.update_classes([], this.model.get('_dom_classes'));
+        },
+
+        update_attr: function(name, value) {
+            // Set a css attr of the widget view.
+            this.$el.css(name, value);
         },
 
         update_visible: function(model, value) {

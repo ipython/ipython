@@ -18,7 +18,8 @@ import collections
 from IPython.core.getipython import get_ipython
 from IPython.kernel.comm import Comm
 from IPython.config import LoggingConfigurable
-from IPython.utils.traitlets import Unicode, Dict, Instance, Bool, List, Tuple, Int, Set
+from IPython.utils.traitlets import Unicode, Dict, Instance, Bool, List, 
+    CaselessStrEnum, Tuple, CTuple, CUnicode, Int, Set
 from IPython.utils.py3compat import string_types
 
 #-----------------------------------------------------------------------------
@@ -381,3 +382,44 @@ class DOMWidget(Widget):
     visible = Bool(True, help="Whether the widget is visible.", sync=True)
     _css = CTuple(sync=True, help="CSS property list: (selector, key, value)")
     _dom_classes = CTuple(sync=True, help="DOM classes applied to widget.$el.")
+    
+    width = CUnicode(sync=True)
+    height = CUnicode(sync=True)
+
+    fore_color = Unicode(sync=True)
+    back_color = Unicode(sync=True)
+    border_color = Unicode(sync=True)
+
+    border_width = CUnicode(sync=True)
+    border_style = CaselessStrEnum(values=[ # http://www.w3schools.com/cssref/pr_border-style.asp
+        'none', 
+        'hidden', 
+        'dotted', 
+        'dashed', 
+        'solid', 
+        'double', 
+        'groove', 
+        'ridge', 
+        'inset', 
+        'outset', 
+        'initial', 
+        'inherit', ''],
+        default_value='', sync=True)
+
+    font_style = CaselessStrEnum(values=[ # http://www.w3schools.com/cssref/pr_font_font-style.asp
+        'normal', 
+        'italic', 
+        'oblique', 
+        'initial', 
+        'inherit', ''], 
+        default_value='', sync=True)
+    font_weight = CaselessStrEnum(values=[ # http://www.w3schools.com/cssref/pr_font_weight.asp
+        'normal', 
+        'bold', 
+        'bolder', 
+        'lighter',
+        'initial', 
+        'inherit', ''] + [str(100 * (i+1)) for i in range(9)], 
+        default_value='', sync=True)
+    font_size = CUnicode(sync=True)
+    font_family = Unicode(sync=True)
