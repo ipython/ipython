@@ -7,11 +7,11 @@ casper.notebook_test(function () {
     this.execute_cell_then(index);
 
     var int_text = {};
-    int_text.query = '.widget-area .widget-subarea .widget-hbox-single .my-second-int-text';
+    int_text.query = '.widget-area .widget-subarea .widget-hbox-single .my-second-int-text input';
     int_text.index = this.append_cell(
         'int_widget = widgets.IntText()\n' +
         'display(int_widget)\n' + 
-        'int_widget.add_class("my-second-int-text", selector="input")\n' + 
+        'int_widget._dom_classes = ["my-second-int-text"]\n' + 
         'print(int_widget.model_id)\n');
     this.execute_cell_then(int_text.index, function(index){
         int_text.model_id = this.get_output_cell(index).text.trim();
@@ -64,12 +64,12 @@ casper.notebook_test(function () {
 
     var slider_query = '.widget-area .widget-subarea .widget-hbox-single .slider';
     var int_text2 = {};
-    int_text2.query = '.widget-area .widget-subarea .widget-hbox-single .my-second-num-test-text';
+    int_text2.query = '.widget-area .widget-subarea .widget-hbox-single .my-second-num-test-text input';
     int_text2.index = this.append_cell(
         'intrange = [widgets.BoundedIntTextWidget(),\n' +
         '    widgets.IntSliderWidget()]\n' +
         '[display(intrange[i]) for i in range(2)]\n' +
-        'intrange[0].add_class("my-second-num-test-text", selector="input")\n' +  
+        'intrange[0]._dom_classes = ["my-second-num-test-text"]\n' +  
         'print(intrange[0].model_id)\n');
     this.execute_cell_then(int_text2.index, function(index){
         int_text2.model_id = this.get_output_cell(index).text.trim();

@@ -27,7 +27,6 @@ casper.notebook_test(function () {
         // window.  If we don't do this, the captured image will be black.
         'image.set_css({"background": "blue", "z-index": "9999", "position": "fixed", "top": "0px", "left": "0px"})\n' + 
         'display(image)\n' + 
-        'image.add_class("my-test-image")\n' + 
         'print("Success")\n');
     this.execute_cell_then(image_index, function(index){
 

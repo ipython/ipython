@@ -7,11 +7,11 @@ casper.notebook_test(function () {
     this.execute_cell_then(index);
 
     var float_text = {};
-    float_text.query = '.widget-area .widget-subarea .widget-hbox-single .my-second-float-text';
+    float_text.query = '.widget-area .widget-subarea .widget-hbox-single .my-second-float-text input';
     float_text.index = this.append_cell(
         'float_widget = widgets.FloatText()\n' +
         'display(float_widget)\n' + 
-        'float_widget.add_class("my-second-float-text", selector="input")\n' + 
+        'float_widget._dom_classes = ["my-second-float-text"]\n' + 
         'print(float_widget.model_id)\n');
     this.execute_cell_then(float_text.index, function(index){
         float_text.model_id = this.get_output_cell(index).text.trim();
