@@ -7,11 +7,10 @@ define([
     "bootstrap",
 ], function(widget, $){
 
-    var ContainerView = widget.DOMWidgetView.extend({
+    var BoxView = widget.DOMWidgetView.extend({
         initialize: function(){
             // Public constructor
-            ContainerView.__super__.initialize.apply(this, arguments);
-            this.update_children([], this.model.get('children'));
+            BoxView.__super__.initialize.apply(this, arguments);
             this.model.on('change:children', function(model, value) {
                 this.update_children(model.previous('children'), value);
             }, this);
@@ -19,7 +18,9 @@ define([
 
         render: function(){
             // Called when view is rendered.
-            this.$el.addClass('widget-container').addClass('vbox');
+            this.$box = this.$el;
+            this.$box.addClass('widget-box');
+            this.update_children([], this.model.get('children'));
         },
         
         update_children: function(old_list, new_list) {
@@ -37,7 +38,7 @@ define([
         add_child_model: function(model) {
             // Called when a model is added to the children list.
             var view = this.create_child_view(model);
-            this.$el.append(view.$el);
+            this.$box.append(view.$el);
 
             // Trigger the displayed event of the child view.
             this.after_displayed(function() {
@@ -45,9 +46,54 @@ define([
             });
         },
     });
-    
 
-    var PopupView = widget.DOMWidgetView.extend({
+
+    var FlexBoxView = BoxView.extend({
+        render: function(){
+            FlexBoxView.__super__.render.apply(this);
+            this.model.on('change:orientation', this.update_orientation, this);
+            this.model.on('change:flex', this._flex_changed, this);
+            this.model.on('change:pack', this._pack_changed, this);
+            this.model.on('change:align', this._align_changed, this);
+            this._flex_changed();
+            this._pack_changed();
+            this._align_changed();
+            this.update_orientation();
+        },
+
+        update_orientation: function(){
+            var orientation = this.model.get("orientation");
+            if (orientation == "vertical") {
+                this.$box.removeClass("hbox").addClass("vbox");
+            } else {
+                this.$box.removeClass("vbox").addClass("hbox");
+            }
+        },
+
+        _flex_changed: function(){
+            if (this.model.previous('flex')) {
+                this.$box.removeClass('box-flex' + this.model.previous('flex'));
+            }
+            this.$box.addClass('box-flex' + this.model.get('flex'));
+        },
+
+        _pack_changed: function(){
+            if (this.model.previous('pack')) {
+                this.$box.removeClass(this.model.previous('pack'));
+            }
+            this.$box.addClass(this.model.get('pack'));
+        },
+
+        _align_changed: function(){
+            if (this.model.previous('align')) {
+                this.$box.removeClass('align-' + this.model.previous('align'));
+            }
+            this.$box.addClass('align-' + this.model.get('align'));
+        },
+    });
+
+    var PopupView = BoxView.extend({
+
         render: function(){
             // Called when view is rendered.
             var that = this;
@@ -130,11 +176,11 @@ define([
             this.$title = $('<div />')
                 .addClass('widget-modal-title')
                 .html("&nbsp;")
-                .appendTo(this.$title_bar);
-            this.$body = $('<div />')
+                .appendTo(this.$title_bar);     
+            this.$box = $('<div />')
                 .addClass('modal-body')
                 .addClass('widget-modal-body')
-                .addClass('widget-container')
+                .addClass('widget-box')
                 .addClass('vbox')
                 .appendTo(this.$window);
             
@@ -149,7 +195,7 @@ define([
             this.$window.draggable({handle: '.popover-title', snap: '#notebook, .modal', snapMode: 'both'});
             this.$window.resizable();
             this.$window.on('resize', function(){
-                that.$body.outerHeight(that.$window.innerHeight() - that.$title_bar.outerHeight());
+                that.$box.outerHeight(that.$window.innerHeight() - that.$title_bar.outerHeight());
             });
 
             this._shown_once = false;
@@ -203,29 +249,6 @@ define([
             this.$window.css('z-index', max_zindex);
         },
         
-        update_children: function(old_list, new_list) {
-            // Called when the children list is modified.
-            this.do_diff(old_list, new_list, 
-                $.proxy(this.remove_child_model, this),
-                $.proxy(this.add_child_model, this));
-        },
-
-        remove_child_model: function(model) {
-            // Called when a child is removed from children list.
-            this.pop_child_view(model).remove();
-        },
-
-        add_child_model: function(model) {
-            // Called when a child is added to children list.
-            var view = this.create_child_view(model);
-            this.$body.append(view.$el);
-
-            // Trigger the displayed event of the child view.
-            this.after_displayed(function() {
-                view.trigger('displayed');
-            });
-        },
-        
         update: function(){
             // Update the contents of this view
             //
@@ -277,7 +300,8 @@ define([
     });
 
     return {
-        'ContainerView': ContainerView,
+        'BoxView': BoxView,
         'PopupView': PopupView,
+        'FlexBoxView': FlexBoxView,
     };
 });

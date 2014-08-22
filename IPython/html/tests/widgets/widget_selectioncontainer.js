@@ -9,10 +9,10 @@ casper.notebook_test(function () {
     // Test tab view
     var multicontainer1_query = '.widget-area .widget-subarea div div.nav-tabs';
     var multicontainer1_index = this.append_cell(
-        'multicontainer = widgets.TabWidget()\n' +
-        'page1 = widgets.TextWidget()\n' +
-        'page2 = widgets.TextWidget()\n' +
-        'page3 = widgets.TextWidget()\n' +
+        'multicontainer = widgets.Tab()\n' +
+        'page1 = widgets.Text()\n' +
+        'page2 = widgets.Text()\n' +
+        'page3 = widgets.Text()\n' +
         'multicontainer.children = [page1, page2, page3]\n' +
         'display(multicontainer)\n' +
         'multicontainer.selected_index = 0\n' +
@@ -64,10 +64,10 @@ casper.notebook_test(function () {
     // Test accordion view
     var multicontainer2_query = '.widget-area .widget-subarea .panel-group';
     var multicontainer2_index = this.append_cell(
-        'multicontainer = widgets.AccordionWidget()\n' +
-        'page1 = widgets.TextWidget()\n' +
-        'page2 = widgets.TextWidget()\n' +
-        'page3 = widgets.TextWidget()\n' +
+        'multicontainer = widgets.Accordion()\n' +
+        'page1 = widgets.Text()\n' +
+        'page2 = widgets.Text()\n' +
+        'page3 = widgets.Text()\n' +
         'multicontainer.children = [page1, page2, page3]\n' +
         'multicontainer.set_title(2, "good")\n' +
         'display(multicontainer)\n' +

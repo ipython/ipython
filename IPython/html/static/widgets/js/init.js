@@ -5,7 +5,7 @@ define([
     "widgets/js/manager",
     "widgets/js/widget_bool",
     "widgets/js/widget_button",
-    "widgets/js/widget_container",
+    "widgets/js/widget_box",
     "widgets/js/widget_float",
     "widgets/js/widget_image",
     "widgets/js/widget_int",

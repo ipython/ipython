@@ -157,12 +157,13 @@ define([
             }
         });
         this.element.find('#kill_and_exit').click(function () {
-            that.notebook.session.delete();
-            setTimeout(function(){
+            var close_window = function () {
                 // allow closing of new tabs in Chromium, impossible in FF
                 window.open('', '_self', '');
                 window.close();
-            }, 500);
+            };
+            // finish with close on success or failure
+            that.notebook.session.delete(close_window, close_window);
         });
         // Edit
         this.element.find('#cut_cell').click(function () {

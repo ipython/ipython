@@ -1,4 +1,4 @@
-"""SelectionWidget classes.
+"""Selection classes.
 
 Represents an enumeration using a widget.
 """
@@ -20,11 +20,12 @@ from threading import Lock
 from .widget import DOMWidget
 from IPython.utils.traitlets import Unicode, List, Bool, Any, Dict, TraitError
 from IPython.utils.py3compat import unicode_type
+from IPython.utils.warn import DeprecatedClass
 
 #-----------------------------------------------------------------------------
 # SelectionWidget
 #-----------------------------------------------------------------------------
-class _SelectionWidget(DOMWidget):
+class _Selection(DOMWidget):
     """Base class for Selection widgets
     
     ``values`` can be specified as a list or dict. If given as a list,
@@ -109,17 +110,30 @@ class _SelectionWidget(DOMWidget):
                 self.value_lock.release()
 
 
-class ToggleButtonsWidget(_SelectionWidget):
+class ToggleButtons(_Selection):
+    """Group of toggle buttons that represent an enumeration.  Only one toggle
+    button can be toggled at any point in time.""" 
     _view_name = Unicode('ToggleButtonsView', sync=True)
 
 
-class DropdownWidget(_SelectionWidget):
+class Dropdown(_Selection):
+    """Allows you to select a single item from a dropdown."""
     _view_name = Unicode('DropdownView', sync=True)
 
 
-class RadioButtonsWidget(_SelectionWidget):
+class RadioButtons(_Selection):
+    """Group of radio buttons that represent an enumeration.  Only one radio
+    button can be toggled at any point in time.""" 
     _view_name = Unicode('RadioButtonsView', sync=True)
     
 
-class SelectWidget(_SelectionWidget):
+class Select(_Selection):
+    """Listbox that only allows one item to be selected at any given time."""
     _view_name = Unicode('SelectView', sync=True)
+
+
+# Remove in IPython 4.0
+ToggleButtonsWidget = DeprecatedClass(ToggleButtons, 'ToggleButtonsWidget')
+DropdownWidget = DeprecatedClass(Dropdown, 'DropdownWidget')
+RadioButtonsWidget = DeprecatedClass(RadioButtons, 'RadioButtonsWidget')
+SelectWidget = DeprecatedClass(Select, 'SelectWidget')

@@ -1,4 +1,4 @@
-"""ButtonWidget class.  
+"""Button class.  
 
 Represents a button in the frontend using a widget.  Allows user to listen for
 click events on the button and trigger backend code when the clicks are fired.
@@ -16,11 +16,16 @@ click events on the button and trigger backend code when the clicks are fired.
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget, CallbackDispatcher
 from IPython.utils.traitlets import Unicode, Bool
+from IPython.utils.warn import DeprecatedClass
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class ButtonWidget(DOMWidget):
+class Button(DOMWidget):
+    """Button widget.
+
+    This widget has an `on_click` method that allows you to listen for the 
+    user clicking on the button.  The click event itself is stateless."""
     _view_name = Unicode('ButtonView', sync=True)
 
     # Keys
@@ -29,7 +34,7 @@ class ButtonWidget(DOMWidget):
     
     def __init__(self, **kwargs):
         """Constructor"""
-        super(ButtonWidget, self).__init__(**kwargs)
+        super(Button, self).__init__(**kwargs)
         self._click_handlers = CallbackDispatcher()
         self.on_msg(self._handle_button_msg)
 
@@ -54,3 +59,7 @@ class ButtonWidget(DOMWidget):
             Content of the msg."""
         if content.get('event', '') == 'click':
             self._click_handlers(self)
+
+
+# Remove in IPython 4.0
+ButtonWidget = DeprecatedClass(Button, 'ButtonWidget')

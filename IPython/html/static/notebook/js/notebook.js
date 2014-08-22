@@ -62,6 +62,7 @@ define([
         this.save_widget = options.save_widget;
         this.tooltip = new tooltip.Tooltip(this.events);
         this.ws_url = options.ws_url;
+        this._session_starting = false;
         // default_kernel_name is a temporary measure while we implement proper
         // kernel selection and delayed start. Do not rely on it.
         this.default_kernel_name = 'python';
@@ -1525,9 +1526,38 @@ define([
      * @method start_session
      */
     Notebook.prototype.start_session = function (kernel_name) {
+        var that = this;
         if (kernel_name === undefined) {
             kernel_name = this.default_kernel_name;
         }
+        if (this._session_starting) {
+            throw new session.SessionAlreadyStarting();
+        }
+        this._session_starting = true;
+        
+        if (this.session !== null) {
+            var s = this.session;
+            this.session = null;
+            // need to start the new session in a callback after delete,
+            // because javascript does not guarantee the ordering of AJAX requests (?!)
+            s.delete(function () {
+                    // on successful delete, start new session
+                    that._session_starting = false;
+                    that.start_session(kernel_name);
+                }, function (jqXHR, status, error) {
+                    // log the failed delete, but still create a new session
+                    // 404 just means it was already deleted by someone else,
+                    // but other errors are possible.
+                    utils.log_ajax_error(jqXHR, status, error);
+                    that._session_starting = false;
+                    that.start_session(kernel_name);
+                }
+            );
+            return;
+        }
+        
+        
+    
         this.session = new session.Session({
             base_url: this.base_url,
             ws_url: this.ws_url,
@@ -1539,7 +1569,10 @@ define([
             kernel_name: kernel_name,
             notebook: this});
 
-        this.session.start($.proxy(this._session_started, this));
+        this.session.start(
+            $.proxy(this._session_started, this),
+            $.proxy(this._session_start_failed, this)
+        );
     };
 
 
@@ -1548,7 +1581,8 @@ define([
      * comm manager to the widget manager
      *
      */
-    Notebook.prototype._session_started = function(){
+    Notebook.prototype._session_started = function (){
+        this._session_starting = false;
         this.kernel = this.session.kernel;
         var ncells = this.ncells();
         for (var i=0; i<ncells; i++) {
@@ -1558,7 +1592,11 @@ define([
             }
         }
     };
-    
+    Notebook.prototype._session_start_failed = function (jqxhr, status, error){
+        this._session_starting = false;
+        utils.log_ajax_error(jqxhr, status, error);
+    };
+
     /**
      * Prompt the user to restart the IPython kernel.
      * 

@@ -1,4 +1,4 @@
-"""FloatWidget class.
+"""Float class.  
 
 Represents an unbounded float using a widget.
 """
@@ -15,17 +15,18 @@ Represents an unbounded float using a widget.
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget
 from IPython.utils.traitlets import Unicode, CFloat, Bool, Enum, Tuple
+from IPython.utils.warn import DeprecatedClass
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class _FloatWidget(DOMWidget):
-    value = CFloat(0.0, help="Float value", sync=True)
+class _Float(DOMWidget):
+    value = CFloat(0.0, help="Float value", sync=True) 
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
 
 
-class _BoundedFloatWidget(_FloatWidget):
+class _BoundedFloat(_Float):
     max = CFloat(100.0, help="Max value", sync=True)
     min = CFloat(0.0, help="Min value", sync=True)
     step = CFloat(0.1, help="Minimum step that the value can take (ignored by some views)", sync=True)
@@ -42,26 +43,26 @@ class _BoundedFloatWidget(_FloatWidget):
             self.value = min(max(new, self.min), self.max)
 
 
-class FloatTextWidget(_FloatWidget):
+class FloatText(_Float):
     _view_name = Unicode('FloatTextView', sync=True)
 
 
-class BoundedFloatTextWidget(_BoundedFloatWidget):
+class BoundedFloatText(_BoundedFloat):
     _view_name = Unicode('FloatTextView', sync=True)
 
 
-class FloatSliderWidget(_BoundedFloatWidget):
+class FloatSlider(_BoundedFloat):
     _view_name = Unicode('FloatSliderView', sync=True)
-    orientation = Enum([u'horizontal', u'vertical'], u'horizontal',
+    orientation = Enum([u'horizontal', u'vertical'], u'horizontal', 
         help="Vertical or horizontal.", sync=True)
     range = Bool(False, help="Display a range selector", sync=True)
     readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
 
 
-class FloatProgressWidget(_BoundedFloatWidget):
+class FloatProgress(_BoundedFloat):
     _view_name = Unicode('ProgressView', sync=True)
 
-class _FloatRangeWidget(_FloatWidget):
+class _FloatRange(_Float):
     value = Tuple(CFloat, CFloat, default_value=(0.0, 1.0), help="Tuple of (lower, upper) bounds", sync=True)
     lower = CFloat(0.0, help="Lower bound", sync=False)
     upper = CFloat(1.0, help="Upper bound", sync=False)
@@ -90,14 +91,14 @@ class _FloatRangeWidget(_FloatWidget):
         elif name == 'upper':
             self.value = (self.value[0], new)
 
-class _BoundedFloatRangeWidget(_FloatRangeWidget):
+class _BoundedFloatRange(_FloatRange):
     step = CFloat(1.0, help="Minimum step that the value can take (ignored by some views)", sync=True)
     max = CFloat(100.0, help="Max value", sync=True)
     min = CFloat(0.0, help="Min value", sync=True)
     
     def __init__(self, *pargs, **kwargs):
         any_value_given = 'value' in kwargs or 'upper' in kwargs or 'lower' in kwargs
-        _FloatRangeWidget.__init__(self, *pargs, **kwargs)
+        _FloatRange.__init__(self, *pargs, **kwargs)
         
         # ensure a minimal amount of sanity
         if self.min > self.max:
@@ -156,9 +157,15 @@ class _BoundedFloatRangeWidget(_FloatRangeWidget):
             self.lower = low
 
 
-class FloatRangeSliderWidget(_BoundedFloatRangeWidget):
+class FloatRangeSlider(_BoundedFloatRange):
     _view_name = Unicode('FloatSliderView', sync=True)
     orientation = Enum([u'horizontal', u'vertical'], u'horizontal',
         help="Vertical or horizontal.", sync=True)
     range = Bool(True, help="Display a range selector", sync=True)
     readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
+
+# Remove in IPython 4.0
+FloatTextWidget = DeprecatedClass(FloatText, 'FloatTextWidget')
+BoundedFloatTextWidget = DeprecatedClass(BoundedFloatText, 'BoundedFloatTextWidget')
+FloatSliderWidget = DeprecatedClass(FloatSlider, 'FloatSliderWidget')
+FloatProgressWidget = DeprecatedClass(FloatProgress, 'FloatProgressWidget')

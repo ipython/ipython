@@ -1501,7 +1501,7 @@ div.cell.text_cell.rendered {
   box-pack: start;
   /* Modern browsers */
   justify-content: flex-start;
-  /* ContainerWidget */
+  /* Box */
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -1532,7 +1532,7 @@ div.cell.text_cell.rendered {
   box-pack: start;
   /* Modern browsers */
   justify-content: flex-start;
-  /* ContainerWidget */
+  /* Box */
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -1584,7 +1584,7 @@ div.cell.text_cell.rendered {
   box-pack: start;
   /* Modern browsers */
   justify-content: flex-start;
-  /* ContainerWidget */
+  /* Box */
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -1639,7 +1639,7 @@ div.cell.text_cell.rendered {
   box-pack: start;
   /* Modern browsers */
   justify-content: flex-start;
-  /* ContainerWidget */
+  /* Box */
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -1691,7 +1691,7 @@ div.cell.text_cell.rendered {
   box-pack: start;
   /* Modern browsers */
   justify-content: flex-start;
-  /* ContainerWidget */
+  /* Box */
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -1724,7 +1724,7 @@ div.cell.text_cell.rendered {
   width: 30px;
 }
 .widget-modal {
-  /* ContainerWidget - ModalView */
+  /* Box - ModalView */
   overflow: hidden;
   position: absolute !important;
   top: 0px;
@@ -1732,11 +1732,11 @@ div.cell.text_cell.rendered {
   margin-left: 0px !important;
 }
 .widget-modal-body {
-  /* ContainerWidget - ModalView Body */
+  /* Box - ModalView Body */
   max-height: none !important;
 }
-.widget-container {
-  /* ContainerWidget */
+.widget-box {
+  /* Box */
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;

@@ -1,4 +1,4 @@
-"""IntWidget class.
+"""Int class.  
 
 Represents an unbounded int using a widget.
 """
@@ -15,17 +15,21 @@ Represents an unbounded int using a widget.
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget
 from IPython.utils.traitlets import Unicode, CInt, Bool, Enum, Tuple
+from IPython.utils.warn import DeprecatedClass
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class _IntWidget(DOMWidget):
-    value = CInt(0, help="Int value", sync=True)
+class _Int(DOMWidget):
+    """Base class used to create widgets that represent an int."""
+    value = CInt(0, help="Int value", sync=True) 
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
 
 
-class _BoundedIntWidget(_IntWidget):
+class _BoundedInt(_Int):
+    """Base class used to create widgets that represent a int that is bounded
+    by a minium and maximum."""
     step = CInt(1, help="Minimum step that the value can take (ignored by some views)", sync=True)
     max = CInt(100, help="Max value", sync=True)
     min = CInt(0, help="Min value", sync=True)
@@ -41,26 +45,30 @@ class _BoundedIntWidget(_IntWidget):
             self.value = min(max(new, self.min), self.max)
 
 
-class IntTextWidget(_IntWidget):
+class IntText(_Int):
+    """Textbox widget that represents a int."""
     _view_name = Unicode('IntTextView', sync=True)
 
 
-class BoundedIntTextWidget(_BoundedIntWidget):
+class BoundedIntText(_BoundedInt):
+    """Textbox widget that represents a int bounded by a minimum and maximum value."""
     _view_name = Unicode('IntTextView', sync=True)
 
 
-class IntSliderWidget(_BoundedIntWidget):
+class IntSlider(_BoundedInt):
+    """Slider widget that represents a int bounded by a minimum and maximum value."""
     _view_name = Unicode('IntSliderView', sync=True)
-    orientation = Enum([u'horizontal', u'vertical'], u'horizontal',
+    orientation = Enum([u'horizontal', u'vertical'], u'horizontal', 
         help="Vertical or horizontal.", sync=True)
     range = Bool(False, help="Display a range selector", sync=True)
     readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
 
 
-class IntProgressWidget(_BoundedIntWidget):
+class IntProgress(_BoundedInt):
+    """Progress bar that represents a int bounded by a minimum and maximum value."""
     _view_name = Unicode('ProgressView', sync=True)
 
-class _IntRangeWidget(_IntWidget):
+class _IntRange(_Int):
     value = Tuple(CInt, CInt, default_value=(0, 1), help="Tuple of (lower, upper) bounds", sync=True)
     lower = CInt(0, help="Lower bound", sync=False)
     upper = CInt(1, help="Upper bound", sync=False)
@@ -89,14 +97,14 @@ class _IntRangeWidget(_IntWidget):
         elif name == 'upper':
             self.value = (self.value[0], new)
 
-class _BoundedIntRangeWidget(_IntRangeWidget):
+class _BoundedIntRange(_IntRange):
     step = CInt(1, help="Minimum step that the value can take (ignored by some views)", sync=True)
     max = CInt(100, help="Max value", sync=True)
     min = CInt(0, help="Min value", sync=True)
 
     def __init__(self, *pargs, **kwargs):
         any_value_given = 'value' in kwargs or 'upper' in kwargs or 'lower' in kwargs
-        _IntRangeWidget.__init__(self, *pargs, **kwargs)
+        _IntRange.__init__(self, *pargs, **kwargs)
         
         # ensure a minimal amount of sanity
         if self.min > self.max:
@@ -153,9 +161,15 @@ class _BoundedIntRangeWidget(_IntRangeWidget):
             self.upper = high
             self.lower = low
 
-class IntRangeSliderWidget(_BoundedIntRangeWidget):
+class IntRangeSlider(_BoundedIntRange):
     _view_name = Unicode('IntSliderView', sync=True)
     orientation = Enum([u'horizontal', u'vertical'], u'horizontal',
         help="Vertical or horizontal.", sync=True)
     range = Bool(True, help="Display a range selector", sync=True)
     readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
+
+# Remove in IPython 4.0
+IntTextWidget = DeprecatedClass(IntText, 'IntTextWidget')
+BoundedIntTextWidget = DeprecatedClass(BoundedIntText, 'BoundedIntTextWidget')
+IntSliderWidget = DeprecatedClass(IntSlider, 'IntSliderWidget')
+IntProgressWidget = DeprecatedClass(IntProgress, 'IntProgressWidget')

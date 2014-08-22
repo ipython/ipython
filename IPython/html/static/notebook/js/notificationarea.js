@@ -109,6 +109,12 @@ define([
             knw.set_message("Restarting kernel", 2000);
         });
 
+        this.events.on('status_dead.Kernel',function () {
+            that.save_widget.update_document_title();
+            knw.danger("Dead kernel");
+            $kernel_ind_icon.attr('class','kernel_dead_icon').attr('title','Kernel Dead');
+        });
+
         this.events.on('status_interrupting.Kernel',function () {
             knw.set_message("Interrupting kernel", 2000);
         });
@@ -118,6 +124,8 @@ define([
         $kernel_ind_icon.attr('class','kernel_busy_icon').attr('title','Kernel Busy');
 
         this.events.on('status_started.Kernel', function (evt, data) {
+            knw.info("Websockets Connected", 500);
+            that.events.trigger('status_busy.Kernel');
             data.kernel.kernel_info(function () {
                 that.events.trigger('status_idle.Kernel');
             });
@@ -153,8 +161,13 @@ define([
             var ws_url = data.ws_url;
             var early = data.early;
             var msg;
+
+            $kernel_ind_icon
+                .attr('class', 'kernel_disconnected_icon')
+                .attr('title', 'No Connection to Kernel');
+            
             if (!early) {
-                    knw.set_message('Reconnecting WebSockets', 1000);
+                    knw.warning('Reconnecting');
                     setTimeout(function () {
                         kernel.start_channels();
                     }, 5000);
@@ -173,7 +186,7 @@ define([
                     "OK": {},
                     "Reconnect": {
                         click: function () {
-                            knw.set_message('Reconnecting WebSockets', 1000);
+                            knw.warning('Reconnecting');
                             setTimeout(function () {
                                 kernel.start_channels();
                             }, 5000);

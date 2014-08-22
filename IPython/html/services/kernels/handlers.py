@@ -84,6 +84,9 @@ class KernelActionHandler(IPythonHandler):
 
 class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
     
+    def __repr__(self):
+        return "%s(%s)" % (self.__class__.__name__, getattr(self, 'kernel_id', 'uninitialized'))
+    
     def create_stream(self):
         km = self.kernel_manager
         meth = getattr(km, 'connect_%s' % self.channel)
@@ -145,6 +148,12 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
             self.zmq_stream.on_recv(self._on_zmq_reply)
 
     def on_message(self, msg):
+        if self.zmq_stream is None:
+            return
+        elif self.zmq_stream.closed():
+            self.log.info("%s closed, closing websocket.", self)
+            self.close()
+            return
         msg = json.loads(msg)
         self.session.send(self.zmq_stream, msg)
 
