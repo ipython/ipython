@@ -413,31 +413,13 @@ define(["widgets/js/manager",
                 this.update_visible(this.model, this.model.get("visible"));
                 this.update_css(this.model, this.model.get("_css"));
             }, this);
-            this.model.on('msg:custom', this.on_msg, this);
             this.model.on('change:visible', this.update_visible, this);
             this.model.on('change:_css', this.update_css, this);
-        },
-
-        on_msg: function(msg) {
-            // Handle DOM specific msgs.
-            switch(msg.msg_type) {
-                case 'add_class':
-                    this.add_class(msg.selector, msg.class_list);
-                    break;
-                case 'remove_class':
-                    this.remove_class(msg.selector, msg.class_list);
-                    break;
-            }
-        },
-
-        add_class: function (selector, class_list) {
-            // Add a DOM class to an element.
-            this._get_selector_element(selector).addClass(class_list);
-        },
-
-        remove_class: function (selector, class_list) {
-            // Remove a DOM class from an element.
-            this._get_selector_element(selector).removeClass(class_list);
+            this.model.on('change:_dom_classes', function(model, new_classes) {
+                var old_classes = model.previous('children');
+                this.update_classes(old_classes, new_classes);
+            }, this);
+            this.update_classes([], this.model.get('_dom_classes'));
         },
 
         update_visible: function(model, value) {
@@ -459,6 +441,15 @@ define(["widgets/js/manager",
                     elements.css(trait_key ,trait_value);
                 }
             }
+        },
+
+        update_classes: function (old_classes, new_classes) {
+            // Update the DOM classes applied to the topmost element.
+            this.do_diff(old_classes, new_classes, function(removed) {
+                this.$el.removeClass(removed);
+            }, function(added) {
+                this.$el.addClass(added);
+            });
         },
 
         _get_selector_element: function (selector) {
