@@ -137,11 +137,11 @@ define([
         button_container.append(button);
     };
 
-    var register = function (notebook, events) {
+    var register = function (notebook) {
         CellToolbar.register_callback('example.help',add_simple_dialog_button);
         example_preset.push('example.help');
 
-        CellToolbar.register_preset('Example',example_preset, notebook, events);
+        CellToolbar.register_preset('Example',example_preset, notebook);
         console.log('Example extension for metadata editing loaded.');
     };
     return {'register': register};

@@ -75,9 +75,7 @@ define([
     };
 
     Pager.prototype.style = function () {
-        this.pager_splitter_element.addClass('border-box-sizing ui-widget ui-state-default');
-        this.pager_element.addClass('border-box-sizing');
-        this.pager_element.find(".container").addClass('border-box-sizing');
+        this.pager_splitter_element.addClass('ui-widget ui-state-default');
         this.pager_splitter_element.attr('title', 'Click to Show/Hide pager area, drag to Resize');
     };
 

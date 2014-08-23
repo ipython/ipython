@@ -56,9 +56,9 @@ define([
         return comm.comm_id;
     };
     
-    CommManager.prototype.unregister_comm = function (comm_id) {
+    CommManager.prototype.unregister_comm = function (comm) {
         // Remove a comm from the mapping
-        delete this.comms[comm_id];
+        delete this.comms[comm.comm_id];
     };
     
     // comm message handlers
@@ -88,7 +88,7 @@ define([
         if (comm === undefined) {
             return;
         }
-        delete this.comms[content.comm_id];
+        this.unregister_comm(comm);
         try {
             comm.handle_close(msg);
         } catch (e) {

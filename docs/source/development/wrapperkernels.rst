@@ -73,7 +73,7 @@ Example
         language_version = '0.1'
         banner = "Echo kernel - as useful as a parrot"
 
-        def do_execute(self, code, silent, store_history=True, user_experssions=None,
+        def do_execute(self, code, silent, store_history=True, user_expressions=None,
                        allow_stdin=False):
             if not silent:
                 stream_content = {'name': 'stdout', 'data':code}

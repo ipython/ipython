@@ -919,7 +919,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
 
         # Adjust the prompt position if we have inserted before it. This is safe
         # because buffer truncation is disabled when not executing.
-        if before_prompt and not self._executing:
+        if before_prompt and (self._reading or not self._executing):
             diff = cursor.position() - start_pos
             self._append_before_prompt_pos += diff
             self._prompt_pos += diff
@@ -1759,8 +1759,10 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
         # case input prompt is active.
         buffer_size = self._control.document().maximumBlockCount()
 
-        if self._executing and not flush and \
-                self._pending_text_flush_interval.isActive():
+        if (self._executing and not flush and
+                self._pending_text_flush_interval.isActive() and
+                cursor.position() == self._get_end_cursor().position()):
+            # Queue the text to insert in case it is being inserted at end
             self._pending_insert_text.append(text)
             if buffer_size > 0:
                 self._pending_insert_text = self._get_last_lines_from_list(
@@ -2098,6 +2100,7 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
                 self._prompt = prompt
                 self._prompt_html = None
 
+        self._flush_pending_stream()
         self._prompt_pos = self._get_end_cursor().position()
         self._prompt_started()
 

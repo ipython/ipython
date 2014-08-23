@@ -152,7 +152,6 @@ define([
                 that.$body.outerHeight(that.$window.innerHeight() - that.$title_bar.outerHeight());
             });
 
-            this.$el_to_style = this.$body;
             this._shown_once = false;
             this.popped_out = true;
 
@@ -264,7 +263,7 @@ define([
             // "modal" - select the modal div
             // "modal [selector]" - select element(s) within the modal div.
             // "[selector]" - select elements within $el
-            // "" - select the $el_to_style
+            // "" - select the $el
             if (selector.substring(0, 5) == 'modal') {
                 if (selector == 'modal') {
                     return this.$window;

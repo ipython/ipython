@@ -13,11 +13,12 @@ in the IPython notebook front-end.
 # Imports
 #-----------------------------------------------------------------------------
 from contextlib import contextmanager
+import collections
 
 from IPython.core.getipython import get_ipython
 from IPython.kernel.comm import Comm
 from IPython.config import LoggingConfigurable
-from IPython.utils.traitlets import Unicode, Dict, Instance, Bool, List, Tuple, Int
+from IPython.utils.traitlets import Unicode, Dict, Instance, Bool, List, Tuple, Int, Set
 from IPython.utils.py3compat import string_types
 
 #-----------------------------------------------------------------------------
@@ -98,7 +99,7 @@ class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
     _model_name = Unicode('WidgetModel', help="""Name of the backbone model 
         registered in the front-end to create and sync this widget with.""")
-    _view_name = Unicode(help="""Default view registered in the front-end
+    _view_name = Unicode('WidgetView', help="""Default view registered in the front-end
         to use to represent the widget.""", sync=True)
     _comm = Instance('IPython.kernel.comm.Comm')
     
@@ -110,7 +111,8 @@ class Widget(LoggingConfigurable):
         return [name for name in self.traits(sync=True)]
     
     _property_lock = Tuple((None, None))
-    
+    _send_state_lock = Int(0)
+    _states_to_send = Set(allow_none=False)
     _display_callbacks = Instance(CallbackDispatcher, ())
     _msg_callbacks = Instance(CallbackDispatcher, ())
     
@@ -141,7 +143,6 @@ class Widget(LoggingConfigurable):
             # Create a comm.
             self._comm = Comm(target_name=self._model_name)
             self._comm.on_msg(self._handle_msg)
-            self._comm.on_close(self._close)
             Widget.widgets[self.model_id] = self
 
             # first update
@@ -158,32 +159,29 @@ class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
     # Methods
     #-------------------------------------------------------------------------
-    def _close(self):
-        """Private close - cleanup objects, registry entries"""
-        del Widget.widgets[self.model_id]
-        self._comm = None
 
     def close(self):
         """Close method.
 
-        Closes the widget which closes the underlying comm.
+        Closes the underlying comm.
         When the comm is closed, all of the widget views are automatically
         removed from the front-end."""
         if self._comm is not None:
+            Widget.widgets.pop(self.model_id, None)
             self._comm.close()
-            self._close()
-
+        self._comm = None
+    
     def send_state(self, key=None):
         """Sends the widget state, or a piece of it, to the front-end.
 
         Parameters
         ----------
-        key : unicode (optional)
-            A single property's name to sync with the front-end.
+        key : unicode, or iterable (optional)
+            A single property's name or iterable of property names to sync with the front-end.
         """
         self._send({
             "method" : "update",
-            "state"  : self.get_state()
+            "state"  : self.get_state(key=key)
         })
 
     def get_state(self, key=None):
@@ -191,10 +189,17 @@ class Widget(LoggingConfigurable):
 
         Parameters
         ----------
-        key : unicode (optional)
-            A single property's name to get.
+        key : unicode or iterable (optional)
+            A single property's name or iterable of property names to get.
         """
-        keys = self.keys if key is None else [key]
+        if key is None:
+            keys = self.keys
+        elif isinstance(key, string_types):
+            keys = [key]
+        elif isinstance(key, collections.Iterable):
+            keys = key
+        else:
+            raise ValueError("key must be a string, an iterable of keys, or None")
         state = {}
         for k in keys:
             f = self.trait_metadata(k, 'to_json')
@@ -259,10 +264,29 @@ class Widget(LoggingConfigurable):
         finally:
             self._property_lock = (None, None)
 
+    @contextmanager
+    def hold_sync(self):
+        """Hold syncing any state until the context manager is released"""
+        # We increment a value so that this can be nested.  Syncing will happen when
+        # all levels have been released.
+        self._send_state_lock += 1
+        try:
+            yield
+        finally:
+            self._send_state_lock -=1
+            if self._send_state_lock == 0:
+                self.send_state(self._states_to_send)
+                self._states_to_send.clear()
+
     def _should_send_property(self, key, value):
         """Check the property lock (property_lock)"""
-        return key != self._property_lock[0] or \
-        value != self._property_lock[1]
+        if (key == self._property_lock[0] and value == self._property_lock[1]):
+            return False
+        elif self._send_state_lock > 0:
+            self._states_to_send.add(key)
+            return False
+        else:
+            return True
     
     # Event handlers
     @_show_traceback
@@ -392,10 +416,7 @@ class DOMWidget(Widget):
         selector: unicode (optional, kwarg only)
             JQuery selector to use to apply the CSS key/value.  If no selector 
             is provided, an empty selector is used.  An empty selector makes the 
-            front-end try to apply the css to a default element.  The default
-            element is an attribute unique to each view, which is a DOM element
-            of the view that should be styled with common CSS (see 
-            `$el_to_style` in the Javascript code).
+            front-end try to apply the css to the top-level element.
         """
         if value is None:
             css_dict = dict_or_key

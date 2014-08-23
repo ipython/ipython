@@ -463,19 +463,11 @@ define(["widgets/js/manager",
 
         _get_selector_element: function (selector) {
             // Get the elements via the css selector.
-
-            // If the selector is blank, apply the style to the $el_to_style 
-            // element.  If the $el_to_style element is not defined, use apply 
-            // the style to the view's element.
             var elements;
             if (!selector) {
-                if (this.$el_to_style === undefined) {
-                    elements = this.$el;
-                } else {
-                    elements = this.$el_to_style;
-                }
+                elements = this.$el;
             } else {
-                elements = this.$el.find(selector);
+                elements = this.$el.find(selector).addBack(selector);
             }
             return elements;
         },

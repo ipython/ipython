@@ -123,8 +123,7 @@ define([
         this.notebook_name_blacklist_re = /[\/\\:]/;
         this.nbformat = 3; // Increment this when changing the nbformat
         this.nbformat_minor = 0; // Increment this when changing the nbformat
-        this.codemirror_mode = 'ipython'
-        this.style();
+        this.codemirror_mode = 'ipython';
         this.create_elements();
         this.bind_events();
         this.save_notebook = function() { // don't allow save until notebook_loaded
@@ -132,19 +131,11 @@ define([
         };
 
         // Trigger cell toolbar registration.
-        default_celltoolbar.register(this, options.events);
-        rawcell_celltoolbar.register(this, options.events);
-        slideshow_celltoolbar.register(this, options.events);
+        default_celltoolbar.register(this);
+        rawcell_celltoolbar.register(this);
+        slideshow_celltoolbar.register(this);
     };
 
-    /**
-     * Tweak the notebook's CSS style.
-     * 
-     * @method style
-     */
-    Notebook.prototype.style = function () {
-        $('div#notebook').addClass('border-box-sizing');
-    };
 
     /**
      * Create an HTML and CSS representation of the notebook.
@@ -1912,14 +1903,40 @@ define([
      * @method save_notebook
      */
     Notebook.prototype.save_notebook = function (extra_settings) {
-        var content = $.extend(this.toJSON(), {
-            nbformat : this.nbformat,
-            nbformat_minor : this.nbformat_minor
-        })
-        this.content_manager.save_notebook(this.notebook_path,
-            this.notebook_name,
-            content,
-            extra_settings);
+        // Create a JSON model to be sent to the server.
+        var model = {};
+        model.name = this.notebook_name;
+        model.path = this.notebook_path;
+        model.type = 'notebook';
+        model.format = 'json';
+        model.content = this.toJSON();
+        model.content.nbformat = this.nbformat;
+        model.content.nbformat_minor = this.nbformat_minor;
+        // time the ajax call for autosave tuning purposes.
+        var start =  new Date().getTime();
+        // We do the call with settings so we can set cache to false.
+        var settings = {
+            processData : false,
+            cache : false,
+            type : "PUT",
+            data : JSON.stringify(model),
+            headers : {'Content-Type': 'application/json'},
+            success : $.proxy(this.save_notebook_success, this, start),
+            error : $.proxy(this.save_notebook_error, this)
+        };
+        if (extra_settings) {
+            for (var key in extra_settings) {
+                settings[key] = extra_settings[key];
+            }
+        }
+        this.events.trigger('notebook_saving.Notebook');
+        var url = utils.url_join_encode(
+            this.base_url,
+            'api/contents',
+            this.notebook_path,
+            this.notebook_name
+        );
+        $.ajax(url, settings);
     };
     
     /**
@@ -2022,6 +2039,36 @@ define([
         });
     };
 
+    Notebook.prototype.new_notebook = function(){
+        var path = this.notebook_path;
+        var base_url = this.base_url;
+        var settings = {
+            processData : false,
+            cache : false,
+            type : "POST",
+            dataType : "json",
+            async : false,
+            success : function (data, status, xhr){
+                var notebook_name = data.name;
+                window.open(
+                    utils.url_join_encode(
+                        base_url,
+                        'notebooks',
+                        path,
+                        notebook_name
+                    ),
+                    '_blank'
+                );
+            },
+            error : utils.log_ajax_error,
+        };
+        var url = utils.url_join_encode(
+            base_url,
+            'api/contents',
+            path
+        );
+        $.ajax(url,settings);
+    };
 
     Notebook.prototype.copy_notebook = function(){
         var path = this.notebook_path;
@@ -2045,7 +2092,7 @@ define([
         };
         var url = utils.url_join_encode(
             base_url,
-            'api/notebooks',
+            'api/contents',
             path
         );
         $.ajax(url,settings);
@@ -2055,21 +2102,49 @@ define([
         if (!nbname.match(/\.ipynb$/)) {
             nbname = nbname + ".ipynb";
         }
-
-        this.content_manager.rename_notebook(this.notebook_path,
-            this.notebook_name, nbname);
+        var data = {name: nbname};
+        var settings = {
+            processData : false,
+            cache : false,
+            type : "PATCH",
+            data : JSON.stringify(data),
+            dataType: "json",
+            headers : {'Content-Type': 'application/json'},
+            success : $.proxy(that.rename_success, this),
+            error : $.proxy(that.rename_error, this)
+        };
+        this.events.trigger('rename_notebook.Notebook', data);
+        var url = utils.url_join_encode(
+            this.base_url,
+            'api/contents',
+            this.notebook_path,
+            this.notebook_name
+        );
+        $.ajax(url, settings);
     };
 
     Notebook.prototype.delete = function () {
-        this.content_manager.delete_notebook(this.notebook_name,
-            this.notebook_path);
+        var that = this;
+        var settings = {
+            processData : false,
+            cache : false,
+            type : "DELETE",
+            dataType: "json",
+            error : utils.log_ajax_error,
+        };
+        var url = utils.url_join_encode(
+            this.base_url,
+            'api/contents',
+            this.notebook_path,
+            this.notebook_name
+        );
+        $.ajax(url, settings);
     };
 
     Notebook.prototype.rename_error = function (xhr, status, error) {
         var that = this;
         var dialog_body = $('<div/>').append(
-            $("<p/>").addClass("rename-message")
-            .text('This notebook name already exists.')
+            $("<p/>").text('This notebook name already exists.')
         );
         this.events.trigger('notebook_rename_failed.Notebook', [xhr, status, error]);
         dialog.modal({
@@ -2107,11 +2182,23 @@ define([
     Notebook.prototype.load_notebook = function (notebook_name, notebook_path) {
         this.notebook_name = notebook_name;
         this.notebook_path = notebook_path;
-        this.content_manager.load_notebook(
-            notebook_path,
-            notebook_name,
-            $.proxy(this.load_notebook_success,this),
-            $.proxy(this.load_notebook_error,this));
+        // We do the call with settings so we can set cache to false.
+        var settings = {
+            processData : false,
+            cache : false,
+            type : "GET",
+            dataType : "json",
+            success : $.proxy(this.load_notebook_success,this),
+            error : $.proxy(this.load_notebook_error,this),
+        };
+        this.events.trigger('notebook_loading.Notebook');
+        var url = utils.url_join_encode(
+            this.base_url,
+            'api/contents',
+            this.notebook_path,
+            this.notebook_name
+        );
+        $.ajax(url, settings);
     };
 
     /**
@@ -2189,7 +2276,7 @@ define([
         // load toolbar state
         if (this.metadata.celltoolbar) {
             celltoolbar.CellToolbar.global_show();
-            celltoolbar.CellToolbar.activate_preset(this.metadata.celltoolbar, this.events);
+            celltoolbar.CellToolbar.activate_preset(this.metadata.celltoolbar);
         } else {
             celltoolbar.CellToolbar.global_hide();
         }
@@ -2209,13 +2296,14 @@ define([
      */
     Notebook.prototype.load_notebook_error = function (xhr, status, error) {
         this.events.trigger('notebook_load_failed.Notebook', [xhr, status, error]);
+        utils.log_ajax_error(xhr, status, error);
         var msg;
         if (xhr.status === 400) {
-            msg = error;
+            msg = escape(utils.ajax_error_msg(xhr));
         } else if (xhr.status === 500) {
             msg = "An unknown error occurred while loading this notebook. " +
             "This version can load notebook formats " +
-            "v" + this.nbformat + " or earlier.";
+            "v" + this.nbformat + " or earlier. See the server log for details.";
         }
         dialog.modal({
             notebook: this,
@@ -2270,7 +2358,7 @@ define([
     Notebook.prototype.list_checkpoints = function () {
         var url = utils.url_join_encode(
             this.base_url,
-            'api/notebooks',
+            'api/contents',
             this.notebook_path,
             this.notebook_name,
             'checkpoints'
@@ -2321,7 +2409,7 @@ define([
     Notebook.prototype.create_checkpoint = function () {
         var url = utils.url_join_encode(
             this.base_url,
-            'api/notebooks',
+            'api/contents',
             this.notebook_path,
             this.notebook_name,
             'checkpoints'
@@ -2450,7 +2538,7 @@ define([
         this.events.trigger('notebook_restoring.Notebook', checkpoint);
         var url = utils.url_join_encode(
             this.base_url,
-            'api/notebooks',
+            'api/contents',
             this.notebook_path,
             this.notebook_name,
             'checkpoints',
@@ -2498,7 +2586,7 @@ define([
         this.events.trigger('notebook_restoring.Notebook', checkpoint);
         var url = utils.url_join_encode(
             this.base_url,
-            'api/notebooks',
+            'api/contents',
             this.notebook_path,
             this.notebook_name,
             'checkpoints',
@@ -2530,10 +2618,10 @@ define([
      * @method delete_checkpoint_error
      * @param {jqXHR} xhr jQuery Ajax object
      * @param {String} status Description of response status
-     * @param {String} error_msg HTTP error message
+     * @param {String} error HTTP error message
      */
-    Notebook.prototype.delete_checkpoint_error = function (xhr, status, error_msg) {
-        this.events.trigger('checkpoint_delete_failed.Notebook');
+    Notebook.prototype.delete_checkpoint_error = function (xhr, status, error) {
+        this.events.trigger('checkpoint_delete_failed.Notebook', [xhr, status, error]);
     };
 
 

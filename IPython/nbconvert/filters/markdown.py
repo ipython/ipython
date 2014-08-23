@@ -113,9 +113,9 @@ class MathInlineLexer(mistune.InlineLexer):
 class MarkdownWithMath(mistune.Markdown):
     def __init__(self, renderer, **kwargs):
         if 'inline' not in kwargs:
-            kwargs['inline'] = MathInlineLexer(renderer, **kwargs)
+            kwargs['inline'] = MathInlineLexer
         if 'block' not in kwargs:
-            kwargs['block'] = MathBlockLexer(**kwargs)
+            kwargs['block'] = MathBlockLexer
         super(MarkdownWithMath, self).__init__(renderer, **kwargs)
 
     def parse_block_math(self):

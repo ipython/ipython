@@ -24,6 +24,7 @@ div#header {
     padding-left: 30px;
     padding-bottom: 5px;
     border-bottom: 1px solid @navbar-default-border;
+    .border-box-sizing();
 }
 
 #ipython_notebook {
@@ -50,6 +51,7 @@ div#header {
 #site {
     width: 100%;
     display: none;
+    .border-box-sizing();
 }
 
 /* Smaller buttons */
@@ -67,6 +69,14 @@ input.ui-button {
 
 span#login_widget {
     float: right;
+}
+
+span#login_widget > .button,
+#logout
+{
+    .btn();
+    .btn-default();
+    .btn-sm();
 }
 
 .nav-header {

@@ -8,23 +8,19 @@ define([
     'base/js/dialog',
     'base/js/keyboard',
     'dateformat',
-], function(IPython, $, utils, dialog, keyboard) {
+], function(IPython, $, utils, dialog, keyboard, dateformat) {
     "use strict";
 
     var SaveWidget = function (selector, options) {
-        // TODO: Remove circulat ref.
+        // TODO: Remove circular ref.
         this.notebook = undefined;
         this.selector = selector;
         this.events = options.events;
         this.keyboard_manager = options.keyboard_manager;
         if (this.selector !== undefined) {
             this.element = $(selector);
-            this.style();
             this.bind_events();
         }
-    };
-
-    SaveWidget.prototype.style = function () {
     };
 
 
@@ -157,7 +153,7 @@ define([
         }
         var d = new Date(checkpoint.last_modified);
         this.set_checkpoint_status(
-            "Last Checkpoint: " + d.format('mmm dd HH:MM')
+            "Last Checkpoint: " + dateformat(d,'mmm dd HH:MM')
         );
     };
 
@@ -169,7 +165,7 @@ define([
         }
     };
 
-    // Backwards compatability.
+    // Backwards compatibility.
     IPython.SaveWidget = SaveWidget;
 
     return {'SaveWidget': SaveWidget};

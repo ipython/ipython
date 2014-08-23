@@ -52,7 +52,7 @@ require([
         common_options));
     login_widget = new loginwidget.LoginWidget('#login_widget', common_options);
 
-    $('#new_notebook').button().click(function (e) {
+    $('#new_notebook').click(function (e) {
         content_manager.new_notebook(common_options.notebook_path);
     });
 

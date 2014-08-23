@@ -14,8 +14,8 @@ from __future__ import print_function
 
 # Stdlib imports
 import subprocess
-import re
 import warnings
+import re
 from io import TextIOWrapper, BytesIO
 
 # IPython imports
@@ -87,9 +87,14 @@ def get_pandoc_version():
         if not is_cmd_found('pandoc'):
             raise PandocMissing()
 
-        out = subprocess.check_output( ['pandoc', '-v'], universal_newlines=True)
-        pv_re = re.compile(r'(\d{0,3}\.\d{0,3}\.\d{0,3})')
-        __version = pv_re.search(out).group(0)
+        out = subprocess.check_output(['pandoc', '-v'],
+                                      universal_newlines=True)
+        out_lines = out.splitlines()
+        version_pattern = re.compile(r"^\d+(\.\d+){1,}$")
+        for tok in out_lines[0].split():
+            if version_pattern.match(tok):
+                __version = tok
+                break
     return __version
 
 
@@ -102,6 +107,12 @@ def check_pandoc_version():
       If pandoc is unavailable.
     """
     v = get_pandoc_version()
+    if v is None:
+        warnings.warn("Sorry, we cannot determine the version of pandoc.\n"
+                      "Please consider reporting this issue and include the"
+                      "output of pandoc --version.\nContinuing...",
+                      RuntimeWarning, stacklevel=2)
+        return False
     ok = check_version(v , _minimal_version )
     if not ok:
         warnings.warn( "You are using an old version of pandoc (%s)\n" % v + 

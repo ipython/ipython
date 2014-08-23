@@ -351,6 +351,18 @@ define([
             }
             index = Math.min(Math.max(index, 0), options.length-1);
             this.sel[0].selectedIndex = index;
+        } else if (code == keycodes.pageup || code == keycodes.pagedown) {
+            CodeMirror.e_stop(event);
+
+            var options = this.sel.find('option');
+            var index = this.sel[0].selectedIndex;
+            if (code == keycodes.pageup) {
+                index -= 10; // As 10 is the hard coded size of the drop down menu
+            } else {
+                index += 10;
+            }
+            index = Math.min(Math.max(index, 0), options.length-1);
+            this.sel[0].selectedIndex = index;
         } else if (code == keycodes.left || code == keycodes.right) {
             this.close();
         }

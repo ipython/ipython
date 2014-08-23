@@ -7,6 +7,6 @@ rmagic
 .. note::
 
    The rmagic extension has been moved to `rpy2 <http://rpy.sourceforge.net/rpy2.html>`_
-   as :mod:`rpy2.interactive.ipython`.
+   as :mod:`rpy2.ipython`.
 
 .. automodule:: IPython.extensions.rmagic

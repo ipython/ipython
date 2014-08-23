@@ -35,11 +35,11 @@ define([
                 },
             "Slide Type");
 
-    var register = function (notebook, events) {
+    var register = function (notebook) {
         CellToolbar.register_callback('slideshow.select',select_type);
         slideshow_preset.push('slideshow.select');
 
-        CellToolbar.register_preset('Slideshow',slideshow_preset, notebook, events);
+        CellToolbar.register_preset('Slideshow',slideshow_preset, notebook);
         console.log('Slideshow extension for metadata editing loaded.');
     };
     return {'register': register};

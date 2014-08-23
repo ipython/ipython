@@ -145,6 +145,7 @@ have['sqlite3'] = test_for('sqlite3')
 have['cython'] = test_for('Cython')
 have['tornado'] = test_for('tornado.version_info', (3,1,0), callback=None)
 have['jinja2'] = test_for('jinja2')
+have['mistune'] = test_for('mistune')
 have['requests'] = test_for('requests')
 have['sphinx'] = test_for('sphinx')
 have['jsonschema'] = test_for('jsonschema')
@@ -287,7 +288,7 @@ test_sections['config'].exclude('profile')
 
 # nbconvert:
 sec = test_sections['nbconvert']
-sec.requires('pygments', 'jinja2', 'jsonschema', 'jsonpointer')
+sec.requires('pygments', 'jinja2', 'jsonschema', 'jsonpointer', 'mistune')
 # Exclude nbconvert directories containing config files used to test.
 # Executing the config files with iptest would cause an exception.
 sec.exclude('tests.files')
