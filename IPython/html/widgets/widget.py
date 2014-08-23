@@ -101,7 +101,7 @@ class Widget(LoggingConfigurable):
         registered in the front-end to create and sync this widget with.""")
     _view_name = Unicode('WidgetView', help="""Default view registered in the front-end
         to use to represent the widget.""", sync=True)
-    _comm = Instance('IPython.kernel.comm.Comm')
+    comm = Instance('IPython.kernel.comm.Comm')
     
     msg_throttle = Int(3, sync=True, help="""Maximum number of msgs the 
         front-end can send before receiving an idle msg from the back-end.""")
@@ -121,10 +121,12 @@ class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
     def __init__(self, **kwargs):
         """Public constructor"""
+        self._model_id = kwargs.pop('model_id', None)
         super(Widget, self).__init__(**kwargs)
 
         self.on_trait_change(self._handle_property_changed, self.keys)
         Widget._call_widget_constructed(self)
+        self.open()
 
     def __del__(self):
         """Object disposal"""
@@ -134,21 +136,20 @@ class Widget(LoggingConfigurable):
     # Properties
     #-------------------------------------------------------------------------
 
-    @property
-    def comm(self):
-        """Gets the Comm associated with this widget.
-
-        If a Comm doesn't exist yet, a Comm will be created automagically."""
-        if self._comm is None:
-            # Create a comm.
-            self._comm = Comm(target_name=self._model_name)
-            self._comm.on_msg(self._handle_msg)
+    def open(self):
+        """Open a comm to the frontend if one isn't already open."""
+        if self.comm is None:
+            if self._model_id is None:
+                self.comm = Comm(target_name=self._model_name)
+                self._model_id = self.model_id
+            else:
+                self.comm = Comm(target_name=self._model_name, comm_id=self._model_id)
+            self.comm.on_msg(self._handle_msg)
             Widget.widgets[self.model_id] = self
 
             # first update
             self.send_state()
-        return self._comm
-    
+
     @property
     def model_id(self):
         """Gets the model id of this widget.
@@ -166,10 +167,10 @@ class Widget(LoggingConfigurable):
         Closes the underlying comm.
         When the comm is closed, all of the widget views are automatically
         removed from the front-end."""
-        if self._comm is not None:
+        if self.comm is not None:
             Widget.widgets.pop(self.model_id, None)
-            self._comm.close()
-        self._comm = None
+            self.comm.close()
+            self.comm = None
     
     def send_state(self, key=None):
         """Sends the widget state, or a piece of it, to the front-end.
@@ -416,7 +417,10 @@ class DOMWidget(Widget):
         selector: unicode (optional, kwarg only)
             JQuery selector to use to apply the CSS key/value.  If no selector 
             is provided, an empty selector is used.  An empty selector makes the 
-            front-end try to apply the css to the top-level element.
+            front-end try to apply the css to a default element.  The default
+            element is an attribute unique to each view, which is a DOM element
+            of the view that should be styled with common CSS (see 
+            `$el_to_style` in the Javascript code).
         """
         if value is None:
             css_dict = dict_or_key

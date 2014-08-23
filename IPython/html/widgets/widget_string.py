@@ -1,4 +1,4 @@
-"""StringWidget class.  
+"""String class.  
 
 Represents a unicode string using a widget.
 """
@@ -15,37 +15,44 @@ Represents a unicode string using a widget.
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget, CallbackDispatcher
 from IPython.utils.traitlets import Unicode, Bool
+from IPython.utils.warn import DeprecatedClass
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class _StringWidget(DOMWidget):
+class _String(DOMWidget):
+    """Base class used to create widgets that represent a string."""
     value = Unicode(help="String value", sync=True)
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
     placeholder = Unicode("", help="Placeholder text to display when nothing has been typed", sync=True)
 
 
-class HTMLWidget(_StringWidget):
+class HTML(_String):
+    """Renders the string `value` as HTML."""
     _view_name = Unicode('HTMLView', sync=True)
 
 
-class LatexWidget(_StringWidget):
+class Latex(_String):
+    """Renders math inside the string `value` as Latex (requires $ $ or $$ $$ 
+    and similar latex tags)."""
     _view_name = Unicode('LatexView', sync=True)
 
 
-class TextareaWidget(_StringWidget):
+class Textarea(_String):
+    """Multiline text area widget."""
     _view_name = Unicode('TextareaView', sync=True)
 
     def scroll_to_bottom(self):
         self.send({"method": "scroll_to_bottom"})
 
 
-class TextWidget(_StringWidget):
+class Text(_String):
+    """Single line textbox widget."""
     _view_name = Unicode('TextView', sync=True)
 
     def __init__(self, **kwargs):
-        super(TextWidget, self).__init__(**kwargs)
+        super(Text, self).__init__(**kwargs)
         self._submission_callbacks = CallbackDispatcher()
         self.on_msg(self._handle_string_msg)
 
@@ -71,3 +78,10 @@ class TextWidget(_StringWidget):
         remove: bool (optional)
             Whether to unregister the callback"""
         self._submission_callbacks.register_callback(callback, remove=remove)
+
+
+# Remove in IPython 4.0
+HTMLWidget = DeprecatedClass(HTML, 'HTMLWidget')
+LatexWidget = DeprecatedClass(Latex, 'LatexWidget')
+TextareaWidget = DeprecatedClass(Textarea, 'TextareaWidget')
+TextWidget = DeprecatedClass(Text, 'TextWidget')

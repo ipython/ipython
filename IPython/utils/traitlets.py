@@ -458,8 +458,8 @@ class TraitType(object):
                 % (self.name, self.info(), repr_type(value))
         raise TraitError(e)
 
-    def get_metadata(self, key):
-        return getattr(self, '_metadata', {}).get(key, None)
+    def get_metadata(self, key, default=None):
+        return getattr(self, '_metadata', {}).get(key, default)
 
     def set_metadata(self, key, value):
         getattr(self, '_metadata', {})[key] = value
@@ -728,7 +728,7 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
 
         return result
 
-    def trait_metadata(self, traitname, key):
+    def trait_metadata(self, traitname, key, default=None):
         """Get metadata values for trait by key."""
         try:
             trait = getattr(self.__class__, traitname)
@@ -736,7 +736,7 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
             raise TraitError("Class %s does not have a trait named %s" %
                                 (self.__class__.__name__, traitname))
         else:
-            return trait.get_metadata(key)
+            return trait.get_metadata(key, default)
 
 #-----------------------------------------------------------------------------
 # Actual TraitTypes implementations/subclasses
