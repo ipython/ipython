@@ -7,7 +7,8 @@ define([
     'base/js/utils',
     'notebook/js/tour',
     'bootstrap',
-], function(IPython, $, utils, tour) {
+    'moment',
+], function(IPython, $, utils, tour, bootstrap, moment) {
     "use strict";
     
     var MenuBar = function (selector, options) {
@@ -336,7 +337,7 @@ define([
                 $("<li/>").append(
                     $("<a/>")
                     .attr("href", "#")
-                    .text(d.format("mmm dd HH:MM:ss"))
+                    .text(moment(d).format("LLLL"))
                     .click(function () {
                         that.notebook.restore_checkpoint_dialog(checkpoint);
                     })

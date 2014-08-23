@@ -7,7 +7,8 @@ define([
     'base/js/utils',
     'base/js/dialog',
     'notebook/js/notificationwidget',
-], function(IPython, $, utils, dialog, notificationwidget) {
+    'moment'
+], function(IPython, $, utils, dialog, notificationwidget, moment) {
     "use strict";
 
     var NotificationArea = function (selector, options) {
@@ -221,7 +222,7 @@ define([
             var msg = "Checkpoint created";
             if (data.last_modified) {
                 var d = new Date(data.last_modified);
-                msg = msg + ": " + d.format("HH:MM:ss");
+                msg = msg + ": " + moment(d).format("HH:mm:ss");
             }
             nnw.set_message(msg, 2000);
         });
