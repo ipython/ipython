@@ -20,6 +20,7 @@ define([
         //  options: dictionary
         //      Dictionary of keyword arguments.
         //          notebook: Notebook instance
+        //          content_manager: ContentManager instance
         //          layout_manager: LayoutManager instance
         //          events: $(Events) instance
         //          save_widget: SaveWidget instance
@@ -31,6 +32,7 @@ define([
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
         this.selector = selector;
         this.notebook = options.notebook;
+        this.content_manager = options.content_manager;
         this.layout_manager = options.layout_manager;
         this.events = options.events;
         this.save_widget = options.save_widget;
@@ -84,7 +86,9 @@ define([
         //  File
         var that = this;
         this.element.find('#new_notebook').click(function () {
-            that.notebook.new_notebook();
+            // Create a new notebook in the same path as the current
+            // notebook's path.
+            that.content_manager.new_notebook(that.notebook.notebook_path);
         });
         this.element.find('#open_notebook').click(function () {
             window.open(utils.url_join_encode(
@@ -307,10 +311,12 @@ define([
         
         this.events.on('checkpoints_listed.Notebook', function (event, data) {
             that.update_restore_checkpoint(that.notebook.checkpoints);
+            that.update_delete_checkpoint(that.notebook.checkpoints);
         });
         
         this.events.on('checkpoint_created.Notebook', function (event, data) {
             that.update_restore_checkpoint(that.notebook.checkpoints);
+            that.update_delete_checkpoint(that.notebook.checkpoints);
         });
     };
 
@@ -339,6 +345,37 @@ define([
                     .text(d.format("mmm dd HH:MM:ss"))
                     .click(function () {
                         that.notebook.restore_checkpoint_dialog(checkpoint);
+                    })
+                )
+            );
+        });
+    };
+
+    MenuBar.prototype.update_delete_checkpoint = function(checkpoints) {
+        var ul = this.element.find("#delete_checkpoint").find("ul");
+        ul.empty();
+        if (!checkpoints || checkpoints.length === 0) {
+            ul.append(
+                $("<li/>")
+                .addClass("disabled")
+                .append(
+                    $("<a/>")
+                    .text("No checkpoints")
+                )
+            );
+            return;
+        }
+        
+        var that = this;
+        checkpoints.map(function (checkpoint) {
+            var d = new Date(checkpoint.last_modified);
+            ul.append(
+                $("<li/>").append(
+                    $("<a/>")
+                    .attr("href", "#")
+                    .text(d.format("mmm dd HH:MM:ss"))
+                    .click(function () {
+                        that.notebook.delete_checkpoint_dialog(checkpoint);
                     })
                 )
             );

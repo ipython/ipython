@@ -20,6 +20,7 @@ define([
         //          element_name: string
         //          base_url: string
         //          notebook_path: string
+        //          content_manager: ContentManager instance
         var that = this;
         this.session_list = options.session_list;
         // allow code re-use by just changing element_name in kernellist.js
@@ -34,9 +35,24 @@ define([
         this.sessions = {};
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
         this.notebook_path = options.notebook_path || utils.get_body_data("notebookPath");
+        this.content_manager = options.content_manager;
         if (this.session_list && this.session_list.events) {
             this.session_list.events.on('sessions_loaded.Dashboard', 
                 function(e, d) { that.sessions_loaded(d); });
+        }
+
+        if (this.content_manager && this.content_manager.events) {
+            this.content_manager.events.on('notebook_deleted.ContentManager',
+                function(e, d) {
+                    // Remove the deleted notebook.
+                    $( ":data(name)" ).each(function() {
+                        var element = $( this );
+                        if (element.data( "name" ) == d.name &&
+                            element.data( "path" ) == d.path) {
+                            element.remove();
+                        }
+                    });
+                });
         }
     };
 
@@ -130,25 +146,13 @@ define([
 
     NotebookList.prototype.load_list = function () {
         var that = this;
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "GET",
-            dataType : "json",
-            success : $.proxy(this.list_loaded, this),
-            error : $.proxy( function(xhr, status, error){
-                utils.log_ajax_error(xhr, status, error);
+        this.content_manager.list_contents(
+            this.notebook_path,
+            $.proxy(this.list_loaded, this),
+            $.proxy( function(xhr, status, error) { 
                 that.list_loaded([], null, null, {msg:"Error connecting to server."});
                              },this)
-        };
-
-        var url = utils.url_join_encode(
-                this.base_url,
-                'api',
-                'contents',
-                this.notebook_path
-        );
-        $.ajax(url, settings);
+            )
     };
 
 
@@ -315,6 +319,7 @@ define([
                 // data because the outer scope's values change as we iterate through the loop.
                 var parent_item = that.parents('div.list_item');
                 var name = parent_item.data('name');
+                var path = parent_item.data('path');
                 var message = 'Are you sure you want to permanently delete the file: ' + name + '?';
                 dialog.modal({
                     title : "Delete file",
@@ -323,23 +328,7 @@ define([
                         Delete : {
                             class: "btn-danger",
                             click: function() {
-                                var settings = {
-                                    processData : false,
-                                    cache : false,
-                                    type : "DELETE",
-                                    dataType : "json",
-                                    success : function (data, status, xhr) {
-                                        parent_item.remove();
-                                    },
-                                    error : utils.log_ajax_error,
-                                };
-                                var url = utils.url_join_encode(
-                                    notebooklist.base_url,
-                                    'api/contents',
-                                    notebooklist.notebook_path,
-                                    name
-                                );
-                                $.ajax(url, settings);
+                                notebooklist.content_manager.delete_notebook(name, path);
                             }
                         },
                         Cancel : {}
@@ -441,49 +430,7 @@ define([
 
 
     NotebookList.prototype.new_notebook = function(){
-        var path = this.notebook_path;
-        var base_url = this.base_url;
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "POST",
-            dataType : "json",
-            async : false,
-            success : function (data, status, xhr) {
-                var notebook_name = data.name;
-                window.open(
-                    utils.url_join_encode(
-                        base_url,
-                        'notebooks',
-                        path,
-                        notebook_name),
-                    '_blank'
-                );
-            },
-            error : $.proxy(this.new_notebook_failed, this),
-        };
-        var url = utils.url_join_encode(
-            base_url,
-            'api/contents',
-            path
-        );
-        $.ajax(url, settings);
-    };
-    
-    
-    NotebookList.prototype.new_notebook_failed = function (xhr, status, error) {
-        utils.log_ajax_error(xhr, status, error);
-        var msg;
-        if (xhr.responseJSON && xhr.responseJSON.message) {
-            msg = xhr.responseJSON.message;
-        } else {
-            msg = xhr.statusText;
-        }
-        dialog.modal({
-            title : 'Creating Notebook Failed',
-            body : "The error was: " + msg,
-            buttons : {'OK' : {'class' : 'btn-primary'}}
-        });
+        this.content_manager.new_notebook(this.notebook_path);
     };
     
 

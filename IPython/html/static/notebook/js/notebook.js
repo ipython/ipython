@@ -48,6 +48,7 @@ define([
         //      Dictionary of keyword arguments.
         //          events: $(Events) instance
         //          keyboard_manager: KeyboardManager instance
+        //          content_manager: ContentManager instance
         //          save_widget: SaveWidget instance
         //          config: dictionary
         //          base_url : string
@@ -59,6 +60,7 @@ define([
         this.notebook_name = options.notebook_name;
         this.events = options.events;
         this.keyboard_manager = options.keyboard_manager;
+        this.content_manager = options.content_manager;
         this.save_widget = options.save_widget;
         this.tooltip = new tooltip.Tooltip(this.events);
         this.ws_url = options.ws_url;
@@ -165,6 +167,26 @@ define([
      */
     Notebook.prototype.bind_events = function () {
         var that = this;
+
+        this.content_manager.events.on('notebook_rename_success.ContentManager',
+            function (event, data) {
+                var name = that.notebook_name = data.name;
+                var path = data.path;
+                that.session.rename_notebook(name, path);
+                that.events.trigger('notebook_renamed.Notebook', data);
+            });
+
+        this.content_manager.events.on('notebook_rename_error.ContentManager',
+            function (event, data) {
+                that.rename_error(data[0], data[1], data[2]);
+            });
+
+        this.content_manager.events.on('notebook_save_success.ContentManager',
+            $.proxy(this.save_notebook_success, this));
+
+        this.content_manager.events.on('notebook_save_error.ContentManager',
+            $.proxy(this.events.trigger, this.events,
+                'notebook_save_failed.Notebook'));
 
         this.events.on('set_next_input.Notebook', function (event, data) {
             var index = that.find_cell_index(data.cell);
@@ -1959,15 +1981,14 @@ define([
      * Success callback for saving a notebook.
      * 
      * @method save_notebook_success
-     * @param {Integer} start the time when the save request started
-     * @param {Object} data JSON representation of a notebook
-     * @param {String} status Description of response status
-     * @param {jqXHR} xhr jQuery Ajax object
+     * @param {Event} event The save notebook success event
+     * @param {Object} data dictionary of event data
+     *     data.options start the time when the save request started
      */
-    Notebook.prototype.save_notebook_success = function (start, data, status, xhr) {
+    Notebook.prototype.save_notebook_success = function (event, data) {
         this.set_dirty(false);
         this.events.trigger('notebook_saved.Notebook');
-        this._update_autosave_interval(start);
+        this._update_autosave_interval(event.start);
         if (this._checkpoint_after_save) {
             this.create_checkpoint();
             this._checkpoint_after_save = false;
@@ -2087,7 +2108,6 @@ define([
         $.ajax(url,settings);
     };
 
-
     Notebook.prototype.copy_notebook = function(){
         var path = this.notebook_path;
         var base_url = this.base_url;
@@ -2117,7 +2137,6 @@ define([
     };
 
     Notebook.prototype.rename = function (nbname) {
-        var that = this;
         if (!nbname.match(/\.ipynb$/)) {
             nbname = nbname + ".ipynb";
         }
@@ -2160,14 +2179,6 @@ define([
         $.ajax(url, settings);
     };
 
-    
-    Notebook.prototype.rename_success = function (json, status, xhr) {
-        var name = this.notebook_name = json.name;
-        var path = json.path;
-        this.session.rename_notebook(name, path);
-        this.events.trigger('notebook_renamed.Notebook', json);
-    };
-
     Notebook.prototype.rename_error = function (xhr, status, error) {
         var that = this;
         var dialog_body = $('<div/>').append(
@@ -2184,7 +2195,7 @@ define([
                 "OK": {
                     class: "btn-primary",
                     click: function () {
-                        this.save_widget.rename_notebook({notebook:that});
+                        that.save_widget.rename_notebook({notebook:that});
                 }}
                 },
             open : function (event, ui) {
@@ -2207,7 +2218,6 @@ define([
      * @param {String} notebook_name and path A notebook to load
      */
     Notebook.prototype.load_notebook = function (notebook_name, notebook_path) {
-        var that = this;
         this.notebook_name = notebook_name;
         this.notebook_path = notebook_path;
         // We do the call with settings so we can set cache to false.
@@ -2509,6 +2519,46 @@ define([
                     class : "btn-danger",
                     click : function () {
                         that.restore_checkpoint(checkpoint.id);
+                    }
+                },
+                Cancel : {}
+                }
+        });
+    };
+    
+    Notebook.prototype.delete_checkpoint_dialog = function (checkpoint) {
+        var that = this;
+        checkpoint = checkpoint || this.last_checkpoint;
+        if ( ! checkpoint ) {
+            console.log("delete dialog, but no checkpoint to delete!");
+            return;
+        }
+        var body = $('<div/>').append(
+            $('<p/>').addClass("p-space").text(
+                "Are you sure you want to delete this checkpoint?"
+            ).append(
+                $("<strong/>").text(
+                    " This cannot be undone."
+                )
+            )
+        ).append(
+            $('<p/>').addClass("p-space").text("The checkpoint was last updated at:")
+        ).append(
+            $('<p/>').addClass("p-space").text(
+                Date(checkpoint.last_modified)
+            ).css("text-align", "center")
+        );
+        
+        dialog.modal({
+            notebook: this,
+            keyboard_manager: this.keyboard_manager,
+            title : "delete notebook checkpoint",
+            body : body,
+            buttons : {
+                Delete : {
+                    class : "btn-danger",
+                    click : function () {
+                        that.delete_checkpoint(checkpoint.id);
                     }
                 },
                 Cancel : {}
