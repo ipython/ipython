@@ -68,10 +68,13 @@ class _FloatRange(_Float):
     upper = CFloat(1.0, help="Upper bound", sync=False)
     
     def __init__(self, *pargs, **kwargs):
-        if 'value' in kwargs and ('lower' in kwargs or 'upper' in kwargs):
-            raise ValueError("Cannot specify both 'value' and 'lower'/'upper' for range widget")
-        
         value_given = 'value' in kwargs
+        lower_given = 'lower' in kwargs
+        upper_given = 'upper' in kwargs
+        if value_given and (lower_given or upper_given):
+            raise ValueError("Cannot specify both 'value' and 'lower'/'upper' for range widget")
+        if lower_given != upper_given:
+            raise ValueError("Must specify both 'lower' and 'upper' for range widget")
         
         DOMWidget.__init__(self, *pargs, **kwargs)
         
@@ -104,15 +107,11 @@ class _BoundedFloatRange(_FloatRange):
         if self.min > self.max:
             raise ValueError("min must be <= max")
         
-        # ensure the initial values within bounds
-        if self.lower < self.min:
-            self.lower = self.min
-            
-        if self.upper > self.max:
-            self.upper = self.max
-        
-        # if no value is set, use 25-75% to avoid the handles overlapping
-        if not any_value_given:
+        if any_value_given:
+            # if a value was given, clamp it within (min, max)
+            self._validate("value", None, self.value)
+        else:
+            # otherwise, set it to 25-75% to avoid the handles overlapping
             self.value = (0.75*self.min + 0.25*self.max,
                           0.25*self.min + 0.75*self.max)
         # callback already set for 'value', 'lower', 'upper'
