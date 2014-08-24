@@ -521,10 +521,10 @@ def test_int_range_logic():
     with nt.assert_raises(ValueError):
         w.upper = 1
     
-    w = irsw(lower=5, min=0, max=6)
-    check_widget(w, lower=5)
-    w = irsw(upper=1, min=0, max=6)
-    check_widget(w, upper=1)
+    w = irsw(min=2, max=3)
+    check_widget(w, min=2, max=3)
+    w = irsw(min=100, max=200)
+    check_widget(w, lower=125, upper=175, value=(125, 175))
     
     with nt.assert_raises(ValueError):
         irsw(value=(2, 4), lower=3)
@@ -534,6 +534,10 @@ def test_int_range_logic():
         irsw(value=(2, 4), lower=3, upper=3)
     with nt.assert_raises(ValueError):
         irsw(min=2, max=1)
+    with nt.assert_raises(ValueError):
+        irsw(lower=5)
+    with nt.assert_raises(ValueError):
+        irsw(upper=5)
     
 
 def test_float_range_logic():
@@ -576,10 +580,10 @@ def test_float_range_logic():
     with nt.assert_raises(ValueError):
         w.upper = .1
     
-    w = frsw(lower=.5, min=0., max=.6)
-    check_widget(w, lower=.5)
-    w = frsw(upper=.1, min=0., max=.6)
-    check_widget(w, upper=.1)
+    w = frsw(min=2, max=3)
+    check_widget(w, min=2, max=3)
+    w = frsw(min=1., max=2.)
+    check_widget(w, lower=1.25, upper=1.75, value=(1.25, 1.75))
     
     with nt.assert_raises(ValueError):
         frsw(value=(2, 4), lower=3)
@@ -589,3 +593,7 @@ def test_float_range_logic():
         frsw(value=(2, 4), lower=3, upper=3)
     with nt.assert_raises(ValueError):
         frsw(min=.2, max=.1)
+    with nt.assert_raises(ValueError):
+        frsw(lower=5)
+    with nt.assert_raises(ValueError):
+        frsw(upper=5)
