@@ -21,6 +21,7 @@ define([
         this.bind_events();
         // Make the object globally available for user convenience & inspection
         IPython.kernelselector = this;
+        Object.seal(this);
     };
     
     KernelSelector.prototype.request_kernelspecs = function() {
@@ -61,10 +62,30 @@ define([
     };
 
     KernelSelector.prototype.change_kernel = function(kernel_name) {
+        /**
+         * TODO, have a methods to set kernel spec directly ?
+         **/
+        var that = this;
         if (kernel_name === this.current_selection) {
             return;
         }
         var ks = this.kernelspecs[kernel_name];
+        var new_mode_url = 'kernelspecs/'+ks.name+'/kernel';
+
+        var css_url = this.notebook.base_url+new_mode_url+'.css';
+        $.ajax({
+            type: 'HEAD',
+            url: css_url,
+            success: function(){
+                $('#kernel-css')
+                .attr('href',css_url);
+            },
+            error:function(){
+                console.warn(new_mode_url+' does not provide custom URL, you might see a 404 error that shoudl not prevent '+
+                                     ' the Jupyter notebook from working :' ,css_url );
+            }
+        });
+
         try {
             this.notebook.start_session(kernel_name);
         } catch (e) {
@@ -78,8 +99,32 @@ define([
             return;
         }
         this.events.trigger('spec_changed.Kernel', ks);
+
+
+        // load new mode kernel.js if exist
+        require([new_mode_url],
+            // if new mode has custom.js
+            function(new_mode){
+                that.lock_switch();
+                if(new_mode && new_mode.onload){
+                    new_mode.onload();
+                } else {
+                    console.warn("The current kernel seem to define a kernel.js file; though this file does"+
+                                 "not contain any asynchronous module definition. This is undefined behavior"+
+                                 "which is not recommeneded");
+                }
+            },
+            function(err){
+                // if new mode does not have custom.js
+                console.warn('Any above 404 on '+new_mode_url+'.js is normal');
+            }
+        );
     };
-    
+
+    KernelSelector.prototype.lock_switch = function() {
+        console.warn('switching kernel is not guarantied to work !');
+    };
+
     KernelSelector.prototype.bind_events = function() {
         var that = this;
         this.events.on('spec_changed.Kernel', function(event, data) {
@@ -87,7 +132,7 @@ define([
             that.element.find("#current_kernel_spec").find('.kernel_name').text(data.display_name);
             that.element.find("#current_kernel_logo").attr("src", "/kernelspecs/"+data.name+"/logo-64x64.png");
         });
-        
+
         this.events.on('kernel_created.Session', function(event, data) {
             if (data.kernel.name !== that.current_selection) {
                 // If we created a 'python' session, we only know if it's Python
