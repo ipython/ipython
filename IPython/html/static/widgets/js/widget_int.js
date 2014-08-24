@@ -43,7 +43,7 @@ define([
             if (options === undefined || options.updated_view != this) {
                 // JQuery slider option keys.  These keys happen to have a
                 // one-to-one mapping with the corrosponding keys of the model.
-                var jquery_slider_keys = ['step', 'max', 'min', 'disabled', 'range'];
+                var jquery_slider_keys = ['step', 'max', 'min', 'disabled'];
                 var that = this;
                 that.$slider.slider({});
                 _.each(jquery_slider_keys, function(key, i) {
@@ -52,6 +52,10 @@ define([
                         that.$slider.slider("option", key, model_value);
                     }
                 });
+                var range_value = this.model.get("_range");
+                if (range_value !== undefined) {
+                    this.$slider.slider("option", "range", range_value);
+                }
 
                 // WORKAROUND FOR JQUERY SLIDER BUG.
                 // The horizontal position of the slider handle
@@ -64,14 +68,14 @@ define([
                 var orientation = this.model.get('orientation');
                 var min = this.model.get('min');
                 var max = this.model.get('max');
-                if (this.model.get('range')) {
+                if (this.model.get('_range')) {
                     this.$slider.slider('option', 'values', [min, min]);
                 } else {
                     this.$slider.slider('option', 'value', min);
                 }
                 this.$slider.slider('option', 'orientation', orientation);
                 var value = this.model.get('value');
-                if (this.model.get('range')) {
+                if (this.model.get('_range')) {
                     // values for the range case are validated python-side in
                     // _Bounded{Int,Float}RangeWidget._validate
                     this.$slider.slider('option', 'values', value);
@@ -151,7 +155,7 @@ define([
 
             // Calling model.set will trigger all of the other views of the 
             // model to update.
-            if (this.model.get("range")) {
+            if (this.model.get("_range")) {
                 var actual_value = ui.values.map(this._validate_slide_value);
                 this.$readout.text(actual_value.join("-"));
             } else {

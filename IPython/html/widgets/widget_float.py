@@ -55,7 +55,7 @@ class FloatSlider(_BoundedFloat):
     _view_name = Unicode('FloatSliderView', sync=True)
     orientation = Enum([u'horizontal', u'vertical'], u'horizontal', 
         help="Vertical or horizontal.", sync=True)
-    range = Bool(False, help="Display a range selector", sync=True)
+    _range = Bool(False, help="Display a range selector", sync=True)
     readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
 
 
@@ -161,7 +161,7 @@ class FloatRangeSlider(_BoundedFloatRange):
     _view_name = Unicode('FloatSliderView', sync=True)
     orientation = Enum([u'horizontal', u'vertical'], u'horizontal',
         help="Vertical or horizontal.", sync=True)
-    range = Bool(True, help="Display a range selector", sync=True)
+    _range = Bool(True, help="Display a range selector", sync=True)
     readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
 
 # Remove in IPython 4.0

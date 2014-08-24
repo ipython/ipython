@@ -60,7 +60,7 @@ class IntSlider(_BoundedInt):
     _view_name = Unicode('IntSliderView', sync=True)
     orientation = Enum([u'horizontal', u'vertical'], u'horizontal', 
         help="Vertical or horizontal.", sync=True)
-    range = Bool(False, help="Display a range selector", sync=True)
+    _range = Bool(False, help="Display a range selector", sync=True)
     readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
 
 
@@ -165,7 +165,7 @@ class IntRangeSlider(_BoundedIntRange):
     _view_name = Unicode('IntSliderView', sync=True)
     orientation = Enum([u'horizontal', u'vertical'], u'horizontal',
         help="Vertical or horizontal.", sync=True)
-    range = Bool(True, help="Display a range selector", sync=True)
+    _range = Bool(True, help="Display a range selector", sync=True)
     readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
 
 # Remove in IPython 4.0
