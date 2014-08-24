@@ -72,17 +72,17 @@ define([
                 this.$slider.slider('option', 'orientation', orientation);
                 var value = this.model.get('value');
                 if (this.model.get('range')) {
-                	// values for the range case are validated python-side in
-                	// _Bounded{Int,Float}RangeWidget._validate
+                    // values for the range case are validated python-side in
+                    // _Bounded{Int,Float}RangeWidget._validate
                     this.$slider.slider('option', 'values', value);
                     this.$readout.text(value.join("-"));
                 } else {
-	                if(value > max) { 
-	                    value = max; 
-	                }
-	                else if(value < min){ 
-	                    value = min; 
-	                }	
+                    if(value > max) { 
+                        value = max; 
+                    }
+                    else if(value < min){ 
+                        value = min; 
+                    }
                     this.$slider.slider('option', 'value', value);
                     this.$readout.text(value);
                 }
