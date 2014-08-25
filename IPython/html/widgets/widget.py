@@ -18,8 +18,8 @@ import collections
 from IPython.core.getipython import get_ipython
 from IPython.kernel.comm import Comm
 from IPython.config import LoggingConfigurable
-from IPython.utils.traitlets import Unicode, Dict, Instance, Bool, List, 
-    CaselessStrEnum, Tuple, CTuple, CUnicode, Int, Set
+from IPython.utils.traitlets import Unicode, Dict, Instance, Bool, List, \
+    CaselessStrEnum, Tuple, CUnicode, Int, Set
 from IPython.utils.py3compat import string_types
 
 #-----------------------------------------------------------------------------
@@ -380,8 +380,8 @@ class Widget(LoggingConfigurable):
 
 class DOMWidget(Widget):
     visible = Bool(True, help="Whether the widget is visible.", sync=True)
-    _css = CTuple(sync=True, help="CSS property list: (selector, key, value)")
-    _dom_classes = CTuple(sync=True, help="DOM classes applied to widget.$el.")
+    _css = Tuple(sync=True, help="CSS property list: (selector, key, value)")
+    _dom_classes = Tuple(sync=True, help="DOM classes applied to widget.$el.")
     
     width = CUnicode(sync=True)
     height = CUnicode(sync=True)

@@ -58,6 +58,8 @@ define([
                 var items = this.model.get('value_names');
                 var $replace_droplist = $('<ul />')
                     .addClass('dropdown-menu');
+                // Copy the style
+                $replace_droplist.attr('style', this.$droplist.attr('style'));
                 var that = this;
                 _.each(items, function(item, i) {
                     var item_button = $('<a href="#"/>')
@@ -92,6 +94,29 @@ define([
                 }
             }
             return DropdownView.__super__.update.apply(this);
+        },
+
+        update_attr: function(name, value) {
+            // Set a css attr of the widget view.
+            if (name.substring(0, 6) == 'border' || name == 'background' || name == 'color') {
+                this.$droplabel.css(name, value);
+                this.$dropbutton.css(name, value);
+                this.$droplist.css(name, value);
+            } if (name.substring(0, 4) == 'font') {
+                this.$droplabel.css(name, value);
+                this.$droplist.css(name, value);
+            } else if (name == 'width') {
+                this.$buttongroup.width(value);
+                var width = value - this.$dropbutton.width();
+                this.$droplist.css(name, width);
+                this.$droplabel.css(name, width);
+            } else if (name == 'height') {
+                this.$droplist.css(name, value);
+                this.$dropbutton.css(name, value);
+            } else {
+                this.$droplabel.css(name, value);
+                this.$droplist.css(name, value);
+            }
         },
 
         handle_click: function (e) {

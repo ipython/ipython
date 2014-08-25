@@ -62,6 +62,7 @@ class IntSlider(_BoundedInt):
         help="Vertical or horizontal.", sync=True)
     _range = Bool(False, help="Display a range selector", sync=True)
     readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
+    slider_color = Unicode(sync=True)
 
 
 class IntProgress(_BoundedInt):

@@ -24,6 +24,11 @@ define([
             this.update(); // Set defaults.
         },
 
+        update_attr: function(name, value) {
+            // Set a css attr of the widget view.
+            this.$checkbox.css(name, value);
+        },
+
         handle_click: function() {
             // Handles when the checkbox is clicked.
 

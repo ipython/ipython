@@ -30,9 +30,29 @@ define([
                 .appendTo(this.$el)
                 .addClass('widget-hreadout')
                 .hide();
+
+            this.model.on('change:slider_color', function(sender, value) {
+                this.$slider.find('a').css('background', value);
+            }, this);
             
             // Set defaults.
             this.update();
+        },
+
+        update_attr: function(name, value) {
+            // Set a css attr of the widget view.
+            if (name == 'color') {
+                this.$readout.css(name, value);
+            } else if (name.substring(0, 4) == 'font') {
+                this.$readout.css(name, value);
+            } else if (name.substring(0, 6) == 'border') {
+                this.$slider.find('a').css(name, value);
+                this.$slider_container.css(name, value);
+            } else if (name == 'width' || name == 'height' || name == 'background') {
+                this.$slider_container.css(name, value);
+            } else {
+                this.$slider.css(name, value);
+            }
         },
         
         update : function(options){
@@ -221,6 +241,11 @@ define([
             return IntTextView.__super__.update.apply(this);
         },
 
+        update_attr: function(name, value) {
+            // Set a css attr of the widget view.
+            this.$textbox.css(name, value);
+        },
+
         events: {
             // Dictionary of events and their handlers.
             "keyup input"  : "handleChanging",
@@ -320,6 +345,17 @@ define([
             }
             return ProgressView.__super__.update.apply(this);
         }, 
+
+        update_attr: function(name, value) {
+            // Set a css attr of the widget view.
+            if (name.substring(0, 6) == 'border' || name == 'width' || name == 'height' || name == 'background') {
+                this.$progress.css(name, value);
+            } else if (name == 'color') {                
+                this.$bar.css('background', value);
+            } else {
+                this.$bar.css(name, value);
+            }
+        },
     });
 
     return {
