@@ -102,20 +102,16 @@ define([
                 this.$droplabel.css(name, value);
                 this.$dropbutton.css(name, value);
                 this.$droplist.css(name, value);
-            } if (name.substring(0, 4) == 'font') {
-                this.$droplabel.css(name, value);
-                this.$droplist.css(name, value);
             } else if (name == 'width') {
-                this.$buttongroup.width(value);
                 var width = value - this.$dropbutton.width();
                 this.$droplist.css(name, width);
                 this.$droplabel.css(name, width);
             } else if (name == 'height') {
-                this.$droplist.css(name, value);
+                this.$droplabel.css(name, value);
                 this.$dropbutton.css(name, value);
             } else {
-                this.$droplabel.css(name, value);
                 this.$droplist.css(name, value);
+                this.$droplabel.css(name, value);
             }
         },
 
@@ -209,6 +205,11 @@ define([
             return RadioButtonsView.__super__.update.apply(this);
         },
 
+        update_attr: function(name, value) {
+            // Set a css attr of the widget view.
+            this.$container.css(name, value);
+        },
+
         handle_click: function (e) {
             // Handle when a value is clicked.
             
@@ -221,7 +222,12 @@ define([
     
 
     var ToggleButtonsView = widget.DOMWidgetView.extend({
-        render : function(){
+        initialize: function() {
+            this._css_state = {};
+            ToggleButtonsView.__super__.initialize.apply(this, arguments);
+        },
+
+        render: function() {
             // Called when view is rendered.
             this.$el
                 .addClass('widget-hbox-single');
@@ -263,6 +269,7 @@ define([
                             .appendTo(that.$buttongroup)
                             .attr('data-value', item)
                             .on('click', $.proxy(that.handle_click, that));
+                        that._update_button_style($item_element);
                     }
                     if (that.model.get('value_name') == item) {
                         $item_element.addClass('active');
@@ -298,6 +305,26 @@ define([
                 }
             }
             return ToggleButtonsView.__super__.update.apply(this);
+        },
+
+        update_attr: function(name, value) {
+            // Set a css attr of the widget view.
+            this._css_state[name] = value;
+            this._update_button_style();
+        },
+
+        _update_button_style: function(button) {
+            for (var name in this._css_state) {
+                if (this._css_state.hasOwnProperty(name) && name != 'width') {
+                    if (button) {
+                        button.css(name, this._css_state[name]);
+                    } else {
+                        this.$buttongroup.find('button').each(function(i, obj) {
+                            $(obj).css(name, this._css_state[name]);
+                        });
+                    }   
+                }
+            }
         },
 
         handle_click: function (e) {
@@ -380,6 +407,11 @@ define([
                 }
             }
             return SelectView.__super__.update.apply(this);
+        },
+
+        update_attr: function(name, value) {
+            // Set a css attr of the widget view.
+            this.$listbox.css(name, value);
         },
 
         handle_click: function (e) {

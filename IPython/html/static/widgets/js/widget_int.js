@@ -122,8 +122,7 @@ define([
                         .removeClass('widget-hslider')
                         .addClass('widget-vslider');
                     this.$el
-                        .removeClass('widget-hbox-single')
-                        .addClass('widget-vbox-single');
+                        .removeClass('widget-hbox-single');
                     this.$label
                         .removeClass('widget-hlabel')
                         .addClass('widget-vlabel');
@@ -136,7 +135,6 @@ define([
                         .removeClass('widget-vslider')
                         .addClass('widget-hslider');
                     this.$el
-                        .removeClass('widget-vbox-single')
                         .addClass('widget-hbox-single');
                     this.$label
                         .removeClass('widget-vlabel')

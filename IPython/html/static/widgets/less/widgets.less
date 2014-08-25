@@ -211,6 +211,10 @@
     min-width : 125px;
 }
 
+.widget_item .dropdown-menu li a {
+    color: inherit;
+}
+
 .widget-box {
     /* The following section sets the style for the invisible div that
     hold widgets and their accompanying labels.
@@ -238,7 +242,6 @@
 .widget-hbox-single {
     /* Single line horizontal widgets */
     .widget-hbox();
-    height : 30px;
 
     input[type="checkbox"] {
         margin-top: 9px;
@@ -249,12 +252,6 @@
     /* Vertical widgets */ 
     .widget-box();
     .vbox();
-}
-
-.widget-vbox-single {
-    /* For vertical slides */ 
-    .widget-vbox();
-    width : 30px;
 }
 
 .widget-modal {
