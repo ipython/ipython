@@ -480,3 +480,120 @@ def test_custom_description():
         value='text',
         description='foo',
     )
+
+def test_int_range_logic():
+    irsw = widgets.IntRangeSlider
+    w = irsw(value=(2, 4), min=0, max=6)
+    check_widget(w, cls=irsw, value=(2, 4), min=0, max=6)
+    w.value = (4, 2)
+    check_widget(w, cls=irsw, value=(2, 4), min=0, max=6)
+    w.value = (-1, 7)
+    check_widget(w, cls=irsw, value=(0, 6), min=0, max=6)
+    w.min = 3
+    check_widget(w, cls=irsw, value=(3, 6), min=3, max=6)
+    w.max = 3
+    check_widget(w, cls=irsw, value=(3, 3), min=3, max=3)
+    
+    w.min = 0
+    w.max = 6
+    w.lower = 2
+    w.upper = 4
+    check_widget(w, cls=irsw, value=(2, 4), min=0, max=6)
+    w.value = (0, 1) #lower non-overlapping range
+    check_widget(w, cls=irsw, value=(0, 1), min=0, max=6)
+    w.value = (5, 6) #upper non-overlapping range
+    check_widget(w, cls=irsw, value=(5, 6), min=0, max=6)
+    w.value = (-1, 4) #semi out-of-range
+    check_widget(w, cls=irsw, value=(0, 4), min=0, max=6)
+    w.lower = 2
+    check_widget(w, cls=irsw, value=(2, 4), min=0, max=6)
+    w.value = (-2, -1) #wholly out of range
+    check_widget(w, cls=irsw, value=(0, 0), min=0, max=6)
+    w.value = (7, 8)
+    check_widget(w, cls=irsw, value=(6, 6), min=0, max=6)
+    
+    with nt.assert_raises(ValueError):
+        w.min = 7
+    with nt.assert_raises(ValueError):
+        w.max = -1
+    with nt.assert_raises(ValueError):
+        w.lower = 5
+    with nt.assert_raises(ValueError):
+        w.upper = 1
+    
+    w = irsw(min=2, max=3)
+    check_widget(w, min=2, max=3)
+    w = irsw(min=100, max=200)
+    check_widget(w, lower=125, upper=175, value=(125, 175))
+    
+    with nt.assert_raises(ValueError):
+        irsw(value=(2, 4), lower=3)
+    with nt.assert_raises(ValueError):
+        irsw(value=(2, 4), upper=3)
+    with nt.assert_raises(ValueError):
+        irsw(value=(2, 4), lower=3, upper=3)
+    with nt.assert_raises(ValueError):
+        irsw(min=2, max=1)
+    with nt.assert_raises(ValueError):
+        irsw(lower=5)
+    with nt.assert_raises(ValueError):
+        irsw(upper=5)
+    
+
+def test_float_range_logic():
+    frsw = widgets.FloatRangeSlider
+    w = frsw(value=(.2, .4), min=0., max=.6)
+    check_widget(w, cls=frsw, value=(.2, .4), min=0., max=.6)
+    w.value = (.4, .2)
+    check_widget(w, cls=frsw, value=(.2, .4), min=0., max=.6)
+    w.value = (-.1, .7)
+    check_widget(w, cls=frsw, value=(0., .6), min=0., max=.6)
+    w.min = .3
+    check_widget(w, cls=frsw, value=(.3, .6), min=.3, max=.6)
+    w.max = .3
+    check_widget(w, cls=frsw, value=(.3, .3), min=.3, max=.3)
+    
+    w.min = 0.
+    w.max = .6
+    w.lower = .2
+    w.upper = .4
+    check_widget(w, cls=frsw, value=(.2, .4), min=0., max=.6)
+    w.value = (0., .1) #lower non-overlapping range
+    check_widget(w, cls=frsw, value=(0., .1), min=0., max=.6)
+    w.value = (.5, .6) #upper non-overlapping range
+    check_widget(w, cls=frsw, value=(.5, .6), min=0., max=.6)
+    w.value = (-.1, .4) #semi out-of-range
+    check_widget(w, cls=frsw, value=(0., .4), min=0., max=.6)
+    w.lower = .2
+    check_widget(w, cls=frsw, value=(.2, .4), min=0., max=.6)
+    w.value = (-.2, -.1) #wholly out of range
+    check_widget(w, cls=frsw, value=(0., 0.), min=0., max=.6)
+    w.value = (.7, .8)
+    check_widget(w, cls=frsw, value=(.6, .6), min=.0, max=.6)
+    
+    with nt.assert_raises(ValueError):
+        w.min = .7
+    with nt.assert_raises(ValueError):
+        w.max = -.1
+    with nt.assert_raises(ValueError):
+        w.lower = .5
+    with nt.assert_raises(ValueError):
+        w.upper = .1
+    
+    w = frsw(min=2, max=3)
+    check_widget(w, min=2, max=3)
+    w = frsw(min=1., max=2.)
+    check_widget(w, lower=1.25, upper=1.75, value=(1.25, 1.75))
+    
+    with nt.assert_raises(ValueError):
+        frsw(value=(2, 4), lower=3)
+    with nt.assert_raises(ValueError):
+        frsw(value=(2, 4), upper=3)
+    with nt.assert_raises(ValueError):
+        frsw(value=(2, 4), lower=3, upper=3)
+    with nt.assert_raises(ValueError):
+        frsw(min=.2, max=.1)
+    with nt.assert_raises(ValueError):
+        frsw(lower=5)
+    with nt.assert_raises(ValueError):
+        frsw(upper=5)

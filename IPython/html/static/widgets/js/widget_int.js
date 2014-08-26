@@ -52,6 +52,10 @@ define([
                         that.$slider.slider("option", key, model_value);
                     }
                 });
+                var range_value = this.model.get("_range");
+                if (range_value !== undefined) {
+                    this.$slider.slider("option", "range", range_value);
+                }
 
                 // WORKAROUND FOR JQUERY SLIDER BUG.
                 // The horizontal position of the slider handle
@@ -64,17 +68,28 @@ define([
                 var orientation = this.model.get('orientation');
                 var min = this.model.get('min');
                 var max = this.model.get('max');
-                this.$slider.slider('option', 'value', min);
+                if (this.model.get('_range')) {
+                    this.$slider.slider('option', 'values', [min, min]);
+                } else {
+                    this.$slider.slider('option', 'value', min);
+                }
                 this.$slider.slider('option', 'orientation', orientation);
                 var value = this.model.get('value');
-                if(value > max) { 
-                    value = max; 
+                if (this.model.get('_range')) {
+                    // values for the range case are validated python-side in
+                    // _Bounded{Int,Float}RangeWidget._validate
+                    this.$slider.slider('option', 'values', value);
+                    this.$readout.text(value.join("-"));
+                } else {
+                    if(value > max) { 
+                        value = max; 
+                    }
+                    else if(value < min){ 
+                        value = min; 
+                    }
+                    this.$slider.slider('option', 'value', value);
+                    this.$readout.text(value);
                 }
-                else if(value < min){ 
-                    value = min; 
-                }
-                this.$slider.slider('option', 'value', value);
-                this.$readout.text(value);
 
                 if(this.model.get('value')!=value) {
                     this.model.set('value', value, {updated_view: this});
@@ -140,9 +155,14 @@ define([
 
             // Calling model.set will trigger all of the other views of the 
             // model to update.
-            var actual_value = this._validate_slide_value(ui.value);
+            if (this.model.get("_range")) {
+                var actual_value = ui.values.map(this._validate_slide_value);
+                this.$readout.text(actual_value.join("-"));
+            } else {
+                var actual_value = this._validate_slide_value(ui.value);
+                this.$readout.text(actual_value);
+            }
             this.model.set('value', actual_value, {updated_view: this});
-            this.$readout.text(actual_value);
             this.touch();
         },
 

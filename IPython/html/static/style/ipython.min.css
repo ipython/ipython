@@ -1365,6 +1365,10 @@ div.cell.text_cell.rendered {
   height: 28px !important;
   margin-top: -8px !important;
 }
+.widget-hslider .ui-slider .ui-slider-range {
+  height: 12px !important;
+  margin-top: -4px !important;
+}
 .widget-vslider {
   /* Vertical jQuery Slider */
   /* Fix the padding of the slide track so the ui-slider is sized 
@@ -1441,6 +1445,10 @@ div.cell.text_cell.rendered {
   width: 28px !important;
   height: 14px !important;
   margin-left: -9px;
+}
+.widget-vslider .ui-slider .ui-slider-range {
+  width: 12px !important;
+  margin-left: -1px !important;
 }
 .widget-text {
   /* String Textbox - used for TextBoxView and TextAreaView */
