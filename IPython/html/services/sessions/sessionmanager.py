@@ -1,20 +1,7 @@
-"""A base class session manager.
+"""A base class session manager."""
 
-Authors:
-
-* Zach Sailer
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import uuid
 import sqlite3
@@ -28,6 +15,15 @@ from IPython.utils.traitlets import Instance
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
+
+class DeleteSession(object):
+    """Dummy class for signaling a session to delete
+    
+    Because we can't delete inside row_factory
+    without affecting query results.
+    """
+    def __init__(self, session_id):
+        self.session_id = session_id
 
 class SessionManager(LoggingConfigurable):
 
@@ -142,6 +138,9 @@ class SessionManager(LoggingConfigurable):
 
         self.cursor.execute(query, list(kwargs.values()))
         model = self.cursor.fetchone()
+        if isinstance(model, DeleteSession):
+            self._delete_session(model.session_id)
+            model = None
         if model is None:
             q = []
             for key, value in kwargs.items():
@@ -186,21 +185,42 @@ class SessionManager(LoggingConfigurable):
             'id': row['session_id'],
             'notebook': {
                 'name': row['name'],
-                'path': row['path']
+                'path': row['path'],
             },
-            'kernel': self.kernel_manager.kernel_model(row['kernel_id'])
         }
+        if row['kernel_id'] in self.kernel_manager:
+            model['kernel'] = self.kernel_manager.kernel_model(row['kernel_id'])
+        else:
+            self.log.warn("Kernel %s is gone, deleting session for %s/%s",
+                row['kernel_id'], row['path'], row['name'],
+            )
+            return DeleteSession(row['session_id'])
+        
         return model
 
     def list_sessions(self):
         """Returns a list of dictionaries containing all the information from
         the session database"""
         c = self.cursor.execute("SELECT * FROM session")
-        return list(c.fetchall())
+        models = []
+        for model in list(c.fetchall()):
+            if isinstance(model, DeleteSession):
+                self._delete_session(model.session_id)
+            else:
+                models.append(model)
+        return models
 
     def delete_session(self, session_id):
         """Deletes the row in the session database with given session_id"""
         # Check that session exists before deleting
         session = self.get_session(session_id=session_id)
-        self.kernel_manager.shutdown_kernel(session['kernel']['id'])
+        if session:
+            self.kernel_manager.shutdown_kernel(session['kernel']['id'])
+        # actually do the deletion:
+        self._delete_session(session_id)
+    
+    def _delete_session(self, session_id):
+        """actually delete a session from the table
+        
+        This is a separate method, because it is called in more than one place"""
         self.cursor.execute("DELETE FROM session WHERE session_id=?", (session_id,))
