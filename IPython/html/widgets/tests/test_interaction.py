@@ -481,16 +481,16 @@ def test_custom_description():
         description='foo',
     )
 
-def test_interact_ondemand_button():
-    c = interactive(f, on_demand=True)
+def test_interact_choose_button():
+    c = interactive(f, __choose=True)
     w = c.children[0]
     check_widget(w, cls=widgets.Button)
 
-def test_interact_ondemand_nocall():
+def test_interact_choose_nocall():
     callcount = 0
     def calltest(testarg):
         callcount += 1
-    c = interactive(calltest, testarg=5, on_demand=True)
+    c = interactive(calltest, testarg=5, __choose=True)
     c.children[0].value = 10
     nt.assert_equal(callcount, 0)
 

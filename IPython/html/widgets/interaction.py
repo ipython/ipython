@@ -175,7 +175,7 @@ def interactive(__interact_f, **kwargs):
     """Build a group of widgets to interact with a function."""
     f = __interact_f
     co = kwargs.pop('clear_output', True)
-    on_demand = kwargs.pop('on_demand', False)
+    choose = kwargs.pop('__choose', False)
     kwargs_widgets = []
     container = Box()
     container.result = None
@@ -197,9 +197,9 @@ def interactive(__interact_f, **kwargs):
     c = [w for w in kwargs_widgets if isinstance(w, DOMWidget)]
 
     # If we are only to run the function on demand, add a button to request this
-    if on_demand:
-        on_demand_button = Button(description="Run %s" % f.__name__)
-        c.append(on_demand_button)
+    if choose:
+        choose_button = Button(description="Run %s" % f.__name__)
+        c.append(choose_button)
     container.children = c
 
     # Build the callback
@@ -210,8 +210,8 @@ def interactive(__interact_f, **kwargs):
             container.kwargs[widget.description] = value
         if co:
             clear_output(wait=True)
-        if on_demand:
-            on_demand_button.disabled = True
+        if choose:
+            choose_button.disabled = True
         try:
             container.result = f(**container.kwargs)
         except Exception as e:
@@ -221,15 +221,15 @@ def interactive(__interact_f, **kwargs):
             else:
                 ip.showtraceback()
         finally:
-            if on_demand:
-                on_demand_button.disabled = False
+            if choose:
+                choose_button.disabled = False
 
     # Wire up the widgets
-    # If we are doing on demand running, the callback is only triggered by the button
+    # If we are doing choose running, the callback is only triggered by the button
     # Otherwise, it is triggered for every trait change received
     # On-demand running also suppresses running the fucntion with the initial parameters
-    if on_demand:
-        on_demand_button.on_click(call_f)
+    if choose:
+        choose_button.on_click(call_f)
     else:
         for widget in kwargs_widgets:
             widget.on_trait_change(call_f, 'value')
@@ -265,6 +265,16 @@ def interact(__interact_f=None, **kwargs):
             display(w)
             return f
         return dec
+
+def interact_choose(__interact_f=None, **kwargs):
+    """interact_choose(f, **kwargs)
+    
+    As `interact()`, generates widgets for each argument, but rather than running
+    the function after each widget change, adds a "Run" button and waits for it
+    to be clicked. Useful if the function is long-running and has several
+    parameters to change.
+    """
+    return interact(__interact_f, __choose=True, **kwargs)
 
 class fixed(HasTraits):
     """A pseudo-widget whose value is fixed and never synced to the client."""
