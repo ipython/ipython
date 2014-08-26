@@ -2,17 +2,10 @@
 """
 A multi-heart Heartbeat system using PUB and ROUTER sockets. pings are sent out on the PUB,
 and hearts are tracked based on their DEALER identities.
-
-Authors:
-
-* Min RK
 """
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from __future__ import print_function
 import time
@@ -24,7 +17,7 @@ from zmq.eventloop import ioloop, zmqstream
 
 from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.py3compat import str_to_bytes
-from IPython.utils.traitlets import Set, Instance, CFloat, Integer, Dict
+from IPython.utils.traitlets import Set, Instance, CFloat, Integer, Dict, Bool
 
 from IPython.parallel.util import log_errors
 
@@ -69,7 +62,13 @@ class HeartMonitor(LoggingConfigurable):
     pingstream: a PUB stream
     pongstream: an ROUTER stream
     period: the period of the heartbeat in milliseconds"""
-
+    
+    debug = Bool(False, config=True,
+        help="""Whether to include every heartbeat in debugging output.
+        
+        Has to be set explicitly, because there will be *a lot* of output.
+        """
+    )
     period = Integer(3000, config=True,
         help='The frequency at which the Hub pings the engines for heartbeats '
         '(in ms)',
@@ -121,7 +120,8 @@ class HeartMonitor(LoggingConfigurable):
         toc = time.time()
         self.lifetime += toc-self.tic
         self.tic = toc
-        self.log.debug("heartbeat::sending %s", self.lifetime)
+        if self.debug:
+            self.log.debug("heartbeat::sending %s", self.lifetime)
         goodhearts = self.hearts.intersection(self.responses)
         missed_beats = self.hearts.difference(goodhearts)
         newhearts = self.responses.difference(goodhearts)
@@ -181,7 +181,8 @@ class HeartMonitor(LoggingConfigurable):
         last = str_to_bytes(str(self.last_ping))
         if msg[1] == current:
             delta = time.time()-self.tic
-            # self.log.debug("heartbeat::heart %r took %.2f ms to respond"%(msg[0], 1000*delta))
+            if self.debug:
+                self.log.debug("heartbeat::heart %r took %.2f ms to respond", msg[0], 1000*delta)
             self.responses.add(msg[0])
         elif msg[1] == last:
             delta = time.time()-self.tic + (self.lifetime-self.last_ping)

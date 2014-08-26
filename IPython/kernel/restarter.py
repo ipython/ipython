@@ -6,31 +6,27 @@ restarts the kernel if it dies.
 It is an incomplete base class, and must be subclassed.
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.traitlets import (
     Instance, Float, Dict, Bool, Integer,
 )
 
-#-----------------------------------------------------------------------------
-# Code
-#-----------------------------------------------------------------------------
 
 class KernelRestarter(LoggingConfigurable):
     """Monitor and autorestart a kernel."""
 
     kernel_manager = Instance('IPython.kernel.KernelManager')
-
+    
+    debug = Bool(False, config=True,
+        help="""Whether to include every poll event in debugging output.
+        
+        Has to be set explicitly, because there will be *a lot* of output.
+        """
+    )
+    
     time_to_dead = Float(3.0, config=True,
         help="""Kernel heartbeat interval in seconds."""
     )
@@ -87,7 +83,8 @@ class KernelRestarter(LoggingConfigurable):
                 self.log.error("KernelRestarter: %s callback %r failed", event, callback, exc_info=True)
 
     def poll(self):
-        self.log.debug('Polling kernel...')
+        if self.debug:
+            self.log.debug('Polling kernel...')
         if not self.kernel_manager.is_alive():
             if self._restarting:
                 self._restart_count += 1
