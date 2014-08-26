@@ -37,6 +37,11 @@ class ToggleButton(_Bool):
     
     _view_name = Unicode('ToggleButtonView', sync=True)
 
+    button_style = CaselessStrEnum(
+        values=['primary', 'success', 'info', 'warning', 'danger', ''], 
+        default_value='', allow_none=True, sync=True, help="""Use a
+        predefined styling for the button.""")
+
 
 # Remove in IPython 4.0
 CheckboxWidget = DeprecatedClass(Checkbox, 'CheckboxWidget')

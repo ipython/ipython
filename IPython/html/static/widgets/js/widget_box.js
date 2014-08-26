@@ -20,6 +20,9 @@ define([
             this.model.on('change:overflow_y', function(model, value) {
                 this.update_overflow_y();
             }, this);
+            this.model.on('change:box_style', function(model, value) {
+                this.update_box_style();
+            }, this);
         },
 
         update_attr: function(name, value) {
@@ -34,6 +37,7 @@ define([
             this.update_children([], this.model.get('children'));
             this.update_overflow_x();
             this.update_overflow_y();
+            this.update_box_style('');
         },
 
         update_overflow_x: function() {
@@ -44,6 +48,16 @@ define([
         update_overflow_y: function() {
             // Called when the y-axis overflow setting is changed.
             this.$box.css('overflow-y', this.model.get('overflow_y'));
+        },
+
+        update_box_style: function(previous_trait_value) {
+            var class_map = {
+                success: ['alert', 'alert-success'],
+                info: ['alert', 'alert-info'],
+                warning: ['alert', 'alert-warning'],
+                danger: ['alert', 'alert-danger']
+            };
+            this.update_mapped_classes(class_map, 'box_style', previous_trait_value, this.$box);
         },
         
         update_children: function(old_list, new_list) {

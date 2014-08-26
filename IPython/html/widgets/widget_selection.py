@@ -115,6 +115,11 @@ class ToggleButtons(_Selection):
     button can be toggled at any point in time.""" 
     _view_name = Unicode('ToggleButtonsView', sync=True)
 
+    button_style = CaselessStrEnum(
+        values=['primary', 'success', 'info', 'warning', 'danger', ''], 
+        default_value='', allow_none=True, sync=True, help="""Use a
+        predefined styling for the buttons.""")
+
 
 class Dropdown(_Selection):
     """Allows you to select a single item from a dropdown."""

@@ -503,15 +503,54 @@ define(["widgets/js/manager",
             }
         },
 
-        update_classes: function (old_classes, new_classes) {
-            // Update the DOM classes applied to the topmost element.
+        update_classes: function (old_classes, new_classes, $el) {
+            // Update the DOM classes applied to an element, default to this.$el.
+            if ($el===undefined) {
+                $el = this.$el;
+            }
             this.do_diff(old_classes, new_classes, function(removed) {
-                this.$el.removeClass(removed);
+                $el.removeClass(removed);
             }, function(added) {
-                this.$el.addClass(added);
+                $el.addClass(added);
             });
         },
 
+        update_mapped_classes: function(class_map, trait_name, previous_trait_value, $el) {
+            // Update the DOM classes applied to the widget based on a single
+            // trait's value.
+            //
+            // Given a trait value classes map, this function automatically
+            // handles applying the appropriate classes to the widget element
+            // and removing classes that are no longer valid.
+            //
+            // Parameters
+            // ----------
+            // class_map: dictionary
+            //  Dictionary of trait values to class lists.
+            //  Example:
+            //      {
+            //          success: ['alert', 'alert-success'],
+            //          info: ['alert', 'alert-info'],
+            //          warning: ['alert', 'alert-warning'],
+            //          danger: ['alert', 'alert-danger']
+            //      };
+            // trait_name: string
+            //  Name of the trait to check the value of.
+            // previous_trait_value: optional string, default ''
+            //  Last trait value
+            // $el: optional jQuery element handle, defaults to this.$el
+            //  Element that the classes are applied to.
+            var key = previous_trait_value;
+            if (key === undefined) {
+                key = this.model.previous(trait_name);
+            }
+            var old_classes = class_map[key] ? class_map[key] : [];
+            key = this.model.get(trait_name);
+            var new_classes = class_map[key] ? class_map[key] : [];
+
+            this.update_classes(old_classes, new_classes, $el || this.$el);
+        },
+        
         _get_selector_element: function (selector) {
             // Get the elements via the css selector.
             var elements;

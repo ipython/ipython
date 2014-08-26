@@ -77,7 +77,23 @@ define([
                     that.handle_click();
                 }));
 
+            this.model.on('change:button_style', function(model, value) {
+                this.update_button_style();
+            }, this);
+            this.update_button_style('');
+
             this.update(); // Set defaults.
+        },
+
+        update_button_style: function(previous_trait_value) {
+            var class_map = {
+                primary: ['btn-primary'],
+                success: ['btn-success'],
+                info: ['btn-info'],
+                warning: ['btn-warning'],
+                danger: ['btn-danger']
+            };
+            this.update_mapped_classes(class_map, 'button_style', previous_trait_value);
         },
         
         update : function(options){

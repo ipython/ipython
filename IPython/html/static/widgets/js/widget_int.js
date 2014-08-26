@@ -346,7 +346,10 @@ define([
 
         update_attr: function(name, value) {
             // Set a css attr of the widget view.
-            if (name.substring(0, 6) == 'border' || name == 'width' || name == 'height' || name == 'background') {
+            if (name.substring(0, 6) == 'border' || name == 'width' || 
+                name == 'height' || name == 'background' || name == 'margin' || 
+                name == 'padding') {
+                
                 this.$progress.css(name, value);
             } else if (name == 'color') {                
                 this.$bar.css('background', value);
