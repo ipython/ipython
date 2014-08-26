@@ -462,6 +462,21 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip.run_cell("d = 1/2", shell_futures=True)
         self.assertEqual(ip.user_ns['d'], 0)
 
+    def test_mktempfile(self):
+        filename = ip.mktempfile()
+        # Check that we can open the file again on Windows
+        with open(filename, 'w') as f:
+            f.write('abc')
+
+        filename = ip.mktempfile(data='blah')
+        with open(filename, 'r') as f:
+            self.assertEqual(f.read(), 'blah')
+
+    def test_new_main_mod(self):
+        # Smoketest to check that this accepts a unicode module name
+        name = u'jiefmw'
+        mod = ip.new_main_mod(u'%s.py' % name, name)
+        self.assertEqual(mod.__name__, name)
 
 class TestSafeExecfileNonAsciiPath(unittest.TestCase):
 

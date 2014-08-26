@@ -71,6 +71,7 @@ class Exporter(LoggingConfigurable):
                                   'IPython.nbconvert.preprocessors.RevealHelpPreprocessor',
                                   'IPython.nbconvert.preprocessors.LatexPreprocessor',
                                   'IPython.nbconvert.preprocessors.ClearOutputPreprocessor',
+                                  'IPython.nbconvert.preprocessors.ExecutePreprocessor',
                                   'IPython.nbconvert.preprocessors.HighlightMagicsPreprocessor'],
         config=True,
         help="""List of preprocessors available by default, by name, namespace, 
@@ -99,14 +100,13 @@ class Exporter(LoggingConfigurable):
     def default_config(self):
         return Config()
 
-    @nbformat.docstring_nbformat_mod
     def from_notebook_node(self, nb, resources=None, **kw):
         """
         Convert a notebook from a notebook node instance.
 
         Parameters
         ----------
-        nb : :class:`~{nbformat_mod}.nbbase.NotebookNode`
+        nb : :class:`~IPython.nbformat.current.NotebookNode`
           Notebook node
         resources : dict
           Additional resources that can be accessed read/write by

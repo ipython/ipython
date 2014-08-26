@@ -211,7 +211,9 @@ class InputHookManager(object):
             raise ValueError("requires wxPython >= 2.8, but you have %s" % wx.__version__)
         
         from IPython.lib.inputhookwx import inputhook_wx
+        from IPython.external.appnope import nope
         self.set_inputhook(inputhook_wx)
+        nope()
         self._current_gui = GUI_WX
         import wx
         if app is None:
@@ -227,9 +229,11 @@ class InputHookManager(object):
 
         This merely sets PyOS_InputHook to NULL.
         """
+        from IPython.external.appnope import nap
         if GUI_WX in self._apps:
             self._apps[GUI_WX]._in_event_loop = False
         self.clear_inputhook()
+        nap()
 
     def enable_qt4(self, app=None):
         """Enable event loop integration with PyQt4.
@@ -254,8 +258,10 @@ class InputHookManager(object):
             app = QtGui.QApplication(sys.argv)
         """
         from IPython.lib.inputhookqt4 import create_inputhook_qt4
+        from IPython.external.appnope import nope
         app, inputhook_qt4 = create_inputhook_qt4(self, app)
         self.set_inputhook(inputhook_qt4)
+        nope()
 
         self._current_gui = GUI_QT4
         app._in_event_loop = True
@@ -267,9 +273,11 @@ class InputHookManager(object):
 
         This merely sets PyOS_InputHook to NULL.
         """
+        from IPython.external.appnope import nap
         if GUI_QT4 in self._apps:
             self._apps[GUI_QT4]._in_event_loop = False
         self.clear_inputhook()
+        nap()
 
     def enable_gtk(self, app=None):
         """Enable event loop integration with PyGTK.

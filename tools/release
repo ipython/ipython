@@ -15,6 +15,8 @@ distdir = pjoin(ipdir, 'dist')
 
 # Where I keep static backups of each release
 ipbackupdir = os.path.expanduser('~/ipython/backup')
+if not os.path.exists(ipbackupdir):
+    os.makedirs(ipbackupdir)
 
 # Start in main IPython dir
 cd(ipdir)
@@ -53,14 +55,14 @@ sh('./setup.py register')
 
 # Upload all files
 sh(sdists + ' upload')
-for py in ('2.7', '3.3'):
-    sh('python%s setupegg.py bdist_wheel' % py)
+for py in ('2.7', '3.4'):
+    sh('python%s setupegg.py bdist_wheel upload' % py)
 
 cd(distdir)
 print( 'Uploading distribution files...')
 
 for fname in os.listdir('.'):
-    # GitHub doesn't have an API for uploads at the moment
+    # TODO: update to GitHub releases API
     continue
     print('uploading %s to GitHub' % fname)
     desc = "IPython %s source distribution" % version

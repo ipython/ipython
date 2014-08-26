@@ -12,12 +12,12 @@
  *
  * Same thing with `profile/static/custom/custom.css` to inject custom css into the notebook.
  *
- * Example :
+ * __Example 1:__
  *
  * Create a custom button in toolbar that execute `%qtconsole` in kernel
  * and hence open a qtconsole attached to the same kernel as the current notebook
  *
- *    $([IPython.events]).on('app_initialized.NotebookApp', function(){
+ *    IPython.events.on('app_initialized.NotebookApp', function(){
  *        IPython.toolbar.add_buttons_group([
  *            {
  *                 'label'   : 'run qtconsole',
@@ -30,7 +30,16 @@
  *            ]);
  *    });
  *
- * Example :
+ * __Example 2:__
+ *
+ * At the completion of the dashboard loading, load an unofficial javascript extension
+ * that is installed in profile/static/custom/ 
+ *
+ *    IPython.events.on('app_initialized.DashboardApp', function(){
+ *        require(['custom/unofficial_extension.js'])
+ *    });
+ *
+ * __Example 3:__
  *
  *  Use `jQuery.getScript(url [, success(script, textStatus, jqXHR)] );`
  *  to load custom script into the notebook.

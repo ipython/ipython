@@ -1,35 +1,43 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2011 The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// ToolBar
-//============================================================================
-
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'jquery',
+    'notebook/js/toolbar',
+    'notebook/js/celltoolbar',
+], function(IPython, $, toolbar, celltoolbar) {
     "use strict";
 
-    var MainToolBar = function (selector) {
-        IPython.ToolBar.apply(this, arguments);
+    var MainToolBar = function (selector, options) {
+        // Constructor
+        //
+        // Parameters:
+        //  selector: string
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          events: $(Events) instance
+        //          notebook: Notebook instance
+        toolbar.ToolBar.apply(this, arguments);
+        this.events = options.events;
+        this.notebook = options.notebook;
         this.construct();
         this.add_celltype_list();
         this.add_celltoolbar_list();
         this.bind_events();
     };
 
-    MainToolBar.prototype = new IPython.ToolBar();
+    MainToolBar.prototype = new toolbar.ToolBar();
 
     MainToolBar.prototype.construct = function () {
+        var that = this;
         this.add_buttons_group([
                 {
                     id : 'save_b',
                     label : 'Save and Checkpoint',
-                    icon : 'icon-save',
+                    icon : 'fa-save',
                     callback : function () {
-                        IPython.notebook.save_checkpoint();
+                        that.notebook.save_checkpoint();
                         }
                 }
             ]);
@@ -38,11 +46,11 @@ var IPython = (function (IPython) {
                 {
                     id : 'insert_below_b',
                     label : 'Insert Cell Below',
-                    icon : 'icon-plus-sign',
+                    icon : 'fa-plus',
                     callback : function () {
-                        IPython.notebook.insert_cell_below('code');
-                        IPython.notebook.select_next();
-                        IPython.notebook.focus_cell();
+                        that.notebook.insert_cell_below('code');
+                        that.notebook.select_next();
+                        that.notebook.focus_cell();
                         }
                 }
             ],'insert_above_below');
@@ -51,25 +59,25 @@ var IPython = (function (IPython) {
                 {
                     id : 'cut_b',
                     label : 'Cut Cell',
-                    icon : 'icon-cut',
+                    icon : 'fa-cut',
                     callback : function () {
-                        IPython.notebook.cut_cell();
+                        that.notebook.cut_cell();
                         }
                 },
                 {
                     id : 'copy_b',
                     label : 'Copy Cell',
-                    icon : 'icon-copy',
+                    icon : 'fa-copy',
                     callback : function () {
-                        IPython.notebook.copy_cell();
+                        that.notebook.copy_cell();
                         }
                 },
                 {
                     id : 'paste_b',
                     label : 'Paste Cell Below',
-                    icon : 'icon-paste',
+                    icon : 'fa-paste',
                     callback : function () {
-                        IPython.notebook.paste_cell_below();
+                        that.notebook.paste_cell_below();
                         }
                 }
             ],'cut_copy_paste');
@@ -78,17 +86,17 @@ var IPython = (function (IPython) {
                 {
                     id : 'move_up_b',
                     label : 'Move Cell Up',
-                    icon : 'icon-arrow-up',
+                    icon : 'fa-arrow-up',
                     callback : function () {
-                        IPython.notebook.move_cell_up();
+                        that.notebook.move_cell_up();
                         }
                 },
                 {
                     id : 'move_down_b',
                     label : 'Move Cell Down',
-                    icon : 'icon-arrow-down',
+                    icon : 'fa-arrow-down',
                     callback : function () {
-                        IPython.notebook.move_cell_down();
+                        that.notebook.move_cell_down();
                         }
                 }
             ],'move_up_down');
@@ -98,26 +106,26 @@ var IPython = (function (IPython) {
                 {
                     id : 'run_b',
                     label : 'Run Cell',
-                    icon : 'icon-play',
+                    icon : 'fa-play',
                     callback : function () {
                         // emulate default shift-enter behavior
-                        IPython.notebook.execute_cell_and_select_below();
+                        that.notebook.execute_cell_and_select_below();
                     }
                 },
                 {
                     id : 'interrupt_b',
                     label : 'Interrupt',
-                    icon : 'icon-stop',
+                    icon : 'fa-stop',
                     callback : function () {
-                        IPython.notebook.session.interrupt_kernel();
+                        that.notebook.session.interrupt_kernel();
                         }
                 },
                 {
                     id : 'repeat_b',
                     label : 'Restart Kernel',
-                    icon : 'icon-repeat',
+                    icon : 'fa-repeat',
                     callback : function () {
-                        IPython.notebook.restart_kernel();
+                        that.notebook.restart_kernel();
                         }
                 }
             ],'run_int');
@@ -150,30 +158,31 @@ var IPython = (function (IPython) {
             .addClass('form-control select-xs')
             .append($('<option/>').attr('value', '').text('None'));
         this.element.append(label).append(select);
+        var that = this;
         select.change(function() {
-                var val = $(this).val()
-                if (val =='') {
-                    IPython.CellToolbar.global_hide();
-                    delete IPython.notebook.metadata.celltoolbar;
+                var val = $(this).val();
+                if (val ==='') {
+                    celltoolbar.CellToolbar.global_hide();
+                    delete that.notebook.metadata.celltoolbar;
                 } else {
-                    IPython.CellToolbar.global_show();
-                    IPython.CellToolbar.activate_preset(val);
-                    IPython.notebook.metadata.celltoolbar = val;
+                    celltoolbar.CellToolbar.global_show();
+                    celltoolbar.CellToolbar.activate_preset(val, that.events);
+                    that.notebook.metadata.celltoolbar = val;
                 }
             });
         // Setup the currently registered presets.
-        var presets = IPython.CellToolbar.list_presets();
+        var presets = celltoolbar.CellToolbar.list_presets();
         for (var i=0; i<presets.length; i++) {
             var name = presets[i];
             select.append($('<option/>').attr('value', name).text(name));
         }
         // Setup future preset registrations.
-        $([IPython.events]).on('preset_added.CellToolbar', function (event, data) {
+        this.events.on('preset_added.CellToolbar', function (event, data) {
             var name = data.name;
             select.append($('<option/>').attr('value', name).text(name));
         });
         // Update select value when a preset is activated.
-        $([IPython.events]).on('preset_activated.CellToolbar', function (event, data) {
+        this.events.on('preset_activated.CellToolbar', function (event, data) {
             if (select.val() !== data.name)
                 select.val(data.name);
         });
@@ -186,26 +195,26 @@ var IPython = (function (IPython) {
         this.element.find('#cell_type').change(function () {
             var cell_type = $(this).val();
             if (cell_type === 'code') {
-                IPython.notebook.to_code();
+                that.notebook.to_code();
             } else if (cell_type === 'markdown')  {
-                IPython.notebook.to_markdown();
+                that.notebook.to_markdown();
             } else if (cell_type === 'raw')  {
-                IPython.notebook.to_raw();
+                that.notebook.to_raw();
             } else if (cell_type === 'heading1')  {
-                IPython.notebook.to_heading(undefined, 1);
+                that.notebook.to_heading(undefined, 1);
             } else if (cell_type === 'heading2')  {
-                IPython.notebook.to_heading(undefined, 2);
+                that.notebook.to_heading(undefined, 2);
             } else if (cell_type === 'heading3')  {
-                IPython.notebook.to_heading(undefined, 3);
+                that.notebook.to_heading(undefined, 3);
             } else if (cell_type === 'heading4')  {
-                IPython.notebook.to_heading(undefined, 4);
+                that.notebook.to_heading(undefined, 4);
             } else if (cell_type === 'heading5')  {
-                IPython.notebook.to_heading(undefined, 5);
+                that.notebook.to_heading(undefined, 5);
             } else if (cell_type === 'heading6')  {
-                IPython.notebook.to_heading(undefined, 6);
+                that.notebook.to_heading(undefined, 6);
             }
         });
-        $([IPython.events]).on('selected_cell_type_changed.Notebook', function (event, data) {
+        this.events.on('selected_cell_type_changed.Notebook', function (event, data) {
             if (data.cell_type === 'heading') {
                 that.element.find('#cell_type').val(data.cell_type+data.level);
             } else {
@@ -214,8 +223,8 @@ var IPython = (function (IPython) {
         });
     };
 
+    // Backwards compatability.
     IPython.MainToolBar = MainToolBar;
 
-    return IPython;
-
-}(IPython));
+    return {'MainToolBar': MainToolBar};
+});

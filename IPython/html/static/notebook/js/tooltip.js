@@ -1,125 +1,115 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// Tooltip
-//============================================================================
-//
-// you can set the autocall time by setting `IPython.tooltip.time_before_tooltip` in ms
-//
-// you can configure the differents action of pressing shift-tab several times in a row by
-// setting/appending different fonction in the array
-// IPython.tooltip.tabs_functions
-//
-// eg :
-// IPython.tooltip.tabs_functions[4] = function (){console.log('this is the action of the 4th tab pressing')}
-//
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'jquery',
+    'base/js/utils',
+], function(IPython, $, utils) {
     "use strict";
 
-    var utils = IPython.utils;
-
     // tooltip constructor
-    var Tooltip = function () {
-            var that = this;
-            this.time_before_tooltip = 1200;
+    var Tooltip = function (events) {
+        var that = this;
+        this.events = events;
+        this.time_before_tooltip = 1200;
 
-            // handle to html
-            this.tooltip = $('#tooltip');
-            this._hidden = true;
+        // handle to html
+        this.tooltip = $('#tooltip');
+        this._hidden = true;
 
-            // variable for consecutive call
-            this._old_cell = null;
-            this._old_request = null;
+        // variable for consecutive call
+        this._old_cell = null;
+        this._old_request = null;
+        this._consecutive_counter = 0;
+
+        // 'sticky ?'
+        this._sticky = false;
+
+        // display tooltip if the docstring is empty?
+        this._hide_if_no_docstring = false;
+
+        // contain the button in the upper right corner
+        this.buttons = $('<div/>').addClass('tooltipbuttons');
+
+        // will contain the docstring
+        this.text = $('<div/>').addClass('tooltiptext').addClass('smalltooltip');
+
+        // build the buttons menu on the upper right
+        // expand the tooltip to see more
+        var expandlink = $('<a/>').attr('href', "#").addClass("ui-corner-all") //rounded corner
+        .attr('role', "button").attr('id', 'expanbutton').attr('title', 'Grow the tooltip vertically (press shift-tab twice)').click(function () {
+            that.expand();
+        }).append(
+        $('<span/>').text('Expand').addClass('ui-icon').addClass('ui-icon-plus'));
+
+        // open in pager
+        var morelink = $('<a/>').attr('href', "#").attr('role', "button").addClass('ui-button').attr('title', 'show the current docstring in pager (press shift-tab 4 times)');
+        var morespan = $('<span/>').text('Open in Pager').addClass('ui-icon').addClass('ui-icon-arrowstop-l-n');
+        morelink.append(morespan);
+        morelink.click(function () {
+            that.showInPager(that._old_cell);
+        });
+
+        // close the tooltip
+        var closelink = $('<a/>').attr('href', "#").attr('role', "button").addClass('ui-button');
+        var closespan = $('<span/>').text('Close').addClass('ui-icon').addClass('ui-icon-close');
+        closelink.append(closespan);
+        closelink.click(function () {
+            that.remove_and_cancel_tooltip(true);
+        });
+
+        this._clocklink = $('<a/>').attr('href', "#");
+        this._clocklink.attr('role', "button");
+        this._clocklink.addClass('ui-button');
+        this._clocklink.attr('title', 'Tootip is not dismissed while typing for 10 seconds');
+        var clockspan = $('<span/>').text('Close');
+        clockspan.addClass('ui-icon');
+        clockspan.addClass('ui-icon-clock');
+        this._clocklink.append(clockspan);
+        this._clocklink.click(function () {
+            that.cancel_stick();
+        });
+
+
+
+
+        //construct the tooltip
+        // add in the reverse order you want them to appear
+        this.buttons.append(closelink);
+        this.buttons.append(expandlink);
+        this.buttons.append(morelink);
+        this.buttons.append(this._clocklink);
+        this._clocklink.hide();
+
+
+        // we need a phony element to make the small arrow
+        // of the tooltip in css
+        // we will move the arrow later
+        this.arrow = $('<div/>').addClass('pretooltiparrow');
+        this.tooltip.append(this.buttons);
+        this.tooltip.append(this.arrow);
+        this.tooltip.append(this.text);
+
+        // function that will be called if you press tab 1, 2, 3... times in a row
+        this.tabs_functions = [function (cell, text, cursor) {
+            that._request_tooltip(cell, text, cursor);
+        }, function () {
+            that.expand();
+        }, function () {
+            that.stick();
+        }, function (cell) {
+            that.cancel_stick();
+            that.showInPager(cell);
+        }];
+        // call after all the tabs function above have bee call to clean their effects
+        // if necessary
+        this.reset_tabs_function = function (cell, text) {
+            this._old_cell = (cell) ? cell : null;
+            this._old_request = (text) ? text : null;
             this._consecutive_counter = 0;
-
-            // 'sticky ?'
-            this._sticky = false;
-
-            // display tooltip if the docstring is empty?
-            this._hide_if_no_docstring = false;
-
-            // contain the button in the upper right corner
-            this.buttons = $('<div/>').addClass('tooltipbuttons');
-
-            // will contain the docstring
-            this.text = $('<div/>').addClass('tooltiptext').addClass('smalltooltip');
-
-            // build the buttons menu on the upper right
-            // expand the tooltip to see more
-            var expandlink = $('<a/>').attr('href', "#").addClass("ui-corner-all") //rounded corner
-            .attr('role', "button").attr('id', 'expanbutton').attr('title', 'Grow the tooltip vertically (press shift-tab twice)').click(function () {
-                that.expand();
-            }).append(
-            $('<span/>').text('Expand').addClass('ui-icon').addClass('ui-icon-plus'));
-
-            // open in pager
-            var morelink = $('<a/>').attr('href', "#").attr('role', "button").addClass('ui-button').attr('title', 'show the current docstring in pager (press shift-tab 4 times)');
-            var morespan = $('<span/>').text('Open in Pager').addClass('ui-icon').addClass('ui-icon-arrowstop-l-n');
-            morelink.append(morespan);
-            morelink.click(function () {
-                that.showInPager(that._old_cell);
-            });
-
-            // close the tooltip
-            var closelink = $('<a/>').attr('href', "#").attr('role', "button").addClass('ui-button');
-            var closespan = $('<span/>').text('Close').addClass('ui-icon').addClass('ui-icon-close');
-            closelink.append(closespan);
-            closelink.click(function () {
-                that.remove_and_cancel_tooltip(true);
-            });
-
-            this._clocklink = $('<a/>').attr('href', "#");
-            this._clocklink.attr('role', "button");
-            this._clocklink.addClass('ui-button');
-            this._clocklink.attr('title', 'Tootip is not dismissed while typing for 10 seconds');
-            var clockspan = $('<span/>').text('Close');
-            clockspan.addClass('ui-icon');
-            clockspan.addClass('ui-icon-clock');
-            this._clocklink.append(clockspan);
-            this._clocklink.click(function () {
-                that.cancel_stick();
-            });
-
-
-
-
-            //construct the tooltip
-            // add in the reverse order you want them to appear
-            this.buttons.append(closelink);
-            this.buttons.append(expandlink);
-            this.buttons.append(morelink);
-            this.buttons.append(this._clocklink);
-            this._clocklink.hide();
-
-
-            // we need a phony element to make the small arrow
-            // of the tooltip in css
-            // we will move the arrow later
-            this.arrow = $('<div/>').addClass('pretooltiparrow');
-            this.tooltip.append(this.buttons);
-            this.tooltip.append(this.arrow);
-            this.tooltip.append(this.text);
-
-            // function that will be called if you press tab 1, 2, 3... times in a row
-            this.tabs_functions = [function (cell, text, cursor) {
-                that._request_tooltip(cell, text, cursor);
-            }, function () {
-                that.expand();
-            }, function () {
-                that.stick();
-            }, function (cell) {
-                that.cancel_stick();
-                that.showInPager(cell);
-            }];
-            // call after all the tabs function above have bee call to clean their effects
-            // if necessary
-            this.reset_tabs_function = function (cell, text) {
-                this._old_cell = (cell) ? cell : null;
-                this._old_request = (text) ? text : null;
-                this._consecutive_counter = 0;
-            };
         };
+    };
 
     Tooltip.prototype.is_visible = function () {
         return !this._hidden;
@@ -131,7 +121,7 @@ var IPython = (function (IPython) {
         var payload = {};
         payload.text = that._reply.content.data['text/plain'];
         
-        $([IPython.events]).trigger('open_with_text.Pager', payload);
+        this.events.trigger('open_with_text.Pager', payload);
         this.remove_and_cancel_tooltip();
     };
 
@@ -338,8 +328,8 @@ var IPython = (function (IPython) {
         this.text.scrollTop(0);
     };
 
+    // Backwards compatability.
     IPython.Tooltip = Tooltip;
 
-    return IPython;
-
-}(IPython));
+    return {'Tooltip': Tooltip};
+});

@@ -1,40 +1,52 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2014  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// Running Kernels List
-//============================================================================
-
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'jquery',
+    'tree/js/notebooklist',
+], function(IPython, $, notebooklist) {
     "use strict";
 
-    var utils = IPython.utils;
-
     var KernelList = function (selector, options) {
-        IPython.NotebookList.call(this, selector, options, 'running');
+        // Constructor
+        //
+        // Parameters:
+        //  selector: string
+        //  options: dictionary
+        //      Dictionary of keyword arguments.
+        //          session_list: SessionList instance
+        //          base_url: string
+        //          notebook_path: string
+        notebooklist.NotebookList.call(this, selector, $.extend({
+            element_name: 'running'},
+            options));
     };
 
-    KernelList.prototype = Object.create(IPython.NotebookList.prototype);
+    KernelList.prototype = Object.create(notebooklist.NotebookList.prototype);
 
     KernelList.prototype.sessions_loaded = function (d) {
         this.sessions = d;
         this.clear_list();
-        var item;
-        for (var path in d) {
-            item = this.new_notebook_item(-1);
-            this.add_link('', path, item);
-            this.add_shutdown_button(item, this.sessions[path]);
+        var item, path_name;
+        for (path_name in d) {
+            if (!d.hasOwnProperty(path_name)) {
+                // nothing is safe in javascript
+                continue;
+            }
+            item = this.new_item(-1);
+            this.add_link({
+                name: path_name,
+                path: '',
+                type: 'notebook',
+            }, item);
+            this.add_shutdown_button(item, this.sessions[path_name]);
         }
-       
         $('#running_list_header').toggle($.isEmptyObject(d));
-    }
+    };
     
+    // Backwards compatability.
     IPython.KernelList = KernelList;
 
-    return IPython;
-
-}(IPython));
+    return {'KernelList': KernelList};
+});

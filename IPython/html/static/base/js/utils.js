@@ -1,13 +1,10 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// Utilities
-//============================================================================
-
-IPython.namespace('IPython.utils');
-
-IPython.utils = (function (IPython) {
+define([
+    'base/js/namespace',
+    'jquery',
+], function(IPython, $){
     "use strict";
     
     IPython.load_extensions = function () {
@@ -517,19 +514,24 @@ IPython.utils = (function (IPython) {
         }
     };
     
+    var ajax_error_msg = function (jqXHR) {
+        // Return a JSON error message if there is one,
+        // otherwise the basic HTTP status text.
+        if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
+            return jqXHR.responseJSON.message;
+        } else {
+            return jqXHR.statusText;
+        }
+    }
     var log_ajax_error = function (jqXHR, status, error) {
         // log ajax failures with informative messages
         var msg = "API request failed (" + jqXHR.status + "): ";
         console.log(jqXHR);
-        if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
-            msg += jqXHR.responseJSON.message;
-        } else {
-            msg += jqXHR.statusText;
-        }
+        msg += ajax_error_msg(jqXHR);
         console.log(msg);
     };
-    
-    return {
+
+    var utils = {
         regex_split : regex_split,
         uuid : uuid,
         fixConsole : fixConsole,
@@ -550,8 +552,12 @@ IPython.utils = (function (IPython) {
         platform: platform,
         is_or_has : is_or_has,
         is_focused : is_focused,
+        ajax_error_msg : ajax_error_msg,
         log_ajax_error : log_ajax_error,
     };
 
-}(IPython));
-
+    // Backwards compatability.
+    IPython.utils = utils;
+    
+    return utils;
+}); 

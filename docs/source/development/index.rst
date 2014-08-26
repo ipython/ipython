@@ -20,6 +20,8 @@ on the IPython GitHub wiki.
    :maxdepth: 1
 
    messaging
+   kernels
+   wrapperkernels
    execution
    parallel_messages
    parallel_connections

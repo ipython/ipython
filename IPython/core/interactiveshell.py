@@ -736,12 +736,13 @@ class InteractiveShell(SingletonConfigurable):
         # stdlib venv may symlink sys.executable, so we can't use realpath.
         # but others can symlink *to* the venv Python, so we can't just use sys.executable.
         # So we just check every item in the symlink tree (generally <= 3)
-        p = sys.executable
+        p = os.path.normcase(sys.executable)
         paths = [p]
         while os.path.islink(p):
-            p = os.path.join(os.path.dirname(p), os.readlink(p))
+            p = os.path.normcase(os.path.join(os.path.dirname(p), os.readlink(p)))
             paths.append(p)
-        if any(p.startswith(os.environ['VIRTUAL_ENV']) for p in paths):
+        p_venv = os.path.normcase(os.environ['VIRTUAL_ENV'])
+        if any(p.startswith(p_venv) for p in paths):
             # Running properly in the virtualenv, don't need to do anything
             return
         
@@ -910,7 +911,8 @@ class InteractiveShell(SingletonConfigurable):
         try:
             main_mod = self._main_mod_cache[filename]
         except KeyError:
-            main_mod = self._main_mod_cache[filename] = types.ModuleType(modname,
+            main_mod = self._main_mod_cache[filename] = types.ModuleType(
+                        py3compat.cast_bytes_py2(modname),
                         doc="Module created for script run in IPython")
         else:
             main_mod.__dict__.clear()
@@ -1735,7 +1737,7 @@ class InteractiveShell(SingletonConfigurable):
       This hook should be used sparingly, only in places which are not likely
       to be true IPython errors.
       """
-      self.showtraceback((etype,value,tb),tb_offset=0)
+      self.showtraceback((etype, value, tb), tb_offset=0)
 
     def _get_exc_info(self, exc_tuple=None):
         """get exc_info from a given tuple, sys.exc_info() or sys.last_type etc.
@@ -1776,7 +1778,7 @@ class InteractiveShell(SingletonConfigurable):
         """
         self.write_err("UsageError: %s" % exc)
     
-    def showtraceback(self,exc_tuple = None,filename=None,tb_offset=None,
+    def showtraceback(self, exc_tuple=None, filename=None, tb_offset=None,
                       exception_only=False):
         """Display the exception that just occurred.
 
@@ -2918,10 +2920,9 @@ class InteractiveShell(SingletonConfigurable):
         False : successful execution.
         True : an error occurred.
         """
-
         # Set our own excepthook in case the user code tries to call it
         # directly, so that the IPython crash handler doesn't get triggered
-        old_excepthook,sys.excepthook = sys.excepthook, self.excepthook
+        old_excepthook, sys.excepthook = sys.excepthook, self.excepthook
 
         # we save the original sys.excepthook in the instance, in case config
         # code (such as magics) needs access to it.
@@ -2939,8 +2940,8 @@ class InteractiveShell(SingletonConfigurable):
             self.showtraceback(exception_only=True)
             warn("To exit: use 'exit', 'quit', or Ctrl-D.", level=1)
         except self.custom_exceptions:
-            etype,value,tb = sys.exc_info()
-            self.CustomTB(etype,value,tb)
+            etype, value, tb = sys.exc_info()
+            self.CustomTB(etype, value, tb)
         except:
             self.showtraceback()
         else:
@@ -3087,6 +3088,7 @@ class InteractiveShell(SingletonConfigurable):
         self.tempdirs.append(dirname)
 
         handle, filename = tempfile.mkstemp('.py', prefix, dir=dirname)
+        os.close(handle)  # On Windows, there can only be one open handle on a file
         self.tempfiles.append(filename)
 
         if data:

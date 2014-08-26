@@ -1,34 +1,35 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2013  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// Notebook
-//============================================================================
-
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'jquery',
+    'base/js/utils',
+    'services/kernels/js/kernel',
+], function(IPython, $, utils, kernel) {
     "use strict";
-    
-    var utils = IPython.utils;
-    
-    var Session = function(notebook, options){
+
+    var Session = function(options){
         this.kernel = null;
         this.id = null;
-        this.notebook = notebook;
-        this.name = notebook.notebook_name;
-        this.path = notebook.notebook_path;
-        this.base_url = notebook.base_url;
+        this.notebook = options.notebook;
+        this.events = options.notebook.events;
+        this.name = options.notebook_name;
+        this.path = options.notebook_path;
+        this.kernel_name = options.kernel_name;
+        this.base_url = options.base_url;
+        this.ws_url = options.ws_url;
     };
     
-    Session.prototype.start = function(callback) {
+    Session.prototype.start = function (success, error) {
         var that = this;
         var model = {
             notebook : {
                 name : this.name,
                 path : this.path
+            },
+            kernel : {
+                name : this.kernel_name
             }
         };
         var settings = {
@@ -39,11 +40,17 @@ var IPython = (function (IPython) {
             dataType : "json",
             success : function (data, status, xhr) {
                 that._handle_start_success(data);
-                if (callback) {
-                    callback(data, status, xhr);
+                if (success) {
+                    success(data, status, xhr);
                 }
             },
-            error : utils.log_ajax_error,
+            error : function (xhr, status, err) {
+                that._handle_start_failure(xhr, status, err);
+                if (error !== undefined) {
+                    error(xhr, status, err);
+                }
+                utils.log_ajax_error(xhr, status, err);
+            }
         };
         var url = utils.url_join_encode(this.base_url, 'api/sessions');
         $.ajax(url, settings);
@@ -70,15 +77,19 @@ var IPython = (function (IPython) {
         $.ajax(url, settings);
     };
     
-    Session.prototype.delete = function() {
+    Session.prototype.delete = function (success, error) {
         var settings = {
             processData : false,
             cache : false,
             type : "DELETE",
             dataType : "json",
-            error : utils.log_ajax_error,
+            success : success,
+            error : error || utils.log_ajax_error,
         };
-        this.kernel.running = false;
+        if (this.kernel) {
+            this.kernel.running = false;
+            this.kernel.stop_channels();
+        }
         var url = utils.url_join_encode(this.base_url, 'api/sessions', this.id);
         $.ajax(url, settings);
     };
@@ -91,9 +102,17 @@ var IPython = (function (IPython) {
      */
     Session.prototype._handle_start_success = function (data, status, xhr) {
         this.id = data.id;
+        // If we asked for 'python', the response will have 'python3' or 'python2'.
+        this.kernel_name = data.kernel.name;
+        this.events.trigger('started.Session', this);
         var kernel_service_url = utils.url_path_join(this.base_url, "api/kernels");
-        this.kernel = new IPython.Kernel(kernel_service_url);
+        this.kernel = new kernel.Kernel(kernel_service_url, this.ws_url, this.notebook, this.kernel_name);
         this.kernel._kernel_started(data.kernel);
+    };
+
+    Session.prototype._handle_start_failure = function (xhr, status, error) {
+        this.events.trigger('start_failed.Session', [this, xhr, status, error]);
+        this.events.trigger('status_dead.Kernel');
     };
     
     /**
@@ -114,8 +133,18 @@ var IPython = (function (IPython) {
         this.kernel.kill();
     };
     
+    var SessionAlreadyStarting = function (message) {
+        this.name = "SessionAlreadyStarting";
+        this.message = (message || "");
+    };
+    
+    SessionAlreadyStarting.prototype = Error.prototype;
+    
+    // For backwards compatability.
     IPython.Session = Session;
 
-    return IPython;
-
-}(IPython));
+    return {
+        Session: Session,
+        SessionAlreadyStarting: SessionAlreadyStarting,
+    };
+});

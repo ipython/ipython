@@ -27,8 +27,16 @@ class MainKernelHandler(IPythonHandler):
     @web.authenticated
     @json_errors
     def post(self):
+        model = self.get_json_body()
+        if model is None:
+            raise web.HTTPError(400, "No JSON data provided")
+        try:
+            name = model['name']
+        except KeyError:
+            raise web.HTTPError(400, "Missing field in JSON data: name")
+
         km = self.kernel_manager
-        kernel_id = km.start_kernel()
+        kernel_id = km.start_kernel(kernel_name=name)
         model = km.kernel_model(kernel_id)
         location = url_path_join(self.base_url, 'api', 'kernels', kernel_id)
         self.set_header('Location', url_escape(location))
@@ -75,6 +83,9 @@ class KernelActionHandler(IPythonHandler):
 
 
 class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
+    
+    def __repr__(self):
+        return "%s(%s)" % (self.__class__.__name__, getattr(self, 'kernel_id', 'uninitialized'))
     
     def create_stream(self):
         km = self.kernel_manager
@@ -137,6 +148,12 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
             self.zmq_stream.on_recv(self._on_zmq_reply)
 
     def on_message(self, msg):
+        if self.zmq_stream is None:
+            return
+        elif self.zmq_stream.closed():
+            self.log.info("%s closed, closing websocket.", self)
+            self.close()
+            return
         msg = json.loads(msg)
         self.session.send(self.zmq_stream, msg)
 

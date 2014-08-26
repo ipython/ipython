@@ -7,15 +7,15 @@ casper.notebook_test(function () {
     this.execute_cell_then(index);
 
     var button_index = this.append_cell(
-        'button = widgets.ButtonWidget(description="Title")\n' +
-        'display(button)\n'+
+        'button = widgets.Button(description="Title")\n' +
+        'display(button)\n' +
         'print("Success")\n' +
         'def handle_click(sender):\n' +
-        '    print("Clicked")\n' +
+        '    display("Clicked")\n' +
         'button.on_click(handle_click)');
     this.execute_cell_then(button_index, function(index){
 
-        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
+        this.test.assertEquals(this.get_output_cell(index).text, 'Success\n',
             'Create button cell executed with correct output.');
 
         this.test.assert(this.cell_element_exists(index, 
@@ -37,7 +37,7 @@ casper.notebook_test(function () {
     this.wait_for_output(button_index, 1);
 
     this.then(function () {
-        this.test.assertEquals(this.get_output_cell(button_index, 1).text, 'Clicked\n', 
+        this.test.assertEquals(this.get_output_cell(button_index, 1)['text/plain'], "'Clicked'",
             'Button click event fires.');
     });
 });

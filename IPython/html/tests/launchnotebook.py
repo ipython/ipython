@@ -33,7 +33,7 @@ class NotebookTestBase(TestCase):
     @classmethod
     def wait_until_alive(cls):
         """Wait for the server to be alive"""
-        url = 'http://localhost:%i/api/notebooks' % cls.port
+        url = 'http://localhost:%i/api/contents' % cls.port
         for _ in range(int(MAX_WAITTIME/POLL_INTERVAL)):
             try:
                 requests.get(url)

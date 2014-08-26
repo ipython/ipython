@@ -1,32 +1,24 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2008-2011  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
-
-//============================================================================
-// Events
-//============================================================================
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
 // Give us an object to bind all events to. This object should be created
 // before all other objects so it exists when others register event handlers.
-// To trigger an event handler:
-// $([IPython.events]).trigger('event.Namespace');
-// To handle it:
-// $([IPython.events]).on('event.Namespace',function () {});
+// To register an event handler:
+//
+// require(['base/js/events'], function (events) {
+//     events.on("event.Namespace", function () { do_stuff(); });
+// });
 
-var IPython = (function (IPython) {
+define(['base/js/namespace', 'jquery'], function(IPython, $) {
     "use strict";
 
-    var utils = IPython.utils;
-
     var Events = function () {};
-
+    
+    var events = new Events();
+    
+    // Backwards compatability.
     IPython.Events = Events;
-    IPython.events = new Events();
-
-    return IPython;
-
-}(IPython));
-
+    IPython.events = events;
+    
+    return $([events]);
+});

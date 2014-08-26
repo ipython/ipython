@@ -122,6 +122,11 @@
             height     : 28px !important;
             margin-top : -8px !important;
         }
+
+        .ui-slider-range {
+            height     : 12px !important;
+            margin-top : -4px !important;
+        }
     }
 }
 
@@ -159,6 +164,11 @@
             width       : 28px !important;
             height      : 14px !important;
             margin-left : -9px;
+        }
+
+        .ui-slider-range {
+            width       : 12px !important;
+            margin-left : -1px !important;
         }
     }
 }
@@ -216,7 +226,7 @@
     margin : 5px;
 
     .start();
-    .widget-container();
+    .widget-box();
 }
 
 .widget-hbox {
@@ -248,7 +258,7 @@
 }
 
 .widget-modal {
-    /* ContainerWidget - ModalView */   
+    /* Box - ModalView */   
     overflow    : hidden; 
     position    : absolute !important;
     top         : 0px; 
@@ -257,12 +267,12 @@
 }
 
 .widget-modal-body {
-    /* ContainerWidget - ModalView Body */
+    /* Box - ModalView Body */
     max-height: none !important;
 }
 
-.widget-container {
-    /* ContainerWidget */
+.widget-box {
+    /* Box */
     .border-box-sizing();
     .align-start();
 }

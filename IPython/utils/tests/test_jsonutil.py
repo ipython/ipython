@@ -1,31 +1,20 @@
-"""Test suite for our JSON utilities.
-"""
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING.txt, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# coding: utf-8
+"""Test suite for our JSON utilities."""
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-# stdlib
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 import datetime
 import json
 from base64 import decodestring
 
-# third party
 import nose.tools as nt
 
-# our own
 from IPython.utils import jsonutil, tz
 from ..jsonutil import json_clean, encode_images
 from ..py3compat import unicode_to_str, str_to_bytes, iteritems
 
-#-----------------------------------------------------------------------------
-# Test functions
-#-----------------------------------------------------------------------------
+
 class Int(int):
     def __str__(self):
         return 'Int(%i)' % self
@@ -63,6 +52,13 @@ def test():
         # and ensure that what we return, indeed encodes cleanly
         json.loads(json.dumps(out))
 
+
+def test_rekey():
+    # This could fail due to modifying the dict keys in-place on Python 3
+    d = { i:i for i in map(str, range(128)) }
+    d = jsonutil.rekey(d)
+    for key in d:
+        nt.assert_is_instance(key, int)
 
 
 def test_encode_images():
@@ -148,4 +144,8 @@ def test_exception():
                  ]
     for d in bad_dicts:
         nt.assert_raises(ValueError, json_clean, d)
-    
+
+def test_unicode_dict():
+    data = {u'üniço∂e': u'üniço∂e'}
+    clean = jsonutil.json_clean(data)
+    nt.assert_equal(data, clean)

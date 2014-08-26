@@ -13,11 +13,12 @@ in the IPython notebook front-end.
 # Imports
 #-----------------------------------------------------------------------------
 from contextlib import contextmanager
+import collections
 
 from IPython.core.getipython import get_ipython
 from IPython.kernel.comm import Comm
 from IPython.config import LoggingConfigurable
-from IPython.utils.traitlets import Unicode, Dict, Instance, Bool, List, Tuple, Int
+from IPython.utils.traitlets import Unicode, Dict, Instance, Bool, List, Tuple, Int, Set
 from IPython.utils.py3compat import string_types
 
 #-----------------------------------------------------------------------------
@@ -98,9 +99,9 @@ class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
     _model_name = Unicode('WidgetModel', help="""Name of the backbone model 
         registered in the front-end to create and sync this widget with.""")
-    _view_name = Unicode(help="""Default view registered in the front-end
+    _view_name = Unicode('WidgetView', help="""Default view registered in the front-end
         to use to represent the widget.""", sync=True)
-    _comm = Instance('IPython.kernel.comm.Comm')
+    comm = Instance('IPython.kernel.comm.Comm')
     
     msg_throttle = Int(3, sync=True, help="""Maximum number of msgs the 
         front-end can send before receiving an idle msg from the back-end.""")
@@ -110,7 +111,8 @@ class Widget(LoggingConfigurable):
         return [name for name in self.traits(sync=True)]
     
     _property_lock = Tuple((None, None))
-    
+    _send_state_lock = Int(0)
+    _states_to_send = Set(allow_none=False)
     _display_callbacks = Instance(CallbackDispatcher, ())
     _msg_callbacks = Instance(CallbackDispatcher, ())
     
@@ -119,10 +121,12 @@ class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
     def __init__(self, **kwargs):
         """Public constructor"""
+        self._model_id = kwargs.pop('model_id', None)
         super(Widget, self).__init__(**kwargs)
 
         self.on_trait_change(self._handle_property_changed, self.keys)
         Widget._call_widget_constructed(self)
+        self.open()
 
     def __del__(self):
         """Object disposal"""
@@ -132,22 +136,20 @@ class Widget(LoggingConfigurable):
     # Properties
     #-------------------------------------------------------------------------
 
-    @property
-    def comm(self):
-        """Gets the Comm associated with this widget.
-
-        If a Comm doesn't exist yet, a Comm will be created automagically."""
-        if self._comm is None:
-            # Create a comm.
-            self._comm = Comm(target_name=self._model_name)
-            self._comm.on_msg(self._handle_msg)
-            self._comm.on_close(self._close)
+    def open(self):
+        """Open a comm to the frontend if one isn't already open."""
+        if self.comm is None:
+            if self._model_id is None:
+                self.comm = Comm(target_name=self._model_name)
+                self._model_id = self.model_id
+            else:
+                self.comm = Comm(target_name=self._model_name, comm_id=self._model_id)
+            self.comm.on_msg(self._handle_msg)
             Widget.widgets[self.model_id] = self
 
             # first update
             self.send_state()
-        return self._comm
-    
+
     @property
     def model_id(self):
         """Gets the model id of this widget.
@@ -158,32 +160,29 @@ class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
     # Methods
     #-------------------------------------------------------------------------
-    def _close(self):
-        """Private close - cleanup objects, registry entries"""
-        del Widget.widgets[self.model_id]
-        self._comm = None
 
     def close(self):
         """Close method.
 
-        Closes the widget which closes the underlying comm.
+        Closes the underlying comm.
         When the comm is closed, all of the widget views are automatically
         removed from the front-end."""
-        if self._comm is not None:
-            self._comm.close()
-            self._close()
-
+        if self.comm is not None:
+            Widget.widgets.pop(self.model_id, None)
+            self.comm.close()
+            self.comm = None
+    
     def send_state(self, key=None):
         """Sends the widget state, or a piece of it, to the front-end.
 
         Parameters
         ----------
-        key : unicode (optional)
-            A single property's name to sync with the front-end.
+        key : unicode, or iterable (optional)
+            A single property's name or iterable of property names to sync with the front-end.
         """
         self._send({
             "method" : "update",
-            "state"  : self.get_state()
+            "state"  : self.get_state(key=key)
         })
 
     def get_state(self, key=None):
@@ -191,12 +190,24 @@ class Widget(LoggingConfigurable):
 
         Parameters
         ----------
-        key : unicode (optional)
-            A single property's name to get.
+        key : unicode or iterable (optional)
+            A single property's name or iterable of property names to get.
         """
-        keys = self.keys if key is None else [key]
-        return {k: self._pack_widgets(getattr(self, k)) for k in keys} 
-
+        if key is None:
+            keys = self.keys
+        elif isinstance(key, string_types):
+            keys = [key]
+        elif isinstance(key, collections.Iterable):
+            keys = key
+        else:
+            raise ValueError("key must be a string, an iterable of keys, or None")
+        state = {}
+        for k in keys:
+            f = self.trait_metadata(k, 'to_json', self._trait_to_json)
+            value = getattr(self, k)
+            state[k] = f(value)
+        return state
+    
     def send(self, content):
         """Sends a custom msg to the widget model in the front-end.
 
@@ -243,6 +254,8 @@ class Widget(LoggingConfigurable):
     def _lock_property(self, key, value):
         """Lock a property-value pair.
 
+        The value should be the JSON state of the property.
+
         NOTE: This, in addition to the single lock for all state changes, is 
         flawed.  In the future we may want to look into buffering state changes 
         back to the front-end."""
@@ -252,10 +265,31 @@ class Widget(LoggingConfigurable):
         finally:
             self._property_lock = (None, None)
 
+    @contextmanager
+    def hold_sync(self):
+        """Hold syncing any state until the context manager is released"""
+        # We increment a value so that this can be nested.  Syncing will happen when
+        # all levels have been released.
+        self._send_state_lock += 1
+        try:
+            yield
+        finally:
+            self._send_state_lock -=1
+            if self._send_state_lock == 0:
+                self.send_state(self._states_to_send)
+                self._states_to_send.clear()
+
     def _should_send_property(self, key, value):
         """Check the property lock (property_lock)"""
-        return key != self._property_lock[0] or \
-        value != self._property_lock[1]
+        to_json = self.trait_metadata(key, 'to_json', self._trait_to_json)
+        if (key == self._property_lock[0]
+            and to_json(value) == self._property_lock[1]):
+            return False
+        elif self._send_state_lock > 0:
+            self._states_to_send.add(key)
+            return False
+        else:
+            return True
     
     # Event handlers
     @_show_traceback
@@ -280,9 +314,10 @@ class Widget(LoggingConfigurable):
         """Called when a state is received from the front-end."""
         for name in self.keys:
             if name in sync_data:
-                value = self._unpack_widgets(sync_data[name])
-                with self._lock_property(name, value):
-                    setattr(self, name, value)
+                json_value = sync_data[name]
+                from_json = self.trait_metadata(name, 'from_json', self._trait_from_json)
+                with self._lock_property(name, json_value):
+                    setattr(self, name, from_json(json_value))
 
     def _handle_custom_msg(self, content):
         """Called when a custom msg is received."""
@@ -299,31 +334,34 @@ class Widget(LoggingConfigurable):
         """Called when a view has been displayed for this widget instance"""
         self._display_callbacks(self, **kwargs)
 
-    def _pack_widgets(self, x):
-        """Recursively converts all widget instances to model id strings.
+    def _trait_to_json(self, x):
+        """Convert a trait value to json
 
-        Children widgets will be stored and transmitted to the front-end by 
-        their model ids.  Return value must be JSON-able."""
+        Traverse lists/tuples and dicts and serialize their values as well.
+        Replace any widgets with their model_id
+        """
         if isinstance(x, dict):
-            return {k: self._pack_widgets(v) for k, v in x.items()}
+            return {k: self._trait_to_json(v) for k, v in x.items()}
         elif isinstance(x, (list, tuple)):
-            return [self._pack_widgets(v) for v in x]
+            return [self._trait_to_json(v) for v in x]
         elif isinstance(x, Widget):
-            return x.model_id
+            return "IPY_MODEL_" + x.model_id
         else:
             return x # Value must be JSON-able
 
-    def _unpack_widgets(self, x):
-        """Recursively converts all model id strings to widget instances.
+    def _trait_from_json(self, x):
+        """Convert json values to objects
 
-        Children widgets will be stored and transmitted to the front-end by 
-        their model ids."""
+        Replace any strings representing valid model id values to Widget references.
+        """
         if isinstance(x, dict):
-            return {k: self._unpack_widgets(v) for k, v in x.items()}
+            return {k: self._trait_from_json(v) for k, v in x.items()}
         elif isinstance(x, (list, tuple)):
-            return [self._unpack_widgets(v) for v in x]
-        elif isinstance(x, string_types):
-            return x if x not in Widget.widgets else Widget.widgets[x]
+            return [self._trait_from_json(v) for v in x]
+        elif isinstance(x, string_types) and x.startswith('IPY_MODEL_') and x[10:] in Widget.widgets:
+            # we want to support having child widgets at any level in a hierarchy
+            # trusting that a widget UUID will not appear out in the wild
+            return Widget.widgets[x]
         else:
             return x
 

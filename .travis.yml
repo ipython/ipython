@@ -13,8 +13,10 @@ before_install:
     # Pierre Carrier's PPA for PhantomJS and CasperJS
     - time sudo add-apt-repository -y ppa:pcarrier/ppa
     - time sudo apt-get update
-    - time sudo apt-get install pandoc casperjs nodejs libzmq3-dev
-    - time pip install -f https://nipy.bic.berkeley.edu/wheelhouse/travis jinja2 sphinx pygments tornado requests mock pyzmq jsonschema jsonpointer
+    - time sudo apt-get install pandoc casperjs libzmq3-dev
+    # pin tornado < 4 for js tests while phantom is on super old webkit
+    - if [[ $GROUP == 'js' ]]; then pip install 'tornado<4'; fi
+    - time pip install -f https://nipy.bic.berkeley.edu/wheelhouse/travis jinja2 sphinx pygments tornado requests mock pyzmq jsonschema jsonpointer mistune
 install:
     - time python setup.py install -q 
 script:

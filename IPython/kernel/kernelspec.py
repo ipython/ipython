@@ -8,7 +8,7 @@ pjoin = os.path.join
 
 from IPython.utils.path import get_ipython_dir
 from IPython.utils.py3compat import PY3
-from IPython.utils.traitlets import HasTraits, List, Unicode, Dict
+from IPython.utils.traitlets import HasTraits, List, Unicode, Dict, Any
 
 if os.name == 'nt':
     programdata = os.environ.get('PROGRAMDATA', None)
@@ -23,22 +23,25 @@ else:
     
 NATIVE_KERNEL_NAME = 'python3' if PY3 else 'python2'
 
+def _pythonfirst(s):
+    "Sort key function that will put strings starting with 'python' first."
+    if s == NATIVE_KERNEL_NAME:
+        return '  ' + s  # Two spaces to sort this first of all
+    elif s.startswith('python'):
+        # Space is not valid in kernel names, so this should sort first
+        return ' ' + s
+    return s
+
 class KernelSpec(HasTraits):
     argv = List()
     display_name = Unicode()
     language = Unicode()
-    codemirror_mode = None
+    codemirror_mode = Any() # can be unicode or dict
     env = Dict()
-    
     resource_dir = Unicode()
     
-    def __init__(self, resource_dir, argv, display_name, language,
-                 codemirror_mode=None):
-        super(KernelSpec, self).__init__(resource_dir=resource_dir, argv=argv,
-                display_name=display_name, language=language,
-                codemirror_mode=codemirror_mode)
-        if not self.codemirror_mode:
-            self.codemirror_mode = self.language
+    def _codemirror_mode_default(self):
+        return self.language
     
     @classmethod
     def from_resource_dir(cls, resource_dir):
@@ -109,9 +112,9 @@ class KernelSpecManager(HasTraits):
             json.dump({'argv':[NATIVE_KERNEL_NAME, '-c',
                                'from IPython.kernel.zmq.kernelapp import main; main()',
                                 '-f', '{connection_file}'],
-                       'display_name': 'Python 3' if PY3 else 'Python 2',
+                       'display_name': 'IPython (Python %d)' % (3 if PY3 else 2),
                        'language': 'python',
-                       'codemirror_mode': {'name': 'python',
+                       'codemirror_mode': {'name': 'ipython',
                                            'version': sys.version_info[0]},
                       },
                       f, indent=1)
@@ -186,7 +189,8 @@ def get_kernel_spec(kernel_name):
     """
     return KernelSpecManager().get_kernel_spec(kernel_name)
 
-def install_kernel_spec(source_dir, kernel_name=None, system=False):
-    return KernelSpecManager().install_kernel_spec(source_dir, kernel_name, system)
+def install_kernel_spec(source_dir, kernel_name=None, system=False, replace=False):
+    return KernelSpecManager().install_kernel_spec(source_dir, kernel_name,
+                                                    system, replace)
 
 install_kernel_spec.__doc__ = KernelSpecManager.install_kernel_spec.__doc__

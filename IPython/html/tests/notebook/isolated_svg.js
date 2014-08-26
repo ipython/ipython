@@ -21,7 +21,6 @@ casper.notebook_test(function () {
                        "display_svg(SVG(s2), metadata=dict(isolated=True))\n"
             );
         cell.execute();
-        console.log("hello" );
     });
 
     this.then(function() {
@@ -30,7 +29,6 @@ casper.notebook_test(function () {
         this.echo(this.currentUrl);
         this.evaluate(function (n) {
             IPython.notebook.rename(n);
-            console.write("hello" + n);
             IPython.notebook.save_notebook();
         }, {n : fname});
         this.echo(this.currentUrl);
@@ -40,9 +38,6 @@ casper.notebook_test(function () {
     
         url = this.evaluate(function() {
             IPython.notebook.rename("foo");
-            //$("span#notebook_name")[0].click();
-            //$("input")[0].value = "please-work";
-            //$(".btn-primary")[0].click();
             return document.location.href;
         });
         this.echo("renamed" + url);

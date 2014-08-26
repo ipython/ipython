@@ -18,7 +18,6 @@ from pprint import pprint
 pjoin = os.path.join
 
 import zmq
-from zmq.ssh import tunnel
 
 from IPython.config.configurable import MultipleInstanceError
 from IPython.core.application import BaseIPythonApplication
@@ -443,6 +442,7 @@ class Client(HasTraits):
             # default to ssh via localhost
             sshserver = addr
         if self._ssh and password is None:
+            from zmq.ssh import tunnel
             if tunnel.try_passwordless_ssh(sshserver, sshkey, paramiko):
                 password=False
             else:
@@ -467,6 +467,7 @@ class Client(HasTraits):
         self._query_socket = self._context.socket(zmq.DEALER)
 
         if self._ssh:
+            from zmq.ssh import tunnel
             tunnel.tunnel_connection(self._query_socket, cfg['registration'], sshserver, **ssh_kwargs)
         else:
             self._query_socket.connect(cfg['registration'])
@@ -589,6 +590,7 @@ class Client(HasTraits):
 
         def connect_socket(s, url):
             if self._ssh:
+                from zmq.ssh import tunnel
                 return tunnel.tunnel_connection(s, url, sshserver, **ssh_kwargs)
             else:
                 return s.connect(url)
@@ -852,15 +854,19 @@ class Client(HasTraits):
             if self.debug:
                 pprint(msg)
             parent = msg['parent_header']
-            # ignore IOPub messages with no parent.
-            # Caused by print statements or warnings from before the first execution.
-            if not parent:
+            if not parent or parent['session'] != self.session.session:
+                # ignore IOPub messages not from here
                 idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
                 continue
             msg_id = parent['msg_id']
             content = msg['content']
             header = msg['header']
             msg_type = msg['header']['msg_type']
+            
+            if msg_type == 'status' and msg_id not in self.metadata:
+                # ignore status messages if they aren't mine
+                idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
+                continue
 
             # init metadata:
             md = self.metadata[msg_id]

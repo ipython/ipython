@@ -1,21 +1,11 @@
-//----------------------------------------------------------------------------
-//  Copyright (C) 2013  The IPython Development Team
-//
-//  Distributed under the terms of the BSD License.  The full license is in
-//  the file COPYING, distributed as part of this software.
-//----------------------------------------------------------------------------
+// Copyright (c) IPython Development Team.
+// Distributed under the terms of the Modified BSD License.
 
-//============================================================================
-// Comm and CommManager bases
-//============================================================================
-/**
- * Base Comm classes
- * @module IPython
- * @namespace IPython
- * @submodule comm
- */
-
-var IPython = (function (IPython) {
+define([
+    'base/js/namespace',
+    'jquery',
+    'base/js/utils',
+], function(IPython, $, utils) {
     "use strict";
 
     //-----------------------------------------------------------------------
@@ -66,9 +56,9 @@ var IPython = (function (IPython) {
         return comm.comm_id;
     };
     
-    CommManager.prototype.unregister_comm = function (comm_id) {
+    CommManager.prototype.unregister_comm = function (comm) {
         // Remove a comm from the mapping
-        delete this.comms[comm_id];
+        delete this.comms[comm.comm_id];
     };
     
     // comm message handlers
@@ -98,7 +88,7 @@ var IPython = (function (IPython) {
         if (comm === undefined) {
             return;
         }
-        delete this.comms[content.comm_id];
+        this.unregister_comm(comm);
         try {
             comm.handle_close(msg);
         } catch (e) {
@@ -125,7 +115,7 @@ var IPython = (function (IPython) {
     
     var Comm = function (target_name, comm_id) {
         this.target_name = target_name;
-        this.comm_id = comm_id || IPython.utils.uuid();
+        this.comm_id = comm_id || utils.uuid();
         this._msg_callback = this._close_callback = null;
     };
     
@@ -189,10 +179,12 @@ var IPython = (function (IPython) {
         this._maybe_callback('close', msg);
     };
     
+    // For backwards compatability.
     IPython.CommManager = CommManager;
     IPython.Comm = Comm;
-    
-    return IPython;
 
-}(IPython));
-
+    return {
+        'CommManager': CommManager,
+        'Comm': Comm
+    };
+});

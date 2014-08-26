@@ -7,10 +7,10 @@ casper.notebook_test(function () {
     this.execute_cell_then(index);
 
     var string_index = this.append_cell(
-        'string_widget = [widgets.TextWidget(value = "xyz", placeholder = "abc"),\n' +
-        '    widgets.TextareaWidget(value = "xyz", placeholder = "def"),\n' +
-        '    widgets.HTMLWidget(value = "xyz"),\n' +
-        '    widgets.LatexWidget(value = "$\\\\LaTeX{}$")]\n' +
+        'string_widget = [widgets.Text(value = "xyz", placeholder = "abc"),\n' +
+        '    widgets.Textarea(value = "xyz", placeholder = "def"),\n' +
+        '    widgets.HTML(value = "xyz"),\n' +
+        '    widgets.Latex(value = "$\\\\LaTeX{}$")]\n' +
         '[display(widget) for widget in string_widget]\n'+
         'print("Success")');
     this.execute_cell_then(string_index, function(index){

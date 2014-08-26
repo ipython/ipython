@@ -19,8 +19,10 @@ from __future__ import print_function
 
 from IPython.config.configurable import Configurable
 from IPython.utils import io
-from IPython.utils.py3compat import string_types
 from IPython.utils.traitlets import List
+
+# This used to be defined here - it is imported for backwards compatibility
+from .display import publish_display_data
 
 #-----------------------------------------------------------------------------
 # Main payload class
@@ -112,48 +114,3 @@ class CapturingDisplayPublisher(DisplayPublisher):
         
         # empty the list, *do not* reassign a new list
         del self.outputs[:]
-
-
-def publish_display_data(data, metadata=None, source=None):
-    """Publish data and metadata to all frontends.
-
-    See the ``display_data`` message in the messaging documentation for
-    more details about this message type.
-
-    The following MIME types are currently implemented:
-
-    * text/plain
-    * text/html
-    * text/markdown
-    * text/latex
-    * application/json
-    * application/javascript
-    * image/png
-    * image/jpeg
-    * image/svg+xml
-
-    Parameters
-    ----------
-    data : dict
-        A dictionary having keys that are valid MIME types (like
-        'text/plain' or 'image/svg+xml') and values that are the data for
-        that MIME type. The data itself must be a JSON'able data
-        structure. Minimally all data should have the 'text/plain' data,
-        which can be displayed by all frontends. If more than the plain
-        text is given, it is up to the frontend to decide which
-        representation to use.
-    metadata : dict
-        A dictionary for metadata related to the data. This can contain
-        arbitrary key, value pairs that frontends can use to interpret
-        the data. mime-type keys matching those in data can be used
-        to specify metadata about particular representations.
-    source : str, deprecated
-        Unused.
-        """
-    from IPython.core.interactiveshell import InteractiveShell
-    InteractiveShell.instance().display_pub.publish(
-        data=data,
-        metadata=metadata,
-    )
-
-

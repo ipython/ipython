@@ -19,7 +19,8 @@ from IPython.utils.traitlets import (
     HasTraits, MetaHasTraits, TraitType, Any, CBytes, Dict,
     Int, Long, Integer, Float, Complex, Bytes, Unicode, TraitError,
     Undefined, Type, This, Instance, TCPAddress, List, Tuple,
-    ObjectName, DottedObjectName, CRegExp, link
+    ObjectName, DottedObjectName, CRegExp, link, directional_link,
+    EventfulList, EventfulDict
 )
 from IPython.utils import py3compat
 from IPython.testing.decorators import skipif
@@ -405,6 +406,13 @@ class TestHasTraits(TestCase):
         a = A()
         self.assertEqual(a.trait_metadata('i','config_key'), 'MY_VALUE')
 
+    def test_trait_metadata_default(self):
+        class A(HasTraits):
+            i = Int()
+        a = A()
+        self.assertEqual(a.trait_metadata('i', 'config_key'), None)
+        self.assertEqual(a.trait_metadata('i', 'config_key', 'default'), 'default')
+
     def test_traits(self):
         class A(HasTraits):
             i = Int
@@ -531,6 +539,15 @@ class TestType(TestCase):
 
         self.assertRaises(TraitError, setattr, a, 'klass', 10)
 
+    def test_set_str_klass(self):
+
+        class A(HasTraits):
+            klass = Type()
+
+        a = A(klass='IPython.utils.ipstruct.Struct')
+        from IPython.utils.ipstruct import Struct
+        self.assertEqual(a.klass, Struct)
+
 class TestInstance(TestCase):
 
     def test_basic(self):
@@ -540,6 +557,27 @@ class TestInstance(TestCase):
 
         class A(HasTraits):
             inst = Instance(Foo)
+
+        a = A()
+        self.assertTrue(a.inst is None)
+        a.inst = Foo()
+        self.assertTrue(isinstance(a.inst, Foo))
+        a.inst = Bar()
+        self.assertTrue(isinstance(a.inst, Foo))
+        self.assertRaises(TraitError, setattr, a, 'inst', Foo)
+        self.assertRaises(TraitError, setattr, a, 'inst', Bar)
+        self.assertRaises(TraitError, setattr, a, 'inst', Bah())
+
+    def test_default_klass(self):
+        class Foo(object): pass
+        class Bar(Foo): pass
+        class Bah(object): pass
+
+        class FooInstance(Instance):
+            klass = Foo
+
+        class A(HasTraits):
+            inst = FooInstance()
 
         a = A()
         self.assertTrue(a.inst is None)
@@ -1004,7 +1042,7 @@ class TestCRegExp(TraitTestBase):
 
     _default_value = re.compile(r'')
     _good_values = [r'\d+', re.compile(r'\d+')]
-    _bad_values = [r'(', None, ()]
+    _bad_values = ['(', None, ()]
 
 class DictTrait(HasTraits):
     value = Dict()
@@ -1117,6 +1155,71 @@ class TestLink(TestCase):
         self.assertEqual(''.join(callback_count), 'ab')
         del callback_count[:]
 
+class TestDirectionalLink(TestCase):
+    def test_connect_same(self):
+        """Verify two traitlets of the same type can be linked together using directional_link."""
+
+        # Create two simple classes with Int traitlets.
+        class A(HasTraits):
+            value = Int()
+        a = A(value=9)
+        b = A(value=8)
+
+        # Conenct the two classes.
+        c = directional_link((a, 'value'), (b, 'value'))
+
+        # Make sure the values are the same at the point of linking.
+        self.assertEqual(a.value, b.value)
+
+        # Change one the value of the source and check that it synchronizes the target.
+        a.value = 5
+        self.assertEqual(b.value, 5)
+        # Change one the value of the target and check that it has no impact on the source
+        b.value = 6
+        self.assertEqual(a.value, 5)
+
+    def test_link_different(self):
+        """Verify two traitlets of different types can be linked together using link."""
+
+        # Create two simple classes with Int traitlets.
+        class A(HasTraits):
+            value = Int()
+        class B(HasTraits):
+            count = Int()
+        a = A(value=9)
+        b = B(count=8)
+
+        # Conenct the two classes.
+        c = directional_link((a, 'value'), (b, 'count'))
+
+        # Make sure the values are the same at the point of linking.
+        self.assertEqual(a.value, b.count)
+
+        # Change one the value of the source and check that it synchronizes the target.
+        a.value = 5
+        self.assertEqual(b.count, 5)
+        # Change one the value of the target and check that it has no impact on the source
+        b.value = 6
+        self.assertEqual(a.value, 5)
+
+    def test_unlink(self):
+        """Verify two linked traitlets can be unlinked."""
+
+        # Create two simple classes with Int traitlets.
+        class A(HasTraits):
+            value = Int()
+        a = A(value=9)
+        b = A(value=8)
+
+        # Connect the two classes.
+        c = directional_link((a, 'value'), (b, 'value'))
+        a.value = 4
+        c.unlink()
+
+        # Change one of the values to make sure they don't stay in sync.
+        a.value = 5
+        self.assertNotEqual(a.value, b.value)
+
 class Pickleable(HasTraits):
     i = Int()
     j = Int()
@@ -1141,4 +1244,65 @@ def test_pickle_hastraits():
         c2 = pickle.loads(p)
         nt.assert_equal(c2.i, c.i)
         nt.assert_equal(c2.j, c.j)
-    
+
+class TestEventful(TestCase):
+
+    def test_list(self):
+        """Does the EventfulList work?"""
+        event_cache = []
+
+        class A(HasTraits):
+            x = EventfulList([c for c in 'abc'])
+        a = A()
+        a.x.on_events(lambda i, x: event_cache.append('insert'), \
+            lambda i, x: event_cache.append('set'), \
+            lambda i: event_cache.append('del'), \
+            lambda: event_cache.append('reverse'), \
+            lambda *p, **k: event_cache.append('sort'))
+
+        a.x.remove('c')
+        # ab
+        a.x.insert(0, 'z')
+        # zab
+        del a.x[1]
+        # zb
+        a.x.reverse()
+        # bz 
+        a.x[1] = 'o'
+        # bo
+        a.x.append('a')
+        # boa
+        a.x.sort()
+        # abo
+
+        # Were the correct events captured?
+        self.assertEqual(event_cache, ['del', 'insert', 'del', 'reverse', 'set', 'set', 'sort'])
+
+        # Is the output correct?
+        self.assertEqual(a.x, [c for c in 'abo'])
+
+    def test_dict(self):
+        """Does the EventfulDict work?"""
+        event_cache = []
+
+        class A(HasTraits):
+            x = EventfulDict({c: c for c in 'abc'})
+        a = A()
+        a.x.on_events(lambda k, v: event_cache.append('add'), \
+            lambda k, v: event_cache.append('set'), \
+            lambda k: event_cache.append('del'))
+
+        del a.x['c']
+        # ab
+        a.x['z'] = 1
+        # abz
+        a.x['z'] = 'z'
+        # abz
+        a.x.pop('a')
+        # bz 
+
+        # Were the correct events captured?
+        self.assertEqual(event_cache, ['del', 'add', 'set', 'del'])
+
+        # Is the output correct?
+        self.assertEqual(a.x, {c: c for c in 'bz'})

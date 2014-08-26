@@ -21,7 +21,6 @@ from zmq.eventloop import ioloop
 
 from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.traitlets import Dict, Instance, CFloat
-from IPython.parallel.apps.ipclusterapp import IPClusterStart
 from IPython.core.profileapp import list_profiles_in
 from IPython.core.profiledir import ProfileDir
 from IPython.utils import py3compat
@@ -33,17 +32,6 @@ from IPython.utils.path import get_ipython_dir
 #-----------------------------------------------------------------------------
 
 
-class DummyIPClusterStart(IPClusterStart):
-    """Dummy subclass to skip init steps that conflict with global app.
-    
-    Instantiating and initializing this class should result in fully configured
-    launchers, but no other side effects or state.
-    """
-
-    def init_signal(self):
-        pass
-    def reinit_logging(self):
-        pass
 
 
 class ClusterManager(LoggingConfigurable):
@@ -59,6 +47,20 @@ class ClusterManager(LoggingConfigurable):
         return IOLoop.instance()
 
     def build_launchers(self, profile_dir):
+        from IPython.parallel.apps.ipclusterapp import IPClusterStart
+        
+        class DummyIPClusterStart(IPClusterStart):
+            """Dummy subclass to skip init steps that conflict with global app.
+    
+            Instantiating and initializing this class should result in fully configured
+            launchers, but no other side effects or state.
+            """
+
+            def init_signal(self):
+                pass
+            def reinit_logging(self):
+                pass
+        
         starter = DummyIPClusterStart(log=self.log)
         starter.initialize(['--profile-dir', profile_dir])
         cl = starter.controller_launcher

@@ -1,19 +1,7 @@
+"""Tests for conversions from markdown to other formats"""
 
-"""
-Module with tests for Markdown
-"""
-
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
+# Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 from copy import copy
 
@@ -23,10 +11,6 @@ from IPython.testing import decorators as dec
 from ...tests.base import TestsBase
 from ..markdown import markdown2latex, markdown2html, markdown2rst
 
-
-#-----------------------------------------------------------------------------
-# Class
-#-----------------------------------------------------------------------------
 
 class TestMarkdown(TestsBase):
 
@@ -63,12 +47,23 @@ class TestMarkdown(TestsBase):
         for index, test in enumerate(self.tests):
             self._try_markdown(markdown2latex, test, self.tokens[index])
 
-
-    @dec.onlyif_cmds_exist('pandoc')
     def test_markdown2html(self):
         """markdown2html test"""
         for index, test in enumerate(self.tests):
             self._try_markdown(markdown2html, test, self.tokens[index])
+
+    def test_markdown2html_math(self):
+        # Mathematical expressions should be passed through unaltered
+        cases = [("\\begin{equation*}\n"
+                  "\\left( \\sum_{k=1}^n a_k b_k \\right)^2 \\leq \\left( \\sum_{k=1}^n a_k^2 \\right) \\left( \\sum_{k=1}^n b_k^2 \\right)\n"
+                  "\\end{equation*}"),
+                 ("$$\n"
+                  "a = 1 *3* 5\n"
+                  "$$"),
+                  "$ a = 1 *3* 5 $",
+                ]
+        for case in cases:
+            self.assertIn(case, markdown2html(case))
 
 
     @dec.onlyif_cmds_exist('pandoc')
