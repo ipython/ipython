@@ -40,6 +40,7 @@ from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace
 from IPython.utils.coloransi import TermColors, ColorScheme, ColorSchemeTable
 from IPython.utils.py3compat import cast_unicode, string_types, PY3
+from IPython.utils.signatures import signature
 
 # builtin docstrings to ignore
 _func_call_docstring = types.FunctionType.__call__.__doc__
@@ -390,7 +391,7 @@ class Inspector:
         If any exception is generated, None is returned instead and the
         exception is suppressed."""
         try:
-            hdef = oname + inspect.formatargspec(*getargspec(obj))
+            hdef = oname + str(signature(obj))
             return cast_unicode(hdef)
         except:
             return None
