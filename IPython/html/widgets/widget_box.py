@@ -18,6 +18,16 @@ class Box(DOMWidget):
     # Using a tuple here to force reassignment to update the list.
     # When a proper notifying-list trait exists, that is what should be used here.
     children = Tuple(sync=True, allow_none=False)
+    
+    _overflow_values = ['visible', 'hidden', 'scroll', 'auto', 'initial', 'inherit', '']
+    overflow_x = CaselessStrEnum(
+        values=_overflow_values, 
+        default_value='', allow_none=False, sync=True, help="""Specifies what
+        happens to content that is too large for the rendered region.""")
+    overflow_y = CaselessStrEnum(
+        values=_overflow_values, 
+        default_value='', allow_none=False, sync=True, help="""Specifies what
+        happens to content that is too large for the rendered region.""")
 
     def __init__(self, children = (), **kwargs):
         kwargs['children'] = children

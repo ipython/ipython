@@ -409,39 +409,72 @@ define(["widgets/js/manager",
             // Public constructor
             DOMWidgetView.__super__.initialize.apply(this, [parameters]);
             this.on('displayed', this.show, this);
-            this.after_displayed(function() {
-                this.update_visible(this.model, this.model.get("visible"));
-                this.update_css(this.model, this.model.get("_css"));
-            }, this);
             this.model.on('change:visible', this.update_visible, this);
             this.model.on('change:_css', this.update_css, this);
+
             this.model.on('change:_dom_classes', function(model, new_classes) {
                 var old_classes = model.previous('children');
                 this.update_classes(old_classes, new_classes);
             }, this);
+
             this.model.on('change:fore_color', function (model, value) { 
                 this.update_attr('color', value); }, this);
+
             this.model.on('change:back_color', function (model, value) { 
                 this.update_attr('background', value); }, this);
+
             this.model.on('change:width', function (model, value) { 
                 this.update_attr('width', value); }, this);
+
             this.model.on('change:height', function (model, value) { 
                 this.update_attr('height', value); }, this);
+
             this.model.on('change:border_color', function (model, value) { 
                 this.update_attr('border-color', value); }, this);
+
             this.model.on('change:border_width', function (model, value) { 
                 this.update_attr('border-width', value); }, this);
+
             this.model.on('change:border_style', function (model, value) { 
                 this.update_attr('border-style', value); }, this);
+
             this.model.on('change:font_style', function (model, value) { 
                 this.update_attr('font-style', value); }, this);
+
             this.model.on('change:font_weight', function (model, value) { 
                 this.update_attr('font-weight', value); }, this);
+
             this.model.on('change:font_size', function (model, value) { 
                 this.update_attr('font-size', value); }, this);
+
             this.model.on('change:font_family', function (model, value) { 
                 this.update_attr('font-family', value); }, this);
-            this.update_classes([], this.model.get('_dom_classes'));
+
+            this.model.on('change:padding', function (model, value) { 
+                this.update_attr('padding', value); }, this);
+
+            this.model.on('change:margin', function (model, value) { 
+                this.update_attr('margin', value); }, this);
+
+            this.after_displayed(function() {
+                this.update_visible(this.model, this.model.get("visible"));
+                this.update_css(this.model, this.model.get("_css"));
+
+                this.update_classes([], this.model.get('_dom_classes'));
+                this.update_attr('color', this.model.get('fore_color'));
+                this.update_attr('background', this.model.get('back_color'));
+                this.update_attr('width', this.model.get('width'));
+                this.update_attr('height', this.model.get('height'));
+                this.update_attr('border-color', this.model.get('border_color'));
+                this.update_attr('border-width', this.model.get('border_width'));
+                this.update_attr('border-style', this.model.get('border_style'));
+                this.update_attr('font-style', this.model.get('font_style'));
+                this.update_attr('font-weight', this.model.get('font_weight'));
+                this.update_attr('font-size', this.model.get('font_size'));
+                this.update_attr('font-family', this.model.get('font_family'));
+                this.update_attr('padding', this.model.get('padding'));
+                this.update_attr('margin', this.model.get('margin'));
+            }, this);
         },
 
         update_attr: function(name, value) {

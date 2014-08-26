@@ -14,6 +14,12 @@ define([
             this.model.on('change:children', function(model, value) {
                 this.update_children(model.previous('children'), value);
             }, this);
+            this.model.on('change:overflow_x', function(model, value) {
+                this.update_overflow_x();
+            }, this);
+            this.model.on('change:overflow_y', function(model, value) {
+                this.update_overflow_y();
+            }, this);
         },
 
         update_attr: function(name, value) {
@@ -26,6 +32,18 @@ define([
             this.$box = this.$el;
             this.$box.addClass('widget-box');
             this.update_children([], this.model.get('children'));
+            this.update_overflow_x();
+            this.update_overflow_y();
+        },
+
+        update_overflow_x: function() {
+            // Called when the x-axis overflow setting is changed.
+            this.$box.css('overflow-x', this.model.get('overflow_x'));
+        },
+
+        update_overflow_y: function() {
+            // Called when the y-axis overflow setting is changed.
+            this.$box.css('overflow-y', this.model.get('overflow_y'));
         },
         
         update_children: function(old_list, new_list) {
