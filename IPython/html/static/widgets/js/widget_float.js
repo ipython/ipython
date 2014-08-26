@@ -9,9 +9,9 @@ define([
     var IntTextView = int_widgets.IntTextView;
 
     var FloatSliderView = IntSliderView.extend({
-        _validate_text_input: function(x) {
-            return parseFloat(x);
-        },
+        _parse_text_input: parseFloat,
+
+        _range_regex: /^\s*([+-]?\d*\.?\d+)\s*[-:]\s*([+-]?\d*\.?\d+)/,
 
         _validate_slide_value: function(x) {
             // Validate the value of the slider before sending it to the back-end
