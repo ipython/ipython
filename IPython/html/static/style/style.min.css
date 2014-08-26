@@ -7539,6 +7539,26 @@ Browsers not listed, including Safari, are supported via the styling under the
   /* Modern browsers */
   justify-content: center;
 }
+.hbox.baseline,
+.vbox.baseline,
+.baseline {
+  /* Old browsers */
+  -webkit-box-pack: baseline;
+  -moz-box-pack: baseline;
+  box-pack: baseline;
+  /* Modern browsers */
+  justify-content: baseline;
+}
+.hbox.stretch,
+.vbox.stretch,
+.stretch {
+  /* Old browsers */
+  -webkit-box-pack: stretch;
+  -moz-box-pack: stretch;
+  box-pack: stretch;
+  /* Modern browsers */
+  justify-content: stretch;
+}
 .hbox.align-start,
 .vbox.align-start,
 .align-start {
@@ -7568,6 +7588,26 @@ Browsers not listed, including Safari, are supported via the styling under the
   box-align: center;
   /* Modern browsers */
   align-items: center;
+}
+.hbox.align-baseline,
+.vbox.align-baseline,
+.align-baseline {
+  /* Old browsers */
+  -webkit-box-align: baseline;
+  -moz-box-align: baseline;
+  box-align: baseline;
+  /* Modern browsers */
+  align-items: baseline;
+}
+.hbox.align-stretch,
+.vbox.align-stretch,
+.align-stretch {
+  /* Old browsers */
+  -webkit-box-align: stretch;
+  -moz-box-align: stretch;
+  box-align: stretch;
+  /* Modern browsers */
+  align-items: stretch;
 }
 div.error {
   margin: 2em;
@@ -9305,6 +9345,9 @@ div.cell.text_cell.rendered {
   /* Modern browsers */
   justify-content: flex-start;
   /* Box */
+  /* Old browsers */
+  /* Modern browsers */
+  /* Box */
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -9356,6 +9399,9 @@ div.cell.text_cell.rendered {
   box-pack: start;
   /* Modern browsers */
   justify-content: flex-start;
+  /* Box */
+  /* Old browsers */
+  /* Modern browsers */
   /* Box */
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -9412,6 +9458,9 @@ div.cell.text_cell.rendered {
   /* Modern browsers */
   justify-content: flex-start;
   /* Box */
+  /* Old browsers */
+  /* Modern browsers */
+  /* Box */
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -9463,6 +9512,9 @@ div.cell.text_cell.rendered {
   box-pack: start;
   /* Modern browsers */
   justify-content: flex-start;
+  /* Box */
+  /* Old browsers */
+  /* Modern browsers */
   /* Box */
   box-sizing: border-box;
   -moz-box-sizing: border-box;
