@@ -23,6 +23,7 @@ TaskRecords are dicts of the form::
         'result_header' : dict(header) or None,
         'result_content' : dict(content) or None,
         'result_buffers' : list(buffers) or None,
+        'priority': int or None,
     }
 
 With this info, many of the special categories of tasks can be defined by query,
@@ -100,10 +101,10 @@ class DictDB(BaseDB):
     _records = Dict()
     _culled_ids = set() # set of ids which have been culled
     _buffer_bytes = Integer(0) # running total of the bytes in the DB
-    
+
     size_limit = Integer(1024**3, config=True,
         help="""The maximum total size (in bytes) of the buffers stored in the db
-        
+
         When the db exceeds this size, the oldest records will be culled until
         the total size is under size_limit * (1-cull_fraction).
         default: 1 GB
@@ -111,18 +112,18 @@ class DictDB(BaseDB):
     )
     record_limit = Integer(1024, config=True,
         help="""The maximum number of records in the db
-        
+
         When the history exceeds this size, the first record_limit * cull_fraction
         records will be culled.
         """
     )
     cull_fraction = Float(0.1, config=True,
         help="""The fraction by which the db should culled when one of the limits is exceeded
-        
+
         In general, the db size will spend most of its time with a size in the range:
-        
+
         [limit * (1-cull_fraction), limit]
-        
+
         for each of size_limit and record_limit.
         """
     )
@@ -156,28 +157,28 @@ class DictDB(BaseDB):
         for key in keys:
             d[key] = rec[key]
         return copy(d)
-    
+
     # methods for monitoring size / culling history
-    
+
     def _add_bytes(self, rec):
         for key in ('buffers', 'result_buffers'):
             for buf in rec.get(key) or []:
                 self._buffer_bytes += len(buf)
-        
+
         self._maybe_cull()
-    
+
     def _drop_bytes(self, rec):
         for key in ('buffers', 'result_buffers'):
             for buf in rec.get(key) or []:
                 self._buffer_bytes -= len(buf)
-    
+
     def _cull_oldest(self, n=1):
         """cull the oldest N records"""
         for msg_id in self.get_history()[:n]:
             self.log.debug("Culling record: %r", msg_id)
             self._culled_ids.add(msg_id)
             self.drop_record(msg_id)
-    
+
     def _maybe_cull(self):
         # cull by count:
         if len(self._records) > self.record_limit:
@@ -186,28 +187,28 @@ class DictDB(BaseDB):
                 len(self._records), self.record_limit, to_cull
             )
             self._cull_oldest(to_cull)
-        
+
         # cull by size:
         if self._buffer_bytes > self.size_limit:
             limit = self.size_limit * (1 - self.cull_fraction)
-            
+
             before = self._buffer_bytes
             before_count = len(self._records)
             culled = 0
             while self._buffer_bytes > limit:
                 self._cull_oldest(1)
                 culled += 1
-        
+
             self.log.info("%i records with total buffer size %i exceeds limit: %i. Culled oldest %i records.",
                 before_count, before, self.size_limit, culled
             )
-    
+
     def _check_dates(self, rec):
         for key in ('submitted', 'started', 'completed'):
             value = rec.get(key, None)
             if value is not None and not isinstance(value, datetime):
                 raise ValueError("%s must be None or datetime, not %r" % (key, value))
-    
+
     # public API methods:
 
     def add_record(self, msg_id, rec):
@@ -287,31 +288,31 @@ NODATA = KeyError("NoDB backend doesn't store any data. "
 
 class NoDB(BaseDB):
     """A blackhole db backend that actually stores no information.
-    
+
     Provides the full DB interface, but raises KeyErrors on any
     method that tries to access the records.  This can be used to
     minimize the memory footprint of the Hub when its record-keeping
     functionality is not required.
     """
-    
+
     def add_record(self, msg_id, record):
         pass
-    
+
     def get_record(self, msg_id):
         raise NODATA
-    
+
     def update_record(self, msg_id, record):
         pass
-    
+
     def drop_matching_records(self, check):
         pass
-    
+
     def drop_record(self, msg_id):
         pass
-    
+
     def find_records(self, check, keys=None):
         raise NODATA
-    
+
     def get_history(self):
         raise NODATA
 

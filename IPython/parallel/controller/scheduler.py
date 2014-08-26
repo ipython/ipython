@@ -9,12 +9,12 @@ Python Scheduler exists.
 # Distributed under the terms of the Modified BSD License.
 
 import logging
-import sys
 import time
 
-from collections import deque
+from collections import deque, defaultdict
+import itertools
 from datetime import datetime
-from random import randint, random
+from random import randint, random, Random
 from types import FunctionType
 
 try:
@@ -29,7 +29,7 @@ from zmq.eventloop import ioloop, zmqstream
 from IPython.external.decorator import decorator
 from IPython.config.application import Application
 from IPython.config.loader import Config
-from IPython.utils.traitlets import Instance, Dict, List, Set, Integer, Enum, CBytes
+from IPython.utils.traitlets import Instance, Dict, List, Set, Integer, Enum, CBytes, Bool
 from IPython.utils.py3compat import cast_bytes
 
 from IPython.parallel import error, util
@@ -145,6 +145,58 @@ class Job(object):
     def dependents(self):
         return self.follow.union(self.after)
 
+    @property
+    def priority(self):
+        return self.metadata['priority']
+
+
+class JobQueue(object):
+    """Multiple queues for each priority, so we can effectively pop from them.
+    Each priority has a given chance to be the next one. We don't want higher
+    priority tasks to completely block out lower priority tasks.
+    chance = PriorityChance / (PriorityChance + 1)
+    If u want that higher priority tasks block more then increase the value."""
+    def __init__(self, enable=True, priority_chance=2):
+        self.enable = enable
+        self.priority_chance = priority_chance
+        self.queues = dict((prio, defaultdict(deque)) for prio in util.PRIORITIES)
+        self.rng = Random(0)
+
+    def __len__(self):
+        return sum(itertools.chain(sum(map(len, sessions.itervalues())) for
+                                   sessions in self.queues.itervalues()))
+
+    def __bool__(self):
+        return bool(len(self))
+
+    def append(self, job):
+        assert job.priority in util.PRIORITIES
+        prio = job.priority if self.enable else util.PRIORITY_NORMAL
+        self.queues[prio][job.header['session']].append(job)
+
+    @property
+    def possible_priorities(self):
+        for prio in util.PRIORITIES:
+            if self.queues[prio]:
+                yield prio
+
+    def popleft(self):
+        possible = list(self.possible_priorities)
+        if not possible:
+            raise IndexError("pop from an empty deque")
+        last_possible = possible[-1]
+        for prio in self.possible_priorities:
+            if self.queues[prio]:
+                use_this = bool(self.rng.randint(0, int(self.priority_chance)))
+                if use_this or prio == last_possible:
+                    session_uuid = self.rng.choice(self.queues[prio].keys())
+                    job = self.queues[prio][session_uuid].popleft()
+                    if len(self.queues[prio][session_uuid]) == 0:
+                        self.queues[prio].pop(session_uuid)
+                    return job
+
+        raise IndexError("pop from an empty deque")
+
 
 class TaskScheduler(SessionFactory):
     """Python TaskScheduler object.
@@ -175,6 +227,17 @@ class TaskScheduler(SessionFactory):
         help="""select the task scheduler scheme  [default: Python LRU]
         Options are: 'pure', 'lru', 'plainrandom', 'weighted', 'twobin','leastload'"""
     )
+    enable_user_defined_priority = Bool(True, config=True,
+                                        help="""
+        Enable the user to define a priority on a given view. All tasks created
+        from that view will have the priority of the view.""")
+    priority_chance = Integer(2, config=True,
+                              help="""
+        Each priority has a given chance to be the next one. We don't want higher
+        priority tasks to completely block out lower priority tasks.
+        chance = PriorityChance / (PriorityChance + 1)
+        If u want that higher priority tasks block more then increase the value.""")
+
     def _scheme_name_changed(self, old, new):
         self.log.debug("Using scheme %r"%new)
         self.scheme = globals()[new]
@@ -190,7 +253,6 @@ class TaskScheduler(SessionFactory):
     query_stream = Instance(zmqstream.ZMQStream) # hub-facing DEALER stream
 
     # internals:
-    queue = Instance(deque) # sorted list of Jobs
     def _queue_default(self):
         return deque()
     queue_map = Dict() # dict by msg_id of Jobs (for O(1) access to the Queue)
@@ -216,6 +278,7 @@ class TaskScheduler(SessionFactory):
         return self.session.bsession
 
     def start(self):
+        self.queue = JobQueue(self.enable_user_defined_priority, self.priority_chance)
         self.query_stream.on_recv(self.dispatch_query_reply)
         self.session.send(self.query_stream, "connection_request", {})
         
@@ -765,7 +828,8 @@ class TaskScheduler(SessionFactory):
         
         # put back any tasks we popped but didn't run
         if using_queue:
-            self.queue.extendleft(to_restore)
+            for res_job in to_restore:
+                self.queue.append(res_job)
     
     #----------------------------------------------------------------------
     # methods to be overridden by subclasses

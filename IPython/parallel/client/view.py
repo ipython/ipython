@@ -865,9 +865,11 @@ class LoadBalancedView(View):
     after=Any()
     timeout=CFloat()
     retries = Integer(0)
+    priority = Integer(util.PRIORITY_NORMAL)
 
     _task_scheme = Any()
-    _flag_names = List(['targets', 'block', 'track', 'follow', 'after', 'timeout', 'retries'])
+    _flag_names = List(['targets', 'block', 'track', 'follow', 'after',
+                        'timeout', 'retries', 'priority'])
 
     def __init__(self, client=None, socket=None, **flags):
         super(LoadBalancedView, self).__init__(client=client, socket=socket, **flags)
@@ -946,6 +948,13 @@ class LoadBalancedView(View):
 
         retries : int
             Number of times a task will be retried on failure.
+
+        priority : int
+            util.PRIORITY_CRITICAL  Highest priority user
+            util.PRIORITY_HIGH      These jobs take precedences over normal jobs
+            util.PRIORITY_NORMAL    Default operation level for all jobs
+            util.PRIORITY_LOW       Lowest priority user jobs, background
+                                    loads, jobs that should not affect other activity
         """
 
         super(LoadBalancedView, self).set_flags(**kwargs)
@@ -969,8 +978,8 @@ class LoadBalancedView(View):
     @sync_results
     @save_ids
     def _really_apply(self, f, args=None, kwargs=None, block=None, track=None,
-                                        after=None, follow=None, timeout=None,
-                                        targets=None, retries=None):
+                      after=None, follow=None, timeout=None, targets=None,
+                      retries=None, priority=None):
         """calls f(*args, **kwargs) on a remote engine, returning the result.
 
         This method temporarily sets all of `apply`'s flags for a single call.
@@ -1028,12 +1037,16 @@ class LoadBalancedView(View):
         track = self.track if track is None else track
         after = self.after if after is None else after
         retries = self.retries if retries is None else retries
+        priority = self.priority if priority is None else priority
         follow = self.follow if follow is None else follow
         timeout = self.timeout if timeout is None else timeout
         targets = self.targets if targets is None else targets
 
         if not isinstance(retries, int):
             raise TypeError('retries must be int, not %r'%type(retries))
+
+        if not isinstance(priority, int):
+            raise TypeError('priority must be int, not %r'%type(priority))
 
         if targets is None:
             idents = []
@@ -1044,7 +1057,8 @@ class LoadBalancedView(View):
 
         after = self._render_dependency(after)
         follow = self._render_dependency(follow)
-        metadata = dict(after=after, follow=follow, timeout=timeout, targets=idents, retries=retries)
+        metadata = dict(after=after, follow=follow, timeout=timeout,
+                        targets=idents, retries=retries, priority=priority)
 
         msg = self.client.send_apply_request(self._socket, f, args, kwargs, track=track,
                                 metadata=metadata)
