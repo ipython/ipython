@@ -80,7 +80,7 @@ def output_from_msg(msg):
     elif msg_type == 'stream':
         return new_output(output_type=msg_type,
             name=content['name'],
-            data=content['data'],
+            text=content['text'],
         )
     elif msg_type == 'display_data':
         return new_output(output_type=msg_type,

@@ -453,7 +453,7 @@ define([
 
 
     OutputArea.prototype.append_stream = function (json) {
-        var text = json.data;
+        var text = json.text;
         var subclass = "output_"+json.name;
         if (this.outputs.length > 0){
             // have at least one output to consider
@@ -462,9 +462,9 @@ define([
                 // latest output was in the same stream,
                 // so append directly into its pre tag
                 // escape ANSI & HTML specials:
-                last.data = utils.fixCarriageReturn(last.data + json.data);
+                last.text = utils.fixCarriageReturn(last.text + json.text);
                 var pre = this.element.find('div.'+subclass).last().find('pre');
-                var html = utils.fixConsole(last.data);
+                var html = utils.fixConsole(last.text);
                 // The only user content injected with this HTML call is
                 // escaped by the fixConsole() method.
                 pre.html(html);
