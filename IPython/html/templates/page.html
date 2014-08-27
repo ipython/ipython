@@ -59,6 +59,35 @@
           }
       });
     </script>
+    <style type="text/css">
+
+        @keyframes fadein {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        /* Firefox < 16 */
+        @-moz-keyframes fadein {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        /* Safari, Chrome and Opera > 12.1 */
+        @-webkit-keyframes fadein {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+
+        #jspb, div#jspb >pre {
+            z-index: 6;
+            opacity:0;
+            display:block;
+            background-color:red;
+            animation: fadein 1s 6s forwards;
+            -webkit-animation: fadein 1s 6s forwards;
+        }
+    </style>
 
     {% block meta %}
     {% endblock %}
@@ -73,6 +102,12 @@
       Please enable it to proceed.
   </div>
 </noscript>
+
+<div id='jspb' style='margin-left:25%; margin-right:25%;margin-top:15%;'>
+    <pre>
+       Hum... there seem to be a problem with javascript... try this following step to fix them 
+    </pre>
+</div>
 
 <div id="header" class="navbar navbar-static-top">
   <div class="container">
