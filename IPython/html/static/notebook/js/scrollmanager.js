@@ -135,7 +135,7 @@ define(['jquery'], function($){
 
     HeadingScrollManager.prototype.is_target = function (index) {
         var cell = this.notebook.get_cell(index);
-        return cell.cell_type === "heading" && cell.level == this._level;
+        return cell.cell_type === "heading" && cell.level <= this._level;
     };
 
 
