@@ -144,11 +144,11 @@ define([
     };
 
     SaveWidget.prototype._set_checkpoint_status = function (human_date, iso_date) {
-        var el = this.element.find('span#checkpoint_status')
+        var el = this.element.find('span#checkpoint_status');
         if(human_date){
             el.text("Last Checkpoint: "+human_date).attr('title',iso_date);
         } else {
-            el.text('').attr('title','no-checkpoint')
+            el.text('').attr('title', 'no-checkpoint');
         }
     };
 
@@ -185,13 +185,11 @@ define([
         } else  {
             return h;
         }
-
-
-    }
+    };
 
     SaveWidget.prototype._regularly_update_checkpoint_date = function(){
        if (!this._checkpoint_date) {
-            this.set_checkpoint_status(null);
+            this._set_checkpoint_status(null);
             console.log('no checkpoint done');
             return;
         }
@@ -202,7 +200,10 @@ define([
         var recall  = function(t){
             // recall slightly later (1s) as long timeout in js might be imprecise,
             // and you want to be call **after** the change of formatting should happend.
-            return setTimeout($.proxy(that._regularly_update_checkpoint_date, that),(t+1000))
+            return setTimeout(
+                $.proxy(that._regularly_update_checkpoint_date, that),
+                t + 1000
+            );
         }
         var tdelta = Math.ceil(new Date()-this._checkpoint_date);
 
@@ -210,18 +211,21 @@ define([
         // <x time> ago
         if(tdelta < tdelta < 6*3600*1000){  
             recall(_next_timeago_update(tdelta));
-            this._set_checkpoint_status( chkd.fromNow(), longdate);
+            this._set_checkpoint_status(chkd.fromNow(), longdate);
         // otherwise update every hour and show
         // <Today | yesterday|...> at hh,mm,ss
         } else  {
-            recall(1*3600*1000)
-            this._set_checkpoint_status( chkd.calendar(), longdate);
+            recall(1*3600*1000);
+            this._set_checkpoint_status(chkd.calendar(), longdate);
         }
-
-    }
+    };
 
     SaveWidget.prototype._set_last_checkpoint = function (checkpoint) {
-        this._checkpoint_date = new Date(checkpoint.last_modified);
+        if (checkpoint) {
+            this._checkpoint_date = new Date(checkpoint.last_modified);
+        } else {
+            this._checkpoint_date = null;
+        }
         this._regularly_update_checkpoint_date();
 
     };
