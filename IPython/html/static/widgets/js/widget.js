@@ -413,7 +413,7 @@ define(["widgets/js/manager",
             this.model.on('change:_css', this.update_css, this);
 
             this.model.on('change:_dom_classes', function(model, new_classes) {
-                var old_classes = model.previous('children');
+                var old_classes = model.previous('_dom_classes');
                 this.update_classes(old_classes, new_classes);
             }, this);
 

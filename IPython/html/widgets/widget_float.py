@@ -165,7 +165,8 @@ class _BoundedFloatRange(_FloatRange):
 
 class FloatRangeSlider(_BoundedFloatRange):
     _view_name = Unicode('FloatSliderView', sync=True)
-    orientation = Enum([u'horizontal', u'vertical'], u'horizontal',
+    orientation = CaselessStrEnum(values=['horizontal', 'vertical'], 
+        default_value='horizontal', allow_none=False, 
         help="Vertical or horizontal.", sync=True)
     _range = Bool(True, help="Display a range selector", sync=True)
     readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)

@@ -7,7 +7,7 @@ casper.notebook_test(function () {
     this.execute_cell_then(index);
 
     var int_text = {};
-    int_text.query = '.widget-area .widget-subarea .widget-hbox-single .my-second-int-text input';
+    int_text.query = '.widget-area .widget-subarea .my-second-int-text input';
     int_text.index = this.append_cell(
         'int_widget = widgets.IntText()\n' +
         'display(int_widget)\n' + 
@@ -62,9 +62,9 @@ casper.notebook_test(function () {
     this.execute_cell_then(index);
 
 
-    var slider_query = '.widget-area .widget-subarea .widget-hbox-single .slider';
+    var slider_query = '.widget-area .widget-subarea .slider';
     var int_text2 = {};
-    int_text2.query = '.widget-area .widget-subarea .widget-hbox-single .my-second-num-test-text input';
+    int_text2.query = '.widget-area .widget-subarea .my-second-num-test-text input';
     int_text2.index = this.append_cell(
         'intrange = [widgets.BoundedIntTextWidget(),\n' +
         '    widgets.IntSliderWidget()]\n' +
