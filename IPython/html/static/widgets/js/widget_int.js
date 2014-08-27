@@ -320,6 +320,11 @@ define([
                 .css('width', '50%')
                 .appendTo(this.$progress);
             this.update(); // Set defaults.
+
+            this.model.on('change:bar_style', function(model, value) {
+                this.update_bar_style();
+            }, this);
+            this.update_bar_style('');
         },
         
         update : function(){
@@ -343,6 +348,16 @@ define([
             }
             return ProgressView.__super__.update.apply(this);
         }, 
+
+        update_bar_style: function(previous_trait_value) {
+            var class_map = {
+                success: ['progress-bar-success'],
+                info: ['progress-bar-info'],
+                warning: ['progress-bar-warning'],
+                danger: ['progress-bar-danger']
+            };
+            this.update_mapped_classes(class_map, 'bar_style', previous_trait_value, this.$bar);
+        },
 
         update_attr: function(name, value) {
             // Set a css attr of the widget view.

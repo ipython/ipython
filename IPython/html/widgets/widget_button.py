@@ -15,7 +15,7 @@ click events on the button and trigger backend code when the clicks are fired.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget, CallbackDispatcher
-from IPython.utils.traitlets import Unicode, Bool
+from IPython.utils.traitlets import Unicode, Bool, CaselessStrEnum
 from IPython.utils.warn import DeprecatedClass
 
 #-----------------------------------------------------------------------------
