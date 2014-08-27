@@ -311,13 +311,13 @@ class TestContentsManager(TestCase):
         cm.mark_trusted_cells(nb, name, path)
         for cell in nb.worksheets[0].cells:
             if cell.cell_type == 'code':
-                assert not cell.trusted
+                assert not cell.metadata.trusted
 
         cm.trust_notebook(name, path)
         nb = cm.get_model(name, path)['content']
         for cell in nb.worksheets[0].cells:
             if cell.cell_type == 'code':
-                assert cell.trusted
+                assert cell.metadata.trusted
 
     def test_check_and_sign(self):
         cm = self.contents_manager

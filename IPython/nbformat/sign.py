@@ -1,14 +1,7 @@
 """Functions for signing notebooks"""
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2014, The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import base64
 from contextlib import contextmanager
@@ -24,14 +17,13 @@ from IPython.core.application import BaseIPythonApplication, base_flags
 
 from .current import read, write
 
-#-----------------------------------------------------------------------------
-# Code
-#-----------------------------------------------------------------------------
+
 try:
     # Python 3
     algorithms = hashlib.algorithms_guaranteed
 except AttributeError:
     algorithms = hashlib.algorithms
+
 
 def yield_everything(obj):
     """Yield every item in a container as bytes
@@ -184,7 +176,7 @@ class NotebookNotary(LoggingConfigurable):
     def mark_cells(self, nb, trusted):
         """Mark cells as trusted if the notebook's signature can be verified
         
-        Sets ``cell.trusted = True | False`` on all code cells,
+        Sets ``cell.metadata.trusted = True | False`` on all code cells,
         depending on whether the stored signature can be verified.
         
         This function is the inverse of check_cells
@@ -194,7 +186,7 @@ class NotebookNotary(LoggingConfigurable):
             return
         for cell in nb['worksheets'][0]['cells']:
             if cell['cell_type'] == 'code':
-                cell['trusted'] = trusted
+                cell['metadata']['trusted'] = trusted
     
     def _check_cell(self, cell):
         """Do we trust an individual cell?
@@ -208,7 +200,7 @@ class NotebookNotary(LoggingConfigurable):
         it will always be trusted.
         """
         # explicitly trusted
-        if cell.pop("trusted", False):
+        if cell['metadata'].pop("trusted", False):
             return True
         
         # explicitly safe output
@@ -243,6 +235,7 @@ class NotebookNotary(LoggingConfigurable):
             # only distrust a cell if it actually has some output to distrust
             if not self._check_cell(cell):
                 trusted = False
+
         return trusted
 
 
