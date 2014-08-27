@@ -163,6 +163,11 @@ class V5toV4(Adapter):
     
     # iopub channel
     
+    def stream(self, msg):
+        content = msg['content']
+        content['data'] = content.pop('text')
+        return msg
+
     def display_data(self, msg):
         content = msg['content']
         content.setdefault("source", "display")
@@ -287,6 +292,11 @@ class V4toV5(Adapter):
     
     # iopub channel
     
+    def stream(self, msg):
+        content = msg['content']
+        content['text'] = content.pop('data')
+        return msg
+
     def display_data(self, msg):
         content = msg['content']
         content.pop("source", None)

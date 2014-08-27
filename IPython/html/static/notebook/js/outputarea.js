@@ -210,7 +210,7 @@ define([
         var msg_type = json.output_type = msg.header.msg_type;
         var content = msg.content;
         if (msg_type === "stream") {
-            json.text = content.data;
+            json.text = content.text;
             json.stream = content.name;
         } else if (msg_type === "display_data") {
             json = content.data;

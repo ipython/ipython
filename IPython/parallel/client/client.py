@@ -874,7 +874,7 @@ class Client(HasTraits):
             if msg_type == 'stream':
                 name = content['name']
                 s = md[name] or ''
-                md[name] = s + content['data']
+                md[name] = s + content['text']
             elif msg_type == 'error':
                 md.update({'error' : self._unwrap_exception(content)})
             elif msg_type == 'execute_input':

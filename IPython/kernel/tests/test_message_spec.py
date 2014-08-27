@@ -172,7 +172,7 @@ Error = ExecuteReplyError
 
 class Stream(Reference):
     name = Enum((u'stdout', u'stderr'))
-    data = Unicode()
+    text = Unicode()
 
 
 class DisplayData(MimeBundle):
@@ -394,7 +394,7 @@ def test_stream():
     stdout = KC.iopub_channel.get_msg(timeout=TIMEOUT)
     validate_message(stdout, 'stream', msg_id)
     content = stdout['content']
-    nt.assert_equal(content['data'], u'hi\n')
+    nt.assert_equal(content['text'], u'hi\n')
 
 
 def test_display_data():

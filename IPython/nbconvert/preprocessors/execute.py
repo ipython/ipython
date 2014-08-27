@@ -123,7 +123,7 @@ class ExecutePreprocessor(Preprocessor):
 
             if msg_type == 'stream':
                 out.stream = content['name']
-                out.text = content['data']
+                out.text = content['text']
             elif msg_type in ('display_data', 'execute_result'):
                 out['metadata'] = content['metadata']
                 for mime, data in content['data'].items():

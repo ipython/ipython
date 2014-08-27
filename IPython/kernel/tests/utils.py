@@ -140,9 +140,9 @@ def assemble_output(iopub):
             break
         elif msg['msg_type'] == 'stream':
             if content['name'] == 'stdout':
-                stdout += content['data']
+                stdout += content['text']
             elif content['name'] == 'stderr':
-                stderr += content['data']
+                stderr += content['text']
             else:
                 raise KeyError("bad stream: %r" % content['name'])
         else:
