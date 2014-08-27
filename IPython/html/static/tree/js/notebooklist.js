@@ -87,7 +87,7 @@ define([
             }
             var item = that.new_item(0);
             item.addClass('new-file');
-            that.add_name_input(f.name, item);
+            that.add_name_input(f.name, item, file_ext == '.ipynb' ? 'notebook' : 'file');
             // Store the list item in the reader so we can use it later
             // to know which item it belongs to.
             $(reader).data('item', item);
@@ -95,6 +95,16 @@ define([
                 var item = $(event.target).data('item');
                 that.add_file_data(event.target.result, item);
                 that.add_upload_button(item);
+            };
+            reader.onerror = function (event) {
+                var item = $(event.target).data('item');
+                var name = item.data('name')
+                item.remove();
+                dialog.modal({
+                    title : 'Failed to read file',
+                    body : "Failed to read file '" + name + "'",
+                    buttons : {'OK' : { 'class' : 'btn-primary' }}
+                });
             };
         }
         // Replace the file input form wth a clone of itself. This is required to
@@ -162,6 +172,7 @@ define([
         var list = data.content;
         var len = list.length;
         this.clear_list();
+        var n_uploads = this.element.children('.list_item').length;
         if (len === 0) {
             item = this.new_item(0);
             var span12 = item.children().first();
@@ -169,16 +180,16 @@ define([
             span12.append($('<div style="margin:auto;text-align:center;color:grey"/>').text(message));
         }
         var path = this.notebook_path;
-        var offset = 0;
+        var offset = n_uploads;
         if (path !== '') {
-            item = this.new_item(0);
+            item = this.new_item(offset);
             model = {
                 type: 'directory',
                 name: '..',
                 path: path,
             };
             this.add_link(model, item);
-            offset = 1;
+            offset += 1;
         }
         for (var i=0; i<len; i++) {
             model = list[i];
@@ -260,15 +271,19 @@ define([
     };
 
 
-    NotebookList.prototype.add_name_input = function (name, item) {
+    NotebookList.prototype.add_name_input = function (name, item, icon_type) {
         item.data('name', name);
-        item.find(".item_icon").addClass('notebook_icon').addClass('icon-fixed-width');
+        item.find(".item_icon").addClass(NotebookList.icons[icon_type]).addClass('icon-fixed-width');
         item.find(".item_name").empty().append(
             $('<input/>')
             .addClass("filename_input")
             .attr('value', name)
             .attr('size', '30')
             .attr('type', 'text')
+            .keyup(function(event){
+                if(event.keyCode == 13){item.find('.upload_button').click();}
+                else if(event.keyCode == 27){item.remove();}
+            })
         );
     };
 
@@ -360,6 +375,14 @@ define([
                 var filename = item.find('.item_name > input').val();
                 var filedata = item.data('filedata');
                 var format = 'text';
+                if (filename.length === 0 || filename[0] === '.') {
+                    dialog.modal({
+                        title : 'Invalid file name',
+                        body : "File names must be at least one character and not start with a dot",
+                        buttons : {'OK' : { 'class' : 'btn-primary' }}
+                    });
+                    return false;
+                }
                 if (filedata instanceof ArrayBuffer) {
                     // base64-encode binary file data
                     var bytes = '';
@@ -395,6 +418,7 @@ define([
                                 }
                             }}
                         });
+                        return false;
                     }
                     content_type = 'application/json';
                 } else {
@@ -415,6 +439,7 @@ define([
                         item.removeClass('new-file');
                         that.add_link(model, item);
                         that.add_delete_button(item);
+                        that.session_list.load_sessions();
                     },
                     error : utils.log_ajax_error,
                 };
@@ -425,7 +450,29 @@ define([
                     that.notebook_path,
                     filename
                 );
-                $.ajax(url, settings);
+                
+                var exists = false;
+                $.each(that.element.find('.list_item:not(.new-file)'), function(k,v){
+                    if ($(v).data('name') === filename) { exists = true; return false; }
+                });
+                if (exists) {
+                    dialog.modal({
+                        title : "Replace file",
+                        body : 'There is already a file named ' + filename + ', do you want to replace it?',
+                        buttons : {
+                            Overwrite : {
+                                class: "btn-danger",
+                                click: function() { $.ajax(url, settings); }
+                            },
+                            Cancel : {
+                                click: function() { item.remove(); }
+                            }
+                        }
+                    });
+                } else {
+                    $.ajax(url, settings);
+                }
+                
                 return false;
             });
         var cancel_button = $('<button/>').text("Cancel")
@@ -485,7 +532,6 @@ define([
             buttons : {'OK' : {'class' : 'btn-primary'}}
         });
     };
-    
 
     // Backwards compatability.
     IPython.NotebookList = NotebookList;
