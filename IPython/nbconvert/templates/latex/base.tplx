@@ -135,7 +135,7 @@ This template does not define a docclass, the inheriting class must define this.
 % Displaying simple data text
 ((* block data_text *))
     \begin{verbatim}
-((( output.text )))
+((( output.data['text/plain'] )))
     \end{verbatim}
 ((* endblock data_text *))
 
@@ -158,21 +158,21 @@ This template does not define a docclass, the inheriting class must define this.
 
 % Display latex
 ((* block data_latex -*))
-    ((*- if output.latex.startswith('$'): -*))
+    ((*- if output.data['text/latex'].startswith('$'): -*))
         ((= Replace $ symbols with more explicit, equation block. =))
         \begin{equation*}\adjustbox{max width=\hsize}{$
-        ((( output.latex | strip_dollars )))
+        ((( output.data['text/latex'] | strip_dollars )))
         $}\end{equation*}
     ((*- else -*))
-        ((( output.latex )))
+        ((( output.data['text/latex'] )))
     ((*- endif *))
 ((* endblock data_latex *))
 
 % Default mechanism for rendering figures
-((*- block data_png -*))((( draw_figure(output.png_filename) )))((*- endblock -*))
-((*- block data_jpg -*))((( draw_figure(output.jpeg_filename) )))((*- endblock -*))
-((*- block data_svg -*))((( draw_figure(output.svg_filename) )))((*- endblock -*))
-((*- block data_pdf -*))((( draw_figure(output['application/pdf_filename']) )))((*- endblock -*))
+((*- block data_png -*))((( draw_figure(output.metadata.filenames['image/png']) )))((*- endblock -*))
+((*- block data_jpg -*))((( draw_figure(output.metadata.filenames['image/jpeg']) )))((*- endblock -*))
+((*- block data_svg -*))((( draw_figure(output.metadata.filenames['image/svg+xml']) )))((*- endblock -*))
+((*- block data_pdf -*))((( draw_figure(output.metadata.filenames['application/pdf']) )))((*- endblock -*))
 
 % Draw a figure using the graphicx package.
 ((* macro draw_figure(filename) -*))

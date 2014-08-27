@@ -195,11 +195,12 @@
                 {"$ref": "#/definitions/error"}
             ]
         },
+
         "execute_result": {
             "description": "Result of executing a code cell.",
             "type": "object",
             "additionalProperties": false,
-            "required": ["output_type", "metadata", "execution_count"],
+            "required": ["output_type", "data", "metadata", "execution_count"],
             "properties": {
                 "output_type": {
                     "description": "Type of cell output.",
@@ -210,16 +211,8 @@
                     "type": ["integer", "null"],
                     "minimum": 0
                 },
-                "application/json": {
-                    "type": "object"
-                },
+                "data": {"$ref": "#/definitions/misc/mimebundle"},
                 "metadata": {"$ref": "#/definitions/misc/output_metadata"}
-            },
-            "patternProperties": {
-                "^(?!application/json$)[a-zA-Z0-9]+/[a-zA-Z0-9\\-\\+\\.]+$": {
-                    "description": "mimetype output (e.g. text/plain), represented as either an array of strings or a string.",
-                    "$ref": "#/definitions/misc/multiline_string"
-                }
             }
         },
 
@@ -227,22 +220,14 @@
             "description": "Data displayed as a result of code cell execution.",
             "type": "object",
             "additionalProperties": false,
-            "required": ["output_type", "metadata"],
+            "required": ["output_type", "data", "metadata"],
             "properties": {
                 "output_type": {
                     "description": "Type of cell output.",
                     "enum": ["display_data"]
                 },
-                "application/json": {
-                    "type": "object"
-                },
+                "data": {"$ref": "#/definitions/misc/mimebundle"},
                 "metadata": {"$ref": "#/definitions/misc/output_metadata"}
-            },
-            "patternProperties": {
-                "^(?!application/json$)[a-zA-Z0-9]+/[a-zA-Z0-9\\-\\+\\.]+$": {
-                    "description": "mimetype output (e.g. text/plain), represented as either an array of strings or a string.",
-                    "$ref": "#/definitions/misc/multiline_string"
-                }
             }
         },
 
@@ -319,10 +304,18 @@
                 "type": ["integer", "null"],
                 "minimum": 0
             },
-            "mimetype": {
+            "mimebundle": {
+                "description": "A mime-type keyed dictionary of data",
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "application/json": {
+                        "type": "object"
+                    }
+                },
                 "patternProperties": {
-                    "^[a-zA-Z0-9\\-\\+]+/[a-zA-Z0-9\\-\\+]+": {
-                        "description": "The cell's mimetype output (e.g. text/plain), represented as either an array of strings or a string.",
+                    "^(?!application/json$)[a-zA-Z0-9]+/[a-zA-Z0-9\\-\\+\\.]+$": {
+                        "description": "mimetype output (e.g. text/plain), represented as either an array of strings or a string.",
                         "$ref": "#/definitions/misc/multiline_string"
                     }
                 }

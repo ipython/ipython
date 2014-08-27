@@ -35,23 +35,23 @@
 {% endblock data_svg %}
 
 {% block data_png %}
-![png]({{ output.png_filename | path2url }})
+![png]({{ output.metadata.filenames['image/png'] | path2url }})
 {% endblock data_png %}
 
 {% block data_jpg %}
-![jpeg]({{ output.jpeg_filename | path2url }})
+![jpeg]({{ output.metadata.filenames['image/jpeg'] | path2url }})
 {% endblock data_jpg %}
 
 {% block data_latex %}
-{{ output.latex }}
+{{ output.data['text/latex'] }}
 {% endblock data_latex %}
 
 {% block data_html scoped %}
-{{ output.html }}
+{{ output.data['text/html'] }}
 {% endblock data_html %}
 
 {% block data_text scoped %}
-{{ output.text | indent }}
+{{ output.data['text/plain'] | indent }}
 {% endblock data_text %}
 
 {% block markdowncell scoped %}

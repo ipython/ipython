@@ -59,7 +59,7 @@ class APITest(NotebookTestBase):
         cc1 = new_code_cell(source=u'print(2*6)')
         cc1.outputs.append(new_output(output_type="stream", text=u'12'))
         cc1.outputs.append(new_output(output_type="execute_result",
-            mime_bundle={'image/png' : png_green_pixel},
+            data={'image/png' : png_green_pixel},
             execution_count=1,
         ))
         nb.cells.append(cc1)

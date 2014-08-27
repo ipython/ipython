@@ -53,14 +53,15 @@ class ExtractOutputPreprocessor(Preprocessor):
             
         #Loop through all of the outputs in the cell
         for index, out in enumerate(cell.get('outputs', [])):
-
+            if out.output_type not in {'display_data', 'execute_result'}:
+                continue
             #Get the output in data formats that the template needs extracted
-            for out_type in self.extract_output_types:
-                if out_type in out:
-                    data = out[out_type]
+            for mime_type in self.extract_output_types:
+                if mime_type in out.data:
+                    data = out.data[mime_type]
 
                     #Binary files are base64-encoded, SVG is already XML
-                    if out_type in {'image/png', 'image/jpeg', 'application/pdf'}:
+                    if mime_type in {'image/png', 'image/jpeg', 'application/pdf'}:
 
                         # data is b64-encoded as text (str, unicode)
                         # decodestring only accepts bytes
@@ -73,12 +74,12 @@ class ExtractOutputPreprocessor(Preprocessor):
                     
                     # Build an output name
                     # filthy hack while we have some mimetype output, and some not
-                    if '/' in out_type:
-                        ext = guess_extension(out_type)
+                    if '/' in mime_type:
+                        ext = guess_extension(mime_type)
                         if ext is None:
-                            ext = '.' + out_type.rsplit('/')[-1]
+                            ext = '.' + mime_type.rsplit('/')[-1]
                     else:
-                        ext = '.' + out_type
+                        ext = '.' + mime_type
                     
                     filename = self.output_filename_template.format(
                                     unique_key=unique_key,
@@ -87,12 +88,13 @@ class ExtractOutputPreprocessor(Preprocessor):
                                     extension=ext)
 
                     #On the cell, make the figure available via 
-                    #   cell.outputs[i].svg_filename  ... etc (svg in example)
+                    #   cell.outputs[i].metadata.filenames['mime/type']
                     # Where
-                    #   cell.outputs[i].svg  contains the data
+                    #   cell.outputs[i].data['mime/type' contains the data
                     if output_files_dir is not None:
                         filename = os.path.join(output_files_dir, filename)
-                    out[out_type + '_filename'] = filename
+                    out.metadata.setdefault('filenames', {})
+                    out.metadata['filenames'][mime_type] = filename
 
                     #In the resources, make the figure available via
                     #   resources['outputs']['filename'] = data

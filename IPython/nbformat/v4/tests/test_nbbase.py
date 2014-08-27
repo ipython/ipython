@@ -77,13 +77,13 @@ mimebundle = {
 def test_display_data():
     output = new_output('display_data', mimebundle)
     for key, expected in mimebundle.items():
-        nt.assert_equal(output[key], expected)
+        nt.assert_equal(output.data[key], expected)
 
 def test_execute_result():
     output = new_output('execute_result', mimebundle, execution_count=10)
     nt.assert_equal(output.execution_count, 10)
     for key, expected in mimebundle.items():
-        nt.assert_equal(output[key], expected)
+        nt.assert_equal(output.data[key], expected)
 
 def test_error():
     o = new_output(output_type=u'error', ename=u'NameError',

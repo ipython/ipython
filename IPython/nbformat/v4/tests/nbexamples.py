@@ -54,7 +54,7 @@ cells.append(new_code_cell(
     execution_count=3,
     outputs=[new_output(
         output_type=u'execute_result',
-        mime_bundle={
+        data={
             'text/plain': u'<array a>',
             'text/html': u'The HTML rep',
             'text/latex': u'$a$',
@@ -69,7 +69,7 @@ cells.append(new_code_cell(
         execution_count=3
     ),new_output(
         output_type=u'display_data',
-        mime_bundle={
+        data={
             'text/plain': u'<array a>',
             'text/html': u'The HTML rep',
             'text/latex': u'$a$',

@@ -123,28 +123,28 @@ unknown type  {{ cell.type }}
 {%- if output.svg_filename %}
 <img src="{{output.svg_filename | posix_path}}"
 {%- else %}
-{{ output.svg }}
+{{ output.data['image/svg+xml'] }}
 {%- endif %}
 </div>
 {%- endblock data_svg %}
 
 {% block data_html scoped -%}
 <div class="output_html rendered_html output_subarea {{extra_class}}">
-{{ output.html }}
+{{ output.data['text/html'] }}
 </div>
 {%- endblock data_html %}
 
 {% block data_png scoped %}
 <div class="output_png output_subarea {{extra_class}}">
-{%- if output.png_filename %}
-<img src="{{output.png_filename | posix_path}}"
+{%- if 'image/png' in output.metadata.get('filenames', {}) %}
+<img src="{{output.metadata.filenames['image/png'] | posix_path}}"
 {%- else %}
-<img src="data:image/png;base64,{{ output.png }}"
+<img src="data:image/png;base64,{{ output.data['image/png'] }}"
 {%- endif %}
-{%- if 'metadata' in output and 'width' in output.metadata.get('png', {}) %}
+{%- if 'width' in output.metadata.get('image/png', {}) %}
 width={{output.metadata['png']['width']}}
 {%- endif %}
-{%- if 'metadata' in output and 'height' in output.metadata.get('png', {}) %}
+{%- if 'height' in output.metadata.get('image/png', {}) %}
 height={{output.metadata['png']['height']}}
 {%- endif %}
 >
@@ -153,16 +153,16 @@ height={{output.metadata['png']['height']}}
 
 {% block data_jpg scoped %}
 <div class="output_jpeg output_subarea {{extra_class}}">
-{%- if output.jpeg_filename %}
-<img src="{{output.jpeg_filename | posix_path}}"
+{%- if 'image/jpeg' in output.metadata.get('filenames', {}) %}
+<img src="{{output.metadata.filenames['image/jpeg'] | posix_path}}"
 {%- else %}
-<img src="data:image/jpeg;base64,{{ output.jpeg }}"
+<img src="data:image/jpeg;base64,{{ output.data['image/jpeg'] }}"
 {%- endif %}
-{%- if 'metadata' in output and 'width' in output.metadata.get('jpeg', {}) %}
-width={{output.metadata['jpeg']['width']}}
+{%- if 'width' in output.metadata.get('image/jpeg', {}) %}
+width={{output.metadata['image/jpeg']['width']}}
 {%- endif %}
-{%- if 'metadata' in output and 'height' in output.metadata.get('jpeg', {}) %}
-height={{output.metadata['jpeg']['height']}}
+{%- if 'height' in output.metadata.get('image/jpeg', {}) %}
+height={{output.metadata['image/jpeg']['height']}}
 {%- endif %}
 >
 </div>
@@ -170,7 +170,7 @@ height={{output.metadata['jpeg']['height']}}
 
 {% block data_latex scoped %}
 <div class="output_latex output_subarea {{extra_class}}">
-{{ output.latex }}
+{{ output.data['text/latex'] }}
 </div>
 {%- endblock data_latex %}
 
@@ -189,7 +189,7 @@ height={{output.metadata['jpeg']['height']}}
 {%- block data_text scoped %}
 <div class="output_text output_subarea {{extra_class}}">
 <pre>
-{{- output.text | ansi2html -}}
+{{- output.data['text/plain'] | ansi2html -}}
 </pre>
 </div>
 {%- endblock -%}
@@ -197,7 +197,7 @@ height={{output.metadata['jpeg']['height']}}
 {%- block data_javascript scoped %}
 <div class="output_subarea output_javascript {{extra_class}}">
 <script type="text/javascript">
-{{ output.javascript }}
+{{ output.data['text/javascript'] }}
 </script>
 </div>
 {%- endblock -%}

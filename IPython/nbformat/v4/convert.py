@@ -137,6 +137,7 @@ def upgrade_output(output):
 
     - pyout -> execute_result
     - pyerr -> error
+    - output.type -> output.data.mime/type
     - mime-type keys
     - stream.stream -> stream.name
     """
@@ -145,14 +146,22 @@ def upgrade_output(output):
         if output['output_type'] == 'pyout':
             output['output_type'] = 'execute_result'
             output['execution_count'] = output.pop('prompt_number', None)
-        to_mime_key(output)
+
+        # move output data into data sub-dict
+        data = {}
+        for key in list(output):
+            if key in {'output_type', 'execution_count', 'metadata'}:
+                continue
+            data[key] = output.pop(key)
+        to_mime_key(data)
+        output['data'] = data
         to_mime_key(output.metadata)
-        if 'application/json' in output:
-            output['application/json'] = json.loads(output['application/json'])
+        if 'application/json' in data:
+            data['application/json'] = json.loads(data['application/json'])
         # promote ascii bytes (from v2) to unicode
         for key in ('image/png', 'image/jpeg'):
-            if key in output and isinstance(output[key], bytes):
-                output[key] = output[key].decode('ascii')
+            if key in data and isinstance(data[key], bytes):
+                data[key] = data[key].decode('ascii')
     elif output['output_type'] == 'pyerr':
         output['output_type'] = 'error'
     elif output['output_type'] == 'stream':
@@ -164,23 +173,24 @@ def downgrade_output(output):
 
     - pyout <- execute_result
     - pyerr <- error
+    - output.data.mime/type -> output.type
     - un-mime-type keys
     - stream.stream <- stream.name
     """
-    if output['output_type'] == 'execute_result':
-        output['output_type'] = 'pyout'
-        output['prompt_number'] = output.pop('execution_count', None)
-        if 'application/json' in output:
-            output['application/json'] = json.dumps(output['application/json'])
-        from_mime_key(output)
+    if output['output_type'] in {'execute_result', 'display_data'}:
+        if output['output_type'] == 'execute_result':
+            output['output_type'] = 'pyout'
+            output['prompt_number'] = output.pop('execution_count', None)
+
+        # promote data dict to top-level output namespace
+        data = output.pop('data', {})
+        if 'application/json' in data:
+            data['application/json'] = json.dumps(data['application/json'])
+        from_mime_key(data)
+        output.update(data)
         from_mime_key(output.get('metadata', {}))
     elif output['output_type'] == 'error':
         output['output_type'] = 'pyerr'
-    elif output['output_type'] == 'display_data':
-        if 'application/json' in output:
-            output['application/json'] = json.dumps(output['application/json'])
-        from_mime_key(output)
-        from_mime_key(output.get('metadata', {}))
     elif output['output_type'] == 'stream':
         output['stream'] = output.pop('name')
         output.pop('metadata')

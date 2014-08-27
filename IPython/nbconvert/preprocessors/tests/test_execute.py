@@ -30,8 +30,11 @@ class TestExecute(PreprocessorTestsBase):
         output = dict(output)
         if 'metadata' in output:
             del output['metadata']
-        if 'text/plain' in output:
-            output['text/plain'] = re.sub(addr_pat, '<HEXADDR>', output['text/plain'])
+        if 'text' in output:
+            output['text'] = re.sub(addr_pat, '<HEXADDR>', output['text'])
+        if 'text/plain' in output.get('data', {}):
+            output['data']['text/plain'] = \
+                re.sub(addr_pat, '<HEXADDR>', output['data']['text/plain'])
         if 'traceback' in output:
             tb = []
             for line in output['traceback']:

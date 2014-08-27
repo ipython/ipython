@@ -29,9 +29,9 @@
 %===============================================================================
 
 ((* block execute_result scoped *))
-    ((*- for type in output | filter_data_type -*))
-        ((*- if type in ['text']*))
-            ((( add_prompt(output.text | escape_latex, cell, 'Out', 'outcolor') )))
+    ((*- for type in output.data | filter_data_type -*))
+        ((*- if type in ['text/plain']*))
+            ((( add_prompt(output.data['text/plain'] | escape_latex, cell, 'Out', 'outcolor') )))
         ((* else -*))
 \texttt{\color{outcolor}Out[{\color{outcolor}((( cell.execution_count )))}]:}((( super() )))
         ((*- endif -*))

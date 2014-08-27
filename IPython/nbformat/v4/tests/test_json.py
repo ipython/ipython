@@ -37,9 +37,11 @@ class TestJSON(formattest.NBFormatTest, TestCase):
             if not 'outputs' in cell:
                 continue
             for output in cell.outputs:
-                if 'image/png' in output:
+                if not 'data' in output:
+                    continue
+                if 'image/png' in output.data:
                     found_png = True
-                    pngdata = output['image/png']
+                    pngdata = output.data['image/png']
                     self.assertEqual(type(pngdata), unicode_type)
                     # test that it is valid b64 data
                     b64bytes = pngdata.encode('ascii')
@@ -55,9 +57,11 @@ class TestJSON(formattest.NBFormatTest, TestCase):
             if not 'outputs' in cell:
                 continue
             for output in cell.outputs:
-                if 'image/jpeg' in output:
+                if not 'data' in output:
+                    continue
+                if 'image/jpeg' in output.data:
                     found_jpeg = True
-                    jpegdata = output['image/jpeg']
+                    jpegdata = output.data['image/jpeg']
                     self.assertEqual(type(jpegdata), unicode_type)
                     # test that it is valid b64 data
                     b64bytes = jpegdata.encode('ascii')

@@ -4,7 +4,7 @@
 
 
 {%- block data_priority scoped -%}
-    {%- for type in output | filter_data_type -%}
+    {%- for type in output.data | filter_data_type -%}
         {%- if type == 'application/pdf' -%}
             {%- block data_pdf -%}
             {%- endblock -%}

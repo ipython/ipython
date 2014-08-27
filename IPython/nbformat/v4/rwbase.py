@@ -46,10 +46,13 @@ def rejoin_lines(nb):
             cell.source = _join_lines(cell.source)
         if cell.cell_type == 'code':
             for output in cell.outputs:
-                for key in _multiline_outputs:
-                    item = output.get(key, None)
-                    if isinstance(item, list):
-                        output[key] = _join_lines(item)
+                if output.output_type in {'execute_result', 'display_data'}:
+                    for key, value in output.data.items():
+                        if key != 'application/json' and isinstance(value, list):
+                            output.data[key] = _join_lines(value)
+                elif output.output_type == 'stream':
+                    if isinstance(output.text, list):
+                        output.text = _join_lines(output.text)
     return nb
 
 
@@ -68,10 +71,13 @@ def split_lines(nb):
 
         if cell.cell_type == 'code':
             for output in cell.outputs:
-                for key in _multiline_outputs:
-                    item = output.get(key, None)
-                    if isinstance(item, string_types):
-                        output[key] = item.splitlines(True)
+                if output.output_type in {'execute_result', 'display_data'}:
+                    for key, value in output.data.items():
+                        if key != 'application/json' and isinstance(value, string_types):
+                            output.data[key] = value.splitlines(True)
+                elif output.output_type == 'stream':
+                    if isinstance(output.text, string_types):
+                        output.text = output.text.splitlines(True)
     return nb
 
 

@@ -16,9 +16,9 @@
 %===============================================================================
 
 ((* block execute_result scoped *))
-    ((*- for type in output | filter_data_type -*))
-        ((*- if type in ['text']*))
-((( add_prompt(output.text, cell, 'Out') )))
+    ((*- for type in output.data | filter_data_type -*))
+        ((*- if type in ['text/plain']*))
+((( add_prompt(output.data['text/plain'], cell, 'Out') )))
         ((*- else -*))
 \verb+Out[((( cell.execution_count )))]:+((( super() )))
         ((*- endif -*))

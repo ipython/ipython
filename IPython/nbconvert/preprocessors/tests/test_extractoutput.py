@@ -30,21 +30,23 @@ class TestExtractOutput(PreprocessorTestsBase):
         res = self.build_resources()
         preprocessor = self.build_preprocessor()
         nb, res = preprocessor(nb, res)
-
         # Check if text was extracted.
         output = nb.cells[0].outputs[1]
-        assert 'text/plain_filename' in output
-        text_filename = output['text/plain_filename']
+        assert 'filenames' in output.metadata
+        assert 'text/plain' in output.metadata.filenames
+        text_filename = output.metadata.filenames['text/plain']
 
         # Check if png was extracted.
         output = nb.cells[0].outputs[6]
-        assert 'image/png_filename' in output
-        png_filename = output['image/png_filename']
+        assert 'filenames' in output.metadata
+        assert 'image/png' in output.metadata.filenames
+        png_filename = output.metadata.filenames['image/png']
         
         # Check that pdf was extracted
         output = nb.cells[0].outputs[7]
-        assert 'application/pdf_filename' in output
-        pdf_filename = output['application/pdf_filename']
+        assert 'filenames' in output.metadata
+        assert 'application/pdf' in output.metadata.filenames
+        pdf_filename = output.metadata.filenames['application/pdf']
 
         # Verify text output
         assert text_filename in res['outputs']

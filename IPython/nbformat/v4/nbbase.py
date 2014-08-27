@@ -38,17 +38,20 @@ def from_dict(d):
         return d
 
 
-def new_output(output_type, mime_bundle=None, **kwargs):
+def new_output(output_type, data=None, **kwargs):
     """Create a new output, to go in the ``cell.outputs`` list of a code cell."""
     output = NotebookNode(output_type=output_type)
     output.update(from_dict(kwargs))
-    if mime_bundle:
-        output.update(mime_bundle)
+    if data is not None:
+        output.data = from_dict(data)
+
     # populate defaults:
     output.setdefault('metadata', NotebookNode())
     if output_type == 'stream':
         output.setdefault('name', 'stdout')
         output.setdefault('text', '')
+    elif output_type in {'execute_result', 'display_data'}:
+        output.setdefault('data', NotebookNode())
     validate(output, output_type)
     return output
 
@@ -73,7 +76,7 @@ def output_from_msg(msg):
     if msg_type == 'execute_result':
         return new_output(output_type=msg_type,
             metadata=content['metadata'],
-            mime_bundle=content['data'],
+            data=content['data'],
             execution_count=content['execution_count'],
         )
 
@@ -85,7 +88,7 @@ def output_from_msg(msg):
     elif msg_type == 'display_data':
         return new_output(output_type=msg_type,
             metadata=content['metadata'],
-            mime_bundle=content['data'],
+            data=content['data'],
         )
     elif msg_type == 'error':
         return new_output(output_type=msg_type,
