@@ -170,7 +170,7 @@ casper.notebook_test(function () {
         this.test.assert(outputs.length <= 5, 'Messages throttled.');
 
         // We also need to verify that the last state sent was correct.
-        var last_state = outputs[outputs.length-1]['text/plain'];
+        var last_state = outputs[outputs.length-1].data['text/plain'];
         this.test.assertEquals(last_state, "20", "Last state sent when throttling.");
     });
 });

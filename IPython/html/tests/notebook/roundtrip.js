@@ -24,13 +24,13 @@ var svg = "\"<svg width='1cm' height='1cm' viewBox='0 0 1000 500'><defs><style>r
 // name, and that fromJSON also gets its long mimetype name
 function assert_has(short_name, json, result, result2) {
     long_name = mime[short_name];
-    this.test.assertFalse(json[0].hasOwnProperty(short_name),
+    this.test.assertFalse(json[0].data.hasOwnProperty(short_name),
             "toJSON()   representation doesn't use " + short_name);
-    this.test.assertTrue(json[0].hasOwnProperty(long_name),
+    this.test.assertTrue(json[0].data.hasOwnProperty(long_name),
             'toJSON()   representation uses ' + long_name);
-    this.test.assertTrue(result.hasOwnProperty(long_name),
+    this.test.assertTrue(result.data.hasOwnProperty(long_name),
             'toJSON()   original embedded JSON keeps ' + long_name);
-    this.test.assertTrue(result2.hasOwnProperty(long_name),
+    this.test.assertTrue(result2.data.hasOwnProperty(long_name),
             'fromJSON() embedded ' + short_name + ' gets mime key ' + long_name);
 }
           
@@ -71,7 +71,7 @@ function clear_and_execute(that, code) {
         that.execute_cell(0);
         that.wait_for_idle();
     });
-};
+}
 
 casper.notebook_test(function () {
     this.evaluate(function () {
@@ -88,7 +88,7 @@ casper.notebook_test(function () {
         var result = this.get_output_cell(0);
         var num_cells = this.get_cells_length();
         this.test.assertEquals(num_cells, 2, '%%javascript magic works');
-        this.test.assertTrue(result.hasOwnProperty('application/javascript'),
+        this.test.assertTrue(result.data.hasOwnProperty('application/javascript'),
             'testing JS embedded with mime key');
     });
 
@@ -236,10 +236,10 @@ casper.notebook_test(function () {
     this.then(function () {
         var long_name = 'text/superfancymimetype';
         var result = this.get_output_cell(0);
-        this.test.assertTrue(result.hasOwnProperty(long_name),
+        this.test.assertTrue(result.data.hasOwnProperty(long_name),
             'display_data custom mimetype ' + long_name);
-        var result = this.get_output_cell(0, 1);
-        this.test.assertTrue(result.hasOwnProperty(long_name),
+        result = this.get_output_cell(0, 1);
+        this.test.assertTrue(result.data.hasOwnProperty(long_name),
             'execute_result custom mimetype ' + long_name);
     
     });

@@ -213,11 +213,11 @@ define([
             json.text = content.text;
             json.name = content.name;
         } else if (msg_type === "display_data") {
-            json = content.data;
+            json.data = content.data;
             json.output_type = msg_type;
             json.metadata = content.metadata;
         } else if (msg_type === "execute_result") {
-            json = content.data;
+            json.data = content.data;
             json.output_type = msg_type;
             json.metadata = content.metadata;
             json.execution_count = content.execution_count;
@@ -258,15 +258,14 @@ define([
 
     OutputArea.prototype.validate_output = function (json) {
         // scrub invalid outputs
-        // TODO: right now everything is a string, but JSON really shouldn't be.
-        // nbformat 4 will fix that.
+        var data = json.data;
         $.map(OutputArea.output_types, function(key){
             if (key !== 'application/json' &&
-                json[key] !== undefined &&
-                typeof json[key] !== 'string'
+                data[key] !== undefined &&
+                typeof data[key] !== 'string'
             ) {
-                console.log("Invalid type for " + key, json[key]);
-                delete json[key];
+                console.log("Invalid type for " + key, data[key]);
+                delete data[key];
             }
         });
         return json;
@@ -276,7 +275,9 @@ define([
         this.expand();
         
         // validate output data types
-        json = this.validate_output(json);
+        if (json.data) {
+            json = this.validate_output(json);
+        }
 
         // Clear the output if clear is queued.
         var needs_height_reset = false;
@@ -517,8 +518,8 @@ define([
         for (var i=0; i < OutputArea.display_order.length; i++) {
             var type = OutputArea.display_order[i];
             var append = OutputArea.append_map[type];
-            if ((json[type] !== undefined) && append) {
-                var value = json[type];
+            if ((json.data[type] !== undefined) && append) {
+                var value = json.data[type];
                 if (!this.trusted && !OutputArea.safe_outputs[type]) {
                     // not trusted, sanitize HTML
                     if (type==='text/html' || type==='text/svg') {
@@ -804,7 +805,7 @@ define([
         // replace with plaintext version in stdout
         this.append_output(content, false);
         this.events.trigger('send_input_reply.Kernel', value);
-    }
+    };
 
 
     OutputArea.prototype.handle_clear_output = function (msg) {
