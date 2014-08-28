@@ -108,13 +108,13 @@ Code cells
 Code cells are the primary content of Jupyter notebooks.
 They contain source code int e language of the document's associated kernel,
 and a list of outputs associated with executing.
-They also have a prompt_number, which must be an integer or ``null``.
+They also have an execution_count, which must be an integer or ``null``.
 
 .. sourcecode:: python
 
     {
       "cell_type" : "code",
-      "prompt_number": 1, # integer or null
+      "execution_count": 1, # integer or null
       "metadata" : {
           "collapsed" : True, # whether the output of the cell is collapsed
           "autoscroll": False, # any of true, false or "auto"
@@ -130,6 +130,10 @@ They also have a prompt_number, which must be an integer or ``null``.
 .. versionchanged:: 4.0
 
     ``input`` was renamed to ``source``, for consistency among cell types.
+
+.. versionchanged:: 4.0
+
+    ``prompt_number`` renamed to ``execution_count``
 
 Code cell outputs
 -----------------
@@ -170,11 +174,13 @@ The metadata of these messages may be keyed by mime-type as well.
 
     {
       "output_type" : "display_data",
-      "text/plain" : ["multiline text data"],
-      "image/png": ["base64-encoded-png-data"],
-      "application/json": {
-        # JSON data is included as-is
-        "json": "data",
+      "data" : {
+        "text/plain" : ["multiline text data"],
+        "image/png": ["base64-encoded-png-data"],
+        "application/json": {
+          # JSON data is included as-is
+          "json": "data",
+        },
       },
       "metadata" : {
         "image/png": {
@@ -192,7 +198,8 @@ The metadata of these messages may be keyed by mime-type as well.
 .. versionchanged:: 4.0
 
     mime-types are used for keys, instead of a combination of short names (``text``)
-    and mime-types.
+    and mime-types, and are stored in a ``data`` key, rather than the top-level.
+    i.e. ``output.data['image/png']`` instead of ``output.png``.
 
 
 execute_result
@@ -207,12 +214,14 @@ adding only a ``prompt_number`` field, which must be an integer.
 
     {
       "output_type" : "execute_result",
-      "prompt_number": 42,
-      "text/plain" : ["multiline text data"],
-      "image/png": ["base64-encoded-png-data"],
-      "application/json": {
-        # JSON data is included as-is
-        "json": "data",
+      "execute_result": 42,
+      "data" : {
+        "text/plain" : ["multiline text data"],
+        "image/png": ["base64-encoded-png-data"],
+        "application/json": {
+          # JSON data is included as-is
+          "json": "data",
+        },
       },
       "metadata" : {
         "image/png": {
@@ -225,6 +234,10 @@ adding only a ``prompt_number`` field, which must be an integer.
 .. versionchanged:: 4.0
 
     ``pyout`` renamed to ``execute_result``
+
+.. versionchanged:: 4.0
+
+    ``prompt_number`` renamed to ``execution_count``
 
 
 error
