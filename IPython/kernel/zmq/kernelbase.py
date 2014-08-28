@@ -517,12 +517,12 @@ class Kernel(Configurable):
     #---------------------------------------------------------------------------
 
     def abort_request(self, stream, ident, parent):
-        """abort a specifig msg by id"""
+        """abort a specific msg by id"""
         msg_ids = parent['content'].get('msg_ids', None)
         if isinstance(msg_ids, string_types):
             msg_ids = [msg_ids]
         if not msg_ids:
-            self.abort_queues()
+            self._abort_queues()
         for mid in msg_ids:
             self.aborted.add(str(mid))
 
@@ -674,4 +674,3 @@ class Kernel(Configurable):
             self.session.send(self.iopub_socket, self._shutdown_message, ident=self._topic('shutdown'))
             self.log.debug("%s", self._shutdown_message)
         [ s.flush(zmq.POLLOUT) for s in self.shell_streams ]
-
