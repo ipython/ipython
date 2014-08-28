@@ -222,6 +222,7 @@ def test_omit__names():
     # also happens to test IPCompleter as a configurable
     ip = get_ipython()
     ip._hidden_attr = 1
+    ip._x = {}
     c = ip.Completer
     ip.ex('ip=get_ipython()')
     cfg = Config()
@@ -240,6 +241,8 @@ def test_omit__names():
     s,matches = c.complete('ip.')
     nt.assert_not_in('ip.__str__', matches)
     nt.assert_not_in('ip._hidden_attr', matches)
+    s,matches = c.complete('ip._x.')
+    nt.assert_in('ip._x.keys', matches)
     del ip._hidden_attr
 
 
