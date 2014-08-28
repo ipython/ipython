@@ -11,6 +11,7 @@ define([
         render : function(){
             // Called when view is rendered.
             this.update(); // Set defaults.
+            this.$el.addClass('widget-html');
         },
         
         update : function(){
@@ -28,6 +29,7 @@ define([
         render : function(){
             // Called when view is rendered.
             this.update(); // Set defaults.
+            this.$el.addClass('widget-latex');
         },
         
         update : function(){
@@ -54,7 +56,7 @@ define([
                 .hide();
             this.$textbox = $('<textarea />')
                 .attr('rows', 5)
-                .addClass('widget-text form-control')
+                .addClass('form-control')
                 .appendTo(this.$el);
             this.update(); // Set defaults.
 
@@ -142,7 +144,7 @@ define([
                 .hide();
             this.$textbox = $('<input type="text" />')
                 .addClass('input')
-                .addClass('widget-text form-control')
+                .addClass('form-control')
                 .appendTo(this.$el);
             this.update(); // Set defaults.
             this.model.on('change:placeholder', function(model, value, options) {

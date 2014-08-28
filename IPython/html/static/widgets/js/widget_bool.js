@@ -70,7 +70,7 @@ define([
             // Called when view is rendered.
             var that = this;
             this.setElement($('<button />')
-                .addClass('btn btn-default')
+                .addClass('btn btn-default widget-togglebutton')
                 .attr('type', 'button')
                 .on('click', function (e) {
                     e.preventDefault();

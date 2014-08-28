@@ -10,6 +10,7 @@ define([
         render : function(){
             // Called when view is rendered.
             this.setElement($("<img />"));
+            this.$el.addClass('widget-image');
             this.update(); // Set defaults.
         },
         

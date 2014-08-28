@@ -14,7 +14,7 @@ define([
             var guid = 'panel-group' + utils.uuid();
             this.$el
                 .attr('id', guid)
-                .addClass('panel-group');
+                .addClass('panel-group widget-accordion');
             this.containers = [];
             this.model_containers = {};
             this.update_children([], this.model.get('children'));
@@ -138,6 +138,7 @@ define([
             // Called when view is rendered.
             var uuid = 'tabs'+utils.uuid();
             var that = this;
+            this.$el.addClass('widget-tabs');
             this.$tabs = $('<div />', {id: uuid})
                 .addClass('nav')
                 .addClass('nav-tabs')

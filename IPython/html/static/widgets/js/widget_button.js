@@ -11,7 +11,7 @@ define([
         render : function(){
             // Called when view is rendered.
             this.setElement($("<button />")
-                .addClass('btn btn-default'));
+                .addClass('btn btn-default widget-button'));
 
             this.model.on('change:button_style', function(model, value) {
                 this.update_button_style();

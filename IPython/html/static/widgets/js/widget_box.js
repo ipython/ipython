@@ -136,6 +136,7 @@ define([
             var that = this;
             
             this.$el
+                .addClass('widget-popup-inline')
                 .on("remove", function(){
                     that.$backdrop.remove();
                 });
