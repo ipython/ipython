@@ -141,8 +141,8 @@ def upgrade_output(output):
     - mime-type keys
     - stream.stream -> stream.name
     """
-    output.setdefault('metadata', NotebookNode())
     if output['output_type'] in {'pyout', 'display_data'}:
+        output.setdefault('metadata', NotebookNode())
         if output['output_type'] == 'pyout':
             output['output_type'] = 'execute_result'
             output['execution_count'] = output.pop('prompt_number', None)
@@ -193,7 +193,6 @@ def downgrade_output(output):
         output['output_type'] = 'pyerr'
     elif output['output_type'] == 'stream':
         output['stream'] = output.pop('name')
-        output.pop('metadata')
     return output
 
 def upgrade_outputs(outputs):

@@ -46,11 +46,11 @@ def new_output(output_type, data=None, **kwargs):
         output.data = from_dict(data)
 
     # populate defaults:
-    output.setdefault('metadata', NotebookNode())
     if output_type == 'stream':
         output.setdefault('name', 'stdout')
         output.setdefault('text', '')
     elif output_type in {'execute_result', 'display_data'}:
+        output.setdefault('metadata', NotebookNode())
         output.setdefault('data', NotebookNode())
     validate(output, output_type)
     return output

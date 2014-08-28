@@ -235,13 +235,12 @@
             "description": "Stream output from a code cell.",
             "type": "object",
             "additionalProperties": false,
-            "required": ["output_type", "metadata", "name", "text"],
+            "required": ["output_type", "name", "text"],
             "properties": {
                 "output_type": {
                     "description": "Type of cell output.",
                     "enum": ["stream"]
                 },
-                "metadata": {"$ref": "#/definitions/misc/output_metadata"},
                 "name": {
                     "description": "The name of the stream (stdout, stderr).",
                     "type": "string"
@@ -257,13 +256,12 @@
             "description": "Output of an error that occurred during code cell execution.",
             "type": "object",
             "additionalProperties": false,
-            "required": ["output_type", "metadata", "ename", "evalue", "traceback"],
+            "required": ["output_type", "ename", "evalue", "traceback"],
             "properties": {
                 "output_type": {
                     "description": "Type of cell output.",
                     "enum": ["error"]
                 },
-                "metadata": {"$ref": "#/definitions/misc/output_metadata"},
                 "ename": {
                     "description": "The name of the error.",
                     "type": "string"
