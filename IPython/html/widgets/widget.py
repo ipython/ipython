@@ -360,7 +360,7 @@ class Widget(LoggingConfigurable):
         elif isinstance(x, string_types) and x.startswith('IPY_MODEL_') and x[10:] in Widget.widgets:
             # we want to support having child widgets at any level in a hierarchy
             # trusting that a widget UUID will not appear out in the wild
-            return Widget.widgets[x]
+            return Widget.widgets[x[10:]]
         else:
             return x
 
