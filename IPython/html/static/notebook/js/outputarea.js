@@ -81,7 +81,7 @@ define([
      *
      */
     OutputArea.prototype._should_scroll = function (lines) {
-        if (lines <=0 ){ return }
+        if (lines <=0 ){ return; }
         if (!lines) {
             lines = 100;
         }
@@ -177,7 +177,7 @@ define([
     OutputArea.prototype.scroll_if_long = function (lines) {
         var n = lines | OutputArea.minimum_scroll_threshold;
         if(n <= 0){
-            return
+            return;
         }
 
         if (this._should_scroll(n)) {
@@ -380,12 +380,12 @@ define([
         } else {
             return subarea;
         }
-    }
+    };
 
 
     OutputArea.prototype._append_javascript_error = function (err, element) {
         // display a message when a javascript error occurs in display output
-        var msg = "Javascript error adding output!"
+        var msg = "Javascript error adding output!";
         if ( element === undefined ) return;
         element
             .append($('<div/>').text(msg).addClass('js-error'))
@@ -721,11 +721,11 @@ define([
         var toinsert = this.create_output_subarea(md, "output_pdf", type);
         var a = $('<a/>').attr('href', 'data:application/pdf;base64,'+pdf);
         a.attr('target', '_blank');
-        a.text('View PDF')
+        a.text('View PDF');
         toinsert.append(a);
         element.append(toinsert);
         return toinsert;
-     }
+     };
 
     var append_latex = function (latex, md, element) {
         // This method cannot do the typesetting because the latex first has to
@@ -782,7 +782,7 @@ define([
         // This seemed to be needed otherwise only the cell would be focused.
         // But with the modal UI, this seems to work fine with one call to focus().
         raw_input.focus();
-    }
+    };
 
     OutputArea.prototype._submit_raw_input = function (evt) {
         var container = this.element.find("div.raw_input_container");
@@ -798,7 +798,7 @@ define([
             output_type : 'stream',
             stream : 'stdout',
             text : theprompt.text() + echo + '\n'
-        }
+        };
         // remove form container
         container.parent().remove();
         // replace with plaintext version in stdout
@@ -823,7 +823,7 @@ define([
             // If a clear is queued, clear before adding another to the queue.
             if (this.clear_queued) {
                 this.clear_output(false);
-            };
+            }
 
             this.clear_queued = true;
         } else {
@@ -845,7 +845,7 @@ define([
             this.trusted = true;
             this.unscroll_area();
             return;
-        };
+        }
     };
 
 
