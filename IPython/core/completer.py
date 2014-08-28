@@ -46,25 +46,8 @@ Notes:
   used, and this module (and the readline module) are silently inactive.
 """
 
-#*****************************************************************************
-#
-# Since this file is essentially a minimally modified copy of the rlcompleter
-# module which is part of the standard Python distribution, I assume that the
-# proper procedure is to maintain its copyright as belonging to the Python
-# Software Foundation (in addition to my own, for all new code).
-#
-#       Copyright (C) 2008 IPython Development Team
-#       Copyright (C) 2001 Fernando Perez. <fperez@colorado.edu>
-#       Copyright (C) 2001 Python Software Foundation, www.python.org
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#
-#*****************************************************************************
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import __main__
 import glob
@@ -735,7 +718,7 @@ class IPCompleter(Completer):
                     else:
                         # true if txt is _not_ a _ name, false otherwise:
                         no__name = (lambda txt:
-                                    re.match(r'.*\._.*?',txt) is None)
+                                    re.match(r'.*\._.*?',txt[txt.rindex('.'):]) is None)
                     matches = filter(no__name, matches)
             except NameError:
                 # catches <undefined attributes>.<tab>
