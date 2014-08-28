@@ -18,7 +18,6 @@ define([
                 .addClass('widget-label')
                 .hide();
             this.$buttongroup = $('<div />')
-                .addClass('widget_item')
                 .addClass('btn-group')
                 .appendTo(this.$el);
             this.$droplabel = $('<button />')
@@ -29,7 +28,6 @@ define([
             this.$dropbutton = $('<button />')
                 .addClass('btn btn-default')
                 .addClass('dropdown-toggle')
-                .addClass('widget-combo-carrot-btn')
                 .attr('data-toggle', 'dropdown')
                 .append($('<span />').addClass("caret"))
                 .appendTo(this.$buttongroup);
@@ -152,14 +150,13 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-box widget-radio');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
                 .hide();
             this.$container = $('<div />')
-                .appendTo(this.$el)
-                .addClass('widget-radio-box');
+                .appendTo(this.$el);
             this.update();
         },
         
@@ -243,12 +240,7 @@ define([
     
 
     var ToggleButtonsView = widget.DOMWidgetView.extend({
-        initialize: function() {
-            this._css_state = {};
-            ToggleButtonsView.__super__.initialize.apply(this, arguments);
-        },
-
-        render: function() {
+        render : function(){
             // Called when view is rendered.
             this.$el
                 .addClass('widget-hbox widget-toggle-buttons');
@@ -295,7 +287,6 @@ define([
                             .appendTo(that.$buttongroup)
                             .attr('data-value', item)
                             .on('click', $.proxy(that.handle_click, that));
-                        that.update_style_traits($item_element);
                     }
                     if (that.model.get('value_name') == item) {
                         $item_element.addClass('active');
@@ -381,13 +372,13 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-select');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
                 .hide();
             this.$listbox = $('<select />')
-                .addClass('widget-listbox form-control')
+                .addClass('form-control')
                 .attr('size', 6)
                 .appendTo(this.$el);
             this.update();

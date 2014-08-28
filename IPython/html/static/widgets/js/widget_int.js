@@ -22,7 +22,6 @@ define([
                 .addClass('slider');
             // Put the slider in a container 
             this.$slider_container = $('<div />')
-                .addClass('widget-hslider')
                 .append(this.$slider);
             this.$el.append(this.$slider_container);
             
@@ -168,7 +167,7 @@ define([
                 var actual_value = ui.values.map(this._validate_slide_value);
                 this.$readout.text(actual_value.join("-"));
             } else {
-            var actual_value = this._validate_slide_value(ui.value);
+                var actual_value = this._validate_slide_value(ui.value);
                 this.$readout.text(actual_value);
             }
             this.model.set('value', actual_value, {updated_view: this});
@@ -189,14 +188,13 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox widget-text');
+                .addClass('widget-hbox widget-numeric-text');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
                 .hide();
             this.$textbox = $('<input type="text" />')
                 .addClass('form-control')
-                .addClass('widget-numeric-text')
                 .appendTo(this.$el);
             this.update(); // Set defaults.
         },
@@ -304,7 +302,6 @@ define([
                 .hide();
             this.$progress = $('<div />')
                 .addClass('progress')
-                .addClass('widget-progress')
                 .appendTo(this.$el);
             this.$bar = $('<div />')
                 .addClass('progress-bar')

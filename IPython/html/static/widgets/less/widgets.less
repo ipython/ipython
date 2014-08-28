@@ -39,7 +39,7 @@
     .corner-all(); /* Round the corners of the slide track */
 }
 
-.widget-hslider {
+.widget-hbox-single.widget-slider .slider-container {
     /* Horizontal jQuery Slider 
 
     Both the horizontal and vertical versions of the slider are characterized
@@ -149,19 +149,19 @@
     margin : 0px !important;
 }
 
-.widget-listbox {
+.widget-select .form-control {
     /* Listbox */
     width         : 350px;
     margin-bottom : 0px;
 }
 
-.widget-numeric-text {
+.widget-numeric-text input {
     /* Single Line Textbox - used for IntTextView and FloatTextView */
     width : 150px;
     margin : 0px !important;
 }
 
-.widget-progress {
+.widget-progress .progress {
     /* Progress Bar */
     margin-top: 6px;
     width : 350px;
@@ -176,23 +176,33 @@
     }
 }
 
-.widget-combo-btn {
+.widget-dropdown .dropdown-label {
     /* ComboBox Main Button */
     min-width : 125px;
 }
 
-.widget_item .dropdown-menu li a {
-    color: inherit;
+.widget-box {
+    /* The following section sets the style for the invisible div that
+    hold widgets and their accompanying labels.
+
+    Looks like this:
+    +-----------------------------+
+    | widget-box (or similar)     |
+    |  +-------+---------------+  |
+    |  | Label | Actual Widget |  |
+    |  +-------+---------------+  |
+    +-----------------------------+
+    */
+    margin : 5px;
+
+    .start();
+    .widget-container();
 }
 
 .widget-hbox {
     /* Horizontal widgets */
+    .widget-box();
     .hbox();
-    margin: 5px;
-
-    input[type="checkbox"] {
-        margin-top: 9px;
-    }
 
     .widget-label {
         /* Horizontal Label */
@@ -209,19 +219,23 @@
         text-align     : left;
         vertical-align : text-top;
     }
+
+    input[type="checkbox"] {
+        margin-top: 9px;
+    }
 }
 
 .widget-vbox {
     /* Vertical widgets */ 
+    .widget-box();
     .vbox();
-
 
     .widget-label {
         /* Vertical Label */
         padding-bottom : 5px;
         text-align     : center;
         vertical-align : text-bottom;
-    }
+}
 
     .widget-readout {
         /* Vertical Label */
@@ -229,11 +243,10 @@
         text-align     : center;
         vertical-align : text-top;
     }
-
 }
 
-.widget-modal {
-    /* Box - ModalView */   
+.widget-popup .modal-content {
+    /* ContainerWidget - PopupView */   
     overflow    : hidden; 
     position    : absolute !important;
     top         : 0px; 
@@ -241,18 +254,28 @@
     margin-left : 0px !important;
 }
 
-.widget-modal-body {
-    /* Box - ModalView Body */
+    .modal-body {
+        /* ContainerWidget - PopupView Body */
     max-height: none !important;
+    }
 }
 
-.widget-box {
-    /* Box */
+.widget-popup-docked {
+    /* Horizontal Label */
+    overflow: hidden; 
+    position: relative !important;
+    top: 0px !important; 
+    left: 0px !important; 
+    margin-left: 0px !important;
+}
+
+.widget-container {
+    /* ContainerWidget */
     .border-box-sizing();
     .align-start();
 }
 
-.widget-radio-box {
+.widget-radio :not(.widget-label) {
     /* Contains RadioButtonsWidget */
     .vbox();
     .border-box-sizing();
