@@ -6,19 +6,20 @@ casper.get_list_items = function () {
             return {
                 link: $(this).attr('href'),
                 label: $(this).find('.item_name').text()
-            }
+            };
         }));
     });
-}
+};
 
 casper.test_items = function (baseUrl) {
     casper.then(function () {
         var items = casper.get_list_items();
         casper.each(items, function (self, item) {
-            if (!item.label.match('.ipynb$')) {
+            if (!item.label.match(/\.ipynb$/)) {
                 var followed_url = baseUrl+item.link;
-                if (!followed_url.match('/\.\.$')) {
+                if (!followed_url.match(/\/\.\.$/)) {
                     casper.thenOpen(followed_url, function () {
+                        this.waitFor(this.page_loaded);
                         casper.wait_for_dashboard();
                         // getCurrentUrl is with host, and url-decoded,
                         // but item.link is without host, and url-encoded
@@ -31,10 +32,10 @@ casper.test_items = function (baseUrl) {
             }
         });
     });
-}
+};
 
 casper.dashboard_test(function () {
     baseUrl = this.get_notebook_server();
     casper.test_items(baseUrl);
-})
+});
 
