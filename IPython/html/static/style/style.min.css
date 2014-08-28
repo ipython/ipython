@@ -9294,6 +9294,9 @@ div.cell.text_cell.rendered {
   /* ComboBox Main Button */
   min-width: 125px;
 }
+.widget_item .dropdown-menu li a {
+  color: inherit;
+}
 .widget-box {
   /* The following section sets the style for the invisible div that
     hold widgets and their accompanying labels.
@@ -9432,7 +9435,6 @@ div.cell.text_cell.rendered {
   box-flex: 0;
   /* Modern browsers */
   flex: none;
-  height: 30px;
 }
 .widget-hbox-single input[type="checkbox"] {
   margin-top: 9px;
@@ -9490,62 +9492,6 @@ div.cell.text_cell.rendered {
   box-flex: 0;
   /* Modern browsers */
   flex: none;
-}
-.widget-vbox-single {
-  /* For vertical slides */
-  /* Vertical widgets */
-  /* The following section sets the style for the invisible div that
-    hold widgets and their accompanying labels.
-
-    Looks like this:
-    +-----------------------------+
-    | widget-box (or similar)     |
-    |  +-------+---------------+  |
-    |  | Label | Actual Widget |  |
-    |  +-------+---------------+  |
-    +-----------------------------+
-    */
-  margin: 5px;
-  /* Old browsers */
-  -webkit-box-pack: start;
-  -moz-box-pack: start;
-  box-pack: start;
-  /* Modern browsers */
-  justify-content: flex-start;
-  /* Box */
-  /* Old browsers */
-  /* Modern browsers */
-  /* Box */
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  /* Old browsers */
-  -webkit-box-align: start;
-  -moz-box-align: start;
-  box-align: start;
-  /* Modern browsers */
-  align-items: flex-start;
-  /* Old browsers */
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-box-align: stretch;
-  display: -moz-box;
-  -moz-box-orient: vertical;
-  -moz-box-align: stretch;
-  display: box;
-  box-orient: vertical;
-  box-align: stretch;
-  /* Modern browsers */
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  /* Old browsers */
-  -webkit-box-flex: 0;
-  -moz-box-flex: 0;
-  box-flex: 0;
-  /* Modern browsers */
-  flex: none;
-  width: 30px;
 }
 .widget-modal {
   /* Box - ModalView */
