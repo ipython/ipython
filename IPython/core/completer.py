@@ -973,7 +973,14 @@ class IPCompleter(Completer):
         if slashpos > -1:
             s = text[slashpos:]
             if s in latex_symbols:
+                # Try to complete a full latex symbol to unicode
+                # \\alpha -> α
                 return s, [latex_symbols[s]]
+            else:
+                # If a user has partially typed a latex symbol, give them
+                # a full list of options \al -> [\aleph, \alpha]
+                matches = [k for k in latex_symbols if k.startswith(s)]
+                return s, matches
         return u'', []
 
     def dispatch_custom_completer(self, text):
