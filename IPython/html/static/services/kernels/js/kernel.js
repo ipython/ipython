@@ -7,7 +7,8 @@ define([
     'base/js/utils',
     'services/kernels/js/comm',
     'widgets/js/init',
-], function(IPython, $, utils, comm, widgetmanager) {
+    './serialize'
+], function(IPython, $, utils, comm, widgetmanager, serialize) {
     "use strict";
 
     /**
@@ -846,57 +847,11 @@ define([
         }
     };
 
-
-    Kernel.prototype._deserialize_binary_message = function(blob, callback) {
-        // deserialize the binary message format
-        // callback will be called with a message whose buffers attribute
-        // will be an array of DataViews.
-        var reader = new FileReader();
-        reader.onload  = function(e) {
-            var data = new DataView(this.result);
-            // read the header: 1 + nbufs 32b integers
-            var nbufs = data.getInt32(0);
-            var offsets = [];
-            var i;
-            for (i = 1; i <= nbufs; i++) {
-                offsets.push(data.getInt32(i * 4));
-            }
-            // the first chunk is the message as utf-8 JSON
-            var msg = $.parseJSON(
-                utis.decode_utf8(
-                    new Uint8Array(this.result.slice(offsets[0], offsets[1]))
-                )
-            );
-            // the remaining chunks are stored as DataViews in msg.buffers
-            msg.buffers = [];
-            var start, stop;
-            for (i = 1; i < nbufs; i++) {
-                start = offsets[i];
-                stop = offsets[i+1];
-                msg.buffers.push(new DataView(this.result.slice(start, stop)));
-            }
-            callback(msg);
-        };
-        reader.readAsArrayBuffer(blob);
-    };
-
-
-    Kernel.prototype._deserialize_msg = function (e, callback) {
-        // deserialze a message and pass the unpacked message object to callback
-        if (typeof e.data === "string") {
-            // text JSON message
-            callback($.parseJSON(e.data));
-        } else {
-            // binary message
-            this._deserialize_binary_message(e.data, callback);
-        }
-    };
-
     /**
      * @function _handle_shell_reply
      */
     Kernel.prototype._handle_shell_reply = function (e) {
-        this._deserialize_msg(e, $.proxy(this._finish_shell_reply, this));
+        serialize.deserialize(e.data, $.proxy(this._finish_shell_reply, this));
     };
 
     Kernel.prototype._finish_shell_reply = function (reply) {
@@ -1027,7 +982,7 @@ define([
      * @function _handle_iopub_message
      */
     Kernel.prototype._handle_iopub_message = function (e) {
-        this._deserialize_msg(e, $.proxy(this._finish_iopub_message, this));
+        serialize.deserialize(e.data, $.proxy(this._finish_iopub_message, this));
     };
 
 
@@ -1042,7 +997,7 @@ define([
      * @function _handle_input_request
      */
     Kernel.prototype._handle_input_request = function (e) {
-        this._deserialize_msg(e, $.proxy(this._finish_input_request, this));
+        serialize.deserialize(e.data, $.proxy(this._finish_input_request, this));
     };
 
 
