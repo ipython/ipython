@@ -18,6 +18,7 @@ import os
 import pprint
 import random
 import uuid
+import warnings
 from datetime import datetime
 
 try:
@@ -492,7 +493,7 @@ class Session(Configurable):
         """Return the nested message dict.
 
         This format is different from what is sent over the wire. The
-        serialize/unserialize methods converts this nested message dict to the wire
+        serialize/deserialize methods converts this nested message dict to the wire
         format, which is a list of message parts.
         """
         msg = {}
@@ -525,7 +526,7 @@ class Session(Configurable):
     def serialize(self, msg, ident=None):
         """Serialize the message components to bytes.
 
-        This is roughly the inverse of unserialize. The serialize/unserialize
+        This is roughly the inverse of deserialize. The serialize/deserialize
         methods work with full message lists, whereas pack/unpack work with
         the individual message parts in the message list.
 
@@ -590,7 +591,7 @@ class Session(Configurable):
         [ident1,ident2,...,DELIM,HMAC,p_header,p_parent,p_content,
          buffer1,buffer2,...]
 
-        The serialize/unserialize methods convert the nested message dict into this
+        The serialize/deserialize methods convert the nested message dict into this
         format.
 
         Parameters
@@ -722,7 +723,7 @@ class Session(Configurable):
         # invalid large messages can cause very expensive string comparisons
         idents, msg_list = self.feed_identities(msg_list, copy)
         try:
-            return idents, self.unserialize(msg_list, content=content, copy=copy)
+            return idents, self.deserialize(msg_list, content=content, copy=copy)
         except Exception as e:
             # TODO: handle it
             raise e
@@ -747,7 +748,7 @@ class Session(Configurable):
             idents will always be a list of bytes, each of which is a ZMQ
             identity. msg_list will be a list of bytes or zmq.Messages of the
             form [HMAC,p_header,p_parent,p_content,buffer1,buffer2,...] and
-            should be unpackable/unserializable via self.unserialize at this
+            should be unpackable/unserializable via self.deserialize at this
             point.
         """
         if copy:
@@ -788,10 +789,10 @@ class Session(Configurable):
         to_cull = random.sample(self.digest_history, n_to_cull)
         self.digest_history.difference_update(to_cull)
     
-    def unserialize(self, msg_list, content=True, copy=True):
+    def deserialize(self, msg_list, content=True, copy=True):
         """Unserialize a msg_list to a nested message dict.
 
-        This is roughly the inverse of serialize. The serialize/unserialize
+        This is roughly the inverse of serialize. The serialize/deserialize
         methods work with full message lists, whereas pack/unpack work with
         the individual message parts in the message list.
 
@@ -842,10 +843,16 @@ class Session(Configurable):
             message['content'] = msg_list[4]
 
         message['buffers'] = msg_list[5:]
-        # print("received: %s: %s\n    %s" % (message['msg_type'], message['header'], message['content']))
         # adapt to the current version
         return adapt(message)
-        # print("adapted: %s: %s\n     %s" % (adapted['msg_type'], adapted['header'], adapted['content']))
+    
+    def unserialize(self, *args, **kwargs):
+        warnings.warn(
+            "Session.unserialize is deprecated. Use Session.deserialize.",
+            DeprecationWarning,
+        )
+        return self.deserialize(*args, **kwargs)
+
 
 def test_msg2obj():
     am = dict(x=1)

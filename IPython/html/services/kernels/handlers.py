@@ -110,7 +110,7 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
         """
         idents,msg = self.session.feed_identities(msg)
         try:
-            msg = self.session.unserialize(msg)
+            msg = self.session.deserialize(msg)
         except:
             self.log.error("Bad kernel_info reply", exc_info=True)
             self._request_kernel_info()

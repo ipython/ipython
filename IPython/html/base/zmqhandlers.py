@@ -58,8 +58,8 @@ def serialize_binary_message(msg):
     return b''.join(buffers)
 
 
-def unserialize_binary_message(bmsg):
-    """unserialize a message from a binary blog
+def deserialize_binary_message(bmsg):
+    """deserialize a message from a binary blog
 
     Header:
 
@@ -133,13 +133,13 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
     def _reserialize_reply(self, msg_list):
         """Reserialize a reply message using JSON.
 
-        This takes the msg list from the ZMQ socket, unserializes it using
+        This takes the msg list from the ZMQ socket, deserializes it using
         self.session and then serializes the result using JSON. This method
         should be used by self._on_zmq_reply to build messages that can
         be sent back to the browser.
         """
         idents, msg_list = self.session.feed_identities(msg_list)
-        msg = self.session.unserialize(msg_list)
+        msg = self.session.deserialize(msg_list)
         try:
             msg['header'].pop('date')
         except KeyError:

@@ -846,8 +846,9 @@ define([
         }
     };
 
-    Kernel.prototype._unserialize_binary_message = function(blob, callback) {
-        // unserialize the binary message format
+
+    Kernel.prototype._deserialize_binary_message = function(blob, callback) {
+        // deserialize the binary message format
         // callback will be called with a message whose buffers attribute
         // will be an array of DataViews.
         var reader = new FileReader();
@@ -880,14 +881,14 @@ define([
     };
 
 
-    Kernel.prototype._unserialize_msg = function (e, callback) {
-        // unserialze a message and pass the unpacked message object to callback
+    Kernel.prototype._deserialize_msg = function (e, callback) {
+        // deserialze a message and pass the unpacked message object to callback
         if (typeof e.data === "string") {
             // text JSON message
             callback($.parseJSON(e.data));
         } else {
             // binary message
-            this._unserialize_binary_message(e.data, callback);
+            this._deserialize_binary_message(e.data, callback);
         }
     };
 
@@ -895,7 +896,7 @@ define([
      * @function _handle_shell_reply
      */
     Kernel.prototype._handle_shell_reply = function (e) {
-        this._unserialize_msg(e, $.proxy(this._finish_shell_reply, this));
+        this._deserialize_msg(e, $.proxy(this._finish_shell_reply, this));
     };
 
     Kernel.prototype._finish_shell_reply = function (reply) {
@@ -1026,7 +1027,7 @@ define([
      * @function _handle_iopub_message
      */
     Kernel.prototype._handle_iopub_message = function (e) {
-        this._unserialize_msg(e, $.proxy(this._finish_iopub_message, this));
+        this._deserialize_msg(e, $.proxy(this._finish_iopub_message, this));
     };
 
 
@@ -1041,7 +1042,7 @@ define([
      * @function _handle_input_request
      */
     Kernel.prototype._handle_input_request = function (e) {
-        this._unserialize_msg(e, $.proxy(this._finish_input_request, this));
+        this._deserialize_msg(e, $.proxy(this._finish_input_request, this));
     };
 
 

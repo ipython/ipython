@@ -176,7 +176,7 @@ class ZMQSocketChannel(Thread):
         Unpacks message, and calls handlers with it.
         """
         ident,smsg = self.session.feed_identities(msg)
-        msg = self.session.unserialize(smsg)
+        msg = self.session.deserialize(smsg)
         self.call_handlers(msg)
 
 

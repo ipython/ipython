@@ -782,7 +782,7 @@ class Client(HasTraits):
 
         # construct result:
         if content['status'] == 'ok':
-            self.results[msg_id] = serialize.unserialize_object(msg['buffers'])[0]
+            self.results[msg_id] = serialize.deserialize_object(msg['buffers'])[0]
         elif content['status'] == 'aborted':
             self.results[msg_id] = error.TaskAborted(msg_id)
         elif content['status'] == 'resubmitted':
@@ -884,7 +884,7 @@ class Client(HasTraits):
             elif msg_type == 'execute_result':
                 md['execute_result'] = content
             elif msg_type == 'data_message':
-                data, remainder = serialize.unserialize_object(msg['buffers'])
+                data, remainder = serialize.deserialize_object(msg['buffers'])
                 md['data'].update(data)
             elif msg_type == 'status':
                 # idle message comes after all outputs
@@ -1593,7 +1593,7 @@ class Client(HasTraits):
                 
                 if rcontent['status'] == 'ok':
                     if header['msg_type'] == 'apply_reply':
-                        res,buffers = serialize.unserialize_object(buffers)
+                        res,buffers = serialize.deserialize_object(buffers)
                     elif header['msg_type'] == 'execute_reply':
                         res = ExecuteReply(msg_id, rcontent, md)
                     else:

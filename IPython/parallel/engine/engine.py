@@ -159,7 +159,7 @@ class EngineFactory(RegistrationFactory):
         loop = self.loop
         identity = self.bident
         idents,msg = self.session.feed_identities(msg)
-        msg = self.session.unserialize(msg)
+        msg = self.session.deserialize(msg)
         content = msg['content']
         info = self.connection_info
         
