@@ -596,13 +596,12 @@ class IPCompleter(Completer):
         #= re.compile(r'[\s|\[]*(\w+)(?:\s*=?\s*.*)')
 
         # All active matcher routines for completion
-        self.matchers = [
-                          self.python_matches,
-                          self.file_matches,
-                          self.magic_matches,
-                          self.python_func_kw_matches,
-                          self.dict_key_matches,
-                        ]
+        self.matchers = [self.python_matches,
+                         self.file_matches,
+                         self.magic_matches,
+                         self.python_func_kw_matches,
+                         self.dict_key_matches,
+                         ]
 
     def all_completions(self, text):
         """
@@ -1057,10 +1056,11 @@ class IPCompleter(Completer):
         if cursor_pos is None:
             cursor_pos = len(line_buffer) if text is None else len(text)
 
-        latex_text = text if not line_buffer else line_buffer[:cursor_pos]
-        latex_text, latex_matches = self.latex_matches(latex_text)
-        if latex_matches:
-            return latex_text, latex_matches
+        if PY3:
+            latex_text = text if not line_buffer else line_buffer[:cursor_pos]
+            latex_text, latex_matches = self.latex_matches(latex_text)
+            if latex_matches:
+                return latex_text, latex_matches
 
         # if text is either None or an empty string, rely on the line buffer
         if not text:

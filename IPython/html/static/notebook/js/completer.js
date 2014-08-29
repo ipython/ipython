@@ -165,7 +165,6 @@ define([
     Completer.prototype.finish_completing = function (msg) {
         // let's build a function that wrap all that stuff into what is needed
         // for the new completer:
-        console.log(msg);
         var content = msg.content;
         var start = content.cursor_start;
         var end = content.cursor_end;
