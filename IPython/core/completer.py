@@ -79,12 +79,13 @@ import sys
 from IPython.config.configurable import Configurable
 from IPython.core.error import TryNext
 from IPython.core.inputsplitter import ESC_MAGIC
+from IPython.core.latex_symbols import latex_symbols
 from IPython.utils import generics
 from IPython.utils import io
 from IPython.utils.decorators import undoc
 from IPython.utils.dir2 import dir2
 from IPython.utils.process import arg_split
-from IPython.utils.py3compat import builtin_mod, string_types
+from IPython.utils.py3compat import builtin_mod, string_types, PY3
 from IPython.utils.traitlets import CBool, Enum
 
 #-----------------------------------------------------------------------------
@@ -601,7 +602,6 @@ class IPCompleter(Completer):
                           self.magic_matches,
                           self.python_func_kw_matches,
                           self.dict_key_matches,
-                          self.latex_matches
                         ]
 
     def all_completions(self, text):
@@ -970,10 +970,12 @@ class IPCompleter(Completer):
         return [leading + k + suf for k in matches]
 
     def latex_matches(self, text):
-        if text.startswith('\\foo'):
-            return ['foo']
-        else:
-            return []
+        slashpos = text.rfind('\\')
+        if slashpos > -1:
+            s = text[slashpos:]
+            if s in latex_symbols:
+                return s, [latex_symbols[s]]
+        return u'', []
 
     def dispatch_custom_completer(self, text):
         #io.rprint("Custom! '%s' %s" % (text, self.custom_completers)) # dbg
@@ -1048,12 +1050,17 @@ class IPCompleter(Completer):
         matches : list
           A list of completion matches.
         """
-        io.rprint('\nCOMP1 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
+        # io.rprint('\nCOMP1 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
 
         # if the cursor position isn't given, the only sane assumption we can
         # make is that it's at the end of the line (the common case)
         if cursor_pos is None:
             cursor_pos = len(line_buffer) if text is None else len(text)
+
+        latex_text = text if not line_buffer else line_buffer[:cursor_pos]
+        latex_text, latex_matches = self.latex_matches(latex_text)
+        if latex_matches:
+            return latex_text, latex_matches
 
         # if text is either None or an empty string, rely on the line buffer
         if not text:
@@ -1065,7 +1072,7 @@ class IPCompleter(Completer):
 
         self.line_buffer = line_buffer
         self.text_until_cursor = self.line_buffer[:cursor_pos]
-        io.rprint('COMP2 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
+        # io.rprint('COMP2 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
 
         # Start with a clean slate of completions
         self.matches[:] = []
