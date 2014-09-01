@@ -102,10 +102,12 @@ def xsys(self, cmd):
     sys.stdout.flush()
 
 
-def _showtraceback(self, etype, evalue, stb):
+def _showtraceback(self, etype, evalue, stb, file=None):
     """Print the traceback purely on stdout for doctest to capture it.
     """
-    print(self.InteractiveTB.stb2text(stb), file=sys.stdout)
+    if file is None:
+        file = sys.stdout
+    print(self.InteractiveTB.stb2text(stb), file=file)
 
 
 def start_ipython():

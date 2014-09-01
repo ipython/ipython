@@ -1779,7 +1779,7 @@ class InteractiveShell(SingletonConfigurable):
         self.write_err("UsageError: %s" % exc)
     
     def showtraceback(self, exc_tuple=None, filename=None, tb_offset=None,
-                      exception_only=False):
+                      exception_only=False, file=None):
         """Display the exception that just occurred.
 
         If nothing is known about the exception, this is the method which
@@ -1820,25 +1820,27 @@ class InteractiveShell(SingletonConfigurable):
                         stb = self.InteractiveTB.structured_traceback(etype,
                                             value, tb, tb_offset=tb_offset)
 
-                    self._showtraceback(etype, value, stb)
+                    self._showtraceback(etype, value, stb, file=file)
                     if self.call_pdb:
                         # drop into debugger
                         self.debugger(force=True)
                     return
 
                 # Actually show the traceback
-                self._showtraceback(etype, value, stb)
+                self._showtraceback(etype, value, stb, file=file)
 
         except KeyboardInterrupt:
             self.write_err("\nKeyboardInterrupt\n")
 
-    def _showtraceback(self, etype, evalue, stb):
+    def _showtraceback(self, etype, evalue, stb, file=None):
         """Actually show a traceback.
 
         Subclasses may override this method to put the traceback on a different
         place, like a side channel.
         """
-        print(self.InteractiveTB.stb2text(stb), file=io.stdout)
+        if file is None:
+            file = io.stdout
+        print(self.InteractiveTB.stb2text(stb), file=file)
 
     def showsyntaxerror(self, filename=None):
         """Display the syntax error that just occurred.
