@@ -15,6 +15,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import io as stdlib_io
+import os.path
 import sys
 
 from subprocess import Popen, PIPE
@@ -23,8 +24,11 @@ import unittest
 import nose.tools as nt
 
 from IPython.testing.decorators import skipif
-from IPython.utils.io import Tee, capture_output, unicode_std_stream
+from IPython.utils.io import (Tee, capture_output, unicode_std_stream,
+                              atomic_writing,
+                              )
 from IPython.utils.py3compat import doctest_refactor_print, PY3
+from IPython.utils.tempdir import TemporaryDirectory
 
 if PY3:
     from io import StringIO
@@ -122,3 +126,26 @@ def test_UnicodeStdStream_nowrap():
         assert not sys.stdout.closed
     finally:
         sys.stdout = orig_stdout
+
+def test_atomic_writing():
+    class CustomExc(Exception): pass
+
+    with TemporaryDirectory() as td:
+        f1 = os.path.join(td, 'penguin')
+        with stdlib_io.open(f1, 'w') as f:
+            f.write(u'Before')
+
+        with nt.assert_raises(CustomExc):
+            with atomic_writing(f1) as f:
+                f.write(u'Failing write')
+                raise CustomExc
+
+        # Because of the exception, the file should not have been modified
+        with stdlib_io.open(f1, 'r') as f:
+            nt.assert_equal(f.read(), u'Before')
+
+        with atomic_writing(f1) as f:
+            f.write(u'Overwritten')
+
+        with stdlib_io.open(f1, 'r') as f:
+            nt.assert_equal(f.read(), u'Overwritten')
