@@ -48,6 +48,9 @@ Notes:
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
+#
+# Some of this code originated from rlcompleter in the Python standard library
+# Copyright (C) 2001 Python Software Foundation, www.python.org
 
 import __main__
 import glob
