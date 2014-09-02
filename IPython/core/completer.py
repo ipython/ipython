@@ -718,7 +718,7 @@ class IPCompleter(Completer):
                     else:
                         # true if txt is _not_ a _ name, false otherwise:
                         no__name = (lambda txt:
-                                    re.match(r'.*\._.*?',txt[txt.rindex('.'):]) is None)
+                                    re.match(r'\._.*?',txt[txt.rindex('.'):]) is None)
                     matches = filter(no__name, matches)
             except NameError:
                 # catches <undefined attributes>.<tab>
