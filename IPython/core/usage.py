@@ -291,7 +291,7 @@ cd /usr/share    : Obvious. cd -<tab> to choose from visited dirs.
 %cd??            : See help AND source for magic %cd
 %timeit x=10     : time the 'x=10' statement with high precision.
 %%timeit x=2**100
-x**100           : time 'x*100' with a setup of 'x=2**100'; setup code is not
+x**100           : time 'x**100' with a setup of 'x=2**100'; setup code is not
                    counted.  This is an example of a cell magic.
 
 System commands:
