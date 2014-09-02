@@ -37,7 +37,7 @@ class NotebookTestBase(TestCase):
         for _ in range(int(MAX_WAITTIME/POLL_INTERVAL)):
             try:
                 requests.get(url)
-            except requests.exceptions.ConnectionError:
+            except Exception as e:
                 if cls.notebook.poll() is not None:
                     raise RuntimeError("The notebook server exited with status %s" \
                                         % cls.notebook.poll())
