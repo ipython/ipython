@@ -52,7 +52,12 @@ class CompletionLexer(object):
             # in C++. This is why we have to build up an operator from
             # potentially several tokens.
             elif token is Token.Operator or token is Token.Punctuation:
-                current_op = text + current_op
+                # Handle a trailing separator, e.g 'foo.bar.'
+                if current_op in self._name_separators:
+                    if not context:
+                        context.insert(0, '')
+                else:
+                    current_op = text + current_op
 
             # Break on anything that is not a Operator, Punctuation, or Name.
             else:
