@@ -11,6 +11,17 @@
  * It will be executed by the ipython notebook at load time.
  *
  * Same thing with `profile/static/custom/custom.css` to inject custom css into the notebook.
+ * 
+ * Classes and functions are available at load time and may be accessed plainly: 
+ * 
+ *     IPython.Cell.options_default.cm_config.extraKeys['Home'] = 'goLineLeft';
+ *     IPython.Cell.options_default.cm_config.extraKeys['End'] = 'goLineRight';
+ * 
+ * Instances are created later however and must be accessed using events:
+ * 
+ *     $([IPython.events]).on("app_initialized.NotebookApp", function () {
+ *         IPython.keyboard_manager....
+ *     });
  *
  * __Example 1:__
  *
