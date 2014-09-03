@@ -41,7 +41,7 @@ extend, :meth:`~IPython.config.loader.LazyConfigValue.prepend` (like
 extend, but at the front), add and update (which works both for dicts
 and sets)::
 
-    c.InteractiveShellApp.extensions.append('rmagic')
+    c.InteractiveShellApp.extensions.append('cythonmagic')
 
 .. versionadded:: 2.0
    list, dict and set methods for config values

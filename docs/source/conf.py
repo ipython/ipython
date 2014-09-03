@@ -189,7 +189,8 @@ html_additional_pages = {
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'ipythondoc'
 
-intersphinx_mapping = {'python': ('http://docs.python.org/2/', None)}
+intersphinx_mapping = {'python': ('http://docs.python.org/2/', None),
+                       'rpy2': ('http://rpy.sourceforge.net/rpy2/doc-2.4/html/', None)}
 
 # Options for LaTeX output
 # ------------------------

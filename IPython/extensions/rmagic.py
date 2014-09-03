@@ -48,6 +48,7 @@ import sys
 import tempfile
 from glob import glob
 from shutil import rmtree
+import warnings
 
 # numpy and rpy2 imports
 
@@ -689,6 +690,16 @@ __doc__ = __doc__.format(
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
+    warnings.warn("The rmagic extension in IPython is deprecated in favour of "
+            "rpy2.ipython. If available, that will be loaded instead.\n"
+            "http://rpy.sourceforge.net/")
+    try:
+        import rpy2.ipython
+    except ImportError:
+        pass  # Fall back to our own implementation for now
+    else:
+        return rpy2.ipython.load_ipython_extension(ip)
+
     ip.register_magics(RMagics)
     # Initialising rpy2 interferes with readline. Since, at this point, we've
     # probably just loaded rpy2, we reset the delimiters. See issue gh-2759.

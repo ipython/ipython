@@ -140,7 +140,6 @@ have['pexpect'] = test_for('IPython.external.pexpect')
 have['pymongo'] = test_for('pymongo')
 have['pygments'] = test_for('pygments')
 have['qt'] = test_for('IPython.external.qt')
-have['rpy2'] = test_for('rpy2')
 have['sqlite3'] = test_for('sqlite3')
 have['cython'] = test_for('Cython')
 have['tornado'] = test_for('tornado.version_info', (3,1,0), callback=None)
@@ -255,9 +254,8 @@ sec = test_sections['extensions']
 if not have['cython']:
     sec.exclude('cythonmagic')
     sec.exclude('tests.test_cythonmagic')
-if not have['rpy2'] or not have['numpy']:
-    sec.exclude('rmagic')
-    sec.exclude('tests.test_rmagic')
+# This is deprecated in favour of rpy2
+sec.exclude('rmagic')
 # autoreload does some strange stuff, so move it to its own test section
 sec.exclude('autoreload')
 sec.exclude('tests.test_autoreload')
