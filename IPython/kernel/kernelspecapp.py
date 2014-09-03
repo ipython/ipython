@@ -91,15 +91,46 @@ class InstallKernelSpec(BaseIPythonApplication):
                 self.exit(1)
             raise
 
+class InstallNativeKernelSpec(BaseIPythonApplication):
+    description = """Install the native kernel spec directory for this Python."""
+    kernel_spec_manager = Instance(KernelSpecManager)
+
+    def _kernel_spec_manager_default(self):
+        return KernelSpecManager(ipython_dir=self.ipython_dir)
+
+    system = Bool(False, config=True,
+        help="""
+        Try to install the kernel spec to the systemwide directory instead of
+        the per-user directory.
+        """
+    )
+
+    # Not all of the base aliases are meaningful (e.g. profile)
+    aliases = {k: base_aliases[k] for k in ['ipython-dir', 'log-level']}
+    flags = {'system': ({'InstallOwnKernelSpec': {'system': True}},
+                "Install to the systemwide kernel registry"),
+             'debug': base_flags['debug'],
+            }
+
+    def start(self):
+        try:
+            self.kernel_spec_manager.install_native_kernel_spec(system=self.system)
+        except OSError as e:
+            if e.errno == errno.EACCES:
+                print("Permission denied")
+                self.exit(1)
+            raise
+
 class KernelSpecApp(Application):
     name = "ipython kernelspec"
     description = """Manage IPython kernel specifications."""
 
-    subcommands = Dict(dict(
-        list = (ListKernelSpecs, ListKernelSpecs.description.splitlines()[0]),
-        install = (InstallKernelSpec, InstallKernelSpec.description.splitlines()[0])
-    ))
-    
+    subcommands = Dict({
+        'list': (ListKernelSpecs, ListKernelSpecs.description.splitlines()[0]),
+        'install': (InstallKernelSpec, InstallKernelSpec.description.splitlines()[0]),
+        'install-self': (InstallNativeKernelSpec, InstallNativeKernelSpec.description.splitlines()[0]),
+    })
+
     aliases = {}
     flags = {}
 

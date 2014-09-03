@@ -159,18 +159,13 @@ class KernelManager(ConnectionFileMixin):
     # Kernel management
     #--------------------------------------------------------------------------
 
-    def format_kernel_cmd(self, **kw):
+    def format_kernel_cmd(self, extra_arguments=None):
         """replace templated args (e.g. {connection_file})"""
+        extra_arguments = extra_arguments or []
         if self.kernel_cmd:
-            cmd = self.kernel_cmd
-        elif self.kernel_name == kernelspec.NATIVE_KERNEL_NAME:
-            # The native kernel gets special handling
-            cmd = make_ipkernel_cmd(
-                'from IPython.kernel.zmq.kernelapp import main; main()',
-                **kw
-            )
+            cmd = self.kernel_cmd + extra_arguments
         else:
-            cmd = self.kernel_spec.argv
+            cmd = self.kernel_spec.argv + extra_arguments
 
         ns = dict(connection_file=self.connection_file)
         ns.update(self._launch_args)
@@ -227,7 +222,8 @@ class KernelManager(ConnectionFileMixin):
         # save kwargs for use in restart
         self._launch_args = kw.copy()
         # build the Popen cmd
-        kernel_cmd = self.format_kernel_cmd(**kw)
+        extra_arguments = kw.pop('extra_arguments', [])
+        kernel_cmd = self.format_kernel_cmd(extra_arguments=extra_arguments)
         if self.kernel_cmd:
             # If kernel_cmd has been set manually, don't refer to a kernel spec
             env = os.environ
