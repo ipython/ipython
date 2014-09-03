@@ -83,7 +83,6 @@
             z-index: 6;
             opacity:0;
             display:block;
-            background-color:red;
             animation: fadein 1s 6s forwards;
             -webkit-animation: fadein 1s 6s forwards;
         }
@@ -103,10 +102,16 @@
   </div>
 </noscript>
 
-<div id='jspb' style='margin-left:25%; margin-right:25%;margin-top:15%;'>
-    <pre>
-       Hum... there seem to be a problem with javascript... try this following step to fix them 
-    </pre>
+<div id='jspb' style='margin-left:25%; margin-right:25%; margin-top:15%; position:absolute'>
+    <p> Hum, there seem too be some problem to load javascript. Try the following step to  fix it o narrow the cause:
+    <ol>
+        <li>Try to force refresh your browser page, Javascript files can be Agressively cached. </li>
+        <li>Open the <b>web developpement console</b> of your browser and look for error</li>
+        <li>If you used pip to install IPython, did you <pre>pip install ipython[notebook]</pre><p>; If not you might be missing dependencies</li>
+        <li>Don't intall autmatically generated zip from github, they are broken.</li>
+        <li>If you are running from git master, please make sure the submidules are up-to date (hint: install the git-hooks: <pre>$sh git-hooks/install-hooks.sh</pre></li>
+    </ol>
+    </p>
 </div>
 
 <div id="header" class="navbar navbar-static-top">

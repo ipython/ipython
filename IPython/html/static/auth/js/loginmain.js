@@ -9,4 +9,5 @@ require(['base/js/page'], function(page) {
     $('input#password_input').focus();
     
     ipython.page = page_instance;
+    $('#jspb').remove();
 });
