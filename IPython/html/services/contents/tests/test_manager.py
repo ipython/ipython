@@ -14,6 +14,7 @@ from IPython.nbformat import current
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.traitlets import TraitError
 from IPython.html.utils import url_path_join
+from IPython.testing import decorators as dec
 
 from ..filemanager import FileContentsManager
 from ..manager import ContentsManager
@@ -91,6 +92,7 @@ class TestContentsManager(TestCase):
             os.makedirs(os_path)
         except OSError:
             print("Directory already exists: %r" % os_path)
+        return os_path
 
     def add_code_cell(self, nb):
         output = current.new_output("display_data", output_javascript="alert('hi');")
@@ -158,7 +160,38 @@ class TestContentsManager(TestCase):
         self.assertIn('content', model2)
         self.assertEqual(model2['name'], 'Untitled0.ipynb')
         self.assertEqual(model2['path'], sub_dir.strip('/'))
-
+    
+    @dec.skip_win32
+    def test_bad_symlink(self):
+        cm = self.contents_manager
+        path = 'test bad symlink'
+        os_path = self.make_dir(cm.root_dir, path)
+        
+        file_model = cm.create_file(path=path, ext='.txt')
+        
+        # create a broken symlink
+        os.symlink("target", os.path.join(os_path, "bad symlink"))
+        model = cm.get_model(path)
+        self.assertEqual(model['content'], [file_model])
+    
+    @dec.skip_win32
+    def test_good_symlink(self):
+        cm = self.contents_manager
+        path = 'test good symlink'
+        os_path = self.make_dir(cm.root_dir, path)
+        
+        file_model = cm.create_file(path=path, ext='.txt')
+        
+        # create a good symlink
+        os.symlink(file_model['name'], os.path.join(os_path, "good symlink"))
+        symlink_model = cm.get_model(name="good symlink", path=path, content=False)
+        
+        dir_model = cm.get_model(path)
+        self.assertEqual(
+            dir_model['content'],
+            [symlink_model, file_model],
+        )
+    
     def test_update(self):
         cm = self.contents_manager
         # Create a notebook

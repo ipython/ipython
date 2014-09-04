@@ -207,6 +207,10 @@ class FileContentsManager(ContentsManager):
             model['content'] = contents = []
             for os_path in glob.glob(self._get_os_path('*', dir_path)):
                 name = os.path.basename(os_path)
+                # skip over broken symlinks in listing
+                if not os.path.exists(os_path):
+                    self.log.warn("%s doesn't exist", os_path)
+                    continue
                 if self.should_list(name) and not is_hidden(os_path, self.root_dir):
                     contents.append(self.get_model(name=name, path=dir_path, content=False))
 
