@@ -109,6 +109,25 @@ WS_PING_INTERVAL = 30000
 
 class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
     ping_callback = None
+    last_pong = 0
+    
+    @property
+    def ping_interval(self):
+        """The interval for websocket keep-alive pings.
+        
+        Set ws_ping_interval = 0 to disable pings.
+        """
+        return self.settings.get('ws_ping_interval', WS_PING_INTERVAL)
+    
+    @property
+    def ping_timeout(self):
+        """If no ping is received in this many milliseconds,
+        close the websocket connection (VPNs, etc. can fail to cleanly close ws connections).
+        Default is max of 3 pings or 30 seconds.
+        """
+        return self.settings.get('ws_ping_timeout',
+            max(3 * self.ping_interval, WS_PING_INTERVAL)
+        )
 
     def set_default_headers(self):
         """Undo the set_default_headers in IPythonHandler
@@ -129,16 +148,30 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
         self.session = Session(config=self.config)
         self.save_on_message = self.on_message
         self.on_message = self.on_first_message
-        self.ping_callback = ioloop.PeriodicCallback(self.send_ping, WS_PING_INTERVAL)
-        self.ping_callback.start()
+        
+        # start the pinging
+        if self.ping_interval > 0:
+            self.last_pong = ioloop.IOLoop.instance().time()
+            self.ping_callback = ioloop.PeriodicCallback(self.send_ping, self.ping_interval)
+            self.ping_callback.start()
 
     def send_ping(self):
         """send a ping to keep the websocket alive"""
         if self.stream.closed() and self.ping_callback is not None:
             self.ping_callback.stop()
             return
+        
+        # check for timeout on pong
+        since_last_pong = 1e3 * (ioloop.IOLoop.instance().time() - self.last_pong)
+        if since_last_pong > self.ping_timeout:
+            self.log.warn("WebSocket ping timeout after %i ms.", since_last_pong)
+            self.close()
+            return
 
         self.ping(b'')
+    
+    def on_pong(self, data):
+        self.last_pong = ioloop.IOLoop.instance().time()
 
     def _inject_cookie_message(self, msg):
         """Inject the first message, which is the document cookie,
