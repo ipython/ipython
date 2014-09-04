@@ -42,7 +42,7 @@ define([
         options = options || {};
         this.keyboard_manager = options.keyboard_manager;
         this.events = options.events;
-        var config = this.mergeopt(Cell, options.config);
+        var config = utils.mergeopt(Cell, options.config);
         // superclass default overwrite our default
         
         this.placeholder = config.placeholder || '';
@@ -93,12 +93,6 @@ define([
     if (utils.browser[0] == "Safari") {
         Cell.options_default.cm_config.dragDrop = false;
     }
-
-    Cell.prototype.mergeopt = function(_class, options, overwrite){
-        options = options || {};
-        overwrite = overwrite || {};
-        return $.extend(true, {}, _class.options_default, options, overwrite);
-    };
 
     /**
      * Empty. Subclasses must implement create_element.

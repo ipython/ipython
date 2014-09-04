@@ -514,6 +514,12 @@ define([
         }
     };
     
+    var mergeopt = function(_class, options, overwrite){
+        options = options || {};
+        overwrite = overwrite || {};
+        return $.extend(true, {}, _class.options_default, options, overwrite);
+    };
+    
     var ajax_error_msg = function (jqXHR) {
         // Return a JSON error message if there is one,
         // otherwise the basic HTTP status text.
@@ -552,6 +558,7 @@ define([
         platform: platform,
         is_or_has : is_or_has,
         is_focused : is_focused,
+        mergeopt: mergeopt,
         ajax_error_msg : ajax_error_msg,
         log_ajax_error : log_ajax_error,
     };
