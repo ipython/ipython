@@ -280,7 +280,7 @@ define([
         }
 
         // If there are no controls or the cell is a rendered TextCell hide the toolbar.
-        if (!this.ui_controls_list.length || (this.cell.cell_type != 'code' && this.cell.rendered)) {
+        if (!this.ui_controls_list.length) {
             this.hide();
         } else {
             this.show();
