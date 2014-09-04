@@ -53,7 +53,7 @@ define([
         //          base_url : string
         //          notebook_path : string
         //          notebook_name : string
-        this.config = options.config || {};
+        this.config = utils.mergeopt(Notebook, options.config);
         this.base_url = options.base_url;
         this.notebook_path = options.notebook_path;
         this.notebook_name = options.notebook_name;
@@ -63,6 +63,7 @@ define([
         this.tooltip = new tooltip.Tooltip(this.events);
         this.ws_url = options.ws_url;
         this._session_starting = false;
+        this.default_cell_type = this.config.default_cell_type || 'code';
         // default_kernel_name is a temporary measure while we implement proper
         // kernel selection and delayed start. Do not rely on it.
         this.default_kernel_name = 'python';
@@ -133,6 +134,14 @@ define([
         default_celltoolbar.register(this);
         rawcell_celltoolbar.register(this);
         slideshow_celltoolbar.register(this);
+    };
+    
+    Notebook.options_default = {
+        // can be any cell type, or the special values of
+        // 'above', 'below', or 'selected' to get the value from another cell.
+        Notebook: {
+            default_cell_type: 'code',
+        }
     };
 
 
@@ -835,10 +844,25 @@ define([
     Notebook.prototype.insert_cell_at_index = function(type, index){
 
         var ncells = this.ncells();
-        index = Math.min(index,ncells);
-        index = Math.max(index,0);
+        index = Math.min(index, ncells);
+        index = Math.max(index, 0);
         var cell = null;
-        type = type || this.get_selected_cell().cell_type;
+        type = type || this.default_cell_type;
+        if (type === 'above') {
+            if (index > 0) {
+                type = this.get_cell(index-1).cell_type;
+            } else {
+                type = 'code';
+            }
+        } else if (type === 'below') {
+            if (index < ncells) {
+                type = this.get_cell(index).cell_type;
+            } else {
+                type = 'code';
+            }
+        } else if (type === 'selected') {
+            type = this.get_selected_cell().cell_type;
+        }
 
         if (ncells === 0 || this.is_valid_cell_index(index) || index === ncells) {
             var cell_options = {
