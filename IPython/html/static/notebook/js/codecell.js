@@ -288,6 +288,7 @@ define([
             delete CodeCell.msg_cells[old_msg_id];
         }
         CodeCell.msg_cells[this.last_msg_id] = this;
+        this.render();
     };
     
     /**
@@ -360,11 +361,6 @@ define([
         return cont;
     };
     
-    CodeCell.prototype.unrender = function () {
-        // CodeCell is always rendered
-        return false;
-    };
-
     CodeCell.prototype.select_all = function () {
         var start = {line: 0, ch: 0};
         var nlines = this.code_mirror.lineCount();
