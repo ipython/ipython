@@ -47,6 +47,17 @@ class TestSessionManager(TestCase):
                                        kernel_name='foo')['id']
         self.assertRaises(TypeError, sm.get_session, bad_id=session_id) # Bad keyword
 
+    def test_get_session_dead_kernel(self):
+        sm = SessionManager(kernel_manager=DummyMKM())
+        session = sm.create_session(name='test1.ipynb', path='/path/to/1/', kernel_name='python')
+        # kill the kernel
+        sm.kernel_manager.shutdown_kernel(session['kernel']['id'])
+        with self.assertRaises(KeyError):
+            sm.get_session(session_id=session['id'])
+        # no sessions left
+        listed = sm.list_sessions()
+        self.assertEqual(listed, [])
+
     def test_list_sessions(self):
         sm = SessionManager(kernel_manager=DummyMKM())
         sessions = [
@@ -62,6 +73,30 @@ class TestSessionManager(TestCase):
                     {'id':sessions[2]['id'], 'notebook':{'name':u'test3.ipynb', 
                     'path': u'/path/to/3/'}, 'kernel':{'id':u'C', 'name':'python'}}]
         self.assertEqual(sessions, expected)
+
+    def test_list_sessions_dead_kernel(self):
+        sm = SessionManager(kernel_manager=DummyMKM())
+        sessions = [
+            sm.create_session(name='test1.ipynb', path='/path/to/1/', kernel_name='python'),
+            sm.create_session(name='test2.ipynb', path='/path/to/2/', kernel_name='python'),
+        ]
+        # kill one of the kernels
+        sm.kernel_manager.shutdown_kernel(sessions[0]['kernel']['id'])
+        listed = sm.list_sessions()
+        expected = [
+            {
+                'id': sessions[1]['id'],
+                'notebook': {
+                    'name': u'test2.ipynb',
+                    'path': u'/path/to/2/',
+                },
+                'kernel': {
+                    'id': u'B',
+                    'name':'python',
+                }
+            }
+        ]
+        self.assertEqual(listed, expected)
 
     def test_update_session(self):
         sm = SessionManager(kernel_manager=DummyMKM())
