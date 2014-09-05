@@ -188,7 +188,7 @@ class SessionManager(LoggingConfigurable):
     def row_to_model(self, row):
         """Takes sqlite database session row and turns it into a dictionary"""
         if row['kernel_id'] not in self.kernel_manager:
-            # The kernel was killed without deleting the session. Should never occur.
+            # The kernel was killed or died without deleting the session.
             self.delete_session(row['session_id'])
             raise KeyError
 
