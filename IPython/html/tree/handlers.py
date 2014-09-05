@@ -59,18 +59,6 @@ class TreeHandler(IPythonHandler):
             ))
 
 
-class TreeRedirectHandler(IPythonHandler):
-    """Redirect a request to the corresponding tree URL"""
-
-    @web.authenticated
-    def get(self, path=''):
-        url = url_escape(url_path_join(
-            self.base_url, 'tree', path.strip('/')
-        ))
-        self.log.debug("Redirecting %s to %s", self.request.path, url)
-        self.redirect(url)
-
-
 #-----------------------------------------------------------------------------
 # URL to handler mappings
 #-----------------------------------------------------------------------------
@@ -80,5 +68,4 @@ default_handlers = [
     (r"/tree%s" % notebook_path_regex, TreeHandler),
     (r"/tree%s" % path_regex, TreeHandler),
     (r"/tree", TreeHandler),
-    (r"/?", TreeRedirectHandler),
     ]

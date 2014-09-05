@@ -123,11 +123,11 @@ class NotebookWebApplication(web.Application):
 
     def __init__(self, ipython_app, kernel_manager, contents_manager,
                  cluster_manager, session_manager, kernel_spec_manager, log,
-                 base_url, settings_overrides, jinja_env_options):
+                 base_url, default_url, settings_overrides, jinja_env_options):
 
         settings = self.init_settings(
             ipython_app, kernel_manager, contents_manager, cluster_manager,
-            session_manager, kernel_spec_manager, log, base_url,
+            session_manager, kernel_spec_manager, log, base_url, default_url,
             settings_overrides, jinja_env_options)
         handlers = self.init_handlers(settings)
 
@@ -135,7 +135,7 @@ class NotebookWebApplication(web.Application):
 
     def init_settings(self, ipython_app, kernel_manager, contents_manager,
                       cluster_manager, session_manager, kernel_spec_manager,
-                      log, base_url, settings_overrides,
+                      log, base_url, default_url, settings_overrides,
                       jinja_env_options=None):
         # Python < 2.6.5 doesn't accept unicode keys in f(**kwargs), and
         # base_url will always be unicode, which will in turn
@@ -153,6 +153,7 @@ class NotebookWebApplication(web.Application):
             # basics
             log_function=log_request,
             base_url=base_url,
+            default_url=default_url,
             template_path=template_path,
             static_path=ipython_app.static_file_path,
             static_handler_class = FileFindHandler,
@@ -206,6 +207,13 @@ class NotebookWebApplication(web.Application):
         )
         handlers.append(
             (r"/nbextensions/(.*)", FileFindHandler, {'path' : settings['nbextensions_path']}),
+        )
+        # set the URL that will be redirected from `/`
+        handlers.append(
+            (r'/?', web.RedirectHandler, {
+                'url' : url_path_join(settings['base_url'], settings['default_url']),
+                'permanent': False, # want 302, not 301
+            })
         )
         # prepend base_url onto the patterns that we match
         new_handlers = []
@@ -365,6 +373,10 @@ class NotebookApp(BaseIPythonApplication):
     
     allow_credentials = Bool(False, config=True,
         help="Set the Access-Control-Allow-Credentials: true header"
+    )
+    
+    default_url = Unicode('/tree', config=True,
+        help="The default URL to redirect to from `/`"
     )
     
     ip = Unicode('localhost', config=True,
@@ -692,7 +704,7 @@ class NotebookApp(BaseIPythonApplication):
         self.web_app = NotebookWebApplication(
             self, self.kernel_manager, self.contents_manager,
             self.cluster_manager, self.session_manager, self.kernel_spec_manager,
-            self.log, self.base_url, self.webapp_settings,
+            self.log, self.base_url, self.default_url, self.webapp_settings,
             self.jinja_environment_options
         )
         if self.certfile:
