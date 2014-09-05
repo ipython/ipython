@@ -70,8 +70,8 @@ define([
     TextCell.prototype.create_element = function () {
         Cell.prototype.create_element.apply(this, arguments);
 
-        var cell = $("<div>").addClass('cell text_cell');
-        cell.attr('tabindex','2');
+        var cell = this.element
+        cell.addClass('text_cell');
 
         var prompt = $('<div/>').addClass('prompt input_prompt');
         cell.append(prompt);

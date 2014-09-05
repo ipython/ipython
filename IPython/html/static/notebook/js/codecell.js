@@ -123,8 +123,8 @@ define([
     CodeCell.prototype.create_element = function () {
         Cell.prototype.create_element.apply(this, arguments);
 
-        var cell =  $('<div></div>').addClass('cell code_cell');
-        cell.attr('tabindex','2');
+        var cell = this.element;
+        cell.addClass('code_cell');
 
         var input = $('<div></div>').addClass('input');
         var prompt = $('<div/>').addClass('prompt input_prompt');
