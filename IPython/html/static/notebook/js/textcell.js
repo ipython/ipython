@@ -278,7 +278,6 @@ define([
         var config = this.mergeopt(RawCell, options.config);
         TextCell.apply(this, [$.extend({}, options, {config: config})]);
 
-        // RawCell should always hide its rendered div
         this.cell_type = 'raw';
     };
 
