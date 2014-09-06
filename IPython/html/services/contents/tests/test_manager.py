@@ -188,7 +188,7 @@ class TestContentsManager(TestCase):
         
         dir_model = cm.get_model(path)
         self.assertEqual(
-            dir_model['content'],
+            sorted(dir_model['content'], key=lambda x: x['name']),
             [symlink_model, file_model],
         )
     
