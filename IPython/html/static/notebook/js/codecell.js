@@ -76,7 +76,7 @@ define([
             onKeyEvent: $.proxy(this.handle_keyevent,this)
         };
 
-        var config = this.mergeopt(CodeCell, this.config, {cm_config: cm_overwrite_options});
+        var config = utils.mergeopt(CodeCell, this.config, {cm_config: cm_overwrite_options});
         Cell.apply(this,[{
             config: config, 
             keyboard_manager: options.keyboard_manager, 

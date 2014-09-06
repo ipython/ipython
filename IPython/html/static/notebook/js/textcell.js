@@ -3,13 +3,14 @@
 
 define([
     'base/js/namespace',
+    'base/js/utils',
     'jquery',
     'notebook/js/cell',
     'base/js/security',
     'notebook/js/mathjaxutils',
     'notebook/js/celltoolbar',
     'components/marked/lib/marked',
-], function(IPython, $, cell, security, mathjaxutils, celltoolbar, marked) {
+], function(IPython, utils, $, cell, security, mathjaxutils, celltoolbar, marked) {
     "use strict";
     var Cell = cell.Cell;
 
@@ -40,7 +41,7 @@ define([
         var cm_overwrite_options  = {
             onKeyEvent: $.proxy(this.handle_keyevent,this)
         };
-        var config = this.mergeopt(TextCell, this.config, {cm_config:cm_overwrite_options});
+        var config = utils.mergeopt(TextCell, this.config, {cm_config:cm_overwrite_options});
         Cell.apply(this, [{
                     config: config, 
                     keyboard_manager: options.keyboard_manager, 
@@ -226,7 +227,7 @@ define([
         //          keyboard_manager: KeyboardManager instance 
         //          notebook: Notebook instance
         options = options || {};
-        var config = this.mergeopt(MarkdownCell, options.config);
+        var config = utils.mergeopt(MarkdownCell, options.config);
         TextCell.apply(this, [$.extend({}, options, {config: config})]);
 
         this.cell_type = 'markdown';
@@ -279,7 +280,7 @@ define([
         //          keyboard_manager: KeyboardManager instance 
         //          notebook: Notebook instance
         options = options || {};
-        var config = this.mergeopt(RawCell, options.config);
+        var config = utils.mergeopt(RawCell, options.config);
         TextCell.apply(this, [$.extend({}, options, {config: config})]);
 
         // RawCell should always hide its rendered div
@@ -339,7 +340,7 @@ define([
         //          keyboard_manager: KeyboardManager instance 
         //          notebook: Notebook instance
         options = options || {};
-        var config = this.mergeopt(HeadingCell, options.config);
+        var config = utils.mergeopt(HeadingCell, options.config);
         TextCell.apply(this, [$.extend({}, options, {config: config})]);
 
         this.level = 1;
