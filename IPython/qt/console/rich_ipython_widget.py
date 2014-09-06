@@ -7,6 +7,7 @@ import re
 
 from IPython.external.qt import QtCore, QtGui
 
+from IPython.lib.latextools import latex_to_png
 from IPython.utils.path import ensure_dir_exists
 from IPython.utils.traitlets import Bool
 from IPython.qt.svg import save_svg, svg_to_clipboard, svg_to_image
@@ -126,6 +127,18 @@ class RichIPythonWidget(IPythonWidget):
                 jpg = decodestring(data['image/jpeg'].encode('ascii'))
                 self._append_jpg(jpg, True, metadata=metadata.get('image/jpeg', None))
                 self._append_html(self.output_sep2, True)
+            elif 'text/latex' in data:
+                self._pre_image_append(msg, prompt_number)
+                latex = data['text/latex'].encode('ascii')
+                # latex_to_png takes care of handling $
+                latex = latex.strip('$')
+                png = latex_to_png(latex, wrap=True)
+                if png is not None:
+                    self._append_png(png, True)
+                    self._append_html(self.output_sep2, True)
+                else:
+                    # Print plain text if png can't be generated
+                    return super(RichIPythonWidget, self)._handle_execute_result(msg)
             else:
                 # Default back to the plain text representation.
                 return super(RichIPythonWidget, self)._handle_execute_result(msg)
