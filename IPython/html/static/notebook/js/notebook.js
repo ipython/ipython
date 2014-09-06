@@ -182,6 +182,13 @@ define([
             that.dirty = true;
         });
 
+        this.events.on('auto_rewrite_input.Notebook', function (event, data) {
+            if ( data.raw_input){
+                data.cell.set_text(data.raw_input);
+            }
+            that.dirty = true;
+        });
+        
         this.events.on('set_dirty.Notebook', function (event, data) {
             that.dirty = data.value;
         });
