@@ -350,6 +350,36 @@ define([
 
 
     /**
+     * A utility function to generate bindings between a input field and cell/metadata
+     * @method utils.input_ui_generator
+     * @static
+     *
+     * @param name {string} Label in front of the input field
+     * @param setter {function( cell, newValue )}
+     *        A setter method to set the newValue
+     * @param getter {function( cell )}
+     *        A getter methods which return the current value.
+     *
+     * @return callback {function( div, cell )} Callback to be passed to `register_callback`
+     *
+     */
+    CellToolbar.utils.input_ui_generator = function(name, setter, getter){
+        return function(div, cell, celltoolbar) {
+            var button_container = $(div);
+
+            var text = $('<input/>').attr('type', 'text');
+            var lbl = $('<label/>').append($('<span/>').text(name));
+            lbl.append(text);
+            text.attr("value", getter(cell));
+
+            text.keyup(function(){
+                setter(cell, text.val());
+            });
+            button_container.append($('<span/>').append(lbl));
+        };
+    };
+
+    /**
      * A utility function to generate bindings between a dropdown list cell
      * @method utils.select_ui_generator
      * @static
