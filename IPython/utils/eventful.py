@@ -12,7 +12,7 @@ class EventfulDict(dict):
     other words, if you add a dict as a child, the events of that dict won't be
     listened to.  If you find you need something recursive, listen to the `add`
     and `set` methods, and then cancel `dict` values from being set, and instead
-    set `EventfulDict`s that wrap those `dict`s.  Then you can wire the events
+    set EventfulDicts that wrap those dicts.  Then you can wire the events
     to the same handlers if necessary.
 
     See the on_events, on_add, on_set, and on_del methods for registering 
