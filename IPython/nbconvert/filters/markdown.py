@@ -61,7 +61,7 @@ def markdown2latex(source):
     out : string
       Output as returned by pandoc.
     """
-    return pandoc(source, 'markdown', 'latex')
+    return pandoc(source, 'markdown', 'latex', ('--natbib',))
 
 
 @undoc
