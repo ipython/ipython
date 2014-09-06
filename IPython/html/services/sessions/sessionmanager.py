@@ -53,7 +53,7 @@ class SessionManager(LoggingConfigurable):
         """Start a database connection"""
         if self._connection is None:
             self._connection = sqlite3.connect(':memory:')
-            self._connection.row_factory = self.row_factory
+            self._connection.row_factory = sqlite3.Row
         return self._connection
         
     def __del__(self):
@@ -141,14 +141,20 @@ class SessionManager(LoggingConfigurable):
         query = "SELECT * FROM session WHERE %s" % (' AND '.join(conditions))
 
         self.cursor.execute(query, list(kwargs.values()))
-        model = self.cursor.fetchone()
-        if model is None:
+        try:
+            row = self.cursor.fetchone()
+        except KeyError:
+            # The kernel is missing, so the session just got deleted.
+            row = None
+
+        if row is None:
             q = []
             for key, value in kwargs.items():
                 q.append("%s=%r" % (key, value))
 
             raise web.HTTPError(404, u'Session not found: %s' % (', '.join(q)))
-        return model
+
+        return self.row_to_model(row)
 
     def update_session(self, session_id, **kwargs):
         """Updates the values in the session database.
@@ -179,9 +185,16 @@ class SessionManager(LoggingConfigurable):
         query = "UPDATE session SET %s WHERE session_id=?" % (', '.join(sets))
         self.cursor.execute(query, list(kwargs.values()) + [session_id])
 
-    def row_factory(self, cursor, row):
+    def row_to_model(self, row):
         """Takes sqlite database session row and turns it into a dictionary"""
-        row = sqlite3.Row(cursor, row)
+        if row['kernel_id'] not in self.kernel_manager:
+            # The kernel was killed or died without deleting the session.
+            # We can't use delete_session here because that tries to find
+            # and shut down the kernel.
+            self.cursor.execute("DELETE FROM session WHERE session_id=?", 
+                                (row['session_id'],))
+            raise KeyError
+
         model = {
             'id': row['session_id'],
             'notebook': {
@@ -196,7 +209,15 @@ class SessionManager(LoggingConfigurable):
         """Returns a list of dictionaries containing all the information from
         the session database"""
         c = self.cursor.execute("SELECT * FROM session")
-        return list(c.fetchall())
+        result = []
+        # We need to use fetchall() here, because row_to_model can delete rows,
+        # which messes up the cursor if we're iterating over rows.
+        for row in c.fetchall():
+            try:
+                result.append(self.row_to_model(row))
+            except KeyError:
+                pass
+        return result
 
     def delete_session(self, session_id):
         """Deletes the row in the session database with given session_id"""
