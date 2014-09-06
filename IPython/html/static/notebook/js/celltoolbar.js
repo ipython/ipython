@@ -367,13 +367,13 @@ define([
         return function(div, cell, celltoolbar) {
             var button_container = $(div);
 
-            var chkb = $('<input/>').attr('type', 'text');
+            var text = $('<input/>').attr('type', 'text');
             var lbl = $('<label/>').append($('<span/>').text(name));
-            lbl.append(chkb);
-            chkb.attr("value", getter(cell));
+            lbl.append(text);
+            text.attr("value", getter(cell));
 
-            chkb.keyup(function(){
-                setter(cell, chkb.val());
+            text.keyup(function(){
+                setter(cell, text.val());
             });
             button_container.append($('<span/>').append(lbl));
         };
