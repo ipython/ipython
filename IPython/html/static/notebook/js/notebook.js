@@ -1072,18 +1072,21 @@ define([
             var source_element = this.get_cell_element(i);
             var source_cell = source_element.data("cell");
             var target_cell = null;
-            if (source_cell instanceof textcell.HeadingCell) {
+            console.log('to heading');
+            if (source_cell instanceof textcell.TextCell) {
+                console.log('is instance of text cell');
                 source_cell.set_level(level);
+                this.to_markdown(i);
             } else {
-                target_cell = this.insert_cell_below('heading',i);
+                target_cell = this.insert_cell_below('markdown',i);
                 var text = source_cell.get_text();
                 if (text === source_cell.placeholder) {
                     text = '';
                 }
                 // We must show the editor before setting its contents
                 target_cell.set_level(level);
-                target_cell.unrender();
-                target_cell.set_text(text);
+                // target_cell.unrender();
+                // target_cell.set_text(text);
                 // make this value the starting point, so that we can only undo
                 // to this state, instead of a blank cell
                 target_cell.code_mirror.clearHistory();

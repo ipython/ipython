@@ -376,7 +376,12 @@ define([
      * Change heading level of cell, and re-render
      * @method set_level
      */
-    HeadingCell.prototype.set_level = function (level) {
+    TextCell.prototype.set_level = function (level) {
+        var text = this.get_text();
+        var t2 = text.replace( /^(#+)? ?/, new Array( level + 1 ).join( '#')+ ' ');
+        //console.log(text, t2);
+        this.set_text(t2)
+
         this.level = level;
         this.code_mirror.setOption("theme", "heading-"+level);
 
