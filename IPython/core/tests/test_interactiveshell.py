@@ -681,7 +681,7 @@ class TestAstTransform2(unittest.TestCase):
 
 class ErrorTransformer(ast.NodeTransformer):
     """Throws an error when it sees a number."""
-    def visit_Num(self):
+    def visit_Num(self, node):
         raise ValueError("test")
 
 class TestAstTransformError(unittest.TestCase):
