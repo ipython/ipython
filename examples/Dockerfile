@@ -10,6 +10,7 @@ FROM ipython/scipyserver
 MAINTAINER IPython Project <ipython-dev@scipy.org>
 
 # Requirements for some of the Example notebooks
-RUN pip install scikit-image
+RUN apt-get build-dep -y mpi4py
+RUN pip install scikit-image vincent dill networkx mpi4py
 
 ADD . /notebooks/
