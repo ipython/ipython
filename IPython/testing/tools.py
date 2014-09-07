@@ -365,18 +365,21 @@ class AssertPrints(object):
         setattr(sys, self.channel, self.buffer if self.suppress else self.tee)
     
     def __exit__(self, etype, value, traceback):
-        if value is not None:
-            # If an error was raised, don't check anything else
+        try:
+            if value is not None:
+                # If an error was raised, don't check anything else
+                return False
+            self.tee.flush()
+            setattr(sys, self.channel, self.orig_stream)
+            printed = self.buffer.getvalue()
+            for s in self.s:
+                if isinstance(s, _re_type):
+                    assert s.search(printed), notprinted_msg.format(s.pattern, self.channel, printed)
+                else:
+                    assert s in printed, notprinted_msg.format(s, self.channel, printed)
             return False
-        self.tee.flush()
-        setattr(sys, self.channel, self.orig_stream)
-        printed = self.buffer.getvalue()
-        for s in self.s:
-            if isinstance(s, _re_type):
-                assert s.search(printed), notprinted_msg.format(s.pattern, self.channel, printed)
-            else:
-                assert s in printed, notprinted_msg.format(s, self.channel, printed)
-        return False
+        finally:
+            self.tee.close()
 
 printed_msg = """Found {0!r} in printed output (on {1}):
 -------
@@ -389,18 +392,24 @@ class AssertNotPrints(AssertPrints):
     
     Counterpart of AssertPrints"""
     def __exit__(self, etype, value, traceback):
-        if value is not None:
-            # If an error was raised, don't check anything else
+        try:
+            if value is not None:
+                # If an error was raised, don't check anything else
+                self.tee.close()
+                return False
+            self.tee.flush()
+            setattr(sys, self.channel, self.orig_stream)
+            printed = self.buffer.getvalue()
+            for s in self.s:
+                if isinstance(s, _re_type):
+                    assert not s.search(printed),printed_msg.format(
+                        s.pattern, self.channel, printed)
+                else:
+                    assert s not in printed, printed_msg.format(
+                        s, self.channel, printed)
             return False
-        self.tee.flush()
-        setattr(sys, self.channel, self.orig_stream)
-        printed = self.buffer.getvalue()
-        for s in self.s:
-            if isinstance(s, _re_type):
-                assert not s.search(printed), printed_msg.format(s.pattern, self.channel, printed)
-            else:
-                assert s not in printed, printed_msg.format(s, self.channel, printed)
-        return False
+        finally:
+            self.tee.close()
 
 @contextmanager
 def mute_warn():
