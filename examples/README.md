@@ -1,4 +1,4 @@
-![IPython Logo](images/ipython_logo.png)
+![IPython Logo](http://ipython.org/_static/IPy_header.png)
 
 This directory/container contains [IPython's notebook-based documentation](http://nbviewer.ipython.org/github/ipython/ipython/blob/master/examples/Index.ipynb). This augments our [Sphinx-based documentation](http://ipython.org/ipython-doc/stable/index.html) with notebooks that contain interactive tutorials and examples. Over time, more of our documentation will be pulled into this format.
 
