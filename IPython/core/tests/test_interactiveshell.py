@@ -24,8 +24,8 @@ from os.path import join
 
 import nose.tools as nt
 
+from IPython.core.error import InputRejected
 from IPython.core.inputtransformer import InputTransformer
-from IPython.lib.security import InputRejected
 from IPython.testing.decorators import (
     skipif, skip_win32, onlyif_unicode_paths, onlyif_cmds_exist,
 )

@@ -41,7 +41,7 @@ from IPython.core.compilerop import CachingCompiler, check_linecache_ipython
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.displayhook import DisplayHook
 from IPython.core.displaypub import DisplayPublisher
-from IPython.core.error import UsageError
+from IPython.core.error import InputRejected, UsageError
 from IPython.core.extensions import ExtensionManager
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.history import HistoryManager
@@ -54,7 +54,6 @@ from IPython.core.profiledir import ProfileDir
 from IPython.core.prompts import PromptManager
 from IPython.core.usage import default_banner
 from IPython.lib.latextools import LaTeXTool
-from IPython.lib.security import InputRejected
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import PyColorize
 from IPython.utils import io

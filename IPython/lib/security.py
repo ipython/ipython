@@ -114,13 +114,3 @@ def passwd_check(hashed_passphrase, passphrase):
     h.update(cast_bytes(passphrase, 'utf-8') + cast_bytes(salt, 'ascii'))
 
     return h.hexdigest() == pw_digest
-
-#-----------------------------------------------------------------------------
-# Exception classes
-#-----------------------------------------------------------------------------
-class InputRejected(Exception):
-    """Input rejected by ast transformer.
-
-    To be raised by user-supplied ast.NodeTransformers when an input should not
-    be executed.
-    """
