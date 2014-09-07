@@ -54,6 +54,7 @@ from IPython.core.profiledir import ProfileDir
 from IPython.core.prompts import PromptManager
 from IPython.core.usage import default_banner
 from IPython.lib.latextools import LaTeXTool
+from IPython.lib.security import InputRejected
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import PyColorize
 from IPython.utils import io
@@ -2786,7 +2787,13 @@ class InteractiveShell(SingletonConfigurable):
                     return None
 
                 # Apply AST transformations
-                code_ast = self.transform_ast(code_ast)
+                try:
+                    code_ast = self.transform_ast(code_ast)
+                except InputRejected:
+                    self.showtraceback()
+                    if store_history:
+                        self.execution_count += 1
+                    return None
 
                 # Execute the user code
                 interactivity = "none" if silent else self.ast_node_interactivity
@@ -2822,6 +2829,11 @@ class InteractiveShell(SingletonConfigurable):
         for transformer in self.ast_transformers:
             try:
                 node = transformer.visit(node)
+            except InputRejected:
+                # User-supplied AST transformers can reject an input by raising
+                # an InputRejected.  Short-circuit in this case so that we
+                # don't unregister the transform.
+                raise
             except Exception:
                 warn("AST transformer %r threw an error. It will be unregistered." % transformer)
                 self.ast_transformers.remove(transformer)
