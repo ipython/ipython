@@ -24,6 +24,7 @@ from os.path import join
 
 import nose.tools as nt
 
+from IPython.core.error import InputRejected
 from IPython.core.inputtransformer import InputTransformer
 from IPython.testing.decorators import (
     skipif, skip_win32, onlyif_unicode_paths, onlyif_cmds_exist,
@@ -681,7 +682,7 @@ class TestAstTransform2(unittest.TestCase):
 
 class ErrorTransformer(ast.NodeTransformer):
     """Throws an error when it sees a number."""
-    def visit_Num(self):
+    def visit_Num(self, node):
         raise ValueError("test")
 
 class TestAstTransformError(unittest.TestCase):
@@ -694,6 +695,41 @@ class TestAstTransformError(unittest.TestCase):
         
         # This should have been removed.
         nt.assert_not_in(err_transformer, ip.ast_transformers)
+
+
+class StringRejector(ast.NodeTransformer):
+    """Throws an InputRejected when it sees a string literal.
+
+    Used to verify that NodeTransformers can signal that a piece of code should
+    not be executed by throwing an InputRejected.
+    """
+
+    def visit_Str(self, node):
+        raise InputRejected("test")
+
+
+class TestAstTransformInputRejection(unittest.TestCase):
+
+    def setUp(self):
+        self.transformer = StringRejector()
+        ip.ast_transformers.append(self.transformer)
+
+    def tearDown(self):
+        ip.ast_transformers.remove(self.transformer)
+
+    def test_input_rejection(self):
+        """Check that NodeTransformers can reject input."""
+
+        expect_exception_tb = tt.AssertPrints("InputRejected: test")
+        expect_no_cell_output = tt.AssertNotPrints("'unsafe'", suppress=False)
+
+        # Run the same check twice to verify that the transformer is not
+        # disabled after raising.
+        with expect_exception_tb, expect_no_cell_output:
+            ip.run_cell("'unsafe'")
+
+        with expect_exception_tb, expect_no_cell_output:
+            ip.run_cell("'unsafe'")
 
 def test__IPYTHON__():
     # This shouldn't raise a NameError, that's all

@@ -41,7 +41,7 @@ from IPython.core.compilerop import CachingCompiler, check_linecache_ipython
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.displayhook import DisplayHook
 from IPython.core.displaypub import DisplayPublisher
-from IPython.core.error import UsageError
+from IPython.core.error import InputRejected, UsageError
 from IPython.core.extensions import ExtensionManager
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.history import HistoryManager
@@ -2786,7 +2786,13 @@ class InteractiveShell(SingletonConfigurable):
                     return None
 
                 # Apply AST transformations
-                code_ast = self.transform_ast(code_ast)
+                try:
+                    code_ast = self.transform_ast(code_ast)
+                except InputRejected:
+                    self.showtraceback()
+                    if store_history:
+                        self.execution_count += 1
+                    return None
 
                 # Execute the user code
                 interactivity = "none" if silent else self.ast_node_interactivity
@@ -2822,6 +2828,11 @@ class InteractiveShell(SingletonConfigurable):
         for transformer in self.ast_transformers:
             try:
                 node = transformer.visit(node)
+            except InputRejected:
+                # User-supplied AST transformers can reject an input by raising
+                # an InputRejected.  Short-circuit in this case so that we
+                # don't unregister the transform.
+                raise
             except Exception:
                 warn("AST transformer %r threw an error. It will be unregistered." % transformer)
                 self.ast_transformers.remove(transformer)
