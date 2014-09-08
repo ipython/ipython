@@ -5,25 +5,11 @@ Inheritance diagram:
 
 .. inheritance-diagram:: IPython.core.formatters
    :parts: 3
-
-Authors:
-
-* Robert Kern
-* Brian Granger
 """
-#-----------------------------------------------------------------------------
-# Copyright (C) 2010-2011, IPython Development Team.
-#
+
+# Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
-# Stdlib imports
 import abc
 import inspect
 import sys
@@ -32,8 +18,8 @@ import warnings
 
 from IPython.external.decorator import decorator
 
-# Our own imports
 from IPython.config.configurable import Configurable
+from IPython.core.getipython import get_ipython
 from IPython.lib import pretty
 from IPython.utils.traitlets import (
     Bool, Dict, Integer, Unicode, CUnicode, ObjectName, List,
@@ -223,6 +209,18 @@ class DisplayFormatter(Configurable):
 # Formatters for specific format types (text, html, svg, etc.)
 #-----------------------------------------------------------------------------
 
+
+def _safe_repr(obj):
+    """Try to return a repr of an object
+
+    always returns a string, at least.
+    """
+    try:
+        return repr(obj)
+    except Exception as e:
+        return "un-repr-able object (%r)" % e
+
+
 class FormatterWarning(UserWarning):
     """Warning class for errors in formatters"""
 
@@ -234,10 +232,13 @@ def warn_format_error(method, self, *args, **kwargs):
     except NotImplementedError as e:
         # don't warn on NotImplementedErrors
         return None
-    except Exception as e:
-        warnings.warn("Exception in %s formatter: %s" % (self.format_type, e),
-            FormatterWarning,
-        )
+    except Exception:
+        exc_info = sys.exc_info()
+        ip = get_ipython()
+        if ip is not None:
+            ip.showtraceback(exc_info)
+        else:
+            traceback.print_exception(*exc_info)
         return None
     if r is None or isinstance(r, self._return_type) or \
         (isinstance(r, tuple) and r and isinstance(r[0], self._return_type)):
@@ -245,7 +246,7 @@ def warn_format_error(method, self, *args, **kwargs):
     else:
         warnings.warn(
             "%s formatter returned invalid type %s (expected %s) for object: %s" % \
-            (self.format_type, type(r), self._return_type, pretty._safe_repr(args[0])),
+            (self.format_type, type(r), self._return_type, _safe_repr(args[0])),
             FormatterWarning
         )
 
@@ -672,7 +673,7 @@ class PlainTextFormatter(BaseFormatter):
     def __call__(self, obj):
         """Compute the pretty representation of the object."""
         if not self.pprint:
-            return pretty._safe_repr(obj)
+            return repr(obj)
         else:
             # This uses use StringIO, as cStringIO doesn't handle unicode.
             stream = StringIO()
