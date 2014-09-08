@@ -230,8 +230,11 @@ class IPythonKernel(KernelBase):
         return dict(status='ok', restart=restart)
 
     def do_is_complete(self, code):
-        complete = self.shell.input_transformer_manager.is_complete(code)
-        return {'complete': complete}
+        status, indent_spaces = self.shell.input_transformer_manager.check_complete(code)
+        r = {'status': status}
+        if status == 'incomplete':
+            r['indent'] = ' ' * indent_spaces
+        return r
 
     def do_apply(self, content, bufs, msg_id, reply_metadata):
         shell = self.shell

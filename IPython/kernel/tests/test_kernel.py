@@ -211,13 +211,14 @@ def test_is_complete():
         # that the kernel exposes the interface correctly.
         kc.is_complete('2+2')
         reply = kc.get_shell_msg(block=True, timeout=TIMEOUT)
-        assert reply['content']['complete']
+        assert reply['content']['status'] == 'complete'
 
         # SyntaxError should mean it's complete        
         kc.is_complete('raise = 2')
         reply = kc.get_shell_msg(block=True, timeout=TIMEOUT)
-        assert reply['content']['complete']
+        assert reply['content']['status'] == 'invalid'
         
         kc.is_complete('a = [1,\n2,')
         reply = kc.get_shell_msg(block=True, timeout=TIMEOUT)
-        assert not reply['content']['complete']
+        assert reply['content']['status'] == 'incomplete'
+        assert reply['content']['indent'] == ''

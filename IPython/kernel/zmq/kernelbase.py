@@ -493,7 +493,7 @@ class Kernel(Configurable):
     def do_is_complete(self, code):
         """Override in subclasses to find completions.
         """
-        return {'complete' : True,
+        return {'status' : 'unknown',
                 }
 
     #---------------------------------------------------------------------------

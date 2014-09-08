@@ -161,7 +161,15 @@ class KernelInfoReply(Reference):
 
 
 class IsCompleteReply(Reference):
-    complete = Bool()
+    status = Enum((u'complete', u'incomplete', u'invalid', u'unknown'))
+    
+    def check(self, d):
+        Reference.check(self, d)
+        if d['status'] == 'incomplete':
+            IsCompleteReplyIncomplete().check(d)
+
+class IsCompleteReplyIncomplete(Reference):
+    indent = Unicode()
 
 
 # IOPub messages
