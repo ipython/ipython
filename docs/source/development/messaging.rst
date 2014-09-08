@@ -9,7 +9,7 @@ Versioning
 ==========
 
 The IPython message specification is versioned independently of IPython.
-The current version of the specification is 5.1.
+The current version of the specification is 5.0.
 
 
 Introduction
@@ -578,7 +578,7 @@ Message type: ``history_reply``::
 Code completeness
 -----------------
 
-.. versionadded:: 5.1
+.. versionadded:: 5.0
 
 When the user enters a line in a console style interface, the console must
 decide whether to immediately execute the current code, or whether to show a
