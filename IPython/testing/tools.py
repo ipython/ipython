@@ -177,7 +177,7 @@ def get_ipython_cmd(as_string=False):
 
     return ipython_cmd
 
-def ipexec(fname, options=None):
+def ipexec(fname, options=None, commands=()):
     """Utility to call 'ipython filename'.
 
     Starts IPython with a minimal and safe configuration to make startup as fast
@@ -192,6 +192,9 @@ def ipexec(fname, options=None):
 
     options : optional, list
       Extra command-line flags to be passed to IPython.
+
+    commands : optional, list
+      Commands to send in on stdin
 
     Returns
     -------
@@ -215,8 +218,8 @@ def ipexec(fname, options=None):
     full_cmd = ipython_cmd + cmdargs + [full_fname]
     env = os.environ.copy()
     env.pop('PYTHONWARNINGS', None)  # Avoid extraneous warnings appearing on stderr
-    p = Popen(full_cmd, stdout=PIPE, stderr=PIPE, env=env)
-    out, err = p.communicate()
+    p = Popen(full_cmd, stdout=PIPE, stderr=PIPE, stdin=PIPE, env=env)
+    out, err = p.communicate(input=py3compat.str_to_bytes('\n'.join(commands)) or None)
     out, err = py3compat.bytes_to_str(out), py3compat.bytes_to_str(err)
     # `import readline` causes 'ESC[?1034h' to be output sometimes,
     # so strip that out before doing comparisons
@@ -226,7 +229,7 @@ def ipexec(fname, options=None):
 
 
 def ipexec_validate(fname, expected_out, expected_err='',
-                    options=None):
+                    options=None, commands=()):
     """Utility to call 'ipython filename' and validate output/error.
 
     This function raises an AssertionError if the validation fails.
@@ -254,7 +257,7 @@ def ipexec_validate(fname, expected_out, expected_err='',
 
     import nose.tools as nt
 
-    out, err = ipexec(fname, options)
+    out, err = ipexec(fname, options, commands)
     #print 'OUT', out  # dbg
     #print 'ERR', err  # dbg
     # If there are any errors, we must check those befor stdout, as they may be

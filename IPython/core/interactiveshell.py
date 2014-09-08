@@ -2565,10 +2565,16 @@ class InteractiveShell(SingletonConfigurable):
             silenced for zero status, as it is so common).
         raise_exceptions : bool (False)
             If True raise exceptions everywhere. Meant for testing.
+        shell_futures : bool (False)
+            If True, the code will share future statements with the interactive
+            shell. It will both be affected by previous __future__ imports, and
+            any __future__ imports in the code will affect the shell. If False,
+            __future__ imports are not shared in either direction.
 
         """
         kw.setdefault('exit_ignore', False)
         kw.setdefault('raise_exceptions', False)
+        kw.setdefault('shell_futures', False)
 
         fname = os.path.abspath(os.path.expanduser(fname))
 
@@ -2587,7 +2593,10 @@ class InteractiveShell(SingletonConfigurable):
 
         with prepended_to_syspath(dname):
             try:
-                py3compat.execfile(fname,*where)
+                glob, loc = (where + (None, ))[:2]
+                py3compat.execfile(
+                    fname, glob, loc,
+                    self.compile if kw['shell_futures'] else None)
             except SystemExit as status:
                 # If the call was made with 0 or None exit status (sys.exit(0)
                 # or sys.exit() ), don't bother showing a traceback, as both of
@@ -2608,7 +2617,7 @@ class InteractiveShell(SingletonConfigurable):
                 # tb offset is 2 because we wrap execfile
                 self.showtraceback(tb_offset=2)
 
-    def safe_execfile_ipy(self, fname):
+    def safe_execfile_ipy(self, fname, shell_futures=False):
         """Like safe_execfile, but for .ipy or .ipynb files with IPython syntax.
 
         Parameters
@@ -2616,6 +2625,11 @@ class InteractiveShell(SingletonConfigurable):
         fname : str
             The name of the file to execute.  The filename must have a
             .ipy or .ipynb extension.
+        shell_futures : bool (False)
+            If True, the code will share future statements with the interactive
+            shell. It will both be affected by previous __future__ imports, and
+            any __future__ imports in the code will affect the shell. If False,
+            __future__ imports are not shared in either direction.
         """
         fname = os.path.abspath(os.path.expanduser(fname))
 
@@ -2654,7 +2668,7 @@ class InteractiveShell(SingletonConfigurable):
                     # raised in user code.  It would be nice if there were
                     # versions of run_cell that did raise, so
                     # we could catch the errors.
-                    self.run_cell(cell, silent=True, shell_futures=False)
+                    self.run_cell(cell, silent=True, shell_futures=shell_futures)
             except:
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)

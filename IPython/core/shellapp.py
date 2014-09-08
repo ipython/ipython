@@ -324,7 +324,7 @@ class InteractiveShellApp(Configurable):
             self.log.warn("Unknown error in handling IPythonApp.exec_lines:")
             self.shell.showtraceback()
 
-    def _exec_file(self, fname):
+    def _exec_file(self, fname, shell_futures=False):
         try:
             full_filename = filefind(fname, [u'.', self.ipython_dir])
         except IOError as e:
@@ -346,11 +346,13 @@ class InteractiveShellApp(Configurable):
                 with preserve_keys(self.shell.user_ns, '__file__'):
                     self.shell.user_ns['__file__'] = fname
                     if full_filename.endswith('.ipy'):
-                        self.shell.safe_execfile_ipy(full_filename)
+                        self.shell.safe_execfile_ipy(full_filename,
+                                                     shell_futures=shell_futures)
                     else:
                         # default to python, even without extension
                         self.shell.safe_execfile(full_filename,
-                                                 self.shell.user_ns)
+                                                 self.shell.user_ns,
+                                                 shell_futures=shell_futures)
         finally:
             sys.argv = save_argv
 
@@ -418,7 +420,7 @@ class InteractiveShellApp(Configurable):
         elif self.file_to_run:
             fname = self.file_to_run
             try:
-                self._exec_file(fname)
+                self._exec_file(fname, shell_futures=True)
             except:
                 self.log.warn("Error in executing file in user namespace: %s" %
                               fname)
