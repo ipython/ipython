@@ -15,7 +15,7 @@ click events on the button and trigger backend code when the clicks are fired.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import Widget
-from IPython.utils.traitlets import Unicode, Tuple
+from IPython.utils.traitlets import Unicode, Tuple, Any
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -31,5 +31,24 @@ class Link(Widget):
         kwargs['widgets'] = widgets
         super(Link, self).__init__(**kwargs)
 
+
 def link(*args):
     return Link(widgets=args)
+
+
+class DirectionalLink(Widget):
+    """Directional Link Widget"""
+    _model_name = Unicode('DirectionalLinkModel', sync=True)
+    targets = Any(sync=True)
+    source = Tuple(sync=True)
+
+    # Does not quite behave like other widgets but reproduces
+    # the behavior of IPython.utils.traitlets.directional_link
+    def __init__(self, source, targets=(), **kwargs):
+        kwargs['source'] = source
+        kwargs['targets'] = targets
+        super(DirectionalLink, self).__init__(**kwargs)
+
+
+def dlink(source, *targets):
+    return DirectionalLink(source, targets)

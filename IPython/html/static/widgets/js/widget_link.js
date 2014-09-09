@@ -42,7 +42,46 @@ define([
             this.updating = false;
         },
     });
+
+    var DirectionalLinkModel = widget.WidgetModel.extend({
+        initialize: function() {
+            this.on("change", this.update_bindings, this);
+            this.on("destroy", function() {
+                if (this.source) {
+                    this.source[0].off("change:" + this.source[1], null, this);
+                }
+            }, this);
+        },
+        update_bindings: function() {
+            if (this.source) {
+                this.source[0].off("change:" + this.source[1], null, this);
+            }
+            this.source = this.get("source");
+			if (this.source) {
+                this.source[0].on("change:" + this.source[1], function() { this.update_value(this.source); }, this);
+                this.update_value(this.source);
+            }
+        },
+        update_value: function(elt) {
+            if (this.updating) {return;}
+            var model = elt[0];
+            var attr = elt[1];
+            var new_value = model.get(attr);
+            this.updating = true;
+            _.each(this.get("targets"),
+                   function(element, index, list) {
+						if (element[0]) {
+							element[0].set(element[1], new_value);
+							element[0].save_changes();
+                        }
+                   }, this);
+            this.updating = false;
+        },
+    });
+
+
     return {
         "LinkModel": LinkModel,
+        "DirectionalLinkModel": DirectionalLinkModel,
     }
 });
