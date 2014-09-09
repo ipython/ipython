@@ -969,6 +969,12 @@ class IPCompleter(Completer):
         return [leading + k + suf for k in matches]
 
     def latex_matches(self, text):
+        u"""Match Latex syntax for unicode characters.
+        
+        This does both \\alp -> \\alpha and \\alpha -> α
+        
+        Used on Python 3 only.
+        """
         slashpos = text.rfind('\\')
         if slashpos > -1:
             s = text[slashpos:]
