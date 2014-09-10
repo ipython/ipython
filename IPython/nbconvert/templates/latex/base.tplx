@@ -31,6 +31,7 @@ This template does not define a docclass, the inheriting class must define this.
     \usepackage{hyperref}
     \usepackage{longtable} % longtable support required by pandoc >1.10
     \usepackage{booktabs}  % table support for pandoc > 1.12.2
+    \usepackage{natbib} % citations
     ((* endblock packages *))
 
     ((* block definitions *))
