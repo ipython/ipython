@@ -13,6 +13,13 @@ from .nbbase import (
 from IPython.nbformat import v3
 from IPython.utils.log import get_logger
 
+def _warn_if_invalid(nb, version):
+    """Log validation errors, if there are any."""
+    from IPython.nbformat.current import validate, ValidationError
+    try:
+        validate(nb, version=version)
+    except ValidationError as e:
+        get_logger().error("Notebook JSON is not valid v%i: %s", version, e)
 
 def upgrade(nb, from_version=3, from_minor=0):
     """Convert a notebook to v4.
@@ -26,13 +33,9 @@ def upgrade(nb, from_version=3, from_minor=0):
     from_minor : int
         The original minor version of the notebook to convert (only relevant for v >= 3).
     """
-    from IPython.nbformat.current import validate, ValidationError
     if from_version == 3:
         # Validate the notebook before conversion
-        try:
-            validate(nb, version=from_version)
-        except ValidationError as e:
-            get_logger().error("Notebook JSON is not valid v%i: %s", from_version, e)
+        _warn_if_invalid(nb, from_version)
 
         # Mark the original nbformat so consumers know it has been converted
         orig_nbformat = nb.pop('orig_nbformat', None)
@@ -53,10 +56,7 @@ def upgrade(nb, from_version=3, from_minor=0):
         # upgrade metadata
         nb.metadata.pop('name', '')
         # Validate the converted notebook before returning it
-        try:
-            validate(nb, version=nbformat)
-        except ValidationError as e:
-            get_logger().error("Notebook JSON is not valid v%i: %s", nbformat, e)
+        _warn_if_invalid(nb, nbformat)
         return nb
     elif from_version == 4:
         # nothing to do
@@ -211,12 +211,12 @@ def downgrade(nb):
     nb : NotebookNode
         The Python representation of the notebook to convert.
     """
-    from IPython.nbformat.current import validate
-    # Validate the notebook before conversion
-    validate(nb, version=nbformat)
-
-    if nb.nbformat != 4:
+    if nb.nbformat != nbformat:
         return nb
+
+    # Validate the notebook before conversion
+    _warn_if_invalid(nb, nbformat)
+
     nb.nbformat = v3.nbformat
     nb.nbformat_minor = v3.nbformat_minor
     cells = [ downgrade_cell(cell) for cell in nb.pop('cells') ]
@@ -226,5 +226,5 @@ def downgrade(nb):
     nb.metadata.pop('orig_nbformat_minor', None)
 
     # Validate the converted notebook before returning it
-    validate(nb, version=v3.nbformat)
+    _warn_if_invalid(nb, v3.nbformat)
     return nb
