@@ -162,3 +162,42 @@ class Testfiles(TestsBase):
             with open(dest, 'r') as f:
                 output = f.read()
                 self.assertEqual(output, 'd')
+
+    def test_glob(self):
+        """Can the FilesWriter handle globbed files correctly?"""
+
+        # Work in a temporary directory.
+        with self.create_temp_cwd():
+
+            # Create test files
+            os.mkdir('sub')
+            with open(os.path.join('sub', 'c'), 'w') as f:
+                f.write('e')
+            with open(os.path.join('sub', 'd'), 'w') as f:
+                f.write('e')
+
+            # Create the resoruces dictionary
+            res = {}
+
+            # Create files writer, test output
+            writer = FilesWriter()
+            writer.files = ['sub/*']
+            writer.build_directory = u'build'
+            writer.write(u'y', res, notebook_name="z")
+
+            # Check the output of the file
+            assert os.path.isdir(writer.build_directory)
+            dest = os.path.join(writer.build_directory, 'z')
+            with open(dest, 'r') as f:
+                output = f.read()
+                self.assertEqual(output, u'y')
+
+            # Check to make sure the globbed files were copied
+            path = os.path.join(writer.build_directory, 'sub')
+            assert os.path.isdir(path)
+            for filename in ['c', 'd']:
+                dest = os.path.join(path, filename)
+                assert os.path.isfile(dest)
+                with open(dest, 'r') as f:
+                    output = f.read()
+                    self.assertEqual(output, 'e')
