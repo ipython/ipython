@@ -495,35 +495,27 @@ class IPythonInputSplitter(InputSplitter):
                 pass
     
     def flush_transformers(self):
-        def _flush(transform, out):
+        def _flush(transform, outs):
             """yield transformed lines
             
             always strings, never None
             
             transform: the current transform
-            out: an iterable of previously transformed inputs.
+            outs: an iterable of previously transformed inputs.
                  Each may be multiline, which will be passed
                  one line at a time to transform.
             """
-            anything = False
-            for out in out:
-                anything = True
-                tmp = None
+            for out in outs:
                 for line in out.splitlines():
                     # push one line at a time
                     tmp = transform.push(line)
                     if tmp is not None:
                         yield tmp
-                if tmp is None:
-                    # transformer is still consuming, reset
-                    tmp = transform.reset()
-                    if tmp is not None:
-                        yield tmp
-            if not anything:
-                # nothing was pushed, reset
-                tmp = transform.reset()
-                if tmp is not None:
-                    yield tmp
+            
+            # reset the transform
+            tmp = transform.reset()
+            if tmp is not None:
+                yield tmp
         
         out = []
         for t in self.transforms_in_use:
