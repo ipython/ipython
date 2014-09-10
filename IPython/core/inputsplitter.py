@@ -12,31 +12,15 @@ The code to actually do these transformations is in :mod:`IPython.core.inputtran
 and stores the results.
 
 For more details, see the class docstrings below.
-
-Authors
--------
-
-* Fernando Perez
-* Brian Granger
-* Thomas Kluyver
 """
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2010  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-# stdlib
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 import ast
 import codeop
 import re
 import sys
 
-# IPython modules
 from IPython.utils.py3compat import cast_unicode
 from IPython.core.inputtransformer import (leading_indent,
                                            classic_prompt,
@@ -512,18 +496,42 @@ class IPythonInputSplitter(InputSplitter):
     
     def flush_transformers(self):
         def _flush(transform, out):
-            if out is not None:
-                tmp = transform.push(out)
-                return tmp or transform.reset() or None
-            else:
-                return transform.reset() or None
+            """yield transformed lines
+            
+            always strings, never None
+            
+            transform: the current transform
+            out: an iterable of previously transformed inputs.
+                 Each may be multiline, which will be passed
+                 one line at a time to transform.
+            """
+            anything = False
+            for out in out:
+                anything = True
+                tmp = None
+                for line in out.splitlines():
+                    # push one line at a time
+                    tmp = transform.push(line)
+                    if tmp is not None:
+                        yield tmp
+                if tmp is None:
+                    # transformer is still consuming, reset
+                    tmp = transform.reset()
+                    if tmp is not None:
+                        yield tmp
+            if not anything:
+                # nothing was pushed, reset
+                tmp = transform.reset()
+                if tmp is not None:
+                    yield tmp
         
-        out = None
+        out = []
         for t in self.transforms_in_use:
             out = _flush(t, out)
         
-        if out is not None:
-            self._store(out)
+        out = list(out)
+        if out:
+            self._store('\n'.join(out))
 
     def raw_reset(self):
         """Return raw input only and perform a full reset.
