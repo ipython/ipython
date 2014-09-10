@@ -59,7 +59,6 @@
                 "oneOf": [
                     {"$ref": "#/definitions/raw_cell"},
                     {"$ref": "#/definitions/markdown_cell"},
-                    {"$ref": "#/definitions/heading_cell"},
                     {"$ref": "#/definitions/code_cell"}
                 ]
             }
@@ -115,34 +114,6 @@
                     "additionalProperties": true
                 },
                 "source": {"$ref": "#/definitions/misc/source"}
-            }
-        },
-
-        "heading_cell": {
-            "description": "Notebook heading cell.",
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["cell_type", "metadata", "source", "level"],
-            "properties": {
-                "cell_type": {
-                    "description": "String identifying the type of cell.",
-                    "enum": ["heading"]
-                },
-                "metadata": {
-                    "description": "Cell-level metadata.",
-                    "type": "object",
-                    "properties": {
-                        "name": {"$ref": "#/definitions/misc/metadata_name"},
-                        "tags": {"$ref": "#/definitions/misc/metadata_tags"}
-                    },
-                    "additionalProperties": true
-                },
-                "source": {"$ref": "#/definitions/misc/source"},
-                "level": {
-                    "description": "Level of heading cells.",
-                    "type": "integer",
-                    "minimum": 1
-                }
             }
         },
 

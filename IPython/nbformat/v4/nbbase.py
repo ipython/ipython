@@ -121,16 +121,6 @@ def new_markdown_cell(source='', **kwargs):
     validate(cell, 'markdown_cell')
     return cell
 
-def new_heading_cell(source='', **kwargs):
-    """Create a new heading cell"""
-    cell = NotebookNode(cell_type='heading', source=source)
-    cell.update(from_dict(kwargs))
-    cell.setdefault('metadata', NotebookNode())
-    cell.setdefault('level', 1)
-
-    validate(cell, 'heading_cell')
-    return cell
-
 def new_raw_cell(source='', **kwargs):
     """Create a new raw cell"""
     cell = NotebookNode(cell_type='raw', source=source)

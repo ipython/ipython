@@ -82,24 +82,9 @@ as defined in `GitHub-flavored markdown`_, and implemented in marked_.
       "source" : ["some *markdown*"],
     }
 
+.. versionchanged:: 4.0
 
-Heading cells
--------------
-
-Heading cells are single lines describing a section header (mapping onto h1-h6 tags in HTML).
-These cells indicate structure of the document,
-and are used for things like outline-views and automatically generating HTML anchors
-within the page for quick navigation.
-They have a ``level`` field, with an integer value from 1-6 (inclusive).
-
-.. sourcecode:: python
-
-    {
-      "cell_type" : "markdown",
-      "metadata" : {},
-      "level" : 1, # An integer on [1-6]
-      "source" : ["A simple heading"],
-    }
+    Heading cells have been removed, in favor of simple headings in markdown.
 
 
 Code cells

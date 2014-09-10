@@ -44,14 +44,15 @@ def rejoin_lines(nb):
     for cell in nb.cells:
         if 'source' in cell and isinstance(cell.source, list):
             cell.source = _join_lines(cell.source)
-        if cell.cell_type == 'code':
-            for output in cell.outputs:
-                if output.output_type in {'execute_result', 'display_data'}:
-                    for key, value in output.data.items():
+        if cell.get('cell_type', None) == 'code':
+            for output in cell.get('outputs', []):
+                output_type = output.get('output_type', '')
+                if output_type in {'execute_result', 'display_data'}:
+                    for key, value in output.get('data', {}).items():
                         if key != 'application/json' and isinstance(value, list):
                             output.data[key] = _join_lines(value)
-                elif output.output_type == 'stream':
-                    if isinstance(output.text, list):
+                elif output_type:
+                    if isinstance(output.get('text', ''), list):
                         output.text = _join_lines(output.text)
     return nb
 

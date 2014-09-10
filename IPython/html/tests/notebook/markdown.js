@@ -10,38 +10,53 @@ casper.notebook_test(function () {
         cell.render();
         return cell.get_rendered();
     });
-    this.test.assertEquals(output.trim(), '<h1 id=\"foo\">Foo</h1>', 'Markdown JS API works.');
+    this.test.assertEquals(output.trim(), '<h1 id=\"Foo\">Foo<a class=\"anchor-link\" href=\"#Foo\">¶</a></h1>', 'Markdown JS API works.');
     
     // Test menubar entries.
     output = this.evaluate(function () {
         $('#to_code').mouseenter().click();
         $('#to_markdown').mouseenter().click();
         var cell = IPython.notebook.get_selected_cell();
-        cell.set_text('# Bar');
+        cell.set_text('**Bar**');
         $('#run_cell').mouseenter().click();
         return cell.get_rendered();
     });
-    this.test.assertEquals(output.trim(), '<h1 id=\"bar\">Bar</h1>', 'Markdown menubar items work.');
+    this.test.assertEquals(output.trim(), '<p><strong>Bar</strong></p>', 'Markdown menubar items work.');
     
     // Test toolbar buttons.
     output = this.evaluate(function () {
         $('#cell_type').val('code').change();
         $('#cell_type').val('markdown').change();
         var cell = IPython.notebook.get_selected_cell();
-        cell.set_text('# Baz');
+        cell.set_text('*Baz*');
         $('#run_b').click();
         return cell.get_rendered();
     });
-    this.test.assertEquals(output.trim(), '<h1 id=\"baz\">Baz</h1>', 'Markdown toolbar items work.');
+    this.test.assertEquals(output.trim(), '<p><em>Baz</em></p>', 'Markdown toolbar items work.');
     
-    // Test JavaScript models.
-    var output = this.evaluate(function () {
+    // Test markdown headings
 
+    var text = 'multi\nline';
+
+    this.evaluate(function (text) {
         var cell = IPython.notebook.insert_cell_at_index('markdown', 0);
-        cell.set_text('# Qux');
-        cell.render();
-        return cell.get_rendered();
-    });
-    this.test.assertEquals(output.trim(), '<h1 id=\"qux\">Qux</h1>', 'Markdown JS API works.');
+        cell.set_text(text);
+    }, {text: text});
+
+    var set_level = function (level) {
+        return casper.evaluate(function (level) {
+            var cell = IPython.notebook.get_cell(0);
+            cell.set_heading_level(level);
+            return cell.get_text();
+        }, {level: level});
+    };
     
+    var level_text;
+    var levels = [ 1, 2, 3, 4, 5, 6, 2, 1 ];
+    for (var idx=0; idx < levels.length; idx++) {
+        var level = levels[idx];
+        level_text = set_level(level);
+        hashes = new Array(level + 1).join('#');
+        this.test.assertEquals(level_text, hashes + ' ' + text, 'markdown set_heading_level ' + level);
+    }
 });

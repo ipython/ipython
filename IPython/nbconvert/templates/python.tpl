@@ -15,7 +15,3 @@
 {% block markdowncell scoped %}
 {{ cell.source | comment_lines }}
 {% endblock markdowncell %}
-
-{% block headingcell scoped %}
-{{ '#' * cell.level }}{{ cell.source | replace('\n', ' ') | comment_lines }}
-{% endblock headingcell %}

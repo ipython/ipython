@@ -28,7 +28,7 @@ class TestValidator(TestsBase):
         self.assertEqual(isvalid(nb), True)
 
     def test_nb4(self):
-        """Test that a v3 notebook passes validation"""
+        """Test that a v4 notebook passes validation"""
         with self.fopen(u'test4.ipynb', u'r') as f:
             nb = read(f, u'json')
         validate(nb)
@@ -37,9 +37,9 @@ class TestValidator(TestsBase):
     def test_invalid(self):
         """Test than an invalid notebook does not pass validation"""
         # this notebook has a few different errors:
-        # - the name is an integer, rather than a string
         # - one cell is missing its source
-        # - one cell has an invalid level
+        # - invalid cell type
+        # - invalid output_type
         with self.fopen(u'invalid.ipynb', u'r') as f:
             nb = read(f, u'json')
         with self.assertRaises(ValidationError):

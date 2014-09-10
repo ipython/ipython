@@ -255,7 +255,7 @@ class FileContentsManager(ContentsManager):
                 try:
                     nb = current.read(f, u'json')
                 except Exception as e:
-                    raise web.HTTPError(400, u"Unreadable Notebook: %s %s" % (os_path, e))
+                    raise web.HTTPError(400, u"Unreadable Notebook: %s %r" % (os_path, e))
             self.mark_trusted_cells(nb, name, path)
             model['content'] = nb
             model['format'] = 'json'

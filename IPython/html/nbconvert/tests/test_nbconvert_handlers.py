@@ -11,7 +11,7 @@ import requests
 from IPython.html.utils import url_path_join
 from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
 from IPython.nbformat.current import (new_notebook, write,
-                                      new_heading_cell, new_code_cell,
+                                      new_markdown_cell, new_code_cell,
                                       new_output)
 
 from IPython.testing.decorators import onlyif_cmds_exist
@@ -55,7 +55,7 @@ class APITest(NotebookTestBase):
         
         nb = new_notebook()
         
-        nb.cells.append(new_heading_cell(u'Created by test ³'))
+        nb.cells.append(new_markdown_cell(u'Created by test ³'))
         cc1 = new_code_cell(source=u'print(2*6)')
         cc1.outputs.append(new_output(output_type="stream", text=u'12'))
         cc1.outputs.append(new_output(output_type="execute_result",

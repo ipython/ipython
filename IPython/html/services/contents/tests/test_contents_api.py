@@ -16,7 +16,7 @@ from IPython.html.utils import url_path_join, url_escape
 from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
 from IPython.nbformat import current
 from IPython.nbformat.current import (new_notebook, write, read,
-                                      new_heading_cell, to_notebook_json)
+                                      new_markdown_cell, to_notebook_json)
 from IPython.nbformat import v2
 from IPython.utils import py3compat
 from IPython.utils.data import uniq_stable
@@ -415,7 +415,7 @@ class APITest(NotebookTestBase):
         resp = self.api.read('a.ipynb', 'foo')
         nbcontent = json.loads(resp.text)['content']
         nb = to_notebook_json(nbcontent)
-        nb.cells.append(new_heading_cell(u'Created by test ³'))
+        nb.cells.append(new_markdown_cell(u'Created by test ³'))
 
         nbmodel= {'name': 'a.ipynb', 'path':'foo', 'content': nb, 'type': 'notebook'}
         resp = self.api.save('a.ipynb', path='foo', body=json.dumps(nbmodel))
@@ -452,7 +452,7 @@ class APITest(NotebookTestBase):
         # Modify it
         nbcontent = json.loads(resp.text)['content']
         nb = to_notebook_json(nbcontent)
-        hcell = new_heading_cell('Created by test')
+        hcell = new_markdown_cell('Created by test')
         nb.cells.append(hcell)
         # Save
         nbmodel= {'name': 'a.ipynb', 'path':'foo', 'content': nb, 'type': 'notebook'}

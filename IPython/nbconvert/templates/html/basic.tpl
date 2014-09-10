@@ -79,17 +79,6 @@ In&nbsp;[&nbsp;]:
 </div>
 {%- endblock markdowncell %}
 
-{% block headingcell scoped %}
-<div class="cell border-box-sizing text_cell rendered">
-{{ self.empty_in_prompt() }}
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-{{ ("#" * cell.level + cell.source) | replace('\n', ' ')  | markdown2html | strip_files_prefix | add_anchor }}
-</div>
-</div>
-</div>
-{% endblock headingcell %}
-
 {% block unknowncell scoped %}
 unknown type  {{ cell.type }}
 {% endblock unknowncell %}

@@ -824,7 +824,7 @@ define([
      * Index will be brought back into the accessible range [0,n]
      *
      * @method insert_cell_at_index
-     * @param [type] {string} in ['code','markdown','heading'], defaults to 'code'
+     * @param [type] {string} in ['code','markdown', 'raw'], defaults to 'code'
      * @param [index] {int} a valid index where to insert cell
      *
      * @return cell {cell|null} created cell or null
@@ -860,15 +860,19 @@ define([
                 notebook: this,
                 tooltip: this.tooltip,
             };
-            if (type === 'code') {
+            switch(type) {
+            case 'code':
                 cell = new codecell.CodeCell(this.kernel, cell_options);
                 cell.set_input_prompt();
-            } else if (type === 'markdown') {
+                break;
+            case 'markdown':
                 cell = new textcell.MarkdownCell(cell_options);
-            } else if (type === 'raw') {
+                break;
+            case 'raw':
                 cell = new textcell.RawCell(cell_options);
-            } else if (type === 'heading') {
-                cell = new textcell.HeadingCell(cell_options);
+                break;
+            default:
+                console.log("invalid cell type: ", type);
             }
 
             if(this._insert_element_at_index(cell.element,index)) {
@@ -1090,10 +1094,10 @@ define([
         if (this.is_valid_cell_index(i)) {
             var source_cell = this.get_cell(i);
             var target_cell = null;
-            if (source_cell instanceof textcell.HeadingCell) {
-                source_cell.set_level(level);
+            if (source_cell instanceof textcell.MarkdownCell) {
+                source_cell.set_heading_level(level);
             } else {
-                target_cell = this.insert_cell_below('heading',i);
+                target_cell = this.insert_cell_below('markdown',i);
                 var text = source_cell.get_text();
                 if (text === source_cell.placeholder) {
                     text = '';
@@ -1101,9 +1105,9 @@ define([
                 //metadata
                 target_cell.metadata = source_cell.metadata;
                 // We must show the editor before setting its contents
-                target_cell.set_level(level);
                 target_cell.unrender();
                 target_cell.set_text(text);
+                target_cell.set_heading_level(level);
                 // make this value the starting point, so that we can only undo
                 // to this state, instead of a blank cell
                 target_cell.code_mirror.clearHistory();
@@ -1117,7 +1121,7 @@ define([
             }
             this.set_dirty(true);
             this.events.trigger('selected_cell_type_changed.Notebook',
-                {'cell_type':'heading',level:level}
+                {'cell_type':'markdown',level:level}
             );
         }
     };
@@ -1526,8 +1530,8 @@ define([
         }
         this.codemirror_mode = newmode;
         codecell.CodeCell.options_default.cm_config.mode = newmode;
-        modename = newmode.mode || newmode.name || newmode
-
+        modename = newmode.mode || newmode.name || newmode;
+        
         that = this;
         utils.requireCodeMirrorMode(modename, function () {
             $.map(that.get_cells(), function(cell, i) {
@@ -1539,7 +1543,7 @@ define([
                     cell.cm_config.mode = newmode;
                 }
             });
-        })
+        });
     };
 
     // Session related things
@@ -2383,13 +2387,13 @@ define([
     Notebook.prototype.load_notebook_error = function (xhr, status, error) {
         this.events.trigger('notebook_load_failed.Notebook', [xhr, status, error]);
         utils.log_ajax_error(xhr, status, error);
-        var msg;
+        var msg = $("<div>");
         if (xhr.status === 400) {
-            msg = escape(utils.ajax_error_msg(xhr));
+            msg.text(utils.ajax_error_msg(xhr));
         } else if (xhr.status === 500) {
-            msg = "An unknown error occurred while loading this notebook. " +
+            msg.text("An unknown error occurred while loading this notebook. " +
             "This version can load notebook formats " +
-            "v" + this.nbformat + " or earlier. See the server log for details.";
+            "v" + this.nbformat + " or earlier. See the server log for details.");
         }
         dialog.modal({
             notebook: this,

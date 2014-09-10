@@ -185,27 +185,6 @@ This template does not define a docclass, the inheriting class must define this.
 ((*- endblock figure -*))
 ((*- endmacro *))
 
-% Draw heading cell.  Explicitly map different cell levels.
-((* block headingcell scoped *))
-
-    ((* if cell.level == 1 -*))
-        ((* block h1 -*))\section((* endblock h1 -*))
-    ((* elif cell.level == 2 -*))
-        ((* block h2 -*))\subsection((* endblock h2 -*))
-    ((* elif cell.level == 3 -*))
-        ((* block h3 -*))\subsubsection((* endblock h3 -*))
-    ((* elif cell.level == 4 -*))
-        ((* block h4 -*))\paragraph((* endblock h4 -*))
-    ((* elif cell.level == 5 -*))
-        ((* block h5 -*))\subparagraph((* endblock h5 -*))
-    ((* elif cell.level == 6 -*))
-        ((* block h6 -*))\\*\textit((* endblock h6 -*))
-    ((*- endif -*))
-    {((( cell.source | replace('\n', ' ') | citation2latex | strip_files_prefix | prevent_list_blocks | markdown2latex(markup='markdown_strict+tex_math_dollars') )))}
-    
-
-((* endblock headingcell *))
-
 % Redirect execute_result to display data priority.
 ((* block execute_result scoped *))
     ((* block data_priority scoped *))

@@ -12,7 +12,7 @@ from IPython.nbformat.validator import validate, ValidationError
 from ..nbjson import reads
 from ..nbbase import (
     nbformat,
-    new_code_cell, new_heading_cell, new_markdown_cell, new_notebook,
+    new_code_cell, new_markdown_cell, new_notebook,
     new_output, new_raw_cell,
 )
 
@@ -72,31 +72,6 @@ def test_invalid_markdown_cell():
 
     with nt.assert_raises(ValidationError):
         validate4(cell, 'markdown_cell')
-
-def test_invalid_heading_cell():
-    cell = new_heading_cell()
-
-    cell['source'] = 5
-    with nt.assert_raises(ValidationError):
-        validate4(cell, 'heading_cell')
-
-    cell = new_heading_cell()
-    del cell['metadata']
-
-    with nt.assert_raises(ValidationError):
-        validate4(cell, 'heading_cell')
-
-    cell = new_heading_cell()
-    del cell['source']
-
-    with nt.assert_raises(ValidationError):
-        validate4(cell, 'heading_cell')
-
-    cell = new_heading_cell()
-    del cell['cell_type']
-
-    with nt.assert_raises(ValidationError):
-        validate4(cell, 'heading_cell')
 
 def test_invalid_raw_cell():
     cell = new_raw_cell()

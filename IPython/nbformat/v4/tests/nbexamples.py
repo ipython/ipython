@@ -4,7 +4,7 @@ import os
 from base64 import encodestring
 
 from ..nbbase import (
-    new_code_cell, new_heading_cell, new_markdown_cell, new_notebook,
+    new_code_cell, new_markdown_cell, new_notebook,
     new_output, new_raw_cell
 )
 
@@ -31,9 +31,8 @@ cells.append(new_raw_cell(
     source='A random array',
 ))
 
-cells.append(new_heading_cell(
-    source=u'My Heading',
-    level=2,
+cells.append(new_markdown_cell(
+    source=u'## My Heading',
 ))
 
 cells.append(new_code_cell(

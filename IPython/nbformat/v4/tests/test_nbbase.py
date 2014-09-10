@@ -6,7 +6,7 @@ import nose.tools as nt
 from IPython.nbformat.validator import isvalid, validate, ValidationError
 from ..nbbase import (
     NotebookNode, nbformat,
-    new_code_cell, new_heading_cell, new_markdown_cell, new_notebook,
+    new_code_cell, new_markdown_cell, new_notebook,
     new_output, new_raw_cell,
 )
 
@@ -33,17 +33,6 @@ def test_empty_raw_cell():
 def test_raw_cell():
     cell = new_raw_cell('hi')
     nt.assert_equal(cell.source, u'hi')
-
-def test_empty_heading_cell():
-    cell = new_heading_cell()
-    nt.assert_equal(cell.cell_type, u'heading')
-    nt.assert_equal(cell.source, '')
-    nt.assert_equal(cell.level, 1)
-
-def test_heading_cell():
-    cell = new_heading_cell(u'hi', level=2)
-    nt.assert_equal(cell.source, u'hi')
-    nt.assert_equal(cell.level, 2)
 
 def test_empty_code_cell():
     cell = new_code_cell('hi')
