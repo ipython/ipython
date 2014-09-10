@@ -10,6 +10,7 @@ pjoin = os.path.join
 
 import requests
 
+from IPython.kernel.kernelspec import NATIVE_KERNEL_NAME
 from IPython.html.utils import url_path_join
 from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
 
@@ -70,12 +71,16 @@ class APITest(NotebookTestBase):
         assert isinstance(specs, list)
 
         # 2: the sample kernelspec created in setUp, and the native Python kernel
-        self.assertEqual(len(specs), 2)
+        self.assertGreaterEqual(len(specs), 2)
 
         def is_sample_kernelspec(s):
             return s['name'] == 'sample' and s['display_name'] == 'Test kernel'
 
+        def is_default_kernelspec(s):
+            return s['name'] == NATIVE_KERNEL_NAME and s['display_name'].startswith("IPython")
+
         assert any(is_sample_kernelspec(s) for s in specs), specs
+        assert any(is_default_kernelspec(s) for s in specs), specs
 
     def test_get_kernelspec(self):
         spec = self.ks_api.kernel_spec_info('Sample').json()  # Case insensitive
