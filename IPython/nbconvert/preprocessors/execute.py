@@ -126,6 +126,13 @@ class ExecutePreprocessor(Preprocessor):
             msg_type = msg['msg_type']
             self.log.debug("output: %s", msg_type)
             content = msg['content']
+            out = NotebookNode(output_type=self.msg_type_map.get(msg_type, msg_type))
+
+            # set the prompt number for the input and the output
+            if 'execution_count' in content:
+                cell['prompt_number'] = content['execution_count']
+                out.prompt_number = content['execution_count']
+
             if msg_type == 'status':
                 if content['execution_state'] == 'idle':
                     break
@@ -136,13 +143,6 @@ class ExecutePreprocessor(Preprocessor):
             elif msg_type == 'clear_output':
                 outs = []
                 continue
-
-            out = NotebookNode(output_type=self.msg_type_map.get(msg_type, msg_type))
-
-            # set the prompt number for the input and the output
-            if 'execution_count' in content:
-                cell['prompt_number'] = content['execution_count']
-                out.prompt_number = content['execution_count']
 
             if msg_type == 'stream':
                 out.stream = content['name']

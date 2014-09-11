@@ -55,6 +55,10 @@ class TestExecute(PreprocessorTestsBase):
             normalized_actual_outputs = list(map(self.normalize_output, actual_outputs))
             assert normalized_expected_outputs == normalized_actual_outputs
 
+            expected_prompt_number = expected_cell.get('prompt_number', None)
+            actual_prompt_number = actual_cell.get('prompt_number', None)
+            assert expected_prompt_number == actual_prompt_number
+
 
     def build_preprocessor(self):
         """Make an instance of a preprocessor"""
@@ -77,6 +81,10 @@ class TestExecute(PreprocessorTestsBase):
                 input_nb = nbformat.read(f, 'ipynb')
             res = self.build_resources()
             preprocessor = self.build_preprocessor()
-            output_nb, _ = preprocessor(copy.deepcopy(input_nb), res)
+            cleaned_input_nb = copy.deepcopy(input_nb)
+            for cell in cleaned_input_nb.worksheets[0].cells:
+                if 'prompt_number' in cell:
+                    del cell['prompt_number']
+                cell['outputs'] = []
+            output_nb, _ = preprocessor(cleaned_input_nb, res)
             self.assert_notebooks_equal(output_nb, input_nb)
-
