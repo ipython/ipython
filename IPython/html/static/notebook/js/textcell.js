@@ -226,16 +226,9 @@ define([
         // make a markdown cell a heading
         level = level || 1;
         var source = this.get_text();
-        // \s\S appears to be the js version of multi-line dot-all
-        var match = source.match(/(#*)\s*([\s\S]*)/);
-        // strip the leading `#` if it's already there
-        if (match) {
-            source = match[2];
-        }
-        // add `#` markdown heading prefix
-        var new_text = new Array(level + 1).join('#') + ' ' + source;
-
-        this.set_text(new_text);
+        source = source.replace(/^(#*)\s?/,
+            new Array(level + 1).join('#') + ' ');
+        this.set_text(source);
         this.refresh();
         if (this.rendered) {
             this.render();
