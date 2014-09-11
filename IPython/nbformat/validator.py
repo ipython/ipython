@@ -31,6 +31,11 @@ def get_validator(version=None):
 
     if version not in validators:
         v = import_item("IPython.nbformat.v%s" % version)
+        try:
+            v.nbformat_schema
+        except AttributeError:
+            # no validator
+            return None
         schema_path = os.path.join(os.path.dirname(v.__file__), v.nbformat_schema)
         with open(schema_path) as f:
             schema_json = json.load(f)
@@ -97,6 +102,10 @@ def validate(nbjson, ref=None, version=None):
         version = nbjson.get('nbformat', nbformat)
 
     validator = get_validator(version)
+
+    if validator is None:
+        # no validator
+        return
 
     try:
         if ref:
