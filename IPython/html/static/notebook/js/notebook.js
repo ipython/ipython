@@ -2125,13 +2125,14 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.load_notebook_error = function (xhr, status, error) {
         $([IPython.events]).trigger('notebook_load_failed.Notebook', [xhr, status, error]);
-        var msg;
+        utils.log_ajax_error(xhr, status, error);
+        var msg = $("<div>");
         if (xhr.status === 400) {
-            msg = error;
+            msg.text(utils.ajax_error_msg(xhr));
         } else if (xhr.status === 500) {
-            msg = "An unknown error occurred while loading this notebook. " +
+            msg.text("An unknown error occurred while loading this notebook. " +
             "This version can load notebook formats " +
-            "v" + this.nbformat + " or earlier.";
+            "v" + this.nbformat + " or earlier. See the server log for details.");
         }
         IPython.dialog.modal({
             title: "Error loading notebook",
@@ -2402,10 +2403,10 @@ var IPython = (function (IPython) {
      * @method delete_checkpoint_error
      * @param {jqXHR} xhr jQuery Ajax object
      * @param {String} status Description of response status
-     * @param {String} error_msg HTTP error message
+     * @param {String} error HTTP error message
      */
-    Notebook.prototype.delete_checkpoint_error = function (xhr, status, error_msg) {
-        $([IPython.events]).trigger('checkpoint_delete_failed.Notebook');
+    Notebook.prototype.delete_checkpoint_error = function (xhr, status, error) {
+        $([IPython.events]).trigger('checkpoint_delete_failed.Notebook', [xhr, status, error]);
     };
 
 
