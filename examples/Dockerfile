@@ -1,5 +1,5 @@
 # 
-# This Docker container brings up an entire environment with (almost) all fo the dependencies required by the example notebooks.
+# This Docker container brings up an entire environment with (almost) all of the dependencies required by the example notebooks.
 # 
 # To use this directly, run
 #   docker run -p 8888:8888 ipython/examples
