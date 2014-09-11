@@ -19,6 +19,8 @@ import codecs
 from contextlib import contextmanager
 import io
 import os
+import shutil
+import stat
 import sys
 import tempfile
 from .capture import CapturedIO, capture_output
@@ -219,6 +221,17 @@ def temp_pyfile(src, ext='.py'):
     f.flush()
     return fname, f
 
+def _copy_metadata(src, dst):
+    """Copy the set of metadata we want for atomic_writing.
+    
+    Permission bits and flags. We'd like to copy file ownership as well, but we
+    can't do that.
+    """
+    shutil.copymode(src, dst)
+    st = os.stat(src)
+    if hasattr(os, 'chflags') and hasattr(st, 'st_flags'):
+        os.chflags(st.st_flags)
+
 @contextmanager
 def atomic_writing(path, text=True, encoding='utf-8', **kwargs):
     """Context manager to write to a file only if the entire write is successful.
@@ -267,6 +280,13 @@ def atomic_writing(path, text=True, encoding='utf-8', **kwargs):
 
     # Written successfully, now rename it
     fileobj.close()
+
+    # Copy permission bits, access time, etc.
+    try:
+        _copy_metadata(path, tmp_path)
+    except OSError:
+        # e.g. the file didn't already exist. Ignore any failure to copy metadata
+        pass
 
     if os.name == 'nt' and os.path.exists(path):
         # Rename over existing file doesn't work on Windows
