@@ -658,12 +658,12 @@ class Kernel(Configurable):
     #---------------------------------------------------------------------------
 
     def abort_request(self, stream, ident, parent):
-        """abort a specifig msg by id"""
+        """abort a specific msg by id"""
         msg_ids = parent['content'].get('msg_ids', None)
         if isinstance(msg_ids, string_types):
             msg_ids = [msg_ids]
         if not msg_ids:
-            self.abort_queues()
+            self._abort_queues()
         for mid in msg_ids:
             self.aborted.add(str(mid))
 
