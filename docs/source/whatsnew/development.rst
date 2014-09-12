@@ -10,6 +10,44 @@ This document describes in-flight development work.
     conflicts for other Pull Requests). Instead, create a new file in the
     `docs/source/whatsnew/pr` folder
 
+Using different kernels
+-----------------------
+
+.. image:: ../_images/kernel_selector_screenshot.png
+   :alt: Screenshot of notebook kernel selection dropdown menu
+   :align: center
+
+You can now choose a kernel for a notebook within the user interface, rather
+than starting up a separate notebook server for each kernel you want to use. The
+syntax highlighting adapts to match the language you're working in.
+
+Information about the kernel is stored in the notebook file, so when you open a
+notebook, it will automatically start the correct kernel.
+
+It is also easier to use the Qt console and the terminal console with other
+kernels, using the --kernel flag::
+
+    ipython qtconsole --kernel bash
+    ipython console --kernel bash
+
+    # To list available kernels
+    ipython kernelspec list
+
+Kernel authors should see :ref:`kernelspecs` for how to register their kernels
+with IPython so that these mechanisms work.
+
+Typing unicode identifiers
+--------------------------
+
+.. image:: /_images/unicode_completion.png
+
+Complex expressions can be much cleaner when written with a wider choice of
+characters. Python 3 allows unicode identifiers, and IPython 3 makes it easier
+to type those, using a feature from Julia. Type a backslash followed by a LaTeX
+style short name, such as ``\alpha``. Press tab, and it will turn into α.
+
+Other new features
+------------------
 
 * :class:`~.TextWidget` and :class:`~.TextareaWidget` objects now include a
   ``placeholder`` attribute, for displaying placeholder text before the
@@ -39,6 +77,12 @@ This document describes in-flight development work.
   To run a notebook and save its output in a new notebook::
 
       ipython nbconvert InputNotebook --ExecutePreprocessor.enabled=True --to notebook --output Executed
+
+* Consecutive stream (stdout/stderr) output is merged into a single output
+  in the notebook document.
+  Previously, all output messages were preserved as separate output fields in the JSON.
+  Now, the same merge is applied to the stored output as the displayed output,
+  improving document load time for notebooks with many small outputs.
 
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.
 
@@ -74,6 +118,31 @@ Backwards incompatible changes
   IPython 3.0 trying to access `container` will raise an error in browser
   javascript console.
 
+* ``IPython.utils.py3compat.open`` was removed: :func:`io.open` provides all
+  the same functionality.
+
+* The NotebookManager and ``/api/notebooks`` service has been replaced by
+  a more generic ContentsManager and ``/api/contents`` service,
+  which supports all kinds of files.
+* The Dashboard now lists all files, not just notebooks and directories.
+* The ``--script`` hook for saving notebooks to Python scripts is removed,
+  use :samp:`ipython nbconvert --to python {notebook}` instead.
+
+* The ``rmagic`` extension is deprecated, as it is now part of rpy2. See
+  :mod:`rpy2.ipython.rmagic`.
+
+* :meth:`~.KernelManager.start_kernel` and :meth:`~.KernelManager.format_kernel_cmd`
+  no longer accept a ``executable`` parameter. Use the kernelspec machinery instead.
+
+* The widget classes have been renamed from `*Widget` to `*`.  The old names are
+  still functional, but are deprecated.  i.e. `IntSliderWidget` has been renamed
+  to `IntSlider`.
+* The ContainerWidget was renamed to Box and no longer defaults as a flexible
+  box in the web browser.  A new FlexBox widget was added, which allows you to
+  use the flexible box model.
+
+.. DO NOT EDIT THIS LINE BEFORE RELEASE. INCOMPAT INSERTION POINT.
+
 IFrame embedding
 ````````````````
 
@@ -87,6 +156,3 @@ To override this, set ``headers[X-Frame-Options]`` to one of
 * ALLOW-FROM uri
 
 See `Mozilla's guide to X-Frame-Options <https://developer.mozilla.org/en-US/docs/Web/HTTP/X-Frame-Options>`_ for more examples.
-
-.. DO NOT EDIT THIS LINE BEFORE RELEASE. INCOMPAT INSERTION POINT.
-

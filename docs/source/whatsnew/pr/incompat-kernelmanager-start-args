@@ -1,2 +1,0 @@
-- :meth:`~.KernelManager.start_kernel` and :meth:`~.KernelManager.format_kernel_cmd`
-  no longer accept a ``executable`` parameter. Use the kernelspec machinery instead.
