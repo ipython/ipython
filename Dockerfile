@@ -5,11 +5,11 @@ MAINTAINER IPython Project <ipython-dev@scipy.org>
 ADD . /srv/ipython/
 WORKDIR /srv/ipython/
 
-RUN pip2 install -e .[all]
-RUN pip3 install -e .[all]
+RUN pip2 install fabric
+RUN pip3 install jsonschema jsonpointer fabric
 
-#RUN ipython2 kernelspec install-self
-#RUN ipython3 kernelspec install-self
+RUN pip2 install .
+RUN pip3 install .
 
 EXPOSE 8888
 
@@ -24,5 +24,8 @@ ENV SHELL /bin/bash
 ENV USER jupyter
 
 WORKDIR /home/jupyter/
+
+RUN ipython2 kernelspec install-self
+RUN ipython3 kernelspec install-self
 
 CMD ["/usr/local/bin/notebook.sh"]
