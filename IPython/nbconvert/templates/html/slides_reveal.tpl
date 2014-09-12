@@ -2,16 +2,57 @@
 {% from 'mathjax.tpl' import mathjax %}
 
 {%- block any_cell scoped -%}
+
+{% macro slide_opts(cell) -%}
+{# examines a slide cell's metadata for reveal.js formatting options #}
+    {%- if cell.metadata.slideshow is defined -%}
+        {%- if cell.metadata.slideshow.slide_background -%}
+            {{" "}}data-background="{{ cell.metadata.slideshow.slide_background }}"
+        {%- endif -%}
+
+        {%- if cell.metadata.slideshow.slide_background_repeat -%}
+            {{" "}}data-background-repeat="{{ cell.metadata.slideshow.slide_background_repeat }}"
+        {%- endif -%}
+
+        {%- if cell.metadata.slideshow.slide_background_size -%}
+            {{" "}}data-background-size="{{ cell.metadata.slideshow.slide_background_size }}"
+        {%- endif -%}
+
+        {%- if cell.metadata.slideshow.slide_background_transition -%}
+            {{" "}}data-background-transition="{{ cell.metadata.slideshow.slide_background_transition }}"
+        {%- endif -%}
+
+        {%- if cell.metadata.slideshow.slide_transition -%}
+            {{" "}}data-transition="{{ cell.metadata.slideshow.slide_transition }}"
+        {%- endif -%}
+
+        {%- if cell.metadata.slideshow.slide_transition_speed -%}
+            {{" "}}data-transition-speed="{{ cell.metadata.slideshow.slide_transition_speed }}"
+        {%- endif -%}
+    {%- endif -%}
+{%- endmacro %}
+
+{%- macro fragment_style(cell) -%}
+{# examines a fragment cell's metadata for reveal.js fragment highlight style option.
+"higlight-red", "highlight-blue" and "higlight-green" not supported #}
+    {%- if cell.metadata.slideshow is defined -%}
+        {%- if cell.metadata.slideshow.fragment_style -%}
+            {{" "+cell.metadata.slideshow.fragment_style}}
+        {%- endif -%}
+    {%- endif -%}
+{%- endmacro %}
+
 {%- if cell.metadata.slide_type in ['slide'] -%}
     <section>
-    <section>
+    <section {{ slide_opts(cell) }}>
+
     {{ super() }}
 {%- elif cell.metadata.slide_type in ['subslide'] -%}
-    <section>
+    <section {{ slide_opts(cell) }}>
     {{ super() }}
 {%- elif cell.metadata.slide_type in ['-'] -%}
     {%- if cell.metadata.frag_helper in ['fragment_end'] -%}
-        <div class="fragment" data-fragment-index="{{ cell.metadata.frag_number }}">
+        <div class="fragment{{ fragment_style(cell) }}" data-fragment-index="{{ cell.metadata.frag_number }}">
         {{ super() }}
         </div>
     {%- else -%}
@@ -26,7 +67,7 @@
     {{ super() }}
     </aside>
 {%- elif cell.metadata.slide_type in ['fragment'] -%}
-    <div class="fragment" data-fragment-index="{{ cell.metadata.frag_number }}">
+    <div class="fragment{{ fragment_style(cell) }}" data-fragment-index="{{ cell.metadata.frag_number }}">
     {{ super() }}
     </div>
 {%- endif -%}
@@ -170,12 +211,116 @@ div.output_prompt {
 
 // Full list of configuration options available here: https://github.com/hakimel/reveal.js#configuration
 Reveal.initialize({
-controls: true,
-progress: true,
-history: true,
+    {% if nb.metadata.slideshow is defined %}
+        {%- if nb.metadata.slideshow.controls in ['true', 'false'] -%}
+            controls: {{ nb.metadata.slideshow.controls }},
+        {%- else -%}
+            controls: true,
+        {%- endif -%}
+
+        {%- if nb.metadata.slideshow.progress in ['true', 'false'] -%}
+            progress: {{ nb.metadata.slideshow.progress }},
+        {%- else -%}
+            progress: true,
+        {%- endif -%}
+
+        {%- if nb.metadata.slideshow.history in ['true', 'false'] -%}
+            history: {{ nb.metadata.slideshow.history }},
+        {%- else -%}
+            history: true,
+        {%- endif -%}
+
+        {%- if nb.metadata.slideshow.slide_number in ['true', 'false'] -%}
+            slideNumber: {{ nb.metadata.slideshow.slide_number }},
+        {%- endif -%}
+
+        {%- if nb.metadata.slideshow.keyboard in ['true', 'false'] -%}
+            keyboard: {{ nb.metadata.slideshow.keyboard }},
+        {%- endif -%}
+
+        {%- if nb.metadata.slideshow.overview in ['true', 'false'] -%}
+            overview: {{ nb.metadata.slideshow.overview }},
+        {%- endif -%}
+
+        {%- if nb.metadata.slideshow.center in ['true', 'false'] -%}
+            center: {{ nb.metadata.slideshow.center }},
+        {%- endif -%}
+
+        {%- if nb.metadata.slideshow.touch in ['true', 'false'] -%}
+            touch: {{ nb.metadata.slideshow.touch }},
+        {%- endif -%}
+
+        {%- if nb.metadata.slideshow.loop in ['true', 'false'] -%}
+            loop: {{ nb.metadata.slideshow.loop }},
+        {%- endif -%}
+
+        {%- if nb.metadata.slideshow.rtl in ['true', 'false'] -%}
+            rtl: {{ nb.metadata.slideshow.rtl }},
+        {%- endif -%}
+
+        {%- if nb.metadata.slideshow.fragments in ['true', 'false'] -%}
+            fragments: {{ nb.metadata.slideshow.fragments }},
+        {%- endif -%}
+
+        {%- if nb.metadata.slideshow.embedded in ['true', 'false'] -%}
+            embedded: {{ nb.metadata.slideshow.embedded }},
+        {%- endif -%}
+
+        {%- if nb.metadata.slideshow.auto_slide -%}
+            autoSlide: {{ nb.metadata.slideshow.auto_slide }},
+        {%- endif -%}
+
+        {%- if nb.metadata.slideshow.auto_slide_stoppable in ['true', 'false'] -%}
+            autoSlideStoppable: {{ nb.metadata.slideshow.auto_slide_stoppable }},
+        {%- endif -%}
+
+        {%- if nb.metadata.slideshow.mouse_wheel in ['true', 'false'] -%}
+            mouseWheel: {{ nb.metadata.slideshow.mouse_wheel }},
+        {%- endif -%}
+
+        {%- if nb.metadata.slideshow.hide_address_bar in ['true', 'false'] -%}
+            hideAddressBar: {{ nb.metadata.slideshow.hide_address_bar }},
+        {%- endif -%}
+
+        {%- if nb.metadata.slideshow.preview_links in ['true', 'false'] -%}
+            previewLinks: {{ nb.metadata.slideshow.preview_links }},
+        {%- endif -%}
+
+        {%- if nb.metadata.slideshow.transition in ['default', 'cube', 'page', 'concave', 'zoom', 'linear', 'fade', 'none'] -%}
+            transition: {{ nb.metadata.slideshow.transition }},
+        {%- else -%}
+            transition: Reveal.getQueryHash().transition || 'linear',
+        {%- endif -%}
+
+        {%- if nb.metadata.slideshow.transition_speed in ['default', 'fast', 'slow'] -%}
+            transitionSpeed: {{ nb.metadata.slideshow.transition_speed }},
+        {%- endif -%}
+
+        {%- if nb.metadata.slideshow.background_transition in ['default', 'none', 'slide', 'concave', 'convex', 'zoom'] -%}
+            transition: {{ nb.metadata.slideshow.background_transition  }},
+        {%- endif -%}
+
+        {%- if nb.metadata.slideshow.view_distance in ['default', 'none', 'slide', 'concave', 'convex', 'zoom'] -%}
+            viewDistance: {{ nb.metadata.slideshow.view_distance }},
+        {%- endif -%}
+
+        {%- if nb.metadata.slideshow.parallax_background_image -%}
+            parallaxBackgroundImage: {{ nb.metadata.slideshow.parallax_background_image }},
+        {%- endif -%}
+
+        {%- if nb.metadata.slideshow.parallax_background_size -%}
+            parallaxBackgroundSize: {{ nb.metadata.slideshow.parallax_background_size }},
+        {%- endif -%}
+
+    {%- else -%}
+        controls: true,
+        progress: true,
+        history: true,
+        transition: Reveal.getQueryHash().transition || 'linear',
+    {%- endif -%}
+
 
 theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
-transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/none
 
 // Optional libraries used to extend on reveal.js
 dependencies: [
