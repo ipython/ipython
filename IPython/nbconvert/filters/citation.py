@@ -45,9 +45,9 @@ def citation2latex(s):
     parser.close()
     outtext = u''
     startpos = 0
-    for citation in parser.citelist:
+    for citation,citetype in zip(parser.citelist,parser.citetypes):
             outtext += s[startpos:citation[1]]
-            outtext += '\\cite{%s}'%citation[0]
+            outtext += '\\%s{%s}'%(citetype,citation[0])
             startpos = citation[2] if len(citation)==3 else -1
     outtext += s[startpos:] if startpos != -1 else ''
     return outtext
@@ -73,6 +73,7 @@ class CitationParser(HTMLParser):
 
     def __init__(self):
         self.citelist = []
+        self.citetypes = [] 
         self.opentags = 0
         HTMLParser.__init__(self)
     
@@ -88,7 +89,8 @@ class CitationParser(HTMLParser):
         # for each tag check if attributes are present and if no citation is active
         if self.opentags == 0 and len(attrs)>0:
             for atr, data in attrs:
-                if atr.lower() == 'data-cite':
+                if 'data-cite' in atr.lower():
+                    self.citetypes.append(atr.lower().split('data-')[1])
                     self.citetag = tag
                     self.opentags = 1
                     self.citelist.append([data, self.get_offset()])

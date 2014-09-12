@@ -142,9 +142,46 @@ r"""
 $1 < 2$ is true, but $3 > 4$ is false
 
 1 < 2 it is even worse if it is alone in a line.
-"""}
+""",
+
+
+# Natbib commands for simple inline example
+# (see http://merkel.zoneo.net/Latex/natbib.php)
+
+
+# 'citeX{ref}'
+
+# (Including:
+#
+#   basic commands            -  citet{ref}, citep{ref}, citet*{ref}, citep*{ref}
+#   optional arguments        -  citet[arg]{ref}, citet*[arg]{ref}, citet[arg][]{ref}, citet[arg1][arg2]{ref}
+#   suppressed parentheses    -  citalt{ref}, citealp{ref}, citealt*{ref}, citealp*{ref}
+#   partial citations         -  citauthor{ref},citeauthor*{ref}, citeyear{ref}, citeyearpar{ref}
+#   forcing upper case names  -  Citet{ref}, Citep{ref}, Citealt{ref}, Citealp{ref}, Citeauthor{ref}
+#   citation aliasing         -  citealias, citepalias 
+#                                ...(require '\defcitealias{ref}{alias} to be done in a separate latex cell)   )
+
+#    \citet{jon90,jam91} 	    -->    	Jones et al. (1990); James et al. (1991)
+r"""Foo <cite data-citet=asdf>Text</cite> bar""":
+r"""Foo \citet{asdf} bar""",
+
+
+# 'citeX{ref1,ref2,...}'
+# (i.e. multiple citations)
+
+r"""Foo <cite data-citet=asdf,ghjk,lzxc,vbnm>Text</cite> bar""":
+r"""Foo \citet{asdf,ghjk,lzxc,vbnm} bar""",
+
+
+# 'citetext{priv. comm}'
+# (i.e. citetext with space)
+
+r"""Foo <cite data-citetext=priv. comm.>Text</cite> bar""":
+r"""Foo \citetext{priv. comm.} bar"""
+}
 
 def test_citation2latex():
     """Are citations parsed properly?"""
     for input, output in test_md.items():
-        yield (assert_equal, citation2latex(input), output)
+    
+    yield (assert_equal, citation2latex(input), output)
