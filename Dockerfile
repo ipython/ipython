@@ -1,3 +1,7 @@
+# Designed to be run as 
+# 
+# docker run -it -p 9999:8888 ipython/latest
+
 FROM ipython/scipystack
 
 MAINTAINER IPython Project <ipython-dev@scipy.org>
