@@ -140,6 +140,13 @@ def test_atomic_writing():
             os.chmod(f1, 0o701)
             orig_mode = stat.S_IMODE(os.stat(f1).st_mode)
 
+        f2 = os.path.join(td, 'flamingo')
+        try:
+            os.symlink(f1, f2)
+            have_symlink = True
+        except (AttributeError, NotImplementedError):
+            have_symlink = False
+
         with nt.assert_raises(CustomExc):
             with atomic_writing(f1) as f:
                 f.write(u'Failing write')
@@ -158,3 +165,11 @@ def test_atomic_writing():
         if os.name != 'nt':
             mode = stat.S_IMODE(os.stat(f1).st_mode)
             nt.assert_equal(mode, orig_mode)
+
+        if have_symlink:
+            # Check that writing over a file preserves a symlink
+            with atomic_writing(f2) as f:
+                f.write(u'written from symlink')
+            
+            with stdlib_io.open(f1, 'r') as f:
+                nt.assert_equal(f.read(), u'written from symlink')
