@@ -1855,9 +1855,9 @@ define([
                 }
             }
         }
-        if (trusted != this.trusted) {
+        if (trusted !== this.trusted) {
             this.trusted = trusted;
-            this.events.trigger("trust_changed.Notebook", trusted);
+            this.events.trigger("trust_changed.Notebook", {value: trusted});
         }
         if (content.worksheets.length > 1) {
             dialog.modal({
@@ -2070,7 +2070,7 @@ define([
                                 cell.output_area.trusted = true;
                             }
                         }
-                        this.events.on('notebook_saved.Notebook', function () {
+                        nb.events.on('notebook_saved.Notebook', function () {
                             window.location.reload();
                         });
                         nb.save_notebook();
