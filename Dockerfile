@@ -13,7 +13,7 @@ WORKDIR /srv/ipython/
 RUN pip2 install fabric
 RUN pip3 install jsonschema jsonpointer fabric
 
-RUN git submodule update --init
+RUN python setup.py submodule
 
 # .[all] only works with -e
 # Can't use -e because ipython2 and ipython3 will clobber each other
