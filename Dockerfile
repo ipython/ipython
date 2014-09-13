@@ -9,17 +9,24 @@ MAINTAINER IPython Project <ipython-dev@scipy.org>
 ADD . /srv/ipython/
 WORKDIR /srv/ipython/
 
+# Installing certain dependencies directly
 RUN pip2 install fabric
 RUN pip3 install jsonschema jsonpointer fabric
 
+RUN git submodule update --init
+
+# .[all] only works with -e
+# Can't use -e because ipython2 and ipython3 will clobber each other
 RUN pip2 install .
 RUN pip3 install .
 
 EXPOSE 8888
 
+# Generate a wrapper script
 RUN echo "#!/bin/bash\nipython3 notebook --no-browser --port 8888 --ip=0.0.0.0" > /usr/local/bin/notebook.sh
 RUN chmod a+x /usr/local/bin/notebook.sh
 
+# jupyter is our user
 RUN useradd -m -s /bin/bash jupyter
 
 USER jupyter
@@ -29,6 +36,7 @@ ENV USER jupyter
 
 WORKDIR /home/jupyter/
 
+# Register each kernel (Python 2.7.x, Python 3.4.x)
 RUN ipython2 kernelspec install-self
 RUN ipython3 kernelspec install-self
 
