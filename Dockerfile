@@ -40,7 +40,7 @@ ENV USER jupyter
 WORKDIR /home/jupyter/
 
 # Register each kernel (Python 2.7.x, Python 3.4.x)
-RUN ipython2 kernelspec install-self
-RUN ipython3 kernelspec install-self
+RUN su - jupyter -c "ipython2 kernelspec install-self"
+RUN su - jupyter -c "ipython3 kernelspec install-self"
 
 CMD ["/usr/local/bin/notebook.sh"]
