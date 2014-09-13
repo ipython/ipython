@@ -264,6 +264,14 @@ define(["widgets/js/manager",
             }
         },
 
+        on_bulk_change: function(keys, callback, context) {
+            this.on('change', function() {
+                if (keys.some(this.hasChanged, this)) {
+                    callback.apply(context);
+                }
+            }, this);
+
+       },
     });
     widgetmanager.WidgetManager.register_widget_model('WidgetModel', WidgetModel);
 
