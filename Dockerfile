@@ -7,7 +7,7 @@ FROM ipython/scipystack
 MAINTAINER IPython Project <ipython-dev@scipy.org>
 
 # Can't directly add the source as it won't have the submodules
-RUN mkdir /srv/
+RUN mkdir -p /srv/
 WORKDIR /srv/
 RUN git clone --recursive https://github.com/ipython/ipython.git
 WORKDIR /srv/ipython/
