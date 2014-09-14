@@ -36,6 +36,8 @@ RUN useradd -m -s /bin/bash jupyter
 RUN sudo -E -H -u jupyter ipython2 kernelspec install-self
 RUN sudo -E -H -u jupyter ipython3 kernelspec install-self
 
+RUN sudo chown jupyter:jupyter /home/jupyter -R
+
 USER jupyter
 ENV HOME /home/jupyter
 ENV SHELL /bin/bash
