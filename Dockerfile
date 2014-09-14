@@ -32,15 +32,15 @@ RUN chmod a+x /usr/local/bin/notebook.sh
 # jupyter is our user
 RUN useradd -m -s /bin/bash jupyter
 
+# Register each kernel (Python 2.7.x, Python 3.4.x)
+RUN sudo -E -H -u jupyter ipython2 kernelspec install-self
+RUN sudo -E -H -u jupyter ipython3 kernelspec install-self
+
 USER jupyter
 ENV HOME /home/jupyter
 ENV SHELL /bin/bash
 ENV USER jupyter
 
 WORKDIR /home/jupyter/
-
-# Register each kernel (Python 2.7.x, Python 3.4.x)
-RUN su - jupyter -c "ipython2 kernelspec install-self"
-RUN su - jupyter -c "ipython3 kernelspec install-self"
 
 CMD ["/usr/local/bin/notebook.sh"]
