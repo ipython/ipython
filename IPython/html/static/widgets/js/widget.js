@@ -384,6 +384,14 @@ define(["widgets/js/manager",
             }
         },
 
+        hide: function(){
+            // Hide the widget-area
+            if (this.options && this.options.cell &&
+                this.options.cell.widget_area !== undefined) {
+                this.options.cell.widget_area.hide();
+            }
+        },
+
         send: function (content) {
             // Send a custom msg associated with this view.
             this.model.send(content, this.callbacks());
@@ -394,7 +402,7 @@ define(["widgets/js/manager",
         },
 
         after_displayed: function (callback, context) {
-            // Calls the callback right away is the view is already displayed
+            // Calls the callback right away if the view is already displayed
             // otherwise, register the callback to the 'displayed' event.
             if (this.is_displayed) {
                 callback.apply(context);
