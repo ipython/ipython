@@ -26,17 +26,11 @@ RUN pip3 install .
 EXPOSE 8888
 
 # Generate a wrapper script
-RUN echo "#!/bin/bash\nipython3 notebook --no-browser --port 8888 --ip=0.0.0.0" > /usr/local/bin/notebook.sh
+RUN echo "#!/bin/bash\nipython2 kernelspec install-self\nipython3 kernelspec install-self\nipython3 notebook --no-browser --port 8888 --ip=0.0.0.0" > /usr/local/bin/notebook.sh
 RUN chmod a+x /usr/local/bin/notebook.sh
 
 # jupyter is our user
 RUN useradd -m -s /bin/bash jupyter
-
-# Register each kernel (Python 2.7.x, Python 3.4.x)
-RUN sudo -E -H -u jupyter ipython2 kernelspec install-self
-RUN sudo -E -H -u jupyter ipython3 kernelspec install-self
-
-RUN sudo chown jupyter:jupyter /home/jupyter -R
 
 USER jupyter
 ENV HOME /home/jupyter
