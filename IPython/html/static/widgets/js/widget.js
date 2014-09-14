@@ -24,7 +24,7 @@ define(["widgets/js/manager",
             this._buffered_state_diff = {};
             this.pending_msgs = 0;
             this.msg_buffer = null;
-            this.key_value_lock = null;
+            this.state_lock = null;
             this.id = model_id;
             this.views = [];
 
@@ -78,15 +78,16 @@ define(["widgets/js/manager",
 
         apply_update: function (state) {
             // Handle when a widget is updated via the python side.
-            var that = this;
-            _.each(state, function(value, key) {
-                that.key_value_lock = [key, value];
-                try {
-                    WidgetModel.__super__.set.apply(that, [key, that._unpack_models(value)]);
-                } finally {
-                    that.key_value_lock = null;
-                }
-            });
+            this.state_lock = state;
+            try {
+                var that = this;
+                WidgetModel.__super__.set.apply(this, [Object.keys(state).reduce(function(obj, key) {
+                    obj[key] = that._unpack_models(state[key]);
+                    return obj;
+                }, {})]);
+            } finally {
+               this.state_lock = null;
+            }
         },
 
         _handle_status: function (msg, callbacks) {
@@ -149,12 +150,13 @@ define(["widgets/js/manager",
 
             // Delete any key value pairs that the back-end already knows about.
             var attrs = (method === 'patch') ? options.attrs : model.toJSON(options);
-            if (this.key_value_lock !== null) {
-                var key = this.key_value_lock[0];
-                var value = this.key_value_lock[1];
-                if (attrs[key] === value) {
-                    delete attrs[key];
-                }
+            if (this.state_lock !== null) {
+                var keys = Object.keys(this.state_lock);
+                for (var i=0; i<keys.length; i++)
+                    var key = keys[i];
+                    if (attrs[key] === this.state_lock[key]) {
+                        delete attrs[key];
+                    }
             }
 
             // Only sync if there are attributes to send to the back-end.
