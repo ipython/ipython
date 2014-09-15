@@ -1,6 +1,7 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
+
 require([
     'base/js/namespace',
     'jquery',
@@ -111,5 +112,6 @@ require([
     if (window.location.hash) {
         $("#tabs").find("a[href=" + window.location.hash + "]").click();
     }
+    $('#jspb').remove();
 
 });

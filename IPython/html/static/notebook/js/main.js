@@ -1,5 +1,10 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
+1/0
+
+//console.log('foo')
+//console.log(crash)
+//sn+[
 
 require([
     'base/js/namespace',
@@ -135,5 +140,7 @@ require([
 
     events.trigger('app_initialized.NotebookApp');
     notebook.load_notebook(common_options.notebook_name, common_options.notebook_path);
+
+    $('#jspb').remove();
 
 });

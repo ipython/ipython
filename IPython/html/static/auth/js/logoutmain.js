@@ -7,4 +7,5 @@ require(['base/js/page'], function(page) {
     page_instance.show();
 
     ipython.page = page_instance;
+    $('#jspb').remove();
 });
