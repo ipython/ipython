@@ -1006,20 +1006,28 @@ python-profiler package from non-free.""")
         exec(code, self.shell.user_ns, ns)
         timer.inner = ns["inner"]
 
+        # This is used to check if there is a huge difference between the
+        # best and worst timings.
+        # Issue: https://github.com/ipython/ipython/issues/6471
+        worst_tuning = 0
         if number == 0:
             # determine number so that 0.2 <= total time < 2.0
             number = 1
             for _ in range(1, 10):
-                if timer.timeit(number) >= 0.2:
+                time_number = timer.timeit(number)
+                worst_tuning = max(worst_tuning, time_number / number)
+                if time_number >= 0.2:
                     break
                 number *= 10
         all_runs = timer.repeat(repeat, number)
         best = min(all_runs) / number
         if not quiet :
             worst = max(all_runs) / number
+            if worst_tuning:
+                worst = max(worst, worst_tuning)
             if worst > 4 * best:
-              warn("Worst time is %0.2f times that of the best. Timings may "
-                   "be biased." % (worst / best))
+                warn("Worst time is %0.2f times that of the best. Timings may "
+                     "be biased." % (worst / best))
             print(u"%d loops, best of %d: %s per loop" % (number, repeat,
                                                               _format_time(best, precision)))
             if tc > tc_min:
