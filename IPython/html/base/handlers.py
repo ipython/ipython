@@ -312,6 +312,12 @@ class AuthenticatedFileHandler(IPythonHandler, web.StaticFileHandler):
         
         return web.StaticFileHandler.get(self, path)
     
+    def set_headers(self):
+        super(AuthenticatedFileHandler, self).set_headers()
+        # disable browser caching, rely in 304 replies for savings
+        if "v" not in self.request.arguments:
+            self.add_header("Cache-Control", "no-cache")
+    
     def compute_etag(self):
         return None
     
@@ -379,6 +385,12 @@ class FileFindHandler(web.StaticFileHandler):
     
     # cache search results, don't search for files more than once
     _static_paths = {}
+    
+    def set_headers(self):
+        super(FileFindHandler, self).set_headers()
+        # disable browser caching, rely in 304 replies for savings
+        if "v" not in self.request.arguments:
+            self.add_header("Cache-Control", "no-cache")
     
     def initialize(self, path, default_filename=None):
         if isinstance(path, string_types):
