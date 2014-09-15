@@ -57,7 +57,7 @@ class _Selection(DOMWidget):
         if 'values' in kwargs:
             values = kwargs['values']
             # convert list values to an dict of {str(v):v}
-            if isinstance(values, list):
+            if isinstance(values, (list, tuple)):
                 # preserve list order with an OrderedDict
                 kwargs['values'] = OrderedDict((unicode_type(v), v) for v in values)
             # python3.3 turned on hash randomization by default - this means that sometimes, randomly
