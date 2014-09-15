@@ -993,15 +993,15 @@ define([
     Notebook.prototype.to_code = function (index) {
         var i = this.index_or_selected(index);
         if (this.is_valid_cell_index(i)) {
-			var source_cell = this.get_cell(i);
+            var source_cell = this.get_cell(i);
             if (!(source_cell instanceof codecell.CodeCell)) {
                 var target_cell = this.insert_cell_below('code',i);
                 var text = source_cell.get_text();
                 if (text === source_cell.placeholder) {
                     text = '';
                 }
-				//metadata
-				target_cell.metadata = source_cell.metadata;
+                //metadata
+                target_cell.metadata = source_cell.metadata;
 
                 target_cell.set_text(text);
                 // make this value the starting point, so that we can only undo
@@ -1025,7 +1025,7 @@ define([
     Notebook.prototype.to_markdown = function (index) {
         var i = this.index_or_selected(index);
         if (this.is_valid_cell_index(i)) {
-			var source_cell = this.get_cell(i);
+            var source_cell = this.get_cell(i);
 
             if (!(source_cell instanceof textcell.MarkdownCell)) {
                 var target_cell = this.insert_cell_below('markdown',i);
@@ -1034,8 +1034,8 @@ define([
                 if (text === source_cell.placeholder) {
                     text = '';
                 }
-				// metadata
-				target_cell.metadata = source_cell.metadata
+                // metadata
+                target_cell.metadata = source_cell.metadata
                 // We must show the editor before setting its contents
                 target_cell.unrender();
                 target_cell.set_text(text);
@@ -1064,7 +1064,7 @@ define([
         var i = this.index_or_selected(index);
         if (this.is_valid_cell_index(i)) {
             var target_cell = null;
-			var source_cell = this.get_cell(i);
+            var source_cell = this.get_cell(i);
 
             if (!(source_cell instanceof textcell.RawCell)) {
                 target_cell = this.insert_cell_below('raw',i);
@@ -1072,8 +1072,8 @@ define([
                 if (text === source_cell.placeholder) {
                     text = '';
                 }
-				//metadata
-				target_cell.metadata = source_cell.metadata;
+                //metadata
+                target_cell.metadata = source_cell.metadata;
                 // We must show the editor before setting its contents
                 target_cell.unrender();
                 target_cell.set_text(text);
@@ -1100,9 +1100,8 @@ define([
         level = level || 1;
         var i = this.index_or_selected(index);
         if (this.is_valid_cell_index(i)) {
-			var source_cell = this.get_cell(i);
+            var source_cell = this.get_cell(i);
             var target_cell = null;
-
             if (source_cell instanceof textcell.HeadingCell) {
                 source_cell.set_level(level);
             } else {
@@ -1111,8 +1110,8 @@ define([
                 if (text === source_cell.placeholder) {
                     text = '';
                 }
-				//metadata
-				target_cell.metadata = source_cell.metadata;
+                //metadata
+                target_cell.metadata = source_cell.metadata;
                 // We must show the editor before setting its contents
                 target_cell.set_level(level);
                 target_cell.unrender();
