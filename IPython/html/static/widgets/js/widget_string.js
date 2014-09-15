@@ -202,8 +202,8 @@ define([
             // Handles text submition
             if (e.keyCode == 13) { // Return key
                 this.send({event: 'submit'});
-                event.stopPropagation();
-                event.preventDefault();
+                e.stopPropagation();
+                e.preventDefault();
                 return false;
             }
         },
@@ -214,8 +214,8 @@ define([
             // TODO: Is the original bug actually a fault of the keyboard
             // manager?
             if (e.relatedTarget === null) {
-                event.stopPropagation();
-                event.preventDefault();
+                e.stopPropagation();
+                e.preventDefault();
                 return false;
             }
         },
@@ -224,8 +224,8 @@ define([
             // Prevent a blur from firing if the blur was not user intended.
             // This is a workaround for the return-key focus loss bug.
             if (e.relatedTarget === null) {
-                event.stopPropagation();
-                event.preventDefault();
+                e.stopPropagation();
+                e.preventDefault();
                 return false;
             }
         },
