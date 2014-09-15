@@ -1016,6 +1016,10 @@ python-profiler package from non-free.""")
         all_runs = timer.repeat(repeat, number)
         best = min(all_runs) / number
         if not quiet :
+            worst = max(all_runs) / number
+            if worst > 4 * best:
+              warn("Worst time is %0.2f times that of the best. Timings may "
+                   "be biased." % (worst / best))
             print(u"%d loops, best of %d: %s per loop" % (number, repeat,
                                                               _format_time(best, precision)))
             if tc > tc_min:
