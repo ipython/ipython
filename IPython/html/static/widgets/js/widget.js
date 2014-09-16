@@ -52,6 +52,7 @@ define(["widgets/js/manager",
         _handle_comm_closed: function (msg) {
             // Handle when a widget is closed.
             this.trigger('comm:close');
+            this.stopListening();
             this.trigger('destroy', this);
             delete this.comm.model; // Delete ref so GC will collect widget model.
             delete this.comm;
