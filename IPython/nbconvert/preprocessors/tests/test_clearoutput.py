@@ -39,4 +39,4 @@ class TestClearOutput(PreprocessorTestsBase):
         preprocessor = self.build_preprocessor()
         nb, res = preprocessor(nb, res)
         assert nb.worksheets[0].cells[0].outputs == []
-        assert 'prompt_number' not in nb.worksheets[0].cells[0]
+        assert nb.worksheets[0].cells[0].prompt_number is None
