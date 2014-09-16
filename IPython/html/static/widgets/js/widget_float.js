@@ -9,9 +9,10 @@ define([
     var IntTextView = int_widgets.IntTextView;
 
     var FloatSliderView = IntSliderView.extend({
-        _parse_text_input: parseFloat,
+        _parse_value: parseFloat,
 
-        _range_regex: /^\s*([+-]?\d*\.?\d+)\s*[-:]\s*([+-]?\d*\.?\d+)/,
+        // matches: whitespace?, float, whitespace?, [-:], whitespace?, float
+        _range_regex: /^\s*([+-]?(?:\d*\.?\d+|\d+\.)(?:[eE][+-]?\d+)?)\s*[-:]\s*([+-]?(?:\d*\.?\d+|\d+\.)(?:[eE][+-]?\d+)?)/,
 
         _validate_slide_value: function(x) {
             // Validate the value of the slider before sending it to the back-end
@@ -21,10 +22,7 @@ define([
     });
 
     var FloatTextView = IntTextView.extend({
-        _parse_value: function(value) {
-            // Parse the value stored in a string.
-            return  parseFloat(value);
-        },
+        _parse_value: parseFloat
     });
 
     return {

@@ -188,8 +188,8 @@ define([
                 // ranges can be expressed either "val-val" or "val:val" (+spaces)
                 var match = this._range_regex.exec(text);
                 if (match) {
-                    var values = [this._parse_text_input(match[1]),
-                                  this._parse_text_input(match[2])];
+                    var values = [this._parse_value(match[1]),
+                                  this._parse_value(match[2])];
                     // reject input where NaN or lower > upper
                     if (isNaN(values[0]) ||
                         isNaN(values[1]) ||
@@ -214,7 +214,7 @@ define([
                 }
             } else {
                 // single value case
-                var value = this._parse_text_input(text);
+                var value = this._parse_value(text);
                 if (isNaN(value)) {
                     this.$readout.text(this.model.get('value'));
                 } else {
@@ -231,7 +231,7 @@ define([
             }
         },
 
-        _parse_text_input: parseInt,
+        _parse_value: parseInt,
 
         _range_regex: /^\s*([+-]?\d+)\s*[-:]\s*([+-]?\d+)/,
 
@@ -362,10 +362,7 @@ define([
             }
         },
 
-        _parse_value: function(value) {
-            // Parse the value stored in a string.
-            return  parseInt(value);
-        },
+        _parse_value: parseInt
     });
 
 
