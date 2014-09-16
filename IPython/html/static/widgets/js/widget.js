@@ -417,10 +417,10 @@ define(["widgets/js/manager",
                 this.update_classes(old_classes, new_classes);
             }, this);
 
-            this.model.on('change:fore_color', function (model, value) { 
+            this.model.on('change:color', function (model, value) { 
                 this.update_attr('color', value); }, this);
 
-            this.model.on('change:back_color', function (model, value) { 
+            this.model.on('change:background_color', function (model, value) { 
                 this.update_attr('background', value); }, this);
 
             this.model.on('change:width', function (model, value) { 
@@ -461,8 +461,8 @@ define(["widgets/js/manager",
                 this.update_css(this.model, this.model.get("_css"));
 
                 this.update_classes([], this.model.get('_dom_classes'));
-                this.update_attr('color', this.model.get('fore_color'));
-                this.update_attr('background', this.model.get('back_color'));
+                this.update_attr('color', this.model.get('color'));
+                this.update_attr('background', this.model.get('background_color'));
                 this.update_attr('width', this.model.get('width'));
                 this.update_attr('height', this.model.get('height'));
                 this.update_attr('border-color', this.model.get('border_color'));

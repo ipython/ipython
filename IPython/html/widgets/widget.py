@@ -388,8 +388,8 @@ class DOMWidget(Widget):
     padding = CUnicode(sync=True)
     margin = CUnicode(sync=True)
 
-    fore_color = Unicode(sync=True)
-    back_color = Unicode(sync=True)
+    color = Unicode(sync=True)
+    background_color = Unicode(sync=True)
     border_color = Unicode(sync=True)
 
     border_width = CUnicode(sync=True)
