@@ -55,7 +55,7 @@
 {% endblock data_text %}
 
 {% block markdowncell scoped %}
-{{ cell.source | wrap_text(80) }}
+{{ cell.source }}
 {% endblock markdowncell %}
 
 
