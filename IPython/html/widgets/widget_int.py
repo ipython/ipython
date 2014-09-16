@@ -37,12 +37,22 @@ class _BoundedInt(_Int):
     def __init__(self, *pargs, **kwargs):
         """Constructor"""
         DOMWidget.__init__(self, *pargs, **kwargs)
-        self.on_trait_change(self._validate, ['value', 'min', 'max'])
+        self.on_trait_change(self._validate_value, ['value'])
+        self.on_trait_change(self._handle_max_changed, ['max'])
+        self.on_trait_change(self._handle_min_changed, ['min'])
 
-    def _validate(self, name, old, new):
-        """Validate value, max, min."""
+    def _validate_value(self, name, old, new):
+        """Validate value."""
         if self.min > new or new > self.max:
             self.value = min(max(new, self.min), self.max)
+
+    def _handle_max_changed(self, name, old, new):
+        """Make sure the min is always <= the max."""
+        self.min = min(self.min, new)
+
+    def _handle_min_changed(self, name, old, new):
+        """Make sure the max is always >= the min."""
+        self.max = max(self.max, new)
 
 
 class IntText(_Int):
