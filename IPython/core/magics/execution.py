@@ -1025,9 +1025,12 @@ python-profiler package from non-free.""")
             worst = max(all_runs) / number
             if worst_tuning:
                 worst = max(worst, worst_tuning)
-            if worst > 4 * best and best:
-                warn("Worst time is %0.2f times that of the best. Timings may "
-                     "be biased." % (worst / best))
+            # Check best timing is greater than zero to avoid a
+            # ZeroDivisionError.
+            if worst > 4 * best and best > 0:
+                print("The slowest run took %0.2f times longer than the "
+                      "fastest. This could mean that an intermediate result "
+                      "is being cached " % (worst / best))
             print(u"%d loops, best of %d: %s per loop" % (number, repeat,
                                                               _format_time(best, precision)))
             if tc > tc_min:
