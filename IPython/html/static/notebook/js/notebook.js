@@ -68,7 +68,7 @@ define([
         this.default_cell_type = this.config.default_cell_type || 'code';
 
         //  Create default scroll manager.
-        this.scroll_manager = new scrollmanager.HeadingScrollManager(this);
+        this.scroll_manager = new scrollmanager.ScrollManager(this);
 
         // default_kernel_name is a temporary measure while we implement proper
         // kernel selection and delayed start. Do not rely on it.
