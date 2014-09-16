@@ -253,12 +253,12 @@ define(["widgets/js/manager",
                 return unpacked;
 
             } else if (typeof value === 'string' && value.slice(0,10) === "IPY_MODEL_") {
-		var model = this.widget_manager.get_model(value.slice(10, value.length));
-		if (model) {
-		    return model;
-		} else {
-		    return value;
-		}
+                var model = this.widget_manager.get_model(value.slice(10, value.length));
+                if (model) {
+                    return model;
+                } else {
+                    return value;
+                }
             } else {
                     return value;
             }
