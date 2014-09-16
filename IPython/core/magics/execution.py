@@ -1025,7 +1025,7 @@ python-profiler package from non-free.""")
             worst = max(all_runs) / number
             if worst_tuning:
                 worst = max(worst, worst_tuning)
-            if worst > 4 * best:
+            if worst > 4 * best and best:
                 warn("Worst time is %0.2f times that of the best. Timings may "
                      "be biased." % (worst / best))
             print(u"%d loops, best of %d: %s per loop" % (number, repeat,
