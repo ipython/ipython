@@ -45,10 +45,11 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         if(origin is None or host is None):
             return False
         
-        host_origin = "{0}://{1}".format(self.request.protocol, host)
+        origin = origin.lower()
+        origin_host = urlparse(origin).netloc
         
         # OK if origin matches host
-        if origin == host_origin:
+        if origin_host == host:
             return True
         
         # Check CORS headers
@@ -58,6 +59,7 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
             return bool(self.allow_origin_pat.match(origin))
         else:
             # No CORS headers deny the request
+            self.log.warn("Cross Origin WebSocket Attempt from %s", self.get_origin())
             return False
 
     def clear_cookie(self, *args, **kwargs):
@@ -143,7 +145,6 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
         # Tornado 4 already does CORS checking
         if tornado.version_info[0] < 4:
             if not self.check_origin(self.get_origin()):
-                self.log.warn("Cross Origin WebSocket Attempt from %s", self.get_origin())
                 raise web.HTTPError(403)
 
         self.session = Session(config=self.config)
