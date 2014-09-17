@@ -134,8 +134,8 @@ def latex_to_png_dvipng(s, wrap):
 
         with open(os.devnull, 'w') as devnull:
             subprocess.check_call(
-                ["latex", "-halt-on-error", tmpfile], cwd=workdir,
-                stdout=devnull, stderr=devnull)
+                ["latex", "-halt-on-error", "-interaction", "batchmode", tmpfile],
+                cwd=workdir, stdout=devnull, stderr=devnull)
 
             subprocess.check_call(
                 ["dvipng", "-T", "tight", "-x", "1500", "-z", "9",
