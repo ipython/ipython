@@ -190,13 +190,12 @@ class InputHookManager(object):
         the names with which to register this GUI integration. The classes
         themselves should subclass :class:`InputHookBase`.
         
-        Examples
-        --------
+        ::
         
-        @inputhook_manager.register('qt')
-        class QtInputHook(InputHookBase):
-            def enable(self, app=None):
-                ...
+            @inputhook_manager.register('qt')
+            class QtInputHook(InputHookBase):
+                def enable(self, app=None):
+                    ...
         """
         def decorator(cls):
             inst = cls(self)
