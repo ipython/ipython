@@ -24,4 +24,5 @@ class ClearOutputPreprocessor(Preprocessor):
         """
         if cell.cell_type == 'code':
             cell.outputs = []
+            cell.prompt_number = None
         return cell, resources
