@@ -266,8 +266,8 @@ define(["widgets/js/manager",
             }
         },
 
-        on_change: function(keys, callback, context) {
-            // on_change(["key1", "key2"], foo, context) differs from
+        on_atomic_change: function(keys, callback, context) {
+            // on__atomic_change(["key1", "key2"], foo, context) differs from
             // on("change:key1 change:key2", foo, context).
             // If the widget attributes key1 and key2 are both modified, 
             // the second form will result in foo being called twice
