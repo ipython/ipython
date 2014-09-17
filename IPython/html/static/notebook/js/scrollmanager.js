@@ -6,7 +6,7 @@ define(['jquery'], function($){
     var ScrollManager = function(notebook, options) {
         // Public constructor.
         this.notebook = notebook;
-        options = options = {};
+        options = options || {};
         this.animation_speed = options.animation_speed || 250; //ms
     };
 
@@ -127,17 +127,61 @@ define(['jquery'], function($){
 
     var HeadingScrollManager = function(notebook, options) {
         // Public constructor.
-        TargetScrollManager.apply(this, [notebook, options]);
-        options = options = {};
+        ScrollManager.apply(this, [notebook, options]);
+        options = options || {};
         this._level = options.heading_level || 1;
     };
-    HeadingScrollManager.prototype = new TargetScrollManager();
+    HeadingScrollManager.prototype = new ScrollManager();
 
-    HeadingScrollManager.prototype.is_target = function (index) {
-        var cell = this.notebook.get_cell(index);
-        return cell.cell_type === "heading" && cell.level <= this._level;
+    HeadingScrollManager.prototype.scroll = function (delta) {
+        // Scroll the document.
+        //
+        // Parameters
+        // ----------
+        // delta: integer
+        //  direction to scroll the document.  Positive is downwards.
+        //  Units are headers.
+
+        // Get all of the header elements that match the heading level or are of
+        // greater magnitude (a smaller header number).
+        var headers = $();
+        var i;
+        for (i = 1; i <= this._level; i++) {
+            headers = headers.add('#notebook-container h' + i);
+        }
+
+        // Find the header the user is on or below.
+        var first_cell_top = this.notebook.get_cell(0).element.offset().top;
+        var notebook = $('#notebook');
+        var current_scroll = notebook.scrollTop();
+        var header_scroll = 0;
+        i = -1;
+        while (current_scroll >= header_scroll && i < headers.length) {
+            if (++i < headers.length) {
+                header_scroll = $(headers[i]).offset().top - first_cell_top;
+            }
+        }
+        i--;
+
+        // Check if the user is below the header.
+        if (i < 0 || current_scroll > $(headers[i]).offset().top - first_cell_top + 30) {
+            // Below the header, count the header as a target.
+            if (delta < 0) {
+                delta += 1;
+            }
+        }
+        i += delta;
+
+        // Scroll!
+        if (0 <= i && i < headers.length) {
+            this.scroll_to(headers[i]);
+            return false;
+        } else {
+            // Default to the base's scroll behavior when target header doesn't
+            // exist.
+            return ScrollManager.prototype.scroll.apply(this, [delta]);
+        }
     };
-
 
     // Return naemspace for require.js loads
     return {
