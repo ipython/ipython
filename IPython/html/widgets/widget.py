@@ -78,7 +78,7 @@ def _show_traceback(method):
 
 def register(key=None):
     def wrap(widget):
-        l = key if key is not None else widget._model_name.default_value
+        l = key if key is not None else widget._view_name.default_value
         Widget.widget_types[l] = widget
         return widget
     return wrap
