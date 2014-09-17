@@ -63,15 +63,17 @@ define([
             console.log("Could not determine where the display" + 
                 " message was from.  Widget will not be displayed");
         } else {
-            var view = this.create_view(model, {cell: cell});
-            if (view === null) {
-                console.error("View creation failed", model);
-            }
-            this._handle_display_view(view);
-            if (cell.widget_subarea) {
-                cell.widget_subarea.append(view.$el);
-            }
-            view.trigger('displayed');
+            var that = this;
+            this.create_view(model, {cell: cell, callback: function(view) {
+                if (view === null) {
+                    console.error("View creation failed", model);
+                }
+                that._handle_display_view(view);
+                if (cell.widget_subarea) {
+                    cell.widget_subarea.append(view.$el);
+                }
+                view.trigger('displayed');
+            }});
         }
     };
 
@@ -89,28 +91,38 @@ define([
         } 
         }
     };
+    
 
     WidgetManager.prototype.create_view = function(model, options, view) {
         // Creates a view for a particular model.
-        var view_name = model.get('_view_name');
-        var ViewType = WidgetManager._view_types[view_name];
-        if (ViewType) {
+        var instantiate_view = function(ViewType) {
+            if (ViewType) {
+                // If a view is passed into the method, use that view's cell as
+                // the cell for the view that is created.
+                options = options || {};
+                if (view !== undefined) {
+                    options.cell = view.options.cell;
+                }
 
-            // If a view is passed into the method, use that view's cell as
-            // the cell for the view that is created.
-            options = options || {};
-            if (view !== undefined) {
-                options.cell = view.options.cell;
+                // Create and render the view...
+                var parameters = {model: model, options: options};
+                view = new ViewType(parameters);
+                view.render();
+                model.on('destroy', view.remove, view);
+                options.callback(view);
             }
-
-            // Create and render the view...
-            var parameters = {model: model, options: options};
-            view = new ViewType(parameters);
-            view.render();
-            model.on('destroy', view.remove, view);
-            return view;
         }
-        return null;
+        
+        var view_name = model.get('_view_name');
+        var view_mod = model.get('_view_module');
+        if (view_mod !== '') {
+            console.log(view_mod);
+            require([view_mod], function(module) {
+                instantiate_view(module[view_name])
+            });
+        } else {
+            instantiate_view(WidgetManager._view_types[view_name]);
+        }
     };
 
     WidgetManager.prototype.get_msg_cell = function (msg_id) {

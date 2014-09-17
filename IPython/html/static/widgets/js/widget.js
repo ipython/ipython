@@ -308,7 +308,7 @@ define(["widgets/js/manager",
             // Update view to be consistent with this.model
         },
 
-        create_child_view: function(child_model, options) {
+        create_child_view: function(child_model, callback, options) {
             // Create and return a child view.
             //
             // -given a model and (optionally) a view name if the view name is 
@@ -317,18 +317,20 @@ define(["widgets/js/manager",
             // TODO: this is hacky, and makes the view depend on this cell attribute and widget manager behavior
             // it would be great to have the widget manager add the cell metadata
             // to the subview without having to add it here.
-            options = $.extend({ parent: this }, options || {});
-            var child_view = this.model.widget_manager.create_view(child_model, options, this);
-            
-            // Associate the view id with the model id.
-            if (this.child_model_views[child_model.id] === undefined) {
-                this.child_model_views[child_model.id] = [];
-            }
-            this.child_model_views[child_model.id].push(child_view.id);
+            var that = this;
+            options = $.extend({ parent: this, callback: function(child_view) {
+                // Associate the view id with the model id.
+                if (that.child_model_views[child_model.id] === undefined) {
+                    that.child_model_views[child_model.id] = [];
+                }
+                that.child_model_views[child_model.id].push(child_view.id);
 
-            // Remember the view by id.
-            this.child_views[child_view.id] = child_view;
-            return child_view;
+                // Remember the view by id.
+                that.child_views[child_view.id] = child_view;
+                callback(child_view);
+             }}, options || {});
+            
+            this.model.widget_manager.create_view(child_model, options, this);
         },
 
         pop_child_view: function(child_model) {
