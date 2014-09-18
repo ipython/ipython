@@ -114,7 +114,7 @@ define([
             accordion_group.container_index = container_index;
             this.model_containers[model.id] = accordion_group;
             
-            this.create_child_view(model, function(view) {
+            this.create_child_view(model, {callback: function(view) {
                 accordion_inner.append(view.$el);
 
                 that.update();
@@ -124,7 +124,7 @@ define([
                 that.after_displayed(function() {
                     view.trigger('displayed');
                 });
-            });
+            }});
         },
     });
     
@@ -186,7 +186,7 @@ define([
                 .css('list-style-type', 'none')
                 .appendTo(this.$tabs);
             
-            this.create_child_view(model, function(view) {
+            this.create_child_view(model, {callback: function(view) {
                 view.parent_tab = tab;
 
                 var tab_text = $('<a />')
@@ -215,7 +215,7 @@ define([
                 that.after_displayed(function() {
                     view.trigger('displayed');
                 });
-            });
+            }});
         },
 
         update: function(options) {

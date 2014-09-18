@@ -95,6 +95,11 @@ define([
 
     WidgetManager.prototype.create_view = function(model, options, view) {
         // Creates a view for a particular model.
+        
+        var view_name = model.get('_view_name');
+        var view_mod = model.get('_view_module');
+        errback = options.errback || function(err) {console.log(err)};
+
         var instantiate_view = function(ViewType) {
             if (ViewType) {
                 // If a view is passed into the method, use that view's cell as
@@ -110,15 +115,16 @@ define([
                 view.render();
                 model.on('destroy', view.remove, view);
                 options.callback(view);
+            } else {
+                errback({unknown_view: true, view_name: view_name,
+                         view_module: view_mod})
             }
         }
-        
-        var view_name = model.get('_view_name');
-        var view_mod = model.get('_view_module');
+
         if (view_mod) {
             require([view_mod], function(module) {
                 instantiate_view(module[view_name])
-            });
+            }, errback);
         } else {
             instantiate_view(WidgetManager._view_types[view_name]);
         }

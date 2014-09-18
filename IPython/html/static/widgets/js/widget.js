@@ -308,7 +308,7 @@ define(["widgets/js/manager",
             // Update view to be consistent with this.model
         },
 
-        create_child_view: function(child_model, callback, options) {
+        create_child_view: function(child_model, options) {
             // Create and return a child view.
             //
             // -given a model and (optionally) a view name if the view name is 
@@ -318,6 +318,7 @@ define(["widgets/js/manager",
             // it would be great to have the widget manager add the cell metadata
             // to the subview without having to add it here.
             var that = this;
+            var old_callback = options.callback || function(view) {};
             options = $.extend({ parent: this, callback: function(child_view) {
                 // Associate the view id with the model id.
                 if (that.child_model_views[child_model.id] === undefined) {
@@ -327,7 +328,7 @@ define(["widgets/js/manager",
 
                 // Remember the view by id.
                 that.child_views[child_view.id] = child_view;
-                callback(child_view);
+                old_callback(child_view);
              }}, options || {});
             
             this.model.widget_manager.create_view(child_model, options, this);
