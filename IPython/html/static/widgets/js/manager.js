@@ -115,7 +115,7 @@ define([
         
         var view_name = model.get('_view_name');
         var view_mod = model.get('_view_module');
-        if (!view_mod) {
+        if (view_mod) {
             require([view_mod], function(module) {
                 instantiate_view(module[view_name])
             });
