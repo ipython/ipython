@@ -468,6 +468,13 @@ class NotebookApp(BaseIPythonApplication):
                       """)
     
     webapp_settings = Dict(config=True,
+        help="DEPRECATED, use tornado_settings"
+    )
+    def _webapp_settings_changed(self, name, old, new):
+        self.log.warn("\n    webapp_settings is deprecated, use tornado_settings.\n")
+        self.tornado_settings = new
+    
+    tornado_settings = Dict(config=True,
             help="Supply overrides for the tornado.web.Application that the "
                  "IPython notebook uses.")
 
