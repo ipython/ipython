@@ -219,7 +219,7 @@ define([
         var channels = [this.shell_channel, this.iopub_channel, this.stdin_channel];
         for (var i=0; i < channels.length; i++) {
             // if any channel is not ready, don't trigger event.
-            if ( channels[i].readyState == WebSocket.OPEN ) return;
+            if ( channels[i].readyState !== WebSocket.OPEN ) return;
         }
         // all events ready, trigger started event.
         this.events.trigger('status_started.Kernel', {kernel: this});
