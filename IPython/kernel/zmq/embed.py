@@ -14,7 +14,7 @@ from .kernelapp import IPKernelApp
 # Code
 #-----------------------------------------------------------------------------
 
-def embed_kernel(module=None, local_ns=None, **kwargs):
+def embed_kernel(module=None, local_ns=None, callback=None, **kwargs):
     """Embed and start an IPython kernel in a given scope.
     
     Parameters
@@ -23,6 +23,16 @@ def embed_kernel(module=None, local_ns=None, **kwargs):
         The module to load into IPython globals (default: caller)
     local_ns : dict, optional
         The namespace to load into IPython user namespace (default: caller)
+    callback : function, optional
+        The function to call just before kernel start.
+        Can be used by caller to get connection info. For example:
+
+            def embed_cb(app):
+                # sleep is needed so kernel have time to start
+                os.system('sleep 3 && mate-terminal -e "ipython console --existing %s"'\
+                 % app.connection_file)
+
+            IPython.embed_kernel(callback=embed_cb)
     
     kwargs : various, optional
         Further keyword args are relayed to the IPKernelApp constructor,
@@ -54,4 +64,6 @@ def embed_kernel(module=None, local_ns=None, **kwargs):
     app.kernel.user_module = module
     app.kernel.user_ns = local_ns
     app.shell.set_completer_frame()
+    if callable(callback):
+        callback(app)
     app.start()
