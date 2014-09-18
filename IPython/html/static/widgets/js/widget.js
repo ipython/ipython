@@ -418,7 +418,7 @@ define(["widgets/js/manager",
             // Public constructor
             DOMWidgetView.__super__.initialize.apply(this, [parameters]);
             this.on('displayed', this.show, this);
-            this.model.on('destroy', this.hide, this);
+            this.model.once('destroy', this.hide, this);
             this.after_displayed(function() {
                 this.update_visible(this.model, this.model.get("visible"));
                 this.update_css(this.model, this.model.get("_css"));
