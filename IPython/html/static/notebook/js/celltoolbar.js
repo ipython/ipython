@@ -376,6 +376,7 @@ define([
                 setter(cell, text.val());
             });
             button_container.append($('<span/>').append(lbl));
+            IPython.keyboard_manager.register_events(text);
         };
     };
 
