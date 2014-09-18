@@ -100,7 +100,7 @@ class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
     _model_name = Unicode('WidgetModel', help="""Name of the backbone model 
         registered in the front-end to create and sync this widget with.""")
-    _view_module = Unicode('', help="""A requirejs module in which to find _view_name.
+    _view_module = Unicode(help="""A requirejs module in which to find _view_name.
         If empty, look in the global registry.""", sync=True)
     _view_name = Unicode(None, allow_none=True, help="""Default view registered in the front-end
         to use to represent the widget.""", sync=True)
