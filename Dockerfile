@@ -22,21 +22,3 @@ RUN python setup.py submodule
 # Can't use -e because ipython2 and ipython3 will clobber each other
 RUN pip2 install .
 RUN pip3 install .
-
-EXPOSE 8888
-
-# Generate a wrapper script
-RUN echo "#!/bin/bash\nipython2 kernelspec install-self\nipython3 kernelspec install-self\nipython3 notebook --no-browser --port 8888 --ip=0.0.0.0" > /usr/local/bin/notebook.sh
-RUN chmod a+x /usr/local/bin/notebook.sh
-
-# jupyter is our user
-RUN useradd -m -s /bin/bash jupyter
-
-USER jupyter
-ENV HOME /home/jupyter
-ENV SHELL /bin/bash
-ENV USER jupyter
-
-WORKDIR /home/jupyter/
-
-CMD ["/usr/local/bin/notebook.sh"]
