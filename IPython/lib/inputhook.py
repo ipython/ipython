@@ -549,12 +549,21 @@ register = inputhook_manager.register
 guis = inputhook_manager.guihooks
 
 # Deprecated methods: kept for backwards compatibility, do not use in new code
-enable_wx = lambda app=None: inputhook_manager.enable_gui('wx', app)
-enable_qt4 = lambda app=None: inputhook_manager.enable_gui('qt4', app)
-enable_gtk = lambda app=None: inputhook_manager.enable_gui('gtk', app)
-enable_tk = lambda app=None: inputhook_manager.enable_gui('tk', app)
-enable_glut = lambda app=None: inputhook_manager.enable_gui('glut', app)
-enable_pyglet = lambda app=None: inputhook_manager.enable_gui('pyglet', app)
-enable_gtk3 = lambda app=None: inputhook_manager.enable_gui('gtk3', app)
+def _make_deprecated_enable(name):
+    def enable_toolkit(app=None):
+        warn("This function is deprecated - use enable_gui(%r) instead" % name)
+        inputhook_manager.enable_gui(name, app)
+    
+enable_wx = _make_deprecated_enable('wx')
+enable_qt4 = _make_deprecated_enable('qt4')
+enable_gtk = _make_deprecated_enable('gtk')
+enable_tk = _make_deprecated_enable('tk')
+enable_glut = _make_deprecated_enable('glut')
+enable_pyglet = _make_deprecated_enable('pyglet')
+enable_gtk3 = _make_deprecated_enable('gtk3')
+
+def _deprecated_disable():
+    warn("This function is deprecated: use disable_gui() instead")
+    inputhook_manager.disable_gui()
 disable_wx = disable_qt4 = disable_gtk = disable_gtk3 = disable_glut = \
-        disable_pyglet = inputhook_manager.disable_gui
+        disable_pyglet = _deprecated_disable

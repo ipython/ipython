@@ -31,7 +31,7 @@ button.show()
 window.show()
 
 try:
-    from IPython.lib.inputhook import enable_gtk3
-    enable_gtk3()
+    from IPython.lib.inputhook import enable_gui
+    enable_gui('gtk3')
 except ImportError:
     Gtk.main()

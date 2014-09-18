@@ -33,7 +33,7 @@ button.show()
 window.show()
 
 try:
-    from IPython.lib.inputhook import enable_gtk
-    enable_gtk()
+    from IPython.lib.inputhook import enable_gui
+    enable_gui('gtk')
 except ImportError:
     gtk.main()
