@@ -9,7 +9,7 @@ MAINTAINER IPython Project <ipython-dev@scipy.org>
 # Can't directly add the source as it won't have the submodules
 RUN mkdir -p /srv/
 WORKDIR /srv/
-RUN git clone --recursive https://github.com/ipython/ipython.git
+ADD . /srv/ipython
 WORKDIR /srv/ipython/
 
 # Installing certain dependencies directly
