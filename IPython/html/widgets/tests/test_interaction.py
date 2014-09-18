@@ -21,7 +21,7 @@ import IPython.testing.tools as tt
 # from IPython.core.getipython import get_ipython
 from IPython.html import widgets
 from IPython.html.widgets import interact, interactive, Widget, interaction
-from IPython.utils.py3compat import annotate
+from IPython.utils.py3compat import annotate, unicode_type
 
 #-----------------------------------------------------------------------------
 # Utility stuff
@@ -231,6 +231,17 @@ def test_list_tuple_str():
         value=first,
         values=dvalues
     )
+    check_widgets(c, tup=d, lis=d)
+
+def test_list_tuple_tuple():
+    values = [('name', 'bruce'), ('profession', 'batman')]
+    first = values[0]
+    dvalues = OrderedDict((unicode_type(v), v) for v in values)
+    c = interactive(f, tup=tuple(values), lis=list(values))
+    nt.assert_equal(len(c.children), 2)
+    d = dict(cls=widgets.Dropdown,
+             value=first,
+             values=dvalues)
     check_widgets(c, tup=d, lis=d)
 
 def test_list_tuple_invalid():

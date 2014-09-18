@@ -90,6 +90,8 @@ def _widget_abbrev(o):
     if isinstance(o, (list, tuple)):
         if o and all(isinstance(x, string_types) for x in o):
             return Dropdown(values=[unicode_type(k) for k in o])
+        elif o and all(isinstance(x, tuple) for x in o):
+            return Dropdown(values=o)
         elif _matches(o, (float_or_int, float_or_int)):
             min, max, value = _get_min_max_value(o[0], o[1])
             if all(isinstance(_, int) for _ in o):
