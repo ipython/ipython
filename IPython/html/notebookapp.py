@@ -142,13 +142,17 @@ class NotebookWebApplication(web.Application):
         # make the patterns unicode, and ultimately result in unicode
         # keys in kwargs to handler._execute(**kwargs) in tornado.
         # This enforces that base_url be ascii in that situation.
-        # 
+        #
         # Note that the URLs these patterns check against are escaped,
         # and thus guaranteed to be ASCII: 'héllo' is really 'h%C3%A9llo'.
         base_url = py3compat.unicode_to_str(base_url, 'ascii')
-        template_path = settings_overrides.get("template_path", os.path.join(os.path.dirname(__file__), "templates"))
+        _template_path = settings_overrides.get("template_path", os.path.join(os.path.dirname(__file__), "templates"))
+        if isinstance(_template_path, str):
+            _template_path = (_template_path,)
+        template_path = [os.path.expanduser(path) for path in _template_path]
+
         jenv_opt = jinja_env_options if jinja_env_options else {}
-        env = Environment(loader=FileSystemLoader(template_path),**jenv_opt )
+        env = Environment(loader=FileSystemLoader(template_path), **jenv_opt)
         settings = dict(
             # basics
             log_function=log_request,
