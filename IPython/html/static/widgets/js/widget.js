@@ -331,7 +331,7 @@ define(["widgets/js/manager",
                 old_callback(child_view);
              }}, options || {});
             
-            this.model.widget_manager.create_view(child_model, options, this);
+            this.model.widget_manager.create_view(child_model, options);
         },
 
         pop_child_view: function(child_model) {

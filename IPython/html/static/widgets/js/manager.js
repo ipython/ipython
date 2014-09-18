@@ -7,7 +7,7 @@ define([
     "jquery",
     "base/js/namespace"
 ], function (_, Backbone, $, IPython) {
-
+    "use strict";
     //--------------------------------------------------------------------
     // WidgetManager class
     //--------------------------------------------------------------------
@@ -93,37 +93,37 @@ define([
     };
     
 
-    WidgetManager.prototype.create_view = function(model, options, view) {
+    WidgetManager.prototype.create_view = function(model, options) {
         // Creates a view for a particular model.
         
         var view_name = model.get('_view_name');
         var view_mod = model.get('_view_module');
-        errback = options.errback || function(err) {console.log(err)};
+        var errback = options.errback || function(err) {console.log(err);};
 
         var instantiate_view = function(ViewType) {
             if (ViewType) {
                 // If a view is passed into the method, use that view's cell as
                 // the cell for the view that is created.
                 options = options || {};
-                if (view !== undefined) {
-                    options.cell = view.options.cell;
+                if (options.parent !== undefined) {
+                    options.cell = options.parent.options.cell;
                 }
 
                 // Create and render the view...
                 var parameters = {model: model, options: options};
-                view = new ViewType(parameters);
+                var view = new ViewType(parameters);
                 view.render();
                 model.on('destroy', view.remove, view);
                 options.callback(view);
             } else {
                 errback({unknown_view: true, view_name: view_name,
-                         view_module: view_mod})
+                         view_module: view_mod});
             }
-        }
+        };
 
         if (view_mod) {
             require([view_mod], function(module) {
-                instantiate_view(module[view_name])
+                instantiate_view(module[view_name]);
             }, errback);
         } else {
             instantiate_view(WidgetManager._view_types[view_name]);
