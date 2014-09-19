@@ -369,6 +369,14 @@ class Qt4InputHook(InputHookBase):
         from IPython.external.appnope import nap
         nap()
 
+
+@inputhook_manager.register('qt5')
+class Qt5InputHook(Qt4InputHook):
+    def enable(self, app=None):
+        os.environ['QT_API'] = 'pyqt5'
+        return Qt4InputHook.enable(self, app)
+
+
 @inputhook_manager.register('gtk')
 class GtkInputHook(InputHookBase):
     def enable(self, app=None):
