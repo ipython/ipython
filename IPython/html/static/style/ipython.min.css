@@ -284,12 +284,14 @@ div.traceback-wrapper {
 .undocked-dockable {
   overflow: auto;
   position: fixed !important;
-  top: 0px;
   left: 0px;
   margin-left: 0px !important;
 }
+.undocked-dockable.stretched {
+  top: initial !important;
+}
 .undocked-dockable.stretched .docking-button {
-  display: none;
+  display: none !important;
 }
 .docking-button {
   font-size: 13px;
