@@ -30,6 +30,7 @@ root = Tk()
 app = MyApp(root)
 
 try:
-    from IPython.lib.inputhook import enable_tk; enable_tk(root)
+    from IPython.lib.inputhook import enable_gui
+    enable_gui('tk', root)
 except ImportError:
     root.mainloop()

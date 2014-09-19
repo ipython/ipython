@@ -100,7 +100,7 @@ if __name__ == '__main__':
         frame.Show(True)
 
     try:
-        from IPython.lib.inputhook import enable_wx
-        enable_wx(app)
+        from IPython.lib.inputhook import enable_gui
+        enable_gui('wx', app)
     except ImportError:
         app.MainLoop()

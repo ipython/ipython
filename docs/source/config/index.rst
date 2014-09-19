@@ -30,3 +30,4 @@ Extending and integrating with IPython
    custommagics
    inputtransforms
    callbacks
+   eventloops

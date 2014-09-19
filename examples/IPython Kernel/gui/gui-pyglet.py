@@ -27,7 +27,7 @@ def on_draw():
     label.draw()
 
 try:
-    from IPython.lib.inputhook import enable_pyglet
-    enable_pyglet()
+    from IPython.lib.inputhook import enable_gui
+    enable_gui('pyglet')
 except ImportError:
     pyglet.app.run()
