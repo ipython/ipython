@@ -9,7 +9,8 @@ define([
     'base/js/keyboard',
     'notebook/js/mathjaxutils',
     'components/marked/lib/marked',
-], function(IPython, $, utils, security, keyboard, mathjaxutils, marked) {
+    'base/js/dockable',
+], function(IPython, $, utils, security, keyboard, mathjaxutils, marked, dockable) {
     "use strict";
 
     /**
@@ -58,7 +59,7 @@ define([
         this.prompt_overlay.hide();
         
         this.wrapper.addClass('output_wrapper');
-        utils.make_dockable(this.element, '*', function($el) {
+        dockable.make_dockable(this.element, undefined, function($el) {
             // on dock
             $el.addClass('output');
             $el.removeClass('undocked_output');
