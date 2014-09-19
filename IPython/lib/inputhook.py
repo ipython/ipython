@@ -246,7 +246,12 @@ class InputHookManager(object):
             e = "Invalid GUI request {!r}, valid ones are: {}"
             raise ValueError(e.format(gui, ', '.join(self.guihooks)))
         self._current_gui = gui
-        return gui_hook.enable(app)
+
+        app = gui_hook.enable(app)
+        if app is not None:
+            app._in_event_loop = True
+            self.apps[gui] = app        
+        return app
 
     def disable_gui(self):
         """Disable GUI event loop integration.
@@ -315,8 +320,7 @@ class WxInputHook(InputHookBase):
             app = wx.GetApp()
         if app is None:
             app = wx.App(redirect=False, clearSigInt=False)
-        app._in_event_loop = True
-        self.manager.apps[GUI_WX] = app
+
         return app
 
     def disable(self):
@@ -357,8 +361,6 @@ class Qt4InputHook(InputHookBase):
         self.manager.set_inputhook(inputhook_qt4)
         nope()
 
-        app._in_event_loop = True
-        self.manager.apps[GUI_QT4] = app
         return app
 
     def disable_qt4(self):
@@ -483,7 +485,6 @@ class GlutInputHook(InputHookBase):
             glut.glutDisplayFunc( glut_display )
             glut.glutIdleFunc( glut_idle)
         self.manager.set_inputhook( inputhook_glut )
-        self.manager.apps[GUI_GLUT] = True
 
 
     def disable(self):
@@ -544,7 +545,6 @@ class Gtk3InputHook(InputHookBase):
         """
         from IPython.lib.inputhookgtk3 import inputhook_gtk3
         self.manager.set_inputhook(inputhook_gtk3)
-        self.manager._current_gui = GUI_GTK
 
 
 clear_inputhook = inputhook_manager.clear_inputhook
