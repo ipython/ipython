@@ -8,11 +8,17 @@
 }
 
 .undocked-dockable {
-    overflow    : scroll; 
-    position    : absolute !important;
+    overflow    : auto; 
+    position    : fixed !important;
     top         : 0px; 
     left        : 0px; 
     margin-left : 0px !important;
+}
+
+.undocked-dockable.stretched {
+    .docking-button {
+        display: none;
+    }
 }
 
 .docking-button {

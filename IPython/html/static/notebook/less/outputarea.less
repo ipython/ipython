@@ -173,13 +173,20 @@ p.p-space {
     margin-bottom: 10px;
 }
 
-div.undocked_output {
+div.undocked_output:not(.stretched) {
     .corner-all();
     border: 1px solid @border_color;
     background: @body-bg;
     padding: @code_padding;
     box-shadow: 2.5px 2.5px 20px @navbar-default-border;
 
+}
+
+div.undocked_output.stretched {
+    border-width: 0px;
+    border-top: 1px solid @light_border_color;
+    background: @body-bg;
+    padding: @code_padding;
 }
 
 div.cell div.docked-dockable.output button.close span {

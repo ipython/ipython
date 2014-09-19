@@ -563,7 +563,7 @@ define([
         $dockable.css('z-index', max_zindex);
     };
 
-    var make_dockable = function($el, drag_selector, on_dock, on_undock) {
+    var make_dockable = function($el, drag_selector, on_dock, on_undock, on_drag) {
         $el.docked = true;
         $el.addClass('docked-dockable');
         if (on_dock) { on_dock($el); }                    
@@ -595,12 +595,101 @@ define([
                 .addClass('fa-arrow-down');
             $previous = $el.prev();
             $parent = $el.parent();
+
+            var calculate_drag_bounds = function() {
+                var padding = Math.ceil(2.0 * (parseFloat($el.css('padding')) + parseFloat($el.css('border-width'))));
+                return {
+                    left: 0,
+                    right: $('body').width() - ($el.width() + padding),
+                    top: $('#header').position().top + $('#header').height(),
+                    bottom: window.innerHeight - ($el.height() + padding),
+                };
+            };
+
+            var last_doc_timeout;
+            var query_doc;
+            var dock_zone;
+            var handle_drag = function(event, ui) {
+                var bounds = calculate_drag_bounds();
+                ui.position.left = Math.min(Math.max(ui.position.left, bounds.left), bounds.right);
+                ui.position.top = Math.min(Math.max(ui.position.top, bounds.top), bounds.bottom);
+
+                if ($el.stretched) {
+                    $el.stretched = false;
+                    $el.removeClass('stretched');
+                    $el.width('');
+                    $el.height('');
+                }
+                    
+
+                if (on_drag) { on_drag.apply(this, [event, ui]); }
+
+                if (ui.position.top >= bounds.bottom - 10) {
+                    if (!last_doc_timeout) {
+                        last_doc_timeout = setTimeout(function() { 
+                            last_doc_timeout = undefined;
+                            query_doc = true;
+
+                            dock_zone = $('.dock_zone');
+                            if (!dock_zone.length) {
+                                dock_zone = $('<div />');
+                                dock_zone.addClass('dock_zone');
+                                dock_zone.hide();
+                                dock_zone.height(200);
+                                dock_zone.appendTo('body');    
+                            }
+                            
+                            dock_zone.width($('body').width());
+                            dock_zone.css('position', 'fixed');
+                            dock_zone.css('top', window.innerHeight - dock_zone.height());
+                            dock_zone.css('left', 0);
+                            dock_zone.css('background-color', 'black');
+                            dock_zone.css('opacity', '0.2');
+                            dock_zone.fadeIn(150, 'swing', function() {});
+                        }, 350);    
+                    }                    
+                } else {
+                    if (last_doc_timeout) {
+                        clearTimeout(last_doc_timeout);
+                        last_doc_timeout = undefined;
+                    }
+                    if (query_doc) {
+                        dock_zone.fadeOut(150, 'swing', function() {});
+                    }
+                    query_doc = undefined;
+                }
+            };
+
             $el
                 .removeClass('docked-dockable')
                 .addClass('undocked-dockable')
                 .detach()
                 .appendTo($('body'))
-                .draggable({handle: drag_selector, snap: '#notebook, .modal', snapMode: 'both'});
+                .draggable({
+                    handle: drag_selector, 
+                    snap: '.modal', 
+                    snapMode: 'both',
+                    drag: handle_drag,
+                    stop: function() {
+                        if (query_doc) {
+                            $el.stretched = true;
+                            $el.addClass('stretched');
+                            $el.height(200);
+                            $el.width($('body').width());
+                            $el.css('top', window.innerHeight - $el.height());
+                            $el.css('left', 0);
+                        }
+                        if (last_doc_timeout) {
+                            clearTimeout(last_doc_timeout);
+                            last_doc_timeout = undefined;
+                        }
+                        if (dock_zone) {
+                            dock_zone.hide();
+                        }
+                    },
+                })
+                .css('top', calculate_drag_bounds().top);
+
             $el.find(drag_selector)
                 .click(function() {
                     if (!$el.docked) { _bring_to_front($el); }
