@@ -282,11 +282,14 @@ div.traceback-wrapper {
   margin-left: 0px !important;
 }
 .undocked-dockable {
-  overflow: scroll;
-  position: absolute !important;
+  overflow: auto;
+  position: fixed !important;
   top: 0px;
   left: 0px;
   margin-left: 0px !important;
+}
+.undocked-dockable.stretched .docking-button {
+  display: none;
 }
 .docking-button {
   font-size: 13px;
@@ -940,12 +943,18 @@ input.raw_input:focus {
 p.p-space {
   margin-bottom: 10px;
 }
-div.undocked_output {
+div.undocked_output:not(.stretched) {
   border-radius: 4px;
   border: 1px solid #ababab;
   background: #ffffff;
   padding: 0.4em;
   box-shadow: 2.5px 2.5px 20px #e7e7e7;
+}
+div.undocked_output.stretched {
+  border-width: 0px;
+  border-top: 1px solid #cfcfcf;
+  background: #ffffff;
+  padding: 0.4em;
 }
 div.cell div.docked-dockable.output button.close span {
   visibility: hidden;
