@@ -109,8 +109,9 @@ define([
             view.render();
             model.on('destroy', view.remove, view);
             return view;
+        } else {
+            throw new Error("View name "+view_name+" is not registered");
         }
-        return null;
     };
 
     WidgetManager.prototype.get_msg_cell = function (msg_id) {
