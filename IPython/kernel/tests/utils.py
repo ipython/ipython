@@ -15,7 +15,7 @@ except ImportError:
 import nose
 import nose.tools as nt
 
-from IPython.kernel import KernelManager
+from IPython.kernel import manager
 
 #-------------------------------------------------------------------------------
 # Globals
@@ -30,22 +30,13 @@ KC = None
 #-------------------------------------------------------------------------------
 # code
 #-------------------------------------------------------------------------------
-
-
-def start_new_kernel(argv=None):
-    """start a new kernel, and return its Manager and Client"""
-    km = KernelManager()
-    kwargs = dict(stdout=nose.iptest_stdstreams_fileno(), stderr=STDOUT)
-    if argv:
-        kwargs['extra_arguments'] = argv
-    km.start_kernel(**kwargs)
-    kc = km.client()
-    kc.start_channels()
+def start_new_kernel(**kwargs):
+    """start a new kernel, and return its Manager and Client
     
-    msg_id = kc.kernel_info()
-    kc.get_shell_msg(block=True, timeout=STARTUP_TIMEOUT)
-    flush_channels(kc)
-    return km, kc
+    Integrates with our output capturing for tests.
+    """
+    kwargs.update(dict(stdout=nose.iptest_stdstreams_fileno(), stderr=STDOUT))
+    return manager.start_new_kernel(startup_timeout=STARTUP_TIMEOUT, **kwargs)
 
 def flush_channels(kc=None):
     """flush any messages waiting on the queue"""
@@ -121,7 +112,6 @@ def stop_global_kernel():
     KM.shutdown_kernel(now=True)
     KM = None
 
-@contextmanager
 def new_kernel(argv=None):
     """Context manager for a new kernel in a subprocess
     
@@ -131,13 +121,11 @@ def new_kernel(argv=None):
     -------
     kernel_client: connected KernelClient instance
     """
-    km, kc = start_new_kernel(argv)
-    try:
-        yield kc
-    finally:
-        kc.stop_channels()
-        km.shutdown_kernel(now=True)
-
+    kwargs = dict(stdout=nose.iptest_stdstreams_fileno(), stderr=STDOUT,
+                  startup_timeout=STARTUP_TIMEOUT)
+    if argv is not None:
+        kwargs['extra_arguments'] = argv
+    return manager.run_kernel(**kwargs)
 
 def assemble_output(iopub):
     """assemble stdout/err from an execution"""

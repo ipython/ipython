@@ -5,12 +5,17 @@
 
 from __future__ import absolute_import
 
+from contextlib import contextmanager
 import os
 import re
 import signal
 import sys
 import time
 import warnings
+try:
+    from queue import Empty  # Py 3
+except ImportError:
+    from Queue import Empty  # Py 2
 
 import zmq
 
@@ -410,3 +415,39 @@ class KernelManager(ConnectionFileMixin):
 
 KernelManagerABC.register(KernelManager)
 
+
+def start_new_kernel(startup_timeout=60, kernel_name='python', **kwargs):
+    """Start a new kernel, and return its Manager and Client"""
+    km = KernelManager(kernel_name=kernel_name)
+    km.start_kernel(**kwargs)
+    kc = km.client()
+    kc.start_channels()
+
+    kc.kernel_info()
+    kc.get_shell_msg(block=True, timeout=startup_timeout)
+
+    # Flush channels
+    for channel in (kc.shell_channel, kc.iopub_channel):
+        while True:
+            try:
+                channel.get_msg(block=True, timeout=0.1)
+            except Empty:
+                break
+    return km, kc
+
+@contextmanager
+def run_kernel(**kwargs):
+    """Context manager to create a kernel in a subprocess.
+    
+    The kernel is shut down when the context exits.
+    
+    Returns
+    -------
+    kernel_client: connected KernelClient instance
+    """
+    km, kc = start_new_kernel(**kwargs)
+    try:
+        yield kc
+    finally:
+        kc.stop_channels()
+        km.shutdown_kernel(now=True)

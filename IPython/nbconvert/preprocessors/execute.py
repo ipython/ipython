@@ -46,38 +46,15 @@ class ExecutePreprocessor(Preprocessor):
     }
     
     extra_arguments = List(Unicode)
-    
-    def _create_client(self):
-        from IPython.kernel import KernelManager
-        self.km = KernelManager()
-        self.km.write_connection_file()
-        self.kc = self.km.client()
-        self.kc.start_channels()
-        self.km.start_kernel(extra_arguments=self.extra_arguments, stderr=open(os.devnull, 'w'))
-        self.iopub = self.kc.iopub_channel
-        self.shell = self.kc.shell_channel
-        self.shell.kernel_info()
-        try:
-            self.shell.get_msg(timeout=self.timeout)
-        except Empty:
-            self.log.error("Timeout waiting for kernel_info reply")
-            raise
-        # flush IOPub
-        while True:
-            try:
-                self.iopub.get_msg(block=True, timeout=0.25)
-            except Empty:
-                break
-
-    def _shutdown_client(self):
-        self.kc.stop_channels()
-        self.km.shutdown_kernel()
-        del self.km
 
     def preprocess(self, nb, resources):
-        self._create_client()
-        nb, resources = super(ExecutePreprocessor, self).preprocess(nb, resources)
-        self._shutdown_client()
+        from IPython.kernel import run_kernel
+        kernel_name = nb.metadata.get('kernelspec', {}).get('name', 'python')
+        with run_kernel(kernel_name=kernel_name,
+                        extra_arguments=self.extra_arguments,
+                        stderr=open(os.devnull, 'w')) as kc:
+            self.kc = kc
+            nb, resources = super(ExecutePreprocessor, self).preprocess(nb, resources)
         return nb, resources
 
     def preprocess_cell(self, cell, resources, cell_index):
@@ -87,7 +64,7 @@ class ExecutePreprocessor(Preprocessor):
         if cell.cell_type != 'code':
             return cell, resources
         try:
-            outputs = self.run_cell(self.shell, self.iopub, cell)
+            outputs = self.run_cell(self.kc.shell_channel, self.kc.iopub_channel, cell)
         except Exception as e:
             self.log.error("failed to run cell: " + repr(e))
             self.log.error(str(cell.input))
