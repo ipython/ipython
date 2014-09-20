@@ -1,12 +1,10 @@
-# Designed to be run as 
-# 
-# docker run -it -p 9999:8888 ipython/latest
+# Just installs IPython from master
+# Another Docker container should build from this one to see the Notebook itself
 
 FROM ipython/scipystack
 
 MAINTAINER IPython Project <ipython-dev@scipy.org>
 
-# Can't directly add the source as it won't have the submodules
 RUN mkdir -p /srv/
 WORKDIR /srv/
 ADD . /srv/ipython
