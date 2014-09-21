@@ -16,6 +16,7 @@ from __future__ import absolute_import
 
 import io as stdlib_io
 import os.path
+import stat
 import sys
 
 from subprocess import Popen, PIPE
@@ -134,6 +135,17 @@ def test_atomic_writing():
         f1 = os.path.join(td, 'penguin')
         with stdlib_io.open(f1, 'w') as f:
             f.write(u'Before')
+        
+        if os.name != 'nt':
+            os.chmod(f1, 0o701)
+            orig_mode = stat.S_IMODE(os.stat(f1).st_mode)
+
+        f2 = os.path.join(td, 'flamingo')
+        try:
+            os.symlink(f1, f2)
+            have_symlink = True
+        except (AttributeError, NotImplementedError):
+            have_symlink = False
 
         with nt.assert_raises(CustomExc):
             with atomic_writing(f1) as f:
@@ -149,3 +161,15 @@ def test_atomic_writing():
 
         with stdlib_io.open(f1, 'r') as f:
             nt.assert_equal(f.read(), u'Overwritten')
+
+        if os.name != 'nt':
+            mode = stat.S_IMODE(os.stat(f1).st_mode)
+            nt.assert_equal(mode, orig_mode)
+
+        if have_symlink:
+            # Check that writing over a file preserves a symlink
+            with atomic_writing(f2) as f:
+                f.write(u'written from symlink')
+            
+            with stdlib_io.open(f1, 'r') as f:
+                nt.assert_equal(f.read(), u'written from symlink')
