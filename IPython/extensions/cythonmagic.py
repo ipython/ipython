@@ -37,6 +37,5 @@ def load_ipython_extension(ip):
     if Cython is None or tuple(map(int,Cython.__version__.split('.'))) < (0,21) : 
         print("You need Cython version >=0.21 to use the Cython magic")
         return 
-    if CythonMagics:
-        print("""\nThough, because I am nice, I'll still try to load it for you this time.""")
-        ip.register_magics(CythonMagics)
+    print("""\nThough, because I am nice, I'll still try to load it for you this time.""")
+    Cython.load_ipython_extension(ip)
