@@ -547,7 +547,7 @@ class NotebookApp(BaseIPythonApplication):
     def _mathjax_url_default(self):
         if not self.enable_mathjax:
             return u''
-        static_url_prefix = self.webapp_settings.get("static_url_prefix",
+        static_url_prefix = self.tornado_settings.get("static_url_prefix",
                          url_path_join(self.base_url, "static")
         )
         
@@ -703,15 +703,15 @@ class NotebookApp(BaseIPythonApplication):
     
     def init_webapp(self):
         """initialize tornado webapp and httpserver"""
-        self.webapp_settings['allow_origin'] = self.allow_origin
+        self.tornado_settings['allow_origin'] = self.allow_origin
         if self.allow_origin_pat:
-            self.webapp_settings['allow_origin_pat'] = re.compile(self.allow_origin_pat)
-        self.webapp_settings['allow_credentials'] = self.allow_credentials
+            self.tornado_settings['allow_origin_pat'] = re.compile(self.allow_origin_pat)
+        self.tornado_settings['allow_credentials'] = self.allow_credentials
         
         self.web_app = NotebookWebApplication(
             self, self.kernel_manager, self.contents_manager,
             self.cluster_manager, self.session_manager, self.kernel_spec_manager,
-            self.log, self.base_url, self.default_url, self.webapp_settings,
+            self.log, self.base_url, self.default_url, self.tornado_settings,
             self.jinja_environment_options
         )
         if self.certfile:
