@@ -32,7 +32,7 @@ def load_ipython_extension(ip):
     """Load the extension in IPython."""
     
     print("""The Cython magic has been move to the Cython package, hence """)
-    print("""`%load_ext cythonmagic` is deprecated; Please use `%load_ext cython` instead.""")
+    print("""`%load_ext cythonmagic` is deprecated; Please use `%load_ext Cython` instead.""")
     
     if Cython is None or tuple(map(int,Cython.__version__.split('.'))) < (0,21) : 
         print("You need Cython version >=0.21 to use the Cython magic")
