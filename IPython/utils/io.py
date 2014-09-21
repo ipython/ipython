@@ -260,7 +260,7 @@ def atomic_writing(path, text=True, encoding='utf-8', **kwargs):
     **kwargs
       Passed to :func:`io.open`.
     """
-    path = os.path.realpath(path)  # Deference symlinks
+    path = os.path.realpath(path)  # Dereference symlinks
     dirname, basename = os.path.split(path)
     handle, tmp_path = tempfile.mkstemp(prefix=basename, dir=dirname, text=text)
     if text:
