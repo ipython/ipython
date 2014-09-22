@@ -1277,32 +1277,6 @@ div.cell.text_cell.rendered {
 }
 /* THE CLASSES BELOW CAN APPEAR ANYWHERE IN THE DOM (POSSIBLEY OUTSIDE OF
    THE WIDGET AREA). */
-.widget-hlabel {
-  /* Horizontal Label */
-  min-width: 10ex;
-  padding-right: 8px;
-  padding-top: 5px;
-  text-align: right;
-  vertical-align: text-top;
-}
-.widget-vlabel {
-  /* Vertical Label */
-  padding-bottom: 5px;
-  text-align: center;
-  vertical-align: text-bottom;
-}
-.widget-hreadout {
-  padding-left: 8px;
-  padding-top: 5px;
-  text-align: left;
-  vertical-align: text-top;
-}
-.widget-vreadout {
-  /* Vertical Label */
-  padding-top: 5px;
-  text-align: center;
-  vertical-align: text-top;
-}
 .slide-track {
   /* Slider Track */
   border: 1px solid #CCCCCC;
@@ -1525,69 +1499,8 @@ div.cell.text_cell.rendered {
 .widget_item .dropdown-menu li a {
   color: inherit;
 }
-.widget-box {
-  /* The following section sets the style for the invisible div that
-    hold widgets and their accompanying labels.
-
-    Looks like this:
-    +-----------------------------+
-    | widget-box (or similar)     |
-    |  +-------+---------------+  |
-    |  | Label | Actual Widget |  |
-    |  +-------+---------------+  |
-    +-----------------------------+
-    */
-  margin: 5px;
-  /* Old browsers */
-  -webkit-box-pack: start;
-  -moz-box-pack: start;
-  box-pack: start;
-  /* Modern browsers */
-  justify-content: flex-start;
-  /* Box */
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  /* Old browsers */
-  -webkit-box-align: start;
-  -moz-box-align: start;
-  box-align: start;
-  /* Modern browsers */
-  align-items: flex-start;
-}
 .widget-hbox {
   /* Horizontal widgets */
-  /* The following section sets the style for the invisible div that
-    hold widgets and their accompanying labels.
-
-    Looks like this:
-    +-----------------------------+
-    | widget-box (or similar)     |
-    |  +-------+---------------+  |
-    |  | Label | Actual Widget |  |
-    |  +-------+---------------+  |
-    +-----------------------------+
-    */
-  margin: 5px;
-  /* Old browsers */
-  -webkit-box-pack: start;
-  -moz-box-pack: start;
-  box-pack: start;
-  /* Modern browsers */
-  justify-content: flex-start;
-  /* Box */
-  /* Old browsers */
-  /* Modern browsers */
-  /* Box */
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  /* Old browsers */
-  -webkit-box-align: start;
-  -moz-box-align: start;
-  box-align: start;
-  /* Modern browsers */
-  align-items: flex-start;
   /* Old browsers */
   display: -webkit-box;
   -webkit-box-orient: horizontal;
@@ -1609,97 +1522,25 @@ div.cell.text_cell.rendered {
   /* Modern browsers */
   flex: none;
 }
-.widget-hbox-single {
-  /* Single line horizontal widgets */
-  /* Horizontal widgets */
-  /* The following section sets the style for the invisible div that
-    hold widgets and their accompanying labels.
-
-    Looks like this:
-    +-----------------------------+
-    | widget-box (or similar)     |
-    |  +-------+---------------+  |
-    |  | Label | Actual Widget |  |
-    |  +-------+---------------+  |
-    +-----------------------------+
-    */
-  margin: 5px;
-  /* Old browsers */
-  -webkit-box-pack: start;
-  -moz-box-pack: start;
-  box-pack: start;
-  /* Modern browsers */
-  justify-content: flex-start;
-  /* Box */
-  /* Old browsers */
-  /* Modern browsers */
-  /* Box */
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  /* Old browsers */
-  -webkit-box-align: start;
-  -moz-box-align: start;
-  box-align: start;
-  /* Modern browsers */
-  align-items: flex-start;
-  /* Old browsers */
-  display: -webkit-box;
-  -webkit-box-orient: horizontal;
-  -webkit-box-align: stretch;
-  display: -moz-box;
-  -moz-box-orient: horizontal;
-  -moz-box-align: stretch;
-  display: box;
-  box-orient: horizontal;
-  box-align: stretch;
-  /* Modern browsers */
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  /* Old browsers */
-  -webkit-box-flex: 0;
-  -moz-box-flex: 0;
-  box-flex: 0;
-  /* Modern browsers */
-  flex: none;
-}
-.widget-hbox-single input[type="checkbox"] {
+.widget-hbox input[type="checkbox"] {
   margin-top: 9px;
+}
+.widget-hbox .widget-label {
+  /* Horizontal Label */
+  min-width: 10ex;
+  padding-right: 8px;
+  padding-top: 5px;
+  text-align: right;
+  vertical-align: text-top;
+}
+.widget-hbox .widget-readout {
+  padding-left: 8px;
+  padding-top: 5px;
+  text-align: left;
+  vertical-align: text-top;
 }
 .widget-vbox {
   /* Vertical widgets */
-  /* The following section sets the style for the invisible div that
-    hold widgets and their accompanying labels.
-
-    Looks like this:
-    +-----------------------------+
-    | widget-box (or similar)     |
-    |  +-------+---------------+  |
-    |  | Label | Actual Widget |  |
-    |  +-------+---------------+  |
-    +-----------------------------+
-    */
-  margin: 5px;
-  /* Old browsers */
-  -webkit-box-pack: start;
-  -moz-box-pack: start;
-  box-pack: start;
-  /* Modern browsers */
-  justify-content: flex-start;
-  /* Box */
-  /* Old browsers */
-  /* Modern browsers */
-  /* Box */
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  /* Old browsers */
-  -webkit-box-align: start;
-  -moz-box-align: start;
-  box-align: start;
-  /* Modern browsers */
-  align-items: flex-start;
   /* Old browsers */
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -1720,6 +1561,18 @@ div.cell.text_cell.rendered {
   box-flex: 0;
   /* Modern browsers */
   flex: none;
+}
+.widget-vbox .widget-label {
+  /* Vertical Label */
+  padding-bottom: 5px;
+  text-align: center;
+  vertical-align: text-bottom;
+}
+.widget-vbox .widget-readout {
+  /* Vertical Label */
+  padding-top: 5px;
+  text-align: center;
+  vertical-align: text-top;
 }
 .widget-modal {
   /* Box - ModalView */
