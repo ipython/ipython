@@ -246,6 +246,8 @@ Failed execution may show a traceback
     ``pyerr`` renamed to ``error``
 
 
+.. _raw nbconvert cells:
+
 Raw NBConvert cells
 -------------------
 
@@ -274,3 +276,53 @@ regardless of format.
       },
       "source" : ["some nbformat mime-type data"]
     }
+
+Metadata
+========
+
+Metadata is a place that you can put arbitrary JSONable information about
+your notebook, cell, or output. Because it is a shared namespace,
+any custom metadata should use a sufficiently unique namespace,
+such as `metadata.kaylees_md.foo = "bar"`.
+
+Metadata fields officially defined for Jupyter notebooks are listed here:
+
+Notebook metadata
+-----------------
+
+The following metadata keys are defined at the notebook level:
+
+=========== =============== ==============
+Key         Value           Interpretation
+=========== =============== ==============
+kernelspec  dict            A kernel specification. More detail :ref:`here <kernelspecs>`
+signature   str             A hashed signature of the notebook
+=========== =============== ==============
+
+
+Cell metadata
+-------------
+
+The following metadata keys are defined at the cell level:
+
+=========== =============== ==============
+Key         Value           Interpretation
+=========== =============== ==============
+collapsed   bool            Whether the cell's output container should be collapsed
+autoscroll  bool or 'auto'  Whether the cell's output is scrolled, unscrolled, or autoscrolled
+deletable   bool            If False, prevent deletion of the cell
+format      'mime/type'     The mime-type of a :ref:`Raw NBConvert Cell <raw nbconvert cells>`
+name        str             A name for the cell. Should be unique
+tags        list of str     A list of string tags on the cell. Commas are not allowed in a tag
+=========== =============== ==============
+
+Output metadata
+---------------
+
+The following metadata keys are defined for code cell outputs:
+
+=========== =============== ==============
+Key         Value           Interpretation
+=========== =============== ==============
+isolated    bool            Whether the output should be isolated into an IFrame
+=========== =============== ==============
