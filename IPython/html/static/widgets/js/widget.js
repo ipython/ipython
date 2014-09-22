@@ -152,11 +152,12 @@ define(["widgets/js/manager",
             var attrs = (method === 'patch') ? options.attrs : model.toJSON(options);
             if (this.state_lock !== null) {
                 var keys = Object.keys(this.state_lock);
-                for (var i=0; i<keys.length; i++)
+                for (var i=0; i<keys.length; i++) {
                     var key = keys[i];
                     if (attrs[key] === this.state_lock[key]) {
                         delete attrs[key];
                     }
+                }
             }
 
             // Only sync if there are attributes to send to the back-end.
