@@ -4,6 +4,7 @@
 from __future__ import print_function
 import json
 import os
+import warnings
 
 try:
     from jsonschema import ValidationError
@@ -24,13 +25,34 @@ from IPython.utils.importstring import import_item
 
 validators = {}
 
-def get_validator(version=None):
+def _relax_additional_properties(obj):
+    """relax any `additionalProperties`"""
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            if key == 'additionalProperties':
+                print(obj)
+                value = True
+            else:
+                value = _relax_additional_properties(value)
+            obj[key] = value
+    elif isinstance(obj, list):
+        for i, value in enumerate(obj):
+            obj[i] = _relax_additional_properties(value)
+    return obj
+
+def get_validator(version=None, version_minor=None):
     """Load the JSON schema into a Validator"""
     if version is None:
         from .current import nbformat as version
 
-    if version not in validators:
-        v = import_item("IPython.nbformat.v%s" % version)
+    v = import_item("IPython.nbformat.v%s" % version)
+    current_minor = v.nbformat_minor
+    if version_minor is None:
+        version_minor = current_minor
+
+    version_tuple = (version, version_minor)
+
+    if version_tuple not in validators:
         try:
             v.nbformat_schema
         except AttributeError:
@@ -39,10 +61,15 @@ def get_validator(version=None):
         schema_path = os.path.join(os.path.dirname(v.__file__), v.nbformat_schema)
         with open(schema_path) as f:
             schema_json = json.load(f)
-        validators[version] = Validator(schema_json)
-    return validators[version]
 
-def isvalid(nbjson, ref=None, version=None):
+        if current_minor < version_minor:
+            # notebook from the future, relax all `additionalProperties: False` requirements
+            schema_json = _relax_additional_properties(schema_json)
+
+        validators[version_tuple] = Validator(schema_json)
+    return validators[version_tuple]
+
+def isvalid(nbjson, ref=None, version=None, version_minor=None):
     """Checks whether the given notebook JSON conforms to the current
     notebook format schema. Returns True if the JSON is valid, and
     False otherwise.
@@ -51,14 +78,14 @@ def isvalid(nbjson, ref=None, version=None):
     `validate` function instead.
     """
     try:
-        validate(nbjson, ref, version)
+        validate(nbjson, ref, version, version_minor)
     except ValidationError:
         return False
     else:
         return True
 
 
-def better_validation_error(error, version):
+def better_validation_error(error, version, version_minor):
     """Get better ValidationError on oneOf failures
 
     oneOf errors aren't informative.
@@ -79,10 +106,11 @@ def better_validation_error(error, version):
             try:
                 validate(error.instance,
                     ref,
-                    version=version
+                    version=version,
+                    version_minor=version_minor,
                 )
             except ValidationError as e:
-                return better_validation_error(e, version)
+                return better_validation_error(e, version, version_minor)
             except:
                 # if it fails for some reason,
                 # let the original error through
@@ -91,20 +119,21 @@ def better_validation_error(error, version):
     return error
 
 
-def validate(nbjson, ref=None, version=None):
+def validate(nbjson, ref=None, version=None, version_minor=None):
     """Checks whether the given notebook JSON conforms to the current
     notebook format schema.
 
     Raises ValidationError if not valid.
     """
     if version is None:
-        from .current import nbformat
-        version = nbjson.get('nbformat', nbformat)
+        from .reader import get_version
+        (version, version_minor) = get_version(nbjson)
 
-    validator = get_validator(version)
+    validator = get_validator(version, version_minor)
 
     if validator is None:
         # no validator
+        warnings.warn("No schema for validating v%s notebooks" % version, UserWarning)
         return
 
     try:
@@ -113,5 +142,5 @@ def validate(nbjson, ref=None, version=None):
         else:
             return validator.validate(nbjson)
     except ValidationError as e:
-        raise better_validation_error(e, version)
+        raise better_validation_error(e, version, version_minor)
 

@@ -43,3 +43,12 @@ class TestValidator(TestsBase):
             validate(nb)
         self.assertEqual(isvalid(nb), False)
 
+    def test_future(self):
+        """Test than a notebook from the future with extra keys passes validation"""
+        with self.fopen(u'test3plus.ipynb', u'r') as f:
+            nb = read(f)
+        with self.assertRaises(ValidationError):
+            validate(nb, version=3)
+
+        self.assertEqual(isvalid(nb, version=3), False)
+        self.assertEqual(isvalid(nb), True)
