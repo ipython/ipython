@@ -1521,6 +1521,7 @@ div.cell.text_cell.rendered {
   box-flex: 0;
   /* Modern browsers */
   flex: none;
+  margin: 5px;
 }
 .widget-hbox input[type="checkbox"] {
   margin-top: 9px;
