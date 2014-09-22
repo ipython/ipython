@@ -11,10 +11,10 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox-single');
+                .addClass('widget-hbox');
             this.$label = $('<div />')
                 .appendTo(this.$el)
-                .addClass('widget-hlabel')
+                .addClass('widget-label')
                 .hide();
             
             this.$slider = $('<div />')
@@ -122,26 +122,16 @@ define([
                         .removeClass('widget-hslider')
                         .addClass('widget-vslider');
                     this.$el
-                        .removeClass('widget-hbox-single');
-                    this.$label
-                        .removeClass('widget-hlabel')
-                        .addClass('widget-vlabel');
-                    this.$readout
-                        .removeClass('widget-hreadout')
-                        .addClass('widget-vreadout');
+                        .removeClass('widget-hbox')
+                        .addClass('widget-vbox');
 
                 } else {
                     this.$slider_container
                         .removeClass('widget-vslider')
                         .addClass('widget-hslider');
                     this.$el
-                        .addClass('widget-hbox-single');
-                    this.$label
-                        .removeClass('widget-vlabel')
-                        .addClass('widget-hlabel');
-                    this.$readout
-                        .removeClass('widget-vreadout')
-                        .addClass('widget-hreadout');
+                        .removeClass('widget-vbox')
+                        .addClass('widget-hbox');
                 }
 
                 var description = this.model.get('description');
@@ -198,10 +188,10 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox-single');
+                .addClass('widget-hbox');
             this.$label = $('<div />')
                 .appendTo(this.$el)
-                .addClass('widget-hlabel')
+                .addClass('widget-label')
                 .hide();
             this.$textbox = $('<input type="text" />')
                 .addClass('form-control')
@@ -306,10 +296,10 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox-single');
+                .addClass('widget-hbox');
             this.$label = $('<div />')
                 .appendTo(this.$el)
-                .addClass('widget-hlabel')
+                .addClass('widget-label')
                 .hide();
             this.$progress = $('<div />')
                 .addClass('progress')

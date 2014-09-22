@@ -12,10 +12,10 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox-single');
+                .addClass('widget-hbox');
             this.$label = $('<div />')
                 .appendTo(this.$el)
-                .addClass('widget-hlabel')
+                .addClass('widget-label')
                 .hide();
             this.$buttongroup = $('<div />')
                 .addClass('widget_item')
@@ -155,7 +155,7 @@ define([
                 .addClass('widget-hbox');
             this.$label = $('<div />')
                 .appendTo(this.$el)
-                .addClass('widget-hlabel')
+                .addClass('widget-label')
                 .hide();
             this.$container = $('<div />')
                 .appendTo(this.$el)
@@ -251,10 +251,10 @@ define([
         render: function() {
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox-single');
+                .addClass('widget-hbox');
             this.$label = $('<div />')
                 .appendTo(this.$el)
-                .addClass('widget-hlabel')
+                .addClass('widget-label')
                 .hide();
             this.$buttongroup = $('<div />')
                 .addClass('btn-group')
@@ -384,7 +384,7 @@ define([
                 .addClass('widget-hbox');
             this.$label = $('<div />')
                 .appendTo(this.$el)
-                .addClass('widget-hlabel')
+                .addClass('widget-label')
                 .hide();
             this.$listbox = $('<select />')
                 .addClass('widget-listbox form-control')

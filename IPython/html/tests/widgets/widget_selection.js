@@ -6,8 +6,8 @@ casper.notebook_test(function () {
         'print("Success")');
     this.execute_cell_then(index);
 
-    var combo_selector = '.widget-area .widget-subarea .widget-hbox-single .btn-group .widget-combo-btn';
-    var multibtn_selector = '.widget-area .widget-subarea .widget-hbox-single .btn-group[data-toggle="buttons-radio"]';
+    var combo_selector = '.widget-area .widget-subarea .widget-hbox .btn-group .widget-combo-btn';
+    var multibtn_selector = '.widget-area .widget-subarea .widget-hbox .btn-group[data-toggle="buttons-radio"]';
     var radio_selector = '.widget-area .widget-subarea .widget-hbox .widget-radio-box';
     var list_selector = '.widget-area .widget-subarea .widget-hbox .widget-listbox';
 
@@ -115,7 +115,7 @@ casper.notebook_test(function () {
         this.test.assert(verify_selection(this, 3), 'Multibutton selection updated view states correctly.');
 
         // Verify that selecting a combobox option updates all of the others.
-        this.cell_element_function(selection_index, '.widget-area .widget-subarea .widget-hbox-single .btn-group ul.dropdown-menu li:nth-child(3) a', 'click');
+        this.cell_element_function(selection_index, '.widget-area .widget-subarea .widget-hbox .btn-group ul.dropdown-menu li:nth-child(3) a', 'click');
     });
     this.wait_for_idle();
     this.then(function () {
