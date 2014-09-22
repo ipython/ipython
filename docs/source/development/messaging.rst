@@ -281,6 +281,10 @@ Message type: ``execute_request``::
     # If raw_input is called from code executed from such a frontend,
     # a StdinNotImplementedError will be raised.
     'allow_stdin' : True,
+    
+    # A boolean flag, which, if True, does not abort the execution queue, if an exception is encountered.
+    # This allows the queued execution of multiple execute_requests, even if they generate exceptions.
+    'skip_exceptions' : True,
     }
 
 .. versionchanged:: 5.0
