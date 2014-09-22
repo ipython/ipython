@@ -9,7 +9,7 @@ from .widget_int import IntText, BoundedIntText, IntSlider, IntProgress, IntRang
 from .widget_selection import RadioButtons, ToggleButtons, Dropdown, Select
 from .widget_selectioncontainer import Tab, Accordion
 from .widget_string import HTML, Latex, Text, Textarea
-from .interaction import interact, interactive, fixed, interact_choose
+from .interaction import interact, interactive, fixed, interact_manual
 
 # Deprecated classes
 from .widget_bool import CheckboxWidget, ToggleButtonWidget
