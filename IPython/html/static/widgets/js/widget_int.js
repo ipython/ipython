@@ -28,7 +28,7 @@ define([
             
             this.$readout = $('<div/>')
                 .appendTo(this.$el)
-                .addClass('widget-hreadout')
+                .addClass('widget-readout')
                 .hide();
 
             this.model.on('change:slider_color', function(sender, value) {
