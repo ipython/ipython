@@ -14,7 +14,7 @@ Represents an unbounded float using a widget.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget
-from IPython.utils.traitlets import Unicode, CFloat, Bool, Enum, Tuple
+from IPython.utils.traitlets import Unicode, CFloat, Bool, CaselessStrEnum, Tuple
 from IPython.utils.warn import DeprecatedClass
 
 #-----------------------------------------------------------------------------
@@ -53,14 +53,21 @@ class BoundedFloatText(_BoundedFloat):
 
 class FloatSlider(_BoundedFloat):
     _view_name = Unicode('FloatSliderView', sync=True)
-    orientation = Enum([u'horizontal', u'vertical'], u'horizontal', 
-        help="Vertical or horizontal.", sync=True)
+    orientation = CaselessStrEnum(values=['horizontal', 'vertical'], 
+        default_value='horizontal', 
+        help="Vertical or horizontal.", allow_none=False, sync=True)
     _range = Bool(False, help="Display a range selector", sync=True)
     readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
+    slider_color = Unicode(sync=True)
 
 
 class FloatProgress(_BoundedFloat):
     _view_name = Unicode('ProgressView', sync=True)
+
+    bar_style = CaselessStrEnum(
+        values=['success', 'info', 'warning', 'danger', ''], 
+        default_value='', allow_none=True, sync=True, help="""Use a
+        predefined styling for the progess bar.""")
 
 class _FloatRange(_Float):
     value = Tuple(CFloat, CFloat, default_value=(0.0, 1.0), help="Tuple of (lower, upper) bounds", sync=True)
@@ -158,10 +165,12 @@ class _BoundedFloatRange(_FloatRange):
 
 class FloatRangeSlider(_BoundedFloatRange):
     _view_name = Unicode('FloatSliderView', sync=True)
-    orientation = Enum([u'horizontal', u'vertical'], u'horizontal',
+    orientation = CaselessStrEnum(values=['horizontal', 'vertical'], 
+        default_value='horizontal', allow_none=False, 
         help="Vertical or horizontal.", sync=True)
     _range = Bool(True, help="Display a range selector", sync=True)
     readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
+    slider_color = Unicode(sync=True)
 
 # Remove in IPython 4.0
 FloatTextWidget = DeprecatedClass(FloatText, 'FloatTextWidget')

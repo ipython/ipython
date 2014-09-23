@@ -14,7 +14,7 @@ Represents a boolean using a widget.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget
-from IPython.utils.traitlets import Unicode, Bool
+from IPython.utils.traitlets import Unicode, Bool, CaselessStrEnum
 from IPython.utils.warn import DeprecatedClass
 
 #-----------------------------------------------------------------------------
@@ -36,6 +36,11 @@ class ToggleButton(_Bool):
     """Displays a boolean `value`."""
     
     _view_name = Unicode('ToggleButtonView', sync=True)
+
+    button_style = CaselessStrEnum(
+        values=['primary', 'success', 'info', 'warning', 'danger', ''], 
+        default_value='', allow_none=True, sync=True, help="""Use a
+        predefined styling for the button.""")
 
 
 # Remove in IPython 4.0

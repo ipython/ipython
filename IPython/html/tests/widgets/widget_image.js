@@ -23,11 +23,7 @@ casper.notebook_test(function () {
         'image.value = data\n' +
         'image.width = "50px"\n' +
         'image.height = "50px"\n' +
-        // Set css that will make the image render within the PhantomJS visible
-        // window.  If we don't do this, the captured image will be black.
-        'image.set_css({"background": "blue", "z-index": "9999", "position": "fixed", "top": "0px", "left": "0px"})\n' + 
         'display(image)\n' + 
-        'image.add_class("my-test-image")\n' + 
         'print("Success")\n');
     this.execute_cell_then(image_index, function(index){
 

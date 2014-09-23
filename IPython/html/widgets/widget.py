@@ -18,7 +18,8 @@ import collections
 from IPython.core.getipython import get_ipython
 from IPython.kernel.comm import Comm
 from IPython.config import LoggingConfigurable
-from IPython.utils.traitlets import Unicode, Dict, Instance, Bool, List, Tuple, Int, Set
+from IPython.utils.traitlets import Unicode, Dict, Instance, Bool, List, \
+    CaselessStrEnum, Tuple, CUnicode, Int, Set
 from IPython.utils.py3compat import string_types
 
 #-----------------------------------------------------------------------------
@@ -379,100 +380,60 @@ class Widget(LoggingConfigurable):
 
 class DOMWidget(Widget):
     visible = Bool(True, help="Whether the widget is visible.", sync=True)
-    _css = List(sync=True) # Internal CSS property list: (selector, key, value)
+    _css = Tuple(sync=True, help="CSS property list: (selector, key, value)")
+    _dom_classes = Tuple(sync=True, help="DOM classes applied to widget.$el.")
+    
+    width = CUnicode(sync=True)
+    height = CUnicode(sync=True)
+    padding = CUnicode(sync=True)
+    margin = CUnicode(sync=True)
 
-    def get_css(self, key, selector=""):
-        """Get a CSS property of the widget.
+    color = Unicode(sync=True)
+    background_color = Unicode(sync=True)
+    border_color = Unicode(sync=True)
 
-        Note: This function does not actually request the CSS from the 
-        front-end;  Only properties that have been set with set_css can be read.
+    border_width = CUnicode(sync=True)
+    border_radius = CUnicode(sync=True)
+    border_style = CaselessStrEnum(values=[ # http://www.w3schools.com/cssref/pr_border-style.asp
+        'none', 
+        'hidden', 
+        'dotted', 
+        'dashed', 
+        'solid', 
+        'double', 
+        'groove', 
+        'ridge', 
+        'inset', 
+        'outset', 
+        'initial', 
+        'inherit', ''],
+        default_value='', sync=True)
 
-        Parameters
-        ----------
-        key: unicode
-            CSS key
-        selector: unicode (optional)
-            JQuery selector used when the CSS key/value was set.
-        """
-        if selector in self._css and key in self._css[selector]:
-            return self._css[selector][key]
-        else:
-            return None
+    font_style = CaselessStrEnum(values=[ # http://www.w3schools.com/cssref/pr_font_font-style.asp
+        'normal', 
+        'italic', 
+        'oblique', 
+        'initial', 
+        'inherit', ''], 
+        default_value='', sync=True)
+    font_weight = CaselessStrEnum(values=[ # http://www.w3schools.com/cssref/pr_font_weight.asp
+        'normal', 
+        'bold', 
+        'bolder', 
+        'lighter',
+        'initial', 
+        'inherit', ''] + [str(100 * (i+1)) for i in range(9)], 
+        default_value='', sync=True)
+    font_size = CUnicode(sync=True)
+    font_family = Unicode(sync=True)
 
-    def set_css(self, dict_or_key, value=None, selector=''):
-        """Set one or more CSS properties of the widget.
+    def __init__(self, *pargs, **kwargs):
+        super(DOMWidget, self).__init__(*pargs, **kwargs)
 
-        This function has two signatures:
-        - set_css(css_dict, selector='')
-        - set_css(key, value, selector='')
-
-        Parameters
-        ----------
-        css_dict : dict
-            CSS key/value pairs to apply
-        key: unicode
-            CSS key
-        value:
-            CSS value
-        selector: unicode (optional, kwarg only)
-            JQuery selector to use to apply the CSS key/value.  If no selector 
-            is provided, an empty selector is used.  An empty selector makes the 
-            front-end try to apply the css to a default element.  The default
-            element is an attribute unique to each view, which is a DOM element
-            of the view that should be styled with common CSS (see 
-            `$el_to_style` in the Javascript code).
-        """
-        if value is None:
-            css_dict = dict_or_key
-        else:
-            css_dict = {dict_or_key: value}
-        
-        for (key, value) in css_dict.items():
-            # First remove the selector/key pair from the css list if it exists.
-            # Then add the selector/key pair and new value to the bottom of the 
-            # list.
-            self._css = [x for x in self._css if not (x[0]==selector and x[1]==key)]
-            self._css += [(selector, key, value)]
-        self.send_state('_css')
-
-    def add_class(self, class_names, selector=""):
-        """Add class[es] to a DOM element.
-
-        Parameters
-        ----------
-        class_names: unicode or list
-            Class name(s) to add to the DOM element(s).
-        selector: unicode (optional)
-            JQuery selector to select the DOM element(s) that the class(es) will
-            be added to.
-        """
-        class_list = class_names
-        if isinstance(class_list, (list, tuple)):
-            class_list = ' '.join(class_list)
-
-        self.send({
-            "msg_type"   : "add_class",
-            "class_list" : class_list,
-            "selector"   : selector
-        })
-
-    def remove_class(self, class_names, selector=""):
-        """Remove class[es] from a DOM element.
-
-        Parameters
-        ----------
-        class_names: unicode or list
-            Class name(s) to remove from  the DOM element(s).
-        selector: unicode (optional)
-            JQuery selector to select the DOM element(s) that the class(es) will
-            be removed from.
-        """
-        class_list = class_names
-        if isinstance(class_list, (list, tuple)):
-            class_list = ' '.join(class_list)
-
-        self.send({
-            "msg_type"   : "remove_class",
-            "class_list" : class_list,
-            "selector"   : selector,
-        })
+        def _validate_border(name, old, new):
+            if new is not None and new != '':
+                if name != 'border_width' and not self.border_width:
+                    self.border_width = 1
+                if name != 'border_style' and self.border_style == '':
+                    self.border_style = 'solid'
+        self.on_trait_change(_validate_border, ['border_width', 'border_style', 'border_color'])

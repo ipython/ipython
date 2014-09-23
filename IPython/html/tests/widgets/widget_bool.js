@@ -22,19 +22,19 @@ casper.notebook_test(function () {
             'Widget subarea exists.');
 
         this.test.assert(this.cell_element_exists(index, 
-            '.widget-area .widget-subarea .widget-hbox-single input'),
+            '.widget-area .widget-subarea .widget-hbox input'),
             'Checkbox exists.');
 
         this.test.assert(this.cell_element_function(index, 
-            '.widget-area .widget-subarea .widget-hbox-single input', 'prop', ['checked']),
+            '.widget-area .widget-subarea .widget-hbox input', 'prop', ['checked']),
             'Checkbox is checked.');
 
         this.test.assert(this.cell_element_exists(index, 
-            '.widget-area .widget-subarea .widget-hbox-single .widget-hlabel'),
+            '.widget-area .widget-subarea .widget-hbox .widget-label'),
             'Checkbox label exists.');
 
         this.test.assert(this.cell_element_function(index, 
-            '.widget-area .widget-subarea .widget-hbox-single .widget-hlabel', 'html')=="Title",
+            '.widget-area .widget-subarea .widget-hbox .widget-label', 'html')=="Title",
             'Checkbox labeled correctly.');
 
         this.test.assert(this.cell_element_exists(index, 
@@ -61,7 +61,7 @@ casper.notebook_test(function () {
             'Change bool widget value cell executed with correct output.');
 
         this.test.assert(! this.cell_element_function(bool_index, 
-            '.widget-area .widget-subarea .widget-hbox-single input', 'prop', ['checked']),
+            '.widget-area .widget-subarea .widget-hbox input', 'prop', ['checked']),
             'Checkbox is not checked. (1)');
 
         this.test.assert(! this.cell_element_function(bool_index, 
@@ -69,10 +69,10 @@ casper.notebook_test(function () {
             'Toggle button is not toggled. (1)');
  
         // Try toggling the bool by clicking on the checkbox.
-        this.cell_element_function(bool_index, '.widget-area .widget-subarea .widget-hbox-single input', 'click');
+        this.cell_element_function(bool_index, '.widget-area .widget-subarea .widget-hbox input', 'click');
 
         this.test.assert(this.cell_element_function(bool_index, 
-            '.widget-area .widget-subarea .widget-hbox-single input', 'prop', ['checked']),
+            '.widget-area .widget-subarea .widget-hbox input', 'prop', ['checked']),
             'Checkbox is checked. (2)');
 
         // Try toggling the bool by clicking on the toggle button.

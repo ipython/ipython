@@ -15,7 +15,7 @@ click events on the button and trigger backend code when the clicks are fired.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget, CallbackDispatcher
-from IPython.utils.traitlets import Unicode, Bool
+from IPython.utils.traitlets import Unicode, Bool, CaselessStrEnum
 from IPython.utils.warn import DeprecatedClass
 
 #-----------------------------------------------------------------------------
@@ -31,6 +31,11 @@ class Button(DOMWidget):
     # Keys
     description = Unicode('', help="Description of the button (label).", sync=True)
     disabled = Bool(False, help="Enable or disable user changes.", sync=True)
+
+    button_style = CaselessStrEnum(
+        values=['primary', 'success', 'info', 'warning', 'danger', ''], 
+        default_value='', allow_none=True, sync=True, help="""Use a
+        predefined styling for the button.""")
     
     def __init__(self, **kwargs):
         """Constructor"""

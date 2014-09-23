@@ -50,7 +50,7 @@ define([
                 .addClass('widget-hbox');
             this.$label = $('<div />')
                 .appendTo(this.$el)
-                .addClass('widget-hlabel')
+                .addClass('widget-label')
                 .hide();
             this.$textbox = $('<textarea />')
                 .attr('rows', 5)
@@ -107,6 +107,11 @@ define([
             }
             return TextareaView.__super__.update.apply(this);
         },
+
+        update_attr: function(name, value) {
+            // Set a css attr of the widget view.
+            this.$textbox.css(name, value);
+        },
         
         events: {
             // Dictionary of events and their handlers.
@@ -130,9 +135,9 @@ define([
         render: function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox-single');
+                .addClass('widget-hbox');
             this.$label = $('<div />')
-                .addClass('widget-hlabel')
+                .addClass('widget-label')
                 .appendTo(this.$el)
                 .hide();
             this.$textbox = $('<input type="text" />')
@@ -177,6 +182,11 @@ define([
                 }
             }
             return TextView.__super__.update.apply(this);
+        },
+
+        update_attr: function(name, value) {
+            // Set a css attr of the widget view.
+            this.$textbox.css(name, value);
         },
         
         events: {

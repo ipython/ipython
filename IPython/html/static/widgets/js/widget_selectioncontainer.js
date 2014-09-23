@@ -152,6 +152,11 @@ define([
             }, this);
         },
 
+        update_attr: function(name, value) {
+            // Set a css attr of the widget view.
+            this.$tabs.css(name, value);
+        },
+
         update_children: function(old_list, new_list) {
             // Called when the children list is modified.
             this.do_diff(old_list, 

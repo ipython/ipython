@@ -14,6 +14,20 @@ define([
             this.model.on('change:children', function(model, value) {
                 this.update_children(model.previous('children'), value);
             }, this);
+            this.model.on('change:overflow_x', function(model, value) {
+                this.update_overflow_x();
+            }, this);
+            this.model.on('change:overflow_y', function(model, value) {
+                this.update_overflow_y();
+            }, this);
+            this.model.on('change:box_style', function(model, value) {
+                this.update_box_style();
+            }, this);
+        },
+
+        update_attr: function(name, value) {
+            // Set a css attr of the widget view.
+            this.$box.css(name, value);
         },
 
         render: function(){
@@ -21,6 +35,29 @@ define([
             this.$box = this.$el;
             this.$box.addClass('widget-box');
             this.update_children([], this.model.get('children'));
+            this.update_overflow_x();
+            this.update_overflow_y();
+            this.update_box_style('');
+        },
+
+        update_overflow_x: function() {
+            // Called when the x-axis overflow setting is changed.
+            this.$box.css('overflow-x', this.model.get('overflow_x'));
+        },
+
+        update_overflow_y: function() {
+            // Called when the y-axis overflow setting is changed.
+            this.$box.css('overflow-y', this.model.get('overflow_y'));
+        },
+
+        update_box_style: function(previous_trait_value) {
+            var class_map = {
+                success: ['alert', 'alert-success'],
+                info: ['alert', 'alert-info'],
+                warning: ['alert', 'alert-warning'],
+                danger: ['alert', 'alert-danger']
+            };
+            this.update_mapped_classes(class_map, 'box_style', previous_trait_value, this.$box);
         },
         
         update_children: function(old_list, new_list) {
@@ -142,8 +179,8 @@ define([
                     that.popped_out = !that.popped_out;
                     if (!that.popped_out) {
                         that.$minimize
-                            .removeClass('fa fa-arrow-down')
-                            .addClass('fa fa-arrow-up');
+                            .removeClass('fa-arrow-down')
+                            .addClass('fa-arrow-up');
                             
                         that.$window
                             .draggable('destroy')
@@ -156,8 +193,8 @@ define([
                         that.$close.hide();
                     } else {
                         that.$minimize
-                            .addClass('fa fa-arrow-down')
-                            .removeClass('fa fa-arrow-up');
+                            .addClass('fa-arrow-down')
+                            .removeClass('fa-arrow-up');
 
                         that.$window
                             .removeClass('docked-widget-modal')

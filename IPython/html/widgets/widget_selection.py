@@ -18,7 +18,7 @@ from collections import OrderedDict
 from threading import Lock
 
 from .widget import DOMWidget
-from IPython.utils.traitlets import Unicode, List, Bool, Any, Dict, TraitError
+from IPython.utils.traitlets import Unicode, List, Bool, Any, Dict, TraitError, CaselessStrEnum
 from IPython.utils.py3compat import unicode_type
 from IPython.utils.warn import DeprecatedClass
 
@@ -115,10 +115,20 @@ class ToggleButtons(_Selection):
     button can be toggled at any point in time.""" 
     _view_name = Unicode('ToggleButtonsView', sync=True)
 
+    button_style = CaselessStrEnum(
+        values=['primary', 'success', 'info', 'warning', 'danger', ''], 
+        default_value='', allow_none=True, sync=True, help="""Use a
+        predefined styling for the buttons.""")
+
 
 class Dropdown(_Selection):
     """Allows you to select a single item from a dropdown."""
     _view_name = Unicode('DropdownView', sync=True)
+
+    button_style = CaselessStrEnum(
+        values=['primary', 'success', 'info', 'warning', 'danger', ''], 
+        default_value='', allow_none=True, sync=True, help="""Use a
+        predefined styling for the buttons.""")
 
 
 class RadioButtons(_Selection):

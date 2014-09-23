@@ -11,10 +11,10 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox-single');
+                .addClass('widget-hbox');
             this.$label = $('<div />')
                 .appendTo(this.$el)
-                .addClass('widget-hlabel')
+                .addClass('widget-label')
                 .hide();
             
             this.$slider = $('<div />')
@@ -28,11 +28,32 @@ define([
             
             this.$readout = $('<div/>')
                 .appendTo(this.$el)
-                .addClass('widget-hreadout')
+                .addClass('widget-readout')
                 .hide();
+
+            this.model.on('change:slider_color', function(sender, value) {
+                this.$slider.find('a').css('background', value);
+            }, this);
+            this.$slider.find('a').css('background', this.model.get('slider_color'));
             
             // Set defaults.
             this.update();
+        },
+
+        update_attr: function(name, value) {
+            // Set a css attr of the widget view.
+            if (name == 'color') {
+                this.$readout.css(name, value);
+            } else if (name.substring(0, 4) == 'font') {
+                this.$readout.css(name, value);
+            } else if (name.substring(0, 6) == 'border') {
+                this.$slider.find('a').css(name, value);
+                this.$slider_container.css(name, value);
+            } else if (name == 'width' || name == 'height' || name == 'background') {
+                this.$slider_container.css(name, value);
+            } else {
+                this.$slider.css(name, value);
+            }
         },
         
         update : function(options){
@@ -102,28 +123,16 @@ define([
                         .removeClass('widget-hslider')
                         .addClass('widget-vslider');
                     this.$el
-                        .removeClass('widget-hbox-single')
-                        .addClass('widget-vbox-single');
-                    this.$label
-                        .removeClass('widget-hlabel')
-                        .addClass('widget-vlabel');
-                    this.$readout
-                        .removeClass('widget-hreadout')
-                        .addClass('widget-vreadout');
+                        .removeClass('widget-hbox')
+                        .addClass('widget-vbox');
 
                 } else {
                     this.$slider_container
                         .removeClass('widget-vslider')
                         .addClass('widget-hslider');
                     this.$el
-                        .removeClass('widget-vbox-single')
-                        .addClass('widget-hbox-single');
-                    this.$label
-                        .removeClass('widget-vlabel')
-                        .addClass('widget-hlabel');
-                    this.$readout
-                        .removeClass('widget-vreadout')
-                        .addClass('widget-hreadout');
+                        .removeClass('widget-vbox')
+                        .addClass('widget-hbox');
                 }
 
                 var description = this.model.get('description');
@@ -180,10 +189,10 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox-single');
+                .addClass('widget-hbox');
             this.$label = $('<div />')
                 .appendTo(this.$el)
-                .addClass('widget-hlabel')
+                .addClass('widget-label')
                 .hide();
             this.$textbox = $('<input type="text" />')
                 .addClass('form-control')
@@ -219,6 +228,11 @@ define([
                 }
             }
             return IntTextView.__super__.update.apply(this);
+        },
+
+        update_attr: function(name, value) {
+            // Set a css attr of the widget view.
+            this.$textbox.css(name, value);
         },
 
         events: {
@@ -283,10 +297,10 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox-single');
+                .addClass('widget-hbox');
             this.$label = $('<div />')
                 .appendTo(this.$el)
-                .addClass('widget-hlabel')
+                .addClass('widget-label')
                 .hide();
             this.$progress = $('<div />')
                 .addClass('progress')
@@ -297,6 +311,11 @@ define([
                 .css('width', '50%')
                 .appendTo(this.$progress);
             this.update(); // Set defaults.
+
+            this.model.on('change:bar_style', function(model, value) {
+                this.update_bar_style();
+            }, this);
+            this.update_bar_style('');
         },
         
         update : function(){
@@ -320,6 +339,30 @@ define([
             }
             return ProgressView.__super__.update.apply(this);
         }, 
+
+        update_bar_style: function(previous_trait_value) {
+            var class_map = {
+                success: ['progress-bar-success'],
+                info: ['progress-bar-info'],
+                warning: ['progress-bar-warning'],
+                danger: ['progress-bar-danger']
+            };
+            this.update_mapped_classes(class_map, 'bar_style', previous_trait_value, this.$bar);
+        },
+
+        update_attr: function(name, value) {
+            // Set a css attr of the widget view.
+            if (name.substring(0, 6) == 'border' || name == 'width' || 
+                name == 'height' || name == 'background' || name == 'margin' || 
+                name == 'padding') {
+                
+                this.$progress.css(name, value);
+            } else if (name == 'color') {                
+                this.$bar.css('background', value);
+            } else {
+                this.$bar.css(name, value);
+            }
+        },
     });
 
     return {

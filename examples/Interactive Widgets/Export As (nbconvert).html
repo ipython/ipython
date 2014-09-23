@@ -1,4 +1,15 @@
-/*!
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="utf-8" />
+<title>Notebook</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+<style type="text/css">
+    /*!
 *
 * Twitter Bootstrap
 *
@@ -9049,6 +9060,32 @@ div.cell.text_cell.rendered {
 }
 /* THE CLASSES BELOW CAN APPEAR ANYWHERE IN THE DOM (POSSIBLEY OUTSIDE OF
    THE WIDGET AREA). */
+.widget-hlabel {
+  /* Horizontal Label */
+  min-width: 10ex;
+  padding-right: 8px;
+  padding-top: 5px;
+  text-align: right;
+  vertical-align: text-top;
+}
+.widget-vlabel {
+  /* Vertical Label */
+  padding-bottom: 5px;
+  text-align: center;
+  vertical-align: text-bottom;
+}
+.widget-hreadout {
+  padding-left: 8px;
+  padding-top: 5px;
+  text-align: left;
+  vertical-align: text-top;
+}
+.widget-vreadout {
+  /* Vertical Label */
+  padding-top: 5px;
+  text-align: center;
+  vertical-align: text-top;
+}
 .slide-track {
   /* Slider Track */
   border: 1px solid #CCCCCC;
@@ -9151,10 +9188,6 @@ div.cell.text_cell.rendered {
   height: 28px !important;
   margin-top: -8px !important;
 }
-.widget-hslider .ui-slider .ui-slider-range {
-  height: 12px !important;
-  margin-top: -4px !important;
-}
 .widget-vslider {
   /* Vertical jQuery Slider */
   /* Fix the padding of the slide track so the ui-slider is sized 
@@ -9232,10 +9265,6 @@ div.cell.text_cell.rendered {
   height: 14px !important;
   margin-left: -9px;
 }
-.widget-vslider .ui-slider .ui-slider-range {
-  width: 12px !important;
-  margin-left: -1px !important;
-}
 .widget-text {
   /* String Textbox - used for TextBoxView and TextAreaView */
   width: 350px;
@@ -9271,8 +9300,69 @@ div.cell.text_cell.rendered {
 .widget_item .dropdown-menu li a {
   color: inherit;
 }
+.widget-box {
+  /* The following section sets the style for the invisible div that
+    hold widgets and their accompanying labels.
+
+    Looks like this:
+    +-----------------------------+
+    | widget-box (or similar)     |
+    |  +-------+---------------+  |
+    |  | Label | Actual Widget |  |
+    |  +-------+---------------+  |
+    +-----------------------------+
+    */
+  margin: 5px;
+  /* Old browsers */
+  -webkit-box-pack: start;
+  -moz-box-pack: start;
+  box-pack: start;
+  /* Modern browsers */
+  justify-content: flex-start;
+  /* Box */
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  /* Old browsers */
+  -webkit-box-align: start;
+  -moz-box-align: start;
+  box-align: start;
+  /* Modern browsers */
+  align-items: flex-start;
+}
 .widget-hbox {
   /* Horizontal widgets */
+  /* The following section sets the style for the invisible div that
+    hold widgets and their accompanying labels.
+
+    Looks like this:
+    +-----------------------------+
+    | widget-box (or similar)     |
+    |  +-------+---------------+  |
+    |  | Label | Actual Widget |  |
+    |  +-------+---------------+  |
+    +-----------------------------+
+    */
+  margin: 5px;
+  /* Old browsers */
+  -webkit-box-pack: start;
+  -moz-box-pack: start;
+  box-pack: start;
+  /* Modern browsers */
+  justify-content: flex-start;
+  /* Box */
+  /* Old browsers */
+  /* Modern browsers */
+  /* Box */
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  /* Old browsers */
+  -webkit-box-align: start;
+  -moz-box-align: start;
+  box-align: start;
+  /* Modern browsers */
+  align-items: flex-start;
   /* Old browsers */
   display: -webkit-box;
   -webkit-box-orient: horizontal;
@@ -9293,27 +9383,98 @@ div.cell.text_cell.rendered {
   box-flex: 0;
   /* Modern browsers */
   flex: none;
+}
+.widget-hbox-single {
+  /* Single line horizontal widgets */
+  /* Horizontal widgets */
+  /* The following section sets the style for the invisible div that
+    hold widgets and their accompanying labels.
+
+    Looks like this:
+    +-----------------------------+
+    | widget-box (or similar)     |
+    |  +-------+---------------+  |
+    |  | Label | Actual Widget |  |
+    |  +-------+---------------+  |
+    +-----------------------------+
+    */
   margin: 5px;
+  /* Old browsers */
+  -webkit-box-pack: start;
+  -moz-box-pack: start;
+  box-pack: start;
+  /* Modern browsers */
+  justify-content: flex-start;
+  /* Box */
+  /* Old browsers */
+  /* Modern browsers */
+  /* Box */
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  /* Old browsers */
+  -webkit-box-align: start;
+  -moz-box-align: start;
+  box-align: start;
+  /* Modern browsers */
+  align-items: flex-start;
+  /* Old browsers */
+  display: -webkit-box;
+  -webkit-box-orient: horizontal;
+  -webkit-box-align: stretch;
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  -moz-box-align: stretch;
+  display: box;
+  box-orient: horizontal;
+  box-align: stretch;
+  /* Modern browsers */
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  /* Old browsers */
+  -webkit-box-flex: 0;
+  -moz-box-flex: 0;
+  box-flex: 0;
+  /* Modern browsers */
+  flex: none;
 }
-.widget-hbox input[type="checkbox"] {
+.widget-hbox-single input[type="checkbox"] {
   margin-top: 9px;
-}
-.widget-hbox .widget-label {
-  /* Horizontal Label */
-  min-width: 10ex;
-  padding-right: 8px;
-  padding-top: 5px;
-  text-align: right;
-  vertical-align: text-top;
-}
-.widget-hbox .widget-readout {
-  padding-left: 8px;
-  padding-top: 5px;
-  text-align: left;
-  vertical-align: text-top;
 }
 .widget-vbox {
   /* Vertical widgets */
+  /* The following section sets the style for the invisible div that
+    hold widgets and their accompanying labels.
+
+    Looks like this:
+    +-----------------------------+
+    | widget-box (or similar)     |
+    |  +-------+---------------+  |
+    |  | Label | Actual Widget |  |
+    |  +-------+---------------+  |
+    +-----------------------------+
+    */
+  margin: 5px;
+  /* Old browsers */
+  -webkit-box-pack: start;
+  -moz-box-pack: start;
+  box-pack: start;
+  /* Modern browsers */
+  justify-content: flex-start;
+  /* Box */
+  /* Old browsers */
+  /* Modern browsers */
+  /* Box */
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  /* Old browsers */
+  -webkit-box-align: start;
+  -moz-box-align: start;
+  box-align: start;
+  /* Modern browsers */
+  align-items: flex-start;
   /* Old browsers */
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -9334,18 +9495,6 @@ div.cell.text_cell.rendered {
   box-flex: 0;
   /* Modern browsers */
   flex: none;
-}
-.widget-vbox .widget-label {
-  /* Vertical Label */
-  padding-bottom: 5px;
-  text-align: center;
-  vertical-align: text-bottom;
-}
-.widget-vbox .widget-readout {
-  /* Vertical Label */
-  padding-top: 5px;
-  text-align: center;
-  vertical-align: text-top;
 }
 .widget-modal {
   /* Box - ModalView */
@@ -9437,10 +9586,6 @@ span#notebook_name {
   padding: 3px;
   border: none;
   font-size: 146.5%;
-  border-radius: 4px;
-}
-span#notebook_name:hover {
-  background-color: #e6e6e6;
 }
 div#notebook_panel {
   margin: 0px 0px 0px 0px;
@@ -9555,64 +9700,8 @@ p {
   padding-top: 3px;
 }
 .celltoolbar select {
-  display: block;
-  width: 100%;
-  height: 32px;
-  padding: 6px 12px;
-  font-size: 13px;
-  line-height: 1.42857143;
-  color: #555555;
-  background-color: #ffffff;
-  background-image: none;
-  border: 1px solid #cccccc;
-  border-radius: 4px;
-  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-  -webkit-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
-  transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
-  height: 30px;
-  padding: 5px 10px;
-  font-size: 12px;
-  line-height: 1.5;
-  border-radius: 3px;
-  width: inherit;
   font-size: 87%;
   height: 22px;
-  display: inline-block;
-}
-.celltoolbar select:focus {
-  border-color: #66afe9;
-  outline: 0;
-  -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, 0.6);
-  box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, 0.6);
-}
-.celltoolbar select::-moz-placeholder {
-  color: #999999;
-  opacity: 1;
-}
-.celltoolbar select:-ms-input-placeholder {
-  color: #999999;
-}
-.celltoolbar select::-webkit-input-placeholder {
-  color: #999999;
-}
-.celltoolbar select[disabled],
-.celltoolbar select[readonly],
-fieldset[disabled] .celltoolbar select {
-  cursor: not-allowed;
-  background-color: #eeeeee;
-  opacity: 1;
-}
-textarea.celltoolbar select {
-  height: auto;
-}
-select.celltoolbar select {
-  height: 30px;
-  line-height: 30px;
-}
-textarea.celltoolbar select,
-select[multiple].celltoolbar select {
-  height: auto;
 }
 .celltoolbar label {
   margin-left: 5px;
@@ -10504,3 +10593,378 @@ span#autosave_status {
   -o-transform: rotate(45deg);
 }
 /*# sourceMappingURL=../style/style.min.css.map */
+    </style>
+<style type="text/css">
+    .highlight .hll { background-color: #ffffcc }
+.highlight  { background: #f8f8f8; }
+.highlight .c { color: #408080; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #FF0000 } /* Error */
+.highlight .k { color: #008000; font-weight: bold } /* Keyword */
+.highlight .o { color: #666666 } /* Operator */
+.highlight .cm { color: #408080; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #BC7A00 } /* Comment.Preproc */
+.highlight .c1 { color: #408080; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #408080; font-style: italic } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .gr { color: #FF0000 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888888 } /* Generic.Output */
+.highlight .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #0044DD } /* Generic.Traceback */
+.highlight .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #008000 } /* Keyword.Pseudo */
+.highlight .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #B00040 } /* Keyword.Type */
+.highlight .m { color: #666666 } /* Literal.Number */
+.highlight .s { color: #BA2121 } /* Literal.String */
+.highlight .na { color: #7D9029 } /* Name.Attribute */
+.highlight .nb { color: #008000 } /* Name.Builtin */
+.highlight .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+.highlight .no { color: #880000 } /* Name.Constant */
+.highlight .nd { color: #AA22FF } /* Name.Decorator */
+.highlight .ni { color: #999999; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+.highlight .nf { color: #0000FF } /* Name.Function */
+.highlight .nl { color: #A0A000 } /* Name.Label */
+.highlight .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #008000; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #19177C } /* Name.Variable */
+.highlight .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #bbbbbb } /* Text.Whitespace */
+.highlight .mf { color: #666666 } /* Literal.Number.Float */
+.highlight .mh { color: #666666 } /* Literal.Number.Hex */
+.highlight .mi { color: #666666 } /* Literal.Number.Integer */
+.highlight .mo { color: #666666 } /* Literal.Number.Oct */
+.highlight .sb { color: #BA2121 } /* Literal.String.Backtick */
+.highlight .sc { color: #BA2121 } /* Literal.String.Char */
+.highlight .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #BA2121 } /* Literal.String.Double */
+.highlight .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #BA2121 } /* Literal.String.Heredoc */
+.highlight .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+.highlight .sx { color: #008000 } /* Literal.String.Other */
+.highlight .sr { color: #BB6688 } /* Literal.String.Regex */
+.highlight .s1 { color: #BA2121 } /* Literal.String.Single */
+.highlight .ss { color: #19177C } /* Literal.String.Symbol */
+.highlight .bp { color: #008000 } /* Name.Builtin.Pseudo */
+.highlight .vc { color: #19177C } /* Name.Variable.Class */
+.highlight .vg { color: #19177C } /* Name.Variable.Global */
+.highlight .vi { color: #19177C } /* Name.Variable.Instance */
+.highlight .il { color: #666666 } /* Literal.Number.Integer.Long */
+    </style>
+
+
+<style type="text/css">
+/* Overrides of notebook CSS for static HTML export */
+body {
+  overflow: visible;
+  padding: 8px;
+}
+
+div#notebook {
+  overflow: visible;
+  border-top: none;
+}
+
+@media print {
+  div.cell {
+    display: block;
+    page-break-inside: avoid;
+  } 
+  div.output_wrapper { 
+    display: block;
+    page-break-inside: avoid; 
+  }
+  div.output { 
+    display: block;
+    page-break-inside: avoid; 
+  }
+}
+</style>
+
+<!-- Custom stylesheet, it must be in the same directory as the html file -->
+<link rel="stylesheet" href="custom.css">
+
+<!-- Loading mathjax macro -->
+<!-- Load mathjax -->
+    <script src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
+    <!-- MathJax configuration -->
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+            displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+            processEscapes: true,
+            processEnvironments: true
+        },
+        // Center justify equations in code and markdown cells. Elsewhere
+        // we use CSS to left justify single line equations in code cells.
+        displayAlign: 'center',
+        "HTML-CSS": {
+            styles: {'.MathJax_Display': {"margin": 0}},
+            linebreaks: { automatic: true }
+        }
+    });
+    </script>
+    <!-- End of mathjax configuration -->
+
+</head>
+<body>
+  <div tabindex="-1" id="notebook" class="border-box-sizing">
+    <div class="container" id="notebook-container">
+
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[2]:
+</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython"><pre><span class="c"># Widget related imports</span>
+<span class="kn">from</span> <span class="nn">IPython.html</span> <span class="kn">import</span> <span class="n">widgets</span>
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">display</span><span class="p">,</span> <span class="n">clear_output</span><span class="p">,</span> <span class="n">Javascript</span>
+<span class="kn">from</span> <span class="nn">IPython.utils.traitlets</span> <span class="kn">import</span> <span class="n">Unicode</span>
+
+<span class="c"># nbconvert related imports</span>
+<span class="kn">from</span> <span class="nn">IPython.nbconvert</span> <span class="kn">import</span> <span class="n">get_export_names</span><span class="p">,</span> <span class="n">export_by_name</span>
+<span class="kn">from</span> <span class="nn">IPython.nbconvert.writers</span> <span class="kn">import</span> <span class="n">FilesWriter</span>
+<span class="kn">from</span> <span class="nn">IPython.nbformat</span> <span class="kn">import</span> <span class="n">current</span>
+<span class="kn">from</span> <span class="nn">IPython.nbconvert.utils.exceptions</span> <span class="kn">import</span> <span class="n">ConversionException</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Create a text Widget without displaying it.  The widget will be used to store the notebook's name which is otherwise only available in the front-end.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[3]:
+</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython"><pre><span class="n">notebook_name</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">TextWidget</span><span class="p">()</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>WARNING: &quot;TextWidget&quot; is deprecated, please use &quot;Text&quot; instead.
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Get the current notebook's name by pushing JavaScript to the browser that sets the notebook name in a string widget.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[3]:
+</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython"><pre><span class="n">js</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;var model = IPython.notebook.kernel.widget_manager.get_model(&#39;{model_id}&#39;);</span>
+<span class="s">model.set(&#39;value&#39;, IPython.notebook.notebook_name);</span>
+<span class="s">model.save();&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model_id</span><span class="o">=</span><span class="n">notebook_name</span><span class="o">.</span><span class="n">model_id</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Javascript</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">js</span><span class="p">))</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+
+
+<div class="output_subarea output_javascript ">
+<script type="text/javascript">
+var model = IPython.notebook.kernel.widget_manager.get_model('8c6583524eb3422c99491730a3e1ce6c');
+model.set('value', IPython.notebook.notebook_name);
+model.save();
+</script>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[4]:
+</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython"><pre><span class="n">filename</span> <span class="o">=</span> <span class="n">notebook_name</span><span class="o">.</span><span class="n">value</span>
+<span class="n">filename</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">
+    Out[4]:</div>
+
+
+<div class="output_text output_subarea output_pyout">
+<pre>u&apos;Export As (nbconvert).ipynb&apos;</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Create the widget that will allow the user to Export the current notebook.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[5]:
+</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython"><pre><span class="n">exporter_names</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">DropdownWidget</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">get_export_names</span><span class="p">(),</span> <span class="n">value</span><span class="o">=</span><span class="s">&#39;html&#39;</span><span class="p">)</span>
+<span class="n">export_button</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">ButtonWidget</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">&quot;Export&quot;</span><span class="p">)</span>
+<span class="n">download_link</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">HTMLWidget</span><span class="p">(</span><span class="n">visible</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Export the notebook when the export button is clicked.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[6]:
+</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython"><pre><span class="n">file_writer</span> <span class="o">=</span> <span class="n">FilesWriter</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">nb</span><span class="p">):</span>
+    
+    <span class="c"># Get a unique key for the notebook and set it in the resources object.</span>
+    <span class="n">notebook_name</span> <span class="o">=</span> <span class="n">name</span><span class="p">[:</span><span class="n">name</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)]</span>
+    <span class="n">resources</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">resources</span><span class="p">[</span><span class="s">&#39;unique_key&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">notebook_name</span>
+    <span class="n">resources</span><span class="p">[</span><span class="s">&#39;output_files_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">_files&#39;</span> <span class="o">%</span> <span class="n">notebook_name</span>
+
+    <span class="c"># Try to export</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">output</span><span class="p">,</span> <span class="n">resources</span> <span class="o">=</span> <span class="n">export_by_name</span><span class="p">(</span><span class="n">exporter_names</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">nb</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">ConversionException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">download_link</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s">&quot;&lt;br&gt;Could not export notebook!&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">write_results</span> <span class="o">=</span> <span class="n">file_writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">resources</span><span class="p">,</span> <span class="n">notebook_name</span><span class="o">=</span><span class="n">notebook_name</span><span class="p">)</span>
+    
+        <span class="n">download_link</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s">&quot;&lt;br&gt;Results: &lt;a href=&#39;files/{filename}&#39;&gt;&lt;i&gt;</span><span class="se">\&quot;</span><span class="s">{filename}</span><span class="se">\&quot;</span><span class="s">&lt;/i&gt;&lt;/a&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">write_results</span><span class="p">)</span>
+        <span class="n">download_link</span><span class="o">.</span><span class="n">visible</span> <span class="o">=</span> <span class="bp">True</span>
+        
+<span class="k">def</span> <span class="nf">handle_export</span><span class="p">(</span><span class="n">widget</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">export</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">current</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s">&#39;json&#39;</span><span class="p">))</span>
+<span class="n">export_button</span><span class="o">.</span><span class="n">on_click</span><span class="p">(</span><span class="n">handle_export</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Display the controls.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">
+In&nbsp;[7]:
+</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython"><pre><span class="n">display</span><span class="p">(</span><span class="n">exporter_names</span><span class="p">,</span> <span class="n">export_button</span><span class="p">,</span> <span class="n">download_link</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+    </div>
+  </div>
+</body>
+</html>

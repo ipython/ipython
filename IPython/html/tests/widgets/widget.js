@@ -149,7 +149,7 @@ casper.notebook_test(function () {
         'import time\n' +
         'textbox = widgets.Text()\n' +
         'display(textbox)\n' +
-        'textbox.add_class("my-throttle-textbox", selector="input")\n' +
+        'textbox._dom_classes = ["my-throttle-textbox"]\n' +
         'def handle_change(name, old, new):\n' +
         '    display(len(new))\n' +
         '    time.sleep(0.5)\n' +
@@ -166,7 +166,7 @@ casper.notebook_test(function () {
             '.my-throttle-textbox'), 'Textbox exists.');
 
         // Send 20 characters
-        this.sendKeys('.my-throttle-textbox', '....................');
+        this.sendKeys('.my-throttle-textbox input', '....................');
     });
 
     this.wait_for_widget(textbox);

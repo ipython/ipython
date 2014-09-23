@@ -11,7 +11,7 @@ casper.notebook_test(function () {
         'button = widgets.Button()\n'+
         'container.children = [button]\n'+
         'display(container)\n'+
-        'container.add_class("my-test-class")\n'+
+        'container._dom_classes = ["my-test-class"]\n'+
         'print("Success")\n');
     this.execute_cell_then(container_index, function(index){
 
@@ -28,7 +28,7 @@ casper.notebook_test(function () {
 
         this.test.assert(this.cell_element_exists(index, 
             '.widget-area .widget-subarea .my-test-class'),
-            'add_class works.');
+            '_dom_classes works.');
 
         this.test.assert(this.cell_element_exists(index, 
             '.widget-area .widget-subarea .my-test-class button'),
@@ -36,20 +36,20 @@ casper.notebook_test(function () {
     });
 
     index = this.append_cell(
-        'container.set_css("float", "right")\n'+
+        'container.box_style = "success"\n'+
         'print("Success")\n');
     this.execute_cell_then(index, function(index){
 
         this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
-            'Set container class CSS cell executed with correct output.');
-        
-        this.test.assert(this.cell_element_function(container_index, 
-            '.widget-area .widget-subarea .my-test-class', 'css', ['float'])=='right',
-            'set_css works.');
+            'Set box_style cell executed with correct output.');
+
+        this.test.assert(this.cell_element_exists(container_index, 
+            '.widget-box.alert-success'),
+            'Set box_style works.');
     });
 
     index = this.append_cell(
-        'container.remove_class("my-test-class")\n'+
+        'container._dom_classes = []\n'+
         'print("Success")\n');
     this.execute_cell_then(index, function(index){
 
@@ -58,7 +58,7 @@ casper.notebook_test(function () {
 
         this.test.assert(! this.cell_element_exists(container_index, 
             '.widget-area .widget-subarea .my-test-class'),
-            'remove_class works.');
+            '_dom_classes can be used to remove a class.');
     });
 
     index = this.append_cell(
