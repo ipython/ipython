@@ -21,7 +21,8 @@ from pygments.formatters import HtmlFormatter
 from pygments.util import ClassNotFound
 
 # IPython imports
-from IPython.nbconvert.utils.pandoc import pandoc
+from IPython.nbconvert.utils.pandoc import pandoc, pandoc_filtered
+from IPython.nbconvert.utils.pandocfilters import ip_filter
 from IPython.nbconvert.utils.exceptions import ConversionException
 from IPython.utils.decorators import undoc
 from IPython.utils.process import get_output_error_code
@@ -61,7 +62,7 @@ def markdown2latex(source):
     out : string
       Output as returned by pandoc.
     """
-    return pandoc(source, 'markdown', 'latex')
+    return pandoc_filtered(source, 'markdown', 'latex', ip_filter)
 
 
 @undoc

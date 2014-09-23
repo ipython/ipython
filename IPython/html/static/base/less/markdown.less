@@ -1,0 +1,48 @@
+// Markdown rendering css
+// Some class in markdown may match some default css rules defined here
+
+
+
+.theorem {
+
+    display: block;
+    margin: 12px 0;
+    font-style: italic;
+}
+
+/* theorem and other things like that */
+
+.theorem:before {
+    content: "Theorem.";
+    font-weight: bold;
+    font-style: normal;
+}
+
+.lemma {
+    display: block;
+    margin: 12px 0;
+    font-style: italic;
+}
+
+.lemma:before {
+    content: "Lemma.";
+    font-weight: bold;
+    font-style: normal;
+}
+
+.proof {
+    display: block;
+    margin: 12px 0;
+    font-style: normal;
+}
+
+.proof:before {
+    content: "Proof.";
+    font-style: italic;
+}
+
+.proof:after {
+    content: "\25FC";
+    float:right;
+}
+
