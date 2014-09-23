@@ -108,7 +108,7 @@ def pandoc_filtered( source, fmt, to, rec_filter,encoding='utf-8'):
         return ""
     else:
         input_json = json.loads(json_string)
-        output_json = walk(input_json, rec_filter, to , input_json[0]['unMeta'])
+        output_json = walk(input_json, rec_filter, to , [])
         output = pandoc( json.dumps(output_json), 'json', to, encoding=encoding)
         return output
 
