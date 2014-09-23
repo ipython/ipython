@@ -11,6 +11,7 @@ from IPython.testing import decorators as dec
 from ...tests.base import TestsBase
 from ..markdown import markdown2latex, markdown2html, markdown2rst
 
+from jinja2 import Environment
 
 class TestMarkdown(TestsBase):
 
@@ -46,6 +47,26 @@ class TestMarkdown(TestsBase):
         """markdown2latex test"""
         for index, test in enumerate(self.tests):
             self._try_markdown(markdown2latex, test, self.tokens[index])
+
+    @dec.onlyif_cmds_exist('pandoc')
+    def test_pandoc_extra_args(self):
+        # pass --no-wrap
+        s = '\n'.join([
+            "#latex {{long_line | md2l(['--no-wrap'])}}",
+            "#rst {{long_line | md2r(['--columns', '5'])}}",
+        ])
+        long_line = ' '.join(['long'] * 30)
+        env = Environment()
+        env.filters.update({
+            'md2l': markdown2latex,
+            'md2r': markdown2rst,
+        })
+        tpl = env.from_string(s)
+        rendered = tpl.render(long_line=long_line)
+        _, latex, rst = rendered.split('#')
+        
+        self.assertEqual(latex.strip(), 'latex %s' % long_line)
+        self.assertEqual(rst.strip(), 'rst %s' % long_line.replace(' ', '\n'))
 
     def test_markdown2html(self):
         """markdown2html test"""

@@ -45,7 +45,7 @@ class NodeJSMissing(ConversionException):
     """Exception raised when node.js is missing."""
     pass
 
-def markdown2latex(source):
+def markdown2latex(source, extra_args=None):
     """Convert a markdown string to LaTeX via pandoc.
 
     This function will raise an error if pandoc is not installed.
@@ -61,7 +61,7 @@ def markdown2latex(source):
     out : string
       Output as returned by pandoc.
     """
-    return pandoc(source, 'markdown', 'latex')
+    return pandoc(source, 'markdown', 'latex', extra_args=extra_args)
 
 
 @undoc
@@ -155,9 +155,10 @@ def markdown2html_mistune(source):
     """Convert a markdown string to HTML using mistune"""
     return MarkdownWithMath(renderer=IPythonRenderer()).render(source)
 
-def markdown2html_pandoc(source):
+def markdown2html_pandoc(source, extra_args=None):
     """Convert a markdown string to HTML via pandoc"""
-    return pandoc(source, 'markdown', 'html', extra_args=['--mathjax'])
+    extra_args = extra_args or ['--mathjax']
+    return pandoc(source, 'markdown', 'html', extra_args=extra_args)
 
 def _find_nodejs():
     global _node
@@ -188,7 +189,7 @@ def markdown2html_marked(source, encoding='utf-8'):
 # The mistune renderer is the default, because it's simple to depend on it
 markdown2html = markdown2html_mistune
 
-def markdown2rst(source):
+def markdown2rst(source, extra_args=None):
     """Convert a markdown string to ReST via pandoc.
 
     This function will raise an error if pandoc is not installed.
@@ -204,7 +205,7 @@ def markdown2rst(source):
     out : string
       Output as returned by pandoc.
     """
-    return pandoc(source, 'markdown', 'rst')
+    return pandoc(source, 'markdown', 'rst', extra_args=extra_args)
 
 def _verify_node(cmd):
     """Verify that the node command exists and is at least the minimum supported
