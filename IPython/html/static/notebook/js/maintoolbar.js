@@ -148,7 +148,6 @@ define([
             );
     };
 
-
     MainToolBar.prototype.add_celltoolbar_list = function () {
         var label = $('<span/>').addClass("navbar-text").text('Cell Toolbar:');
         var select = $('<select/>')
@@ -185,7 +184,6 @@ define([
                 select.val(data.name);
         });
     };
-
 
     MainToolBar.prototype.bind_events = function () {
         var that = this;

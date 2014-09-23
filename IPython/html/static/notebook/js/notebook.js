@@ -18,6 +18,7 @@ define([
     'notebook/js/celltoolbarpresets/default',
     'notebook/js/celltoolbarpresets/rawcell',
     'notebook/js/celltoolbarpresets/slideshow',
+    'notebook/js/scrollmanager'
 ], function (
     IPython, 
     $, 
@@ -34,7 +35,8 @@ define([
     tooltip,
     default_celltoolbar,
     rawcell_celltoolbar,
-    slideshow_celltoolbar
+    slideshow_celltoolbar,
+    scrollmanager
     ) {
 
     var Notebook = function (selector, options) {
@@ -64,6 +66,10 @@ define([
         this.ws_url = options.ws_url;
         this._session_starting = false;
         this.default_cell_type = this.config.default_cell_type || 'code';
+
+        //  Create default scroll manager.
+        this.scroll_manager = new scrollmanager.ScrollManager(this);
+
         // default_kernel_name is a temporary measure while we implement proper
         // kernel selection and delayed start. Do not rely on it.
         this.default_kernel_name = 'python';
@@ -135,7 +141,7 @@ define([
         rawcell_celltoolbar.register(this);
         slideshow_celltoolbar.register(this);
     };
-    
+
     Notebook.options_default = {
         // can be any cell type, or the special values of
         // 'above', 'below', or 'selected' to get the value from another cell.
@@ -1620,7 +1626,7 @@ define([
         this._session_starting = false;
         utils.log_ajax_error(jqxhr, status, error);
     };
-
+    
     /**
      * Prompt the user to restart the IPython kernel.
      * 

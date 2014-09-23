@@ -183,6 +183,18 @@ define([
     KeyboardManager.prototype.get_default_command_shortcuts = function() {
         var that = this;
         return {
+            'space': {
+                help: "Scroll down",
+                handler: function(event) {
+                    return that.notebook.scroll_manager.scroll(1);
+                },
+            },
+            'shift-space': {
+                help: "Scroll up",
+                handler: function(event) {
+                    return that.notebook.scroll_manager.scroll(-1);
+                },
+            },
             'enter' : {
                 help    : 'edit mode',
                 help_index : 'aa',
