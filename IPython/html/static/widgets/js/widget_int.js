@@ -34,6 +34,7 @@ define([
             this.model.on('change:slider_color', function(sender, value) {
                 this.$slider.find('a').css('background', value);
             }, this);
+            this.$slider.find('a').css('background', this.model.get('slider_color'));
             
             // Set defaults.
             this.update();
