@@ -48,12 +48,13 @@ class _BoundedInt(_Int):
 
     def _handle_max_changed(self, name, old, new):
         """Make sure the min is always <= the max."""
-        self.min = min(self.min, new)
+        if new < self.min:
+            raise ValueError("setting max < min")
 
     def _handle_min_changed(self, name, old, new):
         """Make sure the max is always >= the min."""
-        self.max = max(self.max, new)
-
+        if new > self.max:
+            raise ValueError("setting min > max")
 
 class IntText(_Int):
     """Textbox widget that represents a int."""
@@ -137,11 +138,9 @@ class _BoundedIntRange(_IntRange):
         if name == "min":
             if new > self.max:
                 raise ValueError("setting min > max")
-            self.min = new
         elif name == "max":
             if new < self.min:
                 raise ValueError("setting max < min")
-            self.max = new
         
         low, high = self.value
         if name == "value":
