@@ -179,8 +179,8 @@ define([
                     that.popped_out = !that.popped_out;
                     if (!that.popped_out) {
                         that.$minimize
-                            .removeClass('fa fa-arrow-down')
-                            .addClass('fa fa-arrow-up');
+                            .removeClass('fa-arrow-down')
+                            .addClass('fa-arrow-up');
                             
                         that.$window
                             .draggable('destroy')
@@ -193,8 +193,8 @@ define([
                         that.$close.hide();
                     } else {
                         that.$minimize
-                            .addClass('fa fa-arrow-down')
-                            .removeClass('fa fa-arrow-up');
+                            .addClass('fa-arrow-down')
+                            .removeClass('fa-arrow-up');
 
                         that.$window
                             .removeClass('docked-widget-modal')

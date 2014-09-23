@@ -445,7 +445,7 @@ define(["widgets/js/manager",
                 this.update_attr('font-weight', value); }, this);
 
             this.model.on('change:font_size', function (model, value) { 
-                this.update_attr('font-size', value); }, this);
+                this.update_attr('font-size', this._default_px(value)); }, this);
 
             this.model.on('change:font_family', function (model, value) { 
                 this.update_attr('font-family', value); }, this);
@@ -454,7 +454,10 @@ define(["widgets/js/manager",
                 this.update_attr('padding', value); }, this);
 
             this.model.on('change:margin', function (model, value) { 
-                this.update_attr('margin', value); }, this);
+                this.update_attr('margin', this._default_px(value)); }, this);
+
+            this.model.on('change:border_radius', function (model, value) { 
+                this.update_attr('border-radius', this._default_px(value)); }, this);
 
             this.after_displayed(function() {
                 this.update_visible(this.model, this.model.get("visible"));
@@ -474,7 +477,16 @@ define(["widgets/js/manager",
                 this.update_attr('font-family', this.model.get('font_family'));
                 this.update_attr('padding', this.model.get('padding'));
                 this.update_attr('margin', this.model.get('margin'));
+                this.update_attr('border-radius', this.model.get('border_radius'));
             }, this);
+        },
+
+        _default_px: function(value) {
+            // Makes browser interpret a numerical string as a pixel value.
+            if (/^\d+\.?(\d+)?$/.test(value.trim())) {
+                return value.trim() + 'px';
+            }
+            return value;
         },
 
         update_attr: function(name, value) {

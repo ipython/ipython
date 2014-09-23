@@ -393,6 +393,7 @@ class DOMWidget(Widget):
     border_color = Unicode(sync=True)
 
     border_width = CUnicode(sync=True)
+    border_radius = CUnicode(sync=True)
     border_style = CaselessStrEnum(values=[ # http://www.w3schools.com/cssref/pr_border-style.asp
         'none', 
         'hidden', 
@@ -425,3 +426,14 @@ class DOMWidget(Widget):
         default_value='', sync=True)
     font_size = CUnicode(sync=True)
     font_family = Unicode(sync=True)
+
+    def __init__(self, *pargs, **kwargs):
+        super(DOMWidget, self).__init__(*pargs, **kwargs)
+
+        def _validate_border(name, old, new):
+            if new is not None and new != '':
+                if name != 'border_width' and not self.border_width:
+                    self.border_width = 1
+                if name != 'border_style' and self.border_style == '':
+                    self.border_style = 'solid'
+        self.on_trait_change(_validate_border, ['border_width', 'border_style', 'border_color'])
