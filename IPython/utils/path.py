@@ -473,7 +473,7 @@ def check_for_old_config(ipython_dir=None):
             if filehash(f) == old_config_md5.get(cfg, ''):
                 os.unlink(f)
             else:
-                warn("Found old IPython config file {0} (modified by user)".format(f))
+                warn("Found old IPython config file {!r} (modified by user)".format(f))
                 warned = True
 
     if warned:
