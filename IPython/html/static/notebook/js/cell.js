@@ -11,7 +11,7 @@ define([
 
     // monkey patch CM to be able to syntax highlight cell magics
     // bug reported upstream,
-    // see https://github.com/marijnh/CodeMirror2/issues/670
+    // see https://github.com/codemirror/CodeMirror/issues/670
     if(CodeMirror.getMode(1,'text/plain').indent === undefined ){
         CodeMirror.modes.null = function() {
             return {token: function(stream) {stream.skipToEnd();},indent : function(){return 0;}};
@@ -89,7 +89,7 @@ define([
     
     // FIXME: Workaround CM Bug #332 (Safari segfault on drag)
     // by disabling drag/drop altogether on Safari
-    // https://github.com/marijnh/CodeMirror/issues/332    
+    // https://github.com/codemirror/CodeMirror/issues/332    
     if (utils.browser[0] == "Safari") {
         Cell.options_default.cm_config.dragDrop = false;
     }
