@@ -77,7 +77,7 @@ define([
         this.prompt_overlay.addClass('out_prompt_overlay prompt');
         this.prompt_overlay.attr('title', 'click to expand output; double click to hide output');
         
-        this.collapse();        
+        this.expand();        
     };
 
     /**

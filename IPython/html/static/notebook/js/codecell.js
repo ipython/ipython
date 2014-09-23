@@ -129,7 +129,6 @@ define([
         var input = $('<div></div>').addClass('input');
         var prompt = $('<div/>').addClass('prompt input_prompt');
         var inner_cell = $('<div/>').addClass('inner_cell');
-        input.append(prompt).append(inner_cell);
 
         this.celltoolbar = new celltoolbar.CellToolbar({
             cell: this, 
@@ -139,6 +138,7 @@ define([
         this.code_mirror = new CodeMirror(input_area.get(0), this.cm_config);
         $(this.code_mirror.getInputField()).attr("spellcheck", "false");
         inner_cell.append(input_area);
+        input.append(prompt).append(inner_cell);
 
         var widget_area = $('<div/>')
             .addClass('widget-area')
@@ -301,7 +301,7 @@ define([
                 reply : $.proxy(this._handle_execute_reply, this),
                 payload : {
                     set_next_input : $.proxy(this._handle_set_next_input, this),
-                    page : $.proxy(this.display_page, this)
+                    page : $.proxy(this.display_pager_output, this)
                 }
             },
             iopub : {
@@ -312,7 +312,7 @@ define([
         };
     };
     
-    CodeCell.prototype.display_page = function (payload) {
+    CodeCell.prototype.display_pager_output = function (payload) {
         this.output_area.append_output($.extend({}, payload.data, {
             output_type: 'display_data',
         }));
