@@ -7,11 +7,6 @@ refactoring of what used to be the IPython/qt/console/qtconsoleapp.py
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
-# stdlib imports
 import atexit
 import os
 import signal
@@ -19,7 +14,6 @@ import sys
 import uuid
 
 
-# Local imports
 from IPython.config.application import boolean_flag
 from IPython.core.profiledir import ProfileDir
 from IPython.kernel.blocking import BlockingKernelClient
@@ -40,16 +34,7 @@ from IPython.kernel.zmq.session import Session, default_secure
 from IPython.kernel.zmq.zmqshell import ZMQInteractiveShell
 from IPython.kernel.connect import ConnectionFileMixin
 
-#-----------------------------------------------------------------------------
-# Network Constants
-#-----------------------------------------------------------------------------
-
 from IPython.utils.localinterfaces import localhost
-
-#-----------------------------------------------------------------------------
-# Globals
-#-----------------------------------------------------------------------------
-
 
 #-----------------------------------------------------------------------------
 # Aliases and Flags
@@ -98,11 +83,7 @@ aliases.update(app_aliases)
 # Classes
 #-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# IPythonConsole
-#-----------------------------------------------------------------------------
-
-classes = [IPKernelApp, ZMQInteractiveShell, KernelManager, ProfileDir, Session, InlineBackend]
+classes = [KernelManager, ProfileDir, Session]
 
 class IPythonConsoleApp(ConnectionFileMixin):
     name = 'ipython-console-mixin'
@@ -158,8 +139,15 @@ class IPythonConsoleApp(ConnectionFileMixin):
         Set to display confirmation dialog on exit. You can always use 'exit' or 'quit',
         to force a direct exit without any confirmation.""",
     )
-
-
+    
+    @property
+    def help_classes(self):
+        """ConsoleApps can configure kernels on the command-line
+        
+        But this shouldn't be written to a file
+        """
+        return self.classes + [IPKernelApp] + IPKernelApp.classes
+    
     def build_kernel_argv(self, argv=None):
         """build argv to be passed to kernel subprocess"""
         if argv is None:
