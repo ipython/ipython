@@ -107,7 +107,7 @@ class InstallNativeKernelSpec(BaseIPythonApplication):
 
     # Not all of the base aliases are meaningful (e.g. profile)
     aliases = {k: base_aliases[k] for k in ['ipython-dir', 'log-level']}
-    flags = {'system': ({'InstallOwnKernelSpec': {'system': True}},
+    flags = {'system': ({'InstallNativeKernelSpec': {'system': True}},
                 "Install to the systemwide kernel registry"),
              'debug': base_flags['debug'],
             }
@@ -116,13 +116,7 @@ class InstallNativeKernelSpec(BaseIPythonApplication):
         try:
             self.kernel_spec_manager.install_native_kernel_spec(system=self.system)
         except OSError as e:
-            if e.errno == errno.EACCES:
-                print("Permission denied")
-                self.exit(1)
-            if e.errno == errno.EEXIST:
-                print("File or folder already exists")
-                self.exit(1)
-            raise
+            self.exit(e)
 
 class KernelSpecApp(Application):
     name = "ipython kernelspec"
