@@ -123,7 +123,16 @@ class Application(SingletonConfigurable):
 
     # A sequence of Configurable subclasses whose config=True attributes will
     # be exposed at the command line.
-    classes = List([])
+    classes = []
+    @property
+    def _help_classes(self):
+        """Define `App.help_classes` if CLI classes should differ from config file classes"""
+        return getattr(self, 'help_classes', self.classes)
+    
+    @property
+    def _config_classes(self):
+        """Define `App.config_classes` if config file classes should differ from CLI classes."""
+        return getattr(self, 'config_classes', self.classes)
 
     # The version string of this application.
     version = Unicode(u'0.0')
@@ -256,7 +265,7 @@ class Application(SingletonConfigurable):
 
         lines = []
         classdict = {}
-        for cls in self.classes:
+        for cls in self._help_classes:
             # include all parents (up to, but excluding Configurable) in available names
             for c in cls.mro()[:-3]:
                 classdict[c.__name__] = c
@@ -331,7 +340,8 @@ class Application(SingletonConfigurable):
         self.print_options()
 
         if classes:
-            if self.classes:
+            help_classes = self._help_classes
+            if help_classes:
                 print("Class parameters")
                 print("----------------")
                 print()
@@ -339,7 +349,7 @@ class Application(SingletonConfigurable):
                     print(p)
                     print()
 
-            for cls in self.classes:
+            for cls in help_classes:
                 cls.class_print_help()
                 print()
         else:
@@ -412,7 +422,7 @@ class Application(SingletonConfigurable):
         # it will be a dict by parent classname of classes in our list
         # that are descendents
         mro_tree = defaultdict(list)
-        for cls in self.classes:
+        for cls in self._help_classes:
             clsname = cls.__name__
             for parent in cls.mro()[1:-3]:
                 # exclude cls itself and Configurable,HasTraits,object
@@ -530,7 +540,7 @@ class Application(SingletonConfigurable):
         lines.append('')
         lines.append('c = get_config()')
         lines.append('')
-        for cls in self.classes:
+        for cls in self._config_classes:
             lines.append(cls.class_config_section())
         return '\n'.join(lines)
 
