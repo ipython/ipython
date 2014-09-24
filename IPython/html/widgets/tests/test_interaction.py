@@ -1,15 +1,7 @@
 """Test interact and interactive."""
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2014 The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from __future__ import print_function
 
@@ -18,7 +10,7 @@ from collections import OrderedDict
 import nose.tools as nt
 import IPython.testing.tools as tt
 
-# from IPython.core.getipython import get_ipython
+from IPython.kernel.comm import Comm
 from IPython.html import widgets
 from IPython.html.widgets import interact, interactive, Widget, interaction
 from IPython.utils.py3compat import annotate
@@ -27,8 +19,9 @@ from IPython.utils.py3compat import annotate
 # Utility stuff
 #-----------------------------------------------------------------------------
 
-class DummyComm(object):
+class DummyComm(Comm):
     comm_id = 'a-b-c-d'
+    
     def send(self, *args, **kwargs):
         pass
     
@@ -37,10 +30,11 @@ class DummyComm(object):
 
 _widget_attrs = {}
 displayed = []
+undefined = object()
 
 def setup():
-    _widget_attrs['comm'] = Widget.comm
-    Widget.comm = DummyComm()
+    _widget_attrs['_comm_default'] = getattr(Widget, '_comm_default', undefined)
+    Widget._comm_default = lambda self: DummyComm()
     _widget_attrs['_ipython_display_'] = Widget._ipython_display_
     def raise_not_implemented(*args, **kwargs):
         raise NotImplementedError()
@@ -48,7 +42,10 @@ def setup():
 
 def teardown():
     for attr, value in _widget_attrs.items():
-        setattr(Widget, attr, value)
+        if value is undefined:
+            delattr(Widget, attr)
+        else:
+            setattr(Widget, attr, value)
 
 def f(**kwargs):
     pass
