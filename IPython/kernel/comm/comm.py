@@ -14,18 +14,17 @@ from IPython.utils.traitlets import Instance, Unicode, Bytes, Bool, Dict, Any
 
 class Comm(LoggingConfigurable):
     
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
-    def _shell_default(self):
-        return get_ipython()
+    # If this is instantiated by a non-IPython kernel, shell will be None
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC',
+                     allow_none=True)
+    kernel = Instance('IPython.kernel.zmq.kernelbase.Kernel')
     
     iopub_socket = Any()
     def _iopub_socket_default(self):
-        return self.shell.kernel.iopub_socket
+        return self.kernel.iopub_socket
     session = Instance('IPython.kernel.zmq.session.Session')
     def _session_default(self):
-        if self.shell is None or not hasattr(self.shell, 'kernel'):
-            return
-        return self.shell.kernel.session
+        return self.kernel.session
     
     target_name = Unicode('comm')
     
@@ -63,7 +62,7 @@ class Comm(LoggingConfigurable):
             self.session.send(self.iopub_socket, msg_type,
                 content,
                 metadata=json_clean(metadata),
-                parent=self.shell.get_parent(),
+                parent=self.kernel._parent_header,
                 ident=self.topic,
             )
     
@@ -132,9 +131,11 @@ class Comm(LoggingConfigurable):
         """Handle a comm_msg message"""
         self.log.debug("handle_msg[%s](%s)", self.comm_id, msg)
         if self._msg_callback:
-            self.shell.events.trigger('pre_execute')
+            if self.shell:
+                self.shell.events.trigger('pre_execute')
             self._msg_callback(msg)
-            self.shell.events.trigger('post_execute')
+            if self.shell:
+                self.shell.events.trigger('post_execute')
 
 
 __all__ = ['Comm']
