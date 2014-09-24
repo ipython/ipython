@@ -16,7 +16,7 @@ from .kernelspec import KernelSpecManager, _pythonfirst
 class ListKernelSpecs(BaseIPythonApplication):
     description = """List installed kernel specifications."""
     kernel_spec_manager = Instance(KernelSpecManager)
-    
+
     # Not all of the base aliases are meaningful (e.g. profile)
     aliases = {k: base_aliases[k] for k in ['ipython-dir', 'log-level']}
     flags = {'debug': base_flags['debug'],}
@@ -118,6 +118,9 @@ class InstallNativeKernelSpec(BaseIPythonApplication):
         except OSError as e:
             if e.errno == errno.EACCES:
                 print("Permission denied")
+                self.exit(1)
+            if e.errno == errno.EEXIST:
+                print("File or folder already exists")
                 self.exit(1)
             raise
 
