@@ -75,12 +75,22 @@ def _show_traceback(method):
                 ip.showtraceback()
     return m
 
+
+def register(key=None):
+    def wrap(widget):
+        l = key if key is not None else widget._model_name.default_value
+        Widget.widget_types[l] = widget
+        return widget
+    return wrap
+
+
 class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
     # Class attributes
     #-------------------------------------------------------------------------
     _widget_construction_callback = None
     widgets = {}
+    widget_types = {}
 
     @staticmethod
     def on_widget_constructed(callback):
