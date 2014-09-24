@@ -97,6 +97,14 @@ define([
                 that.events.trigger('spec_changed.Kernel', ks);
             }
         });
+        
+        var logo_img = this.element.find("#current_kernel_logo")
+        logo_img.on("load", function() {
+            logo_img.show();
+        });
+        logo_img.on("error", function() {
+            logo_img.hide();
+        });
     };
 
     return {'KernelSelector': KernelSelector};
