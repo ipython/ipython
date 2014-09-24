@@ -28,20 +28,20 @@ class _String(DOMWidget):
     placeholder = Unicode("", help="Placeholder text to display when nothing has been typed", sync=True)
 
 
-@register()
+@register('jupyter.HTML')
 class HTML(_String):
     """Renders the string `value` as HTML."""
     _view_name = Unicode('HTMLView', sync=True)
 
 
-@register()
+@register('jupyter.Latex')
 class Latex(_String):
     """Renders math inside the string `value` as Latex (requires $ $ or $$ $$ 
     and similar latex tags)."""
     _view_name = Unicode('LatexView', sync=True)
 
 
-@register()
+@register('jupyter.Textarea')
 class Textarea(_String):
     """Multiline text area widget."""
     _view_name = Unicode('TextareaView', sync=True)
@@ -50,7 +50,7 @@ class Textarea(_String):
         self.send({"method": "scroll_to_bottom"})
 
 
-@register()
+@register('jupyter.Text')
 class Text(_String):
     """Single line textbox widget."""
     _view_name = Unicode('TextView', sync=True)

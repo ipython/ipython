@@ -22,7 +22,7 @@ from IPython.utils.warn import DeprecatedClass
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-@register()
+@register('jupyter.Image')
 class Image(DOMWidget):
     """Displays an image as a widget.
 

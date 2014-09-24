@@ -20,7 +20,6 @@ from IPython.utils.warn import DeprecatedClass
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-@register()
 class _Bool(DOMWidget):
     """A base class for creating widgets that represent booleans."""
     value = Bool(False, help="Bool value", sync=True)
@@ -28,13 +27,13 @@ class _Bool(DOMWidget):
     disabled = Bool(False, help="Enable or disable user changes.", sync=True)
 
 
-@register()
+@register('jupyter.Checkbox')
 class Checkbox(_Bool):
     """Displays a boolean `value`."""
     _view_name = Unicode('CheckboxView', sync=True)
 
 
-@register()
+@register('jupyter.ToggleButton')
 class ToggleButton(_Bool):
     """Displays a boolean `value`."""
     

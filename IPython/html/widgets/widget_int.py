@@ -56,19 +56,19 @@ class _BoundedInt(_Int):
         if new > self.max:
             raise ValueError("setting min > max")
 
-@register()
+@register('jupyter.IntText')
 class IntText(_Int):
     """Textbox widget that represents a int."""
     _view_name = Unicode('IntTextView', sync=True)
 
 
-@register()
+@register('jupyter.BoundedIntText')
 class BoundedIntText(_BoundedInt):
     """Textbox widget that represents a int bounded by a minimum and maximum value."""
     _view_name = Unicode('IntTextView', sync=True)
 
 
-@register()
+@register('jupyter.IntSlider')
 class IntSlider(_BoundedInt):
     """Slider widget that represents a int bounded by a minimum and maximum value."""
     _view_name = Unicode('IntSliderView', sync=True)
@@ -80,7 +80,7 @@ class IntSlider(_BoundedInt):
     slider_color = Unicode(sync=True)
 
 
-@register()
+@register('jupyter.IntProgress')
 class IntProgress(_BoundedInt):
     """Progress bar that represents a int bounded by a minimum and maximum value."""
     _view_name = Unicode('ProgressView', sync=True)
@@ -180,7 +180,7 @@ class _BoundedIntRange(_IntRange):
             self.upper = high
             self.lower = low
 
-@register()
+@register('jupyter.IntRangeSlider')
 class IntRangeSlider(_BoundedIntRange):
     _view_name = Unicode('IntSliderView', sync=True)
     orientation = CaselessStrEnum(values=['horizontal', 'vertical'], 
