@@ -100,7 +100,7 @@ class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
     _model_name = Unicode('WidgetModel', help="""Name of the backbone model 
         registered in the front-end to create and sync this widget with.""")
-    _view_name = Unicode('WidgetView', help="""Default view registered in the front-end
+    _view_name = Unicode(None, allow_none=True, help="""Default view registered in the front-end
         to use to represent the widget.""", sync=True)
     comm = Instance('IPython.kernel.comm.Comm')
     
@@ -368,10 +368,10 @@ class Widget(LoggingConfigurable):
 
     def _ipython_display_(self, **kwargs):
         """Called when `IPython.display.display` is called on the widget."""
-        # Show view.  By sending a display message, the comm is opened and the
-        # initial state is sent.
-        self._send({"method": "display"})
-        self._handle_displayed(**kwargs)
+        # Show view.
+        if self._view_name is not None:
+            self._send({"method": "display"})
+            self._handle_displayed(**kwargs)
 
     def _send(self, msg):
         """Sends a message to the model in the front-end."""

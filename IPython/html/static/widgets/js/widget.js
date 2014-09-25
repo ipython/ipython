@@ -422,8 +422,6 @@ define(["widgets/js/manager",
     });
 
 
-    widgetmanager.WidgetManager.register_widget_view('WidgetView', WidgetView);
-
     var DOMWidgetView = WidgetView.extend({
         initialize: function (parameters) {
             // Public constructor
@@ -595,7 +593,6 @@ define(["widgets/js/manager",
         },
     });
 
-    widgetmanager.WidgetManager.register_widget_view('DOMWidgetView', DOMWidgetView);
     
     var widget = {
         'WidgetModel': WidgetModel,
