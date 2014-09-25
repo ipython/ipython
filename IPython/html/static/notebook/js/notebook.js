@@ -999,19 +999,21 @@ define([
     Notebook.prototype.to_code = function (index) {
         var i = this.index_or_selected(index);
         if (this.is_valid_cell_index(i)) {
-            var source_element = this.get_cell_element(i);
-            var source_cell = source_element.data("cell");
+            var source_cell = this.get_cell(i);
             if (!(source_cell instanceof codecell.CodeCell)) {
                 var target_cell = this.insert_cell_below('code',i);
                 var text = source_cell.get_text();
                 if (text === source_cell.placeholder) {
                     text = '';
                 }
+                //metadata
+                target_cell.metadata = source_cell.metadata;
+
                 target_cell.set_text(text);
                 // make this value the starting point, so that we can only undo
                 // to this state, instead of a blank cell
                 target_cell.code_mirror.clearHistory();
-                source_element.remove();
+                source_cell.element.remove();
                 this.select(i);
                 var cursor = source_cell.code_mirror.getCursor();
                 target_cell.code_mirror.setCursor(cursor);
@@ -1029,21 +1031,24 @@ define([
     Notebook.prototype.to_markdown = function (index) {
         var i = this.index_or_selected(index);
         if (this.is_valid_cell_index(i)) {
-            var source_element = this.get_cell_element(i);
-            var source_cell = source_element.data("cell");
+            var source_cell = this.get_cell(i);
+
             if (!(source_cell instanceof textcell.MarkdownCell)) {
                 var target_cell = this.insert_cell_below('markdown',i);
                 var text = source_cell.get_text();
+
                 if (text === source_cell.placeholder) {
                     text = '';
                 }
+                // metadata
+                target_cell.metadata = source_cell.metadata
                 // We must show the editor before setting its contents
                 target_cell.unrender();
                 target_cell.set_text(text);
                 // make this value the starting point, so that we can only undo
                 // to this state, instead of a blank cell
                 target_cell.code_mirror.clearHistory();
-                source_element.remove();
+                source_cell.element.remove();
                 this.select(i);
                 if ((source_cell instanceof textcell.TextCell) && source_cell.rendered) {
                     target_cell.render();
@@ -1064,22 +1069,24 @@ define([
     Notebook.prototype.to_raw = function (index) {
         var i = this.index_or_selected(index);
         if (this.is_valid_cell_index(i)) {
-            var source_element = this.get_cell_element(i);
-            var source_cell = source_element.data("cell");
             var target_cell = null;
+            var source_cell = this.get_cell(i);
+
             if (!(source_cell instanceof textcell.RawCell)) {
                 target_cell = this.insert_cell_below('raw',i);
                 var text = source_cell.get_text();
                 if (text === source_cell.placeholder) {
                     text = '';
                 }
+                //metadata
+                target_cell.metadata = source_cell.metadata;
                 // We must show the editor before setting its contents
                 target_cell.unrender();
                 target_cell.set_text(text);
                 // make this value the starting point, so that we can only undo
                 // to this state, instead of a blank cell
                 target_cell.code_mirror.clearHistory();
-                source_element.remove();
+                source_cell.element.remove();
                 this.select(i);
                 var cursor = source_cell.code_mirror.getCursor();
                 target_cell.code_mirror.setCursor(cursor);
@@ -1099,8 +1106,7 @@ define([
         level = level || 1;
         var i = this.index_or_selected(index);
         if (this.is_valid_cell_index(i)) {
-            var source_element = this.get_cell_element(i);
-            var source_cell = source_element.data("cell");
+            var source_cell = this.get_cell(i);
             var target_cell = null;
             if (source_cell instanceof textcell.HeadingCell) {
                 source_cell.set_level(level);
@@ -1110,6 +1116,8 @@ define([
                 if (text === source_cell.placeholder) {
                     text = '';
                 }
+                //metadata
+                target_cell.metadata = source_cell.metadata;
                 // We must show the editor before setting its contents
                 target_cell.set_level(level);
                 target_cell.unrender();
@@ -1117,7 +1125,7 @@ define([
                 // make this value the starting point, so that we can only undo
                 // to this state, instead of a blank cell
                 target_cell.code_mirror.clearHistory();
-                source_element.remove();
+                source_cell.element.remove();
                 this.select(i);
                 var cursor = source_cell.code_mirror.getCursor();
                 target_cell.code_mirror.setCursor(cursor);
