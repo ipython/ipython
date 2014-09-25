@@ -1,9 +1,31 @@
-# Just installs IPython from master
-# Another Docker container should build from this one to see the Notebook itself
+# Installs IPython from the current branch
+# Another Docker container should build from this one to get services like the notebook
 
-FROM ipython/scipystack
+FROM ubuntu:14.04
 
 MAINTAINER IPython Project <ipython-dev@scipy.org>
+
+# Make sure apt is up to date
+RUN apt-get update
+RUN apt-get upgrade -y
+
+# Not essential, but wise to set the lang
+# Note: Users with other languages should set this in their derivative image
+RUN apt-get install -y language-pack-en
+ENV LANGUAGE en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LC_ALL en_US.UTF-8
+
+RUN locale-gen en_US.UTF-8
+RUN dpkg-reconfigure locales
+
+# Python binary dependencies, developer tools
+RUN apt-get install -y -q build-essential make gcc zlib1g-dev git && \
+    apt-get install -y -q python python-dev python-pip python3-dev python3-pip && \
+    apt-get install -y -q libzmq3-dev sqlite3 libsqlite3-dev pandoc libcurl4-openssl-dev nodejs nodejs-legacy npm
+
+# In order to build from source, need less
+RUN npm install -g less
 
 RUN apt-get -y install fabric
 
