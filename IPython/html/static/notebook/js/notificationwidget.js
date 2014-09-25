@@ -7,6 +7,13 @@ define([
 ], function(IPython, $) {
     "use strict";
 
+    /**
+     * Construct a NotificationWidget object.
+     *
+     * @constructor
+     * @param {string} selector - a jQuery selector string for the
+     * notification widget element
+     */
     var NotificationWidget = function (selector) {
         this.selector = selector;
         this.timeout = null;
