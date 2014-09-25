@@ -593,6 +593,7 @@ define(["widgets/js/manager",
         },
     });
 
+    
     var widget = {
         'WidgetModel': WidgetModel,
         'WidgetView': WidgetView,
