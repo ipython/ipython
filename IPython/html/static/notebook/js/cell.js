@@ -422,14 +422,17 @@ define([
     };
 
     /**
-     * is the cell deletable? (true by default)
+     * is the cell deletable? only false (undeletable) if
+     * metadata.deletable is explicitly false -- everything else
+     * counts as true
+     *
      * @method is_deletable
      **/
     Cell.prototype.is_deletable = function () {
-        if (this.metadata.deletable === undefined) {
-            return true;
+        if (this.metadata.deletable === false) {
+            return false;
         }
-        return Boolean(this.metadata.deletable);
+        return true;
     };
 
     /**
