@@ -6,7 +6,7 @@
 import uuid
 
 from IPython.config import LoggingConfigurable
-from IPython.core.getipython import get_ipython
+from IPython.kernel.zmq.kernelbase import Kernel
 
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.traitlets import Instance, Unicode, Bytes, Bool, Dict, Any
@@ -18,6 +18,9 @@ class Comm(LoggingConfigurable):
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC',
                      allow_none=True)
     kernel = Instance('IPython.kernel.zmq.kernelbase.Kernel')
+    def _kernel_default(self):
+        if Kernel.initialized():
+            return Kernel.instance()
     
     iopub_socket = Any()
     def _iopub_socket_default(self):
@@ -55,16 +58,15 @@ class Comm(LoggingConfigurable):
     
     def _publish_msg(self, msg_type, data=None, metadata=None, **keys):
         """Helper for sending a comm message on IOPub"""
-        if self.session is not None:
-            data = {} if data is None else data
-            metadata = {} if metadata is None else metadata
-            content = json_clean(dict(data=data, comm_id=self.comm_id, **keys))
-            self.session.send(self.iopub_socket, msg_type,
-                content,
-                metadata=json_clean(metadata),
-                parent=self.kernel._parent_header,
-                ident=self.topic,
-            )
+        data = {} if data is None else data
+        metadata = {} if metadata is None else metadata
+        content = json_clean(dict(data=data, comm_id=self.comm_id, **keys))
+        self.session.send(self.iopub_socket, msg_type,
+            content,
+            metadata=json_clean(metadata),
+            parent=self.kernel._parent_header,
+            ident=self.topic,
+        )
     
     def __del__(self):
         """trigger close on gc"""
@@ -76,10 +78,13 @@ class Comm(LoggingConfigurable):
         """Open the frontend-side version of this comm"""
         if data is None:
             data = self._open_data
+        comm_manager = getattr(self.kernel, 'comm_manager', None)
+        if comm_manager is None:
+            raise RuntimeError("Comms cannot be opened without a kernel "
+                        "and a comm_manager attached to that kernel.")
+
+        comm_manager.register_comm(self)
         self._closed = False
-        ip = get_ipython()
-        if hasattr(ip, 'comm_manager'):
-            ip.comm_manager.register_comm(self)
         self._publish_msg('comm_open', data, metadata, target_name=self.target_name)
     
     def close(self, data=None, metadata=None):
@@ -90,9 +95,7 @@ class Comm(LoggingConfigurable):
         if data is None:
             data = self._close_data
         self._publish_msg('comm_close', data, metadata)
-        ip = get_ipython()
-        if hasattr(ip, 'comm_manager'):
-            ip.comm_manager.unregister_comm(self)
+        self.kernel.comm_manager.unregister_comm(self)
         self._closed = True
     
     def send(self, data=None, metadata=None):

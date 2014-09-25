@@ -10,6 +10,7 @@ from IPython.utils.tokenutil import token_at_cursor
 from IPython.utils.traitlets import Instance, Type, Any
 from IPython.utils.decorators import undoc
 
+from ..comm import CommManager
 from .kernelbase import Kernel as KernelBase
 from .serialize import serialize_object, unpack_apply_message
 from .zmqshell import ZMQInteractiveShell
@@ -55,10 +56,12 @@ class IPythonKernel(KernelBase):
         # TMP - hack while developing
         self.shell._reply_content = None
 
+        self.comm_manager = CommManager(shell=self.shell, parent=self, 
+                                        kernel=self)
+        self.shell.configurables.append(self.comm_manager)
         comm_msg_types = [ 'comm_open', 'comm_msg', 'comm_close' ]
-        comm_manager = self.shell.comm_manager
         for msg_type in comm_msg_types:
-            self.shell_handlers[msg_type] = getattr(comm_manager, msg_type)
+            self.shell_handlers[msg_type] = getattr(self.comm_manager, msg_type)
 
     # Kernel info fields
     implementation = 'ipython'

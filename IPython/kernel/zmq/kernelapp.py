@@ -306,7 +306,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
         shell_stream = ZMQStream(self.shell_socket)
         control_stream = ZMQStream(self.control_socket)
         
-        kernel_factory = self.kernel_class
+        kernel_factory = self.kernel_class.instance
 
         kernel = kernel_factory(parent=self, session=self.session,
                                 shell_streams=[shell_stream, control_stream],
