@@ -16,11 +16,8 @@ define([
             this.style();
         }
         this.element.hide();
-        var that = this;
-
         this.inner = $('<span/>');
         this.element.append(this.inner);
-
     };
 
     NotificationWidget.prototype.style = function () {
@@ -34,9 +31,8 @@ define([
     // click_callback : function called if user click on notification
     // could return false to prevent the notification to be dismissed
     NotificationWidget.prototype.set_message = function (msg, timeout, click_callback, options) {
-        var options = options || {};
-        var callback = click_callback || function() {return true;};
-        var that = this;
+        options = options || {};
+
         // unbind potential previous callback
         this.element.unbind('click');
         this.inner.attr('class', options.icon);
@@ -48,50 +44,58 @@ define([
         this.element.removeClass();
         this.style();
         if (options.class){
-
-            this.element.addClass(options.class)
+            this.element.addClass(options.class);
         }
+
+        // clear previous timer
         if (this.timeout !== null) {
             clearTimeout(this.timeout);
             this.timeout = null;
         }
-        if (timeout !== undefined && timeout >=0) {
+
+        // set the timer if a timeout is given
+        var that = this;
+        if (timeout !== undefined && timeout >= 0) {
             this.timeout = setTimeout(function () {
                 that.element.fadeOut(100, function () {that.inner.text('');});
+                that.element.unbind('click');
                 that.timeout = null;
             }, timeout);
-        } else {
+        }
+
+        // bind the click callback if it is given
+        if (click_callback !== undefined) {
             this.element.click(function() {
-                if( callback() !== false ) {
+                if (click_callback() !== false) {
                     that.element.fadeOut(100, function () {that.inner.text('');});
                     that.element.unbind('click');
                 }
-                if (that.timeout !== undefined) {
-                    that.timeout = undefined;
+                if (that.timeout !== null) {
                     clearTimeout(that.timeout);
+                    that.timeout = null;
                 }
             });
         }
     };
 
-
     NotificationWidget.prototype.info = function (msg, timeout, click_callback, options) {
-        var options = options || {};
-        options.class = options.class +' info';
-        var timeout = timeout || 3500;
+        options = options || {};
+        options.class = options.class + ' info';
+        timeout = timeout || 3500;
         this.set_message(msg, timeout, click_callback, options);
-    }
-    NotificationWidget.prototype.warning = function (msg, timeout, click_callback, options) {
-        var options = options || {};
-        options.class = options.class +' warning';
-        this.set_message(msg, timeout, click_callback, options);
-    }
-    NotificationWidget.prototype.danger = function (msg, timeout, click_callback, options) {
-        var options = options || {};
-        options.class = options.class +' danger';
-        this.set_message(msg, timeout, click_callback, options);
-    }
+    };
 
+    NotificationWidget.prototype.warning = function (msg, timeout, click_callback, options) {
+        options = options || {};
+        options.class = options.class + ' warning';
+        this.set_message(msg, timeout, click_callback, options);
+    };
+
+    NotificationWidget.prototype.danger = function (msg, timeout, click_callback, options) {
+        options = options || {};
+        options.class = options.class + ' danger';
+        this.set_message(msg, timeout, click_callback, options);
+    };
 
     NotificationWidget.prototype.get_message = function () {
         return this.inner.html();
