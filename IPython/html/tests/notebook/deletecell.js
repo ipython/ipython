@@ -21,7 +21,7 @@ casper.notebook_test(function () {
 
     this.thenEvaluate(function() {
         IPython.notebook.get_cell(1).metadata.deletable = false;
-        IPython.notebook.get_cell(2).metadata.deletable = 0;
+        IPython.notebook.get_cell(2).metadata.deletable = 0; // deletable only when exactly false
         IPython.notebook.get_cell(3).metadata.deletable = true;
     });
 
@@ -29,7 +29,7 @@ casper.notebook_test(function () {
         // Check deletable status of the cells
         this.test.assert(cell_is_deletable(0), 'Cell 0 is deletable');
         this.test.assert(!cell_is_deletable(1), 'Cell 1 is not deletable');
-        this.test.assert(!cell_is_deletable(2), 'Cell 2 is not deletable');
+        this.test.assert(cell_is_deletable(2), 'Cell 2 is deletable');
         this.test.assert(cell_is_deletable(3), 'Cell 3 is deletable');
     });
 
@@ -56,44 +56,33 @@ casper.notebook_test(function () {
         this.validate_notebook_state('dd', 'command', 0);
     });
 
-    // Try to delete cell 1 (should fail)
+    // Try to delete cell 1 (should succeed)
     this.then(function () {
         this.select_cell(1);
         this.trigger_keydown('d', 'd');
-        this.test.assertEquals(this.get_cells_length(), 3, 'Delete cell 1: There are still 3 cells');
+        this.test.assertEquals(this.get_cells_length(), 2, 'Delete cell 1: There are now 2 cells');
         this.test.assertEquals(this.get_cell_text(0), a, 'Delete cell 1: Cell 0 was not affected');
-        this.test.assertEquals(this.get_cell_text(1), b, 'Delete cell 1: Cell 1 was not deleted');
-        this.test.assertEquals(this.get_cell_text(2), c, 'Delete cell 1: Cell 2 was not affected');
+        this.test.assertEquals(this.get_cell_text(1), c, 'Delete cell 1: Cell 1 was not affected');
         this.validate_notebook_state('dd', 'command', 1);
     });
 
-    // Try to delete cell 2 (should succeed)
+    // Try to delete cell 1 (should succeed)
     this.then(function () {
-        this.select_cell(2);
-        this.trigger_keydown('d', 'd');
-        this.test.assertEquals(this.get_cells_length(), 2, 'Delete cell 2: There are now 2 cells');
-        this.test.assertEquals(this.get_cell_text(0), a, 'Delete cell 2: Cell 0 was not affected');
-        this.test.assertEquals(this.get_cell_text(1), b, 'Delete cell 2: Cell 1 was not affected');
-        this.validate_notebook_state('dd', 'command', 1);
-    });
-
-    // Change the deletable status of the last two cells
-    this.thenEvaluate(function() {
-        IPython.notebook.get_cell(0).metadata.deletable = true;
-        IPython.notebook.get_cell(1).metadata.deletable = true;
-    });
-
-    this.then(function () {
-        // Check deletable status of the cells
-        this.test.assert(cell_is_deletable(0), 'Cell 0 is deletable');
-        this.test.assert(cell_is_deletable(1), 'Cell 1 is deletable');
-
-        // Try to delete cell 1 (should succeed)
         this.select_cell(1);
         this.trigger_keydown('d', 'd');
         this.test.assertEquals(this.get_cells_length(), 1, 'Delete cell 1: There is now 1 cell');
-        this.test.assertEquals(this.get_cell_text(0), a, 'Delete cell 1: Cell 0 was not affected');
+        this.test.assertEquals(this.get_cell_text(0), a, 'Delete cell 2: Cell 0 was not affected');
         this.validate_notebook_state('dd', 'command', 0);
+    });
+
+    // Change the deletable status of the last cells
+    this.thenEvaluate(function() {
+        IPython.notebook.get_cell(0).metadata.deletable = true;
+    });
+
+    this.then(function () {
+        // Check deletable status of the cell
+        this.test.assert(cell_is_deletable(0), 'Cell 0 is deletable');
 
         // Try to delete the last cell (should succeed)
         this.select_cell(0);
