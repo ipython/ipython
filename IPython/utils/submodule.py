@@ -38,7 +38,16 @@ def ipython_submodules(root):
 
 def is_repo(d):
     """is d a git repo?"""
-    return os.path.exists(pjoin(d, '.git'))
+    if not os.path.exists(pjoin(d, '.git')):
+        return False
+    proc = subprocess.Popen('git status',
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            shell=True,
+                            cwd=d,
+    )
+    status, _ = proc.communicate()
+    return status == 0
 
 def check_submodule_status(root=None):
     """check submodule status
