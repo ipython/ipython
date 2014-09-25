@@ -37,7 +37,6 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
     payload = dict(
         source='page',
         data=data,
-        text=strng,
         start=start,
         screen_lines=screen_lines,
         )
