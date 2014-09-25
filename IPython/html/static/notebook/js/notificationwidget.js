@@ -90,7 +90,7 @@ define([
 
         // bind the click callback if it is given
         if (click_callback !== undefined) {
-            this.element.click(function() {
+            this.element.click(function () {
                 if (click_callback() !== false) {
                     that.element.fadeOut(100, function () {that.inner.text('');});
                 }
@@ -105,7 +105,8 @@ define([
 
     /**
      * Display an information message (styled with the 'info'
-     * class). Arguments are the same as in set_message.
+     * class). Arguments are the same as in set_message. Default
+     * timeout is 3500 milliseconds.
      *
      * @method info
      */
