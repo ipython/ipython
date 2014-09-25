@@ -222,6 +222,14 @@ class V4toV5(Adapter):
         user_variables = content.pop('user_variables', {})
         if user_variables:
             user_expressions.update(user_variables)
+
+        # Pager payloads became a mime bundle
+        for payload in content.get('payload', []):
+            if payload.get('source', None) == 'page' and ('text' in payload):
+                if 'data' not in payload:
+                    payload['data'] = {}
+                payload['data']['text/plain'] = payload.pop('text')
+
         return msg
     
     def complete_request(self, msg):

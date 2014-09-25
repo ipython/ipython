@@ -86,6 +86,22 @@ class V4toV5TestCase(AdapterTest):
         self.assertEqual(v5c['user_expressions'], {'a' : 'apple', 'b': 'b'})
         self.assertNotIn('user_variables', v5c)
         self.assertEqual(v5c['code'], v4c['code'])
+
+    def test_execute_reply(self):
+        msg = self.msg("execute_reply", {
+            'status': 'ok',
+            'execution_count': 7,
+            'user_variables': {'a': 1},
+            'user_expressions': {'a+a': 2},
+            'payload': [{'source':'page', 'text':'blah'}]
+        })
+        v4, v5 = self.adapt(msg)
+        v5c = v5['content']
+        self.assertNotIn('user_variables', v5c)
+        self.assertEqual(v5c['user_expressions'], {'a': 1, 'a+a': 2})
+        self.assertEqual(v5c['payload'], [{'source': 'page',
+                                           'data': {'text/plain': 'blah'}}
+                                         ])
     
     def test_complete_request(self):
         msg = self.msg("complete_request", {
