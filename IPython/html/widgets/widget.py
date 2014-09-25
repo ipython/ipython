@@ -327,11 +327,11 @@ class Widget(LoggingConfigurable):
         # Trigger default traitlet callback machinery.  This allows any user
         # registered validation to be processed prior to allowing the widget
         # machinery to handle the state.
-        super(Widget, self)._notify_trait(name, old_value, new_value)
+        LoggingConfigurable._notify_trait(self, name, old_value, new_value)
 
         # Send the state after the user registered callbacks for trait changes
         # have all fired (allows for user to validate values).
-        if name in self.keys:
+        if self.comm is not None and name in self.keys:
             # Make sure this isn't information that the front-end just sent us.
             if self._should_send_property(name, new_value):
                 # Send new state to front-end
