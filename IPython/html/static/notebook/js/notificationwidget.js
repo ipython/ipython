@@ -20,16 +20,34 @@ define([
         this.element.append(this.inner);
     };
 
+    /**
+     * Add the 'notification_widget' CSS class to the widget element.
+     *
+     * @method style
+     */
     NotificationWidget.prototype.style = function () {
         this.element.addClass('notification_widget');
     };
 
-    // msg : message to display
-    // timeout : time in ms before diseapearing
-    //
-    // if timeout <= 0
-    // click_callback : function called if user click on notification
-    // could return false to prevent the notification to be dismissed
+    /**
+     * Set the notification widget message to display for a certain
+     * amount of time (timeout).  The widget will be shown forever if
+     * timeout is <= 0 or undefined. If the widget is clicked while it
+     * is still displayed, execute an optional callback
+     * (click_callback). If the callback returns false, it will
+     * prevent the notification from being dismissed.
+     *
+     * Options:
+     *    class - CSS class name for styling
+     *    icon - CSS class name for the widget icon
+     *    title - HTML title attribute for the widget
+     *
+     * @method set_message
+     * @param {string} msg - The notification to display
+     * @param {integer} [timeout] - The amount of time in milliseconds to display the widget
+     * @param {function} [click_callback] - The function to run when the widget is clicked
+     * @param {Object} [options] - Additional options
+     */
     NotificationWidget.prototype.set_message = function (msg, timeout, click_callback, options) {
         options = options || {};
 
@@ -43,7 +61,7 @@ define([
         // reset previous set style
         this.element.removeClass();
         this.style();
-        if (options.class){
+        if (options.class) {
             this.element.addClass(options.class);
         }
 
@@ -68,8 +86,8 @@ define([
             this.element.click(function() {
                 if (click_callback() !== false) {
                     that.element.fadeOut(100, function () {that.inner.text('');});
-                    that.element.unbind('click');
                 }
+                that.element.unbind('click');
                 if (that.timeout !== null) {
                     clearTimeout(that.timeout);
                     that.timeout = null;
@@ -78,6 +96,12 @@ define([
         }
     };
 
+    /**
+     * Display an information message (styled with the 'info'
+     * class). Arguments are the same as in set_message.
+     *
+     * @method info
+     */
     NotificationWidget.prototype.info = function (msg, timeout, click_callback, options) {
         options = options || {};
         options.class = options.class + ' info';
@@ -85,18 +109,36 @@ define([
         this.set_message(msg, timeout, click_callback, options);
     };
 
+    /**
+     * Display a warning message (styled with the 'warning'
+     * class). Arguments are the same as in set_message.
+     *
+     * @method warning
+     */
     NotificationWidget.prototype.warning = function (msg, timeout, click_callback, options) {
         options = options || {};
         options.class = options.class + ' warning';
         this.set_message(msg, timeout, click_callback, options);
     };
 
+    /**
+     * Display a danger message (styled with the 'danger'
+     * class). Arguments are the same as in set_message.
+     *
+     * @method danger
+     */
     NotificationWidget.prototype.danger = function (msg, timeout, click_callback, options) {
         options = options || {};
         options.class = options.class + ' danger';
         this.set_message(msg, timeout, click_callback, options);
     };
 
+    /**
+     * Get the text of the widget message.
+     *
+     * @method get_message
+     * @return {string} - the message text
+     */
     NotificationWidget.prototype.get_message = function () {
         return this.inner.html();
     };
