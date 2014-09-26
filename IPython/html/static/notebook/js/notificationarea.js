@@ -147,7 +147,7 @@ define([
                         class: "btn-danger",
                         click: function () {
                             that.events.trigger('status_restarting.Kernel');
-                            that.notebook.start_kernel();
+                            that.notebook.restart_session();
                         }
                     },
                     "Don't restart": {}
