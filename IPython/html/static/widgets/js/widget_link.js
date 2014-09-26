@@ -11,7 +11,7 @@ define([
                 this.update_bindings(model.previous("widgets") || [], value);
                 this.update_value(this.get("widgets")[0]);
             }, this);
-            this.on("destroy", function(model, collection, options) {
+            this.once("destroy", function(model, collection, options) {
                 this.update_bindings(this.get("widgets"), []);
             }, this);
         },
@@ -46,7 +46,7 @@ define([
     var DirectionalLinkModel = widget.WidgetModel.extend({
         initialize: function() {
             this.on("change", this.update_bindings, this);
-            this.on("destroy", function() {
+            this.once("destroy", function() {
                 if (this.source) {
                     this.source[0].off("change:" + this.source[1], null, this);
                 }
