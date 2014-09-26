@@ -5,6 +5,8 @@ FROM ubuntu:14.04
 
 MAINTAINER IPython Project <ipython-dev@scipy.org>
 
+ENV DEBIAN_FRONTEND noninteractive
+
 # Make sure apt is up to date
 RUN apt-get update
 RUN apt-get upgrade -y
@@ -27,7 +29,7 @@ RUN apt-get install -y -q build-essential make gcc zlib1g-dev git && \
 # In order to build from source, need less
 RUN npm install -g less
 
-RUN apt-get -y install fabric
+RUN apt-get install -y -q fabric python-sphinx python3-sphinx
 
 RUN mkdir -p /srv/
 WORKDIR /srv/
@@ -37,10 +39,14 @@ RUN chmod -R +rX /srv/ipython
 
 # .[all] only works with -e, so use file://path#egg
 # Can't use -e because ipython2 and ipython3 will clobber each other
-RUN pip2 install --upgrade file:///srv/ipython#egg=ipython[all]
-RUN pip3 install --upgrade file:///srv/ipython#egg=ipython[all]
+RUN pip2 install file:///srv/ipython#egg=ipython[all]
+RUN pip3 install file:///srv/ipython#egg=ipython[all]
 
 # install kernels
 RUN python2 -m IPython kernelspec install-self --system
 RUN python3 -m IPython kernelspec install-self --system
 
+WORKDIR /tmp/
+
+RUN iptest2
+RUN iptest3

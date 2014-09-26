@@ -14,6 +14,7 @@ from contextlib import contextmanager
 
 from os.path import join, abspath, split
 
+from nose import SkipTest
 import nose.tools as nt
 
 from nose import with_setup
@@ -471,6 +472,14 @@ def test_not_writable_ipdir():
     ipdir = os.path.join(tmpdir, '.ipython')
     os.mkdir(ipdir)
     os.chmod(ipdir, 600)
+    try:
+        os.listdir(ipdir)
+    except OSError:
+        pass
+    else:
+        # I can still read an unreadable dir,
+        # assume I'm root and skip the test
+        raise SkipTest("I can't create directories that I can't list")
     with AssertPrints('is not a writable location', channel='stderr'):
         ipdir = path.get_ipython_dir()
     env.pop('IPYTHON_DIR', None)
