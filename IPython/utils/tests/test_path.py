@@ -12,6 +12,11 @@ import tempfile
 import warnings
 from contextlib import contextmanager
 
+try:  # Python 3.3+
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch
+
 from os.path import join, abspath, split
 
 from nose import SkipTest
@@ -98,10 +103,6 @@ def setup_environment():
     global oldstuff, platformstuff
     oldstuff = (env.copy(), os.name, sys.platform, path.get_home_dir, IPython.__file__, os.getcwd())
 
-    if os.name == 'nt':
-        platformstuff = (wreg.OpenKey, wreg.QueryValueEx,)
-
-
 def teardown_environment():
     """Restore things that were remembered by the setup_environment function
     """
@@ -115,8 +116,6 @@ def teardown_environment():
     env.update(oldenv)
     if hasattr(sys, 'frozen'):
         del sys.frozen
-    if os.name == 'nt':
-        (wreg.OpenKey, wreg.QueryValueEx,) = platformstuff
 
 # Build decorator that uses the setup_environment/setup_environment
 with_environment = with_setup(setup_environment, teardown_environment)
@@ -184,7 +183,6 @@ def test_get_home_dir_5():
     os.name = 'posix'
     nt.assert_raises(path.HomeDirError, path.get_home_dir, True)
 
-
 # Should we stub wreg fully so we can run the test on all platforms?
 @skip_if_not_win32
 @with_environment
@@ -198,19 +196,13 @@ def test_get_home_dir_8():
     for key in ['HOME', 'HOMESHARE', 'HOMEDRIVE', 'HOMEPATH', 'USERPROFILE']:
         env.pop(key, None)
 
-    #Stub windows registry functions
-    def OpenKey(x, y):
-        class key:
-            def Close(self):
-                pass
-        return key()
-    def QueryValueEx(x, y):
-        return [abspath(HOME_TEST_DIR)]
+    class key:
+        def Close(self):
+            pass
 
-    wreg.OpenKey = OpenKey
-    wreg.QueryValueEx = QueryValueEx
-
-    home_dir = path.get_home_dir()
+    with patch.object(wreg, 'OpenKey', return_value=key()), \
+         patch.object(wreg, 'QueryValueEx', return_value=[abspath(HOME_TEST_DIR)]):
+        home_dir = path.get_home_dir()
     nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
 
 
