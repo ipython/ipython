@@ -25,6 +25,7 @@ except ImportError:
     app_log = logging.getLogger()
 
 import IPython
+from IPython.utils.sysinfo import get_sys_info
 
 from IPython.config import Application
 from IPython.utils.path import filefind
@@ -221,6 +222,7 @@ class IPythonHandler(AuthenticatedHandler):
             logged_in=self.logged_in,
             login_available=self.login_available,
             static_url=self.static_url,
+            sys_info=json.dumps(get_sys_info())
         )
     
     def get_json_body(self):
