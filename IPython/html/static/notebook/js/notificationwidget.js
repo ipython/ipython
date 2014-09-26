@@ -119,7 +119,8 @@ define([
 
     /**
      * Display a warning message (styled with the 'warning'
-     * class). Arguments are the same as in set_message.
+     * class). Arguments are the same as in set_message. Messages are
+     * sticky by default.
      *
      * @method warning
      */
@@ -131,7 +132,8 @@ define([
 
     /**
      * Display a danger message (styled with the 'danger'
-     * class). Arguments are the same as in set_message.
+     * class). Arguments are the same as in set_message. Messages are
+     * sticky by default.
      *
      * @method danger
      */
