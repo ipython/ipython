@@ -203,7 +203,7 @@ class IFrame(object):
     iframe = """
         <iframe
             width="{width}"
-            height={height}"
+            height="{height}"
             src="{src}{params}"
             frameborder="0"
             allowfullscreen
