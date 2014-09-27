@@ -187,7 +187,7 @@ define([
         this.events.on('start_failed.Session',function (session, xhr, status, error) {
             var msg = $('<div/>');
             msg.append($('<div/>')
-                       .text('We were unable to start the kernel. This might ' +
+                       .text('The kernel could not be started. This might ' +
                              'happen if the notebook was previously run with a kernel ' +
                              'that you do not have installed. Please choose a different kernel, ' +
                              'or install the needed kernel and then refresh this page.')
