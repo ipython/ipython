@@ -185,31 +185,21 @@ define([
         });
 
         this.events.on('start_failed.Session',function (session, xhr, status, error) {
-            var msg = $('<div/>');
-            msg.append($('<div/>')
-                       .text('The kernel could not be started. This might ' +
-                             'happen if the notebook was previously run with a kernel ' +
-                             'that you do not have installed. Please choose a different kernel, ' +
-                             'or install the needed kernel and then refresh this page.')
-                       .css('margin-bottom', '1em'));
+            var msg = JSON.parse(status.responseJSON.message);
 
-            msg.append($('<div/>')
-                       .text('The exact error was:')
-                       .css('margin-bottom', '1em'));
-
-            msg.append($('<div/>')
-                       .attr('class', 'alert alert-danger')
-                       .attr('role', 'alert')
-                       .text(JSON.parse(status.responseText).message));
-
-            dialog.modal({
-                title: "Failed to start the kernel",
-                body : msg,
-                keyboard_manager: that.keyboard_manager,
-                notebook: that.notebook,
-                buttons : {
-                    "Ok": { class: 'btn-primary' }
-                }
+            that.save_widget.update_document_title();
+            $kernel_ind_icon.attr('class','kernel_dead_icon').attr('title','Kernel Dead');
+            knw.danger(msg.short, undefined, function () {
+                dialog.modal({
+                    title: "Failed to start the kernel",
+                    body : msg.full,
+                    keyboard_manager: that.keyboard_manager,
+                    notebook: that.notebook,
+                    buttons : {
+                        "Ok": { class: 'btn-primary' }
+                    }
+                });
+                return false;
             });
         });
 

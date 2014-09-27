@@ -56,7 +56,11 @@ class SessionRootHandler(IPythonHandler):
             try:
                 model = sm.create_session(name=name, path=path, kernel_name=kernel_name)
             except NoSuchKernel:
-                raise web.HTTPError(400, "No such kernel: %s" % kernel_name)
+                msg = ("The '%s' kernel is not available. Please pick another "
+                       "suitable kernel instead, or install that kernel." % kernel_name)
+                status_msg = 'Kernel not found'
+                msg = dict(full=msg, short=status_msg)
+                raise web.HTTPError(400, json.dumps(msg))
 
         location = url_path_join(self.base_url, 'api', 'sessions', model['id'])
         self.set_header('Location', url_escape(location))
