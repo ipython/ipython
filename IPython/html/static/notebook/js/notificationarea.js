@@ -159,7 +159,7 @@ define([
             });
         });
 
-        this.events.on('status_dead.Kernel',function () {
+        this.events.on('status_restart_failed.Kernel',function () {
             var msg = 'The kernel has died, and the automatic restart has failed.' +
                 ' It is possible the kernel cannot be restarted.' +
                 ' If you are not able to restart the kernel, you will still be able to save' +
@@ -180,6 +180,23 @@ define([
                         }
                     },
                     "Don't restart": {}
+                }
+            });
+        });
+
+        this.events.on('start_failed.Session',function () {
+            var msg = 'We were unable to start the kernel. This might ' +
+                'happen if the notebook was previously run with a kernel ' +
+                'that you do not have installed. Please choose a different kernel, ' +
+                'or install the needed kernel and then refresh this page.';
+
+            dialog.modal({
+                title: "Failed to start the kernel",
+                body : msg,
+                keyboard_manager: that.keyboard_manager,
+                notebook: that.notebook,
+                buttons : {
+                    "Ok": { class: 'btn-primary' }
                 }
             });
         });
