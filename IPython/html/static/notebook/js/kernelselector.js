@@ -12,7 +12,7 @@ define([
         this.selector = selector;
         this.notebook = notebook;
         this.events = notebook.events;
-        this.current_selection = notebook.default_kernel_name;
+        this.current_selection = null;
         this.kernelspecs = {};
         if (this.selector !== undefined) {
             this.element = $(selector);
