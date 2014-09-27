@@ -26,6 +26,10 @@ class _Int(DOMWidget):
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
 
+    def __init__(self, value=None, **kwargs):
+        if value is not None:
+            kwargs['value'] = value
+        super(_Int, self).__init__(**kwargs)
 
 class _BoundedInt(_Int):
     """Base class used to create widgets that represent a int that is bounded
