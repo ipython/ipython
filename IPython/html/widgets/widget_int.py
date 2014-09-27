@@ -40,7 +40,7 @@ class _BoundedInt(_Int):
 
     def __init__(self, *pargs, **kwargs):
         """Constructor"""
-        DOMWidget.__init__(self, *pargs, **kwargs)
+        super(_BoundedInt, self).__init__(*pargs, **kwargs)
         self.on_trait_change(self._validate_value, ['value'])
         self.on_trait_change(self._handle_max_changed, ['max'])
         self.on_trait_change(self._handle_min_changed, ['min'])
@@ -108,7 +108,7 @@ class _IntRange(_Int):
         if lower_given != upper_given:
             raise ValueError("Must specify both 'lower' and 'upper' for range widget")
         
-        DOMWidget.__init__(self, *pargs, **kwargs)
+        super(_BoundedInt, self).__init__(*pargs, **kwargs)
         
         # ensure the traits match, preferring whichever (if any) was given in kwargs
         if value_given:
