@@ -465,11 +465,9 @@ define([
      * @return {Cell} The previous cell
      */
     Notebook.prototype.get_prev_cell = function (cell) {
-        // TODO: off-by-one
-        // nb.get_prev_cell(nb.get_cell(1)) is null
         var result = null;
         var index = this.find_cell_index(cell);
-        if (index !== null && index > 1) {
+        if (index !== null && index > 0) {
             result = this.get_cell(index-1);
         }
         return result;
