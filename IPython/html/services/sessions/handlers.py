@@ -10,6 +10,7 @@ from tornado import web
 from ...base.handlers import IPythonHandler, json_errors
 from IPython.utils.jsonutil import date_default
 from IPython.html.utils import url_path_join, url_escape
+from IPython.kernel.kernelspec import NoSuchKernel
 
 
 class SessionRootHandler(IPythonHandler):
@@ -52,7 +53,11 @@ class SessionRootHandler(IPythonHandler):
         if sm.session_exists(name=name, path=path):
             model = sm.get_session(name=name, path=path)
         else:
-            model = sm.create_session(name=name, path=path, kernel_name=kernel_name)
+            try:
+                model = sm.create_session(name=name, path=path, kernel_name=kernel_name)
+            except NoSuchKernel:
+                raise web.HTTPError(400, "No such kernel: %s" % kernel_name)
+
         location = url_path_join(self.base_url, 'api', 'sessions', model['id'])
         self.set_header('Location', url_escape(location))
         self.set_status(201)
