@@ -184,11 +184,23 @@ define([
             });
         });
 
-        this.events.on('start_failed.Session',function () {
-            var msg = 'We were unable to start the kernel. This might ' +
-                'happen if the notebook was previously run with a kernel ' +
-                'that you do not have installed. Please choose a different kernel, ' +
-                'or install the needed kernel and then refresh this page.';
+        this.events.on('start_failed.Session',function (session, xhr, status, error) {
+            var msg = $('<div/>');
+            msg.append($('<div/>')
+                       .text('We were unable to start the kernel. This might ' +
+                             'happen if the notebook was previously run with a kernel ' +
+                             'that you do not have installed. Please choose a different kernel, ' +
+                             'or install the needed kernel and then refresh this page.')
+                       .css('margin-bottom', '1em'));
+
+            msg.append($('<div/>')
+                       .text('The exact error was:')
+                       .css('margin-bottom', '1em'));
+
+            msg.append($('<div/>')
+                       .attr('class', 'alert alert-danger')
+                       .attr('role', 'alert')
+                       .text(JSON.parse(status.responseText).message));
 
             dialog.modal({
                 title: "Failed to start the kernel",
