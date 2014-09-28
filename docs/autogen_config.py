@@ -70,11 +70,12 @@ if __name__ == '__main__':
 
     write_doc('terminal', 'Terminal IPython options', TerminalIPythonApp().classes)
     write_doc('kernel', 'IPython kernel options', kernel_classes,
-              preamble="These options can be used in :file:`ipython_notebook_config.py` "
-              "or in :file:`ipython_qtconsole_config.py`")
+        preamble="These options can be used in :file:`ipython_kernel_config.py`",
+    )
     nbclasses = set(NotebookApp().classes) - set(kernel_classes)
     write_doc('notebook', 'IPython notebook options', nbclasses,
-              preamble="Any of the :doc:`kernel` can also be used.")
+        preamble="To configure the IPython kernel, see :doc:`kernel`."
+    )
 
     try:
         from IPython.qt.console.qtconsoleapp import IPythonQtConsoleApp
@@ -84,5 +85,6 @@ if __name__ == '__main__':
     else:
         qtclasses = set(IPythonQtConsoleApp().classes) - set(kernel_classes)
         write_doc('qtconsole', 'IPython Qt console options', qtclasses,
-                  preamble="Any of the :doc:`kernel` can also be used.")
+        preamble="To configure the IPython kernel, see :doc:`kernel`."
+    )
 
