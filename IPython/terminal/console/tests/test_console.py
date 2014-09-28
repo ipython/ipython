@@ -64,13 +64,8 @@ def start_console():
     "Start `ipython console` using pexpect"
     from IPython.external import pexpect
     
-    args = ['console', '--colors=NoColor']
-    # FIXME: remove workaround for 2.6 support
-    if sys.version_info[:2] > (2,6):
-        args = ['-m', 'IPython'] + args
-        cmd = sys.executable
-    else:
-        cmd = 'ipython'
+    args = ['-m', 'IPython', 'console', '--colors=NoColor']
+    cmd = sys.executable
     
     try:
         p = pexpect.spawn(cmd, args=args)
