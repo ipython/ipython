@@ -1,16 +1,8 @@
-"""Tests for IPython.lib.pretty.
-"""
-#-----------------------------------------------------------------------------
-# Copyright (c) 2011, the IPython Development Team.
-#
-# Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+"""Tests for IPython.lib.pretty."""
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from __future__ import print_function
 
 # Third-party imports
@@ -20,9 +12,6 @@ import nose.tools as nt
 from IPython.lib import pretty
 from IPython.testing.decorators import skip_without
 
-#-----------------------------------------------------------------------------
-# Classes and functions
-#-----------------------------------------------------------------------------
 
 class MyList(object):
     def __init__(self, content):
@@ -161,11 +150,9 @@ def test_pprint_break_repr():
     nt.assert_equal(output, expected)
 
 def test_bad_repr():
-    """Don't raise, even when repr fails"""
-    output = pretty.pretty(BadRepr())
-    nt.assert_in("failed", output)
-    nt.assert_in("at 0x", output)
-    nt.assert_in("test_pretty", output)
+    """Don't catch bad repr errors"""
+    with nt.assert_raises(ZeroDivisionError):
+        output = pretty.pretty(BadRepr())
 
 class BadException(Exception):
     def __str__(self):
@@ -181,10 +168,8 @@ class ReallyBadRepr(object):
         raise BadException()
 
 def test_really_bad_repr():
-    output = pretty.pretty(ReallyBadRepr())
-    nt.assert_in("failed", output)
-    nt.assert_in("BadException: unknown", output)
-    nt.assert_in("unknown type", output)
+    with nt.assert_raises(BadException):
+        output = pretty.pretty(ReallyBadRepr())
 
 
 class SA(object):

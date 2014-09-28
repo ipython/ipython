@@ -2,25 +2,11 @@
 """Displayhook for IPython.
 
 This defines a callable class that IPython uses for `sys.displayhook`.
-
-Authors:
-
-* Fernando Perez
-* Brian Granger
-* Robert Kern
 """
 
-#-----------------------------------------------------------------------------
-#       Copyright (C) 2008-2011 The IPython Development Team
-#       Copyright (C) 2001-2007 Fernando Perez <fperez@colorado.edu>
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 from __future__ import print_function
 
 import sys
@@ -31,10 +17,6 @@ from IPython.utils import io
 from IPython.utils.py3compat import builtin_mod
 from IPython.utils.traitlets import Instance
 from IPython.utils.warn import warn
-
-#-----------------------------------------------------------------------------
-# Main displayhook class
-#-----------------------------------------------------------------------------
 
 # TODO: Move the various attributes (cache_size, [others now moved]). Some
 # of these are also attributes of InteractiveShell. They should be on ONE object
@@ -168,6 +150,9 @@ class DisplayHook(Configurable):
         md_dict : dict (optional)
             The metadata dict to be associated with the display data.
         """
+        if 'text/plain' not in format_dict:
+            # nothing to do
+            return
         # We want to print because we want to always make sure we have a
         # newline, even if all the prompt separators are ''. This is the
         # standard IPython behavior.
@@ -221,6 +206,9 @@ class DisplayHook(Configurable):
 
     def log_output(self, format_dict):
         """Log the output."""
+        if 'text/plain' not in format_dict:
+            # nothing to do
+            return
         if self.shell.logger.log_output:
             self.shell.logger.log_write(format_dict['text/plain'], 'output')
         self.shell.history_manager.output_hist_reprs[self.prompt_count] = \

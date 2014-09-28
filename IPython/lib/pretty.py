@@ -125,49 +125,6 @@ __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
 
 _re_pattern_type = type(re.compile(''))
 
-def _failed_repr(obj, e):
-    """Render a failed repr, including the exception.
-    
-    Tries to get exception and type info
-    """
-    # get exception name
-    if e.__class__.__module__ in ('exceptions', 'builtins'):
-        ename = e.__class__.__name__
-    else:
-        ename = '{}.{}'.format(
-            e.__class__.__module__,
-            e.__class__.__name__,
-        )
-    # and exception string, which sometimes fails
-    # (usually due to unicode error message)
-    try:
-        estr = str(e)
-    except Exception:
-        estr = "unknown"
-    
-    # and class name
-    try:
-        klass = _safe_getattr(obj, '__class__', None) or type(obj)
-        mod = _safe_getattr(klass, '__module__', None)
-        if mod in (None, '__builtin__', 'builtins', 'exceptions'):
-            classname = klass.__name__
-        else:
-            classname = mod + '.' + klass.__name__
-    except Exception:
-        # this may be paranoid, but we already know repr is broken
-        classname = "unknown type"
-    
-    # the informative repr
-    return "<repr(<{} at 0x{:x}>) failed: {}: {}>".format(
-        classname, id(obj), ename, estr,
-    )
-
-def _safe_repr(obj):
-    """Don't assume repr is not broken."""
-    try:
-        return repr(obj)
-    except Exception as e:
-        return _failed_repr(obj, e)
 
 def _safe_getattr(obj, attr, default=None):
     """Safe version of getattr.
@@ -560,7 +517,7 @@ def _default_pprint(obj, p, cycle):
     klass = _safe_getattr(obj, '__class__', None) or type(obj)
     if _safe_getattr(klass, '__repr__', None) not in _baseclass_reprs:
         # A user-provided repr. Find newlines and replace them with p.break_()
-        output = _safe_repr(obj)
+        output = repr(obj)
         for idx,output_line in enumerate(output.splitlines()):
             if idx:
                 p.break_()
@@ -736,7 +693,7 @@ def _type_pprint(obj, p, cycle):
 
 def _repr_pprint(obj, p, cycle):
     """A pprint that just redirects to the normal repr function."""
-    p.text(_safe_repr(obj))
+    p.text(repr(obj))
 
 
 def _function_pprint(obj, p, cycle):

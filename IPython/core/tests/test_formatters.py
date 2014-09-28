@@ -25,6 +25,10 @@ class B(A):
 class C:
     pass
 
+class BadRepr(object):
+    def __repr__(self):
+        raise ValueError("bad repr")
+
 class BadPretty(object):
     _repr_pretty_ = None
 
@@ -234,30 +238,30 @@ def test_pop_string():
     nt.assert_is(f.pop(type_str, None), None)
     
 
-def test_warn_error_method():
+def test_error_method():
     f = HTMLFormatter()
     class BadHTML(object):
         def _repr_html_(self):
-            return 1/0
+            raise ValueError("Bad HTML")
     bad = BadHTML()
     with capture_output() as captured:
         result = f(bad)
     nt.assert_is(result, None)
-    nt.assert_in("FormatterWarning", captured.stderr)
-    nt.assert_in("text/html", captured.stderr)
-    nt.assert_in("zero", captured.stderr)
+    nt.assert_in("Traceback", captured.stdout)
+    nt.assert_in("Bad HTML", captured.stdout)
+    nt.assert_in("_repr_html_", captured.stdout)
 
 def test_nowarn_notimplemented():
     f = HTMLFormatter()
     class HTMLNotImplemented(object):
         def _repr_html_(self):
             raise NotImplementedError
-            return 1/0
     h = HTMLNotImplemented()
     with capture_output() as captured:
         result = f(h)
     nt.assert_is(result, None)
-    nt.assert_not_in("FormatterWarning", captured.stderr)
+    nt.assert_equal("", captured.stderr)
+    nt.assert_equal("", captured.stdout)
 
 def test_warn_error_for_type():
     f = HTMLFormatter()
@@ -265,11 +269,11 @@ def test_warn_error_for_type():
     with capture_output() as captured:
         result = f(5)
     nt.assert_is(result, None)
-    nt.assert_in("FormatterWarning", captured.stderr)
-    nt.assert_in("text/html", captured.stderr)
-    nt.assert_in("name_error", captured.stderr)
+    nt.assert_in("Traceback", captured.stdout)
+    nt.assert_in("NameError", captured.stdout)
+    nt.assert_in("name_error", captured.stdout)
 
-def test_warn_error_pretty_method():
+def test_error_pretty_method():
     f = PlainTextFormatter()
     class BadPretty(object):
         def _repr_pretty_(self):
@@ -278,9 +282,23 @@ def test_warn_error_pretty_method():
     with capture_output() as captured:
         result = f(bad)
     nt.assert_is(result, None)
-    nt.assert_in("FormatterWarning", captured.stderr)
-    nt.assert_in("text/plain", captured.stderr)
-    nt.assert_in("argument", captured.stderr)
+    nt.assert_in("Traceback", captured.stdout)
+    nt.assert_in("_repr_pretty_", captured.stdout)
+    nt.assert_in("given", captured.stdout)
+    nt.assert_in("argument", captured.stdout)
+
+
+def test_bad_repr_traceback():
+    f = PlainTextFormatter()
+    bad = BadRepr()
+    with capture_output() as captured:
+        result = f(bad)
+    # catches error, returns None
+    nt.assert_is(result, None)
+    nt.assert_in("Traceback", captured.stdout)
+    nt.assert_in("__repr__", captured.stdout)
+    nt.assert_in("ValueError", captured.stdout)
+
 
 class MakePDF(object):
     def _repr_pdf_(self):
