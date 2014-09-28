@@ -350,7 +350,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     #---------------------------------------------------------------------------
     def _handle_clear_output(self, msg):
         """Handle clear output messages."""
-        if not self._hidden and self._is_from_this_session(msg):
+        if include_output(msg):
             wait = msg['content'].get('wait', True)
             if wait:
                 self._pending_clearoutput = True
@@ -523,7 +523,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Handle display hook output.
         """
         self.log.debug("execute_result: %s", msg.get('content', ''))
-        if not self._hidden and self._is_from_this_session(msg):
+        if self.include_output(msg):
             self.flush_clearoutput()
             text = msg['content']['data']
             self._append_plain_text(text + '\n', before_prompt=True)
@@ -532,7 +532,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Handle stdout, stderr, and stdin.
         """
         self.log.debug("stream: %s", msg.get('content', ''))
-        if not self._hidden and self._is_from_this_session(msg):
+        if self.include_output(msg):
             self.flush_clearoutput()
             self.append_stream(msg['content']['text'])
 
@@ -541,7 +541,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """
         self.log.info("shutdown: %s", msg.get('content', ''))
         restart = msg.get('content', {}).get('restart', False)
-        if not self._hidden and not self._is_from_this_session(msg):
+        if not self._hidden and not self.from_here(msg):
             # got shutdown reply, request came from session other than ours
             if restart:
                 # someone restarted the kernel, handle it

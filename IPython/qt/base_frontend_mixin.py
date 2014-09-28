@@ -136,15 +136,23 @@ class BaseFrontendMixin(object):
         handler = getattr(self, '_handle_' + msg_type, None)
         if handler:
             handler(msg)
-
-    def _is_from_this_session(self, msg):
-        """ Returns whether a reply from the kernel originated from a request
-            from this frontend.
-        """
-        session = self._kernel_client.session.session
-        parent = msg['parent_header']
-        if not parent:
-            # if the message has no parent, assume it is meant for all frontends
+    
+    def from_here(self, msg):
+        """Return whether a message is from this session"""
+        session_id = self._kernel_client.session.session
+        return msg['parent_header'].get("session", session_id) == session_id
+    
+    def include_output(self, msg):
+        """Return whether we should include a given output message"""
+        if self._hidden:
+            return False
+        from_here = self.from_here(msg)
+        if msg['msg_type'] == 'execute_input':
+            # only echo inputs not from here
+            return self.include_other_output and not from_here
+        
+        if self.include_other_output:
             return True
         else:
-            return parent.get('session') == session
+            return from_here
+    

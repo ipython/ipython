@@ -519,7 +519,15 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' public interface
     #---------------------------------------------------------------------------
-
+    
+    include_other_output = Bool(False, config=True,
+        help="""Whether to include output from clients
+        other than this one sharing the same kernel.
+        
+        Outputs are not displayed until enter is pressed.
+        """
+    )
+    
     def can_copy(self):
         """ Returns whether text can be copied to the clipboard.
         """
