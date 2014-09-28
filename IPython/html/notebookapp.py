@@ -137,15 +137,7 @@ class NotebookWebApplication(web.Application):
                       cluster_manager, session_manager, kernel_spec_manager,
                       log, base_url, default_url, settings_overrides,
                       jinja_env_options=None):
-        # Python < 2.6.5 doesn't accept unicode keys in f(**kwargs), and
-        # base_url will always be unicode, which will in turn
-        # make the patterns unicode, and ultimately result in unicode
-        # keys in kwargs to handler._execute(**kwargs) in tornado.
-        # This enforces that base_url be ascii in that situation.
-        #
-        # Note that the URLs these patterns check against are escaped,
-        # and thus guaranteed to be ASCII: 'héllo' is really 'h%C3%A9llo'.
-        base_url = py3compat.unicode_to_str(base_url, 'ascii')
+
         _template_path = settings_overrides.get("template_path", os.path.join(os.path.dirname(__file__), "templates"))
         if isinstance(_template_path, str):
             _template_path = (_template_path,)
