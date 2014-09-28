@@ -362,9 +362,6 @@ Currently the magic system has the following functions:""",
 Proper color support under MS Windows requires the pyreadline library.
 You can find it at:
 http://ipython.org/pyreadline.html
-Gary's readline needs the ctypes module, from:
-http://starship.python.net/crew/theller/ctypes
-(Note that ctypes is already part of Python versions 2.5 and newer).
 
 Defaulting color scheme to 'NoColor'"""
             new_scheme = 'NoColor'
