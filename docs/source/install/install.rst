@@ -13,7 +13,7 @@ the quickest way to get up and running with IPython is:
 
 .. code-block:: bash
 
-    $ pip install ipython[all]
+    $ pip install "ipython[all]"
 
 This will download and install IPython and its main optional dependencies:
 
@@ -237,7 +237,7 @@ optional dependencies:
 
 .. code-block:: bash
 
-    $ pip install ipython[terminal]
+    $ pip install "ipython[terminal]"
 
 
 nose
@@ -255,7 +255,7 @@ Another way of getting this is to do:
 
 .. code-block:: bash
 
-    $ pip install ipython[test]
+    $ pip install "ipython[test]"
 
 For more installation options, see the `nose website
 <http://somethingaboutorange.com/mrl/projects/nose/>`_.  
@@ -279,7 +279,7 @@ On a Unix style platform (including OS X), if you want to use
 
 .. code-block:: bash
 
-    $ pip install ipython[zmq]    # will include pyzmq
+    $ pip install "ipython[zmq]"    # will include pyzmq
 
 Security in IPython.parallel is provided by SSH tunnels.  By default, Linux
 and OSX clients will use the shell ssh command, but on Windows, we also
