@@ -430,7 +430,7 @@ define([
      * 
      * @method get_cell
      * @param {Number} index An index of a cell to retrieve
-     * @return {Cell} A particular cell
+     * @return {Cell} Cell or null if no cell was found.
      */
     Notebook.prototype.get_cell = function (index) {
         var result = null;
@@ -446,7 +446,7 @@ define([
      * 
      * @method get_next_cell
      * @param {Cell} cell The provided cell
-     * @return {Cell} The next cell
+     * @return {Cell} the next cell or null if no cell was found.
      */
     Notebook.prototype.get_next_cell = function (cell) {
         var result = null;
@@ -462,14 +462,12 @@ define([
      * 
      * @method get_prev_cell
      * @param {Cell} cell The provided cell
-     * @return {Cell} The previous cell
+     * @return {Cell} The previous cell or null if no cell was found.
      */
     Notebook.prototype.get_prev_cell = function (cell) {
-        // TODO: off-by-one
-        // nb.get_prev_cell(nb.get_cell(1)) is null
         var result = null;
         var index = this.find_cell_index(cell);
-        if (index !== null && index > 1) {
+        if (index !== null && index > 0) {
             result = this.get_cell(index-1);
         }
         return result;
@@ -480,7 +478,7 @@ define([
      * 
      * @method find_cell_index
      * @param {Cell} cell The provided cell
-     * @return {Number} The cell's numeric index
+     * @return {Number} The cell's numeric index or null if no cell was found.
      */
     Notebook.prototype.find_cell_index = function (cell) {
         var result = null;
