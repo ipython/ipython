@@ -81,3 +81,16 @@ def _compile_less(source, target, sourcemap, minify=True, verbose=False):
     finally:
         os.chdir(cwd)
 
+def _rjs(name):
+    with lcd(here):
+        local("r.js -o build.js 'name={name}' 'out=static/{name}.min.js'".format(name=name))
+
+def js():
+    """Compile minified javascript"""
+    for name in ['notebook', 'tree']:
+        _rjs(pjoin(name, 'js', 'main'))
+
+    for name in ['logout', 'login']:
+        _rjs(pjoin('auth', 'js', name + 'main'))
+    
+

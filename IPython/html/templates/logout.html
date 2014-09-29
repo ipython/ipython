@@ -34,6 +34,6 @@
 {% block script %}
 {{super()}}
 
-<script src="{{static_url("auth/js/logoutmain.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{maybe_minified("auth/js/logoutmain.js") }}" type="text/javascript" charset="utf-8"></script>
 
 {% endblock %}

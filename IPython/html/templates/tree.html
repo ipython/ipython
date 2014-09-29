@@ -138,5 +138,5 @@ data-terminals-available="{{terminals_available}}"
 {% block script %}
     {{super()}}
 
-<script src="{{ static_url("tree/js/main.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ maybe_minified("tree/js/main.js") }}" type="text/javascript" charset="utf-8"></script>
 {% endblock %}

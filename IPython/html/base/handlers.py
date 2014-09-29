@@ -230,6 +230,27 @@ class IPythonHandler(AuthenticatedHandler):
         template = self.get_template(name)
         return template.render(**ns)
     
+    def maybe_minified(self, path, *args, **kwargs):
+        """return static_url for a js file or its minified version,
+        whichever is newer.
+        """
+        StaticHandler = self.settings.get("static_handler_class",
+                                    web.StaticFileHandler)
+        static_path = self.settings.get('static_path', 'static')
+        normal_path = StaticHandler.get_absolute_path(static_path, path)
+        minified_path = StaticHandler.get_absolute_path(static_path, path[:-3] + '.min.js')
+        try:
+            norm_mtime = os.stat(normal_path).st_mtime
+        except OSError as e:
+            norm_mtime = 0
+        try:
+            min_mtime = os.stat(minified_path).st_mtime
+        except OSError as e:
+            min_mtime = 0
+        if min_mtime >= norm_mtime:
+            path = path[:-3] + '.min.js'
+        return self.static_url(path, *args, **kwargs)
+    
     @property
     def template_namespace(self):
         return dict(
@@ -240,6 +261,7 @@ class IPythonHandler(AuthenticatedHandler):
             static_url=self.static_url,
             sys_info=sys_info,
             contents_js_source=self.contents_js_source,
+            maybe_minified=self.maybe_minified,
         )
     
     def get_json_body(self):

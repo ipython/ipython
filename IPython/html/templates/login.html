@@ -48,6 +48,6 @@
 {% block script %}
 {{super()}}
 
-<script src="{{static_url("auth/js/loginmain.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{maybe_minified("auth/js/loginmain.js") }}" type="text/javascript" charset="utf-8"></script>
 
 {% endblock %}
