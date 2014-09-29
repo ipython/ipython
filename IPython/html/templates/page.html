@@ -19,16 +19,19 @@
       require.config({
           baseUrl: '{{static_url("", include_version=False)}}',
           paths: {
+
+            {%- for path in static_files -%}
+            "{{path[:-3]}}" : "{{ static_url(path) }}",
+            {% endfor %}
             nbextensions : '{{ base_url }}nbextensions',
-            underscore : 'components/underscore/underscore-min',
-            backbone : 'components/backbone/backbone-min',
-            jquery: 'components/jquery/jquery.min',
-            bootstrap: 'components/bootstrap/js/bootstrap.min',
-            bootstraptour: 'components/bootstrap-tour/build/js/bootstrap-tour.min',
-            dateformat: 'dateformat/date.format',
-            jqueryui: 'components/jquery-ui/ui/minified/jquery-ui.min',
-            highlight: 'components/highlight.js/build/highlight.pack',
-            moment: "components/moment/moment",
+            underscore : '{{static_url("components/underscore/underscore-min.js")}}',
+            backbone : '{{static_url("components/backbone/backbone-min.js")}}',
+            jquery: '{{static_url("components/jquery/jquery.min.js")}}',
+            bootstrap: '{{static_url("components/bootstrap/js/bootstrap.min.js")}}',
+            bootstraptour: '{{static_url("components/bootstrap-tour/build/js/bootstrap-tour.min.js")}}',
+            jqueryui: '{{static_url("components/jquery-ui/ui/minified/jquery-ui.min.js")}}',
+            highlight: '{{static_url("components/highlight.js/build/highlight.pack.js")}}',
+            moment: '{{static_url("components/moment/moment.js")}}',
           },
           shim: {
             underscore: {
