@@ -26,7 +26,7 @@ define(["widgets/js/manager",
             this.msg_buffer = null;
             this.state_lock = null;
             this.id = model_id;
-            this.views = [];
+            this.views = {};
 
             if (comm !== undefined) {
                 // Remember comm associated with the model.
@@ -57,9 +57,11 @@ define(["widgets/js/manager",
             delete this.comm.model; // Delete ref so GC will collect widget model.
             delete this.comm;
             delete this.model_id; // Delete id from model so widget manager cleans up.
-            _.each(this.views, function(view, i) {
-                view.remove();
-            });
+            for (var id in this.views) {
+                if (this.views.hasOwnProperty(id)) {
+                    this.views[id].remove();
+                }
+            }
         },
 
         _handle_comm_msg: function (msg) {
@@ -293,8 +295,8 @@ define(["widgets/js/manager",
             this.options = parameters.options;
             this.child_model_views = {};
             this.child_views = {};
-            this.model.views.push(this);
             this.id = this.id || IPython.utils.uuid();
+            this.model.views[this.id] = this;
             this.on('displayed', function() { 
                 this.is_displayed = true; 
             }, this);
@@ -339,7 +341,7 @@ define(["widgets/js/manager",
                 var view = this.child_views[view_id];
                 delete this.child_views[view_id];
                 view_ids.splice(0,1);
-                child_model.views.pop(view);
+                delete child_model.views[view_id];
             
                 // Remove the view list specific to this model if it is empty.
                 if (view_ids.length === 0) {
