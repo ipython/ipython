@@ -58,7 +58,9 @@ define(["widgets/js/manager",
             delete this.comm;
             delete this.model_id; // Delete id from model so widget manager cleans up.
             for (var id in this.views) {
-                this.views[id].remove();
+                if (this.views.hasOwnProperty(id)) {
+                    this.views[id].remove();
+                }
             }
         },
 
