@@ -211,9 +211,27 @@ class IPythonHandler(AuthenticatedHandler):
         template = self.get_template(name)
         return template.render(**ns)
     
+    _static_files = []
+    @property
+    def static_files(self):
+        if not self._static_files:
+            fileset = set()
+            for root in self.settings['static_path']:
+                nr = len(root) + (not root.endswith('/'))
+                for d, _, files in os.walk(root):
+                    base = d[nr:]
+                    for f in files:
+                        if not f.endswith('.js'):
+                            continue
+                        uri = os.path.join(base, f).replace(os.path.sep, '/')
+                        fileset.add(uri)
+            self._static_files = sorted(fileset)
+        return self._static_files
+
     @property
     def template_namespace(self):
         return dict(
+            static_files=self.static_files,
             base_url=self.base_url,
             ws_url=self.ws_url,
             logged_in=self.logged_in,
@@ -380,8 +398,8 @@ class FileFindHandler(web.StaticFileHandler):
             try:
                 abspath = os.path.abspath(filefind(path, roots))
             except IOError:
-                # IOError means not found
-                return ''
+                # IOError means not found, but still return a meaningful path
+                return os.path.abspath(os.path.join(roots[-1], path))
             
             cls._static_paths[path] = abspath
             return abspath
