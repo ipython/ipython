@@ -59,8 +59,10 @@ class SessionRootHandler(IPythonHandler):
                 msg = ("The '%s' kernel is not available. Please pick another "
                        "suitable kernel instead, or install that kernel." % kernel_name)
                 status_msg = 'Kernel not found'
-                msg = dict(full=msg, short=status_msg)
-                raise web.HTTPError(501, json.dumps(msg))
+                self.log.warn('Kernel not found: %s' % kernel_name)
+                self.set_status(501)
+                self.finish(json.dumps(dict(message=msg, short_message=status_msg)))
+                return
 
         location = url_path_join(self.base_url, 'api', 'sessions', model['id'])
         self.set_header('Location', url_escape(location))
