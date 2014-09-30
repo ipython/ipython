@@ -150,7 +150,7 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-box widget-radio');
+                .addClass('widget-vbox widget-radio');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')

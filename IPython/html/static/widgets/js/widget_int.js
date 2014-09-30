@@ -107,8 +107,8 @@ define([
                     else if(value < min){ 
                         value = min; 
                     }
-                this.$slider.slider('option', 'value', value);
-                this.$readout.text(value);
+                    this.$slider.slider('option', 'value', value);
+                    this.$readout.text(value);
                 }
 
                 if(this.model.get('value')!=value) {
@@ -118,17 +118,11 @@ define([
 
                 // Use the right CSS classes for vertical & horizontal sliders
                 if (orientation=='vertical') {
-                    this.$slider_container
-                        .removeClass('widget-hslider')
-                        .addClass('widget-vslider');
                     this.$el
                         .removeClass('widget-hbox')
                         .addClass('widget-vbox');
 
                 } else {
-                    this.$slider_container
-                        .removeClass('widget-vslider')
-                        .addClass('widget-hslider');
                     this.$el
                         .removeClass('widget-vbox')
                         .addClass('widget-hbox');
