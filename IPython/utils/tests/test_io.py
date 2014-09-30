@@ -144,7 +144,10 @@ def test_atomic_writing():
         try:
             os.symlink(f1, f2)
             have_symlink = True
-        except (AttributeError, NotImplementedError):
+        except (AttributeError, NotImplementedError, OSError):
+            # AttributeError: Python doesn't support it
+            # NotImplementedError: The system doesn't support it
+            # OSError: The user lacks the privilege (Windows)
             have_symlink = False
 
         with nt.assert_raises(CustomExc):
