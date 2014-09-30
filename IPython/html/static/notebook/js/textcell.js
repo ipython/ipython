@@ -131,8 +131,6 @@ define([
         if (cont) {
             var text_cell = this.element;
             var output = text_cell.find("div.text_cell_render");
-            output.hide();
-            text_cell.find('div.input_area').show();
             if (this.get_text() === this.placeholder) {
                 this.set_text('');
             }
@@ -261,8 +259,6 @@ define([
             // links in markdown cells should open in new tabs
             html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
             this.set_rendered(html);
-            this.element.find('div.input_area').hide();
-            this.element.find("div.text_cell_render").show();
             this.typeset();
         }
         return cont;
@@ -283,8 +279,6 @@ define([
         var config = utils.mergeopt(RawCell, options.config);
         TextCell.apply(this, [$.extend({}, options, {config: config})]);
 
-        // RawCell should always hide its rendered div
-        this.element.find('div.text_cell_render').hide();
         this.cell_type = 'raw';
     };
 
@@ -427,8 +421,6 @@ define([
                     .text('¶')
             );
             this.set_rendered(h);
-            this.element.find('div.input_area').hide();
-            this.element.find("div.text_cell_render").show();
             this.typeset();
         }
         return cont;

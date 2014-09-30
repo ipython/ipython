@@ -8942,6 +8942,12 @@ h6:hover .anchor-link {
 div.cell.text_cell.rendered {
   padding: 0px;
 }
+.text_cell.rendered .input_area {
+  display: none;
+}
+.text_cell.unrendered .text_cell_render {
+  display: none;
+}
 .cm-s-heading-1,
 .cm-s-heading-2,
 .cm-s-heading-3,
