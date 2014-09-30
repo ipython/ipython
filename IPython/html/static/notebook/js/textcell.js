@@ -431,7 +431,7 @@ var IPython = (function (IPython) {
             html = security.sanitize_html(html);
             var h = $($.parseHTML(html));
             // add id and linkback anchor
-            var hash = h.text().replace(/ /g, '-');
+            var hash = h.text().trim().replace(/ /g, '-');
             h.attr('id', hash);
             h.append(
                 $('<a/>')
