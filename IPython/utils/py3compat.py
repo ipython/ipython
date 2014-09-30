@@ -187,10 +187,7 @@ else:
     if sys.platform == 'win32':
         def execfile(fname, glob=None, loc=None):
             loc = loc if (loc is not None) else glob
-            # The rstrip() is necessary b/c trailing whitespace in files will
-            # cause an IndentationError in Python 2.6 (this was fixed in 2.7,
-            # but we still support 2.6).  See issue 1027.
-            scripttext = builtin_mod.open(fname).read().rstrip() + '\n'
+            scripttext = builtin_mod.open(fname).read()+ '\n'
             # compile converts unicode filename to str assuming
             # ascii. Let's do the conversion before calling compile
             if isinstance(fname, unicode):
