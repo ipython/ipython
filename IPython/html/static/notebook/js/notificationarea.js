@@ -185,14 +185,25 @@ define([
         });
 
         this.events.on('start_failed.Session',function (session, xhr, status, error) {
-            var msg = JSON.parse(status.responseJSON.message);
+            var full = status.responseJSON.message;
+            var short = status.responseJSON.short_message || 'Kernel error';
+            var traceback = status.responseJSON.traceback;
+            var msg = $('<div/>');
 
-            that.save_widget.update_document_title();
-            $kernel_ind_icon.attr('class','kernel_dead_icon').attr('title','Kernel Dead');
-            knw.danger(msg.short, undefined, function () {
+            msg.append($('<p/>').text(full));
+            if (traceback) {
+                msg.append($('<textarea/>')
+                           .attr('rows', '13')
+                           .attr('cols', '80')
+                           .attr('readonly', 'true')
+                           .css('margin-top', '1em')
+                           .text(traceback));
+            }
+
+            var showMsg = function () {
                 dialog.modal({
                     title: "Failed to start the kernel",
-                    body : msg.full,
+                    body : msg,
                     keyboard_manager: that.keyboard_manager,
                     notebook: that.notebook,
                     buttons : {
@@ -200,7 +211,13 @@ define([
                     }
                 });
                 return false;
-            });
+            };
+
+            that.save_widget.update_document_title();
+            $kernel_ind_icon.attr('class','kernel_dead_icon').attr('title','Kernel Dead');
+            knw.danger(short, undefined, showMsg);
+
+            showMsg();
         });
 
         this.events.on('websocket_closed.Kernel', function (event, data) {
