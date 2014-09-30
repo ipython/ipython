@@ -70,9 +70,6 @@ define([
         //  Create default scroll manager.
         this.scroll_manager = new scrollmanager.ScrollManager(this);
 
-        // default_kernel_name is a temporary measure while we implement proper
-        // kernel selection and delayed start. Do not rely on it.
-        this.default_kernel_name = 'python';
         // TODO: This code smells (and the other `= this` line a couple lines down)
         // We need a better way to deal with circular instance references.
         this.keyboard_manager.notebook = this;
@@ -1563,9 +1560,6 @@ define([
      */
     Notebook.prototype.start_session = function (kernel_name) {
         var that = this;
-        if (kernel_name === undefined) {
-            kernel_name = this.default_kernel_name;
-        }
         if (this._session_starting) {
             throw new session.SessionAlreadyStarting();
         }
@@ -2330,7 +2324,7 @@ define([
         // code execution upon loading, which is a security risk.
         if (this.session === null) {
             var kernelspec = this.metadata.kernelspec || {};
-            var kernel_name = kernelspec.name || this.default_kernel_name;
+            var kernel_name = kernelspec.name;
 
             this.start_session(kernel_name);
         }

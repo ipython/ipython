@@ -45,7 +45,8 @@ class SessionRootHandler(IPythonHandler):
         try:
             kernel_name = model['kernel']['name']
         except KeyError:
-            raise web.HTTPError(400, "Missing field in JSON data: kernel.name")
+            self.log.debug("No kernel name specified, using default kernel")
+            kernel_name = None
 
         # Check to see if session exists
         if sm.session_exists(name=name, path=path):
