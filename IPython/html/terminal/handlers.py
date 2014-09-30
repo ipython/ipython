@@ -4,8 +4,8 @@
 # Distributed under the terms of the Modified BSD License.
 
 from tornado import web
+import terminado
 from ..base.handlers import IPythonHandler
-
 
 class TerminalHandler(IPythonHandler):
     """Render the tree view, listing notebooks, clusters, etc."""
@@ -21,4 +21,6 @@ class TerminalHandler(IPythonHandler):
 
 default_handlers = [
     (r"/terminal", TerminalHandler),
+    (r"/terminal/websocket", terminado.TermSocket,
+         {'term_manager': terminado.SingleTermManager(shell_command=['bash'])}),
     ]

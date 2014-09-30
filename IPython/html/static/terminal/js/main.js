@@ -4,9 +4,50 @@
 require([
     'jquery',
     'termjs',
+    'base/js/utils',
+    'base/js/page',
+    'terminal/js/terminado',
     'custom/custom',
 ], function(
     $, 
-    termjs){
+    termjs,
+    utils,
+    page,
+    terminado
+    ){
+    page = new page.Page();
+    // Test size: 25x80
+    var termRowHeight = 1.00 * $("#dummy-screen")[0].offsetHeight / 25;
+    var termColWidth = 1.02 * $("#dummy-screen-rows")[0].offsetWidth / 80;
+    $("#dummy-screen").hide();
+
+    var base_url = utils.get_body_data('baseUrl');
+    var ws_url = location.protocol.replace('http', 'ws') + "//" + location.host
+                                    + base_url + "terminal/websocket";
+    
+    var header = $("#header")[0]
+    function calculate_size() {
+        height = window.innerHeight - header.offsetHeight;
+        width = window.innerWidth;
+        var rows = Math.min(1000, Math.max(20, Math.floor(height/termRowHeight)-1));
+        var cols = Math.min(1000, Math.max(40, Math.floor(width/termColWidth)-1));
+        console.log("resize:", termRowHeight, termColWidth, height, width,
+                                                            rows, cols);
+        return {rows: rows, cols: cols};
+    }
+    
+    page.show_header();
+    
+    size = calculate_size();
+    var terminal = terminado.make_terminal($("#terminado-container")[0], size, ws_url);
+    
+    page.show_site();
+    
+    window.onresize = function() { 
+      var geom = calculate_size();
+      terminal.term.resize(geom.cols, geom.rows);
+      terminal.socket.send(JSON.stringify(["set_size", geom.rows, geom.cols,
+                                    window.innerHeight, window.innerWidth]));
+    };
 
 });
