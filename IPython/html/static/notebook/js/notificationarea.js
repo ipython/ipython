@@ -216,8 +216,6 @@ define([
             that.save_widget.update_document_title();
             $kernel_ind_icon.attr('class','kernel_dead_icon').attr('title','Kernel Dead');
             knw.danger(short, undefined, showMsg);
-
-            showMsg();
         });
 
         this.events.on('websocket_closed.Kernel', function (event, data) {
