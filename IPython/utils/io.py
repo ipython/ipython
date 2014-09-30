@@ -260,7 +260,12 @@ def atomic_writing(path, text=True, encoding='utf-8', **kwargs):
     **kwargs
       Passed to :func:`io.open`.
     """
-    path = os.path.realpath(path)  # Dereference symlinks
+    # realpath doesn't work on Windows: http://bugs.python.org/issue9949
+    # Luckily, we only need to resolve the file itself being a symlink, not
+    # any of its directories, so this will suffice:
+    if os.path.islink(path):
+        path = os.path.join(os.path.dirname(path), os.readlink(path))
+
     dirname, basename = os.path.split(path)
     handle, tmp_path = tempfile.mkstemp(prefix=basename, dir=dirname, text=text)
     if text:
