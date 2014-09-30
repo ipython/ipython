@@ -8,6 +8,7 @@
     <link rel="shortcut icon" type="image/x-icon" href="{{static_url("base/images/favicon.ico") }}">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <link rel="stylesheet" href="{{static_url("components/jquery-ui/themes/smoothness/jquery-ui.min.css") }}" type="text/css" />
+    <link rel="stylesheet" href="{{static_url("components/bootstrap-tags/dist/css/bootstrap-tags.css") }}" type="text/css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     {% block stylesheet %}
@@ -25,6 +26,7 @@
             jquery: 'components/jquery/jquery.min',
             bootstrap: 'components/bootstrap/js/bootstrap.min',
             bootstraptour: 'components/bootstrap-tour/build/js/bootstrap-tour.min',
+            bootstraptags: 'components/bootstrap-tags/dist/js/bootstrap-tags.min',
             jqueryui: 'components/jquery-ui/ui/minified/jquery-ui.min',
             highlight: 'components/highlight.js/build/highlight.pack',
             moment: "components/moment/moment",
@@ -45,6 +47,10 @@
             bootstraptour: {
               deps: ["bootstrap"],
               exports: "Tour"
+            },
+            bootstraptags: {
+              deps: ["bootstrap"],
+              exports: "Tags"
             },
             jqueryui: {
               deps: ["jquery"],
