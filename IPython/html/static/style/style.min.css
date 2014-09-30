@@ -9049,32 +9049,6 @@ div.cell.text_cell.rendered {
 }
 /* THE CLASSES BELOW CAN APPEAR ANYWHERE IN THE DOM (POSSIBLEY OUTSIDE OF
    THE WIDGET AREA). */
-.widget-label {
-  /* Horizontal Label */
-  min-width: 10ex;
-  padding-right: 8px;
-  padding-top: 5px;
-  text-align: right;
-  vertical-align: text-top;
-}
-.widget-label {
-  /* Vertical Label */
-  padding-bottom: 5px;
-  text-align: center;
-  vertical-align: text-bottom;
-}
-.widget-hreadout {
-  padding-left: 8px;
-  padding-top: 5px;
-  text-align: left;
-  vertical-align: text-top;
-}
-.widget-vreadout {
-  /* Vertical Label */
-  padding-top: 5px;
-  text-align: center;
-  vertical-align: text-top;
-}
 .slide-track {
   /* Slider Track */
   border: 1px solid #CCCCCC;
@@ -9082,7 +9056,7 @@ div.cell.text_cell.rendered {
   border-radius: 4px;
   /* Round the corners of the slide track */
 }
-.widget-hslider {
+.widget-hbox.widget-slider .slider-container {
   /* Horizontal jQuery Slider 
 
     Both the horizontal and vertical versions of the slider are characterized
@@ -9141,7 +9115,7 @@ div.cell.text_cell.rendered {
   /* Modern browsers */
   flex: none;
 }
-.widget-hslider .ui-slider {
+.widget-hbox.widget-slider .slider-container .ui-slider {
   /* Inner, invisible slide div */
   border: 0px !important;
   background: none !important;
@@ -9172,12 +9146,12 @@ div.cell.text_cell.rendered {
   /* Modern browsers */
   flex: 1;
 }
-.widget-hslider .ui-slider .ui-slider-handle {
+.widget-hbox.widget-slider .slider-container .ui-slider .ui-slider-handle {
   width: 14px !important;
   height: 28px !important;
   margin-top: -8px !important;
 }
-.widget-hslider .ui-slider .ui-slider-range {
+.widget-hbox.widget-slider .slider-container .ui-slider .ui-slider-range {
   height: 12px !important;
   margin-top: -4px !important;
 }
@@ -9262,27 +9236,28 @@ div.cell.text_cell.rendered {
   width: 12px !important;
   margin-left: -1px !important;
 }
-.widget-text {
+.widget-text input,
+.widget-textarea textarea {
   /* String Textbox - used for TextBoxView and TextAreaView */
   width: 350px;
   margin: 0px !important;
 }
-.widget-listbox {
+.widget-select .form-control {
   /* Listbox */
   width: 350px;
   margin-bottom: 0px;
 }
-.widget-numeric-text {
+.widget-numeric-text input {
   /* Single Line Textbox - used for IntTextView and FloatTextView */
   width: 150px;
   margin: 0px !important;
 }
-.widget-progress {
+.widget-progress .progress {
   /* Progress Bar */
   margin-top: 6px;
   width: 350px;
 }
-.widget-progress .progress-bar {
+.widget-progress .progress .progress-bar {
   /* Disable progress bar animation */
   -webkit-transition: none;
   -moz-transition: none;
@@ -9290,38 +9265,41 @@ div.cell.text_cell.rendered {
   -o-transition: none;
   transition: none;
 }
-.widget-combo-btn {
+.widget-dropdown .dropdown-label {
   /* ComboBox Main Button */
   min-width: 125px;
 }
-.widget_item .dropdown-menu li a {
-  color: inherit;
+.widget-box {
+  /* The following section sets the style for the invisible div that
+    hold widgets and their accompanying labels.
+
+    Looks like this:
+    +-----------------------------+
+    | widget-box (or similar)     |
+    |  +-------+---------------+  |
+    |  | Label | Actual Widget |  |
+    |  +-------+---------------+  |
+    +-----------------------------+
+    */
+  margin: 5px;
+  /* Old browsers */
+  -webkit-box-pack: start;
+  -moz-box-pack: start;
+  box-pack: start;
+  /* Modern browsers */
+  justify-content: flex-start;
+  /* ContainerWidget */
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  /* Old browsers */
+  -webkit-box-align: start;
+  -moz-box-align: start;
+  box-align: start;
+  /* Modern browsers */
+  align-items: flex-start;
 }
 .widget-hbox {
-  /* Horizontal widgets */
-  /* Old browsers */
-  display: -webkit-box;
-  -webkit-box-orient: horizontal;
-  -webkit-box-align: stretch;
-  display: -moz-box;
-  -moz-box-orient: horizontal;
-  -moz-box-align: stretch;
-  display: box;
-  box-orient: horizontal;
-  box-align: stretch;
-  /* Modern browsers */
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  /* Old browsers */
-  -webkit-box-flex: 0;
-  -moz-box-flex: 0;
-  box-flex: 0;
-  /* Modern browsers */
-  flex: none;
-}
-.widget-hbox {
-  /* Single line horizontal widgets */
   /* Horizontal widgets */
   /* The following section sets the style for the invisible div that
     hold widgets and their accompanying labels.
@@ -9371,10 +9349,6 @@ div.cell.text_cell.rendered {
   box-flex: 0;
   /* Modern browsers */
   flex: none;
-  height: 30px;
-}
-.widget-hbox input[type="checkbox"] {
-  margin-top: 9px;
 }
 .widget-hbox .widget-label {
   /* Horizontal Label */
@@ -9390,31 +9364,10 @@ div.cell.text_cell.rendered {
   text-align: left;
   vertical-align: text-top;
 }
-.widget-vbox {
-  /* Vertical widgets */
-  /* Old browsers */
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-box-align: stretch;
-  display: -moz-box;
-  -moz-box-orient: vertical;
-  -moz-box-align: stretch;
-  display: box;
-  box-orient: vertical;
-  box-align: stretch;
-  /* Modern browsers */
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  /* Old browsers */
-  -webkit-box-flex: 0;
-  -moz-box-flex: 0;
-  box-flex: 0;
-  /* Modern browsers */
-  flex: none;
+.widget-hbox input[type="checkbox"] {
+  margin-top: 9px;
 }
 .widget-vbox {
-  /* For vertical slides */
   /* Vertical widgets */
   /* The following section sets the style for the invisible div that
     hold widgets and their accompanying labels.
@@ -9464,22 +9417,41 @@ div.cell.text_cell.rendered {
   box-flex: 0;
   /* Modern browsers */
   flex: none;
-  width: 30px;
 }
-.widget-modal {
-  /* ContainerWidget - ModalView */
+.widget-vbox .widget-label {
+  /* Vertical Label */
+  padding-bottom: 5px;
+  text-align: center;
+  vertical-align: text-bottom;
+}
+.widget-vbox .widget-readout {
+  /* Vertical Label */
+  padding-top: 5px;
+  text-align: center;
+  vertical-align: text-top;
+}
+.widget-popup .modal-content {
+  /* ContainerWidget - PopupView */
   overflow: hidden;
   position: absolute !important;
   top: 0px;
   left: 0px;
   margin-left: 0px !important;
 }
-.widget-modal-body {
-  /* ContainerWidget - ModalView Body */
+.widget-popup .modal-content .modal-body {
+  /* ContainerWidget - PopupView Body */
   max-height: none !important;
 }
-.widget-box {
-  /* Box */
+.widget-popup-docked {
+  /* Horizontal Label */
+  overflow: hidden;
+  position: relative !important;
+  top: 0px !important;
+  left: 0px !important;
+  margin-left: 0px !important;
+}
+.widget-container {
+  /* ContainerWidget */
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -9490,7 +9462,7 @@ div.cell.text_cell.rendered {
   /* Modern browsers */
   align-items: flex-start;
 }
-.widget-radio-box {
+.widget-radio :not(.widget-label) {
   /* Contains RadioButtonsWidget */
   /* Old browsers */
   display: -webkit-box;
@@ -9517,7 +9489,7 @@ div.cell.text_cell.rendered {
   -webkit-box-sizing: border-box;
   padding-top: 4px;
 }
-.widget-radio-box label {
+.widget-radio :not(.widget-label) label {
   margin-top: 0px;
 }
 .docked-widget-modal {
