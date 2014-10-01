@@ -15,24 +15,27 @@ define([
      * A Kernel Class to communicate with the Python kernel
      * @Class Kernel
      */
-    var Kernel = function (kernel_service_url, ws_url, notebook, name) {
+    var Kernel = function (kernel_service_url, ws_url, notebook, id, name) {
         this.events = notebook.events;
-        this.kernel_id = null;
+
+        this.id = id;
+        this.name = name;
+
         this.shell_channel = null;
         this.iopub_channel = null;
         this.stdin_channel = null;
+
         this.kernel_service_url = kernel_service_url;
-        this.name = name;
+        this.kernel_url = utils.url_join_encode(this.kernel_service_url, this.id);
         this.ws_url = ws_url || IPython.utils.get_body_data("wsUrl");
         if (!this.ws_url) {
             // trailing 's' in https will become wss for secure web sockets
             this.ws_url = location.protocol.replace('http', 'ws') + "//" + location.host;
         }
-        this.running = false;
+
         this.username = "username";
         this.session_id = utils.uuid();
         this._msg_callbacks = {};
-        this.post = $.post;
 
         if (typeof(WebSocket) !== 'undefined') {
             this.WebSocket = WebSocket;
@@ -89,52 +92,160 @@ define([
     };
 
     /**
-     * Start the Python kernel
-     * @method start
+     * GET /api/kernels
      */
-    Kernel.prototype.start = function (params) {
-        params = params || {};
-        if (!this.running) {
-            var qs = $.param(params);
-            this.post(utils.url_join_encode(this.kernel_service_url) + '?' + qs,
-                $.proxy(this._kernel_started, this),
-                'json'
-            );
-        }
+    Kernel.prototype.list = function (success, error) {
+        $.ajax(this.kernel_service_url, {
+            processData: false,
+            cache: false,
+            type: "GET",
+            dataType: "json",
+            success: success,
+            error: this._on_error(error)
+        });
     };
 
     /**
-     * Restart the python kernel.
-     *
-     * Emit a 'status_restarting.Kernel' event with
-     * the current object as parameter
-     *
-     * @method restart
+     * POST /api/kernels
      */
-    Kernel.prototype.restart = function () {
-        this.events.trigger('status_restarting.Kernel', {kernel: this});
-        if (this.running) {
-            this.stop_channels();
-            this.post(utils.url_join_encode(this.kernel_url, "restart"),
-                $.proxy(this._kernel_started, this),
-                'json'
-            );
-        }
+    Kernel.prototype.start = function (success, error) {
+        var that = this;
+        var on_success = function (data, status, xhr) {
+            that._kernel_started(data);
+            if (success) {
+                success(data, status, xhr);
+            }
+        };
+
+        $.ajax(this.kernel_service_url, {
+            processData: false,
+            cache: false,
+            type: "POST",
+            dataType: "json",
+            success: this._on_success(on_success),
+            error: this._on_error(error)
+        });
     };
 
+    /**
+     * GET /api/kernels/[:kernel_id]
+     */
+    Kernel.prototype.get_info = function (success, error) {
+        $.ajax(this.kernel_url, {
+            processData: false,
+            cache: false,
+            type: "GET",
+            dataType: "json",
+            success: this._on_success(success),
+            error: this._on_error(error)
+        });
+    };
+
+    /**
+     * DELETE /api/kernels/[:kernel_id]
+     */
+    Kernel.prototype.kill = function (success, error) {
+        var that = this;
+        var on_success = function (data, status, xhr) {
+            that._kernel_dead();
+            if (success) {
+                success(data, status, xhr);
+            }
+        };
+
+        $.ajax(this.kernel_url, {
+            processData: false,
+            cache: false,
+            type: "DELETE",
+            dataType: "json",
+            success: this._on_success(success),
+            error: this._on_error(error)
+        });
+    };
+
+    /**
+     * POST /api/kernels/[:kernel_id]/interrupt
+     */
+    Kernel.prototype.interrupt = function (success, error) {
+        this.events.trigger('status_interrupting.Kernel', {kernel: this});
+        var url = utils.url_join_encode(this.kernel_url, 'interrupt');
+        $.ajax(url, {
+            processData: false,
+            cache: false,
+            type: "POST",
+            dataType: "json",
+            success: this._on_success(success),
+            error: this._on_error(error)
+        });
+    };
+
+    /**
+     * POST /api/kernels/[:kernel_id]/restart
+     */
+    Kernel.prototype.restart = function (success, error) {
+        this.events.trigger('status_restarting.Kernel', {kernel: this});
+        this.stop_channels();
+
+        var that = this;
+        var on_success = function (data, status, xhr) {
+            that._handle_start_success(data, status, xhr);
+            if (success) {
+                success(data, status, xhr);
+            }
+        };
+        var on_error = function (xhr, status, err) {
+            that._handle_start_failure(xhr, status, err);
+            if (error) {
+                error(xhr, status, err);
+            }
+        };
+
+        var url = utils.url_join_encode(this.kernel_url, 'restart');
+        $.ajax(url, {
+            processData: false,
+            cache: false,
+            type: "POST",
+            dataType: "json",
+            success: this._on_success(success),
+            error: this._on_error(error)
+        });
+    };
+
+    Kernel.prototype._on_success = function (success) {
+        var that = this;
+        return function (data, status, xhr) {
+            that.id = data.id;
+            that.name = data.name;
+            that.kernel_url = utils.url_join_encode(that.kernel_service_url, that.id);
+            if (success) {
+                success(data, status, xhr);
+            }
+        };
+    };
+
+    Kernel.prototype._on_error = function (error) {
+        return function (xhr, status, err) {
+            utils.log_ajax_error(xhr, status, err);
+            if (error) {
+                error(xhr, status, err);
+            }
+        };
+    };
 
     Kernel.prototype._kernel_started = function (json) {
         console.log("Kernel started: ", json.id);
-        this.running = true;
-        this.kernel_id = json.id;
-        this.kernel_url = utils.url_path_join(this.kernel_service_url, this.kernel_id);
+        this.events.trigger('status_started.Kernel', {kernel: this});
         this.start_channels();
     };
 
-
-    Kernel.prototype._websocket_closed = function(ws_url, early) {
+    Kernel.prototype._kernel_dead = function () {
         this.stop_channels();
-        this.events.trigger('websocket_closed.Kernel',
+        this.events.trigger('status_dead.Kernel');
+    };
+
+    Kernel.prototype._ws_closed = function(ws_url, early) {
+        this.stop_channels();
+        this.events.trigger('status_disconnected.Kernel',
             {ws_url: ws_url, kernel: this, early: early}
         );
     };
@@ -167,7 +278,7 @@ define([
             }
             already_called_onclose = true;
             if ( ! evt.wasClean ){
-                that._websocket_closed(ws_host_url, true);
+                that._ws_closed(ws_host_url, true);
             }
         };
         var ws_closed_late = function(evt){
@@ -176,7 +287,7 @@ define([
             }
             already_called_onclose = true;
             if ( ! evt.wasClean ){
-                that._websocket_closed(ws_host_url, false);
+                that._ws_closed(ws_host_url, false);
             }
         };
         var ws_error = function(evt){
@@ -184,7 +295,7 @@ define([
                 return;
             }
             already_called_onclose = true;
-            that._websocket_closed(ws_host_url, false);
+            that._ws_closed(ws_host_url, false);
         };
         var channels = [this.shell_channel, this.iopub_channel, this.stdin_channel];
         for (var i=0; i < channels.length; i++) {
@@ -215,14 +326,11 @@ define([
         // send the session id so the Session object Python-side
         // has the same identity
         evt.target.send(this.session_id + ':' + document.cookie);
-        
-        var channels = [this.shell_channel, this.iopub_channel, this.stdin_channel];
-        for (var i=0; i < channels.length; i++) {
-            // if any channel is not ready, don't trigger event.
-            if ( channels[i].readyState !== WebSocket.OPEN ) return;
+
+        if (this.is_connected()) {
+            // all events ready, trigger started event.
+            this.events.trigger('status_connected.Kernel', {kernel: this});
         }
-        // all events ready, trigger started event.
-        this.events.trigger('status_started.Kernel', {kernel: this});
     };
     
     /**
@@ -241,9 +349,26 @@ define([
     };
 
     // Main public methods.
+
+    Kernel.prototype.is_connected = function () {
+        var channels = [this.shell_channel, this.iopub_channel, this.stdin_channel];
+        for (var i=0; i < channels.length; i++) {
+            // if any channel is not ready, then we're not connected
+            if (channels[i] === null) {
+                return false;
+            }
+            if (channels[i].readyState !== WebSocket.OPEN) {
+                return false;
+            }
+        }
+        return true;
+    };
     
     // send a message on the Kernel's shell channel
     Kernel.prototype.send_shell_message = function (msg_type, content, callbacks, metadata) {
+        if (!this.is_connected()) {
+            throw new Error("kernel is not connected");
+        }
         var msg = this._get_msg(msg_type, content, metadata);
         this.shell_channel.send(JSON.stringify(msg));
         this.set_callbacks_for_msg(msg.header.msg_id, callbacks);
@@ -289,7 +414,7 @@ define([
         var content = {
             code : code,
             cursor_pos : cursor_pos,
-            detail_level : 0,
+            detail_level : 0
         };
         return this.send_shell_message("inspect_request", content, callbacks);
     };
@@ -342,7 +467,6 @@ define([
      * Payload handlers will be passed the corresponding payload and the execute_reply message.
      */
     Kernel.prototype.execute = function (code, callbacks, options) {
-
         var content = {
             code : code,
             silent : true,
@@ -379,37 +503,17 @@ define([
         }
         var content = {
             code : code,
-            cursor_pos : cursor_pos,
+            cursor_pos : cursor_pos
         };
         return this.send_shell_message("complete_request", content, callbacks);
     };
 
-
-    Kernel.prototype.interrupt = function () {
-        if (this.running) {
-            this.events.trigger('status_interrupting.Kernel', {kernel: this});
-            this.post(utils.url_join_encode(this.kernel_url, "interrupt"));
-        }
-    };
-
-
-    Kernel.prototype.kill = function (success, error) {
-        if (this.running) {
-            this.running = false;
-            var settings = {
-                cache : false,
-                type : "DELETE",
-                success : success,
-                error : error || utils.log_ajax_error,
-            };
-            $.ajax(utils.url_join_encode(this.kernel_url), settings);
-            this.stop_channels();
-        }
-    };
-
     Kernel.prototype.send_input_reply = function (input) {
+        if (!this.is_connected()) {
+            throw new Error("kernel is not connected");
+        }
         var content = {
-            value : input,
+            value : input
         };
         this.events.trigger('input_reply.Kernel', {kernel: this, content:content});
         var msg = this._get_msg("input_reply", content);
