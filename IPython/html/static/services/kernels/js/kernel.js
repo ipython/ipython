@@ -109,24 +109,40 @@ define([
 
     /**
      * POST /api/kernels
+     *
+     * In general this shouldn't be used -- the kernel should be
+     * started through the session API. If you use this function and
+     * are also using the session API then your session and kernel
+     * WILL be out of sync!
      */
-    Kernel.prototype.start = function (success, error) {
+    Kernel.prototype.start = function (params, success, error) {
+        var url = this.kernel_service_url;
+        var qs = $.param(params || {}); // query string for sage math stuff
+        if (qs !== "") {
+            url = url + "?" + qs;
+        }
+
         var that = this;
         var on_success = function (data, status, xhr) {
+            that.id = data.id;
+            that.kernel_url = utils.url_join_encode(that.kernel_service_url, that.id);
             that._kernel_started(data);
             if (success) {
                 success(data, status, xhr);
             }
         };
 
-        $.ajax(this.kernel_service_url, {
+        $.ajax(url, {
             processData: false,
             cache: false,
             type: "POST",
+            data: JSON.stringify({name: this.name}),
             dataType: "json",
             success: this._on_success(on_success),
             error: this._on_error(error)
         });
+
+        return url;
     };
 
     /**
