@@ -268,6 +268,7 @@ define([
 
     Kernel.prototype._kernel_dead = function () {
         this.events.trigger('status_dead.Kernel');
+        this.events.trigger('no_kernel.Kernel');
         this.stop_channels();
     };
 
@@ -693,6 +694,7 @@ define([
         
         if (execution_state === 'busy') {
             this.events.trigger('status_busy.Kernel', {kernel: this});
+
         } else if (execution_state === 'idle') {
             // signal that iopub callbacks are (probably) done
             // async output may still arrive,
@@ -701,6 +703,7 @@ define([
             
             // trigger status_idle event
             this.events.trigger('status_idle.Kernel', {kernel: this});
+
         } else if (execution_state === 'restarting') {
             // autorestarting is distinct from restarting,
             // in that it means the kernel died and the server is restarting it.
@@ -708,10 +711,9 @@ define([
             // autorestart shows the more prominent dialog.
             this.events.trigger('status_autorestarting.Kernel', {kernel: this});
             this.events.trigger('status_restarting.Kernel', {kernel: this});
+
         } else if (execution_state === 'dead') {
-            this.stop_channels();
-            this.events.trigger('status_dead.Kernel', {kernel: this});
-            this.events.trigger('status_restart_failed.Kernel', {kernel: this});
+            this._kernel_dead();
         }
     };
     

@@ -163,13 +163,13 @@ define([
             });
         });
 
-        this.events.on('status_dead.Kernel',function () {
+        this.events.on('no_kernel.Kernel', function () {
             that.save_widget.update_document_title();
             knw.danger("Dead kernel");
             $kernel_ind_icon.attr('class','kernel_dead_icon').attr('title','Kernel Dead');
         });
 
-        this.events.on('status_dead.Kernel',function () {
+        this.events.on('status_dead.Kernel', function () {
             var msg = 'The kernel has died, and the automatic restart has failed.' +
                 ' It is possible the kernel cannot be restarted.' +
                 ' If you are not able to restart the kernel, you will still be able to save' +

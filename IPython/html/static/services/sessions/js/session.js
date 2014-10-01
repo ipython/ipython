@@ -64,7 +64,7 @@ define([
             }
         };
         var on_error = function (xhr, status, err) {
-            that.events.trigger('status_dead.Kernel');
+            that.events.trigger('no_kernel.Kernel');
             if (error) {
                 error(xhr, status, err);
             }
