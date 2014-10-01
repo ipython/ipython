@@ -230,7 +230,7 @@ def _copy_metadata(src, dst):
     shutil.copymode(src, dst)
     st = os.stat(src)
     if hasattr(os, 'chflags') and hasattr(st, 'st_flags'):
-        os.chflags(st.st_flags)
+        os.chflags(dst, st.st_flags)
 
 @contextmanager
 def atomic_writing(path, text=True, encoding='utf-8', **kwargs):
