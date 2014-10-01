@@ -20,13 +20,12 @@ define([
      * @param {string} kernel_service_url - the URL to access the kernel REST api
      * @param {string} ws_url - the websockets URL
      * @param {Notebook} notebook - notebook object
-     * @param {string} id - the kernel id
      * @param {string} name - the kernel type (e.g. python3)
      */
-    var Kernel = function (kernel_service_url, ws_url, notebook, id, name) {
+    var Kernel = function (kernel_service_url, ws_url, notebook, name) {
         this.events = notebook.events;
 
-        this.id = id;
+        this.id = null;
         this.name = name;
 
         this.channels = {
@@ -36,7 +35,7 @@ define([
         };
 
         this.kernel_service_url = kernel_service_url;
-        this.kernel_url = utils.url_join_encode(this.kernel_service_url, this.id);
+        this.kernel_url = null;
         this.ws_url = ws_url || IPython.utils.get_body_data("wsUrl");
         if (!this.ws_url) {
             // trailing 's' in https will become wss for secure web sockets
@@ -153,9 +152,7 @@ define([
 
         var that = this;
         var on_success = function (data, status, xhr) {
-            that.id = data.id;
-            that.kernel_url = utils.url_join_encode(that.kernel_service_url, that.id);
-            that._kernel_started();
+            that._kernel_started(data);
             if (success) {
                 success(data, status, xhr);
             }
@@ -256,7 +253,7 @@ define([
 
         var that = this;
         var on_success = function (data, status, xhr) {
-            that._kernel_started();
+            that._kernel_started(data);
             if (success) {
                 success(data, status, xhr);
             }
@@ -332,8 +329,12 @@ define([
      * then actually connecting to the kernel.
      *
      * @function _kernel_started
+     * @param {Object} data - information about the kernel including id
      */
-    Kernel.prototype._kernel_started = function () {
+    Kernel.prototype._kernel_started = function (data) {
+        this.id = data.id;
+        this.kernel_url = utils.url_join_encode(this.kernel_service_url, this.id);
+
         console.log("Kernel started: ", this.id);
         this.events.trigger('status_started.Kernel', {kernel: this});
         this.start_channels();

@@ -85,10 +85,8 @@ define([
         var that = this;
         var on_success = function (data, status, xhr) {
             var kernel_service_url = utils.url_path_join(that.base_url, "api/kernels");
-            that.kernel = new kernel.Kernel(
-                kernel_service_url, that.ws_url, that.notebook,
-                that.kernel_model.id, that.kernel_model.name);
-            that.kernel._kernel_started();
+            that.kernel = new kernel.Kernel(kernel_service_url, that.ws_url, that.notebook, that.kernel_model.name);
+            that.kernel._kernel_started(data.kernel);
             if (success) {
                 success(data, status, xhr);
             }
