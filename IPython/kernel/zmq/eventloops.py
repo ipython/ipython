@@ -39,6 +39,7 @@ def _notify_stream_qt(kernel, stream):
 # mapping of keys to loop functions
 loop_map = {
     'inline': None,
+    'nbagg': None,
     None : None,
 }
 
