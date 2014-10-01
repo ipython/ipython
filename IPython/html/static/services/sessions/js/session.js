@@ -9,6 +9,22 @@ define([
 ], function(IPython, $, utils, kernel) {
     "use strict";
 
+    /**
+     * Session object for accessing the session REST api. The session
+     * should be used to start kernels and then shut them down -- for
+     * all other operations, the kernel object should be used.
+     *
+     * Options should include:
+     *  - notebook_name: the notebook name
+     *  - notebook_path: the path (not including name) to the notebook
+     *  - kernel_name: the type of kernel (e.g. python3)
+     *  - base_url: the root url of the notebook server
+     *  - ws_url: the url to access websockets
+     *  - notebook: Notebook object
+     *
+     * @class Session
+     * @param {Object} options
+     */
     var Session = function (options) {
         this.id = null;
         this.notebook_model = {
@@ -27,11 +43,19 @@ define([
 
         this.notebook = options.notebook;
         this.kernel = null;
-        this.events = options.events;
+        this.events = options.notebook.events;
     };
+
+    // Public REST api functions
 
     /**
      * GET /api/sessions
+     *
+     * Get a list of the current sessions.
+     *
+     * @function list
+     * @param {function} [success] - function executed on ajax success
+     * @param {function} [error] - functon executed on ajax error
      */
     Session.prototype.list = function (success, error) {
         $.ajax(this.session_service_url, {
@@ -46,6 +70,12 @@ define([
 
     /**
      * POST /api/sessions
+     *
+     * Start a new session. This function can only executed once.
+     *
+     * @function start
+     * @param {function} [success] - function executed on ajax success
+     * @param {function} [error] - functon executed on ajax error
      */
     Session.prototype.start = function (success, error) {
         if (this.kernel !== null) {
@@ -83,6 +113,12 @@ define([
 
     /**
      * GET /api/sessions/[:session_id]
+     *
+     * Get information about a session.
+     *
+     * @function get_info
+     * @param {function} [success] - function executed on ajax success
+     * @param {function} [error] - functon executed on ajax error
      */
     Session.prototype.get_info = function (success, error) {
         $.ajax(this.session_url, {
@@ -97,19 +133,23 @@ define([
 
     /**
      * PATCH /api/sessions/[:session_id]
+     *
+     * Rename or move a notebook. If the given name or path are
+     * undefined, then they will not be changed.
+     *
+     * @function rename_notebook
+     * @param {string} [name] - new notebook name
+     * @param {string} [path] - new path to notebook
+     * @param {function} [success] - function executed on ajax success
+     * @param {function} [error] - functon executed on ajax error
      */
-    Session.prototype.change = function (notebook_name, notebook_path, kernel_name, success, error) {
-        if (notebook_name !== undefined) {
-            this.notebook_model.name = notebook_name;
+    Session.prototype.rename_notebook = function (name, path, success, error) {
+        if (name !== undefined) {
+            this.notebook_model.name = name;
         }
-        if (notebook_path !== undefined) {
-            this.notebook_model.path = notebook_path;
+        if (path !== undefined) {
+            this.notebook_model.path = path;
         }
-        if (kernel_name !== undefined) {
-            this.kernel_model.name = kernel_name;
-        }
-
-        console.log(JSON.stringify(this._get_model()));
 
         $.ajax(this.session_url, {
             processData: false,
@@ -122,12 +162,14 @@ define([
         });
     };
 
-    Session.prototype.rename_notebook = function (name, path, success, error) {
-        this.change(name, path, undefined, success, error);
-    };
-
     /**
      * DELETE /api/sessions/[:session_id]
+     *
+     * Kill the kernel and shutdown the session.
+     *
+     * @function delete
+     * @param {function} [success] - function executed on ajax success
+     * @param {function} [error] - functon executed on ajax error
      */
     Session.prototype.delete = function (success, error) {
         if (this.kernel) {
@@ -143,7 +185,16 @@ define([
             error: this._on_error(error)
         });
     };
-    
+
+    // Helper functions
+
+    /**
+     * Get the data model for the session, which includes the notebook
+     * (name and path) and kernel (name and id).
+     *
+     * @function _get_model
+     * @returns {Object} - the data model
+     */
     Session.prototype._get_model = function () {
         return {
             notebook: this.notebook_model,
@@ -151,6 +202,15 @@ define([
         };
     };
 
+    /**
+     * Update the data model from the given JSON object, which should
+     * have attributes of `id`, `notebook`, and/or `kernel`. If
+     * provided, the notebook data must include name and path, and the
+     * kernel data must include name and id.
+     *
+     * @function _update_model
+     * @param {Object} data - updated data model
+     */
     Session.prototype._update_model = function (data) {
         if (data && data.id) {
             this.id = data.id;
@@ -166,6 +226,14 @@ define([
         }
     };
 
+    /**
+     * Handle a successful AJAX request by updating the session data
+     * model with the response, and then optionally calling a provided
+     * callback.
+     *
+     * @function _on_success
+     * @param {function} success - callback
+     */
     Session.prototype._on_success = function (success) {
         var that = this;
         return function (data, status, xhr) {
@@ -176,6 +244,13 @@ define([
         };
     };
 
+    /**
+     * Handle a failed AJAX request by logging the error message, and
+     * then optionally calling a provided callback.
+     *
+     * @function _on_error
+     * @param {function} error - callback
+     */
     Session.prototype._on_error = function (error) {
         return function (xhr, status, err) {
             utils.log_ajax_error(xhr, status, err);
@@ -185,12 +260,13 @@ define([
         };
     };
 
-
+    /**
+     * Error type indicating that the session is already starting.
+     */
     var SessionAlreadyStarting = function (message) {
         this.name = "SessionAlreadyStarting";
         this.message = (message || "");
     };
-    
     SessionAlreadyStarting.prototype = Error.prototype;
     
     // For backwards compatability.
