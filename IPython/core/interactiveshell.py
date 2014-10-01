@@ -2795,6 +2795,7 @@ class InteractiveShell(SingletonConfigurable):
                     return None
 
                 # Execute the user code
+                # Suppress output if input ends with semicolon
                 interactivity = "none" if silent else self.ast_node_interactivity
                 self.run_ast_nodes(code_ast.body, cell_name,
                                    interactivity=interactivity, compiler=compiler)
