@@ -27,7 +27,8 @@ class Comm(LoggingConfigurable):
         return self.kernel.iopub_socket
     session = Instance('IPython.kernel.zmq.session.Session')
     def _session_default(self):
-        return self.kernel.session
+        if self.kernel is not None:
+            return self.kernel.session
     
     target_name = Unicode('comm')
     
