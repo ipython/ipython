@@ -88,7 +88,7 @@ define([
             that.kernel = new kernel.Kernel(
                 kernel_service_url, that.ws_url, that.notebook,
                 that.kernel_model.id, that.kernel_model.name);
-            that.kernel._kernel_started(data.kernel);
+            that.kernel._kernel_started();
             if (success) {
                 success(data, status, xhr);
             }

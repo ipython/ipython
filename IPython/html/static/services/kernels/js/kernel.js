@@ -10,10 +10,18 @@ define([
 ], function(IPython, $, utils, comm, widgetmanager) {
     "use strict";
 
-    // Initialization and connection.
     /**
-     * A Kernel Class to communicate with the Python kernel
-     * @Class Kernel
+     * A Kernel class to communicate with the Python kernel. This
+     * should generally not be constructed directly, but be created
+     * by.  the `Session` object. Once created, this object should be
+     * used to communicate with the kernel.
+     * 
+     * @class Kernel
+     * @param {string} kernel_service_url - the URL to access the kernel REST api
+     * @param {string} ws_url - the websockets URL
+     * @param {Notebook} notebook - notebook object
+     * @param {string} id - the kernel id
+     * @param {string} name - the kernel type (e.g. python3)
      */
     var Kernel = function (kernel_service_url, ws_url, notebook, id, name) {
         this.events = notebook.events;
@@ -56,7 +64,9 @@ define([
         this.last_msg_callbacks = {};
     };
 
-
+    /**
+     * @function _get_msg
+     */
     Kernel.prototype._get_msg = function (msg_type, content, metadata) {
         var msg = {
             header : {
@@ -72,16 +82,22 @@ define([
         };
         return msg;
     };
-    
+
+    /**
+     * @function bind_events
+     */
     Kernel.prototype.bind_events = function () {
         var that = this;
         this.events.on('send_input_reply.Kernel', function(evt, data) { 
             that.send_input_reply(data);
         });
     };
-    
-    // Initialize the iopub handlers
-    
+
+    /**
+     * Initialize the iopub handlers.
+     *
+     * @function init_iopub_handlers
+     */
     Kernel.prototype.init_iopub_handlers = function () {
         var output_msg_types = ['stream', 'display_data', 'execute_result', 'error'];
         this._iopub_handlers = {};
@@ -95,6 +111,12 @@ define([
 
     /**
      * GET /api/kernels
+     *
+     * Get the list of running kernels.
+     *
+     * @function list
+     * @param {function} [success] - function executed on ajax success
+     * @param {function} [error] - functon executed on ajax error
      */
     Kernel.prototype.list = function (success, error) {
         $.ajax(this.kernel_service_url, {
@@ -110,10 +132,17 @@ define([
     /**
      * POST /api/kernels
      *
+     * Start a new kernel.
+     *
      * In general this shouldn't be used -- the kernel should be
      * started through the session API. If you use this function and
      * are also using the session API then your session and kernel
      * WILL be out of sync!
+     *
+     * @function start
+     * @param {params} [Object] - parameters to include in the query string
+     * @param {function} [success] - function executed on ajax success
+     * @param {function} [error] - functon executed on ajax error
      */
     Kernel.prototype.start = function (params, success, error) {
         var url = this.kernel_service_url;
@@ -126,7 +155,7 @@ define([
         var on_success = function (data, status, xhr) {
             that.id = data.id;
             that.kernel_url = utils.url_join_encode(that.kernel_service_url, that.id);
-            that._kernel_started(data);
+            that._kernel_started();
             if (success) {
                 success(data, status, xhr);
             }
@@ -147,6 +176,12 @@ define([
 
     /**
      * GET /api/kernels/[:kernel_id]
+     *
+     * Get information about the kernel.
+     *
+     * @function get_info
+     * @param {function} [success] - function executed on ajax success
+     * @param {function} [error] - functon executed on ajax error
      */
     Kernel.prototype.get_info = function (success, error) {
         $.ajax(this.kernel_url, {
@@ -161,6 +196,16 @@ define([
 
     /**
      * DELETE /api/kernels/[:kernel_id]
+     *
+     * Shutdown the kernel.
+     *
+     * If you are also using sessions, then this function shoul NOT be
+     * used. Instead, use Session.delete. Otherwise, the session and
+     * kernel WILL be out of sync.
+     *
+     * @function kill
+     * @param {function} [success] - function executed on ajax success
+     * @param {function} [error] - functon executed on ajax error
      */
     Kernel.prototype.kill = function (success, error) {
         this._kernel_dead();
@@ -176,6 +221,12 @@ define([
 
     /**
      * POST /api/kernels/[:kernel_id]/interrupt
+     *
+     * Interrupt the kernel.
+     *
+     * @function interrupt
+     * @param {function} [success] - function executed on ajax success
+     * @param {function} [error] - functon executed on ajax error
      */
     Kernel.prototype.interrupt = function (success, error) {
         this.events.trigger('status_interrupting.Kernel', {kernel: this});
@@ -192,6 +243,12 @@ define([
 
     /**
      * POST /api/kernels/[:kernel_id]/restart
+     *
+     * Restart the kernel.
+     *
+     * @function interrupt
+     * @param {function} [success] - function executed on ajax success
+     * @param {function} [error] - functon executed on ajax error
      */
     Kernel.prototype.restart = function (success, error) {
         this.events.trigger('status_restarting.Kernel', {kernel: this});
@@ -199,7 +256,7 @@ define([
 
         var that = this;
         var on_success = function (data, status, xhr) {
-            that._kernel_started(data, status, xhr);
+            that._kernel_started();
             if (success) {
                 success(data, status, xhr);
             }
@@ -217,8 +274,11 @@ define([
     };
 
     /**
-     * Not actually a HTTP request, but useful function nonetheless
-     * for reconnecting to the kernel if the connection is somehow lost
+     * Reconnect to a disconnected kernel. This is not actually a
+     * standard HTTP request, but useful function nonetheless for
+     * reconnecting to the kernel if the connection is somehow lost.
+     *
+     * @function reconnect
      */
     Kernel.prototype.reconnect = function () {
         this.events.trigger('status_reconnecting.Kernel');
@@ -228,6 +288,14 @@ define([
         }, 5000);
     };
 
+    /**
+     * Handle a successful AJAX request by updating the kernel id and
+     * name from the response, and then optionally calling a provided
+     * callback.
+     *
+     * @function _on_success
+     * @param {function} success - callback
+     */
     Kernel.prototype._on_success = function (success) {
         var that = this;
         return function (data, status, xhr) {
@@ -242,6 +310,13 @@ define([
         };
     };
 
+    /**
+     * Handle a failed AJAX request by logging the error message, and
+     * then optionally calling a provided callback.
+     *
+     * @function _on_error
+     * @param {function} error - callback
+     */
     Kernel.prototype._on_error = function (error) {
         return function (xhr, status, err) {
             utils.log_ajax_error(xhr, status, err);
@@ -251,12 +326,27 @@ define([
         };
     };
 
-    Kernel.prototype._kernel_started = function (json) {
-        console.log("Kernel started: ", json.id);
+    /**
+     * Perform necessary tasks once the kernel has been started. This
+     * includes triggering the 'status_started.Kernel' event and
+     * then actually connecting to the kernel.
+     *
+     * @function _kernel_started
+     */
+    Kernel.prototype._kernel_started = function () {
+        console.log("Kernel started: ", this.id);
         this.events.trigger('status_started.Kernel', {kernel: this});
         this.start_channels();
     };
 
+    /**
+     * Perform necessary tasks once the connection to the kernel has
+     * been established. This includes triggering the
+     * 'status_connected.Kernel' event and then requesting information
+     * about the kernel.
+     *
+     * @function _kernel_connected
+     */
     Kernel.prototype._kernel_connected = function () {
         var that = this;
         console.log('Connected to kernel: ', this.id);
@@ -266,18 +356,25 @@ define([
         });
     };
 
+    /**
+     * Perform necessary tasks after the kernel has died. This
+     * includes triggering both 'status_dead.Kernel' and
+     * 'no_kernel.Kernel', and then closing communication channels to
+     * the kernel if they are still somehow open.
+     *
+     * @function _kernel_dead
+     */
     Kernel.prototype._kernel_dead = function () {
         this.events.trigger('status_dead.Kernel');
         this.events.trigger('no_kernel.Kernel');
         this.stop_channels();
     };
 
-
     /**
      * Start the `shell`and `iopub` channels.
      * Will stop and restart them if they already exist.
      *
-     * @method start_channels
+     * @function start_channels
      */
     Kernel.prototype.start_channels = function () {
         var that = this;
@@ -340,10 +437,10 @@ define([
     };
 
     /**
-     * Handle a websocket entering the open state
-     * sends session and cookie authentication info as first message.
-     * Once all sockets are open, signal the Kernel.status_started event.
-     * @method _ws_opened
+     * Handle a websocket entering the open state sends session and
+     * cookie authentication info as first message.
+     *
+     * @function _ws_opened
      */
     Kernel.prototype._ws_opened = function (evt) {
         // send the session id so the Session object Python-side
@@ -355,7 +452,18 @@ define([
             this._kernel_connected();
         }
     };
-    
+
+    /**
+     * Handle a websocket entering the closed state. This closes the
+     * other communication channels if they are open, and triggers the
+     * 'status_disconnected.Kernel' event. If the websocket was closed
+     * early, then also trigger 'early_disconnect.Kernel'. Otherwise,
+     * try to reconnect to the kernel.
+     *
+     * @function _ws_closed
+     * @param {string} ws_url - the websocket url
+     * @param {bool} early - whether the connection was closed early or not
+     */
     Kernel.prototype._ws_closed = function(ws_url, early) {
         this.stop_channels();
         this.events.trigger('status_disconnected.Kernel');
@@ -368,8 +476,10 @@ define([
     };
 
     /**
-     * Stop the websocket channels.
-     * @method stop_channels
+     * Close the websocket channels. After successful close, the value
+     * in `this.channels[channel_name]` will be null.
+     *
+     * @function stop_channels
      */
     Kernel.prototype.stop_channels = function () {
         var that = this;
@@ -388,8 +498,14 @@ define([
         }
     };
 
-    // Main public methods.
-
+    /**
+     * Check whether there is a connection to the kernel. This
+     * function only returns true if all channel objects have been
+     * created and have a state of WebSocket.OPEN.
+     *
+     * @function is_connected
+     * @returns {bool} - whether there is a connection
+     */
     Kernel.prototype.is_connected = function () {
         for (var c in this.channels) {
             // if any channel is not ready, then we're not connected
@@ -403,6 +519,14 @@ define([
         return true;
     };
 
+    /**
+     * Check whether the connection to the kernel has been completely
+     * severed. This function only returns true if all channel objects
+     * are null.
+     *
+     * @function is_fully_disconnected
+     * @returns {bool} - whether the kernel is fully disconnected
+     */
     Kernel.prototype.is_fully_disconnected = function () {
         for (var c in this.channels) {
             if (this.channels[c] === null) {
@@ -412,7 +536,11 @@ define([
         return false;
     };
     
-    // send a message on the Kernel's shell channel
+    /**
+     * Send a message on the Kernel's shell channel
+     *
+     * @function send_shell_message
+     */
     Kernel.prototype.send_shell_message = function (msg_type, content, callbacks, metadata) {
         if (!this.is_connected()) {
             throw new Error("kernel is not connected");
@@ -426,8 +554,8 @@ define([
     /**
      * Get kernel info
      *
+     * @function kernel_info
      * @param callback {function}
-     * @method kernel_info
      *
      * When calling this method, pass a callback function that expects one argument.
      * The callback will be passed the complete `kernel_info_reply` message documented
@@ -444,14 +572,14 @@ define([
     /**
      * Get info on an object
      *
-     * @param code {string}
-     * @param cursor_pos {integer}
-     * @param callback {function}
-     * @method inspect
-     *
      * When calling this method, pass a callback function that expects one argument.
      * The callback will be passed the complete `inspect_reply` message documented
      * [here](http://ipython.org/ipython-doc/dev/development/messaging.html#object-information)
+     *
+     * @function inspect
+     * @param code {string}
+     * @param cursor_pos {integer}
+     * @param callback {function}
      */
     Kernel.prototype.inspect = function (code, cursor_pos, callback) {
         var callbacks;
@@ -471,7 +599,7 @@ define([
      * Execute given code into kernel, and pass result to callback.
      *
      * @async
-     * @method execute
+     * @function execute
      * @param {string} code
      * @param [callbacks] {Object} With the following keys (all optional)
      *      @param callbacks.shell.reply {function}
@@ -486,8 +614,8 @@ define([
      *
      * @example
      *
-     * The options object should contain the options for the execute call. Its default
-     * values are:
+     * The options object should contain the options for the execute
+     * call. Its default values are:
      *
      *      options = {
      *        silent : true,
@@ -495,7 +623,8 @@ define([
      *        allow_stdin : false
      *      }
      *
-     * When calling this method pass a callbacks structure of the form:
+     * When calling this method pass a callbacks structure of the
+     * form:
      *
      *      callbacks = {
      *       shell : {
@@ -511,8 +640,9 @@ define([
      *       input : raw_input_callback
      *      }
      *
-     * Each callback will be passed the entire message as a single arugment.
-     * Payload handlers will be passed the corresponding payload and the execute_reply message.
+     * Each callback will be passed the entire message as a single
+     * arugment.  Payload handlers will be passed the corresponding
+     * payload and the execute_reply message.
      */
     Kernel.prototype.execute = function (code, callbacks, options) {
         var content = {
@@ -532,17 +662,16 @@ define([
     };
 
     /**
-     * When calling this method, pass a function to be called with the `complete_reply` message
-     * as its only argument when it arrives.
+     * When calling this method, pass a function to be called with the
+     * `complete_reply` message as its only argument when it arrives.
      *
      * `complete_reply` is documented
      * [here](http://ipython.org/ipython-doc/dev/development/messaging.html#complete)
      *
-     * @method complete
+     * @function complete
      * @param code {string}
      * @param cursor_pos {integer}
      * @param callback {function}
-     *
      */
     Kernel.prototype.complete = function (code, cursor_pos, callback) {
         var callbacks;
@@ -556,6 +685,9 @@ define([
         return this.send_shell_message("complete_request", content, callbacks);
     };
 
+    /**
+     * @function send_input_reply
+     */
     Kernel.prototype.send_input_reply = function (input) {
         if (!this.is_connected()) {
             throw new Error("kernel is not connected");
@@ -569,21 +701,28 @@ define([
         return msg.header.msg_id;
     };
 
-
-    // Reply handlers
-
+    /**
+     * @function register_iopub_handler
+     */
     Kernel.prototype.register_iopub_handler = function (msg_type, callback) {
         this._iopub_handlers[msg_type] = callback;
     };
 
+    /**
+     * Get the iopub handler for a specific message type.
+     *
+     * @function get_iopub_handler
+     */
     Kernel.prototype.get_iopub_handler = function (msg_type) {
-        // get iopub handler for a specific message type
         return this._iopub_handlers[msg_type];
     };
 
-
+    /**
+     * Get callbacks for a specific message.
+     *
+     * @function get_callbacks_for_msg
+     */
     Kernel.prototype.get_callbacks_for_msg = function (msg_id) {
-        // get callbacks for a specific message
         if (msg_id == this.last_msg_id) {
             return this.last_msg_callbacks;
         } else {
@@ -591,13 +730,20 @@ define([
         }
     };
 
-
+    /**
+     * Clear callbacks for a specific message.
+     *
+     * @function clear_callbacks_for_msg
+     */
     Kernel.prototype.clear_callbacks_for_msg = function (msg_id) {
         if (this._msg_callbacks[msg_id] !== undefined ) {
             delete this._msg_callbacks[msg_id];
         }
     };
     
+    /**
+     * @function _finish_shell
+     */
     Kernel.prototype._finish_shell = function (msg_id) {
         var callbacks = this._msg_callbacks[msg_id];
         if (callbacks !== undefined) {
@@ -608,6 +754,9 @@ define([
         }
     };
 
+    /**
+     * @function _finish_iopub
+     */
     Kernel.prototype._finish_iopub = function (msg_id) {
         var callbacks = this._msg_callbacks[msg_id];
         if (callbacks !== undefined) {
@@ -618,12 +767,14 @@ define([
         }
     };
     
-    /* Set callbacks for a particular message.
+    /**
+     * Set callbacks for a particular message.
      * Callbacks should be a struct of the following form:
      * shell : {
      * 
      * }
-    
+     *
+     * @function set_callbacks_for_msg
      */
     Kernel.prototype.set_callbacks_for_msg = function (msg_id, callbacks) {
         this.last_msg_id = msg_id;
@@ -640,7 +791,9 @@ define([
         }
     };
 
-
+    /**
+     * @function _handle_shell_reply
+     */
     Kernel.prototype._handle_shell_reply = function (e) {
         var reply = $.parseJSON(e.data);
         this.events.trigger('shell_reply.Kernel', {kernel: this, reply:reply});
@@ -664,7 +817,9 @@ define([
         }
     };
 
-
+    /**
+     * @function _handle_payloads
+     */
     Kernel.prototype._handle_payloads = function (payloads, payload_callbacks, msg) {
         var l = payloads.length;
         // Payloads are handled by triggering events because we don't want the Kernel
@@ -678,6 +833,9 @@ define([
         }
     };
 
+    /**
+     * @function _handle_status_message
+     */
     Kernel.prototype._handle_status_message = function (msg) {
         var execution_state = msg.content.execution_state;
         var parent_id = msg.parent_header.msg_id;
@@ -717,8 +875,11 @@ define([
         }
     };
     
-    
-    // handle clear_output message
+    /**
+     * Handle clear_output message
+     *
+     * @function _handle_clear_output
+     */
     Kernel.prototype._handle_clear_output = function (msg) {
         var callbacks = this.get_callbacks_for_msg(msg.parent_header.msg_id);
         if (!callbacks || !callbacks.iopub) {
@@ -730,8 +891,11 @@ define([
         }
     };
 
-
-    // handle an output message (execute_result, display_data, etc.)
+    /**
+     * handle an output message (execute_result, display_data, etc.)
+     *
+     * @function _handle_output_message
+     */
     Kernel.prototype._handle_output_message = function (msg) {
         var callbacks = this.get_callbacks_for_msg(msg.parent_header.msg_id);
         if (!callbacks || !callbacks.iopub) {
@@ -743,8 +907,12 @@ define([
         }
     };
 
-    // dispatch IOPub messages to respective handlers.
-    // each message type should have a handler.
+    /**
+     * Dispatch IOPub messages to respective handlers. Each message
+     * type should have a handler.
+     *
+     * @function _handle_iopub_message
+     */
     Kernel.prototype._handle_iopub_message = function (e) {
         var msg = $.parseJSON(e.data);
 
@@ -754,7 +922,9 @@ define([
         }
     };
 
-
+    /**
+     * @function _handle_input_request
+     */
     Kernel.prototype._handle_input_request = function (e) {
         var request = $.parseJSON(e.data);
         var header = request.header;
