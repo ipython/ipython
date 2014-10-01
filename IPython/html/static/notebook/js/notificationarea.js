@@ -121,20 +121,46 @@ define([
         // Implicitly start off in Command mode, switching to Edit mode will trigger event
         $modal_ind_icon.attr('class','command_mode_icon').attr('title','Command Mode');
 
-        // Kernel events
-        this.events.on('status_idle.Kernel',function () {
-            that.save_widget.update_document_title();
-            $kernel_ind_icon.attr('class','kernel_idle_icon').attr('title','Kernel Idle');
+        // Kernel events 
+        this.events.on('status_started.Kernel', function () {
+            knw.info("Kernel Started", 500);
         });
 
-        this.events.on('status_busy.Kernel',function () {
-            window.document.title='(Busy) '+window.document.title;
-            $kernel_ind_icon.attr('class','kernel_busy_icon').attr('title','Kernel Busy');
+        this.events.on('status_connected.Kernel', function () {
+            knw.info("Websockets Connected", 500);
         });
 
         this.events.on('status_restarting.Kernel',function () {
             that.save_widget.update_document_title();
             knw.set_message("Restarting kernel", 2000);
+        });
+
+        this.events.on('status_interrupting.Kernel',function () {
+            knw.set_message("Interrupting kernel", 2000);
+        });
+
+        this.events.on('status_disconnected.Kernel', function () {
+            $kernel_ind_icon
+                .attr('class', 'kernel_disconnected_icon')
+                .attr('title', 'No Connection to Kernel');
+        });
+
+        this.events.on('early_disconnect.Kernel', function (ws_url) {
+            var msg = "A WebSocket connection could not be established." +
+                " You will NOT be able to run code. Check your" +
+                " network connection or notebook server configuration.";
+            dialog.modal({
+                title: "WebSocket connection failed",
+                body: msg,
+                keyboard_manager: that.keyboard_manager,
+                notebook: that.notebook,
+                buttons : {
+                    "OK": {},
+                    "Reconnect": {
+                        click: that.notebook.kernel.reconnect
+                    }
+                }
+            });
         });
 
         this.events.on('status_dead.Kernel',function () {
@@ -143,27 +169,7 @@ define([
             $kernel_ind_icon.attr('class','kernel_dead_icon').attr('title','Kernel Dead');
         });
 
-        this.events.on('status_interrupting.Kernel',function () {
-            knw.set_message("Interrupting kernel", 2000);
-        });
-        
-        // Start the kernel indicator in the busy state, and send a kernel_info request.
-        // When the kernel_info reply arrives, the kernel is idle.
-        $kernel_ind_icon.attr('class','kernel_busy_icon').attr('title','Kernel Busy');
-
-        this.events.on('status_started.Kernel', function (evt, data) {
-            knw.info("Kernel Started", 500);
-        });
-
-        this.events.on('status_connected.Kernel', function (evt, data) {
-            knw.info("Websockets Connected", 500);
-            that.events.trigger('status_busy.Kernel');
-            data.kernel.kernel_info(function () {
-                that.events.trigger('status_idle.Kernel');
-            });
-        });
-
-        this.events.on('status_restart_failed.Kernel',function () {
+        this.events.on('status_dead.Kernel',function () {
             var msg = 'The kernel has died, and the automatic restart has failed.' +
                 ' It is possible the kernel cannot be restarted.' +
                 ' If you are not able to restart the kernel, you will still be able to save' +
@@ -178,10 +184,7 @@ define([
                 buttons : {
                     "Manual Restart": {
                         class: "btn-danger",
-                        click: function () {
-                            that.events.trigger('status_restarting.Kernel');
-                            that.notebook.start_kernel();
-                        }
+                        click: that.notebook.kernel.restart
                     },
                     "Don't restart": {}
                 }
@@ -229,45 +232,19 @@ define([
             knw.danger(short, undefined, showMsg);
         });
 
-        this.events.on('status_disconnected.Kernel', function (event, data) {
-            var kernel = data.kernel;
-            var ws_url = data.ws_url;
-            var early = data.early;
-            var msg;
-
-            $kernel_ind_icon
-                .attr('class', 'kernel_disconnected_icon')
-                .attr('title', 'No Connection to Kernel');
-            
-            if (!early) {
-                    knw.warning('Reconnecting');
-                    setTimeout(function () {
-                        kernel.start_channels();
-                    }, 5000);
-                return;
-            }
-            console.log('WebSocket connection failed: ', ws_url);
-            msg = "A WebSocket connection could not be established." +
-                " You will NOT be able to run code. Check your" +
-                " network connection or notebook server configuration.";
-            dialog.modal({
-                title: "WebSocket connection failed",
-                body: msg,
-                keyboard_manager: that.keyboard_manager,
-                notebook: that.notebook,
-                buttons : {
-                    "OK": {},
-                    "Reconnect": {
-                        click: function () {
-                            knw.warning('Reconnecting');
-                            setTimeout(function () {
-                                kernel.start_channels();
-                            }, 5000);
-                        }
-                    }
-                }
-            });
+        this.events.on('status_idle.Kernel',function () {
+            that.save_widget.update_document_title();
+            $kernel_ind_icon.attr('class','kernel_idle_icon').attr('title','Kernel Idle');
         });
+
+        this.events.on('status_busy.Kernel',function () {
+            window.document.title='(Busy) '+window.document.title;
+            $kernel_ind_icon.attr('class','kernel_busy_icon').attr('title','Kernel Busy');
+        });
+        
+        // Start the kernel indicator in the busy state, and send a kernel_info request.
+        // When the kernel_info reply arrives, the kernel is idle.
+        $kernel_ind_icon.attr('class','kernel_busy_icon').attr('title','Kernel Busy');
     };
 
     /**

@@ -50,7 +50,6 @@ define([
     Session.prototype.start = function (success, error) {
         var that = this;
         var on_success = function (data, status, xhr) {
-            console.log("Session started: ", data.id);
             var kernel_service_url = utils.url_path_join(that.base_url, "api/kernels");
             that.kernel = new kernel.Kernel(
                 kernel_service_url, that.ws_url, that.notebook,

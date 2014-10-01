@@ -176,6 +176,9 @@ define([
      * POST /api/kernels/[:kernel_id]/restart
      */
     Kernel.prototype.restart = function (success, error) {
+        this.events.trigger('status_restarting.Kernel', {kernel: this});
+        this.stop_channels();
+
         var that = this;
         var on_success = function (data, status, xhr) {
             that._kernel_started(data, status, xhr);
@@ -193,6 +196,18 @@ define([
             success: this._on_success(on_success),
             error: this._on_error(error)
         });
+    };
+
+    /**
+     * Not actually a HTTP request, but useful function nonetheless
+     * for reconnecting to the kernel if the connection is somehow lost
+     */
+    Kernel.prototype.reconnect = function () {
+        this.events.trigger('status_reconnecting.Kernel');
+        var that = this;
+        setTimeout(function () {
+            that.start_channels();
+        }, 5000);
     };
 
     Kernel.prototype._on_success = function (success) {
@@ -224,9 +239,12 @@ define([
         this.start_channels();
     };
 
-    Kernel.prototype._kernel_restarting = function () {
-        this.events.trigger('status_restarting.Kernel', {kernel: this});
-        this.stop_channels();
+    Kernel.prototype._kernel_connected = function () {
+        var that = this;
+        this.events.trigger('status_connected.Kernel');
+        this.kernel_info(function () {
+            that.events.trigger('status_idle.Kernel');
+        });
     };
 
     Kernel.prototype._kernel_dead = function () {
@@ -234,12 +252,6 @@ define([
         this.stop_channels();
     };
 
-    Kernel.prototype._ws_closed = function(ws_url, early) {
-        this.stop_channels();
-        this.events.trigger('status_disconnected.Kernel',
-            {ws_url: ws_url, kernel: this, early: early}
-        );
-    };
 
     /**
      * Start the `shell`and `iopub` channels.
@@ -325,6 +337,17 @@ define([
         }
     };
     
+    Kernel.prototype._ws_closed = function(ws_url, early) {
+        this.stop_channels();
+        this.events.trigger('status_disconnected.Kernel');
+        if (!early) {
+            this.reconnect();
+        } else {
+            console.log('WebSocket connection failed: ', ws_url);
+            this.events.trigger('early_disconnect.Kernel', ws_url);
+        }
+    };
+
     /**
      * Stop the websocket channels.
      * @method stop_channels
