@@ -11,11 +11,12 @@ define([
 
     var Session = function (options) {
         this.id = null;
-        this.notebook = {
+        this.notebook_model = {
             name: options.notebook_name,
             path: options.notebook_path
         };
-        this.kernel = {
+        this.kernel_model = {
+            id: null,
             name: options.kernel_name
         };
 
@@ -23,7 +24,8 @@ define([
         this.ws_url = options.ws_url;
         this.sessions_url = utils.url_join_encode(this.base_url, 'api/sessions');
 
-        this.notebook_obj = options.notebook;
+        this.notebook = options.notebook;
+        this.kernel = null;
         this.events = options.events;
     };
 
@@ -48,7 +50,9 @@ define([
         var that = this;
         var on_success = function (data, status, xhr) {
             var kernel_service_url = utils.url_path_join(that.base_url, "api/kernels");
-            that.kernel = new kernel.Kernel(kernel_service_url, that.ws_url, that.notebook_obj, that.kernel_name);
+            that.kernel = new kernel.Kernel(
+                kernel_service_url, that.ws_url, that.notebook,
+                that.kernel_model.id, that.kernel_model.name);
             that.kernel._kernel_started(data.kernel);
             if (success) {
                 success(data, status, xhr);
@@ -91,9 +95,9 @@ define([
      * PATCH /api/sessions/[:session_id]
      */
     Session.prototype.change = function (notebook_name, notebook_path, kernel_name, success, error) {
-        this.notebook.name = notebook_name;
-        this.notebook.path = notebook_path;
-        this.kernel.name = kernel_name;
+        this.notebook_model.name = notebook_name;
+        this.notebook_model.path = notebook_path;
+        this.kernel_model.name = kernel_name;
 
         var url = utils.url_join_encode(this.sessions_url, this.id);
         $.ajax(url, {
@@ -108,17 +112,19 @@ define([
     };
 
     Session.prototype.rename_notebook = function (name, path, success, error) {
-        this.change(name, path, this.kernel.name, success, error);
+        this.change(name, path, this.kernel_model.name, success, error);
     };
 
     /**
      * DELETE /api/sessions/[:session_id]
      */
-    Session.prototype.kill = function (success, error) {
-        if (this.kernel) {
-            this.kernel.running = false;
-            this.kernel.stop_channels();
-        }
+    Session.prototype.delete = function (success, error) {
+        var that = this;
+        var on_success = function (data, status, xhr) {
+            if (that.kernel) {
+                that.kernel._kernel_dead();
+            }
+        };
 
         var url = utils.url_join_encode(this.sessions_url, this.id);
         $.ajax(url, {
@@ -126,26 +132,29 @@ define([
             cache: false,
             type: "DELETE",
             dataType: "json",
-            success: this._on_success(success),
+            success: this._on_success(on_success),
             error: this._on_error(error)
         });
     };
     
     Session.prototype._get_model = function () {
         return {
-            notebook: this.notebook,
-            kernel: this.kernel
+            notebook: this.notebook_model,
+            kernel: this.kernel_model
         };
     };
 
     Session.prototype._update_model = function (data) {
-        this.id = data.id;
-        if (data.notebook) {
-            this.notebook.name = data.notebook.name;
-            this.notebook.path = data.notebook.path;
+        if (data && data.id) {
+            this.id = data.id;
         }
-        if (data.kernel) {
-            this.kernel.name = data.kernel.name;
+        if (data && data.notebook) {
+            this.notebook_model.name = data.notebook.name;
+            this.notebook_model.path = data.notebook.path;
+        }
+        if (data && data.kernel) {
+            this.kernel_model.name = data.kernel.name;
+            this.kernel_model.id = data.kernel.id;
         }
     };
 
