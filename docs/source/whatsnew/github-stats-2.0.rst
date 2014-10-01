@@ -3,6 +3,57 @@
 Issues closed in the 2.x development cycle
 ==========================================
 
+Issues closed in 2.3.0
+----------------------
+
+GitHub stats for 2014/08/06 - 2014/10/01 (tag: rel-2.2.0)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+The following 6 authors contributed 31 commits.
+
+* Benjamin Ragan-Kelley
+* David Hirschfeld
+* Eric Firing
+* Jessica B. Hamrick
+* Matthias Bussonnier
+* Thomas Kluyver
+
+We closed 16 issues and merged 9 pull requests;
+this is the full list (generated with the script 
+:file:`tools/github_stats.py`):
+
+Pull Requests (16):
+
+* :ghpull:`6587`: support ``%matplotlib qt5`` and ``%matplotlib nbagg``
+* :ghpull:`6583`: Windows symlink test fixes
+* :ghpull:`6585`: fixes :ghissue:`6473`
+* :ghpull:`6581`: Properly mock winreg functions for test
+* :ghpull:`6556`: Use some more informative asserts in inprocess kernel tests
+* :ghpull:`6514`: Fix for copying metadata flags
+* :ghpull:`6453`: Copy file metadata in atomic save
+* :ghpull:`6480`: only compare host:port in Websocket.check_origin
+* :ghpull:`6483`: Trim anchor link in heading cells, fixes :ghissue:`6324`
+* :ghpull:`6410`: Fix relative import in appnope
+* :ghpull:`6395`: update mathjax CDN url in nbconvert template
+* :ghpull:`6269`: Implement atomic save
+* :ghpull:`6374`: Rename ``abort_queues`` --> ``_abort_queues``
+* :ghpull:`6321`: Use appnope in qt and wx gui support from the terminal; closes :ghissue:`6189`
+* :ghpull:`6318`: use write_error instead of get_error_html
+* :ghpull:`6303`: Fix error message when failing to load a notebook
+
+Issues (9):
+
+* :ghissue:`6057`: ``%matplotlib`` + qt5
+* :ghissue:`6518`: Test failure in atomic save on Windows
+* :ghissue:`6473`: Switching between "Raw Cell Format" and "Edit Metadata" does not work
+* :ghissue:`6405`: Creating a notebook should respect directory permissions; saving should respect prior permissions
+* :ghissue:`6324`: Anchors in Heading don't work.
+* :ghissue:`6409`: No module named '_dummy'
+* :ghissue:`6392`: Mathjax library link broken
+* :ghissue:`6329`: IPython Notebook Server URL now requires "tree" at the end of the URL? (version 2.2)
+* :ghissue:`6189`: ipython console freezes for increasing no of seconds in %pylab mode
+
 Issues closed in 2.2.0
 ----------------------
 
