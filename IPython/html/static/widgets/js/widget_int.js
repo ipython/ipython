@@ -4,8 +4,9 @@
 define([
     "widgets/js/widget",
     "jqueryui",
-    "bootstrap",
-], function(widget, $){
+    "base/js/keyboard",
+    "bootstrap"
+], function(widget, $, keyboard){
     
     var IntSliderView = widget.DOMWidgetView.extend({
         render : function(){
@@ -163,7 +164,7 @@ define([
         }, 
 
         handleKeyDown: function(e) {
-            if (e.keyCode == 13) {
+            if (e.keyCode == keyboard.keycodes.enter) {
                 e.preventDefault();
                 this.handleTextChange();
             }
