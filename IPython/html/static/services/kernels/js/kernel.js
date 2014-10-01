@@ -355,11 +355,18 @@ define([
      * @method stop_channels
      */
     Kernel.prototype.stop_channels = function () {
+        var that = this;
+        var close = function (c) {
+            return function () {
+                if (that.channels[c].readyState === WebSocket.CLOSED) {
+                    that.channels[c] = null;
+                }
+            };
+        };
         for (var c in this.channels) {
             if ( this.channels[c] !== null ) {
-                this.channels[c].onclose = null;
+                this.channels[c].onclose = close(c);
                 this.channels[c].close();
-                this.channels[c] = null;
             }
         }
     };
@@ -377,6 +384,15 @@ define([
             }
         }
         return true;
+    };
+
+    Kernel.prototype.is_fully_disconnected = function () {
+        for (var c in this.channels) {
+            if (this.channels[c] === null) {
+                return true;
+            }
+        }
+        return false;
     };
     
     // send a message on the Kernel's shell channel
