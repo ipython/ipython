@@ -106,7 +106,11 @@ class SessionHandler(IPythonHandler):
     def delete(self, session_id):
         # Deletes the session with given session_id
         sm = self.session_manager
-        sm.delete_session(session_id)
+        try:
+            sm.delete_session(session_id)
+        except KeyError:
+            # the kernel was deleted but the session wasn't!
+            raise web.HTTPError(410, "Kernel deleted before session")
         self.set_status(204)
         self.finish()
 
