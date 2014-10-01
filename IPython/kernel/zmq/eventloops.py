@@ -1,32 +1,17 @@
 # encoding: utf-8
-"""Event loop integration for the ZeroMQ-based kernels.
-"""
+"""Event loop integration for the ZeroMQ-based kernels."""
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2011  The IPython Development Team
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
+import os
 import sys
 
-# System library imports
 import zmq
 
-# Local imports
 from IPython.config.application import Application
 from IPython.utils import io
 
-
-#------------------------------------------------------------------------------
-# Eventloops for integrating the Kernel into different GUIs
-#------------------------------------------------------------------------------
 
 def _on_os_x_10_9():
     import platform
@@ -91,6 +76,12 @@ def loop_qt4(kernel):
         _notify_stream_qt(kernel, s)
     
     start_event_loop_qt4(kernel.app)
+
+@register_integration('qt5')
+def loop_qt5(kernel):
+    """Start a kernel with PyQt5 event loop integration."""
+    os.environ['QT_API'] = 'pyqt5'
+    return loop_qt4(kernel)
 
 
 @register_integration('wx')
