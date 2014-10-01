@@ -35,7 +35,9 @@ backends = {'tk': 'TkAgg',
             'wx': 'WXAgg',
             'qt': 'Qt4Agg', # qt3 not supported
             'qt4': 'Qt4Agg',
+            'qt5': 'Qt5Agg',
             'osx': 'MacOSX',
+            'nbagg': 'nbAgg',
             'inline' : 'module://IPython.kernel.zmq.pylab.backend_inline'}
 
 # We also need a reverse backends2guis mapping that will properly choose which

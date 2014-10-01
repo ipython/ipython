@@ -14,6 +14,7 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import os
 import sys
 
 # System library imports
@@ -63,6 +64,11 @@ def loop_qt4(kernel):
         _notify_stream_qt(kernel, s)
     
     start_event_loop_qt4(kernel.app)
+
+def loop_qt5(kernel):
+    """Start a kernel with PyQt5 event loop integration"""
+    os.environ['QT_API'] = 'pyqt5'
+    return loop_qt4(kernel)
 
 
 def loop_wx(kernel):
@@ -228,7 +234,9 @@ def loop_cocoa(kernel):
 loop_map = {
     'qt' : loop_qt4,
     'qt4': loop_qt4,
+    'qt5': loop_qt5,
     'inline': None,
+    'nbagg': None,
     'osx': loop_cocoa,
     'wx' : loop_wx,
     'tk' : loop_tk,
