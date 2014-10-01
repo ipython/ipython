@@ -3,11 +3,15 @@
 // Kernel tests
 //
 casper.notebook_test(function () {
+    this.then(function () {
+        this.test.assert(this.kernel_running(), 'kernel: kernel is running');
+    });
+
     this.evaluate(function () {
         IPython.notebook.kernel.kernel_info(
             function(msg){
                 IPython._kernel_info_response = msg;
-            })
+            });
     });
 
     this.waitFor(
@@ -26,39 +30,16 @@ casper.notebook_test(function () {
     });
     
     this.thenEvaluate(function () {
-        var kernel = IPython.notebook.session.kernel;
-        IPython._channels = [
-            kernel.shell_channel,
-            kernel.iopub_channel,
-            kernel.stdin_channel
-        ];
-        kernel.kill();
+        IPython.notebook.kernel.kill();
     });
     
     this.waitFor(function () {
-        return this.evaluate(function(){
-            for (var i=0; i < IPython._channels.length; i++) {
-                var ws = IPython._channels[i];
-                if (ws.readyState !== ws.CLOSED) {
-                    return false;
-                }
-            }
-            return true;
+        return this.evaluate(function () {
+            return IPython.notebook.kernel.is_fully_disconnected();
         });
     });
     
     this.then(function () {
-        var states = this.evaluate(function() {
-            var states = [];
-            for (var i = 0; i < IPython._channels.length; i++) {
-                states.push(IPython._channels[i].readyState);
-            }
-            return states;
-        });
-        
-        for (var i = 0; i < states.length; i++) {
-            this.test.assertEquals(states[i], WebSocket.CLOSED,
-                "Kernel.kill closes websockets[" + i + "]");
-        }
+        this.test.assert(!this.kernel_running(), 'kernel is not running');
     });
 });

@@ -4,40 +4,21 @@
 //
 
 casper.notebook_test(function () {
-    this.evaluate(function () {
-        var kernel = IPython.notebook.session.kernel;
-        IPython._channels = [
-            kernel.shell_channel,
-            kernel.iopub_channel,
-            kernel.stdin_channel
-        ];
+    this.then(function () {
+        this.test.assert(this.kernel_running(), 'session: kernel is running');
+    });
+
+    this.thenEvaluate(function () {
         IPython.notebook.session.delete();
     });
-    
+
     this.waitFor(function () {
-        return this.evaluate(function(){
-            for (var i=0; i < IPython._channels.length; i++) {
-                var ws = IPython._channels[i];
-                if (ws.readyState !== ws.CLOSED) {
-                    return false;
-                }
-            }
-            return true;
+        return this.evaluate(function () {
+            return IPython.notebook.kernel.is_fully_disconnected();
         });
     });
 
     this.then(function () {
-        var states = this.evaluate(function() {
-            var states = [];
-            for (var i = 0; i < IPython._channels.length; i++) {
-                states.push(IPython._channels[i].readyState);
-            }
-            return states;
-        });
-        
-        for (var i = 0; i < states.length; i++) {
-            this.test.assertEquals(states[i], WebSocket.CLOSED,
-                "Session.delete closes websockets[" + i + "]");
-        }
+        this.test.assert(!this.kernel_running(), 'session deletes kernel');
     });
 });
