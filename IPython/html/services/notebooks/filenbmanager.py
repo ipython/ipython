@@ -26,6 +26,7 @@ from tornado import web
 
 from .nbmanager import NotebookManager
 from IPython.nbformat import current
+from IPython.utils.io import atomic_writing
 from IPython.utils.traitlets import Unicode, Bool, TraitError
 from IPython.utils.py3compat import getcwd
 from IPython.utils import tz
@@ -304,7 +305,7 @@ class FileNotebookManager(NotebookManager):
             nb['metadata']['name'] = u''
         try:
             self.log.debug("Autosaving notebook %s", os_path)
-            with io.open(os_path, 'w', encoding='utf-8') as f:
+            with atomic_writing(os_path, encoding='utf-8') as f:
                 current.write(nb, f, u'json')
         except Exception as e:
             raise web.HTTPError(400, u'Unexpected error while autosaving notebook: %s %s' % (os_path, e))
@@ -314,7 +315,7 @@ class FileNotebookManager(NotebookManager):
             py_path = os.path.splitext(os_path)[0] + '.py'
             self.log.debug("Writing script %s", py_path)
             try:
-                with io.open(py_path, 'w', encoding='utf-8') as f:
+                with atomic_writing(py_path, encoding='utf-8') as f:
                     current.write(nb, f, u'py')
             except Exception as e:
                 raise web.HTTPError(400, u'Unexpected error while saving notebook as script: %s %s' % (py_path, e))
