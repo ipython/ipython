@@ -9,129 +9,166 @@ define([
 ], function(IPython, $, utils, kernel) {
     "use strict";
 
-    var Session = function(options){
-        this.kernel = null;
+    var Session = function (options) {
         this.id = null;
-        this.notebook = options.notebook;
-        this.events = options.notebook.events;
-        this.name = options.notebook_name;
-        this.path = options.notebook_path;
-        this.kernel_name = options.kernel_name;
+        this.notebook = {
+            name: options.notebook_name,
+            path: options.notebook_path
+        };
+        this.kernel = {
+            name: options.kernel_name
+        };
+
         this.base_url = options.base_url;
         this.ws_url = options.ws_url;
+        this.sessions_url = utils.url_join_encode(this.base_url, 'api/sessions');
+
+        this.notebook_obj = options.notebook;
+        this.events = options.events;
     };
-    
+
+    /**
+     * GET /api/sessions
+     */
+    Session.prototype.list = function (success, error) {
+        $.ajax(this.sessions_url, {
+            processData: false,
+            cache: false,
+            type: "GET",
+            dataType: "json",
+            success: success,
+            error: this._on_error(error)
+        });
+    };
+
+    /**
+     * POST /api/sessions
+     */
     Session.prototype.start = function (success, error) {
         var that = this;
-        var model = {
-            notebook : {
-                name : this.name,
-                path : this.path
-            },
-            kernel : {
-                name : this.kernel_name
+        var on_success = function (data, status, xhr) {
+            var kernel_service_url = utils.url_path_join(that.base_url, "api/kernels");
+            that.kernel = new kernel.Kernel(kernel_service_url, that.ws_url, that.notebook_obj, that.kernel_name);
+            that.kernel._kernel_started(data.kernel);
+            if (success) {
+                success(data, status, xhr);
             }
         };
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "POST",
-            data: JSON.stringify(model),
-            dataType : "json",
-            success : function (data, status, xhr) {
-                that._handle_start_success(data);
-                if (success) {
-                    success(data, status, xhr);
-                }
-            },
-            error : function (xhr, status, err) {
-                that._handle_start_failure(xhr, status, err);
-                if (error !== undefined) {
-                    error(xhr, status, err);
-                }
-                utils.log_ajax_error(xhr, status, err);
+        var on_error = function (xhr, status, err) {
+            that.events.trigger('status_dead.Kernel');
+            if (error) {
+                error(xhr, status, err);
             }
         };
-        var url = utils.url_join_encode(this.base_url, 'api/sessions');
-        $.ajax(url, settings);
+
+        $.ajax(this.sessions_url, {
+            processData: false,
+            cache: false,
+            type: "POST",
+            data: JSON.stringify(this._get_model()),
+            dataType: "json",
+            success: this._on_success(on_success),
+            error: this._on_error(on_error)
+        });
     };
-    
-    Session.prototype.rename_notebook = function (name, path) {
-        this.name = name;
-        this.path = path;
-        var model = {
-            notebook : {
-                name : this.name,
-                path : this.path
-            }
-        };
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "PATCH",
-            data: JSON.stringify(model),
-            dataType : "json",
-            error : utils.log_ajax_error,
-        };
-        var url = utils.url_join_encode(this.base_url, 'api/sessions', this.id);
-        $.ajax(url, settings);
+
+    /**
+     * GET /api/sessions/[:session_id]
+     */
+    Session.prototype.get_info = function (success, error) {
+        var url = utils.url_join_encode(this.sessions_url, this.id);
+        $.ajax(url, {
+            processData: false,
+            cache: false,
+            type: "GET",
+            dataType: "json",
+            success: this._on_success(success),
+            error: this._on_error(error)
+        });
     };
-    
-    Session.prototype.delete = function (success, error) {
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "DELETE",
+
+    /**
+     * PATCH /api/sessions/[:session_id]
+     */
+    Session.prototype.change = function (notebook_name, notebook_path, kernel_name, success, error) {
+        this.notebook.name = notebook_name;
+        this.notebook.path = notebook_path;
+        this.kernel.name = kernel_name;
+
+        var url = utils.url_join_encode(this.sessions_url, this.id);
+        $.ajax(url, {
+            processData: false,
+            cache: false,
+            type: "PATCH",
+            data: JSON.stringify(this._get_model()),
             dataType : "json",
-            success : success,
-            error : error || utils.log_ajax_error,
-        };
+            success: this._on_success(success),
+            error: this._on_error(error)
+        });
+    };
+
+    Session.prototype.rename_notebook = function (name, path, success, error) {
+        this.change(name, path, this.kernel.name, success, error);
+    };
+
+    /**
+     * DELETE /api/sessions/[:session_id]
+     */
+    Session.prototype.kill = function (success, error) {
         if (this.kernel) {
             this.kernel.running = false;
             this.kernel.stop_channels();
         }
-        var url = utils.url_join_encode(this.base_url, 'api/sessions', this.id);
-        $.ajax(url, settings);
+
+        var url = utils.url_join_encode(this.sessions_url, this.id);
+        $.ajax(url, {
+            processData: false,
+            cache: false,
+            type: "DELETE",
+            dataType: "json",
+            success: this._on_success(success),
+            error: this._on_error(error)
+        });
     };
     
-    // Kernel related things
-    /**
-     * Create the Kernel object associated with this Session.
-     * 
-     * @method _handle_start_success
-     */
-    Session.prototype._handle_start_success = function (data, status, xhr) {
+    Session.prototype._get_model = function () {
+        return {
+            notebook: this.notebook,
+            kernel: this.kernel
+        };
+    };
+
+    Session.prototype._update_model = function (data) {
         this.id = data.id;
-        // If we asked for 'python', the response will have 'python3' or 'python2'.
-        this.kernel_name = data.kernel.name;
-        this.events.trigger('started.Session', this);
-        var kernel_service_url = utils.url_path_join(this.base_url, "api/kernels");
-        this.kernel = new kernel.Kernel(kernel_service_url, this.ws_url, this.notebook, this.kernel_name);
-        this.kernel._kernel_started(data.kernel);
+        if (data.notebook) {
+            this.notebook.name = data.notebook.name;
+            this.notebook.path = data.notebook.path;
+        }
+        if (data.kernel) {
+            this.kernel.name = data.kernel.name;
+        }
     };
 
-    Session.prototype._handle_start_failure = function (xhr, status, error) {
-        this.events.trigger('start_failed.Session', [this, xhr, status, error]);
+    Session.prototype._on_success = function (success) {
+        var that = this;
+        return function (data, status, xhr) {
+            that._update_model(data);
+            if (success) {
+                success(data, status, xhr);
+            }
+        };
     };
-    
-    /**
-     * Prompt the user to restart the IPython kernel.
-     * 
-     * @method restart_kernel
-     */
-    Session.prototype.restart_kernel = function () {
-        this.kernel.restart();
-    };
-    
-    Session.prototype.interrupt_kernel = function() {
-        this.kernel.interrupt();
-    };
-    
 
-    Session.prototype.kill_kernel = function() {
-        this.kernel.kill();
+    Session.prototype._on_error = function (error) {
+        return function (xhr, status, err) {
+            utils.log_ajax_error(xhr, status, err);
+            if (error) {
+                error(xhr, status, err);
+            }
+        };
     };
-    
+
+
     var SessionAlreadyStarting = function (message) {
         this.name = "SessionAlreadyStarting";
         this.message = (message || "");
@@ -144,6 +181,6 @@ define([
 
     return {
         Session: Session,
-        SessionAlreadyStarting: SessionAlreadyStarting,
+        SessionAlreadyStarting: SessionAlreadyStarting
     };
 });
