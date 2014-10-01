@@ -258,7 +258,7 @@ define([
             // TODO: Make killing the kernel configurable.
             var kill_kernel = false;
             if (kill_kernel) {
-                that.session.kill_kernel();
+                that.kernel.kill();
             }
             // if we are autosaving, trigger an autosave on nav-away.
             // still warn, because if we don't the autosave may fail.
@@ -1654,7 +1654,7 @@ define([
                 "Restart" : {
                     "class" : "btn-danger",
                     "click" : function() {
-                        that.session.restart_kernel();
+                        that.kernel.restart();
                     }
                 }
             }
