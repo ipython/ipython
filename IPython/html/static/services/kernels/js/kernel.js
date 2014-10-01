@@ -21,9 +21,11 @@ define([
         this.id = id;
         this.name = name;
 
-        this.shell_channel = null;
-        this.iopub_channel = null;
-        this.stdin_channel = null;
+        this.channels = {
+            'shell': null,
+            'iopub': null,
+            'stdin': null
+        };
 
         this.kernel_service_url = kernel_service_url;
         this.kernel_url = utils.url_join_encode(this.kernel_service_url, this.id);
@@ -241,6 +243,7 @@ define([
 
     Kernel.prototype._kernel_connected = function () {
         var that = this;
+        console.log('Connected to kernel: ', this.id);
         this.events.trigger('status_connected.Kernel');
         this.kernel_info(function () {
             that.events.trigger('status_idle.Kernel');
@@ -264,13 +267,13 @@ define([
         this.stop_channels();
         var ws_host_url = this.ws_url + this.kernel_url;
         console.log("Starting WebSockets:", ws_host_url);
-        this.shell_channel = new this.WebSocket(
+        this.channels.shell = new this.WebSocket(
             this.ws_url + utils.url_join_encode(this.kernel_url, "shell")
         );
-        this.stdin_channel = new this.WebSocket(
+        this.channels.stdin = new this.WebSocket(
             this.ws_url + utils.url_join_encode(this.kernel_url, "stdin")
         );
-        this.iopub_channel = new this.WebSocket(
+        this.channels.iopub = new this.WebSocket(
             this.ws_url + utils.url_join_encode(this.kernel_url, "iopub")
         );
         
@@ -300,23 +303,23 @@ define([
             already_called_onclose = true;
             that._ws_closed(ws_host_url, false);
         };
-        var channels = [this.shell_channel, this.iopub_channel, this.stdin_channel];
-        for (var i=0; i < channels.length; i++) {
-            channels[i].onopen = $.proxy(this._ws_opened, this);
-            channels[i].onclose = ws_closed_early;
-            channels[i].onerror = ws_error;
+
+        for (var c in this.channels) {
+            this.channels[c].onopen = $.proxy(this._ws_opened, this);
+            this.channels[c].onclose = ws_closed_early;
+            this.channels[c].onerror = ws_error;
         }
         // switch from early-close to late-close message after 1s
         setTimeout(function() {
-            for (var i=0; i < channels.length; i++) {
-                if (channels[i] !== null) {
-                    channels[i].onclose = ws_closed_late;
+            for (var c in that.channels) {
+                if (that.channels[c] !== null) {
+                    that.channels[c].onclose = ws_closed_late;
                 }
             }
         }, 1000);
-        this.shell_channel.onmessage = $.proxy(this._handle_shell_reply, this);
-        this.iopub_channel.onmessage = $.proxy(this._handle_iopub_message, this);
-        this.stdin_channel.onmessage = $.proxy(this._handle_input_request, this);
+        this.channels.shell.onmessage = $.proxy(this._handle_shell_reply, this);
+        this.channels.iopub.onmessage = $.proxy(this._handle_iopub_message, this);
+        this.channels.stdin.onmessage = $.proxy(this._handle_input_request, this);
     };
 
     /**
@@ -332,8 +335,7 @@ define([
 
         if (this.is_connected()) {
             // all events ready, trigger started event.
-            console.log('Connected to kernel: ', this.id);
-            this.events.trigger('status_connected.Kernel', {kernel: this});
+            this._kernel_connected();
         }
     };
     
@@ -353,26 +355,24 @@ define([
      * @method stop_channels
      */
     Kernel.prototype.stop_channels = function () {
-        var channels = [this.shell_channel, this.iopub_channel, this.stdin_channel];
-        for (var i=0; i < channels.length; i++) {
-            if ( channels[i] !== null ) {
-                channels[i].onclose = null;
-                channels[i].close();
+        for (var c in this.channels) {
+            if ( this.channels[c] !== null ) {
+                this.channels[c].onclose = null;
+                this.channels[c].close();
+                this.channels[c] = null;
             }
         }
-        this.shell_channel = this.iopub_channel = this.stdin_channel = null;
     };
 
     // Main public methods.
 
     Kernel.prototype.is_connected = function () {
-        var channels = [this.shell_channel, this.iopub_channel, this.stdin_channel];
-        for (var i=0; i < channels.length; i++) {
+        for (var c in this.channels) {
             // if any channel is not ready, then we're not connected
-            if (channels[i] === null) {
+            if (this.channels[c] === null) {
                 return false;
             }
-            if (channels[i].readyState !== WebSocket.OPEN) {
+            if (this.channels[c].readyState !== WebSocket.OPEN) {
                 return false;
             }
         }
@@ -385,7 +385,7 @@ define([
             throw new Error("kernel is not connected");
         }
         var msg = this._get_msg(msg_type, content, metadata);
-        this.shell_channel.send(JSON.stringify(msg));
+        this.channels.shell.send(JSON.stringify(msg));
         this.set_callbacks_for_msg(msg.header.msg_id, callbacks);
         return msg.header.msg_id;
     };
@@ -532,7 +532,7 @@ define([
         };
         this.events.trigger('input_reply.Kernel', {kernel: this, content:content});
         var msg = this._get_msg("input_reply", content);
-        this.stdin_channel.send(JSON.stringify(msg));
+        this.channels.stdin.send(JSON.stringify(msg));
         return msg.header.msg_id;
     };
 
