@@ -158,7 +158,7 @@ define([
             cache: false,
             type: "DELETE",
             dataType: "json",
-            success: this._on_success(success),
+            success: this._on_success(on_success),
             error: this._on_error(error)
         });
     };
@@ -193,12 +193,6 @@ define([
                 success(data, status, xhr);
             }
         };
-        var on_error = function (xhr, status, err) {
-            that._handle_start_failure(xhr, status, err);
-            if (error) {
-                error(xhr, status, err);
-            }
-        };
 
         var url = utils.url_join_encode(this.kernel_url, 'restart');
         $.ajax(url, {
@@ -206,7 +200,7 @@ define([
             cache: false,
             type: "POST",
             dataType: "json",
-            success: this._on_success(success),
+            success: this._on_success(on_success),
             error: this._on_error(error)
         });
     };
@@ -214,8 +208,10 @@ define([
     Kernel.prototype._on_success = function (success) {
         var that = this;
         return function (data, status, xhr) {
-            that.id = data.id;
-            that.name = data.name;
+            if (data) {
+                that.id = data.id;
+                that.name = data.name;
+            }
             that.kernel_url = utils.url_join_encode(that.kernel_service_url, that.id);
             if (success) {
                 success(data, status, xhr);
