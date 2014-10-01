@@ -145,20 +145,13 @@ define([
      * DELETE /api/kernels/[:kernel_id]
      */
     Kernel.prototype.kill = function (success, error) {
-        var that = this;
-        var on_success = function (data, status, xhr) {
-            that._kernel_dead();
-            if (success) {
-                success(data, status, xhr);
-            }
-        };
-
+        this._kernel_dead();
         $.ajax(this.kernel_url, {
             processData: false,
             cache: false,
             type: "DELETE",
             dataType: "json",
-            success: this._on_success(on_success),
+            success: this._on_success(success),
             error: this._on_error(error)
         });
     };
@@ -183,12 +176,9 @@ define([
      * POST /api/kernels/[:kernel_id]/restart
      */
     Kernel.prototype.restart = function (success, error) {
-        this.events.trigger('status_restarting.Kernel', {kernel: this});
-        this.stop_channels();
-
         var that = this;
         var on_success = function (data, status, xhr) {
-            that._handle_start_success(data, status, xhr);
+            that._kernel_started(data, status, xhr);
             if (success) {
                 success(data, status, xhr);
             }
@@ -234,9 +224,14 @@ define([
         this.start_channels();
     };
 
-    Kernel.prototype._kernel_dead = function () {
+    Kernel.prototype._kernel_restarting = function () {
+        this.events.trigger('status_restarting.Kernel', {kernel: this});
         this.stop_channels();
+    };
+
+    Kernel.prototype._kernel_dead = function () {
         this.events.trigger('status_dead.Kernel');
+        this.stop_channels();
     };
 
     Kernel.prototype._ws_closed = function(ws_url, early) {
@@ -325,6 +320,7 @@ define([
 
         if (this.is_connected()) {
             // all events ready, trigger started event.
+            console.log('Connected to kernel: ', this.id);
             this.events.trigger('status_connected.Kernel', {kernel: this});
         }
     };

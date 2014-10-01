@@ -22,7 +22,8 @@ define([
 
         this.base_url = options.base_url;
         this.ws_url = options.ws_url;
-        this.sessions_url = utils.url_join_encode(this.base_url, 'api/sessions');
+        this.session_service_url = utils.url_join_encode(this.base_url, 'api/sessions');
+        this.session_url = null;
 
         this.notebook = options.notebook;
         this.kernel = null;
@@ -33,7 +34,7 @@ define([
      * GET /api/sessions
      */
     Session.prototype.list = function (success, error) {
-        $.ajax(this.sessions_url, {
+        $.ajax(this.session_service_url, {
             processData: false,
             cache: false,
             type: "GET",
@@ -49,6 +50,7 @@ define([
     Session.prototype.start = function (success, error) {
         var that = this;
         var on_success = function (data, status, xhr) {
+            console.log("Session started: ", data.id);
             var kernel_service_url = utils.url_path_join(that.base_url, "api/kernels");
             that.kernel = new kernel.Kernel(
                 kernel_service_url, that.ws_url, that.notebook,
@@ -65,7 +67,7 @@ define([
             }
         };
 
-        $.ajax(this.sessions_url, {
+        $.ajax(this.session_service_url, {
             processData: false,
             cache: false,
             type: "POST",
@@ -80,8 +82,7 @@ define([
      * GET /api/sessions/[:session_id]
      */
     Session.prototype.get_info = function (success, error) {
-        var url = utils.url_join_encode(this.sessions_url, this.id);
-        $.ajax(url, {
+        $.ajax(this.session_url, {
             processData: false,
             cache: false,
             type: "GET",
@@ -99,8 +100,7 @@ define([
         this.notebook_model.path = notebook_path;
         this.kernel_model.name = kernel_name;
 
-        var url = utils.url_join_encode(this.sessions_url, this.id);
-        $.ajax(url, {
+        $.ajax(this.session_url, {
             processData: false,
             cache: false,
             type: "PATCH",
@@ -119,20 +119,16 @@ define([
      * DELETE /api/sessions/[:session_id]
      */
     Session.prototype.delete = function (success, error) {
-        var that = this;
-        var on_success = function (data, status, xhr) {
-            if (that.kernel) {
-                that.kernel._kernel_dead();
-            }
-        };
+        if (this.kernel) {
+            this.kernel._kernel_dead();
+        }
 
-        var url = utils.url_join_encode(this.sessions_url, this.id);
-        $.ajax(url, {
+        $.ajax(this.session_url, {
             processData: false,
             cache: false,
             type: "DELETE",
             dataType: "json",
-            success: this._on_success(on_success),
+            success: this._on_success(success),
             error: this._on_error(error)
         });
     };
@@ -147,6 +143,7 @@ define([
     Session.prototype._update_model = function (data) {
         if (data && data.id) {
             this.id = data.id;
+            this.session_url = utils.url_join_encode(this.session_service_url, this.id);
         }
         if (data && data.notebook) {
             this.notebook_model.name = data.notebook.name;
