@@ -21,9 +21,7 @@ define([
                 .slider({})
                 .addClass('slider');
             // Put the slider in a container 
-            this.$slider_container = $('<div />')
-                .append(this.$slider);
-            this.$el.append(this.$slider_container);
+            this.$el.append(this.$slider);
             
             this.$readout = $('<div/>')
                 .appendTo(this.$el)
@@ -47,9 +45,9 @@ define([
                 this.$readout.css(name, value);
             } else if (name.substring(0, 6) == 'border') {
                 this.$slider.find('a').css(name, value);
-                this.$slider_container.css(name, value);
+                this.$slider.css(name, value);
             } else if (name == 'width' || name == 'height' || name == 'background') {
-                this.$slider_container.css(name, value);
+                this.$slider.css(name, value);
             } else {
                 this.$slider.css(name, value);
             }
