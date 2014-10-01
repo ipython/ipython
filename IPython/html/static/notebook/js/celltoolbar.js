@@ -254,6 +254,7 @@ var IPython = (function (IPython) {
         // which is probably inner_element
         // or this.element.
         this.inner_element.empty();
+        this.show();
 
         var callbacks = CellToolbar._callback_dict;
         var preset = CellToolbar._ui_controls_list;
