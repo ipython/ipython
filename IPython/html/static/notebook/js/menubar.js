@@ -287,7 +287,7 @@ define([
         
         // Kernel
         this.element.find('#int_kernel').click(function () {
-            that.notebook.session.interrupt_kernel();
+            that.notebook.kernel.interrupt();
         });
         this.element.find('#restart_kernel').click(function () {
             that.notebook.restart_kernel();
