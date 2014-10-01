@@ -48,6 +48,10 @@ define([
      * POST /api/sessions
      */
     Session.prototype.start = function (success, error) {
+        if (this.kernel !== null) {
+            throw new Error("session has already been started");
+        };
+
         var that = this;
         var on_success = function (data, status, xhr) {
             var kernel_service_url = utils.url_path_join(that.base_url, "api/kernels");
@@ -95,23 +99,31 @@ define([
      * PATCH /api/sessions/[:session_id]
      */
     Session.prototype.change = function (notebook_name, notebook_path, kernel_name, success, error) {
-        this.notebook_model.name = notebook_name;
-        this.notebook_model.path = notebook_path;
-        this.kernel_model.name = kernel_name;
+        if (notebook_name !== undefined) {
+            this.notebook_model.name = notebook_name;
+        }
+        if (notebook_path !== undefined) {
+            this.notebook_model.path = notebook_path;
+        }
+        if (kernel_name !== undefined) {
+            this.kernel_model.name = kernel_name;
+        }
+
+        console.log(JSON.stringify(this._get_model()));
 
         $.ajax(this.session_url, {
             processData: false,
             cache: false,
             type: "PATCH",
             data: JSON.stringify(this._get_model()),
-            dataType : "json",
+            dataType: "json",
             success: this._on_success(success),
             error: this._on_error(error)
         });
     };
 
     Session.prototype.rename_notebook = function (name, path, success, error) {
-        this.change(name, path, this.kernel_model.name, success, error);
+        this.change(name, path, undefined, success, error);
     };
 
     /**
