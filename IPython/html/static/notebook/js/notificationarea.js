@@ -152,6 +152,10 @@ define([
         $kernel_ind_icon.attr('class','kernel_busy_icon').attr('title','Kernel Busy');
 
         this.events.on('status_started.Kernel', function (evt, data) {
+            knw.info("Kernel Started", 500);
+        });
+
+        this.events.on('status_connected.Kernel', function (evt, data) {
             knw.info("Websockets Connected", 500);
             that.events.trigger('status_busy.Kernel');
             data.kernel.kernel_info(function () {
@@ -184,7 +188,7 @@ define([
             });
         });
 
-        this.events.on('start_failed.Session',function (session, xhr, status, error) {
+        this.events.on('kernel_dead.Session',function (session, xhr, status, error) {
             var full = status.responseJSON.message;
             var short = status.responseJSON.short_message || 'Kernel error';
             var traceback = status.responseJSON.traceback;
@@ -225,7 +229,7 @@ define([
             knw.danger(short, undefined, showMsg);
         });
 
-        this.events.on('websocket_closed.Kernel', function (event, data) {
+        this.events.on('status_disconnected.Kernel', function (event, data) {
             var kernel = data.kernel;
             var ws_url = data.ws_url;
             var early = data.early;
