@@ -182,28 +182,14 @@
     min-width : 125px;
 }
 
-.widget-box {
-    /* The following section sets the style for the invisible div that
-    hold widgets and their accompanying labels.
-
-    Looks like this:
-    +-----------------------------+
-    | widget-box (or similar)     |
-    |  +-------+---------------+  |
-    |  | Label | Actual Widget |  |
-    |  +-------+---------------+  |
-    +-----------------------------+
-    */
-    margin : 5px;
-
-    .start();
-    .widget-container();
-}
-
 .widget-hbox {
     /* Horizontal widgets */
-    .widget-box();
     .hbox();
+    margin : 5px;
+
+    input[type="checkbox"] {
+        margin-top: 9px;
+    }
 
     .widget-label {
         /* Horizontal Label */
@@ -220,15 +206,10 @@
         text-align     : left;
         vertical-align : text-top;
     }
-
-    input[type="checkbox"] {
-        margin-top: 9px;
-    }
 }
 
 .widget-vbox {
     /* Vertical widgets */ 
-    .widget-box();
     .vbox();
 
     .widget-label {
@@ -247,7 +228,7 @@
 }
 
 .widget-popup .modal-content {
-    /* ContainerWidget - PopupView */   
+    /* PopupView */   
     overflow    : hidden; 
     position    : absolute !important;
     top         : 0px; 
@@ -255,7 +236,7 @@
     margin-left : 0px !important;
 
     .modal-body {
-        /* ContainerWidget - PopupView Body */
+        /* PopupView Body */
         max-height: none !important;
     }
 }
@@ -267,12 +248,6 @@
     top: 0px !important; 
     left: 0px !important; 
     margin-left: 0px !important;
-}
-
-.widget-container {
-    /* ContainerWidget */
-    .border-box-sizing();
-    .align-start();
 }
 
 .widget-radio :not(.widget-label) {
