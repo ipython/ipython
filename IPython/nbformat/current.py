@@ -6,14 +6,13 @@
 from __future__ import print_function
 
 import re
-
-from IPython.utils.py3compat import unicode_type
+import warnings
 
 from IPython.nbformat.v3 import (
     NotebookNode,
     new_code_cell, new_text_cell, new_notebook, new_output, new_worksheet,
     parse_filename, new_metadata, new_author, new_heading_cell, nbformat,
-    nbformat_minor, nbformat_schema, to_notebook_json
+    nbformat_minor, nbformat_schema, to_notebook_json,
 )
 from IPython.nbformat import v3 as _v_latest
 
@@ -40,6 +39,11 @@ class NBFormatError(ValueError):
     pass
 
 
+def _warn_format():
+    warnings.warn("""Non-JSON file support in nbformat is deprecated.
+    Use nbconvert to create files of other formats.""")
+
+
 def parse_py(s, **kwargs):
     """Parse a string into a (nbformat, string) tuple."""
     nbf = current_nbformat
@@ -57,34 +61,18 @@ def parse_py(s, **kwargs):
 
 
 def reads_json(nbjson, **kwargs):
-    """Read a JSON notebook from a string and return the NotebookNode
-    object. Report if any JSON format errors are detected.
-
-    """
-    nb = reader_reads(nbjson, **kwargs)
-    nb_current = convert(nb, current_nbformat)
-    try:
-        validate(nb_current)
-    except ValidationError as e:
-        get_logger().error("Notebook JSON is invalid: %s", e)
-    return nb_current
-
+    """DEPRECATED, use reads"""
+    warnings.warn("reads_json is deprecated, use reads")
+    return reads(nbjson)
 
 def writes_json(nb, **kwargs):
-    """Take a NotebookNode object and write out a JSON string. Report if
-    any JSON format errors are detected.
-
-    """
-    try:
-        validate(nb)
-    except ValidationError as e:
-        get_logger().error("Notebook JSON is invalid: %s", e)
-    nbjson = versions[current_nbformat].writes_json(nb, **kwargs)
-    return nbjson
-
+    """DEPRECATED, use writes"""
+    warnings.warn("writes_json is deprecated, use writes")
+    return writes(nb, **kwargs)
 
 def reads_py(s, **kwargs):
-    """Read a .py notebook from a string and return the NotebookNode object."""
+    """DEPRECATED: use nbconvert"""
+    _warn_format()
     nbf, nbm, s = parse_py(s, **kwargs)
     if nbf in (2, 3):
         nb = versions[nbf].to_notebook_py(s, **kwargs)
@@ -92,9 +80,9 @@ def reads_py(s, **kwargs):
         raise NBFormatError('Unsupported PY nbformat version: %i' % nbf)
     return nb
 
-
 def writes_py(nb, **kwargs):
-    # nbformat 3 is the latest format that supports py
+    """DEPRECATED: use nbconvert"""
+    _warn_format()
     return versions[3].writes_py(nb, **kwargs)
 
 
@@ -117,7 +105,9 @@ def reads(s, format='DEPRECATED', version=current_nbformat, **kwargs):
     nb : NotebookNode
         The notebook that was read.
     """
-    nb = versions[version].reads_json(s, **kwargs)
+    if format not in {'DEPRECATED', 'json'}:
+        _warn_format()
+    nb = reader_reads(s, **kwargs)
     nb = convert(nb, version)
     try:
         validate(nb)
@@ -144,11 +134,13 @@ def writes(nb, format='DEPRECATED', version=current_nbformat, **kwargs):
     s : unicode
         The notebook string.
     """
+    if format not in {'DEPRECATED', 'json'}:
+        _warn_format()
+    nb = convert(nb, version)
     try:
         validate(nb)
     except ValidationError as e:
         get_logger().error("Notebook JSON is invalid: %s", e)
-    nb = convert(nb, version)
     return versions[version].writes_json(nb, **kwargs)
 
 
@@ -191,19 +183,4 @@ def write(nb, fp, format='DEPRECATED', **kwargs):
         The notebook string.
     """
     return fp.write(writes(nb, **kwargs))
-
-def _convert_to_metadata():
-    """Convert to a notebook having notebook metadata."""
-    import glob
-    for fname in glob.glob('*.ipynb'):
-        print('Converting file:',fname)
-        with open(fname,'r') as f:
-            nb = read(f,u'json')
-        md = new_metadata()
-        if u'name' in nb:
-            md.name = nb.name
-            del nb[u'name']            
-        nb.metadata = md
-        with open(fname,'w') as f:
-            write(nb, f, u'json')
 
