@@ -760,7 +760,11 @@ define([
      */
     Notebook.prototype.delete_cell = function (index) {
         var i = this.index_or_selected(index);
-        var cell = this.get_selected_cell();
+        var cell = this.get_cell(i);
+        if (!cell.is_deletable()) {
+            return this;
+        }
+
         this.undelete_backup = cell.toJSON();
         $('#undelete_cell').removeClass('disabled');
         if (this.is_valid_cell_index(i)) {
@@ -1188,6 +1192,10 @@ define([
     Notebook.prototype.copy_cell = function () {
         var cell = this.get_selected_cell();
         this.clipboard = cell.toJSON();
+        // remove undeletable status from the copied cell
+        if (this.clipboard.metadata.deletable !== undefined) {
+            delete this.clipboard.metadata.deletable;
+        }
         this.enable_paste();
     };
 
