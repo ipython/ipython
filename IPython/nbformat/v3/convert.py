@@ -1,22 +1,7 @@
-"""Code for converting notebooks to and from the v2 format.
+"""Code for converting notebooks to and from the v2 format."""
 
-Authors:
-
-* Brian Granger
-* Min RK
-* Jonathan Frederic
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from .nbbase import (
     new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output,
@@ -25,9 +10,21 @@ from .nbbase import (
 
 from IPython.nbformat import v2
 
-#-----------------------------------------------------------------------------
-# Code
-#-----------------------------------------------------------------------------
+def _unbytes(obj):
+    """There should be no bytes objects in a notebook
+
+    v2 stores png/jpeg as b64 ascii bytes
+    """
+    if isinstance(obj, dict):
+        for k,v in obj.items():
+            obj[k] = _unbytes(v)
+    elif isinstance(obj, list):
+        for i,v in enumerate(obj):
+            obj[i] = _unbytes(v)
+    elif isinstance(obj, bytes):
+        # only valid bytes are b64-encoded ascii
+        obj = obj.decode('ascii')
+    return obj
 
 def upgrade(nb, from_version=2, from_minor=0):
     """Convert a notebook to v3.
@@ -47,6 +44,7 @@ def upgrade(nb, from_version=2, from_minor=0):
         nb.nbformat_minor = nbformat_minor
         
         nb.orig_nbformat = 2
+        nb = _unbytes(nb)
         return nb
     elif from_version == 3:
         if from_minor != nbformat_minor:
