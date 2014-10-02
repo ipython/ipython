@@ -188,28 +188,35 @@ define([
             var full = status.responseJSON.message;
             var short = status.responseJSON.short_message || 'Kernel error';
             var traceback = status.responseJSON.traceback;
-            var msg = $('<div/>');
-
-            msg.append($('<p/>').text(full));
-            if (traceback) {
-                msg.append($('<textarea/>')
-                           .attr('rows', '13')
-                           .attr('cols', '80')
-                           .attr('readonly', 'true')
-                           .css('margin-top', '1em')
-                           .text(traceback));
-            }
 
             var showMsg = function () {
+                var msg = $('<div/>').append($('<p/>').text(full));
+                var cm, cm_elem;
+
+                if (traceback) {
+                    cm_elem = $('<div/>')
+                        .css('margin-top', '1em')
+                        .css('padding', '1em')
+                        .addClass('output_scroll');
+                    msg.append(cm_elem);
+                    cm = CodeMirror(cm_elem.get(0), {
+                        mode:  "python",
+                        readOnly : true
+                    });
+                    cm.setValue(traceback);
+                }
+
                 dialog.modal({
                     title: "Failed to start the kernel",
                     body : msg,
                     keyboard_manager: that.keyboard_manager,
                     notebook: that.notebook,
+                    open: $.proxy(cm.refresh, cm),
                     buttons : {
                         "Ok": { class: 'btn-primary' }
                     }
                 });
+
                 return false;
             };
 
