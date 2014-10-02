@@ -49,7 +49,6 @@ def serialize_binary_message(msg):
     bmsg = json.dumps(msg, default=date_default).encode('utf8')
     buffers.insert(0, bmsg)
     nbufs = len(buffers)
-    sizes = (len(buf) for buf in buffers)
     offsets = [4 * (nbufs + 1)]
     for buf in buffers[:-1]:
         offsets.append(offsets[-1] + len(buf))

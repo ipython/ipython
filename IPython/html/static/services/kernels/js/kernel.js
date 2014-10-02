@@ -70,7 +70,7 @@ define([
     /**
      * @function _get_msg
      */
-    Kernel.prototype._get_msg = function (msg_type, content, metadata) {
+    Kernel.prototype._get_msg = function (msg_type, content, metadata, buffers) {
         var msg = {
             header : {
                 msg_id : utils.uuid(),
@@ -81,6 +81,7 @@ define([
             },
             metadata : metadata || {},
             content : content,
+            buffers : buffers || [],
             parent_header : {}
         };
         return msg;
@@ -597,12 +598,12 @@ define([
      *
      * @function send_shell_message
      */
-    Kernel.prototype.send_shell_message = function (msg_type, content, callbacks, metadata) {
+    Kernel.prototype.send_shell_message = function (msg_type, content, callbacks, metadata, buffers) {
         if (!this.is_connected()) {
             throw new Error("kernel is not connected");
         }
-        var msg = this._get_msg(msg_type, content, metadata);
-        this.channels.shell.send(JSON.stringify(msg));
+        var msg = this._get_msg(msg_type, content, metadata, buffers);
+        this.channels.shell.send(serialize.serialize(msg));
         this.set_callbacks_for_msg(msg.header.msg_id, callbacks);
         return msg.header.msg_id;
     };
@@ -753,7 +754,7 @@ define([
         };
         this.events.trigger('input_reply.Kernel', {kernel: this, content: content});
         var msg = this._get_msg("input_reply", content);
-        this.channels.stdin.send(JSON.stringify(msg));
+        this.channels.stdin.send(serialize.serialize(msg));
         return msg.header.msg_id;
     };
 

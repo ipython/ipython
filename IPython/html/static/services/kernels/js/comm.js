@@ -129,12 +129,12 @@ define([
         return this.kernel.send_shell_message("comm_open", content, callbacks, metadata);
     };
     
-    Comm.prototype.send = function (data, callbacks, metadata) {
+    Comm.prototype.send = function (data, callbacks, metadata, buffers) {
         var content = {
             comm_id : this.comm_id,
             data : data || {},
         };
-        return this.kernel.send_shell_message("comm_msg", content, callbacks, metadata);
+        return this.kernel.send_shell_message("comm_msg", content, callbacks, metadata, buffers);
     };
     
     Comm.prototype.close = function (data, callbacks, metadata) {
