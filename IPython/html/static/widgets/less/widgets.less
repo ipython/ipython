@@ -39,7 +39,7 @@
     .corner-all(); /* Round the corners of the slide track */
 }
 
-.widget-hslider {
+.widget-hbox.widget-slider .slider-container {
     /* Horizontal jQuery Slider 
 
     Both the horizontal and vertical versions of the slider are characterized
@@ -143,25 +143,26 @@
     }
 }
 
-.widget-text {
+.widget-text input, 
+.widget-textarea textarea {
     /* String Textbox - used for TextBoxView and TextAreaView */
     width         : 350px;
     margin : 0px !important;
 }
 
-.widget-listbox {
+.widget-select .form-control {
     /* Listbox */
     width         : 350px;
     margin-bottom : 0px;
 }
 
-.widget-numeric-text {
+.widget-numeric-text input {
     /* Single Line Textbox - used for IntTextView and FloatTextView */
     width : 150px;
     margin : 0px !important;
 }
 
-.widget-progress {
+.widget-progress .progress {
     /* Progress Bar */
     margin-top: 6px;
     width : 350px;
@@ -176,19 +177,15 @@
     }
 }
 
-.widget-combo-btn {
+.widget-dropdown .dropdown-label {
     /* ComboBox Main Button */
     min-width : 125px;
-}
-
-.widget_item .dropdown-menu li a {
-    color: inherit;
 }
 
 .widget-hbox {
     /* Horizontal widgets */
     .hbox();
-    margin: 5px;
+    margin : 5px;
 
     input[type="checkbox"] {
         margin-top: 9px;
@@ -215,7 +212,6 @@
     /* Vertical widgets */ 
     .vbox();
 
-
     .widget-label {
         /* Vertical Label */
         padding-bottom : 5px;
@@ -229,30 +225,32 @@
         text-align     : center;
         vertical-align : text-top;
     }
-
 }
 
-.widget-modal {
-    /* Box - ModalView */   
+.widget-popup .modal-content {
+    /* PopupView */   
     overflow    : hidden; 
     position    : absolute !important;
     top         : 0px; 
     left        : 0px; 
     margin-left : 0px !important;
+
+    .modal-body {
+        /* PopupView Body */
+        max-height: none !important;
+    }
 }
 
-.widget-modal-body {
-    /* Box - ModalView Body */
-    max-height: none !important;
+.widget-popup-docked {
+    /* Horizontal Label */
+    overflow: hidden; 
+    position: relative !important;
+    top: 0px !important; 
+    left: 0px !important; 
+    margin-left: 0px !important;
 }
 
-.widget-box {
-    /* Box */
-    .border-box-sizing();
-    .align-start();
-}
-
-.widget-radio-box {
+.widget-radio :not(.widget-label) {
     /* Contains RadioButtonsWidget */
     .vbox();
     .border-box-sizing();

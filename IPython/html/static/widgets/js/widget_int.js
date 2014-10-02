@@ -11,7 +11,7 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-slider');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
@@ -21,16 +21,13 @@ define([
                 .slider({})
                 .addClass('slider');
             // Put the slider in a container 
-            this.$slider_container = $('<div />')
-                .addClass('widget-hslider')
-                .append(this.$slider);
-            this.$el.append(this.$slider_container);
+            this.$el.append(this.$slider);
             
             this.$readout = $('<div/>')
                 .appendTo(this.$el)
                 .addClass('widget-readout')
                 .hide();
-
+            
             this.model.on('change:slider_color', function(sender, value) {
                 this.$slider.find('a').css('background', value);
             }, this);
@@ -39,7 +36,7 @@ define([
             // Set defaults.
             this.update();
         },
-
+        
         update_attr: function(name, value) {
             // Set a css attr of the widget view.
             if (name == 'color') {
@@ -48,9 +45,9 @@ define([
                 this.$readout.css(name, value);
             } else if (name.substring(0, 6) == 'border') {
                 this.$slider.find('a').css(name, value);
-                this.$slider_container.css(name, value);
+                this.$slider.css(name, value);
             } else if (name == 'width' || name == 'height' || name == 'background') {
-                this.$slider_container.css(name, value);
+                this.$slider.css(name, value);
             } else {
                 this.$slider.css(name, value);
             }
@@ -119,17 +116,11 @@ define([
 
                 // Use the right CSS classes for vertical & horizontal sliders
                 if (orientation=='vertical') {
-                    this.$slider_container
-                        .removeClass('widget-hslider')
-                        .addClass('widget-vslider');
                     this.$el
                         .removeClass('widget-hbox')
                         .addClass('widget-vbox');
 
                 } else {
-                    this.$slider_container
-                        .removeClass('widget-vslider')
-                        .addClass('widget-hslider');
                     this.$el
                         .removeClass('widget-vbox')
                         .addClass('widget-hbox');
@@ -189,14 +180,13 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-numeric-text');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
                 .hide();
             this.$textbox = $('<input type="text" />')
                 .addClass('form-control')
-                .addClass('widget-numeric-text')
                 .appendTo(this.$el);
             this.update(); // Set defaults.
         },
@@ -297,14 +287,13 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-progress');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
                 .hide();
             this.$progress = $('<div />')
                 .addClass('progress')
-                .addClass('widget-progress')
                 .appendTo(this.$el);
             this.$bar = $('<div />')
                 .addClass('progress-bar')

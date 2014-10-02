@@ -83,7 +83,7 @@ define([
             });
         },
     });
-
+    
 
     var FlexBoxView = BoxView.extend({
         render: function(){
@@ -135,18 +135,21 @@ define([
             // Called when view is rendered.
             var that = this;
             
-            this.$el.on("remove", function(){
+            this.$el
+                .addClass('widget-popup-inline')
+                .on("remove", function(){
                     that.$backdrop.remove();
                 });
             this.$backdrop = $('<div />')
                 .appendTo($('#notebook-container'))
                 .addClass('modal-dialog')
+                .addClass('widget-popup')
                 .css('position', 'absolute')
                 .css('left', '0px')
                 .css('top', '0px');
             this.$window = $('<div />')
                 .appendTo(this.$backdrop)
-                .addClass('modal-content widget-modal')
+                .addClass('modal-content')
                 .mousedown(function(){
                     that.bring_to_front();
                 });
@@ -179,26 +182,26 @@ define([
                     that.popped_out = !that.popped_out;
                     if (!that.popped_out) {
                         that.$minimize
-                            .removeClass('fa-arrow-down')
-                            .addClass('fa-arrow-up');
+                            .removeClass('fa fa-arrow-down')
+                            .addClass('fa fa-arrow-up');
                             
                         that.$window
                             .draggable('destroy')
                             .resizable('destroy')
-                            .removeClass('widget-modal modal-content')
-                            .addClass('docked-widget-modal')
+                            .removeClass('modal-content')
+                            .addClass('widget-popup-docked')
                             .detach()
                             .insertBefore(that.$show_button);
                         that.$show_button.hide();
                         that.$close.hide();
                     } else {
                         that.$minimize
-                            .addClass('fa-arrow-down')
-                            .removeClass('fa-arrow-up');
+                            .addClass('fa fa-arrow-down')
+                            .removeClass('fa fa-arrow-up');
 
                         that.$window
-                            .removeClass('docked-widget-modal')
-                            .addClass('widget-modal modal-content')
+                            .removeClass('widget-popup-docked')
+                            .addClass('modal-content')
                             .detach()
                             .appendTo(that.$backdrop)
                             .draggable({handle: '.popover-title', snap: '#notebook, .modal', snapMode: 'both'})
@@ -213,7 +216,7 @@ define([
             this.$title = $('<div />')
                 .addClass('widget-modal-title')
                 .html("&nbsp;")
-                .appendTo(this.$title_bar);     
+                .appendTo(this.$title_bar);
             this.$box = $('<div />')
                 .addClass('modal-body')
                 .addClass('widget-modal-body')
@@ -265,7 +268,7 @@ define([
         
         bring_to_front: function() {
             // Make the modal top-most, z-ordered about the other modals.
-            var $widget_modals = $(".widget-modal");
+            var $widget_modals = $(".widget-modal .widget-popup");
             var max_zindex = 0;
             $widget_modals.each(function (index, el){
                 var zindex = parseInt($(el).css('z-index'));
@@ -284,6 +287,29 @@ define([
                 }
             });
             this.$window.css('z-index', max_zindex);
+        },
+        
+        update_children: function(old_list, new_list) {
+            // Called when the children list is modified.
+            this.do_diff(old_list, new_list, 
+                $.proxy(this.remove_child_model, this),
+                $.proxy(this.add_child_model, this));
+        },
+
+        remove_child_model: function(model) {
+            // Called when a child is removed from children list.
+            this.pop_child_view(model).remove();
+        },
+
+        add_child_model: function(model) {
+            // Called when a child is added to children list.
+            var view = this.create_child_view(model);
+            this.$body.append(view.$el);
+
+            // Trigger the displayed event of the child view.
+            this.after_displayed(function() {
+                view.trigger('displayed');
+            });
         },
         
         update: function(){

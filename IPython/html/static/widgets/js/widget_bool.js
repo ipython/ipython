@@ -11,7 +11,7 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-checkbox');
             this.$label = $('<div />')
                 .addClass('widget-label')
                 .appendTo(this.$el)
@@ -70,7 +70,7 @@ define([
             // Called when view is rendered.
             var that = this;
             this.setElement($('<button />')
-                .addClass('btn btn-default')
+                .addClass('btn btn-default widget-togglebutton')
                 .attr('type', 'button')
                 .on('click', function (e) {
                     e.preventDefault();

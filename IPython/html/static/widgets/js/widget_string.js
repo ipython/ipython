@@ -11,6 +11,7 @@ define([
         render : function(){
             // Called when view is rendered.
             this.update(); // Set defaults.
+            this.$el.addClass('widget-html');
         },
         
         update : function(){
@@ -28,6 +29,7 @@ define([
         render : function(){
             // Called when view is rendered.
             this.update(); // Set defaults.
+            this.$el.addClass('widget-latex');
         },
         
         update : function(){
@@ -47,14 +49,14 @@ define([
         render: function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-textarea');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
                 .hide();
             this.$textbox = $('<textarea />')
                 .attr('rows', 5)
-                .addClass('widget-text form-control')
+                .addClass('form-control')
                 .appendTo(this.$el);
             this.update(); // Set defaults.
 
@@ -107,7 +109,7 @@ define([
             }
             return TextareaView.__super__.update.apply(this);
         },
-
+        
         update_attr: function(name, value) {
             // Set a css attr of the widget view.
             this.$textbox.css(name, value);
@@ -135,14 +137,14 @@ define([
         render: function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-text');
             this.$label = $('<div />')
                 .addClass('widget-label')
                 .appendTo(this.$el)
                 .hide();
             this.$textbox = $('<input type="text" />')
                 .addClass('input')
-                .addClass('widget-text form-control')
+                .addClass('form-control')
                 .appendTo(this.$el);
             this.update(); // Set defaults.
             this.model.on('change:placeholder', function(model, value, options) {
@@ -183,7 +185,7 @@ define([
             }
             return TextView.__super__.update.apply(this);
         },
-
+        
         update_attr: function(name, value) {
             // Set a css attr of the widget view.
             this.$textbox.css(name, value);

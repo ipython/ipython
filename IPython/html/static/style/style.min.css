@@ -9062,7 +9062,7 @@ div.cell.text_cell.rendered {
   border-radius: 4px;
   /* Round the corners of the slide track */
 }
-.widget-hslider {
+.widget-hbox.widget-slider .slider-container {
   /* Horizontal jQuery Slider 
 
     Both the horizontal and vertical versions of the slider are characterized
@@ -9121,7 +9121,7 @@ div.cell.text_cell.rendered {
   /* Modern browsers */
   flex: none;
 }
-.widget-hslider .ui-slider {
+.widget-hbox.widget-slider .slider-container .ui-slider {
   /* Inner, invisible slide div */
   border: 0px !important;
   background: none !important;
@@ -9152,12 +9152,12 @@ div.cell.text_cell.rendered {
   /* Modern browsers */
   flex: 1;
 }
-.widget-hslider .ui-slider .ui-slider-handle {
+.widget-hbox.widget-slider .slider-container .ui-slider .ui-slider-handle {
   width: 14px !important;
   height: 28px !important;
   margin-top: -8px !important;
 }
-.widget-hslider .ui-slider .ui-slider-range {
+.widget-hbox.widget-slider .slider-container .ui-slider .ui-slider-range {
   height: 12px !important;
   margin-top: -4px !important;
 }
@@ -9242,27 +9242,28 @@ div.cell.text_cell.rendered {
   width: 12px !important;
   margin-left: -1px !important;
 }
-.widget-text {
+.widget-text input,
+.widget-textarea textarea {
   /* String Textbox - used for TextBoxView and TextAreaView */
   width: 350px;
   margin: 0px !important;
 }
-.widget-listbox {
+.widget-select .form-control {
   /* Listbox */
   width: 350px;
   margin-bottom: 0px;
 }
-.widget-numeric-text {
+.widget-numeric-text input {
   /* Single Line Textbox - used for IntTextView and FloatTextView */
   width: 150px;
   margin: 0px !important;
 }
-.widget-progress {
+.widget-progress .progress {
   /* Progress Bar */
   margin-top: 6px;
   width: 350px;
 }
-.widget-progress .progress-bar {
+.widget-progress .progress .progress-bar {
   /* Disable progress bar animation */
   -webkit-transition: none;
   -moz-transition: none;
@@ -9270,12 +9271,9 @@ div.cell.text_cell.rendered {
   -o-transition: none;
   transition: none;
 }
-.widget-combo-btn {
+.widget-dropdown .dropdown-label {
   /* ComboBox Main Button */
   min-width: 125px;
-}
-.widget_item .dropdown-menu li a {
-  color: inherit;
 }
 .widget-hbox {
   /* Horizontal widgets */
@@ -9353,31 +9351,27 @@ div.cell.text_cell.rendered {
   text-align: center;
   vertical-align: text-top;
 }
-.widget-modal {
-  /* Box - ModalView */
+.widget-popup .modal-content {
+  /* PopupView */
   overflow: hidden;
   position: absolute !important;
   top: 0px;
   left: 0px;
   margin-left: 0px !important;
 }
-.widget-modal-body {
-  /* Box - ModalView Body */
+.widget-popup .modal-content .modal-body {
+  /* PopupView Body */
   max-height: none !important;
 }
-.widget-box {
-  /* Box */
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  /* Old browsers */
-  -webkit-box-align: start;
-  -moz-box-align: start;
-  box-align: start;
-  /* Modern browsers */
-  align-items: flex-start;
+.widget-popup-docked {
+  /* Horizontal Label */
+  overflow: hidden;
+  position: relative !important;
+  top: 0px !important;
+  left: 0px !important;
+  margin-left: 0px !important;
 }
-.widget-radio-box {
+.widget-radio :not(.widget-label) {
   /* Contains RadioButtonsWidget */
   /* Old browsers */
   display: -webkit-box;
@@ -9404,7 +9398,7 @@ div.cell.text_cell.rendered {
   -webkit-box-sizing: border-box;
   padding-top: 4px;
 }
-.widget-radio-box label {
+.widget-radio :not(.widget-label) label {
   margin-top: 0px;
 }
 .docked-widget-modal {
