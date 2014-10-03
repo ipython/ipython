@@ -112,7 +112,6 @@ define([
 
     Session.prototype._handle_start_failure = function (xhr, status, error) {
         this.events.trigger('start_failed.Session', [this, xhr, status, error]);
-        this.events.trigger('status_dead.Kernel');
     };
     
     /**

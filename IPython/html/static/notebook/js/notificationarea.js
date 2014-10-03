@@ -159,7 +159,7 @@ define([
             });
         });
 
-        this.events.on('status_dead.Kernel',function () {
+        this.events.on('status_restart_failed.Kernel',function () {
             var msg = 'The kernel has died, and the automatic restart has failed.' +
                 ' It is possible the kernel cannot be restarted.' +
                 ' If you are not able to restart the kernel, you will still be able to save' +
@@ -182,6 +182,47 @@ define([
                     "Don't restart": {}
                 }
             });
+        });
+
+        this.events.on('start_failed.Session',function (session, xhr, status, error) {
+            var full = status.responseJSON.message;
+            var short = status.responseJSON.short_message || 'Kernel error';
+            var traceback = status.responseJSON.traceback;
+
+            var showMsg = function () {
+                var msg = $('<div/>').append($('<p/>').text(full));
+                var cm, cm_elem;
+
+                if (traceback) {
+                    cm_elem = $('<div/>')
+                        .css('margin-top', '1em')
+                        .css('padding', '1em')
+                        .addClass('output_scroll');
+                    msg.append(cm_elem);
+                    cm = CodeMirror(cm_elem.get(0), {
+                        mode:  "python",
+                        readOnly : true
+                    });
+                    cm.setValue(traceback);
+                }
+
+                dialog.modal({
+                    title: "Failed to start the kernel",
+                    body : msg,
+                    keyboard_manager: that.keyboard_manager,
+                    notebook: that.notebook,
+                    open: $.proxy(cm.refresh, cm),
+                    buttons : {
+                        "Ok": { class: 'btn-primary' }
+                    }
+                });
+
+                return false;
+            };
+
+            that.save_widget.update_document_title();
+            $kernel_ind_icon.attr('class','kernel_dead_icon').attr('title','Kernel Dead');
+            knw.danger(short, undefined, showMsg);
         });
 
         this.events.on('websocket_closed.Kernel', function (event, data) {

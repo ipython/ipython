@@ -560,6 +560,7 @@ define([
         } else if (execution_state === 'dead') {
             this.stop_channels();
             this.events.trigger('status_dead.Kernel', {kernel: this});
+            this.events.trigger('status_restart_failed.Kernel', {kernel: this});
         }
     };
     
