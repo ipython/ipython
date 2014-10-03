@@ -208,6 +208,15 @@ class Widget(LoggingConfigurable):
             value = getattr(self, k)
             state[k] = f(value)
         return state
+
+    def set_state(self, sync_data):
+        """Called when a state is received from the front-end."""
+        for name in self.keys:
+            if name in sync_data:
+                json_value = sync_data[name]
+                from_json = self.trait_metadata(name, 'from_json', self._trait_from_json)
+                with self._lock_property(name, json_value):
+                    setattr(self, name, from_json(json_value))
     
     def send(self, content):
         """Sends a custom msg to the widget model in the front-end.
@@ -304,21 +313,12 @@ class Widget(LoggingConfigurable):
         # Handle backbone sync methods CREATE, PATCH, and UPDATE all in one.
         if method == 'backbone' and 'sync_data' in data:
             sync_data = data['sync_data']
-            self._handle_receive_state(sync_data) # handles all methods
+            self.set_state(sync_data) # handles all methods
 
         # Handle a custom msg from the front-end
         elif method == 'custom':
             if 'content' in data:
                 self._handle_custom_msg(data['content'])
-
-    def _handle_receive_state(self, sync_data):
-        """Called when a state is received from the front-end."""
-        for name in self.keys:
-            if name in sync_data:
-                json_value = sync_data[name]
-                from_json = self.trait_metadata(name, 'from_json', self._trait_from_json)
-                with self._lock_property(name, json_value):
-                    setattr(self, name, from_json(json_value))
 
     def _handle_custom_msg(self, content):
         """Called when a custom msg is received."""
