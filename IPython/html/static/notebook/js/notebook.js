@@ -205,20 +205,6 @@ define([
         this.events.on('command_mode.Cell', function (event, data) {
             that.handle_command_mode(data.cell);
         });
-
-        this.events.on('status_autorestarting.Kernel', function () {
-            dialog.modal({
-                notebook: that,
-                keyboard_manager: that.keyboard_manager,
-                title: "Kernel Restarting",
-                body: "The kernel appears to have died. It will restart automatically.",
-                buttons: {
-                    OK : {
-                        class : "btn-primary"
-                    }
-                }
-            });
-        });
         
         this.events.on('spec_changed.Kernel', function(event, data) {
             that.set_kernelspec_metadata(data);

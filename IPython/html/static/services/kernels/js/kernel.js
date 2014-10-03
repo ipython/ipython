@@ -152,6 +152,7 @@ define([
 
         var that = this;
         var on_success = function (data, status, xhr) {
+            that.events.trigger('kernel_started.Kernel', {kernel: that});
             that._kernel_started(data);
             if (success) {
                 success(data, status, xhr);
@@ -205,6 +206,8 @@ define([
      * @param {function} [error] - functon executed on ajax error
      */
     Kernel.prototype.kill = function (success, error) {
+        console.log("Killing kernel: " + this.id);
+        this.events.trigger('status_killed.Kernel', {kernel: this});
         this._kernel_dead();
         $.ajax(this.kernel_url, {
             processData: false,
@@ -226,14 +229,25 @@ define([
      * @param {function} [error] - functon executed on ajax error
      */
     Kernel.prototype.interrupt = function (success, error) {
+        console.log("Interrupting kernel: " + this.id);
         this.events.trigger('status_interrupting.Kernel', {kernel: this});
+        this.events.trigger('status_busy.Kernel', {kernel: this});
+
+        var that = this;
+        var on_success = function (data, status, xhr) {
+            that.events.trigger('status_idle.Kernel', {kernel: this});
+            if (success) {
+                success(data, status, xhr);
+            }
+        };
+
         var url = utils.url_join_encode(this.kernel_url, 'interrupt');
         $.ajax(url, {
             processData: false,
             cache: false,
             type: "POST",
             dataType: "json",
-            success: this._on_success(success),
+            success: this._on_success(on_success),
             error: this._on_error(error)
         });
     };
@@ -248,14 +262,24 @@ define([
      * @param {function} [error] - functon executed on ajax error
      */
     Kernel.prototype.restart = function (success, error) {
+        console.log("Restarting kernel: " + this.id);
         this.events.trigger('status_restarting.Kernel', {kernel: this});
         this.stop_channels();
 
         var that = this;
         var on_success = function (data, status, xhr) {
+            that.events.trigger('kernel_started.Kernel', {kernel: that});
             that._kernel_started(data);
             if (success) {
                 success(data, status, xhr);
+            }
+        };
+
+        var on_error = function (xhr, status, err) {
+            that.events.trigger('kernel_dead.Kernel', {kernel: that});
+            that._kernel_dead();
+            if (error) {
+                error(xhr, status, err);
             }
         };
 
@@ -266,7 +290,7 @@ define([
             type: "POST",
             dataType: "json",
             success: this._on_success(on_success),
-            error: this._on_error(error)
+            error: this._on_error(on_error)
         });
     };
 
@@ -278,11 +302,9 @@ define([
      * @function reconnect
      */
     Kernel.prototype.reconnect = function () {
-        this.events.trigger('status_reconnecting.Kernel');
-        var that = this;
-        setTimeout(function () {
-            that.start_channels();
-        }, 5000);
+        console.log("Reconnecting to kernel: " + this.id);
+        this.events.trigger('status_reconnecting.Kernel', {kernel: this});
+        setTimeout($.proxy(this.start_channels, this), 3000)
     };
 
     /**
@@ -324,9 +346,8 @@ define([
     };
 
     /**
-     * Perform necessary tasks once the kernel has been started. This
-     * includes triggering the 'status_started.Kernel' event and
-     * then actually connecting to the kernel.
+     * Perform necessary tasks once the kernel has been started,
+     * including actually connecting to the kernel.
      *
      * @function _kernel_started
      * @param {Object} data - information about the kernel including id
@@ -336,38 +357,35 @@ define([
         this.kernel_url = utils.url_join_encode(this.kernel_service_url, this.id);
 
         console.log("Kernel started: ", this.id);
-        this.events.trigger('status_started.Kernel', {kernel: this});
         this.start_channels();
     };
 
     /**
      * Perform necessary tasks once the connection to the kernel has
-     * been established. This includes triggering the
-     * 'status_connected.Kernel' event and then requesting information
-     * about the kernel.
+     * been established. This includes requesting information about
+     * the kernel.
      *
      * @function _kernel_connected
      */
     Kernel.prototype._kernel_connected = function () {
-        var that = this;
         console.log('Connected to kernel: ', this.id);
-        this.events.trigger('status_connected.Kernel');
+        this.events.trigger('status_connected.Kernel', {kernel: this});
+
+        var that = this;
         this.kernel_info(function () {
-            that.events.trigger('status_idle.Kernel');
+            that.events.trigger('status_idle.Kernel', {kernel: this});
         });
     };
 
     /**
-     * Perform necessary tasks after the kernel has died. This
-     * includes triggering both 'status_dead.Kernel' and
-     * 'no_kernel.Kernel', and then closing communication channels to
-     * the kernel if they are still somehow open.
+     * Perform necessary tasks after the kernel has died. This closing
+     * communication channels to the kernel if they are still somehow
+     * open.
      *
      * @function _kernel_dead
      */
     Kernel.prototype._kernel_dead = function () {
-        this.events.trigger('status_dead.Kernel');
-        this.events.trigger('no_kernel.Kernel');
+        console.log('Dead kernel: ', this.id);
         this.stop_channels();
     };
 
@@ -381,7 +399,9 @@ define([
         var that = this;
         this.stop_channels();
         var ws_host_url = this.ws_url + this.kernel_url;
+
         console.log("Starting WebSockets:", ws_host_url);
+
         this.channels.shell = new this.WebSocket(
             this.ws_url + utils.url_join_encode(this.kernel_url, "shell")
         );
@@ -399,7 +419,18 @@ define([
             }
             already_called_onclose = true;
             if ( ! evt.wasClean ){
-                that._ws_closed(ws_host_url, true);
+                // If the websocket was closed early, that could mean
+                // that the kernel is actually dead. Try getting
+                // information about the kernel from the API call --
+                // if that fails, then assume the kernel is dead,
+                // otherwise just follow the typical websocket closed
+                // protocol.
+                that.get_info(function () {
+                    that._ws_closed(ws_host_url, false);
+                }, function () {
+                    that.events.trigger('kernel_dead.Kernel', {kernel: this});
+                    that._kernel_dead();
+                });
             }
         };
         var ws_closed_late = function(evt){
@@ -416,7 +447,7 @@ define([
                 return;
             }
             already_called_onclose = true;
-            that._ws_closed(ws_host_url, false);
+            that._ws_closed(ws_host_url, true);
         };
 
         for (var c in this.channels) {
@@ -456,23 +487,22 @@ define([
 
     /**
      * Handle a websocket entering the closed state. This closes the
-     * other communication channels if they are open, and triggers the
-     * 'status_disconnected.Kernel' event. If the websocket was closed
-     * early, then also trigger 'early_disconnect.Kernel'. Otherwise,
-     * try to reconnect to the kernel.
+     * other communication channels if they are open. If the websocket
+     * was not closed due to an error, try to reconnect to the kernel.
      *
      * @function _ws_closed
      * @param {string} ws_url - the websocket url
-     * @param {bool} early - whether the connection was closed early or not
+     * @param {bool} error - whether the connection was closed due to an error
      */
-    Kernel.prototype._ws_closed = function(ws_url, early) {
+    Kernel.prototype._ws_closed = function(ws_url, error) {
         this.stop_channels();
-        this.events.trigger('status_disconnected.Kernel');
-        if (!early) {
+
+        this.events.trigger('status_disconnected.Kernel', {kernel: this});
+        if (!error) {
             this.reconnect();
         } else {
             console.log('WebSocket connection failed: ', ws_url);
-            this.events.trigger('early_disconnect.Kernel', ws_url);
+            this.events.trigger('connection_failed.Kernel', {kernel: this, ws_url: ws_url});
         }
     };
 
@@ -493,8 +523,12 @@ define([
         };
         for (var c in this.channels) {
             if ( this.channels[c] !== null ) {
-                this.channels[c].onclose = close(c);
-                this.channels[c].close();
+                if (this.channels[c].readyState === WebSocket.OPEN) {
+                    this.channels[c].onclose = close(c);
+                    this.channels[c].close();
+                } else {
+                    close(c)();
+                }
             }
         }
     };
@@ -863,15 +897,20 @@ define([
             // trigger status_idle event
             this.events.trigger('status_idle.Kernel', {kernel: this});
 
+        } else if (execution_state === 'starting') {
+            this.events.trigger('status_starting.Kernel', {kernel: this});
+
         } else if (execution_state === 'restarting') {
             // autorestarting is distinct from restarting,
             // in that it means the kernel died and the server is restarting it.
             // status_restarting sets the notification widget,
             // autorestart shows the more prominent dialog.
-            this.events.trigger('status_autorestarting.Kernel', {kernel: this});
             this.events.trigger('status_restarting.Kernel', {kernel: this});
+            this.events.trigger('status_autorestarting.Kernel', {kernel: this});
+            console.log("Kernel is autorestarting: " + this.id);
 
         } else if (execution_state === 'dead') {
+            this.events.trigger('kernel_dead.Kernel', {kernel: this});
             this._kernel_dead();
         }
     };

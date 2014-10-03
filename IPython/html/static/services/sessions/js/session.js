@@ -86,13 +86,14 @@ define([
         var on_success = function (data, status, xhr) {
             var kernel_service_url = utils.url_path_join(that.base_url, "api/kernels");
             that.kernel = new kernel.Kernel(kernel_service_url, that.ws_url, that.notebook, that.kernel_model.name);
+            that.events.trigger('kernel_started.Session', {session: that, kernel: that.kernel});
             that.kernel._kernel_started(data.kernel);
             if (success) {
                 success(data, status, xhr);
             }
         };
         var on_error = function (xhr, status, err) {
-            that.events.trigger('no_kernel.Kernel');
+            that.events.trigger('kernel_dead.Session', {session: that});
             if (error) {
                 error(xhr, status, err);
             }
@@ -171,6 +172,7 @@ define([
      */
     Session.prototype.delete = function (success, error) {
         if (this.kernel) {
+            this.events.trigger('status_killed.Session', {session: this, kernel: this.kernel});
             this.kernel._kernel_dead();
         }
 

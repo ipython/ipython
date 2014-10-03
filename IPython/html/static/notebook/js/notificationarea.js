@@ -122,17 +122,37 @@ define([
         $modal_ind_icon.attr('class','command_mode_icon').attr('title','Command Mode');
 
         // Kernel events 
-        this.events.on('status_started.Kernel', function () {
+
+        // this can be either kernel_started.Kernel or kernel_started.Session
+        this.events.on('kernel_started.Kernel kernel_started.Session', function () {
             knw.info("Kernel Started", 500);
         });
 
-        this.events.on('status_connected.Kernel', function () {
-            knw.info("Websockets Connected", 500);
+        this.events.on('status_reconnecting.Kernel', function () {
+            knw.warning("Connecting to kernel");
         });
 
-        this.events.on('status_restarting.Kernel',function () {
+        this.events.on('status_connected.Kernel', function () {
+            knw.info("Connected", 500);
+        });
+
+        this.events.on('status_restarting.Kernel status_autorestarting.Kernel',function () {
             that.save_widget.update_document_title();
             knw.set_message("Restarting kernel", 2000);
+        });
+
+        this.events.on('status_autorestarting.Kernel', function () {
+            dialog.modal({
+                notebook: that.notebook,
+                keyboard_manager: that.keyboard_manager,
+                title: "Kernel Restarting",
+                body: "The kernel appears to have died. It will restart automatically.",
+                buttons: {
+                    OK : {
+                        class : "btn-primary"
+                    }
+                }
+            });
         });
 
         this.events.on('status_interrupting.Kernel',function () {
@@ -140,12 +160,16 @@ define([
         });
 
         this.events.on('status_disconnected.Kernel', function () {
+            knw.danger("Disconnected", undefined, function () {
+                that.notebook.kernel.reconnect();
+                return false;
+            });
             $kernel_ind_icon
                 .attr('class', 'kernel_disconnected_icon')
                 .attr('title', 'No Connection to Kernel');
         });
 
-        this.events.on('early_disconnect.Kernel', function (ws_url) {
+        this.events.on('connection_failed.Kernel', function () {
             var msg = "A WebSocket connection could not be established." +
                 " You will NOT be able to run code. Check your" +
                 " network connection or notebook server configuration.";
@@ -157,19 +181,21 @@ define([
                 buttons : {
                     "OK": {},
                     "Reconnect": {
-                        click: that.notebook.kernel.reconnect
+                        click: function () {
+                            that.notebook.kernel.reconnect();
+                        }
                     }
                 }
             });
         });
 
-        this.events.on('no_kernel.Kernel', function () {
+        this.events.on('kernel_dead.Kernel status_killed.Kernel kernel_dead.Session status_killed.Session', function () {
             that.save_widget.update_document_title();
             knw.danger("Dead kernel");
             $kernel_ind_icon.attr('class','kernel_dead_icon').attr('title','Kernel Dead');
         });
 
-        this.events.on('status_dead.Kernel', function () {
+        this.events.on('kernel_dead.Kernel', function () {
             var msg = 'The kernel has died, and the automatic restart has failed.' +
                 ' It is possible the kernel cannot be restarted.' +
                 ' If you are not able to restart the kernel, you will still be able to save' +
@@ -184,7 +210,9 @@ define([
                 buttons : {
                     "Manual Restart": {
                         class: "btn-danger",
-                        click: that.notebook.kernel.restart
+                        click: function () {
+                            that.notebook.start_session();
+                        }
                     },
                     "Don't restart": {}
                 }
