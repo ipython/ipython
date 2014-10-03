@@ -8,19 +8,17 @@ import terminado
 from ..base.handlers import IPythonHandler
 
 class TerminalHandler(IPythonHandler):
-    """Render the tree view, listing notebooks, clusters, etc."""
+    """Render the terminal interface."""
     @web.authenticated
-    def get(self, path='', name=None):
-        self.write(self.render_template('terminal.html'))
+    def get(self, term_name):
+        self.write(self.render_template('terminal.html',
+                   ws_path="terminals/websocket/%s" % term_name))
 
+class NewTerminalHandler(IPythonHandler):
+    """Redirect to a new terminal."""
+    @web.authenticated
+    def get(self):
+        name, _ = self.application.terminal_manager.new_named_terminal()
+        self.redirect("/terminals/%s" % name, permanent=False)
 
-#-----------------------------------------------------------------------------
-# URL to handler mappings
-#-----------------------------------------------------------------------------
-
-
-default_handlers = [
-    (r"/terminal", TerminalHandler),
-    (r"/terminal/websocket", terminado.TermSocket,
-         {'term_manager': terminado.SingleTermManager(shell_command=['bash'])}),
-    ]
+TermSocket = terminado.TermSocket

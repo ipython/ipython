@@ -22,8 +22,9 @@ require([
     $("#dummy-screen").hide();
 
     var base_url = utils.get_body_data('baseUrl');
+    var ws_path = utils.get_body_data('wsPath');
     var ws_url = location.protocol.replace('http', 'ws') + "//" + location.host
-                                    + base_url + "terminal/websocket";
+                                    + base_url + ws_path;
     
     var header = $("#header")[0]
     function calculate_size() {
