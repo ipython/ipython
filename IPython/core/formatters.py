@@ -837,6 +837,8 @@ class PDFFormatter(BaseFormatter):
 
     print_method = ObjectName('_repr_pdf_')
 
+    _return_type = (bytes, unicode_type)
+
 
 FormatterABC.register(BaseFormatter)
 FormatterABC.register(PlainTextFormatter)
