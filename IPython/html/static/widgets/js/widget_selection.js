@@ -12,7 +12,7 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-dropdown');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
@@ -152,7 +152,7 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-radio');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
@@ -251,7 +251,7 @@ define([
         render: function() {
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-toggle-buttons');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
@@ -381,7 +381,7 @@ define([
         render : function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-select');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')

@@ -47,7 +47,7 @@ define([
         render: function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-textarea');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
@@ -135,7 +135,7 @@ define([
         render: function(){
             // Called when view is rendered.
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-text');
             this.$label = $('<div />')
                 .addClass('widget-label')
                 .appendTo(this.$el)
