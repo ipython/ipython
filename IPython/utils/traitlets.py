@@ -55,7 +55,7 @@ except:
 from .importstring import import_item
 from IPython.utils import py3compat
 from IPython.utils import eventful
-from IPython.utils.py3compat import iteritems
+from IPython.utils.py3compat import iteritems, string_types
 from IPython.testing.skipdoctest import skip_doctest
 
 SequenceTypes = (list, tuple, set, frozenset)
@@ -133,13 +133,13 @@ def parse_notifier_name(name):
     >>> parse_notifier_name(None)
     ['anytrait']
     """
-    if isinstance(name, str):
+    if isinstance(name, string_types):
         return [name]
     elif name is None:
         return ['anytrait']
     elif isinstance(name, (list, tuple)):
         for n in name:
-            assert isinstance(n, str), "names must be strings"
+            assert isinstance(n, string_types), "names must be strings"
         return name
 
 
@@ -1193,7 +1193,7 @@ class ObjectName(TraitType):
     def validate(self, obj, value):
         value = self.coerce_str(obj, value)
 
-        if isinstance(value, str) and py3compat.isidentifier(value):
+        if isinstance(value, string_types) and py3compat.isidentifier(value):
             return value
         self.error(obj, value)
 
@@ -1202,7 +1202,7 @@ class DottedObjectName(ObjectName):
     def validate(self, obj, value):
         value = self.coerce_str(obj, value)
 
-        if isinstance(value, str) and py3compat.isidentifier(value, dotted=True):
+        if isinstance(value, string_types) and py3compat.isidentifier(value, dotted=True):
             return value
         self.error(obj, value)
 
