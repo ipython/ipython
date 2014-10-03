@@ -26,6 +26,10 @@ class _Int(DOMWidget):
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
 
+    def __init__(self, value=None, **kwargs):
+        if value is not None:
+            kwargs['value'] = value
+        super(_Int, self).__init__(**kwargs)
 
 class _BoundedInt(_Int):
     """Base class used to create widgets that represent a int that is bounded
@@ -36,7 +40,7 @@ class _BoundedInt(_Int):
 
     def __init__(self, *pargs, **kwargs):
         """Constructor"""
-        DOMWidget.__init__(self, *pargs, **kwargs)
+        super(_BoundedInt, self).__init__(*pargs, **kwargs)
         self.on_trait_change(self._validate, ['value', 'min', 'max'])
 
     def _validate(self, name, old, new):
@@ -89,7 +93,7 @@ class _IntRange(_Int):
         if lower_given != upper_given:
             raise ValueError("Must specify both 'lower' and 'upper' for range widget")
         
-        DOMWidget.__init__(self, *pargs, **kwargs)
+        super(_BoundedInt, self).__init__(*pargs, **kwargs)
         
         # ensure the traits match, preferring whichever (if any) was given in kwargs
         if value_given:

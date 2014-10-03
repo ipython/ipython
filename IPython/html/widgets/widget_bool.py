@@ -26,6 +26,10 @@ class _Bool(DOMWidget):
     description = Unicode('', help="Description of the boolean (label).", sync=True)
     disabled = Bool(False, help="Enable or disable user changes.", sync=True)
 
+    def __init__(self, value=None, **kwargs):
+        if value is not None:
+            kwargs['value'] = value
+        super(_Bool, self).__init__(**kwargs)
 
 class Checkbox(_Bool):
     """Displays a boolean `value`."""
