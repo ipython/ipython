@@ -1,31 +1,13 @@
 # encoding: utf-8
 """
 The Base Application class for IPython.parallel apps
-
-Authors:
-
-* Brian Granger
-* Min RK
-
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 import os
 import logging
 import re
 import sys
-
-from subprocess import Popen, PIPE
 
 from IPython.config.application import catch_config_error, LevelFormatter
 from IPython.core import release

@@ -16,7 +16,6 @@ import time
 from datetime import datetime
 
 import zmq
-from zmq.eventloop import ioloop
 from zmq.eventloop.zmqstream import ZMQStream
 
 # internal:
@@ -25,7 +24,7 @@ from IPython.utils.jsonutil import extract_dates
 from IPython.utils.localinterfaces import localhost
 from IPython.utils.py3compat import cast_bytes, unicode_type, iteritems
 from IPython.utils.traitlets import (
-        HasTraits, Instance, Integer, Unicode, Dict, Set, Tuple, CBytes, DottedObjectName
+        HasTraits, Any, Instance, Integer, Unicode, Dict, Set, Tuple, DottedObjectName
         )
 
 from IPython.parallel import error, util
@@ -35,9 +34,6 @@ from IPython.kernel.zmq.session import SessionFactory
 
 from .heartmonitor import HeartMonitor
 
-#-----------------------------------------------------------------------------
-# Code
-#-----------------------------------------------------------------------------
 
 def _passer(*args, **kwargs):
     return
@@ -108,13 +104,13 @@ class EngineConnector(HasTraits):
     id (int): engine ID
     uuid (unicode): engine UUID
     pending: set of msg_ids
-    stallback: DelayedCallback for stalled registration
+    stallback: tornado timeout for stalled registration
     """
     
     id = Integer(0)
     uuid = Unicode()
     pending = Set()
-    stallback = Instance(ioloop.DelayedCallback)
+    stallback = Any()
 
 
 _db_shortcuts = {
@@ -339,13 +335,10 @@ class HubFactory(RegistrationFactory):
         url = util.disambiguate_url(self.client_url('task'))
         r.connect(url)
 
-        # convert seconds to msec
-        registration_timeout = 1000*self.registration_timeout
-
         self.hub = Hub(loop=loop, session=self.session, monitor=sub, heartmonitor=self.heartmonitor,
                 query=q, notifier=n, resubmit=r, db=self.db,
                 engine_info=self.engine_info, client_info=self.client_info,
-                log=self.log, registration_timeout=registration_timeout)
+                log=self.log, registration_timeout=self.registration_timeout)
 
 
 class Hub(SessionFactory):
@@ -963,9 +956,11 @@ class Hub(SessionFactory):
                 self.finish_registration(heart)
             else:
                 purge = lambda : self._purge_stalled_registration(heart)
-                dc = ioloop.DelayedCallback(purge, self.registration_timeout, self.loop)
-                dc.start()
-                self.incoming_registrations[heart] = EngineConnector(id=eid,uuid=uuid,stallback=dc)
+                t = self.loop.add_timeout(
+                    self.loop.time() + self.registration_timeout,
+                    purge,
+                )
+                self.incoming_registrations[heart] = EngineConnector(id=eid,uuid=uuid,stallback=t)
         else:
             self.log.error("registration::registration %i failed: %r", eid, content['evalue'])
         
@@ -979,20 +974,15 @@ class Hub(SessionFactory):
             self.log.error("registration::bad engine id for unregistration: %r", ident, exc_info=True)
             return
         self.log.info("registration::unregister_engine(%r)", eid)
-        # print (eid)
+        
         uuid = self.keytable[eid]
         content=dict(id=eid, uuid=uuid)
         self.dead_engines.add(uuid)
-        # self.ids.remove(eid)
-        # uuid = self.keytable.pop(eid)
-        #
-        # ec = self.engines.pop(eid)
-        # self.hearts.pop(ec.heartbeat)
-        # self.by_ident.pop(ec.queue)
-        # self.completed.pop(eid)
-        handleit = lambda : self._handle_stranded_msgs(eid, uuid)
-        dc = ioloop.DelayedCallback(handleit, self.registration_timeout, self.loop)
-        dc.start()
+        
+        self.loop.add_timeout(
+            self.loop.time() + self.registration_timeout,
+            lambda : self._handle_stranded_msgs(eid, uuid),
+        )
         ############## TODO: HANDLE IT ################
         
         self._save_engine_state()
@@ -1040,7 +1030,7 @@ class Hub(SessionFactory):
             return
         self.log.info("registration::finished registering engine %i:%s", ec.id, ec.uuid)
         if ec.stallback is not None:
-            ec.stallback.stop()
+            self.loop.remove_timeout(ec.stallback)
         eid = ec.id
         self.ids.add(eid)
         self.keytable[eid] = ec.uuid
@@ -1133,8 +1123,7 @@ class Hub(SessionFactory):
         self.session.send(self.query, 'shutdown_reply', content={'status': 'ok'}, ident=client_id)
         # also notify other clients of shutdown
         self.session.send(self.notifier, 'shutdown_notice', content={'status': 'ok'})
-        dc = ioloop.DelayedCallback(lambda : self._shutdown(), 1000, self.loop)
-        dc.start()
+        self.loop.add_timeout(self.loop.time() + 1, self._shutdown)
 
     def _shutdown(self):
         self.log.info("hub::hub shutting down.")
