@@ -49,7 +49,7 @@ if version_info < (3,1,0):
 
 from tornado import httpserver
 from tornado import web
-from tornado.log import LogFormatter
+from tornado.log import LogFormatter, app_log, access_log, gen_log
 
 from IPython.html import DEFAULT_STATIC_FILES_PATH
 from .base.handlers import Template404
@@ -691,6 +691,9 @@ class NotebookApp(BaseIPythonApplication):
         # and all of its ancenstors until propagate is set to False.
         self.log.propagate = False
         
+        for log in app_log, access_log, gen_log:
+            # consistent log output name (NotebookApp instead of tornado.access, etc.)
+            log.name = self.log.name
         # hook up tornado 3's loggers to our app handlers
         logger = logging.getLogger('tornado')
         logger.propagate = True
