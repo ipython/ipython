@@ -11,16 +11,22 @@ define([
 ], function(IPython, $, utils, dialog, notificationwidget, moment) {
     "use strict";
 
+    // store reference to the NotificationWidget class
+    var NotificationWidget = notificationwidget.NotificationWidget;
+
+    /**
+     * Construct the NotificationArea object. Options are:
+     *     events: $(Events) instance
+     *     save_widget: SaveWidget instance
+     *     notebook: Notebook instance
+     *     keyboard_manager: KeyboardManager instance
+     *
+     * @constructor
+     * @param {string} selector - a jQuery selector string for the
+     * notification area element
+     * @param {Object} [options] - a dictionary of keyword arguments.
+     */
     var NotificationArea = function (selector, options) {
-        // Constructor
-        //
-        // Parameters:
-        //  selector: string
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          notebook: Notebook instance
-        //          events: $(Events) instance
-        //          save_widget: SaveWidget instance
         this.selector = selector;
         this.events = options.events;
         this.save_widget = options.save_widget;
@@ -32,47 +38,70 @@ define([
         this.widget_dict = {};
     };
 
-    NotificationArea.prototype.temp_message = function (msg, timeout, css_class) {
-        var tdiv = $('<div>')
-            .addClass('notification_widget')
-            .addClass(css_class)
-            .hide()
-            .text(msg);
-
-        $(this.selector).append(tdiv);
-        var tmout = Math.max(1500,(timeout||1500));
-        tdiv.fadeIn(100);
-
-        setTimeout(function () {
-                tdiv.fadeOut(100, function () {tdiv.remove();});
-            }, tmout);
-    };
-
-    NotificationArea.prototype.widget = function(name) {
-        if(this.widget_dict[name] === undefined) {
+    /**
+     * Get a widget by name, creating it if it doesn't exist.
+     *
+     * @method widget
+     * @param {string} name - the widget name
+     */
+    NotificationArea.prototype.widget = function (name) {
+        if (this.widget_dict[name] === undefined) {
             return this.new_notification_widget(name);
         }
         return this.get_widget(name);
     };
 
-    NotificationArea.prototype.get_widget = function(name) {
+    /**
+     * Get a widget by name, throwing an error if it doesn't exist.
+     *
+     * @method get_widget
+     * @param {string} name - the widget name
+     */
+    NotificationArea.prototype.get_widget = function (name) {
         if(this.widget_dict[name] === undefined) {
             throw('no widgets with this name');
         }
         return this.widget_dict[name];
     };
 
-    NotificationArea.prototype.new_notification_widget = function(name) {
-        if(this.widget_dict[name] !== undefined) {
-            throw('widget with that name already exists ! ');
+    /**
+     * Create a new notification widget with the given name. The
+     * widget must not already exist.
+     *
+     * @method new_notification_widget
+     * @param {string} name - the widget name
+     */
+    NotificationArea.prototype.new_notification_widget = function (name) {
+        if (this.widget_dict[name] !== undefined) {
+            throw('widget with that name already exists!');
         }
-        var div = $('<div/>').attr('id','notification_'+name);
+
+        // create the element for the notification widget and add it
+        // to the notification aread element
+        var div = $('<div/>').attr('id', 'notification_' + name);
         $(this.selector).append(div);
-        this.widget_dict[name] = new notificationwidget.NotificationWidget('#notification_'+name);
+
+        // create the widget object and return it
+        this.widget_dict[name] = new NotificationWidget('#notification_' + name);
         return this.widget_dict[name];
     };
 
-    NotificationArea.prototype.init_notification_widgets = function() {
+    /**
+     * Initialize the default set of notification widgets.
+     *
+     * @method init_notification_widgets
+     */
+    NotificationArea.prototype.init_notification_widgets = function () {
+        this.init_kernel_notification_widget();
+        this.init_notebook_notification_widget();
+    };
+
+    /**
+     * Initialize the notification widget for kernel status messages.
+     *
+     * @method init_kernel_notification_widget
+     */
+    NotificationArea.prototype.init_kernel_notification_widget = function () {
         var that = this;
         var knw = this.new_notification_widget('kernel');
         var $kernel_ind_icon = $("#kernel_indicator_icon");
@@ -130,7 +159,7 @@ define([
             });
         });
 
-        this.events.on('status_dead.Kernel',function () {
+        this.events.on('status_restart_failed.Kernel',function () {
             var msg = 'The kernel has died, and the automatic restart has failed.' +
                 ' It is possible the kernel cannot be restarted.' +
                 ' If you are not able to restart the kernel, you will still be able to save' +
@@ -153,6 +182,47 @@ define([
                     "Don't restart": {}
                 }
             });
+        });
+
+        this.events.on('start_failed.Session',function (session, xhr, status, error) {
+            var full = status.responseJSON.message;
+            var short = status.responseJSON.short_message || 'Kernel error';
+            var traceback = status.responseJSON.traceback;
+
+            var showMsg = function () {
+                var msg = $('<div/>').append($('<p/>').text(full));
+                var cm, cm_elem;
+
+                if (traceback) {
+                    cm_elem = $('<div/>')
+                        .css('margin-top', '1em')
+                        .css('padding', '1em')
+                        .addClass('output_scroll');
+                    msg.append(cm_elem);
+                    cm = CodeMirror(cm_elem.get(0), {
+                        mode:  "python",
+                        readOnly : true
+                    });
+                    cm.setValue(traceback);
+                }
+
+                dialog.modal({
+                    title: "Failed to start the kernel",
+                    body : msg,
+                    keyboard_manager: that.keyboard_manager,
+                    notebook: that.notebook,
+                    open: $.proxy(cm.refresh, cm),
+                    buttons : {
+                        "Ok": { class: 'btn-primary' }
+                    }
+                });
+
+                return false;
+            };
+
+            that.save_widget.update_document_title();
+            $kernel_ind_icon.attr('class','kernel_dead_icon').attr('title','Kernel Dead');
+            knw.danger(short, undefined, showMsg);
         });
 
         this.events.on('websocket_closed.Kernel', function (event, data) {
@@ -194,8 +264,14 @@ define([
                 }
             });
         });
+    };
 
-
+    /**
+     * Initialize the notification widget for notebook status messages.
+     *
+     * @method init_notebook_notification_widget
+     */
+    NotificationArea.prototype.init_notebook_notification_widget = function () {
         var nnw = this.new_notification_widget('notebook');
 
         // Notebook events
@@ -247,7 +323,6 @@ define([
         this.events.on('autosave_enabled.Notebook', function (evt, interval) {
             nnw.set_message("Saving every " + interval / 1000 + "s", 1000);
         });
-
     };
 
     IPython.NotificationArea = NotificationArea;

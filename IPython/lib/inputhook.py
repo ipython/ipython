@@ -279,6 +279,12 @@ class InputHookBase(object):
 
 inputhook_manager = InputHookManager()
 
+@inputhook_manager.register('osx')
+class NullInputHook(InputHookBase):
+    """A null inputhook that doesn't need to do anything"""
+    def enable(self, app=None):
+        pass
+
 @inputhook_manager.register('wx')
 class WxInputHook(InputHookBase):
     def enable(self, app=None):
@@ -562,6 +568,7 @@ def _make_deprecated_enable(name):
         warn("This function is deprecated - use enable_gui(%r) instead" % name)
         inputhook_manager.enable_gui(name, app)
     
+enable_osx = _make_deprecated_enable('osx')
 enable_wx = _make_deprecated_enable('wx')
 enable_qt4 = _make_deprecated_enable('qt4')
 enable_gtk = _make_deprecated_enable('gtk')
@@ -574,4 +581,4 @@ def _deprecated_disable():
     warn("This function is deprecated: use disable_gui() instead")
     inputhook_manager.disable_gui()
 disable_wx = disable_qt4 = disable_gtk = disable_gtk3 = disable_glut = \
-        disable_pyglet = _deprecated_disable
+        disable_pyglet = disable_osx = _deprecated_disable

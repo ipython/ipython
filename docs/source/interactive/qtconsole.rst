@@ -4,6 +4,10 @@
 A Qt Console for IPython
 =========================
 
+To start the Qt Console::
+
+    $> ipython qtconsole
+
 We now have a version of IPython, using the new two-process :ref:`ZeroMQ Kernel
 <ipythonzmq>`, running in a PyQt_ GUI.  This is a very lightweight widget that
 largely feels like a terminal, but provides a number of enhancements only

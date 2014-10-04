@@ -385,7 +385,8 @@ define([
      **/
     Cell.prototype.toJSON = function () {
         var data = {};
-        data.metadata = this.metadata;
+        // deepcopy the metadata so copied cells don't share the same object
+        data.metadata = JSON.parse(JSON.stringify(this.metadata));
         data.cell_type = this.cell_type;
         return data;
     };
@@ -404,22 +405,35 @@ define([
 
 
     /**
-     * can the cell be split into two cells
+     * can the cell be split into two cells (false if not deletable)
      * @method is_splittable
      **/
     Cell.prototype.is_splittable = function () {
-        return true;
+        return this.is_deletable();
     };
 
 
     /**
-     * can the cell be merged with other cells
+     * can the cell be merged with other cells (false if not deletable)
      * @method is_mergeable
      **/
     Cell.prototype.is_mergeable = function () {
-        return true;
+        return this.is_deletable();
     };
 
+    /**
+     * is the cell deletable? only false (undeletable) if
+     * metadata.deletable is explicitly false -- everything else
+     * counts as true
+     *
+     * @method is_deletable
+     **/
+    Cell.prototype.is_deletable = function () {
+        if (this.metadata.deletable === false) {
+            return false;
+        }
+        return true;
+    };
 
     /**
      * @return {String} - the text before the cursor

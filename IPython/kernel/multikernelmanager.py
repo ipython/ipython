@@ -1,20 +1,7 @@
-"""A kernel manager for multiple kernels
+"""A kernel manager for multiple kernels"""
 
-Authors:
-
-* Brian Granger
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from __future__ import absolute_import
 
@@ -30,13 +17,10 @@ from IPython.utils.traitlets import (
 )
 from IPython.utils.py3compat import unicode_type
 
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
+from .kernelspec import NATIVE_KERNEL_NAME
 
 class DuplicateKernelError(Exception):
     pass
-
 
 
 def kernel_method(f):
@@ -57,6 +41,10 @@ def kernel_method(f):
 
 class MultiKernelManager(LoggingConfigurable):
     """A class for managing multiple kernels."""
+    
+    default_kernel_name = Unicode(NATIVE_KERNEL_NAME, config=True,
+        help="The name of the default kernel to start"
+    )
     
     kernel_manager_class = DottedObjectName(
         "IPython.kernel.ioloop.IOLoopKernelManager", config=True,
@@ -92,7 +80,7 @@ class MultiKernelManager(LoggingConfigurable):
     def __contains__(self, kernel_id):
         return kernel_id in self._kernels
 
-    def start_kernel(self, kernel_name='python', **kwargs):
+    def start_kernel(self, kernel_name=None, **kwargs):
         """Start a new kernel.
 
         The caller can pick a kernel_id by passing one in as a keyword arg,
@@ -106,6 +94,9 @@ class MultiKernelManager(LoggingConfigurable):
         kernel_id = kwargs.pop('kernel_id', unicode_type(uuid.uuid4()))
         if kernel_id in self:
             raise DuplicateKernelError('Kernel already exists: %s' % kernel_id)
+        
+        if kernel_name is None:
+            kernel_name = self.default_kernel_name
         # kernel_manager_factory is the constructor for the KernelManager
         # subclass we are using. It can be configured as any Configurable,
         # including things like its transport and ip.

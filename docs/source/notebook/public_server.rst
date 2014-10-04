@@ -95,9 +95,6 @@ commented; the minimum set you need to uncomment and edit is the following::
 
      c = get_config()
 
-     # Kernel config
-     c.IPKernelApp.pylab = 'inline'  # if you want plotting support always
-
      # Notebook config
      c.NotebookApp.certfile = u'/absolute/path/to/your/certificate/mycert.pem'
      c.NotebookApp.ip = '*'

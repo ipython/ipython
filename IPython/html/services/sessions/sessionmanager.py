@@ -1,20 +1,7 @@
-"""A base class session manager.
+"""A base class session manager."""
 
-Authors:
-
-* Zach Sailer
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import uuid
 import sqlite3
@@ -25,9 +12,6 @@ from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.py3compat import unicode_type
 from IPython.utils.traitlets import Instance
 
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
 
 class SessionManager(LoggingConfigurable):
 
@@ -73,7 +57,7 @@ class SessionManager(LoggingConfigurable):
         "Create a uuid for a new session"
         return unicode_type(uuid.uuid4())
 
-    def create_session(self, name=None, path=None, kernel_name='python'):
+    def create_session(self, name=None, path=None, kernel_name=None):
         """Creates a session and returns its model"""
         session_id = self.new_session_id()
         # allow nbm to specify kernels cwd

@@ -29,7 +29,8 @@ class Button(DOMWidget):
     _view_name = Unicode('ButtonView', sync=True)
 
     # Keys
-    description = Unicode('', help="Description of the button (label).", sync=True)
+    description = Unicode('', help="Button label.", sync=True)
+    tooltip = Unicode(help="Tooltip caption of the button.", sync=True)
     disabled = Bool(False, help="Enable or disable user changes.", sync=True)
 
     button_style = CaselessStrEnum(
