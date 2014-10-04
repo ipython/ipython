@@ -83,11 +83,7 @@ define([
         this.completer = null;
 
 
-        var cm_overwrite_options  = {
-            onKeyEvent: $.proxy(this.handle_keyevent,this)
-        };
-
-        var config = utils.mergeopt(CodeCell, this.config, {cm_config: cm_overwrite_options});
+        var config = utils.mergeopt(CodeCell, this.config);
         Cell.apply(this,[{
             config: config, 
             keyboard_manager: options.keyboard_manager, 
@@ -144,7 +140,7 @@ define([
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
         this.code_mirror = new CodeMirror(input_area.get(0), this.cm_config);
-        this.code_mirror.on('keydown', $.proxy(this.handle_codemirror_keyevent,this))
+        this.code_mirror.on('keydown', $.proxy(this.handle_keyevent,this))
         $(this.code_mirror.getInputField()).attr("spellcheck", "false");
         inner_cell.append(input_area);
         input.append(prompt).append(inner_cell);

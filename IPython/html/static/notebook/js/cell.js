@@ -198,9 +198,22 @@ define([
     Cell.prototype.handle_codemirror_keyevent = function (editor, event) {
         var shortcuts = this.keyboard_manager.edit_shortcuts;
 
+        var cur = editor.getCursor();
+        if((cur.line !== 0 || cur.ch !==0) && event.keyCode === 38){
+            event._ipkmIgnore = true;
+        }
+        var nLastLine = editor.lastLine() 
+        if(    ( event.keyCode === 40)
+            && (( cur.line !== nLastLine)
+            ||  ( cur.ch   !== editor.getLineHandle(nLastLine).text.length))
+          ){
+            event._ipkmIgnore = true;
+        }
         // if this is an edit_shortcuts shortcut, the global keyboard/shortcut
         // manager will handle it
-        if (shortcuts.handles(event)) { return true; }
+        if (shortcuts.handles(event)) { 
+            return true; 
+        }
         
         return false;
     };
@@ -291,7 +304,6 @@ define([
      * @return {Boolean} `true` if CodeMirror should ignore the event, `false` Otherwise
      */
     Cell.prototype.handle_keyevent = function (editor, event) {
-
         if (this.mode === 'command') {
             return true;
         } else if (this.mode === 'edit') {

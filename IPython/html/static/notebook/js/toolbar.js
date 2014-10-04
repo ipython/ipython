@@ -11,7 +11,7 @@ define([
      * A generic toolbar on which one can add button
      * @class ToolBar
      * @constructor
-     * @param {Dom object} selector
+     * @param {Dom_object} selector
      */
     var ToolBar = function (selector, layout_manager) {
         this.selector = selector;

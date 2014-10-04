@@ -893,7 +893,7 @@ define([
      * Insert an element at given cell index.
      *
      * @method _insert_element_at_index
-     * @param element {dom element} a cell element
+     * @param element {dom_element} a cell element
      * @param [index] {int} a valid index where to inser cell
      * @private
      *

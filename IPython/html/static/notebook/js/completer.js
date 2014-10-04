@@ -318,11 +318,13 @@ define([
         // Enter
         if (code == keycodes.enter) {
             event.codemirrorIgnore = true;
+            event._ipkmIgnore = true;
             event.preventDefault();
             this.pick();
         // Escape or backspace
         } else if (code == keycodes.esc || code == keycodes.backspace) {
             event.codemirrorIgnore = true;
+            event._ipkmIgnore = true;
             event.preventDefault();
             this.close();
         } else if (code == keycodes.tab) {
@@ -343,6 +345,7 @@ define([
             // need to do that to be able to move the arrow
             // when on the first or last line ofo a code cell
             event.codemirrorIgnore = true;
+            event._ipkmIgnore = true;
             event.preventDefault();
 
             var options = this.sel.find('option');
@@ -356,7 +359,7 @@ define([
             index = Math.min(Math.max(index, 0), options.length-1);
             this.sel[0].selectedIndex = index;
         } else if (code == keycodes.pageup || code == keycodes.pagedown) {
-            CodeMirror.e_stop(event);
+            event._ipkmIgnore = true;
 
             var options = this.sel.find('option');
             var index = this.sel[0].selectedIndex;

@@ -227,6 +227,9 @@ define([
                 help    : 'select previous cell',
                 help_index : 'da',
                 handler : function (event) {
+                    if(event.codemirrorIgnore===true){
+                        return false;
+                    }
                     var index = that.notebook.get_selected_index();
                     if (index !== 0 && index !== null) {
                         that.notebook.select_prev();
@@ -239,6 +242,9 @@ define([
                 help    : 'select next cell',
                 help_index : 'db',
                 handler : function (event) {
+                    if(event.codemirrorIgnore===true){
+                        return false;
+                    }
                     var index = that.notebook.get_selected_index();
                     if (index !== (that.notebook.ncells()-1) && index !== null) {
                         that.notebook.select_next();
@@ -508,6 +514,9 @@ define([
     KeyboardManager.prototype.bind_events = function () {
         var that = this;
         $(document).keydown(function (event) {
+            if(event._ipkmIgnore==true||event.originalEvent._ipkmIgnore==true){
+                return false;
+            }
             return that.handle_keydown(event);
         });
     };
