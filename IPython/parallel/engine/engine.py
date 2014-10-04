@@ -25,7 +25,6 @@ from IPython.parallel.controller.heartmonitor import Heart
 from IPython.parallel.factory import RegistrationFactory
 from IPython.parallel.util import disambiguate_url
 
-from IPython.kernel.zmq.session import Message
 from IPython.kernel.zmq.ipkernel import IPythonKernel as Kernel
 from IPython.kernel.zmq.kernelapp import IPKernelApp
 
@@ -155,7 +154,7 @@ class EngineFactory(RegistrationFactory):
 
     def complete_registration(self, msg, connect, maybe_tunnel):
         # print msg
-        self._abort_dc.stop()
+        self.loop.remove_timeout(self._abort_dc)
         ctx = self.context
         loop = self.loop
         identity = self.bident
@@ -293,9 +292,10 @@ class EngineFactory(RegistrationFactory):
             
         
     def start(self):
-        dc = ioloop.DelayedCallback(self.register, 0, self.loop)
-        dc.start()
-        self._abort_dc = ioloop.DelayedCallback(self.abort, self.timeout*1000, self.loop)
-        self._abort_dc.start()
+        loop = self.loop
+        def _start():
+            self.register()
+            loop.add_timeout(loop.time() + self.timeout, self.abort)
+        self.loop.add_callback(_start)
 
 

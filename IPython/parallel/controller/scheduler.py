@@ -321,8 +321,9 @@ class TaskScheduler(SessionFactory):
         # wait 5 seconds before cleaning up pending jobs, since the results might
         # still be incoming
         if self.pending[uid]:
-            dc = ioloop.DelayedCallback(lambda : self.handle_stranded_tasks(uid), 5000, self.loop)
-            dc.start()
+            self.loop.add_timeout(self.loop.time() + 5,
+                lambda : self.handle_stranded_tasks(uid),
+            )
         else:
             self.completed.pop(uid)
             self.failed.pop(uid)

@@ -294,8 +294,7 @@ class LocalProcessLauncher(BaseLauncher):
         except Exception:
             self.log.debug("interrupt failed")
             pass
-        self.killer  = ioloop.DelayedCallback(lambda : self.signal(SIGKILL), delay*1000, self.loop)
-        self.killer.start()
+        self.killer  = self.loop.add_timeout(self.loop.time() + delay, lambda : self.signal(SIGKILL))
 
     # callbacks, etc:
 
