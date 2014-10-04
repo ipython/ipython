@@ -154,7 +154,7 @@ class EngineFactory(RegistrationFactory):
 
     def complete_registration(self, msg, connect, maybe_tunnel):
         # print msg
-        self.loop.remove_timeout(self._abort_dc)
+        self.loop.remove_timeout(self._abort_timeout)
         ctx = self.context
         loop = self.loop
         identity = self.bident
@@ -295,7 +295,7 @@ class EngineFactory(RegistrationFactory):
         loop = self.loop
         def _start():
             self.register()
-            loop.add_timeout(loop.time() + self.timeout, self.abort)
+            self._abort_timeout = loop.add_timeout(loop.time() + self.timeout, self.abort)
         self.loop.add_callback(_start)
 
 
