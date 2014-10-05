@@ -21,4 +21,8 @@ class NewTerminalHandler(IPythonHandler):
         name, _ = self.application.terminal_manager.new_named_terminal()
         self.redirect("/terminals/%s" % name, permanent=False)
 
-TermSocket = terminado.TermSocket
+class TermSocket(terminado.TermSocket, IPythonHandler):
+    def get(self, *args, **kwargs):
+        if not self.get_current_user():
+            raise web.HTTPError(403)
+        return super(TermSocket, self).get(*args, **kwargs)
