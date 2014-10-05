@@ -103,8 +103,10 @@ define([
         this.events.on('status_autorestarting.Kernel', record_status);
         this.events.on('status_interrupting.Kernel', record_status);
         this.events.on('status_disconnected.Kernel', record_status);
-        this.events.on('status_idle.Kernel', record_status);
-        this.events.on('status_busy.Kernel', record_status);
+        // these are commented out because they are triggered a lot, but can
+        // be uncommented for debugging purposes
+        //this.events.on('status_idle.Kernel', record_status);
+        //this.events.on('status_busy.Kernel', record_status);
         this.events.on('status_killed.Kernel', record_status);
         this.events.on('kernel_dead.Kernel', record_status);
     };

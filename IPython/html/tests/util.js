@@ -687,4 +687,3 @@ casper.capture_log = function () {
 };
 
 casper.capture_log();
-casper.print_log();
