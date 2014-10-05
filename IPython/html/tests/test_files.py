@@ -91,7 +91,7 @@ class FilesTest(NotebookTestBase):
         r = requests.get(url_path_join(base, 'files', 'test.bin'))
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.headers['content-type'], 'application/octet-stream')
-        self.assertEqual(r.content, 'X50+\n')
+        self.assertEqual(r.content, b'X50+\n')
 
         r = requests.get(url_path_join(base, 'files', 'test.txt'))
         self.assertEqual(r.status_code, 200)
