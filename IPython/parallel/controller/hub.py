@@ -855,7 +855,7 @@ class Hub(SessionFactory):
         if msg_type == 'stream':
             name = content['name']
             s = '' if rec is None else rec[name]
-            d[name] = s + content['data']
+            d[name] = s + content['text']
 
         elif msg_type == 'error':
             d['error'] = content

@@ -711,9 +711,13 @@ Message type: ``stream``::
         # The name of the stream is one of 'stdout', 'stderr'
         'name' : str,
     
-        # The data is an arbitrary string to be written to that stream
-        'data' : str,
+        # The text is an arbitrary string to be written to that stream
+        'text' : str,
     }
+
+.. versionchanged:: 5.0
+
+    'data' key renamed to 'text' for conistency with the notebook format.
 
 Display Data
 ------------

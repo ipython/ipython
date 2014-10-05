@@ -163,7 +163,7 @@ class OutStream(object):
             data = self._flush_buffer()
             
             if data:
-                content = {u'name':self.name, u'data':data}
+                content = {u'name':self.name, u'text':data}
                 msg = self.session.send(self.pub_socket, u'stream', content=content,
                                        parent=self.parent_header, ident=self.topic)
             

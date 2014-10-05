@@ -531,7 +531,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self.log.debug("stream: %s", msg.get('content', ''))
         if not self._hidden and self._is_from_this_session(msg):
             self.flush_clearoutput()
-            self.append_stream(msg['content']['data'])
+            self.append_stream(msg['content']['text'])
 
     def _handle_shutdown_reply(self, msg):
         """ Handle shutdown signal, only if from other console.

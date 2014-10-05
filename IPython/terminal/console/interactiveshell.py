@@ -235,13 +235,13 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                         if self._pending_clearoutput:
                             print("\r", file=io.stdout, end="")
                             self._pending_clearoutput = False
-                        print(sub_msg["content"]["data"], file=io.stdout, end="")
+                        print(sub_msg["content"]["text"], file=io.stdout, end="")
                         io.stdout.flush()
-                    elif sub_msg["content"]["name"] == "stderr" :
+                    elif sub_msg["content"]["name"] == "stderr":
                         if self._pending_clearoutput:
                             print("\r", file=io.stderr, end="")
                             self._pending_clearoutput = False
-                        print(sub_msg["content"]["data"], file=io.stderr, end="")
+                        print(sub_msg["content"]["text"], file=io.stderr, end="")
                         io.stderr.flush()
 
                 elif msg_type == 'execute_result':
