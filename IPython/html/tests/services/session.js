@@ -154,4 +154,18 @@ casper.notebook_test(function () {
         }
     );
     this.wait(500);
+
+    // check for events when starting a nonexistant kernel
+    this.event_test(
+        'bad_start_session',
+        [
+            'status_killed.Session',
+            'kernel_dead.Session'
+        ],
+        function () {
+            this.thenEvaluate(function () {
+                IPython.notebook.session.restart({kernel_name: 'foo'});
+            });
+        }
+    );
 });

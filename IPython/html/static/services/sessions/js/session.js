@@ -105,7 +105,7 @@ define([
             }
         };
         var on_error = function (xhr, status, err) {
-            that.events.trigger('kernel_dead.Session', {session: that});
+            that.events.trigger('kernel_dead.Session', {session: that, xhr: xhr, status: status, error: err});
             if (error) {
                 error(xhr, status, err);
             }

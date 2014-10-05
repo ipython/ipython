@@ -189,7 +189,7 @@ define([
             });
         });
 
-        this.events.on('kernel_dead.Kernel status_killed.Kernel kernel_dead.Session status_killed.Session', function () {
+        this.events.on('kernel_dead.Kernel status_killed.Kernel status_killed.Session', function () {
             that.save_widget.update_document_title();
             knw.danger("Dead kernel");
             $kernel_ind_icon.attr('class','kernel_dead_icon').attr('title','Kernel Dead');
@@ -219,10 +219,10 @@ define([
             });
         });
 
-        this.events.on('kernel_dead.Session',function (session, xhr, status, error) {
-            var full = status.responseJSON.message;
-            var short = status.responseJSON.short_message || 'Kernel error';
-            var traceback = status.responseJSON.traceback;
+        this.events.on('kernel_dead.Session', function (evt, info) {
+            var full = info.xhr.responseJSON.message;
+            var short = info.xhr.responseJSON.short_message || 'Kernel error';
+            var traceback = info.xhr.responseJSON.traceback;
 
             var showMsg = function () {
                 var msg = $('<div/>').append($('<p/>').text(full));

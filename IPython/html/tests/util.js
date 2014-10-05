@@ -606,7 +606,6 @@ casper.event_test = function (name, events, action) {
             return Object.keys(IPython._event_handlers);
         });
         this.test.assertEquals(triggered.length, events.length, name + ': ' + events.length + ' events were triggered');
-        this.echo(handlers);
         this.test.assertEquals(handlers.length, 0, name + ': all handlers triggered');
         for (var i=0; i < events.length; i++) {
             this.test.assertEquals(triggered[i], events[i], name + ': ' + events[i] + ' was triggered');
