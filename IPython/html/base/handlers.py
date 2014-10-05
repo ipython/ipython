@@ -284,13 +284,22 @@ class AuthenticatedFileHandler(IPythonHandler, web.StaticFileHandler):
 
     @web.authenticated
     def get(self, path):
-        if os.path.splitext(path)[1] == '.ipynb':
-            name = os.path.basename(path)
-            self.set_header('Content-Type', 'application/json')
+            if path.find('/') > -1:
+                name, path = path[path.rfind('/')+1:], path[:path.rfind('/')]
+            else:
+                name = path
+                path = ''
+
+            if name.endswith('.ipynb'):
+                self.set_header('Content-Type', 'application/json')
+            
+            cm = self.settings['contents_manager']
             self.set_header('Content-Disposition','attachment; filename="%s"' % name)
-        
-        return web.StaticFileHandler.get(self, path)
-    
+            self.write(cm.get_model(name, path)['content'])
+            self.flush()
+
+        # return web.StaticFileHandler.get(self, path)
+
     def compute_etag(self):
         return None
     
