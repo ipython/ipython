@@ -198,6 +198,20 @@ define([
         });
     };
 
+    /**
+     * Restart the session by deleting it and the starting it
+     * fresh. If options are given, they can include any of the
+     * following:
+     *
+     * - notebook_name - the name of the notebook
+     * - notebook_path - the path to the notebook
+     * - kernel_name - the name (type) of the kernel
+     *
+     * @function restart
+     * @param {Object} [options] - options for the new kernel
+     * @param {function} [success] - function executed on ajax success
+     * @param {function} [error] - functon executed on ajax error
+     */
     Session.prototype.restart = function (options, success, error) {
         var that = this;
         var start = function () {
