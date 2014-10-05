@@ -197,7 +197,11 @@ casper.notebook_test(function () {
             'status_killed.Kernel',
             'kernel_started.Kernel',
             'status_connected.Kernel',
-            'status_starting.Kernel',
+            // technically we should get this message, but sometimes the kernel
+            // finishes starting before we connect to it so then we don't receive
+            // this message
+            //
+            //'status_starting.Kernel',
             'status_busy.Kernel',
             'status_idle.Kernel'
         ],
@@ -240,7 +244,11 @@ casper.notebook_test(function () {
             'status_restarting.Kernel',
             'kernel_started.Kernel',
             'status_connected.Kernel',
-            'status_starting.Kernel',
+            // technically we should get this message, but sometimes the kernel
+            // finishes starting before we connect to it so then we don't receive
+            // this message
+            //
+            //'status_starting.Kernel',
             'status_busy.Kernel',
             'status_idle.Kernel'
         ],

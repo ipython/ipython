@@ -249,7 +249,11 @@ define([
 
         var that = this;
         var on_success = function (data, status, xhr) {
-            that.kernel_info(); // get kernel info so we know what state the kernel is in
+            that.events.trigger('status_busy.Kernel', {kernel: this});
+            // get kernel info so we know what state the kernel is in
+            that.kernel_info(function () {
+                that.events.trigger('status_idle.Kernel', {kernel: this});
+            });
             if (success) {
                 success(data, status, xhr);
             }
@@ -380,7 +384,12 @@ define([
      */
     Kernel.prototype._kernel_connected = function () {
         this.events.trigger('status_connected.Kernel', {kernel: this});
-        this.kernel_info(); // get kernel info so we know what state the kernel is in
+        this.events.trigger('status_busy.Kernel', {kernel: this});
+        // get kernel info so we know what state the kernel is in
+        var that = this;
+        this.kernel_info(function () {
+            that.events.trigger('status_idle.Kernel', {kernel: this});
+        });
     };
 
     /**
