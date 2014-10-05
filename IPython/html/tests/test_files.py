@@ -76,27 +76,27 @@ class FilesTest(NotebookTestBase):
             write(nb, f, format='ipynb')
 
         with io.open(pjoin(nbdir, 'test.bin'), 'wb') as f:
-            f.write(b"\x5F\x9D\x3E")
+            f.write(b"\x5F"*3) # \x5F = _
             f.close()
 
         with io.open(pjoin(nbdir, 'test.txt'), 'w') as f:
-            f.write(u'foo\nbar')
+            f.write(u'foobar')
             f.close()
 
         r = requests.get(url_path_join(base, 'files', 'testnb.ipynb'))
         self.assertEqual(r.status_code, 200)
-        self.assertIn(u'print(2*6)', r.text)
+        self.assertIn('print(2*6)', r.text)
         json.loads(r.text)
 
         r = requests.get(url_path_join(base, 'files', 'test.bin'))
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.headers['content-type'], 'application/octet-stream')
-        self.assertEqual(r.content, b'X50+\n')
+        self.assertEqual(r.text, '___')
 
         r = requests.get(url_path_join(base, 'files', 'test.txt'))
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.headers['content-type'], 'text/plain')
-        self.assertEqual(r.content, u'foo\nbar')
+        self.assertEqual(r.text, 'foobar')
 
 
     def test_old_files_redirect(self):
