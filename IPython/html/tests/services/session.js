@@ -102,15 +102,10 @@ casper.notebook_test(function () {
     this.event_test(
         'start_session',
         [
-            'kernel_started.Session',
+            'kernel_created.Session',
             'status_connected.Kernel',
-            // technically we should get this message, but sometimes the kernel
-            // finishes starting before we connect to it so then we don't receive
-            // this message
-            //
-            //'status_starting.Kernel',
-            'status_busy.Kernel',
-            'status_idle.Kernel'
+            'status_starting.Kernel',
+            'status_ready.Kernel'
         ],
         function () {
             this.thenEvaluate(function () {
@@ -137,15 +132,10 @@ casper.notebook_test(function () {
         'restart_session',
         [
             'status_killed.Session',
-            'kernel_started.Session',
+            'kernel_created.Session',
             'status_connected.Kernel',
-            // technically we should get this message, but sometimes the kernel
-            // finishes starting before we connect to it so then we don't receive
-            // this message
-            //
-            //'status_starting.Kernel',
-            'status_busy.Kernel',
-            'status_idle.Kernel'
+            'status_starting.Kernel',
+            'status_ready.Kernel'
         ],
         function () {
             this.thenEvaluate(function () {

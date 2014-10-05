@@ -95,7 +95,7 @@ define([
             console.log('Kernel: ' + evt.type + ' (' + that.id + ')');
         };
 
-        this.events.on('kernel_started.Kernel', record_status);
+        this.events.on('kernel_created.Kernel', record_status);
         this.events.on('status_reconnecting.Kernel', record_status);
         this.events.on('status_connected.Kernel', record_status);
         this.events.on('status_starting.Kernel', record_status);
@@ -107,6 +107,7 @@ define([
         // be uncommented for debugging purposes
         //this.events.on('status_idle.Kernel', record_status);
         //this.events.on('status_busy.Kernel', record_status);
+        this.events.on('status_ready.Kernel', record_status);
         this.events.on('status_killed.Kernel', record_status);
         this.events.on('kernel_dead.Kernel', record_status);
     };
@@ -171,8 +172,8 @@ define([
 
         var that = this;
         var on_success = function (data, status, xhr) {
-            that.events.trigger('kernel_started.Kernel', {kernel: that});
-            that._kernel_started(data);
+            that.events.trigger('kernel_created.Kernel', {kernel: that});
+            that._kernel_created(data);
             if (success) {
                 success(data, status, xhr);
             }
@@ -251,11 +252,8 @@ define([
 
         var that = this;
         var on_success = function (data, status, xhr) {
-            that.events.trigger('status_busy.Kernel', {kernel: this});
             // get kernel info so we know what state the kernel is in
-            that.kernel_info(function () {
-                that.events.trigger('status_idle.Kernel', {kernel: this});
-            });
+            that.kernel_info();
             if (success) {
                 success(data, status, xhr);
             }
@@ -287,8 +285,8 @@ define([
 
         var that = this;
         var on_success = function (data, status, xhr) {
-            that.events.trigger('kernel_started.Kernel', {kernel: that});
-            that._kernel_started(data);
+            that.events.trigger('kernel_created.Kernel', {kernel: that});
+            that._kernel_created(data);
             if (success) {
                 success(data, status, xhr);
             }
@@ -367,13 +365,12 @@ define([
      * Perform necessary tasks once the kernel has been started,
      * including actually connecting to the kernel.
      *
-     * @function _kernel_started
+     * @function _kernel_created
      * @param {Object} data - information about the kernel including id
      */
-    Kernel.prototype._kernel_started = function (data) {
+    Kernel.prototype._kernel_created = function (data) {
         this.id = data.id;
         this.kernel_url = utils.url_join_encode(this.kernel_service_url, this.id);
-
         this.start_channels();
     };
 
@@ -386,11 +383,11 @@ define([
      */
     Kernel.prototype._kernel_connected = function () {
         this.events.trigger('status_connected.Kernel', {kernel: this});
-        this.events.trigger('status_busy.Kernel', {kernel: this});
+        this.events.trigger('status_starting.Kernel', {kernel: this});
         // get kernel info so we know what state the kernel is in
         var that = this;
         this.kernel_info(function () {
-            that.events.trigger('status_idle.Kernel', {kernel: this});
+            that.events.trigger('status_ready.Kernel', {kernel: this});
         });
     };
 
@@ -915,6 +912,10 @@ define([
 
         } else if (execution_state === 'starting') {
             this.events.trigger('status_starting.Kernel', {kernel: this});
+            var that = this;
+            this.kernel_info(function () {
+                that.events.trigger('status_ready.Kernel', {kernel: this});
+            });
 
         } else if (execution_state === 'restarting') {
             // autorestarting is distinct from restarting,

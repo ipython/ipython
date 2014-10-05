@@ -54,7 +54,7 @@ define([
             console.log('Session: ' + evt.type + ' (' + that.id + ')');
         };
 
-        this.events.on('kernel_started.Session', record_status);
+        this.events.on('kernel_created.Session', record_status);
         this.events.on('kernel_dead.Session', record_status);
         this.events.on('status_killed.Session', record_status);
     };
@@ -98,8 +98,8 @@ define([
                 var kernel_service_url = utils.url_path_join(that.base_url, "api/kernels");
                 that.kernel = new kernel.Kernel(kernel_service_url, that.ws_url, that.notebook, that.kernel_model.name);
             }
-            that.events.trigger('kernel_started.Session', {session: that, kernel: that.kernel});
-            that.kernel._kernel_started(data.kernel);
+            that.events.trigger('kernel_created.Session', {session: that, kernel: that.kernel});
+            that.kernel._kernel_created(data.kernel);
             if (success) {
                 success(data, status, xhr);
             }

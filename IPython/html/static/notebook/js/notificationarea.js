@@ -108,12 +108,12 @@ define([
         var $modal_ind_icon = $("#modal_indicator_icon");
 
         // Command/Edit mode
-        this.events.on('edit_mode.Notebook',function () {
+        this.events.on('edit_mode.Notebook', function () {
             that.save_widget.update_document_title();
             $modal_ind_icon.attr('class','edit_mode_icon').attr('title','Edit Mode');
         });
 
-        this.events.on('command_mode.Notebook',function () {
+        this.events.on('command_mode.Notebook', function () {
             that.save_widget.update_document_title();
             $modal_ind_icon.attr('class','command_mode_icon').attr('title','Command Mode');
         });
@@ -123,9 +123,9 @@ define([
 
         // Kernel events 
 
-        // this can be either kernel_started.Kernel or kernel_started.Session
-        this.events.on('kernel_started.Kernel kernel_started.Session', function () {
-            knw.info("Kernel Started", 500);
+        // this can be either kernel_created.Kernel or kernel_created.Session
+        this.events.on('kernel_created.Kernel kernel_created.Session', function () {
+            knw.info("Kernel Created", 500);
         });
 
         this.events.on('status_reconnecting.Kernel', function () {
@@ -136,7 +136,7 @@ define([
             knw.info("Connected", 500);
         });
 
-        this.events.on('status_restarting.Kernel status_autorestarting.Kernel',function () {
+        this.events.on('status_restarting.Kernel', function () {
             that.save_widget.update_document_title();
             knw.set_message("Restarting kernel", 2000);
         });
@@ -153,9 +153,13 @@ define([
                     }
                 }
             });
+
+            that.save_widget.update_document_title();
+            knw.danger("Dead kernel");
+            $kernel_ind_icon.attr('class','kernel_dead_icon').attr('title','Kernel Dead');
         });
 
-        this.events.on('status_interrupting.Kernel',function () {
+        this.events.on('status_interrupting.Kernel', function () {
             knw.set_message("Interrupting kernel", 2000);
         });
 
@@ -261,12 +265,24 @@ define([
             knw.danger(short, undefined, showMsg);
         });
 
-        this.events.on('status_idle.Kernel',function () {
+        this.events.on('status_starting.Kernel', function () {
+            window.document.title='(Starting) '+window.document.title;
+            $kernel_ind_icon.attr('class','kernel_busy_icon').attr('title','Kernel Busy');
+            knw.set_message("Kernel starting, please wait...");
+        });
+
+        this.events.on('status_ready.Kernel', function () {
+            that.save_widget.update_document_title();
+            $kernel_ind_icon.attr('class','kernel_idle_icon').attr('title','Kernel Idle');
+            knw.info("Kernel ready", 500);
+        });
+
+        this.events.on('status_idle.Kernel', function () {
             that.save_widget.update_document_title();
             $kernel_ind_icon.attr('class','kernel_idle_icon').attr('title','Kernel Idle');
         });
 
-        this.events.on('status_busy.Kernel',function () {
+        this.events.on('status_busy.Kernel', function () {
             window.document.title='(Busy) '+window.document.title;
             $kernel_ind_icon.attr('class','kernel_busy_icon').attr('title','Kernel Busy');
         });
