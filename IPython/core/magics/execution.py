@@ -1027,7 +1027,10 @@ python-profiler package from non-free.""")
                 worst = max(worst, worst_tuning)
             # Check best timing is greater than zero to avoid a
             # ZeroDivisionError.
-            if worst > 4 * best and best > 0:
+            # In cases where the slowest timing is lesser than a micosecond
+            # we assume that it does not really matter if the fastest
+            # timing is 4 times faster than the slowest timing or not.
+            if worst > 4 * best and best > 0 and worst > 1e-6:
                 print("The slowest run took %0.2f times longer than the "
                       "fastest. This could mean that an intermediate result "
                       "is being cached " % (worst / best))
