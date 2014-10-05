@@ -70,7 +70,8 @@ def default_aliases():
                           ('lx', 'ls -F -o --color %l | grep ^-..x'),
                           ]
         elif sys.platform.startswith('openbsd') or sys.platform.startswith('netbsd'):
-            # OpenBSD, NetBSD 
+            # OpenBSD, NetBSD. The ls implementation on these platforms do not support
+            # the -G switch and lack the ability to use colorized output.
             ls_aliases = [('ls', 'ls -F'),
                           # long ls
                           ('ll', 'ls -F -l'),
