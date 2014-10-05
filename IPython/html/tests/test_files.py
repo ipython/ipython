@@ -8,10 +8,16 @@ from unicodedata import normalize
 pjoin = os.path.join
 
 import requests
+import json
+
+from IPython.nbformat.current import (new_notebook, write, new_worksheet,
+                              new_heading_cell, new_code_cell,
+                              new_output)
 
 from IPython.html.utils import url_path_join
 from .launchnotebook import NotebookTestBase
 from IPython.utils import py3compat
+
 
 class FilesTest(NotebookTestBase):
     def test_hidden_files(self):
@@ -50,6 +56,49 @@ class FilesTest(NotebookTestBase):
                 r = requests.get(url_path_join(url, 'files', d, foo))
                 self.assertEqual(r.status_code, 404)
     
+    def test_contents_manager(self):
+        "make sure ContentsManager returns right files (ipynb, bin, txt)."
+
+        nbdir = self.notebook_dir.name
+        base = self.base_url()
+
+        nb = new_notebook(name='testnb')
+        
+        ws = new_worksheet()
+        nb.worksheets = [ws]
+        ws.cells.append(new_heading_cell(u'Created by test ³'))
+        cc1 = new_code_cell(input=u'print(2*6)')
+        cc1.outputs.append(new_output(output_text=u'12', output_type='stream'))
+        ws.cells.append(cc1)
+
+        with io.open(pjoin(nbdir, 'testnb.ipynb'), 'w', 
+            encoding='utf-8') as f:
+            write(nb, f, format='ipynb')
+
+        with io.open(pjoin(nbdir, 'test.bin'), 'wb') as f:
+            f.write("\x5F\x9D\x3E")
+            f.close()
+
+        with io.open(pjoin(nbdir, 'test.txt'), 'w') as f:
+            f.write(u'foo\nbar')
+            f.close()
+
+        r = requests.get(url_path_join(base, 'files', 'testnb.ipynb'))
+        self.assertEqual(r.status_code, 200)
+        self.assertIn(u'print(2*6)', r.text)
+        json.loads(r.text)
+
+        r = requests.get(url_path_join(base, 'files', 'test.bin'))
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.headers['content-type'], 'application/octet-stream')
+        self.assertEqual(r.content, 'X50+\n')
+
+        r = requests.get(url_path_join(base, 'files', 'test.txt'))
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.headers['content-type'], 'text/plain')
+        self.assertEqual(r.content, u'foo\nbar')
+
+
     def test_old_files_redirect(self):
         """pre-2.0 'files/' prefixed links are properly redirected"""
         nbdir = self.notebook_dir.name
