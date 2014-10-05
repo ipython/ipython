@@ -226,7 +226,7 @@ define([
 
             var showMsg = function () {
                 var msg = $('<div/>').append($('<p/>').text(full));
-                var cm, cm_elem;
+                var cm, cm_elem, cm_open;
 
                 if (traceback) {
                     cm_elem = $('<div/>')
@@ -239,6 +239,7 @@ define([
                         readOnly : true
                     });
                     cm.setValue(traceback);
+                    cm_open = $.proxy(cm.refresh, cm);
                 }
 
                 dialog.modal({
@@ -246,7 +247,7 @@ define([
                     body : msg,
                     keyboard_manager: that.keyboard_manager,
                     notebook: that.notebook,
-                    open: $.proxy(cm.refresh, cm),
+                    open: cm_open,
                     buttons : {
                         "Ok": { class: 'btn-primary' }
                     }
