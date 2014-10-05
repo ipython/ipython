@@ -62,6 +62,12 @@ casper.kernel_running = function() {
     });
 };
 
+casper.kernel_disconnected = function() {
+    return this.evaluate(function() {
+        return IPython.notebook.kernel.is_fully_disconnected();
+    });
+};
+
 casper.shutdown_current_kernel = function () {
     // Shut down the current notebook's kernel.
     this.thenEvaluate(function() {
@@ -560,6 +566,62 @@ casper.dashboard_test = function (test) {
     });
 };
 
+// note that this will only work for UNIQUE events -- if you want to
+// listen for the same event twice, this will not work!
+casper.event_test = function (name, events, action) {
+
+    // set up handlers to listen for each of the events
+    this.thenEvaluate(function (events) {
+        var make_handler = function (event) {
+            return function () {
+                IPython._events_triggered.push(event);
+                IPython.notebook.events.off(event, null, IPython._event_handlers[event]);
+                delete IPython._event_handlers[event];
+            };
+        };
+        IPython._event_handlers = {};
+        IPython._events_triggered = [];
+        for (var i=0; i < events.length; i++) {
+            IPython._event_handlers[events[i]] = make_handler(events[i]);
+            IPython.notebook.events.on(events[i], IPython._event_handlers[events[i]]);
+        }
+    }, [events]);
+
+    // execute the requested action
+    this.then(action);
+
+    // wait for all the events to be triggered
+    this.waitFor(function () {
+        return this.evaluate(function (events) {
+            return IPython._events_triggered.length >= events.length;
+        }, [events]);
+    });
+
+    // test that the events were triggered in the proper order
+    this.then(function () {
+        var triggered = this.evaluate(function () {
+            return IPython._events_triggered;
+        });
+        var handlers = this.evaluate(function () {
+            return Object.keys(IPython._event_handlers);
+        });
+        this.test.assertEquals(triggered.length, events.length, name + ': ' + events.length + ' events were triggered');
+        this.echo(handlers);
+        this.test.assertEquals(handlers.length, 0, name + ': all handlers triggered');
+        for (var i=0; i < events.length; i++) {
+            this.test.assertEquals(triggered[i], events[i], name + ': ' + events[i] + ' was triggered');
+        }
+    });
+
+    // turn off any remaining event listeners
+    this.thenEvaluate(function () {
+        for (var event in IPython._event_handlers) {
+            IPython.notebook.events.off(event, null, IPython._event_handlers[event]);
+            delete IPython._event_handlers[event];
+        }
+    });
+};
+
 casper.options.waitTimeout=10000;
 casper.on('waitFor.timeout', function onWaitForTimeout(timeout) {
     this.echo("Timeout for " + casper.get_notebook_server());
@@ -625,3 +687,4 @@ casper.capture_log = function () {
 };
 
 casper.capture_log();
+casper.print_log();

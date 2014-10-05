@@ -98,13 +98,52 @@ casper.notebook_test(function () {
         this.test.assert(!this.kernel_running(), 'session deletes kernel');
     });
 
-    // test start after delete -- should throw an error
-    this.then(function () {
-        var start = function () {
-            this.evaluate(function () {
+    // check for events when starting the session
+    this.event_test(
+        'start_session',
+        [
+            'kernel_started.Session',
+            'status_connected.Kernel',
+            'status_starting.Kernel',
+            'status_busy.Kernel',
+            'status_idle.Kernel'
+        ],
+        function () {
+            this.thenEvaluate(function () {
                 IPython.notebook.session.start();
             });
-        };
-        this.test.assertRaises(start, [], 'error raised on start after delete');
-    });
+        }
+    );
+    this.wait(500);
+
+    // check for events when killing the session
+    this.event_test(
+        'delete_session',
+        ['status_killed.Session'],
+        function () {
+            this.thenEvaluate(function () {
+                IPython.notebook.session.delete();
+            });
+        }
+    );
+    this.wait(500);
+
+    // check for events when restarting the session
+    this.event_test(
+        'restart_session',
+        [
+            'status_killed.Session',
+            'kernel_started.Session',
+            'status_connected.Kernel',
+            'status_starting.Kernel',
+            'status_busy.Kernel',
+            'status_idle.Kernel'
+        ],
+        function () {
+            this.thenEvaluate(function () {
+                IPython.notebook.session.restart();
+            });
+        }
+    );
+    this.wait(500);
 });

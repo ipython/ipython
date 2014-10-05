@@ -189,4 +189,121 @@ casper.notebook_test(function () {
     this.then(function () {
         this.test.assert(this.kernel_running(), 'kernel is running');
     });
+
+    // check for events in kill/start cycle
+    this.event_test(
+        'kill/start',
+        [
+            'status_killed.Kernel',
+            'kernel_started.Kernel',
+            'status_connected.Kernel',
+            'status_starting.Kernel',
+            'status_busy.Kernel',
+            'status_idle.Kernel'
+        ],
+        function () {
+            this.thenEvaluate(function () {
+                IPython.notebook.kernel.kill();
+            });
+            this.waitFor(this.kernel_disconnected);
+            this.thenEvaluate(function () {
+                IPython.notebook.kernel.start();
+            });
+        }
+    );
+    // wait for any last idle/busy messages to be handled
+    this.wait(500);
+
+    // check for events in disconnect/connect cycle
+    this.event_test(
+        'reconnect',
+        [
+            'status_reconnecting.Kernel',
+            'status_connected.Kernel',
+            'status_busy.Kernel',
+            'status_idle.Kernel'
+        ],
+        function () {
+            this.thenEvaluate(function () {
+                IPython.notebook.kernel.stop_channels();
+                IPython.notebook.kernel.reconnect(1);
+            });
+        }
+    );
+    // wait for any last idle/busy messages to be handled
+    this.wait(500);
+
+    // check for events in the restart cycle
+    this.event_test(
+        'restart',
+        [
+            'status_restarting.Kernel',
+            'kernel_started.Kernel',
+            'status_connected.Kernel',
+            'status_starting.Kernel',
+            'status_busy.Kernel',
+            'status_idle.Kernel'
+        ],
+        function () {
+            this.thenEvaluate(function () {
+                IPython.notebook.kernel.restart();
+            });
+        }
+    );
+    // wait for any last idle/busy messages to be handled
+    this.wait(500);
+
+    // TODO: test for failed restart, that it triggers
+    // kernel_dead.Kernel? How to do this?
+
+    // TODO: test for status_autorestarting.Kernel? how to trigger
+    // this?
+
+    // check for events in the interrupt cycle
+    this.event_test(
+        'interrupt',
+        [
+            'status_interrupting.Kernel',
+            'status_busy.Kernel',
+            'status_idle.Kernel'
+        ],
+        function () {
+            this.thenEvaluate(function () {
+                IPython.notebook.kernel.interrupt();
+            });
+        }
+    );
+
+    // check for events after ws close
+    this.event_test(
+        'ws_closed_ok',
+        [
+            'status_disconnected.Kernel',
+            'status_reconnecting.Kernel',
+            'status_connected.Kernel',
+            'status_busy.Kernel',
+            'status_idle.Kernel'
+        ],
+        function () {
+            this.thenEvaluate(function () {
+                IPython.notebook.kernel._ws_closed("", false);
+            });
+        }
+    );
+    // wait for any last idle/busy messages to be handled
+    this.wait(500);
+
+    // check for events after ws close (error)
+    this.event_test(
+        'ws_closed_error',
+        [
+            'status_disconnected.Kernel',
+            'connection_failed.Kernel'
+        ],
+        function () {
+            this.thenEvaluate(function () {
+                IPython.notebook.kernel._ws_closed("", true);
+            });
+        }
+    );
 });
