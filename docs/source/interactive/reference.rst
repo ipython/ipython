@@ -387,6 +387,8 @@ For simple cases, you can alternatively prepend $ to a variable name::
     In [7]: !echo "A system variable: $$HOME"  # Use $$ for literal $
     A system variable: /home/fperez
 
+Note that `$$` is used to represent a literal `$`.
+
 System command aliases
 ----------------------
 
