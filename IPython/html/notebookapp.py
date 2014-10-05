@@ -34,6 +34,8 @@ from jinja2 import Environment, FileSystemLoader
 from zmq.eventloop import ioloop
 ioloop.install()
 
+from IPython.html.files.handlers import FilesHandler
+
 # check for tornado 3.1.0
 msg = "The IPython Notebook requires tornado >= 3.1.0"
 try:
@@ -195,11 +197,8 @@ class NotebookWebApplication(web.Application):
         handlers.extend(load_handlers('services.sessions.handlers'))
         handlers.extend(load_handlers('services.nbconvert.handlers'))
         handlers.extend(load_handlers('services.kernelspecs.handlers'))
-        # FIXME: /files/ should be handled by the Contents service when it exists
-        cm = settings['contents_manager']
-        if hasattr(cm, 'root_dir'):
-            handlers.append(
-            (r"/files/(.*)", AuthenticatedFileHandler, {'path' : cm.root_dir}),
+        handlers.append(
+            (r"/files/(.*)", FilesHandler),
         )
         handlers.append(
             (r"/nbextensions/(.*)", FileFindHandler, {'path' : settings['nbextensions_path']}),
