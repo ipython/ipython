@@ -44,7 +44,21 @@ define([
         this.notebook = options.notebook;
         this.kernel = null;
         this.events = options.notebook.events;
+
+        this.bind_events();
     };
+
+    Session.prototype.bind_events = function () {
+        var that = this;
+        var record_status = function (evt) {
+            console.log('Session: ' + evt.type + ' (' + that.id + ')');
+        };
+
+        this.events.on('kernel_started.Session', record_status);
+        this.events.on('kernel_dead.Session', record_status);
+        this.events.on('status_killed.Session', record_status);
+    };
+
 
     // Public REST api functions
 

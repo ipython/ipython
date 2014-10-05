@@ -90,6 +90,23 @@ define([
         this.events.on('send_input_reply.Kernel', function(evt, data) { 
             that.send_input_reply(data);
         });
+
+        var record_status = function (evt) {
+            console.log('Kernel: ' + evt.type + ' (' + that.id + ')');
+        };
+
+        this.events.on('kernel_started.Kernel', record_status);
+        this.events.on('status_reconnecting.Kernel', record_status);
+        this.events.on('status_connected.Kernel', record_status);
+        this.events.on('status_starting.Kernel', record_status);
+        this.events.on('status_restarting.Kernel', record_status);
+        this.events.on('status_autorestarting.Kernel', record_status);
+        this.events.on('status_interrupting.Kernel', record_status);
+        this.events.on('status_disconnected.Kernel', record_status);
+        this.events.on('status_idle.Kernel', record_status);
+        this.events.on('status_busy.Kernel', record_status);
+        this.events.on('status_killed.Kernel', record_status);
+        this.events.on('kernel_dead.Kernel', record_status);
     };
 
     /**
@@ -206,7 +223,6 @@ define([
      * @param {function} [error] - functon executed on ajax error
      */
     Kernel.prototype.kill = function (success, error) {
-        console.log("Killing kernel: " + this.id);
         this.events.trigger('status_killed.Kernel', {kernel: this});
         this._kernel_dead();
         $.ajax(this.kernel_url, {
@@ -229,13 +245,11 @@ define([
      * @param {function} [error] - functon executed on ajax error
      */
     Kernel.prototype.interrupt = function (success, error) {
-        console.log("Interrupting kernel: " + this.id);
         this.events.trigger('status_interrupting.Kernel', {kernel: this});
-        this.events.trigger('status_busy.Kernel', {kernel: this});
 
         var that = this;
         var on_success = function (data, status, xhr) {
-            that.events.trigger('status_idle.Kernel', {kernel: this});
+            that.kernel_info(); // get kernel info so we know what state the kernel is in
             if (success) {
                 success(data, status, xhr);
             }
@@ -262,7 +276,6 @@ define([
      * @param {function} [error] - functon executed on ajax error
      */
     Kernel.prototype.restart = function (success, error) {
-        console.log("Restarting kernel: " + this.id);
         this.events.trigger('status_restarting.Kernel', {kernel: this});
         this.stop_channels();
 
@@ -302,9 +315,8 @@ define([
      * @function reconnect
      */
     Kernel.prototype.reconnect = function () {
-        console.log("Reconnecting to kernel: " + this.id);
         this.events.trigger('status_reconnecting.Kernel', {kernel: this});
-        setTimeout($.proxy(this.start_channels, this), 3000)
+        setTimeout($.proxy(this.start_channels, this), 3000);
     };
 
     /**
@@ -356,7 +368,6 @@ define([
         this.id = data.id;
         this.kernel_url = utils.url_join_encode(this.kernel_service_url, this.id);
 
-        console.log("Kernel started: ", this.id);
         this.start_channels();
     };
 
@@ -368,13 +379,8 @@ define([
      * @function _kernel_connected
      */
     Kernel.prototype._kernel_connected = function () {
-        console.log('Connected to kernel: ', this.id);
         this.events.trigger('status_connected.Kernel', {kernel: this});
-
-        var that = this;
-        this.kernel_info(function () {
-            that.events.trigger('status_idle.Kernel', {kernel: this});
-        });
+        this.kernel_info(); // get kernel info so we know what state the kernel is in
     };
 
     /**
@@ -385,7 +391,6 @@ define([
      * @function _kernel_dead
      */
     Kernel.prototype._kernel_dead = function () {
-        console.log('Dead kernel: ', this.id);
         this.stop_channels();
     };
 
@@ -907,7 +912,6 @@ define([
             // autorestart shows the more prominent dialog.
             this.events.trigger('status_restarting.Kernel', {kernel: this});
             this.events.trigger('status_autorestarting.Kernel', {kernel: this});
-            console.log("Kernel is autorestarting: " + this.id);
 
         } else if (execution_state === 'dead') {
             this.events.trigger('kernel_dead.Kernel', {kernel: this});
