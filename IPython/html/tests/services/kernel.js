@@ -189,6 +189,8 @@ casper.notebook_test(function () {
     this.then(function () {
         this.test.assert(this.kernel_running(), 'kernel is running');
     });
+    // wait for any last idle/busy messages to be handled
+    this.wait(1000);
 
     // check for events in kill/start cycle
     this.event_test(
@@ -304,4 +306,6 @@ casper.notebook_test(function () {
             });
         }
     );
+    // wait for any last idle/busy messages to be handled
+    this.wait(500);
 });
