@@ -166,14 +166,15 @@ class KernelManager(ConnectionFileMixin):
 
     def format_kernel_cmd(self, extra_arguments=None):
         """replace templated args (e.g. {connection_file})"""
-        extra_arguments = extra_arguments or []
+        extra_arguments = extra_arguments or {}
         if self.kernel_cmd:
-            cmd = self.kernel_cmd + extra_arguments
+            cmd = self.kernel_cmd 
         else:
-            cmd = self.kernel_spec.argv + extra_arguments
+            cmd = self.kernel_spec.argv 
 
         ns = dict(connection_file=self.connection_file)
         ns.update(self._launch_args)
+        ns.update(extra_arguments)
         
         pat = re.compile(r'\{([A-Za-z0-9_]+)\}')
         def from_ns(match):
@@ -227,7 +228,8 @@ class KernelManager(ConnectionFileMixin):
         # save kwargs for use in restart
         self._launch_args = kw.copy()
         # build the Popen cmd
-        extra_arguments = kw.pop('extra_arguments', [])
+        extra_arguments = kw.pop('extra_arguments', None)
+
         kernel_cmd = self.format_kernel_cmd(extra_arguments=extra_arguments)
         if self.kernel_cmd:
             # If kernel_cmd has been set manually, don't refer to a kernel spec

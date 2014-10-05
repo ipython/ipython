@@ -7,7 +7,7 @@ from IPython.testing.decorators import onlyif
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.kernel import kernelspec
 
-sample_kernel_json = {'argv':['cat', '{connection_file}'],
+sample_kernel_json = {'argv':['cat', '{connection_file}', '{profile_dir_flag}', '{profile_dir_value}'],
                       'display_name':'Test kernel',
                       'language':'bash',
                      }

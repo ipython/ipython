@@ -99,7 +99,7 @@ def make_ipkernel_cmd(code, executable=None, extra_arguments=[], **kw):
     """
     if executable is None:
         executable = sys.executable
-    arguments = [ executable, '-c', code, '-f', '{connection_file}' ]
+    arguments = [ executable, '-c', code, '-f', '{connection_file}', '{profile_dir_flag}', '{profile_dir_value}']
     arguments.extend(extra_arguments)
 
     if sys.platform == 'win32':

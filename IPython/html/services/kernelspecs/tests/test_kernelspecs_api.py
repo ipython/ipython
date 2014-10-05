@@ -16,7 +16,7 @@ from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_erro
 
 # Copied from IPython.kernel.tests.test_kernelspec so updating that doesn't
 # break these tests
-sample_kernel_json = {'argv':['cat', '{connection_file}'],
+sample_kernel_json = {'argv':['cat', '{connection_file}', '{profile_dir_flag}', '{profile_dir_value}'],
                       'display_name':'Test kernel',
                       'language':'bash',
                      }
