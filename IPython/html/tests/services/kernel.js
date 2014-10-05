@@ -76,16 +76,8 @@ casper.notebook_test(function () {
     this.thenEvaluate(function () {
         IPython.notebook.kernel.restart();
     });
-    this.waitFor(function () {
-        return this.evaluate(function () {
-            return IPython.notebook.kernel.is_fully_disconnected();
-        });
-    });
-    this.waitFor(function () {
-        return this.evaluate(function () {
-            return IPython.notebook.kernel.is_connected();
-        });
-    });
+    this.waitFor(this.kernel_disconnected);
+    this.wait_for_kernel_ready();
     this.then(function () {
         this.test.assert(this.kernel_running(), 'kernel restarted');
     });
@@ -94,19 +86,11 @@ casper.notebook_test(function () {
     this.thenEvaluate(function () {
         IPython.notebook.kernel.stop_channels();
     });
-    this.waitFor(function () {
-        return this.evaluate(function () {
-            return IPython.notebook.kernel.is_fully_disconnected();
-        });
-    });
+    this.waitFor(this.kernel_disconnected);
     this.thenEvaluate(function () {
         IPython.notebook.kernel.reconnect();
     });
-    this.waitFor(function () {
-        return this.evaluate(function () {
-            return IPython.notebook.kernel.is_connected();
-        });
-    });
+    this.wait_for_kernel_ready();
     this.then(function () {
         this.test.assert(this.kernel_running(), 'kernel reconnected');
     });
@@ -136,11 +120,7 @@ casper.notebook_test(function () {
     this.thenEvaluate(function () {
         IPython.notebook.kernel.kill();
     });
-    this.waitFor(function () {
-        return this.evaluate(function () {
-            return IPython.notebook.kernel.is_fully_disconnected();
-        });
-    });
+    this.waitFor(this.kernel_disconnected);
     this.then(function () {
         this.test.assert(!this.kernel_running(), 'kernel is not running');
     });
@@ -155,11 +135,7 @@ casper.notebook_test(function () {
     this.then(function () {
         this.test.assertEquals(url, "/api/kernels", "start url is correct");
     });
-    this.waitFor(function () {
-        return this.evaluate(function () {
-            return IPython.notebook.kernel.is_connected();
-        });
-    });
+    this.wait_for_kernel_ready();
     this.then(function () {
         this.test.assert(this.kernel_running(), 'kernel is running');
     });
@@ -168,11 +144,7 @@ casper.notebook_test(function () {
     this.thenEvaluate(function () {
         IPython.notebook.kernel.kill();
     });
-    this.waitFor(function () {
-        return this.evaluate(function () {
-            return IPython.notebook.kernel.is_fully_disconnected();
-        });
-    });
+    this.waitFor(this.kernel_disconnected);
     this.then(function () {
         url = this.evaluate(function () {
             return IPython.notebook.kernel.start({foo: "bar"});
@@ -181,16 +153,10 @@ casper.notebook_test(function () {
     this.then(function () {
         this.test.assertEquals(url, "/api/kernels?foo=bar", "start url with params is correct");
     });
-    this.waitFor(function () {
-        return this.evaluate(function () {
-            return IPython.notebook.kernel.is_connected();
-        });
-    });
+    this.wait_for_kernel_ready();
     this.then(function () {
         this.test.assert(this.kernel_running(), 'kernel is running');
     });
-    // wait for any last idle/busy messages to be handled
-    this.wait(1000);
 
     // check for events in kill/start cycle
     this.event_test(
@@ -213,7 +179,7 @@ casper.notebook_test(function () {
         }
     );
     // wait for any last idle/busy messages to be handled
-    this.wait(500);
+    this.wait_for_kernel_ready();
 
     // check for events in disconnect/connect cycle
     this.event_test(
@@ -221,8 +187,6 @@ casper.notebook_test(function () {
         [
             'status_reconnecting.Kernel',
             'status_connected.Kernel',
-            'status_busy.Kernel',
-            'status_idle.Kernel'
         ],
         function () {
             this.thenEvaluate(function () {
@@ -232,7 +196,7 @@ casper.notebook_test(function () {
         }
     );
     // wait for any last idle/busy messages to be handled
-    this.wait(500);
+    this.wait_for_kernel_ready();
 
     // check for events in the restart cycle
     this.event_test(
@@ -251,7 +215,7 @@ casper.notebook_test(function () {
         }
     );
     // wait for any last idle/busy messages to be handled
-    this.wait(500);
+    this.wait_for_kernel_ready();
 
     // TODO: test for failed restart, that it triggers
     // kernel_dead.Kernel? How to do this?
@@ -273,6 +237,7 @@ casper.notebook_test(function () {
             });
         }
     );
+    this.wait_for_kernel_ready();
 
     // check for events after ws close
     this.event_test(
@@ -291,7 +256,7 @@ casper.notebook_test(function () {
         }
     );
     // wait for any last idle/busy messages to be handled
-    this.wait(500);
+    this.wait_for_kernel_ready();
 
     // check for events after ws close (error)
     this.event_test(
@@ -306,6 +271,4 @@ casper.notebook_test(function () {
             });
         }
     );
-    // wait for any last idle/busy messages to be handled
-    this.wait(500);
 });

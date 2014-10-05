@@ -68,6 +68,22 @@ casper.kernel_disconnected = function() {
     });
 };
 
+casper.wait_for_kernel_ready = function () {
+    this.waitFor(this.kernel_running);
+    this.thenEvaluate(function () {
+        IPython._kernel_ready = false;
+        IPython.notebook.kernel.kernel_info(
+            function () {
+                IPython._kernel_ready = true;
+            });
+    });
+    this.waitFor(function () {
+        return this.evaluate(function () {
+            return IPython._kernel_ready;
+        });
+    });
+};
+
 casper.shutdown_current_kernel = function () {
     // Shut down the current notebook's kernel.
     this.thenEvaluate(function() {

@@ -89,11 +89,7 @@ casper.notebook_test(function () {
     this.thenEvaluate(function () {
         IPython.notebook.session.delete();
     });
-    this.waitFor(function () {
-        return this.evaluate(function () {
-            return IPython.notebook.kernel.is_fully_disconnected();
-        });
-    });
+    this.waitFor(this.kernel_disconnected);
     this.then(function () {
         this.test.assert(!this.kernel_running(), 'session deletes kernel');
     });
@@ -113,7 +109,7 @@ casper.notebook_test(function () {
             });
         }
     );
-    this.wait(500);
+    this.wait_for_kernel_ready();
 
     // check for events when killing the session
     this.event_test(
@@ -125,7 +121,6 @@ casper.notebook_test(function () {
             });
         }
     );
-    this.wait(500);
 
     // check for events when restarting the session
     this.event_test(
@@ -143,7 +138,7 @@ casper.notebook_test(function () {
             });
         }
     );
-    this.wait(500);
+    this.wait_for_kernel_ready();
 
     // check for events when starting a nonexistant kernel
     this.event_test(
