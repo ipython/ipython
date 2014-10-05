@@ -76,7 +76,7 @@ class FilesTest(NotebookTestBase):
             write(nb, f, format='ipynb')
 
         with io.open(pjoin(nbdir, 'test.bin'), 'wb') as f:
-            f.write("\x5F\x9D\x3E")
+            f.write(b"\x5F\x9D\x3E")
             f.close()
 
         with io.open(pjoin(nbdir, 'test.txt'), 'w') as f:
