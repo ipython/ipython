@@ -78,14 +78,12 @@ define([
      * @param {function} [error] - functon executed on ajax error
      */
     Session.prototype.start = function (success, error) {
-        if (this.kernel !== null) {
-            throw new Error("session has already been started");
-        };
-
         var that = this;
         var on_success = function (data, status, xhr) {
-            var kernel_service_url = utils.url_path_join(that.base_url, "api/kernels");
-            that.kernel = new kernel.Kernel(kernel_service_url, that.ws_url, that.notebook, that.kernel_model.name);
+            if (!that.kernel) {
+                var kernel_service_url = utils.url_path_join(that.base_url, "api/kernels");
+                that.kernel = new kernel.Kernel(kernel_service_url, that.ws_url, that.notebook, that.kernel_model.name);
+            }
             that.events.trigger('kernel_started.Session', {session: that, kernel: that.kernel});
             that.kernel._kernel_started(data.kernel);
             if (success) {
@@ -184,6 +182,24 @@ define([
             success: this._on_success(success),
             error: this._on_error(error)
         });
+    };
+
+    Session.prototype.restart = function (options, success, error) {
+        var that = this;
+        var start = function () {
+            if (options && options.notebook_name) {
+                that.notebook_model.name = options.notebook_name;
+            }
+            if (options && options.notebook_path) {
+                that.notebook_model.path = options.notebook_path;
+            }
+            if (options && options.kernel_name) {
+                that.kernel_model.name = options.kernel_name;
+            }
+            that.kernel_model.id = null;
+            that.start(success, error);
+        };
+        this.delete(start, start);
     };
 
     // Helper functions
