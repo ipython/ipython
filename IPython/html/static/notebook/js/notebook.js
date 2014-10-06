@@ -18,6 +18,7 @@ define([
     'notebook/js/celltoolbarpresets/default',
     'notebook/js/celltoolbarpresets/rawcell',
     'notebook/js/celltoolbarpresets/slideshow',
+    'notebook/js/celltoolbarpresets/tags',
     'notebook/js/scrollmanager'
 ], function (
     IPython, 
@@ -36,6 +37,7 @@ define([
     default_celltoolbar,
     rawcell_celltoolbar,
     slideshow_celltoolbar,
+    tags_celltoolbar,
     scrollmanager
     ) {
 
@@ -137,6 +139,7 @@ define([
         default_celltoolbar.register(this);
         rawcell_celltoolbar.register(this);
         slideshow_celltoolbar.register(this);
+        tags_celltoolbar.register(this, this.keyboard_manager);
     };
 
     Notebook.options_default = {

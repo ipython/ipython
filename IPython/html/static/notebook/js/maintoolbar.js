@@ -129,7 +129,135 @@ define([
                         }
                 }
             ],'run_int');
+
+        this.add_buttons_group([{
+            id : 'filter_toggle',
+            label : 'Filter based on cell tags',
+            icon : 'fa-filter',
+            callback : $.proxy(this._handle_filter_click, this)}]);
     };
+    
+    MainToolBar.prototype._handle_filter_click = function (e) {
+        // Handles when the filter button is clicked.
+
+        var $filter_button = $(e.currentTarget);
+        var $filter_text;
+
+        // If a filter textbox already exists, remove the textbox.
+        if ($filter_button.data('filter_text')) {
+
+            // Animate the textbox 'closing', and then remove it from the DOM.
+            $filter_text = $filter_button.data('filter_text')
+            $filter_text.animate({width: 0}, 200, 
+                'swing', function() {
+
+                $filter_text.remove();
+            });
+            $filter_button.data('filter_text', false);
+            
+        // A filter textbox doesn't exist yet.  Create a filter textbox here.
+        } else {
+            $filter_text = $('<input/>')
+                .attr('type', 'text')
+                .width(0)
+                .addClass('form-control input-sm');
+            $filter_button.data('filter_text', $filter_text);
+            $filter_button.after($filter_text);
+            
+            // Prevent notebook events from firing when the user types in the 
+            // filter textbox.
+            this.notebook.keyboard_manager.register_events($filter_text);
+
+            // Make sure the button group has a css class that we can style.
+            $filter_button.parent().addClass('filter-control');
+
+            // Animate the textbox's display.
+            $filter_text.animate({width: 200}, 200, 'swing');
+
+            // Handle when the filter is changed.
+            $filter_text.on('keyup', $.proxy(this._handle_filter, this));
+        }
+    };
+
+    MainToolBar.prototype._handle_filter = function(e) {
+        var $filter_text = $(e.currentTarget);
+        var filter = $filter_text.val();
+        
+        var cells = IPython.notebook.get_cells();
+        for (var i = 0; i < cells.length; i++) {
+            cells[i].element.css('display', this._eval_filter(cells[i].metadata.tags, filter) ? '' : 'none');
+        }
+    };
+
+    MainToolBar.prototype._eval_filter = function(truths, expression) {
+        var parenthesis_start = expression.indexOf('(');
+        var parenthesis_end = expression.lastIndexOf(')');
+        if (parenthesis_start != -1 && parenthesis_end != -1) {
+            if (parenthesis_end > parenthesis_start) {
+                var start = expression.substring(0, parenthesis_start-1);
+                var mid_results = eval_filter(truths, expression.substring(parenthesis_start+1, parenthesis_end-1));
+                var end = expression.substring(parenthesis_end+1);
+                expression = start + ' ' + mid_results.toString().toLowerCase() && end;
+            } else {
+                console.log(') found before (');
+            }
+        } else if (parenthesis_start != -1 || parenthesis_end != -1) {
+            console.log('unbalanced parenthesis');
+        }
+        
+        expression = expression.trim();
+        if (expression) {
+            var parts = expression.split(' ');
+            var is_or = true;
+            var needs_or = false;
+            var is_not = false;
+            for (var i = 0; i < parts.length; i++) {
+                var part = parts[i].trim().toLowerCase();
+                if (part != 'or' && needs_or) {
+                    return false;
+                }
+                
+                if (part == 'and') { 
+                } else if (part == 'or') {
+                    if (needs_or) {
+                        needs_or = false;
+                    } else {
+                        return true;
+                    }
+                } else if (part == 'not') {
+                    is_not = !is_not;
+                } else {
+                    var value;
+                    if (part == 'false' || part == 'true') {
+                        value = (part == 'true');
+                    } else {    
+                        var contains = false;
+                        for (var j = 0; j < truths.length; j++) {
+                            if (truths[j].toLowerCase() == part) {
+                                contains = true;
+                                break;
+                            }
+                        }
+                        value = contains;
+                    }
+                    
+                    if (is_not) {
+                        value = !value;
+                        is_not = false;
+                    }
+                    
+                    if (!value) {
+                        needs_or = true;
+                    }
+                }
+            }
+            
+            return !needs_or;
+        } else {
+            return true;
+        }
+    }
+
     
     MainToolBar.prototype.add_celltype_list = function () {
         this.element
