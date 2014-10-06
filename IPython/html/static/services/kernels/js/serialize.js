@@ -3,7 +3,6 @@
 
 define([
     'jquery',
-    'components/utf8/utf8'
     ], function ($, utf8) {
     "use strict";
     
@@ -16,14 +15,9 @@ define([
         for (i = 1; i <= nbufs; i++) {
             offsets.push(data.getInt32(i * 4));
         }
-        // have to convert array to string for utf8.js
-        var bytestring = String.fromCharCode.apply(null,
-            new Uint8Array(buf.slice(offsets[0], offsets[1]))
-        );
+        var json_bytes = new Uint8Array(buf.slice(offsets[0], offsets[1]));
         var msg = $.parseJSON(
-            utf8.decode(
-                bytestring
-            )
+            (new TextDecoder('utf8')).decode(json_bytes)
         );
         // the remaining chunks are stored as DataViews in msg.buffers
         msg.buffers = [];
@@ -66,16 +60,6 @@ define([
         }
     };
     
-    var _bytes2buf = function (bytestring) {
-        // convert bytestring to UInt8Array
-        var nbytes = bytestring.length;
-        var buf = new Uint8Array(nbytes);
-        for (var i = 0; i < nbytes; i++) {
-            buf[i] = bytestring.charCodeAt(i);
-        }
-        return buf;
-    };
-    
     var _serialize_binary = function (msg) {
         // implement the binary serialization protocol
         // serializes JSON message to ArrayBuffer
@@ -83,7 +67,7 @@ define([
         var offsets = [];
         var buffers = msg.buffers;
         delete msg.buffers;
-        var json_utf8 = _bytes2buf(utf8.encode(JSON.stringify(msg)));
+        var json_utf8 = (new TextEncoder('utf8')).encode(JSON.stringify(msg));
         buffers.unshift(json_utf8);
         var nbufs = buffers.length;
         offsets.push(4 * (nbufs + 1));
@@ -112,7 +96,6 @@ define([
     };
     
     var serialize = function (msg) {
-        console.log(msg.buffers, msg.buffers.length);
         if (msg.buffers && msg.buffers.length) {
             return _serialize_binary(msg);
         } else {

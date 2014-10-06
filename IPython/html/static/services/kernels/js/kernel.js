@@ -5,10 +5,10 @@ define([
     'base/js/namespace',
     'jquery',
     'base/js/utils',
-    'services/kernels/js/comm',
-    'widgets/js/init',
-    './serialize'
-], function(IPython, $, utils, comm, widgetmanager, serialize) {
+    './comm',
+    './serialize',
+    'widgets/js/init'
+], function(IPython, $, utils, comm, serialize, widgetmanager) {
     "use strict";
 
     /**

@@ -311,6 +311,7 @@ class="notebook_app"
 {% block script %}
 {{super()}}
 
+<script src="{{ static_url("components/text-encoding/lib/encoding.js") }}" charset="utf-8"></script>
 
 <script src="{{ static_url("notebook/js/main.js") }}" charset="utf-8"></script>
 
