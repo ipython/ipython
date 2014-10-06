@@ -65,9 +65,6 @@ define([
         } else {
             var that = this;
             this.create_view(model, {cell: cell, callback: function(view) {
-                if (view === null) {
-                    console.error("View creation failed", model);
-                }
                 that._handle_display_view(view);
                 if (cell.widget_subarea) {
                     cell.widget_subarea.append(view.$el);
