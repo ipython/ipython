@@ -141,18 +141,24 @@ define([
             knw.set_message("Restarting kernel", 2000);
         });
 
-        this.events.on('status_autorestarting.Kernel', function () {
-            dialog.modal({
-                notebook: that.notebook,
-                keyboard_manager: that.keyboard_manager,
-                title: "Kernel Restarting",
-                body: "The kernel appears to have died. It will restart automatically.",
-                buttons: {
-                    OK : {
-                        class : "btn-primary"
+        this.events.on('status_autorestarting.Kernel', function (evt, info) {
+            // only show the dialog on the first restart attempt
+            if (info.attempt == 1) {
+                // hide existing modal dialog
+                $(".modal").modal('hide');
+
+                dialog.modal({
+                    notebook: that.notebook,
+                    keyboard_manager: that.keyboard_manager,
+                    title: "Kernel Restarting",
+                    body: "The kernel appears to have died. It will restart automatically.",
+                    buttons: {
+                        OK : {
+                            class : "btn-primary"
+                        }
                     }
-                }
-            });
+                });
+            };
 
             that.save_widget.update_document_title();
             knw.danger("Dead kernel");
@@ -174,9 +180,13 @@ define([
         });
 
         this.events.on('connection_failed.Kernel', function () {
+            // hide existing dialog
+            $(".modal").modal('hide');
+
             var msg = "A WebSocket connection could not be established." +
                 " You will NOT be able to run code. Check your" +
                 " network connection or notebook server configuration.";
+
             dialog.modal({
                 title: "WebSocket connection failed",
                 body: msg,
@@ -193,34 +203,48 @@ define([
             });
         });
 
-        this.events.on('kernel_dead.Kernel status_killed.Kernel status_killed.Session', function () {
+        this.events.on('status_killed.Kernel status_killed.Session', function () {
             that.save_widget.update_document_title();
             knw.danger("Dead kernel");
             $kernel_ind_icon.attr('class','kernel_dead_icon').attr('title','Kernel Dead');
         });
 
         this.events.on('kernel_dead.Kernel', function () {
-            var msg = 'The kernel has died, and the automatic restart has failed.' +
-                ' It is possible the kernel cannot be restarted.' +
-                ' If you are not able to restart the kernel, you will still be able to save' +
-                ' the notebook, but running code will no longer work until the notebook' +
-                ' is reopened.';
 
-            dialog.modal({
-                title: "Dead kernel",
-                body : msg,
-                keyboard_manager: that.keyboard_manager,
-                notebook: that.notebook,
-                buttons : {
-                    "Manual Restart": {
-                        class: "btn-danger",
-                        click: function () {
-                            that.notebook.start_session();
-                        }
-                    },
+            var showMsg = function () {
+                // hide existing dialog
+                $(".modal").modal('hide');
+
+                var msg = 'The kernel has died, and the automatic restart has failed.' +
+                        ' It is possible the kernel cannot be restarted.' +
+                        ' If you are not able to restart the kernel, you will still be able to save' +
+                        ' the notebook, but running code will no longer work until the notebook' +
+                        ' is reopened.';
+
+                dialog.modal({
+                    title: "Dead kernel",
+                    body : msg,
+                    keyboard_manager: that.keyboard_manager,
+                    notebook: that.notebook,
+                    buttons : {
+                        "Manual Restart": {
+                            class: "btn-danger",
+                            click: function () {
+                                that.notebook.start_session();
+                            }
+                        },
                     "Don't restart": {}
-                }
-            });
+                    }
+                });
+
+                return false;
+            };
+
+            that.save_widget.update_document_title();
+            knw.danger("Dead kernel", undefined, showMsg);
+            $kernel_ind_icon.attr('class','kernel_dead_icon').attr('title','Kernel Dead');
+
+            showMsg();
         });
 
         this.events.on('kernel_dead.Session', function (evt, info) {
@@ -245,6 +269,9 @@ define([
                     cm.setValue(traceback);
                     cm_open = $.proxy(cm.refresh, cm);
                 }
+
+                // hide existing modal dialog
+                $(".modal").modal('hide');
 
                 dialog.modal({
                     title: "Failed to start the kernel",

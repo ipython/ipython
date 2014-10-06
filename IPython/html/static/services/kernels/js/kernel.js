@@ -61,6 +61,8 @@ define([
         
         this.last_msg_id = null;
         this.last_msg_callbacks = {};
+
+        this._autorestart_attempt = 0;
     };
 
     /**
@@ -110,6 +112,10 @@ define([
         this.events.on('status_ready.Kernel', record_status);
         this.events.on('status_killed.Kernel', record_status);
         this.events.on('kernel_dead.Kernel', record_status);
+
+        this.events.on('status_ready.Kernel', function () {
+            that._autorestart_attempt = 0;
+        });
     };
 
     /**
@@ -922,8 +928,9 @@ define([
             // in that it means the kernel died and the server is restarting it.
             // status_restarting sets the notification widget,
             // autorestart shows the more prominent dialog.
+            this._autorestart_attempt = this._autorestart_attempt + 1;
             this.events.trigger('status_restarting.Kernel', {kernel: this});
-            this.events.trigger('status_autorestarting.Kernel', {kernel: this});
+            this.events.trigger('status_autorestarting.Kernel', {kernel: this, attempt: this._autorestart_attempt});
 
         } else if (execution_state === 'dead') {
             this.events.trigger('kernel_dead.Kernel', {kernel: this});

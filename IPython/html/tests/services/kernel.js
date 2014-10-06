@@ -217,12 +217,6 @@ casper.notebook_test(function () {
     // wait for any last idle/busy messages to be handled
     this.wait_for_kernel_ready();
 
-    // TODO: test for failed restart, that it triggers
-    // kernel_dead.Kernel? How to do this?
-
-    // TODO: test for status_autorestarting.Kernel? how to trigger
-    // this?
-
     // check for events in the interrupt cycle
     this.event_test(
         'interrupt',
@@ -270,5 +264,54 @@ casper.notebook_test(function () {
                 IPython.notebook.kernel._ws_closed("", true);
             });
         }
+    );
+
+    // start the kernel back up
+    this.thenEvaluate(function () {
+        IPython.notebook.kernel.restart();
+    });
+    this.waitFor(this.kernel_running);
+    this.wait_for_kernel_ready();
+
+    // test handling of autorestarting messages
+    this.event_test(
+        'autorestarting',
+        [
+            'status_restarting.Kernel',
+            'status_autorestarting.Kernel',
+        ],
+        function () {
+            this.thenEvaluate(function () {
+                var cell = IPython.notebook.get_cell(0);
+                cell.set_text('import os\n' + 'os._exit(1)');
+                cell.execute();
+            });
+        }
+    );
+    this.wait_for_kernel_ready();
+
+    // test handling of failed restart
+    this.event_test(
+        'failed_restart',
+        [
+            'status_restarting.Kernel',
+            'status_autorestarting.Kernel',
+            'kernel_dead.Kernel'
+        ],
+        function () {
+            this.thenEvaluate(function () {
+                var cell = IPython.notebook.get_cell(0);
+                cell.set_text("import os\n" +
+                              "from IPython.kernel.connect import get_connection_file\n" +
+                              "with open(get_connection_file(), 'w') as f:\n" +
+                              "    f.write('garbage')\n" +
+                              "os._exit(1)");
+                cell.execute();
+            });
+        }, 
+
+        // need an extra-long timeout, because it needs to try
+        // restarting the kernel 5 times!
+        20000
     );
 });

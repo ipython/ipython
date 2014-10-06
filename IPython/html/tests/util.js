@@ -584,7 +584,7 @@ casper.dashboard_test = function (test) {
 
 // note that this will only work for UNIQUE events -- if you want to
 // listen for the same event twice, this will not work!
-casper.event_test = function (name, events, action) {
+casper.event_test = function (name, events, action, timeout) {
 
     // set up handlers to listen for each of the events
     this.thenEvaluate(function (events) {
@@ -611,7 +611,7 @@ casper.event_test = function (name, events, action) {
         return this.evaluate(function (events) {
             return IPython._events_triggered.length >= events.length;
         }, [events]);
-    });
+    }, undefined, undefined, timeout);
 
     // test that the events were triggered in the proper order
     this.then(function () {
