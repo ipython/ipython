@@ -149,10 +149,7 @@ define([
             // times it tries restarting).
             if (info.attempt === 1) {
 
-                // hide existing modal dialog
-                $(".modal").modal('hide');
-
-                dialog.modal({
+                dialog.kernel_modal({
                     notebook: that.notebook,
                     keyboard_manager: that.keyboard_manager,
                     title: "Kernel Restarting",
@@ -186,15 +183,13 @@ define([
             // trying to reconnect and we don't want to spam the user
             // with messages
             if (info.attempt === 1) {
-                // hide existing dialog
-                $(".modal").modal('hide');
 
                 var msg = "A connection to the notebook server could not be established." +
                         " The notebook will continue trying to reconnect, but" +
                         " until it does, you will NOT be able to run code. Check your" +
                         " network connection or notebook server configuration.";
 
-                dialog.modal({
+                dialog.kernel_modal({
                     title: "Connection failed",
                     body: msg,
                     keyboard_manager: that.keyboard_manager,
@@ -215,8 +210,6 @@ define([
         this.events.on('kernel_dead.Kernel', function () {
 
             var showMsg = function () {
-                // hide existing dialog
-                $(".modal").modal('hide');
 
                 var msg = 'The kernel has died, and the automatic restart has failed.' +
                         ' It is possible the kernel cannot be restarted.' +
@@ -224,7 +217,7 @@ define([
                         ' the notebook, but running code will no longer work until the notebook' +
                         ' is reopened.';
 
-                dialog.modal({
+                dialog.kernel_modal({
                     title: "Dead kernel",
                     body : msg,
                     keyboard_manager: that.keyboard_manager,
@@ -273,10 +266,7 @@ define([
                     cm_open = $.proxy(cm.refresh, cm);
                 }
 
-                // hide existing modal dialog
-                $(".modal").modal('hide');
-
-                dialog.modal({
+                dialog.kernel_modal({
                     title: "Failed to start the kernel",
                     body : msg,
                     keyboard_manager: that.keyboard_manager,
