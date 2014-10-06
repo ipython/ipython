@@ -50,7 +50,7 @@ class _Selection(DOMWidget):
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
     
-
+    
     def __init__(self, *args, **kwargs):
         self.value_lock = Lock()
         self._in_values_changed = False
@@ -65,6 +65,7 @@ class _Selection(DOMWidget):
             # the setting of self.values right now, before anything else runs
             self.values = kwargs.pop('values')
         DOMWidget.__init__(self, *args, **kwargs)
+        self._value_in_values()
     
     def _values_changed(self, name, old, new):
         """Handles when the values dict has been changed.
@@ -76,10 +77,13 @@ class _Selection(DOMWidget):
             self.value_names = list(new.keys())
         finally:
             self._in_values_changed = False
-        
+        self._value_in_values()
+
+    def _value_in_values(self):
         # ensure that the chosen value is one of the choices
-        if self.value not in new.values():
-            self.value = next(iter(new.values()))
+        if self.values:
+            if self.value not in self.values.values():
+                self.value = next(iter(self.values.values()))
     
     def _value_names_changed(self, name, old, new):
         if not self._in_values_changed:
