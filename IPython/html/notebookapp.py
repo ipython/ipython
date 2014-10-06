@@ -317,7 +317,7 @@ class NotebookApp(BaseIPythonApplication):
         list=(NbserverListApp, NbserverListApp.description.splitlines()[0]),
     )
 
-    kernel_argv = List(Unicode)
+    kernel_argv = Dict()
     
     _log_formatter_cls = LogFormatter
 
@@ -665,7 +665,7 @@ class NotebookApp(BaseIPythonApplication):
     def init_kernel_argv(self):
         """construct the kernel arguments"""
         # Kernel should get *absolute* path to profile directory
-        self.kernel_argv = ["--profile-dir", self.profile_dir.location]
+        self.kernel_argv = {'profile_dir_flag':"--profile-dir", 'profile_dir_value':'self.profile_dir.location'}
 
     def init_configurables(self):
         # force Session default to be secure

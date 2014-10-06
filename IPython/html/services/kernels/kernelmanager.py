@@ -21,7 +21,7 @@ import os
 from tornado import web
 
 from IPython.kernel.multikernelmanager import MultiKernelManager
-from IPython.utils.traitlets import List, Unicode, TraitError
+from IPython.utils.traitlets import List, Unicode, TraitError, Dict
 
 from IPython.html.utils import to_os_path
 from IPython.utils.py3compat import getcwd
@@ -37,7 +37,7 @@ class MappingKernelManager(MultiKernelManager):
     def _kernel_manager_class_default(self):
         return "IPython.kernel.ioloop.IOLoopKernelManager"
 
-    kernel_argv = List(Unicode)
+    kernel_argv = Dict()
 
     root_dir = Unicode(getcwd(), config=True)
 
@@ -88,6 +88,7 @@ class MappingKernelManager(MultiKernelManager):
             The name identifying which kernel spec to launch. This is ignored if
             an existing kernel is returned, but it may be checked in the future.
         """
+
         if kernel_id is None:
             kwargs['extra_arguments'] = self.kernel_argv
             if path is not None:
