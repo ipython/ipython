@@ -76,7 +76,7 @@ class FilesTest(NotebookTestBase):
             write(nb, f, format='ipynb')
 
         with io.open(pjoin(nbdir, 'test.bin'), 'wb') as f:
-            f.write(b'\xFF' + os.urandom(5))
+            f.write(b'\xff' + os.urandom(5))
             f.close()
 
         with io.open(pjoin(nbdir, 'test.txt'), 'w') as f:
@@ -91,7 +91,9 @@ class FilesTest(NotebookTestBase):
         r = requests.get(url_path_join(base, 'files', 'test.bin'))
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.headers['content-type'], 'application/octet-stream')
-        self.assertTrue(r.content.startswith(b'\xFF'))
+
+        self.assertEqual("{:02x}".format(ord(r.content[0])), 'ff')
+        self.assertEqual(len(r.content), 6)
 
         r = requests.get(url_path_join(base, 'files', 'test.txt'))
         self.assertEqual(r.status_code, 200)

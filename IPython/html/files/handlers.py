@@ -6,6 +6,7 @@
 import logging
 import os
 import mimetypes
+import json
 try:
     # py3
     from http.client import responses
@@ -34,7 +35,9 @@ class FilesHandler(IPythonHandler):
             raise web.HTTPError(404)
 
         path, name = os.path.split(path)
-        if name.endswith('.ipynb'):
+        model = cm.get_model(name, path)
+
+        if model['type'] == 'notebook':
             self.set_header('Content-Type', 'application/json')
         else:
             cur_mime = mimetypes.guess_type(name)[0]
@@ -42,6 +45,12 @@ class FilesHandler(IPythonHandler):
                 self.set_header('Content-Type', cur_mime)
         
         self.set_header('Content-Disposition','attachment; filename="%s"' % name)
-        self.write(cm.get_model(name, path)['content'])
+
+        if model['format'] == 'base64':
+            self.write(model['content'].decode('base64'))
+        elif model['format'] == 'json':
+            self.write(json.dumps(model['content']))
+        else:
+            self.write(model['content'])
         self.flush()
 
