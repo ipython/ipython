@@ -924,7 +924,7 @@ define([
             this.events.trigger('kernel_starting.Kernel', {kernel: this});
             var that = this;
             this.kernel_info(function () {
-                that.events.trigger('kernel_ready.Kernel', {kernel: this});
+                that.events.trigger('kernel_ready.Kernel', {kernel: that});
             });
 
         } else if (execution_state === 'restarting') {
