@@ -16,7 +16,7 @@ before_install:
     - time sudo apt-get install pandoc casperjs libzmq3-dev
     # pin tornado < 4 for js tests while phantom is on super old webkit
     - if [[ $GROUP == 'js' ]]; then pip install 'tornado<4'; fi
-    - time pip install -f https://nipy.bic.berkeley.edu/wheelhouse/travis jinja2 sphinx pygments tornado requests mock pyzmq jsonschema jsonpointer mistune
+    - time pip install -f https://nipy.bic.berkeley.edu/wheelhouse/travis jinja2 sphinx pygments tornado requests!=2.4.2 mock pyzmq jsonschema jsonpointer mistune
 install:
     - time python setup.py install -q 
 script:
