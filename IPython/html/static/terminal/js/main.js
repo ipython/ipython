@@ -17,9 +17,8 @@ require([
     ){
     page = new page.Page();
     // Test size: 25x80
-    var termRowHeight = 1.00 * $("#dummy-screen")[0].offsetHeight / 25;
-    var termColWidth = 1.02 * $("#dummy-screen-rows")[0].offsetWidth / 80;
-    $("#dummy-screen").hide();
+    var termRowHeight = function(){ return 1.00 * $("#dummy-screen")[0].offsetHeight / 25;};
+    var termColWidth =  function() { return 1.02 * $("#dummy-screen-rows")[0].offsetWidth / 80;};
 
     var base_url = utils.get_body_data('baseUrl');
     var ws_path = utils.get_body_data('wsPath');
@@ -30,10 +29,9 @@ require([
     function calculate_size() {
         height = window.innerHeight - header.offsetHeight;
         width = window.innerWidth;
-        var rows = Math.min(1000, Math.max(20, Math.floor(height/termRowHeight)-1));
-        var cols = Math.min(1000, Math.max(40, Math.floor(width/termColWidth)-1));
-        console.log("resize:", termRowHeight, termColWidth, height, width,
-                                                            rows, cols);
+        var rows = Math.min(1000, Math.max(20, Math.floor(height/termRowHeight())-1));
+        var cols = Math.min(1000, Math.max(40, Math.floor(width/termColWidth())-1));
+        console.log("resize to :", rows , 'rows by ', cols, 'columns');
         return {rows: rows, cols: cols};
     }
     

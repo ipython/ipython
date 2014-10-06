@@ -10483,4 +10483,16 @@ span#autosave_status {
   -ms-transform: rotate(45deg);
   -o-transform: rotate(45deg);
 }
+.terminal {
+  float: left;
+  border: black solid 5px;
+  font-family: "DejaVu Sans Mono", "Liberation Mono", monospace;
+  font-size: 11px;
+  color: white;
+  background: black;
+}
+.terminal-cursor {
+  color: black;
+  background: white;
+}
 /*# sourceMappingURL=../style/style.min.css.map */

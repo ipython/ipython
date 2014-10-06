@@ -5,7 +5,7 @@ define ([], function() {
           cols: size.cols,
           rows: size.rows,
           screenKeys: true,
-          useStyle: true
+          useStyle: false
         });
         ws.onopen = function(event) {
             ws.send(JSON.stringify(["set_size", size.rows, size.cols,

@@ -27,7 +27,8 @@ data-ws-path="{{ws_path}}"
      its size in JS in setting up the page. It is still invisible. Putting in
      the script block gets it outside the initially undisplayed region. -->
 <!-- test size: 25x80 -->
-<pre id="dummy-screen" style="visibility:hidden; border: white solid 5px; font-family: &quot;DejaVu Sans Mono&quot;, &quot;Liberation Mono&quot;, monospace; font-size: 11px;">0
+<div style='position:absolute; left:-1000em'>
+<pre id="dummy-screen" style="" class='terminal' style'border: solid 5px white'>0
 1
 2
 3
@@ -51,8 +52,9 @@ data-ws-path="{{ws_path}}"
 1
 2
 3
-<span id="dummy-screen-rows" style="visibility:hidden;">01234567890123456789012345678901234567890123456789012345678901234567890123456789</span>
+<span id="dummy-screen-rows" style="">01234567890123456789012345678901234567890123456789012345678901234567890123456789</span>
 </pre>
+</div>
 
     {{super()}}
 
