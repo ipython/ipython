@@ -22,7 +22,6 @@ try:
 except ImportError:
     app_log = logging.getLogger()
 
-from IPython.html.utils import is_hidden
 from IPython.html.base.handlers import IPythonHandler
 
 class FilesHandler(IPythonHandler):
@@ -32,7 +31,7 @@ class FilesHandler(IPythonHandler):
     def get(self, path):
         cm = self.settings['contents_manager']
         abs_path = os.path.join(cm.root_dir, path)
-        if is_hidden(abs_path):
+        if cm.is_hidden(abs_path):
             self.log.info("Refusing to serve hidden file, via 404 Error")
             raise web.HTTPError(404)
 
