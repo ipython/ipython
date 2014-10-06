@@ -9,6 +9,7 @@ pjoin = os.path.join
 
 import requests
 import json
+import binascii
 
 from IPython.nbformat.current import (new_notebook, write, new_worksheet,
                               new_heading_cell, new_code_cell,
@@ -92,7 +93,7 @@ class FilesTest(NotebookTestBase):
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.headers['content-type'], 'application/octet-stream')
 
-        self.assertEqual("{:02x}".format(ord(r.content[0])), 'ff')
+        self.assertEqual(binascii.hexlify(r.content[0]), 'ff')
         self.assertEqual(len(r.content), 6)
 
         r = requests.get(url_path_join(base, 'files', 'test.txt'))
