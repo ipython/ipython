@@ -128,20 +128,20 @@ define([
             knw.info("Kernel Created", 500);
         });
 
-        this.events.on('status_reconnecting.Kernel', function () {
+        this.events.on('kernel_reconnecting.Kernel', function () {
             knw.warning("Connecting to kernel");
         });
 
-        this.events.on('status_connected.Kernel', function () {
+        this.events.on('kernel_connected.Kernel', function () {
             knw.info("Connected", 500);
         });
 
-        this.events.on('status_restarting.Kernel', function () {
+        this.events.on('kernel_restarting.Kernel', function () {
             that.save_widget.update_document_title();
             knw.set_message("Restarting kernel", 2000);
         });
 
-        this.events.on('status_autorestarting.Kernel', function (evt, info) {
+        this.events.on('kernel_autorestarting.Kernel', function (evt, info) {
             // Only show the dialog on the first restart attempt. This
             // number gets tracked by the `Kernel` object and passed
             // along here, because we don't want to show the user 5
@@ -167,17 +167,17 @@ define([
             $kernel_ind_icon.attr('class','kernel_dead_icon').attr('title','Kernel Dead');
         });
 
-        this.events.on('status_interrupting.Kernel', function () {
+        this.events.on('kernel_interrupting.Kernel', function () {
             knw.set_message("Interrupting kernel", 2000);
         });
 
-        this.events.on('status_disconnected.Kernel', function () {
+        this.events.on('kernel_disconnected.Kernel', function () {
             $kernel_ind_icon
                 .attr('class', 'kernel_disconnected_icon')
                 .attr('title', 'No Connection to Kernel');
         });
 
-        this.events.on('connection_failed.Kernel', function (evt, info) {
+        this.events.on('kernel_connection_failed.Kernel', function (evt, info) {
             // only show the dialog if this is the first failed
             // connect attempt, because the kernel will continue
             // trying to reconnect and we don't want to spam the user
@@ -201,7 +201,7 @@ define([
             }
         });
 
-        this.events.on('status_killed.Kernel status_killed.Session', function () {
+        this.events.on('kernel_killed.Kernel kernel_killed.Session', function () {
             that.save_widget.update_document_title();
             knw.danger("Dead kernel");
             $kernel_ind_icon.attr('class','kernel_dead_icon').attr('title','Kernel Dead');
@@ -285,24 +285,24 @@ define([
             knw.danger(short, undefined, showMsg);
         });
 
-        this.events.on('status_starting.Kernel', function () {
+        this.events.on('kernel_starting.Kernel', function () {
             window.document.title='(Starting) '+window.document.title;
             $kernel_ind_icon.attr('class','kernel_busy_icon').attr('title','Kernel Busy');
             knw.set_message("Kernel starting, please wait...");
         });
 
-        this.events.on('status_ready.Kernel', function () {
+        this.events.on('kernel_ready.Kernel', function () {
             that.save_widget.update_document_title();
             $kernel_ind_icon.attr('class','kernel_idle_icon').attr('title','Kernel Idle');
             knw.info("Kernel ready", 500);
         });
 
-        this.events.on('status_idle.Kernel', function () {
+        this.events.on('kernel_idle.Kernel', function () {
             that.save_widget.update_document_title();
             $kernel_ind_icon.attr('class','kernel_idle_icon').attr('title','Kernel Idle');
         });
 
-        this.events.on('status_busy.Kernel', function () {
+        this.events.on('kernel_busy.Kernel', function () {
             window.document.title='(Busy) '+window.document.title;
             $kernel_ind_icon.attr('class','kernel_busy_icon').attr('title','Kernel Busy');
         });

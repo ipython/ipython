@@ -99,9 +99,9 @@ casper.notebook_test(function () {
         'start_session',
         [
             'kernel_created.Session',
-            'status_connected.Kernel',
-            'status_starting.Kernel',
-            'status_ready.Kernel'
+            'kernel_connected.Kernel',
+            'kernel_starting.Kernel',
+            'kernel_ready.Kernel'
         ],
         function () {
             this.thenEvaluate(function () {
@@ -114,7 +114,7 @@ casper.notebook_test(function () {
     // check for events when killing the session
     this.event_test(
         'delete_session',
-        ['status_killed.Session'],
+        ['kernel_killed.Session'],
         function () {
             this.thenEvaluate(function () {
                 IPython.notebook.session.delete();
@@ -126,11 +126,11 @@ casper.notebook_test(function () {
     this.event_test(
         'restart_session',
         [
-            'status_killed.Session',
+            'kernel_killed.Session',
             'kernel_created.Session',
-            'status_connected.Kernel',
-            'status_starting.Kernel',
-            'status_ready.Kernel'
+            'kernel_connected.Kernel',
+            'kernel_starting.Kernel',
+            'kernel_ready.Kernel'
         ],
         function () {
             this.thenEvaluate(function () {
@@ -144,9 +144,9 @@ casper.notebook_test(function () {
     this.event_test(
         'failed_restart',
         [
-            'status_restarting.Kernel',
-            'status_autorestarting.Kernel',
-            'status_killed.Session',
+            'kernel_restarting.Kernel',
+            'kernel_autorestarting.Kernel',
+            'kernel_killed.Session',
             'kernel_dead.Kernel',
         ],
         function () {
@@ -170,7 +170,7 @@ casper.notebook_test(function () {
     this.event_test(
         'bad_start_session',
         [
-            'status_killed.Session',
+            'kernel_killed.Session',
             'kernel_dead.Session'
         ],
         function () {

@@ -162,11 +162,11 @@ casper.notebook_test(function () {
     this.event_test(
         'kill/start',
         [
-            'status_killed.Kernel',
+            'kernel_killed.Kernel',
             'kernel_created.Kernel',
-            'status_connected.Kernel',
-            'status_starting.Kernel',
-            'status_ready.Kernel'
+            'kernel_connected.Kernel',
+            'kernel_starting.Kernel',
+            'kernel_ready.Kernel'
         ],
         function () {
             this.thenEvaluate(function () {
@@ -185,8 +185,8 @@ casper.notebook_test(function () {
     this.event_test(
         'reconnect',
         [
-            'status_reconnecting.Kernel',
-            'status_connected.Kernel',
+            'kernel_reconnecting.Kernel',
+            'kernel_connected.Kernel',
         ],
         function () {
             this.thenEvaluate(function () {
@@ -202,11 +202,11 @@ casper.notebook_test(function () {
     this.event_test(
         'restart',
         [
-            'status_restarting.Kernel',
+            'kernel_restarting.Kernel',
             'kernel_created.Kernel',
-            'status_connected.Kernel',
-            'status_starting.Kernel',
-            'status_ready.Kernel'
+            'kernel_connected.Kernel',
+            'kernel_starting.Kernel',
+            'kernel_ready.Kernel'
         ],
         function () {
             this.thenEvaluate(function () {
@@ -221,9 +221,9 @@ casper.notebook_test(function () {
     this.event_test(
         'interrupt',
         [
-            'status_interrupting.Kernel',
-            'status_busy.Kernel',
-            'status_idle.Kernel'
+            'kernel_interrupting.Kernel',
+            'kernel_busy.Kernel',
+            'kernel_idle.Kernel'
         ],
         function () {
             this.thenEvaluate(function () {
@@ -237,11 +237,11 @@ casper.notebook_test(function () {
     this.event_test(
         'ws_closed_ok',
         [
-            'status_disconnected.Kernel',
-            'status_reconnecting.Kernel',
-            'status_connected.Kernel',
-            'status_busy.Kernel',
-            'status_idle.Kernel'
+            'kernel_disconnected.Kernel',
+            'kernel_reconnecting.Kernel',
+            'kernel_connected.Kernel',
+            'kernel_busy.Kernel',
+            'kernel_idle.Kernel'
         ],
         function () {
             this.thenEvaluate(function () {
@@ -256,8 +256,8 @@ casper.notebook_test(function () {
     this.event_test(
         'ws_closed_error',
         [
-            'status_disconnected.Kernel',
-            'connection_failed.Kernel'
+            'kernel_disconnected.Kernel',
+            'kernel_connection_failed.Kernel'
         ],
         function () {
             this.thenEvaluate(function () {
@@ -277,8 +277,8 @@ casper.notebook_test(function () {
     this.event_test(
         'autorestarting',
         [
-            'status_restarting.Kernel',
-            'status_autorestarting.Kernel',
+            'kernel_restarting.Kernel',
+            'kernel_autorestarting.Kernel',
         ],
         function () {
             this.thenEvaluate(function () {
@@ -294,8 +294,8 @@ casper.notebook_test(function () {
     this.event_test(
         'failed_restart',
         [
-            'status_restarting.Kernel',
-            'status_autorestarting.Kernel',
+            'kernel_restarting.Kernel',
+            'kernel_autorestarting.Kernel',
             'kernel_dead.Kernel'
         ],
         function () {

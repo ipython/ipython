@@ -56,7 +56,7 @@ define([
 
         this.events.on('kernel_created.Session', record_status);
         this.events.on('kernel_dead.Session', record_status);
-        this.events.on('status_killed.Session', record_status);
+        this.events.on('kernel_killed.Session', record_status);
 
         // if the kernel dies, then also remove the session
         this.events.on('kernel_dead.Kernel', function () {
@@ -189,7 +189,7 @@ define([
      */
     Session.prototype.delete = function (success, error) {
         if (this.kernel) {
-            this.events.trigger('status_killed.Session', {session: this, kernel: this.kernel});
+            this.events.trigger('kernel_killed.Session', {session: this, kernel: this.kernel});
             this.kernel._kernel_dead();
         }
 

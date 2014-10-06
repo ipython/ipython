@@ -28,10 +28,10 @@ casper.open_new_notebook = function () {
     this.thenEvaluate(function () {
         require(['base/js/namespace', 'base/js/events'], function (IPython, events) {
         
-            events.on('status_idle.Kernel',function () {
+            events.on('kernel_idle.Kernel',function () {
                 IPython._status = 'idle';
             });
-            events.on('status_busy.Kernel',function () {
+            events.on('kernel_busy.Kernel',function () {
                 IPython._status = 'busy';
             });
         });

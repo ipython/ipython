@@ -99,25 +99,25 @@ define([
         };
 
         this.events.on('kernel_created.Kernel', record_status);
-        this.events.on('status_reconnecting.Kernel', record_status);
-        this.events.on('status_connected.Kernel', record_status);
-        this.events.on('status_starting.Kernel', record_status);
-        this.events.on('status_restarting.Kernel', record_status);
-        this.events.on('status_autorestarting.Kernel', record_status);
-        this.events.on('status_interrupting.Kernel', record_status);
-        this.events.on('status_disconnected.Kernel', record_status);
+        this.events.on('kernel_reconnecting.Kernel', record_status);
+        this.events.on('kernel_connected.Kernel', record_status);
+        this.events.on('kernel_starting.Kernel', record_status);
+        this.events.on('kernel_restarting.Kernel', record_status);
+        this.events.on('kernel_autorestarting.Kernel', record_status);
+        this.events.on('kernel_interrupting.Kernel', record_status);
+        this.events.on('kernel_disconnected.Kernel', record_status);
         // these are commented out because they are triggered a lot, but can
         // be uncommented for debugging purposes
-        //this.events.on('status_idle.Kernel', record_status);
-        //this.events.on('status_busy.Kernel', record_status);
-        this.events.on('status_ready.Kernel', record_status);
-        this.events.on('status_killed.Kernel', record_status);
+        //this.events.on('kernel_idle.Kernel', record_status);
+        //this.events.on('kernel_busy.Kernel', record_status);
+        this.events.on('kernel_ready.Kernel', record_status);
+        this.events.on('kernel_killed.Kernel', record_status);
         this.events.on('kernel_dead.Kernel', record_status);
 
-        this.events.on('status_ready.Kernel', function () {
+        this.events.on('kernel_ready.Kernel', function () {
             that._autorestart_attempt = 0;
         });
-        this.events.on('status_connected.Kernel', function () {
+        this.events.on('kernel_connected.Kernel', function () {
             that._reconnect_attempt = 0;
         });
     };
@@ -236,7 +236,7 @@ define([
      * @param {function} [error] - functon executed on ajax error
      */
     Kernel.prototype.kill = function (success, error) {
-        this.events.trigger('status_killed.Kernel', {kernel: this});
+        this.events.trigger('kernel_killed.Kernel', {kernel: this});
         this._kernel_dead();
         $.ajax(this.kernel_url, {
             processData: false,
@@ -258,7 +258,7 @@ define([
      * @param {function} [error] - functon executed on ajax error
      */
     Kernel.prototype.interrupt = function (success, error) {
-        this.events.trigger('status_interrupting.Kernel', {kernel: this});
+        this.events.trigger('kernel_interrupting.Kernel', {kernel: this});
 
         var that = this;
         var on_success = function (data, status, xhr) {
@@ -290,7 +290,7 @@ define([
      * @param {function} [error] - functon executed on ajax error
      */
     Kernel.prototype.restart = function (success, error) {
-        this.events.trigger('status_restarting.Kernel', {kernel: this});
+        this.events.trigger('kernel_restarting.Kernel', {kernel: this});
         this.stop_channels();
 
         var that = this;
@@ -329,7 +329,7 @@ define([
      * @function reconnect
      */
     Kernel.prototype.reconnect = function () {
-        this.events.trigger('status_reconnecting.Kernel', {kernel: this});
+        this.events.trigger('kernel_reconnecting.Kernel', {kernel: this});
         setTimeout($.proxy(this.start_channels, this), 3000);
     };
 
@@ -392,12 +392,12 @@ define([
      * @function _kernel_connected
      */
     Kernel.prototype._kernel_connected = function () {
-        this.events.trigger('status_connected.Kernel', {kernel: this});
-        this.events.trigger('status_starting.Kernel', {kernel: this});
+        this.events.trigger('kernel_connected.Kernel', {kernel: this});
+        this.events.trigger('kernel_starting.Kernel', {kernel: this});
         // get kernel info so we know what state the kernel is in
         var that = this;
         this.kernel_info(function () {
-            that.events.trigger('status_ready.Kernel', {kernel: this});
+            that.events.trigger('kernel_ready.Kernel', {kernel: this});
         });
     };
 
@@ -520,11 +520,11 @@ define([
     Kernel.prototype._ws_closed = function(ws_url, error) {
         this.stop_channels();
 
-        this.events.trigger('status_disconnected.Kernel', {kernel: this});
+        this.events.trigger('kernel_disconnected.Kernel', {kernel: this});
         if (error) {
             console.log('WebSocket connection failed: ', ws_url);
             this._reconnect_attempt = this._reconnect_attempt + 1;
-            this.events.trigger('connection_failed.Kernel', {kernel: this, ws_url: ws_url, attempt: this._reconnect_attempt});
+            this.events.trigger('kernel_connection_failed.Kernel', {kernel: this, ws_url: ws_url, attempt: this._reconnect_attempt});
         }
         this.reconnect();
     };
@@ -909,7 +909,7 @@ define([
         }
         
         if (execution_state === 'busy') {
-            this.events.trigger('status_busy.Kernel', {kernel: this});
+            this.events.trigger('kernel_busy.Kernel', {kernel: this});
 
         } else if (execution_state === 'idle') {
             // signal that iopub callbacks are (probably) done
@@ -918,23 +918,23 @@ define([
             this._finish_iopub(parent_id);
             
             // trigger status_idle event
-            this.events.trigger('status_idle.Kernel', {kernel: this});
+            this.events.trigger('kernel_idle.Kernel', {kernel: this});
 
         } else if (execution_state === 'starting') {
-            this.events.trigger('status_starting.Kernel', {kernel: this});
+            this.events.trigger('kernel_starting.Kernel', {kernel: this});
             var that = this;
             this.kernel_info(function () {
-                that.events.trigger('status_ready.Kernel', {kernel: this});
+                that.events.trigger('kernel_ready.Kernel', {kernel: this});
             });
 
         } else if (execution_state === 'restarting') {
             // autorestarting is distinct from restarting,
             // in that it means the kernel died and the server is restarting it.
-            // status_restarting sets the notification widget,
+            // kernel_restarting sets the notification widget,
             // autorestart shows the more prominent dialog.
             this._autorestart_attempt = this._autorestart_attempt + 1;
-            this.events.trigger('status_restarting.Kernel', {kernel: this});
-            this.events.trigger('status_autorestarting.Kernel', {kernel: this, attempt: this._autorestart_attempt});
+            this.events.trigger('kernel_restarting.Kernel', {kernel: this});
+            this.events.trigger('kernel_autorestarting.Kernel', {kernel: this, attempt: this._autorestart_attempt});
 
         } else if (execution_state === 'dead') {
             this.events.trigger('kernel_dead.Kernel', {kernel: this});

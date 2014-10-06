@@ -82,10 +82,10 @@ define([
         this.cell = cell;
         this.editor = cell.code_mirror;
         var that = this;
-        events.on('status_busy.Kernel', function () {
+        events.on('kernel_busy.Kernel', function () {
             that.skip_kernel_completion = true;
         });
-        events.on('status_idle.Kernel', function () {
+        events.on('kernel_idle.Kernel', function () {
             that.skip_kernel_completion = false;
         });
     };
