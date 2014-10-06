@@ -63,6 +63,7 @@ define([
         this.last_msg_callbacks = {};
 
         this._autorestart_attempt = 0;
+        this._reconnect_attempt = 0;
     };
 
     /**
@@ -115,6 +116,9 @@ define([
 
         this.events.on('status_ready.Kernel', function () {
             that._autorestart_attempt = 0;
+        });
+        this.events.on('status_connected.Kernel', function () {
+            that._reconnect_attempt = 0;
         });
     };
 
@@ -517,12 +521,12 @@ define([
         this.stop_channels();
 
         this.events.trigger('status_disconnected.Kernel', {kernel: this});
-        if (!error) {
-            this.reconnect();
-        } else {
+        if (error) {
             console.log('WebSocket connection failed: ', ws_url);
-            this.events.trigger('connection_failed.Kernel', {kernel: this, ws_url: ws_url});
+            this._reconnect_attempt = this._reconnect_attempt + 1;
+            this.events.trigger('connection_failed.Kernel', {kernel: this, ws_url: ws_url, attempt: this._reconnect_attempt});
         }
+        this.reconnect();
     };
 
     /**

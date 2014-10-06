@@ -175,37 +175,35 @@ define([
         });
 
         this.events.on('status_disconnected.Kernel', function () {
-            knw.danger("Disconnected", undefined, function () {
-                that.notebook.kernel.reconnect();
-                return false;
-            });
             $kernel_ind_icon
                 .attr('class', 'kernel_disconnected_icon')
                 .attr('title', 'No Connection to Kernel');
         });
 
-        this.events.on('connection_failed.Kernel', function () {
-            // hide existing dialog
-            $(".modal").modal('hide');
+        this.events.on('connection_failed.Kernel', function (evt, info) {
+            // only show the dialog if this is the first failed
+            // connect attempt, because the kernel will continue
+            // trying to reconnect and we don't want to spam the user
+            // with messages
+            if (info.attempt === 1) {
+                // hide existing dialog
+                $(".modal").modal('hide');
 
-            var msg = "A WebSocket connection could not be established." +
-                " You will NOT be able to run code. Check your" +
-                " network connection or notebook server configuration.";
+                var msg = "A connection to the notebook server could not be established." +
+                        " The notebook will continue trying to reconnect, but" +
+                        " until it does, you will NOT be able to run code. Check your" +
+                        " network connection or notebook server configuration.";
 
-            dialog.modal({
-                title: "WebSocket connection failed",
-                body: msg,
-                keyboard_manager: that.keyboard_manager,
-                notebook: that.notebook,
-                buttons : {
-                    "OK": {},
-                    "Reconnect": {
-                        click: function () {
-                            that.notebook.kernel.reconnect();
-                        }
+                dialog.modal({
+                    title: "Connection failed",
+                    body: msg,
+                    keyboard_manager: that.keyboard_manager,
+                    notebook: that.notebook,
+                    buttons : {
+                        "OK": {}
                     }
-                }
-            });
+                });
+            }
         });
 
         this.events.on('status_killed.Kernel status_killed.Session', function () {
