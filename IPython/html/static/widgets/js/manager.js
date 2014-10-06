@@ -8,6 +8,8 @@ define([
     "base/js/namespace"
 ], function (_, Backbone, $, IPython) {
 
+    "use strict";
+
     //--------------------------------------------------------------------
     // WidgetManager class
     //--------------------------------------------------------------------
@@ -15,7 +17,7 @@ define([
         // Public constructor
         WidgetManager._managers.push(this);
 
-        // Attach a comm manager to the 
+        // Attach a comm manager
         this.keyboard_manager = notebook.keyboard_manager;
         this.notebook = notebook;
         this.comm_manager = comm_manager;
@@ -25,6 +27,19 @@ define([
         var that = this;
         _.each(WidgetManager._model_types, function(model_type, model_name) {
             that.comm_manager.register_target(model_name, $.proxy(that._handle_comm_open, that));
+        });
+
+        // Custom widget loader
+        this.comm_manager.register_target("manager", function(comm) {
+            comm.on_msg(function(msg) {
+                var data = msg.content.data;
+                switch (data.target_type) {
+                    case "widget_model":
+                        WidgetManager._load_model(data.target_name, data.path);
+                    case "widget_view":
+                        WidgetManager._load_view(data.target_name, data.path);
+                }
+            });
         });
     };
 
@@ -51,6 +66,20 @@ define([
     WidgetManager.register_widget_view = function (view_name, view_type) {
         // Registers a widget view by name.
         WidgetManager._view_types[view_name] = view_type;
+    };
+
+    WidgetManager._load_model = function(target_name, mod) {
+        // Loads a widget model module and registers it.
+        require([mod], function(m) {
+            WidgetManager.register_widget_model(target_name, m);
+        }, function(err) { console.log(err); });
+    };
+
+    WidgetManager._load_view = function(target_name, mod) {
+        // Loads a widget view module and registers it.
+        require([mod], function(m) {
+            WidgetManager.register_widget_view(target_name, m);
+        }, function(err) { console.log(err); });
     };
 
     //--------------------------------------------------------------------
