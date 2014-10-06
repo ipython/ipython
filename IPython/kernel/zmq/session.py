@@ -635,6 +635,7 @@ class Session(Configurable):
             # We got a Message or message dict, not a msg_type so don't
             # build a new Message.
             msg = msg_or_type
+            buffers = buffers or msg.get('buffers', [])
         else:
             msg = self.msg(msg_or_type, content=content, parent=parent,
                            header=header, metadata=metadata)
