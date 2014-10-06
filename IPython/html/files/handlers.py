@@ -7,6 +7,8 @@ import logging
 import os
 import mimetypes
 import json
+import base64
+
 try:
     # py3
     from http.client import responses
@@ -47,7 +49,8 @@ class FilesHandler(IPythonHandler):
         self.set_header('Content-Disposition','attachment; filename="%s"' % name)
 
         if model['format'] == 'base64':
-            self.write(model['content'].decode('base64'))
+            b64_bytes = model['content'].encode('ascii')
+            self.write(base64.decodestring(b64_bytes))
         elif model['format'] == 'json':
             self.write(json.dumps(model['content']))
         else:
