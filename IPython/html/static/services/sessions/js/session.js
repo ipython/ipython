@@ -50,8 +50,8 @@ define([
 
     Session.prototype.bind_events = function () {
         var that = this;
-        var record_status = function (evt) {
-            console.log('Session: ' + evt.type + ' (' + that.id + ')');
+        var record_status = function (evt, info) {
+            console.log('Session: ' + evt.type + ' (' + info.session.id + ')');
         };
 
         this.events.on('kernel_created.Session', record_status);

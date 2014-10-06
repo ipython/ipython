@@ -94,8 +94,8 @@ define([
             that.send_input_reply(data);
         });
 
-        var record_status = function (evt) {
-            console.log('Kernel: ' + evt.type + ' (' + that.id + ')');
+        var record_status = function (evt, info) {
+            console.log('Kernel: ' + evt.type + ' (' + info.kernel.id + ')');
         };
 
         this.events.on('kernel_created.Kernel', record_status);
@@ -397,7 +397,7 @@ define([
         // get kernel info so we know what state the kernel is in
         var that = this;
         this.kernel_info(function () {
-            that.events.trigger('kernel_ready.Kernel', {kernel: this});
+            that.events.trigger('kernel_ready.Kernel', {kernel: that});
         });
     };
 
@@ -451,7 +451,7 @@ define([
                 that.get_info(function () {
                     that._ws_closed(ws_host_url, false);
                 }, function () {
-                    that.events.trigger('kernel_dead.Kernel', {kernel: this});
+                    that.events.trigger('kernel_dead.Kernel', {kernel: that});
                     that._kernel_dead();
                 });
             }
@@ -539,7 +539,7 @@ define([
         var that = this;
         var close = function (c) {
             return function () {
-                if (that.channels[c].readyState === WebSocket.CLOSED) {
+                if (that.channels[c] && that.channels[c].readyState === WebSocket.CLOSED) {
                     that.channels[c] = null;
                 }
             };
@@ -715,7 +715,7 @@ define([
             content.allow_stdin = true;
         }
         $.extend(true, content, options);
-        this.events.trigger('execution_request.Kernel', {kernel: this, content:content});
+        this.events.trigger('execution_request.Kernel', {kernel: this, content: content});
         return this.send_shell_message("execute_request", content, callbacks);
     };
 
@@ -753,7 +753,7 @@ define([
         var content = {
             value : input
         };
-        this.events.trigger('input_reply.Kernel', {kernel: this, content:content});
+        this.events.trigger('input_reply.Kernel', {kernel: this, content: content});
         var msg = this._get_msg("input_reply", content);
         this.channels.stdin.send(JSON.stringify(msg));
         return msg.header.msg_id;
@@ -854,7 +854,7 @@ define([
      */
     Kernel.prototype._handle_shell_reply = function (e) {
         var reply = $.parseJSON(e.data);
-        this.events.trigger('shell_reply.Kernel', {kernel: this, reply:reply});
+        this.events.trigger('shell_reply.Kernel', {kernel: this, reply: reply});
         var content = reply.content;
         var metadata = reply.metadata;
         var parent_id = reply.parent_header.msg_id;
