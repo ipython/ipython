@@ -142,8 +142,13 @@ define([
         });
 
         this.events.on('status_autorestarting.Kernel', function (evt, info) {
-            // only show the dialog on the first restart attempt
-            if (info.attempt == 1) {
+            // Only show the dialog on the first restart attempt. This
+            // number gets tracked by the `Kernel` object and passed
+            // along here, because we don't want to show the user 5
+            // dialogs saying the same thing (which is the number of
+            // times it tries restarting).
+            if (info.attempt === 1) {
+
                 // hide existing modal dialog
                 $(".modal").modal('hide');
 
