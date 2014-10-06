@@ -244,7 +244,7 @@ define([
     };
 
     /**
-     * Rebuild all the button on the toolbar to update its state.
+     * Rebuild all the buttons on the toolbar to update its state.
      * @method rebuild
      */
     CellToolbar.prototype.rebuild = function(){

@@ -148,9 +148,10 @@ define([
 
             // Animate the textbox 'closing', and then remove it from the DOM.
             $filter_text = $filter_button.data('filter_text')
+            var that = this;
             $filter_text.animate({width: 0}, 200, 
                 'swing', function() {
-
+                that._handle_filter();
                 $filter_text.remove();
             });
             $filter_button.data('filter_text', false);
@@ -159,6 +160,7 @@ define([
         } else {
             $filter_text = $('<input/>')
                 .attr('type', 'text')
+                .attr('placeholder', 'Tag filter expression...')
                 .width(0)
                 .addClass('form-control input-sm');
             $filter_button.data('filter_text', $filter_text);
@@ -175,25 +177,76 @@ define([
             $filter_text.animate({width: 200}, 200, 'swing');
 
             // Handle when the filter is changed.
-            $filter_text.on('keyup', $.proxy(this._handle_filter, this));
+            $filter_text.on('change', $.proxy(this._handle_filter, this));
         }
     };
 
     MainToolBar.prototype._handle_filter = function(e) {
-        var $filter_text = $(e.currentTarget);
-        var filter = $filter_text.val();
+        // Handle when the user sets a filter.
+
+        // If the event object `e` exists, assume this method was fired as the
+        // result of an event and get the value of the filter from the value of
+        // the object that caused the event to fire.  Otherwise, assume the 
+        // filter is empty.
+        var filter;
+        if (e) {
+            var $filter_text = $(e.currentTarget);
+            filter = $filter_text.val();
+        } else {
+            filter = '';
+        }
         
+        // Evaluate the filter for each cell.
         var cells = IPython.notebook.get_cells();
         for (var i = 0; i < cells.length; i++) {
-            cells[i].element.css('display', this._eval_filter(cells[i].metadata.tags, filter) ? '' : 'none');
+            var tags = $.merge([], cells[i].metadata.tags);
+            // Add the cell type as a tag that can be filtered by.
+            tags.push(cells[i].cell_type);
+            cells[i].element.css('display', this._eval_expression(tags, filter) ? '' : 'none');
         }
     };
 
-    MainToolBar.prototype._eval_filter = function(truths, expression) {
+    MainToolBar.prototype._eval_expression = function(truths, expression) {
+        // Evaluate a simple expression given a list of truths.
+        //
+        // Parameters
+        // ----------
+        // truths: list(of string)
+        //      Each value in this list is treated as a `true` boolean when the
+        //      expression is evaluated.
+        // expression: string
+        //      An expression.  `not`, `and`, `or`, and parenthesis are 
+        //      supported.  `true` and `false` are keywords of the evaluator.
+        //
+        // Returns
+        // -------
+        // boolean result of the expression.
+
+        // Find the opening parenthesis first, if it exists.  Then walk until
+        // the matching close parenthesis is found.  Make sure that 
         var parenthesis_start = expression.indexOf('(');
         var parenthesis_end = expression.lastIndexOf(')');
+        if (parenthesis_start != -1) {
+            var depth = 0;
+            for (var i = parenthesis_start + 1; i < expression.length; i++) {
+                if (expression[i] == '(') { depth++; }
+                if (expression[i] == ')') { depth--; }
+                if (depth == -1) {
+                    parenthesis_end = i;
+                    break;
+                }
+            }
+        }
+
+        // Check the parenthesis indicies to determine whether or not the 
+        // expression should be broken into pieces.  Also validate that the
+        // parenthesis are properly balanced.
         if (parenthesis_start != -1 && parenthesis_end != -1) {
             if (parenthesis_end > parenthesis_start) {
+
+                // Evaluate the sub-expression in the parenthesis first.  Then
+                // re-embed the sub-expression's results into the location in
+                // the expression that it existed in initially.
                 var start = expression.substring(0, parenthesis_start-1);
                 var mid_results = eval_filter(truths, expression.substring(parenthesis_start+1, parenthesis_end-1));
                 var end = expression.substring(parenthesis_end+1);
@@ -205,32 +258,48 @@ define([
             console.log('unbalanced parenthesis');
         }
         
+        // If the expression is empty, return true.
         expression = expression.trim();
-        if (expression) {
-            var parts = expression.split(' ');
-            var is_or = true;
+        if (!expression) {
+            return true;
+        } else {
+
+            // Evaluation flags.
             var needs_or = false;
             var is_not = false;
+
+            // Evaluate the expression from left to right.
+            var parts = expression.split(' ');
             for (var i = 0; i < parts.length; i++) {
+
+                // If an `or` is needed because the preceeding expression 
+                // evaluated to false and the `or` cannot be found, return false.
                 var part = parts[i].trim().toLowerCase();
                 if (part != 'or' && needs_or) {
                     return false;
                 }
                 
+                // Evaluate the current word of the expression.
                 if (part == 'and') { 
                 } else if (part == 'or') {
+                    // An `or` was found.  If the `or` flag is set, reset it
+                    // and continue evaluation.  Otherwise, return true since
+                    // the preceeding expression evaluated to true.
                     if (needs_or) {
                         needs_or = false;
                     } else {
                         return true;
                     }
                 } else if (part == 'not') {
+                    // Set the `not` flag.
                     is_not = !is_not;
                 } else {
                     var value;
                     if (part == 'false' || part == 'true') {
                         value = (part == 'true');
                     } else {    
+                        // Value is a non-keyword.  Check if it exists in the
+                        // list of truths.  If it doesn't exist, it's a false.
                         var contains = false;
                         for (var j = 0; j < truths.length; j++) {
                             if (truths[j].toLowerCase() == part) {
@@ -241,11 +310,15 @@ define([
                         value = contains;
                     }
                     
+                    // Invert the results if the `not` flag is set.
                     if (is_not) {
                         value = !value;
                         is_not = false;
                     }
                     
+                    // If the results are false, set the `or` flag to signify
+                    // that an `or` is required in order for the expression to
+                    // have a possibility of evaluating as true.
                     if (!value) {
                         needs_or = true;
                     }
@@ -253,8 +326,6 @@ define([
             }
             
             return !needs_or;
-        } else {
-            return true;
         }
     }
 

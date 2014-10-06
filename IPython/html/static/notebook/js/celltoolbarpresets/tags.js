@@ -8,27 +8,8 @@ define([
 ], function($, celltoolbar, bootstraptags) {
     "use strict";
 
-    var init_cell_toolbar = function(notebook, keyboard_manager){
-        var tags = toolbar_tag_ui_generator(keyboard_manager, 
-            function(cell, tags){ // Setter
-                cell.metadata.tags = tags;
-                console.log(cell, tags);
-                
-                var $tag_inputs = $('.celltoolbar .bootstrap-tags');
-                var suggestions = get_suggestions();
-                for (var i =0; i < $tag_inputs.length; i++) {
-                    $($tag_inputs[i]).data('tags').suggestions = suggestions;
-                }
-            },
-            function(cell){ // Getter
-                return cell.metadata.tags;
-            });
-        celltoolbar.CellToolbar.register_callback('default.tags', tags);
-        celltoolbar.CellToolbar.register_preset('Cell tags', ['default.tags'], notebook);
-        console.log('Cell tags extension loaded.');
-    };
-
     var get_suggestions = function() {
+        // Get a list of suggestions to use in the tags toolbar.
         var suggestions = [];
         var cells = IPython.notebook.get_cells();
         for (var i = 0; i < cells.length; i++) {
@@ -48,22 +29,26 @@ define([
     };
 
     var toolbar_tag_ui_generator = function(keyboard_manager, setter, getter){
+        // Generate a tags cell toolbar control.
         return function(div, cell, celltoolbar) {
-            var button_container = $(div).addClass('box-flex1');
-            
+            var $button_container = $(div).addClass('box-flex1');
             var $tag_list = $('<div/>')
                 .addClass('tag-list');
+            $button_container.append($tag_list);
+
             var tags = $tag_list.tags({
                 tagData: getter(cell),
                 suggestions: get_suggestions(),
                 caseInsensitive: true
             });
             $tag_list.data('tags', tags);
+            $tag_list.click(function(){
+                tags.renderTags();
+            })
             $tag_list.keyup(function(){
                 setter(cell, tags.getTags());
             });
             $tag_list.find('input').width('100%');
-            button_container.append($tag_list);
             keyboard_manager.register_events($tag_list);
         };
     };
@@ -80,7 +65,23 @@ define([
         };
 
         // Register the cell tagging toolbar.
-        init_cell_toolbar(notebook, keyboard_manager);
+        var tags = toolbar_tag_ui_generator(keyboard_manager, 
+            function(cell, tags){ // Setter
+                cell.metadata.tags = tags;
+                console.log(cell, tags);
+                
+                var $tag_inputs = $('.celltoolbar .bootstrap-tags');
+                var suggestions = get_suggestions();
+                for (var i =0; i < $tag_inputs.length; i++) {
+                    $($tag_inputs[i]).data('tags').suggestions = suggestions;
+                }
+            },
+            function(cell){ // Getter
+                return cell.metadata.tags;
+            });
+        celltoolbar.CellToolbar.register_callback('default.tags', tags);
+        celltoolbar.CellToolbar.register_preset('Cell tags', ['default.tags'], notebook);
+        console.log('Cell tags extension loaded.');
     };
     return {'register': register};
 });
