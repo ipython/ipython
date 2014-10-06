@@ -30,8 +30,7 @@ class FilesHandler(IPythonHandler):
     @web.authenticated
     def get(self, path):
         cm = self.settings['contents_manager']
-        abs_path = os.path.join(cm.root_dir, path)
-        if cm.is_hidden(abs_path):
+        if cm.is_hidden(path):
             self.log.info("Refusing to serve hidden file, via 404 Error")
             raise web.HTTPError(404)
 
