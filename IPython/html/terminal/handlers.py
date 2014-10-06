@@ -19,7 +19,7 @@ class NewTerminalHandler(IPythonHandler):
     @web.authenticated
     def get(self):
         name, _ = self.application.terminal_manager.new_named_terminal()
-        self.redirect("/terminals/%s" % name, permanent=False)
+        self.redirect(name, permanent=False)
 
 class TermSocket(terminado.TermSocket, IPythonHandler):
     def get(self, *args, **kwargs):
