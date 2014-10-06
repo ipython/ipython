@@ -97,7 +97,7 @@ define([
         var loader = new Loader();
         WidgetManager.register_widget_model(target_name, loader);
         require([mod], function(m) {
-                loader.fire_loaded(m);
+                loader.fire_loaded(m[target_name]);
             }, function(err) { console.log(err);
         });
     };
@@ -107,7 +107,7 @@ define([
         var loader = new Loader();
         WidgetManager.register_widget_view(target_name, loader);
         require([mod], function(m) {
-                loader.fire_loaded(m);
+                loader.fire_loaded(m[target_name]);
             }, function(err) { console.log(err);
         });
     };
