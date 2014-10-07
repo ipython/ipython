@@ -139,7 +139,7 @@ define([
         default_celltoolbar.register(this);
         rawcell_celltoolbar.register(this);
         slideshow_celltoolbar.register(this);
-        tags_celltoolbar.register(this, this.keyboard_manager);
+        tags_celltoolbar.register(this);
     };
 
     Notebook.options_default = {

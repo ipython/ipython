@@ -135,49 +135,53 @@ define([
             label : 'Filter based on cell tags',
             icon : 'fa-filter',
             callback : $.proxy(this._handle_filter_click, this)}]);
+        this.$filter_text = null;
     };
     
     MainToolBar.prototype._handle_filter_click = function (e) {
         // Handles when the filter button is clicked.
 
+        // If the filter textbox hasn't been created yet, create it now.
         var $filter_button = $(e.currentTarget);
-        var $filter_text;
-
-        // If a filter textbox already exists, remove the textbox.
-        if ($filter_button.data('filter_text')) {
-
-            // Animate the textbox 'closing', and then remove it from the DOM.
-            $filter_text = $filter_button.data('filter_text')
-            var that = this;
-            $filter_text.animate({width: 0}, 200, 
-                'swing', function() {
-                that._handle_filter();
-                $filter_text.remove();
-            });
-            $filter_button.data('filter_text', false);
-            
-        // A filter textbox doesn't exist yet.  Create a filter textbox here.
-        } else {
-            $filter_text = $('<input/>')
+        if (!this.$filter_text) {
+            this.$filter_text = $('<input/>')
                 .attr('type', 'text')
                 .attr('placeholder', 'Tag filter expression...')
+                .css('display', 'none')
                 .width(0)
                 .addClass('form-control input-sm');
-            $filter_button.data('filter_text', $filter_text);
-            $filter_button.after($filter_text);
+        }
+
+        // If the filter textbox is visible, hide it.
+        if (this.$filter_text.css('display') != 'none') {
+
+            // Animate the textbox 'closing', and then remove it from the DOM.
+            var that = this;
+            this.$filter_text.animate({width: 0}, 200, 
+                'swing', function() {
+                that.$filter_text.val('');
+                that._handle_filter();
+                that.$filter_text.css('display', 'none');
+                that.$filter_text.detach();
+            });
+            
+        // The filter textbox is not visible, show it.
+        } else {
+            this.$filter_text.css('display', '');
+            $filter_button.after(this.$filter_text);
             
             // Prevent notebook events from firing when the user types in the 
             // filter textbox.
-            this.notebook.keyboard_manager.register_events($filter_text);
+            this.notebook.keyboard_manager.register_events(this.$filter_text);
 
             // Make sure the button group has a css class that we can style.
             $filter_button.parent().addClass('filter-control');
 
             // Animate the textbox's display.
-            $filter_text.animate({width: 200}, 200, 'swing');
+            this.$filter_text.animate({width: 200}, 200, 'swing');
 
             // Handle when the filter is changed.
-            $filter_text.on('change', $.proxy(this._handle_filter, this));
+            this.$filter_text.on('change', $.proxy(this._handle_filter, this));
         }
     };
 

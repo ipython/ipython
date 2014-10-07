@@ -8,27 +8,38 @@ define([
 ], function($, celltoolbar, bootstraptags) {
     "use strict";
 
-    var get_suggestions = function() {
+    var get_suggestions = function(notebook) {
         // Get a list of suggestions to use in the tags toolbar.
         var suggestions = [];
-        var cells = IPython.notebook.get_cells();
+        var cells = notebook.get_cells();
         for (var i = 0; i < cells.length; i++) {
             if (cells[i].metadata.tags) {
                 suggestions = $.merge(suggestions, cells[i].metadata.tags);
             }
         }
 
-        if (IPython.notebook.tag_suggestions) {
-            if (IPython.notebook.tag_suggestions instanceof Function) {
-                suggestions = $.merge(suggestions, IPython.notebook.tag_suggestions.apply(this, []));
+        if (notebook.tag_suggestions) {
+            if (notebook.tag_suggestions instanceof Function) {
+                suggestions = $.merge(suggestions, notebook.tag_suggestions.apply(this, []));
             } else {
-                suggestions = $.merge(suggestions, IPython.notebook.tag_suggestions);
+                suggestions = $.merge(suggestions, notebook.tag_suggestions);
             }
         }
-        return suggestions;
+
+        // Uniquify the suggestions list.
+        // Suggested at http://stackoverflow.com/a/5381822
+        var unique_suggestions = suggestions.filter(function(item, i, input){
+            return i == input.indexOf(item);
+        });
+        return unique_suggestions;
     };
 
-    var toolbar_tag_ui_generator = function(keyboard_manager, setter, getter){
+    var is_tag_allowed = function(tag) {
+        // Disallow spaces and commas in tag names.
+        return tag.indexOf(' ') == -1 && tag.indexOf(',') == -1
+    };
+
+    var toolbar_tag_ui_generator = function(notebook, setter, getter){
         // Generate a tags cell toolbar control.
         return function(div, cell, celltoolbar) {
             var $button_container = $(div).addClass('box-flex1');
@@ -38,8 +49,9 @@ define([
 
             var tags = $tag_list.tags({
                 tagData: getter(cell),
-                suggestions: get_suggestions(),
-                caseInsensitive: true
+                suggestions: get_suggestions(notebook),
+                caseInsensitive: true,
+                beforeAddingTag: is_tag_allowed,
             });
             $tag_list.data('tags', tags);
             $tag_list.click(function(){
@@ -49,11 +61,11 @@ define([
                 setter(cell, tags.getTags());
             });
             $tag_list.find('input').width('100%');
-            keyboard_manager.register_events($tag_list);
+            notebook.keyboard_manager.register_events($tag_list);
         };
     };
 
-    var register = function (notebook, keyboard_manager) {
+    var register = function (notebook) {
         // Register the cell tagging toolbar.
 
         // Change the tag template so font-awesome icons are used.
@@ -65,13 +77,12 @@ define([
         };
 
         // Register the cell tagging toolbar.
-        var tags = toolbar_tag_ui_generator(keyboard_manager, 
+        var tags = toolbar_tag_ui_generator(notebook, 
             function(cell, tags){ // Setter
                 cell.metadata.tags = tags;
-                console.log(cell, tags);
                 
                 var $tag_inputs = $('.celltoolbar .bootstrap-tags');
-                var suggestions = get_suggestions();
+                var suggestions = get_suggestions(notebook);
                 for (var i =0; i < $tag_inputs.length; i++) {
                     $($tag_inputs[i]).data('tags').suggestions = suggestions;
                 }
