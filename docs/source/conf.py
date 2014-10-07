@@ -52,6 +52,7 @@ extensions = [
     'IPython.sphinxext.ipython_directive',
     'numpydoc',  # to preprocess docstrings
     'github',  # for easy GitHub links
+    'magics',
 ]
 
 if ON_RTD:
