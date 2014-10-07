@@ -9,7 +9,6 @@ pjoin = os.path.join
 
 import requests
 import json
-import binascii
 
 from IPython.nbformat.current import (new_notebook, write, new_worksheet,
                               new_heading_cell, new_code_cell,
