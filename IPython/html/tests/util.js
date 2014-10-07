@@ -204,9 +204,11 @@ casper.append_cell = function(text, cell_type) {
     return index;
 };
 
-casper.execute_cell = function(index){
+casper.execute_cell = function(index, expect_failure){
     // Asynchronously executes a cell by index.
     // Returns the cell's index.
+    
+    if (expect_failure === undefined) expect_failure = false;
     var that = this;
     this.then(function(){
         that.evaluate(function (index) {
@@ -214,15 +216,37 @@ casper.execute_cell = function(index){
             cell.execute();
         }, index);
     });
+    this.wait_for_idle();
+    
+    this.then(function () {
+        var error = that.evaluate(function (index) {
+            var cell = IPython.notebook.get_cell(index);
+            var outputs = cell.output_area.outputs;
+            for (var i = 0; i < outputs.length; i++) {
+                if (outputs[i].output_type == 'error') {
+                    return outputs[i];
+                }
+            }
+            return false;
+        }, index);
+        if (error === null) {
+            this.test.fail("Failed to check for error output");
+        }
+        if (expect_failure && error === false) {
+            this.test.fail("Expected error while running cell");
+        } else if (!expect_failure && error !== false) {
+            this.test.fail("Error running cell:\n" + error.traceback.join('\n'));
+        }
+    });
     return index;
 };
 
-casper.execute_cell_then = function(index, then_callback) {
+casper.execute_cell_then = function(index, then_callback, expect_failure) {
     // Synchronously executes a cell by index.
     // Optionally accepts a then_callback parameter.  then_callback will get called
     // when the cell  has finished executing.
     // Returns the cell's index.
-    var return_val = this.execute_cell(index);
+    var return_val = this.execute_cell(index, expect_failure);
 
     this.wait_for_idle();
 
@@ -231,7 +255,7 @@ casper.execute_cell_then = function(index, then_callback) {
         if (then_callback!==undefined) {
             then_callback.apply(that, [index]);
         }
-    });        
+    });
 
     return return_val;
 };
