@@ -45,6 +45,9 @@ def upgrade(nb, from_version=2, from_minor=0):
         
         nb.orig_nbformat = 2
         nb = _unbytes(nb)
+        for ws in nb['worksheets']:
+            for cell in ws['cells']:
+                cell.setdefault('metadata', {})
         return nb
     elif from_version == 3:
         if from_minor != nbformat_minor:
