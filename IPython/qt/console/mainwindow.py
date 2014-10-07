@@ -144,7 +144,7 @@ class MainWindow(QtGui.QMainWindow):
         # of this is when 'exit' is sent in a slave tab. 'exit' will be
         # re-sent by this function on the master widget, which ask all slave
         # widgets to exit
-        if closing_widget==None:
+        if closing_widget is None:
             return
 
         #get a list of all slave widgets on the same kernel.
@@ -719,12 +719,12 @@ class MainWindow(QtGui.QMainWindow):
         QtCore.QTimer.singleShot(200, self.active_frontend._control.setFocus)
 
     def magic_helper_paste_requested(self, text = None):
-        if text != None:
+        if text is not None:
             self.active_frontend.input_buffer = text            
             self._set_active_frontend_focus()
 
     def magic_helper_run_requested(self, text = None):
-        if text != None:            
+        if text is not None:
             self.active_frontend.execute(text)  
             self._set_active_frontend_focus()
 

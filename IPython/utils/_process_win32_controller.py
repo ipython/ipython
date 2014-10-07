@@ -296,7 +296,7 @@ class Win32ShellCommandController(object):
             c_hstdin = None
             CloseHandle(c_hstdout)
             c_hstdout = None
-            if c_hstderr != None:
+            if c_hstderr is not None:
                 CloseHandle(c_hstderr)
                 c_hstderr = None
 
@@ -403,10 +403,10 @@ class Win32ShellCommandController(object):
         These functions are called from different threads (but not
         concurrently, because of the GIL).
         """
-        if stdout_func == None and stdin_func == None and stderr_func == None:
+        if stdout_func is None and stdin_func is None and stderr_func is None:
             return self._run_stdio()
 
-        if stderr_func != None and self.mergeout:
+        if stderr_func is not None and self.mergeout:
             raise RuntimeError("Shell command was initiated with "
                     "merged stdin/stdout, but a separate stderr_func "
                     "was provided to the run() method")
@@ -421,7 +421,7 @@ class Win32ShellCommandController(object):
         threads.append(threading.Thread(target=self._stdout_thread,
                                     args=(self.hstdout, stdout_func)))
         if not self.mergeout:
-            if stderr_func == None:
+            if stderr_func is None:
                 stderr_func = stdout_func
             threads.append(threading.Thread(target=self._stdout_thread,
                                         args=(self.hstderr, stderr_func)))
@@ -541,7 +541,7 @@ class Win32ShellCommandController(object):
         if self.hstderr:
             CloseHandle(self.hstderr)
             self.hstderr = None
-        if self.piProcInfo != None:
+        if self.piProcInfo is not None:
             CloseHandle(self.piProcInfo.hProcess)
             CloseHandle(self.piProcInfo.hThread)
             self.piProcInfo = None
