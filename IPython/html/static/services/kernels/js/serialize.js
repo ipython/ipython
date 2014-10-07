@@ -65,7 +65,10 @@ define([
         // serializes JSON message to ArrayBuffer
         msg = $.extend({}, msg);
         var offsets = [];
-        var buffers = msg.buffers;
+        var buffers = [];
+        $.map(msg.buffers, function (buf) {
+            buffers.push(buf);
+        });
         delete msg.buffers;
         var json_utf8 = (new TextEncoder('utf8')).encode(JSON.stringify(msg));
         buffers.unshift(json_utf8);
