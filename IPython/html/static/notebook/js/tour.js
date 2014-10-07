@@ -11,13 +11,13 @@ define([
     var tour_style = "<div class='popover tour'>\n" +
         "<div class='arrow'></div>\n" +
         "<div style='position:absolute; top:7px; right:7px'>\n" +
-            "<button class='btn btn-default btn-sm' data-role='end' href='#'><i class='fa fa-times fa-sm'></i></button>\n" +
+            "<button class='btn btn-default btn-sm fa fa-times' data-role='end'></button>\n" +
         "</div><h3 class='popover-title'></h3>\n" +
         "<div class='popover-content'></div>\n" +
         "<div class='popover-navigation'>\n" +
-            "<button class='btn btn-default' data-role='prev' href='#'><i class='fa fa-step-backward pull-left'></i></button>\n" +
-            "<button class='btn btn-default' data-role='next' href='#'><i class='fa fa-step-forward pull-right'></i></button>\n" +
-            "<button id='tour-pause' class='btn btn-sm btn-default' data-resume-text='' data-pause-text='' data-role='pause-resume' href='#'><i class='fa fa-pause'></i></button>\n" +
+            "<button class='btn btn-default fa fa-step-backward' data-role='prev'></button>\n" +
+            "<button class='btn btn-default fa fa-step-forward pull-right' data-role='next'></button>\n" +
+            "<button id='tour-pause' class='btn btn-sm btn-default fa fa-pause' data-resume-text='' data-pause-text='' data-role='pause-resume'></button>\n" +
         "</div>\n" +
     "</div>";
 
