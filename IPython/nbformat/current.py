@@ -174,13 +174,9 @@ def write(nb, fp, format='DEPRECATED', **kwargs):
         The notebook to write.
     fp : file
         Any file-like object with a write method.
-    format : (u'json', u'ipynb', u'py')
-        The format to write the notebook in.
-
-    Returns
-    -------
-    s : unicode
-        The notebook string.
     """
-    return fp.write(writes(nb, **kwargs))
+    s = writes(nb, **kwargs)
+    if isinstance(s, bytes):
+        s = s.decode('utf8')
+    return fp.write(s)
 
