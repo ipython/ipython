@@ -22,7 +22,7 @@ from nose import SkipTest
 import zmq
 from zmq.tests import BaseZMQTestCase
 
-from IPython.external.decorator import decorator
+from decorator import decorator
 
 from IPython.parallel import error
 from IPython.parallel import Client

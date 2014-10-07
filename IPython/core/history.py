@@ -28,7 +28,7 @@ import threading
 
 # Our own packages
 from IPython.config.configurable import Configurable
-from IPython.external.decorator import decorator
+from decorator import decorator
 from IPython.utils.decorators import undoc
 from IPython.utils.path import locate_profile
 from IPython.utils import py3compat

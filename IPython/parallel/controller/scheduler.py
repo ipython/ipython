@@ -26,7 +26,7 @@ import zmq
 from zmq.eventloop import ioloop, zmqstream
 
 # local imports
-from IPython.external.decorator import decorator
+from decorator import decorator
 from IPython.config.application import Application
 from IPython.config.loader import Config
 from IPython.utils.traitlets import Instance, Dict, List, Set, Integer, Enum, CBytes

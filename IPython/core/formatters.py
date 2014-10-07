@@ -17,7 +17,7 @@ import sys
 import traceback
 import warnings
 
-from IPython.external.decorator import decorator
+from decorator import decorator
 
 from IPython.config.configurable import Configurable
 from IPython.core.getipython import get_ipython
