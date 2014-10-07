@@ -17,10 +17,7 @@ data-notebook-path="{{notebook_path}}"
 
 
 {% block site %}
-
-<div id="ipython-main-app" class="container">
-
-<div id="tab_content" class="tabbable">
+<div id="tab_content" class="tabbable container">
     <ul id="tabs" class="nav nav-tabs">
         <li class="active"><a href="#notebooks" data-toggle="tab">Notebooks</a></li>
         <li><a href="#running" data-toggle="tab">Running</a></li>
@@ -103,9 +100,6 @@ data-notebook-path="{{notebook_path}}"
         </div>
     </div>
 </div>
-
-</div>
-
 {% endblock %}
 
 {% block script %}

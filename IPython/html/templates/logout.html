@@ -9,9 +9,6 @@
 {% endblock %}
 
 {% block site %}
-
-<div id="ipython-main-app" class="container">
-
     {% if message %}
       {% for key in message %}
         <div class="message {{key}}">
@@ -25,9 +22,6 @@
     {% else %}
     Proceed to the <a href="{{base_url}}login">login page</a>.
     {% endif %}
-
-
-<div/>
 
 {% endblock %}
 

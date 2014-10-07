@@ -43,12 +43,12 @@ define([
         }).append(
         $('<span/>').text('Expand').addClass('ui-icon').addClass('ui-icon-plus'));
 
-        // open in pager
-        var morelink = $('<a/>').attr('href', "#").attr('role', "button").addClass('ui-button').attr('title', 'show the current docstring in pager (press shift-tab 4 times)');
-        var morespan = $('<span/>').text('Open in Pager').addClass('ui-icon').addClass('ui-icon-arrowstop-l-n');
+        // open in popup
+        var morelink = $('<a/>').attr('href', "#").attr('role', "button").addClass('ui-button').attr('title', 'Show the current docstring in a popup (press shift-tab 4 times)');
+        var morespan = $('<span/>').text('Open in a popup').addClass('ui-icon').addClass('ui-icon-arrowstop-l-n');
         morelink.append(morespan);
         morelink.click(function () {
-            that.showInPager(that._old_cell);
+            that.show_in_cell(that._old_cell);
         });
 
         // close the tooltip
@@ -100,7 +100,8 @@ define([
             that.stick();
         }, function (cell) {
             that.cancel_stick();
-            that.showInPager(cell);
+            that._hide();
+            that.show_in_cell(cell);
         }];
         // call after all the tabs function above have bee call to clean their effects
         // if necessary
@@ -115,14 +116,8 @@ define([
         return !this._hidden;
     };
 
-    Tooltip.prototype.showInPager = function (cell) {
-        // reexecute last call in pager by appending ? to show back in pager
-        var that = this;
-        var payload = {};
-        payload.text = that._reply.content.data['text/plain'];
-        
-        this.events.trigger('open_with_text.Pager', payload);
-        this.remove_and_cancel_tooltip();
+    Tooltip.prototype.show_in_cell = function (cell) {
+        cell.display_page(this._reply.content);
     };
 
     // grow the tooltip verticaly
@@ -241,11 +236,11 @@ define([
             this.reset_tabs_function (cell, text);
         }
 
-        this.tabs_functions[this._consecutive_counter](cell, text, cursor_pos);
-
         // then if we are at the end of list function, reset
         if (this._consecutive_counter == this.tabs_functions.length) {
             this.reset_tabs_function (cell, text, cursor);
+        } else {            
+            this.tabs_functions[this._consecutive_counter](cell, text, cursor_pos);
         }
 
         return;

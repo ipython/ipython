@@ -1,0 +1,26 @@
+
+.docked-dockable {
+    overflow: hidden; 
+    position: relative !important;
+    top: 0px !important; 
+    left: 0px !important; 
+    margin-left: 0px !important;
+}
+
+.undocked-dockable {
+    overflow    : auto; 
+    position    : fixed !important;
+    left        : 0px; 
+    margin-left : 0px !important;
+}
+
+.undocked-dockable.stretched {
+    top: initial !important;
+    .docking-button {
+        display: none !important;
+    }
+}
+
+.docking-button {
+    font-size: @font-size-base;
+}

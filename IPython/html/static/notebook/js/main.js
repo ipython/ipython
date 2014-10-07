@@ -7,11 +7,9 @@ require([
     'notebook/js/notebook',
     'base/js/utils',
     'base/js/page',
-    'notebook/js/layoutmanager',
     'base/js/events',
     'auth/js/loginwidget',
     'notebook/js/maintoolbar',
-    'notebook/js/pager',
     'notebook/js/quickhelp',
     'notebook/js/menubar',
     'notebook/js/notificationarea',
@@ -27,11 +25,9 @@ require([
     notebook, 
     utils, 
     page, 
-    layoutmanager, 
     events,
     loginwidget, 
     maintoolbar, 
-    pager, 
     quickhelp, 
     menubar, 
     notificationarea, 
@@ -51,12 +47,7 @@ require([
 
     var user_config = $.extend({}, config.default_config);
     var page = new page.Page();
-    var layout_manager = new layoutmanager.LayoutManager();
-    var pager = new pager.Pager('div#pager', 'div#pager_splitter', {
-        layout_manager: layout_manager, 
-        events: events});
     var keyboard_manager = new keyboardmanager.KeyboardManager({
-        pager: pager, 
         events: events});
     var save_widget = new savewidget.SaveWidget('span#save_widget', {
         events: events, 
@@ -77,7 +68,6 @@ require([
         notebook: notebook});
     var menubar = new menubar.MenuBar('#menubar', $.extend({
         notebook: notebook, 
-        layout_manager: layout_manager, 
         events: events, 
         save_widget: save_widget, 
         quick_help: quick_help}, 
@@ -105,9 +95,7 @@ require([
 
     page.show();
 
-    layout_manager.do_resize();
     var first_load = function () {
-        layout_manager.do_resize();
         var hash = document.location.hash;
         if (hash) {
             document.location.hash = '';
@@ -120,9 +108,7 @@ require([
     events.on('notebook_loaded.Notebook', first_load);
     
     IPython.page = page;
-    IPython.layout_manager = layout_manager;
     IPython.notebook = notebook;
-    IPython.pager = pager;
     IPython.quick_help = quick_help;
     IPython.login_widget = login_widget;
     IPython.menubar = menubar;

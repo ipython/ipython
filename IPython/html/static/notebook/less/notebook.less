@@ -3,20 +3,12 @@ body {
     background-color:   @body-bg;
 }
 
-body.notebook_app {
-    overflow: hidden;
-}
-
 @media (max-width: 767px) {
     // remove bootstrap-responsive's body padding on small screens
     body.notebook_app {
         padding-left: 0px;
         padding-right: 0px;
     }
-}
-
-#ipython-main-app {
-    .border-box-sizing();
 }
 
 span#notebook_name {
@@ -42,13 +34,13 @@ div#notebook_panel {
 div#notebook {
     font-size: @notebook_font_size;
     line-height: @notebook_line_height;
-    overflow-y: scroll;
-    overflow-x: auto;
+    overflow-y: visible;
+    overflow-x: visible;
     width: 100%;
     /* This spaces the cell away from the edge of the notebook area */
     padding: 1em 0 1em 0;
     margin: 0px;
-    border-top: 1px solid @navbar-default-border;
+    margin-top: 117px;
     outline: none;
     .border-box-sizing();
 }

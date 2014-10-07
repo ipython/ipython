@@ -1,3 +1,11 @@
+div.cell div.widget-area div.prompt button.close {
+    visibility: hidden;
+}
+
+div.cell:hover div.widget-area div.prompt button.close {
+    visibility: inherit;
+}
+
 .widget-area {
     /*
     LESS file that styles IPython notebook widgets and the area they sit in.
@@ -265,7 +273,7 @@
 }
 
 .docked-widget-modal {
-    /* Horizontal Label */
+    /* Docked widget modal */
     overflow: hidden; 
     position: relative !important;
     top: 0px !important; 

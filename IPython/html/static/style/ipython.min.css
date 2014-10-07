@@ -274,6 +274,28 @@ div.traceback-wrapper {
   max-width: 800px;
   margin: auto;
 }
+.docked-dockable {
+  overflow: hidden;
+  position: relative !important;
+  top: 0px !important;
+  left: 0px !important;
+  margin-left: 0px !important;
+}
+.undocked-dockable {
+  overflow: auto;
+  position: fixed !important;
+  left: 0px;
+  margin-left: 0px !important;
+}
+.undocked-dockable.stretched {
+  top: initial !important;
+}
+.undocked-dockable.stretched .docking-button {
+  display: none !important;
+}
+.docking-button {
+  font-size: 13px;
+}
 /*!
 *
 * IPython notebook
@@ -828,26 +850,7 @@ div.output_area .rendered_html img {
 /* This is needed to protect the pre formating from global settings such
    as that of bootstrap */
 .output {
-  /* Old browsers */
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-box-align: stretch;
-  display: -moz-box;
-  -moz-box-orient: vertical;
-  -moz-box-align: stretch;
-  display: box;
-  box-orient: vertical;
-  box-align: stretch;
-  /* Modern browsers */
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  /* Old browsers */
-  -webkit-box-flex: 0;
-  -moz-box-flex: 0;
-  box-flex: 0;
-  /* Modern browsers */
-  flex: none;
+  display: block;
 }
 @media (max-width: 480px) {
   div.output_area {
@@ -941,6 +944,25 @@ input.raw_input:focus {
 }
 p.p-space {
   margin-bottom: 10px;
+}
+div.undocked_output:not(.stretched) {
+  border-radius: 4px;
+  border: 1px solid #ababab;
+  background: #ffffff;
+  padding: 0.4em;
+  box-shadow: 2.5px 2.5px 20px #e7e7e7;
+}
+div.undocked_output.stretched {
+  border-width: 0px;
+  border-top: 1px solid #cfcfcf;
+  background: #ffffff;
+  padding: 0.4em;
+}
+div.cell div.docked-dockable.output button.close span {
+  visibility: hidden;
+}
+div.cell:hover div.docked-dockable.output button.close span {
+  visibility: inherit;
 }
 .rendered_html {
   color: #000000;
@@ -1204,6 +1226,12 @@ div.cell.text_cell.rendered {
 .cm-s-heading-6 {
   font-size: 90%;
   font-style: italic;
+}
+div.cell div.widget-area div.prompt button.close {
+  visibility: hidden;
+}
+div.cell:hover div.widget-area div.prompt button.close {
+  visibility: inherit;
 }
 .widget-area {
   /*
@@ -1636,7 +1664,7 @@ div.cell.text_cell.rendered {
   margin-top: 0px;
 }
 .docked-widget-modal {
-  /* Horizontal Label */
+  /* Docked widget modal */
   overflow: hidden;
   position: relative !important;
   top: 0px !important;

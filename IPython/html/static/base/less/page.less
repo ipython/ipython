@@ -14,17 +14,24 @@ body {
     right: 0px;
     top: 0px;
     bottom: 0px;
-    overflow: visible;
 }
 
 div#header {
     /* Initially hidden to prevent FLOUC */
     display: none;
+    position: fixed;
+    background-color: white;
     margin-bottom: 0px;
-    padding-left: 30px;
-    padding-bottom: 5px;
-    border-bottom: 1px solid @navbar-default-border;
+    width: 100%;
+    min-height: initial !important;
     .border-box-sizing();
+}
+
+div#upperheader {
+    border-bottom: 1px solid @navbar-default-border;
+    min-height: 36px;
+    padding-bottom: 5px;
+    margin-bottom: -1px;
 }
 
 #ipython_notebook {

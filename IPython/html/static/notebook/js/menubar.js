@@ -21,7 +21,6 @@ define([
         //  options: dictionary
         //      Dictionary of keyword arguments.
         //          notebook: Notebook instance
-        //          layout_manager: LayoutManager instance
         //          events: $(Events) instance
         //          save_widget: SaveWidget instance
         //          quick_help: QuickHelp instance
@@ -32,7 +31,6 @@ define([
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
         this.selector = selector;
         this.notebook = options.notebook;
-        this.layout_manager = options.layout_manager;
         this.events = options.events;
         this.save_widget = options.save_widget;
         this.quick_help = options.quick_help;
@@ -202,12 +200,12 @@ define([
         
         // View
         this.element.find('#toggle_header').click(function () {
-            $('div#header').toggle();
-            that.layout_manager.do_resize();
+            $('div#upperheader').toggle();
+            $('#notebook').css('margin-top', $('#header').height() + 10);
         });
         this.element.find('#toggle_toolbar').click(function () {
             $('div#maintoolbar').toggle();
-            that.layout_manager.do_resize();
+            $('#notebook').css('margin-top', $('#header').height() + 10);
         });
         // Insert
         this.element.find('#insert_cell_above').click(function () {

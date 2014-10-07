@@ -129,6 +129,7 @@ define([
         var input = $('<div></div>').addClass('input');
         var prompt = $('<div/>').addClass('prompt input_prompt');
         var inner_cell = $('<div/>').addClass('inner_cell');
+
         this.celltoolbar = new celltoolbar.CellToolbar({
             cell: this, 
             notebook: this.notebook});
@@ -300,7 +301,7 @@ define([
                 reply : $.proxy(this._handle_execute_reply, this),
                 payload : {
                     set_next_input : $.proxy(this._handle_set_next_input, this),
-                    page : $.proxy(this._open_with_pager, this)
+                    page : $.proxy(this.display_pager_output, this)
                 }
             },
             iopub : {
@@ -311,8 +312,10 @@ define([
         };
     };
     
-    CodeCell.prototype._open_with_pager = function (payload) {
-        this.events.trigger('open_with_text.Pager', payload);
+    CodeCell.prototype.display_pager_output = function (payload) {
+        this.output_area.append_output($.extend({}, payload.data, {
+            output_type: 'display_data',
+        }));
     };
 
     /**

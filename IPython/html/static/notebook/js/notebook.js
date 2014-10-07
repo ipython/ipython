@@ -226,31 +226,6 @@ define([
                 that.set_codemirror_mode(data.codemirror_mode);
             }
         });
-
-        var collapse_time = function (time) {
-            var app_height = $('#ipython-main-app').height(); // content height
-            var splitter_height = $('div#pager_splitter').outerHeight(true);
-            var new_height = app_height - splitter_height;
-            that.element.animate({height : new_height + 'px'}, time);
-        };
-
-        this.element.bind('collapse_pager', function (event, extrap) {
-            var time = (extrap !== undefined) ? ((extrap.duration !== undefined ) ? extrap.duration : 'fast') : 'fast';
-            collapse_time(time);
-        });
-
-        var expand_time = function (time) {
-            var app_height = $('#ipython-main-app').height(); // content height
-            var splitter_height = $('div#pager_splitter').outerHeight(true);
-            var pager_height = $('div#pager').outerHeight(true);
-            var new_height = app_height - pager_height - splitter_height;
-            that.element.animate({height : new_height + 'px'}, time);
-        };
-
-        this.element.bind('expand_pager', function (event, extrap) {
-            var time = (extrap !== undefined) ? ((extrap.duration !== undefined ) ? extrap.duration : 'fast') : 'fast';
-            expand_time(time);
-        });
         
         // Firefox 22 broke $(window).on("beforeunload")
         // I'm not sure why or how.

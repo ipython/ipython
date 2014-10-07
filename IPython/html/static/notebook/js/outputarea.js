@@ -9,7 +9,8 @@ define([
     'base/js/keyboard',
     'notebook/js/mathjaxutils',
     'components/marked/lib/marked',
-], function(IPython, $, utils, security, keyboard, mathjaxutils, marked) {
+    'base/js/dockable',
+], function(IPython, $, utils, security, keyboard, mathjaxutils, marked, dockable) {
     "use strict";
 
     /**
@@ -58,8 +59,17 @@ define([
         this.prompt_overlay.hide();
         
         this.wrapper.addClass('output_wrapper');
-        this.element.addClass('output');
-        
+        dockable.make_dockable(this.element, undefined, function($el) {
+            // on dock
+            $el.addClass('output');
+            $el.removeClass('undocked_output');
+        }, function($el) {
+            // on undock
+            $el.addClass('undocked_output');
+            $el.removeClass('output');
+        });
+        this.element.dock_button.hide();
+
         this.collapse_button.addClass("btn btn-default output_collapsed");
         this.collapse_button.attr('title', 'click to expand output');
         this.collapse_button.text('. . .');
@@ -67,7 +77,7 @@ define([
         this.prompt_overlay.addClass('out_prompt_overlay prompt');
         this.prompt_overlay.attr('title', 'click to expand output; double click to hide output');
         
-        this.collapse();
+        this.expand();        
     };
 
     /**
@@ -81,7 +91,7 @@ define([
      *
      */
     OutputArea.prototype._should_scroll = function (lines) {
-        if (lines <=0 ){ return }
+        if (lines <=0 ){ return; }
         if (!lines) {
             lines = 100;
         }
@@ -130,10 +140,10 @@ define([
     OutputArea.prototype.expand = function () {
         if (this.collapsed) {
             this.collapse_button.hide();
-            this.element.show();
             this.prompt_overlay.show();
             this.collapsed = false;
         }
+        this.element.show();
     };
 
 
@@ -177,7 +187,7 @@ define([
     OutputArea.prototype.scroll_if_long = function (lines) {
         var n = lines | OutputArea.minimum_scroll_threshold;
         if(n <= 0){
-            return
+            return;
         }
 
         if (this._should_scroll(n)) {
@@ -270,6 +280,7 @@ define([
     
     OutputArea.prototype.append_output = function (json) {
         this.expand();
+        this.element.dock_button.show();
         
         // validate output data types
         json = this.validate_output(json);
@@ -277,7 +288,7 @@ define([
         // Clear the output if clear is queued.
         var needs_height_reset = false;
         if (this.clear_queued) {
-            this.clear_output(false);
+            this.clear_output(false, true);
             needs_height_reset = true;
         }
 
@@ -376,12 +387,12 @@ define([
         } else {
             return subarea;
         }
-    }
+    };
 
 
     OutputArea.prototype._append_javascript_error = function (err, element) {
         // display a message when a javascript error occurs in display output
-        var msg = "Javascript error adding output!"
+        var msg = "Javascript error adding output!";
         if ( element === undefined ) return;
         element
             .append($('<div/>').text(msg).addClass('js-error'))
@@ -722,11 +733,11 @@ define([
         var toinsert = this.create_output_subarea(md, "output_pdf", type);
         var a = $('<a/>').attr('href', 'data:application/pdf;base64,'+pdf);
         a.attr('target', '_blank');
-        a.text('View PDF')
+        a.text('View PDF');
         toinsert.append(a);
         element.append(toinsert);
         return toinsert;
-     }
+     };
 
     var append_latex = function (latex, md, element) {
         // This method cannot do the typesetting because the latex first has to
@@ -742,6 +753,7 @@ define([
     OutputArea.prototype.append_raw_input = function (msg) {
         var that = this;
         this.expand();
+        this.element.dock_button.show();
         var content = msg.content;
         var area = this.create_output_area();
         
@@ -783,7 +795,7 @@ define([
         // This seemed to be needed otherwise only the cell would be focused.
         // But with the modal UI, this seems to work fine with one call to focus().
         raw_input.focus();
-    }
+    };
 
     OutputArea.prototype._submit_raw_input = function (evt) {
         var container = this.element.find("div.raw_input_container");
@@ -799,13 +811,13 @@ define([
             output_type : 'stream',
             stream : 'stdout',
             text : theprompt.text() + echo + '\n'
-        }
+        };
         // remove form container
         container.parent().remove();
         // replace with plaintext version in stdout
         this.append_output(content, false);
         this.events.trigger('send_input_reply.Kernel', value);
-    }
+    };
 
 
     OutputArea.prototype.handle_clear_output = function (msg) {
@@ -818,13 +830,13 @@ define([
     };
 
 
-    OutputArea.prototype.clear_output = function(wait) {
+    OutputArea.prototype.clear_output = function(wait, preserve_dockstate) {
         if (wait) {
 
             // If a clear is queued, clear before adding another to the queue.
             if (this.clear_queued) {
-                this.clear_output(false);
-            };
+                this.clear_output(false, preserve_dockstate);
+            }
 
             this.clear_queued = true;
         } else {
@@ -837,16 +849,27 @@ define([
                 this.clear_queued = false;
             }
             
+            // Detach dock button.
+            this.element.dock_button.detach();
+
             // Clear all
             // Remove load event handlers from img tags because we don't want
             // them to fire if the image is never added to the page.
             this.element.find('img').off('load');
             this.element.html("");
+
+            // Re-add the button created by dockable.
+            this.element.append(this.element.dock_button);
+            if (!preserve_dockstate) {
+                this.element.dock_button.hide();
+                this.element.dock();
+            }
+
             this.outputs = [];
             this.trusted = true;
             this.unscroll_area();
             return;
-        };
+        }
     };
 
 
