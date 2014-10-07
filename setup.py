@@ -273,13 +273,16 @@ install_requires = [
     'path.py', # required by pickleshare, remove when pickleshare is added here
 ]
 
-# add readline
+# add platform-specific dependencies
 if sys.platform == 'darwin':
     install_requires.append('appnope')
     if 'bdist_wheel' in sys.argv[1:] or not setupext.check_for_readline():
         install_requires.append('gnureadline')
-elif sys.platform.startswith('win'):
+
+if sys.platform.startswith('win'):
     extras_require['terminal'].append('pyreadline>=2.0')
+else:
+    install_requires.append('pexpect')
 
 everything = set()
 for deps in extras_require.values():
