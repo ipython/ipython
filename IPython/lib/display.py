@@ -450,7 +450,7 @@ class FileLinks(FileLink):
             display_fnames = []
             for fname in fnames:
                 if (isfile(join(dirname,fname)) and
-                       (included_suffixes == None or
+                       (included_suffixes is None or
                         splitext(fname)[1] in included_suffixes)):
                       display_fnames.append(fname)
 
