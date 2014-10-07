@@ -303,7 +303,7 @@ class FileContentsManager(ContentsManager):
             nb['metadata']['name'] = u''
 
         with atomic_writing(os_path, encoding='utf-8') as f:
-            current.write(nb, f, u'json')
+            current.write(nb, f, version=nb.nbformat)
 
     def _save_file(self, os_path, model, name='', path=''):
         """save a non-notebook file"""
