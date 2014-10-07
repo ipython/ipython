@@ -9,12 +9,6 @@ import mimetypes
 import json
 import base64
 
-try:
-    # py3
-    from http.client import responses
-except ImportError:
-    from httplib import responses
-
 from tornado import web
 
 try:
