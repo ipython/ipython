@@ -56,12 +56,12 @@ class LookforMagics(Magics):
         Search for objects whose documentation contains all given words.
         Shows a summary of matching objects, sorted roughly by relevance.
 
-        %lookfor [-r] what module
+        %lookfor [-r] what modules
 
         what : str
             String containing words to look for
 
-        module : str
+        modules : str
             Modules whose docstrings to go through
 
         Options:
