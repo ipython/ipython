@@ -160,7 +160,7 @@
             "description": "Notebook code cell.",
             "type": "object",
             "additionalProperties": false,
-            "required": ["cell_type", "input", "outputs", "collapsed", "language"],
+            "required": ["cell_type", "input", "outputs", "language"],
             "properties": {
                 "cell_type": {
                     "description": "String identifying the type of cell.",
