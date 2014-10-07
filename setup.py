@@ -268,7 +268,9 @@ if sys.version_info < (3, 3):
 extras_require['notebook'].extend(extras_require['nbformat'])
 extras_require['nbconvert'].extend(extras_require['nbformat'])
 
-install_requires = []
+install_requires = [
+    'path.py', # required by pickleshare, remove when pickleshare is added here
+]
 
 # add readline
 if sys.platform == 'darwin':

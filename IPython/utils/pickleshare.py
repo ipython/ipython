@@ -34,7 +34,6 @@ License: MIT open source license.
 """
 from __future__ import print_function
 
-from IPython.external.path import path as Path
 import stat, time
 import collections
 try:
@@ -42,6 +41,8 @@ try:
 except ImportError:
     import pickle
 import glob
+
+from path import path as Path
 
 def gethashfile(key):
     return ("%02x" % abs(hash(key) % 256))[-2:]
