@@ -481,9 +481,8 @@ define(["widgets/js/manager",
 
             this.after_displayed(function() {
                 this.update_visible(this.model, this.model.get("visible"));
-                this.update_css(this.model, this.model.get("_css"));
-
                 this.update_classes([], this.model.get('_dom_classes'));
+                
                 this.update_attr('color', this.model.get('color'));
                 this.update_attr('background', this.model.get('background_color'));
                 this.update_attr('width', this.model.get('width'));
@@ -498,6 +497,8 @@ define(["widgets/js/manager",
                 this.update_attr('padding', this.model.get('padding'));
                 this.update_attr('margin', this.model.get('margin'));
                 this.update_attr('border-radius', this.model.get('border_radius'));
+
+                this.update_css(this.model, this.model.get("_css"));
             }, this);
         },
 
