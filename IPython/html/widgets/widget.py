@@ -125,7 +125,6 @@ class Widget(LoggingConfigurable):
         self._model_id = kwargs.pop('model_id', None)
         super(Widget, self).__init__(**kwargs)
 
-        self.on_trait_change(self._handle_property_changed, self.keys)
         Widget._call_widget_constructed(self)
         self.open()
 
@@ -323,13 +322,21 @@ class Widget(LoggingConfigurable):
     def _handle_custom_msg(self, content):
         """Called when a custom msg is received."""
         self._msg_callbacks(self, content)
-
-    def _handle_property_changed(self, name, old, new):
+    
+    def _notify_trait(self, name, old_value, new_value):
         """Called when a property has been changed."""
-        # Make sure this isn't information that the front-end just sent us.
-        if self._should_send_property(name, new):
-            # Send new state to front-end
-            self.send_state(key=name)
+        # Trigger default traitlet callback machinery.  This allows any user
+        # registered validation to be processed prior to allowing the widget
+        # machinery to handle the state.
+        LoggingConfigurable._notify_trait(self, name, old_value, new_value)
+
+        # Send the state after the user registered callbacks for trait changes
+        # have all fired (allows for user to validate values).
+        if self.comm is not None and name in self.keys:
+            # Make sure this isn't information that the front-end just sent us.
+            if self._should_send_property(name, new_value):
+                # Send new state to front-end
+                self.send_state(key=name)
 
     def _handle_displayed(self, **kwargs):
         """Called when a view has been displayed for this widget instance"""

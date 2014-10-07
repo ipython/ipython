@@ -64,7 +64,7 @@ define([
             if (options === undefined || options.updated_view != this) {
                 // JQuery slider option keys.  These keys happen to have a
                 // one-to-one mapping with the corrosponding keys of the model.
-                var jquery_slider_keys = ['step', 'max', 'min', 'disabled'];
+                var jquery_slider_keys = ['step', 'disabled'];
                 var that = this;
                 that.$slider.slider({});
                 _.each(jquery_slider_keys, function(key, i) {
@@ -73,6 +73,14 @@ define([
                         that.$slider.slider("option", key, model_value);
                     }
                 });
+
+                var max = this.model.get('max');
+                var min = this.model.get('min');
+                if (min <= max) {
+                    if (max !== undefined) this.$slider.slider('option', 'max', max);
+                    if (min !== undefined) this.$slider.slider('option', 'min', min);
+                }
+
                 var range_value = this.model.get("_range");
                 if (range_value !== undefined) {
                     this.$slider.slider("option", "range", range_value);
