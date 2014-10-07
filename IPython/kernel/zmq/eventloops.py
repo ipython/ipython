@@ -11,19 +11,14 @@ import zmq
 
 from IPython.config.application import Application
 from IPython.utils import io
-
-
-def _on_os_x_10_9():
-    import platform
-    from distutils.version import LooseVersion as V
-    return sys.platform == 'darwin' and V(platform.mac_ver()[0]) >= V('10.9')
+from IPython.lib.inputhook import _use_appnope
 
 def _notify_stream_qt(kernel, stream):
     
     from IPython.external.qt_for_kernel import QtCore
     
-    if _on_os_x_10_9() and kernel._darwin_app_nap:
-        from IPython.external.appnope import nope_scope as context
+    if _use_appnope() and kernel._darwin_app_nap:
+        from appnope import nope_scope as context
     else:
         from IPython.core.interactiveshell import NoOpContext as context
 
@@ -93,10 +88,10 @@ def loop_wx(kernel):
     import wx
     from IPython.lib.guisupport import start_event_loop_wx
     
-    if _on_os_x_10_9() and kernel._darwin_app_nap:
+    if _use_appnope() and kernel._darwin_app_nap:
         # we don't hook up App Nap contexts for Wx,
         # just disable it outright.
-        from IPython.external.appnope import nope
+        from appnope import nope
         nope()
 
     doi = kernel.do_one_iteration

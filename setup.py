@@ -275,6 +275,7 @@ install_requires = [
 
 # add readline
 if sys.platform == 'darwin':
+    install_requires.append('appnope')
     if 'bdist_wheel' in sys.argv[1:] or not setupext.check_for_readline():
         install_requires.append('gnureadline')
 elif sys.platform.startswith('win'):
