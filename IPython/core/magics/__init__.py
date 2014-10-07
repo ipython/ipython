@@ -23,6 +23,7 @@ from .execution import ExecutionMagics
 from .extension import ExtensionMagics
 from .history import HistoryMagics
 from .logging import LoggingMagics
+from .lookfor import LookforMagics
 from .namespace import NamespaceMagics
 from .osm import OSMagics
 from .pylab import PylabMagics
