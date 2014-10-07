@@ -315,6 +315,8 @@ class ContentsManager(LoggingConfigurable):
         path : string
             The notebook's directory (for logging)
         """
+        if nb['nbformat'] != current.nbformat:
+            return
         if self.notary.check_cells(nb):
             self.notary.sign(nb)
         else:
