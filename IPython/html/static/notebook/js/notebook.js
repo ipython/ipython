@@ -2650,6 +2650,10 @@ define([
         this.events.trigger('checkpoint_delete_failed.Notebook', [xhr, status, error]);
     };
 
+    Notebook.prototype.restart_session = function(){                                                                                          var kernelspec = this.metadata.kernelspec || {};
+        var kernel_name = kernelspec.name || this.default_kernel_name;
+        this.start_session(kernel_name);
+    }
 
     // For backwards compatability.
     IPython.Notebook = Notebook;
