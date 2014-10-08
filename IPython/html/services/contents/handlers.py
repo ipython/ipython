@@ -270,6 +270,22 @@ class ModifyCheckpointsHandler(IPythonHandler):
         self.set_status(204)
         self.finish()
 
+
+class NotebooksRedirectHandler(IPythonHandler):
+    """Redirect /api/notebooks to /api/contents"""
+    SUPPORTED_METHODS = ('GET', 'PUT', 'PATCH', 'POST', 'DELETE')
+
+    def get(self, path):
+        self.log.warn("/api/notebooks is deprecated, use /api/contents")
+        self.redirect(url_path_join(
+            self.base_url,
+            'api/contents',
+            path
+        ))
+
+    put = patch = post = delete = get
+
+
 #-----------------------------------------------------------------------------
 # URL to handler mappings
 #-----------------------------------------------------------------------------
@@ -283,4 +299,5 @@ default_handlers = [
         ModifyCheckpointsHandler),
     (r"/api/contents%s" % file_path_regex, ContentsHandler),
     (r"/api/contents%s" % path_regex, ContentsHandler),
+    (r"/api/notebooks/?(.*)", NotebooksRedirectHandler),
 ]
