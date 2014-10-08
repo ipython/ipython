@@ -215,7 +215,10 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         elif self._control.hasFocus():
             text = self._control.textCursor().selection().toPlainText()
             if text:
+                was_newline = text[-1] == '\n'
                 text = self._prompt_transformer.transform_cell(text)
+                if not was_newline: # user don't need newline
+                    text = text[:-1]
                 QtGui.QApplication.clipboard().setText(text)
         else:
             self.log.debug("frontend widget : unknown copy target")
