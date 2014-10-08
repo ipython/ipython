@@ -156,13 +156,14 @@ define([
     };
 
     NotebookList.prototype.load_list = function () {
+        var that = this
         this.content_manager.list_contents(
-            this.notebook_path,
-            $.proxy(this.draw_notebook_list, this),
+            that.notebook_path,
+            $.proxy(that.draw_notebook_list, that),
             $.proxy( function(xhr, status, error) { 
                 utils.log_ajax_error(xhr, status, error);
                 that.draw_notebook_list([], "Error connecting to server.");
-            }, this)
+            }, that)
         );
     };
 
@@ -176,7 +177,8 @@ define([
     NotebookList.prototype.draw_notebook_list = function (list, error_msg) {
         var message = error_msg || 'Notebook list empty.';
         var item = null;
-        var len = list.length;
+        var model = null;
+        var len = list.content.length;
         this.clear_list();
         var n_uploads = this.element.children('.list_item').length;
         if (len === 0) {
@@ -198,21 +200,9 @@ define([
             offset += 1;
         }
         for (var i=0; i<len; i++) {
-            if (list[i].type === 'directory') {
-                var name = list[i].name;
-                item = this.new_notebook_item(i+offset);
-                this.add_dir(path, name, item);
-            } else {
-                var name = list[i].name;
-                item = this.new_notebook_item(i+offset);
-                this.add_link(path, name, item);
-                name = utils.url_path_join(path, name);
-                if(this.sessions[name] === undefined){
-                    this.add_delete_button(item);
-                } else {
-                    this.add_shutdown_button(item,this.sessions[name]);
-                }
-            }
+            model = list.content[i];
+            item = this.new_item(i+offset);
+            this.add_link(model, item);
         }
     };
 
