@@ -24,6 +24,8 @@ try:
 except ImportError:
     app_log = logging.getLogger()
 
+import IPython
+
 from IPython.config import Application
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import string_types
@@ -398,6 +400,13 @@ class FileFindHandler(web.StaticFileHandler):
         return super(FileFindHandler, self).validate_absolute_path(root, absolute_path)
 
 
+class ApiVersionHandler(IPythonHandler):
+
+    @json_errors
+    def get(self):
+        # not authenticated, so give as few info as possible
+        self.finish(json.dumps({"version":IPython.__version__}))
+
 class TrailingSlashHandler(web.RequestHandler):
     """Simple redirect handler that strips trailing slashes
     
@@ -456,5 +465,6 @@ file_path_regex = "%s/%s" % (path_regex, file_name_regex)
 
 
 default_handlers = [
-    (r".*/", TrailingSlashHandler)
+    (r".*/", TrailingSlashHandler),
+    (r"api", ApiVersionHandler)
 ]
