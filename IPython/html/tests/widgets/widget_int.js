@@ -162,7 +162,7 @@ casper.notebook_test(function () {
         'print("Success")\n');
     this.execute_cell_then(index, function(index){
         this.test.assertEquals(0, 0, 'Invalid int range max bound does not cause crash.');
-    }); 
+    }, true); 
 
     index = this.append_cell(
         'a = widgets.IntSlider()\n' +
@@ -171,5 +171,5 @@ casper.notebook_test(function () {
         'print("Success")\n');
     this.execute_cell_then(index, function(index){
         this.test.assertEquals(0, 0, 'Invalid int range min bound does not cause crash.');
-    });
+    }, true);
 });
