@@ -449,7 +449,7 @@ define([
                         window.open(
                             utils.url_join_encode(
                                 that.base_url,
-                                'notebooks',
+                                'contents',
                                 path,
                                 filename
                             ),
@@ -477,7 +477,7 @@ define([
         };
         var url = utils.url_join_encode(
             this.base_url,
-            'api/notebooks',
+            'api/contents',
             path,
             name
         );
@@ -505,7 +505,7 @@ define([
         }
         var url = utils.url_join_encode(
             this.base_url,
-            'api/notebooks',
+            'api/contents',
             path,
             name
         );
@@ -545,7 +545,7 @@ define([
         }
         var url = utils.url_join_encode(
             this.base_url,
-            'api/notebooks',
+            'api/contents',
             path,
             name
         );
@@ -565,7 +565,7 @@ define([
         this.events.trigger('notebook_restoring.Notebook', checkpoint);
         var url = utils.url_join_encode(
             this.base_url,
-            'api/notebooks',
+            'api/contents',
             this.notebook_path,
             this.notebook_name,
             'checkpoints',
@@ -582,7 +582,7 @@ define([
         that = notebook;
         var url = utils.url_join_encode(
             that.base_url,
-            'api/notebooks',
+            'api/contents',
             that.notebook_path,
             that.notebook_name,
             'checkpoints'

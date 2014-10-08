@@ -54,7 +54,7 @@ define([
         this.events.trigger('notebook_loading.Notebook');
         var url = utils.url_join_encode(
             this.base_url,
-            'api/notebooks',
+            'api/contents',
             path,
             name
         );
@@ -82,7 +82,7 @@ define([
                 window.open(
                     utils.url_join_encode(
                         base_url,
-                        'notebooks',
+                        'contents',
                         path,
                         notebook_name
                     ),
@@ -106,7 +106,7 @@ define([
         };
         var url = utils.url_join_encode(
             base_url,
-            'api/notebooks',
+            'api/contents',
             path
         );
         $.ajax(url,settings);
@@ -128,7 +128,7 @@ define([
         };
         var url = utils.url_join_encode(
             this.base_url,
-            'api/notebooks',
+            'api/contents',
             path,
             name
         );
@@ -156,7 +156,7 @@ define([
         };
         var url = utils.url_join_encode(
             this.base_url,
-            'api/notebooks',
+            'api/contents',
             path,
             name
         );
@@ -165,11 +165,12 @@ define([
 
     ContentManager.prototype.save_notebook = function(path, name, content,
         extra_settings) {
-        var that = notebook;
+        var that = content;
         // Create a JSON model to be sent to the server.
         var model = {
             name : name,
             path : path,
+            type : "notebook",
             content : content
         };
         // time the ajax call for autosave tuning purposes.
@@ -196,7 +197,7 @@ define([
         }
         var url = utils.url_join_encode(
             this.base_url,
-            'api/notebooks',
+            'api/contents',
             path,
             name
         );
@@ -216,7 +217,7 @@ define([
         this.events.trigger('notebook_restoring.Notebook', checkpoint);
         var url = utils.url_join_encode(
             this.base_url,
-            'api/notebooks',
+            'api/contents',
             this.notebook_path,
             this.notebook_name,
             'checkpoints',
@@ -233,7 +234,7 @@ define([
         that = notebook;
         var url = utils.url_join_encode(
             that.base_url,
-            'api/notebooks',
+            'api/contents',
             that.notebook_path,
             that.notebook_name,
             'checkpoints'
@@ -277,7 +278,7 @@ define([
             error : error_callback
         };
 
-        var url = utils.url_join_encode(this.base_url, 'api', 'notebooks',
+        var url = utils.url_join_encode(this.base_url, 'api', 'contents',
             path);
         $.ajax(url, settings);
     }
