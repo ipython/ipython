@@ -514,7 +514,8 @@ define([
     KeyboardManager.prototype.bind_events = function () {
         var that = this;
         $(document).keydown(function (event) {
-            if(event._ipkmIgnore==true||event.originalEvent._ipkmIgnore==true){
+
+            if(event._ipkmIgnore==true||(event.originalEvent||{})._ipkmIgnore==true){
                 return false;
             }
             return that.handle_keydown(event);
