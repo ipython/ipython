@@ -1490,6 +1490,22 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
             QtGui.qApp.sendEvent(self._page_control, new_event)
             return True
 
+        # vi/less -like key bindings
+        elif key == QtCore.Qt.Key_J:
+            new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
+                                        QtCore.Qt.Key_Down,
+                                        QtCore.Qt.NoModifier)
+            QtGui.qApp.sendEvent(self._page_control, new_event)
+            return True
+
+        # vi/less -like key bindings
+        elif key == QtCore.Qt.Key_K:
+            new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
+                                        QtCore.Qt.Key_Up,
+                                        QtCore.Qt.NoModifier)
+            QtGui.qApp.sendEvent(self._page_control, new_event)
+            return True
+
         return False
 
     def _on_flush_pending_stream_timer(self):
