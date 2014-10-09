@@ -32,6 +32,13 @@ define(["widgets/js/manager",
             this.id = model_id;
             this.views = {};
 
+            // Promise that is resolved when a state is received
+            // from the back-end.
+            var that = this;
+            this.received_state = new Promise(function(resolve) {
+                that._resolve_received_state = resolve;
+            });
+
             if (comm !== undefined) {
                 // Remember comm associated with the model.
                 this.comm = comm;
@@ -40,6 +47,11 @@ define(["widgets/js/manager",
                 // Hook comm messages up to model.
                 comm.on_close($.proxy(this._handle_comm_closed, this));
                 comm.on_msg($.proxy(this._handle_comm_msg, this));
+
+                // Assume the comm is alive.
+                this.set_comm_alive(true);
+            } else {
+                this.set_comm_alive(false);
             }
             return Backbone.Model.apply(this);
         },
@@ -55,11 +67,34 @@ define(["widgets/js/manager",
             }
         },
 
-        _handle_comm_closed: function (msg) {
-            /**
-             * Handle when a widget is closed.
+        request_state: function(callbacks) {
+            /** 
+             * Request a state push from the back-end.
              */
-            this.trigger('comm:close');
+            if (!this.comm) {
+                console.error("Could not request_state because comm doesn't exist!");
+                return;
+            }
+            this.comm.send({method: 'request_state'}, callbacks || this.widget_manager.callbacks());
+        },
+
+        set_comm_alive: function(alive) {
+            /** 
+             * Change the comm_alive state of the model.
+             */
+            if (this.comm_alive === undefined || this.comm_alive != alive) {
+                this.comm_alive = alive;
+                this.trigger(alive ? 'comm_is_live' : 'comm_is_dead', {model: this});
+            }
+        },
+
+        close: function(comm_closed) {
+            /**
+             * Close model
+             */
+            if (this.comm && !comm_closed) {
+                this.comm.close();
+            }
             this.stopListening();
             this.trigger('destroy', this);
             delete this.comm.model; // Delete ref so GC will collect widget model.
@@ -71,6 +106,14 @@ define(["widgets/js/manager",
                     delete views[id];
                 });
             });
+        },
+
+        _handle_comm_closed: function (msg) {
+            /** 
+             * Handle when a widget is closed.
+             */
+            this.trigger('comm:close');
+            this.close(true);
         },
 
         _handle_comm_msg: function (msg) {
@@ -104,7 +147,20 @@ define(["widgets/js/manager",
                 } finally {
                     that.state_lock = null;
                 }
-            }).catch(utils.reject("Couldn't set model state", true));
+                that._resolve_received_state();
+                return Promise.resolve();
+            }, utils.reject("Couldn't set model state", true));
+        },
+
+        get_state: function() {
+            // Get the serializable state of the model.
+            state = this.toJSON();
+            for (var key in state) {
+                if (state.hasOwnProperty(key)) {
+                    state[key] = this._pack_models(state[key]);
+                }
+            }
+            return state;
         },
 
         _handle_status: function (msg, callbacks) {
@@ -322,6 +378,9 @@ define(["widgets/js/manager",
             this.on('displayed', function() { 
                 this.is_displayed = true; 
             }, this);
+            this.on('remove', function() {
+                delete this.model.views[this.id];
+            }, this);
         },
 
         update: function(){
@@ -387,6 +446,12 @@ define(["widgets/js/manager",
             } else {
                 this.on('displayed', callback, context);
             }
+        },
+
+        remove: function () {
+            // Raise a remove event when the view is removed.
+            WidgetView.__super__.remove.apply(this, arguments);
+            this.trigger('remove');
         }
     });
 

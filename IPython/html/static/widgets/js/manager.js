@@ -7,7 +7,8 @@ define([
     "jquery",
     "base/js/utils",
     "base/js/namespace",
-], function (_, Backbone, $, utils, IPython) {
+    "services/kernels/comm"
+], function (_, Backbone, $, utils, IPython, comm) {
     "use strict";
     //--------------------------------------------------------------------
     // WidgetManager class
@@ -22,10 +23,11 @@ define([
         this.keyboard_manager = notebook.keyboard_manager;
         this.notebook = notebook;
         this.comm_manager = comm_manager;
+        this.comm_target_name = 'ipython.widget';
         this._models = {}; /* Dictionary of model ids and model instances */
 
         // Register with the comm manager.
-        this.comm_manager.register_target('ipython.widget', $.proxy(this._handle_comm_open, this));
+        this.comm_manager.register_target(this.comm_target_name, $.proxy(this._handle_comm_open, this));
     };
 
     //--------------------------------------------------------------------
@@ -53,21 +55,34 @@ define([
          * Displays a view for a particular model.
          */
         var that = this;
-        var cell = this.get_msg_cell(msg.parent_header.msg_id);
-        if (cell === null) {
-            return Promise.reject(new Error("Could not determine where the display" +
-                                            " message was from.  Widget will not be displayed"));
-        } else if (cell.widget_subarea) {
-            var dummy = $('<div />');
-            cell.widget_subarea.append(dummy);
-            return this.create_view(model, {cell: cell}).then(
-                function(view) {
+        return new Promise(function(resolve, reject) {
+            var cell = that.get_msg_cell(msg.parent_header.msg_id);
+            if (cell === null) {
+                reject(new Error("Could not determine where the display" + 
+                    " message was from.  Widget will not be displayed"));
+            } else {
+                return that.display_view_in_cell(cell, model);
+            }
+        });
+    };
+
+    WidgetManager.prototype.display_view_in_cell = function(cell, model) {
+        // Displays a view in a cell.
+        return new Promise(function(resolve, reject) {
+            if (cell.display_widget_view) {
+                cell.display_widget_view(that.create_view(model, {cell: cell}))
+                .then(function(view) {
+
                     that._handle_display_view(view);
-                    dummy.replaceWith(view.$el);
                     view.trigger('displayed');
-                    return view;
-                }).catch(utils.reject('Could not display view', true));
-        }
+                    resolve(view);
+                }, function(error) { 
+                    reject(new utils.WrappedError('Could not display view', error)); 
+                });
+            } else {
+                reject(new Error('Cell does not have a `display_widget_view` method.'));
+            }
+        });
     };
 
     WidgetManager.prototype._handle_display_view = function (view) {
@@ -238,6 +253,8 @@ define([
                 widget_model.once('comm:close', function () {
                     delete that._models[model_id];
                 });
+                widget_model.name = options.model_name;
+                widget_model.module = options.model_module;
                 return widget_model;
 
             }, function(error) {
@@ -247,6 +264,100 @@ define([
             });
         this._models[model_id] = model_promise;
         return model_promise;
+    };
+
+    WidgetManager.prototype.get_state = function(options) {
+        // Get the state of the widget manager.
+        //
+        // This includes all of the widget models and the cells that they are
+        // displayed in.
+        //
+        // Parameters
+        // ----------
+        // options: dictionary
+        //  Dictionary of options with the following contents:
+        //      only_displayed: (optional) boolean=false
+        //          Only return models with one or more displayed views.
+        //      not_alive: (optional) boolean=false
+        //          Include models that have comms with severed connections.
+        return utils.resolve_promise_dict(function(models) {
+            var state = {};
+            for (var model_id in models) {
+                if (models.hasOwnProperty(model_id)) {
+                    var model = models[model_id];
+
+                    // If the model has one or more views defined for it,
+                    // consider it displayed.
+                    var displayed_flag = !(options && options.only_displayed) || Object.keys(model.views).length > 0;
+                    var alive_flag = (options && options.not_alive) || model.comm_alive;
+                    if (displayed_flag && alive_flag) {
+                        state[model.model_id] = {
+                            model_name: model.name,
+                            model_module: model.module,
+                            views: [],
+                        };
+
+                        // Get the views that are displayed *now*.
+                        for (var id in model.views) {
+                            if (model.views.hasOwnProperty(id)) {
+                                var view = model.views[id];
+                                var cell_index = this.notebook.find_cell_index(view.options.cell);
+                                state[model.model_id].views.push(cell_index);
+                            }
+                        }
+                    }
+                }
+            }
+            return state;
+        });
+    };
+    
+    WidgetManager.prototype.set_state = function(state) {
+        // Set the notebook's state.
+        //
+        // Reconstructs all of the widget models and attempts to redisplay the
+        // widgets in the appropriate cells by cell index.
+
+        // Get the kernel when it's available.
+        var that = this;
+        return (new Promise(function(resolve, reject) {
+            if (that.kernel) {
+                resolve(that.kernel);
+            } else {
+                that.events.on('kernel_created.Session', function(event, data) {
+                    resolve(data.kernel);
+                });
+            }    
+        })).then(function(kernel) {
+            
+            // Recreate all the widget models for the given state.
+            that.widget_models = [];
+            for (var i = 0; i < state.length; i++) {
+                // Recreate a comm using the widget's model id (model_id == comm_id).
+                var new_comm = new comm.Comm(kernel.widget_manager.comm_target_name, state[i].model_id);
+                kernel.comm_manager.register_comm(new_comm);
+
+                // Create the model using the recreated comm.  When the model is
+                // created we don't know yet if the comm is valid so set_comm_alive
+                // false.  Once we receive the first state push from the back-end
+                // we know the comm is alive.
+                var model = kernel.widget_manager.create_model({
+                    comm: new_comm, 
+                    model_name: state[i].model_name, 
+                    model_module: state[i].model_module}).then(function(model) {
+                        model.set_comm_alive(false);
+                        model.request_state();
+                        model.received_state.then(function() {
+                            model.set_comm_alive(true);
+                        });
+                        return model;
+                    });
+                that.widget_models.push(model);
+            }
+            return Promise.all(that.widget_models);
+
+        });
+        
     };
 
     // Backwards compatibility.

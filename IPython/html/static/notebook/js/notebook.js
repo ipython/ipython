@@ -291,6 +291,13 @@ define([
         // Firefox 22 broke $(window).on("beforeunload")
         // I'm not sure why or how.
         window.onbeforeunload = function (e) {
+            // Raise an event that allows the user to execute custom code on unload
+            try {
+                that.events.trigger('beforeunload.Notebook', {notebook: that});
+            } catch(e) {
+                console.err('Error in "beforeunload.Notebook" event handler.', e);
+            }
+
             // TODO: Make killing the kernel configurable.
             var kill_kernel = false;
             if (kill_kernel) {
