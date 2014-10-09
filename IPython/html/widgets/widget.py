@@ -18,6 +18,7 @@ import collections
 from IPython.core.getipython import get_ipython
 from IPython.kernel.comm import Comm
 from IPython.config import LoggingConfigurable
+from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import Unicode, Dict, Instance, Bool, List, \
     CaselessStrEnum, Tuple, CUnicode, Int, Set
 from IPython.utils.py3compat import string_types
@@ -95,6 +96,15 @@ class Widget(LoggingConfigurable):
         if Widget._widget_construction_callback is not None and callable(Widget._widget_construction_callback):
             Widget._widget_construction_callback(widget)
 
+    @staticmethod
+    def handle_comm_opened(comm, msg):
+        """Static method, called when a widget is constructed."""
+        target_name = msg['content']['data']['target_name']
+        widget_class = import_item(target_name)
+        widget = widget_class(open_comm=False)
+        widget.set_comm(comm)
+
+
     #-------------------------------------------------------------------------
     # Traits
     #-------------------------------------------------------------------------
@@ -125,13 +135,14 @@ class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
     # (Con/de)structor
     #-------------------------------------------------------------------------
-    def __init__(self, **kwargs):
+    def __init__(self, open_comm=True, **kwargs):
         """Public constructor"""
         self._model_id = kwargs.pop('model_id', None)
         super(Widget, self).__init__(**kwargs)
 
         Widget._call_widget_constructed(self)
-        self.open()
+        if open_comm:
+            self.open()
 
     def __del__(self):
         """Object disposal"""
@@ -149,14 +160,18 @@ class Widget(LoggingConfigurable):
                               'model_module': self._model_module})
             if self._model_id is not None:
                 args['comm_id'] = self._model_id
-            self.comm = Comm(**args)
-            self._model_id = self.model_id
+            self.set_comm(Comm(**args))
             
-            self.comm.on_msg(self._handle_msg)
-            Widget.widgets[self.model_id] = self
-
             # first update
             self.send_state()
+
+    def set_comm(self, comm):
+        """Set's the comm of the widget."""
+        self.comm = comm
+        self._model_id = self.model_id
+            
+        self.comm.on_msg(self._handle_msg)
+        Widget.widgets[self.model_id] = self
 
     @property
     def model_id(self):
@@ -330,7 +345,7 @@ class Widget(LoggingConfigurable):
     def _handle_custom_msg(self, content):
         """Called when a custom msg is received."""
         self._msg_callbacks(self, content)
-    
+
     def _notify_trait(self, name, old_value, new_value):
         """Called when a property has been changed."""
         # Trigger default traitlet callback machinery.  This allows any user
@@ -341,10 +356,10 @@ class Widget(LoggingConfigurable):
         # Send the state after the user registered callbacks for trait changes
         # have all fired (allows for user to validate values).
         if self.comm is not None and name in self.keys:
-            # Make sure this isn't information that the front-end just sent us.
+        # Make sure this isn't information that the front-end just sent us.
             if self._should_send_property(name, new_value):
-                # Send new state to front-end
-                self.send_state(key=name)
+            # Send new state to front-end
+            self.send_state(key=name)
 
     def _handle_displayed(self, **kwargs):
         """Called when a view has been displayed for this widget instance"""

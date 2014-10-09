@@ -187,12 +187,47 @@ define([
 
     WidgetManager.prototype._handle_comm_open = function (comm, msg) {
         // Handle when a comm is opened.
+        return this.create_model({model_name: msg.content.data.target_name, comm: comm});
+    };
+
+    WidgetManager.prototype.create_model = function (model_name, target_name) {
+        // Create and return a new widget model.
+        //
+        // Parameters
+        // ----------
+        // model_name: string
+        //      Target name of the widget model to create.
+        // target_name: string
+        //      Target name of the widget in the back-end.
+        return this._create_model({model_name: model_name, target_name: target_name});
+    };
+
+    WidgetManager.prototype._create_model = function (options) {
+        // Create and return a new widget model.
+        //
+        // Parameters
+        // ----------
+        // options: dictionary
+        //  Dictionary of options with the following contents:
+        //      model_name: string
+        //          Target name of the widget model to create.
+        //      target_name: (optional) string
+        //          Target name of the widget in the back-end.
+        //      comm: (optional) Comm
+
+        // Create a comm if it wasn't provided.
+        var comm = options.comm;
+        if (!comm) {
+            comm = this.comm_manager.new_comm('ipython.widget', {'target_name': options.target_name});
+        }
+
+        // Create and return a new model that is connected to the comm.
         var that = this;
         
         var instantiate_model = function(ModelType) {
             var model_id = comm.comm_id;
             var widget_model = new ModelType(that, model_id, comm);
-            widget_model.on('comm:close', function () {
+            widget_model.on('comm:close', function () {sss
               delete that._models[model_id];
             });
             that._models[model_id] = widget_model;
