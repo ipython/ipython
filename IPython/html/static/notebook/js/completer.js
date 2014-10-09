@@ -143,7 +143,7 @@ define([
         }
 
         // We want a single cursor position.
-        if (this.editor.somethingSelected()|| editor.getSelections().length > 1) {
+        if (this.editor.somethingSelected()|| this.editor.getSelections().length > 1) {
             return;
         }
 
