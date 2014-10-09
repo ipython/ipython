@@ -295,7 +295,7 @@ class FileContentsManager(ContentsManager):
     def _save_notebook(self, os_path, model, name='', path=''):
         """save a notebook file"""
         # Save the notebook file
-        nb = current.to_notebook_json(model['content'])
+        nb = current.from_dict(model['content'])
 
         self.check_and_sign(nb, name, path)
 

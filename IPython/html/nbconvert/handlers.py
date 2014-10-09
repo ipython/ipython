@@ -13,7 +13,7 @@ from ..base.handlers import (
     IPythonHandler, FilesRedirectHandler,
     notebook_path_regex, path_regex,
 )
-from IPython.nbformat.current import to_notebook_json
+from IPython.nbformat.current import from_dict
 
 from IPython.utils.py3compat import cast_bytes
 
@@ -115,7 +115,7 @@ class NbconvertPostHandler(IPythonHandler):
         
         model = self.get_json_body()
         name = model.get('name', 'notebook.ipynb')
-        nbnode = to_notebook_json(model['content'])
+        nbnode = from_dict(model['content'])
         
         try:
             output, resources = exporter.from_notebook_node(nbnode)

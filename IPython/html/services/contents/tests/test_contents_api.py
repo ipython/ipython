@@ -16,7 +16,7 @@ from IPython.html.utils import url_path_join, url_escape
 from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
 from IPython.nbformat import current
 from IPython.nbformat.current import (new_notebook, write, read,
-                                      new_markdown_cell, to_notebook_json)
+                                      new_markdown_cell, from_dict)
 from IPython.nbformat import v2
 from IPython.utils import py3compat
 from IPython.utils.data import uniq_stable
@@ -414,7 +414,7 @@ class APITest(NotebookTestBase):
     def test_save(self):
         resp = self.api.read('a.ipynb', 'foo')
         nbcontent = json.loads(resp.text)['content']
-        nb = to_notebook_json(nbcontent)
+        nb = from_dict(nbcontent)
         nb.cells.append(new_markdown_cell(u'Created by test ³'))
 
         nbmodel= {'name': 'a.ipynb', 'path':'foo', 'content': nb, 'type': 'notebook'}
@@ -426,7 +426,7 @@ class APITest(NotebookTestBase):
         self.assertEqual(newnb.cells[0].source,
                          u'Created by test ³')
         nbcontent = self.api.read('a.ipynb', 'foo').json()['content']
-        newnb = to_notebook_json(nbcontent)
+        newnb = from_dict(nbcontent)
         self.assertEqual(newnb.cells[0].source,
                          u'Created by test ³')
 
@@ -451,7 +451,7 @@ class APITest(NotebookTestBase):
 
         # Modify it
         nbcontent = json.loads(resp.text)['content']
-        nb = to_notebook_json(nbcontent)
+        nb = from_dict(nbcontent)
         hcell = new_markdown_cell('Created by test')
         nb.cells.append(hcell)
         # Save
@@ -463,14 +463,14 @@ class APITest(NotebookTestBase):
         self.assertEqual(cps, [cp1])
 
         nbcontent = self.api.read('a.ipynb', 'foo').json()['content']
-        nb = to_notebook_json(nbcontent)
+        nb = from_dict(nbcontent)
         self.assertEqual(nb.cells[0].source, 'Created by test')
 
         # Restore cp1
         r = self.api.restore_checkpoint('a.ipynb', 'foo', cp1['id'])
         self.assertEqual(r.status_code, 204)
         nbcontent = self.api.read('a.ipynb', 'foo').json()['content']
-        nb = to_notebook_json(nbcontent)
+        nb = from_dict(nbcontent)
         self.assertEqual(nb.cells, [])
 
         # Delete cp1
