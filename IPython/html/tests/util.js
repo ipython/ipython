@@ -28,10 +28,10 @@ casper.open_new_notebook = function () {
     this.thenEvaluate(function () {
         require(['base/js/namespace', 'base/js/events'], function (IPython, events) {
         
-            events.on('status_idle.Kernel',function () {
+            events.on('kernel_idle.Kernel',function () {
                 IPython._status = 'idle';
             });
-            events.on('status_busy.Kernel',function () {
+            events.on('kernel_busy.Kernel',function () {
                 IPython._status = 'busy';
             });
         });
@@ -58,7 +58,29 @@ casper.page_loaded = function() {
 casper.kernel_running = function() {
     // Return whether or not the kernel is running.
     return this.evaluate(function() {
-        return IPython.notebook.kernel.running;
+        return IPython.notebook.kernel.is_connected();
+    });
+};
+
+casper.kernel_disconnected = function() {
+    return this.evaluate(function() {
+        return IPython.notebook.kernel.is_fully_disconnected();
+    });
+};
+
+casper.wait_for_kernel_ready = function () {
+    this.waitFor(this.kernel_running);
+    this.thenEvaluate(function () {
+        IPython._kernel_ready = false;
+        IPython.notebook.kernel.kernel_info(
+            function () {
+                IPython._kernel_ready = true;
+            });
+    });
+    this.waitFor(function () {
+        return this.evaluate(function () {
+            return IPython._kernel_ready;
+        });
     });
 };
 
@@ -557,6 +579,61 @@ casper.dashboard_test = function (test) {
     // Run the browser automation.
     this.run(function() {
         this.test.done();
+    });
+};
+
+// note that this will only work for UNIQUE events -- if you want to
+// listen for the same event twice, this will not work!
+casper.event_test = function (name, events, action, timeout) {
+
+    // set up handlers to listen for each of the events
+    this.thenEvaluate(function (events) {
+        var make_handler = function (event) {
+            return function () {
+                IPython._events_triggered.push(event);
+                IPython.notebook.events.off(event, null, IPython._event_handlers[event]);
+                delete IPython._event_handlers[event];
+            };
+        };
+        IPython._event_handlers = {};
+        IPython._events_triggered = [];
+        for (var i=0; i < events.length; i++) {
+            IPython._event_handlers[events[i]] = make_handler(events[i]);
+            IPython.notebook.events.on(events[i], IPython._event_handlers[events[i]]);
+        }
+    }, [events]);
+
+    // execute the requested action
+    this.then(action);
+
+    // wait for all the events to be triggered
+    this.waitFor(function () {
+        return this.evaluate(function (events) {
+            return IPython._events_triggered.length >= events.length;
+        }, [events]);
+    }, undefined, undefined, timeout);
+
+    // test that the events were triggered in the proper order
+    this.then(function () {
+        var triggered = this.evaluate(function () {
+            return IPython._events_triggered;
+        });
+        var handlers = this.evaluate(function () {
+            return Object.keys(IPython._event_handlers);
+        });
+        this.test.assertEquals(triggered.length, events.length, name + ': ' + events.length + ' events were triggered');
+        this.test.assertEquals(handlers.length, 0, name + ': all handlers triggered');
+        for (var i=0; i < events.length; i++) {
+            this.test.assertEquals(triggered[i], events[i], name + ': ' + events[i] + ' was triggered');
+        }
+    });
+
+    // turn off any remaining event listeners
+    this.thenEvaluate(function () {
+        for (var event in IPython._event_handlers) {
+            IPython.notebook.events.off(event, null, IPython._event_handlers[event]);
+            delete IPython._event_handlers[event];
+        }
     });
 };
 

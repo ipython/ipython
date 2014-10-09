@@ -91,19 +91,19 @@ define([
                 element: "#kernel_indicator",
                 title: "Kernel Indicator",
                 placement: 'bottom',
-                onShow: function(tour) { events.trigger('status_idle.Kernel');},
+                onShow: function(tour) { events.trigger('kernel_idle.Kernel');},
                 content: "This is the Kernel indicator. It looks like this when the Kernel is idle."
             }, {
                 element: "#kernel_indicator",
                 title: "Kernel Indicator",
                 placement: 'bottom',
-                onShow: function(tour) { events.trigger('status_busy.Kernel'); },
+                onShow: function(tour) { events.trigger('kernel_busy.Kernel'); },
                 content: "The Kernel indicator looks like this when the Kernel is busy."
             }, {
                 element: ".fa-stop",
                 placement: 'bottom',
                 title: "Interrupting the Kernel",
-                onHide: function(tour) { events.trigger('status_idle.Kernel'); },
+                onHide: function(tour) { events.trigger('kernel_idle.Kernel'); },
                 content: "To cancel a computation in progress, you can click here."
             }, {
                 element: "#notification_kernel",

@@ -523,12 +523,14 @@ define([
     var ajax_error_msg = function (jqXHR) {
         // Return a JSON error message if there is one,
         // otherwise the basic HTTP status text.
-        if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
+        if (jqXHR.responseJSON && jqXHR.responseJSON.traceback) {
+            return jqXHR.responseJSON.traceback;
+        } else if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
             return jqXHR.responseJSON.message;
         } else {
             return jqXHR.statusText;
         }
-    }
+    };
     var log_ajax_error = function (jqXHR, status, error) {
         // log ajax failures with informative messages
         var msg = "API request failed (" + jqXHR.status + "): ";

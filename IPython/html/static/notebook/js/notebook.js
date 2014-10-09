@@ -205,20 +205,6 @@ define([
         this.events.on('command_mode.Cell', function (event, data) {
             that.handle_command_mode(data.cell);
         });
-
-        this.events.on('status_autorestarting.Kernel', function () {
-            dialog.modal({
-                notebook: that,
-                keyboard_manager: that.keyboard_manager,
-                title: "Kernel Restarting",
-                body: "The kernel appears to have died. It will restart automatically.",
-                buttons: {
-                    OK : {
-                        class : "btn-primary"
-                    }
-                }
-            });
-        });
         
         this.events.on('spec_changed.Kernel', function(event, data) {
             that.set_kernelspec_metadata(data);
@@ -258,7 +244,7 @@ define([
             // TODO: Make killing the kernel configurable.
             var kill_kernel = false;
             if (kill_kernel) {
-                that.session.kill_kernel();
+                that.session.delete();
             }
             // if we are autosaving, trigger an autosave on nav-away.
             // still warn, because if we don't the autosave may fail.
@@ -1572,45 +1558,25 @@ define([
             throw new session.SessionAlreadyStarting();
         }
         this._session_starting = true;
-        
-        if (this.session !== null) {
-            var s = this.session;
-            this.session = null;
-            // need to start the new session in a callback after delete,
-            // because javascript does not guarantee the ordering of AJAX requests (?!)
-            s.delete(function () {
-                    // on successful delete, start new session
-                    that._session_starting = false;
-                    that.start_session(kernel_name);
-                }, function (jqXHR, status, error) {
-                    // log the failed delete, but still create a new session
-                    // 404 just means it was already deleted by someone else,
-                    // but other errors are possible.
-                    utils.log_ajax_error(jqXHR, status, error);
-                    that._session_starting = false;
-                    that.start_session(kernel_name);
-                }
-            );
-            return;
-        }
-        
-        
-    
-        this.session = new session.Session({
+
+        var options = {
             base_url: this.base_url,
             ws_url: this.ws_url,
             notebook_path: this.notebook_path,
             notebook_name: this.notebook_name,
-            // For now, create all sessions with the 'python' kernel, which is the
-            // default. Later, the user will be able to select kernels. This is
-            // overridden if KernelManager.kernel_cmd is specified for the server.
             kernel_name: kernel_name,
-            notebook: this});
+            notebook: this
+        };
 
-        this.session.start(
-            $.proxy(this._session_started, this),
-            $.proxy(this._session_start_failed, this)
-        );
+        var success = $.proxy(this._session_started, this);
+        var failure = $.proxy(this._session_start_failed, this);
+
+        if (this.session !== null) {
+            this.session.restart(options, success, failure);
+        } else {
+            this.session = new session.Session(options);
+            this.session.start(success, failure);
+        }
     };
 
 
@@ -1654,7 +1620,7 @@ define([
                 "Restart" : {
                     "class" : "btn-danger",
                     "click" : function() {
-                        that.session.restart_kernel();
+                        that.kernel.restart();
                     }
                 }
             }

@@ -117,7 +117,7 @@ define([
                     label : 'Interrupt',
                     icon : 'fa-stop',
                     callback : function () {
-                        that.notebook.session.interrupt_kernel();
+                        that.notebook.kernel.interrupt();
                         }
                 },
                 {
