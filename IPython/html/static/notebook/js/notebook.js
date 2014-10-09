@@ -189,8 +189,8 @@ define([
             that.dirty = data.value;
         });
 
-        this.events.on('trust_changed.Notebook', function (event, data) {
-            that.trusted = data.value;
+        this.events.on('trust_changed.Notebook', function (event, trusted) {
+            that.trusted = trusted;
         });
 
         this.events.on('select.Cell', function (event, data) {
@@ -1837,7 +1837,7 @@ define([
         }
         if (trusted !== this.trusted) {
             this.trusted = trusted;
-            this.events.trigger("trust_changed.Notebook", {value: trusted});
+            this.events.trigger("trust_changed.Notebook", trusted);
         }
         if (content.worksheets.length > 1) {
             dialog.modal({
