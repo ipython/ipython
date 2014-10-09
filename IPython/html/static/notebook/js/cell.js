@@ -157,6 +157,16 @@ define([
                 that.events.trigger('command_mode.Cell', {cell: that});
             });
         }
+
+        this.element.dblclick(function () {
+            if (that.selected === false) {
+                this.events.trigger('select.Cell', {'cell':that});
+            }
+            var cont = that.unrender();
+            if (cont) {
+                that.focus_editor();
+            }
+        });
     };
     
     /**

@@ -92,27 +92,6 @@ define([
     };
 
 
-    /**
-     * Bind the DOM evet to cell actions
-     * Need to be called after TextCell.create_element
-     * @private
-     * @method bind_event
-     */
-    TextCell.prototype.bind_events = function () {
-        Cell.prototype.bind_events.apply(this);
-        var that = this;
-
-        this.element.dblclick(function () {
-            if (that.selected === false) {
-                this.events.trigger('select.Cell', {'cell':that});
-            }
-            var cont = that.unrender();
-            if (cont) {
-                that.focus_editor();
-            }
-        });
-    };
-
     // Cell level actions
     
     TextCell.prototype.select = function () {
