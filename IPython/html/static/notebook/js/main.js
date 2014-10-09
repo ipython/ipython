@@ -16,6 +16,7 @@ require([
     'notebook/js/menubar',
     'notebook/js/notificationarea',
     'notebook/js/savewidget',
+    'notebook/js/actions',
     'notebook/js/keyboardmanager',
     'notebook/js/config',
     'notebook/js/kernelselector',
@@ -36,7 +37,8 @@ require([
     quickhelp, 
     menubar, 
     notificationarea, 
-    savewidget, 
+    savewidget,
+    actions,
     keyboardmanager,
     config,
     kernelselector,
@@ -62,9 +64,11 @@ require([
     var pager = new pager.Pager('div#pager', 'div#pager_splitter', {
         layout_manager: layout_manager, 
         events: events});
+    var acts = new actions.init();
     var keyboard_manager = new keyboardmanager.KeyboardManager({
         pager: pager, 
-        events: events});
+        events: events, 
+        actions: acts });
     var save_widget = new savewidget.SaveWidget('span#save_widget', {
         events: events, 
         keyboard_manager: keyboard_manager});
@@ -77,11 +81,14 @@ require([
     var login_widget = new loginwidget.LoginWidget('span#login_widget', common_options);
     var toolbar = new maintoolbar.MainToolBar('#maintoolbar-container', {
         notebook: notebook, 
-        events: events}); 
+        events: events, 
+        actions: acts}); 
     var quick_help = new quickhelp.QuickHelp({
         keyboard_manager: keyboard_manager, 
         events: events,
         notebook: notebook});
+    keyboard_manager.set_notebook(notebook);
+    keyboard_manager.set_quickhelp(quick_help);
     var menubar = new menubar.MenuBar('#menubar', $.extend({
         notebook: notebook, 
         layout_manager: layout_manager, 

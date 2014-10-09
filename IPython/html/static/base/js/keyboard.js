@@ -12,18 +12,22 @@ define([
     'base/js/namespace',
     'jquery',
     'base/js/utils',
-], function(IPython, $, utils) {
+    'underscore',
+], function(IPython, $, utils, _) {
     "use strict";
 
 
-    // Setup global keycodes and inverse keycodes.
+    /**
+     * Setup global keycodes and inverse keycodes.
+     * 
+     * See http://unixpapa.com/js/key.html for a complete description. The short of
+     * it is that there are different keycode sets. Firefox uses the "Mozilla keycodes"
+     * and Webkit/IE use the "IE keycodes". These keycode sets are mostly the same
+     * but have minor differences.
+     **/
 
-    // See http://unixpapa.com/js/key.html for a complete description. The short of
-    // it is that there are different keycode sets. Firefox uses the "Mozilla keycodes"
-    // and Webkit/IE use the "IE keycodes". These keycode sets are mostly the same
-    // but have minor differences.
-
-    // These apply to Firefox, (Webkit and IE)
+     // These apply to Firefox, (Webkit and IE)
+     // This does work **only** on US keyboard.
     var _keycodes = {
         'a': 65, 'b': 66, 'c': 67, 'd': 68, 'e': 69, 'f': 70, 'g': 71, 'h': 72, 'i': 73,
         'j': 74, 'k': 75, 'l': 76, 'm': 77, 'n': 78, 'o': 79, 'p': 80, 'q': 81, 'r': 82,
@@ -84,13 +88,32 @@ define([
     };
 
     var normalize_shortcut = function (shortcut) {
-        // Put a shortcut into normalized form:
-        // 1. Make lowercase
-        // 2. Replace cmd by meta
-        // 3. Sort '-' separated modifiers into the order alt-ctrl-meta-shift
-        // 4. Normalize keys
+        /**
+         * @function _normalize_shortcut
+         * @private
+         * return a dict containing the normalized shortcut and the number of time it should be pressed:
+         *
+         * Put a shortcut into normalized form:
+         * 1. Make lowercase
+         * 2. Replace cmd by meta
+         * 3. Sort '-' separated modifiers into the order alt-ctrl-meta-shift
+         * 4. Normalize keys
+         **/
+        if (platform === 'MacOS') {
+            shortcut = shortcut.toLowerCase().replace('cmdtrl-', 'cmd-');
+        } else {
+            shortcut = shortcut.toLowerCase().replace('cmdtrl-', 'ctrl-');
+        }
+
         shortcut = shortcut.toLowerCase().replace('cmd', 'meta');
         shortcut = shortcut.replace(/-$/, '_');  // catch shortcuts using '-' key
+        shortcut = shortcut.replace(/,$/, 'comma');  // catch shortcuts using '-' key
+        if(shortcut.indexOf(',') !== -1){
+            var sht = shortcut.split(',');
+            sht = _.map(sht, normalize_shortcut);
+            return shortcut;
+        }
+        shortcut = shortcut.replace(/comma/g, ',');  // catch shortcuts using '-' key
         var values = shortcut.split("-");
         if (values.length === 1) {
             return normalize_key(values[0]);
@@ -103,7 +126,9 @@ define([
     };
 
     var shortcut_to_event = function (shortcut, type) {
-        // Convert a shortcut (shift-r) to a jQuery Event object
+        /**
+         * Convert a shortcut (shift-r) to a jQuery Event object
+         **/
         type = type || 'keydown';
         shortcut = normalize_shortcut(shortcut);
         shortcut = shortcut.replace(/-$/, '_');  // catch shortcuts using '-' key
@@ -118,8 +143,21 @@ define([
         return $.Event(type, opts);
     };
 
+    var only_modifier_event = function(event){
+        /**
+         * Return `true` if the event only contains modifiers keys.
+         * false otherwise
+         **/
+        var key = inv_keycodes[event.which];
+        return ((event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) && 
+         (key === 'alt'|| key === 'ctrl'|| key === 'meta'|| key === 'shift'));
+
+    };
+
     var event_to_shortcut = function (event) {
-        // Convert a jQuery Event object to a shortcut (shift-r)
+        /**
+         * Convert a jQuery Event object to a normalized shortcut string (shift-r)
+         **/
         var shortcut = '';
         var key = inv_keycodes[event.which];
         if (event.altKey && key !== 'alt') {shortcut += 'alt-';}
@@ -132,7 +170,7 @@ define([
 
     // Shortcut manager class
 
-    var ShortcutManager = function (delay, events) {
+    var ShortcutManager = function (delay, events, actions, env) {
         /**
          * A class to deal with keyboard event and shortcut
          *
@@ -140,33 +178,78 @@ define([
          * @constructor
          */
         this._shortcuts = {};
-        this._counts = {};
-        this._timers = {};
         this.delay = delay || 800; // delay in milliseconds
         this.events = events;
+        this.actions = actions;
+        this.actions.extend_env(env);
+        this._queue = [];
+        this._cleartimeout = null;
+        Object.seal(this);
+    };
+
+    ShortcutManager.prototype.clearsoon = function(){
+        /**
+         * Clear the pending shortcut soon, and cancel previous clearing
+         * that might be registered.
+         **/ 
+         var that = this;
+         clearTimeout(this._cleartimeout);
+         this._cleartimeout = setTimeout(function(){that.clearqueue();}, this.delay);
+    };
+
+
+    ShortcutManager.prototype.clearqueue = function(){
+        /**
+         * clear the pending shortcut sequence now. 
+         **/
+        this._queue = [];
+        clearTimeout(this._cleartimeout);
+    };
+
+
+    var flatten_shorttree = function(tree){
+        /**
+         * Flatten a tree of shortcut sequences. 
+         * use full to iterate over all the key/values of available shortcuts.
+         **/
+        var  dct = {};
+        for(var key in tree){
+            var value = tree[key];
+            if(typeof(value) === 'string'){
+                dct[key] = value;
+            } else {
+                var ftree=flatten_shorttree(value);
+                for(var subkey in ftree){
+                    dct[key+','+subkey] = ftree[subkey];
+                }
+            } 
+        }
+        return dct;
     };
 
     ShortcutManager.prototype.help = function () {
         var help = [];
-        for (var shortcut in this._shortcuts) {
-            var help_string = this._shortcuts[shortcut].help;
-            var help_index = this._shortcuts[shortcut].help_index;
+        var ftree = flatten_shorttree(this._shortcuts);
+        for (var shortcut in ftree) {
+            var action = this.actions.get(ftree[shortcut]);
+            var help_string = action.help||'== no help ==';
+            var help_index = action.help_index;
             if (help_string) {
-                if (platform === 'MacOS') {
-                    shortcut = shortcut.replace('meta', 'cmd');
-                }
+                var shortstring = (action.shortstring||shortcut);
                 help.push({
-                    shortcut: shortcut,
+                    shortcut: shortstring,
                     help: help_string,
                     help_index: help_index}
                 );
             }
         }
         help.sort(function (a, b) {
-            if (a.help_index > b.help_index)
+            if (a.help_index > b.help_index){
                 return 1;
-            if (a.help_index < b.help_index)
+            }
+            if (a.help_index < b.help_index){
                 return -1;
+            }
             return 0;
         });
         return help;
@@ -176,19 +259,105 @@ define([
         this._shortcuts = {};
     };
 
+    ShortcutManager.prototype.get_shortcut = function (shortcut){
+        /**
+         * return a node of the shortcut tree which an action name (string) if leaf,
+         * and an object with `object.subtree===true`
+         **/
+        if(typeof(shortcut) === 'string'){
+            shortcut = shortcut.split(',');
+        }
+        
+        return this._get_leaf(shortcut, this._shortcuts);
+    };
+
+
+    ShortcutManager.prototype._get_leaf = function(shortcut_array, tree){
+        /**
+         * @private
+         * find a leaf/node in a subtree of the keyboard shortcut
+         *
+         **/
+        if(shortcut_array.length === 1){
+            return tree[shortcut_array[0]];
+        } else if(  typeof(tree[shortcut_array[0]]) !== 'string'){
+            return this._get_leaf(shortcut_array.slice(1), tree[shortcut_array[0]]);
+        }
+        return null;
+    };
+
+    ShortcutManager.prototype.set_shortcut = function( shortcut, action_name){
+        if( typeof(action_name) !== 'string'){ throw('action is not a string', action_name);}
+        if( typeof(shortcut) === 'string'){
+            shortcut = shortcut.split(',');
+        }
+        return this._set_leaf(shortcut, action_name, this._shortcuts);
+    };
+
+    ShortcutManager.prototype._is_leaf = function(shortcut_array, tree){
+        if(shortcut_array.length === 1){
+           return(typeof(tree[shortcut_array[0]]) === 'string');
+        } else {
+            var subtree = tree[shortcut_array[0]];
+            return this._is_leaf(shortcut_array.slice(1), subtree );
+        }
+    };
+
+    ShortcutManager.prototype._remove_leaf = function(shortcut_array, tree, allow_node){
+        if(shortcut_array.length === 1){
+            var current_node = tree[shortcut_array[0]];
+            if(typeof(current_node) === 'string'){
+                delete tree[shortcut_array[0]];
+            } else {
+                throw('try to delete non-leaf');
+            }
+        } else {
+            this._remove_leaf(shortcut_array.slice(1),  tree[shortcut_array[0]], allow_node);
+            if(_.keys(tree[shortcut_array[0]]).length === 0){
+                delete tree[shortcut_array[0]];
+            }
+        }
+    };
+
+    ShortcutManager.prototype._set_leaf = function(shortcut_array, action_name, tree){
+        var current_node = tree[shortcut_array[0]];
+        if(shortcut_array.length === 1){
+            if(current_node !== undefined && typeof(current_node) !== 'string'){
+                console.warn('[warning], you are overriting a long shortcut with a shorter one');
+            }
+            tree[shortcut_array[0]] = action_name;
+            return true;
+        } else {
+            if(typeof(current_node) === 'string'){
+                console.warn('you are trying to set a shortcut that will be shadowed'+
+                             'by a more specific one. Aborting for :', action_name, 'the follwing '+
+                             'will take precedence', current_node);
+                return false;
+            } else {
+                tree[shortcut_array[0]] = tree[shortcut_array[0]]||{};
+            }
+            this._set_leaf(shortcut_array.slice(1), action_name, tree[shortcut_array[0]]);
+            return true;
+        }
+    };
+
     ShortcutManager.prototype.add_shortcut = function (shortcut, data, suppress_help_update) {
-        if (typeof(data) === 'function') {
-            data = {help: '', help_index: '', handler: data};
+        /**
+         * Add a action to be handled by shortcut manager. 
+         * 
+         * - `shortcut` should be a `Shortcut Sequence` of the for `Ctrl-Alt-C,Meta-X`...
+         * - `data` could be an `action name`, an `action` or a `function`.
+         *   if a `function` is passed it will be converted to an anonymous `action`. 
+         *
+         **/
+        var action_name = this.actions.get_name(data);
+        if (! action_name){
+            throw('does nto know how to deal with ', data);
         }
-        data.help_index = data.help_index || '';
-        data.help = data.help || '';
-        data.count = data.count || 1;
-        if (data.help_index === '') {
-            data.help_index = 'zz';
-        }
+        
         shortcut = normalize_shortcut(shortcut);
-        this._counts[shortcut] = 0;
-        this._shortcuts[shortcut] = data;
+        this.set_shortcut(shortcut, action_name);
+
         if (!suppress_help_update) {
             // update the keyboard shortcuts notebook help
             this.events.trigger('rebuild.QuickHelp');
@@ -196,6 +365,11 @@ define([
     };
 
     ShortcutManager.prototype.add_shortcuts = function (data) {
+        /**
+         * Convenient methods to call `add_shortcut(key, value)` on several items
+         * 
+         *  data : Dict of the form {key:value, ...}
+         **/
         for (var shortcut in data) {
             this.add_shortcut(shortcut, data[shortcut], true);
         }
@@ -204,44 +378,22 @@ define([
     };
 
     ShortcutManager.prototype.remove_shortcut = function (shortcut, suppress_help_update) {
+        /**
+         * Remove the binding of shortcut `sortcut` with its action.
+         * throw an error if trying to remove a non-exiting shortcut
+         **/
         shortcut = normalize_shortcut(shortcut);
-        delete this._counts[shortcut];
-        delete this._shortcuts[shortcut];
+        if( typeof(shortcut) === 'string'){
+            shortcut = shortcut.split(',');
+        }
+        this._remove_leaf(shortcut, this._shortcuts);
         if (!suppress_help_update) {
             // update the keyboard shortcuts notebook help
             this.events.trigger('rebuild.QuickHelp');
         }
     };
 
-    ShortcutManager.prototype.count_handler = function (shortcut, event, data) {
-        /**
-         * Seem to allow to call an handler only after several key press.
-         * like, I suppose `dd` that delete the current cell only after
-         * `d` has been pressed twice..
-         * @method count_handler
-         * @return {Boolean} `true|false`, whether or not the event has been handled.
-         * @param shortcut {shortcut}
-         * @param event {event}
-         * @param data {data}
-         */
-        var that = this;
-        var c = this._counts;
-        var t = this._timers;
-        var timer = null;
-        if (c[shortcut] === data.count-1) {
-            c[shortcut] = 0;
-            timer = t[shortcut];
-            if (timer) {clearTimeout(timer); delete t[shortcut];}
-            return data.handler(event);
-        } else {
-            c[shortcut] = c[shortcut] + 1;
-            timer = setTimeout(function () {
-                c[shortcut] = 0;
-            }, that.delay);
-            t[shortcut] = timer;
-        }
-        return false;
-    };
+
 
     ShortcutManager.prototype.call_handler = function (event) {
         /**
@@ -249,26 +401,40 @@ define([
          * @method call_handler
          * @return {Boolean} `true|false`, `false` if no handler was found, otherwise the  value return by the handler. 
          * @param event {event}
-         */
-        var shortcut = event_to_shortcut(event);
-        var data = this._shortcuts[shortcut];
-        if (data) {
-            var handler = data.handler;
-            if (handler) {
-                if (data.count === 1) {
-                    return handler(event);
-                } else if (data.count > 1) {
-                    return this.count_handler(shortcut, event, data);
-                }
-            }
+         *
+         * given an event, call the corresponding shortcut. 
+         * return false is event wan handled, true otherwise 
+         * in any case returning false stop event propagation
+         **/
+
+
+        this.clearsoon();
+        if(only_modifier_event(event)){
+            return true;
         }
-        return true;
+        var shortcut = event_to_shortcut(event);
+        this._queue.push(shortcut);
+        var action_name = this.get_shortcut(this._queue);
+
+        if (typeof(action_name) === 'undefined'|| action_name === null){
+            this.clearqueue();
+            return true;
+        }
+        
+        if (this.actions.exists(action_name)) {
+            event.preventDefault();
+            this.clearqueue();
+            return this.actions.call(action_name, event);
+        }
+
+        return false;
     };
+
 
     ShortcutManager.prototype.handles = function (event) {
         var shortcut = event_to_shortcut(event);
-        var data = this._shortcuts[shortcut];
-        return !( data === undefined || data.handler === undefined );
+        var action_name = this.get_shortcut(this._queue.concat(shortcut));
+        return (typeof(action_name) !== 'undefined');
     };
 
     var keyboard = {
@@ -278,7 +444,7 @@ define([
         normalize_key : normalize_key,
         normalize_shortcut : normalize_shortcut,
         shortcut_to_event : shortcut_to_event,
-        event_to_shortcut : event_to_shortcut
+        event_to_shortcut : event_to_shortcut,
     };
 
     // For backwards compatibility.

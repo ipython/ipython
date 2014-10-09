@@ -34,10 +34,10 @@ define([
         platform_specific = [
             { shortcut: "Cmd-Up",     help:"go to cell start"  },
             { shortcut: "Cmd-Down",   help:"go to cell end"  },
-            { shortcut: "Opt-Left",   help:"go one word left"  },
-            { shortcut: "Opt-Right",  help:"go one word right"  },
-            { shortcut: "Opt-Backspace",      help:"del word before"  },
-            { shortcut: "Opt-Delete",         help:"del word after"  },
+            { shortcut: "Alt-Left",   help:"go one word left"  },
+            { shortcut: "Alt-Right",  help:"go one word right"  },
+            { shortcut: "Alt-Backspace",      help:"del word before"  },
+            { shortcut: "Alt-Delete",         help:"del word after"  },
         ];
     } else {
         // PC specific
@@ -63,10 +63,6 @@ define([
         { shortcut: cmd_ctrl + "Shift-z",   help:"redo"  },
         { shortcut: cmd_ctrl + "y",   help:"redo"  },
     ].concat( platform_specific );
-
-
-
-      
 
 
     QuickHelp.prototype.show_keyboard_shortcuts = function () {
@@ -139,7 +135,9 @@ define([
                 keys[i] = "<code><strong>" + k + "</strong></code>";
                 continue; // leave individual keys lower-cased
             }
-            keys[i] = ( special_case[k] ? special_case[k] : k.charAt(0).toUpperCase() + k.slice(1) );
+            if (k.indexOf(',') === -1){
+                keys[i] = ( special_case[k] ? special_case[k] : k.charAt(0).toUpperCase() + k.slice(1) );
+            }
             keys[i] = "<code><strong>" + keys[i] + "</strong></code>";
         }
         return keys.join('-');
@@ -155,7 +153,12 @@ define([
 
     var build_one = function (s) {
         var help = s.help;
-        var shortcut = prettify(s.shortcut);
+        var shortcut = '';
+        if(s.shortcut){
+            shortcut = prettify(s.shortcut);
+        } else {
+            console.error('[debug] -  nothing for', s)
+        }
         return $('<div>').addClass('quickhelp').
             append($('<span/>').addClass('shortcut_key').append($(shortcut))).
             append($('<span/>').addClass('shortcut_descr').text(' : ' + help));
