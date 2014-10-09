@@ -5,11 +5,18 @@
 
 from .exporter import Exporter
 from IPython.nbformat import current as nbformat
+from IPython.utils.traitlets import Enum
 
 class NotebookExporter(Exporter):
-    """
-    Exports an IPython notebook.
-    """
+    """Exports to an IPython notebook."""
+
+    nbformat_version = Enum(list(range(2, nbformat.current_nbformat + 1)),
+        default_value=nbformat.current_nbformat,
+        config=True,
+        help="""The nbformat version to write.
+        Use this to downgrade notebooks.
+        """
+    )
     def _file_extension_default(self):
         return 'ipynb'
 
@@ -17,5 +24,9 @@ class NotebookExporter(Exporter):
 
     def from_notebook_node(self, nb, resources=None, **kw):
         nb_copy, resources = super(NotebookExporter, self).from_notebook_node(nb, resources, **kw)
-        output = nbformat.writes_json(nb_copy)
+        if self.nbformat_version != nbformat.current_nbformat:
+            resources['output_suffix'] = '.v%i' % self.nbformat_version
+        else:
+            resources['output_suffix'] = '.nbconvert'
+        output = nbformat.writes(nb_copy, version=self.nbformat_version)
         return output, resources

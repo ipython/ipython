@@ -83,21 +83,23 @@ class TestNotary(TestsBase):
         cells = self.nb.worksheets[0].cells
         self.notary.mark_cells(self.nb, False)
         for cell in cells:
+            self.assertNotIn('trusted', cell)
             if cell.cell_type == 'code':
-                self.assertIn('trusted', cell)
-                self.assertFalse(cell.trusted)
+                self.assertIn('trusted', cell.metadata)
+                self.assertFalse(cell.metadata.trusted)
             else:
-                self.assertNotIn('trusted', cell)
+                self.assertNotIn('trusted', cell.metadata)
     
     def test_mark_cells_trusted(self):
         cells = self.nb.worksheets[0].cells
         self.notary.mark_cells(self.nb, True)
         for cell in cells:
+            self.assertNotIn('trusted', cell)
             if cell.cell_type == 'code':
-                self.assertIn('trusted', cell)
-                self.assertTrue(cell.trusted)
+                self.assertIn('trusted', cell.metadata)
+                self.assertTrue(cell.metadata.trusted)
             else:
-                self.assertNotIn('trusted', cell)
+                self.assertNotIn('trusted', cell.metadata)
     
     def test_check_cells(self):
         nb = self.nb

@@ -1792,6 +1792,7 @@ define([
      * @param {Object} data JSON representation of a notebook
      */
     Notebook.prototype.fromJSON = function (data) {
+
         var content = data.content;
         var ncells = this.ncells();
         var i;
@@ -1941,6 +1942,7 @@ define([
             type : "PUT",
             data : JSON.stringify(model),
             headers : {'Content-Type': 'application/json'},
+            dataType : "json",
             success : $.proxy(this.save_notebook_success, this, start),
             error : $.proxy(this.save_notebook_error, this)
         };
@@ -1970,6 +1972,30 @@ define([
      */
     Notebook.prototype.save_notebook_success = function (start, data, status, xhr) {
         this.set_dirty(false);
+        if (data.message) {
+            // save succeeded, but validation failed.
+            var body = $("<div>");
+            var title = "Notebook validation failed";
+
+            body.append($("<p>").text(
+                "The save operation succeeded," +
+                " but the notebook does not appear to be valid." +
+                " The validation error was:"
+            )).append($("<div>").addClass("validation-error").append(
+                $("<pre>").text(data.message)
+            ));
+            dialog.modal({
+                notebook: this,
+                keyboard_manager: this.keyboard_manager,
+                title: title,
+                body: body,
+                buttons : {
+                    OK : {
+                        "class" : "btn-primary"
+                    }
+                }
+            });
+        }
         this.events.trigger('notebook_saved.Notebook');
         this._update_autosave_interval(start);
         if (this._checkpoint_after_save) {
@@ -2244,7 +2270,57 @@ define([
      * @param {jqXHR} xhr jQuery Ajax object
      */
     Notebook.prototype.load_notebook_success = function (data, status, xhr) {
-        this.fromJSON(data);
+        var failed;
+        try {
+            this.fromJSON(data);
+        } catch (e) {
+            failed = e;
+            console.log("Notebook failed to load from JSON:", e);
+        }
+        if (failed || data.message) {
+            // *either* fromJSON failed or validation failed
+            var body = $("<div>");
+            var title;
+            if (failed) {
+                title = "Notebook failed to load";
+                body.append($("<p>").text(
+                    "The error was: "
+                )).append($("<div>").addClass("js-error").text(
+                    failed.toString()
+                )).append($("<p>").text(
+                    "See the error console for details."
+                ));
+            } else {
+                title = "Notebook validation failed";
+            }
+
+            if (data.message) {
+                var msg;
+                if (failed) {
+                    msg = "The notebook also failed validation:"
+                } else {
+                    msg = "An invalid notebook may not function properly." +
+                    " The validation error was:"
+                }
+                body.append($("<p>").text(
+                    msg
+                )).append($("<div>").addClass("validation-error").append(
+                    $("<pre>").text(data.message)
+                ));
+            }
+
+            dialog.modal({
+                notebook: this,
+                keyboard_manager: this.keyboard_manager,
+                title: title,
+                body: body,
+                buttons : {
+                    OK : {
+                        "class" : "btn-primary"
+                    }
+                }
+            });
+        }
         if (this.ncells() === 0) {
             this.insert_cell_below('code');
             this.edit_mode(0);

@@ -5,6 +5,7 @@
 
 from fnmatch import fnmatch
 import itertools
+import json
 import os
 
 from tornado.web import HTTPError
@@ -216,6 +217,16 @@ class ContentsManager(LoggingConfigurable):
                 break
         return name
 
+    def validate_notebook_model(self, model):
+        """Add failed-validation message to model"""
+        try:
+            current.validate(model['content'])
+        except current.ValidationError as e:
+            model['message'] = 'Notebook Validation failed: {}:\n{}'.format(
+                e.message, json.dumps(e.instance, indent=1, default=lambda obj: '<UNKNOWN>'),
+            )
+        return model
+
     def create_file(self, model=None, path='', ext='.ipynb'):
         """Create a new file or directory and return its model with no content."""
         path = path.strip('/')
@@ -304,6 +315,8 @@ class ContentsManager(LoggingConfigurable):
         path : string
             The notebook's directory (for logging)
         """
+        if nb['nbformat'] != current.nbformat:
+            return
         if self.notary.check_cells(nb):
             self.notary.sign(nb)
         else:

@@ -472,7 +472,7 @@ define([
             } else {
                 this.set_input_prompt();
             }
-            this.output_area.trusted = data.trusted || false;
+            this.output_area.trusted = data.metadata.trusted || false;
             this.output_area.fromJSON(data.outputs);
             if (data.collapsed !== undefined) {
                 if (data.collapsed) {
@@ -495,8 +495,8 @@ define([
         var outputs = this.output_area.toJSON();
         data.outputs = outputs;
         data.language = 'python';
-        data.trusted = this.output_area.trusted;
-        data.collapsed = this.collapsed;
+        data.metadata.trusted = this.output_area.trusted;
+        data.collapsed = this.output_area.collapsed;
         return data;
     };
 

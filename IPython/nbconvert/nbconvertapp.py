@@ -53,6 +53,7 @@ nbconvert_aliases.update({
     'post': 'NbConvertApp.postprocessor_class',
     'output': 'NbConvertApp.output_base',
     'reveal-prefix': 'RevealHelpPreprocessor.url_prefix',
+    'nbformat': 'NotebookExporter.nbformat_version',
 })
 
 nbconvert_flags = {}
@@ -92,7 +93,7 @@ class NbConvertApp(BaseIPythonApplication):
         WARNING: THE COMMANDLINE INTERFACE MAY CHANGE IN FUTURE RELEASES.""")
 
     output_base = Unicode('', config=True, help='''overwrite base name use for output files.
-            can only  be use when converting one notebook at a time.
+            can only be used when converting one notebook at a time.
             ''')
 
     examples = Unicode(u"""
@@ -298,6 +299,8 @@ class NbConvertApp(BaseIPythonApplication):
                       exc_info=True)
                 self.exit(1)
             else:
+                if 'output_suffix' in resources and not self.output_base:
+                    notebook_name += resources['output_suffix']
                 write_results = self.writer.write(output, resources, notebook_name=notebook_name)
 
                 #Post-process if post processor has been defined.

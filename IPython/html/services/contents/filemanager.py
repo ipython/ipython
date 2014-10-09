@@ -176,6 +176,7 @@ class FileContentsManager(ContentsManager):
         model['created'] = created
         model['content'] = None
         model['format'] = None
+        model['message'] = None
         return model
 
     def _dir_model(self, name, path='', content=True):
@@ -258,6 +259,7 @@ class FileContentsManager(ContentsManager):
             self.mark_trusted_cells(nb, name, path)
             model['content'] = nb
             model['format'] = 'json'
+            self.validate_notebook_model(model)
         return model
 
     def get_model(self, name, path='', content=True):
@@ -301,7 +303,7 @@ class FileContentsManager(ContentsManager):
             nb['metadata']['name'] = u''
 
         with atomic_writing(os_path, encoding='utf-8') as f:
-            current.write(nb, f, u'json')
+            current.write(nb, f, version=nb.nbformat)
 
     def _save_file(self, os_path, model, name='', path=''):
         """save a non-notebook file"""
@@ -366,7 +368,14 @@ class FileContentsManager(ContentsManager):
         except Exception as e:
             raise web.HTTPError(400, u'Unexpected error while saving file: %s %s' % (os_path, e))
 
+        validation_message = None
+        if model['type'] == 'notebook':
+            self.validate_notebook_model(model)
+            validation_message = model.get('message', None)
+
         model = self.get_model(new_name, new_path, content=False)
+        if validation_message:
+            model['message'] = validation_message
         return model
 
     def update(self, model, name, path=''):

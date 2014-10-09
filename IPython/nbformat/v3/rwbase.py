@@ -1,30 +1,13 @@
-"""Base classes and utilities for readers and writers.
+"""Base classes and utilities for readers and writers."""
 
-Authors:
-
-* Brian Granger
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from base64 import encodestring, decodestring
-import pprint
 
 from IPython.utils import py3compat
 from IPython.utils.py3compat import str_to_bytes, unicode_type, string_types
 
-#-----------------------------------------------------------------------------
-# Code
-#-----------------------------------------------------------------------------
 
 def restore_bytes(nb):
     """Restore bytes of image data from unicode-only formats.
@@ -154,6 +137,19 @@ def base64_encode(nb):
                         output.png = encodestring(output.png).decode('ascii')
                     if 'jpeg' in output:
                         output.jpeg = encodestring(output.jpeg).decode('ascii')
+    return nb
+
+
+def strip_transient(nb):
+    """Strip transient values that shouldn't be stored in files.
+
+    This should be called in *both* read and write.
+    """
+    nb.pop('orig_nbformat', None)
+    nb.pop('orig_nbformat_minor', None)
+    for ws in nb['worksheets']:
+        for cell in ws['cells']:
+            cell.get('metadata', {}).pop('trusted', None)
     return nb
 
 

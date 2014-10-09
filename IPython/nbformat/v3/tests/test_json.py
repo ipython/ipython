@@ -1,9 +1,11 @@
-import pprint
+import copy
+import json
 from base64 import decodestring
 from unittest import TestCase
 
 from IPython.utils.py3compat import unicode_type
 from ..nbjson import reads, writes
+from ..nbbase import from_dict
 from .. import nbjson
 from .nbexamples import nb0
 
@@ -30,6 +32,35 @@ class TestJSON(formattest.NBFormatTest, TestCase):
         # This won't differ from test_roundtrip unless the default changes
         s = writes(nb0, split_lines=True)
         self.assertEqual(nbjson.reads(s),nb0)
+
+    def test_strip_transient(self):
+        """transient values aren't written to files"""
+        nb = copy.deepcopy(nb0)
+        nb.orig_nbformat = 2
+        nb.orig_nbformat_minor = 3
+        nb.worksheets[0].cells[0].metadata.trusted = False
+        nbs = nbjson.writes(nb)
+
+        nb2 = from_dict(json.loads(nbs))
+        self.assertNotIn('orig_nbformat', nb2)
+        self.assertNotIn('orig_nbformat_minor', nb2)
+        for cell in nb2.worksheets[0].cells:
+            self.assertNotIn('trusted', cell.metadata)
+
+    def test_to_json(self):
+        """to_notebook_json doesn't strip transient"""
+        nb = copy.deepcopy(nb0)
+        nb.orig_nbformat = 2
+        nb.orig_nbformat_minor = 3
+        nb.worksheets[0].cells[0].metadata.trusted = False
+        nbs = json.dumps(nb)
+        nb2 = nbjson.to_notebook(json.loads(nbs))
+
+        nb2 = from_dict(json.loads(nbs))
+        self.assertIn('orig_nbformat', nb2)
+        self.assertIn('orig_nbformat_minor', nb2)
+        cell = nb2.worksheets[0].cells[0]
+        self.assertIn('trusted', cell.metadata)
 
     def test_read_png(self):
         """PNG output data is b64 unicode"""

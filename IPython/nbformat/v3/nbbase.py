@@ -22,7 +22,7 @@ from IPython.utils.py3compat import cast_unicode, unicode_type
 # Change this when incrementing the nbformat version
 nbformat = 3
 nbformat_minor = 0
-nbformat_schema = 'v3.withref.json'
+nbformat_schema = 'nbformat.v3.schema.json'
 
 class NotebookNode(Struct):
     pass
@@ -53,7 +53,6 @@ def new_output(output_type, output_text=None, output_png=None,
         metadata = {}
     if not isinstance(metadata, dict):
         raise TypeError("metadata must be dict")
-    output.metadata = metadata
 
     if output_type != 'pyerr':
         if output_text is not None:
@@ -87,6 +86,8 @@ def new_output(output_type, output_text=None, output_png=None,
 
     if output_type == u'stream':
         output.stream = 'stdout' if stream is None else cast_unicode(stream)
+    else:
+        output.metadata = metadata
     
     return output
 
@@ -121,21 +122,17 @@ def new_text_cell(cell_type, source=None, rendered=None, metadata=None):
         cell_type = 'raw'
     if source is not None:
         cell.source = cast_unicode(source)
-    if rendered is not None:
-        cell.rendered = cast_unicode(rendered)
     cell.metadata = NotebookNode(metadata or {})
     cell.cell_type = cell_type
     return cell
 
 
-def new_heading_cell(source=None, rendered=None, level=1, metadata=None):
+def new_heading_cell(source=None, level=1, rendered=None, metadata=None):
     """Create a new section cell with a given integer level."""
     cell = NotebookNode()
     cell.cell_type = u'heading'
     if source is not None:
         cell.source = cast_unicode(source)
-    if rendered is not None:
-        cell.rendered = cast_unicode(rendered)
     cell.level = int(level)
     cell.metadata = NotebookNode(metadata or {})
     return cell
@@ -144,8 +141,6 @@ def new_heading_cell(source=None, rendered=None, level=1, metadata=None):
 def new_worksheet(name=None, cells=None, metadata=None):
     """Create a worksheet by name with with a list of cells."""
     ws = NotebookNode()
-    if name is not None:
-        ws.name = cast_unicode(name)
     if cells is None:
         ws.cells = []
     else:
