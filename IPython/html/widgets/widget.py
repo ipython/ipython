@@ -74,6 +74,20 @@ def _show_traceback(method):
                 ip.showtraceback()
     return m
 
+def load_model_module(model_name, module):
+    """Loads the client-side module for a widget model
+    and register it with the given model name"""
+    comm = Comm(target_name='manager')
+    comm.send(dict(target_type='widget_model', target_name=model_name, path=module))
+    comm.close()
+
+def load_view_module(view_name, module):
+    """Loads the client-side module for a widget view
+    and register it with the given view name"""
+    comm = Comm(target_name='manager')
+    comm.send(dict(target_type='widget_view', target_name=view_name, path=module))
+    comm.close()
+
 class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
     # Class attributes

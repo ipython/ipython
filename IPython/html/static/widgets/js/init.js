@@ -18,7 +18,8 @@ define([
     for (var i = 1; i < arguments.length; i++) {
         for (var target_name in arguments[i]) {
             if (arguments[i].hasOwnProperty(target_name)) {
-                widgetmanager.WidgetManager.register_widget_view(target_name, arguments[i][target_name]);
+                widgetmanager.WidgetManager.register_widget_view(target_name, 
+                                                                 new widgetmanager.Loader(arguments[i][target_name]));
             }
         }
     }

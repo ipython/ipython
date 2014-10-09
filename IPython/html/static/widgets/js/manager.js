@@ -8,6 +8,32 @@ define([
     "base/js/namespace"
 ], function (_, Backbone, $, IPython) {
 
+    "use strict";
+
+    var Loader = function (klass) {
+        this.klass = klass;
+        this._cb = [];
+        this._ctx = [];
+
+        this.after_loaded = function(cb, ctx) {
+            if (this.klass) {
+                cb.apply(ctx, [this.klass]);
+            } else {
+                this._cb.push(cb);
+                this._ctx.push(cb);
+            }
+        }
+
+        this.fire_loaded = function(klass) {
+            this.klass = klass;
+            for (var i=0; i<this._cb.length; i++) {
+                this._cb[i].apply(this._ctx[i], [this.klass]);
+            }
+            this._cb = [];
+            this._ctx = [];
+        }
+    };
+
     //--------------------------------------------------------------------
     // WidgetManager class
     //--------------------------------------------------------------------
@@ -15,7 +41,7 @@ define([
         // Public constructor
         WidgetManager._managers.push(this);
 
-        // Attach a comm manager to the 
+        // Attach a comm manager
         this.keyboard_manager = notebook.keyboard_manager;
         this.notebook = notebook;
         this.comm_manager = comm_manager;
@@ -25,6 +51,19 @@ define([
         var that = this;
         _.each(WidgetManager._model_types, function(model_type, model_name) {
             that.comm_manager.register_target(model_name, $.proxy(that._handle_comm_open, that));
+        });
+
+        // Custom widget loader
+        this.comm_manager.register_target("manager", function(comm) {
+            comm.on_msg(function(msg) {
+                var data = msg.content.data;
+                switch (data.target_type) {
+                    case "widget_model":
+                        WidgetManager._load_model(data.target_name, data.path);
+                    case "widget_view":
+                        WidgetManager._load_view(data.target_name, data.path);
+                }
+            });
         });
     };
 
@@ -53,6 +92,26 @@ define([
         WidgetManager._view_types[view_name] = view_type;
     };
 
+    WidgetManager._load_model = function(target_name, mod) {
+        // Loads a widget model module and registers it.
+        var loader = new Loader();
+        WidgetManager.register_widget_model(target_name, loader);
+        require([mod], function(m) {
+                loader.fire_loaded(m[target_name]);
+            }, function(err) { console.log(err);
+        });
+    };
+
+    WidgetManager._load_view = function(target_name, mod) {
+        // Loads a widget view module and registers it.
+        var loader = new Loader();
+        WidgetManager.register_widget_view(target_name, loader);
+        require([mod], function(m) {
+                loader.fire_loaded(m[target_name]);
+            }, function(err) { console.log(err);
+        });
+    };
+
     //--------------------------------------------------------------------
     // Instance level
     //--------------------------------------------------------------------
@@ -63,15 +122,17 @@ define([
             console.log("Could not determine where the display" + 
                 " message was from.  Widget will not be displayed");
         } else {
-            var view = this.create_view(model, {cell: cell});
-            if (view === null) {
-                console.error("View creation failed", model);
-            }
-            this._handle_display_view(view);
-            if (cell.widget_subarea) {
-                cell.widget_subarea.append(view.$el);
-            }
-            view.trigger('displayed');
+            var that = this;
+            this.create_view(model, {cell: cell, callback: function(view) {
+                if (view === null) {
+                    console.error("View creation failed", model);
+                }
+                that._handle_display_view(view);
+                if (cell.widget_subarea) {
+                    cell.widget_subarea.append(view.$el);
+                }
+                view.trigger('displayed');
+            }});
         }
     };
 
@@ -81,36 +142,41 @@ define([
         // Note, this is only done on the outer most widgets.
         if (this.keyboard_manager) {
             this.keyboard_manager.register_events(view.$el);
-        
-        if (view.additional_elements) {
-            for (var i = 0; i < view.additional_elements.length; i++) {
+            if (view.additional_elements) {
+                for (var i = 0; i < view.additional_elements.length; i++) {
                     this.keyboard_manager.register_events(view.additional_elements[i]);
+                }
             }
-        } 
         }
     };
 
-    WidgetManager.prototype.create_view = function(model, options, view) {
+    WidgetManager.prototype.create_view = function(model, options) {
         // Creates a view for a particular model.
+
         var view_name = model.get('_view_name');
-        var ViewType = WidgetManager._view_types[view_name];
-        if (ViewType) {
+        var errback = options.errback || function(err) {console.log(err);};
 
-            // If a view is passed into the method, use that view's cell as
-            // the cell for the view that is created.
-            options = options || {};
-            if (view !== undefined) {
-                options.cell = view.options.cell;
+        var instantiate_view = function(ViewType) {
+            if (ViewType) {
+                // If a view is passed into the method, use that view's cell as
+                // the cell for the view that is created.
+                options = options || {};
+                if (options.parent !== undefined) {
+                    options.cell = options.parent.options.cell;
+                }
+
+                // Create and render the view...
+                var parameters = {model: model, options: options};
+                var view = new ViewType(parameters);
+                view.render();
+                model.on('destroy', view.remove, view);
+                options.callback(view);
+            } else {
+                errback({unknown_view: true, view_name: view_name });
             }
-
-            // Create and render the view...
-            var parameters = {model: model, options: options};
-            view = new ViewType(parameters);
-            view.render();
-            model.on('destroy', view.remove, view);
-            return view;
-        }
-        return null;
+        };
+        var loader = WidgetManager._view_types[view_name];
+        loader.after_loaded(instantiate_view);
     };
 
     WidgetManager.prototype.get_msg_cell = function (msg_id) {
@@ -186,16 +252,19 @@ define([
         // Handle when a comm is opened.
         var that = this;
         var model_id = comm.comm_id;
-        var widget_type_name = msg.content.target_name;
-        var widget_model = new WidgetManager._model_types[widget_type_name](this, model_id, comm);
-        widget_model.on('comm:close', function () {
-          delete that._models[model_id];
-        });
-        this._models[model_id] = widget_model;
+        var model_name = msg.content.target_name;
+        var loader = WidgetManager._model_types[model_name];
+        loader.after_loaded(function(ModelType) {
+             var widget_model = new ModelType(this, model_id, comm);
+             widget_model.on('comm:close', function () {
+                 delete that._models[model_id];
+             });
+             this._models[model_id] = widget_model;
+        }, this);
     };
 
     // Backwards compatability.
     IPython.WidgetManager = WidgetManager;
 
-    return {'WidgetManager': WidgetManager};
+    return {'WidgetManager': WidgetManager, 'Loader': Loader};
 });
