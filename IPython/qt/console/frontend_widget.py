@@ -217,7 +217,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             if text:
                 was_newline = text[-1] == '\n'
                 text = self._prompt_transformer.transform_cell(text)
-                if not was_newline: # user don't need newline
+                if not was_newline: # user doesn't need newline
                     text = text[:-1]
                 QtGui.QApplication.clipboard().setText(text)
         else:
