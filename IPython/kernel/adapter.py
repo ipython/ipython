@@ -15,6 +15,8 @@ def code_to_line(code, cursor_pos):
     
     For adapting ``complete_`` and ``object_info_request``.
     """
+    if not code:
+        return "", 0
     for line in code.splitlines(True):
         n = len(line)
         if cursor_pos > n:

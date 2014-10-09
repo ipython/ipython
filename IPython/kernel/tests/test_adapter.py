@@ -8,7 +8,7 @@ import json
 from unittest import TestCase
 import nose.tools as nt
 
-from IPython.kernel.adapter import adapt, V4toV5, V5toV4
+from IPython.kernel.adapter import adapt, V4toV5, V5toV4, code_to_line
 from IPython.kernel.zmq.session import Session
 
 
@@ -20,6 +20,10 @@ def test_default_version():
     adapted = adapt(original)
     nt.assert_equal(adapted['header']['version'], V4toV5.version)
 
+def test_code_to_line_no_code():
+    line, pos = code_to_line("", 0)
+    nt.assert_equal(line, "")
+    nt.assert_equal(pos, 0)
 
 class AdapterTest(TestCase):
     
