@@ -83,7 +83,8 @@ def upgrade_cell(cell):
     cell.setdefault('metadata', NotebookNode())
     if cell.cell_type == 'code':
         cell.pop('language', '')
-        cell.metadata.collapsed = cell.pop('collapsed')
+        if 'collapsed' in cell:
+            cell.metadata['collapsed'] = cell.pop('collapsed')
         cell.source = cell.pop('input', '')
         cell.execution_count = cell.pop('prompt_number', None)
         cell.outputs = upgrade_outputs(cell.outputs)
