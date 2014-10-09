@@ -117,8 +117,7 @@ define([
 
     Tooltip.prototype.showInPager = function (cell) {
         // reexecute last call in pager by appending ? to show back in pager
-        var that = this;
-        this.events.trigger('open_with_text.Pager', that._reply.content);
+        this.events.trigger('open_with_text.Pager', this._reply.content);
         this.remove_and_cancel_tooltip();
     };
 
@@ -208,7 +207,7 @@ define([
         var msg_id = cell.kernel.inspect(text, cursor_pos, callbacks);
     };
 
-    // make an imediate completion request
+    // make an immediate completion request
     Tooltip.prototype.request = function (cell, hide_if_no_docstring) {
         // request(codecell)
         // Deal with extracting the text from the cell and counting
@@ -222,10 +221,11 @@ define([
         this._hide_if_no_docstring = hide_if_no_docstring;
 
         if(editor.somethingSelected()){
+            // get only the most recent selection.
             text = editor.getSelection();
         }
 
-        // need a permanent handel to code_mirror for future auto recall
+        // need a permanent handle to code_mirror for future auto recall
         this.code_mirror = editor;
 
         // now we treat the different number of keypress
@@ -325,7 +325,7 @@ define([
         this.text.scrollTop(0);
     };
 
-    // Backwards compatability.
+    // Backwards compatibility.
     IPython.Tooltip = Tooltip;
 
     return {'Tooltip': Tooltip};

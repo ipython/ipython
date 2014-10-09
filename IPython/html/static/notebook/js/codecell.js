@@ -230,7 +230,7 @@ define([
             event.preventDefault();
             return true;
         } else if (event.keyCode === keycodes.tab && event.type === 'keydown' && event.shiftKey) {
-                if (editor.somethingSelected()){
+                if (editor.somethingSelected() || editor.getSelections().length !== 1){
                     var anchor = editor.getCursor("anchor");
                     var head = editor.getCursor("head");
                     if( anchor.line != head.line){
@@ -244,7 +244,9 @@ define([
         } else if (event.keyCode === keycodes.tab && event.type == 'keydown') {
             // Tab completion.
             this.tooltip.remove_and_cancel_tooltip();
-            if (editor.somethingSelected()) {
+
+            // completion does not work on multicursor, it might be possible though in some cases
+            if (editor.somethingSelected() || editor.getSelections().length > 1) {
                 return false;
             }
             var pre_cursor = editor.getRange({line:cur.line,ch:0},cur);

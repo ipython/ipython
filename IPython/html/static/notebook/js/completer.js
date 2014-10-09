@@ -94,7 +94,7 @@ define([
     Completer.prototype.startCompletion = function () {
         // call for a 'first' completion, that will set the editor and do some
         // special behavior like autopicking if only one completion available.
-        if (this.editor.somethingSelected()) return;
+        if (this.editor.somethingSelected()|| this.editor.getSelections().length > 1) return;
         this.done = false;
         // use to get focus back on opera
         this.carry_on_completion(true);
@@ -143,7 +143,7 @@ define([
         }
 
         // We want a single cursor position.
-        if (this.editor.somethingSelected()) {
+        if (this.editor.somethingSelected()|| editor.getSelections().length > 1) {
             return;
         }
 
