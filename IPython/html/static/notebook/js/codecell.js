@@ -23,6 +23,7 @@ define([
     'notebook/js/codemirror-ipython'
 ], function(IPython, $, utils, keyboard, cell, outputarea, completer, celltoolbar, CodeMirror, cmpython, cmip) {
     "use strict";
+    
     var Cell = cell.Cell;
 
     /* local util for codemirror */
@@ -79,6 +80,7 @@ define([
         this.input_prompt_number = null;
         this.celltoolbar = null;
         this.output_area = null;
+        this.active_output_area = [];
         this.last_msg_id = null;
         this.completer = null;
 
@@ -116,6 +118,31 @@ define([
     CodeCell.msg_cells = {};
 
     CodeCell.prototype = Object.create(Cell.prototype);
+
+    /**
+     * @method get_output_area
+     */
+    CodeCell.prototype.get_output_area = function () {
+        if (this.active_output_area && this.active_output_area.length > 0) {
+            return this.active_output_area[this.active_output_area.length-1];
+        } else {
+            return this.output_area;
+        }
+    };
+
+    /**
+     * @method push_output_area
+     */
+    CodeCell.prototype.push_output_area = function (output_area) {
+        this.active_output_area.push(output_area);
+    };
+
+    /**
+     * @method pop_output_area
+     */
+    CodeCell.prototype.pop_output_area = function () {
+        this.active_output_area.pop();
+    };
 
     /**
      * @method auto_highlight
@@ -282,8 +309,8 @@ define([
             console.log("Can't execute, kernel is not connected.");
             return;
         }
-        
-        this.output_area.clear_output();
+
+        this.get_output_area().clear_output();
         
         // Clear widget area
         this.widget_subarea.html('');
@@ -312,6 +339,7 @@ define([
      * @method get_callbacks
      */
     CodeCell.prototype.get_callbacks = function () {
+        var that = this;
         return {
             shell : {
                 reply : $.proxy(this._handle_execute_reply, this),
@@ -321,8 +349,14 @@ define([
                 }
             },
             iopub : {
-                output : $.proxy(this.output_area.handle_output, this.output_area),
-                clear_output : $.proxy(this.output_area.handle_clear_output, this.output_area),
+                output : function() { 
+                    var output_area = that.get_output_area();
+                    output_area.handle_output.apply(output_area, arguments);
+                }, 
+                clear_output : function() { 
+                    var output_area = that.get_output_area();
+                    output_area.handle_clear_output.apply(output_area, arguments);
+                }, 
             },
             input : $.proxy(this._handle_input_request, this)
         };
@@ -356,7 +390,7 @@ define([
      * @private
      */
     CodeCell.prototype._handle_input_request = function (msg) {
-        this.output_area.append_raw_input(msg);
+        this.get_output_area().append_raw_input(msg);
     };
 
 
@@ -459,7 +493,7 @@ define([
 
 
     CodeCell.prototype.clear_output = function (wait) {
-        this.output_area.clear_output(wait);
+        this.get_output_area().clear_output(wait);
         this.set_input_prompt();
     };
 
