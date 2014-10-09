@@ -4,8 +4,9 @@
 define([
     "widgets/js/widget",
     "jqueryui",
-    "bootstrap",
-], function(widget, $){
+    "base/js/keyboard",
+    "bootstrap"
+], function(widget, $, keyboard){
     
     var IntSliderView = widget.DOMWidgetView.extend({
         render : function(){
@@ -29,6 +30,7 @@ define([
             this.$readout = $('<div/>')
                 .appendTo(this.$el)
                 .addClass('widget-readout')
+                .attr('contentEditable', true)
                 .hide();
 
             this.model.on('change:slider_color', function(sender, value) {
@@ -164,8 +166,83 @@ define([
         
         events: {
             // Dictionary of events and their handlers.
-            "slide" : "handleSliderChange"
+            "slide" : "handleSliderChange",
+            "blur [contentEditable=true]": "handleTextChange",
+            "keydown [contentEditable=true]": "handleKeyDown"
         }, 
+
+        handleKeyDown: function(e) {
+            if (e.keyCode == keyboard.keycodes.enter) {
+                e.preventDefault();
+                this.handleTextChange();
+            }
+        },
+
+        handleTextChange: function() {
+            // this handles the entry of text into the contentEditable label
+            // first, the value is checked if it contains a parseable number
+            //      (or pair of numbers, for the _range case)
+            // then it is clamped within the min-max range of the slider
+            // finally, the model is updated if the value is to be changed
+            //
+            // if any of these conditions are not met, the text is reset
+            //
+            // the step size is not enforced
+
+            var text = this.$readout.text();
+            var vmin = this.model.get('min');
+            var vmax = this.model.get('max');
+            if (this.model.get("_range")) {
+                // range case
+                // ranges can be expressed either "val-val" or "val:val" (+spaces)
+                var match = this._range_regex.exec(text);
+                if (match) {
+                    var values = [this._parse_value(match[1]),
+                                  this._parse_value(match[2])];
+                    // reject input where NaN or lower > upper
+                    if (isNaN(values[0]) ||
+                        isNaN(values[1]) ||
+                        (values[0] > values[1])) {
+                        this.$readout.text(this.model.get('value').join('-'));
+                    } else {
+                        // clamp to range
+                        values = [Math.max(Math.min(values[0], vmax), vmin),
+                                  Math.max(Math.min(values[1], vmax), vmin)];
+
+                        if ((values[0] != this.model.get('value')[0]) ||
+                            (values[1] != this.model.get('value')[1])) {
+                            this.$readout.text(values.join('-'));
+                            this.model.set('value', values, {updated_view: this});
+                            this.touch();
+                        } else {
+                            this.$readout.text(this.model.get('value').join('-'));
+                        }
+                    }
+                } else {
+                    this.$readout.text(this.model.get('value').join('-'));
+                }
+            } else {
+                // single value case
+                var value = this._parse_value(text);
+                if (isNaN(value)) {
+                    this.$readout.text(this.model.get('value'));
+                } else {
+                    value = Math.max(Math.min(value, vmax), vmin);
+
+                    if (value != this.model.get('value')) {
+                        this.$readout.text(value);
+                        this.model.set('value', value, {updated_view: this});
+                        this.touch();
+                    } else {
+                        this.$readout.text(this.model.get('value'));
+                    }
+                }
+            }
+        },
+
+        _parse_value: parseInt,
+
+        _range_regex: /^\s*([+-]?\d+)\s*[-:]\s*([+-]?\d+)/,
 
         handleSliderChange: function(e, ui) { 
             // Called when the slider value is changed.
@@ -294,10 +371,7 @@ define([
             }
         },
 
-        _parse_value: function(value) {
-            // Parse the value stored in a string.
-            return  parseInt(value);
-        },
+        _parse_value: parseInt
     });
 
 
