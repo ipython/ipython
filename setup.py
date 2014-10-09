@@ -63,7 +63,7 @@ from setupbase import (
     find_entry_points,
     build_scripts_entrypt,
     find_data_files,
-    check_for_dependencies,
+    check_for_readline,
     git_prebuild,
     check_submodule_status,
     update_submodules,
@@ -78,7 +78,6 @@ from setupbase import (
     install_scripts_for_symlink,
     unsymlink,
 )
-from setupext import setupext
 
 isfile = os.path.isfile
 pjoin = os.path.join
@@ -277,7 +276,7 @@ install_requires = [
 # add platform-specific dependencies
 if sys.platform == 'darwin':
     install_requires.append('appnope')
-    if 'bdist_wheel' in sys.argv[1:] or not setupext.check_for_readline():
+    if 'bdist_wheel' in sys.argv[1:] or not check_for_readline():
         install_requires.append('gnureadline')
 
 if sys.platform.startswith('win'):
@@ -325,13 +324,6 @@ if 'setuptools' in sys.modules:
                                   "ipython_win_post_install.py"}}
 
 else:
-    # If we are installing without setuptools, call this function which will
-    # check for dependencies an inform the user what is needed.  This is
-    # just to make life easy for users.
-    for install_cmd in ('install', 'symlink'):
-        if install_cmd in sys.argv:
-            check_for_dependencies()
-            break
     # scripts has to be a non-empty list, or install_scripts isn't called
     setup_args['scripts'] = [e.split('=')[0].strip() for e in find_entry_points()]
 
