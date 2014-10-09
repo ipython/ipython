@@ -140,11 +140,12 @@ class Widget(LoggingConfigurable):
     def open(self):
         """Open a comm to the frontend if one isn't already open."""
         if self.comm is None:
-            if self._model_id is None:
-                self.comm = Comm(target_name=self._model_name)
-                self._model_id = self.model_id
-            else:
-                self.comm = Comm(target_name=self._model_name, comm_id=self._model_id)
+            args = dict(target_name='ipython.widget', data={ 'target_name': self._model_name })
+            if self._model_id is not None:
+                args['comm_id'] = self._model_id
+            self.comm = Comm(**args)
+            self._model_id = self.model_id
+            
             self.comm.on_msg(self._handle_msg)
             Widget.widgets[self.model_id] = self
 
