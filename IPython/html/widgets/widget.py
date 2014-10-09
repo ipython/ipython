@@ -142,7 +142,7 @@ class Widget(LoggingConfigurable):
 
         Widget._call_widget_constructed(self)
         if open_comm:
-        self.open()
+            self.open()
 
     def __del__(self):
         """Object disposal"""
@@ -165,11 +165,11 @@ class Widget(LoggingConfigurable):
     def set_comm(self, comm):
         """Set's the comm of the widget."""
         self.comm = comm
-            self._model_id = self.model_id
-            
-            self.comm.on_msg(self._handle_msg)
-            Widget.widgets[self.model_id] = self
-            
+        self._model_id = self.model_id
+        
+        self.comm.on_msg(self._handle_msg)
+        Widget.widgets[self.model_id] = self
+        
         # first update
         self.send_state()
 
@@ -359,8 +359,8 @@ class Widget(LoggingConfigurable):
         if self.comm is not None and name in self.keys:
         # Make sure this isn't information that the front-end just sent us.
             if self._should_send_property(name, new_value):
-            # Send new state to front-end
-            self.send_state(key=name)
+                # Send new state to front-end
+                self.send_state(key=name)
 
     def _handle_displayed(self, **kwargs):
         """Called when a view has been displayed for this widget instance"""

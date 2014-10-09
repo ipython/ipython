@@ -187,7 +187,7 @@ define([
 
     WidgetManager.prototype._handle_comm_open = function (comm, msg) {
         // Handle when a comm is opened.
-        return this._create_model({model_name: msg.content.data.target_name, comm: comm});
+        return this._create_model({model_name: msg.content.data.model_name, comm: comm});
     };
 
     WidgetManager.prototype.create_model = function (model_name, target_name, init_state_callback) {
