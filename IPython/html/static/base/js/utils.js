@@ -539,6 +539,19 @@ define([
         msg += ajax_error_msg(jqXHR);
         console.log(msg);
     };
+    
+    var requireCodeMirrorMode = function (mode, callback, errback) {
+        // load a mode with requirejs
+        if (typeof mode != "string") mode = mode.name;
+        if (CodeMirror.modes.hasOwnProperty(mode)) {
+            callback(CodeMirror.modes.mode);
+            return;
+        }
+        require([
+                ['codemirror/mode', mode, mode].join('/'),
+            ], callback, errback
+        );
+    };
 
     var utils = {
         regex_split : regex_split,
@@ -564,6 +577,7 @@ define([
         mergeopt: mergeopt,
         ajax_error_msg : ajax_error_msg,
         log_ajax_error : log_ajax_error,
+        requireCodeMirrorMode : requireCodeMirrorMode,
     };
 
     // Backwards compatability.

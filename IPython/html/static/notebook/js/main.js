@@ -20,7 +20,6 @@ require([
     'notebook/js/config',
     'notebook/js/kernelselector',
     'codemirror/lib/codemirror',
-    'codemirror/addon/mode/loadmode',
     // only loaded, not used, please keep sure this is loaded last
     'custom/custom'
 ], function(
@@ -42,7 +41,6 @@ require([
     config,
     kernelselector,
     CodeMirror,
-    cm_loadmode,
     // please keep sure that even if not used, this is loaded last
     custom
     ) {

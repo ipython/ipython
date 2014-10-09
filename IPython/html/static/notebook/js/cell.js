@@ -18,28 +18,9 @@ define([
     'codemirror/addon/edit/matchbrackets',
     'codemirror/addon/edit/closebrackets',
     'codemirror/addon/comment/comment'
-], function(IPython, $, utils, CodeMirror, cm_match, cm_closeb, cm_comment) {
+], function(IPython, $, utils, CodeMirror, cm_match, cm_closeb, cm_comment, cm_load) {
     // TODO: remove IPython dependency here 
     "use strict";
-
-    // monkey patch CM to be able to syntax highlight cell magics
-    // bug reported upstream,
-    // see https://github.com/codemirror/CodeMirror/issues/670
-    if(CodeMirror.getMode(1,'text/plain').indent === undefined ){
-        CodeMirror.modes.null = function() {
-            return {token: function(stream) {stream.skipToEnd();},indent : function(){return 0;}};
-        };
-    }
-
-    CodeMirror.patchedGetMode = function(config, mode){
-            var cmmode = CodeMirror.getMode(config, mode);
-            if(cmmode.indent === null) {
-                console.log('patch mode "' , mode, '" on the fly');
-                cmmode.indent = function(){return 0;};
-            }
-            return cmmode;
-        };
-    // end monkey patching CodeMirror
 
     var Cell = function (options) {
         /* Constructor
@@ -533,6 +514,7 @@ define([
      **/
     Cell.prototype._auto_highlight = function (modes) {
         //Here we handle manually selected modes
+        var that = this;
         var mode;
         if( this.user_highlight !== undefined &&  this.user_highlight != 'auto' )
         {
@@ -554,33 +536,34 @@ define([
                         return;
                     }
                     if (mode.search('magic_') !== 0) {
-                        this.code_mirror.setOption('mode', mode);
-                        CodeMirror.autoLoadMode(this.code_mirror, mode);
+                        utils.requireCodeMirrorMode(mode, function () {
+                            that.code_mirror.setOption('mode', mode);
+                        });
                         return;
                     }
                     var open = modes[mode].open || "%%";
                     var close = modes[mode].close || "%%end";
                     var mmode = mode;
                     mode = mmode.substr(6);
-                    if(current_mode == mode){
+                    if(current_mode == mmode){
                         return;
                     }
-                    CodeMirror.autoLoadMode(this.code_mirror, mode);
-                    // create on the fly a mode that swhitch between
-                    // plain/text and smth else otherwise `%%` is
-                    // source of some highlight issues.
-                    // we use patchedGetMode to circumvent a bug in CM
-                    CodeMirror.defineMode(mmode , function(config) {
-                        return CodeMirror.multiplexingMode(
-                        CodeMirror.patchedGetMode(config, 'text/plain'),
-                            // always set someting on close
-                            {open: open, close: close,
-                             mode: CodeMirror.patchedGetMode(config, mode),
-                             delimStyle: "delimit"
-                            }
-                        );
+                    utils.requireCodeMirrorMode(mode, function () {
+                        // create on the fly a mode that switch between
+                        // plain/text and something else, otherwise `%%` is
+                        // source of some highlight issues.
+                        CodeMirror.defineMode(mmode, function(config) {
+                            return CodeMirror.multiplexingMode(
+                                CodeMirror.getMode(config, 'text/plain'),
+                                // always set someting on close
+                                {open: open, close: close,
+                                 mode: CodeMirror.getMode(config, mode),
+                                 delimStyle: "delimit"
+                                }
+                            );
+                        });
+                        that.code_mirror.setOption('mode', mmode);
                     });
-                    this.code_mirror.setOption('mode', mmode);
                     return;
                 }
             }

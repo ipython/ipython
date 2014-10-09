@@ -1532,7 +1532,7 @@ define([
         modename = newmode.name || newmode
 
         that = this;
-        CodeMirror.requireMode(modename, function(){
+        utils.requireCodeMirrorMode(modename, function () {
             $.map(that.get_cells(), function(cell, i) {
                 if (cell.cell_type === 'code'){
                     cell.code_mirror.setOption('mode', newmode);
