@@ -142,7 +142,7 @@ class Widget(LoggingConfigurable):
 
         Widget._call_widget_constructed(self)
         if open_comm:
-            self.open()
+        self.open()
 
     def __del__(self):
         """Object disposal"""
@@ -161,17 +161,18 @@ class Widget(LoggingConfigurable):
             if self._model_id is not None:
                 args['comm_id'] = self._model_id
             self.set_comm(Comm(**args))
-            
-            # first update
-            self.send_state()
 
     def set_comm(self, comm):
         """Set's the comm of the widget."""
         self.comm = comm
-        self._model_id = self.model_id
+            self._model_id = self.model_id
             
-        self.comm.on_msg(self._handle_msg)
-        Widget.widgets[self.model_id] = self
+            self.comm.on_msg(self._handle_msg)
+            Widget.widgets[self.model_id] = self
+            
+        # first update
+        self.send_state()
+
 
     @property
     def model_id(self):
