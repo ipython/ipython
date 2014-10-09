@@ -21,11 +21,8 @@ define([
         this.comm_manager = comm_manager;
         this._models = {}; /* Dictionary of model ids and model instances */
 
-        // Register already-registered widget model types with the comm manager.
-        var that = this;
-        _.each(WidgetManager._model_types, function(model_type, model_name) {
-            that.comm_manager.register_target(model_name, $.proxy(that._handle_comm_open, that));
-        });
+        // Register with the comm manager.
+        this.comm_manager.register_target('ipython.widget', $.proxy(this._handle_comm_open, this));
     };
 
     //--------------------------------------------------------------------
@@ -38,14 +35,6 @@ define([
     WidgetManager.register_widget_model = function (model_name, model_type) {
         // Registers a widget model by name.
         WidgetManager._model_types[model_name] = model_type;
-
-        // Register the widget with the comm manager.  Make sure to pass this object's context
-        // in so `this` works in the call back.
-        _.each(WidgetManager._managers, function(instance, i) {
-            if (instance.comm_manager !== null) {
-                instance.comm_manager.register_target(model_name, $.proxy(instance._handle_comm_open, instance));
-            }
-        });
     };
 
     WidgetManager.register_widget_view = function (view_name, view_type) {
@@ -186,7 +175,7 @@ define([
         // Handle when a comm is opened.
         var that = this;
         var model_id = comm.comm_id;
-        var widget_type_name = msg.content.target_name;
+        var widget_type_name = msg.content.data.model_name;
         var widget_model = new WidgetManager._model_types[widget_type_name](this, model_id, comm);
         widget_model.on('comm:close', function () {
           delete that._models[model_id];
