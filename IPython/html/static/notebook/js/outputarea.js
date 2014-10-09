@@ -400,6 +400,9 @@ define([
             this._append_javascript_error(err, subarea);
             this.element.append(toinsert);
         }
+
+        // Notify others of changes.
+        this.element.trigger('changed');
     };
 
 
@@ -832,6 +835,10 @@ define([
             // them to fire if the image is never added to the page.
             this.element.find('img').off('load');
             this.element.html("");
+
+            // Notify others of changes.
+            this.element.trigger('changed');
+            
             this.outputs = [];
             this.trusted = true;
             this.unscroll_area();

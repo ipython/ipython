@@ -21,6 +21,21 @@ define([
                 prompt_area: false, 
                 events: this.model.widget_manager.notebook.events, 
                 keyboard_manager: this.model.widget_manager.keyboard_manager });
+
+            // Make output area reactive.
+            var that = this;
+            this.output_area.element.on('changed', function() {
+                that.model.set('contents', that.output_area.element.html());
+            });
+            this.model.on('change:contents', function(){
+                var html = this.model.get('contents');
+                if (this.output_area.element.html() != html) {
+                    this.output_area.element.html(html);
+                }
+            }, this);
+
+            // Set initial contents.
+            this.output_area.element.html(this.model.get('contents'));
         },
         
         _handle_route_msg: function(content) {
