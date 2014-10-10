@@ -4,4 +4,4 @@
 cythonmagic
 ===========
 
-The `cython` magic has been moved in the `cython` package.
+The `cython` magic has been moved in the `Cython` package.

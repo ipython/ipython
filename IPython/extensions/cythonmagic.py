@@ -3,7 +3,7 @@
 The cython magic has been integrated into Cython itself, 
 which is now released in version 0.21.
 
-cf github `cython` organisation, `cython` repo, under the 
+cf github `Cython` organisation, `Cython` repo, under the 
 file `Cython/Build/IpythonMagic.py`
 """
 #-----------------------------------------------------------------------------
@@ -15,6 +15,8 @@ file `Cython/Build/IpythonMagic.py`
 #-----------------------------------------------------------------------------
 
 from __future__ import print_function
+
+import IPython.utils.version as version
 
 try:
     import Cython
@@ -34,7 +36,7 @@ def load_ipython_extension(ip):
     print("""The Cython magic has been move to the Cython package, hence """)
     print("""`%load_ext cythonmagic` is deprecated; Please use `%load_ext Cython` instead.""")
     
-    if Cython is None or tuple(map(int,Cython.__version__.split('.'))) < (0,21) : 
+    if Cython is None or not version.check_version(Cython.__version__, "0.21"):
         print("You need Cython version >=0.21 to use the Cython magic")
         return 
     print("""\nThough, because I am nice, I'll still try to load it for you this time.""")
