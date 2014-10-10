@@ -12,7 +12,7 @@ define([
             // Public constructor
             BoxView.__super__.initialize.apply(this, arguments);
             // default remove handler removes the view
-            this.childrenViews = widget.ViewList(this.add_child, null, this);
+            this.childrenViews = new widget.ViewList(this.add_child_model, null, this);
             this.listenTo(this.model, 'change:children', function(model, value) {
                 this.childrenViews.update(value);
             }, this);
