@@ -8,7 +8,7 @@ define([
     'base/js/dialog',
     'notebook/js/textcell',
     'notebook/js/codecell',
-    'services/sessions/js/session',
+    'services/sessions/session',
     'notebook/js/celltoolbar',
     'components/marked/lib/marked',
     'highlight',
