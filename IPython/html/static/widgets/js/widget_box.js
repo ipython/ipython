@@ -71,6 +71,7 @@ define([
             this.after_displayed(function() {
                 view.trigger('displayed');
             });
+            return view;
         },
 
         remove: function() {
