@@ -118,10 +118,7 @@ define([
     Tooltip.prototype.showInPager = function (cell) {
         // reexecute last call in pager by appending ? to show back in pager
         var that = this;
-        var payload = {};
-        payload.text = that._reply.content.data['text/plain'];
-        
-        this.events.trigger('open_with_text.Pager', payload);
+        this.events.trigger('open_with_text.Pager', that._reply.content);
         this.remove_and_cancel_tooltip();
     };
 
