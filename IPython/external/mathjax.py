@@ -132,7 +132,6 @@ def extract_zip(fd, dest):
     z.extractall(parent)
 
     # it will be mathjax-MathJax-<sha>, rename to just mathjax
-    d = os.path.join(parent, topdir)
     os.rename(os.path.join(parent, topdir), dest)
 
 
