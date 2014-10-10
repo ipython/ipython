@@ -12,9 +12,9 @@ define([
             // Public constructor
             BoxView.__super__.initialize.apply(this, arguments);
             // default remove handler removes the view
-            this.childrenViews = new widget.ViewList(this.add_child_model, null, this);
+            this.children_views = new widget.ViewList(this.add_child_model, null, this);
             this.listenTo(this.model, 'change:children', function(model, value) {
-                this.childrenViews.update(value);
+                this.children_views.update(value);
             }, this);
             this.listenTo(this.model, 'change:overflow_x', function(model, value) {
                 this.update_overflow_x();
@@ -36,7 +36,7 @@ define([
             // Called when view is rendered.
             this.$box = this.$el;
             this.$box.addClass('widget-box');
-            this.childrenViews.update(this.model.get('children'));
+            this.children_views.update(this.model.get('children'));
             this.update_overflow_x();
             this.update_overflow_y();
             this.update_box_style('');
@@ -75,7 +75,7 @@ define([
 
         remove: function() {
             BoxView.__super__.remove.apply(this, arguments);
-            this.childrenViews.remove();
+            this.children_views.remove();
         }
     });
 
@@ -233,7 +233,7 @@ define([
             this._shown_once = false;
             this.popped_out = true;
 
-            this.childrenViews.update(this.model.get('children'));
+            this.children_views.update(this.model.get('children'));
         },
         
         hide: function() {
