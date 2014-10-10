@@ -603,12 +603,13 @@ define(["widgets/js/manager",
     }
 
     _.extend(ViewList.prototype, {
-        initialize: function(create_view, destroy_view) {
+        initialize: function(create_view, remove_view, context) {
+            this.handler_context = context || this;
             this.models = [];
             this.views = {}; // key: model_id, value: view
             this.parent = parent;
             this._create_view = create_view;
-            this._destroy_view = destroy_view || function(view) {view.remove()};
+            this._remove_view = destroy_view || function(view) {view.remove()};
         },
 
         update: function(new_list) {
@@ -617,8 +618,17 @@ define(["widgets/js/manager",
             this.models = new_list;
         },
 
-        clear: function(new_list) {
+        remove: function(new_list) {
+            // removes each view
             _.each(this.views, this.remove, this);
+        },
+
+        _add: function(model) {
+            var view = this._create_view.call(this.handler_context, model);
+            if (this.views[model.id] === undefined) {
+                this.views[model.id] = [];
+            }
+            this.views[model.id].push(view);
         },
 
         _remove: function(model) {
@@ -630,16 +640,8 @@ define(["widgets/js/manager",
                 if (views.length === 0) {
                     delete this.views[model.id]
                 }
-                this._destroy_view(view);
+                this._destroy_view.call(this.handler_context, view);
             }
-        },
-
-        _add: function(model) {
-            var view = this._create_view(model);
-            if (this.views[model.id] === undefined) {
-                this.views[model.id] = [];
-            }
-            this.views[model.id].push(view);
         },
 
         _do_diff: function(old_list, new_list, removed_callback, added_callback, context) {
