@@ -54,7 +54,7 @@ def serialize_binary_message(msg):
     offsets = [4 * (nbufs + 1)]
     for buf in buffers[:-1]:
         offsets.append(offsets[-1] + len(buf))
-    offsets_buf = struct.pack('!' + 'i' * (nbufs + 1), nbufs, *offsets)
+    offsets_buf = struct.pack('!' + 'I' * (nbufs + 1), nbufs, *offsets)
     buffers.insert(0, offsets_buf)
     return b''.join(buffers)
 
@@ -75,7 +75,7 @@ def deserialize_binary_message(bmsg):
     message dictionary
     """
     nbufs = struct.unpack('!i', bmsg[:4])[0]
-    offsets = list(struct.unpack('!' + 'i' * nbufs, bmsg[4:4*(nbufs+1)]))
+    offsets = list(struct.unpack('!' + 'I' * nbufs, bmsg[4:4*(nbufs+1)]))
     offsets.append(None)
     bufs = []
     for start, stop in zip(offsets[:-1], offsets[1:]):

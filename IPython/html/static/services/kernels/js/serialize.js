@@ -9,11 +9,11 @@ define([
     var _deserialize_array_buffer = function (buf) {
         var data = new DataView(buf);
         // read the header: 1 + nbufs 32b integers
-        var nbufs = data.getInt32(0);
+        var nbufs = data.getUint32(0);
         var offsets = [];
         var i;
         for (i = 1; i <= nbufs; i++) {
-            offsets.push(data.getInt32(i * 4));
+            offsets.push(data.getUint32(i * 4));
         }
         var json_bytes = new Uint8Array(buf.slice(offsets[0], offsets[1]));
         var msg = $.parseJSON(
@@ -81,13 +81,13 @@ define([
         var msg_buf = new Uint8Array(
             offsets[offsets.length-1] + buffers[buffers.length-1].byteLength
         );
-        // use DataView.setInt32 for network byte-order
+        // use DataView.setUint32 for network byte-order
         var view = new DataView(msg_buf.buffer);
         // write nbufs to first 4 bytes
-        view.setInt32(0, nbufs);
+        view.setUint32(0, nbufs);
         // write offsets to next 4 * nbufs bytes
         for (i = 0; i < offsets.length; i++) {
-            view.setInt32(4 * (i+1), offsets[i]);
+            view.setUint32(4 * (i+1), offsets[i]);
         }
         // write all the buffers at their respective offsets
         for (i = 0; i < buffers.length; i++) {
