@@ -70,7 +70,7 @@ html html_noapi:
 
 automagic: source/interactive/magics-generated.txt
 
-source/interactive/magics-generated.txt:
+source/interactive/magics-generated.txt: autogen_magics.py
 	python autogen_magics.py
 	@echo "Created docs for line & cell magics"
 
