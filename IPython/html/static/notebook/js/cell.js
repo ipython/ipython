@@ -30,9 +30,9 @@ define([
          * @param:
          *  options: dictionary
          *      Dictionary of keyword arguments.
-         *          events: $(Events) instance 
+         *          events: $(Events) instance
          *          config: dictionary
-         *          keyboard_manager: KeyboardManager instance 
+         *          keyboard_manager: KeyboardManager instance
          */
         options = options || {};
         this.keyboard_manager = options.keyboard_manager;
@@ -183,7 +183,7 @@ define([
         if((cur.line !== 0 || cur.ch !==0) && event.keyCode === 38){
             event._ipkmIgnore = true;
         }
-        var nLastLine = editor.lastLine() 
+        var nLastLine = editor.lastLine()
         if(    ( event.keyCode === 40)
             && (( cur.line !== nLastLine)
             ||  ( cur.ch   !== editor.getLineHandle(nLastLine).text.length))
@@ -192,8 +192,8 @@ define([
         }
         // if this is an edit_shortcuts shortcut, the global keyboard/shortcut
         // manager will handle it
-        if (shortcuts.handles(event)) { 
-            return true; 
+        if (shortcuts.handles(event)) {
+            return true;
         }
         
         return false;
@@ -543,26 +543,26 @@ define([
                     }
                     var open = modes[mode].open || "%%";
                     var close = modes[mode].close || "%%end";
-                    var mmode = mode;
-                    mode = mmode.substr(6);
-                    if(current_mode == mmode){
+                    var magic_mode = mode;
+                    mode = magic_mode.substr(6);
+                    if(current_mode == magic_mode){
                         return;
                     }
                     utils.requireCodeMirrorMode(mode, function () {
                         // create on the fly a mode that switch between
                         // plain/text and something else, otherwise `%%` is
                         // source of some highlight issues.
-                        CodeMirror.defineMode(mmode, function(config) {
+                        CodeMirror.defineMode(magic_mode, function(config) {
                             return CodeMirror.multiplexingMode(
                                 CodeMirror.getMode(config, 'text/plain'),
-                                // always set someting on close
+                                // always set something on close
                                 {open: open, close: close,
                                  mode: CodeMirror.getMode(config, mode),
                                  delimStyle: "delimit"
                                 }
                             );
                         });
-                        that.code_mirror.setOption('mode', mmode);
+                        that.code_mirror.setOption('mode', magic_mode);
                     });
                     return;
                 }
