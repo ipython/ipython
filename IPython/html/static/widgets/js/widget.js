@@ -591,13 +591,13 @@ define(["widgets/js/manager",
     });
 
     
-    var ViewList = function(create_view, destroy_view) {
+    var ViewList = function(create_view, remove_view) {
         // * create_view takes a model and creates a view for that model, which we will store
-        // * destroy_view takes a view and destroys it (including calling .remove()
+        // * remove_view takes a view and destroys it (including calling .remove()
         // * each time the update() function is called with a new list, the create and destroy
         //   callbacks will be called in an order so that if you append the views created in the
         //   create callback, you will duplicate the order of the list.
-        // * the destroy callback defaults to just removing the view.
+        // * the remove callback defaults to just removing the view.
 
         this.initialize.apply(this, arguments);
     }
@@ -609,13 +609,13 @@ define(["widgets/js/manager",
             this.views = {}; // key: model_id, value: view
             this.parent = parent;
             this._create_view = create_view;
-            this._remove_view = destroy_view || function(view) {view.remove()};
+            this._remove_view = remove_view || function(view) {view.remove()};
         },
 
-        update: function(new_list) {
-            this.do_diff(this.value, new_list,
+        update: function(new_models) {
+            this._do_diff(this.models, new_models,
                          this._remove, this._add, this);
-            this.models = new_list;
+            this.models = new_models;
         },
 
         remove: function(new_list) {
@@ -640,7 +640,7 @@ define(["widgets/js/manager",
                 if (views.length === 0) {
                     delete this.views[model.id]
                 }
-                this._destroy_view.call(this.handler_context, view);
+                this._remove_view.call(this.handler_context, view);
             }
         },
 
@@ -675,7 +675,7 @@ define(["widgets/js/manager",
                 added_callback.call(context||this, new_list[i]);
             }
         },
-    }
+    });
 
     var widget = {
         'WidgetModel': WidgetModel,
