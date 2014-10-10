@@ -597,10 +597,95 @@ define(["widgets/js/manager",
     });
 
     
+    var ViewList = function(create_view, destroy_view) {
+        // * create_view takes a model and creates a view for that model, which we will store
+        // * destroy_view takes a view and destroys it (including calling .remove()
+        // * each time the update() function is called with a new list, the create and destroy
+        //   callbacks will be called in an order so that if you append the views created in the
+        //   create callback, you will duplicate the order of the list.
+        // * the destroy callback defaults to just removing the view.
+
+        this.initialize.apply(this, arguments);
+    }
+
+    _.extend(ViewList.prototype, {
+        initialize: function(create_view, destroy_view) {
+            this.models = [];
+            this.views = {}; // key: model_id, value: view
+            this.parent = parent;
+            this._create_view = create_view;
+            this._destroy_view = destroy_view || function(view) {view.remove()};
+        },
+
+        update: function(new_list) {
+            this.do_diff(this.value, new_list,
+                         this._remove, this._add, this);
+            this.models = new_list;
+        },
+
+        clear: function(new_list) {
+            _.each(this.views, this.remove, this);
+        },
+
+        _remove: function(model) {
+            var views = this.views[model.id];
+            if (views !== undefined) {
+                // delete the first view in the list
+                var view = views[0];
+                views.splice(0,1);
+                if (views.length === 0) {
+                    delete this.views[model.id]
+                }
+                this._destroy_view(view);
+            }
+        },
+
+        _add: function(model) {
+            var view = this._create_view(model);
+            if (this.views[model.id] === undefined) {
+                this.views[model.id] = [];
+            }
+            this.views[model.id].push(view);
+        },
+
+        _do_diff: function(old_list, new_list, removed_callback, added_callback, context) {
+            // Difference a changed list and call remove and add callbacks for
+            // each removed and added item in the new list.
+            //
+            // Parameters
+            // ----------
+            // old_list : array
+            // new_list : array
+            // removed_callback : Callback(item)
+            //      Callback that is called for each item removed.
+            // added_callback : Callback(item)
+            //      Callback that is called for each item added.
+
+            // Walk the lists until an unequal entry is found.
+            var i;
+            for (i = 0; i < new_list.length; i++) {
+                if (i >= old_list.length || new_list[i] !== old_list[i]) {
+                    break;
+                }
+            }
+
+            // Remove the non-matching items from the old list.
+            for (var j = i; j < old_list.length; j++) {
+                removed_callback.call(context||this, old_list[j]);
+            }
+
+            // Add the rest of the new list items.
+            for (; i < new_list.length; i++) {
+                added_callback.call(context||this, new_list[i]);
+            }
+        },
+    }
+
     var widget = {
         'WidgetModel': WidgetModel,
         'WidgetView': WidgetView,
         'DOMWidgetView': DOMWidgetView,
+        'ViewList': ViewList,
     };
 
     // For backwards compatability.
