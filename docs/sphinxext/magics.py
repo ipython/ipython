@@ -20,5 +20,5 @@ def parse_cell_magic(env, sig, signode):
 
 
 def setup(app):    
-    app.add_object_type('magic', 'magic', '%%%s (magic command)', parse_magic)
-    app.add_object_type('cellmagic', 'cellmagic', '%%%%%s (cell magic)', parse_cell_magic)
+    app.add_object_type('magic', 'magic', 'pair: %s; magic command', parse_magic)
+    app.add_object_type('cellmagic', 'cellmagic', 'pair: %s; cell magic', parse_cell_magic)
