@@ -548,6 +548,7 @@ define([
             return;
         }
         require([
+                // might want to use CodeMirror.modeURL here
                 ['codemirror/mode', mode, mode].join('/'),
             ], callback, errback
         );
