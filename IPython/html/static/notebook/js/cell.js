@@ -18,7 +18,7 @@ define([
     'codemirror/addon/edit/matchbrackets',
     'codemirror/addon/edit/closebrackets',
     'codemirror/addon/comment/comment'
-], function(IPython, $, utils, CodeMirror, cm_match, cm_closeb, cm_comment, cm_load) {
+], function(IPython, $, utils, CodeMirror, cm_match, cm_closeb, cm_comment) {
     // TODO: remove IPython dependency here 
     "use strict";
 
