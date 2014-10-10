@@ -234,9 +234,6 @@ define([
             this.popped_out = true;
 
             this.childrenViews.update(this.model.get('children'));
-            this.model.on('change:children', function(model, value) {
-                this.update_children(model.previous('children'), value);
-            }, this);
         },
         
         hide: function() {
