@@ -46,13 +46,12 @@ require([
     ) {
     "use strict";
 
+    // compat with old IPython, remove for IPython > 3.0
     window.CodeMirror = CodeMirror;
-    $('#ipython-main-app').addClass('border-box-sizing');
-    $('div#notebook_panel').addClass('border-box-sizing');
 
     var common_options = {
+        ws_url : utils.get_body_data("wsUrl"),
         base_url : utils.get_body_data("baseUrl"),
-        ws_url : IPython.utils.get_body_data("wsUrl"),
         notebook_path : utils.get_body_data("notebookPath"),
         notebook_name : utils.get_body_data('notebookName')
     };
