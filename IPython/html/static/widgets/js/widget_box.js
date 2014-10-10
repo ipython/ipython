@@ -11,16 +11,18 @@ define([
         initialize: function(){
             // Public constructor
             BoxView.__super__.initialize.apply(this, arguments);
-            this.model.on('change:children', function(model, value) {
-                this.update_children(model.previous('children'), value);
+            // default remove handler removes the view
+            this.childrenViews = widget.ViewList(this.add_child, null, this);
+            this.listenTo(this.model, 'change:children', function(model, value) {
+                this.childrenViews.update(value);
             }, this);
-            this.model.on('change:overflow_x', function(model, value) {
+            this.listenTo(this.model, 'change:overflow_x', function(model, value) {
                 this.update_overflow_x();
             }, this);
-            this.model.on('change:overflow_y', function(model, value) {
+            this.listenTo(this.model, 'change:overflow_y', function(model, value) {
                 this.update_overflow_y();
             }, this);
-            this.model.on('change:box_style', function(model, value) {
+            this.listenTo(this.model, 'change:box_style', function(model, value) {
                 this.update_box_style();
             }, this);
         },
@@ -34,7 +36,7 @@ define([
             // Called when view is rendered.
             this.$box = this.$el;
             this.$box.addClass('widget-box');
-            this.update_children([], this.model.get('children'));
+            this.childrenViews.update(this.model.get('children'));
             this.update_overflow_x();
             this.update_overflow_y();
             this.update_box_style('');
@@ -60,18 +62,6 @@ define([
             this.update_mapped_classes(class_map, 'box_style', previous_trait_value, this.$box);
         },
         
-        update_children: function(old_list, new_list) {
-            // Called when the children list changes.
-            this.do_diff(old_list, new_list, 
-                $.proxy(this.remove_child_model, this),
-                $.proxy(this.add_child_model, this));
-        },
-
-        remove_child_model: function(model) {
-            // Called when a model is removed from the children list.
-            this.pop_child_view(model).remove();
-        },
-
         add_child_model: function(model) {
             // Called when a model is added to the children list.
             var view = this.create_child_view(model);
@@ -82,16 +72,21 @@ define([
                 view.trigger('displayed');
             });
         },
+
+        remove: function() {
+            BoxView.__super__.remove.apply(this, arguments);
+            this.childrenViews.remove();
+        }
     });
 
 
     var FlexBoxView = BoxView.extend({
         render: function(){
             FlexBoxView.__super__.render.apply(this);
-            this.model.on('change:orientation', this.update_orientation, this);
-            this.model.on('change:flex', this._flex_changed, this);
-            this.model.on('change:pack', this._pack_changed, this);
-            this.model.on('change:align', this._align_changed, this);
+            this.listenTo(this.model, 'change:orientation', this.update_orientation, this);
+            this.listenTo(this.model, 'change:flex', this._flex_changed, this);
+            this.listenTo(this.model, 'change:pack', this._pack_changed, this);
+            this.listenTo(this.model, 'change:align', this._align_changed, this);
             this._flex_changed();
             this._pack_changed();
             this._align_changed();
@@ -238,7 +233,7 @@ define([
             this._shown_once = false;
             this.popped_out = true;
 
-            this.update_children([], this.model.get('children'));
+            this.childrenViews.update(this.model.get('children'));
             this.model.on('change:children', function(model, value) {
                 this.update_children(model.previous('children'), value);
             }, this);
