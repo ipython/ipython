@@ -606,7 +606,7 @@ define(["widgets/js/manager",
         initialize: function(create_view, remove_view, context) {
             this.handler_context = context || this;
             this.models = [];
-            this.views = {}; // key: model_id, value: view
+            this.views = {}; // key: model_id, value: list of views
             this.parent = parent;
             this._create_view = create_view;
             this._remove_view = remove_view || function(view) {view.remove()};
@@ -619,8 +619,14 @@ define(["widgets/js/manager",
         },
 
         remove: function(new_list) {
-            // removes each view
-            _.each(this.views, this.remove, this);
+            // removes each view that we've cached
+            _.each(this.views, function(view_list) {
+                _.each(view_list, function(view) {
+                    this._remove_view.call(this.handler_context, view);
+                }, this);
+            }, this);
+            this.models = [];
+            this.views = {};
         },
 
         _add: function(model) {
