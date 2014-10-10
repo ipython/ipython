@@ -591,7 +591,7 @@ define(["widgets/js/manager",
     });
 
     
-    var ViewList = function(create_view, remove_view) {
+    var ViewList = function(create_view, remove_view, context) {
         // * create_view takes a model and creates a view for that model, which we will store
         // * remove_view takes a view and destroys it (including calling .remove()
         // * each time the update() function is called with a new list, the create and destroy
