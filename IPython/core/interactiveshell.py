@@ -874,6 +874,8 @@ class InteractiveShell(SingletonConfigurable):
     def init_events(self):
         self.events = EventManager(self, available_events)
 
+        self.events.register("pre_execute", self._clear_warning_registry)
+
     def register_post_execute(self, func):
         """DEPRECATED: Use ip.events.register('post_run_cell', func)
         
@@ -883,6 +885,13 @@ class InteractiveShell(SingletonConfigurable):
              "ip.events.register('post_run_cell', func) instead.")
         self.events.register('post_run_cell', func)
     
+    def _clear_warning_registry(self):
+        # clear the warning registry, so that different code blocks with
+        # overlapping line number ranges don't cause spurious suppression of
+        # warnings (see gh-6611 for details)
+        if "__warningregistry__" in self.user_global_ns:
+            del self.user_global_ns["__warningregistry__"]
+
     #-------------------------------------------------------------------------
     # Things related to the "main" module
     #-------------------------------------------------------------------------
