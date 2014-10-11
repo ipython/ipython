@@ -150,6 +150,9 @@ def strip_transient(nb):
     for ws in nb['worksheets']:
         for cell in ws['cells']:
             cell.get('metadata', {}).pop('trusted', None)
+            # strip cell.trusted even though it shouldn't be used,
+            # since it's where the transient value used to be stored.
+            cell.pop('trusted', None)
     return nb
 
 
