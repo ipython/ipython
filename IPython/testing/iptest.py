@@ -131,7 +131,6 @@ have['pymongo'] = test_for('pymongo')
 have['pygments'] = test_for('pygments')
 have['qt'] = test_for('IPython.external.qt')
 have['sqlite3'] = test_for('sqlite3')
-have['cython'] = test_for('Cython')
 have['tornado'] = test_for('tornado.version_info', (3,1,0), callback=None)
 have['jinja2'] = test_for('jinja2')
 have['mistune'] = test_for('mistune')
@@ -240,9 +239,6 @@ test_sections['kernel.inprocess'].requires('zmq')
 
 # extensions:
 sec = test_sections['extensions']
-if not have['cython']:
-    sec.exclude('cythonmagic')
-    sec.exclude('tests.test_cythonmagic')
 # This is deprecated in favour of rpy2
 sec.exclude('rmagic')
 # autoreload does some strange stuff, so move it to its own test section
