@@ -28,17 +28,17 @@ def lazy_keys(dikt):
 class CommManager(LoggingConfigurable):
     """Manager for Comms in the Kernel"""
     
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
-    def _shell_default(self):
-        return get_ipython()
+    # If this is instantiated by a non-IPython kernel, shell will be None
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC',
+                     allow_none=True)
+    kernel = Instance('IPython.kernel.zmq.kernelbase.Kernel')
+
     iopub_socket = Any()
     def _iopub_socket_default(self):
-        return self.shell.kernel.iopub_socket
+        return self.kernel.iopub_socket
     session = Instance('IPython.kernel.zmq.session.Session')
     def _session_default(self):
-        if self.shell is None:
-            return
-        return self.shell.kernel.session
+        return self.kernel.session
     
     comms = Dict()
     targets = Dict()
@@ -68,6 +68,7 @@ class CommManager(LoggingConfigurable):
         """Register a new comm"""
         comm_id = comm.comm_id
         comm.shell = self.shell
+        comm.kernel = self.kernel
         comm.iopub_socket = self.iopub_socket
         self.comms[comm_id] = comm
         return comm_id
@@ -102,6 +103,7 @@ class CommManager(LoggingConfigurable):
         f = self.targets.get(target_name, None)
         comm = Comm(comm_id=comm_id,
                     shell=self.shell,
+                    kernel=self.kernel,
                     iopub_socket=self.iopub_socket,
                     primary=False,
         )

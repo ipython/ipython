@@ -22,6 +22,9 @@ from IPython.utils.py3compat import annotate
 class DummyComm(Comm):
     comm_id = 'a-b-c-d'
     
+    def open(self, *args, **kwargs):
+        pass
+    
     def send(self, *args, **kwargs):
         pass
     

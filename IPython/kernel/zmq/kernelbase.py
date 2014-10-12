@@ -19,7 +19,7 @@ import zmq
 from zmq.eventloop import ioloop
 from zmq.eventloop.zmqstream import ZMQStream
 
-from IPython.config.configurable import Configurable
+from IPython.config.configurable import SingletonConfigurable
 from IPython.core.error import StdinNotImplementedError
 from IPython.core import release
 from IPython.utils import py3compat
@@ -32,7 +32,7 @@ from IPython.utils.traitlets import (
 from .session import Session
 
 
-class Kernel(Configurable):
+class Kernel(SingletonConfigurable):
 
     #---------------------------------------------------------------------------
     # Kernel interface
