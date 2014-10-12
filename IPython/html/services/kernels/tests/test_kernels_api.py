@@ -57,6 +57,16 @@ class KernelAPITest(NotebookTestBase):
         kernels = self.kern_api.list().json()
         self.assertEqual(kernels, [])
 
+    def test_default_kernel(self):
+        # POST request
+        r = self.kern_api._req('POST', '')
+        kern1 = r.json()
+        self.assertEqual(r.headers['location'], '/api/kernels/' + kern1['id'])
+        self.assertEqual(r.status_code, 201)
+        self.assertIsInstance(kern1, dict)
+
+        self.assertEqual(r.headers['x-frame-options'], "SAMEORIGIN")
+
     def test_main_kernel_handler(self):
         # POST request
         r = self.kern_api.start()

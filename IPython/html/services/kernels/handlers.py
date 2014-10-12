@@ -27,16 +27,16 @@ class MainKernelHandler(IPythonHandler):
     @web.authenticated
     @json_errors
     def post(self):
+        km = self.kernel_manager
         model = self.get_json_body()
         if model is None:
-            raise web.HTTPError(400, "No JSON data provided")
-        try:
-            name = model['name']
-        except KeyError:
-            raise web.HTTPError(400, "Missing field in JSON data: name")
+            model = {
+                'name': km.default_kernel_name
+            }
+        else:
+            model.setdefault('name', km.default_kernel_name)
 
-        km = self.kernel_manager
-        kernel_id = km.start_kernel(kernel_name=name)
+        kernel_id = km.start_kernel(kernel_name=model['name'])
         model = km.kernel_model(kernel_id)
         location = url_path_join(self.base_url, 'api', 'kernels', kernel_id)
         self.set_header('Location', url_escape(location))
