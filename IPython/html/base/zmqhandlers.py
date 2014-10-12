@@ -146,18 +146,31 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
         which doesn't make sense for websockets
         """
         pass
-
-    def open(self, kernel_id):
-        self.kernel_id = cast_unicode(kernel_id, 'ascii')
+    
+    def get(self, *args, **kwargs):
         # Check to see that origin matches host directly, including ports
         # Tornado 4 already does CORS checking
         if tornado.version_info[0] < 4:
             if not self.check_origin(self.get_origin()):
                 raise web.HTTPError(403)
-
+        
+        # authenticate the request before opening the websocket
+        if self.get_current_user() is None:
+            self.log.warn("Couldn't authenticate WebSocket connection")
+            raise web.HTTPError(403)
+        
+        if self.get_argument('session_id'):
+            self.session.session = cast_unicode(self.get_argument('session_id'))
+        else:
+            self.log.warn("No session ID specified")
+        
+        return super(AuthenticatedZMQStreamHandler, self).get(*args, **kwargs)
+    
+    def initialize(self):
         self.session = Session(config=self.config)
-        self.save_on_message = self.on_message
-        self.on_message = self.on_first_message
+    
+    def open(self, kernel_id):
+        self.kernel_id = cast_unicode(kernel_id, 'ascii')
         
         # start the pinging
         if self.ping_interval > 0:
@@ -187,28 +200,3 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
 
     def on_pong(self, data):
         self.last_pong = ioloop.IOLoop.instance().time()
-
-    def _inject_cookie_message(self, msg):
-        """Inject the first message, which is the document cookie,
-        for authentication."""
-        if not PY3 and isinstance(msg, unicode):
-            # Cookie constructor doesn't accept unicode strings
-            # under Python 2.x for some reason
-            msg = msg.encode('utf8', 'replace')
-        try:
-            identity, msg = msg.split(':', 1)
-            self.session.session = cast_unicode(identity, 'ascii')
-        except Exception:
-            logging.error("First ws message didn't have the form 'identity:[cookie]' - %r", msg)
-        
-        try:
-            self.request._cookies = SimpleCookie(msg)
-        except:
-            self.log.warn("couldn't parse cookie string: %s",msg, exc_info=True)
-
-    def on_first_message(self, msg):
-        self._inject_cookie_message(msg)
-        if self.get_current_user() is None:
-            self.log.warn("Couldn't authenticate WebSocket connection")
-            raise web.HTTPError(403)
-        self.on_message = self.save_on_message

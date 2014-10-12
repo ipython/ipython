@@ -424,16 +424,17 @@ define([
         var ws_host_url = this.ws_url + this.kernel_url;
 
         console.log("Starting WebSockets:", ws_host_url);
-
-        this.channels.shell = new this.WebSocket(
-            this.ws_url + utils.url_join_encode(this.kernel_url, "shell")
-        );
-        this.channels.stdin = new this.WebSocket(
-            this.ws_url + utils.url_join_encode(this.kernel_url, "stdin")
-        );
-        this.channels.iopub = new this.WebSocket(
-            this.ws_url + utils.url_join_encode(this.kernel_url, "iopub")
-        );
+        
+        var channel_url = function(channel) {
+            return [
+                that.ws_url,
+                utils.url_join_encode(that.kernel_url, channel),
+                "?session_id=" + that.session_id
+            ].join('');
+        };
+        this.channels.shell = new this.WebSocket(channel_url("shell"));
+        this.channels.stdin = new this.WebSocket(channel_url("stdin"));
+        this.channels.iopub = new this.WebSocket(channel_url("iopub"));
         
         var already_called_onclose = false; // only alert once
         var ws_closed_early = function(evt){
@@ -492,16 +493,12 @@ define([
     };
 
     /**
-     * Handle a websocket entering the open state sends session and
-     * cookie authentication info as first message.
+     * Handle a websocket entering the open state,
+     * signaling that the kernel is connected when all channels are open.
      *
      * @function _ws_opened
      */
     Kernel.prototype._ws_opened = function (evt) {
-        // send the session id so the Session object Python-side
-        // has the same identity
-        evt.target.send(this.session_id + ':' + document.cookie);
-
         if (this.is_connected()) {
             // all events ready, trigger started event.
             this._kernel_connected();

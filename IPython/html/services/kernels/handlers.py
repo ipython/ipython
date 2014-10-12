@@ -126,16 +126,12 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
         self.kernel_info_channel.close()
         self.kernel_info_channel = None
     
-    
-    def initialize(self, *args, **kwargs):
+    def initialize(self):
+        super(ZMQChannelHandler, self).initialize()
         self.zmq_stream = None
     
-    def on_first_message(self, msg):
-        try:
-            super(ZMQChannelHandler, self).on_first_message(msg)
-        except web.HTTPError:
-            self.close()
-            return
+    def open(self, kernel_id):
+        super(ZMQChannelHandler, self).open(kernel_id)
         try:
             self.create_stream()
         except web.HTTPError:
