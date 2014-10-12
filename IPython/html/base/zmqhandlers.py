@@ -159,7 +159,7 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
             self.log.warn("Couldn't authenticate WebSocket connection")
             raise web.HTTPError(403)
         
-        if self.get_argument('session_id'):
+        if self.get_argument('session_id', False):
             self.session.session = cast_unicode(self.get_argument('session_id'))
         else:
             self.log.warn("No session ID specified")
