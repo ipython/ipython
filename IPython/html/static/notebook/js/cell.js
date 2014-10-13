@@ -1,44 +1,39 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
+/**
+ *
+ *
+ * @module cell
+ * @namespace cell
+ * @class Cell
+ */
+
+
 define([
     'base/js/namespace',
     'jquery',
     'base/js/utils',
-], function(IPython, $, utils) {
+    'codemirror/lib/codemirror',
+    'codemirror/addon/edit/matchbrackets',
+    'codemirror/addon/edit/closebrackets',
+    'codemirror/addon/comment/comment'
+], function(IPython, $, utils, CodeMirror, cm_match, cm_closeb, cm_comment) {
     // TODO: remove IPython dependency here 
     "use strict";
 
-    // monkey patch CM to be able to syntax highlight cell magics
-    // bug reported upstream,
-    // see https://github.com/codemirror/CodeMirror/issues/670
-    if(CodeMirror.getMode(1,'text/plain').indent === undefined ){
-        CodeMirror.modes.null = function() {
-            return {token: function(stream) {stream.skipToEnd();},indent : function(){return 0;}};
-        };
-    }
-
-    CodeMirror.patchedGetMode = function(config, mode){
-            var cmmode = CodeMirror.getMode(config, mode);
-            if(cmmode.indent === null) {
-                console.log('patch mode "' , mode, '" on the fly');
-                cmmode.indent = function(){return 0;};
-            }
-            return cmmode;
-        };
-    // end monkey patching CodeMirror
-
     var Cell = function (options) {
-        // Constructor
-        //
-        // The Base `Cell` class from which to inherit.
-        //
-        // Parameters:
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance 
-        //          config: dictionary
-        //          keyboard_manager: KeyboardManager instance 
+        /* Constructor
+         *
+         * The Base `Cell` class from which to inherit.
+         * @constructor
+         * @param:
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          events: $(Events) instance
+         *          config: dictionary
+         *          keyboard_manager: KeyboardManager instance
+         */
         options = options || {};
         this.keyboard_manager = options.keyboard_manager;
         this.events = options.events;
@@ -184,9 +179,22 @@ define([
     Cell.prototype.handle_codemirror_keyevent = function (editor, event) {
         var shortcuts = this.keyboard_manager.edit_shortcuts;
 
+        var cur = editor.getCursor();
+        if((cur.line !== 0 || cur.ch !==0) && event.keyCode === 38){
+            event._ipkmIgnore = true;
+        }
+        var nLastLine = editor.lastLine()
+        if(    ( event.keyCode === 40)
+            && (( cur.line !== nLastLine)
+            ||  ( cur.ch   !== editor.getLineHandle(nLastLine).text.length))
+          ){
+            event._ipkmIgnore = true;
+        }
         // if this is an edit_shortcuts shortcut, the global keyboard/shortcut
         // manager will handle it
-        if (shortcuts.handles(event)) { return true; }
+        if (shortcuts.handles(event)) {
+            return true;
+        }
         
         return false;
     };
@@ -277,9 +285,6 @@ define([
      * @return {Boolean} `true` if CodeMirror should ignore the event, `false` Otherwise
      */
     Cell.prototype.handle_keyevent = function (editor, event) {
-
-        // console.log('CM', this.mode, event.which, event.type)
-
         if (this.mode === 'command') {
             return true;
         } else if (this.mode === 'edit') {
@@ -509,6 +514,7 @@ define([
      **/
     Cell.prototype._auto_highlight = function (modes) {
         //Here we handle manually selected modes
+        var that = this;
         var mode;
         if( this.user_highlight !== undefined &&  this.user_highlight != 'auto' )
         {
@@ -530,33 +536,34 @@ define([
                         return;
                     }
                     if (mode.search('magic_') !== 0) {
-                        this.code_mirror.setOption('mode', mode);
-                        CodeMirror.autoLoadMode(this.code_mirror, mode);
+                        utils.requireCodeMirrorMode(mode, function () {
+                            that.code_mirror.setOption('mode', mode);
+                        });
                         return;
                     }
                     var open = modes[mode].open || "%%";
                     var close = modes[mode].close || "%%end";
-                    var mmode = mode;
-                    mode = mmode.substr(6);
-                    if(current_mode == mode){
+                    var magic_mode = mode;
+                    mode = magic_mode.substr(6);
+                    if(current_mode == magic_mode){
                         return;
                     }
-                    CodeMirror.autoLoadMode(this.code_mirror, mode);
-                    // create on the fly a mode that swhitch between
-                    // plain/text and smth else otherwise `%%` is
-                    // source of some highlight issues.
-                    // we use patchedGetMode to circumvent a bug in CM
-                    CodeMirror.defineMode(mmode , function(config) {
-                        return CodeMirror.multiplexingMode(
-                        CodeMirror.patchedGetMode(config, 'text/plain'),
-                            // always set someting on close
-                            {open: open, close: close,
-                             mode: CodeMirror.patchedGetMode(config, mode),
-                             delimStyle: "delimit"
-                            }
-                        );
+                    utils.requireCodeMirrorMode(mode, function () {
+                        // create on the fly a mode that switch between
+                        // plain/text and something else, otherwise `%%` is
+                        // source of some highlight issues.
+                        CodeMirror.defineMode(magic_mode, function(config) {
+                            return CodeMirror.multiplexingMode(
+                                CodeMirror.getMode(config, 'text/plain'),
+                                // always set something on close
+                                {open: open, close: close,
+                                 mode: CodeMirror.getMode(config, mode),
+                                 delimStyle: "delimit"
+                                }
+                            );
+                        });
+                        that.code_mirror.setOption('mode', magic_mode);
                     });
-                    this.code_mirror.setOption('mode', mmode);
                     return;
                 }
             }

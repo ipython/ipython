@@ -2,7 +2,7 @@
 // Distributed under the terms of the Modified BSD License.
 
 // highly adapted for codemiror jshint
-define([], function() {
+define(['codemirror/lib/codemirror'], function(CodeMirror) {
     "use strict";
 
     var forEach = function(arr, f) {

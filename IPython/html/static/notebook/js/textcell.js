@@ -10,7 +10,10 @@ define([
     'notebook/js/mathjaxutils',
     'notebook/js/celltoolbar',
     'components/marked/lib/marked',
-], function(IPython, utils, $, cell, security, mathjaxutils, celltoolbar, marked) {
+    'codemirror/lib/codemirror',
+    'codemirror/mode/gfm/gfm',
+    'notebook/js/codemirror-ipythongfm'
+], function(IPython,utils , $, cell, security, mathjaxutils, celltoolbar, marked, CodeMirror, gfm, ipgfm) {
     "use strict";
     var Cell = cell.Cell;
 

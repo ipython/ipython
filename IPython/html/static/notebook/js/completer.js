@@ -7,7 +7,8 @@ define([
     'base/js/utils',
     'base/js/keyboard',
     'notebook/js/contexthint',
-], function(IPython, $, utils, keyboard) {
+    'codemirror/lib/codemirror',
+], function(IPython, $, utils, keyboard, CodeMirror) {
     "use strict";
 
     // easier key mapping
@@ -93,7 +94,7 @@ define([
     Completer.prototype.startCompletion = function () {
         // call for a 'first' completion, that will set the editor and do some
         // special behavior like autopicking if only one completion available.
-        if (this.editor.somethingSelected()) return;
+        if (this.editor.somethingSelected()|| this.editor.getSelections().length > 1) return;
         this.done = false;
         // use to get focus back on opera
         this.carry_on_completion(true);
@@ -142,7 +143,7 @@ define([
         }
 
         // We want a single cursor position.
-        if (this.editor.somethingSelected()) {
+        if (this.editor.somethingSelected()|| this.editor.getSelections().length > 1) {
             return;
         }
 
@@ -316,11 +317,15 @@ define([
 
         // Enter
         if (code == keycodes.enter) {
-            CodeMirror.e_stop(event);
+            event.codemirrorIgnore = true;
+            event._ipkmIgnore = true;
+            event.preventDefault();
             this.pick();
         // Escape or backspace
         } else if (code == keycodes.esc || code == keycodes.backspace) {
-            CodeMirror.e_stop(event);
+            event.codemirrorIgnore = true;
+            event._ipkmIgnore = true;
+            event.preventDefault();
             this.close();
         } else if (code == keycodes.tab) {
             //all the fastforwarding operation,
@@ -339,7 +344,9 @@ define([
         } else if (code == keycodes.up || code == keycodes.down) {
             // need to do that to be able to move the arrow
             // when on the first or last line ofo a code cell
-            CodeMirror.e_stop(event);
+            event.codemirrorIgnore = true;
+            event._ipkmIgnore = true;
+            event.preventDefault();
 
             var options = this.sel.find('option');
             var index = this.sel[0].selectedIndex;
@@ -352,7 +359,7 @@ define([
             index = Math.min(Math.max(index, 0), options.length-1);
             this.sel[0].selectedIndex = index;
         } else if (code == keycodes.pageup || code == keycodes.pagedown) {
-            CodeMirror.e_stop(event);
+            event._ipkmIgnore = true;
 
             var options = this.sel.find('option');
             var index = this.sel[0].selectedIndex;

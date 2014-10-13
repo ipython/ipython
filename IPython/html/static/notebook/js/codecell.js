@@ -1,5 +1,13 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
+/**
+ *
+ *
+ * @module codecell
+ * @namespace codecell
+ * @class CodeCell
+ */
+
 
 define([
     'base/js/namespace',
@@ -10,7 +18,10 @@ define([
     'notebook/js/outputarea',
     'notebook/js/completer',
     'notebook/js/celltoolbar',
-], function(IPython, $, utils, keyboard, cell, outputarea, completer, celltoolbar) {
+    'codemirror/lib/codemirror',
+    'codemirror/mode/python/python',
+    'notebook/js/codemirror-ipython'
+], function(IPython, $, utils, keyboard, cell, outputarea, completer, celltoolbar, CodeMirror, cmpython, cmip) {
     "use strict";
     var Cell = cell.Cell;
 
@@ -72,11 +83,7 @@ define([
         this.completer = null;
 
 
-        var cm_overwrite_options  = {
-            onKeyEvent: $.proxy(this.handle_keyevent,this)
-        };
-
-        var config = utils.mergeopt(CodeCell, this.config, {cm_config: cm_overwrite_options});
+        var config = utils.mergeopt(CodeCell, this.config);
         Cell.apply(this,[{
             config: config, 
             keyboard_manager: options.keyboard_manager, 
@@ -102,9 +109,7 @@ define([
             },
             mode: 'ipython',
             theme: 'ipython',
-            matchBrackets: true,
-             // don't auto-close strings because of CodeMirror #2385
-            autoCloseBrackets: "()[]{}"
+            matchBrackets: true
         }
     };
 
@@ -135,6 +140,7 @@ define([
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
         this.code_mirror = new CodeMirror(input_area.get(0), this.cm_config);
+        this.code_mirror.on('keydown', $.proxy(this.handle_keyevent,this))
         $(this.code_mirror.getInputField()).attr("spellcheck", "false");
         inner_cell.append(input_area);
         input.append(prompt).append(inner_cell);
@@ -220,10 +226,11 @@ define([
             }
             // If we closed the tooltip, don't let CM or the global handlers
             // handle this event.
-            event.stop();
+            event.codemirrorIgnore = true;
+            event.preventDefault();
             return true;
         } else if (event.keyCode === keycodes.tab && event.type === 'keydown' && event.shiftKey) {
-                if (editor.somethingSelected()){
+                if (editor.somethingSelected() || editor.getSelections().length !== 1){
                     var anchor = editor.getCursor("anchor");
                     var head = editor.getCursor("head");
                     if( anchor.line != head.line){
@@ -231,12 +238,15 @@ define([
                     }
                 }
                 this.tooltip.request(that);
-                event.stop();
+                event.codemirrorIgnore = true;
+                event.preventDefault();
                 return true;
         } else if (event.keyCode === keycodes.tab && event.type == 'keydown') {
             // Tab completion.
             this.tooltip.remove_and_cancel_tooltip();
-            if (editor.somethingSelected()) {
+
+            // completion does not work on multicursor, it might be possible though in some cases
+            if (editor.somethingSelected() || editor.getSelections().length > 1) {
                 return false;
             }
             var pre_cursor = editor.getRange({line:cur.line,ch:0},cur);
@@ -245,7 +255,8 @@ define([
                 // is empty.  In this case, let CodeMirror handle indentation.
                 return false;
             } else {
-                event.stop();
+                event.codemirrorIgnore = true;
+                event.preventDefault();
                 this.completer.startCompletion();
                 return true;
             }

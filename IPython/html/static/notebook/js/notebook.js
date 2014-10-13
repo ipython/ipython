@@ -893,7 +893,7 @@ define([
      * Insert an element at given cell index.
      *
      * @method _insert_element_at_index
-     * @param element {dom element} a cell element
+     * @param element {dom_element} a cell element
      * @param [index] {int} a valid index where to inser cell
      * @private
      *
@@ -1532,7 +1532,7 @@ define([
         modename = newmode.name || newmode
 
         that = this;
-        CodeMirror.requireMode(modename, function(){
+        utils.requireCodeMirrorMode(modename, function () {
             $.map(that.get_cells(), function(cell, i) {
                 if (cell.cell_type === 'code'){
                     cell.code_mirror.setOption('mode', newmode);

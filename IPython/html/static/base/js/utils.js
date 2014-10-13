@@ -4,7 +4,8 @@
 define([
     'base/js/namespace',
     'jquery',
-], function(IPython, $){
+    'codemirror/lib/codemirror',
+], function(IPython, $, CodeMirror){
     "use strict";
     
     IPython.load_extensions = function () {
@@ -538,6 +539,20 @@ define([
         msg += ajax_error_msg(jqXHR);
         console.log(msg);
     };
+    
+    var requireCodeMirrorMode = function (mode, callback, errback) {
+        // load a mode with requirejs
+        if (typeof mode != "string") mode = mode.name;
+        if (CodeMirror.modes.hasOwnProperty(mode)) {
+            callback(CodeMirror.modes.mode);
+            return;
+        }
+        require([
+                // might want to use CodeMirror.modeURL here
+                ['codemirror/mode', mode, mode].join('/'),
+            ], callback, errback
+        );
+    };
 
     var utils = {
         regex_split : regex_split,
@@ -563,6 +578,7 @@ define([
         mergeopt: mergeopt,
         ajax_error_msg : ajax_error_msg,
         log_ajax_error : log_ajax_error,
+        requireCodeMirrorMode : requireCodeMirrorMode,
     };
 
     // Backwards compatability.

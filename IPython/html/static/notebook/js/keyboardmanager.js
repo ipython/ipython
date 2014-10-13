@@ -1,5 +1,12 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
+/**
+ *
+ *
+ * @module keyboardmanager
+ * @namespace keyboardmanager
+ * @class KeyboardManager
+ */
 
 define([
     'base/js/namespace',
@@ -16,13 +23,15 @@ define([
     var keycodes = keyboard.keycodes;
 
     var KeyboardManager = function (options) {
-        // Constructor
-        //
-        // Parameters:
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance
-        //          pager: Pager instance
+        /**
+         * A class to deal with keyboard event and shortcut
+         *
+         * @class KeyboardManager
+         * @constructor
+         * @param options {dict} Dictionary of keyword arguments :
+         *    @param options.events {$(Events)} instance 
+         *    @param options.pager: {Pager}  pager instance
+         */
         this.mode = 'command';
         this.enabled = true;
         this.pager = options.pager;
@@ -37,6 +46,22 @@ define([
         this.edit_shortcuts.add_shortcuts(this.get_default_edit_shortcuts());
     };
 
+    /**
+     * Return a dict of common shortcut
+     * @method get_default_common_shortcuts
+     *
+     * @example Example of returned shortcut
+     * ```
+     * 'shortcut-key': // a string representing the shortcut as dash separated value.
+     *                 // e.g. 'shift' , 'shift-enter', 'cmd-t'
+     *  {
+     *     help: String // user facing help string 
+     *     help_index: String // string used internally to order the shortcut on the quickhelp
+     *     handler: function(event){return true|false} // function that takes an even as first and only parameter
+     *          // and return a boolean indicating whether or not the event should been handled further.
+     *   }
+     *```
+     */
     KeyboardManager.prototype.get_default_common_shortcuts = function() {
         var that = this;
         var shortcuts = {
@@ -125,19 +150,17 @@ define([
                 handler : function (event) {
                     var index = that.notebook.get_selected_index();
                     var cell = that.notebook.get_cell(index);
-                    if (cell && cell.at_top() && index !== 0) {
+                    var cm = that.notebook.get_selected_cell().code_mirror;
+                    var cur = cm.getCursor()
+                    if (cell && cell.at_top() && index !== 0 && cur.ch === 0) {
                         event.preventDefault();
                         that.notebook.command_mode();
                         that.notebook.select_prev();
                         that.notebook.edit_mode();
                         var cm = that.notebook.get_selected_cell().code_mirror;
                         cm.setCursor(cm.lastLine(), 0);
-                        return false;
-                    } else if (cell) {
-                        var cm = cell.code_mirror;
-                        cm.execCommand('goLineUp');
-                        return false;
                     }
+                    return false;
                 }
             },
             'down' : {
@@ -154,11 +177,8 @@ define([
                         var cm = that.notebook.get_selected_cell().code_mirror;
                         cm.setCursor(0, 0);
                         return false;
-                    } else {
-                        var cm = cell.code_mirror;
-                        cm.execCommand('goLineDown');
-                        return false;
                     }
+                    return false;
                 }
             },
             'ctrl-shift--' : {
@@ -488,6 +508,10 @@ define([
     KeyboardManager.prototype.bind_events = function () {
         var that = this;
         $(document).keydown(function (event) {
+
+            if(event._ipkmIgnore==true||(event.originalEvent||{})._ipkmIgnore==true){
+                return false;
+            }
             return that.handle_keydown(event);
         });
     };

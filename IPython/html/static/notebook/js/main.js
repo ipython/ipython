@@ -19,8 +19,9 @@ require([
     'notebook/js/keyboardmanager',
     'notebook/js/config',
     'notebook/js/kernelselector',
-    // only loaded, not used:
-    'custom/custom',
+    'codemirror/lib/codemirror',
+    // only loaded, not used, please keep sure this is loaded last
+    'custom/custom'
 ], function(
     IPython, 
     $,
@@ -38,13 +39,19 @@ require([
     savewidget, 
     keyboardmanager,
     config,
-    kernelselector
+    kernelselector,
+    CodeMirror,
+    // please keep sure that even if not used, this is loaded last
+    custom
     ) {
     "use strict";
 
+    // compat with old IPython, remove for IPython > 3.0
+    window.CodeMirror = CodeMirror;
+
     var common_options = {
+        ws_url : utils.get_body_data("wsUrl"),
         base_url : utils.get_body_data("baseUrl"),
-        ws_url : IPython.utils.get_body_data("wsUrl"),
         notebook_path : utils.get_body_data("notebookPath"),
         notebook_name : utils.get_body_data('notebookName')
     };
