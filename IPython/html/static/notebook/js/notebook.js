@@ -50,6 +50,7 @@ define([
         //      Dictionary of keyword arguments.
         //          events: $(Events) instance
         //          keyboard_manager: KeyboardManager instance
+        //          content_manager: ContentManager instance
         //          save_widget: SaveWidget instance
         //          config: dictionary
         //          base_url : string
@@ -61,6 +62,7 @@ define([
         this.notebook_name = options.notebook_name;
         this.events = options.events;
         this.keyboard_manager = options.keyboard_manager;
+        this.content_manager = options.content_manager;
         this.save_widget = options.save_widget;
         this.tooltip = new tooltip.Tooltip(this.events);
         this.ws_url = options.ws_url;
@@ -177,6 +179,26 @@ define([
      */
     Notebook.prototype.bind_events = function () {
         var that = this;
+
+        this.content_manager.events.on('notebook_rename_success.ContentManager',
+            function (event, data) {
+                var name = that.notebook_name = data.name;
+                var path = data.path;
+                that.session.rename_notebook(name, path);
+                that.events.trigger('notebook_renamed.Notebook', data);
+            });
+
+        this.content_manager.events.on('notebook_rename_error.ContentManager',
+            function (event, data) {
+                that.rename_error(data[0], data[1], data[2]);
+            });
+
+        this.content_manager.events.on('notebook_save_success.ContentManager',
+            $.proxy(this.save_notebook_success, this));
+
+        this.content_manager.events.on('notebook_save_error.ContentManager',
+            $.proxy(this.events.trigger, this.events,
+                'notebook_save_failed.Notebook'));
 
         this.events.on('set_next_input.Notebook', function (event, data) {
             var index = that.find_cell_index(data.cell);
@@ -1924,53 +1946,25 @@ define([
      * @method save_notebook
      */
     Notebook.prototype.save_notebook = function (extra_settings) {
-        // Create a JSON model to be sent to the server.
-        var model = {};
-        model.name = this.notebook_name;
-        model.path = this.notebook_path;
-        model.type = 'notebook';
-        model.format = 'json';
-        model.content = this.toJSON();
-        model.content.nbformat = this.nbformat;
-        model.content.nbformat_minor = this.nbformat_minor;
-        // time the ajax call for autosave tuning purposes.
-        var start =  new Date().getTime();
-        // We do the call with settings so we can set cache to false.
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "PUT",
-            data : JSON.stringify(model),
-            headers : {'Content-Type': 'application/json'},
-            dataType : "json",
-            success : $.proxy(this.save_notebook_success, this, start),
-            error : $.proxy(this.save_notebook_error, this)
-        };
-        if (extra_settings) {
-            for (var key in extra_settings) {
-                settings[key] = extra_settings[key];
-            }
-        }
-        this.events.trigger('notebook_saving.Notebook');
-        var url = utils.url_join_encode(
-            this.base_url,
-            'api/contents',
-            this.notebook_path,
-            this.notebook_name
-        );
-        $.ajax(url, settings);
+        var content = $.extend(this.toJSON(), {
+            nbformat : this.nbformat,
+            nbformat_minor : this.nbformat_minor
+        })
+        this.content_manager.save_notebook(this.notebook_path,
+            this.notebook_name,
+            content,
+            extra_settings);
     };
     
     /**
      * Success callback for saving a notebook.
      * 
      * @method save_notebook_success
-     * @param {Integer} start the time when the save request started
-     * @param {Object} data JSON representation of a notebook
-     * @param {String} status Description of response status
-     * @param {jqXHR} xhr jQuery Ajax object
+     * @param {Event} event The save notebook success event
+     * @param {Object} data dictionary of event data
+     *     data.options start the time when the save request started
      */
-    Notebook.prototype.save_notebook_success = function (start, data, status, xhr) {
+    Notebook.prototype.save_notebook_success = function (event, data) {
         this.set_dirty(false);
         if (data.message) {
             // save succeeded, but validation failed.
@@ -1997,7 +1991,7 @@ define([
             });
         }
         this.events.trigger('notebook_saved.Notebook');
-        this._update_autosave_interval(start);
+        this._update_autosave_interval(event.start);
         if (this._checkpoint_after_save) {
             this.create_checkpoint();
             this._checkpoint_after_save = false;
@@ -2086,38 +2080,6 @@ define([
         });
     };
 
-    Notebook.prototype.new_notebook = function(){
-        var path = this.notebook_path;
-        var base_url = this.base_url;
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "POST",
-            dataType : "json",
-            async : false,
-            success : function (data, status, xhr){
-                var notebook_name = data.name;
-                window.open(
-                    utils.url_join_encode(
-                        base_url,
-                        'notebooks',
-                        path,
-                        notebook_name
-                    ),
-                    '_blank'
-                );
-            },
-            error : utils.log_ajax_error,
-        };
-        var url = utils.url_join_encode(
-            base_url,
-            'api/contents',
-            path
-        );
-        $.ajax(url,settings);
-    };
-
-
     Notebook.prototype.copy_notebook = function(){
         var path = this.notebook_path;
         var base_url = this.base_url;
@@ -2147,55 +2109,17 @@ define([
     };
 
     Notebook.prototype.rename = function (nbname) {
-        var that = this;
         if (!nbname.match(/\.ipynb$/)) {
             nbname = nbname + ".ipynb";
         }
-        var data = {name: nbname};
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "PATCH",
-            data : JSON.stringify(data),
-            dataType: "json",
-            headers : {'Content-Type': 'application/json'},
-            success : $.proxy(that.rename_success, this),
-            error : $.proxy(that.rename_error, this)
-        };
-        this.events.trigger('rename_notebook.Notebook', data);
-        var url = utils.url_join_encode(
-            this.base_url,
-            'api/contents',
-            this.notebook_path,
-            this.notebook_name
-        );
-        $.ajax(url, settings);
+
+        this.content_manager.rename_notebook(this.notebook_path,
+            this.notebook_name, nbname);
     };
 
     Notebook.prototype.delete = function () {
-        var that = this;
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "DELETE",
-            dataType: "json",
-            error : utils.log_ajax_error,
-        };
-        var url = utils.url_join_encode(
-            this.base_url,
-            'api/contents',
-            this.notebook_path,
-            this.notebook_name
-        );
-        $.ajax(url, settings);
-    };
-
-    
-    Notebook.prototype.rename_success = function (json, status, xhr) {
-        var name = this.notebook_name = json.name;
-        var path = json.path;
-        this.session.rename_notebook(name, path);
-        this.events.trigger('notebook_renamed.Notebook', json);
+        this.content_manager.delete_notebook(this.notebook_name,
+            this.notebook_path);
     };
 
     Notebook.prototype.rename_error = function (xhr, status, error) {
@@ -2214,7 +2138,7 @@ define([
                 "OK": {
                     class: "btn-primary",
                     click: function () {
-                        this.save_widget.rename_notebook({notebook:that});
+                        that.save_widget.rename_notebook({notebook:that});
                 }}
                 },
             open : function (event, ui) {
@@ -2237,26 +2161,13 @@ define([
      * @param {String} notebook_name and path A notebook to load
      */
     Notebook.prototype.load_notebook = function (notebook_name, notebook_path) {
-        var that = this;
         this.notebook_name = notebook_name;
         this.notebook_path = notebook_path;
-        // We do the call with settings so we can set cache to false.
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "GET",
-            dataType : "json",
-            success : $.proxy(this.load_notebook_success,this),
-            error : $.proxy(this.load_notebook_error,this),
-        };
-        this.events.trigger('notebook_loading.Notebook');
-        var url = utils.url_join_encode(
-            this.base_url,
-            'api/contents',
-            this.notebook_path,
-            this.notebook_name
-        );
-        $.ajax(url, settings);
+        this.content_manager.load_notebook(
+            notebook_path,
+            notebook_name,
+            $.proxy(this.load_notebook_success,this),
+            $.proxy(this.load_notebook_error,this));
     };
 
     /**

@@ -7,6 +7,7 @@ require([
     'base/js/events',
     'base/js/page',
     'base/js/utils',
+    'contentmanager',
     'tree/js/notebooklist',
     'tree/js/clusterlist',
     'tree/js/sessionlist',
@@ -22,6 +23,7 @@ require([
     events,
     page, 
     utils, 
+    contentmanager,
     notebooklist, 
     clusterlist, 
     sesssionlist, 
@@ -37,7 +39,11 @@ require([
     session_list = new sesssionlist.SesssionList($.extend({
         events: events}, 
         common_options));
+    content_manager = new contentmanager.ContentManager($.extend({
+        events: events},
+        common_options));
     notebook_list = new notebooklist.NotebookList('#notebook_list', $.extend({
+        content_manager: content_manager,
         session_list:  session_list}, 
         common_options));
     cluster_list = new clusterlist.ClusterList('#cluster_list', common_options);
@@ -46,8 +52,8 @@ require([
         common_options));
     login_widget = new loginwidget.LoginWidget('#login_widget', common_options);
 
-    $('#new_notebook').click(function (e) {
-        notebook_list.new_notebook();
+    $('#new_notebook').button().click(function (e) {
+        content_manager.new_notebook(common_options.notebook_path);
     });
 
     var interval_id=0;
@@ -112,4 +118,13 @@ require([
         $("#tabs").find("a[href=" + window.location.hash + "]").click();
     }
 
+    // For backwards compatability.
+    IPython.page = page;
+    IPython.content_manager = content_manager;
+    IPython.notebook_list = notebook_list;
+    IPython.cluster_list = cluster_list;
+    IPython.session_list = session_list;
+    IPython.kernel_list = kernel_list;
+    IPython.login_widget = login_widget;
+    IPython.events = events;
 });
