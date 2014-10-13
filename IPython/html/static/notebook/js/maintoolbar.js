@@ -22,6 +22,7 @@ define([
         this.events = options.events;
         this.notebook = options.notebook;
         this.construct();
+        this.add_filter_text();
         this.add_celltype_list();
         this.add_celltoolbar_list();
         this.bind_events();
@@ -135,22 +136,31 @@ define([
             label : 'Filter based on cell tags',
             icon : 'fa-filter',
             callback : $.proxy(this._handle_filter_click, this)}]);
-        this.$filter_text = null;
+    };
+    
+    MainToolBar.prototype.add_filter_text = function (e) {
+        this.$filter_text = $('<input/>')
+            .attr('type', 'text')
+            .attr('placeholder', 'Tag filter expression...')
+            .css('display', 'none')
+            .width(0)
+            .addClass('form-control input-sm');
+
+        // If a filter was save to the notebook's metadata, load and apply that
+        // filter by default.
+        var that = this;
+        this.events.on('notebook_loaded.Notebook', function() {
+            if (that.notebook.metadata.cellfilter !== undefined) { 
+                var filter_string = that.notebook.metadata.cellfilter;
+                that.$filter_text.val(filter_string);
+                that._handle_filter({currentTarget: that.$filter_text})
+                that._show_filter_textbox();
+            }
+        });  
     };
     
     MainToolBar.prototype._handle_filter_click = function (e) {
         // Handles when the filter button is clicked.
-
-        // If the filter textbox hasn't been created yet, create it now.
-        var $filter_button = $(e.currentTarget);
-        if (!this.$filter_text) {
-            this.$filter_text = $('<input/>')
-                .attr('type', 'text')
-                .attr('placeholder', 'Tag filter expression...')
-                .css('display', 'none')
-                .width(0)
-                .addClass('form-control input-sm');
-        }
 
         // If the filter textbox is visible, hide it.
         if (this.$filter_text.css('display') != 'none') {
@@ -167,23 +177,28 @@ define([
             
         // The filter textbox is not visible, show it.
         } else {
-            this.$filter_text.css('display', '');
-            $filter_button.after(this.$filter_text);
-            
-            // Prevent notebook events from firing when the user types in the 
-            // filter textbox.
-            this.notebook.keyboard_manager.register_events(this.$filter_text);
-
-            // Make sure the button group has a css class that we can style.
-            $filter_button.parent().addClass('filter-control');
-
-            // Animate the textbox's display.
-            this.$filter_text.animate({width: 200}, 200, 'swing');
-
-            // Handle when the filter is changed.
-            this.$filter_text.on('change', $.proxy(this._handle_filter, this));
+            this._show_filter_textbox();
         }
     };
+
+    MainToolBar.prototype._show_filter_textbox = function() {
+        var $filter_button = $(this.selector).find('#filter_toggle');
+        this.$filter_text.css('display', '');
+        $filter_button.after(this.$filter_text);
+        
+        // Prevent notebook events from firing when the user types in the 
+        // filter textbox.
+        this.notebook.keyboard_manager.register_events(this.$filter_text);
+
+        // Make sure the button group has a css class that we can style.
+        $filter_button.parent().addClass('filter-control');
+
+        // Animate the textbox's display.
+        this.$filter_text.animate({width: 200}, 200, 'swing');
+
+        // Handle when the filter is changed.
+        this.$filter_text.on('change', $.proxy(this._handle_filter, this));
+    };    
 
     MainToolBar.prototype._handle_filter = function(e) {
         // Handle when the user sets a filter.
@@ -201,12 +216,19 @@ define([
         }
         
         // Evaluate the filter for each cell.
-        var cells = IPython.notebook.get_cells();
+        var cells = this.notebook.get_cells();
         for (var i = 0; i < cells.length; i++) {
             var tags = $.merge([], cells[i].metadata.tags);
             // Add the cell type as a tag that can be filtered by.
             tags.push(cells[i].cell_type);
             cells[i].element.css('display', this._eval_expression(tags, filter) ? '' : 'none');
+        }
+        
+        // Persist the cell filter to the notebook's metadata.
+        if (filter) {
+            this.notebook.metadata.cellfilter = filter;
+        } else if (this.notebook.metadata.cellfilter !== undefined) {
+            delete this.notebook.metadata.cellfilter;
         }
     };
 
