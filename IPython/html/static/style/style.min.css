@@ -10468,6 +10468,8 @@ span#autosave_status {
   border-bottom-left-radius: 0px;
   border-top-left-radius: 0px;
   border-left-width: 0px;
+  -webkit-box-shadow: none;
+  box-shadow: none;
 }
 .toolbar .btn-group {
   margin-top: 0px;
