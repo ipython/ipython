@@ -9737,6 +9737,12 @@ fieldset[disabled] #kernel_selector_widget > button.active {
   border-top: 1px;
   border-radius: 0px 0px 4px 4px;
 }
+#menubar .navbar-toggle {
+  float: left;
+}
+#menubar .navbar-collapse {
+  clear: left;
+}
 #menubar li.dropdown {
   line-height: 12px;
 }
@@ -9746,6 +9752,7 @@ fieldset[disabled] #kernel_selector_widget > button.active {
 }
 #menubar ul.navbar-right {
   padding-top: 2px;
+  margin-bottom: 0px;
 }
 .nav-wrapper {
   border-bottom: 1px solid #e7e7e7;
