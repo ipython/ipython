@@ -51,13 +51,13 @@ class _SelectionContainer(Box):
         else:
             return None
 
-@register('jupyter.Accordion')
+@register('IPython.Accordion')
 class Accordion(_SelectionContainer):
     """Displays children each on a separate accordion page."""
     _view_name = Unicode('AccordionView', sync=True)
 
 
-@register('jupyter.Tab')
+@register('IPython.Tab')
 class Tab(_SelectionContainer):
     """Displays children each on a separate accordion tab."""
     _view_name = Unicode('TabView', sync=True)

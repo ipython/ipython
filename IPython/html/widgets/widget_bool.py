@@ -27,13 +27,13 @@ class _Bool(DOMWidget):
     disabled = Bool(False, help="Enable or disable user changes.", sync=True)
 
 
-@register('jupyter.Checkbox')
+@register('IPython.Checkbox')
 class Checkbox(_Bool):
     """Displays a boolean `value`."""
     _view_name = Unicode('CheckboxView', sync=True)
 
 
-@register('jupyter.ToggleButton')
+@register('IPython.ToggleButton')
 class ToggleButton(_Bool):
     """Displays a boolean `value`."""
     

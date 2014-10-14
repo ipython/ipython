@@ -21,7 +21,7 @@ from IPython.utils.warn import DeprecatedClass
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-@register('jupyter.Button')
+@register('IPython.Button')
 class Button(DOMWidget):
     """Button widget.
 

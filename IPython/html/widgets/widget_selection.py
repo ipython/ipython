@@ -114,7 +114,7 @@ class _Selection(DOMWidget):
                 self.value_lock.release()
 
 
-@register('jupyter.ToggleButtons')
+@register('IPython.ToggleButtons')
 class ToggleButtons(_Selection):
     """Group of toggle buttons that represent an enumeration.  Only one toggle
     button can be toggled at any point in time.""" 
@@ -125,7 +125,7 @@ class ToggleButtons(_Selection):
         default_value='', allow_none=True, sync=True, help="""Use a
         predefined styling for the buttons.""")
 
-@register('jupyter.Dropdown')
+@register('IPython.Dropdown')
 class Dropdown(_Selection):
     """Allows you to select a single item from a dropdown."""
     _view_name = Unicode('DropdownView', sync=True)
@@ -135,7 +135,7 @@ class Dropdown(_Selection):
         default_value='', allow_none=True, sync=True, help="""Use a
         predefined styling for the buttons.""")
 
-@register('jupyter.RadioButtons')
+@register('IPython.RadioButtons')
 class RadioButtons(_Selection):
     """Group of radio buttons that represent an enumeration.  Only one radio
     button can be toggled at any point in time.""" 
@@ -143,7 +143,7 @@ class RadioButtons(_Selection):
     
 
 
-@register('jupyter.Select')
+@register('IPython.Select')
 class Select(_Selection):
     """Listbox that only allows one item to be selected at any given time."""
     _view_name = Unicode('SelectView', sync=True)

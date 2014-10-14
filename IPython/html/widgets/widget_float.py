@@ -43,17 +43,17 @@ class _BoundedFloat(_Float):
             self.value = min(max(new, self.min), self.max)
 
 
-@register('jupyter.FloatText')
+@register('IPython.FloatText')
 class FloatText(_Float):
     _view_name = Unicode('FloatTextView', sync=True)
 
 
-@register('jupyter.BoundedFloatText')
+@register('IPython.BoundedFloatText')
 class BoundedFloatText(_BoundedFloat):
     _view_name = Unicode('FloatTextView', sync=True)
 
 
-@register('jupyter.FloatSlider')
+@register('IPython.FloatSlider')
 class FloatSlider(_BoundedFloat):
     _view_name = Unicode('FloatSliderView', sync=True)
     orientation = CaselessStrEnum(values=['horizontal', 'vertical'], 
@@ -64,7 +64,7 @@ class FloatSlider(_BoundedFloat):
     slider_color = Unicode(sync=True)
 
 
-@register('jupyter.FloatProgress')
+@register('IPython.FloatProgress')
 class FloatProgress(_BoundedFloat):
     _view_name = Unicode('ProgressView', sync=True)
 
@@ -167,7 +167,7 @@ class _BoundedFloatRange(_FloatRange):
             self.lower = low
 
 
-@register('jupyter.FloatRangeSlider')
+@register('IPython.FloatRangeSlider')
 class FloatRangeSlider(_BoundedFloatRange):
     _view_name = Unicode('FloatSliderView', sync=True)
     orientation = CaselessStrEnum(values=['horizontal', 'vertical'], 

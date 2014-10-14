@@ -10,7 +10,7 @@ from .widget import DOMWidget, register
 from IPython.utils.traitlets import Unicode, Tuple, TraitError, Int, CaselessStrEnum
 from IPython.utils.warn import DeprecatedClass
 
-@register('jupyter.Box')
+@register('IPython.Box')
 class Box(DOMWidget):
     """Displays multiple widgets in a group."""
     _view_name = Unicode('BoxView', sync=True)
@@ -45,7 +45,7 @@ class Box(DOMWidget):
             child._handle_displayed()
 
 
-@register('jupyter.Popup')
+@register('IPython.Popup')
 class Popup(Box):
     """Displays multiple widgets in an in page popup div."""
     _view_name = Unicode('PopupView', sync=True)
@@ -54,7 +54,7 @@ class Popup(Box):
     button_text = Unicode(sync=True)
 
 
-@register('jupyter.FlexBox')
+@register('IPython.FlexBox')
 class FlexBox(Box):
     """Displays multiple widgets using the flexible box model."""
     _view_name = Unicode('FlexBoxView', sync=True)
