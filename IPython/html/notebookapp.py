@@ -174,6 +174,7 @@ class NotebookWebApplication(web.Application):
             config=ipython_app.config,
             jinja2_env=env,
             terminals_available=False,  # Set later if terminals are available
+            profile_dir = ipython_app.profile_dir.location,
         )
 
         # allow custom overrides for the tornado web app.
@@ -191,6 +192,7 @@ class NotebookWebApplication(web.Application):
         handlers.extend(load_handlers('notebook.handlers'))
         handlers.extend(load_handlers('nbconvert.handlers'))
         handlers.extend(load_handlers('kernelspecs.handlers'))
+        handlers.extend(load_handlers('services.config.handlers'))
         handlers.extend(load_handlers('services.kernels.handlers'))
         handlers.extend(load_handlers('services.contents.handlers'))
         handlers.extend(load_handlers('services.clusters.handlers'))
