@@ -1,4 +1,4 @@
-"""Tornado handlers for kernel specifications."""
+"""Tornado handlers for frontend config storage."""
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
@@ -30,6 +30,7 @@ class ConfigHandler(IPythonHandler):
     @web.authenticated
     @json_errors
     def put(self, section_name):
+        self.get_json_body()  # Will raise 400 if content is not valid JSON
         filename = self.file_name(section_name)
         with open(filename, 'wb') as f:
             f.write(self.request.body)
