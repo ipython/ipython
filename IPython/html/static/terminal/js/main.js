@@ -18,6 +18,7 @@ require([
     page = new page.Page();
     // Test size: 25x80
     var termRowHeight = function(){ return 1.00 * $("#dummy-screen")[0].offsetHeight / 25;};
+        // 1.02 here arrived at by trial and error to make the spacing look right
     var termColWidth =  function() { return 1.02 * $("#dummy-screen-rows")[0].offsetWidth / 80;};
 
     var base_url = utils.get_body_data('baseUrl');
