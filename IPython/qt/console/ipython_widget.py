@@ -151,6 +151,18 @@ class IPythonWidget(FrontendWidget):
             start = content['cursor_start']
             end = content['cursor_end']
             
+            start = max(start, 0)
+            end = max(end, start + 1)
+
+            cursor_pos = self._get_input_buffer_cursor_pos()
+            if end < cursor_pos:
+                cursor.movePosition(QtGui.QTextCursor.Left,
+                                    n=(cursor_pos - end))
+            elif end > cursor_pos:
+                cursor.movePosition(QtGui.QTextCursor.Right,
+                                    n=(end - cursor_pos))
+            self._control.setTextCursor(cursor)
+
             offset = end - start
             # Move the cursor to the start of the match and complete.
             cursor.movePosition(QtGui.QTextCursor.Left, n=offset)
