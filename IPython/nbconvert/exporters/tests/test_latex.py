@@ -106,7 +106,8 @@ class TestLatexExporter(ExportersTestsBase):
         """
         Does LatexExporter properly format input and output prompts in color?
         """
-        (output, resources) = LatexExporter().from_filename(self._get_notebook())
+        (output, resources) = LatexExporter().from_filename(
+            self._get_notebook(nb_name="prompt_numbers.ipynb"))
         in_regex = r"In \[\{\\color\{incolor\}(.*)\}\]:"
         out_regex = r"Out\[\{\\color\{outcolor\}(.*)\}\]:"
 

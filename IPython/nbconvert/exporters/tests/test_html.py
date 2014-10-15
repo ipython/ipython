@@ -65,7 +65,8 @@ class TestHTMLExporter(ExportersTestsBase):
         """
         Does HTMLExporter properly format input and output prompts?
         """
-        (output, resources) = HTMLExporter(template_file='full').from_filename(self._get_notebook())
+        (output, resources) = HTMLExporter(template_file='full').from_filename(
+            self._get_notebook(nb_name="prompt_numbers.ipynb"))
         in_regex = r"In&nbsp;\[(.*)\]:"
         out_regex = r"Out\[(.*)\]:"
 
