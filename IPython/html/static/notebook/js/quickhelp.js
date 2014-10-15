@@ -66,6 +66,78 @@ define([
         { shortcut: cmd_ctrl + "y",   help:"redo"  },
     ].concat( platform_specific );
 
+    function humanize_key(key){
+        if (platform === 'MacOS'){
+        if (key.length === 1){
+            key = key.toUpperCase();
+        }
+        var d= {
+            // all these are unicode, will probably display badly on anything except macs.
+            // these are the standard symbol that are used in MacOS native menus
+            'cmd':'⌘',
+            'shift':'⇧',
+            'alt':'⌥',
+            'up':'↑',
+            'down':'↓',
+            'left':'←',
+            'right':'→',
+            'eject':'⏏',
+            'tab':'⇥',
+            'capslock':'⇧',
+            'esc':'⎋',
+            'ctrl':'⌃',
+            'enter':'↩',
+            'pageup':'⇞',
+            'pagedown':'⇟',
+            'home':'↖',
+            'end':'↘',
+            'altenter':'⌤',
+            'space':'␣',
+            'backspace':'⇤',
+            'apple':'',
+            };
+        } else {
+        var d = {
+            'shift':'Shift',
+            'alt':'Alt',
+            'up':'Up',
+            'down':'Down',
+            'left':'Left',
+            'right':'Right',
+            'tab':'Tab',
+            'capslock':'Caps Lock',
+            'esc':'Esc',
+            'ctrl':'Ctrl',
+            'enter':'Enter',
+            'pageup':'Page Up',
+            'pagedown':'Page Down',
+            'home':'Home',
+            'end':'End',
+            'space':'Space',
+            'backspace,':'Backaspace',
+            };
+        }
+        return d[key.toLowerCase()]||key;
+    }
+
+    function humanize_sequence(sequence){
+        var joinchar = '-';
+        if (platform === 'MacOS'){
+            joinchar = ' ';
+        }
+        var hum = _.map(sequence.replace(/meta/g, 'cmd').split(','), humanize_shortcut).join(joinchar);
+        return hum;
+    }
+
+    function humanize_shortcut(shortcut){
+        var joinchar = '-';
+        if (platform === 'MacOS'){
+            joinchar = '';
+        }
+        var sh = _.map(shortcut.split('-'), humanize_key ).join(joinchar);
+        return sh;
+    }
+
 
     QuickHelp.prototype.show_keyboard_shortcuts = function () {
         /**
@@ -157,7 +229,12 @@ define([
 
     var build_one = function (s) {
         var help = s.help;
-        var shortcut = prettify(s.shortcut);
+        var shortcut = '';
+        if(s.shortcut){
+            shortcut = prettify(humanize_sequence(s.shortcut));
+        } else {
+            console.error('[debug] -  nothing for', s)
+        }
         return $('<div>').addClass('quickhelp').
             append($('<span/>').addClass('shortcut_key').append($(shortcut))).
             append($('<span/>').addClass('shortcut_descr').text(' : ' + help));
