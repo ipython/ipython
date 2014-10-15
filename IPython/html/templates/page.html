@@ -25,8 +25,8 @@
             backbone : 'components/backbone/backbone-min',
             jquery: 'components/jquery/jquery.min',
             bootstrap: 'components/bootstrap/js/bootstrap.min',
-            bootstraptour: 'components/bootstrap-tour/build/js/bootstrap-tour.min',
             bootstraptags: 'components/bootstrap-tags/dist/js/bootstrap-tags.min',
+            bootstraptour: 'components/bootstrap-tour/build/js/bootstrap-tour.min',
             jqueryui: 'components/jquery-ui/ui/minified/jquery-ui.min',
             highlight: 'components/highlight.js/build/highlight.pack',
             moment: "components/moment/moment",
@@ -42,15 +42,18 @@
             },
             bootstrap: {
               deps: ["jquery"],
-              exports: "bootstrap"
+              // Bootstrap doesn't export a global variable.  It only extends
+              // jQuery with new functions.  Use one of those functions to verify
+              // that bootstrap has indeed loaded.
+              exports: "$.fn.popover", 
+            },
+            bootstraptags: {
+              deps: ["bootstrap"],
+              exports: "Tags", 
             },
             bootstraptour: {
               deps: ["bootstrap"],
               exports: "Tour"
-            },
-            bootstraptags: {
-              deps: ["bootstrap"],
-              exports: "Tags"
             },
             jqueryui: {
               deps: ["jquery"],

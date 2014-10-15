@@ -218,7 +218,7 @@ define([
         // Evaluate the filter for each cell.
         var cells = this.notebook.get_cells();
         for (var i = 0; i < cells.length; i++) {
-            var tags = $.merge([], cells[i].metadata.tags);
+            var tags = $.merge([], cells[i].metadata.tags || []);
             // Add the cell type as a tag that can be filtered by.
             tags.push(cells[i].cell_type);
             cells[i].element.css('display', this._eval_expression(tags, filter) ? '' : 'none');
@@ -274,7 +274,7 @@ define([
                 // re-embed the sub-expression's results into the location in
                 // the expression that it existed in initially.
                 var start = expression.substring(0, parenthesis_start-1);
-                var mid_results = eval_filter(truths, expression.substring(parenthesis_start+1, parenthesis_end-1));
+                var mid_results = this._eval_expression(truths, expression.substring(parenthesis_start+1, parenthesis_end-1));
                 var end = expression.substring(parenthesis_end+1);
                 expression = start + ' ' + mid_results.toString().toLowerCase() && end;
             } else {

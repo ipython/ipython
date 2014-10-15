@@ -3,9 +3,10 @@
 
 define([
     'jquery',
+    'base/js/keyboard',
     'notebook/js/celltoolbar',
     'bootstraptags',
-], function($, celltoolbar, bootstraptags) {
+], function($, keyboard, celltoolbar, bootstrap_tags) {
     "use strict";
 
     var get_suggestions = function(notebook) {
@@ -47,21 +48,53 @@ define([
                 .addClass('tag-list');
             $button_container.append($tag_list);
 
-            var tags = $tag_list.tags({
-                tagData: getter(cell),
-                suggestions: get_suggestions(notebook),
-                caseInsensitive: true,
-                beforeAddingTag: is_tag_allowed,
-            });
-            $tag_list.data('tags', tags);
-            $tag_list.click(function(){
-                tags.renderTags();
-            })
-            $tag_list.keyup(function(){
-                setter(cell, tags.getTags());
-            });
-            $tag_list.find('input').width('100%');
-            notebook.keyboard_manager.register_events($tag_list);
+            // Bootstrap-tags doesn't inject itself into Bootstrap until the document
+            // is ready, which is extremley annoying because the `$.fn.tags` method
+            // isn't defined by the time of require input, and may not even be defined
+            // when the thread steps here!  To work around this, we need to run the 
+            // `$.fn.tags` code within a `$(function() {...})` (which is short for
+            // the document on ready event, the same method bootstrap-tags uses).
+            $(function() {
+                var tags = $tag_list.tags({
+                    tagData: getter(cell),
+                    suggestions: get_suggestions(notebook),
+                    caseInsensitive: true,
+                    beforeAddingTag: is_tag_allowed,
+                });
+                $tag_list.data('tags', tags);
+
+                // Make sure the tags are rendered when the user clicks on the control.
+                $tag_list.on('click', function(){
+                    tags.renderTags();
+                });
+
+                // Save the tags as the user types.
+                var $tag_text = $tag_list.find('input');
+                $tag_text.keyup(function(e){
+                    var shortcut = keyboard.event_to_shortcut(e);
+                    if (shortcut == 'esc') {
+                        tags.hideSuggestions();    
+                        $tag_text.val('');
+                        notebook.focus_cell();
+                    } else if (shortcut == 'tab') {
+                        notebook.focus_cell();
+                    } else {
+                        setter(cell, tags.getTags());
+                    }
+                });
+
+                // Try to add the tag when the control loses focus.
+                $tag_text.on('blur', function(){
+                    var tag = $tag_text.val().trim();
+                    if (tag) {
+                        tags.addTag(tag);
+                        tags.renderTags();
+                        tags.hideSuggestions();    
+                        $tag_text.val('');
+                    }
+                });
+                notebook.keyboard_manager.register_events($tag_list);
+            })    
         };
     };
 
@@ -69,9 +102,9 @@ define([
         // Register the cell tagging toolbar.
 
         // Change the tag template so font-awesome icons are used.
-        bootstraptags.Templates = bootstraptags.Templates || {};
-        bootstraptags.Templates['3'] = bootstraptags.Templates['3'] || {};
-        bootstraptags.Templates['3'].tag = function(options) {
+        bootstrap_tags.Templates = bootstrap_tags.Templates || {};
+        bootstrap_tags.Templates['3'] = bootstrap_tags.Templates['3'] || {};
+        bootstrap_tags.Templates['3'].tag = function(options) {
             options = options || {};
             return "<div class='tag label " + options.tagClass + " " + options.tagSize + "' " + (options.isPopover ? "rel='popover'" : "") + ">    <span>" + Tags.Helpers.addPadding(options.tag, 2, options.isReadOnly) + "</span>    " + (options.isReadOnly ? "" : "<a><i style='color: white;' class='remove fa fa-times' /></a>") + "  </div>";
         };
