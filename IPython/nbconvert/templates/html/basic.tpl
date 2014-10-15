@@ -23,7 +23,7 @@
 
 {% block in_prompt -%}
 <div class="prompt input_prompt">
-In&nbsp;[{{ cell.prompt_number }}]:
+In&nbsp;[{{ cell.prompt_number|replace(None, "&nbsp;") }}]:
 </div>
 {%- endblock in_prompt %}
 
@@ -51,7 +51,7 @@ In&nbsp;[{{ cell.prompt_number }}]:
 <div class="output_area">
 {%- if output.output_type == 'pyout' -%}
     <div class="prompt output_prompt">
-    Out[{{ cell.prompt_number }}]:
+    Out[{{ cell.prompt_number|replace(None, "&nbsp;") }}]:
 {%- else -%}
     <div class="prompt">
 {%- endif -%}
