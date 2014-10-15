@@ -33,7 +33,11 @@
 % Name: draw_prompt
 % Purpose: Renders an output/input prompt
 ((* macro add_prompt(text, cell, prompt) -*))
+    ((*- if cell.prompt_number is defined -*))
     ((*- set prompt_number = "" ~ (cell.prompt_number | replace(None, " ")) -*))
+    ((*- else -*))
+    ((*- set prompt_number = " " -*))
+    ((*- endif -*))
     ((*- set indentation = " " * (prompt_number | length + 7) -*))
 \begin{verbatim}
 (((- text | add_prompts(first=prompt ~ '[' ~ prompt_number ~ ']: ', cont=indentation) -)))
