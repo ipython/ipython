@@ -164,6 +164,12 @@ def find_package_data():
         pjoin(components, "moment", "min","moment.min.js"),
     ])
     
+    # Ship mathjax js, css, woff
+    for parent, dirs, files in os.walk(pjoin(components, 'mathjax')):
+        for f in files:
+            if f.endswith(('.js', '.css', '.woff')):
+                static_data.append(pjoin(parent, f))
+    
     # Ship all of Codemirror's CSS and JS
     for parent, dirs, files in os.walk(pjoin(components, 'codemirror')):
         for f in files:
