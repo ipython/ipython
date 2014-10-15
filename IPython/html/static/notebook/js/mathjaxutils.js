@@ -24,6 +24,9 @@ define([
                 displayAlign: 'center',
                 "HTML-CSS": {
                     styles: {'.MathJax_Display': {"margin": 0}},
+                    availableFonts: [], preferredFont: null, // force Web fonts
+                    webFont: 'STIX-Web',
+                    imageFont: null,
                     linebreaks: { automatic: true }
                 }
             });
