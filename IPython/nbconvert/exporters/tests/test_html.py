@@ -69,7 +69,7 @@ class TestHTMLExporter(ExportersTestsBase):
         in_regex = r"In&nbsp;\[(.*)\]:"
         out_regex = r"Out\[(.*)\]:"
 
-        ins = ["1", "2", "6", "7", "8", "10", "14", "&nbsp;", "&nbsp;"]
+        ins = ["1", "2", "6", "7", "8", "10", "14", "&nbsp;", "&nbsp;", "*", "0"]
         outs = ["7", "10", "14"]
 
         assert re.findall(in_regex, output) == ins
