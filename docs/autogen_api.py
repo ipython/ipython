@@ -46,7 +46,7 @@ if __name__ == '__main__':
                                         r'\.core\.display',
                                         r'\.lib\.display',
                                         # This isn't actually a module
-                                        r'\.html\.fabfile',
+                                        r'\.html\.tasks',
                                         ]
 
     # These modules import functions and classes from other places to expose

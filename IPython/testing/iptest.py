@@ -259,7 +259,7 @@ sec.requires('zmq', 'tornado', 'requests', 'sqlite3', 'jsonschema')
 # file in there (MathJax ships a conf.py), so we might as
 # well play it safe and skip the whole thing.
 sec.exclude('static')
-sec.exclude('fabfile')
+sec.exclude('tasks')
 if not have['jinja2']:
     sec.exclude('notebookapp')
 if not have['pygments'] or not have['jinja2']:

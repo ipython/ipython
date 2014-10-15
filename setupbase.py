@@ -669,7 +669,7 @@ class CompileCSS(Command):
     
     Regenerate the compiled CSS from LESS sources.
     
-    Requires various dev dependencies, such as fabric and lessc.
+    Requires various dev dependencies, such as invoke and lessc.
     """
     description = "Recompile Notebook CSS"
     user_options = [
@@ -686,11 +686,12 @@ class CompileCSS(Command):
         self.force = bool(self.force)
     
     def run(self):
-        check_call([
-                "fab",
-                "css:minify=%s,force=%s" % (self.minify, self.force),
-            ], cwd=pjoin(repo_root, "IPython", "html"),
-        )
+        cmd = ['invoke', 'css']
+        if self.minify:
+            cmd.append('--minify')
+        if self.force:
+            cmd.append('--force')
+        check_call(cmd, cwd=pjoin(repo_root, "IPython", "html"))
 
 
 class JavascriptVersion(Command):
