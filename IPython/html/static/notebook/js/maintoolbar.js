@@ -27,7 +27,7 @@ define([
         this.bind_events();
     };
 
-    MainToolBar.prototype = new toolbar.ToolBar();
+    MainToolBar.prototype = Object.create(toolbar.ToolBar.prototype);
 
     MainToolBar.prototype.construct = function () {
         var that = this;

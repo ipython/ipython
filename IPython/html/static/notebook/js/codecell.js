@@ -115,7 +115,7 @@ define([
 
     CodeCell.msg_cells = {};
 
-    CodeCell.prototype = new Cell();
+    CodeCell.prototype = Object.create(Cell.prototype);
 
     /**
      * @method auto_highlight

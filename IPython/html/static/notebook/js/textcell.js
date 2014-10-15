@@ -55,7 +55,7 @@ define([
         this.rendered = false;
     };
 
-    TextCell.prototype = new Cell();
+    TextCell.prototype = Object.create(Cell.prototype);
 
     TextCell.options_default = {
         cm_config : {
@@ -220,7 +220,7 @@ define([
         placeholder: "Type *Markdown* and LaTeX: $\\alpha^2$"
     };
 
-    MarkdownCell.prototype = new TextCell();
+    MarkdownCell.prototype = Object.create(TextCell.prototype);
 
     /**
      * @method render
@@ -270,7 +270,7 @@ define([
             "When passing through nbconvert, a Raw Cell's content is added to the output unmodified."
     };
 
-    RawCell.prototype = new TextCell();
+    RawCell.prototype = Object.create(TextCell.prototype);
 
     /** @method bind_events **/
     RawCell.prototype.bind_events = function () {
@@ -330,7 +330,7 @@ define([
         placeholder: "Type Heading Here"
     };
 
-    HeadingCell.prototype = new TextCell();
+    HeadingCell.prototype = Object.create(TextCell.prototype);
 
     /** @method fromJSON */
     HeadingCell.prototype.fromJSON = function (data) {
