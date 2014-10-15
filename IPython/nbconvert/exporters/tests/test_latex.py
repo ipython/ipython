@@ -5,6 +5,7 @@
 
 import os.path
 import textwrap
+import re
 
 from .base import ExportersTestsBase
 from ..latex import LatexExporter
@@ -99,3 +100,18 @@ class TestLatexExporter(ExportersTestsBase):
 
             (output, resources) = LatexExporter(template_file='article').from_filename(nbfile)            
             assert len(output) > 0
+
+    @onlyif_cmds_exist('pandoc')
+    def test_prompt_number_color(self):
+        """
+        Does LatexExporter properly format input and output prompts in color?
+        """
+        (output, resources) = LatexExporter().from_filename(self._get_notebook())
+        in_regex = r"In \[\{\\color\{incolor\}(.*)\}\]:"
+        out_regex = r"Out\[\{\\color\{outcolor\}(.*)\}\]:"
+
+        ins = ["1", "2", "6", "7", "8", "10", "14", " ", " "]
+        outs = ["7", "10", "14"]
+
+        assert re.findall(in_regex, output) == ins
+        assert re.findall(out_regex, output) == outs
