@@ -145,8 +145,11 @@ define([
     /**
      * @method pop_output_area
      */
-    CodeCell.prototype.pop_output_area = function () {
-        this.active_output_area.pop();
+    CodeCell.prototype.pop_output_area = function (output_area) {
+        var index = this.active_output_area.lastIndexOf(output_area);
+        if (index > -1) {
+            this.active_output_area.splice(index, 1);
+        }
     };
 
     /**
