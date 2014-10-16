@@ -123,7 +123,7 @@ class KernelSpecManager(HasTraits):
                'language': 'python',
                'codemirror_mode': {'name': 'ipython',
                                    'version': sys.version_info[0]},
-               'pygments_lexer': 'ipython'
+               'pygments_lexer': 'ipython%d' % (3 if PY3 else 2),
               }
 
     @property
