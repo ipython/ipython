@@ -186,6 +186,7 @@ class NotebookWebApplication(web.Application):
         handlers.extend(load_handlers('tree.handlers'))
         handlers.extend(load_handlers('auth.login'))
         handlers.extend(load_handlers('auth.logout'))
+        handlers.extend(load_handlers('files.handlers'))
         handlers.extend(load_handlers('notebook.handlers'))
         handlers.extend(load_handlers('nbconvert.handlers'))
         handlers.extend(load_handlers('kernelspecs.handlers'))
@@ -195,12 +196,6 @@ class NotebookWebApplication(web.Application):
         handlers.extend(load_handlers('services.sessions.handlers'))
         handlers.extend(load_handlers('services.nbconvert.handlers'))
         handlers.extend(load_handlers('services.kernelspecs.handlers'))
-        # FIXME: /files/ should be handled by the Contents service when it exists
-        cm = settings['contents_manager']
-        if hasattr(cm, 'root_dir'):
-            handlers.append(
-            (r"/files/(.*)", AuthenticatedFileHandler, {'path' : cm.root_dir}),
-        )
         handlers.append(
             (r"/nbextensions/(.*)", FileFindHandler, {'path' : settings['nbextensions_path']}),
         )
