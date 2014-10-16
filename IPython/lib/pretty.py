@@ -517,11 +517,7 @@ def _default_pprint(obj, p, cycle):
     klass = _safe_getattr(obj, '__class__', None) or type(obj)
     if _safe_getattr(klass, '__repr__', None) not in _baseclass_reprs:
         # A user-provided repr. Find newlines and replace them with p.break_()
-        output = repr(obj)
-        for idx,output_line in enumerate(output.splitlines()):
-            if idx:
-                p.break_()
-            p.text(output_line)
+        _repr_pprint(obj, p, cycle)
         return
     p.begin_group(1, '<')
     p.pretty(klass)
@@ -685,7 +681,7 @@ def _type_pprint(obj, p, cycle):
 
     # Checks for a __repr__ override in the metaclass
     if type(obj).__repr__ is not type.__repr__:
-        p.text(repr(obj))
+        _repr_pprint(obj, p, cycle)
         return
 
     mod = _safe_getattr(obj, '__module__', None)
@@ -699,7 +695,12 @@ def _type_pprint(obj, p, cycle):
 
 def _repr_pprint(obj, p, cycle):
     """A pprint that just redirects to the normal repr function."""
-    p.text(repr(obj))
+    # Find newlines and replace them with p.break_()
+    output = repr(obj)
+    for idx,output_line in enumerate(output.splitlines()):
+        if idx:
+            p.break_()
+        p.text(output_line)
 
 
 def _function_pprint(obj, p, cycle):
