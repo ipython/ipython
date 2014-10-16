@@ -62,7 +62,7 @@ called a notebook. When you save it, this is sent from your browser to the
 notebook server, which saves it on disk as a JSON file with a ``.ipynb``
 extension.
 
-.. TODO: Diagram of how these pieces fit together.
+.. image:: figs/notebook_components.png
 
 The notebook server, not the kernel, is responsible for saving and loading
 notebooks, so you can edit notebooks even if you don't have the kernel for that
