@@ -1,20 +1,14 @@
-"""Base Tornado handlers for the notebook server."""
+"""Serve files directly from the ContentsManager."""
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import logging
 import os
 import mimetypes
 import json
 import base64
 
 from tornado import web
-
-try:
-    from tornado.log import app_log
-except ImportError:
-    app_log = logging.getLogger()
 
 from IPython.html.base.handlers import IPythonHandler
 
@@ -49,3 +43,6 @@ class FilesHandler(IPythonHandler):
             self.write(model['content'])
         self.flush()
 
+default_handlers = [
+    (r"/files/(.*)", FilesHandler),
+]
