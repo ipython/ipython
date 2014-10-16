@@ -604,55 +604,56 @@ define(["widgets/js/manager",
 
     _.extend(ViewList.prototype, {
         initialize: function(create_view, remove_view, context) {
-            this.handler_context = context || this;
-            this.models = [];
-            this.views = {}; // key: model_id, value: list of views
-            this.parent = parent;
+            this._handler_context = context || this;
+            this._models = [];
+            this.views = [];
             this._create_view = create_view;
             this._remove_view = remove_view || function(view) {view.remove()};
         },
 
         update: function(new_models) {
-            this._do_diff(this.models, new_models,
+            this._do_diff(this._models, new_models,
                          this._remove, this._add, this);
-            this.models = new_models;
+            this._models = new_models;
+            // the _remove handler just replaced deleted views in this.views with null
+            // so here we filter out those nulls
+            var old_views = this.views;
+            this.views = [];
+            for (var i = 0; i < old_views.length; i++) {
+                if (old_views[i] !== null) {
+                    this.views.push(old_views[i]);
+                }
+            }
         },
 
         remove: function(new_list) {
-            // removes each view that we've cached
-            _.each(this.views, function(view_list) {
-                _.each(view_list, function(view) {
-                    this._remove_view.call(this.handler_context, view);
-                }, this);
-            }, this);
-            this.models = [];
-            this.views = {};
+            // removes every view in our list
+            for (var i = this.views.length - 1; i >= 0; i--) {
+                this._remove_view.call(this._handler_context, this.views[i]);
+            };
+            this._models = [];
+            this.views = [];
         },
 
         _add: function(model) {
-            var view = this._create_view.call(this.handler_context, model);
-            if (this.views[model.id] === undefined) {
-                this.views[model.id] = [];
-            }
-            this.views[model.id].push(view);
+            var view = this._create_view.call(this._handler_context, model);
+            this.views.push(view);
         },
 
-        _remove: function(model) {
-            var views = this.views[model.id];
-            if (views !== undefined) {
-                // delete the first view in the list
-                var view = views[0];
-                views.splice(0,1);
-                if (views.length === 0) {
-                    delete this.views[model.id]
-                }
-                this._remove_view.call(this.handler_context, view);
-            }
+        _remove: function(model, index) {
+            // we first just replace views with nulls so that indices remain the same
+            // then we filter out the null values later
+            // this strategy relies on the _do_diff implementation:
+            //   all remove calls come before any add calls
+            var view = this.views[index];
+            this.views[index] = null;
+            this._remove_view.call(this._handler_context, view);
         },
 
         _do_diff: function(old_list, new_list, removed_callback, added_callback, context) {
             // Difference a changed list and call remove and add callbacks for
             // each removed and added item in the new list.
+            // all remove calls are made before any add calls are made
             //
             // Parameters
             // ----------
@@ -673,7 +674,7 @@ define(["widgets/js/manager",
 
             // Remove the non-matching items from the old list.
             for (var j = i; j < old_list.length; j++) {
-                removed_callback.call(context||this, old_list[j]);
+                removed_callback.call(context||this, old_list[j], j);
             }
 
             // Add the rest of the new list items.
