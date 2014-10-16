@@ -9617,7 +9617,6 @@ p {
   background: #EEE;
   border-radius: 3px 3px 0px 0px;
   width: 100%;
-  -webkit-box-pack: end;
   height: 29px;
   padding-right: 4px;
   /* Old browsers */
@@ -9641,11 +9640,11 @@ p {
   /* Modern browsers */
   flex: none;
   /* Old browsers */
-  -webkit-box-direction: reverse;
-  -moz-box-direction: reverse;
-  box-direction: reverse;
+  -webkit-box-pack: end;
+  -moz-box-pack: end;
+  box-pack: end;
   /* Modern browsers */
-  flex-direction: row-reverse;
+  justify-content: flex-end;
 }
 .ctb_hideshow {
   display: none;
