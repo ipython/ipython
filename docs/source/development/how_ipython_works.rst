@@ -1,4 +1,4 @@
-How IPython Works
+How IPython works
 =================
 
 Terminal IPython
@@ -23,7 +23,7 @@ All the other interfaces—the Notebook, the Qt console, ``ipython console`` in
 the terminal, and third party interfaces—use the IPython Kernel. This is a
 separate process which is responsible for running user code, and things like
 computing possible completions. Frontends communicate with it using JSON
-messages sent over ZeroMQ sockets; the protocol they use is described in
+messages sent over `ZeroMQ <http://zeromq.org/>`_ sockets; the protocol they use is described in
 :doc:`messaging`.
 
 The core execution machinery for the kernel is shared with terminal IPython:
@@ -46,6 +46,13 @@ core execution part. Native kernels implement execution and communications in
 the target language:
 
 .. image:: figs/other_kernels.png
+
+Wrapper kernels are easier to write quickly for languages that have good Python
+wrappers, like `Oct2Py <http://blink1073.github.io/oct2py/>`_ for Octave, or
+languages where it's impractical to implement the communications machinery, like
+`bash_kernel <https://pypi.python.org/pypi/bash_kernel>`_. Native kernels are
+likely to be better maintained by the community using them, like
+`IJulia <https://github.com/JuliaLang/IJulia.jl>`_ or `IHaskell <https://github.com/gibiansky/IHaskell>`_.
 
 .. seealso::
 
