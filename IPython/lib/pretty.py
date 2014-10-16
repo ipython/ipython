@@ -682,6 +682,12 @@ def _type_pprint(obj, p, cycle):
     """The pprint for classes and types."""
     # Heap allocated types might not have the module attribute,
     # and others may set it to None.
+
+    # Checks for a __repr__ override in the metaclass
+    if type(obj).__repr__ is not type.__repr__:
+        p.text(repr(obj))
+        return
+
     mod = _safe_getattr(obj, '__module__', None)
     name = _safe_getattr(obj, '__qualname__', obj.__name__)
 
