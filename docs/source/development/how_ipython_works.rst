@@ -69,3 +69,21 @@ notebooks, so you can edit notebooks even if you don't have the kernel for that
 language—you just won't be able to run code. The kernel doesn't know anything
 about the notebook document: it just gets sent cells of code to execute when the
 user runs them.
+
+Exporting to other formats
+``````````````````````````
+
+The Nbconvert tool in IPython converts notebook files to other formats, such as
+HTML, LaTeX, or reStructuredText. This conversion goes through a series of steps:
+
+.. image:: figs/nbconvert.png
+
+1. Preprocessors modify the notebook in memory. E.g. ExecutePreprocessor runs
+   the code in the notebook and updates the output.
+2. An exporter converts the notebook to another file format. Most of the
+   exporters use templates for this.
+3. Postprocessors work on the file produced by exporting.
+
+The `nbviewer <http://nbviewer.ipython.org/>`_ website uses nbconvert with the
+HTML exporter. When you give it a URL, it fetches the notebook from that URL,
+converts it to HTML, and serves that HTML to you.
