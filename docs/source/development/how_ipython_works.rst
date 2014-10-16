@@ -53,4 +53,19 @@ the target language:
    
    :doc:`wrapperkernels`
 
+Notebooks
+---------
 
+The Notebook frontend does something extra. In addition to running your code, it
+stores code and output, together with markdown notes, in an editable document
+called a notebook. When you save it, this is sent from your browser to the
+notebook server, which saves it on disk as a JSON file with a ``.ipynb``
+extension.
+
+.. TODO: Diagram of how these pieces fit together.
+
+The notebook server, not the kernel, is responsible for saving and loading
+notebooks, so you can edit notebooks even if you don't have the kernel for that
+language—you just won't be able to run code. The kernel doesn't know anything
+about the notebook document: it just gets sent cells of code to execute when the
+user runs them.
