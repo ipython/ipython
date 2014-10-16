@@ -29,7 +29,8 @@ RUN apt-get install -y -q build-essential make gcc zlib1g-dev git && \
 # In order to build from source, need less
 RUN npm install -g less
 
-RUN apt-get install -y -q fabric python-sphinx python3-sphinx
+RUN apt-get install -y -q python-sphinx python3-sphinx
+RUN pip install invoke
 
 RUN mkdir -p /srv/
 WORKDIR /srv/
