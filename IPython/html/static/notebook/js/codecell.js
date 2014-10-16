@@ -80,6 +80,11 @@ define([
         this.input_prompt_number = null;
         this.celltoolbar = null;
         this.output_area = null;
+        // Keep a stack of the 'active' output areas (where active means the 
+        // output area that recieves output).  When a user activates an output
+        // area, it gets pushed to the stack.  Then, when the output area is
+        // deactivated, it's popped from the stack.  When the stack is empty,
+        // the cell's output area is used.
         this.active_output_area = [];
         this.last_msg_id = null;
         this.completer = null;
