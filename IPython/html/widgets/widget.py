@@ -107,6 +107,7 @@ class Widget(LoggingConfigurable):
     msg_throttle = Int(3, sync=True, help="""Maximum number of msgs the 
         front-end can send before receiving an idle msg from the back-end.""")
     
+    version = Int(0, sync=True, help="""Widget's version""")
     keys = List()
     def _keys_default(self):
         return [name for name in self.traits(sync=True)]
