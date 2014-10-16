@@ -47,6 +47,11 @@ class ZMQCompleter(IPCompleter):
             if content["cursor_start"] > 0:
                 content["matches"] = [line[:content["cursor_start"]] + m
                                       for m in content["matches"]]
+            if content["cursor_end"] < cursor_pos:
+                extra = line[content["cursor_end"]: cursor_pos]
+                content["matches"] = [m + extra
+                                      for m in content["matches"]
+
             return content["matches"]
         return []
     
