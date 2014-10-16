@@ -25,6 +25,8 @@ if __name__ == '__main__':
                                         r'\.nbformat\.v\d+',
                                         # Public API for this is in kernel.zmq.eventloops
                                         r'\.kernel\.zmq\.gui',
+                                        # Magics are documented separately
+                                        r'\.core\.magics',
                                         ]
 
     # The inputhook* modules often cause problems on import, such as trying to

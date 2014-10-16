@@ -60,7 +60,7 @@ prefixed with a double ``%%``, and they are functions that get as an argument
 not only the rest of the line, but also the lines below it in a separate
 argument.
 
-The following examples show how to call the builtin ``timeit`` magic, both in
+The following examples show how to call the builtin :magic:`timeit` magic, both in
 line and cell mode::
 
       In [1]: %timeit range(1000)
@@ -73,19 +73,19 @@ line and cell mode::
 
 The builtin magics include:
 
-- Functions that work with code: ``%run``, ``%edit``, ``%save``, ``%macro``,
-  ``%recall``, etc.
-- Functions which affect the shell: ``%colors``, ``%xmode``, ``%autoindent``,
-  ``%automagic``, etc.
-- Other functions such as ``%reset``, ``%timeit``, ``%%file``, ``%load``, or
-  ``%paste``.
+- Functions that work with code: :magic`run`, :magic:`edit`, :magic:`save`, :magic:`macro`,
+  :magic:`recall`, etc.
+- Functions which affect the shell: :magic:`colors`, :magic:`xmode`, :magic:`autoindent`,
+  :magic:`automagic`, etc.
+- Other functions such as :magic:`reset`, :magic:`timeit`, :cellmagic:`writefile`, :magic:`load`, or
+  :magic:`paste`.
 
 You can always call them using the ``%`` prefix, and if you're calling a line
 magic on a line by itself, you can omit even that::
 
     run thescript.py
 
-You can toggle this behavior by running the ``%automagic`` magic.  Cell magics
+You can toggle this behavior by running the :magic:`automagic` magic.  Cell magics
 must always have the ``%%`` prefix.
 
 A more detailed explanation of the magic system can be obtained by calling
@@ -95,12 +95,14 @@ read its docstring. To see all the available magic functions, call
 
 .. seealso::
 
+    :doc:`magics`
+
     `Cell magics`_ example notebook
 
 Running and Editing
 -------------------
 
-The ``%run`` magic command allows you to run any python script and load all of
+The :magic:`run` magic command allows you to run any python script and load all of
 its data directly into the interactive namespace. Since the file is re-read
 from disk each time, changes you make to it are reflected immediately (unlike
 imported modules, which have to be specifically reloaded). IPython also
@@ -110,15 +112,15 @@ includes :ref:`dreload <dreload>`, a recursive reload function.
 for running them under the control of either Python's pdb debugger (-d) or
 profiler (-p).
 
-The ``%edit`` command gives a reasonable approximation of multiline editing,
+The :magic:`edit` command gives a reasonable approximation of multiline editing,
 by invoking your favorite editor on the spot. IPython will execute the
 code you type in there as if it were typed interactively.
 
 Debugging
 ---------
 
-After an exception occurs, you can call ``%debug`` to jump into the Python
-debugger (pdb) and examine the problem. Alternatively, if you call ``%pdb``,
+After an exception occurs, you can call :magic:`debug` to jump into the Python
+debugger (pdb) and examine the problem. Alternatively, if you call :magic:`pdb`,
 IPython will automatically start the debugger on any uncaught exception. You can
 print variables, see code, execute statements and even walk up and down the
 call stack to track down the true source of the problem. This can be an efficient
@@ -163,7 +165,7 @@ You can capture the output into a Python list, e.g.: ``files = !ls``. To pass
 the values of Python variables or expressions to system commands, prefix them
 with $: ``!grep -rF $pattern ipython/*``. See :ref:`our shell section
 <system_shell_access>` for more details.
-	
+
 Define your own system aliases
 ------------------------------
 
@@ -171,7 +173,7 @@ It's convenient to have aliases to the system commands you use most often.
 This allows you to work seamlessly from inside IPython with the same commands
 you are used to in your system shell. IPython comes with some pre-defined
 aliases and a complete system for changing directories, both via a stack (see
-%pushd, %popd and %dhist) and via direct %cd. The latter keeps a history of
+:magic:`pushd`, :magic:`popd` and :magic:`dhist`) and via direct :magic:`cd`. The latter keeps a history of
 visited directories and allows you to go to any previously visited one.
 
 
