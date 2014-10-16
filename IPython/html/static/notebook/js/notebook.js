@@ -18,6 +18,7 @@ define([
     'notebook/js/celltoolbarpresets/default',
     'notebook/js/celltoolbarpresets/rawcell',
     'notebook/js/celltoolbarpresets/slideshow',
+    'notebook/js/celltoolbarpresets/tags',
     'notebook/js/scrollmanager'
 ], function (
     IPython, 
@@ -36,6 +37,7 @@ define([
     default_celltoolbar,
     rawcell_celltoolbar,
     slideshow_celltoolbar,
+    tags_celltoolbar,
     scrollmanager
     ) {
 
@@ -137,6 +139,7 @@ define([
         default_celltoolbar.register(this);
         rawcell_celltoolbar.register(this);
         slideshow_celltoolbar.register(this);
+        tags_celltoolbar.register(this);
     };
 
     Notebook.options_default = {
@@ -992,7 +995,7 @@ define([
                     text = '';
                 }
                 //metadata
-                target_cell.metadata = source_cell.metadata;
+                target_cell.set_metadata(source_cell.metadata);
 
                 target_cell.set_text(text);
                 // make this value the starting point, so that we can only undo
@@ -1026,7 +1029,7 @@ define([
                     text = '';
                 }
                 // metadata
-                target_cell.metadata = source_cell.metadata
+                target_cell.set_metadata(source_cell.metadata);
                 // We must show the editor before setting its contents
                 target_cell.unrender();
                 target_cell.set_text(text);
@@ -1064,7 +1067,7 @@ define([
                     text = '';
                 }
                 //metadata
-                target_cell.metadata = source_cell.metadata;
+                target_cell.set_metadata(source_cell.metadata);
                 // We must show the editor before setting its contents
                 target_cell.unrender();
                 target_cell.set_text(text);
@@ -1102,7 +1105,7 @@ define([
                     text = '';
                 }
                 //metadata
-                target_cell.metadata = source_cell.metadata;
+                target_cell.set_metadata(source_cell.metadata);
                 // We must show the editor before setting its contents
                 target_cell.set_level(level);
                 target_cell.unrender();
