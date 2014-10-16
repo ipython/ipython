@@ -573,6 +573,51 @@ Message type: ``history_reply``::
       'history' : list,
     }
 
+.. _msging_is_complete:
+
+Code completeness
+-----------------
+
+.. versionadded:: 5.0
+
+When the user enters a line in a console style interface, the console must
+decide whether to immediately execute the current code, or whether to show a
+continuation prompt for further input. For instance, in Python ``a = 5`` would
+be executed immediately, while ``for i in range(5):`` would expect further input.
+
+There are four possible replies:
+
+- *complete* code is ready to be executed
+- *incomplete* code should prompt for another line
+- *invalid* code will typically be sent for execution, so that the user sees the
+  error soonest.
+- *unknown* - if the kernel is not able to determine this. The frontend should
+  also handle the kernel not replying promptly. It may default to sending the
+  code for execution, or it may implement simple fallback heuristics for whether
+  to execute the code (e.g. execute after a blank line).
+
+Frontends may have ways to override this, forcing the code to be sent for
+execution or forcing a continuation prompt.
+
+Message type: ``is_complete_request``::
+
+    content = {
+        # The code entered so far as a multiline string
+        'code' : str,
+    }
+
+Message type: ``is_complete_reply``::
+
+    content = {
+        # One of 'complete', 'incomplete', 'invalid', 'unknown'
+        'status' : str,
+        
+        # If status is 'incomplete', indent should contain the characters to use
+        # to indent the next line. This is only a hint: frontends may ignore it
+        # and use their own autoindentation rules. For other statuses, this
+        # field does not exist.
+        'indent': str,
+    }
 
 Connect
 -------

@@ -114,7 +114,7 @@ class Kernel(SingletonConfigurable):
                       'inspect_request', 'history_request',
                       'kernel_info_request',
                       'connect_request', 'shutdown_request',
-                      'apply_request',
+                      'apply_request', 'is_complete_request',
                     ]
         self.shell_handlers = {}
         for msg_type in msg_types:
@@ -479,6 +479,22 @@ class Kernel(SingletonConfigurable):
         kernel.
         """
         return {'status': 'ok', 'restart': restart}
+    
+    def is_complete_request(self, stream, ident, parent):
+        content = parent['content']
+        code = content['code']
+        
+        reply_content = self.do_is_complete(code)
+        reply_content = json_clean(reply_content)
+        reply_msg = self.session.send(stream, 'is_complete_reply',
+                                           reply_content, parent, ident)
+        self.log.debug("%s", reply_msg)
+
+    def do_is_complete(self, code):
+        """Override in subclasses to find completions.
+        """
+        return {'status' : 'unknown',
+                }
 
     #---------------------------------------------------------------------------
     # Engine methods

@@ -342,6 +342,13 @@ class InputSplitterTestCase(unittest.TestCase):
         isp.push(r"(1 \ ")
         self.assertFalse(isp.push_accepts_more())
 
+    def test_check_complete(self):
+        isp = self.isp
+        self.assertEqual(isp.check_complete("a = 1"), ('complete', None))
+        self.assertEqual(isp.check_complete("for a in range(5):"), ('incomplete', 4))
+        self.assertEqual(isp.check_complete("raise = 2"), ('invalid', None))
+        self.assertEqual(isp.check_complete("a = [1,\n2,"), ('incomplete', 0))
+
 class InteractiveLoopTestCase(unittest.TestCase):
     """Tests for an interactive loop like a python shell.
     """

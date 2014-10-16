@@ -160,6 +160,18 @@ class KernelInfoReply(Reference):
     banner = Unicode()
 
 
+class IsCompleteReply(Reference):
+    status = Enum((u'complete', u'incomplete', u'invalid', u'unknown'))
+    
+    def check(self, d):
+        Reference.check(self, d)
+        if d['status'] == 'incomplete':
+            IsCompleteReplyIncomplete().check(d)
+
+class IsCompleteReplyIncomplete(Reference):
+    indent = Unicode()
+
+
 # IOPub messages
 
 class ExecuteInput(Reference):
@@ -189,6 +201,7 @@ references = {
     'status' : Status(),
     'complete_reply' : CompleteReply(),
     'kernel_info_reply': KernelInfoReply(),
+    'is_complete_reply': IsCompleteReply(),
     'execute_input' : ExecuteInput(),
     'execute_result' : ExecuteResult(),
     'error' : Error(),
@@ -382,6 +395,12 @@ def test_single_payload():
     next_input_pls = [pl for pl in payload if pl["source"] == "set_next_input"]
     nt.assert_equal(len(next_input_pls), 1)
 
+def test_is_complete():
+    flush_channels()
+    
+    msg_id = KC.is_complete("a = 1")
+    reply = KC.get_shell_msg(timeout=TIMEOUT)
+    validate_message(reply, 'is_complete_reply', msg_id)
 
 # IOPub channel
 

@@ -141,6 +141,17 @@ relevant section of the :doc:`messaging spec <messaging>`.
      
         :ref:`msging_history` messages
 
+   .. method:: do_is_complete(code)
+   
+     Is code entered in a console-like interface complete and ready to execute,
+     or should a continuation prompt be shown?
+     
+     :param str code: The code entered so far - possibly multiple lines
+     
+     .. seealso::
+     
+        :ref:`msging_is_complete` messages
+
    .. method:: do_shutdown(restart)
 
      Shutdown the kernel. You only need to handle your own clean up - the kernel

@@ -205,3 +205,20 @@ def test_help_output():
     """ipython kernel --help-all works"""
     tt.help_all_output_test('kernel')
 
+def test_is_complete():
+    with kernel() as kc:
+        # There are more test cases for this in core - here we just check
+        # that the kernel exposes the interface correctly.
+        kc.is_complete('2+2')
+        reply = kc.get_shell_msg(block=True, timeout=TIMEOUT)
+        assert reply['content']['status'] == 'complete'
+
+        # SyntaxError should mean it's complete        
+        kc.is_complete('raise = 2')
+        reply = kc.get_shell_msg(block=True, timeout=TIMEOUT)
+        assert reply['content']['status'] == 'invalid'
+        
+        kc.is_complete('a = [1,\n2,')
+        reply = kc.get_shell_msg(block=True, timeout=TIMEOUT)
+        assert reply['content']['status'] == 'incomplete'
+        assert reply['content']['indent'] == ''
