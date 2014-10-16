@@ -120,6 +120,9 @@ JSON serialised dictionary containing the following keys and values:
   to use for code in this language. This can be a string or a dictionary, as
   passed to codemirror config. The string from *language* will be used if this is
   not provided.
+- **pygments_lexer** (optional): The name of a `Pygments lexer <http://pygments.org/docs/lexers/>`_
+  to use for code in this language, as a string. The value of *language* will be
+  used if this is not provided.
 - **env** (optional): A dictionary of environment variables to set for the kernel.
   These will be added to the current environment variables before the kernel is
   started.
