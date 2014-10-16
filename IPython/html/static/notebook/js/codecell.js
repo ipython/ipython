@@ -85,7 +85,7 @@ define([
         // area, it gets pushed to the stack.  Then, when the output area is
         // deactivated, it's popped from the stack.  When the stack is empty,
         // the cell's output area is used.
-        this.active_output_area = [];
+        this.active_output_areas = [];
         this.last_msg_id = null;
         this.completer = null;
 
@@ -128,8 +128,8 @@ define([
      * @method get_output_area
      */
     CodeCell.prototype.get_output_area = function () {
-        if (this.active_output_area && this.active_output_area.length > 0) {
-            return this.active_output_area[this.active_output_area.length-1];
+        if (this.active_output_areas && this.active_output_areas.length > 0) {
+            return this.active_output_areas[this.active_output_areas.length-1];
         } else {
             return this.output_area;
         }
@@ -139,16 +139,16 @@ define([
      * @method push_output_area
      */
     CodeCell.prototype.push_output_area = function (output_area) {
-        this.active_output_area.push(output_area);
+        this.active_output_areas.push(output_area);
     };
 
     /**
      * @method pop_output_area
      */
     CodeCell.prototype.pop_output_area = function (output_area) {
-        var index = this.active_output_area.lastIndexOf(output_area);
+        var index = this.active_output_areas.lastIndexOf(output_area);
         if (index > -1) {
-            this.active_output_area.splice(index, 1);
+            this.active_output_areas.splice(index, 1);
         }
     };
 
