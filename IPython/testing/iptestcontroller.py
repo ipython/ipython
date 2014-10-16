@@ -22,7 +22,10 @@ import subprocess
 import time
 import re
 
-from .iptest import have, test_group_names as py_test_group_names, test_sections, StreamCapturer
+from .iptest import (
+    have, test_group_names as py_test_group_names, test_sections, StreamCapturer,
+    test_for,
+)
 from IPython.utils.path import compress_user
 from IPython.utils.py3compat import bytes_to_str
 from IPython.utils.sysinfo import get_sys_info
@@ -288,7 +291,12 @@ class JSController(TestController):
 
     @property
     def will_run(self):
-        return all(have[a] for a in self.requirements + [self.engine])
+        should_run = all(have[a] for a in self.requirements + [self.engine])
+        tornado4 = test_for('tornado.version_info', (4,0,0), callback=None)
+        if should_run and self.engine == 'phantomjs' and tornado4:
+            print("phantomjs cannot connect websockets to tornado 4", file=sys.stderr)
+            return False
+        return should_run
 
     def _init_server(self):
         "Start the notebook server in a separate process"
