@@ -34,7 +34,8 @@ class NbConvertBase(LoggingConfigurable):
                     """
             )
 
-    default_language = Unicode('ipython', config=True, help='default highlight language')
+    default_language = Unicode('ipython', config=True,
+       help='DEPRECATED default highlight language, please use kernelspecs instead')
 
     def __init__(self, **kw):
         super(NbConvertBase, self).__init__(**kw)
