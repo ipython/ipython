@@ -11,7 +11,7 @@ the terminal. It does something like this::
         code = input(">>> ")
         exec(code)
 
-Of course, it's much more complicated, because it has to deal with multi-line
+Of course, it's much more complex, because it has to deal with multi-line
 code, tab completion using :mod:`readline`, magic commands, and so on. But the
 model is like that: prompt the user for some code, and when they've entered it,
 exec it in the same process. This model is often called a REPL, or
