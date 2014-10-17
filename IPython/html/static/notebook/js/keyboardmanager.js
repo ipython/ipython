@@ -120,16 +120,6 @@ define([
             'h' : 'ipython.show-keyboard-shortcut-help-dialog',
             'z' : 'ipython.undo-last-cell-deletion',
             'q' : 'ipython.close-pager',
-            'i,e,e,e,e,e'   : function(){console.log('[[===>>> 5E <<<===]]');},
-            'i,d,d,q,d'   : function(){console.log('[[===>>> Trigger god mode <<<===]]');},
-            'i,d,d'   : function(){console.log('[[===>>>  should warn at registration <<<===]]');},
-            'i,d,k'   : function(){console.log('[[===>>> Trigger shadow mode <<<===]]');},
-            'i,d,k,r,q'   : function(){console.log('[[===>>> Trigger invisibility mode <<<===]]');},
-            ';,up,down,up,down,left,right,left,right,b,a'   : function(){console.log('[[===>>> Konami <<<===]]');},
-            'ctrl-x,meta-c,meta-b,u,t,t,e,r,f,l,y'   : function(){
-                console.log('[[Are you a real Programmer ?]]');
-                window.open('http://xkcd.com/378/','_blank');
-            },
         };
     };
 
