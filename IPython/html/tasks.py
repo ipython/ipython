@@ -10,8 +10,8 @@ static_dir = 'static'
 components_dir = pjoin(static_dir, 'components')
 here = os.path.dirname(__file__)
 
-min_less_version = '1.7.0'
-max_less_version = '1.7.5' # exclusive
+min_less_version = '1.7.5'
+max_less_version = '1.8.0' # exclusive
 
 def _need_css_update():
     """Does less need to run?"""
