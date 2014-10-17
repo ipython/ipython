@@ -153,12 +153,7 @@ define([
 
     var build_one = function (s) {
         var help = s.help;
-        var shortcut = '';
-        if(s.shortcut){
-            shortcut = prettify(s.shortcut);
-        } else {
-            console.error('[debug] -  nothing for', s)
-        }
+        var shortcut = prettify(s.shortcut);
         return $('<div>').addClass('quickhelp').
             append($('<span/>').addClass('shortcut_key').append($(shortcut))).
             append($('<span/>').addClass('shortcut_descr').text(' : ' + help));
