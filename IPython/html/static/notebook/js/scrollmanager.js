@@ -68,7 +68,7 @@ define(['jquery'], function($){
         // Public constructor.
         ScrollManager.apply(this, [notebook, options]);
     };
-    TargetScrollManager.prototype = new ScrollManager();
+    TargetScrollManager.prototype = Object.create(ScrollManager.prototype);
 
     TargetScrollManager.prototype.is_target = function (index) {
         // Check if a cell should be a scroll stop.
@@ -114,7 +114,7 @@ define(['jquery'], function($){
         // Public constructor.
         TargetScrollManager.apply(this, [notebook, options]);
     };
-    SlideScrollManager.prototype = new TargetScrollManager();
+    SlideScrollManager.prototype = Object.create(TargetScrollManager.prototype);
 
     SlideScrollManager.prototype.is_target = function (index) {
         var cell = this.notebook.get_cell(index);
@@ -131,7 +131,7 @@ define(['jquery'], function($){
         options = options || {};
         this._level = options.heading_level || 1;
     };
-    HeadingScrollManager.prototype = new ScrollManager();
+    HeadingScrollManager.prototype = Object.create(ScrollManager.prototype)
 
     HeadingScrollManager.prototype.scroll = function (delta) {
         // Scroll the document.
