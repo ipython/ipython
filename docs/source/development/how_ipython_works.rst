@@ -49,7 +49,7 @@ the target language:
 .. image:: figs/other_kernels.png
 
 Wrapper kernels are easier to write quickly for languages that have good Python
-wrappers, like `Oct2Py <http://blink1073.github.io/oct2py/>`_ for Octave, or
+wrappers, like `octave_kernel <https://pypi.python.org/pypi/octave_kernel>`_, or
 languages where it's impractical to implement the communications machinery, like
 `bash_kernel <https://pypi.python.org/pypi/bash_kernel>`_. Native kernels are
 likely to be better maintained by the community using them, like
