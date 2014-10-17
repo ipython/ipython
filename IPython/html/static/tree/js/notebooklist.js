@@ -434,7 +434,7 @@ define([
                     cache : false,
                     type : 'PUT',
                     data : JSON.stringify(model),
-                    headers : {'Content-Type': content_type},
+                    contentType: content_type,
                     success : function (data, status, xhr) {
                         item.removeClass('new-file');
                         that.add_link(model, item);

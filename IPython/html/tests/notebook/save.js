@@ -8,7 +8,9 @@ casper.notebook_test(function () {
     // This causes no actual problems, but will break string comparison.
     var nbname = "has#hash and space and unicø∂e.ipynb";
     
-    this.evaluate(function (nbname) {
+    this.append_cell("s = '??'", 'code');
+    
+    this.thenEvaluate(function (nbname) {
         require(['base/js/events'], function (events) {
             IPython.notebook.notebook_name = nbname;
             IPython._save_success = IPython._save_failed = false;

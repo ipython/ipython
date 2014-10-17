@@ -1941,7 +1941,7 @@ define([
             cache : false,
             type : "PUT",
             data : JSON.stringify(model),
-            headers : {'Content-Type': 'application/json'},
+            contentType: 'application/json',
             dataType : "json",
             success : $.proxy(this.save_notebook_success, this, start),
             error : $.proxy(this.save_notebook_error, this)
@@ -2158,7 +2158,7 @@ define([
             type : "PATCH",
             data : JSON.stringify(data),
             dataType: "json",
-            headers : {'Content-Type': 'application/json'},
+            contentType: 'application/json',
             success : $.proxy(that.rename_success, this),
             error : $.proxy(that.rename_error, this)
         };
