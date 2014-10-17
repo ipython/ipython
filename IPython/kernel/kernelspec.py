@@ -68,7 +68,7 @@ class KernelSpec(HasTraits):
         if self.codemirror_mode != self.language:
             d['codemirror_mode'] = self.codemirror_mode
         if self.pygments_lexer != self.language:
-            d['pygments_lexer'] = self.pygment_lexer
+            d['pygments_lexer'] = self.pygments_lexer
 
         return d
 
