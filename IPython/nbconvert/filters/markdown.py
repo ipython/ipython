@@ -96,6 +96,7 @@ class MathBlockLexer(mistune.BlockLexer):
 @undoc
 class MathInlineGrammar(mistune.InlineGrammar):
     math = re.compile("^\$(.+?)\$")
+    text = re.compile(r'^[\s\S]+?(?=[\\<!\[_*`~$]|https?://| {2,}\n|$)')
 
 @undoc
 class MathInlineLexer(mistune.InlineLexer):
