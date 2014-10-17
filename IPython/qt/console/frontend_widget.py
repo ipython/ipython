@@ -732,16 +732,14 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def _complete(self):
         """ Performs completion at the current cursor location.
         """
-        context = self._get_context()
-        if context:
-            # Send the completion request to the kernel
-            msg_id = self.kernel_client.complete(
-                code=self.input_buffer,
-                cursor_pos=self._get_input_buffer_cursor_pos(),
-            )
-            pos = self._get_cursor().position()
-            info = self._CompletionRequest(msg_id, pos)
-            self._request_info['complete'] = info
+        # Send the completion request to the kernel
+        msg_id = self.kernel_client.complete(
+            code=self.input_buffer,
+            cursor_pos=self._get_input_buffer_cursor_pos(),
+        )
+        pos = self._get_cursor().position()
+        info = self._CompletionRequest(msg_id, pos)
+        self._request_info['complete'] = info
 
     def _get_context(self, cursor=None):
         """ Gets the context for the specified cursor (or the current cursor
