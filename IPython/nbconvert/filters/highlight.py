@@ -108,6 +108,7 @@ def _pygments_highlight(source, output_formatter, language='ipython', metadata=N
     """
     from pygments import highlight
     from pygments.lexers import get_lexer_by_name
+    from pygments.util import ClassNotFound
     from IPython.nbconvert.utils.lexers import IPythonLexer, IPython3Lexer
 
     # If the cell uses a magic extension language,
@@ -123,6 +124,12 @@ def _pygments_highlight(source, output_formatter, language='ipython', metadata=N
     elif language == 'ipython3':
         lexer = IPython3Lexer()
     else:
-        lexer = get_lexer_by_name(language, stripall=True)
+        try:
+            lexer = get_lexer_by_name(language, stripall=True)
+        except ClassNotFound:
+            warn("No lexer found for language %r. Treating as plain text." % language)
+            from pygments.lexers.special import TextLexer
+            lexer = TextLexer()
+
 
     return highlight(source, lexer, output_formatter)
