@@ -14,7 +14,8 @@ the terminal. It does something like this::
 Of course, it's much more complicated, because it has to deal with multi-line
 code, tab completion using :mod:`readline`, magic commands, and so on. But the
 model is like that: prompt the user for some code, and when they've entered it,
-exec it in the same process.
+exec it in the same process. This model is often called a REPL, or
+Read-Eval-Print-Loop.
 
 The IPython Kernel
 ------------------
