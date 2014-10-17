@@ -214,3 +214,19 @@ def test_long_dict():
 def test_unbound_method():
     output = pretty.pretty(MyObj.somemethod)
     nt.assert_in('MyObj.somemethod', output)
+
+
+class MetaClass(type):
+    def __new__(cls, name):
+        return type.__new__(cls, name, (object,), {'name': name})
+
+    def __repr__(self):
+        return "[CUSTOM REPR FOR CLASS %s]" % self.name
+
+
+ClassWithMeta = MetaClass('ClassWithMeta')
+
+
+def test_metaclass_repr():
+    output = pretty.pretty(ClassWithMeta)
+    nt.assert_equal(output, "[CUSTOM REPR FOR CLASS ClassWithMeta]")
