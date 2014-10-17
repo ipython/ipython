@@ -94,3 +94,10 @@ HTML, LaTeX, or reStructuredText. This conversion goes through a series of steps
 The `nbviewer <http://nbviewer.ipython.org/>`_ website uses nbconvert with the
 HTML exporter. When you give it a URL, it fetches the notebook from that URL,
 converts it to HTML, and serves that HTML to you.
+
+IPython.parallel
+----------------
+
+IPython also includes a parallel computing framework, ``IPython.parallel``. This
+allows you to control many individual engines, which are an extended version of
+the IPython kernel described above. For more details, see :doc:`/parallel/index`.
