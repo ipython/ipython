@@ -516,7 +516,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if info and info.id == rep['parent_header']['msg_id'] and \
                 info.pos == cursor.position():
             content = rep['content']
-            if content.get('status') == 'ok':
+            if content.get('status') == 'ok' and content.get('found', False):
                 self._call_tip_widget.show_inspect_data(content)
 
     def _handle_execute_result(self, msg):
