@@ -1349,7 +1349,7 @@ define([
      * @method collapse_all_output
      */
     Notebook.prototype.collapse_all_output = function () {
-        $.map(this.get_cells(), function (cell, i) {
+        this.get_cells().map(function (cell, i) {
             if (cell instanceof codecell.CodeCell) {
                 cell.collapse_output();
             }
@@ -1379,7 +1379,7 @@ define([
      * @method expand_all_output
      */
     Notebook.prototype.expand_all_output = function () {
-        $.map(this.get_cells(), function (cell, i) {
+        this.get_cells().map(function (cell, i) {
             if (cell instanceof codecell.CodeCell) {
                 cell.expand_output();
             }
@@ -1409,7 +1409,7 @@ define([
      * @method clear_all_output
      */
     Notebook.prototype.clear_all_output = function () {
-        $.map(this.get_cells(), function (cell, i) {
+        this.get_cells().map(function (cell, i) {
             if (cell instanceof codecell.CodeCell) {
                 cell.clear_output();
             }
@@ -1438,7 +1438,7 @@ define([
      * @method scroll_all_output
      */
     Notebook.prototype.scroll_all_output = function () {
-        $.map(this.get_cells(), function (cell, i) {
+        this.get_cells().map(function (cell, i) {
             if (cell instanceof codecell.CodeCell) {
                 cell.scroll_output();
             }
@@ -1467,7 +1467,7 @@ define([
      * @method toggle_all_output
      */
     Notebook.prototype.toggle_all_output = function () {
-        $.map(this.get_cells(), function (cell, i) {
+        this.get_cells().map(function (cell, i) {
             if (cell instanceof codecell.CodeCell) {
                 cell.toggle_output();
             }
@@ -1497,7 +1497,7 @@ define([
      * @method toggle_all_output_scrolling
      */
     Notebook.prototype.toggle_all_output_scroll = function () {
-        $.map(this.get_cells(), function (cell, i) {
+        this.get_cells().map(function (cell, i) {
             if (cell instanceof codecell.CodeCell) {
                 cell.toggle_output_scroll();
             }
@@ -1533,7 +1533,7 @@ define([
 
         that = this;
         utils.requireCodeMirrorMode(modename, function () {
-            $.map(that.get_cells(), function(cell, i) {
+            that.get_cells().map(function(cell, i) {
                 if (cell.cell_type === 'code'){
                     cell.code_mirror.setOption('mode', newmode);
                     // This is currently redundant, because cm_config ends up as
