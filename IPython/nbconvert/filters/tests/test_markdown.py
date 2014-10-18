@@ -86,6 +86,12 @@ class TestMarkdown(TestsBase):
         for case in cases:
             self.assertIn(case, markdown2html(case))
 
+    def test_markdown2html_math_paragraph(self):
+        # https://github.com/ipython/ipython/issues/6724
+        a = """Water that is stored in $t$, $s_t$, must equal the storage content of the previous stage,
+$s_{t-1}$, plus a stochastic inflow, $I_t$, minus what is being released in $t$, $r_t$.
+With $s_0$ defined as the initial storage content in $t=1$, we have"""
+        self.assertIn(a, markdown2html(a))
 
     @dec.onlyif_cmds_exist('pandoc')
     def test_markdown2rst(self):
