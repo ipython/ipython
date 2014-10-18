@@ -8,6 +8,7 @@
     <link rel="shortcut icon" type="image/x-icon" href="{{static_url("base/images/favicon.ico") }}">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <link rel="stylesheet" href="{{static_url("components/jquery-ui/themes/smoothness/jquery-ui.min.css") }}" type="text/css" />
+    <link rel="stylesheet" href="{{static_url("components/bootstrap-tags/dist/css/bootstrap-tags.css") }}" type="text/css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     {% block stylesheet %}
@@ -24,6 +25,7 @@
             backbone : 'components/backbone/backbone-min',
             jquery: 'components/jquery/jquery.min',
             bootstrap: 'components/bootstrap/js/bootstrap.min',
+            bootstraptags: 'components/bootstrap-tags/dist/js/bootstrap-tags.min',
             bootstraptour: 'components/bootstrap-tour/build/js/bootstrap-tour.min',
             jqueryui: 'components/jquery-ui/ui/minified/jquery-ui.min',
             highlight: 'components/highlight.js/build/highlight.pack',
@@ -40,7 +42,14 @@
             },
             bootstrap: {
               deps: ["jquery"],
-              exports: "bootstrap"
+              // Bootstrap doesn't export a global variable.  It only extends
+              // jQuery with new functions.  Use one of those functions to verify
+              // that bootstrap has indeed loaded.
+              exports: "$.fn.popover", 
+            },
+            bootstraptags: {
+              deps: ["bootstrap"],
+              exports: "Tags", 
             },
             bootstraptour: {
               deps: ["bootstrap"],
