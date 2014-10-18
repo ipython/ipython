@@ -541,25 +541,8 @@ class NotebookApp(BaseIPythonApplication):
         static_url_prefix = self.tornado_settings.get("static_url_prefix",
                          url_path_join(self.base_url, "static")
         )
-        
-        # try local mathjax, either in nbextensions/mathjax or static/mathjax
-        for (url_prefix, search_path) in [
-            (url_path_join(self.base_url, "nbextensions"), self.nbextensions_path),
-            (static_url_prefix, self.static_file_path),
-        ]:
-            self.log.debug("searching for local mathjax in %s", search_path)
-            try:
-                mathjax = filefind(os.path.join('mathjax', 'MathJax.js'), search_path)
-            except IOError:
-                continue
-            else:
-                url = url_path_join(url_prefix, u"mathjax/MathJax.js")
-                self.log.info("Serving local MathJax from %s at %s", mathjax, url)
-                return url
-        
-        # no local mathjax, serve from CDN
-        url = u"https://cdn.mathjax.org/mathjax/latest/MathJax.js"
-        self.log.info("Using MathJax from CDN: %s", url)
+        url = url_path_join(static_url_prefix, "components/mathjax/MathJax.js")
+        self.log.info("Using MathJax from components: %s", url)
         return url
     
     def _mathjax_url_changed(self, name, old, new):
