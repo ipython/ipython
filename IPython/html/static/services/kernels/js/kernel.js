@@ -850,7 +850,7 @@ define([
      * @function _handle_shell_reply
      */
     Kernel.prototype._handle_shell_reply = function (e) {
-        var reply = $.parseJSON(e.data);
+        var reply = JSON.parse(e.data);
         this.events.trigger('shell_reply.Kernel', {kernel: this, reply: reply});
         var content = reply.content;
         var metadata = reply.metadata;
@@ -978,7 +978,7 @@ define([
      * @function _handle_iopub_message
      */
     Kernel.prototype._handle_iopub_message = function (e) {
-        var msg = $.parseJSON(e.data);
+        var msg = JSON.parse(e.data);
 
         var handler = this.get_iopub_handler(msg.header.msg_type);
         if (handler !== undefined) {
@@ -990,7 +990,7 @@ define([
      * @function _handle_input_request
      */
     Kernel.prototype._handle_input_request = function (e) {
-        var request = $.parseJSON(e.data);
+        var request = JSON.parse(e.data);
         var header = request.header;
         var content = request.content;
         var metadata = request.metadata;

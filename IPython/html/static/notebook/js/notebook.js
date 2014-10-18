@@ -2487,7 +2487,7 @@ define([
      * @param {jqXHR} xhr jQuery Ajax object
      */
     Notebook.prototype.list_checkpoints_success = function (data, status, xhr) {
-        data = $.parseJSON(data);
+        data = JSON.parse(data);
         this.checkpoints = data;
         if (data.length) {
             this.last_checkpoint = data[data.length - 1];
@@ -2538,7 +2538,7 @@ define([
      * @param {jqXHR} xhr jQuery Ajax object
      */
     Notebook.prototype.create_checkpoint_success = function (data, status, xhr) {
-        data = $.parseJSON(data);
+        data = JSON.parse(data);
         this.add_checkpoint(data);
         this.events.trigger('checkpoint_created.Notebook', data);
     };
