@@ -124,14 +124,4 @@ require([
     if (window.location.hash) {
         $("#tabs").find("a[href=" + window.location.hash + "]").click();
     }
-
-    // For backwards compatability.
-    IPython.page = page;
-    IPython.contents = contents;
-    IPython.notebook_list = notebook_list;
-    IPython.cluster_list = cluster_list;
-    IPython.session_list = session_list;
-    IPython.kernel_list = kernel_list;
-    IPython.login_widget = login_widget;
-    IPython.events = events;
 });
