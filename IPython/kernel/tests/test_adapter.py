@@ -155,7 +155,7 @@ class V4toV5TestCase(AdapterTest):
     
     def test_object_info_reply(self):
         msg = self.msg("object_info_reply", {
-            'name' : 'foo',
+            'oname' : 'foo',
             'found' : True,
             'status' : 'ok',
             'definition' : 'foo(a=5)',
@@ -302,7 +302,7 @@ class V5toV4TestCase(AdapterTest):
         self.assertEqual(v4['header']['msg_type'], 'object_info_reply')
         v4c = v4['content']
         v5c = v5['content']
-        self.assertEqual(sorted(v4c), ['found', 'name'])
+        self.assertEqual(sorted(v4c), ['found', 'oname'])
         self.assertEqual(v4c['found'], False)
     
     # iopub channel

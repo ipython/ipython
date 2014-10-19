@@ -160,7 +160,7 @@ class V5toV4(Adapter):
     
     def object_info_reply(self, msg):
         """inspect_reply can't be easily backward compatible"""
-        msg['content'] = {'found' : False, 'name' : 'unknown'}
+        msg['content'] = {'found' : False, 'oname' : 'unknown'}
         return msg
     
     # iopub channel
@@ -274,7 +274,7 @@ class V4toV5(Adapter):
         content = msg['content']
         new_content = msg['content'] = {'status' : 'ok'}
         found = new_content['found'] = content['found']
-        new_content['name'] = content['name']
+        new_content['name'] = content['oname']
         new_content['data'] = data = {}
         new_content['metadata'] = {}
         if found:
