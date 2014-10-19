@@ -5,9 +5,10 @@ define([
     'base/js/namespace',
     'jquery',
     'base/js/utils',
-    'services/kernels/js/comm',
-    'widgets/js/init',
-], function(IPython, $, utils, comm, widgetmanager) {
+    './comm',
+    './serialize',
+    'widgets/js/init'
+], function(IPython, $, utils, comm, serialize, widgetmanager) {
     "use strict";
 
     /**
@@ -69,7 +70,7 @@ define([
     /**
      * @function _get_msg
      */
-    Kernel.prototype._get_msg = function (msg_type, content, metadata) {
+    Kernel.prototype._get_msg = function (msg_type, content, metadata, buffers) {
         var msg = {
             header : {
                 msg_id : utils.uuid(),
@@ -80,6 +81,7 @@ define([
             },
             metadata : metadata || {},
             content : content,
+            buffers : buffers || [],
             parent_header : {}
         };
         return msg;
@@ -596,12 +598,12 @@ define([
      *
      * @function send_shell_message
      */
-    Kernel.prototype.send_shell_message = function (msg_type, content, callbacks, metadata) {
+    Kernel.prototype.send_shell_message = function (msg_type, content, callbacks, metadata, buffers) {
         if (!this.is_connected()) {
             throw new Error("kernel is not connected");
         }
-        var msg = this._get_msg(msg_type, content, metadata);
-        this.channels.shell.send(JSON.stringify(msg));
+        var msg = this._get_msg(msg_type, content, metadata, buffers);
+        this.channels.shell.send(serialize.serialize(msg));
         this.set_callbacks_for_msg(msg.header.msg_id, callbacks);
         return msg.header.msg_id;
     };
@@ -752,7 +754,7 @@ define([
         };
         this.events.trigger('input_reply.Kernel', {kernel: this, content: content});
         var msg = this._get_msg("input_reply", content);
-        this.channels.stdin.send(JSON.stringify(msg));
+        this.channels.stdin.send(serialize.serialize(msg));
         return msg.header.msg_id;
     };
 
@@ -850,8 +852,11 @@ define([
      * @function _handle_shell_reply
      */
     Kernel.prototype._handle_shell_reply = function (e) {
-        var reply = $.parseJSON(e.data);
-        this.events.trigger('shell_reply.Kernel', {kernel: this, reply: reply});
+        serialize.deserialize(e.data, $.proxy(this._finish_shell_reply, this));
+    };
+
+    Kernel.prototype._finish_shell_reply = function (reply) {
+        this.events.trigger('shell_reply.Kernel', {kernel: this, reply:reply});
         var content = reply.content;
         var metadata = reply.metadata;
         var parent_id = reply.parent_header.msg_id;
@@ -978,8 +983,11 @@ define([
      * @function _handle_iopub_message
      */
     Kernel.prototype._handle_iopub_message = function (e) {
-        var msg = $.parseJSON(e.data);
+        serialize.deserialize(e.data, $.proxy(this._finish_iopub_message, this));
+    };
 
+
+    Kernel.prototype._finish_iopub_message = function (msg) {
         var handler = this.get_iopub_handler(msg.header.msg_type);
         if (handler !== undefined) {
             handler(msg);
@@ -990,7 +998,11 @@ define([
      * @function _handle_input_request
      */
     Kernel.prototype._handle_input_request = function (e) {
-        var request = $.parseJSON(e.data);
+        serialize.deserialize(e.data, $.proxy(this._finish_input_request, this));
+    };
+
+
+    Kernel.prototype._finish_input_request = function (request) {
         var header = request.header;
         var content = request.content;
         var metadata = request.metadata;

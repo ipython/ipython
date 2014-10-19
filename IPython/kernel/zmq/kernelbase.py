@@ -130,7 +130,7 @@ class Kernel(SingletonConfigurable):
         """dispatch control requests"""
         idents,msg = self.session.feed_identities(msg, copy=False)
         try:
-            msg = self.session.unserialize(msg, content=True, copy=False)
+            msg = self.session.deserialize(msg, content=True, copy=False)
         except:
             self.log.error("Invalid Control Message", exc_info=True)
             return
@@ -165,7 +165,7 @@ class Kernel(SingletonConfigurable):
         
         idents,msg = self.session.feed_identities(msg, copy=False)
         try:
-            msg = self.session.unserialize(msg, content=True, copy=False)
+            msg = self.session.deserialize(msg, content=True, copy=False)
         except:
             self.log.error("Invalid Message", exc_info=True)
             return

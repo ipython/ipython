@@ -12,7 +12,7 @@ from IPython.utils.py3compat import string_types
 from IPython.html.utils import url_path_join, url_escape
 
 from ...base.handlers import IPythonHandler, json_errors
-from ...base.zmqhandlers import AuthenticatedZMQStreamHandler
+from ...base.zmqhandlers import AuthenticatedZMQStreamHandler, deserialize_binary_message
 
 from IPython.core.release import kernel_protocol_version
 
@@ -110,7 +110,7 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
         """
         idents,msg = self.session.feed_identities(msg)
         try:
-            msg = self.session.unserialize(msg)
+            msg = self.session.deserialize(msg)
         except:
             self.log.error("Bad kernel_info reply", exc_info=True)
             self._request_kernel_info()
@@ -150,7 +150,10 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
             self.log.info("%s closed, closing websocket.", self)
             self.close()
             return
-        msg = json.loads(msg)
+        if isinstance(msg, bytes):
+            msg = deserialize_binary_message(msg)
+        else:
+            msg = json.loads(msg)
         self.session.send(self.zmq_stream, msg)
 
     def on_close(self):
