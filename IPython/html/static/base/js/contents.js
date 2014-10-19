@@ -19,7 +19,6 @@ define([
         //      Dictionary of keyword arguments.
         //          events: $(Events) instance
         //          base_url: string
-        this.version = 0.1;
         this.events = options.events;
         this.base_url = options.base_url;
     };
