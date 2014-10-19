@@ -11,6 +11,12 @@ import nose.tools as nt
 # Our own imports
 from IPython.lib import pretty
 from IPython.testing.decorators import skip_without
+from IPython.utils.py3compat import PY3
+
+if PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 
 class MyList(object):
@@ -230,3 +236,21 @@ ClassWithMeta = MetaClass('ClassWithMeta')
 def test_metaclass_repr():
     output = pretty.pretty(ClassWithMeta)
     nt.assert_equal(output, "[CUSTOM REPR FOR CLASS ClassWithMeta]")
+
+
+def test_basic_class():
+    def type_pprint_wrapper(obj, p, cycle):
+        if obj is MyObj:
+            type_pprint_wrapper.called = True
+        return pretty._type_pprint(obj, p, cycle)
+    type_pprint_wrapper.called = False
+
+    stream = StringIO()
+    printer = pretty.RepresentationPrinter(stream)
+    printer.type_pprinters[type] = type_pprint_wrapper
+    printer.pretty(MyObj)
+    printer.flush()
+    output = stream.getvalue()
+
+    nt.assert_equal(output, '%s.MyObj' % __name__)
+    nt.assert_true(type_pprint_wrapper.called)
