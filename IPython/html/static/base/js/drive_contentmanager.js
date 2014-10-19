@@ -22,7 +22,6 @@ define([
         //          events: $(Events) instance
         //          base_url: string
         var that = this;
-        this.version = 0.1;
         this.events = options.events;
         this.base_url = options.base_url;
         this.gapi_ready = $.Deferred();
