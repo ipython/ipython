@@ -59,7 +59,21 @@ class="notebook_app"
 <div id="menubar">
     <div id="menus" class="navbar navbar-default" role="navigation">
         <div class="container-fluid">
-            <ul class="nav navbar-nav">
+            <button type="button" class="btn btn-default navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <i class="fa fa-bars"></i>
+              <span class="navbar-text">Menu</span>
+            </button>
+            <ul class="nav navbar-nav navbar-right">
+              <li id="kernel_indicator">
+                <i id="kernel_indicator_icon"></i>
+              </li>
+              <li id="modal_indicator">
+                <i id="modal_indicator_icon"></i>
+              </li>
+              <li id="notification_area"></li>
+            </ul>
+            <div class="navbar-collapse collapse">
+              <ul class="nav navbar-nav">
                 <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">File</a>
                     <ul id="file_menu" class="dropdown-menu">
                         <li id="new_notebook"
@@ -269,16 +283,8 @@ class="notebook_app"
                         </li>
                     </ul>
                 </li>
-            </ul>
-            <ul class="nav navbar-nav navbar-right">
-                <li id="kernel_indicator">
-                   <i id="kernel_indicator_icon"></i>
-                </li>
-                <li id="modal_indicator">
-                   <i id="modal_indicator_icon"></i>
-                </li>
-                <li id="notification_area"></li>
-            </ul>
+              </ul>
+            </div>
         </div>
     </div>
 </div>
