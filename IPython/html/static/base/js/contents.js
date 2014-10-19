@@ -7,10 +7,10 @@ define([
     'base/js/utils',
     'base/js/dialog',
 ], function(IPython, $, utils, dialog) {
-    var ContentManager = function(options) {
+    var Contents = function(options) {
         // Constructor
         //
-        // A contentmanager handles passing file operations
+        // A contents handles passing file operations
         // to the back-end.  This includes checkpointing
         // with the normal file operations.
         //
@@ -40,7 +40,7 @@ define([
      * @param {Function} success_callback
      * @param {Function} error_callback
      */
-    ContentManager.prototype.load_notebook = function (path, name, success_callback, 
+    Contents.prototype.load_notebook = function (path, name, success_callback, 
         error_callback) {
         // We do the call with settings so we can set cache to false.
         var settings = {
@@ -69,7 +69,7 @@ define([
      * @method scroll_to_cell
      * @param {String} path The path to create the new notebook at
      */
-    ContentManager.prototype.new_notebook = function(path) {
+    Contents.prototype.new_notebook = function(path) {
         var base_url = this.base_url;
         var settings = {
             processData : false,
@@ -112,14 +112,14 @@ define([
         $.ajax(url,settings);
     };
 
-    ContentManager.prototype.delete_notebook = function(name, path) {
+    Contents.prototype.delete_notebook = function(name, path) {
         var settings = {
             processData : false,
             cache : false,
             type : "DELETE",
             dataType : "json",
             success : $.proxy(this.events.trigger, this.events,
-                'notebook_deleted.ContentManager',
+                'notebook_deleted.Contents',
                 {
                     name: name,
                     path: path
@@ -135,7 +135,7 @@ define([
         $.ajax(url, settings);
     };
 
-    ContentManager.prototype.rename_notebook = function(path, name, new_name) {
+    Contents.prototype.rename_notebook = function(path, name, new_name) {
         var that = this;
         var data = {name: new_name};
         var settings = {
@@ -146,11 +146,11 @@ define([
             dataType: "json",
             contentType: 'application/json',
             success :  function (json, status, xhr) {
-                that.events.trigger('notebook_rename_success.ContentManager',
+                that.events.trigger('notebook_rename_success.Contents',
                     json);
             },
             error : function (xhr, status, error) {
-                that.events.trigger('notebook_rename_error.ContentManager',
+                that.events.trigger('notebook_rename_error.Contents',
                     [xhr, status, error]);
             }
         };
@@ -163,7 +163,7 @@ define([
         $.ajax(url, settings);
     };
 
-    ContentManager.prototype.save_notebook = function(path, name, content,
+    Contents.prototype.save_notebook = function(path, name, content,
         extra_settings) {
         var that = content;
         // Create a JSON model to be sent to the server.
@@ -183,10 +183,10 @@ define([
             data : JSON.stringify(model),
             contentType: 'application/json',
             success : $.proxy(this.events.trigger, this.events,
-                'notebook_save_success.ContentManager',
+                'notebook_save_success.Contents',
                 $.extend(model, { start : start })),
             error : function (xhr, status, error) {
-                that.events.trigger('notebook_save_error.ContentManager',
+                that.events.trigger('notebook_save_error.Contents',
                     [xhr, status, error, model]);
             }
         };
@@ -208,11 +208,11 @@ define([
      * Checkpointing Functions
      */
 
-    ContentManager.prototype.save_checkpoint = function() {
+    Contents.prototype.save_checkpoint = function() {
         // This is not necessary - integrated into save
     };
 
-    ContentManager.prototype.restore_checkpoint = function(notebook, id) {
+    Contents.prototype.restore_checkpoint = function(notebook, id) {
         that = notebook;
         this.events.trigger('notebook_restoring.Notebook', checkpoint);
         var url = utils.url_join_encode(
@@ -230,7 +230,7 @@ define([
         );
     };
 
-    ContentManager.prototype.list_checkpoints = function(notebook) {
+    Contents.prototype.list_checkpoints = function(notebook) {
         that = notebook;
         var url = utils.url_join_encode(
             that.base_url,
@@ -266,7 +266,7 @@ define([
      * @param {Function} load_callback called with list of notebooks on success
      * @param {Function} error_callback called with ajax results on error
      */
-    ContentManager.prototype.list_contents = function(path, load_callback,
+    Contents.prototype.list_contents = function(path, load_callback,
         error_callback) {
         var that = this;
         var settings = {
@@ -284,7 +284,7 @@ define([
     }
 
 
-    IPython.ContentManager = ContentManager;
+    IPython.Contents = Contents;
 
-    return {'ContentManager': ContentManager};
+    return {'Contents': Contents};
 }); 

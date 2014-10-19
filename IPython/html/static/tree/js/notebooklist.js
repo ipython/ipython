@@ -20,7 +20,7 @@ define([
         //          element_name: string
         //          base_url: string
         //          notebook_path: string
-        //          content_manager: ContentManager instance
+        //          contents: Contents instance
         var that = this;
         this.session_list = options.session_list;
         // allow code re-use by just changing element_name in kernellist.js
@@ -35,15 +35,15 @@ define([
         this.sessions = {};
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
         this.notebook_path = options.notebook_path || utils.get_body_data("notebookPath");
-        this.content_manager = options.content_manager;
+        this.contents = options.contents;
         if (this.session_list && this.session_list.events) {
             this.session_list.events.on('sessions_loaded.Dashboard', 
                 function(e, d) { that.sessions_loaded(d); });
         }
 
 
-        if (this.content_manager && this.content_manager.events) {
-            this.content_manager.events.on('notebook_deleted.ContentManager',
+        if (this.contents && this.contents.events) {
+            this.contents.events.on('notebook_deleted.Contents',
                 function(e, d) {
                     // Remove the deleted notebook.
                     $( ":data(nbname)" ).each(function() {
@@ -157,7 +157,7 @@ define([
 
     NotebookList.prototype.load_list = function () {
         var that = this
-        this.content_manager.list_contents(
+        this.contents.list_contents(
             that.notebook_path,
             $.proxy(that.draw_notebook_list, that),
             $.proxy( function(xhr, status, error) { 
@@ -347,7 +347,7 @@ define([
                         Delete : {
                             class: "btn-danger",
                             click: function() {
-                                notebooklist.content_manager.delete_notebook(nbname, path);
+                                notebooklist.contents.delete_notebook(nbname, path);
                             }
                         },
                         Cancel : {}

@@ -50,7 +50,7 @@ define([
         //      Dictionary of keyword arguments.
         //          events: $(Events) instance
         //          keyboard_manager: KeyboardManager instance
-        //          content_manager: ContentManager instance
+        //          contents: Contents instance
         //          save_widget: SaveWidget instance
         //          config: dictionary
         //          base_url : string
@@ -62,7 +62,7 @@ define([
         this.notebook_name = options.notebook_name;
         this.events = options.events;
         this.keyboard_manager = options.keyboard_manager;
-        this.content_manager = options.content_manager;
+        this.contents = options.contents;
         this.save_widget = options.save_widget;
         this.tooltip = new tooltip.Tooltip(this.events);
         this.ws_url = options.ws_url;
@@ -178,7 +178,7 @@ define([
     Notebook.prototype.bind_events = function () {
         var that = this;
 
-        this.content_manager.events.on('notebook_rename_success.ContentManager',
+        this.contents.events.on('notebook_rename_success.Contents',
             function (event, data) {
                 var name = that.notebook_name = data.name;
                 var path = data.path;
@@ -186,15 +186,15 @@ define([
                 that.events.trigger('notebook_renamed.Notebook', data);
             });
 
-        this.content_manager.events.on('notebook_rename_error.ContentManager',
+        this.contents.events.on('notebook_rename_error.Contents',
             function (event, data) {
                 that.rename_error(data[0], data[1], data[2]);
             });
 
-        this.content_manager.events.on('notebook_save_success.ContentManager',
+        this.contents.events.on('notebook_save_success.Contents',
             $.proxy(this.save_notebook_success, this));
 
-        this.content_manager.events.on('notebook_save_error.ContentManager',
+        this.contents.events.on('notebook_save_error.Contents',
             $.proxy(this.events.trigger, this.events,
                 'notebook_save_failed.Notebook'));
 
@@ -1929,7 +1929,7 @@ define([
             nbformat : this.nbformat,
             nbformat_minor : this.nbformat_minor
         })
-        this.content_manager.save_notebook(this.notebook_path,
+        this.contents.save_notebook(this.notebook_path,
             this.notebook_name,
             content,
             extra_settings);
@@ -2092,12 +2092,12 @@ define([
             nbname = nbname + ".ipynb";
         }
 
-        this.content_manager.rename_notebook(this.notebook_path,
+        this.contents.rename_notebook(this.notebook_path,
             this.notebook_name, nbname);
     };
 
     Notebook.prototype.delete = function () {
-        this.content_manager.delete_notebook(this.notebook_name,
+        this.contents.delete_notebook(this.notebook_name,
             this.notebook_path);
     };
 
@@ -2142,7 +2142,7 @@ define([
     Notebook.prototype.load_notebook = function (notebook_name, notebook_path) {
         this.notebook_name = notebook_name;
         this.notebook_path = notebook_path;
-        this.content_manager.load_notebook(
+        this.contents.load_notebook(
             notebook_path,
             notebook_name,
             $.proxy(this.load_notebook_success,this),
