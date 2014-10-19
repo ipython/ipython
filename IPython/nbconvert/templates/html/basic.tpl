@@ -46,7 +46,7 @@ In&nbsp;[&nbsp;]:
 {% block input %}
 <div class="inner_cell">
     <div class="input_area">
-{{ cell.input | highlight2html(language=resources.get('language'), metadata=cell.metadata) }}
+{{ cell.input | highlight2html(language=nb.metadata.kernelspec.codemirror_mode.name,version=nb.metadata.kernelspec.codemirror_mode.version , metadata=cell.metadata) }}
 </div>
 </div>
 {%- endblock input %}
