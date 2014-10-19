@@ -45,7 +45,7 @@ class NodeJSMissing(ConversionException):
     """Exception raised when node.js is missing."""
     pass
 
-def markdown2latex(source, extra_args=None):
+def markdown2latex(source, markup='markdown', extra_args=None):
     """Convert a markdown string to LaTeX via pandoc.
 
     This function will raise an error if pandoc is not installed.
@@ -55,13 +55,17 @@ def markdown2latex(source, extra_args=None):
     ----------
     source : string
       Input string, assumed to be valid markdown.
+    markup : string
+      Markup used by pandoc's reader
+      default : pandoc extended markdown
+      (see http://johnmacfarlane.net/pandoc/README.html#pandocs-markdown)
 
     Returns
     -------
     out : string
       Output as returned by pandoc.
     """
-    return pandoc(source, 'markdown', 'latex', extra_args=extra_args)
+    return pandoc(source, markup, 'latex', extra_args=extra_args)
 
 
 @undoc

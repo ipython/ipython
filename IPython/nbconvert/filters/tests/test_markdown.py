@@ -49,10 +49,24 @@ class TestMarkdown(TestsBase):
             self._try_markdown(markdown2latex, test, self.tokens[index])
 
     @dec.onlyif_cmds_exist('pandoc')
+    def test_markdown2latex_markup(self):
+        """markdown2latex with markup kwarg test"""
+        # This string should be passed through unaltered with pandoc's
+        # markdown_strict reader
+        s = '1) arabic number with parenthesis'
+        self.assertEqual(markdown2latex(s, markup='markdown_strict'), s)
+        # This string should be passed through unaltered with pandoc's
+        # markdown_strict+tex_math_dollars reader
+        s = '$\\alpha$ latex math'
+        self.assertEqual(
+            markdown2latex(s, markup='markdown_strict+tex_math_dollars'),
+            s)
+
+    @dec.onlyif_cmds_exist('pandoc')
     def test_pandoc_extra_args(self):
         # pass --no-wrap
         s = '\n'.join([
-            "#latex {{long_line | md2l(['--no-wrap'])}}",
+            "#latex {{long_line | md2l('markdown', ['--no-wrap'])}}",
             "#rst {{long_line | md2r(['--columns', '5'])}}",
         ])
         long_line = ' '.join(['long'] * 30)
@@ -64,7 +78,7 @@ class TestMarkdown(TestsBase):
         tpl = env.from_string(s)
         rendered = tpl.render(long_line=long_line)
         _, latex, rst = rendered.split('#')
-        
+
         self.assertEqual(latex.strip(), 'latex %s' % long_line)
         self.assertEqual(rst.strip(), 'rst %s' % long_line.replace(' ', '\n'))
 
