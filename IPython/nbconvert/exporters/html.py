@@ -14,7 +14,7 @@
 
 import os
 
-from IPython.nbconvert import preprocessors
+from IPython.nbconvert.filters.highlight import Highlight2HTML
 from IPython.config import Config
 
 from .templateexporter import TemplateExporter
@@ -57,3 +57,10 @@ class HTMLExporter(TemplateExporter):
             })
         c.merge(super(HTMLExporter,self).default_config)
         return c
+
+    def from_notebook_node(self, nb, resources=None, **kw):
+        kernelspec = nb.metadata.get('kernelspec', {})
+        lexer = kernelspec.get('pygments_lexer', kernelspec.get('language', None))
+        self.register_filter('highlight_code',
+                             Highlight2HTML(pygments_lexer=lexer, parent=self))
+        return super(HTMLExporter, self).from_notebook_node(nb, resources, **kw)

@@ -208,9 +208,9 @@ define([
         
         this.events.on('spec_changed.Kernel', function(event, data) {
             that.set_kernelspec_metadata(data);
-            if (data.codemirror_mode) {
-                that.set_codemirror_mode(data.codemirror_mode);
-            }
+            // Mode 'null' should be plain, unhighlighted text.
+            cm_mode = data.codemirror_mode || data.language || 'null'
+            that.set_codemirror_mode(cm_mode);
         });
 
         var collapse_time = function (time) {

@@ -38,10 +38,14 @@ class KernelSpec(HasTraits):
     display_name = Unicode()
     language = Unicode()
     codemirror_mode = Any() # can be unicode or dict
+    pygments_lexer = Unicode()
     env = Dict()
     resource_dir = Unicode()
     
     def _codemirror_mode_default(self):
+        return self.language
+
+    def _pygments_lexer_default(self):
         return self.language
     
     @classmethod
@@ -56,12 +60,17 @@ class KernelSpec(HasTraits):
         return cls(resource_dir=resource_dir, **kernel_dict)
     
     def to_dict(self):
-        return dict(argv=self.argv,
-                    env=self.env,
-                    display_name=self.display_name,
-                    language=self.language,
-                    codemirror_mode=self.codemirror_mode,
-                   )
+        d = dict(argv=self.argv,
+                 env=self.env,
+                 display_name=self.display_name,
+                 language=self.language,
+                )
+        if self.codemirror_mode != self.language:
+            d['codemirror_mode'] = self.codemirror_mode
+        if self.pygments_lexer != self.language:
+            d['pygments_lexer'] = self.pygments_lexer
+
+        return d
 
     def to_json(self):
         return json.dumps(self.to_dict())
@@ -114,6 +123,7 @@ class KernelSpecManager(HasTraits):
                'language': 'python',
                'codemirror_mode': {'name': 'ipython',
                                    'version': sys.version_info[0]},
+               'pygments_lexer': 'ipython%d' % (3 if PY3 else 2),
               }
 
     @property

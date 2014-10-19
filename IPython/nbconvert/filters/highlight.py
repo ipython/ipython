@@ -11,6 +11,7 @@ from within Jinja templates.
 # not import time, when it may not be needed.
 
 from IPython.nbconvert.utils.base import NbConvertBase
+from warnings import warn
 
 MULTILINE_OUTPUTS = ['text', 'html', 'svg', 'latex', 'javascript', 'json']
 
@@ -20,6 +21,14 @@ __all__ = [
 ]
 
 class Highlight2HTML(NbConvertBase):
+    def __init__(self, pygments_lexer=None, **kwargs):
+        self.pygments_lexer = pygments_lexer or 'ipython3'
+        super(Highlight2HTML, self).__init__(**kwargs)
+
+    def _default_language_changed(self, name, old, new):
+        warn('Setting default_language in config is deprecated, '
+             'please use kernelspecs instead.')
+        self.pygments_lexer = new
 
     def __call__(self, source, language=None, metadata=None):
         """
@@ -35,8 +44,9 @@ class Highlight2HTML(NbConvertBase):
             metadata of the cell to highlight
         """
         from pygments.formatters import HtmlFormatter
+
         if not language:
-            language=self.default_language
+            language=self.pygments_lexer
 
         return _pygments_highlight(source if len(source) > 0 else ' ',
                                    # needed to help post processors:
@@ -45,6 +55,14 @@ class Highlight2HTML(NbConvertBase):
 
 
 class Highlight2Latex(NbConvertBase):
+    def __init__(self, pygments_lexer=None, **kwargs):
+        self.pygments_lexer = pygments_lexer or 'ipython3'
+        super(Highlight2Latex, self).__init__(**kwargs)
+
+    def _default_language_changed(self, name, old, new):
+        warn('Setting default_language in config is deprecated, '
+             'please use kernelspecs instead.')
+        self.pygments_lexer = new
 
     def __call__(self, source, language=None, metadata=None, strip_verbatim=False):
         """
@@ -63,7 +81,7 @@ class Highlight2Latex(NbConvertBase):
         """
         from pygments.formatters import LatexFormatter
         if not language:
-            language=self.default_language
+            language=self.pygments_lexer
 
         latex = _pygments_highlight(source, LatexFormatter(), language, metadata)
         if strip_verbatim:
@@ -90,7 +108,8 @@ def _pygments_highlight(source, output_formatter, language='ipython', metadata=N
     """
     from pygments import highlight
     from pygments.lexers import get_lexer_by_name
-    from IPython.nbconvert.utils.lexers import IPythonLexer
+    from pygments.util import ClassNotFound
+    from IPython.nbconvert.utils.lexers import IPythonLexer, IPython3Lexer
 
     # If the cell uses a magic extension language,
     # use the magic language instead.
@@ -100,9 +119,17 @@ def _pygments_highlight(source, output_formatter, language='ipython', metadata=N
 
         language = metadata['magics_language']
 
-    if language == 'ipython':
+    if language == 'ipython2':
         lexer = IPythonLexer()
+    elif language == 'ipython3':
+        lexer = IPython3Lexer()
     else:
-        lexer = get_lexer_by_name(language, stripall=True)
+        try:
+            lexer = get_lexer_by_name(language, stripall=True)
+        except ClassNotFound:
+            warn("No lexer found for language %r. Treating as plain text." % language)
+            from pygments.lexers.special import TextLexer
+            lexer = TextLexer()
+
 
     return highlight(source, lexer, output_formatter)

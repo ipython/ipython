@@ -19,7 +19,7 @@ import os
 from IPython.utils.traitlets import Unicode
 from IPython.config import Config
 
-from IPython.nbconvert import filters, preprocessors
+from IPython.nbconvert.filters.highlight import Highlight2Latex
 from .templateexporter import TemplateExporter
 
 #-----------------------------------------------------------------------------
@@ -87,3 +87,10 @@ class LatexExporter(TemplateExporter):
          })
         c.merge(super(LatexExporter,self).default_config)
         return c
+
+    def from_notebook_node(self, nb, resources=None, **kw):
+        kernelspec = nb.metadata.get('kernelspec', {})
+        lexer = kernelspec.get('pygments_lexer', kernelspec.get('language', None))
+        self.register_filter('highlight_code',
+                             Highlight2Latex(pygments_lexer=lexer, parent=self))
+        return super(LatexExporter, self).from_notebook_node(nb, resources, **kw)

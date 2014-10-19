@@ -20,7 +20,7 @@
 %===============================================================================
 
 ((* block input scoped *))
-    ((( add_prompt(cell.input | highlight2latex(strip_verbatim=True), cell, 'In ', 'incolor') )))
+    ((( add_prompt(cell.input | highlight_code(strip_verbatim=True), cell, 'In ', 'incolor') )))
 ((* endblock input *))
 
 

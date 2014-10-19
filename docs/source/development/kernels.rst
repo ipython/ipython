@@ -118,8 +118,11 @@ JSON serialised dictionary containing the following keys and values:
   identify alternative kernels that can run some code.
 - **codemirror_mode** (optional): The `codemirror mode <http://codemirror.net/mode/index.html>`_
   to use for code in this language. This can be a string or a dictionary, as
-  passed to codemirror config. The string from *language* will be used if this is
-  not provided.
+  passed to codemirror config. This only needs to be specified if it does not
+  match the value in *language*.
+- **pygments_lexer** (optional): The name of a `Pygments lexer <http://pygments.org/docs/lexers/>`_
+  to use for code in this language, as a string. This only needs to be specified
+  if it does not match the value in *language*.
 - **env** (optional): A dictionary of environment variables to set for the kernel.
   These will be added to the current environment variables before the kernel is
   started.
