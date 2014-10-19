@@ -2,8 +2,8 @@
 // Distributed under the terms of the Modified BSD License.
 
 define([
-    'jquery',
-    ], function ($, utf8) {
+    'underscore',
+    ], function (_) {
     "use strict";
     
     var _deserialize_array_buffer = function (buf) {
@@ -16,7 +16,7 @@ define([
             offsets.push(data.getUint32(i * 4));
         }
         var json_bytes = new Uint8Array(buf.slice(offsets[0], offsets[1]));
-        var msg = $.parseJSON(
+        var msg = JSON.parse(
             (new TextDecoder('utf8')).decode(json_bytes)
         );
         // the remaining chunks are stored as DataViews in msg.buffers
@@ -53,7 +53,7 @@ define([
         // deserialize a message and pass the unpacked message object to callback
         if (typeof data === "string") {
             // text JSON message
-            callback($.parseJSON(data));
+            callback(JSON.parse(data));
         } else {
             // binary message
             _deserialize_binary(data, callback);
@@ -63,10 +63,10 @@ define([
     var _serialize_binary = function (msg) {
         // implement the binary serialization protocol
         // serializes JSON message to ArrayBuffer
-        msg = $.extend({}, msg);
+        msg = _.clone(msg);
         var offsets = [];
         var buffers = [];
-        $.map(msg.buffers, function (buf) {
+        msg.buffers.map(function (buf) {
             buffers.push(buf);
         });
         delete msg.buffers;
