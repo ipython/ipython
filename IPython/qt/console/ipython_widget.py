@@ -152,7 +152,7 @@ class IPythonWidget(FrontendWidget):
             end = content['cursor_end']
             
             start = max(start, 0)
-            end = max(end, start + 1)
+            end = max(end, start)
 
             # Move the control's cursor to the desired end point
             cursor_pos = self._get_input_buffer_cursor_pos()
