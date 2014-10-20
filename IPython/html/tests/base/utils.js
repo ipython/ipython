@@ -19,5 +19,5 @@ casper.notebook_test(function () {
         return IPython.utils.fixConsole(input);
     }, input);
 
-    this.test.assertEquals(result, output, "IPython.util.fixConsole() handles [0m correctly");
+    this.test.assertEquals(result, output, "IPython.utils.fixConsole() handles [0m correctly");
 });
