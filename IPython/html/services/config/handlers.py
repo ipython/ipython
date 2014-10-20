@@ -7,6 +7,7 @@ import os
 import io
 from tornado import web
 
+from IPython.utils.py3compat import PY3
 from ...base.handlers import IPythonHandler, json_errors
 
 def recursive_update(target, new):
@@ -68,8 +69,13 @@ class ConfigHandler(IPythonHandler):
         update = self.get_json_body()
         recursive_update(section, update)
 
-        with io.open(filename, 'w', encoding='utf-8') as f:
+        if PY3:
+            f = io.open(filename, 'w', encoding='utf-8')
+        else:
+            f = open(filename, 'wb')
+        with f:
             json.dump(section, f)
+
         self.set_status(204)
 
 
