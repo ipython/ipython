@@ -9,6 +9,25 @@ from tornado import web
 
 from ...base.handlers import IPythonHandler, json_errors
 
+def recursive_update(target, new):
+    """Recursively update one dictionary using another.
+    
+    None values will delete their keys.
+    """
+    for k, v in new.items():
+        if isinstance(v, dict):
+            if k not in target:
+                target[k] = {}
+            recursive_update(target[k], v)
+            if not target[k]:
+                # Prune empty subdicts
+                del target[k]
+
+        elif v is None:
+            target.pop(k, None)
+
+        else:
+            target[k] = v
 
 class ConfigHandler(IPythonHandler):
     SUPPORTED_METHODS = ('GET', 'PUT', 'PATCH')
@@ -46,11 +65,8 @@ class ConfigHandler(IPythonHandler):
         else:
             section = {}
 
-        for k, v in self.get_json_body().items():
-            if v is None:
-                section.pop(k, None)
-            else:
-                section[k] = v
+        update = self.get_json_body()
+        recursive_update(section, update)
 
         with io.open(filename, 'w', encoding='utf-8') as f:
             json.dump(section, f)

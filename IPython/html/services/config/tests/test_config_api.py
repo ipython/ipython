@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Test the kernel specs webservice API."""
+"""Test the config webservice API."""
 
 import json
 
@@ -32,7 +32,7 @@ class ConfigAPI(object):
         return self._req('PATCH', section, json.dumps(values))
 
 class APITest(NotebookTestBase):
-    """Test the kernelspec web service API"""
+    """Test the config web service API"""
     def setUp(self):
         self.config_api = ConfigAPI(self.base_url())
 
@@ -46,18 +46,22 @@ class APITest(NotebookTestBase):
         self.assertEqual(r.json(), sample)
 
     def test_modify(self):
-        sample = {'foo': 'bar', 'baz': 73}
+        sample = {'foo': 'bar', 'baz': 73,
+                  'sub': {'a': 6, 'b': 7}, 'sub2': {'c': 8}}
         self.config_api.set('example', sample)
 
         r = self.config_api.modify('example', {'foo': None,  # should delete foo
                                                'baz': 75,
                                                'wib': [1,2,3],
+                                               'sub': {'a': 8, 'b': None, 'd': 9},
+                                               'sub2': {'c': None}  # should delete sub2
                                               })
         self.assertEqual(r.status_code, 204)
 
         r = self.config_api.get('example')
         self.assertEqual(r.status_code, 200)
-        self.assertEqual(r.json(), {'baz': 75, 'wib': [1,2,3]})
+        self.assertEqual(r.json(), {'baz': 75, 'wib': [1,2,3],
+                                    'sub': {'a': 8, 'd': 9}})
 
     def test_get_unknown(self):
         # We should get an empty config dictionary instead of a 404
