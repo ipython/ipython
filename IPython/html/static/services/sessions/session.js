@@ -5,7 +5,7 @@ define([
     'base/js/namespace',
     'jquery',
     'base/js/utils',
-    'services/kernels/js/kernel',
+    'services/kernels/kernel',
 ], function(IPython, $, utils, kernel) {
     "use strict";
 
