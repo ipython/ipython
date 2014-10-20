@@ -21,7 +21,6 @@ from IPython.qt.base_frontend_mixin import BaseFrontendMixin
 from IPython.utils.traitlets import Any, Bool, Instance, Unicode, DottedObjectName
 from .bracket_matcher import BracketMatcher
 from .call_tip_widget import CallTipWidget
-from .completion_lexer import CompletionLexer
 from .history_console_widget import HistoryConsoleWidget
 from .pygments_highlighter import PygmentsHighlighter
 
@@ -163,7 +162,6 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         # FrontendWidget protected variables.
         self._bracket_matcher = BracketMatcher(self._control)
         self._call_tip_widget = CallTipWidget(self._control)
-        self._completion_lexer = CompletionLexer(self.lexer)
         self._copy_raw_action = QtGui.QAction('Copy (Raw Text)', None)
         self._hidden = False
         self._highlighter = FrontendHighlighter(self, lexer=self.lexer)
@@ -356,18 +354,6 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                 self._pending_clearoutput = True
             else:
                 self.clear_output()
-
-    def _handle_complete_reply(self, rep):
-        """ Handle replies for tab completion.
-        """
-        self.log.debug("complete: %s", rep.get('content', ''))
-        cursor = self._get_cursor()
-        info = self._request_info.get('complete')
-        if info and info.id == rep['parent_header']['msg_id'] and \
-                info.pos == cursor.position():
-            text = '.'.join(self._get_context())
-            cursor.movePosition(QtGui.QTextCursor.Left, n=len(text))
-            self._complete_with_items(cursor, rep['content']['matches'])
 
     def _silent_exec_callback(self, expr, callback):
         """Silently execute `expr` in the kernel and call `callback` with reply
@@ -732,27 +718,14 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def _complete(self):
         """ Performs completion at the current cursor location.
         """
-        context = self._get_context()
-        if context:
-            # Send the completion request to the kernel
-            msg_id = self.kernel_client.complete(
-                code=self.input_buffer,
-                cursor_pos=self._get_input_buffer_cursor_pos(),
-            )
-            pos = self._get_cursor().position()
-            info = self._CompletionRequest(msg_id, pos)
-            self._request_info['complete'] = info
-
-    def _get_context(self, cursor=None):
-        """ Gets the context for the specified cursor (or the current cursor
-            if none is specified).
-        """
-        if cursor is None:
-            cursor = self._get_cursor()
-        cursor.movePosition(QtGui.QTextCursor.StartOfBlock,
-                            QtGui.QTextCursor.KeepAnchor)
-        text = cursor.selection().toPlainText()
-        return self._completion_lexer.get_context(text)
+        # Send the completion request to the kernel
+        msg_id = self.kernel_client.complete(
+            code=self.input_buffer,
+            cursor_pos=self._get_input_buffer_cursor_pos(),
+        )
+        pos = self._get_cursor().position()
+        info = self._CompletionRequest(msg_id, pos)
+        self._request_info['complete'] = info
 
     def _process_execute_abort(self, msg):
         """ Process a reply for an aborted execution request.
