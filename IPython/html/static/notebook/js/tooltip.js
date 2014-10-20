@@ -179,29 +179,6 @@ define([
     // easy access for julia monkey patching.
     Tooltip.last_token_re = /[a-z_][0-9a-z._]*$/gi;
 
-    Tooltip.prototype.extract_oir_token = function(line){
-        // use internally just to make the request to the kernel
-        // Feel free to shorten this logic if you are better
-        // than me in regEx
-        // basicaly you shoul be able to get xxx.xxx.xxx from
-        // something(range(10), kwarg=smth) ; xxx.xxx.xxx( firstarg, rand(234,23), kwarg1=2,
-        // remove everything between matchin bracket (need to iterate)
-        var matchBracket = /\([^\(\)]+\)/g;
-        var endBracket = /\([^\(]*$/g;
-        var oldline = line;
-
-        line = line.replace(matchBracket, "");
-        while (oldline != line) {
-            oldline = line;
-            line = line.replace(matchBracket, "");
-        }
-        // remove everything after last open bracket
-        line = line.replace(endBracket, "");
-        // reset the regex object
-        Tooltip.last_token_re.lastIndex = 0;
-        return Tooltip.last_token_re.exec(line);
-    };
-
     Tooltip.prototype._request_tooltip = function (cell, text, cursor_pos) {
         var callbacks = $.proxy(this._show, this);
         var msg_id = cell.kernel.inspect(text, cursor_pos, callbacks);

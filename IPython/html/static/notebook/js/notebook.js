@@ -40,6 +40,7 @@ define([
     slideshow_celltoolbar,
     scrollmanager
     ) {
+    "use strict";
 
     var Notebook = function (selector, options) {
         // Constructor
@@ -149,14 +150,18 @@ define([
         this.codemirror_mode = 'ipython';
         this.create_elements();
         this.bind_events();
-        this.save_notebook = function() { // don't allow save until notebook_loaded
-            this.save_notebook_error(null, null, "Load failed, save is disabled");
-        };
+        this.kernel_selector = null;
+        this.dirty = null;
+        this.trusted = null;
+        this._fully_loaded = false;
 
         // Trigger cell toolbar registration.
         default_celltoolbar.register(this);
         rawcell_celltoolbar.register(this);
         slideshow_celltoolbar.register(this);
+
+        // prevent assign to miss-typed properties.
+        Object.seal(this);
     };
 
     Notebook.options_default = {
@@ -1913,6 +1918,9 @@ define([
      * @method save_notebook
      */
     Notebook.prototype.save_notebook = function () {
+        if(!this._fully_loaded){
+            return this.save_notebook_error(null, null, "Load failed, save is disabled");
+        }
         // Create a JSON model to be sent to the server.
         var model = {
             type : "notebook",
@@ -2240,7 +2248,7 @@ define([
         }
 
         // now that we're fully loaded, it is safe to restore save functionality
-        delete(this.save_notebook);
+        this._fully_loaded = true;
         this.events.trigger('notebook_loaded.Notebook');
     };
 
