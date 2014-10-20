@@ -285,27 +285,36 @@ define([
     function ansispan(str) {
         // ansispan function adapted from github.com/mmalecki/ansispan (MIT License)
         // regular ansi escapes (using the table above)
+        var is_open = false
         return str.replace(/\033\[(0?[01]|22|39)?([;\d]+)?m/g, function(match, prefix, pattern) {
             if (!pattern) {
                 // [(01|22|39|)m close spans
-                return "</span>";
+                if (is_open) {
+                    is_open = false;
+                    return "</span>";
+                } else {
+                    return "";
+                }
+            } else {
+                is_open = true;
+
+                // consume sequence of color escapes
+                var numbers = pattern.match(/\d+/g);
+                var attrs = {};
+                while (numbers.length > 0) {
+                    _process_numbers(attrs, numbers);
+                }
+
+                var span = "<span ";
+                for (var attr in attrs) {
+                    var value = attrs[attr];
+                    span = span + " " + attr + '="' + attrs[attr] + '"';
+                }
+                return span + ">";
             }
-            // consume sequence of color escapes
-            var numbers = pattern.match(/\d+/g);
-            var attrs = {};
-            while (numbers.length > 0) {
-                _process_numbers(attrs, numbers);
-            }
-            
-            var span = "<span ";
-            for (var attr in attrs) {
-                var value = attrs[attr];
-                span = span + " " + attr + '="' + attrs[attr] + '"';
-            }
-            return span + ">";
         });
     };
-    
+
     // Transform ANSI color escape codes into HTML <span> tags with css
     // classes listed in the above ansi_colormap object. The actual color used
     // are set in the css file.
