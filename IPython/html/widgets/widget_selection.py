@@ -43,7 +43,7 @@ class _Selection(DOMWidget):
     """)
     
     values_dict = Dict()
-    values_names = Tuple()
+    values_names = Tuple(sync=True)
     values_values = Tuple()
 
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
@@ -82,13 +82,13 @@ class _Selection(DOMWidget):
         """        
         if self.values_lock.acquire(False):
             try:
-                
-
-            self.values = self._make_values(x)
-            self.values_dict = {i[0]: i[1] for i in self.values}
-            self.values_names = [i[0] for i in self.values]
-            self.values_values = [i[1] for i in self.values]
-            self._value_in_values()
+                self.values = self._make_values(x)
+                self.values_dict = {i[0]: i[1] for i in self.values}
+                self.values_names = [i[0] for i in self.values]
+                self.values_values = [i[1] for i in self.values]
+                self._value_in_values()
+            finally:
+                self.values_lock.release()
         
     def _value_in_values(self):
         # ensure that the chosen value is one of the choices
