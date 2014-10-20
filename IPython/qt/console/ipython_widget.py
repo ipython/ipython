@@ -219,12 +219,30 @@ class IPythonWidget(FrontendWidget):
                 items.append(cell)
                 last_cell = cell
         self._set_history(items)
+    
+    def _insert_other_input(self, cursor, content):
+        """Insert function for input from other frontends"""
+        cursor.beginEditBlock()
+        start = cursor.position()
+        n = content.get('execution_count', 0)
+        cursor.insertText('\n')
+        self._insert_html(cursor, self._make_in_prompt(n))
+        cursor.insertText(content['code'])
+        self._highlighter.rehighlightBlock(cursor.block())
+        cursor.endEditBlock()
+        
+    def _handle_execute_input(self, msg):
+        """Handle an execute_input message"""
+        self.log.debug("execute_input: %s", msg.get('content', ''))
+        if self.include_output(msg):
+            self._append_custom(self._insert_other_input, msg['content'], before_prompt=True)
 
+    
     def _handle_execute_result(self, msg):
         """ Reimplemented for IPython-style "display hook".
         """
         self.log.debug("execute_result: %s", msg.get('content', ''))
-        if not self._hidden and self._is_from_this_session(msg):
+        if self.include_output(msg):
             self.flush_clearoutput()
             content = msg['content']
             prompt_number = content.get('execution_count', 0)
@@ -246,7 +264,7 @@ class IPythonWidget(FrontendWidget):
         # For now, we don't display data from other frontends, but we
         # eventually will as this allows all frontends to monitor the display
         # data. But we need to figure out how to handle this in the GUI.
-        if not self._hidden and self._is_from_this_session(msg):
+        if self.include_output(msg):
             self.flush_clearoutput()
             data = msg['content']['data']
             metadata = msg['content']['metadata']
