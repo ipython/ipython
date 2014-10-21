@@ -76,7 +76,7 @@ define(["widgets/js/manager",
                     this.set_state(msg.content.data.state);
                     if (this.init_state_callback) {
                         this.init_state_callback.apply(this, [this]);
-                        this.init_state_callback = null;
+                        delete this.init_state_callback;
                     }
                     break;
                 case 'custom':

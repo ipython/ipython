@@ -102,7 +102,7 @@ class Widget(LoggingConfigurable):
         target_name = msg['content']['data']['target_name']
         widget_class = import_item(target_name)
         widget = widget_class(open_comm=False)
-        widget.set_comm(comm)
+        widget.comm = comm
 
 
     #-------------------------------------------------------------------------
@@ -160,11 +160,11 @@ class Widget(LoggingConfigurable):
                               'model_module': self._model_module})
             if self._model_id is not None:
                 args['comm_id'] = self._model_id
-            self.set_comm(Comm(**args))
+            self.comm = Comm(**args)
 
-    def set_comm(self, comm):
-        """Set's the comm of the widget."""
-        self.comm = comm
+    def _comm_changed(self, name, new):
+        """Called when the comm is changed."""
+        self.comm = new
         self._model_id = self.model_id
         
         self.comm.on_msg(self._handle_msg)
@@ -172,7 +172,6 @@ class Widget(LoggingConfigurable):
         
         # first update
         self.send_state()
-
 
     @property
     def model_id(self):
