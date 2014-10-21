@@ -15,12 +15,13 @@ import argparse
 import json
 import multiprocessing.pool
 import os
+import re
+import requests
 import shutil
 import signal
 import sys
 import subprocess
 import time
-import re
 
 from .iptest import (
     have, test_group_names as py_test_group_names, test_sections, StreamCapturer,
@@ -251,7 +252,15 @@ class JSController(TestController):
 
         # If a url was specified, use that for the testing.
         if self.url:
-            self.cmd.append("--url=%s" % self.url)
+            try:
+                alive = requests.request('GET', self.url).status_code == 200
+            except:
+                alive = False
+
+            if alive:
+                self.cmd.append("--url=%s" % self.url)
+            else:
+                raise Exception('Could not reach "%s".' % self.url)
         else:
             # start the ipython notebook, so we get the port number
             self.server_port = 0
@@ -646,7 +655,7 @@ argparser.add_argument('--all', action='store_true',
                     help='Include slow tests not run by default.')
 argparser.add_argument('--slimerjs', action='store_true',
                     help="Use slimerjs if it's installed instead of phantomjs for casperjs tests.")
-argparser.add_argument('--url', const=None, default='', type=unicode,
+argparser.add_argument('--url', const=None, default='', type=str,
                     help="URL to use for the JS tests.")
 argparser.add_argument('-j', '--fast', nargs='?', const=None, default=1, type=int,
                     help='Run test sections in parallel. This starts as many '
