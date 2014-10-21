@@ -59,6 +59,7 @@ __author__ = '%s <%s>' % (release.author, release.author_email)
 __license__  = release.license
 __version__  = release.version
 version_info = release.version_info
+__bibtex__ = release.bibtex
 
 def embed_kernel(module=None, local_ns=None, **kwargs):
     """Embed and start an IPython kernel in a given scope.

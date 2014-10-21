@@ -148,3 +148,21 @@ classifiers = [
     'Topic :: System :: Distributed Computing',
     'Topic :: System :: Shells'
     ]
+
+bibtex = \
+"""
+@Article{PER-GRA:2007,
+  Author    = {P\'erez, Fernando and Granger, Brian E.},
+  Title     = {{IP}ython: a System for Interactive Scientific Computing},
+  Journal   = {Computing in Science and Engineering},
+  Volume    = {9},
+  Number    = {3},
+  Pages     = {21--29},
+  month     = may,
+  year      = 2007,
+  url       = "http://ipython.org",
+  ISSN      = "1521-9615",
+  doi       = {10.1109/MCSE.2007.53},
+  publisher = {IEEE Computer Society},
+}
+"""
