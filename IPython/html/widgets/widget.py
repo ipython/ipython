@@ -98,6 +98,8 @@ class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
     # Traits
     #-------------------------------------------------------------------------
+    _model_module = Unicode(None, allow_none=True, help="""A requirejs module name
+        in which to find _model_name. If empty, look in the global registry.""")
     _model_name = Unicode('WidgetModel', help="""Name of the backbone model 
         registered in the front-end to create and sync this widget with.""")
     _view_module = Unicode(help="""A requirejs module in which to find _view_name.
@@ -142,7 +144,9 @@ class Widget(LoggingConfigurable):
     def open(self):
         """Open a comm to the frontend if one isn't already open."""
         if self.comm is None:
-            args = dict(target_name='ipython.widget', data={ 'model_name': self._model_name })
+            args = dict(target_name='ipython.widget',
+                        data={'model_name': self._model_name,
+                              'model_module': self._model_module})
             if self._model_id is not None:
                 args['comm_id'] = self._model_id
             self.comm = Comm(**args)
