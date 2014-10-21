@@ -518,7 +518,7 @@ Message type: ``object_info_reply``::
 
     content = {
     # The name the object was requested under
-    'name' : str,
+    'oname' : str,
     
     # Boolean flag indicating whether the named object was found or not.  If
     # it's false, all other fields will be empty.
