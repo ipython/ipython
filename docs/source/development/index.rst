@@ -19,6 +19,7 @@ on the IPython GitHub wiki.
 .. toctree::
    :maxdepth: 1
 
+   how_ipython_works
    messaging
    kernels
    wrapperkernels
