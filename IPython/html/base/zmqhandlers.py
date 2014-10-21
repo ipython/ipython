@@ -224,8 +224,7 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
     def initialize(self):
         self.session = Session(config=self.config)
     
-    def open(self, kernel_id):
-        self.kernel_id = cast_unicode(kernel_id, 'ascii')
+    def open(self, *args, **kwargs):
         
         # start the pinging
         if self.ping_interval > 0:
