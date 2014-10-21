@@ -26,7 +26,6 @@ from IPython.utils.traitlets import (
     Any, Instance, Unicode, List, Bool, Type, DottedObjectName
 )
 from IPython.kernel import (
-    make_ipkernel_cmd,
     launch_kernel,
     kernelspec,
 )

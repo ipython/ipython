@@ -78,13 +78,13 @@ def swallow_argv(argv, aliases=None, flags=None):
     return stripped
 
 
-def make_ipkernel_cmd(code, executable=None, extra_arguments=[], **kw):
+def make_ipkernel_cmd(mod='IPython.kernel', executable=None, extra_arguments=[], **kw):
     """Build Popen command list for launching an IPython kernel.
 
     Parameters
     ----------
-    code : str,
-        A string of Python code that imports and executes a kernel entry point.
+    mod : str, optional (default 'IPython.kernel')
+        A string of an IPython module whose __main__ starts an IPython kernel
 
     executable : str, optional (default sys.executable)
         The Python executable to use for the kernel process.
@@ -99,7 +99,7 @@ def make_ipkernel_cmd(code, executable=None, extra_arguments=[], **kw):
     """
     if executable is None:
         executable = sys.executable
-    arguments = [ executable, '-c', code, '-f', '{connection_file}' ]
+    arguments = [ executable, '-m', mod, '-f', '{connection_file}' ]
     arguments.extend(extra_arguments)
 
     if sys.platform == 'win32':
