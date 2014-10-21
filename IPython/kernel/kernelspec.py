@@ -42,7 +42,7 @@ class KernelSpec(HasTraits):
     pygments_lexer = Unicode()
     env = Dict()
     resource_dir = Unicode()
-    msgspec = Unicode(kernel_protocol_version)
+    protocol_version = Unicode(kernel_protocol_version)
     
     def _codemirror_mode_default(self):
         return self.language
@@ -65,8 +65,8 @@ class KernelSpec(HasTraits):
         d = dict(argv=self.argv,
                  display_name=self.display_name,
                  language=self.language,
-                 msgspec=self.msgspec,
-                )
+                 protocol_version=self.protocol_version,
+        )
         if self.env:
             d['env'] = self.env
         if self.codemirror_mode != self.language:
