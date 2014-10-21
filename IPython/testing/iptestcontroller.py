@@ -253,7 +253,7 @@ class JSController(TestController):
         # If a url was specified, use that for the testing.
         if self.url:
             try:
-                alive = requests.request('GET', self.url).status_code == 200
+                alive = requests.get(self.url).status_code == 200
             except:
                 alive = False
 
@@ -655,8 +655,7 @@ argparser.add_argument('--all', action='store_true',
                     help='Include slow tests not run by default.')
 argparser.add_argument('--slimerjs', action='store_true',
                     help="Use slimerjs if it's installed instead of phantomjs for casperjs tests.")
-argparser.add_argument('--url', const=None, default='', type=str,
-                    help="URL to use for the JS tests.")
+argparser.add_argument('--url', help="URL to use for the JS tests.")
 argparser.add_argument('-j', '--fast', nargs='?', const=None, default=1, type=int,
                     help='Run test sections in parallel. This starts as many '
                     'processes as you have cores, or you can specify a number.')
