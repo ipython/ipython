@@ -189,8 +189,9 @@ class CallTipWidget(QtGui.QLabel):
                 horizontal = 'Left'
         pos = getattr(cursor_rect, '%s%s' %(vertical, horizontal))
         point = text_edit.mapToGlobal(pos())
+        point.setY(point.y() + padding)
         if vertical == 'top':
-            point.setY(point.y() - tip_height - padding)
+            point.setY(point.y() - tip_height)
         if horizontal == 'Left':
             point.setX(point.x() - tip_width - padding)
 
