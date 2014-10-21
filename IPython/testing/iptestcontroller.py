@@ -15,12 +15,13 @@ import argparse
 import json
 import multiprocessing.pool
 import os
+import re
+import requests
 import shutil
 import signal
 import sys
 import subprocess
 import time
-import re
 
 from .iptest import (
     have, test_group_names as py_test_group_names, test_sections, StreamCapturer,
@@ -220,16 +221,18 @@ def all_js_groups():
 
 class JSController(TestController):
     """Run CasperJS tests """
+    
     requirements =  ['zmq', 'tornado', 'jinja2', 'casperjs', 'sqlite3',
                      'jsonschema']
     display_slimer_output = False
 
-    def __init__(self, section, xunit=True, engine='phantomjs'):
+    def __init__(self, section, xunit=True, engine='phantomjs', url=None):
         """Create new test runner."""
         TestController.__init__(self)
         self.engine = engine
         self.section = section
         self.xunit = xunit
+        self.url = url
         self.slimer_failure = re.compile('^FAIL.*', flags=re.MULTILINE)
         js_test_dir = get_js_test_dir()
         includes = '--includes=' + os.path.join(js_test_dir,'util.js')
@@ -247,14 +250,26 @@ class JSController(TestController):
         if self.xunit:
             self.add_xunit()
 
-        # start the ipython notebook, so we get the port number
-        self.server_port = 0
-        self._init_server()
-        if self.server_port:
-            self.cmd.append("--port=%i" % self.server_port)
+        # If a url was specified, use that for the testing.
+        if self.url:
+            try:
+                alive = requests.get(self.url).status_code == 200
+            except:
+                alive = False
+
+            if alive:
+                self.cmd.append("--url=%s" % self.url)
+            else:
+                raise Exception('Could not reach "%s".' % self.url)
         else:
-            # don't launch tests if the server didn't start
-            self.cmd = [sys.executable, '-c', 'raise SystemExit(1)']
+            # start the ipython notebook, so we get the port number
+            self.server_port = 0
+            self._init_server()
+            if self.server_port:
+                self.cmd.append("--port=%i" % self.server_port)
+            else:
+                # don't launch tests if the server didn't start
+                self.cmd = [sys.executable, '-c', 'raise SystemExit(1)']
 
     def add_xunit(self):
         xunit_file = os.path.abspath(self.section.replace('/','.') + '.xunit.xml')
@@ -401,7 +416,7 @@ def prepare_controllers(options):
             js_testgroups = all_js_groups()
 
     engine = 'slimerjs' if options.slimerjs else 'phantomjs'
-    c_js = [JSController(name, xunit=options.xunit, engine=engine) for name in js_testgroups]
+    c_js = [JSController(name, xunit=options.xunit, engine=engine, url=options.url) for name in js_testgroups]
     c_py = [PyTestController(name, options) for name in py_testgroups]
 
     controllers = c_py + c_js
@@ -508,6 +523,9 @@ def run_iptestall(options):
 
     slimerjs : bool
       Use slimerjs if it's installed instead of phantomjs for casperjs tests.
+
+    url : unicode
+      Address:port to use when running the JS tests.
 
     xunit : bool
       Produce Xunit XML output. This is written to multiple foo.xunit.xml files.
@@ -637,6 +655,7 @@ argparser.add_argument('--all', action='store_true',
                     help='Include slow tests not run by default.')
 argparser.add_argument('--slimerjs', action='store_true',
                     help="Use slimerjs if it's installed instead of phantomjs for casperjs tests.")
+argparser.add_argument('--url', help="URL to use for the JS tests.")
 argparser.add_argument('-j', '--fast', nargs='?', const=None, default=1, type=int,
                     help='Run test sections in parallel. This starts as many '
                     'processes as you have cores, or you can specify a number.')
