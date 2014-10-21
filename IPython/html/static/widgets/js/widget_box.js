@@ -74,13 +74,15 @@ define([
 
         add_child_model: function(model) {
             // Called when a model is added to the children list.
-            var view = this.create_child_view(model);
-            this.$box.append(view.$el);
+            var that = this;
+            this.create_child_view(model, {callback: function(view) {
+                that.$box.append(view.$el);
 
-            // Trigger the displayed event of the child view.
-            this.after_displayed(function() {
-                view.trigger('displayed');
-            });
+                // Trigger the displayed event of the child view.
+                that.after_displayed(function() {
+                    view.trigger('displayed');
+                });
+            }});
         },
     });
 

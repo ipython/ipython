@@ -317,18 +317,21 @@ define(["widgets/js/manager",
             // TODO: this is hacky, and makes the view depend on this cell attribute and widget manager behavior
             // it would be great to have the widget manager add the cell metadata
             // to the subview without having to add it here.
-            options = $.extend({ parent: this }, options || {});
-            var child_view = this.model.widget_manager.create_view(child_model, options, this);
-            
-            // Associate the view id with the model id.
-            if (this.child_model_views[child_model.id] === undefined) {
-                this.child_model_views[child_model.id] = [];
-            }
-            this.child_model_views[child_model.id].push(child_view.id);
+            var that = this;
+            var old_callback = options.callback || function(view) {};
+            options = $.extend({ parent: this, callback: function(child_view) {
+                // Associate the view id with the model id.
+                if (that.child_model_views[child_model.id] === undefined) {
+                    that.child_model_views[child_model.id] = [];
+                }
+                that.child_model_views[child_model.id].push(child_view.id);
 
-            // Remember the view by id.
-            this.child_views[child_view.id] = child_view;
-            return child_view;
+                // Remember the view by id.
+                that.child_views[child_view.id] = child_view;
+                old_callback(child_view);
+             }}, options || {});
+            
+            this.model.widget_manager.create_view(child_model, options);
         },
 
         pop_child_view: function(child_model) {

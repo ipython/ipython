@@ -7,7 +7,7 @@ define([
     "jquery",
     "base/js/namespace"
 ], function (_, Backbone, $, IPython) {
-
+    "use strict";
     //--------------------------------------------------------------------
     // WidgetManager class
     //--------------------------------------------------------------------
@@ -52,15 +52,14 @@ define([
             console.log("Could not determine where the display" + 
                 " message was from.  Widget will not be displayed");
         } else {
-            var view = this.create_view(model, {cell: cell});
-            if (view === null) {
-                console.error("View creation failed", model);
-            }
-            this._handle_display_view(view);
-            if (cell.widget_subarea) {
-                cell.widget_subarea.append(view.$el);
-            }
-            view.trigger('displayed');
+            var that = this;
+            this.create_view(model, {cell: cell, callback: function(view) {
+                that._handle_display_view(view);
+                if (cell.widget_subarea) {
+                    cell.widget_subarea.append(view.$el);
+                }
+                view.trigger('displayed');
+            }});
         }
     };
 
@@ -78,28 +77,43 @@ define([
         } 
         }
     };
+    
 
-    WidgetManager.prototype.create_view = function(model, options, view) {
+    WidgetManager.prototype.create_view = function(model, options) {
         // Creates a view for a particular model.
+        
         var view_name = model.get('_view_name');
-        var ViewType = WidgetManager._view_types[view_name];
-        if (ViewType) {
+        var view_mod = model.get('_view_module');
+        var errback = options.errback || function(err) {console.log(err);};
 
-            // If a view is passed into the method, use that view's cell as
-            // the cell for the view that is created.
-            options = options || {};
-            if (view !== undefined) {
-                options.cell = view.options.cell;
+        var instantiate_view = function(ViewType) {
+            if (ViewType) {
+                // If a view is passed into the method, use that view's cell as
+                // the cell for the view that is created.
+                options = options || {};
+                if (options.parent !== undefined) {
+                    options.cell = options.parent.options.cell;
+                }
+
+                // Create and render the view...
+                var parameters = {model: model, options: options};
+                var view = new ViewType(parameters);
+                view.render();
+                model.on('destroy', view.remove, view);
+                options.callback(view);
+            } else {
+                errback({unknown_view: true, view_name: view_name,
+                         view_module: view_mod});
             }
+        };
 
-            // Create and render the view...
-            var parameters = {model: model, options: options};
-            view = new ViewType(parameters);
-            view.render();
-            model.on('destroy', view.remove, view);
-            return view;
+        if (view_mod) {
+            require([view_mod], function(module) {
+                instantiate_view(module[view_name]);
+            }, errback);
+        } else {
+            instantiate_view(WidgetManager._view_types[view_name]);
         }
-        return null;
     };
 
     WidgetManager.prototype.get_msg_cell = function (msg_id) {
