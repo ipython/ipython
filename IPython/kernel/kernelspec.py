@@ -6,6 +6,7 @@ import sys
 
 pjoin = os.path.join
 
+from IPython.core.release import kernel_protocol_version
 from IPython.utils.path import get_ipython_dir
 from IPython.utils.py3compat import PY3
 from IPython.utils.traitlets import HasTraits, List, Unicode, Dict, Any
@@ -41,6 +42,7 @@ class KernelSpec(HasTraits):
     pygments_lexer = Unicode()
     env = Dict()
     resource_dir = Unicode()
+    msgspec = Unicode(kernel_protocol_version)
     
     def _codemirror_mode_default(self):
         return self.language
@@ -61,10 +63,12 @@ class KernelSpec(HasTraits):
     
     def to_dict(self):
         d = dict(argv=self.argv,
-                 env=self.env,
                  display_name=self.display_name,
                  language=self.language,
+                 msgspec=self.msgspec,
                 )
+        if self.env:
+            d['env'] = self.env
         if self.codemirror_mode != self.language:
             d['codemirror_mode'] = self.codemirror_mode
         if self.pygments_lexer != self.language:
@@ -115,15 +119,16 @@ class KernelSpecManager(HasTraits):
         """Makes a kernel directory for the native kernel.
         
         The native kernel is the kernel using the same Python runtime as this
-        process. This will put its informatino in the user kernels directory.
+        process. This will put its information in the user kernels directory.
         """
-        return {'argv': make_ipkernel_cmd(),
-               'display_name': 'IPython (Python %d)' % (3 if PY3 else 2),
-               'language': 'python',
-               'codemirror_mode': {'name': 'ipython',
-                                   'version': sys.version_info[0]},
-               'pygments_lexer': 'ipython%d' % (3 if PY3 else 2),
-              }
+        return KernelSpec(
+            argv=make_ipkernel_cmd(),
+            language='python',
+            display_name='IPython (Python %d)' % (3 if PY3 else 2),
+            codemirror_mode={'name': 'ipython',
+                             'version': sys.version_info[0]},
+           pygments_lexer='ipython%d' % (3 if PY3 else 2),
+        ).to_dict()
 
     @property
     def _native_kernel_resource_dir(self):
@@ -204,7 +209,7 @@ class KernelSpecManager(HasTraits):
         path = self._get_destination_dir(NATIVE_KERNEL_NAME, system=system)
         os.makedirs(path, mode=0o755)
         with open(pjoin(path, 'kernel.json'), 'w') as f:
-            json.dump(self._native_kernel_dict, f, indent=1)
+            json.dump(self._native_kernel_dict, f, indent=1, sort_keys=True)
         # TODO: Copy icons into directory
         return path
 

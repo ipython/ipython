@@ -10,6 +10,7 @@ from IPython.kernel import kernelspec
 sample_kernel_json = {'argv':['cat', '{connection_file}'],
                       'display_name':'Test kernel',
                       'language':'bash',
+                      'msgspec': '4.0',
                      }
 
 class KernelSpecTests(unittest.TestCase):

@@ -116,6 +116,8 @@ JSON serialised dictionary containing the following keys and values:
   stored in notebook metadata. This may be used by syntax highlighters to guess
   how to parse code in a notebook, and frontends may eventually use it to
   identify alternative kernels that can run some code.
+- **msgspec**: The version of the :ref:`message spec <messaging>` implemented by the kernel
+  as a version string, e.g. `'5.0'`.
 - **codemirror_mode** (optional): The `codemirror mode <http://codemirror.net/mode/index.html>`_
   to use for code in this language. This can be a string or a dictionary, as
   passed to codemirror config. This only needs to be specified if it does not
@@ -132,14 +134,21 @@ JSON serialised dictionary containing the following keys and values:
 For example, the kernel.json file for IPython looks like this::
 
     {
-     "argv": ["python3", "-c", "from IPython.kernel.zmq.kernelapp import main; main()", 
-              "-f", "{connection_file}"], 
+     "argv": [
+      "python3",
+      "-m",
+      "IPython.kernel",
+      "-f",
+      "{connection_file}"
+     ],
      "codemirror_mode": {
-      "version": 3, 
-      "name": "ipython"
-     }, 
-     "display_name": "IPython (Python 3)", 
-     "language": "python"
+      "name": "ipython",
+      "version": 3
+     },
+     "display_name": "IPython (Python 3)",
+     "language": "python",
+     "msgspec": "5.0",
+     "pygments_lexer": "ipython3"
     }
 
 To see the available kernel specs, run::
