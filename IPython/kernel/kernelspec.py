@@ -117,8 +117,7 @@ class KernelSpecManager(HasTraits):
         The native kernel is the kernel using the same Python runtime as this
         process. This will put its informatino in the user kernels directory.
         """
-        return {'argv':make_ipkernel_cmd(
-                       'from IPython.kernel.zmq.kernelapp import main; main()'),
+        return {'argv': make_ipkernel_cmd(),
                'display_name': 'IPython (Python %d)' % (3 if PY3 else 2),
                'language': 'python',
                'codemirror_mode': {'name': 'ipython',
