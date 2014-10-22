@@ -12,7 +12,8 @@ before_install:
     - sudo add-apt-repository -y ppa:pcarrier/ppa
     - sudo apt-get update
     - sudo apt-get install pandoc casperjs nodejs
+    - python -m IPython.external.mathjax
 install:
-    - python setup.py install -q 
+    - python setup.py install -q
 script:
     - cd /tmp && iptest
