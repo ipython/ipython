@@ -42,7 +42,7 @@ class Comm(LoggingConfigurable):
     _msg_callback = Any()
     _close_callback = Any()
     
-    _closed = Bool(False)
+    _closed = Bool(True)
     comm_id = Unicode()
     def _comm_id_default(self):
         return uuid.uuid4().hex
@@ -56,6 +56,8 @@ class Comm(LoggingConfigurable):
         if self.primary:
             # I am primary, open my peer.
             self.open(data)
+        else:
+            self._closed = False
     
     def _publish_msg(self, msg_type, data=None, metadata=None, buffers=None, **keys):
         """Helper for sending a comm message on IOPub"""
@@ -86,24 +88,24 @@ class Comm(LoggingConfigurable):
                         "and a comm_manager attached to that kernel.")
 
         comm_manager.register_comm(self)
-        self._closed = False
         self._publish_msg('comm_open',
             data=data, metadata=metadata, buffers=buffers,
             target_name=self.target_name,
         )
+        self._closed = False
     
     def close(self, data=None, metadata=None, buffers=None):
         """Close the frontend-side version of this comm"""
         if self._closed:
             # only close once
             return
+        self._closed = True
         if data is None:
             data = self._close_data
         self._publish_msg('comm_close',
             data=data, metadata=metadata, buffers=buffers,
         )
         self.kernel.comm_manager.unregister_comm(self)
-        self._closed = True
     
     def send(self, data=None, metadata=None, buffers=None):
         """Send a message to the frontend-side version of this comm"""
