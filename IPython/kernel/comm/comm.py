@@ -88,11 +88,14 @@ class Comm(LoggingConfigurable):
                         "and a comm_manager attached to that kernel.")
 
         comm_manager.register_comm(self)
-        self._publish_msg('comm_open',
-            data=data, metadata=metadata, buffers=buffers,
-            target_name=self.target_name,
-        )
-        self._closed = False
+        try:
+            self._publish_msg('comm_open',
+                              data=data, metadata=metadata, buffers=buffers,
+                              target_name=self.target_name)
+            self._closed = False
+        except:
+            comm_manager.unregister_comm(self)
+            raise
     
     def close(self, data=None, metadata=None, buffers=None):
         """Close the frontend-side version of this comm"""
