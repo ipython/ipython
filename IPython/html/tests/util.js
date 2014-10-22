@@ -58,7 +58,10 @@ casper.page_loaded = function() {
 casper.kernel_running = function() {
     // Return whether or not the kernel is running.
     return this.evaluate(function() {
-        return IPython.notebook.kernel.is_connected();
+        return IPython &&
+        IPython.notebook &&
+        IPython.notebook.kernel &&
+        IPython.notebook.kernel.is_connected();
     });
 };
 
