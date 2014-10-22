@@ -61,27 +61,23 @@ class FileContentsManager(ContentsManager):
         except OSError as e:
             self.log.debug("copystat on %s failed", dest, exc_info=True)
 
-    def _get_os_path(self, name=None, path=''):
+    def _get_os_path(self, path=''):
         """Given a filename and API path, return its file system
         path.
 
         Parameters
         ----------
-        name : string
-            A filename
         path : string
             The relative API path to the named file.
 
         Returns
         -------
         path : string
-            API path to be evaluated relative to root_dir.
+            Native, absolute OS path to for a file.
         """
-        if name is not None:
-            path = url_path_join(path, name)
         return to_os_path(path, self.root_dir)
 
-    def path_exists(self, path):
+    def dir_exists(self, path):
         """Does the API-style path refer to an extant directory?
 
         API-style wrapper for os.path.isdir
@@ -112,25 +108,22 @@ class FileContentsManager(ContentsManager):
 
         Returns
         -------
-        exists : bool
-            Whether the path is hidden.
-
+        hidden : bool
+            Whether the path exists and is hidden.
         """
         path = path.strip('/')
         os_path = self._get_os_path(path=path)
         return is_hidden(os_path, self.root_dir)
 
-    def file_exists(self, name, path=''):
+    def file_exists(self, path):
         """Returns True if the file exists, else returns False.
 
         API-style wrapper for os.path.isfile
 
         Parameters
         ----------
-        name : string
-            The name of the file you are checking.
         path : string
-            The relative path to the file's directory (with '/' as separator)
+            The relative path to the file (with '/' as separator)
 
         Returns
         -------
@@ -138,20 +131,18 @@ class FileContentsManager(ContentsManager):
             Whether the file exists.
         """
         path = path.strip('/')
-        nbpath = self._get_os_path(name, path=path)
+        nbpath = self._get_os_path(path)
         return os.path.isfile(nbpath)
 
-    def exists(self, name=None, path=''):
-        """Returns True if the path [and name] exists, else returns False.
+    def exists(self, path):
+        """Returns True if the path exists, else returns False.
 
         API-style wrapper for os.path.exists
 
         Parameters
         ----------
-        name : string
-            The name of the file you are checking.
         path : string
-            The relative path to the file's directory (with '/' as separator)
+            The API path to the file (with '/' as separator)
 
         Returns
         -------
@@ -159,18 +150,18 @@ class FileContentsManager(ContentsManager):
             Whether the target exists.
         """
         path = path.strip('/')
-        os_path = self._get_os_path(name, path=path)
+        os_path = self._get_os_path(path=path)
         return os.path.exists(os_path)
 
-    def _base_model(self, name, path=''):
+    def _base_model(self, path):
         """Build the common base of a contents model"""
-        os_path = self._get_os_path(name, path)
+        os_path = self._get_os_path(path)
         info = os.stat(os_path)
         last_modified = tz.utcfromtimestamp(info.st_mtime)
         created = tz.utcfromtimestamp(info.st_ctime)
         # Create the base model.
         model = {}
-        model['name'] = name
+        model['name'] = path.rsplit('/', 1)[-1]
         model['path'] = path
         model['last_modified'] = last_modified
         model['created'] = created
@@ -179,12 +170,12 @@ class FileContentsManager(ContentsManager):
         model['message'] = None
         return model
 
-    def _dir_model(self, name, path='', content=True):
+    def _dir_model(self, path, content=True):
         """Build a model for a directory
 
         if content is requested, will include a listing of the directory
         """
-        os_path = self._get_os_path(name, path)
+        os_path = self._get_os_path(path)
 
         four_o_four = u'directory does not exist: %r' % os_path
 
@@ -196,39 +187,36 @@ class FileContentsManager(ContentsManager):
             )
             raise web.HTTPError(404, four_o_four)
 
-        if name is None:
-            if '/' in path:
-                path, name = path.rsplit('/', 1)
-            else:
-                name = ''
-        model = self._base_model(name, path)
+        model = self._base_model(path)
         model['type'] = 'directory'
-        dir_path = u'{}/{}'.format(path, name)
         if content:
             model['content'] = contents = []
-            for os_path in glob.glob(self._get_os_path('*', dir_path)):
+            for os_path in glob.glob(self._get_os_path('%s/*' % path)):
                 name = os.path.basename(os_path)
                 # skip over broken symlinks in listing
                 if not os.path.exists(os_path):
                     self.log.warn("%s doesn't exist", os_path)
                     continue
                 if self.should_list(name) and not is_hidden(os_path, self.root_dir):
-                    contents.append(self.get_model(name=name, path=dir_path, content=False))
+                    contents.append(self.get_model(
+                        path='%s/%s' % (path, name),
+                        content=False)
+                    )
 
             model['format'] = 'json'
 
         return model
 
-    def _file_model(self, name, path='', content=True):
+    def _file_model(self, path, content=True):
         """Build a model for a file
 
         if content is requested, include the file contents.
         UTF-8 text files will be unicode, binary files will be base64-encoded.
         """
-        model = self._base_model(name, path)
+        model = self._base_model(path)
         model['type'] = 'file'
         if content:
-            os_path = self._get_os_path(name, path)
+            os_path = self._get_os_path(path)
             with io.open(os_path, 'rb') as f:
                 bcontent = f.read()
             try:
@@ -241,34 +229,32 @@ class FileContentsManager(ContentsManager):
         return model
 
 
-    def _notebook_model(self, name, path='', content=True):
+    def _notebook_model(self, path, content=True):
         """Build a notebook model
 
         if content is requested, the notebook content will be populated
         as a JSON structure (not double-serialized)
         """
-        model = self._base_model(name, path)
+        model = self._base_model(path)
         model['type'] = 'notebook'
         if content:
-            os_path = self._get_os_path(name, path)
+            os_path = self._get_os_path(path)
             with io.open(os_path, 'r', encoding='utf-8') as f:
                 try:
                     nb = nbformat.read(f, as_version=4)
                 except Exception as e:
                     raise web.HTTPError(400, u"Unreadable Notebook: %s %r" % (os_path, e))
-            self.mark_trusted_cells(nb, name, path)
+            self.mark_trusted_cells(nb, path)
             model['content'] = nb
             model['format'] = 'json'
             self.validate_notebook_model(model)
         return model
 
-    def get_model(self, name, path='', content=True):
-        """ Takes a path and name for an entity and returns its model
+    def get_model(self, path, content=True):
+        """ Takes a path for an entity and returns its model
 
         Parameters
         ----------
-        name : str
-            the name of the target
         path : str
             the API path that describes the relative path for the target
 
@@ -280,32 +266,29 @@ class FileContentsManager(ContentsManager):
         """
         path = path.strip('/')
 
-        if not self.exists(name=name, path=path):
-            raise web.HTTPError(404, u'No such file or directory: %s/%s' % (path, name))
+        if not self.exists(path):
+            raise web.HTTPError(404, u'No such file or directory: %s' % path)
 
-        os_path = self._get_os_path(name, path)
+        os_path = self._get_os_path(path)
         if os.path.isdir(os_path):
-            model = self._dir_model(name, path, content)
-        elif name.endswith('.ipynb'):
-            model = self._notebook_model(name, path, content)
+            model = self._dir_model(path, content=content)
+        elif path.endswith('.ipynb'):
+            model = self._notebook_model(path, content=content)
         else:
-            model = self._file_model(name, path, content)
+            model = self._file_model(path, content=content)
         return model
 
-    def _save_notebook(self, os_path, model, name='', path=''):
+    def _save_notebook(self, os_path, model, path=''):
         """save a notebook file"""
         # Save the notebook file
         nb = nbformat.from_dict(model['content'])
 
-        self.check_and_sign(nb, name, path)
-
-        if 'name' in nb['metadata']:
-            nb['metadata']['name'] = u''
+        self.check_and_sign(nb, path)
 
         with atomic_writing(os_path, encoding='utf-8') as f:
             nbformat.write(nb, f, version=nbformat.NO_CONVERT)
 
-    def _save_file(self, os_path, model, name='', path=''):
+    def _save_file(self, os_path, model, path=''):
         """save a non-notebook file"""
         fmt = model.get('format', None)
         if fmt not in {'text', 'base64'}:
@@ -322,7 +305,7 @@ class FileContentsManager(ContentsManager):
         with atomic_writing(os_path, text=False) as f:
             f.write(bcontent)
 
-    def _save_directory(self, os_path, model, name='', path=''):
+    def _save_directory(self, os_path, model, path=''):
         """create a directory"""
         if is_hidden(os_path, self.root_dir):
             raise web.HTTPError(400, u'Cannot create hidden directory %r' % os_path)
@@ -333,7 +316,7 @@ class FileContentsManager(ContentsManager):
         else:
             self.log.debug("Directory %r already exists", os_path)
 
-    def save(self, model, name='', path=''):
+    def save(self, model, path=''):
         """Save the file model and return the model with no content."""
         path = path.strip('/')
 
@@ -343,24 +326,18 @@ class FileContentsManager(ContentsManager):
             raise web.HTTPError(400, u'No file content provided')
 
         # One checkpoint should always exist
-        if self.file_exists(name, path) and not self.list_checkpoints(name, path):
-            self.create_checkpoint(name, path)
+        if self.file_exists(path) and not self.list_checkpoints(path):
+            self.create_checkpoint(path)
 
-        new_path = model.get('path', path).strip('/')
-        new_name = model.get('name', name)
-
-        if path != new_path or name != new_name:
-            self.rename(name, path, new_name, new_path)
-
-        os_path = self._get_os_path(new_name, new_path)
+        os_path = self._get_os_path(path)
         self.log.debug("Saving %s", os_path)
         try:
             if model['type'] == 'notebook':
-                self._save_notebook(os_path, model, new_name, new_path)
+                self._save_notebook(os_path, model, path)
             elif model['type'] == 'file':
-                self._save_file(os_path, model, new_name, new_path)
+                self._save_file(os_path, model, path)
             elif model['type'] == 'directory':
-                self._save_directory(os_path, model, new_name, new_path)
+                self._save_directory(os_path, model, path)
             else:
                 raise web.HTTPError(400, "Unhandled contents type: %s" % model['type'])
         except web.HTTPError:
@@ -373,29 +350,28 @@ class FileContentsManager(ContentsManager):
             self.validate_notebook_model(model)
             validation_message = model.get('message', None)
 
-        model = self.get_model(new_name, new_path, content=False)
+        model = self.get_model(path, content=False)
         if validation_message:
             model['message'] = validation_message
         return model
 
-    def update(self, model, name, path=''):
-        """Update the file's path and/or name
+    def update(self, model, path):
+        """Update the file's path
 
         For use in PATCH requests, to enable renaming a file without
         re-uploading its contents. Only used for renaming at the moment.
         """
         path = path.strip('/')
-        new_name = model.get('name', name)
         new_path = model.get('path', path).strip('/')
-        if path != new_path or name != new_name:
-            self.rename(name, path, new_name, new_path)
-        model = self.get_model(new_name, new_path, content=False)
+        if path != new_path:
+            self.rename(path, new_path)
+        model = self.get_model(new_path, content=False)
         return model
 
-    def delete(self, name, path=''):
-        """Delete file by name and path."""
+    def delete(self, path):
+        """Delete file at path."""
         path = path.strip('/')
-        os_path = self._get_os_path(name, path)
+        os_path = self._get_os_path(path)
         rm = os.unlink
         if os.path.isdir(os_path):
             listing = os.listdir(os_path)
@@ -406,9 +382,9 @@ class FileContentsManager(ContentsManager):
             raise web.HTTPError(404, u'File does not exist: %s' % os_path)
 
         # clear checkpoints
-        for checkpoint in self.list_checkpoints(name, path):
+        for checkpoint in self.list_checkpoints(path):
             checkpoint_id = checkpoint['id']
-            cp_path = self.get_checkpoint_path(checkpoint_id, name, path)
+            cp_path = self.get_checkpoint_path(checkpoint_id, path)
             if os.path.isfile(cp_path):
                 self.log.debug("Unlinking checkpoint %s", cp_path)
                 os.unlink(cp_path)
@@ -420,19 +396,19 @@ class FileContentsManager(ContentsManager):
             self.log.debug("Unlinking file %s", os_path)
             rm(os_path)
 
-    def rename(self, old_name, old_path, new_name, new_path):
+    def rename(self, old_path, new_path):
         """Rename a file."""
         old_path = old_path.strip('/')
         new_path = new_path.strip('/')
-        if new_name == old_name and new_path == old_path:
+        if new_path == old_path:
             return
 
-        new_os_path = self._get_os_path(new_name, new_path)
-        old_os_path = self._get_os_path(old_name, old_path)
+        new_os_path = self._get_os_path(new_path)
+        old_os_path = self._get_os_path(old_path)
 
         # Should we proceed with the move?
         if os.path.isfile(new_os_path):
-            raise web.HTTPError(409, u'File with name already exists: %s' % new_os_path)
+            raise web.HTTPError(409, u'File already exists: %s' % new_os_path)
 
         # Move the file
         try:
@@ -441,36 +417,38 @@ class FileContentsManager(ContentsManager):
             raise web.HTTPError(500, u'Unknown error renaming file: %s %s' % (old_os_path, e))
 
         # Move the checkpoints
-        old_checkpoints = self.list_checkpoints(old_name, old_path)
+        old_checkpoints = self.list_checkpoints(old_path)
         for cp in old_checkpoints:
             checkpoint_id = cp['id']
-            old_cp_path = self.get_checkpoint_path(checkpoint_id, old_name, old_path)
-            new_cp_path = self.get_checkpoint_path(checkpoint_id, new_name, new_path)
+            old_cp_path = self.get_checkpoint_path(checkpoint_id, old_path)
+            new_cp_path = self.get_checkpoint_path(checkpoint_id, new_path)
             if os.path.isfile(old_cp_path):
                 self.log.debug("Renaming checkpoint %s -> %s", old_cp_path, new_cp_path)
                 shutil.move(old_cp_path, new_cp_path)
 
     # Checkpoint-related utilities
 
-    def get_checkpoint_path(self, checkpoint_id, name, path=''):
+    def get_checkpoint_path(self, checkpoint_id, path):
         """find the path to a checkpoint"""
         path = path.strip('/')
+        parent, name = ('/' + path).rsplit('/', 1)
+        parent = parent.strip('/')
         basename, ext = os.path.splitext(name)
         filename = u"{name}-{checkpoint_id}{ext}".format(
             name=basename,
             checkpoint_id=checkpoint_id,
             ext=ext,
         )
-        os_path = self._get_os_path(path=path)
+        os_path = self._get_os_path(path=parent)
         cp_dir = os.path.join(os_path, self.checkpoint_dir)
         ensure_dir_exists(cp_dir)
         cp_path = os.path.join(cp_dir, filename)
         return cp_path
 
-    def get_checkpoint_model(self, checkpoint_id, name, path=''):
+    def get_checkpoint_model(self, checkpoint_id, path):
         """construct the info dict for a given checkpoint"""
         path = path.strip('/')
-        cp_path = self.get_checkpoint_path(checkpoint_id, name, path)
+        cp_path = self.get_checkpoint_path(checkpoint_id, path)
         stats = os.stat(cp_path)
         last_modified = tz.utcfromtimestamp(stats.st_mtime)
         info = dict(
@@ -481,43 +459,43 @@ class FileContentsManager(ContentsManager):
 
     # public checkpoint API
 
-    def create_checkpoint(self, name, path=''):
+    def create_checkpoint(self, path):
         """Create a checkpoint from the current state of a file"""
         path = path.strip('/')
-        src_path = self._get_os_path(name, path)
+        src_path = self._get_os_path(path)
         # only the one checkpoint ID:
         checkpoint_id = u"checkpoint"
-        cp_path = self.get_checkpoint_path(checkpoint_id, name, path)
-        self.log.debug("creating checkpoint for %s", name)
+        cp_path = self.get_checkpoint_path(checkpoint_id, path)
+        self.log.debug("creating checkpoint for %s", path)
         self._copy(src_path, cp_path)
 
         # return the checkpoint info
-        return self.get_checkpoint_model(checkpoint_id, name, path)
+        return self.get_checkpoint_model(checkpoint_id, path)
 
-    def list_checkpoints(self, name, path=''):
+    def list_checkpoints(self, path):
         """list the checkpoints for a given file
 
         This contents manager currently only supports one checkpoint per file.
         """
         path = path.strip('/')
         checkpoint_id = "checkpoint"
-        os_path = self.get_checkpoint_path(checkpoint_id, name, path)
+        os_path = self.get_checkpoint_path(checkpoint_id, path)
         if not os.path.exists(os_path):
             return []
         else:
-            return [self.get_checkpoint_model(checkpoint_id, name, path)]
+            return [self.get_checkpoint_model(checkpoint_id, path)]
 
 
-    def restore_checkpoint(self, checkpoint_id, name, path=''):
+    def restore_checkpoint(self, checkpoint_id, path):
         """restore a file to a checkpointed state"""
         path = path.strip('/')
-        self.log.info("restoring %s from checkpoint %s", name, checkpoint_id)
-        nb_path = self._get_os_path(name, path)
-        cp_path = self.get_checkpoint_path(checkpoint_id, name, path)
+        self.log.info("restoring %s from checkpoint %s", path, checkpoint_id)
+        nb_path = self._get_os_path(path)
+        cp_path = self.get_checkpoint_path(checkpoint_id, path)
         if not os.path.isfile(cp_path):
             self.log.debug("checkpoint file does not exist: %s", cp_path)
             raise web.HTTPError(404,
-                u'checkpoint does not exist: %s-%s' % (name, checkpoint_id)
+                u'checkpoint does not exist: %s@%s' % (path, checkpoint_id)
             )
         # ensure notebook is readable (never restore from an unreadable notebook)
         if cp_path.endswith('.ipynb'):
@@ -526,13 +504,13 @@ class FileContentsManager(ContentsManager):
         self._copy(cp_path, nb_path)
         self.log.debug("copying %s -> %s", cp_path, nb_path)
 
-    def delete_checkpoint(self, checkpoint_id, name, path=''):
+    def delete_checkpoint(self, checkpoint_id, path):
         """delete a file's checkpoint"""
         path = path.strip('/')
-        cp_path = self.get_checkpoint_path(checkpoint_id, name, path)
+        cp_path = self.get_checkpoint_path(checkpoint_id, path)
         if not os.path.isfile(cp_path):
             raise web.HTTPError(404,
-                u'Checkpoint does not exist: %s%s-%s' % (path, name, checkpoint_id)
+                u'Checkpoint does not exist: %s@%s' % (path, checkpoint_id)
             )
         self.log.debug("unlinking %s", cp_path)
         os.unlink(cp_path)
@@ -540,6 +518,10 @@ class FileContentsManager(ContentsManager):
     def info_string(self):
         return "Serving notebooks from local directory: %s" % self.root_dir
 
-    def get_kernel_path(self, name, path='', model=None):
+    def get_kernel_path(self, path, model=None):
         """Return the initial working dir a kernel associated with a given notebook"""
-        return os.path.join(self.root_dir, path)
+        if '/' in path:
+            os_dir = path.rsplit('/', 1)[0]
+        else:
+            os_dir = ''
+        return self._get_os_path(os_dir)

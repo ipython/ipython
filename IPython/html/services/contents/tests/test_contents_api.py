@@ -46,8 +46,8 @@ class API(object):
     def list(self, path='/'):
         return self._req('GET', path)
 
-    def read(self, name, path='/'):
-        return self._req('GET', url_path_join(path, name))
+    def read(self, path):
+        return self._req('GET', path)
 
     def create_untitled(self, path='/', ext=None):
         body = None
@@ -55,47 +55,44 @@ class API(object):
             body = json.dumps({'ext': ext})
         return self._req('POST', path, body)
 
-    def upload_untitled(self, body, path='/'):
-        return self._req('POST', path, body)
-
     def copy_untitled(self, copy_from, path='/'):
         body = json.dumps({'copy_from':copy_from})
         return self._req('POST', path, body)
 
-    def create(self, name, path='/'):
-        return self._req('PUT', url_path_join(path, name))
+    def create(self, path='/'):
+        return self._req('PUT', path)
 
-    def upload(self, name, body, path='/'):
-        return self._req('PUT', url_path_join(path, name), body)
+    def upload(self, path, body):
+        return self._req('PUT', path, body)
 
-    def mkdir(self, name, path='/'):
-        return self._req('PUT', url_path_join(path, name), json.dumps({'type': 'directory'}))
+    def mkdir(self, path='/'):
+        return self._req('PUT', path, json.dumps({'type': 'directory'}))
 
-    def copy(self, copy_from, copy_to, path='/'):
+    def copy(self, copy_from, path):
         body = json.dumps({'copy_from':copy_from})
-        return self._req('PUT', url_path_join(path, copy_to), body)
+        return self._req('PUT', path, body)
 
-    def save(self, name, body, path='/'):
-        return self._req('PUT', url_path_join(path, name), body)
+    def save(self, path, body):
+        return self._req('PUT', path, body)
 
-    def delete(self, name, path='/'):
-        return self._req('DELETE', url_path_join(path, name))
+    def delete(self, path='/'):
+        return self._req('DELETE', path)
 
-    def rename(self, name, path, new_name):
-        body = json.dumps({'name': new_name})
-        return self._req('PATCH', url_path_join(path, name), body)
+    def rename(self, path, new_path):
+        body = json.dumps({'path': new_path})
+        return self._req('PATCH', path, body)
 
-    def get_checkpoints(self, name, path):
-        return self._req('GET', url_path_join(path, name, 'checkpoints'))
+    def get_checkpoints(self,  path):
+        return self._req('GET', url_path_join(path, 'checkpoints'))
 
-    def new_checkpoint(self, name, path):
-        return self._req('POST', url_path_join(path, name, 'checkpoints'))
+    def new_checkpoint(self,  path):
+        return self._req('POST', url_path_join(path, 'checkpoints'))
 
-    def restore_checkpoint(self, name, path, checkpoint_id):
-        return self._req('POST', url_path_join(path, name, 'checkpoints', checkpoint_id))
+    def restore_checkpoint(self, path, checkpoint_id):
+        return self._req('POST', url_path_join(path, 'checkpoints', checkpoint_id))
 
-    def delete_checkpoint(self, name, path, checkpoint_id):
-        return self._req('DELETE', url_path_join(path, name, 'checkpoints', checkpoint_id))
+    def delete_checkpoint(self, path, checkpoint_id):
+        return self._req('DELETE', url_path_join(path, 'checkpoints', checkpoint_id))
 
 class APITest(NotebookTestBase):
     """Test the kernels web service API"""
@@ -130,8 +127,6 @@ class APITest(NotebookTestBase):
         nbdir = self.notebook_dir.name
         self.blob = os.urandom(100)
         self.b64_blob = base64.encodestring(self.blob).decode('ascii')
-
-
 
         for d in (self.dirs + self.hidden_dirs):
             d.replace('/', os.sep)
@@ -178,12 +173,12 @@ class APITest(NotebookTestBase):
         nbs = notebooks_only(self.api.list(u'/unicodé/').json())
         self.assertEqual(len(nbs), 1)
         self.assertEqual(nbs[0]['name'], 'innonascii.ipynb')
-        self.assertEqual(nbs[0]['path'], u'unicodé')
+        self.assertEqual(nbs[0]['path'], u'unicodé/innonascii.ipynb')
 
         nbs = notebooks_only(self.api.list('/foo/bar/').json())
         self.assertEqual(len(nbs), 1)
         self.assertEqual(nbs[0]['name'], 'baz.ipynb')
-        self.assertEqual(nbs[0]['path'], 'foo/bar')
+        self.assertEqual(nbs[0]['path'], 'foo/bar/baz.ipynb')
 
         nbs = notebooks_only(self.api.list('foo').json())
         self.assertEqual(len(nbs), 4)
@@ -208,8 +203,10 @@ class APITest(NotebookTestBase):
 
     def test_get_nb_contents(self):
         for d, name in self.dirs_nbs:
-            nb = self.api.read('%s.ipynb' % name, d+'/').json()
+            path = url_path_join(d, name + '.ipynb')
+            nb = self.api.read(path).json()
             self.assertEqual(nb['name'], u'%s.ipynb' % name)
+            self.assertEqual(nb['path'], path)
             self.assertEqual(nb['type'], 'notebook')
             self.assertIn('content', nb)
             self.assertEqual(nb['format'], 'json')
@@ -220,12 +217,14 @@ class APITest(NotebookTestBase):
     def test_get_contents_no_such_file(self):
         # Name that doesn't exist - should be a 404
         with assert_http_error(404):
-            self.api.read('q.ipynb', 'foo')
+            self.api.read('foo/q.ipynb')
 
     def test_get_text_file_contents(self):
         for d, name in self.dirs_nbs:
-            model = self.api.read(u'%s.txt' % name, d+'/').json()
+            path = url_path_join(d, name + '.txt')
+            model = self.api.read(path).json()
             self.assertEqual(model['name'], u'%s.txt' % name)
+            self.assertEqual(model['path'], path)
             self.assertIn('content', model)
             self.assertEqual(model['format'], 'text')
             self.assertEqual(model['type'], 'file')
@@ -233,12 +232,14 @@ class APITest(NotebookTestBase):
 
         # Name that doesn't exist - should be a 404
         with assert_http_error(404):
-            self.api.read('q.txt', 'foo')
+            self.api.read('foo/q.txt')
 
     def test_get_binary_file_contents(self):
         for d, name in self.dirs_nbs:
-            model = self.api.read(u'%s.blob' % name, d+'/').json()
+            path = url_path_join(d, name + '.blob')
+            model = self.api.read(path).json()
             self.assertEqual(model['name'], u'%s.blob' % name)
+            self.assertEqual(model['path'], path)
             self.assertIn('content', model)
             self.assertEqual(model['format'], 'base64')
             self.assertEqual(model['type'], 'file')
@@ -247,66 +248,59 @@ class APITest(NotebookTestBase):
 
         # Name that doesn't exist - should be a 404
         with assert_http_error(404):
-            self.api.read('q.txt', 'foo')
+            self.api.read('foo/q.txt')
 
-    def _check_created(self, resp, name, path, type='notebook'):
+    def _check_created(self, resp, path, type='notebook'):
         self.assertEqual(resp.status_code, 201)
         location_header = py3compat.str_to_unicode(resp.headers['Location'])
-        self.assertEqual(location_header, url_escape(url_path_join(u'/api/contents', path, name)))
+        self.assertEqual(location_header, url_escape(url_path_join(u'/api/contents', path)))
         rjson = resp.json()
-        self.assertEqual(rjson['name'], name)
+        self.assertEqual(rjson['name'], path.rsplit('/', 1)[-1])
         self.assertEqual(rjson['path'], path)
         self.assertEqual(rjson['type'], type)
         isright = os.path.isdir if type == 'directory' else os.path.isfile
         assert isright(pjoin(
             self.notebook_dir.name,
             path.replace('/', os.sep),
-            name,
         ))
 
     def test_create_untitled(self):
         resp = self.api.create_untitled(path=u'å b')
-        self._check_created(resp, 'Untitled0.ipynb', u'å b')
+        self._check_created(resp, u'å b/Untitled0.ipynb')
 
         # Second time
         resp = self.api.create_untitled(path=u'å b')
-        self._check_created(resp, 'Untitled1.ipynb', u'å b')
+        self._check_created(resp, u'å b/Untitled1.ipynb')
 
         # And two directories down
         resp = self.api.create_untitled(path='foo/bar')
-        self._check_created(resp, 'Untitled0.ipynb', 'foo/bar')
+        self._check_created(resp, 'foo/bar/Untitled0.ipynb')
 
     def test_create_untitled_txt(self):
         resp = self.api.create_untitled(path='foo/bar', ext='.txt')
-        self._check_created(resp, 'untitled0.txt', 'foo/bar', type='file')
+        self._check_created(resp, 'foo/bar/untitled0.txt', type='file')
 
-        resp = self.api.read(path='foo/bar', name='untitled0.txt')
+        resp = self.api.read(path='foo/bar/untitled0.txt')
         model = resp.json()
         self.assertEqual(model['type'], 'file')
         self.assertEqual(model['format'], 'text')
         self.assertEqual(model['content'], '')
 
-    def test_upload_untitled(self):
-        nb = new_notebook()
-        nbmodel = {'content': nb, 'type': 'notebook'}
-        resp = self.api.upload_untitled(path=u'å b',
-                                              body=json.dumps(nbmodel))
-        self._check_created(resp, 'Untitled0.ipynb', u'å b')
-
     def test_upload(self):
         nb = new_notebook()
         nbmodel = {'content': nb, 'type': 'notebook'}
-        resp = self.api.upload(u'Upload tést.ipynb', path=u'å b',
-                                              body=json.dumps(nbmodel))
-        self._check_created(resp, u'Upload tést.ipynb', u'å b')
+        path = u'å b/Upload tést.ipynb'
+        resp = self.api.upload(path, body=json.dumps(nbmodel))
+        self._check_created(resp, path)
 
     def test_mkdir(self):
-        resp = self.api.mkdir(u'New ∂ir', path=u'å b')
-        self._check_created(resp, u'New ∂ir', u'å b', type='directory')
+        path = u'å b/New ∂ir'
+        resp = self.api.mkdir(path)
+        self._check_created(resp, path, type='directory')
 
     def test_mkdir_hidden_400(self):
         with assert_http_error(400):
-            resp = self.api.mkdir(u'.hidden', path=u'å b')
+            resp = self.api.mkdir(u'å b/.hidden')
 
     def test_upload_txt(self):
         body = u'ünicode téxt'
@@ -315,11 +309,11 @@ class APITest(NotebookTestBase):
             'format'  : 'text',
             'type'    : 'file',
         }
-        resp = self.api.upload(u'Upload tést.txt', path=u'å b',
-                                              body=json.dumps(model))
+        path = u'å b/Upload tést.txt'
+        resp = self.api.upload(path, body=json.dumps(model))
 
         # check roundtrip
-        resp = self.api.read(path=u'å b', name=u'Upload tést.txt')
+        resp = self.api.read(path)
         model = resp.json()
         self.assertEqual(model['type'], 'file')
         self.assertEqual(model['format'], 'text')
@@ -333,13 +327,14 @@ class APITest(NotebookTestBase):
             'format'  : 'base64',
             'type'    : 'file',
         }
-        resp = self.api.upload(u'Upload tést.blob', path=u'å b',
-                                              body=json.dumps(model))
+        path = u'å b/Upload tést.blob'
+        resp = self.api.upload(path, body=json.dumps(model))
 
         # check roundtrip
-        resp = self.api.read(path=u'å b', name=u'Upload tést.blob')
+        resp = self.api.read(path)
         model = resp.json()
         self.assertEqual(model['type'], 'file')
+        self.assertEqual(model['path'], path)
         self.assertEqual(model['format'], 'base64')
         decoded = base64.decodestring(model['content'].encode('ascii'))
         self.assertEqual(decoded, body)
@@ -350,24 +345,27 @@ class APITest(NotebookTestBase):
         nb.worksheets.append(ws)
         ws.cells.append(v2.new_code_cell(input='print("hi")'))
         nbmodel = {'content': nb, 'type': 'notebook'}
-        resp = self.api.upload(u'Upload tést.ipynb', path=u'å b',
-                                              body=json.dumps(nbmodel))
-        self._check_created(resp, u'Upload tést.ipynb', u'å b')
-        resp = self.api.read(u'Upload tést.ipynb', u'å b')
+        path = u'å b/Upload tést.ipynb'
+        resp = self.api.upload(path, body=json.dumps(nbmodel))
+        self._check_created(resp, path)
+        resp = self.api.read(path)
         data = resp.json()
         self.assertEqual(data['content']['nbformat'], 4)
 
     def test_copy_untitled(self):
-        resp = self.api.copy_untitled(u'ç d.ipynb', path=u'å b')
-        self._check_created(resp, u'ç d-Copy0.ipynb', u'å b')
+        resp = self.api.copy_untitled(u'å b/ç d.ipynb', u'unicodé')
+        self._check_created(resp, u'unicodé/ç d-Copy0.ipynb')
+        
+        resp = self.api.copy_untitled(u'å b/ç d.ipynb', u'å b')
+        self._check_created(resp, u'å b/ç d-Copy0.ipynb')
 
     def test_copy(self):
-        resp = self.api.copy(u'ç d.ipynb', u'cøpy.ipynb', path=u'å b')
-        self._check_created(resp, u'cøpy.ipynb', u'å b')
+        resp = self.api.copy(u'å b/ç d.ipynb', u'å b/cøpy.ipynb')
+        self._check_created(resp, u'å b/cøpy.ipynb')
 
     def test_copy_path(self):
-        resp = self.api.copy(u'foo/a.ipynb', u'cøpyfoo.ipynb', path=u'å b')
-        self._check_created(resp, u'cøpyfoo.ipynb', u'å b')
+        resp = self.api.copy(u'foo/a.ipynb', u'å b/cøpyfoo.ipynb')
+        self._check_created(resp, u'å b/cøpyfoo.ipynb')
 
     def test_copy_dir_400(self):
         # can't copy directories
@@ -376,19 +374,23 @@ class APITest(NotebookTestBase):
 
     def test_delete(self):
         for d, name in self.dirs_nbs:
-            resp = self.api.delete('%s.ipynb' % name, d)
+            print('%r, %r' % (d, name))
+            resp = self.api.delete(url_path_join(d, name + '.ipynb'))
             self.assertEqual(resp.status_code, 204)
 
         for d in self.dirs + ['/']:
             nbs = notebooks_only(self.api.list(d).json())
-            self.assertEqual(len(nbs), 0)
+            print('------')
+            print(d)
+            print(nbs)
+            self.assertEqual(nbs, [])
 
     def test_delete_dirs(self):
         # depth-first delete everything, so we don't try to delete empty directories
         for name in sorted(self.dirs + ['/'], key=len, reverse=True):
             listing = self.api.list(name).json()['content']
             for model in listing:
-                self.api.delete(model['name'], model['path'])
+                self.api.delete(model['path'])
         listing = self.api.list('/').json()['content']
         self.assertEqual(listing, [])
 
@@ -398,9 +400,10 @@ class APITest(NotebookTestBase):
             self.api.delete(u'å b')
 
     def test_rename(self):
-        resp = self.api.rename('a.ipynb', 'foo', 'z.ipynb')
+        resp = self.api.rename('foo/a.ipynb', 'foo/z.ipynb')
         self.assertEqual(resp.headers['Location'].split('/')[-1], 'z.ipynb')
         self.assertEqual(resp.json()['name'], 'z.ipynb')
+        self.assertEqual(resp.json()['path'], 'foo/z.ipynb')
         assert os.path.isfile(pjoin(self.notebook_dir.name, 'foo', 'z.ipynb'))
 
         nbs = notebooks_only(self.api.list('foo').json())
@@ -410,41 +413,31 @@ class APITest(NotebookTestBase):
 
     def test_rename_existing(self):
         with assert_http_error(409):
-            self.api.rename('a.ipynb', 'foo', 'b.ipynb')
+            self.api.rename('foo/a.ipynb', 'foo/b.ipynb')
 
     def test_save(self):
-        resp = self.api.read('a.ipynb', 'foo')
+        resp = self.api.read('foo/a.ipynb')
         nbcontent = json.loads(resp.text)['content']
         nb = from_dict(nbcontent)
         nb.cells.append(new_markdown_cell(u'Created by test ³'))
 
-        nbmodel= {'name': 'a.ipynb', 'path':'foo', 'content': nb, 'type': 'notebook'}
-        resp = self.api.save('a.ipynb', path='foo', body=json.dumps(nbmodel))
+        nbmodel= {'content': nb, 'type': 'notebook'}
+        resp = self.api.save('foo/a.ipynb', body=json.dumps(nbmodel))
 
         nbfile = pjoin(self.notebook_dir.name, 'foo', 'a.ipynb')
         with io.open(nbfile, 'r', encoding='utf-8') as f:
             newnb = read(f, as_version=4)
         self.assertEqual(newnb.cells[0].source,
                          u'Created by test ³')
-        nbcontent = self.api.read('a.ipynb', 'foo').json()['content']
+        nbcontent = self.api.read('foo/a.ipynb').json()['content']
         newnb = from_dict(nbcontent)
         self.assertEqual(newnb.cells[0].source,
                          u'Created by test ³')
 
-        # Save and rename
-        nbmodel= {'name': 'a2.ipynb', 'path':'foo/bar', 'content': nb, 'type': 'notebook'}
-        resp = self.api.save('a.ipynb', path='foo', body=json.dumps(nbmodel))
-        saved = resp.json()
-        self.assertEqual(saved['name'], 'a2.ipynb')
-        self.assertEqual(saved['path'], 'foo/bar')
-        assert os.path.isfile(pjoin(self.notebook_dir.name,'foo','bar','a2.ipynb'))
-        assert not os.path.isfile(pjoin(self.notebook_dir.name, 'foo', 'a.ipynb'))
-        with assert_http_error(404):
-            self.api.read('a.ipynb', 'foo')
 
     def test_checkpoints(self):
-        resp = self.api.read('a.ipynb', 'foo')
-        r = self.api.new_checkpoint('a.ipynb', 'foo')
+        resp = self.api.read('foo/a.ipynb')
+        r = self.api.new_checkpoint('foo/a.ipynb')
         self.assertEqual(r.status_code, 201)
         cp1 = r.json()
         self.assertEqual(set(cp1), {'id', 'last_modified'})
@@ -456,26 +449,26 @@ class APITest(NotebookTestBase):
         hcell = new_markdown_cell('Created by test')
         nb.cells.append(hcell)
         # Save
-        nbmodel= {'name': 'a.ipynb', 'path':'foo', 'content': nb, 'type': 'notebook'}
-        resp = self.api.save('a.ipynb', path='foo', body=json.dumps(nbmodel))
+        nbmodel= {'content': nb, 'type': 'notebook'}
+        resp = self.api.save('foo/a.ipynb', body=json.dumps(nbmodel))
 
         # List checkpoints
-        cps = self.api.get_checkpoints('a.ipynb', 'foo').json()
+        cps = self.api.get_checkpoints('foo/a.ipynb').json()
         self.assertEqual(cps, [cp1])
 
-        nbcontent = self.api.read('a.ipynb', 'foo').json()['content']
+        nbcontent = self.api.read('foo/a.ipynb').json()['content']
         nb = from_dict(nbcontent)
         self.assertEqual(nb.cells[0].source, 'Created by test')
 
         # Restore cp1
-        r = self.api.restore_checkpoint('a.ipynb', 'foo', cp1['id'])
+        r = self.api.restore_checkpoint('foo/a.ipynb', cp1['id'])
         self.assertEqual(r.status_code, 204)
-        nbcontent = self.api.read('a.ipynb', 'foo').json()['content']
+        nbcontent = self.api.read('foo/a.ipynb').json()['content']
         nb = from_dict(nbcontent)
         self.assertEqual(nb.cells, [])
 
         # Delete cp1
-        r = self.api.delete_checkpoint('a.ipynb', 'foo', cp1['id'])
+        r = self.api.delete_checkpoint('foo/a.ipynb', cp1['id'])
         self.assertEqual(r.status_code, 204)
-        cps = self.api.get_checkpoints('a.ipynb', 'foo').json()
+        cps = self.api.get_checkpoints('foo/a.ipynb').json()
         self.assertEqual(cps, [])

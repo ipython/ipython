@@ -42,7 +42,7 @@ class TestFileContentsManager(TestCase):
         with TemporaryDirectory() as td:
             root = td
             fm = FileContentsManager(root_dir=root)
-            path = fm._get_os_path('test.ipynb', '/path/to/notebook/')
+            path = fm._get_os_path('/path/to/notebook/test.ipynb')
             rel_path_list =  '/path/to/notebook/test.ipynb'.split('/')
             fs_path = os.path.join(fm.root_dir, *rel_path_list)
             self.assertEqual(path, fs_path)
@@ -53,7 +53,7 @@ class TestFileContentsManager(TestCase):
             self.assertEqual(path, fs_path)
 
             fm = FileContentsManager(root_dir=root)
-            path = fm._get_os_path('test.ipynb', '////')
+            path = fm._get_os_path('////test.ipynb')
             fs_path = os.path.join(fm.root_dir, 'test.ipynb')
             self.assertEqual(path, fs_path)
 
@@ -64,8 +64,8 @@ class TestFileContentsManager(TestCase):
             root = td
             os.mkdir(os.path.join(td, subd))
             fm = FileContentsManager(root_dir=root)
-            cp_dir = fm.get_checkpoint_path('cp', 'test.ipynb', '/')
-            cp_subdir = fm.get_checkpoint_path('cp', 'test.ipynb', '/%s/' % subd)
+            cp_dir = fm.get_checkpoint_path('cp', 'test.ipynb')
+            cp_subdir = fm.get_checkpoint_path('cp', '/%s/test.ipynb' % subd)
         self.assertNotEqual(cp_dir, cp_subdir)
         self.assertEqual(cp_dir, os.path.join(root, fm.checkpoint_dir, cp_name))
         self.assertEqual(cp_subdir, os.path.join(root, subd, fm.checkpoint_dir, cp_name))
@@ -105,11 +105,11 @@ class TestContentsManager(TestCase):
         name = model['name']
         path = model['path']
 
-        full_model = cm.get_model(name, path)
+        full_model = cm.get_model(path)
         nb = full_model['content']
         self.add_code_cell(nb)
 
-        cm.save(full_model, name, path)
+        cm.save(full_model, path)
         return nb, name, path
 
     def test_create_file(self):
@@ -120,17 +120,17 @@ class TestContentsManager(TestCase):
         self.assertIn('name', model)
         self.assertIn('path', model)
         self.assertEqual(model['name'], 'Untitled0.ipynb')
-        self.assertEqual(model['path'], '')
+        self.assertEqual(model['path'], 'Untitled0.ipynb')
 
         # Test in sub-directory
         sub_dir = '/foo/'
         self.make_dir(cm.root_dir, 'foo')
-        model = cm.create_file(None, sub_dir)
+        model = cm.create_file(path=sub_dir)
         assert isinstance(model, dict)
         self.assertIn('name', model)
         self.assertIn('path', model)
         self.assertEqual(model['name'], 'Untitled0.ipynb')
-        self.assertEqual(model['path'], sub_dir.strip('/'))
+        self.assertEqual(model['path'], 'foo/Untitled0.ipynb')
 
     def test_get(self):
         cm = self.contents_manager
@@ -140,7 +140,7 @@ class TestContentsManager(TestCase):
         path = model['path']
 
         # Check that we 'get' on the notebook we just created
-        model2 = cm.get_model(name, path)
+        model2 = cm.get_model(path)
         assert isinstance(model2, dict)
         self.assertIn('name', model2)
         self.assertIn('path', model2)
@@ -150,14 +150,14 @@ class TestContentsManager(TestCase):
         # Test in sub-directory
         sub_dir = '/foo/'
         self.make_dir(cm.root_dir, 'foo')
-        model = cm.create_file(None, sub_dir)
-        model2 = cm.get_model(name, sub_dir)
+        model = cm.create_file(path=sub_dir, ext='.ipynb')
+        model2 = cm.get_model(sub_dir + name)
         assert isinstance(model2, dict)
         self.assertIn('name', model2)
         self.assertIn('path', model2)
         self.assertIn('content', model2)
         self.assertEqual(model2['name'], 'Untitled0.ipynb')
-        self.assertEqual(model2['path'], sub_dir.strip('/'))
+        self.assertEqual(model2['path'], '{0}/{1}'.format(sub_dir.strip('/'), name))
     
     @dec.skip_win32
     def test_bad_symlink(self):
@@ -175,16 +175,18 @@ class TestContentsManager(TestCase):
     @dec.skip_win32
     def test_good_symlink(self):
         cm = self.contents_manager
-        path = 'test good symlink'
-        os_path = self.make_dir(cm.root_dir, path)
+        parent = 'test good symlink'
+        name = 'good symlink'
+        path = '{0}/{1}'.format(parent, name)
+        os_path = self.make_dir(cm.root_dir, parent)
         
-        file_model = cm.create_file(path=path, ext='.txt')
+        file_model = cm.create_file(path=parent, ext='.txt')
         
         # create a good symlink
-        os.symlink(file_model['name'], os.path.join(os_path, "good symlink"))
-        symlink_model = cm.get_model(name="good symlink", path=path, content=False)
+        os.symlink(file_model['name'], os.path.join(os_path, name))
+        symlink_model = cm.get_model(path, content=False)
         
-        dir_model = cm.get_model(path)
+        dir_model = cm.get_model(parent)
         self.assertEqual(
             sorted(dir_model['content'], key=lambda x: x['name']),
             [symlink_model, file_model],
@@ -198,15 +200,15 @@ class TestContentsManager(TestCase):
         path = model['path']
 
         # Change the name in the model for rename
-        model['name'] = 'test.ipynb'
-        model = cm.update(model, name, path)
+        model['path'] = 'test.ipynb'
+        model = cm.update(model, path)
         assert isinstance(model, dict)
         self.assertIn('name', model)
         self.assertIn('path', model)
         self.assertEqual(model['name'], 'test.ipynb')
 
         # Make sure the old name is gone
-        self.assertRaises(HTTPError, cm.get_model, name, path)
+        self.assertRaises(HTTPError, cm.get_model, path)
 
         # Test in sub-directory
         # Create a directory and notebook in that directory
@@ -217,16 +219,17 @@ class TestContentsManager(TestCase):
         path = model['path']
 
         # Change the name in the model for rename
-        model['name'] = 'test_in_sub.ipynb'
-        model = cm.update(model, name, path)
+        d = path.rsplit('/', 1)[0]
+        new_path = model['path'] = d + '/test_in_sub.ipynb'
+        model = cm.update(model, path)
         assert isinstance(model, dict)
         self.assertIn('name', model)
         self.assertIn('path', model)
         self.assertEqual(model['name'], 'test_in_sub.ipynb')
-        self.assertEqual(model['path'], sub_dir.strip('/'))
+        self.assertEqual(model['path'], new_path)
 
         # Make sure the old name is gone
-        self.assertRaises(HTTPError, cm.get_model, name, path)
+        self.assertRaises(HTTPError, cm.get_model, path)
 
     def test_save(self):
         cm = self.contents_manager
@@ -236,10 +239,10 @@ class TestContentsManager(TestCase):
         path = model['path']
 
         # Get the model with 'content'
-        full_model = cm.get_model(name, path)
+        full_model = cm.get_model(path)
 
         # Save the notebook
-        model = cm.save(full_model, name, path)
+        model = cm.save(full_model, path)
         assert isinstance(model, dict)
         self.assertIn('name', model)
         self.assertIn('path', model)
@@ -253,15 +256,15 @@ class TestContentsManager(TestCase):
         model = cm.create_file(None, sub_dir)
         name = model['name']
         path = model['path']
-        model = cm.get_model(name, path)
+        model = cm.get_model(path)
 
         # Change the name in the model for rename
-        model = cm.save(model, name, path)
+        model = cm.save(model, path)
         assert isinstance(model, dict)
         self.assertIn('name', model)
         self.assertIn('path', model)
         self.assertEqual(model['name'], 'Untitled0.ipynb')
-        self.assertEqual(model['path'], sub_dir.strip('/'))
+        self.assertEqual(model['path'], 'foo/Untitled0.ipynb')
 
     def test_delete(self):
         cm = self.contents_manager
@@ -269,36 +272,38 @@ class TestContentsManager(TestCase):
         nb, name, path = self.new_notebook()
 
         # Delete the notebook
-        cm.delete(name, path)
+        cm.delete(path)
 
         # Check that a 'get' on the deleted notebook raises and error
-        self.assertRaises(HTTPError, cm.get_model, name, path)
+        self.assertRaises(HTTPError, cm.get_model, path)
 
     def test_copy(self):
         cm = self.contents_manager
-        path = u'å b'
+        parent = u'å b'
         name = u'nb √.ipynb'
-        os.mkdir(os.path.join(cm.root_dir, path))
-        orig = cm.create_file({'name' : name}, path=path)
+        path = u'{0}/{1}'.format(parent, name)
+        os.mkdir(os.path.join(cm.root_dir, parent))
+        orig = cm.create_file(path=path)
 
         # copy with unspecified name
-        copy = cm.copy(name, path=path)
+        copy = cm.copy(path)
         self.assertEqual(copy['name'], orig['name'].replace('.ipynb', '-Copy0.ipynb'))
 
         # copy with specified name
-        copy2 = cm.copy(name, u'copy 2.ipynb', path=path)
+        copy2 = cm.copy(path, u'å b/copy 2.ipynb')
         self.assertEqual(copy2['name'], u'copy 2.ipynb')
+        self.assertEqual(copy2['path'], u'å b/copy 2.ipynb')
 
     def test_trust_notebook(self):
         cm = self.contents_manager
         nb, name, path = self.new_notebook()
 
-        untrusted = cm.get_model(name, path)['content']
+        untrusted = cm.get_model(path)['content']
         assert not cm.notary.check_cells(untrusted)
 
         # print(untrusted)
-        cm.trust_notebook(name, path)
-        trusted = cm.get_model(name, path)['content']
+        cm.trust_notebook(path)
+        trusted = cm.get_model(path)['content']
         # print(trusted)
         assert cm.notary.check_cells(trusted)
 
@@ -306,13 +311,13 @@ class TestContentsManager(TestCase):
         cm = self.contents_manager
         nb, name, path = self.new_notebook()
 
-        cm.mark_trusted_cells(nb, name, path)
+        cm.mark_trusted_cells(nb, path)
         for cell in nb.cells:
             if cell.cell_type == 'code':
                 assert not cell.metadata.trusted
 
-        cm.trust_notebook(name, path)
-        nb = cm.get_model(name, path)['content']
+        cm.trust_notebook(path)
+        nb = cm.get_model(path)['content']
         for cell in nb.cells:
             if cell.cell_type == 'code':
                 assert cell.metadata.trusted
@@ -321,12 +326,12 @@ class TestContentsManager(TestCase):
         cm = self.contents_manager
         nb, name, path = self.new_notebook()
 
-        cm.mark_trusted_cells(nb, name, path)
-        cm.check_and_sign(nb, name, path)
+        cm.mark_trusted_cells(nb, path)
+        cm.check_and_sign(nb, path)
         assert not cm.notary.check_signature(nb)
 
-        cm.trust_notebook(name, path)
-        nb = cm.get_model(name, path)['content']
-        cm.mark_trusted_cells(nb, name, path)
-        cm.check_and_sign(nb, name, path)
+        cm.trust_notebook(path)
+        nb = cm.get_model(path)['content']
+        cm.mark_trusted_cells(nb, path)
+        cm.check_and_sign(nb, path)
         assert cm.notary.check_signature(nb)
