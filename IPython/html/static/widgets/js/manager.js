@@ -187,29 +187,22 @@ define([
 
     WidgetManager.prototype._handle_comm_open = function (comm, msg) {
         // Handle when a comm is opened.
-        return this._create_model({model_name: msg.content.data.model_name, comm: comm});
+        return this.create_model({model_name: msg.content.data.model_name, comm: comm});
     };
 
-    WidgetManager.prototype.create_model = function (model_name, target_name, init_state_callback) {
+    WidgetManager.prototype.create_model = function (options) {
         // Create and return a new widget model.
         //
-        // Parameters
-        // ----------
-        // model_name: string
-        //      Target name of the widget model to create.
-        // target_name: string
-        //      Target name of the widget in the back-end.
-        // init_state_callback: (optional) callback
-        //      Called when the first state push from the back-end is 
-        //      recieved.
-        return this._create_model({
-            model_name: model_name, 
-            target_name: target_name,
-            init_state_callback: init_state_callback});
-    };
-
-    WidgetManager.prototype._create_model = function (options) {
-        // Create and return a new widget model.
+        // Minimally, one must provide the model_name and target_name
+        // parameters to create a model from Javascript.
+        //
+        // Example
+        // --------
+        // JS:
+        // window.slider = IPython.notebook.kernel.widget_manager.create_model({
+        //      model_name: 'WidgetModel', 
+        //      target_name: 'IPython.html.widgets.widget_int.IntSlider',
+        //      init_state_callback: function(model) { console.log('Create success!', model); }});
         //
         // Parameters
         // ----------
@@ -222,7 +215,8 @@ define([
         //      comm: (optional) Comm
         //      init_state_callback: (optional) callback
         //          Called when the first state push from the back-end is 
-        //          recieved.
+        //          recieved.  Allows you to modify the model after it's
+        //          complete state is filled and synced.
 
         // Create a comm if it wasn't provided.
         var comm = options.comm;

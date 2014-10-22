@@ -38,14 +38,6 @@ var recursive_compare = function(a, b) {
 // Test the widget framework.
 casper.notebook_test(function () {
     var index;
-    
-    this.then(function () {
-    
-        // Check if the WidgetManager class is defined.
-        this.test.assert(this.evaluate(function() {
-            return IPython.WidgetManager !== undefined; 
-        }), 'WidgetManager class is defined');
-    });
 
     index = this.append_cell(
         'from IPython.html import widgets\n' + 
@@ -54,10 +46,6 @@ casper.notebook_test(function () {
     this.execute_cell_then(index);
 
     this.then(function () {
-        // Check if the widget manager has been instantiated.
-        this.test.assert(this.evaluate(function() {
-            return IPython.notebook.kernel.widget_manager !== undefined; 
-        }), 'Notebook widget manager instantiated');
 
         // Functions that can be used to test the packing and unpacking APIs
         var that = this;
