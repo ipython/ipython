@@ -1,17 +1,9 @@
 """Module containing a preprocessor that converts outputs in the notebook from 
 one format to another.
 """
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
-# Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import base64
 import io
@@ -25,15 +17,8 @@ from IPython.utils.traitlets import Unicode
 from .convertfigures import ConvertFiguresPreprocessor
 
 
-#-----------------------------------------------------------------------------
-# Constants
-#-----------------------------------------------------------------------------
-
 INKSCAPE_APP = '/Applications/Inkscape.app/Contents/Resources/bin/inkscape'
 
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
 
 class SVG2PDFPreprocessor(ConvertFiguresPreprocessor):
     """
@@ -41,7 +26,7 @@ class SVG2PDFPreprocessor(ConvertFiguresPreprocessor):
     """
     
     def _from_format_default(self):
-        return 'svg'
+        return 'image/svg+xml'
     def _to_format_default(self):
         return 'application/pdf'
     

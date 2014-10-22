@@ -72,14 +72,9 @@ class ExtractOutputPreprocessor(Preprocessor):
                     else:
                         data = data.encode("UTF-8")
                     
-                    # Build an output name
-                    # filthy hack while we have some mimetype output, and some not
-                    if '/' in mime_type:
-                        ext = guess_extension(mime_type)
-                        if ext is None:
-                            ext = '.' + mime_type.rsplit('/')[-1]
-                    else:
-                        ext = '.' + mime_type
+                    ext = guess_extension(mime_type)
+                    if ext is None:
+                        ext = '.' + mime_type.rsplit('/')[-1]
                     
                     filename = self.output_filename_template.format(
                                     unique_key=unique_key,
@@ -87,10 +82,10 @@ class ExtractOutputPreprocessor(Preprocessor):
                                     index=index,
                                     extension=ext)
 
-                    #On the cell, make the figure available via 
+                    # On the cell, make the figure available via
                     #   cell.outputs[i].metadata.filenames['mime/type']
-                    # Where
-                    #   cell.outputs[i].data['mime/type' contains the data
+                    # where
+                    #   cell.outputs[i].data['mime/type'] contains the data
                     if output_files_dir is not None:
                         filename = os.path.join(output_files_dir, filename)
                     out.metadata.setdefault('filenames', {})

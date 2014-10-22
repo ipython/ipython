@@ -180,9 +180,6 @@ class NotebookNotary(LoggingConfigurable):
         
         This function is the inverse of check_cells
         """
-        if not nb['cells']:
-            # nothing to mark if there are no cells
-            return
         for cell in nb['cells']:
             if cell['cell_type'] == 'code':
                 cell['metadata']['trusted'] = trusted
@@ -224,8 +221,6 @@ class NotebookNotary(LoggingConfigurable):
         
         This function is the inverse of mark_cells.
         """
-        if not nb['cells']:
-            return True
         trusted = True
         for cell in nb['cells']:
             if cell['cell_type'] != 'code':

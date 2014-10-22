@@ -39,10 +39,10 @@ class Testsvg2pdf(PreprocessorTestsBase):
 </svg>"""
 
     def build_notebook(self):
-        """Build a reveal slides notebook in memory for use with tests.  
+        """Build a reveal slides notebook in memory for use with tests.
         Overrides base in PreprocessorTestsBase"""
 
-        outputs = [nbformat.new_output(output_type="svg", output_svg=self.simple_svg)]
+        outputs = [nbformat.new_output(output_type="image/svg+xml", output_svg=self.simple_svg)]
         
         slide_metadata = {'slideshow' : {'slide_type': 'slide'}}
         subslide_metadata = {'slideshow' : {'slide_type': 'subslide'}}
@@ -71,4 +71,4 @@ class Testsvg2pdf(PreprocessorTestsBase):
         res = self.build_resources()
         preprocessor = self.build_preprocessor()
         nb, res = preprocessor(nb, res)
-        assert 'svg' in nb.cells[0].outputs[0]
+        self.assertIn('application/pdf', nb.cells[0].outputs[0])

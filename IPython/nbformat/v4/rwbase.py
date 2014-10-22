@@ -3,32 +3,7 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from IPython.utils import py3compat
-from IPython.utils.py3compat import unicode_type, string_types
-
-# output keys that are likely to have multiline values
-_multiline_outputs = {
-    'text/plain',
-    'text/html',
-    'image/svg+xml',
-    'text/latex',
-    'application/javascript',
-}
-
-
-# FIXME: workaround for old splitlines()
-def _join_lines(lines):
-    """join lines that have been written by splitlines()
-
-    Has logic to protect against `splitlines()`, which
-    should have been `splitlines(True)`
-    """
-    if lines and lines[0].endswith(('\n', '\r')):
-        # created by splitlines(True)
-        return u''.join(lines)
-    else:
-        # created by splitlines()
-        return u'\n'.join(lines)
+from IPython.utils.py3compat import string_types, cast_unicode_py2
 
 
 def rejoin_lines(nb):
@@ -43,17 +18,17 @@ def rejoin_lines(nb):
     """
     for cell in nb.cells:
         if 'source' in cell and isinstance(cell.source, list):
-            cell.source = _join_lines(cell.source)
+            cell.source = ''.join(cell.source)
         if cell.get('cell_type', None) == 'code':
             for output in cell.get('outputs', []):
                 output_type = output.get('output_type', '')
                 if output_type in {'execute_result', 'display_data'}:
                     for key, value in output.get('data', {}).items():
                         if key != 'application/json' and isinstance(value, list):
-                            output.data[key] = _join_lines(value)
+                            output.data[key] = ''.join(value)
                 elif output_type:
                     if isinstance(output.get('text', ''), list):
-                        output.text = _join_lines(output.text)
+                        output.text = ''.join(output.text)
     return nb
 
 
@@ -103,9 +78,7 @@ class NotebookReader(object):
 
     def read(self, fp, **kwargs):
         """Read a notebook from a file like object"""
-        nbs = fp.read()
-        if not py3compat.PY3 and not isinstance(nbs, unicode_type):
-            nbs = py3compat.str_to_unicode(nbs)
+        nbs = cast_unicode_py2(fp.read())
         return self.reads(nbs, **kwargs)
 
 
@@ -118,8 +91,5 @@ class NotebookWriter(object):
 
     def write(self, nb, fp, **kwargs):
         """Write a notebook to a file like object"""
-        nbs = self.writes(nb,**kwargs)
-        if not py3compat.PY3 and not isinstance(nbs, unicode_type):
-            # this branch is likely only taken for JSON on Python 2
-            nbs = py3compat.str_to_unicode(nbs)
+        nbs = cast_unicode_py2(self.writes(nb, **kwargs))
         return fp.write(nbs)

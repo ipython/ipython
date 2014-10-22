@@ -28,10 +28,7 @@ class NotebookNode(Struct):
 
 def from_dict(d):
     if isinstance(d, dict):
-        newd = NotebookNode()
-        for k,v in d.items():
-            newd[k] = from_dict(v)
-        return newd
+        return NotebookNode({k:from_dict(v) for k,v in d.items()})
     elif isinstance(d, (tuple, list)):
         return [from_dict(i) for i in d]
     else:
@@ -41,17 +38,19 @@ def from_dict(d):
 def new_output(output_type, data=None, **kwargs):
     """Create a new output, to go in the ``cell.outputs`` list of a code cell."""
     output = NotebookNode(output_type=output_type)
-    output.update(from_dict(kwargs))
-    if data is not None:
-        output.data = from_dict(data)
 
     # populate defaults:
     if output_type == 'stream':
-        output.setdefault('name', 'stdout')
-        output.setdefault('text', '')
+        output.name = u'stdout'
+        output.text = u''
     elif output_type in {'execute_result', 'display_data'}:
-        output.setdefault('metadata', NotebookNode())
-        output.setdefault('data', NotebookNode())
+        output.metadata = NotebookNode()
+        output.data = NotebookNode()
+    # load from args:
+    output.update(from_dict(kwargs))
+    if data is not None:
+        output.data = from_dict(data)
+    # validate
     validate(output, output_type)
     return output
 
@@ -79,7 +78,6 @@ def output_from_msg(msg):
             data=content['data'],
             execution_count=content['execution_count'],
         )
-
     elif msg_type == 'stream':
         return new_output(output_type=msg_type,
             name=content['name'],
@@ -102,40 +100,50 @@ def output_from_msg(msg):
 
 def new_code_cell(source='', **kwargs):
     """Create a new code cell"""
-    cell = NotebookNode(cell_type='code', source=source)
+    cell = NotebookNode(
+        cell_type='code',
+        metadata=NotebookNode(),
+        execution_count=None,
+        source=source,
+        outputs=[],
+    )
     cell.update(from_dict(kwargs))
-    cell.setdefault('metadata', NotebookNode())
-    cell.setdefault('source', '')
-    cell.setdefault('execution_count', None)
-    cell.setdefault('outputs', [])
 
     validate(cell, 'code_cell')
     return cell
 
 def new_markdown_cell(source='', **kwargs):
     """Create a new markdown cell"""
-    cell = NotebookNode(cell_type='markdown', source=source)
+    cell = NotebookNode(
+        cell_type='markdown',
+        source=source,
+        metadata=NotebookNode(),
+    )
     cell.update(from_dict(kwargs))
-    cell.setdefault('metadata', NotebookNode())
 
     validate(cell, 'markdown_cell')
     return cell
 
 def new_raw_cell(source='', **kwargs):
     """Create a new raw cell"""
-    cell = NotebookNode(cell_type='raw', source=source)
+    cell = NotebookNode(
+        cell_type='raw',
+        source=source,
+        metadata=NotebookNode(),
+    )
     cell.update(from_dict(kwargs))
-    cell.setdefault('metadata', NotebookNode())
 
     validate(cell, 'raw_cell')
     return cell
 
 def new_notebook(**kwargs):
     """Create a new notebook"""
-    nb = from_dict(kwargs)
-    nb.nbformat = nbformat
-    nb.nbformat_minor = nbformat_minor
-    nb.setdefault('cells', [])
-    nb.setdefault('metadata', NotebookNode())
+    nb = NotebookNode(
+        nbformat=nbformat,
+        nbformat_minor=nbformat_minor,
+        metadata=NotebookNode(),
+        cells=[],
+    )
+    nb.update(from_dict(kwargs))
     validate(nb)
     return nb

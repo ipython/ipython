@@ -47,18 +47,18 @@ class TestExecute(PreprocessorTestsBase):
     def assert_notebooks_equal(self, expected, actual):
         expected_cells = expected['cells']
         actual_cells = actual['cells']
-        assert len(expected_cells) == len(actual_cells)
+        self.assertEqual(len(expected_cells), len(actual_cells))
 
         for expected_cell, actual_cell in zip(expected_cells, actual_cells):
             expected_outputs = expected_cell.get('outputs', [])
             actual_outputs = actual_cell.get('outputs', [])
             normalized_expected_outputs = list(map(self.normalize_output, expected_outputs))
             normalized_actual_outputs = list(map(self.normalize_output, actual_outputs))
-            assert normalized_expected_outputs == normalized_actual_outputs
+            self.assertEqual(normalized_expected_outputs, normalized_actual_outputs)
 
             expected_execution_count = expected_cell.get('execution_count', None)
             actual_execution_count = actual_cell.get('execution_count', None)
-            assert expected_execution_count == actual_execution_count
+            self.assertEqual(expected_execution_count, actual_execution_count)
 
 
     def build_preprocessor(self):

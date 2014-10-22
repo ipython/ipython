@@ -49,6 +49,14 @@ At the highest level, a Jupyter notebook is a dictionary with a few keys:
       ],
     }
 
+Some fields, such as code input and text output, are characteristically multi-line strings.
+When these fields are written to disk, they **may** be written as a list of strings,
+which should be joined with ``''`` when reading back into memory.
+In programmatic APIs for working with notebooks (Python, Javascript),
+these are always re-joined into the original multi-line string.
+If you intend to work with notebook files directly,
+you must allow multi-line string fields to be either a string or list of strings.
+
 
 Cell Types
 ==========
@@ -82,7 +90,7 @@ as defined in `GitHub-flavored markdown`_, and implemented in marked_.
       "source" : ["some *markdown*"],
     }
 
-.. versionchanged:: 4.0
+.. versionchanged:: nbformat 4.0
 
     Heading cells have been removed, in favor of simple headings in markdown.
 
@@ -91,8 +99,8 @@ Code cells
 ----------
 
 Code cells are the primary content of Jupyter notebooks.
-They contain source code int e language of the document's associated kernel,
-and a list of outputs associated with executing.
+They contain source code in the language of the document's associated kernel,
+and a list of outputs associated with executing that code.
 They also have an execution_count, which must be an integer or ``null``.
 
 .. sourcecode:: python
@@ -112,11 +120,11 @@ They also have an execution_count, which must be an integer or ``null``.
       }],
     }
 
-.. versionchanged:: 4.0
+.. versionchanged:: nbformat 4.0
 
     ``input`` was renamed to ``source``, for consistency among cell types.
 
-.. versionchanged:: 4.0
+.. versionchanged:: nbformat 4.0
 
     ``prompt_number`` renamed to ``execution_count``
 
@@ -141,7 +149,7 @@ stream output
       "data" : ["multiline stream text"],
     }
 
-.. versionchanged:: 4.0
+.. versionchanged:: nbformat 4.0
 
     The keys ``stream`` and ``text`` were changed to ``name`` and ``data`` to match
     the stream message specification.
@@ -176,11 +184,11 @@ The metadata of these messages may be keyed by mime-type as well.
     }
 
 
-.. versionchanged:: 4.0
+.. versionchanged:: nbformat 4.0
 
     ``application/json`` output is no longer double-serialized into a string.
 
-.. versionchanged:: 4.0
+.. versionchanged:: nbformat 4.0
 
     mime-types are used for keys, instead of a combination of short names (``text``)
     and mime-types, and are stored in a ``data`` key, rather than the top-level.
@@ -193,13 +201,13 @@ execute_result
 Results of executing a cell (as created by ``displayhook`` in Python)
 are stored in ``execute_result`` outputs.
 `execute_result` outputs are identical to ``display_data``,
-adding only a ``prompt_number`` field, which must be an integer.
+adding only a ``execution_count`` field, which must be an integer.
 
 .. sourcecode:: python
 
     {
       "output_type" : "execute_result",
-      "execute_result": 42,
+      "execution_count": 42,
       "data" : {
         "text/plain" : ["multiline text data"],
         "image/png": ["base64-encoded-png-data"],
@@ -216,11 +224,11 @@ adding only a ``prompt_number`` field, which must be an integer.
       },
     }
 
-.. versionchanged:: 4.0
+.. versionchanged:: nbformat 4.0
 
     ``pyout`` renamed to ``execute_result``
 
-.. versionchanged:: 4.0
+.. versionchanged:: nbformat 4.0
 
     ``prompt_number`` renamed to ``execution_count``
 
@@ -241,7 +249,7 @@ Failed execution may show a traceback
       'traceback' : list,
     }
 
-.. versionchanged:: 4.0
+.. versionchanged:: nbformat 4.0
 
     ``pyerr`` renamed to ``error``
 
@@ -295,8 +303,8 @@ The following metadata keys are defined at the notebook level:
 =========== =============== ==============
 Key         Value           Interpretation
 =========== =============== ==============
-kernelspec  dict            A kernel specification. More detail :ref:`here <kernelspecs>`
-signature   str             A hashed signature of the notebook
+kernelspec  dict            A :ref:`kernel specification <kernelspecs>`
+signature   str             A hashed :ref:`signature <notebook_security>` of the notebook
 =========== =============== ==============
 
 

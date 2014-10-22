@@ -57,7 +57,7 @@ casper.notebook_test(function () {
         this.trigger_keydown('b'); // new cell below
         this.test.assertEquals(this.get_cell(3).cell_type, 'code', 'b; inserts a code cell below code cell');
         this.trigger_keydown('a'); // new cell above
-        this.test.assertEquals(this.get_cell(3).cell_type, 'code', 'a; inserts a code cell below code cell');
+        this.test.assertEquals(this.get_cell(3).cell_type, 'code', 'a; inserts a code cell above code cell');
     });
     
     this.thenEvaluate(function() {
@@ -72,6 +72,6 @@ casper.notebook_test(function () {
         this.test.assertEquals(this.get_cell(2).cell_type, 'raw', 'a; inserts a raw cell above raw cell');
         this.trigger_keydown('y'); // switch it to code for the next test
         this.trigger_keydown('b'); // new cell below
-        this.test.assertEquals(this.get_cell(3).cell_type, 'raw', 'b; inserts a raw cell above raw cell');
+        this.test.assertEquals(this.get_cell(3).cell_type, 'raw', 'b; inserts a raw cell below raw cell');
     });
 });

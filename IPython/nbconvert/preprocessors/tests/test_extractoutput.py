@@ -10,7 +10,6 @@ from ..extractoutput import ExtractOutputPreprocessor
 class TestExtractOutput(PreprocessorTestsBase):
     """Contains test functions for extractoutput.py"""
 
-
     def build_preprocessor(self):
         """Make an instance of a preprocessor"""
         preprocessor = ExtractOutputPreprocessor()
@@ -18,11 +17,9 @@ class TestExtractOutput(PreprocessorTestsBase):
         preprocessor.enabled = True
         return preprocessor
 
-
     def test_constructor(self):
         """Can a ExtractOutputPreprocessor be constructed?"""
         self.build_preprocessor()
-    
 
     def test_output(self):
         """Test the output of the ExtractOutputPreprocessor"""
@@ -32,30 +29,30 @@ class TestExtractOutput(PreprocessorTestsBase):
         nb, res = preprocessor(nb, res)
         # Check if text was extracted.
         output = nb.cells[0].outputs[1]
-        assert 'filenames' in output.metadata
-        assert 'text/plain' in output.metadata.filenames
+        self.assertIn('filenames', output.metadata)
+        self.assertIn('text/plain', output.metadata.filenames)
         text_filename = output.metadata.filenames['text/plain']
 
         # Check if png was extracted.
         output = nb.cells[0].outputs[6]
-        assert 'filenames' in output.metadata
-        assert 'image/png' in output.metadata.filenames
+        self.assertIn('filenames', output.metadata)
+        self.assertIn('image/png', output.metadata.filenames)
         png_filename = output.metadata.filenames['image/png']
         
         # Check that pdf was extracted
         output = nb.cells[0].outputs[7]
-        assert 'filenames' in output.metadata
-        assert 'application/pdf' in output.metadata.filenames
+        self.assertIn('filenames', output.metadata)
+        self.assertIn('application/pdf', output.metadata.filenames)
         pdf_filename = output.metadata.filenames['application/pdf']
 
         # Verify text output
-        assert text_filename in res['outputs']
+        self.assertIn(text_filename, res['outputs'])
         self.assertEqual(res['outputs'][text_filename], b'b')
 
         # Verify png output
-        assert png_filename in res['outputs']
+        self.assertIn(png_filename, res['outputs'])
         self.assertEqual(res['outputs'][png_filename], b'g')
 
         # Verify pdf output
-        assert pdf_filename in res['outputs']
+        self.assertIn(pdf_filename, res['outputs'])
         self.assertEqual(res['outputs'][pdf_filename], b'h')
