@@ -121,7 +121,8 @@ class CommManager(LoggingConfigurable):
         try:
             comm.close()
         except:
-            pass # Eat errors, nomnomnom
+            self.log.error("""Could not close comm during `comm_open` failure 
+                clean-up.  The comm may not have been opened yet.""", exc_info=True)
     
     def comm_msg(self, stream, ident, msg):
         """Handler for comm_msg messages"""
