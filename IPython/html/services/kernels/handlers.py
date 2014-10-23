@@ -155,6 +155,7 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
     def initialize(self):
         super(ZMQChannelHandler, self).initialize()
         self.zmq_stream = None
+        self.kernel_id = None
         self.kernel_info_channel = None
         self._kernel_info_future = Future()
     
@@ -168,7 +169,8 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
         super(ZMQChannelHandler, self).open()
         try:
             self.create_stream()
-        except web.HTTPError:
+        except web.HTTPError as e:
+            self.log.error("Error opening stream: %s", e)
             # WebSockets don't response to traditional error codes so we
             # close the connection.
             if not self.stream.closed():
