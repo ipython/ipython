@@ -22,7 +22,13 @@ define([
         this.events = options.events;
         this.base_url = options.base_url;
     };
- 
+
+    Contents.prototype.api_url = function() {
+        var url_parts = [this.base_url, 'api/contents'].concat(
+                                Array.prototype.slice.apply(arguments));
+        return utils.url_join_encode.apply(null, url_parts);
+    };
+
     /**
      * Notebook Functions
      */
@@ -51,12 +57,7 @@ define([
             error : error_callback,
         };
         this.events.trigger('notebook_loading.Notebook');
-        var url = utils.url_join_encode(
-            this.base_url,
-            'api/contents',
-            path,
-            name
-        );
+        var url = this.api_url(path, name);
         $.ajax(url, settings);
     };
 
@@ -84,12 +85,7 @@ define([
                 error_callback(xhr, status, error);
             }
         };
-        var url = utils.url_join_encode(
-            base_url,
-            'api/contents',
-            path
-        );
-        $.ajax(url,settings);
+        $.ajax(this.api_url(path), settings);
     };
 
     Contents.prototype.delete_notebook = function(name, path) {
@@ -106,12 +102,7 @@ define([
                 }),
             error : utils.log_ajax_error
         };
-        var url = utils.url_join_encode(
-            this.base_url,
-            'api/contents',
-            path,
-            name
-        );
+        var url = this.api_url(path, name);
         $.ajax(url, settings);
     };
 
@@ -134,12 +125,7 @@ define([
                     [xhr, status, error]);
             }
         };
-        var url = utils.url_join_encode(
-            this.base_url,
-            'api/contents',
-            path,
-            name
-        );
+        var url = this.api_url(path, name);
         $.ajax(url, settings);
     };
 
@@ -175,12 +161,7 @@ define([
                 settings[key] = extra_settings[key];
             }
         }
-        var url = utils.url_join_encode(
-            this.base_url,
-            'api/contents',
-            path,
-            name
-        );
+        var url = this.api_url(path, name);
         $.ajax(url, settings);
     };
 
@@ -195,9 +176,7 @@ define([
     Contents.prototype.restore_checkpoint = function(notebook, id) {
         that = notebook;
         this.events.trigger('notebook_restoring.Notebook', checkpoint);
-        var url = utils.url_join_encode(
-            this.base_url,
-            'api/contents',
+        var url = this.api_url(
             this.notebook_path,
             this.notebook_name,
             'checkpoints',
@@ -212,9 +191,7 @@ define([
 
     Contents.prototype.list_checkpoints = function(notebook) {
         that = notebook;
-        var url = utils.url_join_encode(
-            that.base_url,
-            'api/contents',
+        var url = this.api_url(
             that.notebook_path,
             that.notebook_name,
             'checkpoints'
@@ -258,9 +235,7 @@ define([
             error : error_callback
         };
 
-        var url = utils.url_join_encode(this.base_url, 'api', 'contents',
-            path);
-        $.ajax(url, settings);
+        $.ajax(this.api_url(path), settings);
     };
 
 
