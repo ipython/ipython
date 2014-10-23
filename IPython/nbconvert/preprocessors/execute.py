@@ -4,7 +4,6 @@
 # Distributed under the terms of the Modified BSD License.
 
 import os
-import sys
 
 try:
     from queue import Empty  # Py 3
@@ -13,9 +12,10 @@ except ImportError:
 
 from IPython.utils.traitlets import List, Unicode
 
-from IPython.nbformat.current import reads, writes, output_from_msg
+from IPython.nbformat.v4 import output_from_msg
 from .base import Preprocessor
 from IPython.utils.traitlets import Integer
+
 
 class ExecutePreprocessor(Preprocessor):
     """

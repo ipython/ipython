@@ -8,7 +8,7 @@ import json
 from .base import ExportersTestsBase
 from ..notebook import NotebookExporter
 
-from IPython.nbformat.current import validate
+from IPython.nbformat import validate
 from IPython.testing.tools import assert_big_text_equal
 
 class TestNotebookExporter(ExportersTestsBase):

@@ -3,7 +3,7 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from IPython.nbformat import current as nbformat
+from IPython.nbformat import v4 as nbformat
 
 from ...tests.base import TestsBase
 from ...exporters.exporter import ResourcesDict

@@ -4,13 +4,13 @@
 # Distributed under the terms of the Modified BSD License.
 
 from .exporter import Exporter
-from IPython.nbformat import current as nbformat
+from IPython import nbformat
 from IPython.utils.traitlets import Enum
 
 class NotebookExporter(Exporter):
     """Exports to an IPython notebook."""
 
-    nbformat_version = Enum(list(range(2, nbformat.current_nbformat + 1)),
+    nbformat_version = Enum(list(nbformat.versions),
         default_value=nbformat.current_nbformat,
         config=True,
         help="""The nbformat version to write.
@@ -24,7 +24,7 @@ class NotebookExporter(Exporter):
 
     def from_notebook_node(self, nb, resources=None, **kw):
         nb_copy, resources = super(NotebookExporter, self).from_notebook_node(nb, resources, **kw)
-        if self.nbformat_version != nbformat.current_nbformat:
+        if self.nbformat_version != nb_copy.nbformat:
             resources['output_suffix'] = '.v%i' % self.nbformat_version
         else:
             resources['output_suffix'] = '.nbconvert'

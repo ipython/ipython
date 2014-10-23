@@ -10,7 +10,7 @@ import shutil
 import unittest
 
 import IPython
-from IPython.nbformat import current
+from IPython.nbformat import v4, write
 from IPython.utils.tempdir import TemporaryWorkingDirectory
 from IPython.utils.path import get_ipython_package_dir
 from IPython.utils.process import get_output_error_code
@@ -101,10 +101,9 @@ class TestsBase(unittest.TestCase):
         return temp_dir
     
     def create_empty_notebook(self, path):
-        nb = current.new_notebook()
+        nb = v4.new_notebook()
         with io.open(path, 'w', encoding='utf-8') as f:
-            current.write(nb, f, 'json')
-
+            write(f, nb, 4)
 
     def copy_files_to(self, copy_filenames, dest='.'):
         "Copy test files into the destination directory"

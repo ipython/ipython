@@ -7,10 +7,11 @@ Module with tests for the execute preprocessor.
 
 import copy
 import glob
+import io
 import os
 import re
 
-from IPython.nbformat import current as nbformat
+from IPython import nbformat
 
 from .base import PreprocessorTestsBase
 from ..execute import ExecutePreprocessor
@@ -78,8 +79,8 @@ class TestExecute(PreprocessorTestsBase):
         current_dir = os.path.dirname(__file__)
         input_files = glob.glob(os.path.join(current_dir, 'files', '*.ipynb'))
         for filename in input_files:
-            with open(os.path.join(current_dir, 'files', filename)) as f:
-                input_nb = nbformat.read(f, 'ipynb')
+            with io.open(os.path.join(current_dir, 'files', filename)) as f:
+                input_nb = nbformat.read(f, 4)
             res = self.build_resources()
             preprocessor = self.build_preprocessor()
             cleaned_input_nb = copy.deepcopy(input_nb)

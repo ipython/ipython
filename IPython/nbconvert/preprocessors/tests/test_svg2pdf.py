@@ -4,7 +4,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 from IPython.testing import decorators as dec
-from IPython.nbformat import current as nbformat
+from IPython.nbformat import v4 as nbformat
 
 from .base import PreprocessorTestsBase
 from ..svg2pdf import SVG2PDFPreprocessor

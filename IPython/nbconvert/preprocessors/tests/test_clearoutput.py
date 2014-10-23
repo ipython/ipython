@@ -5,8 +5,6 @@ Module with tests for the clearoutput preprocessor.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from IPython.nbformat import current as nbformat
-
 from .base import PreprocessorTestsBase
 from ..clearoutput import ClearOutputPreprocessor
 

@@ -5,7 +5,7 @@
 
 from functools import wraps
 
-from IPython.nbformat.current import NotebookNode
+from IPython.nbformat.v4 import NotebookNode
 from IPython.utils.decorators import undoc
 from IPython.utils.py3compat import string_types
 
