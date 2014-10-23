@@ -2649,9 +2649,9 @@ class InteractiveShell(SingletonConfigurable):
         def get_cells():
             """generator for sequence of code blocks to run"""
             if fname.endswith('.ipynb'):
-                from IPython.nbformat import current
-                with open(fname) as f:
-                    nb = current.read(f)
+                from IPython.nbformat import read
+                with io_open(fname) as f:
+                    nb = read(f, as_version=4)
                     if not nb.cells:
                         return
                     for cell in nb.cells:

@@ -596,14 +596,16 @@ Defaulting color scheme to 'NoColor'"""
         """
         args = magic_arguments.parse_argstring(self.notebook, s)
 
-        from IPython.nbformat import current
+        from IPython.nbformat import write, v4
         args.filename = unquote_filename(args.filename)
         if args.export:
             cells = []
             hist = list(self.shell.history_manager.get_range())
-            for session, prompt_number, input in hist[:-1]:
-                cells.append(current.new_code_cell(prompt_number=prompt_number,
-                                                   input=input))
-            nb = current.new_notebook(cells=cells)
+            for session, execution_count, input in hist[:-1]:
+                cells.append(v4.new_code_cell(
+                    execution_count=execution_count,
+                    source=source
+                ))
+            nb = v4.new_notebook(cells=cells)
             with io.open(args.filename, 'w', encoding='utf-8') as f:
-                current.write(nb, f)
+                write(f, nb, version=4)

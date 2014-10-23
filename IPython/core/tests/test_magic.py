@@ -5,10 +5,6 @@ Needs to be run by nose (to make ipython session available).
 """
 from __future__ import absolute_import
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
 import io
 import os
 import sys
@@ -40,9 +36,6 @@ if py3compat.PY3:
 else:
     from StringIO import StringIO
 
-#-----------------------------------------------------------------------------
-# Test functions begin
-#-----------------------------------------------------------------------------
 
 @magic.magics_class
 class DummyMagics(magic.Magics): pass
@@ -624,7 +617,7 @@ def test_extension():
 
 
 # The nose skip decorator doesn't work on classes, so this uses unittest's skipIf
-@skipIf(dec.module_not_available('IPython.nbformat.current'), 'nbformat not importable')
+@skipIf(dec.module_not_available('IPython.nbformat'), 'nbformat not importable')
 class NotebookExportMagicTests(TestCase):
     def test_notebook_export_json(self):
         with TemporaryDirectory() as td:
