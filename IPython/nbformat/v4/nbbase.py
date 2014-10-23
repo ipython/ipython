@@ -9,7 +9,7 @@ helpers to build the structs in the right form.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from IPython.utils.ipstruct import Struct
+from ..notebooknode import from_dict, NotebookNode
 
 # Change this when incrementing the nbformat version
 nbformat = 4
@@ -21,18 +21,6 @@ def validate(node, ref=None):
     """validate a v4 node"""
     from .. import validate
     return validate(node, ref=ref, version=nbformat)
-
-
-class NotebookNode(Struct):
-    pass
-
-def from_dict(d):
-    if isinstance(d, dict):
-        return NotebookNode({k:from_dict(v) for k,v in d.items()})
-    elif isinstance(d, (tuple, list)):
-        return [from_dict(i) for i in d]
-    else:
-        return d
 
 
 def new_output(output_type, data=None, **kwargs):

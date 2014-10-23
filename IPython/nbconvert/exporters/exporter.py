@@ -89,7 +89,7 @@ class Exporter(LoggingConfigurable):
 
         Parameters
         ----------
-        nb : :class:`~IPython.nbformat.current.NotebookNode`
+        nb : :class:`~IPython.nbformat.NotebookNode`
           Notebook node (dict-like with attr-access)
         resources : dict
           Additional resources that can be accessed read/write by

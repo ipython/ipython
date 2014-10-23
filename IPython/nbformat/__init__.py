@@ -23,6 +23,7 @@ versions = {
 from .validator import validate, ValidationError
 from .converter import convert
 from . import reader
+from .notebooknode import from_dict, NotebookNode
 
 from .v4 import (
     nbformat as current_nbformat,

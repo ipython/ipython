@@ -199,7 +199,7 @@ class TemplateExporter(Exporter):
     
         Parameters
         ----------
-        nb : :class:`~IPython.nbformat.current.NotebookNode`
+        nb : :class:`~IPython.nbformat.NotebookNode`
           Notebook node
         resources : dict
           Additional resources that can be accessed read/write by

@@ -4,15 +4,15 @@
 # Distributed under the terms of the Modified BSD License.
 
 from .nbbase import (
-    NotebookNode, from_dict,
     nbformat, nbformat_minor, nbformat_schema,
     new_code_cell, new_markdown_cell, new_notebook,
     new_output, output_from_msg,
 )
 
-from .nbjson import reads as reads_json, writes as writes_json
-from .nbjson import reads as read_json, writes as write_json
-from .nbjson import to_notebook as to_notebook_json
+from .nbjson import reads, writes, to_notebook
+reads_json = reads
+writes_json = writes
+to_notebook_json = to_notebook
 
 from .convert import downgrade, upgrade
 

@@ -25,12 +25,18 @@ class BytesEncoder(json.JSONEncoder):
 class JSONReader(NotebookReader):
 
     def reads(self, s, **kwargs):
+        """Read a JSON string into a Notebook object"""
         nb = json.loads(s, **kwargs)
         nb = self.to_notebook(nb, **kwargs)
         return nb
 
     def to_notebook(self, d, **kwargs):
-        nb = rejoin_lines(from_dict(d))
+        """Convert a disk-format notebook dict to in-memory NotebookNode
+        
+        handles multi-line values as strings, scrubbing of transient values, etc.
+        """
+        nb = from_dict(d)
+        nb = rejoin_lines(nb)
         nb = strip_transient(nb)
         return nb
 
@@ -38,6 +44,7 @@ class JSONReader(NotebookReader):
 class JSONWriter(NotebookWriter):
 
     def writes(self, nb, **kwargs):
+        """Serialize a NotebookNode object as a JSON string"""
         kwargs['cls'] = BytesEncoder
         kwargs['indent'] = 1
         kwargs['sort_keys'] = True
