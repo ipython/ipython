@@ -280,7 +280,7 @@ define([
         var url = utils.url_join_encode(this.base_url, 'api', 'contents',
             path);
         $.ajax(url, settings);
-    }
+    };
 
 
     IPython.Contents = Contents;
