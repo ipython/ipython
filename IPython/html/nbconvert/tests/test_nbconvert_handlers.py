@@ -10,9 +10,10 @@ import requests
 
 from IPython.html.utils import url_path_join
 from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
-from IPython.nbformat.current import (new_notebook, write,
-                                      new_markdown_cell, new_code_cell,
-                                      new_output)
+from IPython.nbformat import write
+from IPython.nbformat.v4 import (
+    new_notebook, new_markdown_cell, new_code_cell, new_output,
+)
 
 from IPython.testing.decorators import onlyif_cmds_exist
 
@@ -66,7 +67,7 @@ class APITest(NotebookTestBase):
         
         with io.open(pjoin(nbdir, 'foo', 'testnb.ipynb'), 'w',
                      encoding='utf-8') as f:
-            write(nb, f)
+            write(f, nb, version=4)
 
         self.nbconvert_api = NbconvertAPI(self.base_url())
 

@@ -9,7 +9,7 @@ from tornado.web import HTTPError
 from unittest import TestCase
 from tempfile import NamedTemporaryFile
 
-from IPython.nbformat import current
+from IPython.nbformat import v4 as nbformat
 
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.traitlets import TraitError
@@ -95,8 +95,8 @@ class TestContentsManager(TestCase):
         return os_path
 
     def add_code_cell(self, nb):
-        output = current.new_output("display_data", {'application/javascript': "alert('hi');"})
-        cell = current.new_code_cell("print('hi')", outputs=[output])
+        output = nbformat.new_output("display_data", {'application/javascript': "alert('hi');"})
+        cell = nbformat.new_code_cell("print('hi')", outputs=[output])
         nb.cells.append(cell)
 
     def new_notebook(self):

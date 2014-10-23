@@ -13,7 +13,7 @@ from ..base.handlers import (
     IPythonHandler, FilesRedirectHandler,
     notebook_path_regex, path_regex,
 )
-from IPython.nbformat.current import from_dict
+from IPython.nbformat import from_dict
 
 from IPython.utils.py3compat import cast_bytes
 

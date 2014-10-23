@@ -10,7 +10,8 @@ pjoin = os.path.join
 import requests
 import json
 
-from IPython.nbformat.current import (new_notebook, write,
+from IPython.nbformat import write
+from IPython.nbformat.v4 import (new_notebook,
                               new_markdown_cell, new_code_cell,
                               new_output)
 
@@ -73,7 +74,7 @@ class FilesTest(NotebookTestBase):
 
         with io.open(pjoin(nbdir, 'testnb.ipynb'), 'w', 
             encoding='utf-8') as f:
-            write(nb, f)
+            write(f, nb, version=4)
 
         with io.open(pjoin(nbdir, 'test.bin'), 'wb') as f:
             f.write(b'\xff' + os.urandom(5))

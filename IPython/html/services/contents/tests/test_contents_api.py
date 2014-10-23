@@ -14,9 +14,10 @@ import requests
 
 from IPython.html.utils import url_path_join, url_escape
 from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
-from IPython.nbformat import current
-from IPython.nbformat.current import (new_notebook, write, read,
-                                      new_markdown_cell, from_dict)
+from IPython.nbformat import read, write, from_dict
+from IPython.nbformat.v4 import (
+    new_notebook, new_markdown_cell,
+)
 from IPython.nbformat import v2
 from IPython.utils import py3compat
 from IPython.utils.data import uniq_stable
@@ -143,7 +144,7 @@ class APITest(NotebookTestBase):
             with io.open(pjoin(nbdir, d, '%s.ipynb' % name), 'w',
                          encoding='utf-8') as f:
                 nb = new_notebook()
-                write(nb, f, format='ipynb')
+                write(f, nb, version=4)
 
             # create a text file
             with io.open(pjoin(nbdir, d, '%s.txt' % name), 'w',
@@ -354,7 +355,7 @@ class APITest(NotebookTestBase):
         self._check_created(resp, u'Upload tést.ipynb', u'å b')
         resp = self.api.read(u'Upload tést.ipynb', u'å b')
         data = resp.json()
-        self.assertEqual(data['content']['nbformat'], current.nbformat)
+        self.assertEqual(data['content']['nbformat'], 4)
 
     def test_copy_untitled(self):
         resp = self.api.copy_untitled(u'ç d.ipynb', path=u'å b')
@@ -422,7 +423,7 @@ class APITest(NotebookTestBase):
 
         nbfile = pjoin(self.notebook_dir.name, 'foo', 'a.ipynb')
         with io.open(nbfile, 'r', encoding='utf-8') as f:
-            newnb = read(f, format='ipynb')
+            newnb = read(f, as_version=4)
         self.assertEqual(newnb.cells[0].source,
                          u'Created by test ³')
         nbcontent = self.api.read('a.ipynb', 'foo').json()['content']

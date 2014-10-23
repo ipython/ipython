@@ -12,7 +12,7 @@ import shutil
 from tornado import web
 
 from .manager import ContentsManager
-from IPython.nbformat import current
+from IPython import nbformat
 from IPython.utils.io import atomic_writing
 from IPython.utils.path import ensure_dir_exists
 from IPython.utils.traitlets import Unicode, Bool, TraitError
@@ -253,7 +253,7 @@ class FileContentsManager(ContentsManager):
             os_path = self._get_os_path(name, path)
             with io.open(os_path, 'r', encoding='utf-8') as f:
                 try:
-                    nb = current.read(f, u'json')
+                    nb = nbformat.read(f, as_version=4)
                 except Exception as e:
                     raise web.HTTPError(400, u"Unreadable Notebook: %s %r" % (os_path, e))
             self.mark_trusted_cells(nb, name, path)
@@ -295,7 +295,7 @@ class FileContentsManager(ContentsManager):
     def _save_notebook(self, os_path, model, name='', path=''):
         """save a notebook file"""
         # Save the notebook file
-        nb = current.from_dict(model['content'])
+        nb = nbformat.from_dict(model['content'])
 
         self.check_and_sign(nb, name, path)
 
@@ -303,7 +303,7 @@ class FileContentsManager(ContentsManager):
             nb['metadata']['name'] = u''
 
         with atomic_writing(os_path, encoding='utf-8') as f:
-            current.write(nb, f, version=nb.nbformat)
+            nbformat.write(f, nb, version=nbformat.NO_CONVERT)
 
     def _save_file(self, os_path, model, name='', path=''):
         """save a non-notebook file"""
@@ -522,7 +522,7 @@ class FileContentsManager(ContentsManager):
         # ensure notebook is readable (never restore from an unreadable notebook)
         if cp_path.endswith('.ipynb'):
             with io.open(cp_path, 'r', encoding='utf-8') as f:
-                current.read(f, u'json')
+                nbformat.read(f, as_version=4)
         self._copy(cp_path, nb_path)
         self.log.debug("copying %s -> %s", cp_path, nb_path)
 

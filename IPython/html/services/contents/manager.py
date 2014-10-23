@@ -11,7 +11,8 @@ import os
 from tornado.web import HTTPError
 
 from IPython.config.configurable import LoggingConfigurable
-from IPython.nbformat import current, sign
+from IPython.nbformat import sign, validate, ValidationError
+from IPython.nbformat.v4 import new_notebook
 from IPython.utils.traitlets import Instance, Unicode, List
 
 
@@ -220,8 +221,8 @@ class ContentsManager(LoggingConfigurable):
     def validate_notebook_model(self, model):
         """Add failed-validation message to model"""
         try:
-            current.validate(model['content'])
-        except current.ValidationError as e:
+            validate(model['content'])
+        except ValidationError as e:
             model['message'] = 'Notebook Validation failed: {}:\n{}'.format(
                 e.message, json.dumps(e.instance, indent=1, default=lambda obj: '<UNKNOWN>'),
             )
@@ -234,7 +235,7 @@ class ContentsManager(LoggingConfigurable):
             model = {}
         if 'content' not in model and model.get('type', None) != 'directory':
             if ext == '.ipynb':
-                model['content'] = current.new_notebook()
+                model['content'] = new_notebook()
                 model['type'] = 'notebook'
                 model['format'] = 'json'
             else:
@@ -308,13 +309,14 @@ class ContentsManager(LoggingConfigurable):
         Parameters
         ----------
         nb : dict
-            The notebook object (in nbformat.current format)
+            The notebook object (in current nbformat)
         name : string
             The filename of the notebook (for logging)
         path : string
             The notebook's directory (for logging)
         """
-        if nb['nbformat'] != current.nbformat:
+        # can't sign old notebooks
+        if nb['nbformat'] != 4:
             return
         if self.notary.check_cells(nb):
             self.notary.sign(nb)
@@ -329,7 +331,7 @@ class ContentsManager(LoggingConfigurable):
         Parameters
         ----------
         nb : dict
-            The notebook object (in nbformat.current format)
+            The notebook object (in current nbformat)
         name : string
             The filename of the notebook (for logging)
         path : string
