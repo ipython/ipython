@@ -5,9 +5,9 @@
 
 from .base import TestsBase
 
-from ..convert import convert
+from ..converter import convert
 from ..reader import read, get_version
-from ..current import current_nbformat
+from .. import current_nbformat
 
 
 class TestConvert(TestsBase):

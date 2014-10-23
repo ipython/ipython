@@ -19,7 +19,7 @@ nbformat_schema = 'nbformat.v4.schema.json'
 
 def validate(node, ref=None):
     """validate a v4 node"""
-    from ..current import validate
+    from .. import validate
     return validate(node, ref=ref, version=nbformat)
 
 

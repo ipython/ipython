@@ -2,7 +2,7 @@ import copy
 
 import nose.tools as nt
 
-from IPython.nbformat.current import validate
+from IPython.nbformat import validate
 from .. import convert
 
 from . import nbexamples

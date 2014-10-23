@@ -3,7 +3,8 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from .reader import get_version, versions
+from . import versions
+from .reader import get_version
 
 
 def convert(nb, to_version):
@@ -24,7 +25,7 @@ def convert(nb, to_version):
     # Get input notebook version.
     (version, version_minor) = get_version(nb)
 
-    # Check if destination is current version, if so return contents
+    # Check if destination is target version, if so return contents
     if version == to_version:
         return nb
 

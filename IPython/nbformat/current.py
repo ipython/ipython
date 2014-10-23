@@ -17,8 +17,8 @@ from IPython.nbformat.v3 import (
 from IPython.nbformat import v3 as _v_latest
 
 from .reader import reads as reader_reads
-from .reader import versions
-from .convert import convert
+from . import versions
+from .converter import convert
 from .validator import validate, ValidationError
 
 from IPython.utils.log import get_logger

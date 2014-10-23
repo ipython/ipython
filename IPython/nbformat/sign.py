@@ -10,12 +10,13 @@ from hmac import HMAC
 import io
 import os
 
+from IPython.utils.io import atomic_writing
 from IPython.utils.py3compat import string_types, unicode_type, cast_bytes
 from IPython.utils.traitlets import Instance, Bytes, Enum, Any, Unicode, Bool
 from IPython.config import LoggingConfigurable, MultipleInstanceError
 from IPython.core.application import BaseIPythonApplication, base_flags
 
-from .current import read, write
+from . import read, write, NO_CONVERT
 
 try:
     # Python 3
@@ -278,14 +279,14 @@ class TrustNotebookApp(BaseIPythonApplication):
             self.log.error("Notebook missing: %s" % notebook_path)
             self.exit(1)
         with io.open(notebook_path, encoding='utf8') as f:
-            nb = read(f, 'json')
+            nb = read(f, NO_CONVERT)
         if self.notary.check_signature(nb):
             print("Notebook already signed: %s" % notebook_path)
         else:
             print("Signing notebook: %s" % notebook_path)
             self.notary.sign(nb)
-            with io.open(notebook_path, 'w', encoding='utf8') as f:
-                write(nb, f, 'json')
+            with atomic_writing(notebook_path) as f:
+                write(f, nb, NO_CONVERT)
     
     def generate_new_key(self):
         """Generate a new notebook signature key"""

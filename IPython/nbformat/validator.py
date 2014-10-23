@@ -43,7 +43,8 @@ def _relax_additional_properties(obj):
 def get_validator(version=None, version_minor=None):
     """Load the JSON schema into a Validator"""
     if version is None:
-        from .current import nbformat as version
+        from .. import current_nbformat
+        version = current_nbformat
 
     v = import_item("IPython.nbformat.v%s" % version)
     current_minor = v.nbformat_minor

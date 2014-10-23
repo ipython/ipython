@@ -3,10 +3,9 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from .. import sign
 from .base import TestsBase
 
-from ..current import read
+from IPython.nbformat import read, sign
 from IPython.core.getipython import get_ipython
 
 
@@ -18,7 +17,7 @@ class TestNotary(TestsBase):
             profile_dir=get_ipython().profile_dir
         )
         with self.fopen(u'test3.ipynb', u'r') as f:
-            self.nb = read(f, u'json')
+            self.nb = read(f, as_version=4)
     
     def test_algorithms(self):
         last_sig = ''

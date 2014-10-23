@@ -16,7 +16,7 @@ from IPython.utils.log import get_logger
 
 def _warn_if_invalid(nb, version):
     """Log validation errors, if there are any."""
-    from IPython.nbformat.current import validate, ValidationError
+    from IPython.nbformat import validate, ValidationError
     try:
         validate(nb, version=version)
     except ValidationError as e:
