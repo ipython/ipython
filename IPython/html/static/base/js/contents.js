@@ -81,7 +81,7 @@ define([
                 window.open(
                     utils.url_join_encode(
                         base_url,
-                        'contents',
+                        'notebooks',
                         path,
                         notebook_name
                     ),
