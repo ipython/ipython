@@ -59,6 +59,10 @@ nbconvert_aliases.update({
 nbconvert_flags = {}
 nbconvert_flags.update(base_flags)
 nbconvert_flags.update({
+    'execute' : (
+        {'ExecutePreprocessor' : {'enabled' : True}},
+        "Execute the notebook prior to export."
+        ),
     'stdout' : (
         {'NbConvertApp' : {'writer_class' : "StdoutWriter"}},
         "Write notebook output to stdout instead of files."

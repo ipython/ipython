@@ -50,6 +50,7 @@ class ExecutePreprocessor(Preprocessor):
     def preprocess(self, nb, resources):
         from IPython.kernel import run_kernel
         kernel_name = nb.metadata.get('kernelspec', {}).get('name', 'python')
+        self.log.info("Executing notebook with kernel: %s" % kernel_name)
         with run_kernel(kernel_name=kernel_name,
                         extra_arguments=self.extra_arguments,
                         stderr=open(os.devnull, 'w')) as kc:
