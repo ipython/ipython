@@ -1,4 +1,8 @@
-"""The official API for working with notebooks in the current format version."""
+"""Deprecated API for working with notebooks
+
+- use IPython.nbformat for read/write/validate public API
+- use IPython.nbformat.vX directly for Python API for composing notebooks
+"""
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
@@ -7,6 +11,12 @@ from __future__ import print_function
 
 import re
 import warnings
+
+warnings.warn("""IPython.nbformat.current is deprecated.
+
+- use IPython.nbformat for read/write/validate public API
+- use IPython.nbformat.vX directly to composing notebooks of a particular version
+""")
 
 from IPython.nbformat.v3 import (
     NotebookNode,
