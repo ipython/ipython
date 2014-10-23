@@ -105,9 +105,7 @@ define([
         this.session = null;
         this.kernel = null;
         this.clipboard = null;
-        this.undelete_backup = [];
-        this.undelete_index = [];
-        //this.undelete_below = [];
+        this.undelete_history = [];
         this.undelete_max = 10;
         this.paste_enabled = false;
         // It is important to start out in command mode to match the intial mode
@@ -751,13 +749,11 @@ define([
         if (!cell.is_deletable()) {
             return this;
         }
-        if (this.undelete_index.length >= this.undelete_max) {
-            this.undelete_index.shift();
-            this.undelete_backup.shift();
-            //this.undelete_below.shift();
+        if (this.undelete_history.length >= this.undelete_max) {
+            this.undelete_history.shift();
         }
-        this.undelete_backup.push(cell.toJSON());
-        if (this.undelete_backup.length === 1) {
+        var backup = cell.toJSON();
+        if (this.undelete_history.length === 1) {
             $('#undelete_cell').removeClass('disabled');
         }
         if (this.is_valid_cell_index(i)) {
@@ -775,7 +771,8 @@ define([
             } else {
                 this.select(i);
             }
-            this.undelete_index.push(i); //always select cell index
+            var index = i;
+            this.undelete_history.push( {"backup":backup,"index":index});
             this.events.trigger('delete.Cell', {'cell': cell, 'index': i});
             this.set_dirty(true);
         }
@@ -788,28 +785,25 @@ define([
      * @method undelete
      */
     Notebook.prototype.undelete_cell = function() {
-        if (this.undelete_backup.length !== 0 && this.undelete_index.length !== 0) {
-            console.log(this.undelete_index);
-            console.log(this.undelete_backup);
-            var last_undelete_index=this.undelete_index.pop();
-            var last_undelete_backup=this.undelete_backup.pop();
-            //var last_undelete_below=this.undelete_below.pop();
+        if (this.undelete_history.length !== 0 ) {
+            //plan: always insert below last["index"]-1 unless last["index"]-1===-1, then insert above 0.
+            console.log(this.undelete_history);
+            var last = this.undelete_history.pop();
             var current_index = this.get_selected_index();
-            //plan: always insert below last_undelete_index-1 unless undelete_index-1===-1, then insert above 0
             var above = false;
-            if (last_undelete_index <= current_index) {
+            if (last["index"] <= current_index) {
                 current_index = current_index + 1;
             }
-            if (last_undelete_index >= this.ncells()) { //should not happen
+            if (last["index"] >= this.ncells()) {
                 this.select(this.ncells() - 1);
             }
-            else if (last_undelete_index === 0) {
-                this.select(last_undelete_index);
+            else if (last["index"] === 0) {
+                this.select(last["index"]);
                 above = true;
             } else {
-                this.select(last_undelete_index-1);
+                this.select(last["index"]-1);
             }
-            var cell_data = last_undelete_backup;
+            var cell_data = last["backup"];
             var new_cell = null;
             if (above) {
                 new_cell = this.insert_cell_above(cell_data.cell_type);
@@ -822,8 +816,9 @@ define([
             } else {
                 this.select(current_index);
             }*/ //TODO either take this out or leave it. We don't need select a readded cell at the end of the notebook. It is much better if the selected cell always stays the same independent of delete
+            this.select(current_index);
         }
-        if (this.undelete_backup.length == 0) {
+        if (this.undelete_history.length == 0) {
             $('#undelete_cell').addClass('disabled');
 	}
     };
@@ -930,10 +925,10 @@ define([
         } else {
             return false;
         }
-        if (this.undelete_index.length !== 0) {
-            for (var i=0;i < this.undelete_index.length; i++) {
-                if (index < this.undelete_index[i]) {
-                    this.undelete_index[i]=this.undelete_index[i]+1;
+        if (this.undelete_history.length !== 0) {
+            for (var i=0;i < this.undelete_history.length; i++) {
+                if (index < this.undelete_history[i]["index"]) {
+                    this.undelete_history[i]["index"]=this.undelete_history[i]["index"]+1;
                 }
             }
             this.set_dirty(true);
