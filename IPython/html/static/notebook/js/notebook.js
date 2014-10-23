@@ -105,9 +105,10 @@ define([
         this.session = null;
         this.kernel = null;
         this.clipboard = null;
-        this.undelete_backup = null;
-        this.undelete_index = null;
-        this.undelete_below = false;
+        this.undelete_backup = [];
+        this.undelete_index = [];
+        this.undelete_below = [];
+        this.undelete_max = 10;
         this.paste_enabled = false;
         // It is important to start out in command mode to match the intial mode
         // of the KeyboardManager.
@@ -750,9 +751,15 @@ define([
         if (!cell.is_deletable()) {
             return this;
         }
-
-        this.undelete_backup = cell.toJSON();
-        $('#undelete_cell').removeClass('disabled');
+        if (this.undelete_index.length >= this.undelete_max) {
+            this.undelete_index.shift();
+            this.undelete_backup.shift();
+            this.undelete_below.shift();
+        }
+        this.undelete_backup.push(cell.toJSON());
+        if (this.undelete_backup.length === 1) {
+            $('#undelete_cell').removeClass('disabled');
+        }
         if (this.is_valid_cell_index(i)) {
             var old_ncells = this.ncells();
             var ce = this.get_cell_element(i);
@@ -763,16 +770,16 @@ define([
                     this.insert_cell_below('code');
                 }
                 this.select(0);
-                this.undelete_index = 0;
-                this.undelete_below = false;
+                this.undelete_index.push(0);
+                this.undelete_below.push(false);
             } else if (i === old_ncells-1 && i !== 0) {
                 this.select(i-1);
-                this.undelete_index = i - 1;
-                this.undelete_below = true;
+                this.undelete_index.push(i-1);
+                this.undelete_below.push(true);
             } else {
                 this.select(i);
-                this.undelete_index = i;
-                this.undelete_below = false;
+                this.undelete_index.push(i);
+                this.undelete_below.push(false);
             }
             this.events.trigger('delete.Cell', {'cell': cell, 'index': i});
             this.set_dirty(true);
@@ -786,34 +793,37 @@ define([
      * @method undelete
      */
     Notebook.prototype.undelete_cell = function() {
-        if (this.undelete_backup !== null && this.undelete_index !== null) {
+        if (this.undelete_backup.length !== 0 && this.undelete_index.length !== 0) {
+            var last_undelete_index=this.undelete_index.pop();
+            var last_undelete_backup=this.undelete_backup.pop();
+            var last_undelete_below=this.undelete_below.pop();
             var current_index = this.get_selected_index();
-            if (this.undelete_index < current_index) {
+            if (last_undelete_index < current_index) {
                 current_index = current_index + 1;
             }
-            if (this.undelete_index >= this.ncells()) {
+            if (last_undelete_index >= this.ncells()) {
                 this.select(this.ncells() - 1);
             }
             else {
-                this.select(this.undelete_index);
+                this.select(last_undelete_index);
             }
-            var cell_data = this.undelete_backup;
+            var cell_data = last_undelete_backup;
             var new_cell = null;
-            if (this.undelete_below) {
+            if (last_undelete_below) {
                 new_cell = this.insert_cell_below(cell_data.cell_type);
             } else {
                 new_cell = this.insert_cell_above(cell_data.cell_type);
             }
             new_cell.fromJSON(cell_data);
-            if (this.undelete_below) {
+            if (last_undelete_below) {
                 this.select(current_index+1);
             } else {
                 this.select(current_index);
             }
-            this.undelete_backup = null;
-            this.undelete_index = null;
         }
-        $('#undelete_cell').addClass('disabled');
+        if (this.undelete_backup.length == 0) {
+            $('#undelete_cell').addClass('disabled');
+	}
     };
 
     /**
@@ -918,9 +928,12 @@ define([
         } else {
             return false;
         }
-
-        if (this.undelete_index !== null && index <= this.undelete_index) {
-            this.undelete_index = this.undelete_index + 1;
+        if (this.undelete_index.length !== 0) {
+            for (var i=0;i < this.undelete_index.length; i++) {
+                if (index < this.undelete_index[i]) {
+                    this.undelete_index[i]=this.undelete_index[i]+1;
+                }
+            }
             this.set_dirty(true);
         }
         return true;
