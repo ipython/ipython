@@ -89,7 +89,29 @@ define([
         this.element.find('#new_notebook').click(function () {
             // Create a new notebook in the same path as the current
             // notebook's path.
-            that.contents.new_notebook(that.notebook.notebook_path);
+            that.contents.new_notebook(that.notebook.notebook_path,
+                {
+                    success_callback: function (data, status, xhr) {
+                        window.open(
+                            utils.url_join_encode(
+                                common_options.base_url, 'notebooks',
+                                data.path, data.name
+                            ), '_blank');
+                        },
+                    error_callback: function(xhr, status, error) {
+                        var msg;
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            msg = xhr.responseJSON.message;
+                        } else {
+                            msg = xhr.statusText;
+                        }
+                        dialog.modal({
+                            title : 'Creating Notebook Failed',
+                            body : "The error was: " + msg,
+                            buttons : {'OK' : {'class' : 'btn-primary'}}
+                        });
+                    }
+                });
         });
         this.element.find('#open_notebook').click(function () {
             window.open(utils.url_join_encode(

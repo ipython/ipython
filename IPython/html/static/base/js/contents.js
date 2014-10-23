@@ -68,39 +68,20 @@ define([
      * @method scroll_to_cell
      * @param {String} path The path to create the new notebook at
      */
-    Contents.prototype.new_notebook = function(path) {
+    Contents.prototype.new_notebook = function(path, options) {
         var base_url = this.base_url;
+        var success_callback = options.success_callback || function(data, status, xhr) {};
+        var error_callback = options.error_callback || function(xhr, status, error) {};
         var settings = {
             processData : false,
             cache : false,
             type : "POST",
             dataType : "json",
             async : false,
-            success : function (data, status, xhr){
-                var notebook_name = data.name;
-                window.open(
-                    utils.url_join_encode(
-                        base_url,
-                        'notebooks',
-                        path,
-                        notebook_name
-                    ),
-                    '_blank'
-                );
-            },
+            success : success_callback,
             error : function(xhr, status, error) {
                 utils.log_ajax_error(xhr, status, error);
-                var msg;
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    msg = xhr.responseJSON.message;
-                } else {
-                    msg = xhr.statusText;
-                }
-                dialog.modal({
-                    title : 'Creating Notebook Failed',
-                    body : "The error was: " + msg,
-                    buttons : {'OK' : {'class' : 'btn-primary'}}
-                });
+                error_callback(xhr, status, error);
             }
         };
         var url = utils.url_join_encode(

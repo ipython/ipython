@@ -60,7 +60,29 @@ require([
     login_widget = new loginwidget.LoginWidget('#login_widget', common_options);
 
     $('#new_notebook').button().click(function (e) {
-        contents.new_notebook(common_options.notebook_path);
+        contents.new_notebook(common_options.notebook_path,
+            {
+                success_callback: function (data, status, xhr) {
+                    window.open(
+                        utils.url_join_encode(
+                            common_options.base_url, 'notebooks',
+                            data.path, data.name
+                        ), '_blank');
+                    },
+                error_callback: function(xhr, status, error) {
+                    var msg;
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    } else {
+                        msg = xhr.statusText;
+                    }
+                    dialog.modal({
+                        title : 'Creating Notebook Failed',
+                        body : "The error was: " + msg,
+                        buttons : {'OK' : {'class' : 'btn-primary'}}
+                    });
+                }
+            });
     });
 
     var interval_id=0;
