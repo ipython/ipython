@@ -334,7 +334,8 @@ define([
                                 notebooklist.contents.delete_file(nbname, path, {
                                     success_callback: function() {
                                         notebooklist.notebook_deleted(path, nbname);
-                                    });
+                                    }
+                                });
                             }
                         },
                         Cancel : {}

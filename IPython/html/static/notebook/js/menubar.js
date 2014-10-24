@@ -94,7 +94,7 @@ define([
                     success_callback: function (data, status, xhr) {
                         window.open(
                             utils.url_join_encode(
-                                common_options.base_url, 'notebooks',
+                                that.base_url, 'notebooks',
                                 data.path, data.name
                             ), '_blank');
                         },
