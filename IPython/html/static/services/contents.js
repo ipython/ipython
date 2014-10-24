@@ -17,9 +17,7 @@ define([
         // Parameters:
         //  options: dictionary
         //      Dictionary of keyword arguments.
-        //          events: $(Events) instance
         //          base_url: string
-        this.events = options.events;
         this.base_url = options.base_url;
     };
 
@@ -54,7 +52,6 @@ define([
             success : options.success_callback,
             error : options.error_callback || function() {}
         };
-        this.events.trigger('notebook_loading.Notebook');
         var url = this.api_url(path, name);
         $.ajax(url, settings);
     };

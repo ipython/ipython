@@ -2132,6 +2132,7 @@ define([
     Notebook.prototype.load_notebook = function (notebook_name, notebook_path) {
         this.notebook_name = notebook_name;
         this.notebook_path = notebook_path;
+        this.events.trigger('notebook_loading.Notebook');
         this.contents.load_file(notebook_path, notebook_name, {
             success_callback: $.proxy(this.load_notebook_success, this),
             error_callback: $.proxy(this.load_notebook_error, this)

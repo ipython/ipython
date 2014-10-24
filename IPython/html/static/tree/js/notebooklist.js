@@ -40,21 +40,6 @@ define([
             this.session_list.events.on('sessions_loaded.Dashboard', 
                 function(e, d) { that.sessions_loaded(d); });
         }
-
-
-        if (this.contents && this.contents.events) {
-            this.contents.events.on('notebook_deleted.Contents',
-                function(e, d) {
-                    // Remove the deleted notebook.
-                    $( ":data(nbname)" ).each(function() {
-                        var element = $( this );
-                        if (element.data( "nbname" ) == d.name &&
-                            element.data( "path" ) == d.path) {
-                            element.remove();
-                        }
-                    });
-                });
-        }
     };
 
     NotebookList.prototype.style = function () {
@@ -348,9 +333,7 @@ define([
                             click: function() {
                                 notebooklist.contents.delete_file(nbname, path, {
                                     success_callback: function() {
-                                        that.events.trigger('notebook_deleted.Contents',
-                                            {name: name, path: path});
-                                        }
+                                        notebooklist.notebook_deleted(path, nbname);
                                     });
                             }
                         },
@@ -361,6 +344,17 @@ define([
             });
         item.find(".item_buttons").text("").append(delete_button);
     };
+
+    NotebookList.prototype.notebook_deleted = function(path, name) {
+        // Remove the deleted notebook.
+        $( ":data(nbname)" ).each(function() {
+            var element = $( this );
+            if (element.data( "nbname" ) == d.name &&
+                element.data( "path" ) == d.path) {
+                element.remove();
+            }
+        });
+    }
 
 
     NotebookList.prototype.add_upload_button = function (item, type) {
