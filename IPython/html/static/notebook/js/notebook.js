@@ -207,9 +207,18 @@ define([
         });
         
         this.events.on('spec_changed.Kernel', function(event, data) {
-            that.set_kernelspec_metadata(data);
+            that.metadata.kernelspec = 
+                {name: data.name, display_name: data.display_name};
+        });
+
+        this.events.on('kernel_ready.Kernel', function(event, data) {
+            var kinfo = data.kernel.info_reply
+            var langinfo = kinfo.language_info || {};
+            if (!langinfo.name)  langinfo.name = kinfo.language;
+                
+            that.metadata.language_info = langinfo;
             // Mode 'null' should be plain, unhighlighted text.
-            cm_mode = data.codemirror_mode || data.language || 'null'
+            var cm_mode = langinfo.codemirror_mode || langinfo.language || 'null'
             that.set_codemirror_mode(cm_mode);
         });
 
@@ -329,21 +338,11 @@ define([
             md: this.metadata, 
             callback: function (md) {
                 that.metadata = md;
-            }, 
+            },
             name: 'Notebook',
             notebook: this,
             keyboard_manager: this.keyboard_manager});
     };
-    
-    Notebook.prototype.set_kernelspec_metadata = function(ks) {
-        var tostore = {};
-        $.map(ks, function(value, field) {
-            if (field !== 'argv' && field !== 'env') {
-                tostore[field] = value;
-            }
-        });
-        this.metadata.kernelspec = tostore;
-    }
 
     // Cell indexing, retrieval, etc.
 
@@ -1809,6 +1808,14 @@ define([
         // codemirror mode
         if (this.metadata.kernelspec !== undefined) {
             this.events.trigger('spec_changed.Kernel', this.metadata.kernelspec);
+        }
+        
+        // Set the codemirror mode from language_info metadata
+        if (this.metadata.language_info !== undefined) {
+            var langinfo = this.metadata.language_info;
+            // Mode 'null' should be plain, unhighlighted text.
+            var cm_mode = langinfo.codemirror_mode || langinfo.language || 'null'
+            this.set_codemirror_mode(cm_mode);
         }
         
         // Only handle 1 worksheet for now.
