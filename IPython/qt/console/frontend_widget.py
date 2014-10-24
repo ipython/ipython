@@ -700,10 +700,20 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     #---------------------------------------------------------------------------
     # 'FrontendWidget' protected interface
     #---------------------------------------------------------------------------
-
-    def _call_tip(self):
-        """ Shows a call tip, if appropriate, at the current cursor location.
+    
+    def _auto_call_tip(self):
+        """Trigger call tip automatically on open parenthesis
+        
+        Call tips can be requested explcitly with `_call_tip`.
         """
+        cursor = self._get_cursor()
+        cursor.movePosition(QtGui.QTextCursor.Left)
+        if cursor.document().characterAt(cursor.position()) == '(':
+            # trigger auto call tip on open paren
+            self._call_tip()
+    
+    def _call_tip(self):
+        """Shows a call tip, if appropriate, at the current cursor location."""
         # Decide if it makes sense to show a call tip
         if not self.enable_calltips or not self.kernel_client.shell_channel.is_alive():
             return False
@@ -785,7 +795,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         document = self._control.document()
         if position == self._get_cursor().position():
-            self._call_tip()
+            self._auto_call_tip()
 
     #------ Trait default initializers -----------------------------------------
 
