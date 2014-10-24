@@ -2357,18 +2357,13 @@ define([
      * @method list_checkpoints
      */
     Notebook.prototype.list_checkpoints = function () {
-        var url = utils.url_join_encode(
-            this.base_url,
-            'api/contents',
-            this.notebook_path,
-            this.notebook_name,
-            'checkpoints'
-        );
-        $.get(url).done(
-            $.proxy(this.list_checkpoints_success, this)
-        ).fail(
-            $.proxy(this.list_checkpoints_error, this)
-        );
+        var that = this;
+        this.contents.list_checkpoints(this.notebook_path, this.notebook_name, {
+            success_callback: $.proxy(this.list_checkpoints_success, this),
+            error_callback: function(xhr, status, error_msg) {
+                that.events.trigger('list_checkpoints_failed.Notebook');
+            }
+        });
     };
 
     /**
@@ -2391,35 +2386,18 @@ define([
     };
 
     /**
-     * Failure callback for listing a checkpoint.
-     * 
-     * @method list_checkpoint_error
-     * @param {jqXHR} xhr jQuery Ajax object
-     * @param {String} status Description of response status
-     * @param {String} error_msg HTTP error message
-     */
-    Notebook.prototype.list_checkpoints_error = function (xhr, status, error_msg) {
-        this.events.trigger('list_checkpoints_failed.Notebook');
-    };
-    
-    /**
      * Create a checkpoint of this notebook on the server from the most recent save.
      * 
      * @method create_checkpoint
      */
     Notebook.prototype.create_checkpoint = function () {
-        var url = utils.url_join_encode(
-            this.base_url,
-            'api/contents',
-            this.notebook_path,
-            this.notebook_name,
-            'checkpoints'
-        );
-        $.post(url).done(
-            $.proxy(this.create_checkpoint_success, this)
-        ).fail(
-            $.proxy(this.create_checkpoint_error, this)
-        );
+        var that = this;
+        this.contents.create_checkpoint(this.notebook_path, this.notebook_name, {
+            success_callback: $.proxy(this.create_checkpoint_success, this),
+            error_callback: function (xhr, status, error_msg) {
+                that.events.trigger('checkpoint_failed.Notebook');
+            }
+        });
     };
 
     /**
@@ -2436,18 +2414,6 @@ define([
         this.events.trigger('checkpoint_created.Notebook', data);
     };
 
-    /**
-     * Failure callback for creating a checkpoint.
-     * 
-     * @method create_checkpoint_error
-     * @param {jqXHR} xhr jQuery Ajax object
-     * @param {String} status Description of response status
-     * @param {String} error_msg HTTP error message
-     */
-    Notebook.prototype.create_checkpoint_error = function (xhr, status, error_msg) {
-        this.events.trigger('checkpoint_failed.Notebook');
-    };
-    
     Notebook.prototype.restore_checkpoint_dialog = function (checkpoint) {
         var that = this;
         checkpoint = checkpoint || this.last_checkpoint;
@@ -2497,19 +2463,14 @@ define([
      */
     Notebook.prototype.restore_checkpoint = function (checkpoint) {
         this.events.trigger('notebook_restoring.Notebook', checkpoint);
-        var url = utils.url_join_encode(
-            this.base_url,
-            'api/contents',
-            this.notebook_path,
-            this.notebook_name,
-            'checkpoints',
-            checkpoint
-        );
-        $.post(url).done(
-            $.proxy(this.restore_checkpoint_success, this)
-        ).fail(
-            $.proxy(this.restore_checkpoint_error, this)
-        );
+        var that = this;
+        this.contents.restore_checkpoint(this.notebook_path, this.notebook_name,
+                                         checkpoint, {
+            success_callback: $.proxy(this.create_checkpoint_success, this),
+            error_callback: function (xhr, status, error_msg) {
+                that.events.trigger('checkpoint_restore_failed.Notebook');
+            }
+        });
     };
     
     /**
@@ -2526,18 +2487,6 @@ define([
     };
 
     /**
-     * Failure callback for restoring a notebook to a checkpoint.
-     * 
-     * @method restore_checkpoint_error
-     * @param {jqXHR} xhr jQuery Ajax object
-     * @param {String} status Description of response status
-     * @param {String} error_msg HTTP error message
-     */
-    Notebook.prototype.restore_checkpoint_error = function (xhr, status, error_msg) {
-        this.events.trigger('checkpoint_restore_failed.Notebook');
-    };
-    
-    /**
      * Delete a notebook checkpoint.
      * 
      * @method delete_checkpoint
@@ -2545,18 +2494,13 @@ define([
      */
     Notebook.prototype.delete_checkpoint = function (checkpoint) {
         this.events.trigger('notebook_restoring.Notebook', checkpoint);
-        var url = utils.url_join_encode(
-            this.base_url,
-            'api/contents',
-            this.notebook_path,
-            this.notebook_name,
-            'checkpoints',
-            checkpoint
-        );
-        $.ajax(url, {
-            type: 'DELETE',
-            success: $.proxy(this.delete_checkpoint_success, this),
-            error: $.proxy(this.delete_checkpoint_error, this)
+        var that = this;
+        this.contents.delete_checkpoint(this.notebook_path, this.notebook_name, 
+                                        checkpoint, {
+            success_callback: $.proxy(this.create_checkpoint_success, this),
+            error_callback: function (xhr, status, error_msg) {
+                that.events.trigger('checkpoint_delete_failed.Notebook', [xhr, status, error]);
+            }
         });
     };
     
@@ -2571,18 +2515,6 @@ define([
     Notebook.prototype.delete_checkpoint_success = function (data, status, xhr) {
         this.events.trigger('checkpoint_deleted.Notebook', data);
         this.load_notebook(this.notebook_name, this.notebook_path);
-    };
-
-    /**
-     * Failure callback for deleting a notebook checkpoint.
-     * 
-     * @method delete_checkpoint_error
-     * @param {jqXHR} xhr jQuery Ajax object
-     * @param {String} status Description of response status
-     * @param {String} error HTTP error message
-     */
-    Notebook.prototype.delete_checkpoint_error = function (xhr, status, error) {
-        this.events.trigger('checkpoint_delete_failed.Notebook', [xhr, status, error]);
     };
 
 

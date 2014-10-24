@@ -169,38 +169,44 @@ define([
      * Checkpointing Functions
      */
 
-    Contents.prototype.save_checkpoint = function() {
-        // This is not necessary - integrated into save
+    Contents.prototype.create_checkpoint = function(path, name, options) {
+        var url = this.api_url(path, name, 'checkpoints');
+        var settings = {
+            type : "POST",
+            success: options.success_callback || function(data, status, xhr) {},
+            error: options.error_callback || function(xhr, status, error_msg) {}
+        };
+        $.ajax(url, settings);
     };
 
-    Contents.prototype.restore_checkpoint = function(notebook, id) {
-        that = notebook;
-        this.events.trigger('notebook_restoring.Notebook', checkpoint);
-        var url = this.api_url(
-            this.notebook_path,
-            this.notebook_name,
-            'checkpoints',
-            checkpoint
-        );
-        $.post(url).done(
-            $.proxy(that.restore_checkpoint_success, that)
-        ).fail(
-            $.proxy(that.restore_checkpoint_error, that)
-        );
+    Contents.prototype.list_checkpoints = function(path, name, options) {
+        var url = this.api_url(path, name, 'checkpoints');
+        var settings = {
+            type : "GET",
+            success: options.success_callback || function(data, status, xhr) {},
+            error: options.error_callback || function(xhr, status, error_msg) {}
+        };
+        $.ajax(url, settings);
     };
 
-    Contents.prototype.list_checkpoints = function(notebook) {
-        that = notebook;
-        var url = this.api_url(
-            that.notebook_path,
-            that.notebook_name,
-            'checkpoints'
-        );
-        $.get(url).done(
-            $.proxy(that.list_checkpoints_success, that)
-        ).fail(
-            $.proxy(that.list_checkpoints_error, that)
-        );
+    Contents.prototype.restore_checkpoint = function(path, name, checkpoint_id, options) {
+        var url = this.api_url(path, name, 'checkpoints', checkpoint_id);
+        var settings = {
+            type : "POST",
+            success: options.success_callback || function(data, status, xhr) {},
+            error: options.error_callback || function(xhr, status, error_msg) {}
+        };
+        $.ajax(url, settings);
+    };
+
+    Contents.prototype.delete_checkpoint = function(path, name, checkpoint_id, options) {        
+        var url = this.api_url(path, name, 'checkpoints', checkpoint_id);
+        var settings = {
+            type : "DELETE",
+            success: options.success_callback || function(data, status, xhr) {},
+            error: options.error_callback || function(xhr, status, error_msg) {}
+        };
+        $.ajax(url, settings);
     };
 
     /**
@@ -225,7 +231,6 @@ define([
      */
     Contents.prototype.list_contents = function(path, load_callback,
         error_callback) {
-        var that = this;
         var settings = {
             processData : false,
             cache : false,
