@@ -1295,7 +1295,7 @@ define([
         if (!cell.is_mergeable()) {
             return;
         }
-        if (i > 0 && i< this.ncells()-1 && j > 0 && j< this.ncells()-1 && i!=j) {
+        if (i >= 0 && i< this.ncells() && j >= 0 && j< this.ncells() && i!=j) {
             var other_cell = this.get_cell(j);
             if (!other_cell.is_mergeable()) {
                 return;
@@ -1318,11 +1318,7 @@ define([
             this.delete_cell(other_index);
             this.undelete_history.pop();
             //we now have to update the indices in the undelete_history since we just deleted a object from it:
-            for (var i = 0; i<this.undelete_history.length;i++) {
-                if (this.undelete_history[i]["index"]>other_index) {
-                    this.undelete_history[i]["index"]=this.undelete_history[i]["index"] - 1;
-                }
-            }
+            this._fix_undelete_history(other_index,-1);
             this.select(this.find_cell_index(cell));
         }
     };
