@@ -62,14 +62,14 @@ require([
     $('#new_notebook').button().click(function (e) {
         contents.new_notebook(common_options.notebook_path,
             {
-                success_callback: function (data, status, xhr) {
+                success: function (data, status, xhr) {
                     window.open(
                         utils.url_join_encode(
                             common_options.base_url, 'notebooks',
                             data.path, data.name
                         ), '_blank');
                     },
-                error_callback: function(xhr, status, error) {
+                error: function(xhr, status, error) {
                     var msg;
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         msg = xhr.responseJSON.message;

@@ -1922,8 +1922,8 @@ define([
         var that = this;
         this.contents.save_file(this.notebook_path, this.notebook_name, model, {
                 extra_settings: extra_settings,
-                success_callback: $.proxy(this.save_notebook_success, this, start),
-                error_callback: function (xhr, status, error) {
+                success: $.proxy(this.save_notebook_success, this, start),
+                error: function (xhr, status, error) {
                     that.events.trigger('notebook_save_failed.Notebook');
                 }
             });
@@ -2078,12 +2078,12 @@ define([
         var that = this;
         this.contents.rename_file(this.notebook_path, this.notebook_name,
                                   this.notebook_path, new_name, {
-            success_callback: function (json, status, xhr) {
+            success: function (json, status, xhr) {
                 var name = that.notebook_name = json.name;
                 that.session.rename_notebook(name, json.path);
                 that.events.trigger('notebook_renamed.Notebook', json);
             },
-            error_callback: $.proxy(this.rename_error, this)
+            error: $.proxy(this.rename_error, this)
         });
     };
 
@@ -2134,8 +2134,8 @@ define([
         this.notebook_path = notebook_path;
         this.events.trigger('notebook_loading.Notebook');
         this.contents.load_file(notebook_path, notebook_name, {
-            success_callback: $.proxy(this.load_notebook_success, this),
-            error_callback: $.proxy(this.load_notebook_error, this)
+            success: $.proxy(this.load_notebook_success, this),
+            error: $.proxy(this.load_notebook_error, this)
         });
     };
 
@@ -2349,8 +2349,8 @@ define([
     Notebook.prototype.list_checkpoints = function () {
         var that = this;
         this.contents.list_checkpoints(this.notebook_path, this.notebook_name, {
-            success_callback: $.proxy(this.list_checkpoints_success, this),
-            error_callback: function(xhr, status, error_msg) {
+            success: $.proxy(this.list_checkpoints_success, this),
+            error: function(xhr, status, error_msg) {
                 that.events.trigger('list_checkpoints_failed.Notebook');
             }
         });
@@ -2383,8 +2383,8 @@ define([
     Notebook.prototype.create_checkpoint = function () {
         var that = this;
         this.contents.create_checkpoint(this.notebook_path, this.notebook_name, {
-            success_callback: $.proxy(this.create_checkpoint_success, this),
-            error_callback: function (xhr, status, error_msg) {
+            success: $.proxy(this.create_checkpoint_success, this),
+            error: function (xhr, status, error_msg) {
                 that.events.trigger('checkpoint_failed.Notebook');
             }
         });
@@ -2456,8 +2456,8 @@ define([
         var that = this;
         this.contents.restore_checkpoint(this.notebook_path, this.notebook_name,
                                          checkpoint, {
-            success_callback: $.proxy(this.create_checkpoint_success, this),
-            error_callback: function (xhr, status, error_msg) {
+            success: $.proxy(this.create_checkpoint_success, this),
+            error: function (xhr, status, error_msg) {
                 that.events.trigger('checkpoint_restore_failed.Notebook');
             }
         });
@@ -2487,8 +2487,8 @@ define([
         var that = this;
         this.contents.delete_checkpoint(this.notebook_path, this.notebook_name, 
                                         checkpoint, {
-            success_callback: $.proxy(this.create_checkpoint_success, this),
-            error_callback: function (xhr, status, error_msg) {
+            success: $.proxy(this.create_checkpoint_success, this),
+            error: function (xhr, status, error_msg) {
                 that.events.trigger('checkpoint_delete_failed.Notebook', [xhr, status, error]);
             }
         });

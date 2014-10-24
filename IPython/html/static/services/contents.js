@@ -34,13 +34,13 @@ define([
     /**
      * Load a file.
      *
-     * Calls success_callback with file JSON model, or error_callback with error.
+     * Calls success with file JSON model, or error with error.
      *
      * @method load_notebook
      * @param {String} path
      * @param {String} name
-     * @param {Function} success_callback
-     * @param {Function} error_callback
+     * @param {Function} success
+     * @param {Function} error
      */
     Contents.prototype.load_file = function (path, name, options) {
         // We do the call with settings so we can set cache to false.
@@ -49,8 +49,8 @@ define([
             cache : false,
             type : "GET",
             dataType : "json",
-            success : options.success_callback,
-            error : options.error_callback || function() {}
+            success : options.success,
+            error : options.error || function() {}
         };
         var url = this.api_url(path, name);
         $.ajax(url, settings);
@@ -64,30 +64,30 @@ define([
      * @param {String} path The path to create the new notebook at
      */
     Contents.prototype.new_notebook = function(path, options) {
-        var error_callback = options.error_callback || function() {};
+        var error = options.error || function() {};
         var settings = {
             processData : false,
             cache : false,
             type : "POST",
             dataType : "json",
-            success : options.success_callback || function() {},
-            error : options.error_callback || function() {}
+            success : options.success || function() {},
+            error : options.error || function() {}
         };
         $.ajax(this.api_url(path), settings);
     };
 
     Contents.prototype.delete_file = function(name, path, options) {
-        var error_callback = options.error_callback || function() {};
+        var error = options.error || function() {};
         var that = this;
         var settings = {
             processData : false,
             cache : false,
             type : "DELETE",
             dataType : "json",
-            success : options.success_callback || function() {},
+            success : options.success || function() {},
             error : function(xhr, status, error) {
                 utils.log_ajax_error(xhr, status, error);
-                error_callback(xhr, status, error);
+                error(xhr, status, error);
             }
         };
         var url = this.api_url(path, name);
@@ -103,8 +103,8 @@ define([
             data : JSON.stringify(data),
             dataType: "json",
             contentType: 'application/json',
-            success : options.success_callback || function() {}, 
-            error : options.error_callback || function() {}
+            success : options.success || function() {}, 
+            error : options.error || function() {}
         };
         var url = this.api_url(path, name);
         $.ajax(url, settings);
@@ -118,8 +118,8 @@ define([
             type : "PUT",
             data : JSON.stringify(model),
             contentType: 'application/json',
-            success : options.success_callback || function() {},
-            error : options.error_callback || function() {}
+            success : options.success || function() {},
+            error : options.error || function() {}
         };
         if (options.extra_settings) {
             $.extend(settings, options.extra_settings);
@@ -136,8 +136,8 @@ define([
         var url = this.api_url(path, name, 'checkpoints');
         var settings = {
             type : "POST",
-            success: options.success_callback || function() {},
-            error: options.error_callback || function() {}
+            success: options.success || function() {},
+            error: options.error || function() {}
         };
         $.ajax(url, settings);
     };
@@ -146,8 +146,8 @@ define([
         var url = this.api_url(path, name, 'checkpoints');
         var settings = {
             type : "GET",
-            success: options.success_callback,
-            error: options.error_callback || function() {}
+            success: options.success,
+            error: options.error || function() {}
         };
         $.ajax(url, settings);
     };
@@ -156,8 +156,8 @@ define([
         var url = this.api_url(path, name, 'checkpoints', checkpoint_id);
         var settings = {
             type : "POST",
-            success: options.success_callback || function() {},
-            error: options.error_callback || function() {}
+            success: options.success || function() {},
+            error: options.error || function() {}
         };
         $.ajax(url, settings);
     };
@@ -166,8 +166,8 @@ define([
         var url = this.api_url(path, name, 'checkpoints', checkpoint_id);
         var settings = {
             type : "DELETE",
-            success: options.success_callback || function() {},
-            error: options.error_callback || function() {}
+            success: options.success || function() {},
+            error: options.error || function() {}
         };
         $.ajax(url, settings);
     };
@@ -190,7 +190,7 @@ define([
      * @method list_notebooks
      * @param {String} path The path to list notebooks in
      * @param {Function} load_callback called with list of notebooks on success
-     * @param {Function} error_callback called with ajax results on error
+     * @param {Function} error called with ajax results on error
      */
     Contents.prototype.list_contents = function(path, options) {
         var settings = {
@@ -198,8 +198,8 @@ define([
             cache : false,
             type : "GET",
             dataType : "json",
-            success : options.success_callback,
-            error : options.error_callback || function() {}
+            success : options.success,
+            error : options.error || function() {}
         };
 
         $.ajax(this.api_url(path), settings);

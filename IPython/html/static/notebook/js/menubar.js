@@ -91,14 +91,14 @@ define([
             // notebook's path.
             that.contents.new_notebook(that.notebook.notebook_path,
                 {
-                    success_callback: function (data, status, xhr) {
+                    success: function (data, status, xhr) {
                         window.open(
                             utils.url_join_encode(
                                 that.base_url, 'notebooks',
                                 data.path, data.name
                             ), '_blank');
                         },
-                    error_callback: function(xhr, status, error) {
+                    error: function(xhr, status, error) {
                         var msg;
                         if (xhr.responseJSON && xhr.responseJSON.message) {
                             msg = xhr.responseJSON.message;
