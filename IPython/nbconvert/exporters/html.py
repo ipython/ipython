@@ -59,8 +59,8 @@ class HTMLExporter(TemplateExporter):
         return c
 
     def from_notebook_node(self, nb, resources=None, **kw):
-        kernelspec = nb.metadata.get('kernelspec', {})
-        lexer = kernelspec.get('pygments_lexer', kernelspec.get('language', None))
+        langinfo = nb.metadata.get('language_info', {})
+        lexer = langinfo.get('pygments_lexer', langinfo.get('name', None))
         self.register_filter('highlight_code',
                              Highlight2HTML(pygments_lexer=lexer, parent=self))
         return super(HTMLExporter, self).from_notebook_node(nb, resources, **kw)
