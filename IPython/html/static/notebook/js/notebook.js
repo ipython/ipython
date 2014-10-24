@@ -1273,50 +1273,66 @@ define([
         }
     };
 
+     /**
+     * Combine the cell at index j into the cell at index i.
+     * If below is true than text of cell at j appears below
+     * text of cell at i, otherwise above.
+     * 
+     * @method merge_cells
+     * @param {Number} i A cell's numeric index
+     * @param {Number} j A cell's numeric index
+     * @param {Bool} below Put cell j's text below i?
+     */
+    Notebook.prototype.merge_cells = function (i,j,below) {
+        //default is to merge text of cell at j below:
+        if(typeof(below)==='undefined') below = true;
+        var index = i
+        var other_index = j;
+        var cell = this.get_cell(i);
+        var render = cell.rendered;
+        if (!cell.is_mergeable()) {
+            return;
+        }
+        if (i > 0 && i< this.ncells()-1 && j > 0 && j< this.ncells()-1 && i!=j) {
+            var other_cell = this.get_cell(j);
+            if (!other_cell.is_mergeable()) {
+                return;
+            }
+            var other_text = other_cell.get_text();
+            var text = cell.get_text();
+            if (cell instanceof codecell.CodeCell) {
+                cell.unrender(); // Must unrender before we set_text.
+            }
+            if (below===true) {
+                cell.set_text(text+'\n'+other_text);
+            } else {
+                cell.set_text(other_text+'\n'+text);
+            }
+            if (render && cell instanceof codecell.CodeCell) {
+                // The rendered state of the final cell should match
+                // that of the original selected cell;
+                cell.render();
+            }
+            this.delete_cell(other_index);
+            this.undelete_history.pop();
+            //we now have to update the indices in the undelete_history since we just deleted a object from it:
+            for (var i = 0; i<this.undelete_history.length;i++) {
+                if (this.undelete_history[i]["index"]>other_index) {
+                    this.undelete_history[i]["index"]=this.undelete_history[i]["index"] - 1;
+                }
+            }
+            this.select(this.find_cell_index(cell));
+        }
+    };
+
     /**
      * Combine the cell above the selected one into the selected cell.
      * 
      * @method merge_cell_above
      */
     Notebook.prototype.merge_cell_above = function () {
-        var mdc = textcell.MarkdownCell;
-        var rc = textcell.RawCell;
-        var index = this.get_selected_index();
-        var upper_index = index -1;
-        var cell = this.get_cell(index);
-        var render = cell.rendered;
-        if (!cell.is_mergeable()) {
-            return;
-        }
-        if (index > 0) {
-            var upper_cell = this.get_cell(index-1);
-            if (!upper_cell.is_mergeable()) {
-                return;
-            }
-            var upper_text = upper_cell.get_text();
-            var text = cell.get_text();
-            if (cell instanceof codecell.CodeCell) {
-                cell.set_text(upper_text+'\n'+text);
-            } else {
-                cell.unrender(); // Must unrender before we set_text.
-                cell.set_text(upper_text+'\n\n'+text);
-                if (render) {
-                    // The rendered state of the final cell should match
-                    // that of the original selected cell;
-                    cell.render();
-                }
-            }
-            this.delete_cell(upper_index);
-            this.undelete_history.pop();
-            //we now have to update the indices in the undelete_history since we just deleted a object from it:
-            for (var i = 0; i<this.undelete_history.length;i++) {
-                if (this.undelete_history[i]["index"]>upper_index) {
-                    this.undelete_history[i]["index"]=this.undelete_history[i]["index"] - 1;
-                    console.log("in merge_cell_above");
-                }
-            }
-            this.select(this.find_cell_index(cell));
-        }
+        var i = this.get_selected_index();
+        this.merge_cells(i,i-1,false);
     };
 
     /**
@@ -1325,45 +1341,9 @@ define([
      * @method merge_cell_below
      */
     Notebook.prototype.merge_cell_below = function () {
-        var mdc = textcell.MarkdownCell;
-        var rc = textcell.RawCell;
-        var index = this.get_selected_index();
-        var lower_index = index +1;
-        var cell = this.get_cell(index);
-        var render = cell.rendered;
-        if (!cell.is_mergeable()) {
-            return;
-        }
-        if (index < this.ncells()-1) {
-            var lower_cell = this.get_cell(index+1);
-            if (!lower_cell.is_mergeable()) {
-                return;
-            }
-            var lower_text = lower_cell.get_text();
-            var text = cell.get_text();
-            if (cell instanceof codecell.CodeCell) {
-                cell.set_text(text+'\n'+lower_text);
-            } else {
-                cell.unrender(); // Must unrender before we set_text.
-                cell.set_text(text+'\n\n'+lower_text);
-                if (render) {
-                    // The rendered state of the final cell should match
-                    // that of the original selected cell;
-                    cell.render();
-                }
-            }
-            this.delete_cell(lower_index);
-            this.undelete_history.pop();
-            //we now have to update the indices in the undelete_history since we just deleted a object from it:
-            for (var i = 0; i<this.undelete_history.length;i++) {
-                if (this.undelete_history[i]["index"]>lower_index) {
-                    this.undelete_history[i]["index"]=this.undelete_history[i]["index"] - 1;
-                }
-            }
-            this.select(this.find_cell_index(cell));
-        }
+        var i = this.get_selected_index();
+        this.merge_cells(i,i+1,true);
     };
-
 
     // Cell collapsing and output clearing
 
