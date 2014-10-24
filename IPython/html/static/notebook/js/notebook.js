@@ -780,6 +780,22 @@ define([
     };
 
     /**
+     * Add delta to all indices in undelete_history
+     * which are bigger than index.
+     * 
+     * @method _fix_undelete_history
+     * @param {Number} index A cell's numeric index
+     * @param {Number} delta A difference between cell indices
+     */
+    Notebook.prototype._fix_undelete_history = function(index,delta) {
+        for (var i=0;i < this.undelete_history.length; i++) {
+            if (index< this.undelete_history[i]["index"]) {
+                this.undelete_history[i]["index"]=this.undelete_history[i]["index"]+delta;
+            }
+        }
+    }
+
+    /**
      * Restore the most recently deleted cell.
      * 
      * @method undelete
@@ -787,7 +803,6 @@ define([
     Notebook.prototype.undelete_cell = function() {
         if (this.undelete_history.length !== 0 ) {
             //plan: always insert below last["index"]-1 unless last["index"]-1===-1, then insert above 0.
-            console.log(this.undelete_history);
             var last = this.undelete_history.pop();
             var current_index = this.get_selected_index();
             var above = false;
@@ -815,18 +830,8 @@ define([
             //insert_cell_... will have shifted the indices of 
             //undelete_history assuming that the inserted cell
             //was not from the history ==> revert that change:
-            for (var i=0;i < this.undelete_history.length; i++) {
-                if (created_index < this.undelete_history[i]["index"]) {
-                    this.undelete_history[i]["index"]=this.undelete_history[i]["index"]-1;
-                    console.log("correcting indices");
-                }
-            }
+            this._fix_undelete_history(created_index,-1);
             new_cell.fromJSON(cell_data);
-            /*if (last_undelete_below) {
-                this.select(current_index+1);
-            } else {
-                this.select(current_index);
-            }*/ //TODO either take this out or leave it. We don't need select a readded cell at the end of the notebook. It is much better if the selected cell always stays the same independent of delete
             this.select(current_index);
         }
         if (this.undelete_history.length == 0) {
@@ -940,11 +945,8 @@ define([
         //the right positions. Assume that the inserted element
         //did not come from the history (no way to check for that).
         //undelete_cell() will then reverse effect if needed.
-        for (var i=0;i < this.undelete_history.length; i++) {
-            if (index < this.undelete_history[i]["index"]) {
-               this.undelete_history[i]["index"]=this.undelete_history[i]["index"]+1;
-            }
-        }
+        this._fix_undelete_history(index,1);
+        this.set_dirty(true);
         return true;
     };
 
