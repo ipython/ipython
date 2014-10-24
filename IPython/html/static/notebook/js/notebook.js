@@ -806,9 +806,20 @@ define([
             var cell_data = last["backup"];
             var new_cell = null;
             if (above) {
+                var created_index = this.get_selected_index();
                 new_cell = this.insert_cell_above(cell_data.cell_type);
             } else {
+                var created_index = this.get_selected_index()+1;
                 new_cell = this.insert_cell_below(cell_data.cell_type);
+            }
+            //insert_cell_... will have shifted the indices of 
+            //undelete_history assuming that the inserted cell
+            //was not from the history ==> revert that change:
+            for (var i=0;i < this.undelete_history.length; i++) {
+                if (created_index < this.undelete_history[i]["index"]) {
+                    this.undelete_history[i]["index"]=this.undelete_history[i]["index"]-1;
+                    console.log("correcting indices");
+                }
             }
             new_cell.fromJSON(cell_data);
             /*if (last_undelete_below) {
@@ -925,13 +936,14 @@ define([
         } else {
             return false;
         }
-        if (this.undelete_history.length !== 0) {
-            for (var i=0;i < this.undelete_history.length; i++) {
-                if (index < this.undelete_history[i]["index"]) {
-                    this.undelete_history[i]["index"]=this.undelete_history[i]["index"]+1;
-                }
+        //correct the indices in undelete_history to point to
+        //the right positions. Assume that the inserted element
+        //did not come from the history (no way to check for that).
+        //undelete_cell() will then reverse effect if needed.
+        for (var i=0;i < this.undelete_history.length; i++) {
+            if (index < this.undelete_history[i]["index"]) {
+               this.undelete_history[i]["index"]=this.undelete_history[i]["index"]+1;
             }
-            this.set_dirty(true);
         }
         return true;
     };
@@ -1262,7 +1274,7 @@ define([
     };
 
     /**
-     * Combine the selected cell into the cell above it.
+     * Combine the cell above the selected one into the selected cell.
      * 
      * @method merge_cell_above
      */
@@ -1270,6 +1282,7 @@ define([
         var mdc = textcell.MarkdownCell;
         var rc = textcell.RawCell;
         var index = this.get_selected_index();
+        var upper_index = index -1;
         var cell = this.get_cell(index);
         var render = cell.rendered;
         if (!cell.is_mergeable()) {
@@ -1293,13 +1306,21 @@ define([
                     cell.render();
                 }
             }
-            this.delete_cell(index-1);
+            this.delete_cell(upper_index);
+            this.undelete_history.pop();
+            //we now have to update the indices in the undelete_history since we just deleted a object from it:
+            for (var i = 0; i<this.undelete_history.length;i++) {
+                if (this.undelete_history[i]["index"]>upper_index) {
+                    this.undelete_history[i]["index"]=this.undelete_history[i]["index"] - 1;
+                    console.log("in merge_cell_above");
+                }
+            }
             this.select(this.find_cell_index(cell));
         }
     };
 
     /**
-     * Combine the selected cell into the cell below it.
+     * Combine the cell bellow the selected one into the selected cell.
      * 
      * @method merge_cell_below
      */
@@ -1307,6 +1328,7 @@ define([
         var mdc = textcell.MarkdownCell;
         var rc = textcell.RawCell;
         var index = this.get_selected_index();
+        var lower_index = index +1;
         var cell = this.get_cell(index);
         var render = cell.rendered;
         if (!cell.is_mergeable()) {
@@ -1330,7 +1352,14 @@ define([
                     cell.render();
                 }
             }
-            this.delete_cell(index+1);
+            this.delete_cell(lower_index);
+            this.undelete_history.pop();
+            //we now have to update the indices in the undelete_history since we just deleted a object from it:
+            for (var i = 0; i<this.undelete_history.length;i++) {
+                if (this.undelete_history[i]["index"]>lower_index) {
+                    this.undelete_history[i]["index"]=this.undelete_history[i]["index"] - 1;
+                }
+            }
             this.select(this.find_cell_index(cell));
         }
     };
