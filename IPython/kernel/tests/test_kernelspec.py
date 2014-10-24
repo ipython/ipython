@@ -9,7 +9,6 @@ from IPython.kernel import kernelspec
 
 sample_kernel_json = {'argv':['cat', '{connection_file}'],
                       'display_name':'Test kernel',
-                      'language':'bash',
                      }
 
 class KernelSpecTests(unittest.TestCase):
@@ -39,8 +38,6 @@ class KernelSpecTests(unittest.TestCase):
         self.assertEqual(ks.resource_dir, self.sample_kernel_dir)
         self.assertEqual(ks.argv, sample_kernel_json['argv'])
         self.assertEqual(ks.display_name, sample_kernel_json['display_name'])
-        self.assertEqual(ks.language, sample_kernel_json['language'])
-        self.assertEqual(ks.codemirror_mode, sample_kernel_json['language'])
         self.assertEqual(ks.env, {})
     
     def test_install_kernel_spec(self):
