@@ -685,10 +685,32 @@ Message type: ``kernel_info_reply``::
         # included in IPython.
         'language_version': 'X.Y.Z',
 
+        # Information about the language of code for the kernel
+        'language_info': {
+            'mimetype': str,
+
+            # Pygments lexer, for highlighting
+            # Only needed if it differs from the top level 'language' field.
+            'pygments_lexer': str,
+
+            # Codemirror mode, for for highlighting in the notebook.
+            # Only needed if it differs from the top level 'language' field.
+            'codemirror_mode': str or dict,
+        },
+
         # A banner of information about the kernel,
         # which may be desplayed in console environments.
         'banner' : str,
+
+        # Optional: A list of dictionaries, each with keys 'text' and 'url'.
+        # These will be displayed in the help menu in the notebook UI.
+        'help_links': [
+            {'text': str, 'url': str}
+        ],
     }
+
+Refer to the lists of available `Pygments lexers <http://pygments.org/docs/lexers/>`_
+and `codemirror modes <http://codemirror.net/mode/index.html>`_ for those fields.
 
 .. versionchanged:: 5.0
 
@@ -700,7 +722,8 @@ Message type: ``kernel_info_reply``::
 
 .. versionchanged:: 5.0
 
-    ``implementation``, ``implementation_version``, and ``banner`` keys are added.
+    ``language_info``, ``implementation``, ``implementation_version``, ``banner``
+    and ``help_links`` keys are added.
 
 .. _msging_shutdown:
 

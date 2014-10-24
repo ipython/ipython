@@ -34,6 +34,16 @@ following methods and attributes:
      interprets (e.g. Python). The 'banner' is displayed to the user in console
      UIs before the first prompt. All of these values are strings.
 
+   .. attribute:: language_info
+
+     Language information for :ref:`msging_kernel_info` replies, in a dictionary.
+     This should contain the key ``mimetype`` with the mimetype of code in the
+     target language (e.g. ``'text/x-python'``). It may also contain keys
+     ``codemirror_mode`` and ``pygments_lexer`` if they need to differ from
+     :attr:`language`.
+
+     Other keys may be added to this later.
+
    .. method:: do_execute(code, silent, store_history=True, user_expressions=None, allow_stdin=False)
    
      Execute user code.
@@ -71,6 +81,7 @@ Example
         implementation_version = '1.0'
         language = 'no-op'
         language_version = '0.1'
+        language_info = {'mimetype': 'text/plain'}
         banner = "Echo kernel - as useful as a parrot"
 
         def do_execute(self, code, silent, store_history=True, user_expressions=None,
@@ -94,7 +105,6 @@ Here's the Kernel spec ``kernel.json`` file for this::
 
     {"argv":["python","-m","echokernel", "-f", "{connection_file}"],
      "display_name":"Echo",
-     "language":"no-op"
     }
 
 
