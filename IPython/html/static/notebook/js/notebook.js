@@ -178,26 +178,6 @@ define([
     Notebook.prototype.bind_events = function () {
         var that = this;
 
-        this.contents.events.on('notebook_rename_success.Contents',
-            function (event, data) {
-                var name = that.notebook_name = data.name;
-                var path = data.path;
-                that.session.rename_notebook(name, path);
-                that.events.trigger('notebook_renamed.Notebook', data);
-            });
-
-        this.contents.events.on('notebook_rename_error.Contents',
-            function (event, data) {
-                that.rename_error(data[0], data[1], data[2]);
-            });
-
-        this.contents.events.on('notebook_save_success.Contents',
-            $.proxy(this.save_notebook_success, this));
-
-        this.contents.events.on('notebook_save_error.Contents',
-            $.proxy(this.events.trigger, this.events,
-                'notebook_save_failed.Notebook'));
-
         this.events.on('set_next_input.Notebook', function (event, data) {
             var index = that.find_cell_index(data.cell);
             var new_cell = that.insert_cell_below('code',index);
@@ -1942,12 +1922,9 @@ define([
         var that = this;
         this.contents.save_file(this.notebook_path, this.notebook_name, model, {
                 extra_settings: extra_settings,
-                success_callback: $.proxy(this.events.trigger, this.events,
-                    'notebook_save_success.Contents',
-                    $.extend(model, { start : start })),
+                success_callback: $.proxy(this.save_notebook_success, this, start),
                 error_callback: function (xhr, status, error) {
-                    that.events.trigger('notebook_save_error.Contents',
-                        [xhr, status, error, model]);
+                    that.events.trigger('notebook_save_failed.Notebook');
                 }
             });
     };
@@ -1956,11 +1933,12 @@ define([
      * Success callback for saving a notebook.
      * 
      * @method save_notebook_success
-     * @param {Event} event The save notebook success event
-     * @param {Object} data dictionary of event data
-     *     data.options start the time when the save request started
+     * @param {Integer} start Time when the save request start
+     * @param {Object} data JSON representation of a notebook
+     * @param {String} status Description of response status
+     * @param {jqXHR} xhr jQuery Ajax object
      */
-    Notebook.prototype.save_notebook_success = function (event, data) {
+    Notebook.prototype.save_notebook_success = function (start, data, status, xhr) {
         this.set_dirty(false);
         if (data.message) {
             // save succeeded, but validation failed.
@@ -1987,7 +1965,7 @@ define([
             });
         }
         this.events.trigger('notebook_saved.Notebook');
-        this._update_autosave_interval(event.start);
+        this._update_autosave_interval(start);
         if (this._checkpoint_after_save) {
             this.create_checkpoint();
             this._checkpoint_after_save = false;
@@ -2012,18 +1990,6 @@ define([
                 this.set_autosave_interval(interval);
             }
         }
-    };
-    
-    /**
-     * Failure callback for saving a notebook.
-     * 
-     * @method save_notebook_error
-     * @param {jqXHR} xhr jQuery Ajax object
-     * @param {String} status Description of response status
-     * @param {String} error HTTP error message
-     */
-    Notebook.prototype.save_notebook_error = function (xhr, status, error) {
-        this.events.trigger('notebook_save_failed.Notebook', [xhr, status, error]);
     };
 
     /**
@@ -2113,12 +2079,11 @@ define([
         this.contents.rename_file(this.notebook_path, this.notebook_name,
                                   this.notebook_path, new_name, {
             success_callback: function (json, status, xhr) {
-                that.events.trigger('notebook_rename_success.Contents', json);
+                var name = that.notebook_name = json.name;
+                that.session.rename_notebook(name, json.path);
+                that.events.trigger('notebook_renamed.Notebook', json);
             },
-            error_callback: function (xhr, status, error) {
-                that.events.trigger('notebook_rename_error.Contents',
-                    [xhr, status, error]);
-            }
+            error_callback: $.proxy(this.rename_error, this)
         });
     };
 
