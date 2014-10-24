@@ -157,14 +157,13 @@ define([
 
     NotebookList.prototype.load_list = function () {
         var that = this
-        this.contents.list_contents(
-            that.notebook_path,
-            $.proxy(that.draw_notebook_list, that),
-            $.proxy( function(xhr, status, error) { 
+        this.contents.list_contents(that.notebook_path, {
+            success_callback: $.proxy(this.draw_notebook_list, this),
+            error_callback: function(xhr, status, error) { 
                 utils.log_ajax_error(xhr, status, error);
                 that.draw_notebook_list([], "Error connecting to server.");
-            }, that)
-        );
+            }
+        });
     };
 
     /**
@@ -347,7 +346,12 @@ define([
                         Delete : {
                             class: "btn-danger",
                             click: function() {
-                                notebooklist.contents.delete_notebook(nbname, path);
+                                notebooklist.contents.delete_file(nbname, path, {
+                                    success_callback: function() {
+                                        that.events.trigger('notebook_deleted.Contents',
+                                            {name: name, path: path});
+                                        }
+                                    });
                             }
                         },
                         Cancel : {}

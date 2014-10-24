@@ -1929,10 +1929,27 @@ define([
             nbformat : this.nbformat,
             nbformat_minor : this.nbformat_minor
         })
-        this.contents.save_notebook(this.notebook_path,
-            this.notebook_name,
-            content,
-            extra_settings);
+        // Create a JSON model to be sent to the server.
+        var model = {
+            name : this.notebook_name,
+            path : this.notebook_path,
+            type : "notebook",
+            content : content
+        };
+        // time the ajax call for autosave tuning purposes.
+        var start =  new Date().getTime();
+
+        var that = this;
+        this.contents.save_file(this.notebook_path, this.notebook_name, model, {
+                extra_settings: extra_settings,
+                success_callback: $.proxy(this.events.trigger, this.events,
+                    'notebook_save_success.Contents',
+                    $.extend(model, { start : start })),
+                error_callback: function (xhr, status, error) {
+                    that.events.trigger('notebook_save_error.Contents',
+                        [xhr, status, error, model]);
+                }
+            });
     };
     
     /**
@@ -2087,18 +2104,26 @@ define([
         $.ajax(url,settings);
     };
 
-    Notebook.prototype.rename = function (nbname) {
-        if (!nbname.match(/\.ipynb$/)) {
-            nbname = nbname + ".ipynb";
+    Notebook.prototype.rename = function (new_name) {
+        if (!new_name.match(/\.ipynb$/)) {
+            new_name = new_name + ".ipynb";
         }
 
-        this.contents.rename_notebook(this.notebook_path,
-            this.notebook_name, nbname);
+        var that = this;
+        this.contents.rename_file(this.notebook_path, this.notebook_name,
+                                  this.notebook_path, new_name, {
+            success_callback: function (json, status, xhr) {
+                that.events.trigger('notebook_rename_success.Contents', json);
+            },
+            error_callback: function (xhr, status, error) {
+                that.events.trigger('notebook_rename_error.Contents',
+                    [xhr, status, error]);
+            }
+        });
     };
 
     Notebook.prototype.delete = function () {
-        this.contents.delete_notebook(this.notebook_name,
-            this.notebook_path);
+        this.contents.delete_file(this.notebook_name, this.notebook_path);
     };
 
     Notebook.prototype.rename_error = function (xhr, status, error) {
@@ -2142,11 +2167,10 @@ define([
     Notebook.prototype.load_notebook = function (notebook_name, notebook_path) {
         this.notebook_name = notebook_name;
         this.notebook_path = notebook_path;
-        this.contents.load_notebook(
-            notebook_path,
-            notebook_name,
-            $.proxy(this.load_notebook_success,this),
-            $.proxy(this.load_notebook_error,this));
+        this.contents.load_file(notebook_path, notebook_name, {
+            success_callback: $.proxy(this.load_notebook_success, this),
+            error_callback: $.proxy(this.load_notebook_error, this)
+        });
     };
 
     /**
