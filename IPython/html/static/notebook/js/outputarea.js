@@ -233,17 +233,6 @@ define([
     };
     
     
-    OutputArea.prototype.rename_keys = function (data, key_map) {
-        // TODO: This is now unused, should it be removed?
-        var remapped = {};
-        for (var key in data) {
-            var new_key = key_map[key] || key;
-            remapped[new_key] = data[key];
-        }
-        return remapped;
-    };
-
-
     OutputArea.output_types = [
         'application/javascript',
         'text/html',
