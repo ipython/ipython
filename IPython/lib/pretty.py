@@ -592,13 +592,14 @@ def _set_pprinter_factory(start, end, basetype):
         else:
             step = len(start)
             p.begin_group(step, start)
-            # Like dictionary keys, we will try to sort the items.
-            items = list(obj)
-            try:
-                items.sort()
-            except Exception:
-                # Sometimes the items don't sort.
-                pass
+            # Like dictionary keys, we will try to sort the items if there aren't too many
+            items = obj
+            if not (p.max_seq_length and len(obj) >= p.max_seq_length):
+                try:
+                    items = sorted(obj)
+                except Exception:
+                    # Sometimes the items don't sort.
+                    pass
             for idx, x in p._enumerate(items):
                 if idx:
                     p.text(',')
@@ -623,11 +624,13 @@ def _dict_pprinter_factory(start, end, basetype=None):
             return p.text('{...}')
         p.begin_group(1, start)
         keys = obj.keys()
-        try:
-            keys.sort()
-        except Exception as e:
-            # Sometimes the keys don't sort.
-            pass
+        # if dict isn't large enough to be truncated, sort keys before displaying
+        if not (p.max_seq_length and len(obj) >= p.max_seq_length):
+            try:
+                keys = sorted(keys)
+            except Exception:
+                # Sometimes the keys don't sort.
+                pass
         for idx, key in p._enumerate(keys):
             if idx:
                 p.text(',')
