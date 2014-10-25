@@ -79,6 +79,8 @@ def start_global_kernel():
     if KM is None:
         KM, KC = start_new_kernel()
         atexit.register(stop_global_kernel)
+    else:
+        flush_channels(KC)
     return KC
 
 @contextmanager
