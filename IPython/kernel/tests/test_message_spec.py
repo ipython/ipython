@@ -157,6 +157,7 @@ class KernelInfoReply(Reference):
     implementation_version = Version(min='2.1')
     language_version = Version(min='2.7')
     language = Unicode('python')
+    language_info = Dict()
     banner = Unicode()
 
 
