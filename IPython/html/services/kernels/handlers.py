@@ -123,7 +123,7 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
             msg = self.session.deserialize(msg)
         except:
             self.log.error("Bad kernel_info reply", exc_info=True)
-            self.request_kernel_info()
+            self._kernel_info_future.set_result(None)
             return
         else:
             info = msg['content']
