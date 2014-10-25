@@ -6,7 +6,7 @@ import traceback
 
 from IPython.core import release
 from IPython.utils.py3compat import builtin_mod, PY3
-from IPython.utils.tokenutil import token_at_cursor
+from IPython.utils.tokenutil import token_at_cursor, line_at_cursor
 from IPython.utils.traitlets import Instance, Type, Any
 from IPython.utils.decorators import undoc
 
@@ -186,7 +186,15 @@ class IPythonKernel(KernelBase):
         return reply_content
 
     def do_complete(self, code, cursor_pos):
-        txt, matches = self.shell.complete('', code, cursor_pos)
+        # FIXME: IPython completers currently assume single line,
+        # but completion messages give multi-line context
+        # For now, extract line from cell, based on cursor_pos:
+        if cursor_pos is None:
+            cursor_pos = len(code)
+        line, offset = line_at_cursor(code, cursor_pos)
+        line_cursor = cursor_pos - offset
+
+        txt, matches = self.shell.complete('', line, line_cursor)
         return {'matches' : matches,
                 'cursor_end' : cursor_pos,
                 'cursor_start' : cursor_pos - len(txt),
