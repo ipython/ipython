@@ -7,7 +7,7 @@ The Jupyter Notebook Format
 Introduction
 ============
 
-Jupyter (née IPython) notebook files are simple JSON documents,
+Jupyter (né IPython) notebook files are simple JSON documents,
 containing text, source code, rich media output, and metadata.
 each segment of the document is stored in a cell.
 
