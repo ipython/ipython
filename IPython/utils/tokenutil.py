@@ -47,7 +47,9 @@ def token_at_cursor(cell, cursor_pos=0):
         # token, text, start, end, line = tup
         start_col = tok.start[1]
         end_col = tok.end[1]
-        if offset + start_col > cursor_pos:
+        # allow '|foo' to find 'foo' at the beginning of a line
+        boundary = cursor_pos + 1 if start_col == 0 else cursor_pos
+        if offset + start_col >= boundary:
             # current token starts after the cursor,
             # don't consume it
             break
