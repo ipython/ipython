@@ -886,7 +886,7 @@ class NotebookApp(BaseIPythonApplication):
             line = sys.stdin.readline()
             if line.lower().startswith('y') and 'n' not in line.lower():
                 self.log.critical("Shutdown confirmed")
-                ioloop.IOLoop.instance().stop()
+                ioloop.IOLoop.current().stop()
                 return
         else:
             print("No answer for 5s:", end=' ')
@@ -895,11 +895,11 @@ class NotebookApp(BaseIPythonApplication):
         # set it back to original SIGINT handler
         # use IOLoop.add_callback because signal.signal must be called
         # from main thread
-        ioloop.IOLoop.instance().add_callback(self._restore_sigint_handler)
+        ioloop.IOLoop.current().add_callback(self._restore_sigint_handler)
     
     def _signal_stop(self, sig, frame):
         self.log.critical("received signal %s, stopping", sig)
-        ioloop.IOLoop.instance().stop()
+        ioloop.IOLoop.current().stop()
 
     def _signal_info(self, sig, frame):
         print(self.notebook_info())
@@ -1002,13 +1002,21 @@ class NotebookApp(BaseIPythonApplication):
                 b = lambda : browser.open(url_path_join(self.connection_url, uri),
                                           new=2)
                 threading.Thread(target=b).start()
+        
+        self.io_loop = ioloop.IOLoop.current()
         try:
-            ioloop.IOLoop.instance().start()
+            self.io_loop.start()
         except KeyboardInterrupt:
             info("Interrupted...")
         finally:
             self.cleanup_kernels()
             self.remove_server_info_file()
+    
+    def stop(self):
+        def _stop():
+            self.http_server.stop()
+            self.io_loop.stop()
+        self.io_loop.add_callback(_stop)
 
 
 def list_running_servers(profile='default'):
