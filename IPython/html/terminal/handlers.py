@@ -3,6 +3,7 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import tornado
 from tornado import web
 import terminado
 from ..base.handlers import IPythonHandler
@@ -25,4 +26,18 @@ class TermSocket(terminado.TermSocket, IPythonHandler):
     def get(self, *args, **kwargs):
         if not self.get_current_user():
             raise web.HTTPError(403)
-        return super(TermSocket, self).get(*args, **kwargs)
+
+        # FIXME: only do super get on tornado ≥ 4
+        # tornado 3 has no get, will raise 405
+        if tornado.version_info >= (4,):
+            return super(TermSocket, self).get(*args, **kwargs)
+
+    def open(self, *args, **kwargs):
+        if tornado.version_info < (4,):
+            try:
+                self.get(*self.open_args, **self.open_kwargs)
+            except web.HTTPError:
+                self.close()
+                raise
+
+        super(TermSocket, self).open(*args, **kwargs)
