@@ -592,12 +592,15 @@ define(["widgets/js/manager",
 
     
     var ViewList = function(create_view, remove_view, context) {
+        // * create_view and remove_view are default functions called when adding or removing views
         // * create_view takes a model and creates a view for that model, which we will store
-        // * remove_view takes a view and destroys it (including calling .remove()
+        // * remove_view takes a view and destroys it (including calling `.remove()`)
         // * each time the update() function is called with a new list, the create and destroy
         //   callbacks will be called in an order so that if you append the views created in the
         //   create callback, you will duplicate the order of the list.
-        // * the remove callback defaults to just removing the view.
+        // * the remove callback defaults to just removing the view (if you pass in null)
+        // * the context defaults to the ViewList.  If you pass another context, the create and remove
+        //   will be called in that context.
 
         this.initialize.apply(this, arguments);
     }
@@ -611,9 +614,27 @@ define(["widgets/js/manager",
             this._remove_view = remove_view || function(view) {view.remove()};
         },
 
-        update: function(new_models) {
+        update: function(new_models, create_view, remove_view, context) {
+            // the create_view, remove_view, and context arguments override the defaults
+            // specified when the list is created.
+            var remove = remove_view || this._remove;
+            var create = create_view || this._create_view;
+            var context = context || this._handler_context;
             this._do_diff(this._models, new_models,
-                         this._remove, this._add, this);
+                          function(model, index) { // remove a view
+                              // we first just replace views with nulls so that indices remain the same
+                              // then we filter out the null values later
+                              // this strategy relies on the _do_diff implementation:
+                              //   all remove calls come before any add calls
+                              var view = this.views[index];
+                              this.views[index] = null;
+                              remove.call(context, view);
+                          },
+                          function(model) { // add a view
+                              var view = create.call(context, model);
+                              this.views.push(view);
+                          },
+                          this);
             this._models = new_models;
             // the _remove handler just replaced deleted views in this.views with null
             // so here we filter out those nulls
@@ -627,27 +648,13 @@ define(["widgets/js/manager",
         },
 
         remove: function(new_list) {
-            // removes every view in our list
+            // removes every view in our list; convenience function for `.update([])`
+            // that should be faster
             for (var i = this.views.length - 1; i >= 0; i--) {
                 this._remove_view.call(this._handler_context, this.views[i]);
             };
             this._models = [];
             this.views = [];
-        },
-
-        _add: function(model) {
-            var view = this._create_view.call(this._handler_context, model);
-            this.views.push(view);
-        },
-
-        _remove: function(model, index) {
-            // we first just replace views with nulls so that indices remain the same
-            // then we filter out the null values later
-            // this strategy relies on the _do_diff implementation:
-            //   all remove calls come before any add calls
-            var view = this.views[index];
-            this.views[index] = null;
-            this._remove_view.call(this._handler_context, view);
         },
 
         _do_diff: function(old_list, new_list, removed_callback, added_callback, context) {
