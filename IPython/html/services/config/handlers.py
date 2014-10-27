@@ -76,7 +76,7 @@ class ConfigHandler(IPythonHandler):
         with f:
             json.dump(section, f)
 
-        self.set_status(204)
+        self.finish(json.dumps(section))
 
 
 # URL to handler mappings

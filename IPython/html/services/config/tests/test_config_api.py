@@ -56,9 +56,6 @@ class APITest(NotebookTestBase):
                                                'sub': {'a': 8, 'b': None, 'd': 9},
                                                'sub2': {'c': None}  # should delete sub2
                                               })
-        self.assertEqual(r.status_code, 204)
-
-        r = self.config_api.get('example')
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.json(), {'baz': 75, 'wib': [1,2,3],
                                     'sub': {'a': 8, 'd': 9}})
