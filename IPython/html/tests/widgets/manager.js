@@ -27,7 +27,7 @@ casper.notebook_test(function () {
 
     index = this.append_cell(
         'from IPython.html.widgets import Widget\n' + 
-        'widget = Widget.widgets.values()[0]\n' +
+        'widget = list(Widget.widgets.values())[0]\n' +
         'print(widget.model_id)');
     this.execute_cell_then(index, function(index) {
         var output = this.get_output_cell(index).text.trim();

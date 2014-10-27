@@ -101,8 +101,7 @@ class Widget(LoggingConfigurable):
         """Static method, called when a widget is constructed."""
         target_name = msg['content']['data']['target_name']
         widget_class = import_item(target_name)
-        widget = widget_class(open_comm=False)
-        widget.comm = comm
+        widget = widget_class(comm=comm)
 
 
     #-------------------------------------------------------------------------
@@ -141,8 +140,7 @@ class Widget(LoggingConfigurable):
         super(Widget, self).__init__(**kwargs)
 
         Widget._call_widget_constructed(self)
-        if open_comm:
-            self.open()
+        self.open()
 
     def __del__(self):
         """Object disposal"""
