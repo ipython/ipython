@@ -68,7 +68,7 @@ def reads(s, as_version, **kwargs):
     return nb
 
 
-def writes(nb, version, **kwargs):
+def writes(nb, version=NO_CONVERT, **kwargs):
     """Write a notebook to a string in a given format in the given nbformat version.
 
     Any notebook format errors will be logged.
@@ -77,10 +77,10 @@ def writes(nb, version, **kwargs):
     ----------
     nb : NotebookNode
         The notebook to write.
-    version : int
+    version : int, optional
         The nbformat version to write.
-        If nb is not this version, it will be converted.
-        Pass nbformat.NO_CONVERT to prevent conversion.
+        If unspecified, or specified as nbformat.NO_CONVERT,
+        the notebook's own version will be used and no conversion performed.
 
     Returns
     -------
@@ -123,7 +123,7 @@ def read(fp, as_version, **kwargs):
     return reads(fp.read(), as_version, **kwargs)
 
 
-def write(fp, nb, version, **kwargs):
+def write(fp, nb, version=NO_CONVERT, **kwargs):
     """Write a notebook to a file in a given nbformat version.
     
     The file-like object must accept unicode input.
@@ -134,9 +134,11 @@ def write(fp, nb, version, **kwargs):
         Any file-like object with a write method that accepts unicode.
     nb : NotebookNode
         The notebook to write.
-    version : int
+    version : int, optional
         The nbformat version to write.
         If nb is not this version, it will be converted.
+        If unspecified, or specified as nbformat.NO_CONVERT,
+        the notebook's own version will be used and no conversion performed.
     """
     s = writes(nb, version, **kwargs)
     if isinstance(s, bytes):
