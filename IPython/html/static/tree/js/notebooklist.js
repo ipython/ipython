@@ -155,7 +155,7 @@ define([
      * Draw the list of notebooks
      * @method draw_notebook_list
      * @param {Array} list An array of dictionaries representing files or
-     *     direcotories.
+     *     directories.
      * @param {String} error_msg An error message
      */
     NotebookList.prototype.draw_notebook_list = function (list, error_msg) {
