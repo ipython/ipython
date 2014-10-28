@@ -242,6 +242,7 @@ define([
             html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
             this.set_rendered(html);
             this.typeset();
+            this.events.trigger("rendered.MarkdownCell", {cell: this})
         }
         return cont;
     };
