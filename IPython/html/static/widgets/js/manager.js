@@ -193,7 +193,7 @@ define([
     WidgetManager.prototype.create_model = function (options) {
         // Create and return a new widget model.
         //
-        // Minimally, one must provide the model_name and target_name
+        // Minimally, one must provide the model_name and widget_class
         // parameters to create a model from Javascript.
         //
         // Example
@@ -201,7 +201,7 @@ define([
         // JS:
         // window.slider = IPython.notebook.kernel.widget_manager.create_model({
         //      model_name: 'WidgetModel', 
-        //      target_name: 'IPython.html.widgets.widget_int.IntSlider',
+        //      widget_class: 'IPython.html.widgets.widget_int.IntSlider',
         //      init_state_callback: function(model) { console.log('Create success!', model); }});
         //
         // Parameters
@@ -210,7 +210,7 @@ define([
         //  Dictionary of options with the following contents:
         //      model_name: string
         //          Target name of the widget model to create.
-        //      target_name: (optional) string
+        //      widget_class: (optional) string
         //          Target name of the widget in the back-end.
         //      comm: (optional) Comm
         //      init_state_callback: (optional) callback
@@ -221,7 +221,7 @@ define([
         // Create a comm if it wasn't provided.
         var comm = options.comm;
         if (!comm) {
-            comm = this.comm_manager.new_comm('ipython.widget', {'target_name': options.target_name});
+            comm = this.comm_manager.new_comm('ipython.widget', {'widget_class': options.widget_class});
         }
 
         // Create and return a new model that is connected to the comm.

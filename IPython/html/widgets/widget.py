@@ -99,8 +99,7 @@ class Widget(LoggingConfigurable):
     @staticmethod
     def handle_comm_opened(comm, msg):
         """Static method, called when a widget is constructed."""
-        target_name = msg['content']['data']['target_name']
-        widget_class = import_item(target_name)
+        widget_class = import_item(msg['content']['data']['widget_class'])
         widget = widget_class(comm=comm)
 
 
