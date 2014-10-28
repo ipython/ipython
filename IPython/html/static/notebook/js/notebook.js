@@ -1908,7 +1908,7 @@ define([
         var content = $.extend(this.toJSON(), {
             nbformat : this.nbformat,
             nbformat_minor : this.nbformat_minor
-        })
+        });
         // Create a JSON model to be sent to the server.
         var model = {
             name : this.notebook_name,

@@ -321,9 +321,9 @@ define([
                 // We use the filename from the parent list_item element's
                 // data because the outer scope's values change as we iterate through the loop.
                 var parent_item = that.parents('div.list_item');
-                var nbname = parent_item.data('nbname');
+                var name = parent_item.data('nbname');
                 var path = parent_item.data('path');
-                var message = 'Are you sure you want to permanently delete the notebook: ' + nbname + '?';
+                var message = 'Are you sure you want to permanently delete the file: ' + nbname + '?';
                 dialog.modal({
                     title : "Delete file",
                     body : message,
@@ -331,9 +331,9 @@ define([
                         Delete : {
                             class: "btn-danger",
                             click: function() {
-                                notebooklist.contents.delete_file(nbname, path, {
+                                notebooklist.contents.delete_file(name, path, {
                                     success: function() {
-                                        notebooklist.notebook_deleted(path, nbname);
+                                        notebooklist.notebook_deleted(path, name);
                                     }
                                 });
                             }
