@@ -5,10 +5,11 @@
 
 import json
 import logging
-from tornado import web
+from tornado import gen, web
+from tornado.concurrent import Future
 
 from IPython.utils.jsonutil import date_default
-from IPython.utils.py3compat import string_types
+from IPython.utils.py3compat import cast_unicode
 from IPython.html.utils import url_path_join, url_escape
 
 from ...base.handlers import IPythonHandler, json_errors
@@ -91,17 +92,26 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
         km = self.kernel_manager
         meth = getattr(km, 'connect_%s' % self.channel)
         self.zmq_stream = meth(self.kernel_id, identity=self.session.bsession)
-        # Create a kernel_info channel to query the kernel protocol version.
-        # This channel will be closed after the kernel_info reply is received.
-        self.kernel_info_channel = None
-        self.kernel_info_channel = km.connect_shell(self.kernel_id)
-        self.kernel_info_channel.on_recv(self._handle_kernel_info_reply)
-        self._request_kernel_info()
     
-    def _request_kernel_info(self):
+    def request_kernel_info(self):
         """send a request for kernel_info"""
-        self.log.debug("requesting kernel info")
-        self.session.send(self.kernel_info_channel, "kernel_info_request")
+        km = self.kernel_manager
+        kernel = km.get_kernel(self.kernel_id)
+        try:
+            # check for cached value
+            kernel_info = kernel._kernel_info
+        except AttributeError:
+            self.log.debug("Requesting kernel info from %s", self.kernel_id)
+            # Create a kernel_info channel to query the kernel protocol version.
+            # This channel will be closed after the kernel_info reply is received.
+            if self.kernel_info_channel is None:
+                self.kernel_info_channel = km.connect_shell(self.kernel_id)
+            self.kernel_info_channel.on_recv(self._handle_kernel_info_reply)
+            self.session.send(self.kernel_info_channel, "kernel_info_request")
+        else:
+            # use cached value, don't resend request
+            self._finish_kernel_info(kernel_info)
+        return self._kernel_info_future
     
     def _handle_kernel_info_reply(self, msg):
         """process the kernel_info_reply
@@ -113,28 +123,54 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
             msg = self.session.deserialize(msg)
         except:
             self.log.error("Bad kernel_info reply", exc_info=True)
-            self._request_kernel_info()
+            self._kernel_info_future.set_result(None)
             return
         else:
-            if msg['msg_type'] != 'kernel_info_reply' or 'protocol_version' not in msg['content']:
-                self.log.error("Kernel info request failed, assuming current %s", msg['content'])
+            info = msg['content']
+            self.log.debug("Received kernel info: %s", info)
+            if msg['msg_type'] != 'kernel_info_reply' or 'protocol_version' not in info:
+                self.log.error("Kernel info request failed, assuming current %s", info)
             else:
-                protocol_version = msg['content']['protocol_version']
-                if protocol_version != kernel_protocol_version:
-                    self.session.adapt_version = int(protocol_version.split('.')[0])
-                    self.log.info("adapting kernel to %s" % protocol_version)
-        self.kernel_info_channel.close()
+                kernel = self.kernel_manager.get_kernel(self.kernel_id)
+                kernel._kernel_info = info
+            self._finish_kernel_info(info)
+        
+        # close the kernel_info channel, we don't need it anymore
+        if self.kernel_info_channel:
+            self.kernel_info_channel.close()
         self.kernel_info_channel = None
+    
+    def _finish_kernel_info(self, info):
+        """Finish handling kernel_info reply
+        
+        Set up protocol adaptation, if needed,
+        and signal that connection can continue.
+        """
+        protocol_version = info.get('protocol_version', kernel_protocol_version)
+        if protocol_version != kernel_protocol_version:
+            self.session.adapt_version = int(protocol_version.split('.')[0])
+            self.log.info("Kernel %s speaks protocol %s", self.kernel_id, protocol_version)
+        self._kernel_info_future.set_result(info)
     
     def initialize(self):
         super(ZMQChannelHandler, self).initialize()
         self.zmq_stream = None
+        self.kernel_id = None
+        self.kernel_info_channel = None
+        self._kernel_info_future = Future()
+    
+    @gen.coroutine
+    def get(self, kernel_id):
+        self.kernel_id = cast_unicode(kernel_id, 'ascii')
+        yield self.request_kernel_info()
+        super(ZMQChannelHandler, self).get(kernel_id)
     
     def open(self, kernel_id):
-        super(ZMQChannelHandler, self).open(kernel_id)
+        super(ZMQChannelHandler, self).open()
         try:
             self.create_stream()
-        except web.HTTPError:
+        except web.HTTPError as e:
+            self.log.error("Error opening stream: %s", e)
             # WebSockets don't response to traditional error codes so we
             # close the connection.
             if not self.stream.closed():

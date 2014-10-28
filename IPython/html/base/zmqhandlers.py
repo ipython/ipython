@@ -1,3 +1,4 @@
+# coding: utf-8
 """Tornado handlers for WebSocket <-> ZMQ sockets."""
 
 # Copyright (c) IPython Development Team.
@@ -11,12 +12,6 @@ try:
 except ImportError:
     from urlparse import urlparse # Py 2
 
-try:
-    from http.cookies import SimpleCookie  # Py 3
-except ImportError:
-    from Cookie import SimpleCookie  # Py 2
-import logging
-
 import tornado
 from tornado import ioloop
 from tornado import web
@@ -24,7 +19,7 @@ from tornado import websocket
 
 from IPython.kernel.zmq.session import Session
 from IPython.utils.jsonutil import date_default, extract_dates
-from IPython.utils.py3compat import PY3, cast_unicode
+from IPython.utils.py3compat import cast_unicode
 
 from .handlers import IPythonHandler
 
@@ -218,14 +213,21 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
             self.session.session = cast_unicode(self.get_argument('session_id'))
         else:
             self.log.warn("No session ID specified")
-        
-        return super(AuthenticatedZMQStreamHandler, self).get(*args, **kwargs)
+        # FIXME: only do super get on tornado ≥ 4
+        # tornado 3 has no get, will raise 405
+        if tornado.version_info >= (4,):
+            return super(AuthenticatedZMQStreamHandler, self).get(*args, **kwargs)
     
     def initialize(self):
         self.session = Session(config=self.config)
     
-    def open(self, kernel_id):
-        self.kernel_id = cast_unicode(kernel_id, 'ascii')
+    def open(self, *args, **kwargs):
+        if tornado.version_info < (4,):
+            try:
+                self.get(*self.open_args, **self.open_kwargs)
+            except web.HTTPError:
+                self.close()
+                raise
         
         # start the pinging
         if self.ping_interval > 0:
