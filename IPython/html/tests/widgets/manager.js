@@ -19,7 +19,7 @@ casper.notebook_test(function () {
         slider.id = this.evaluate(function() {
             var slider = IPython.notebook.kernel.widget_manager.create_model({
                  model_name: 'WidgetModel', 
-                 target_name: 'IPython.html.widgets.widget_int.IntSlider',
+                 widget_class: 'IPython.html.widgets.widget_int.IntSlider',
                  init_state_callback: function(model) { console.log('Create success!', model); }});
             return slider.id;
         });
