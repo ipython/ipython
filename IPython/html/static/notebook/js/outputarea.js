@@ -552,9 +552,10 @@ define([
         var text_and_math = mathjaxutils.remove_math(markdown);
         var text = text_and_math[0];
         var math = text_and_math[1];
-        var html = marked.parser(marked.lexer(text));
-        html = mathjaxutils.replace_math(html, math);
-        toinsert.append(html);
+        marked(text, function (err, html) {
+            html = mathjaxutils.replace_math(html, math);
+            toinsert.append(html);
+        });
         element.append(toinsert);
         return toinsert;
     };
