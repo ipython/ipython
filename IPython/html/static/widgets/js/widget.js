@@ -617,7 +617,7 @@ define(["widgets/js/manager",
         update: function(new_models, create_view, remove_view, context) {
             // the create_view, remove_view, and context arguments override the defaults
             // specified when the list is created.
-            var remove = remove_view || this._remove;
+            var remove = remove_view || this._remove_view;
             var create = create_view || this._create_view;
             var context = context || this._handler_context;
             this._do_diff(this._models, new_models,
