@@ -31,6 +31,8 @@ class Comm(LoggingConfigurable):
             return self.kernel.session
     
     target_name = Unicode('comm')
+    target_module = Unicode(None, allow_none=True, help="""requirejs module from
+        which to load comm target.""")
     
     topic = Bytes()
     def _topic_default(self):
@@ -91,7 +93,9 @@ class Comm(LoggingConfigurable):
         try:
             self._publish_msg('comm_open',
                               data=data, metadata=metadata, buffers=buffers,
-                              target_name=self.target_name)
+                              target_name=self.target_name,
+                              target_module=self.target_module,
+                              )
             self._closed = False
         except:
             comm_manager.unregister_comm(self)

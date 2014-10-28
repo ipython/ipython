@@ -188,13 +188,33 @@ define([
     WidgetManager.prototype._handle_comm_open = function (comm, msg) {
         // Handle when a comm is opened.
         var that = this;
-        var model_id = comm.comm_id;
+        
+        var instantiate_model = function(ModelType) {
+            var model_id = comm.comm_id;
+            var widget_model = new ModelType(that, model_id, comm);
+            widget_model.on('comm:close', function () {
+              delete that._models[model_id];
+            });
+            that._models[model_id] = widget_model;
+        };
+        
         var widget_type_name = msg.content.data.model_name;
-        var widget_model = new WidgetManager._model_types[widget_type_name](this, model_id, comm);
-        widget_model.on('comm:close', function () {
-          delete that._models[model_id];
-        });
-        this._models[model_id] = widget_model;
+        var widget_module = msg.content.data.model_module;
+
+        if (widget_module) {
+            // Load the module containing the widget model
+            require([widget_module], function(mod) {
+                if (mod[widget_type_name]) {
+                    instantiate_model(mod[widget_type_name]);
+                } else {
+                    console.log("Error creating widget model: " + widget_type_name
+                            + " not found in " + widget_module);
+                }
+            }, function(err) { console.log(err); });
+        } else {
+            // No module specified, load from the global models registry
+            instantiate_model(WidgetManager._model_types[widget_type_name]);
+        }
     };
 
     // Backwards compatability.
