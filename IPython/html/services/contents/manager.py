@@ -309,15 +309,12 @@ class ContentsManager(LoggingConfigurable):
         Parameters
         ----------
         nb : dict
-            The notebook object (in current nbformat)
+            The notebook dict
         name : string
             The filename of the notebook (for logging)
         path : string
             The notebook's directory (for logging)
         """
-        # can't sign old notebooks
-        if nb['nbformat'] != 4:
-            return
         if self.notary.check_cells(nb):
             self.notary.sign(nb)
         else:

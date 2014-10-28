@@ -18,6 +18,8 @@ class TestNotary(TestsBase):
         )
         with self.fopen(u'test3.ipynb', u'r') as f:
             self.nb = read(f, as_version=4)
+        with self.fopen(u'test3.ipynb', u'r') as f:
+            self.nb3 = read(f, as_version=3)
     
     def test_algorithms(self):
         last_sig = ''
@@ -108,4 +110,41 @@ class TestNotary(TestsBase):
             if cell.cell_type == 'code':
                 cell.outputs = []
         self.assertTrue(self.notary.check_cells(nb))
+    
+    def test_mark_cells_untrusted_v3(self):
+        nb = self.nb3
+        cells = nb.worksheets[0].cells
+        self.notary.mark_cells(nb, False)
+        for cell in cells:
+            self.assertNotIn('trusted', cell)
+            if cell.cell_type == 'code':
+                self.assertIn('trusted', cell.metadata)
+                self.assertFalse(cell.metadata.trusted)
+            else:
+                self.assertNotIn('trusted', cell.metadata)
+    
+    def test_mark_cells_trusted_v3(self):
+        nb = self.nb3
+        cells = nb.worksheets[0].cells
+        self.notary.mark_cells(nb, True)
+        for cell in cells:
+            self.assertNotIn('trusted', cell)
+            if cell.cell_type == 'code':
+                self.assertIn('trusted', cell.metadata)
+                self.assertTrue(cell.metadata.trusted)
+            else:
+                self.assertNotIn('trusted', cell.metadata)
+    
+    def test_check_cells_v3(self):
+        nb = self.nb3
+        cells = nb.worksheets[0].cells
+        self.notary.mark_cells(nb, True)
+        self.assertTrue(self.notary.check_cells(nb))
+        for cell in cells:
+            self.assertNotIn('trusted', cell)
+        self.notary.mark_cells(nb, False)
+        self.assertFalse(self.notary.check_cells(nb))
+        for cell in cells:
+            self.assertNotIn('trusted', cell)
+        
 

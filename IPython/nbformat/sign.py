@@ -46,6 +46,20 @@ def yield_everything(obj):
     else:
         yield unicode_type(obj).encode('utf8')
 
+def yield_code_cells(nb):
+    """Iterator that yields all cells in a notebook
+    
+    nbformat version independent
+    """
+    if nb.nbformat >= 4:
+        for cell in nb['cells']:
+            if cell['cell_type'] == 'code':
+                yield cell
+    elif nb.nbformat == 3:
+        for ws in nb['worksheets']:
+            for cell in ws['cells']:
+                if cell['cell_type'] == 'code':
+                    yield cell
 
 @contextmanager
 def signature_removed(nb):
@@ -152,6 +166,8 @@ class NotebookNotary(LoggingConfigurable):
         - the requested scheme is available from hashlib
         - the computed hash from notebook_signature matches the stored hash
         """
+        if nb.nbformat < 3:
+            return False
         stored_signature = nb['metadata'].get('signature', None)
         if not stored_signature \
             or not isinstance(stored_signature, string_types) \
@@ -170,6 +186,8 @@ class NotebookNotary(LoggingConfigurable):
         
         e.g. 'sha256:deadbeef123...'
         """
+        if nb.nbformat < 3:
+            return
         signature = self.compute_signature(nb)
         nb['metadata']['signature'] = "%s:%s" % (self.algorithm, signature)
     
@@ -181,11 +199,13 @@ class NotebookNotary(LoggingConfigurable):
         
         This function is the inverse of check_cells
         """
-        for cell in nb['cells']:
-            if cell['cell_type'] == 'code':
-                cell['metadata']['trusted'] = trusted
+        if nb.nbformat < 3:
+            return
+        
+        for cell in yield_code_cells(nb):
+            cell['metadata']['trusted'] = trusted
     
-    def _check_cell(self, cell):
+    def _check_cell(self, cell, nbformat_version):
         """Do we trust an individual cell?
         
         Return True if:
@@ -201,16 +221,21 @@ class NotebookNotary(LoggingConfigurable):
             return True
         
         # explicitly safe output
-        safe = {
-            'text/plain', 'image/png', 'image/jpeg',
-        }
+        if nbformat_version >= 4:
+            safe = {'text/plain', 'image/png', 'image/jpeg'}
+            unsafe_output_types = ['execute_result', 'display_data']
+            safe_keys = {"output_type", "execution_count", "metadata"}
+        else: # v3
+            safe = {'text', 'png', 'jpeg'}
+            unsafe_output_types = ['pyout', 'display_data']
+            safe_keys = {"output_type", "prompt_number", "metadata"}
         
         for output in cell['outputs']:
             output_type = output['output_type']
-            if output_type in {'execute_result', 'display_data'}:
+            if output_type in unsafe_output_types:
                 # if there are any data keys not in the safe whitelist
-                output_keys = set(output).difference({"output_type", "execution_count", "metadata"})
-                if output_keys.difference(safe):
+                output_keys = set(output)
+                if output_keys.difference(safe_keys):
                     return False
         
         return True
@@ -222,12 +247,12 @@ class NotebookNotary(LoggingConfigurable):
         
         This function is the inverse of mark_cells.
         """
+        if nb.nbformat < 3:
+            return False
         trusted = True
-        for cell in nb['cells']:
-            if cell['cell_type'] != 'code':
-                continue
+        for cell in yield_code_cells(nb):
             # only distrust a cell if it actually has some output to distrust
-            if not self._check_cell(cell):
+            if not self._check_cell(cell, nb.nbformat):
                 trusted = False
 
         return trusted
