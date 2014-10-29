@@ -33,7 +33,7 @@ define([
     }
     Contents.DirectoryNotEmptyError.prototype = new Error;
     Contents.DirectoryNotEmptyError.prototype.name =
-        Contents.DIRECTORY_NOTE_EMPTY_ERROR;
+        Contents.DIRECTORY_NOT_EMPTY_ERROR;
 
 
     Contents.prototype.api_url = function() {
