@@ -501,27 +501,32 @@ class Application(SingletonConfigurable):
 
         yield each config object in turn.
         """
-        pyloader = PyFileConfigLoader(basefilename+'.py', path=path, log=log)
-        jsonloader = JSONFileConfigLoader(basefilename+'.json', path=path, log=log)
-        config = None
-        for loader in [pyloader, jsonloader]:
-            try:
-                config = loader.load_config()
-            except ConfigFileNotFound:
-                pass
-            except Exception:
-                # try to get the full filename, but it will be empty in the
-                # unlikely event that the error raised before filefind finished
-                filename = loader.full_filename or basefilename
-                # problem while running the file
-                if log:
-                    log.error("Exception while loading config file %s",
-                            filename, exc_info=True)
-            else:
-                if log:
-                    log.debug("Loaded config file: %s", loader.full_filename)
-            if config:
-                 yield config
+        
+        if not isinstance(path, list):
+            path = [path]
+        for path in path[::-1]:
+            # path list is in descending priority order, so load files backwards:
+            pyloader = PyFileConfigLoader(basefilename+'.py', path=path, log=log)
+            jsonloader = JSONFileConfigLoader(basefilename+'.json', path=path, log=log)
+            config = None
+            for loader in [pyloader, jsonloader]:
+                try:
+                    config = loader.load_config()
+                except ConfigFileNotFound:
+                    pass
+                except Exception:
+                    # try to get the full filename, but it will be empty in the
+                    # unlikely event that the error raised before filefind finished
+                    filename = loader.full_filename or basefilename
+                    # problem while running the file
+                    if log:
+                        log.error("Exception while loading config file %s",
+                                filename, exc_info=True)
+                else:
+                    if log:
+                        log.debug("Loaded config file: %s", loader.full_filename)
+                if config:
+                     yield config
 
         raise StopIteration
 

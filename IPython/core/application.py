@@ -7,25 +7,10 @@ handling configuration and creating configurables.
 
 The job of an :class:`Application` is to create the master configuration
 object and then create the configurable objects, passing the config to them.
-
-Authors:
-
-* Brian Granger
-* Fernando Perez
-* Min RK
-
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import atexit
 import glob
@@ -42,14 +27,18 @@ from IPython.utils.path import get_ipython_dir, get_ipython_package_dir, ensure_
 from IPython.utils import py3compat
 from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict, Set, Instance
 
-#-----------------------------------------------------------------------------
-# Classes and functions
-#-----------------------------------------------------------------------------
+if os.name == 'nt':
+    programdata = os.environ.get('PROGRAMDATA', None)
+    if programdata:
+        SYSTEM_CONFIG_DIRS = [pjoin(programdata, 'ipython')]
+    else:  # PROGRAMDATA is not defined by default on XP.
+        SYSTEM_CONFIG_DIRS = []
+else:
+    SYSTEM_CONFIG_DIRS = [
+        "/usr/local/etc/ipython",
+        "/etc/ipython",
+    ]
 
-
-#-----------------------------------------------------------------------------
-# Base Application Class
-#-----------------------------------------------------------------------------
 
 # aliases and flags
 
@@ -100,7 +89,7 @@ class BaseIPythonApplication(Application):
     builtin_profile_dir = Unicode(
         os.path.join(get_ipython_package_dir(), u'config', u'profile', u'default')
     )
-
+    
     config_file_paths = List(Unicode)
     def _config_file_paths_default(self):
         return [py3compat.getcwd()]
@@ -336,6 +325,7 @@ class BaseIPythonApplication(Application):
 
     def init_config_files(self):
         """[optionally] copy default config files into profile dir."""
+        self.config_file_paths.extend(SYSTEM_CONFIG_DIRS)
         # copy config files
         path = self.builtin_profile_dir
         if self.copy_config_files:
