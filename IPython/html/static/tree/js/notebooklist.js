@@ -144,9 +144,8 @@ define([
         var that = this
         this.contents.list_contents(that.notebook_path, {
             success: $.proxy(this.draw_notebook_list, this),
-            error: function(xhr, status, error) { 
-                utils.log_ajax_error(xhr, status, error);
-                that.draw_notebook_list([], "Error connecting to server.");
+            error: function(error) {
+                that.draw_notebook_list([], "Server error: " + error.message);
             }
         });
     };

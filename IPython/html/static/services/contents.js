@@ -21,11 +21,46 @@ define([
         this.base_url = options.base_url;
     };
 
+    /** Error type */
+    Contents.DIRECTORY_NOT_EMPTY_ERROR = 'DirectoryNotEmptyError';
+
+    Contents.DirectoryNotEmptyError = function() {
+        // Constructor
+        //
+        // An error representing the result of attempting to delete a non-empty
+        // directory.
+        this.message = 'A directory must be empty before being deleted.';
+    }
+    Contents.DirectoryNotEmptyError.prototype = new Error;
+    Contents.DirectoryNotEmptyError.prototype.name =
+        Contents.DIRECTORY_NOTE_EMPTY_ERROR;
+
+
     Contents.prototype.api_url = function() {
         var url_parts = [this.base_url, 'api/contents'].concat(
                                 Array.prototype.slice.apply(arguments));
         return utils.url_join_encode.apply(null, url_parts);
     };
+
+    /**
+     * Creates a basic error handler that wraps a jqXHR error as an Error.
+     *
+     * Takes a callback that accepts an Error, and returns a callback that can
+     * be passed directly to $.ajax, which will wrap the error from jQuery
+     * as an Error, and pass that to the original callback.
+     *
+     * @method create_basic_error_handler
+     * @param{Function} callback
+     * @return{Function}
+     */
+    Contents.prototype.create_basic_error_handler = function(callback) {
+        if (!callback) {
+            return function(xhr, status, error) { };
+        }
+        return function(xhr, status, error) {
+            callback(utils.wrap_ajax_error(xhr, status, error));
+        };
+    }
 
     /**
      * File Functions (including notebook operations)
@@ -50,7 +85,7 @@ define([
             type : "GET",
             dataType : "json",
             success : options.success,
-            error : options.error || function() {}
+            error : this.create_basic_error_handler(options.error)
         };
         var url = this.api_url(path, name);
         $.ajax(url, settings);
@@ -71,7 +106,7 @@ define([
             type : "POST",
             dataType : "json",
             success : options.success || function() {},
-            error : options.error || function() {}
+            error : this.create_basic_error_handler(options.error)
         };
         $.ajax(this.api_url(path), settings);
     };
@@ -86,8 +121,12 @@ define([
             dataType : "json",
             success : options.success || function() {},
             error : function(xhr, status, error) {
-                utils.log_ajax_error(xhr, status, error);
-                error(xhr, status, error);
+                // TODO: update IPEP27 to specify errors more precisely, so
+                // that error types can be detected here with certainty.
+                if (xhr.status === 400) {
+                    error(new Contents.DirectoryNotEmptyError());
+                }
+                error(utils.wrap_ajax_error(xhr, status, error));
             }
         };
         var url = this.api_url(path, name);
@@ -103,8 +142,8 @@ define([
             data : JSON.stringify(data),
             dataType: "json",
             contentType: 'application/json',
-            success : options.success || function() {}, 
-            error : options.error || function() {}
+            success : options.success || function() {},
+            error : this.create_basic_error_handler(options.error)
         };
         var url = this.api_url(path, name);
         $.ajax(url, settings);
@@ -119,7 +158,7 @@ define([
             data : JSON.stringify(model),
             contentType: 'application/json',
             success : options.success || function() {},
-            error : options.error || function() {}
+            error : this.create_basic_error_handler(options.error)
         };
         if (options.extra_settings) {
             $.extend(settings, options.extra_settings);
@@ -137,7 +176,7 @@ define([
         var settings = {
             type : "POST",
             success: options.success || function() {},
-            error: options.error || function() {}
+            error : this.create_basic_error_handler(options.error)
         };
         $.ajax(url, settings);
     };
@@ -147,7 +186,7 @@ define([
         var settings = {
             type : "GET",
             success: options.success,
-            error: options.error || function() {}
+            error : this.create_basic_error_handler(options.error)
         };
         $.ajax(url, settings);
     };
@@ -157,17 +196,17 @@ define([
         var settings = {
             type : "POST",
             success: options.success || function() {},
-            error: options.error || function() {}
+            error : this.create_basic_error_handler(options.error)
         };
         $.ajax(url, settings);
     };
 
-    Contents.prototype.delete_checkpoint = function(path, name, checkpoint_id, options) {        
+    Contents.prototype.delete_checkpoint = function(path, name, checkpoint_id, options) {
         var url = this.api_url(path, name, 'checkpoints', checkpoint_id);
         var settings = {
             type : "DELETE",
             success: options.success || function() {},
-            error: options.error || function() {}
+            error : this.create_basic_error_handler(options.error)
         };
         $.ajax(url, settings);
     };
@@ -199,7 +238,7 @@ define([
             type : "GET",
             dataType : "json",
             success : options.success,
-            error : options.error || function() {}
+            error : this.create_basic_error_handler(options.error)
         };
 
         $.ajax(this.api_url(path), settings);
@@ -209,4 +248,4 @@ define([
     IPython.Contents = Contents;
 
     return {'Contents': Contents};
-}); 
+});

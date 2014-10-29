@@ -91,23 +91,17 @@ define([
             // notebook's path.
             that.contents.new_notebook(that.notebook.notebook_path,
                 {
-                    success: function (data, status, xhr) {
+                    success: function (data) {
                         window.open(
                             utils.url_join_encode(
                                 that.base_url, 'notebooks',
                                 data.path, data.name
                             ), '_blank');
                         },
-                    error: function(xhr, status, error) {
-                        var msg;
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                            msg = xhr.responseJSON.message;
-                        } else {
-                            msg = xhr.statusText;
-                        }
+                    error: function(error) {
                         dialog.modal({
                             title : 'Creating Notebook Failed',
-                            body : "The error was: " + msg,
+                            body : "The error was: " + error.message,
                             buttons : {'OK' : {'class' : 'btn-primary'}}
                         });
                     }

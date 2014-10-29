@@ -62,23 +62,17 @@ require([
     $('#new_notebook').click(function (e) {
         contents.new_notebook(common_options.notebook_path,
             {
-                success: function (data, status, xhr) {
+                success: function (data) {
                     window.open(
                         utils.url_join_encode(
                             common_options.base_url, 'notebooks',
                             data.path, data.name
                         ), '_blank');
                     },
-                error: function(xhr, status, error) {
-                    var msg;
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        msg = xhr.responseJSON.message;
-                    } else {
-                        msg = xhr.statusText;
-                    }
+                error: function(error) {
                     dialog.modal({
                         title : 'Creating Notebook Failed',
-                        body : "The error was: " + msg,
+                        body : "The error was: " + error.message,
                         buttons : {'OK' : {'class' : 'btn-primary'}}
                     });
                 }

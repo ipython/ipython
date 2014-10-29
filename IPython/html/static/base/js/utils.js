@@ -563,6 +563,22 @@ define([
         );
     };
     
+    /** Error type for wrapped XHR errors. */
+    var XHR_ERROR = 'XhrError';
+    
+    /**
+     * Wraps an AJAX error as an Error object.
+     */
+    var wrap_ajax_error = function (jqXHR, status, error) {
+        var wrapped_error = new Error(ajax_error_msg(jqXHR));
+        wrapped_error.name =  XHR_ERROR;
+        // provide xhr response
+        wrapped_error.xhr = jqXHR;
+        wrapped_error.xhr_status = status;
+        wrapped_error.xhr_error = error;
+        return wrapped_error;
+    }
+    
     var utils = {
         regex_split : regex_split,
         uuid : uuid,
@@ -588,6 +604,8 @@ define([
         ajax_error_msg : ajax_error_msg,
         log_ajax_error : log_ajax_error,
         requireCodeMirrorMode : requireCodeMirrorMode,
+        XHR_ERROR : XHR_ERROR,
+        wrap_ajax_error : wrap_ajax_error
     };
 
     // Backwards compatability.
