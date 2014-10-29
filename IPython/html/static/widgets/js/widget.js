@@ -327,7 +327,7 @@ define(["widgets/js/manager",
             // to the subview without having to add it here.
             var that = this;
             var old_callback = options.callback || function(view) {};
-            options = $.extend({ parent: this, callback: function(child_view) {
+            options = $.extend({ parent: this, success: function(child_view) {
                 // Associate the view id with the model id.
                 if (that.child_model_views[child_model.id] === undefined) {
                     that.child_model_views[child_model.id] = [];

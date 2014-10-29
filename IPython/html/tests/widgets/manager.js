@@ -1,7 +1,6 @@
 // Test the widget manager.
 casper.notebook_test(function () {
     var index;
-    var slider = {};
     
     this.then(function () {
     
@@ -16,12 +15,22 @@ casper.notebook_test(function () {
         }), 'Notebook widget manager instantiated');
 
         // Try creating a widget from Javascript.
-        slider.id = this.evaluate(function() {
-            var slider = IPython.notebook.kernel.widget_manager.create_model({
-                 model_name: 'WidgetModel', 
-                 widget_class: 'IPython.html.widgets.widget_int.IntSlider',
-                 init_state_callback: function(model) { console.log('Create success!', model); }});
-            return slider.id;
+        this.evaluate(function() {
+            IPython.notebook.kernel.widget_manager.create_model({
+                model_name: 'WidgetModel', 
+                widget_class: 'IPython.html.widgets.widget_int.IntSlider',
+                init_state_callback: function(model) { 
+                    console.log('Create success!', model); 
+                    window.slider_id = model.id; 
+                }
+            });
+        });
+    });
+
+    // Wait for the state to be recieved.
+    this.waitFor(function check() {
+        return this.evaluate(function() {
+            return window.slider_id !== undefined;
         });
     });
 
@@ -31,6 +40,7 @@ casper.notebook_test(function () {
         'print(widget.model_id)');
     this.execute_cell_then(index, function(index) {
         var output = this.get_output_cell(index).text.trim();
-        this.test.assertEquals(output, slider.id, "Widget created from the front-end.");
+        var slider_id = this.evaluate(function() { return window.slider_id; });
+        this.test.assertEquals(output, slider_id, "Widget created from the front-end.");
     });
 });

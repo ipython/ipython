@@ -53,7 +53,7 @@ define([
                 " message was from.  Widget will not be displayed");
         } else {
             var that = this;
-            this.create_view(model, {cell: cell, callback: function(view) {
+            this.create_view(model, {cell: cell, success: function(view) {
                 that._handle_display_view(view);
                 if (cell.widget_subarea) {
                     cell.widget_subarea.append(view.$el);
@@ -84,7 +84,7 @@ define([
         
         var view_name = model.get('_view_name');
         var view_mod = model.get('_view_module');
-        var errback = options.errback || function(err) {console.log(err);};
+        var error = options.error || function(error) { console.log(error); };
 
         var instantiate_view = function(ViewType) {
             if (ViewType) {
@@ -100,9 +100,11 @@ define([
                 var view = new ViewType(parameters);
                 view.render();
                 model.on('destroy', view.remove, view);
-                options.callback(view);
+                if (options.success) {
+                    options.success(view);
+                }
             } else {
-                errback({unknown_view: true, view_name: view_name,
+                error({unknown_view: true, view_name: view_name,
                          view_module: view_mod});
             }
         };
@@ -110,7 +112,7 @@ define([
         if (view_mod) {
             require([view_mod], function(module) {
                 instantiate_view(module[view_name]);
-            }, errback);
+            }, error);
         } else {
             instantiate_view(WidgetManager._view_types[view_name]);
         }
@@ -157,7 +159,7 @@ define([
                 handle_clear_output = $.proxy(cell.output_area.handle_clear_output, cell.output_area);
             }
 
-            // Create callback dict using what is known
+            // Create callback dictionary using what is known
             var that = this;
             callbacks = {
                 iopub : {
@@ -187,7 +189,10 @@ define([
 
     WidgetManager.prototype._handle_comm_open = function (comm, msg) {
         // Handle when a comm is opened.
-        return this.create_model({model_name: msg.content.data.model_name, comm: comm});
+        this.create_model({
+            model_name: msg.content.data.model_name, 
+            model_module: msg.content.data.model_module, 
+            comm: comm});
     };
 
     WidgetManager.prototype.create_model = function (options) {
@@ -199,7 +204,7 @@ define([
         // Example
         // --------
         // JS:
-        // window.slider = IPython.notebook.kernel.widget_manager.create_model({
+        // IPython.notebook.kernel.widget_manager.create_model({
         //      model_name: 'WidgetModel', 
         //      widget_class: 'IPython.html.widgets.widget_int.IntSlider',
         //      init_state_callback: function(model) { console.log('Create success!', model); }});
@@ -210,13 +215,22 @@ define([
         //  Dictionary of options with the following contents:
         //      model_name: string
         //          Target name of the widget model to create.
+        //      model_module: (optional) string
+        //          Module name of the widget model to create.
         //      widget_class: (optional) string
         //          Target name of the widget in the back-end.
         //      comm: (optional) Comm
+        //      success: (optional) callback
+        //          Callback for when the model was created successfully.
+        //      error: (optional) callback
+        //          Callback for when the model wasn't created.
         //      init_state_callback: (optional) callback
         //          Called when the first state push from the back-end is 
         //          recieved.  Allows you to modify the model after it's
         //          complete state is filled and synced.
+
+        // Make default callbacks if not specified.
+        var error = options.error || function(error) { console.log(error); };
 
         // Create a comm if it wasn't provided.
         var comm = options.comm;
@@ -224,9 +238,8 @@ define([
             comm = this.comm_manager.new_comm('ipython.widget', {'widget_class': options.widget_class});
         }
 
-        // Create and return a new model that is connected to the comm.
+        // Create a new model that is connected to the comm.
         var that = this;
-        
         var instantiate_model = function(ModelType) {
             var model_id = comm.comm_id;
             var widget_model = new ModelType(that, model_id, comm, options.init_state_callback);
@@ -234,22 +247,27 @@ define([
               delete that._models[model_id];
             });
             that._models[model_id] = widget_model;
+            if (options.success) {                
+                options.success(widget_model);
+            }
         };
         
-        var widget_type_name = msg.content.data.model_name;
-        var widget_module = msg.content.data.model_module;
-
+        // Get the model type using require or through the registry.
+        var widget_type_name = options.model_name;
+        var widget_module = options.model_module;
         if (widget_module) {
+
             // Load the module containing the widget model
             require([widget_module], function(mod) {
                 if (mod[widget_type_name]) {
                     instantiate_model(mod[widget_type_name]);
                 } else {
-                    console.log("Error creating widget model: " + widget_type_name
+                    error("Error creating widget model: " + widget_type_name
                             + " not found in " + widget_module);
                 }
-            }, function(err) { console.log(err); });
+            }, error);
         } else {
+
             // No module specified, load from the global models registry
             instantiate_model(WidgetManager._model_types[widget_type_name]);
         }

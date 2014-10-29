@@ -133,7 +133,7 @@ class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
     # (Con/de)structor
     #-------------------------------------------------------------------------
-    def __init__(self, open_comm=True, **kwargs):
+    def __init__(self, **kwargs):
         """Public constructor"""
         self._model_id = kwargs.pop('model_id', None)
         super(Widget, self).__init__(**kwargs)
