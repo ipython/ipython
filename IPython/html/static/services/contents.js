@@ -112,7 +112,7 @@ define([
     };
 
     Contents.prototype.delete_file = function(name, path, options) {
-        var error = options.error || function() {};
+        var error_callback = options.error || function() {};
         var that = this;
         var settings = {
             processData : false,
@@ -124,9 +124,9 @@ define([
                 // TODO: update IPEP27 to specify errors more precisely, so
                 // that error types can be detected here with certainty.
                 if (xhr.status === 400) {
-                    error(new Contents.DirectoryNotEmptyError());
+                    error_callback(new Contents.DirectoryNotEmptyError());
                 }
-                error(utils.wrap_ajax_error(xhr, status, error));
+                error_callback(utils.wrap_ajax_error(xhr, status, error));
             }
         };
         var url = this.api_url(path, name);
