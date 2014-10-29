@@ -761,6 +761,15 @@ class NotebookApp(BaseIPythonApplication):
         proto = 'https' if self.certfile else 'http'
         return "%s://%s:%i%s" % (proto, ip, self.port, self.base_url)
 
+    def init_terminals(self):
+        try:
+            from .terminal import initialize
+            initialize(self.web_app)
+            self.web_app.terminals_available = True
+        except ImportError as e:
+            self.log.info("Terminals not available (error was %s)", e)
+            self.web_app.terminals_available = False
+
     def init_signal(self):
         if not sys.platform.startswith('win'):
             signal.signal(signal.SIGINT, self._handle_sigint)
@@ -840,6 +849,7 @@ class NotebookApp(BaseIPythonApplication):
         self.init_configurables()
         self.init_components()
         self.init_webapp()
+        self.init_terminals()
         self.init_signal()
 
     def cleanup_kernels(self):

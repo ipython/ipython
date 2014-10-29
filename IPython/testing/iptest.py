@@ -137,6 +137,7 @@ have['mistune'] = test_for('mistune')
 have['requests'] = test_for('requests')
 have['sphinx'] = test_for('sphinx')
 have['jsonschema'] = test_for('jsonschema')
+have['terminado'] = test_for('terminado')
 have['casperjs'] = is_cmd_found('casperjs')
 have['phantomjs'] = is_cmd_found('phantomjs')
 have['slimerjs'] = is_cmd_found('slimerjs')
@@ -264,6 +265,8 @@ if not have['jinja2']:
     sec.exclude('notebookapp')
 if not have['pygments'] or not have['jinja2']:
     sec.exclude('nbconvert')
+if not have['terminado']:
+    sec.exclude('terminal')
 
 # config:
 # Config files aren't really importable stand-alone
