@@ -5,6 +5,7 @@ import sys
 import traceback
 
 from IPython.core import release
+from IPython.html.widgets import Widget
 from IPython.utils.py3compat import builtin_mod, PY3
 from IPython.utils.tokenutil import token_at_cursor, line_at_cursor
 from IPython.utils.traitlets import Instance, Type, Any
@@ -58,6 +59,8 @@ class IPythonKernel(KernelBase):
 
         self.comm_manager = CommManager(shell=self.shell, parent=self, 
                                         kernel=self)
+        self.comm_manager.register_target('ipython.widget', Widget.handle_comm_opened)
+
         self.shell.configurables.append(self.comm_manager)
         comm_msg_types = [ 'comm_open', 'comm_msg', 'comm_close' ]
         for msg_type in comm_msg_types:

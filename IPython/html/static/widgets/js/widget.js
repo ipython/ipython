@@ -9,7 +9,7 @@ define(["widgets/js/manager",
 ], function(widgetmanager, _, Backbone, $, IPython){
 
     var WidgetModel = Backbone.Model.extend({
-        constructor: function (widget_manager, model_id, comm) {
+        constructor: function (widget_manager, model_id, comm, init_state_callback) {
             // Constructor
             //
             // Creates a WidgetModel instance.
@@ -20,7 +20,11 @@ define(["widgets/js/manager",
             // model_id : string
             //      An ID unique to this model.
             // comm : Comm instance (optional)
+            // init_state_callback : callback (optional)
+            //      Called once when the first state message is recieved from 
+            //      the back-end.
             this.widget_manager = widget_manager;
+            this.init_state_callback = init_state_callback;
             this._buffered_state_diff = {};
             this.pending_msgs = 0;
             this.msg_buffer = null;
@@ -70,6 +74,10 @@ define(["widgets/js/manager",
             switch (method) {
                 case 'update':
                     this.set_state(msg.content.data.state);
+                    if (this.init_state_callback) {
+                        this.init_state_callback.apply(this, [this]);
+                        delete this.init_state_callback;
+                    }
                     break;
                 case 'custom':
                     this.trigger('msg:custom', msg.content.data.content);
@@ -319,7 +327,7 @@ define(["widgets/js/manager",
             // to the subview without having to add it here.
             var that = this;
             var old_callback = options.callback || function(view) {};
-            options = $.extend({ parent: this, callback: function(child_view) {
+            options = $.extend({ parent: this, success: function(child_view) {
                 // Associate the view id with the model id.
                 if (that.child_model_views[child_model.id] === undefined) {
                     that.child_model_views[child_model.id] = [];

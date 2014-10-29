@@ -107,15 +107,22 @@ class CommManager(LoggingConfigurable):
                     iopub_socket=self.iopub_socket,
                     primary=False,
         )
+        self.register_comm(comm)
         if f is None:
             self.log.error("No such comm target registered: %s", target_name)
-            comm.close()
-            return
+        else:
+            try:
+                f(comm, msg)
+                return
+            except Exception:
+                self.log.error("Exception opening comm with target: %s", target_name, exc_info=True)
+        
+        # Failure.
         try:
-            f(comm, msg)
-        except Exception:
-            self.log.error("Exception opening comm with target: %s", target_name, exc_info=True)
             comm.close()
+        except:
+            self.log.error("""Could not close comm during `comm_open` failure 
+                clean-up.  The comm may not have been opened yet.""", exc_info=True)
     
     def comm_msg(self, stream, ident, msg):
         """Handler for comm_msg messages"""
