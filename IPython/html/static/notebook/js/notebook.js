@@ -1529,7 +1529,7 @@ define([
         }
         this.codemirror_mode = newmode;
         codecell.CodeCell.options_default.cm_config.mode = newmode;
-        modename = newmode.name || newmode
+        modename = newmode.mode || newmode.name || newmode
 
         that = this;
         utils.requireCodeMirrorMode(modename, function () {
