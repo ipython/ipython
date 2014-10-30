@@ -1,3 +1,4 @@
+#encoding: utf-8
 """Tornado handlers for the terminal emulator."""
 
 # Copyright (c) IPython Development Team.
