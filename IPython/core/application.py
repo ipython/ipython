@@ -30,7 +30,7 @@ from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict, Set, Instan
 if os.name == 'nt':
     programdata = os.environ.get('PROGRAMDATA', None)
     if programdata:
-        SYSTEM_CONFIG_DIRS = [pjoin(programdata, 'ipython')]
+        SYSTEM_CONFIG_DIRS = [os.path.join(programdata, 'ipython')]
     else:  # PROGRAMDATA is not defined by default on XP.
         SYSTEM_CONFIG_DIRS = []
 else:
