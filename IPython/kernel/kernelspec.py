@@ -36,17 +36,8 @@ def _pythonfirst(s):
 class KernelSpec(HasTraits):
     argv = List()
     display_name = Unicode()
-    language = Unicode()
-    codemirror_mode = Any() # can be unicode or dict
-    pygments_lexer = Unicode()
     env = Dict()
     resource_dir = Unicode()
-    
-    def _codemirror_mode_default(self):
-        return self.language
-
-    def _pygments_lexer_default(self):
-        return self.language
     
     @classmethod
     def from_resource_dir(cls, resource_dir):
@@ -63,12 +54,7 @@ class KernelSpec(HasTraits):
         d = dict(argv=self.argv,
                  env=self.env,
                  display_name=self.display_name,
-                 language=self.language,
                 )
-        if self.codemirror_mode != self.language:
-            d['codemirror_mode'] = self.codemirror_mode
-        if self.pygments_lexer != self.language:
-            d['pygments_lexer'] = self.pygments_lexer
 
         return d
 
@@ -118,12 +104,8 @@ class KernelSpecManager(HasTraits):
         process. This will put its informatino in the user kernels directory.
         """
         return {'argv': make_ipkernel_cmd(),
-               'display_name': 'IPython (Python %d)' % (3 if PY3 else 2),
-               'language': 'python',
-               'codemirror_mode': {'name': 'ipython',
-                                   'version': sys.version_info[0]},
-               'pygments_lexer': 'ipython%d' % (3 if PY3 else 2),
-              }
+                'display_name': 'IPython (Python %d)' % (3 if PY3 else 2),
+               }
 
     @property
     def _native_kernel_resource_dir(self):

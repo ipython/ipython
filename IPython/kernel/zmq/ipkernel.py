@@ -71,6 +71,11 @@ class IPythonKernel(KernelBase):
     implementation_version = release.version
     language = 'python'
     language_version = sys.version.split()[0]
+    language_info = {'mimetype': 'text/x-python',
+                     'codemirror_mode': {'name': 'ipython',
+                                         'version': sys.version_info[0]},
+                     'pygments_lexer': 'ipython%d' % (3 if PY3 else 2),
+                    }
     @property
     def banner(self):
         return self.shell.banner

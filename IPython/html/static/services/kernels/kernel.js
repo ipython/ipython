@@ -46,6 +46,7 @@ define([
         this.username = "username";
         this.session_id = utils.uuid();
         this._msg_callbacks = {};
+        this.info_reply = {}; // kernel_info_reply stored here after starting
 
         if (typeof(WebSocket) !== 'undefined') {
             this.WebSocket = WebSocket;
@@ -398,7 +399,8 @@ define([
         this.events.trigger('kernel_starting.Kernel', {kernel: this});
         // get kernel info so we know what state the kernel is in
         var that = this;
-        this.kernel_info(function () {
+        this.kernel_info(function (reply) {
+            that.info_reply = reply.content;
             that.events.trigger('kernel_ready.Kernel', {kernel: that});
         });
     };
@@ -925,7 +927,8 @@ define([
         } else if (execution_state === 'starting') {
             this.events.trigger('kernel_starting.Kernel', {kernel: this});
             var that = this;
-            this.kernel_info(function () {
+            this.kernel_info(function (reply) {
+                that.info_reply = reply.content;
                 that.events.trigger('kernel_ready.Kernel', {kernel: that});
             });
 

@@ -112,34 +112,16 @@ JSON serialised dictionary containing the following keys and values:
 - **display_name**: The kernel's name as it should be displayed in the UI.
   Unlike the kernel name used in the API, this can contain arbitrary unicode
   characters.
-- **language**: The programming language which this kernel runs. This will be 
-  stored in notebook metadata. This may be used by syntax highlighters to guess
-  how to parse code in a notebook, and frontends may eventually use it to
-  identify alternative kernels that can run some code.
-- **codemirror_mode** (optional): The `codemirror mode <http://codemirror.net/mode/index.html>`_
-  to use for code in this language. This can be a string or a dictionary, as
-  passed to codemirror config. This only needs to be specified if it does not
-  match the value in *language*.
-- **pygments_lexer** (optional): The name of a `Pygments lexer <http://pygments.org/docs/lexers/>`_
-  to use for code in this language, as a string. This only needs to be specified
-  if it does not match the value in *language*.
 - **env** (optional): A dictionary of environment variables to set for the kernel.
   These will be added to the current environment variables before the kernel is
   started.
-- **help_links** (optional): A list of dictionaries, each with keys 'text' and
-  'url'. These will be displayed in the help menu in the notebook UI.
 
 For example, the kernel.json file for IPython looks like this::
 
     {
      "argv": ["python3", "-c", "from IPython.kernel.zmq.kernelapp import main; main()", 
-              "-f", "{connection_file}"], 
-     "codemirror_mode": {
-      "version": 3, 
-      "name": "ipython"
-     }, 
+              "-f", "{connection_file}"],
      "display_name": "IPython (Python 3)", 
-     "language": "python"
     }
 
 To see the available kernel specs, run::

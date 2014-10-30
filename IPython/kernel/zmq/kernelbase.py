@@ -60,6 +60,10 @@ class Kernel(SingletonConfigurable):
     def _ident_default(self):
         return unicode_type(uuid.uuid4())
 
+    # This should be overridden by wrapper kernels that implement any real
+    # language.
+    language_info = {}
+
     # Private interface
     
     _darwin_app_nap = Bool(True, config=True,
@@ -453,6 +457,7 @@ class Kernel(SingletonConfigurable):
             'implementation_version': self.implementation_version,
             'language': self.language,
             'language_version': self.language_version,
+            'language_info': self.language_info,
             'banner': self.banner,
         }
 

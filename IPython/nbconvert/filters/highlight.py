@@ -27,7 +27,7 @@ class Highlight2HTML(NbConvertBase):
 
     def _default_language_changed(self, name, old, new):
         warn('Setting default_language in config is deprecated, '
-             'please use kernelspecs instead.')
+             'please use language_info metadata instead.')
         self.pygments_lexer = new
 
     def __call__(self, source, language=None, metadata=None):
@@ -61,7 +61,7 @@ class Highlight2Latex(NbConvertBase):
 
     def _default_language_changed(self, name, old, new):
         warn('Setting default_language in config is deprecated, '
-             'please use kernelspecs instead.')
+             'please use language_info metadata instead.')
         self.pygments_lexer = new
 
     def __call__(self, source, language=None, metadata=None, strip_verbatim=False):
