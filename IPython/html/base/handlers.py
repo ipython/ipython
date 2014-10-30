@@ -25,6 +25,7 @@ except ImportError:
     app_log = logging.getLogger()
 
 import IPython
+from IPython.utils.sysinfo import get_sys_info
 
 from IPython.config import Application
 from IPython.utils.path import filefind
@@ -35,6 +36,8 @@ from IPython.html.utils import is_hidden, url_path_join, url_escape
 # Top-level handlers
 #-----------------------------------------------------------------------------
 non_alphanum = re.compile(r'[^A-Za-z0-9]')
+
+sys_info = json.dumps(get_sys_info())
 
 class AuthenticatedHandler(web.RequestHandler):
     """A RequestHandler with an authenticated user."""
@@ -221,6 +224,7 @@ class IPythonHandler(AuthenticatedHandler):
             logged_in=self.logged_in,
             login_available=self.login_available,
             static_url=self.static_url,
+            sys_info=sys_info
         )
     
     def get_json_body(self):
