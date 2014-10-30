@@ -102,7 +102,6 @@ define([
         var error = options.error || function() {};
         var settings = {
             processData : false,
-            cache : false,
             type : "POST",
             dataType : "json",
             success : options.success || function() {},
@@ -116,7 +115,6 @@ define([
         var that = this;
         var settings = {
             processData : false,
-            cache : false,
             type : "DELETE",
             dataType : "json",
             success : options.success || function() {},
@@ -178,7 +176,6 @@ define([
         
         var settings = {
             processData : false,
-            cache : false,
             type: method,
             data: JSON.stringify({copy_from: from}),
             dataType : "json",
