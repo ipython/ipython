@@ -135,7 +135,6 @@ define([
         var data = {name: new_name, path: new_path};
         var settings = {
             processData : false,
-            cache : false,
             type : "PATCH",
             data : JSON.stringify(data),
             dataType: "json",
