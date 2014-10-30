@@ -13,7 +13,7 @@ Represents a unicode string using a widget.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from .widget import DOMWidget, CallbackDispatcher
+from .widget import DOMWidget, CallbackDispatcher, register
 from IPython.utils.traitlets import Unicode, Bool
 from IPython.utils.warn import DeprecatedClass
 
@@ -28,17 +28,20 @@ class _String(DOMWidget):
     placeholder = Unicode("", help="Placeholder text to display when nothing has been typed", sync=True)
 
 
+@register('IPython.HTML')
 class HTML(_String):
     """Renders the string `value` as HTML."""
     _view_name = Unicode('HTMLView', sync=True)
 
 
+@register('IPython.Latex')
 class Latex(_String):
     """Renders math inside the string `value` as Latex (requires $ $ or $$ $$ 
     and similar latex tags)."""
     _view_name = Unicode('LatexView', sync=True)
 
 
+@register('IPython.Textarea')
 class Textarea(_String):
     """Multiline text area widget."""
     _view_name = Unicode('TextareaView', sync=True)
@@ -47,6 +50,7 @@ class Textarea(_String):
         self.send({"method": "scroll_to_bottom"})
 
 
+@register('IPython.Text')
 class Text(_String):
     """Single line textbox widget."""
     _view_name = Unicode('TextView', sync=True)

@@ -1,4 +1,4 @@
-from .widget import Widget, DOMWidget, CallbackDispatcher
+from .widget import Widget, DOMWidget, CallbackDispatcher, register
 
 from .widget_bool import Checkbox, ToggleButton
 from .widget_button import Button

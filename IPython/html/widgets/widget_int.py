@@ -13,7 +13,7 @@ Represents an unbounded int using a widget.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from .widget import DOMWidget
+from .widget import DOMWidget, register
 from IPython.utils.traitlets import Unicode, CInt, Bool, CaselessStrEnum, Tuple
 from IPython.utils.warn import DeprecatedClass
 
@@ -56,16 +56,19 @@ class _BoundedInt(_Int):
         if new > self.max:
             raise ValueError("setting min > max")
 
+@register('IPython.IntText')
 class IntText(_Int):
     """Textbox widget that represents a int."""
     _view_name = Unicode('IntTextView', sync=True)
 
 
+@register('IPython.BoundedIntText')
 class BoundedIntText(_BoundedInt):
     """Textbox widget that represents a int bounded by a minimum and maximum value."""
     _view_name = Unicode('IntTextView', sync=True)
 
 
+@register('IPython.IntSlider')
 class IntSlider(_BoundedInt):
     """Slider widget that represents a int bounded by a minimum and maximum value."""
     _view_name = Unicode('IntSliderView', sync=True)
@@ -77,6 +80,7 @@ class IntSlider(_BoundedInt):
     slider_color = Unicode(sync=True)
 
 
+@register('IPython.IntProgress')
 class IntProgress(_BoundedInt):
     """Progress bar that represents a int bounded by a minimum and maximum value."""
     _view_name = Unicode('ProgressView', sync=True)
@@ -176,6 +180,7 @@ class _BoundedIntRange(_IntRange):
             self.upper = high
             self.lower = low
 
+@register('IPython.IntRangeSlider')
 class IntRangeSlider(_BoundedIntRange):
     _view_name = Unicode('IntSliderView', sync=True)
     orientation = CaselessStrEnum(values=['horizontal', 'vertical'], 

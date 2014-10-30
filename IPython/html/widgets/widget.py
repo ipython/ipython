@@ -75,12 +75,26 @@ def _show_traceback(method):
                 ip.showtraceback()
     return m
 
+
+def register(key=None):
+    """Returns a decorator registering a widget class in the widget registry. 
+    If no key is provided, the class name is used as a key. A key is
+    provided for each core IPython widget so that the frontend can use
+    this key regardless of the language of the kernel"""
+    def wrap(widget):
+        l = key if key is not None else widget.__module__ + widget.__name__
+        Widget.widget_types[l] = widget
+        return widget
+    return wrap
+
+
 class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
     # Class attributes
     #-------------------------------------------------------------------------
     _widget_construction_callback = None
     widgets = {}
+    widget_types = {}
 
     @staticmethod
     def on_widget_constructed(callback):

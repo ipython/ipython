@@ -15,13 +15,14 @@ Represents an image in the frontend using a widget.
 #-----------------------------------------------------------------------------
 import base64
 
-from .widget import DOMWidget
+from .widget import DOMWidget, register
 from IPython.utils.traitlets import Unicode, CUnicode, Bytes
 from IPython.utils.warn import DeprecatedClass
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
+@register('IPython.Image')
 class Image(DOMWidget):
     """Displays an image as a widget.
 

@@ -13,7 +13,7 @@ Represents an unbounded float using a widget.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from .widget import DOMWidget
+from .widget import DOMWidget, register
 from IPython.utils.traitlets import Unicode, CFloat, Bool, CaselessStrEnum, Tuple
 from IPython.utils.warn import DeprecatedClass
 
@@ -43,14 +43,17 @@ class _BoundedFloat(_Float):
             self.value = min(max(new, self.min), self.max)
 
 
+@register('IPython.FloatText')
 class FloatText(_Float):
     _view_name = Unicode('FloatTextView', sync=True)
 
 
+@register('IPython.BoundedFloatText')
 class BoundedFloatText(_BoundedFloat):
     _view_name = Unicode('FloatTextView', sync=True)
 
 
+@register('IPython.FloatSlider')
 class FloatSlider(_BoundedFloat):
     _view_name = Unicode('FloatSliderView', sync=True)
     orientation = CaselessStrEnum(values=['horizontal', 'vertical'], 
@@ -61,6 +64,7 @@ class FloatSlider(_BoundedFloat):
     slider_color = Unicode(sync=True)
 
 
+@register('IPython.FloatProgress')
 class FloatProgress(_BoundedFloat):
     _view_name = Unicode('ProgressView', sync=True)
 
@@ -163,6 +167,7 @@ class _BoundedFloatRange(_FloatRange):
             self.lower = low
 
 
+@register('IPython.FloatRangeSlider')
 class FloatRangeSlider(_BoundedFloatRange):
     _view_name = Unicode('FloatSliderView', sync=True)
     orientation = CaselessStrEnum(values=['horizontal', 'vertical'], 

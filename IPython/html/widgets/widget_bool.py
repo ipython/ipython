@@ -13,7 +13,7 @@ Represents a boolean using a widget.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from .widget import DOMWidget
+from .widget import DOMWidget, register
 from IPython.utils.traitlets import Unicode, Bool, CaselessStrEnum
 from IPython.utils.warn import DeprecatedClass
 
@@ -27,11 +27,13 @@ class _Bool(DOMWidget):
     disabled = Bool(False, help="Enable or disable user changes.", sync=True)
 
 
+@register('IPython.Checkbox')
 class Checkbox(_Bool):
     """Displays a boolean `value`."""
     _view_name = Unicode('CheckboxView', sync=True)
 
 
+@register('IPython.ToggleButton')
 class ToggleButton(_Bool):
     """Displays a boolean `value`."""
     
