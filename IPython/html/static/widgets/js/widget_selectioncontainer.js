@@ -114,9 +114,10 @@ define([
             accordion_group.container_index = container_index;
             this.model_containers[model.id] = accordion_group;
             
-            this.create_child_view(model, {callback: function(view) {
-                accordion_inner.append(view.$el);
-
+            var dummy = $('<div/>');
+            accordion_inner.append(dummy);
+            this.create_child_view(model).then(function(view) {
+                dummy.replaceWith(view.$el);
                 that.update();
                 that.update_titles();
 
@@ -124,7 +125,7 @@ define([
                 that.after_displayed(function() {
                     view.trigger('displayed');
                 });
-            }});
+            }, console.error);
         },
     });
     
@@ -186,36 +187,39 @@ define([
                 .css('list-style-type', 'none')
                 .appendTo(this.$tabs);
             
-            this.create_child_view(model, {callback: function(view) {
+
+            var tab_text = $('<a />')
+                .attr('href', '#' + uuid)
+                .attr('data-toggle', 'tab') 
+                .text('Page ' + index)
+                .appendTo(tab)
+                .click(function (e) {
+            
+                    // Calling model.set will trigger all of the other views of the 
+                    // model to update.
+                    that.model.set("selected_index", index, {updated_view: that});
+                    that.touch();
+                    that.select_page(index);
+                });
+            tab.tab_text_index = that.containers.push(tab_text) - 1;
+
+            var dummy = $('<div />');
+            var contents_div = $('<div />', {id: uuid})
+                .addClass('tab-pane')
+                .addClass('fade')
+                .append(dummy)
+                .appendTo(that.$tab_contents);
+
+            this.create_child_view(model).then(function(view) {
+                dummy.replaceWith(view.$el);
                 view.parent_tab = tab;
-
-                var tab_text = $('<a />')
-                    .attr('href', '#' + uuid)
-                    .attr('data-toggle', 'tab') 
-                    .text('Page ' + index)
-                    .appendTo(tab)
-                    .click(function (e) {
-                
-                        // Calling model.set will trigger all of the other views of the 
-                        // model to update.
-                        that.model.set("selected_index", index, {updated_view: that});
-                        that.touch();
-                        that.select_page(index);
-                    });
-                tab.tab_text_index = that.containers.push(tab_text) - 1;
-
-                var contents_div = $('<div />', {id: uuid})
-                    .addClass('tab-pane')
-                    .addClass('fade')
-                    .append(view.$el)
-                    .appendTo(that.$tab_contents);
                 view.parent_container = contents_div;
 
                 // Trigger the displayed event of the child view.
                 that.after_displayed(function() {
                     view.trigger('displayed');
                 });
-            }});
+            }, console.error);
         },
 
         update: function(options) {

@@ -322,25 +322,25 @@ define(["widgets/js/manager",
             //
             // -given a model and (optionally) a view name if the view name is 
             // not given, it defaults to the model's default view attribute.
-        
-            // TODO: this is hacky, and makes the view depend on this cell attribute and widget manager behavior
-            // it would be great to have the widget manager add the cell metadata
-            // to the subview without having to add it here.
-            var that = this;
-            var old_callback = options.callback || function(view) {};
-            options = $.extend({ parent: this }, options || {});
-            
-            this.model.widget_manager.create_view(child_model, options).then(function(child_view) {
-                // Associate the view id with the model id.
-                if (that.child_model_views[child_model.id] === undefined) {
-                    that.child_model_views[child_model.id] = [];
-                }
-                that.child_model_views[child_model.id].push(child_view.id);
+            return new Promise(function(resolve, reject) {
+                // TODO: this is hacky, and makes the view depend on this cell attribute and widget manager behavior
+                // it would be great to have the widget manager add the cell metadata
+                // to the subview without having to add it here.
+                var that = this;
+                options = $.extend({ parent: this }, options || {});
+                
+                this.model.widget_manager.create_view(child_model, options).then(function(child_view) {
+                    // Associate the view id with the model id.
+                    if (that.child_model_views[child_model.id] === undefined) {
+                        that.child_model_views[child_model.id] = [];
+                    }
+                    that.child_model_views[child_model.id].push(child_view.id);
 
-                // Remember the view by id.
-                that.child_views[child_view.id] = child_view;
-                old_callback(child_view);
-             }, function(error) { console.error(error); });
+                    // Remember the view by id.
+                    that.child_views[child_view.id] = child_view;
+                    resolve(child_view);
+                 }, reject);
+            });
         },
 
         pop_child_view: function(child_model) {
