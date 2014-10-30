@@ -92,11 +92,22 @@ define(["widgets/js/manager",
             // Handle when a widget is updated via the python side.
             this.state_lock = state;
             try {
-                var that = this;
-                WidgetModel.__super__.set.apply(this, [Object.keys(state).reduce(function(obj, key) {
-                    obj[key] = that._unpack_models(state[key]);
-                    return obj;
-                }, {})]);
+                var state_keys = [];
+                var state_values = [];
+                for (var state_key in Object.keys(state)) {
+                    if (state.hasOwnProperty(state_key)) {
+                        state_keys.push(state_key);
+                        state_values.push(this._unpack_models(state[state_key]));
+                    }
+                }
+
+                Promise.all(state_values).then(function(promise_values){
+                    var unpacked_state = {};
+                    for (var i = 0; i < state_keys.length; i++) {
+                        unpacked_state[state_keys[i]] = promise_values[i];
+                    }
+                    WidgetModel.__super__.set.apply(this, [unpacked_state]);
+                }, console.error);
             } finally {
                this.state_lock = null;
             }
@@ -254,30 +265,42 @@ define(["widgets/js/manager",
             // Replace model ids with models recursively.
             var that = this;
             var unpacked;
-            if ($.isArray(value)) {
-                unpacked = [];
-                _.each(value, function(sub_value, key) {
-                    unpacked.push(that._unpack_models(sub_value));
-                });
-                return unpacked;
+            return new Promise(function(resolve, reject) {
 
-            } else if (value instanceof Object) {
-                unpacked = {};
-                _.each(value, function(sub_value, key) {
-                    unpacked[key] = that._unpack_models(sub_value);
-                });
-                return unpacked;
+                if ($.isArray(value)) {
+                    unpacked = [];
+                    _.each(value, function(sub_value, key) {
+                        unpacked.push(that._unpack_models(sub_value));
+                    });
+                    Promise.all(unpacked).then(resolve, reject);
 
-            } else if (typeof value === 'string' && value.slice(0,10) === "IPY_MODEL_") {
-                var model = this.widget_manager.get_model(value.slice(10, value.length));
-                if (model) {
-                    return model;
+                } else if (value instanceof Object) {
+                    unpacked_values = [];
+                    unpacked_keys = [];
+                    _.each(value, function(sub_value, key) {
+                        unpacked_keys.push(key);
+                        unpacked_values.push(that._unpack_models(sub_value));
+                    });
+
+                    Promise.all(unpacked_values).then(function(promise_values) {
+                        unpacked = {};
+                        for (var i = 0; i < unpacked_keys.length; i++) {
+                            unpacked[unpacked_keys[i]] = promise_values[i];
+                        }
+                        resolve(unpacked);
+                    }, reject);    
+
+                } else if (typeof value === 'string' && value.slice(0,10) === "IPY_MODEL_") {
+                    var model = this.widget_manager.get_model(value.slice(10, value.length));
+                    if (model) {
+                        model.then(resolve, reject);
+                    } else {
+                        resolve(value);
+                    }    
                 } else {
-                    return value;
-                }
-            } else {
-                    return value;
-            }
+                    resolve(value);
+                }  
+            });
         },
 
         on_some_change: function(keys, callback, context) {
@@ -322,11 +345,11 @@ define(["widgets/js/manager",
             //
             // -given a model and (optionally) a view name if the view name is 
             // not given, it defaults to the model's default view attribute.
+            var that = this;
             return new Promise(function(resolve, reject) {
                 // TODO: this is hacky, and makes the view depend on this cell attribute and widget manager behavior
                 // it would be great to have the widget manager add the cell metadata
                 // to the subview without having to add it here.
-                var that = this;
                 options = $.extend({ parent: this }, options || {});
                 
                 this.model.widget_manager.create_view(child_model, options).then(function(child_view) {

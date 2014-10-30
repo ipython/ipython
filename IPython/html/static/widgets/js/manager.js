@@ -172,11 +172,19 @@ define([
 
     WidgetManager.prototype.get_model = function (model_id) {
         // Look-up a model instance by its id.
-        var model = this._models[model_id];
-        if (model !== undefined && model.id == model_id) {
-            return model;
+        var that = this;
+        var model = that._models[model_id];
+        if (model !== undefined) {
+            return new Promise(function(resolve, reject){
+                if (model instanceof Promise) {
+                    model.then(resolve, reject);
+                } else {
+                    resolve(model);
+                }
+            });
+        } else {
+            return undefined;
         }
-        return null;
     };
 
     WidgetManager.prototype._handle_comm_open = function (comm, msg) {
@@ -213,30 +221,32 @@ define([
         //      widget_class: (optional) string
         //          Target name of the widget in the back-end.
         //      comm: (optional) Comm
-        return new Promise(function(resolve, reject) {
+        
+        // Create a comm if it wasn't provided.
+        var comm = options.comm;
+        if (!comm) {
+            comm = this.comm_manager.new_comm('ipython.widget', {'widget_class': options.widget_class});
+        }
+
+        var that = this;
+        var model_id = comm.comm_id;
+        var promise = new Promise(function(resolve, reject) {
 
             // Get the model type using require or through the registry.
             var widget_type_name = options.model_name;
             var widget_module = options.model_module;
-            var that = this;
             utils.try_load(widget_type_name, widget_module, WidgetManager._model_types)
                 .then(function(ModelType) {
-
-                    // Create a comm if it wasn't provided.
-                    var comm = options.comm;
-                    if (!comm) {
-                        comm = that.comm_manager.new_comm('ipython.widget', {'widget_class': options.widget_class});
-                    }
-
-                    var model_id = comm.comm_id;
                     var widget_model = new ModelType(that, model_id, comm);
                     widget_model.on('comm:close', function () {
                       delete that._models[model_id];
                     });
                     that._models[model_id] = widget_model;
-                    reolve(widget_model);
+                    resolve(widget_model);
                 }, reject);
         });
+        this._models[model_id] = promise;
+        return promise;
     };
 
     // Backwards compatibility.
