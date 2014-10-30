@@ -84,13 +84,16 @@ define([
         
         var view_name = model.get('_view_name');
         var view_mod = model.get('_view_module');
-        var error = options.error || function(error) { console.log(error); };
+        var options = options || {};
 
-        var instantiate_view = function(ViewType) {
-            if (ViewType) {
+        return new Promise(function(resolve, reject) {
+            var instantiate_view = function(ViewType) {
+                if (ViewType === undefined) {
+                    reject(Error("Unknown view, module: "+view_mod+", view: "+view_name));
+                }
+
                 // If a view is passed into the method, use that view's cell as
                 // the cell for the view that is created.
-                options = options || {};
                 if (options.parent !== undefined) {
                     options.cell = options.parent.options.cell;
                 }
@@ -99,22 +102,18 @@ define([
                 var parameters = {model: model, options: options};
                 var view = new ViewType(parameters);
                 view.render();
-                model.on('destroy', view.remove, view);
-                if (options.success) {
-                    options.success(view);
-                }
-            } else {
-                error({unknown_view: true, view_name: view_name,
-                         view_module: view_mod});
-            }
-        };
+                view.listenTo(model, 'destroy', view.remove);
+                resolve(view);
+            };
 
-        if (view_mod) {
-            require([view_mod], function(module) {
-                instantiate_view(module[view_name]);
-            }, error);
-        } else {
-            instantiate_view(WidgetManager._view_types[view_name]);
+            
+            if (view_mod) {
+                require([view_mod], function(module) {
+                    instantiate_view(module[view_name]);
+                }, reject);
+            } else {
+                instantiate_view(WidgetManager._view_types[view_name]);
+            }
         }
     };
 
@@ -196,7 +195,7 @@ define([
     };
 
     WidgetManager.prototype.create_model = function (options) {
-        // Create and return a new widget model.
+        // Create and return a promise to create a new widget model.
         //
         // Minimally, one must provide the model_name and widget_class
         // parameters to create a model from Javascript.
@@ -220,17 +219,10 @@ define([
         //      widget_class: (optional) string
         //          Target name of the widget in the back-end.
         //      comm: (optional) Comm
-        //      success: (optional) callback
-        //          Callback for when the model was created successfully.
-        //      error: (optional) callback
-        //          Callback for when the model wasn't created.
         //      init_state_callback: (optional) callback
         //          Called when the first state push from the back-end is 
         //          recieved.  Allows you to modify the model after it's
         //          complete state is filled and synced.
-
-        // Make default callbacks if not specified.
-        var error = options.error || function(error) { console.log(error); };
 
         // Create a comm if it wasn't provided.
         var comm = options.comm;
@@ -238,38 +230,35 @@ define([
             comm = this.comm_manager.new_comm('ipython.widget', {'widget_class': options.widget_class});
         }
 
-        // Create a new model that is connected to the comm.
-        var that = this;
-        var instantiate_model = function(ModelType) {
-            var model_id = comm.comm_id;
-            var widget_model = new ModelType(that, model_id, comm, options.init_state_callback);
-            widget_model.on('comm:close', function () {
-              delete that._models[model_id];
-            });
-            that._models[model_id] = widget_model;
-            if (options.success) {                
-                options.success(widget_model);
-            }
-        };
-        
-        // Get the model type using require or through the registry.
-        var widget_type_name = options.model_name;
-        var widget_module = options.model_module;
-        if (widget_module) {
-
-            // Load the module containing the widget model
-            require([widget_module], function(mod) {
-                if (mod[widget_type_name]) {
-                    instantiate_model(mod[widget_type_name]);
-                } else {
-                    error("Error creating widget model: " + widget_type_name
-                            + " not found in " + widget_module);
+        return new Promise(function(resolve, reject) {
+            // Create a new model that is connected to the comm.
+            var that = this;
+            var instantiate_model = function(ModelType) {
+                if (ModelType === undefined) {
+                    reject(Error("Error creating widget model: " + widget_type_name
+                                 + " not found in " + widget_module));
                 }
-            }, error);
-        } else {
-
-            // No module specified, load from the global models registry
-            instantiate_model(WidgetManager._model_types[widget_type_name]);
+                var model_id = comm.comm_id;
+                var widget_model = new ModelType(that, model_id, comm, options.init_state_callback);
+                widget_model.once('comm:close', function () {
+                    delete that._models[model_id];
+                });
+                that._models[model_id] = widget_model;
+                resolve(widget_model);
+            };
+            
+            // Get the model type using require or through the registry.
+            var widget_type_name = options.model_name;
+            var widget_module = options.model_module;
+            if (widget_module) {                
+                // Load the module containing the widget model
+                require([widget_module], function(mod) {
+                    instantiate_model(mod[widget_type_name]);
+                }, reject);
+            } else {
+                // No module specified, load from the global models registry
+                instantiate_model(WidgetManager._model_types[widget_type_name]);
+            }
         }
     };
 
