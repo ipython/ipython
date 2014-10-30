@@ -117,6 +117,10 @@ Other new features
   ``NbConvertBase.default_language`` is deprecated. Nbconvert now respects
   metadata stored in the :ref:`kernel spec <kernelspecs>`.
 
+* IPython can now be configured systemwide, with files in :file:`/etc/ipython`
+  or :file:`/usr/local/etc/ipython` on Unix systems,
+  or :file:`{%PROGRAMDATA%}\\ipython` on Windows.
+
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.
 
 
