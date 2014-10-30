@@ -153,7 +153,6 @@ define([
         // We do the call with settings so we can set cache to false.
         var settings = {
             processData : false,
-            cache : false,
             type : "PUT",
             data : JSON.stringify(model),
             contentType: 'application/json',
@@ -164,6 +163,31 @@ define([
             $.extend(settings, options.extra_settings);
         }
         var url = this.api_url(path, name);
+        $.ajax(url, settings);
+    };
+    
+    Contents.prototype.copy_file = function(to_path, to_name, from, options) {
+        var url, method;
+        if (to_name) {
+            url = this.api_url(to_path, to_name);
+            method = "PUT";
+        } else {
+            url = this.api_url(to_path);
+            method = "POST";
+        }
+        
+        var settings = {
+            processData : false,
+            cache : false,
+            type: method,
+            data: JSON.stringify({copy_from: from}),
+            dataType : "json",
+            success: options.success || function() {},
+            error: this.create_basic_error_handler(options.error)
+        };
+        if (options.extra_settings) {
+            $.extend(settings, options.extra_settings);
+        }
         $.ajax(url, settings);
     };
 

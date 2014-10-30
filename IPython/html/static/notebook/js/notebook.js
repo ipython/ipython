@@ -2041,31 +2041,17 @@ define([
     };
 
     Notebook.prototype.copy_notebook = function(){
-        var path = this.notebook_path;
         var base_url = this.base_url;
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "POST",
-            dataType : "json",
-            data : JSON.stringify({copy_from : this.notebook_name}),
-            async : false,
-            success : function (data, status, xhr) {
+        this.contents.copy_file(this.notebook_path, null, this.notebook_name, {
+            // synchronous so we can open a new window on success
+            extra_settings: {async: false},
+            success: function (data) {
                 window.open(utils.url_join_encode(
-                    base_url,
-                    'notebooks',
-                    data.path,
-                    data.name
+                    base_url, 'notebooks', data.path, data.name
                 ), '_blank');
             },
-            error : utils.log_ajax_error,
-        };
-        var url = utils.url_join_encode(
-            base_url,
-            'api/contents',
-            path
-        );
-        $.ajax(url,settings);
+            error : utils.log_ajax_error
+        });
     };
 
     Notebook.prototype.rename = function (new_name) {
