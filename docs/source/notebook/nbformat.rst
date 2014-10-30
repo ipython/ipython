@@ -158,9 +158,11 @@ stream output
 display_data
 ************
 
-Rich display messages (as created by ``display_data`` messages)
-contain data keyed by mime-type. All mime-type data should
+Rich display outputs, as created by ``display_data`` messages,
+contain data keyed by mime-type. This is often called a mime-bundle,
+and shows up in various locations in the notebook format and message spec.
 The metadata of these messages may be keyed by mime-type as well.
+
 
 
 .. sourcecode:: python
