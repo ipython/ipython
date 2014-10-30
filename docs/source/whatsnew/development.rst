@@ -53,7 +53,7 @@ Other new features
   ``placeholder`` attribute, for displaying placeholder text before the
   user has typed anything.
 
-* The %load magic can now find the source for objects in the user namespace.
+* The :magic:`load` magic can now find the source for objects in the user namespace.
   To enable searching the namespace, use the ``-n`` option.
 
   .. sourcecode:: ipython
@@ -83,6 +83,39 @@ Other new features
   Previously, all output messages were preserved as separate output fields in the JSON.
   Now, the same merge is applied to the stored output as the displayed output,
   improving document load time for notebooks with many small outputs.
+
+* ``NotebookApp.webapp_settings`` is deprecated and replaced with
+  the more informatively named ``NotebookApp.tornado_settings``.
+
+* Using :magic:`timeit` prints warnings if there is atleast a 4x difference in timings
+  between the slowest and fastest runs, since this might meant that the multiple
+  runs are not independent of one another.
+
+* It's now possible to provide mechanisms to integrate IPython with other event
+  loops, in addition to the ones we already support. This lets you run GUI code
+  in IPython with an interactive prompt, and to embed the IPython
+  kernel in GUI applications. See :doc:`/config/eventloops` for details. As part
+  of this, the direct ``enable_*`` and ``disable_*`` functions for various GUIs
+  in :mod:`IPython.lib.inputhook` have been deprecated in favour of
+  :meth:`~.InputHookManager.enable_gui` and :meth:`~.InputHookManager.disable_gui`.
+
+* A ``ScrollManager`` was added to the notebook.  The ``ScrollManager`` controls how the notebook document is scrolled using keyboard.  Users can inherit from the ``ScrollManager`` or ``TargetScrollManager`` to customize how their notebook scrolls.  The default ``ScrollManager`` is the ``SlideScrollManager``, which tries to scroll to the nearest slide or sub-slide cell.
+
+* The function :func:`~IPython.html.widgets.interaction.interact_manual` has been
+  added which behaves similarly to :func:`~IPython.html.widgets.interaction.interact`,
+  but adds a button to explicitly run the interacted-with function, rather than
+  doing it automatically for every change of the parameter widgets. This should
+  be useful for long-running functions.
+
+* The ``%cython`` magic is now part of the Cython module. Use `%load_ext Cython` with a version of Cython >= 0.21 to have access to the magic now.
+
+* The Notebook application now offers integrated terminals on Unix platforms,
+  intended for when it is used on a remote server. To enable these, install
+  the ``terminado`` Python package.
+
+* Setting the default highlighting language for nbconvert with the config option
+  ``NbConvertBase.default_language`` is deprecated. Nbconvert now respects
+  metadata stored in the :ref:`kernel spec <kernelspecs>`.
 
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.
 
