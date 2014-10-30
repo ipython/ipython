@@ -7,6 +7,7 @@ import json
 import logging
 from tornado import gen, web
 from tornado.concurrent import Future
+from tornado.ioloop import IOLoop
 
 from IPython.utils.jsonutil import date_default
 from IPython.utils.py3compat import cast_unicode
@@ -85,6 +86,10 @@ class KernelActionHandler(IPythonHandler):
 
 class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
     
+    @property
+    def kernel_info_timeout(self):
+        return self.settings.get('kernel_info_timeout', 10)
+    
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, getattr(self, 'kernel_id', 'uninitialized'))
     
@@ -150,7 +155,8 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
         if protocol_version != kernel_protocol_version:
             self.session.adapt_version = int(protocol_version.split('.')[0])
             self.log.info("Kernel %s speaks protocol %s", self.kernel_id, protocol_version)
-        self._kernel_info_future.set_result(info)
+        if not self._kernel_info_future.done():
+            self._kernel_info_future.set_result(info)
     
     def initialize(self):
         super(ZMQChannelHandler, self).initialize()
@@ -160,10 +166,29 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
         self._kernel_info_future = Future()
     
     @gen.coroutine
+    def pre_get(self):
+        # authenticate first
+        super(ZMQChannelHandler, self).pre_get()
+        # then request kernel info, waiting up to a certain time before giving up.
+        # We don't want to wait forever, because browsers don't take it well when
+        # servers never respond to websocket connection requests.
+        future = self.request_kernel_info()
+        
+        def give_up():
+            """Don't wait forever for the kernel to reply"""
+            if future.done():
+                return
+            self.log.warn("Timeout waiting for kernel_info reply from %s", self.kernel_id)
+            future.set_result(None)
+        loop = IOLoop.current()
+        loop.add_timeout(loop.time() + self.kernel_info_timeout, give_up)
+        # actually wait for it
+        yield future
+    
+    @gen.coroutine
     def get(self, kernel_id):
         self.kernel_id = cast_unicode(kernel_id, 'ascii')
-        yield self.request_kernel_info()
-        super(ZMQChannelHandler, self).get(kernel_id)
+        yield super(ZMQChannelHandler, self).get(kernel_id=kernel_id)
     
     def open(self, kernel_id):
         super(ZMQChannelHandler, self).open()
