@@ -589,7 +589,14 @@ class PlainTextFormatter(BaseFormatter):
     # This subclass ignores this attribute as it always need to return
     # something.
     enabled = Bool(True, config=False)
-
+    
+    max_seq_length = Integer(pretty.MAX_SEQ_LENGTH, config=True,
+        help="""Truncate large collections (lists, dicts, tuples, sets) to this size.
+        
+        Set to 0 to disable truncation.
+        """
+    )
+    
     # Look for a _repr_pretty_ methods to use for pretty printing.
     print_method = ObjectName('_repr_pretty_')
 
@@ -682,6 +689,7 @@ class PlainTextFormatter(BaseFormatter):
             # or it will cause trouble.
             printer = pretty.RepresentationPrinter(stream, self.verbose,
                 self.max_width, unicode_to_str(self.newline),
+                max_seq_length=self.max_seq_length,
                 singleton_pprinters=self.singleton_printers,
                 type_pprinters=self.type_printers,
                 deferred_pprinters=self.deferred_printers)

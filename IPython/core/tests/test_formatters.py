@@ -338,3 +338,15 @@ def test_format_config():
         result = f(Config)
     nt.assert_is(result, None)
     nt.assert_equal(captured.stderr, "")
+
+def test_pretty_max_seq_length():
+    f = PlainTextFormatter(max_seq_length=1)
+    lis = list(range(3))
+    text = f(lis)
+    nt.assert_equal(text, '[0, ...]')
+    f.max_seq_length = 0
+    text = f(lis)
+    nt.assert_equal(text, '[0, 1, 2]')
+    text = f(list(range(1024)))
+    lines = text.splitlines()
+    nt.assert_equal(len(lines), 1024)

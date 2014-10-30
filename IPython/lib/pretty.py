@@ -123,8 +123,8 @@ __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
     'for_type', 'for_type_by_name']
 
 
+MAX_SEQ_LENGTH = 1000
 _re_pattern_type = type(re.compile(''))
-
 
 def _safe_getattr(obj, attr, default=None):
     """Safe version of getattr.
@@ -137,22 +137,22 @@ def _safe_getattr(obj, attr, default=None):
     except Exception:
         return default
 
-def pretty(obj, verbose=False, max_width=79, newline='\n'):
+def pretty(obj, verbose=False, max_width=79, newline='\n', max_seq_length=MAX_SEQ_LENGTH):
     """
     Pretty print the object's representation.
     """
     stream = StringIO()
-    printer = RepresentationPrinter(stream, verbose, max_width, newline)
+    printer = RepresentationPrinter(stream, verbose, max_width, newline, max_seq_length)
     printer.pretty(obj)
     printer.flush()
     return stream.getvalue()
 
 
-def pprint(obj, verbose=False, max_width=79, newline='\n'):
+def pprint(obj, verbose=False, max_width=79, newline='\n', max_seq_length=MAX_SEQ_LENGTH):
     """
     Like `pretty` but print to stdout.
     """
-    printer = RepresentationPrinter(sys.stdout, verbose, max_width, newline)
+    printer = RepresentationPrinter(sys.stdout, verbose, max_width, newline, max_seq_length)
     printer.pretty(obj)
     printer.flush()
     sys.stdout.write(newline)
@@ -186,7 +186,7 @@ class PrettyPrinter(_PrettyPrinterBase):
     callback method.
     """
 
-    def __init__(self, output, max_width=79, newline='\n', max_seq_length=1000):
+    def __init__(self, output, max_width=79, newline='\n', max_seq_length=MAX_SEQ_LENGTH):
         self.output = output
         self.max_width = max_width
         self.newline = newline
@@ -346,9 +346,10 @@ class RepresentationPrinter(PrettyPrinter):
     """
 
     def __init__(self, output, verbose=False, max_width=79, newline='\n',
-        singleton_pprinters=None, type_pprinters=None, deferred_pprinters=None):
+        singleton_pprinters=None, type_pprinters=None, deferred_pprinters=None,
+        max_seq_length=MAX_SEQ_LENGTH):
 
-        PrettyPrinter.__init__(self, output, max_width, newline)
+        PrettyPrinter.__init__(self, output, max_width, newline, max_seq_length=max_seq_length)
         self.verbose = verbose
         self.stack = []
         if singleton_pprinters is None:
