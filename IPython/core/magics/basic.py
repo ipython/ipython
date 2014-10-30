@@ -608,4 +608,4 @@ Defaulting color scheme to 'NoColor'"""
                 ))
             nb = v4.new_notebook(cells=cells)
             with io.open(args.filename, 'w', encoding='utf-8') as f:
-                write(f, nb, version=4)
+                write(nb, f, version=4)

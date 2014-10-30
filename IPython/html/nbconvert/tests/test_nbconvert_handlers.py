@@ -67,7 +67,7 @@ class APITest(NotebookTestBase):
         
         with io.open(pjoin(nbdir, 'foo', 'testnb.ipynb'), 'w',
                      encoding='utf-8') as f:
-            write(f, nb, version=4)
+            write(nb, f, version=4)
 
         self.nbconvert_api = NbconvertAPI(self.base_url())
 

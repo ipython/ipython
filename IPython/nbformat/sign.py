@@ -311,7 +311,7 @@ class TrustNotebookApp(BaseIPythonApplication):
             print("Signing notebook: %s" % notebook_path)
             self.notary.sign(nb)
             with atomic_writing(notebook_path) as f:
-                write(f, nb, NO_CONVERT)
+                write(nb, f, NO_CONVERT)
     
     def generate_new_key(self):
         """Generate a new notebook signature key"""

@@ -123,17 +123,17 @@ def read(fp, as_version, **kwargs):
     return reads(fp.read(), as_version, **kwargs)
 
 
-def write(fp, nb, version=NO_CONVERT, **kwargs):
+def write(nb, fp, version=NO_CONVERT, **kwargs):
     """Write a notebook to a file in a given nbformat version.
     
     The file-like object must accept unicode input.
     
     Parameters
     ----------
-    fp : file
-        Any file-like object with a write method that accepts unicode.
     nb : NotebookNode
         The notebook to write.
+    fp : file
+        Any file-like object with a write method that accepts unicode.
     version : int, optional
         The nbformat version to write.
         If nb is not this version, it will be converted.

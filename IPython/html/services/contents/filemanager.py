@@ -303,7 +303,7 @@ class FileContentsManager(ContentsManager):
             nb['metadata']['name'] = u''
 
         with atomic_writing(os_path, encoding='utf-8') as f:
-            nbformat.write(f, nb, version=nbformat.NO_CONVERT)
+            nbformat.write(nb, f, version=nbformat.NO_CONVERT)
 
     def _save_file(self, os_path, model, name='', path=''):
         """save a non-notebook file"""

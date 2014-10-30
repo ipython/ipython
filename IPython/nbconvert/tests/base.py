@@ -103,7 +103,7 @@ class TestsBase(unittest.TestCase):
     def create_empty_notebook(self, path):
         nb = v4.new_notebook()
         with io.open(path, 'w', encoding='utf-8') as f:
-            write(f, nb, 4)
+            write(nb, f, 4)
 
     def copy_files_to(self, copy_filenames, dest='.'):
         "Copy test files into the destination directory"

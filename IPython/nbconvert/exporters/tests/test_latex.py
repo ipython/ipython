@@ -95,7 +95,7 @@ class TestLatexExporter(ExportersTestsBase):
         with TemporaryDirectory() as td:
             nbfile = os.path.join(td, notebook_name)
             with open(nbfile, 'w') as f:
-                write(f, nb, 4)
+                write(nb, f, 4)
 
             (output, resources) = LatexExporter(template_file='article').from_filename(nbfile)
             assert len(output) > 0

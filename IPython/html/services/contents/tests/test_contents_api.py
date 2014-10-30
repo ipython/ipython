@@ -144,7 +144,7 @@ class APITest(NotebookTestBase):
             with io.open(pjoin(nbdir, d, '%s.ipynb' % name), 'w',
                          encoding='utf-8') as f:
                 nb = new_notebook()
-                write(f, nb, version=4)
+                write(nb, f, version=4)
 
             # create a text file
             with io.open(pjoin(nbdir, d, '%s.txt' % name), 'w',
