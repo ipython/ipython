@@ -5,8 +5,9 @@ define([
     "underscore",
     "backbone",
     "jquery",
+    "base/js/utils",
     "base/js/namespace"
-], function (_, Backbone, $, IPython) {
+], function (_, Backbone, $, utils, IPython) {
     "use strict";
     //--------------------------------------------------------------------
     // WidgetManager class
@@ -52,14 +53,20 @@ define([
             console.log("Could not determine where the display" + 
                 " message was from.  Widget will not be displayed");
         } else {
+            var dummy = null;
+            if (cell.widget_subarea) {
+                dummy = $('<div />');
+                cell.widget_subarea.append(dummy);
+            }
+
             var that = this;
-            this.create_view(model, {cell: cell, success: function(view) {
+            this.create_view(model, {cell: cell}).then(function(view) {
                 that._handle_display_view(view);
-                if (cell.widget_subarea) {
-                    cell.widget_subarea.append(view.$el);
+                if (dummy) {
+                    dummy.replaceWith(view.$el);
                 }
                 view.trigger('displayed');
-            }});
+            }, function(error) { console.error(error); });
         }
     };
 
@@ -70,30 +77,25 @@ define([
         if (this.keyboard_manager) {
             this.keyboard_manager.register_events(view.$el);
         
-        if (view.additional_elements) {
-            for (var i = 0; i < view.additional_elements.length; i++) {
-                    this.keyboard_manager.register_events(view.additional_elements[i]);
-            }
-        } 
+            if (view.additional_elements) {
+                for (var i = 0; i < view.additional_elements.length; i++) {
+                        this.keyboard_manager.register_events(view.additional_elements[i]);
+                }
+            } 
         }
     };
     
 
     WidgetManager.prototype.create_view = function(model, options) {
         // Creates a view for a particular model.
-        
-        var view_name = model.get('_view_name');
-        var view_mod = model.get('_view_module');
-        var options = options || {};
-
         return new Promise(function(resolve, reject) {
-            var instantiate_view = function(ViewType) {
-                if (ViewType === undefined) {
-                    reject(Error("Unknown view, module: "+view_mod+", view: "+view_name));
-                }
+            var view_name = model.get('_view_name');
+            var view_module = model.get('_view_module');
+            utils.try_load(view_name, view_module, WidgetManager._view_types).then(function(ViewType){
 
                 // If a view is passed into the method, use that view's cell as
                 // the cell for the view that is created.
+                options = options || {};
                 if (options.parent !== undefined) {
                     options.cell = options.parent.options.cell;
                 }
@@ -102,19 +104,10 @@ define([
                 var parameters = {model: model, options: options};
                 var view = new ViewType(parameters);
                 view.render();
-                view.listenTo(model, 'destroy', view.remove);
+                model.on('destroy', view.remove, view);
                 resolve(view);
-            };
-
-            
-            if (view_mod) {
-                require([view_mod], function(module) {
-                    instantiate_view(module[view_name]);
-                }, reject);
-            } else {
-                instantiate_view(WidgetManager._view_types[view_name]);
-            }
-        }
+            }, reject);
+        });
     };
 
     WidgetManager.prototype.get_msg_cell = function (msg_id) {
@@ -205,8 +198,9 @@ define([
         // JS:
         // IPython.notebook.kernel.widget_manager.create_model({
         //      model_name: 'WidgetModel', 
-        //      widget_class: 'IPython.html.widgets.widget_int.IntSlider',
-        //      init_state_callback: function(model) { console.log('Create success!', model); }});
+        //      widget_class: 'IPython.html.widgets.widget_int.IntSlider'})
+        //      .then(function(model) { console.log('Create success!', model); },
+        //      function(error) { console.error(error); });
         //
         // Parameters
         // ----------
@@ -219,50 +213,33 @@ define([
         //      widget_class: (optional) string
         //          Target name of the widget in the back-end.
         //      comm: (optional) Comm
-        //      init_state_callback: (optional) callback
-        //          Called when the first state push from the back-end is 
-        //          recieved.  Allows you to modify the model after it's
-        //          complete state is filled and synced.
-
-        // Create a comm if it wasn't provided.
-        var comm = options.comm;
-        if (!comm) {
-            comm = this.comm_manager.new_comm('ipython.widget', {'widget_class': options.widget_class});
-        }
-
         return new Promise(function(resolve, reject) {
-            // Create a new model that is connected to the comm.
-            var that = this;
-            var instantiate_model = function(ModelType) {
-                if (ModelType === undefined) {
-                    reject(Error("Error creating widget model: " + widget_type_name
-                                 + " not found in " + widget_module));
-                }
-                var model_id = comm.comm_id;
-                var widget_model = new ModelType(that, model_id, comm, options.init_state_callback);
-                widget_model.once('comm:close', function () {
-                    delete that._models[model_id];
-                });
-                that._models[model_id] = widget_model;
-                resolve(widget_model);
-            };
-            
+
             // Get the model type using require or through the registry.
             var widget_type_name = options.model_name;
             var widget_module = options.model_module;
-            if (widget_module) {                
-                // Load the module containing the widget model
-                require([widget_module], function(mod) {
-                    instantiate_model(mod[widget_type_name]);
+            var that = this;
+            utils.try_load(widget_type_name, widget_module, WidgetManager._model_types)
+                .then(function(ModelType) {
+
+                    // Create a comm if it wasn't provided.
+                    var comm = options.comm;
+                    if (!comm) {
+                        comm = that.comm_manager.new_comm('ipython.widget', {'widget_class': options.widget_class});
+                    }
+
+                    var model_id = comm.comm_id;
+                    var widget_model = new ModelType(that, model_id, comm);
+                    widget_model.on('comm:close', function () {
+                      delete that._models[model_id];
+                    });
+                    that._models[model_id] = widget_model;
+                    reolve(widget_model);
                 }, reject);
-            } else {
-                // No module specified, load from the global models registry
-                instantiate_model(WidgetManager._model_types[widget_type_name]);
-            }
-        }
+        });
     };
 
-    // Backwards compatability.
+    // Backwards compatibility.
     IPython.WidgetManager = WidgetManager;
 
     return {'WidgetManager': WidgetManager};

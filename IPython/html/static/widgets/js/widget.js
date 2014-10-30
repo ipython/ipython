@@ -328,7 +328,9 @@ define(["widgets/js/manager",
             // to the subview without having to add it here.
             var that = this;
             var old_callback = options.callback || function(view) {};
-            options = $.extend({ parent: this, success: function(child_view) {
+            options = $.extend({ parent: this }, options || {});
+            
+            this.model.widget_manager.create_view(child_model, options).then(function(child_view) {
                 // Associate the view id with the model id.
                 if (that.child_model_views[child_model.id] === undefined) {
                     that.child_model_views[child_model.id] = [];
@@ -338,9 +340,7 @@ define(["widgets/js/manager",
                 // Remember the view by id.
                 that.child_views[child_view.id] = child_view;
                 old_callback(child_view);
-             }}, options || {});
-            
-            this.model.widget_manager.create_view(child_model, options);
+             }, function(error) { console.error(error); });
         },
 
         pop_child_view: function(child_model) {

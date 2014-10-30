@@ -18,12 +18,11 @@ casper.notebook_test(function () {
         this.evaluate(function() {
             IPython.notebook.kernel.widget_manager.create_model({
                 model_name: 'WidgetModel', 
-                widget_class: 'IPython.html.widgets.widget_int.IntSlider',
-                init_state_callback: function(model) { 
+                widget_class: 'IPython.html.widgets.widget_int.IntSlider'})
+                .then(function(model) { 
                     console.log('Create success!', model); 
                     window.slider_id = model.id; 
-                }
-            });
+                }, function(error) { console.log(error); });
         });
     });
 
