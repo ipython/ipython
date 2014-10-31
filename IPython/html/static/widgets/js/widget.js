@@ -69,10 +69,11 @@ define(["widgets/js/manager",
         _handle_comm_msg: function (msg) {
             // Handle incoming comm msg.
             var method = msg.content.data.method;
+            var that = this;
             switch (method) {
                 case 'update':
                     this.state_change = this.state_change.then(function() {
-                        this.set_state(msg.content.data.state);
+                        return that.set_state(msg.content.data.state);
                     });
                     break;
                 case 'custom':
@@ -87,10 +88,10 @@ define(["widgets/js/manager",
         set_state: function (state) {
             var that = this;
             // Handle when a widget is updated via the python side.
-            this._unpack_models(state).then(function(state) {
+            return this._unpack_models(state).then(function(state) {
                 that.state_lock = state;
                 try {
-                    WidgetModel.__super__.set.call(this, state);
+                    WidgetModel.__super__.set.call(that, state);
                 } finally {
                     that.state_lock = null;
                 }
