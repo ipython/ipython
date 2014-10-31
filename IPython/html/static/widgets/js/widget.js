@@ -3,10 +3,11 @@
 
 define(["widgets/js/manager",
         "underscore",
-        "backbone", 
-        "jquery",   
+        "backbone",
+        "jquery",
+        "base/js/utils",
         "base/js/namespace",
-], function(widgetmanager, _, Backbone, $, IPython){
+], function(widgetmanager, _, Backbone, $, utils, IPython){
 
     var WidgetModel = Backbone.Model.extend({
         constructor: function (widget_manager, model_id, comm) {
@@ -259,7 +260,7 @@ define(["widgets/js/manager",
                 _.each(value, function(sub_value, key) {
                     unpacked[key] = that._unpack_models(sub_value)
                 });
-                return util.resolve_dict(unpacked);
+                return utils.resolve_dict(unpacked);
             } else if (typeof value === 'string' && value.slice(0,10) === "IPY_MODEL_") {
                 // get_model returns a promise already
                 return this.widget_manager.get_model(value.slice(10, value.length));
@@ -292,7 +293,7 @@ define(["widgets/js/manager",
             this.options = parameters.options;
             this.child_model_views = {};
             this.child_views = {};
-            this.id = this.id || IPython.utils.uuid();
+            this.id = this.id || utils.uuid();
             this.model.views[this.id] = this;
             this.on('displayed', function() { 
                 this.is_displayed = true; 
