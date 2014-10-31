@@ -102,6 +102,9 @@ define([
                               view.listenTo(model, 'destroy', view.remove);
                               view.render();
                               return view;
+                          }, function(error) {
+                              console.error(error);
+                              return Promise.reject(error);
                           });
     };
 
@@ -219,6 +222,10 @@ define([
                     delete that._models[model_id];
                 });
                 return widget_model;
+            }, function(error) {
+                delete that._models[model_id];
+                console.error(error);
+                return Promise.reject(error);
             });
         this._models[model_id] = model_promise;
         return model_promise;
