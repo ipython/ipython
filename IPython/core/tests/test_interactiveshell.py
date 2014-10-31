@@ -301,7 +301,10 @@ class InteractiveShellTestCase(unittest.TestCase):
             assert post_explicit.called
         finally:
             # remove post-exec
-            ip.events.reset_all()
+            ip.events.unregister('pre_run_cell', pre_explicit)
+            ip.events.unregister('pre_execute', pre_always)
+            ip.events.unregister('post_run_cell', post_explicit)
+            ip.events.unregister('post_execute', post_always)
     
     def test_silent_noadvance(self):
         """run_cell(silent=True) doesn't advance execution_count"""
@@ -840,3 +843,17 @@ class TestSyntaxErrorTransformer(unittest.TestCase):
 
 
 
+def test_warning_suppression():
+    ip.run_cell("import warnings")
+    try:
+        with tt.AssertPrints("UserWarning: asdf", channel="stderr"):
+            ip.run_cell("warnings.warn('asdf')")
+        # Here's the real test -- if we run that again, we should get the
+        # warning again. Traditionally, each warning was only issued once per
+        # IPython session (approximately), even if the user typed in new and
+        # different code that should have also triggered the warning, leading
+        # to much confusion.
+        with tt.AssertPrints("UserWarning: asdf", channel="stderr"):
+            ip.run_cell("warnings.warn('asdf')")
+    finally:
+        ip.run_cell("del warnings")

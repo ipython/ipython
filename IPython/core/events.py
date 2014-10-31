@@ -63,14 +63,6 @@ class EventManager(object):
         """Remove a callback from the given event."""
         self.callbacks[event].remove(function)
     
-    def reset(self, event):
-        """Clear all callbacks for the given event."""
-        self.callbacks[event] = []
-    
-    def reset_all(self):
-        """Clear all callbacks for all events."""
-        self.callbacks = {n:[] for n in self.callbacks}
-    
     def trigger(self, event, *args, **kwargs):
         """Call callbacks for ``event``.
         
