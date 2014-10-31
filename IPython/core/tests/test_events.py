@@ -25,20 +25,6 @@ class CallbackTests(unittest.TestCase):
         self.em.trigger('ping_received')
         self.assertEqual(cb.call_count, 1)
     
-    def test_reset(self):
-        cb = Mock()
-        self.em.register('ping_received', cb)
-        self.em.reset('ping_received')
-        self.em.trigger('ping_received')
-        assert not cb.called
-    
-    def test_reset_all(self):
-        cb = Mock()
-        self.em.register('ping_received', cb)
-        self.em.reset_all()
-        self.em.trigger('ping_received')
-        assert not cb.called
-    
     def test_cb_error(self):
         cb = Mock(side_effect=ValueError)
         self.em.register('ping_received', cb)

@@ -301,7 +301,10 @@ class InteractiveShellTestCase(unittest.TestCase):
             assert post_explicit.called
         finally:
             # remove post-exec
-            ip.events.reset_all()
+            ip.events.unregister('pre_run_cell', pre_explicit)
+            ip.events.unregister('pre_execute', pre_always)
+            ip.events.unregister('post_run_cell', post_explicit)
+            ip.events.unregister('post_execute', post_always)
     
     def test_silent_noadvance(self):
         """run_cell(silent=True) doesn't advance execution_count"""
