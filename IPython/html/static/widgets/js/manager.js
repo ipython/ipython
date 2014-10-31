@@ -85,27 +85,27 @@ define([
         }
     };
     
-
     WidgetManager.prototype.create_view = function(model, options) {
         // Creates a promise for a view of a given model
         return utils.load(model.get('_view_name'), model.get('_view_module'),
-                          WidgetManager._view_types).then(function(ViewType) {
-                              // If a view is passed into the method, use that view's cell as
-                              // the cell for the view that is created.
-                              options = options || {};
-                              if (options.parent !== undefined) {
-                                  options.cell = options.parent.options.cell;
-                              }
-                              // Create and render the view...
-                              var parameters = {model: model, options: options};
-                              var view = new ViewType(parameters);
-                              view.listenTo(model, 'destroy', view.remove);
-                              view.render();
-                              return view;
-                          }, function(error) {
-                              console.error(error);
-                              return Promise.reject(error);
-                          });
+            WidgetManager._view_types).then(function(ViewType) {
+
+                // If a view is passed into the method, use that view's cell as
+                // the cell for the view that is created.
+                options = options || {};
+                if (options.parent !== undefined) {
+                    options.cell = options.parent.options.cell;
+                }
+                // Create and render the view...
+                var parameters = {model: model, options: options};
+                var view = new ViewType(parameters);
+                view.listenTo(model, 'destroy', view.remove);
+                view.render();
+                return view;
+            }, function(error) {
+                console.error(error);
+                return Promise.reject(error);
+            });
     };
 
     WidgetManager.prototype.get_msg_cell = function (msg_id) {
