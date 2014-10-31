@@ -87,27 +87,22 @@ define([
     
 
     WidgetManager.prototype.create_view = function(model, options) {
-        // Creates a view for a particular model.
-        return new Promise(function(resolve, reject) {
-            var view_name = model.get('_view_name');
-            var view_module = model.get('_view_module');
-            utils.try_load(view_name, view_module, WidgetManager._view_types).then(function(ViewType){
-
-                // If a view is passed into the method, use that view's cell as
-                // the cell for the view that is created.
-                options = options || {};
-                if (options.parent !== undefined) {
-                    options.cell = options.parent.options.cell;
-                }
-
-                // Create and render the view...
-                var parameters = {model: model, options: options};
-                var view = new ViewType(parameters);
-                view.render();
-                model.on('destroy', view.remove, view);
-                resolve(view);
-            }, reject);
-        });
+        // Creates a promise for a view of a given model
+        return utils.load(model.get('_view_name'), model.get('_view_module'),
+                          WidgetManager._view_types).then(function(ViewType) {
+                              // If a view is passed into the method, use that view's cell as
+                              // the cell for the view that is created.
+                              options = options || {};
+                              if (options.parent !== undefined) {
+                                  options.cell = options.parent.options.cell;
+                              }
+                              // Create and render the view...
+                              var parameters = {model: model, options: options};
+                              var view = new ViewType(parameters);
+                              view.listenTo(model, 'destroy', view.remove);
+                              view.render();
+                              return view;
+                          });
     };
 
     WidgetManager.prototype.get_msg_cell = function (msg_id) {
@@ -171,20 +166,7 @@ define([
     };
 
     WidgetManager.prototype.get_model = function (model_id) {
-        // Look-up a model instance by its id.
-        var that = this;
-        var model = that._models[model_id];
-        if (model !== undefined) {
-            return new Promise(function(resolve, reject){
-                if (model instanceof Promise) {
-                    model.then(resolve, reject);
-                } else {
-                    resolve(model);
-                }
-            });
-        } else {
-            return undefined;
-        }
+        return that._models[model_id];
     };
 
     WidgetManager.prototype._handle_comm_open = function (comm, msg) {
@@ -196,7 +178,7 @@ define([
     };
 
     WidgetManager.prototype.create_model = function (options) {
-        // Create and return a promise to create a new widget model.
+        // Create and return a promise for a new widget model
         //
         // Minimally, one must provide the model_name and widget_class
         // parameters to create a model from Javascript.
@@ -230,23 +212,16 @@ define([
 
         var that = this;
         var model_id = comm.comm_id;
-        var promise = new Promise(function(resolve, reject) {
-
-            // Get the model type using require or through the registry.
-            var widget_type_name = options.model_name;
-            var widget_module = options.model_module;
-            utils.try_load(widget_type_name, widget_module, WidgetManager._model_types)
-                .then(function(ModelType) {
-                    var widget_model = new ModelType(that, model_id, comm);
-                    widget_model.on('comm:close', function () {
-                      delete that._models[model_id];
-                    });
-                    that._models[model_id] = widget_model;
-                    resolve(widget_model);
-                }, reject);
-        });
-        this._models[model_id] = promise;
-        return promise;
+        var model_promise =  utils.load(options.model_name, options.model_module, WidgetManager._model_types)
+            .then(function(ModelType) {
+                var widget_model = new ModelType(that, model_id, comm);
+                widget_model.once('comm:close', function () {
+                    delete that._models[model_id];
+                });
+                return widget_model;
+            });
+        this._models[model_id] = model_promise;
+        return model_promise;
     };
 
     // Backwards compatibility.
