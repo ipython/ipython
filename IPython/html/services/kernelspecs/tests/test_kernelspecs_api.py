@@ -19,7 +19,6 @@ from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_erro
 # break these tests
 sample_kernel_json = {'argv':['cat', '{connection_file}'],
                       'display_name':'Test kernel',
-                      'language':'bash',
                      }
 
 some_resource = u"The very model of a modern major general"
@@ -104,7 +103,7 @@ class APITest(NotebookTestBase):
 
     def test_get_kernelspec(self):
         spec = self.ks_api.kernel_spec_info('Sample').json()  # Case insensitive
-        self.assertEqual(spec['language'], 'bash')
+        self.assertEqual(spec['display_name'], 'Test kernel')
 
     def test_get_nonexistant_kernelspec(self):
         with assert_http_error(404):
