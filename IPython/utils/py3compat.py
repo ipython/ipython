@@ -101,11 +101,12 @@ if sys.version_info[0] >= 3:
     getcwd = os.getcwd
     
     MethodType = types.MethodType
-    
-    def execfile(fname, glob, loc=None):
+
+    def execfile(fname, glob, loc=None, compiler=None):
         loc = loc if (loc is not None) else glob
         with open(fname, 'rb') as f:
-            exec(compile(f.read(), fname, 'exec'), glob, loc)
+            compiler = compiler or compile
+            exec(compiler(f.read(), fname, 'exec'), glob, loc)
     
     # Refactor print statements in doctests.
     _print_statement_re = re.compile(r"\bprint (?P<expr>.*)$", re.MULTILINE)
@@ -185,7 +186,7 @@ else:
         return s.format(u='u')
 
     if sys.platform == 'win32':
-        def execfile(fname, glob=None, loc=None):
+        def execfile(fname, glob=None, loc=None, compiler=None):
             loc = loc if (loc is not None) else glob
             scripttext = builtin_mod.open(fname).read()+ '\n'
             # compile converts unicode filename to str assuming
@@ -194,14 +195,21 @@ else:
                 filename = unicode_to_str(fname)
             else:
                 filename = fname
-            exec(compile(scripttext, filename, 'exec'), glob, loc)
+            compiler = compiler or compile
+            exec(compiler(scripttext, filename, 'exec'), glob, loc)
+
     else:
-        def execfile(fname, *where):
+        def execfile(fname, glob=None, loc=None, compiler=None):
             if isinstance(fname, unicode):
                 filename = fname.encode(sys.getfilesystemencoding())
             else:
                 filename = fname
-            builtin_mod.execfile(filename, *where)
+            where = [ns for ns in [glob, loc] if ns is not None]
+            if compiler is None:
+                builtin_mod.execfile(filename, *where)
+            else:
+                scripttext = builtin_mod.open(fname).read().rstrip() + '\n'
+                exec(compiler(scripttext, filename, 'exec'), glob, loc)
 
 
 def annotate(**kwargs):
