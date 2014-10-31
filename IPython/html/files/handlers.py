@@ -24,7 +24,10 @@ class FilesHandler(IPythonHandler):
 
         path, name = os.path.split(path)
         model = cm.get_model(name, path)
-
+        
+        if self.get_argument("download", False):
+            self.set_header('Content-Disposition','attachment; filename="%s"' % name)
+        
         if model['type'] == 'notebook':
             self.set_header('Content-Type', 'application/json')
         else:
@@ -32,8 +35,6 @@ class FilesHandler(IPythonHandler):
             if cur_mime is not None:
                 self.set_header('Content-Type', cur_mime)
         
-        self.set_header('Content-Disposition','attachment; filename="%s"' % name)
-
         if model['format'] == 'base64':
             b64_bytes = model['content'].encode('ascii')
             self.write(base64.decodestring(b64_bytes))
