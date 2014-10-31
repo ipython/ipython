@@ -78,7 +78,7 @@ define([
                 comm.close();
                 that.unregister_comm(comm);
             }
-        }, console.error);
+        }, $.proxy(console.error, console));
     };
     
     CommManager.prototype.comm_close = function (msg) {

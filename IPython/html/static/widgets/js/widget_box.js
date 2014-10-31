@@ -84,7 +84,7 @@ define([
                 that.after_displayed(function() {
                     view.trigger('displayed');
                 });
-            }, console.error);
+            }, $.proxy(console.error, console));
         },
     });
 

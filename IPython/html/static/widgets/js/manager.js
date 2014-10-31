@@ -66,7 +66,7 @@ define([
                     dummy.replaceWith(view.$el);
                 }
                 view.trigger('displayed');
-            }, console.error);
+            }, $.proxy(console.error, console));
         }
     };
 
@@ -208,7 +208,7 @@ define([
         //      model_name: 'WidgetModel', 
         //      widget_class: 'IPython.html.widgets.widget_int.IntSlider'})
         //      .then(function(model) { console.log('Create success!', model); },
-        //      console.error);
+        //      $.proxy(console.error, console));
         //
         // Parameters
         // ----------

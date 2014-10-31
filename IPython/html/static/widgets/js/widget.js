@@ -107,7 +107,7 @@ define(["widgets/js/manager",
                         unpacked_state[state_keys[i]] = promise_values[i];
                     }
                     WidgetModel.__super__.set.apply(this, [unpacked_state]);
-                }, console.error);
+                }, $.proxy(console.error, console));
             } finally {
                this.state_lock = null;
             }
