@@ -19,7 +19,11 @@ class MainKernelSpecHandler(IPythonHandler):
         ksm = self.kernel_spec_manager
         results = []
         for kernel_name in sorted(ksm.find_kernel_specs(), key=_pythonfirst):
-            d = ksm.get_kernel_spec(kernel_name).to_dict()
+            try:
+                d = ksm.get_kernel_spec(kernel_name).to_dict()
+            except Exception:
+                self.log.error("Failed to load kernel spec: '%s'", kernel_name, exc_info=True)
+                continue
             d['name'] = kernel_name
             results.append(d)
 
