@@ -24,6 +24,7 @@ data-notebook-path="{{notebook_path}}"
     <ul id="tabs" class="nav nav-tabs">
         <li class="active"><a href="#notebooks" data-toggle="tab">Notebooks</a></li>
         <li><a href="#running" data-toggle="tab">Running</a></li>
+        <li><a href="#terminals" data-toggle="tab">Terminals</a></li>
         <li><a href="#clusters" data-toggle="tab">Clusters</a></li>
     </ul>
 
@@ -77,6 +78,27 @@ data-notebook-path="{{notebook_path}}"
             <div id="running_list_header" class="row list_header"> 
                 <div> There are no notebooks running. </div>
             </div> 
+        </div>
+    </div>
+    
+    <div id="terminals" class="tab-pane">
+
+        <div id="terminal_toolbar" class="row">
+            <div class="col-xs-8 no-padding">
+                <span id="terminal_list_info">Currently running terminals</span>
+            </div>
+            <div class="col-xs-4 no-padding tree-buttons">
+                <span id="terminal_buttons" class="pull-right">
+                    <button id="new_terminal" title="New terminal" class="btn btn-default btn-xs">New Terminal</button>
+                    <button id="refresh_terminal_list" title="Refresh terminal list" class="btn btn-default btn-xs"><i class="fa fa-refresh"></i></button>
+                </span>
+            </div>
+        </div>
+
+        <div id="terminal_list">
+            <div id="terminal_list_header" class="row list_header">
+                <div> There are no terminals running. </div>
+            </div>
         </div>
     </div>
     
