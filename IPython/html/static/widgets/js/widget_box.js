@@ -78,13 +78,13 @@ define([
             var dummy = $('<div/>');
             that.$box.append(dummy);
             this.create_child_view(model).then(function(view) {
-                dummy.replaceWith(view.$el);
+                dummy.replaceWith(view.el);
 
                 // Trigger the displayed event of the child view.
                 that.after_displayed(function() {
                     view.trigger('displayed');
                 });
-            }, $.proxy(console.error, console));
+            });
         },
     });
 

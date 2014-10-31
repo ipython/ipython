@@ -9,7 +9,7 @@ define(["widgets/js/manager",
 ], function(widgetmanager, _, Backbone, $, IPython){
 
     var WidgetModel = Backbone.Model.extend({
-        constructor: function (widget_manager, model_id, comm, init_state_callback) {
+        constructor: function (widget_manager, model_id, comm) {
             // Constructor
             //
             // Creates a WidgetModel instance.
@@ -20,11 +20,8 @@ define(["widgets/js/manager",
             // model_id : string
             //      An ID unique to this model.
             // comm : Comm instance (optional)
-            // init_state_callback : callback (optional)
-            //      Called once when the first state message is recieved from 
-            //      the back-end.
             this.widget_manager = widget_manager;
-            this.init_state_callback = init_state_callback;
+            this.state_change = Promise.resolve();
             this._buffered_state_diff = {};
             this.pending_msgs = 0;
             this.msg_buffer = null;
@@ -73,11 +70,9 @@ define(["widgets/js/manager",
             var method = msg.content.data.method;
             switch (method) {
                 case 'update':
-                    this.set_state(msg.content.data.state);
-                    if (this.init_state_callback) {
-                        this.init_state_callback.apply(this, [this]);
-                        delete this.init_state_callback;
-                    }
+                    this.state_change = this.state_change.then(function() {
+                        this.set_state(msg.content.data.state);
+                    });
                     break;
                 case 'custom':
                     this.trigger('msg:custom', msg.content.data.content);
@@ -89,28 +84,16 @@ define(["widgets/js/manager",
         },
 
         set_state: function (state) {
+            var that = this;
             // Handle when a widget is updated via the python side.
-            this.state_lock = state;
-            try {
-                var state_keys = [];
-                var state_values = [];
-                for (var state_key in Object.keys(state)) {
-                    if (state.hasOwnProperty(state_key)) {
-                        state_keys.push(state_key);
-                        state_values.push(this._unpack_models(state[state_key]));
-                    }
+            this._unpack_models(state).then(function(state) {
+                that.state_lock = state;
+                try {
+                    WidgetModel.__super__.set.call(this, state);
+                } finally {
+                    that.state_lock = null;
                 }
-
-                Promise.all(state_values).then(function(promise_values){
-                    var unpacked_state = {};
-                    for (var i = 0; i < state_keys.length; i++) {
-                        unpacked_state[state_keys[i]] = promise_values[i];
-                    }
-                    WidgetModel.__super__.set.apply(this, [unpacked_state]);
-                }, $.proxy(console.error, console));
-            } finally {
-               this.state_lock = null;
-            }
+            }, $.proxy(console.error, console));
         },
 
         _handle_status: function (msg, callbacks) {
@@ -265,42 +248,24 @@ define(["widgets/js/manager",
             // Replace model ids with models recursively.
             var that = this;
             var unpacked;
-            return new Promise(function(resolve, reject) {
-
-                if ($.isArray(value)) {
-                    unpacked = [];
-                    _.each(value, function(sub_value, key) {
-                        unpacked.push(that._unpack_models(sub_value));
-                    });
-                    Promise.all(unpacked).then(resolve, reject);
-
-                } else if (value instanceof Object) {
-                    unpacked_values = [];
-                    unpacked_keys = [];
-                    _.each(value, function(sub_value, key) {
-                        unpacked_keys.push(key);
-                        unpacked_values.push(that._unpack_models(sub_value));
-                    });
-
-                    Promise.all(unpacked_values).then(function(promise_values) {
-                        unpacked = {};
-                        for (var i = 0; i < unpacked_keys.length; i++) {
-                            unpacked[unpacked_keys[i]] = promise_values[i];
-                        }
-                        resolve(unpacked);
-                    }, reject);    
-
-                } else if (typeof value === 'string' && value.slice(0,10) === "IPY_MODEL_") {
-                    var model = this.widget_manager.get_model(value.slice(10, value.length));
-                    if (model) {
-                        model.then(resolve, reject);
-                    } else {
-                        resolve(value);
-                    }    
-                } else {
-                    resolve(value);
-                }  
-            });
+            if ($.isArray(value)) {
+                unpacked = [];
+                _.each(value, function(sub_value, key) {
+                    unpacked.push(that._unpack_models(sub_value));
+                });
+                return Promise.all(unpacked);
+            } else if (value instanceof Object) {
+                var unpacked = {};
+                _.each(value, function(sub_value, key) {
+                    unpacked[key] = that._unpack_models(sub_value)
+                });
+                return util.resolve_dict(unpacked);
+            } else if (typeof value === 'string' && value.slice(0,10) === "IPY_MODEL_") {
+                // get_model returns a promise already
+                return this.widget_manager.get_model(value.slice(10, value.length));
+            } else {
+                return Promise.resolve(value);
+            }
         },
 
         on_some_change: function(keys, callback, context) {
@@ -341,28 +306,18 @@ define(["widgets/js/manager",
         },
 
         create_child_view: function(child_model, options) {
-            // Create and return a child view.
-            //
-            // -given a model and (optionally) a view name if the view name is 
-            // not given, it defaults to the model's default view attribute.
+            // Create and promise that resolves to a child view of a given model
             var that = this;
-            return new Promise(function(resolve, reject) {
-                // TODO: this is hacky, and makes the view depend on this cell attribute and widget manager behavior
-                // it would be great to have the widget manager add the cell metadata
-                // to the subview without having to add it here.
-                options = $.extend({ parent: this }, options || {});
-                
-                this.model.widget_manager.create_view(child_model, options).then(function(child_view) {
-                    // Associate the view id with the model id.
-                    if (that.child_model_views[child_model.id] === undefined) {
-                        that.child_model_views[child_model.id] = [];
-                    }
-                    that.child_model_views[child_model.id].push(child_view.id);
-
-                    // Remember the view by id.
-                    that.child_views[child_view.id] = child_view;
-                    resolve(child_view);
-                 }, reject);
+            options = $.extend({ parent: this }, options || {});
+            return this.model.widget_manager.create_view(child_model, options).then(function(child_view) {
+                // Associate the view id with the model id.
+                if (that.child_model_views[child_model.id] === undefined) {
+                    that.child_model_views[child_model.id] = [];
+                }
+                that.child_model_views[child_model.id].push(child_view.id);
+                // Remember the view by id.
+                that.child_views[child_view.id] = child_view;
+                return child_view;
             });
         },
 

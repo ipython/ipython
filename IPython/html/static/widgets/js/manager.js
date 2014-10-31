@@ -66,7 +66,7 @@ define([
                     dummy.replaceWith(view.$el);
                 }
                 view.trigger('displayed');
-            }, $.proxy(console.error, console));
+            });
         }
     };
 
