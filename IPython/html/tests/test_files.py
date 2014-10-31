@@ -98,7 +98,23 @@ class FilesTest(NotebookTestBase):
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.headers['content-type'], 'text/plain')
         self.assertEqual(r.text, 'foobar')
+    
+    def test_download(self):
+        nbdir = self.notebook_dir.name
+        base = self.base_url()
+        
+        text = 'hello'
+        with open(pjoin(nbdir, 'test.txt'), 'w') as f:
+            f.write(text)
+        
+        r = requests.get(url_path_join(base, 'files', 'test.txt'))
+        disposition = r.headers.get('Content-Disposition', '')
+        self.assertNotIn('attachment', disposition)
 
+        r = requests.get(url_path_join(base, 'files', 'test.txt') + '?download=1')
+        disposition = r.headers.get('Content-Disposition', '')
+        self.assertIn('attachment', disposition)
+        self.assertIn('filename="test.txt"', disposition)
 
     def test_old_files_redirect(self):
         """pre-2.0 'files/' prefixed links are properly redirected"""

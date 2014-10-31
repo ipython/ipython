@@ -112,7 +112,7 @@ define([
                 notebook_path,
                 notebook_name
             );
-            window.open(url);
+            window.open(url + '?download=1');
         });
         
         this.element.find('#print_preview').click(function () {
