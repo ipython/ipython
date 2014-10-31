@@ -67,7 +67,8 @@ define([
         var content = msg.content;
         var that = this;
         
-        var instantiate_comm = function(target) {
+        utils.load_class(content.target_name, content.target_module, this.targets)
+        .then(function(target) {
             var comm = new Comm(content.target_name, content.comm_id);
             that.register_comm(comm);
             try {
@@ -77,29 +78,7 @@ define([
                 comm.close();
                 that.unregister_comm(comm);
             }
-        };
-
-        if (content.target_module) {
-            // Load requirejs module for comm target
-            require([content.target_module], function(mod) {
-                var target = mod[content.target_name];
-                if (target !== undefined) {
-                    instantiate_comm(target)
-                } else {
-                    console.log("Comm target " + content.target_name + 
-                        " not found in module " + content.target_module);
-                }
-            }, function(err) { console.log(err); });
-        } else {
-            // No requirejs module specified: look for target in registry
-            var f = this.targets[content.target_name];
-            if (f === undefined) {
-                console.log("No such target registered: ", content.target_name);
-                console.log("Available targets are: ", this.targets);
-                return;
-            }
-            instantiate_comm(f)
-        }
+        }, console.error);
     };
     
     CommManager.prototype.comm_close = function (msg) {
