@@ -55,7 +55,8 @@ class TreeHandler(IPythonHandler):
             self.write(self.render_template('tree.html',
                 page_title=page_title,
                 notebook_path=path,
-                breadcrumbs=breadcrumbs
+                breadcrumbs=breadcrumbs,
+                terminals_available=self.settings['terminals_available'],
             ))
 
 

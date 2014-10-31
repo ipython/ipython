@@ -173,6 +173,7 @@ class NotebookWebApplication(web.Application):
             mathjax_url=ipython_app.mathjax_url,
             config=ipython_app.config,
             jinja2_env=env,
+            terminals_available=False,  # Set later if terminals are available
         )
 
         # allow custom overrides for the tornado web app.
@@ -765,10 +766,9 @@ class NotebookApp(BaseIPythonApplication):
         try:
             from .terminal import initialize
             initialize(self.web_app)
-            self.web_app.terminals_available = True
+            self.web_app.settings['terminals_available'] = True
         except ImportError as e:
             self.log.info("Terminals not available (error was %s)", e)
-            self.web_app.terminals_available = False
 
     def init_signal(self):
         if not sys.platform.startswith('win'):
