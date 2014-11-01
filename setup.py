@@ -273,7 +273,7 @@ extras_require = dict(
     qtconsole = ['pyzmq>=2.1.11', 'pygments'],
     zmq = ['pyzmq>=2.1.11'],
     doc = ['Sphinx>=1.1', 'numpydoc'],
-    test = ['nose>=0.10.1'],
+    test = ['nose>=0.10.1', 'requests'],
     terminal = [],
     nbformat = ['jsonschema>=2.0'],
     notebook = ['tornado>=3.1', 'pyzmq>=2.1.11', 'jinja2', 'pygments', 'mistune>=0.3.1'],
