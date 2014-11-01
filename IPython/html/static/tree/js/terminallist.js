@@ -39,6 +39,11 @@ define([
         $('#new_terminal').click($.proxy(this.new_terminal, this));
     };
 
+    TerminalList.prototype.new_terminal = function() {
+        var url = utils.url_join_encode(this.base_url, 'terminals/new');
+        window.open(url, '_blank');
+    };
+
     TerminalList.prototype.load_terminals = function() {
         var that = this;
         var url = utils.url_join_encode(this.base_url, 'api/terminals');
@@ -63,15 +68,10 @@ define([
         }
         $('#terminal_list_header').toggle(data.length === 0);
     };
-
-    TerminalList.prototype.new_terminal = function() {
-        var url = utils.url_join_encode(this.base_url, 'terminals/new');
-        window.open(url, '_blank');
-    };
     
     TerminalList.prototype.add_link = function(name, item) {
         item.data('term-name', name);
-        item.find(".item_name").text(name);
+        item.find(".item_name").text("terminals/" + name);
         item.find(".item_icon").addClass("fa fa-terminal");
         var link = item.find("a.item_link")
             .attr('href', utils.url_join_encode(this.base_url, "terminals", name));
