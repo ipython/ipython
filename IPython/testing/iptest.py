@@ -35,6 +35,7 @@ from nose.plugins import Plugin
 from nose.util import safe_str
 
 from IPython.utils.process import is_cmd_found
+from IPython.utils.py3compat import bytes_to_str
 from IPython.utils.importstring import import_item
 from IPython.testing.plugin.ipdoctest import IPythonDoctest
 from IPython.external.decorators import KnownFailure, knownfailureif
@@ -345,8 +346,9 @@ class ExclusionPlugin(Plugin):
 class StreamCapturer(Thread):
     daemon = True  # Don't hang if main thread crashes
     started = False
-    def __init__(self):
+    def __init__(self, echo=False):
         super(StreamCapturer, self).__init__()
+        self.echo = echo
         self.streams = []
         self.buffer = BytesIO()
         self.readfd, self.writefd = os.pipe()
@@ -361,6 +363,8 @@ class StreamCapturer(Thread):
 
             with self.buffer_lock:
                 self.buffer.write(chunk)
+            if self.echo:
+                sys.stdout.write(bytes_to_str(chunk))
     
         os.close(self.readfd)
         os.close(self.writefd)
