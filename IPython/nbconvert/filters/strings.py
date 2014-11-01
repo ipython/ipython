@@ -45,6 +45,7 @@ __all__ = [
     'path2url',
     'add_prompts',
     'ascii_only',
+    'prevent_list_blocks',
 ]
 
 
@@ -219,3 +220,13 @@ def ascii_only(s):
     """ensure a string is ascii"""
     s = py3compat.cast_unicode(s)
     return s.encode('ascii', 'replace').decode('ascii')
+
+def prevent_list_blocks(s):
+    """
+    Prevent presence of enumerate or itemize blocks in latex headings cells
+    """
+    out = re.sub('(^\s*\d*)\.', '\\1\.', s)
+    out = re.sub('(^\s*)\-', '\\1\-', out)
+    out = re.sub('(^\s*)\+', '\\1\+', out)
+    out = re.sub('(^\s*)\*', '\\1\*', out)
+    return out
