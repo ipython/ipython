@@ -220,7 +220,9 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
     @gen.coroutine
     def get(self, *args, **kwargs):
         # pre_get can be a coroutine in subclasses
-        yield gen.maybe_future(self.pre_get())
+        # assign and yield in two step to avoid tornado 3 issues
+        res = self.pre_get()
+        yield gen.maybe_future(res)
         # FIXME: only do super get on tornado ≥ 4
         # tornado 3 has no get, will raise 405
         if tornado.version_info >= (4,):
