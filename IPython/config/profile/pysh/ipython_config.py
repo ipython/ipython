@@ -1,6 +1,10 @@
 c = get_config()
 app = c.InteractiveShellApp
 
+# shells do enter/exit quietly
+c.TerminalIPythonApp.display_banner = False
+c.TerminalInteractiveShell.confirm_exit=False
+
 # This can be used at any point in a config file to load a sub config
 # and merge it into the current one.
 load_subconfig('ipython_config.py', profile='default')
@@ -19,6 +23,7 @@ c.PrefilterManager.multi_line_specials = True
 
 lines = """
 %rehashx
+%load_ext pysh
 """
 
 app.exec_lines.append(lines)
