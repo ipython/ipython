@@ -11,6 +11,7 @@ require([
     'tree/js/clusterlist',
     'tree/js/sessionlist',
     'tree/js/kernellist',
+    'tree/js/terminallist',
     'auth/js/loginwidget',
     // only loaded, not used:
     'jqueryui',
@@ -25,7 +26,8 @@ require([
     notebooklist, 
     clusterlist, 
     sesssionlist, 
-    kernellist, 
+    kernellist,
+    terminallist,
     loginwidget){
 
     page = new page.Page();
@@ -44,6 +46,11 @@ require([
     kernel_list = new kernellist.KernelList('#running_list',  $.extend({
         session_list:  session_list}, 
         common_options));
+    
+    if (utils.get_body_data("terminalsAvailable") === "True") {
+        terminal_list = new terminallist.TerminalList('#terminal_list', common_options);
+    }
+
     login_widget = new loginwidget.LoginWidget('#login_widget', common_options);
 
     $('#new_notebook').click(function (e) {
