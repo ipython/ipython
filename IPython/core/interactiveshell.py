@@ -26,7 +26,7 @@ import types
 import subprocess
 from io import open as io_open
 
-from IPython.config.configurable import SingletonConfigurable
+from IPython.config.configurable import StackableSingletonConfigurable
 from IPython.core import debugger, oinspect
 from IPython.core import magic
 from IPython.core import page
@@ -195,11 +195,11 @@ class DummyMod(object):
 # Main IPython class
 #-----------------------------------------------------------------------------
 
-class InteractiveShell(SingletonConfigurable):
+class InteractiveShell(StackableSingletonConfigurable):
     """An enhanced, interactive shell for Python."""
 
-    _instance = None
-    
+    _instances = [None]
+
     ast_transformers = List([], config=True, help=
         """
         A list of ast.NodeTransformer subclass instances, which will be applied

@@ -249,5 +249,7 @@ def embed(**kwargs):
         config = load_default_config()
         config.InteractiveShellEmbed = config.TerminalInteractiveShell
         kwargs['config'] = config
+    InteractiveShellEmbed.stack_push()
     shell = InteractiveShellEmbed.instance(**kwargs)
     shell(header=header, stack_depth=2, compile_flags=compile_flags)
+    InteractiveShellEmbed.stack_pop()
