@@ -3,7 +3,6 @@
 
 import nose.tools as nt
 
-from IPython.nbformat.validator import isvalid, validate, ValidationError
 from ..nbbase import (
     NotebookNode, nbformat,
     new_code_cell, new_markdown_cell, new_notebook,

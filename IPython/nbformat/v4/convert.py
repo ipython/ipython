@@ -12,15 +12,10 @@ from .nbbase import (
 )
 
 from IPython.nbformat import v3
-from IPython.utils.log import get_logger
 
 def _warn_if_invalid(nb, version):
     """Log validation errors, if there are any."""
-    from IPython.nbformat import validate, ValidationError
-    try:
-        validate(nb, version=version)
-    except ValidationError as e:
-        get_logger().error("Notebook JSON is not valid v%i: %s", version, e)
+    return
 
 def upgrade(nb, from_version=3, from_minor=0):
     """Convert a notebook to v4.

@@ -21,11 +21,13 @@ import json
 from . import v1
 from . import v2
 from . import v3
+from . import v4
 
 versions = {
     1: v1,
     2: v2,
     3: v3,
+    4: v4,
     }
 
 #-----------------------------------------------------------------------------

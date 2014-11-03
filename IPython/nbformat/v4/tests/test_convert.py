@@ -3,7 +3,7 @@ import copy
 
 import nose.tools as nt
 
-from IPython.nbformat import validate
+from ..nbbase import validate
 from .. import convert
 
 from . import nbexamples

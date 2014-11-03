@@ -18,9 +18,8 @@ nbformat_schema = 'nbformat.v4.schema.json'
 
 
 def validate(node, ref=None):
-    """validate a v4 node"""
-    from .. import validate
-    return validate(node, ref=ref, version=nbformat)
+    """nbformat validation is not backported"""
+    return
 
 
 def new_output(output_type, data=None, **kwargs):
