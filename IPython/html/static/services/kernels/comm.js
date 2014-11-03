@@ -5,7 +5,8 @@ define([
     'base/js/namespace',
     'jquery',
     'base/js/utils',
-], function(IPython, $, utils) {
+    'components/rsvp/rsvp.min',
+], function(IPython, $, utils, rsvp) {
     "use strict";
 
     //-----------------------------------------------------------------------
@@ -78,7 +79,7 @@ define([
                 comm.close();
                 that.unregister_comm(comm);
                 var error = new utils.WrappedError("Exception opening new comm", e);
-                return Promise.reject(error);
+                return rsvp.Promise.reject(error);
             }
             return comm;
         }, utils.reject('Could not open comm', true));

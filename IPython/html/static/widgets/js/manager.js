@@ -6,8 +6,9 @@ define([
     "backbone",
     "jquery",
     "base/js/utils",
-    "base/js/namespace"
-], function (_, Backbone, $, utils, IPython) {
+    "base/js/namespace",
+    'components/rsvp/rsvp.min',
+], function (_, Backbone, $, utils, IPython, rsvp) {
     "use strict";
     //--------------------------------------------------------------------
     // WidgetManager class
@@ -48,7 +49,7 @@ define([
     //--------------------------------------------------------------------
     WidgetManager.prototype.display_view = function(msg, model) {
         // Displays a view for a particular model.
-        return new Promise(function(resolve, reject) {
+        return new rsvp.Promise(function(resolve, reject) {
             var cell = this.get_msg_cell(msg.parent_header.msg_id);
             if (cell === null) {
                 reject(new Error("Could not determine where the display" + 
@@ -230,7 +231,7 @@ define([
             }, function(error) {
                 delete that._models[model_id];
                 var wrapped_error = new utils.WrappedError("Couldn't create model", error);
-                return Promise.reject(wrapped_error);
+                return rsvp.Promise.reject(wrapped_error);
             });
         this._models[model_id] = model_promise;
         return model_promise;
