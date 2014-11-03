@@ -60,8 +60,8 @@ require([
     login_widget = new loginwidget.LoginWidget('#login_widget', common_options);
 
     $('#new_notebook').click(function (e) {
-        contents.new_notebook(common_options.notebook_path,
-            {
+        contents.new(common_options.notebook_path, null, {
+                ext: ".ipynb",
                 success: function (data) {
                     window.open(
                         utils.url_join_encode(

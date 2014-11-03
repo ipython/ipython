@@ -97,12 +97,23 @@ define([
      *
      * @method scroll_to_cell
      * @param {String} path The path to create the new notebook at
+     * @param {String} name Name for new file. Chosen by server if unspecified.
+     * @param {Object} options:
+     *      ext: file extension to use if name unspecified
      */
-    Contents.prototype.new_notebook = function(path, options) {
-        var error = options.error || function() {};
+    Contents.prototype.new = function(path, name, options) {
+        var method, data;
+        if (name) {
+            method = "PUT";
+        } else {
+            method = "POST";
+            data = JSON.stringify({ext: options.ext || ".ipynb"});
+        }
+
         var settings = {
             processData : false,
-            type : "POST",
+            type : method,
+            data: data,
             dataType : "json",
             success : options.success || function() {},
             error : this.create_basic_error_handler(options.error)
