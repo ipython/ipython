@@ -20,10 +20,8 @@ c.InteractiveShell.separate_out = ''
 c.InteractiveShell.separate_out2 = ''
 
 c.PrefilterManager.multi_line_specials = True
+c.InteractiveShellApp.extensions = [
+    'pysh'
+]
 
-lines = """
-%rehashx
-%load_ext pysh
-"""
-
-app.exec_lines.append(lines)
+app.exec_lines.append("""%rehashx""")
