@@ -51,6 +51,11 @@
             "type": "integer",
             "minimum": 1
         },
+        "orig_nbformat_minor": {
+            "description": "Original notebook format (minor number) before converting the notebook between versions.",
+            "type": "integer",
+            "minimum": 0
+        },
         "worksheets" : {
             "description": "Array of worksheets",
             "type": "array",
