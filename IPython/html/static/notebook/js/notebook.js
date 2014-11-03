@@ -2049,6 +2049,7 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.load_notebook_success = function (data, status, xhr) {
         this.fromJSON(data);
+        var nb = data.content;
         if (this.ncells() === 0) {
             this.insert_cell_below('code');
             this.edit_mode(0);
@@ -2058,13 +2059,26 @@ var IPython = (function (IPython) {
         }
         this.set_dirty(false);
         this.scroll_to_top();
-        if (data.orig_nbformat !== undefined && data.nbformat !== data.orig_nbformat) {
-            var msg = "This notebook has been converted from an older " +
-            "notebook format (v"+data.orig_nbformat+") to the current notebook " +
-            "format (v"+data.nbformat+"). The next time you save this notebook, the " +
-            "newer notebook format will be used and older versions of IPython " +
-            "may not be able to read it. To keep the older version, close the " +
-            "notebook without saving it.";
+        if (nb.orig_nbformat !== undefined && nb.nbformat !== nb.orig_nbformat) {
+            var src;
+            if (nb.nbformat > nb.orig_nbformat) {
+                src = " an older notebook format ";
+            } else {
+                src = " a newer notebook format ";
+            }
+            
+            var msg = "This notebook has been converted from" + src +
+            "(v"+nb.orig_nbformat+") to the current notebook " +
+            "format (v"+nb.nbformat+"). The next time you save this notebook, the " +
+            "current notebook format will be used.";
+            
+            if (nb.nbformat > nb.orig_nbformat) {
+                msg += " Older versions of IPython may not be able to read the new format.";
+            } else {
+                msg += " Some features of the original notebook may not be available.";
+            }
+            msg += " To preserve the original version, close the " +
+                "notebook without saving it.";
             IPython.dialog.modal({
                 title : "Notebook converted",
                 body : msg,
@@ -2074,10 +2088,10 @@ var IPython = (function (IPython) {
                     }
                 }
             });
-        } else if (data.orig_nbformat_minor !== undefined && data.nbformat_minor !== data.orig_nbformat_minor) {
+        } else if (nb.orig_nbformat_minor !== undefined && nb.nbformat_minor < nb.orig_nbformat_minor) {
             var that = this;
-            var orig_vs = 'v' + data.nbformat + '.' + data.orig_nbformat_minor;
-            var this_vs = 'v' + data.nbformat + '.' + this.nbformat_minor;
+            var orig_vs = 'v' + nb.nbformat + '.' + nb.orig_nbformat_minor;
+            var this_vs = 'v' + nb.nbformat + '.' + this.nbformat_minor;
             var msg = "This notebook is version " + orig_vs + ", but we only fully support up to " +
             this_vs + ".  You can still work with this notebook, but some features " +
             "introduced in later notebook versions may not be available.";
