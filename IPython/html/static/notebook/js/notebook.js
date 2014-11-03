@@ -1080,49 +1080,40 @@ define([
             }
         }
     };
-
+    
+    Notebook.prototype._warn_heading = function () {
+        // warn about heading cells being removed
+        dialog.modal({
+            notebook: this,
+            keyboard_manager: this.keyboard_manager,
+            title : "Use markdown headings",
+            body : $("<p/>").text(
+                'IPython no longer uses special heading cells. ' + 
+                'Instead, write your headings in Markdown cells using # characters:'
+            ).append($('<pre/>').text(
+                '## This is a level 2 heading'
+            )),
+            buttons : {
+                "OK" : {},
+            }
+        });
+    };
+    
     /**
-     * Turn a cell into a heading cell.
+     * Turn a cell into a markdown cell with a heading.
      * 
      * @method to_heading
      * @param {Number} [index] A cell's index
-     * @param {Number} [level] A heading level (e.g., 1 becomes &lt;h1&gt;)
+     * @param {Number} [level] A heading level (e.g., 1 for h1)
      */
     Notebook.prototype.to_heading = function (index, level) {
+        this.to_markdown(index);
         level = level || 1;
         var i = this.index_or_selected(index);
         if (this.is_valid_cell_index(i)) {
-            var source_cell = this.get_cell(i);
-            var target_cell = null;
-            if (source_cell instanceof textcell.MarkdownCell) {
-                source_cell.set_heading_level(level);
-            } else {
-                target_cell = this.insert_cell_below('markdown',i);
-                var text = source_cell.get_text();
-                if (text === source_cell.placeholder) {
-                    text = '';
-                }
-                //metadata
-                target_cell.metadata = source_cell.metadata;
-                // We must show the editor before setting its contents
-                target_cell.unrender();
-                target_cell.set_text(text);
-                target_cell.set_heading_level(level);
-                // make this value the starting point, so that we can only undo
-                // to this state, instead of a blank cell
-                target_cell.code_mirror.clearHistory();
-                source_cell.element.remove();
-                this.select(i);
-                var cursor = source_cell.code_mirror.getCursor();
-                target_cell.code_mirror.setCursor(cursor);
-                if ((source_cell instanceof textcell.TextCell) && source_cell.rendered) {
-                    target_cell.render();
-                }
-            }
+            var cell = this.get_cell(i);
+            cell.set_heading_level(level);
             this.set_dirty(true);
-            this.events.trigger('selected_cell_type_changed.Notebook',
-                {'cell_type':'markdown',level:level}
-            );
         }
     };
 

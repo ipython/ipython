@@ -246,24 +246,6 @@ define([
         this.element.find('#to_raw').click(function () {
             that.notebook.to_raw();
         });
-        this.element.find('#to_heading1').click(function () {
-            that.notebook.to_heading(undefined, 1);
-        });
-        this.element.find('#to_heading2').click(function () {
-            that.notebook.to_heading(undefined, 2);
-        });
-        this.element.find('#to_heading3').click(function () {
-            that.notebook.to_heading(undefined, 3);
-        });
-        this.element.find('#to_heading4').click(function () {
-            that.notebook.to_heading(undefined, 4);
-        });
-        this.element.find('#to_heading5').click(function () {
-            that.notebook.to_heading(undefined, 5);
-        });
-        this.element.find('#to_heading6').click(function () {
-            that.notebook.to_heading(undefined, 6);
-        });
         
         this.element.find('#toggle_current_output').click(function () {
             that.notebook.toggle_output();

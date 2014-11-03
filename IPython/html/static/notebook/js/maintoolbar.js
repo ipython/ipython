@@ -139,6 +139,7 @@ define([
                 .append($('<option/>').attr('value','code').text('Code'))
                 .append($('<option/>').attr('value','markdown').text('Markdown'))
                 .append($('<option/>').attr('value','raw').text('Raw NBConvert'))
+                .append($('<option/>').attr('value','heading').text('Heading'))
             );
     };
 
@@ -193,6 +194,11 @@ define([
                 break;
             case 'raw':
                 that.notebook.to_raw();
+                break;
+            case 'heading':
+                that.notebook._warn_heading();
+                that.notebook.to_heading();
+                that.element.find('#cell_type').val("markdown");
                 break;
             default:
                 console.log("unrecognized cell type:", cell_type);
