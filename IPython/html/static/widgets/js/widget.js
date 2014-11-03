@@ -97,7 +97,7 @@ define(["widgets/js/manager",
                 } finally {
                     that.state_lock = null;
                 }
-            }, $.proxy(console.error, console));
+            }, utils.reject("Couldn't set model state", true));
         },
 
         _handle_status: function (msg, callbacks) {
@@ -259,9 +259,9 @@ define(["widgets/js/manager",
                 });
                 return Promise.all(unpacked);
             } else if (value instanceof Object) {
-                var unpacked = {};
+                unpacked = {};
                 _.each(value, function(sub_value, key) {
-                    unpacked[key] = that._unpack_models(sub_value)
+                    unpacked[key] = that._unpack_models(sub_value);
                 });
                 return utils.resolve_dict(unpacked);
             } else if (typeof value === 'string' && value.slice(0,10) === "IPY_MODEL_") {

@@ -78,13 +78,14 @@ define([
             var that = this;
             var dummy = $('<div/>');
             that.$box.append(dummy);
-            this.create_child_view(model).then(function(view) {
+            return this.create_child_view(model).then(function(view) {
                 dummy.replaceWith(view.el);
 
                 // Trigger the displayed event of the child view.
                 that.after_displayed(function() {
                     view.trigger('displayed');
                 });
+                return view;
             }, utils.reject("Couldn't add child view to box", true));
         },
     });

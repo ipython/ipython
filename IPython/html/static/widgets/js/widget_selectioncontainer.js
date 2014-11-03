@@ -116,7 +116,7 @@ define([
             
             var dummy = $('<div/>');
             accordion_inner.append(dummy);
-            this.create_child_view(model).then(function(view) {
+            return this.create_child_view(model).then(function(view) {
                 dummy.replaceWith(view.$el);
                 that.update();
                 that.update_titles();
@@ -125,7 +125,8 @@ define([
                 that.after_displayed(function() {
                     view.trigger('displayed');
                 });
-            }, $.proxy(console.error, console));
+                return view;
+            }, utils.reject("Couldn't add child view to box", true));
         },
     });
     
@@ -210,7 +211,7 @@ define([
                 .append(dummy)
                 .appendTo(that.$tab_contents);
 
-            this.create_child_view(model).then(function(view) {
+            return this.create_child_view(model).then(function(view) {
                 dummy.replaceWith(view.$el);
                 view.parent_tab = tab;
                 view.parent_container = contents_div;
@@ -219,7 +220,8 @@ define([
                 that.after_displayed(function() {
                     view.trigger('displayed');
                 });
-            }, $.proxy(console.error, console));
+                return view;
+            }, utils.reject("Couldn't add child view to box", true));
         },
 
         update: function(options) {
