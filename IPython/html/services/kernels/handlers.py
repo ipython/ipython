@@ -103,8 +103,8 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
         km = self.kernel_manager
         kernel = km.get_kernel(self.kernel_id)
         try:
-            # check for cached value
-            kernel_info = kernel._kernel_info
+            # check for previous request
+            future = kernel._kernel_info_future
         except AttributeError:
             self.log.debug("Requesting kernel info from %s", self.kernel_id)
             # Create a kernel_info channel to query the kernel protocol version.
@@ -113,9 +113,12 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
                 self.kernel_info_channel = km.connect_shell(self.kernel_id)
             self.kernel_info_channel.on_recv(self._handle_kernel_info_reply)
             self.session.send(self.kernel_info_channel, "kernel_info_request")
+            # store the future on the kernel, so only one request is sent
+            kernel._kernel_info_future = self._kernel_info_future
         else:
-            # use cached value, don't resend request
-            self._finish_kernel_info(kernel_info)
+            if not future.done():
+                self.log.debug("Waiting for pending kernel_info request")
+            future.add_done_callback(lambda f: self._finish_kernel_info(f.result()))
         return self._kernel_info_future
     
     def _handle_kernel_info_reply(self, msg):
@@ -128,16 +131,14 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
             msg = self.session.deserialize(msg)
         except:
             self.log.error("Bad kernel_info reply", exc_info=True)
-            self._kernel_info_future.set_result(None)
+            self._kernel_info_future.set_result({})
             return
         else:
             info = msg['content']
             self.log.debug("Received kernel info: %s", info)
             if msg['msg_type'] != 'kernel_info_reply' or 'protocol_version' not in info:
                 self.log.error("Kernel info request failed, assuming current %s", info)
-            else:
-                kernel = self.kernel_manager.get_kernel(self.kernel_id)
-                kernel._kernel_info = info
+                info = {}
             self._finish_kernel_info(info)
         
         # close the kernel_info channel, we don't need it anymore
@@ -179,7 +180,7 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
             if future.done():
                 return
             self.log.warn("Timeout waiting for kernel_info reply from %s", self.kernel_id)
-            future.set_result(None)
+            future.set_result({})
         loop = IOLoop.current()
         loop.add_timeout(loop.time() + self.kernel_info_timeout, give_up)
         # actually wait for it
