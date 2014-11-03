@@ -2115,7 +2115,7 @@ define([
         this.notebook_name = notebook_name;
         this.notebook_path = notebook_path;
         this.events.trigger('notebook_loading.Notebook');
-        this.contents.load_file(notebook_path, notebook_name, {
+        this.contents.load(notebook_path, notebook_name, {
             success: $.proxy(this.load_notebook_success, this),
             error: $.proxy(this.load_notebook_error, this)
         });

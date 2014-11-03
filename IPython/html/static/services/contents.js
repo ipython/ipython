@@ -77,7 +77,7 @@ define([
      * @param {Function} success
      * @param {Function} error
      */
-    Contents.prototype.load_file = function (path, name, options) {
+    Contents.prototype.load = function (path, name, options) {
         // We do the call with settings so we can set cache to false.
         var settings = {
             processData : false,
