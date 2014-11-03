@@ -91,6 +91,7 @@ define([
             // notebook's path.
             that.contents.new(that.notebook.notebook_path, null, {
                     ext: ".ipynb",
+                    extra_settings: {async: false},  // So we can open a new window afterwards
                     success: function (data) {
                         window.open(
                             utils.url_join_encode(
