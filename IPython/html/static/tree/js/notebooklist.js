@@ -145,7 +145,7 @@ define([
         this.contents.list_contents(that.notebook_path, {
             success: $.proxy(this.draw_notebook_list, this),
             error: function(error) {
-                that.draw_notebook_list([], "Server error: " + error.message);
+                that.draw_notebook_list({content: []}, "Server error: " + error.message);
             }
         });
     };
