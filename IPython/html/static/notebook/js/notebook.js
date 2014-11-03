@@ -2313,12 +2313,25 @@ define([
         var orig_nbformat = nbmodel.metadata.orig_nbformat;
         var orig_nbformat_minor = nbmodel.metadata.orig_nbformat_minor;
         if (orig_nbformat !== undefined && nbmodel.nbformat !== orig_nbformat) {
-            var msg = "This notebook has been converted from an older " +
-            "notebook format (v"+orig_nbformat+") to the current notebook " +
-            "format (v"+nbmodel.nbformat+"). The next time you save this notebook, the " +
-            "newer notebook format will be used and older versions of IPython " +
-            "may not be able to read it. To keep the older version, close the " +
-            "notebook without saving it.";
+            var src;
+            if (nb.nbformat > nb.orig_nbformat) {
+                src = " an older notebook format ";
+            } else {
+                src = " a newer notebook format ";
+            }
+            
+            var msg = "This notebook has been converted from" + src +
+            "(v"+nb.orig_nbformat+") to the current notebook " +
+            "format (v"+nb.nbformat+"). The next time you save this notebook, the " +
+            "current notebook format will be used.";
+            
+            if (nb.nbformat > nb.orig_nbformat) {
+                msg += " Older versions of IPython may not be able to read the new format.";
+            } else {
+                msg += " Some features of the original notebook may not be available.";
+            }
+            msg += " To preserve the original version, close the " +
+                "notebook without saving it.";
             dialog.modal({
                 notebook: this,
                 keyboard_manager: this.keyboard_manager,
@@ -2330,7 +2343,7 @@ define([
                     }
                 }
             });
-        } else if (orig_nbformat_minor !== undefined && nbmodel.nbformat_minor !== orig_nbformat_minor) {
+        } else if (orig_nbformat_minor !== undefined && nbmodel.nbformat_minor < orig_nbformat_minor) {
             var that = this;
             var orig_vs = 'v' + nbmodel.nbformat + '.' + orig_nbformat_minor;
             var this_vs = 'v' + nbmodel.nbformat + '.' + this.nbformat_minor;
