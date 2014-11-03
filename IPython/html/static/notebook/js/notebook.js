@@ -2432,7 +2432,7 @@ define([
         var that = this;
         this.contents.restore_checkpoint(this.notebook_path, this.notebook_name,
                                          checkpoint, {
-            success: $.proxy(this.create_checkpoint_success, this),
+            success: $.proxy(this.restore_checkpoint_success, this),
             error: function (error) {
                 that.events.trigger('checkpoint_restore_failed.Notebook');
             }
@@ -2460,7 +2460,7 @@ define([
         var that = this;
         this.contents.delete_checkpoint(this.notebook_path, this.notebook_name, 
                                         checkpoint, {
-            success: $.proxy(this.create_checkpoint_success, this),
+            success: $.proxy(this.delete_checkpoint_success, this),
             error: function (error) {
                 that.events.trigger('checkpoint_delete_failed.Notebook', error);
             }
