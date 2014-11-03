@@ -1918,7 +1918,7 @@ define([
         var start =  new Date().getTime();
 
         var that = this;
-        this.contents.save_file(this.notebook_path, this.notebook_name, model, {
+        this.contents.save(this.notebook_path, this.notebook_name, model, {
                 extra_settings: extra_settings,
                 success: $.proxy(this.save_notebook_success, this, start),
                 error: function (error) {
@@ -2040,7 +2040,7 @@ define([
 
     Notebook.prototype.copy_notebook = function(){
         var base_url = this.base_url;
-        this.contents.copy_file(this.notebook_path, null, this.notebook_name, {
+        this.contents.copy(this.notebook_path, null, this.notebook_name, {
             // synchronous so we can open a new window on success
             extra_settings: {async: false},
             success: function (data) {
@@ -2058,8 +2058,8 @@ define([
         }
 
         var that = this;
-        this.contents.rename_file(this.notebook_path, this.notebook_name,
-                                  this.notebook_path, new_name, {
+        this.contents.rename(this.notebook_path, this.notebook_name,
+                             this.notebook_path, new_name, {
             success: function (json) {
                 var name = that.notebook_name = json.name;
                 that.session.rename_notebook(name, json.path);
@@ -2070,7 +2070,7 @@ define([
     };
 
     Notebook.prototype.delete = function () {
-        this.contents.delete_file(this.notebook_name, this.notebook_path);
+        this.contents.delete(this.notebook_name, this.notebook_path);
     };
 
     Notebook.prototype.rename_error = function (error) {

@@ -330,7 +330,7 @@ define([
                         Delete : {
                             class: "btn-danger",
                             click: function() {
-                                notebooklist.contents.delete_file(name, path, {
+                                notebooklist.contents.delete(name, path, {
                                     success: function() {
                                         notebooklist.notebook_deleted(path, name);
                                     }

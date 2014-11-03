@@ -121,7 +121,7 @@ define([
         $.ajax(this.api_url(path), settings);
     };
 
-    Contents.prototype.delete_file = function(name, path, options) {
+    Contents.prototype.delete = function(name, path, options) {
         var error_callback = options.error || function() {};
         var that = this;
         var settings = {
@@ -142,7 +142,7 @@ define([
         $.ajax(url, settings);
     };
 
-    Contents.prototype.rename_file = function(path, name, new_path, new_name, options) {
+    Contents.prototype.rename = function(path, name, new_path, new_name, options) {
         var data = {name: new_name, path: new_path};
         var settings = {
             processData : false,
@@ -157,7 +157,7 @@ define([
         $.ajax(url, settings);
     };
 
-    Contents.prototype.save_file = function(path, name, model, options) {
+    Contents.prototype.save = function(path, name, model, options) {
         // We do the call with settings so we can set cache to false.
         var settings = {
             processData : false,
@@ -174,7 +174,7 @@ define([
         $.ajax(url, settings);
     };
     
-    Contents.prototype.copy_file = function(to_path, to_name, from, options) {
+    Contents.prototype.copy = function(to_path, to_name, from, options) {
         var url, method;
         if (to_name) {
             url = this.api_url(to_path, to_name);
