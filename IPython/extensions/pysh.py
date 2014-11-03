@@ -72,7 +72,8 @@ def unload_ipython_extension(ip):
     handlers = ip.prefilter_manager.handlers
     for handler_name, handler in handlers.items():
         if isinstance(handler, ShellHandler):
-            del handlers[handler_name]
+            break
+    del handlers[handler_name]
     checker_list = ip.prefilter_manager._checkers
     for tmp in checker_list:
         if isinstance(tmp, ShellChecker):
