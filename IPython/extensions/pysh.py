@@ -39,7 +39,11 @@ def have_alias(x):
           a) answers would have to be kept in sync with rehashx calls
           b) the alias list must be getting checked all the time anyway?
     """
-    blacklist = ['ed']
+    blacklist = [
+        'ed',   # posix line oriented, not as useful as ipython edit
+        'from', # posix mail tool, screws up python "from x import y"
+        'ip',   # often used as in ip=get_ipython()
+        ]
     if x in blacklist:
         return False
     else:

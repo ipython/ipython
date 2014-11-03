@@ -13,9 +13,13 @@ class TestPySh(object):
 
     def setup(self):
         ip.magic("alias ls ls")
+        ip.magic("alias from from")
         ip.magic("alias apt-get apt-get")
         self.checker, self.handler = load_ipython_extension(ip)
         self.pfm = ip.prefilter_manager
+
+    def teardown(self):
+        unload_ipython_extension(ip)
 
     def test_unload_inverts_load(self):
         unload_ipython_extension(ip)
@@ -24,7 +28,7 @@ class TestPySh(object):
             'oops, unload did not remove the pysh handler')
         nt.assert_false(
             self.checker in self.pfm.checkers,
-            'oops,unload did not remove the pysh checker')
+            'oops, unload did not remove the pysh checker')
 
     def test_handler_basic(self):
         expected = "get_ipython().system('ls')"
@@ -45,10 +49,15 @@ class TestPySh(object):
         err = 'pysh checker should not trigger on magic'
         nt.assert_equal(self.checker.check(LineInfo("%magic")), None, err)
 
-    def test_checker_special_cases(self):
-        err = "ed is reserved for ipython, system cmd should be ignored"
+    def test_checker_reserved(self):
+        err = "'ed' is reserved for ipython, system cmd should be ignored"
         actual = self.checker.check(LineInfo("ed"))
         nt.assert_equal(actual, None, err)
+        err = "'from' is reserved for ipython, system cmd should be ignored"
+        actual = self.checker.check(LineInfo("from"))
+        nt.assert_equal(actual, None, err)
+
+    def test_checker_special_cases(self):
         err = 'pysh checker should trigger on each of "~/."'
         actual = self.checker.check(LineInfo("~/bin/foo"))
         nt.assert_equal(actual, self.handler, err)
