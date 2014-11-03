@@ -606,7 +606,7 @@ define([
         });
     };
 
-    var load = function(class_name, module_name, registry) {
+    var load_class = function(class_name, module_name, registry) {
         // Tries to load a class
         //
         // Tries to load a class from a module using require.js, if a module 
@@ -618,8 +618,7 @@ define([
             if (module_name) {
                 require([module_name], function(module) {
                     if (module[class_name] === undefined) {
-                        console.error('Class '+class_name+' not found in module '+module_name)
-                        reject();
+                        reject(new Error('Class '+class_name+' not found in module '+module_name));
                     } else {
                         resolve(module[class_name]);
                     }
@@ -628,14 +627,18 @@ define([
                 if (registry && registry[class_name]) {
                     resolve(registry[class_name]);
                 } else {
-                    console.error('Class '+class_name+' not found in registry ', registry);
-                    reject();
+                    reject(new Error({
+                        message: 'Class '+class_name+' not found in registry ', 
+                        registry: registry
+                    }));
                 }
             }
         });
     };
 
     var resolve_dict = function(d) {
+        // Resolve a promiseful dictionary.
+        // Returns a single Promise.
         var keys = Object.keys(d);
         var values = [];
         keys.forEach(function(key) {
@@ -648,6 +651,46 @@ define([
             }
             return d;
         });
+    };
+
+    var WrappedError = function(message, error){
+        // Wrappable Error class
+
+        // The Error class doesn't actually act on `this`.  Instead it always
+        // returns a new instance of Error.  Here we capture that instance so we
+        // can apply it's properties to `this`.
+        var tmp = Error.apply(this, [message]);
+
+        // Copy the properties of the error over to this.
+        var properties = Object.getOwnPropertyNames(tmp);
+        for (var i = 0; i < properties.length; i++) {
+            this[properties[i]] = tmp[properties[i]];
+        }
+
+        // Keep a stack of the original error messages.
+        if (error instanceof WrappedError) {
+            this.error_stack = error.error_stack;
+        } else {
+            this.error_stack = [error];
+        }
+        this.error_stack.push(tmp);
+
+        return this;
+    };
+
+    WrappedError.prototype = Object.create(Error.prototype, {});
+
+    var reject = function(message, log) {
+        // Creates a wrappable Promise rejection function.
+        // 
+        // Creates a function that returns a Promise.reject with a new WrappedError
+        // that has the provided message and wraps the original error that 
+        // caused the promise to reject.
+        return function(error) { 
+            var wrapped_error = new WrappedError(message, error);
+            if (log) console.error(wrapped_error); 
+            return Promise.reject(wrapped_error); 
+        };
     };
 
     var utils = {
@@ -679,8 +722,10 @@ define([
         XHR_ERROR : XHR_ERROR,
         wrap_ajax_error : wrap_ajax_error,
         promising_ajax : promising_ajax,
-        load: load,
+        load_class: load_class,
         resolve_dict: resolve_dict,
+        WrappedError: WrappedError,
+        reject: reject,
     };
 
     // Backwards compatability.

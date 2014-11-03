@@ -48,26 +48,33 @@ define([
     //--------------------------------------------------------------------
     WidgetManager.prototype.display_view = function(msg, model) {
         // Displays a view for a particular model.
-        var cell = this.get_msg_cell(msg.parent_header.msg_id);
-        if (cell === null) {
-            console.log("Could not determine where the display" + 
-                " message was from.  Widget will not be displayed");
-        } else {
-            var dummy = null;
-            if (cell.widget_subarea) {
-                dummy = $('<div />');
-                cell.widget_subarea.append(dummy);
-            }
-
-            var that = this;
-            this.create_view(model, {cell: cell}).then(function(view) {
-                that._handle_display_view(view);
-                if (dummy) {
-                    dummy.replaceWith(view.$el);
+        return new Promise(function(resolve, reject) {
+            var cell = this.get_msg_cell(msg.parent_header.msg_id);
+            if (cell === null) {
+                reject(new Error("Could not determine where the display" + 
+                    " message was from.  Widget will not be displayed"));
+            } else {
+                var dummy = null;
+                if (cell.widget_subarea) {
+                    dummy = $('<div />');
+                    cell.widget_subarea.append(dummy);
                 }
-                view.trigger('displayed');
-            });
-        }
+
+                var that = this;
+                this.create_view(model, {cell: cell}).then(function(view) {
+                    that._handle_display_view(view);
+                    if (dummy) {
+                        dummy.replaceWith(view.$el);
+                    }
+                    view.trigger('displayed');
+                    resolve(view);
+                }, function(error) { 
+                    reject(new utils.WrappedError('Could not display view', error)); 
+                });
+            }
+        });
+
+        
     };
 
     WidgetManager.prototype._handle_display_view = function (view) {
@@ -79,7 +86,7 @@ define([
         
             if (view.additional_elements) {
                 for (var i = 0; i < view.additional_elements.length; i++) {
-                        this.keyboard_manager.register_events(view.additional_elements[i]);
+                    this.keyboard_manager.register_events(view.additional_elements[i]);
                 }
             } 
         }
@@ -87,7 +94,7 @@ define([
     
     WidgetManager.prototype.create_view = function(model, options) {
         // Creates a promise for a view of a given model
-        return utils.load(model.get('_view_name'), model.get('_view_module'),
+        return utils.load_class(model.get('_view_name'), model.get('_view_module'),
             WidgetManager._view_types).then(function(ViewType) {
 
                 // If a view is passed into the method, use that view's cell as
@@ -102,10 +109,7 @@ define([
                 view.listenTo(model, 'destroy', view.remove);
                 view.render();
                 return view;
-            }, function(error) {
-                console.error(error);
-                return Promise.reject(error);
-            });
+            }, utils.reject("Couldn't create a view for model id '" + String(model.id) + "'"));
     };
 
     WidgetManager.prototype.get_msg_cell = function (msg_id) {
@@ -177,7 +181,7 @@ define([
         this.create_model({
             model_name: msg.content.data.model_name, 
             model_module: msg.content.data.model_module, 
-            comm: comm});
+            comm: comm}).handle($.proxy(console.error, error));
     };
 
     WidgetManager.prototype.create_model = function (options) {
@@ -215,17 +219,18 @@ define([
 
         var that = this;
         var model_id = comm.comm_id;
-        var model_promise =  utils.load(options.model_name, options.model_module, WidgetManager._model_types)
+        var model_promise =  utils.load_class(options.model_name, options.model_module, WidgetManager._model_types)
             .then(function(ModelType) {
                 var widget_model = new ModelType(that, model_id, comm);
                 widget_model.once('comm:close', function () {
                     delete that._models[model_id];
                 });
                 return widget_model;
+
             }, function(error) {
                 delete that._models[model_id];
-                console.error(error);
-                return Promise.reject(error);
+                var wrapped_error = new utils.WrappedError("Couldn't create model", error);
+                return Promise.reject(wrapped_error);
             });
         this._models[model_id] = model_promise;
         return model_promise;

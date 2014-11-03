@@ -67,18 +67,21 @@ define([
         var content = msg.content;
         var that = this;
         
-        utils.load_class(content.target_name, content.target_module, this.targets)
-        .then(function(target) {
+        return utils.load_class(content.target_name, content.target_module, 
+            this.targets).then(function(target) {
+
             var comm = new Comm(content.target_name, content.comm_id);
             that.register_comm(comm);
             try {
                 target(comm, msg);
             } catch (e) {
-                console.log("Exception opening new comm:", e, e.stack, msg);
                 comm.close();
                 that.unregister_comm(comm);
+                var error = new utils.WrappedError("Exception opening new comm", e);
+                return Promise.reject(error);
             }
-        }, $.proxy(console.error, console));
+            return comm;
+        }, utils.reject('Could not open comm', true));
     };
     
     CommManager.prototype.comm_close = function (msg) {

@@ -4,8 +4,9 @@
 define([
     "widgets/js/widget",
     "jqueryui",
+    "base/js/utils",
     "bootstrap",
-], function(widget, $){
+], function(widget, $, utils){
 
     var BoxView = widget.DOMWidgetView.extend({
         initialize: function(){
@@ -84,7 +85,7 @@ define([
                 that.after_displayed(function() {
                     view.trigger('displayed');
                 });
-            });
+            }, utils.reject("Couldn't add child view to box", true));
         },
     });
 

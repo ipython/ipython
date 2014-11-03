@@ -322,7 +322,7 @@ define(["widgets/js/manager",
                 // Remember the view by id.
                 that.child_views[child_view.id] = child_view;
                 return child_view;
-            });
+            }, utils.reject("Couldn't create child view"));
         },
 
         pop_child_view: function(child_model) {
