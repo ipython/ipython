@@ -10,8 +10,9 @@ pjoin = os.path.join
 import requests
 import json
 
-from IPython.nbformat.current import (new_notebook, write, new_worksheet,
-                              new_heading_cell, new_code_cell,
+from IPython.nbformat import write
+from IPython.nbformat.v4 import (new_notebook,
+                              new_markdown_cell, new_code_cell,
                               new_output)
 
 from IPython.html.utils import url_path_join
@@ -62,18 +63,18 @@ class FilesTest(NotebookTestBase):
         nbdir = self.notebook_dir.name
         base = self.base_url()
 
-        nb = new_notebook(name='testnb')
-        
-        ws = new_worksheet()
-        nb.worksheets = [ws]
-        ws.cells.append(new_heading_cell(u'Created by test ³'))
-        cc1 = new_code_cell(input=u'print(2*6)')
-        cc1.outputs.append(new_output(output_text=u'12', output_type='stream'))
-        ws.cells.append(cc1)
+        nb = new_notebook(
+            cells=[
+                new_markdown_cell(u'Created by test ³'),
+                new_code_cell("print(2*6)", outputs=[
+                    new_output("stream", text="12"),
+                ])
+            ]
+        )
 
         with io.open(pjoin(nbdir, 'testnb.ipynb'), 'w', 
             encoding='utf-8') as f:
-            write(nb, f, format='ipynb')
+            write(nb, f, version=4)
 
         with io.open(pjoin(nbdir, 'test.bin'), 'wb') as f:
             f.write(b'\xff' + os.urandom(5))

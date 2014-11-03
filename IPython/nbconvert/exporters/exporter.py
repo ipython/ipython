@@ -2,39 +2,22 @@
 see templateexporter.py.
 """
 
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
-# Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 from __future__ import print_function, absolute_import
 
-# Stdlib imports
 import io
 import os
 import copy
 import collections
 import datetime
 
-
-# IPython imports
 from IPython.config.configurable import LoggingConfigurable
 from IPython.config import Config
-from IPython.nbformat import current as nbformat
+from IPython import nbformat
 from IPython.utils.traitlets import MetaHasTraits, Unicode, List
 from IPython.utils.importstring import import_item
 from IPython.utils import text, py3compat
 
-#-----------------------------------------------------------------------------
-# Class
-#-----------------------------------------------------------------------------
 
 class ResourcesDict(collections.defaultdict):
     def __missing__(self, key):
@@ -106,8 +89,8 @@ class Exporter(LoggingConfigurable):
 
         Parameters
         ----------
-        nb : :class:`~IPython.nbformat.current.NotebookNode`
-          Notebook node
+        nb : :class:`~IPython.nbformat.NotebookNode`
+          Notebook node (dict-like with attr-access)
         resources : dict
           Additional resources that can be accessed read/write by
           preprocessors and filters.
@@ -149,7 +132,7 @@ class Exporter(LoggingConfigurable):
         resources['metadata']['modified_date'] = modified_date.strftime(text.date_format)
 
         with io.open(filename, encoding='utf-8') as f:
-            return self.from_notebook_node(nbformat.read(f, 'json'), resources=resources, **kw)
+            return self.from_notebook_node(nbformat.read(f, as_version=4), resources=resources, **kw)
 
 
     def from_file(self, file_stream, resources=None, **kw):
@@ -161,7 +144,7 @@ class Exporter(LoggingConfigurable):
         file_stream : file-like object
             Notebook file-like object to convert.
         """
-        return self.from_notebook_node(nbformat.read(file_stream, 'json'), resources=resources, **kw)
+        return self.from_notebook_node(nbformat.read(file_stream, as_version=4), resources=resources, **kw)
 
 
     def register_preprocessor(self, preprocessor, enabled=False):

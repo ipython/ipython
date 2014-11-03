@@ -11,7 +11,8 @@ pjoin = os.path.join
 
 from IPython.html.utils import url_path_join
 from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
-from IPython.nbformat.current import new_notebook, write
+from IPython.nbformat.v4 import new_notebook
+from IPython.nbformat import write
 
 class SessionAPI(object):
     """Wrapper for notebook API calls."""
@@ -62,8 +63,8 @@ class SessionAPITest(NotebookTestBase):
 
         with io.open(pjoin(nbdir, 'foo', 'nb1.ipynb'), 'w',
                      encoding='utf-8') as f:
-            nb = new_notebook(name='nb1')
-            write(nb, f, format='ipynb')
+            nb = new_notebook()
+            write(nb, f, version=4)
 
         self.sess_api = SessionAPI(self.base_url())
 

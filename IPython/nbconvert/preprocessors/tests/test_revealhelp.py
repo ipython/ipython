@@ -3,7 +3,7 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from IPython.nbformat import current as nbformat
+from IPython.nbformat import v4 as nbformat
 
 from .base import PreprocessorTestsBase
 from ..revealhelp import RevealHelpPreprocessor
@@ -16,19 +16,18 @@ class Testrevealhelp(PreprocessorTestsBase):
         """Build a reveal slides notebook in memory for use with tests.
         Overrides base in PreprocessorTestsBase"""
 
-        outputs = [nbformat.new_output(output_type="stream", stream="stdout", output_text="a")]
+        outputs = [nbformat.new_output(output_type="stream", name="stdout", text="a")]
 
         slide_metadata = {'slideshow' : {'slide_type': 'slide'}}
         subslide_metadata = {'slideshow' : {'slide_type': 'subslide'}}
 
-        cells=[nbformat.new_code_cell(input="", prompt_number=1, outputs=outputs),
-               nbformat.new_text_cell('markdown', source="", metadata=slide_metadata),
-               nbformat.new_code_cell(input="", prompt_number=2, outputs=outputs),
-               nbformat.new_text_cell('markdown', source="", metadata=slide_metadata),
-               nbformat.new_text_cell('markdown', source="", metadata=subslide_metadata)]
-        worksheets = [nbformat.new_worksheet(cells=cells)]
+        cells=[nbformat.new_code_cell(source="", execution_count=1, outputs=outputs),
+               nbformat.new_markdown_cell(source="", metadata=slide_metadata),
+               nbformat.new_code_cell(source="", execution_count=2, outputs=outputs),
+               nbformat.new_markdown_cell(source="", metadata=slide_metadata),
+               nbformat.new_markdown_cell(source="", metadata=subslide_metadata)]
 
-        return nbformat.new_notebook(name="notebook1", worksheets=worksheets)
+        return nbformat.new_notebook(cells=cells)
 
 
     def build_preprocessor(self):
@@ -59,7 +58,7 @@ class Testrevealhelp(PreprocessorTestsBase):
         res = self.build_resources()
         preprocessor = self.build_preprocessor()
         nb, res = preprocessor(nb, res)
-        cells = nb.worksheets[0].cells
+        cells = nb.cells
         
         # Make sure correct metadata tags are available on every cell.
         for cell in cells:

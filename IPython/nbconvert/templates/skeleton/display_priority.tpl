@@ -4,37 +4,33 @@
 
 
 {%- block data_priority scoped -%}
-    {%- for type in output | filter_data_type -%}
-        {%- if type in ['application/pdf']%}
+    {%- for type in output.data | filter_data_type -%}
+        {%- if type == 'application/pdf' -%}
             {%- block data_pdf -%}
             {%- endblock -%}
-        {%- endif -%}
-        {%- if type in ['svg']%}
+        {%- elif type == 'image/svg+xml' -%}
             {%- block data_svg -%}
             {%- endblock -%}
-        {%- endif -%}
-        {%- if type in ['png']%}
+        {%- elif type == 'image/png' -%}
             {%- block data_png -%}
             {%- endblock -%}
-        {%- endif -%}
-        {%- if type in ['html']%}
+        {%- elif type == 'text/html' -%}
             {%- block data_html -%}
             {%- endblock -%}
-        {%- endif -%}
-        {%- if type in ['jpeg']%}
+        {%- elif type == 'image/jpeg' -%}
             {%- block data_jpg -%}
             {%- endblock -%}
-        {%- endif -%}
-        {%- if type in ['text']%}
+        {%- elif type == 'text/plain' -%}
             {%- block data_text -%}
             {%- endblock -%}
-        {%- endif -%}
-        {%- if type in ['latex']%}
+        {%- elif type == 'text/latex' -%}
             {%- block data_latex -%}
             {%- endblock -%}
-        {%- endif -%}
-        {%- if type in ['javascript']%}
+        {%- elif type == 'application/javascript' -%}
             {%- block data_javascript -%}
+            {%- endblock -%}
+        {%- else -%}
+            {%- block data_other -%}
             {%- endblock -%}
         {%- endif -%}
     {%- endfor -%}

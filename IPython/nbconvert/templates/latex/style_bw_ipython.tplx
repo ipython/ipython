@@ -7,7 +7,7 @@
 %===============================================================================
 
 ((* block input scoped *))
-((( add_prompt(cell.input, cell, 'In ') )))
+((( add_prompt(cell.source, cell, 'In ') )))
 ((* endblock input *))
 
 
@@ -15,15 +15,15 @@
 % Output
 %===============================================================================
 
-((* block pyout scoped *))
-    ((*- for type in output | filter_data_type -*))
-        ((*- if type in ['text']*))
-((( add_prompt(output.text, cell, 'Out') )))
+((* block execute_result scoped *))
+    ((*- for type in output.data | filter_data_type -*))
+        ((*- if type in ['text/plain']*))
+((( add_prompt(output.data['text/plain'], cell, 'Out') )))
         ((*- else -*))
-\verb+Out[((( cell.prompt_number )))]:+((( super() )))
+\verb+Out[((( cell.execution_count )))]:+((( super() )))
         ((*- endif -*))
     ((*- endfor -*))
-((* endblock pyout *))
+((* endblock execute_result *))
 
 
 %==============================================================================
@@ -33,13 +33,13 @@
 % Name: draw_prompt
 % Purpose: Renders an output/input prompt
 ((* macro add_prompt(text, cell, prompt) -*))
-    ((*- if cell.prompt_number is defined -*))
-    ((*- set prompt_number = "" ~ (cell.prompt_number | replace(None, " ")) -*))
+    ((*- if cell.execution_count is defined -*))
+    ((*- set execution_count = "" ~ (cell.execution_count | replace(None, " ")) -*))
     ((*- else -*))
-    ((*- set prompt_number = " " -*))
+    ((*- set execution_count = " " -*))
     ((*- endif -*))
-    ((*- set indentation = " " * (prompt_number | length + 7) -*))
+    ((*- set indentation = " " * (execution_count | length + 7) -*))
 \begin{verbatim}
-(((- text | add_prompts(first=prompt ~ '[' ~ prompt_number ~ ']: ', cont=indentation) -)))
+(((- text | add_prompts(first=prompt ~ '[' ~ execution_count ~ ']: ', cont=indentation) -)))
 \end{verbatim}
 ((*- endmacro *))

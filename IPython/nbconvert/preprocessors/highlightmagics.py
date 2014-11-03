@@ -4,17 +4,8 @@ so that the appropriate highlighter can be used in the `highlight`
 filter.
 """
 
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
+# Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 from __future__ import print_function, absolute_import
 
@@ -23,10 +14,6 @@ import re
 # Our own imports
 from .base import Preprocessor
 from IPython.utils.traitlets import Dict
-
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
 
 
 class HighlightMagicsPreprocessor(Preprocessor):
@@ -106,8 +93,8 @@ class HighlightMagicsPreprocessor(Preprocessor):
         """
 
         # Only tag code cells
-        if hasattr(cell, "input") and cell.cell_type == "code":
-            magic_language = self.which_magic_language(cell.input)
+        if cell.cell_type == "code":
+            magic_language = self.which_magic_language(cell.source)
             if magic_language:
                 cell['metadata']['magics_language'] = magic_language
         return cell, resources

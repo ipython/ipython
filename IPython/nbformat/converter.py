@@ -1,26 +1,11 @@
-"""API for converting notebooks between versions.
+"""API for converting notebooks between versions."""
 
-Authors:
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-* Jonathan Frederic
-"""
+from . import versions
+from .reader import get_version
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
-from .reader import get_version, versions
-
-#-----------------------------------------------------------------------------
-# Functions
-#-----------------------------------------------------------------------------
 
 def convert(nb, to_version):
     """Convert a notebook node object to a specific version.  Assumes that
@@ -40,7 +25,7 @@ def convert(nb, to_version):
     # Get input notebook version.
     (version, version_minor) = get_version(nb)
 
-    # Check if destination is current version, if so return contents
+    # Check if destination is target version, if so return contents
     if version == to_version:
         return nb
 
@@ -60,11 +45,10 @@ def convert(nb, to_version):
         # Convert and make sure version changed during conversion.
         converted = convert_function(nb)
         if converted.get('nbformat', 1) == version:
-            raise Exception("Cannot convert notebook from v%d to v%d.  Operation" \
-                "failed silently." % (version, step_version))
+            raise ValueError("Failed to convert notebook from v%d to v%d." % (version, step_version))
 
         # Recursively convert until target version is reached.
         return convert(converted, to_version)
     else:
-        raise Exception("Cannot convert notebook to v%d because that " \
+        raise ValueError("Cannot convert notebook to v%d because that " \
                         "version doesn't exist" % (to_version))

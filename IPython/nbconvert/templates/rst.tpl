@@ -8,28 +8,28 @@
 {% endblock output_prompt %}
 
 {% block input %}
-{%- if cell.input.strip() -%}
+{%- if cell.source.strip() -%}
 .. code:: python
 
-{{ cell.input | indent}}
+{{ cell.source | indent}}
 {%- endif -%}
 {% endblock input %}
 
-{% block pyerr %}
+{% block error %}
 ::
 
 {{ super() }}
-{% endblock pyerr %}
+{% endblock error %}
 
 {% block traceback_line %}
 {{ line | indent | strip_ansi }}
 {% endblock traceback_line %}
 
-{% block pyout %}
+{% block execute_result %}
 {% block data_priority scoped %}
 {{ super() }}
 {% endblock %}
-{% endblock pyout %}
+{% endblock execute_result %}
 
 {% block stream %}
 .. parsed-literal::
@@ -38,33 +38,33 @@
 {% endblock stream %}
 
 {% block data_svg %}
-.. image:: {{ output.svg_filename|urlencode }}
+.. image:: {{ output.metadata.filenames['image/svg+xml'] | urlencode }}
 {% endblock data_svg %}
 
 {% block data_png %}
-.. image:: {{ output.png_filename|urlencode }}
+.. image:: {{ output.metadata.filenames['image/png'] | urlencode }}
 {% endblock data_png %}
 
 {% block data_jpg %}
-.. image:: {{ output.jpeg_filename|urlencode }}
+.. image:: {{ output.metadata.filenames['image/jpeg'] | urlencode }}
 {% endblock data_jpg %}
 
 {% block data_latex %}
 .. math::
 
-{{ output.latex | strip_dollars | indent }}
+{{ output.data['text/latex'] | strip_dollars | indent }}
 {% endblock data_latex %}
 
 {% block data_text scoped %}
 .. parsed-literal::
 
-{{ output.text | indent }}
+{{ output.data['text/plain'] | indent }}
 {% endblock data_text %}
 
 {% block data_html scoped %}
 .. raw:: html
 
-{{ output.html | indent }}
+{{ output.data['text/html'] | indent }}
 {% endblock data_html %}
 
 {% block markdowncell scoped %}

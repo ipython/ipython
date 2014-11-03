@@ -67,7 +67,7 @@ class LatexExporter(TemplateExporter):
     def default_config(self):
         c = Config({
             'NbConvertBase': {
-                'display_data_priority' : ['latex', 'application/pdf', 'png', 'jpg', 'svg', 'jpeg', 'text']
+                'display_data_priority' : ['text/latex', 'application/pdf', 'image/png', 'image/jpeg', 'image/svg+xml', 'text/plain']
                 },
              'ExtractOutputPreprocessor': {
                     'enabled':True

@@ -54,6 +54,10 @@ def new_output(output_type, output_text=None, output_png=None,
     if not isinstance(metadata, dict):
         raise TypeError("metadata must be dict")
 
+
+    if output_type in {u'pyout', 'display_data'}:
+        output.metadata = metadata
+
     if output_type != 'pyerr':
         if output_text is not None:
             output.text = cast_unicode(output_text)
@@ -86,8 +90,6 @@ def new_output(output_type, output_text=None, output_png=None,
 
     if output_type == u'stream':
         output.stream = 'stdout' if stream is None else cast_unicode(stream)
-    else:
-        output.metadata = metadata
     
     return output
 

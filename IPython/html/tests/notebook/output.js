@@ -29,7 +29,7 @@ casper.notebook_test(function () {
                 var ex = expected[i];
                 this.test.assertEquals(r.output_type, ex.output_type, "output  " + i);
                 if (r.output_type === 'stream') {
-                    this.test.assertEquals(r.stream, ex.stream, "stream  " + i);
+                    this.test.assertEquals(r.name, ex.name, "stream  " + i);
                     this.test.assertEquals(r.text, ex.text, "content " + i);
                 }
             }
@@ -57,7 +57,7 @@ casper.notebook_test(function () {
         "print(3)"
         ].join("\n"), [{
             output_type: "stream",
-            stream: "stdout",
+            name: "stdout",
             text: "1\n2\n3\n"
         }]
     );
@@ -69,11 +69,11 @@ casper.notebook_test(function () {
         "print(3, file=sys.stderr)"
         ].join("\n"), [{
             output_type: "stream",
-            stream: "stdout",
+            name: "stdout",
             text: "1\n2\n"
         },{
             output_type: "stream",
-            stream: "stderr",
+            name: "stderr",
             text: "3\n"
         }]
     );
@@ -85,13 +85,13 @@ casper.notebook_test(function () {
         "print(3)"
         ].join("\n"), [{
             output_type: "stream",
-            stream: "stdout",
+            name: "stdout",
             text: "1\n"
         },{
             output_type: "display_data",
         },{
             output_type: "stream",
-            stream: "stdout",
+            name: "stdout",
             text: "3\n"
         }]
     );

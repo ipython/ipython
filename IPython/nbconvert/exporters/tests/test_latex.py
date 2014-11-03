@@ -9,7 +9,8 @@ import re
 
 from .base import ExportersTestsBase
 from ..latex import LatexExporter
-from IPython.nbformat import current
+from IPython.nbformat import write
+from IPython.nbformat import v4
 from IPython.testing.decorators import onlyif_cmds_exist
 from IPython.utils.tempdir import TemporaryDirectory
 
@@ -85,20 +86,18 @@ class TestLatexExporter(ExportersTestsBase):
         large_lorem_ipsum_text = "".join([lorem_ipsum_text]*3000)
 
         notebook_name = "lorem_ipsum_long.ipynb"
-        nb = current.new_notebook(
-            worksheets=[
-                current.new_worksheet(cells=[
-                    current.new_text_cell('markdown',source=large_lorem_ipsum_text)
-                ])
+        nb = v4.new_notebook(
+            cells=[
+                    v4.new_markdown_cell(source=large_lorem_ipsum_text)
             ]
         )
 
         with TemporaryDirectory() as td:
             nbfile = os.path.join(td, notebook_name)
             with open(nbfile, 'w') as f:
-                current.write(nb, f, 'ipynb')
+                write(nb, f, 4)
 
-            (output, resources) = LatexExporter(template_file='article').from_filename(nbfile)            
+            (output, resources) = LatexExporter(template_file='article').from_filename(nbfile)
             assert len(output) > 0
 
     @onlyif_cmds_exist('pandoc')

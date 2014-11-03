@@ -8,23 +8,23 @@
 {%- endblock output_prompt %}
 
 {% block input %}
-{{ cell.input | indent(4)}}
+{{ cell.source | indent(4)}}
 {% endblock input %}
 
-{% block pyerr %}
+{% block error %}
 {{ super() }}
-{% endblock pyerr %}
+{% endblock error %}
 
 {% block traceback_line %}
 {{ line | indent | strip_ansi }}
 {% endblock traceback_line %}
 
-{% block pyout %}
+{% block execute_result %}
 
 {% block data_priority scoped %}
 {{ super() }}
 {% endblock %}
-{% endblock pyout %}
+{% endblock execute_result %}
 
 {% block stream %}
 {{ output.text | indent }}
@@ -35,33 +35,28 @@
 {% endblock data_svg %}
 
 {% block data_png %}
-![png]({{ output.png_filename | path2url }})
+![png]({{ output.metadata.filenames['image/png'] | path2url }})
 {% endblock data_png %}
 
 {% block data_jpg %}
-![jpeg]({{ output.jpeg_filename | path2url }})
+![jpeg]({{ output.metadata.filenames['image/jpeg'] | path2url }})
 {% endblock data_jpg %}
 
 {% block data_latex %}
-{{ output.latex }}
+{{ output.data['text/latex'] }}
 {% endblock data_latex %}
 
 {% block data_html scoped %}
-{{ output.html }}
+{{ output.data['text/html'] }}
 {% endblock data_html %}
 
 {% block data_text scoped %}
-{{ output.text | indent }}
+{{ output.data['text/plain'] | indent }}
 {% endblock data_text %}
 
 {% block markdowncell scoped %}
 {{ cell.source }}
 {% endblock markdowncell %}
-
-
-{% block headingcell scoped %}
-{{ '#' * cell.level }} {{ cell.source | replace('\n', ' ') }}
-{% endblock headingcell %}
 
 {% block unknowncell scoped %}
 unknown type  {{ cell.type }}

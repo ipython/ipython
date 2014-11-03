@@ -1,29 +1,14 @@
-"""
-Module with tests for the svg2pdf preprocessor
-"""
+"""Tests for the svg2pdf preprocessor"""
 
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
+# Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 from IPython.testing import decorators as dec
-from IPython.nbformat import current as nbformat
+from IPython.nbformat import v4 as nbformat
 
 from .base import PreprocessorTestsBase
 from ..svg2pdf import SVG2PDFPreprocessor
 
-
-#-----------------------------------------------------------------------------
-# Class
-#-----------------------------------------------------------------------------
 
 class Testsvg2pdf(PreprocessorTestsBase):
     """Contains test functions for svg2pdf.py"""
@@ -54,18 +39,17 @@ class Testsvg2pdf(PreprocessorTestsBase):
 </svg>"""
 
     def build_notebook(self):
-        """Build a reveal slides notebook in memory for use with tests.  
+        """Build a reveal slides notebook in memory for use with tests.
         Overrides base in PreprocessorTestsBase"""
 
-        outputs = [nbformat.new_output(output_type="svg", output_svg=self.simple_svg)]
+        outputs = [nbformat.new_output(output_type="image/svg+xml", output_svg=self.simple_svg)]
         
         slide_metadata = {'slideshow' : {'slide_type': 'slide'}}
         subslide_metadata = {'slideshow' : {'slide_type': 'subslide'}}
 
-        cells=[nbformat.new_code_cell(input="", prompt_number=1, outputs=outputs)]
-        worksheets = [nbformat.new_worksheet(name="worksheet1", cells=cells)]
+        cells=[nbformat.new_code_cell(source="", execution_count=1, outputs=outputs)]
 
-        return nbformat.new_notebook(name="notebook1", worksheets=worksheets)
+        return nbformat.new_notebook(cells=cells)
 
 
     def build_preprocessor(self):
@@ -87,4 +71,4 @@ class Testsvg2pdf(PreprocessorTestsBase):
         res = self.build_resources()
         preprocessor = self.build_preprocessor()
         nb, res = preprocessor(nb, res)
-        assert 'svg' in nb.worksheets[0].cells[0].outputs[0]
+        self.assertIn('application/pdf', nb.cells[0].outputs[0])

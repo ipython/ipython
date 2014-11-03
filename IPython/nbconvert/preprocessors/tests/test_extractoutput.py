@@ -1,43 +1,25 @@
-"""
-Module with tests for the extractoutput preprocessor
-"""
+"""Tests for the extractoutput preprocessor"""
 
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
+# Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 from .base import PreprocessorTestsBase
 from ..extractoutput import ExtractOutputPreprocessor
 
 
-#-----------------------------------------------------------------------------
-# Class
-#-----------------------------------------------------------------------------
-
 class TestExtractOutput(PreprocessorTestsBase):
     """Contains test functions for extractoutput.py"""
-
 
     def build_preprocessor(self):
         """Make an instance of a preprocessor"""
         preprocessor = ExtractOutputPreprocessor()
-        preprocessor.extract_output_types = {'text', 'png', 'application/pdf'}
+        preprocessor.extract_output_types = {'text/plain', 'image/png', 'application/pdf'}
         preprocessor.enabled = True
         return preprocessor
-
 
     def test_constructor(self):
         """Can a ExtractOutputPreprocessor be constructed?"""
         self.build_preprocessor()
-    
 
     def test_output(self):
         """Test the output of the ExtractOutputPreprocessor"""
@@ -45,30 +27,32 @@ class TestExtractOutput(PreprocessorTestsBase):
         res = self.build_resources()
         preprocessor = self.build_preprocessor()
         nb, res = preprocessor(nb, res)
-
         # Check if text was extracted.
-        output = nb.worksheets[0].cells[0].outputs[1]
-        assert 'text_filename' in output
-        text_filename = output['text_filename']
+        output = nb.cells[0].outputs[1]
+        self.assertIn('filenames', output.metadata)
+        self.assertIn('text/plain', output.metadata.filenames)
+        text_filename = output.metadata.filenames['text/plain']
 
         # Check if png was extracted.
-        output = nb.worksheets[0].cells[0].outputs[6]
-        assert 'png_filename' in output
-        png_filename = output['png_filename']
+        output = nb.cells[0].outputs[6]
+        self.assertIn('filenames', output.metadata)
+        self.assertIn('image/png', output.metadata.filenames)
+        png_filename = output.metadata.filenames['image/png']
         
         # Check that pdf was extracted
-        output = nb.worksheets[0].cells[0].outputs[7]
-        assert 'application/pdf_filename' in output
-        pdf_filename = output['application/pdf_filename']
+        output = nb.cells[0].outputs[7]
+        self.assertIn('filenames', output.metadata)
+        self.assertIn('application/pdf', output.metadata.filenames)
+        pdf_filename = output.metadata.filenames['application/pdf']
 
         # Verify text output
-        assert text_filename in res['outputs']
+        self.assertIn(text_filename, res['outputs'])
         self.assertEqual(res['outputs'][text_filename], b'b')
 
         # Verify png output
-        assert png_filename in res['outputs']
+        self.assertIn(png_filename, res['outputs'])
         self.assertEqual(res['outputs'][png_filename], b'g')
 
         # Verify pdf output
-        assert pdf_filename in res['outputs']
+        self.assertIn(pdf_filename, res['outputs'])
         self.assertEqual(res['outputs'][pdf_filename], b'h')

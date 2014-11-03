@@ -1,25 +1,12 @@
-"""Implementation of basic magic functions.
-"""
-#-----------------------------------------------------------------------------
-#  Copyright (c) 2012 The IPython Development Team.
-#
-#  Distributed under the terms of the Modified BSD License.
-#
-#  The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+"""Implementation of basic magic functions."""
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 from __future__ import print_function
 
-# Stdlib
 import io
 import json
 import sys
 from pprint import pformat
 
-# Our own packages
 from IPython.core import magic_arguments, page
 from IPython.core.error import UsageError
 from IPython.core.magic import Magics, magics_class, line_magic, magic_escapes
@@ -30,9 +17,6 @@ from IPython.utils.path import unquote_filename
 from IPython.utils.py3compat import unicode_type
 from IPython.utils.warn import warn, error
 
-#-----------------------------------------------------------------------------
-# Magics class implementation
-#-----------------------------------------------------------------------------
 
 class MagicsDisplay(object):
     def __init__(self, magics_manager):
@@ -599,13 +583,6 @@ Defaulting color scheme to 'NoColor'"""
              'file extension will write the notebook as a Python script'
     )
     @magic_arguments.argument(
-        '-f', '--format',
-        help='Convert an existing IPython notebook to a new format. This option '
-             'specifies the new format and can have the values: json, py. '
-             'The target filename is chosen automatically based on the new '
-             'format. The filename argument gives the name of the source file.'
-    )
-    @magic_arguments.argument(
         'filename', type=unicode_type,
         help='Notebook name or filename'
     )
@@ -613,41 +590,22 @@ Defaulting color scheme to 'NoColor'"""
     def notebook(self, s):
         """Export and convert IPython notebooks.
 
-        This function can export the current IPython history to a notebook file
-        or can convert an existing notebook file into a different format. For
-        example, to export the history to "foo.ipynb" do "%notebook -e foo.ipynb".
-        To export the history to "foo.py" do "%notebook -e foo.py". To convert
-        "foo.ipynb" to "foo.json" do "%notebook -f json foo.ipynb". Possible
-        formats include (json/ipynb, py).
+        This function can export the current IPython history to a notebook file.
+        For example, to export the history to "foo.ipynb" do "%notebook -e foo.ipynb".
+        To export the history to "foo.py" do "%notebook -e foo.py".
         """
         args = magic_arguments.parse_argstring(self.notebook, s)
 
-        from IPython.nbformat import current
+        from IPython.nbformat import write, v4
         args.filename = unquote_filename(args.filename)
         if args.export:
-            fname, name, format = current.parse_filename(args.filename)
             cells = []
             hist = list(self.shell.history_manager.get_range())
-            for session, prompt_number, input in hist[:-1]:
-                cells.append(current.new_code_cell(prompt_number=prompt_number,
-                                                   input=input))
-            worksheet = current.new_worksheet(cells=cells)
-            nb = current.new_notebook(name=name,worksheets=[worksheet])
-            with io.open(fname, 'w', encoding='utf-8') as f:
-                current.write(nb, f, format);
-        elif args.format is not None:
-            old_fname, old_name, old_format = current.parse_filename(args.filename)
-            new_format = args.format
-            if new_format == u'xml':
-                raise ValueError('Notebooks cannot be written as xml.')
-            elif new_format == u'ipynb' or new_format == u'json':
-                new_fname = old_name + u'.ipynb'
-                new_format = u'json'
-            elif new_format == u'py':
-                new_fname = old_name + u'.py'
-            else:
-                raise ValueError('Invalid notebook format: %s' % new_format)
-            with io.open(old_fname, 'r', encoding='utf-8') as f:
-                nb = current.read(f, old_format)
-            with io.open(new_fname, 'w', encoding='utf-8') as f:
-                current.write(nb, f, new_format)
+            for session, execution_count, input in hist[:-1]:
+                cells.append(v4.new_code_cell(
+                    execution_count=execution_count,
+                    source=source
+                ))
+            nb = v4.new_notebook(cells=cells)
+            with io.open(args.filename, 'w', encoding='utf-8') as f:
+                write(nb, f, version=4)

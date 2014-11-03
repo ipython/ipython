@@ -121,10 +121,8 @@ define([
         this.autosave_timer = null;
         // autosave *at most* every two minutes
         this.minimum_autosave_interval = 120000;
-        // single worksheet for now
-        this.worksheet_metadata = {};
         this.notebook_name_blacklist_re = /[\/\\:]/;
-        this.nbformat = 3; // Increment this when changing the nbformat
+        this.nbformat = 4; // Increment this when changing the nbformat
         this.nbformat_minor = 0; // Increment this when changing the nbformat
         this.codemirror_mode = 'ipython';
         this.create_elements();
@@ -826,7 +824,7 @@ define([
      * Index will be brought back into the accessible range [0,n]
      *
      * @method insert_cell_at_index
-     * @param [type] {string} in ['code','markdown','heading'], defaults to 'code'
+     * @param [type] {string} in ['code','markdown', 'raw'], defaults to 'code'
      * @param [index] {int} a valid index where to insert cell
      *
      * @return cell {cell|null} created cell or null
@@ -862,15 +860,19 @@ define([
                 notebook: this,
                 tooltip: this.tooltip,
             };
-            if (type === 'code') {
+            switch(type) {
+            case 'code':
                 cell = new codecell.CodeCell(this.kernel, cell_options);
                 cell.set_input_prompt();
-            } else if (type === 'markdown') {
+                break;
+            case 'markdown':
                 cell = new textcell.MarkdownCell(cell_options);
-            } else if (type === 'raw') {
+                break;
+            case 'raw':
                 cell = new textcell.RawCell(cell_options);
-            } else if (type === 'heading') {
-                cell = new textcell.HeadingCell(cell_options);
+                break;
+            default:
+                console.log("invalid cell type: ", type);
             }
 
             if(this._insert_element_at_index(cell.element,index)) {
@@ -1092,10 +1094,10 @@ define([
         if (this.is_valid_cell_index(i)) {
             var source_cell = this.get_cell(i);
             var target_cell = null;
-            if (source_cell instanceof textcell.HeadingCell) {
-                source_cell.set_level(level);
+            if (source_cell instanceof textcell.MarkdownCell) {
+                source_cell.set_heading_level(level);
             } else {
-                target_cell = this.insert_cell_below('heading',i);
+                target_cell = this.insert_cell_below('markdown',i);
                 var text = source_cell.get_text();
                 if (text === source_cell.placeholder) {
                     text = '';
@@ -1103,9 +1105,9 @@ define([
                 //metadata
                 target_cell.metadata = source_cell.metadata;
                 // We must show the editor before setting its contents
-                target_cell.set_level(level);
                 target_cell.unrender();
                 target_cell.set_text(text);
+                target_cell.set_heading_level(level);
                 // make this value the starting point, so that we can only undo
                 // to this state, instead of a blank cell
                 target_cell.code_mirror.clearHistory();
@@ -1119,7 +1121,7 @@ define([
             }
             this.set_dirty(true);
             this.events.trigger('selected_cell_type_changed.Notebook',
-                {'cell_type':'heading',level:level}
+                {'cell_type':'markdown',level:level}
             );
         }
     };
@@ -1528,8 +1530,8 @@ define([
         }
         this.codemirror_mode = newmode;
         codecell.CodeCell.options_default.cm_config.mode = newmode;
-        modename = newmode.mode || newmode.name || newmode
-
+        modename = newmode.mode || newmode.name || newmode;
+        
         that = this;
         utils.requireCodeMirrorMode(modename, function () {
             $.map(that.get_cells(), function(cell, i) {
@@ -1541,7 +1543,7 @@ define([
                     cell.cm_config.mode = newmode;
                 }
             });
-        })
+        });
     };
 
     // Session related things
@@ -1785,8 +1787,6 @@ define([
     /**
      * Load a notebook from JSON (.ipynb).
      * 
-     * This currently handles one worksheet: others are deleted.
-     * 
      * @method fromJSON
      * @param {Object} data JSON representation of a notebook
      */
@@ -1818,49 +1818,21 @@ define([
             this.set_codemirror_mode(cm_mode);
         }
         
-        // Only handle 1 worksheet for now.
-        var worksheet = content.worksheets[0];
-        if (worksheet !== undefined) {
-            if (worksheet.metadata) {
-                this.worksheet_metadata = worksheet.metadata;
-            }
-            var new_cells = worksheet.cells;
-            ncells = new_cells.length;
-            var cell_data = null;
-            var new_cell = null;
-            for (i=0; i<ncells; i++) {
-                cell_data = new_cells[i];
-                // VERSIONHACK: plaintext -> raw
-                // handle never-released plaintext name for raw cells
-                if (cell_data.cell_type === 'plaintext'){
-                    cell_data.cell_type = 'raw';
-                }
-
-                new_cell = this.insert_cell_at_index(cell_data.cell_type, i);
-                new_cell.fromJSON(cell_data);
-                if (new_cell.cell_type == 'code' && !new_cell.output_area.trusted) {
-                    trusted = false;
-                }
+        var new_cells = content.cells;
+        ncells = new_cells.length;
+        var cell_data = null;
+        var new_cell = null;
+        for (i=0; i<ncells; i++) {
+            cell_data = new_cells[i];
+            new_cell = this.insert_cell_at_index(cell_data.cell_type, i);
+            new_cell.fromJSON(cell_data);
+            if (new_cell.cell_type == 'code' && !new_cell.output_area.trusted) {
+                trusted = false;
             }
         }
         if (trusted !== this.trusted) {
             this.trusted = trusted;
             this.events.trigger("trust_changed.Notebook", trusted);
-        }
-        if (content.worksheets.length > 1) {
-            dialog.modal({
-                notebook: this,
-                keyboard_manager: this.keyboard_manager,
-                title : "Multiple worksheets",
-                body : "This notebook has " + data.worksheets.length + " worksheets, " +
-                    "but this version of IPython can only handle the first.  " +
-                    "If you save this notebook, worksheets after the first will be lost.",
-                buttons : {
-                    OK : {
-                        class : "btn-danger"
-                    }
-                }
-            });
         }
     };
 
@@ -1871,6 +1843,10 @@ define([
      * @return {Object} A JSON-friendly representation of this notebook.
      */
     Notebook.prototype.toJSON = function () {
+        // remove the conversion indicator, which only belongs in-memory
+        delete this.metadata.orig_nbformat;
+        delete this.metadata.orig_nbformat_minor;
+
         var cells = this.get_cells();
         var ncells = cells.length;
         var cell_array = new Array(ncells);
@@ -1883,11 +1859,7 @@ define([
             cell_array[i] = cell.toJSON();
         }
         var data = {
-            // Only handle 1 worksheet for now.
-            worksheets : [{
-                cells: cell_array,
-                metadata: this.worksheet_metadata
-            }],
+            cells: cell_array,
             metadata : this.metadata
         };
         if (trusted != this.trusted) {
@@ -2337,10 +2309,13 @@ define([
         }
         this.set_dirty(false);
         this.scroll_to_top();
-        if (data.orig_nbformat !== undefined && data.nbformat !== data.orig_nbformat) {
+        var nbmodel = data.content;
+        var orig_nbformat = nbmodel.metadata.orig_nbformat;
+        var orig_nbformat_minor = nbmodel.metadata.orig_nbformat_minor;
+        if (orig_nbformat !== undefined && nbmodel.nbformat !== orig_nbformat) {
             var msg = "This notebook has been converted from an older " +
-            "notebook format (v"+data.orig_nbformat+") to the current notebook " +
-            "format (v"+data.nbformat+"). The next time you save this notebook, the " +
+            "notebook format (v"+orig_nbformat+") to the current notebook " +
+            "format (v"+nbmodel.nbformat+"). The next time you save this notebook, the " +
             "newer notebook format will be used and older versions of IPython " +
             "may not be able to read it. To keep the older version, close the " +
             "notebook without saving it.";
@@ -2355,10 +2330,10 @@ define([
                     }
                 }
             });
-        } else if (data.orig_nbformat_minor !== undefined && data.nbformat_minor !== data.orig_nbformat_minor) {
+        } else if (orig_nbformat_minor !== undefined && nbmodel.nbformat_minor !== orig_nbformat_minor) {
             var that = this;
-            var orig_vs = 'v' + data.nbformat + '.' + data.orig_nbformat_minor;
-            var this_vs = 'v' + data.nbformat + '.' + this.nbformat_minor;
+            var orig_vs = 'v' + nbmodel.nbformat + '.' + orig_nbformat_minor;
+            var this_vs = 'v' + nbmodel.nbformat + '.' + this.nbformat_minor;
             var msg = "This notebook is version " + orig_vs + ", but we only fully support up to " +
             this_vs + ".  You can still work with this notebook, but some features " +
             "introduced in later notebook versions may not be available.";
@@ -2412,13 +2387,13 @@ define([
     Notebook.prototype.load_notebook_error = function (xhr, status, error) {
         this.events.trigger('notebook_load_failed.Notebook', [xhr, status, error]);
         utils.log_ajax_error(xhr, status, error);
-        var msg;
+        var msg = $("<div>");
         if (xhr.status === 400) {
-            msg = escape(utils.ajax_error_msg(xhr));
+            msg.text(utils.ajax_error_msg(xhr));
         } else if (xhr.status === 500) {
-            msg = "An unknown error occurred while loading this notebook. " +
+            msg.text("An unknown error occurred while loading this notebook. " +
             "This version can load notebook formats " +
-            "v" + this.nbformat + " or earlier. See the server log for details.";
+            "v" + this.nbformat + " or earlier. See the server log for details.");
         }
         dialog.modal({
             notebook: this,

@@ -8,6 +8,7 @@ import json
 from .base import ExportersTestsBase
 from ..notebook import NotebookExporter
 
+from IPython.nbformat import validate
 from IPython.testing.tools import assert_big_text_equal
 
 class TestNotebookExporter(ExportersTestsBase):
@@ -29,7 +30,7 @@ class TestNotebookExporter(ExportersTestsBase):
         exporter = self.exporter_class(nbformat_version=3)
         (output, resources) = exporter.from_filename(self._get_notebook())
         nb = json.loads(output)
-        self.assertEqual(nb['nbformat'], 3)
+        validate(nb)
 
     def test_downgrade_2(self):
         exporter = self.exporter_class(nbformat_version=2)

@@ -21,6 +21,7 @@ from pygments.formatters import HtmlFormatter
 from pygments.util import ClassNotFound
 
 # IPython imports
+from IPython.nbconvert.filters.strings import add_anchor
 from IPython.nbconvert.utils.pandoc import pandoc
 from IPython.nbconvert.utils.exceptions import ConversionException
 from IPython.utils.decorators import undoc
@@ -145,6 +146,10 @@ class IPythonRenderer(mistune.Renderer):
 
         formatter = HtmlFormatter()
         return highlight(code, lexer, formatter)
+
+    def header(self, text, level, raw=None):
+        html = super(IPythonRenderer, self).header(text, level, raw=raw)
+        return add_anchor(html)
 
     # Pass math through unaltered - mathjax does the rendering in the browser
     def block_math(self, text):

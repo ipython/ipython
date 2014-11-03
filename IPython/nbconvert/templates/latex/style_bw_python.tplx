@@ -8,6 +8,6 @@
 
 ((* block input scoped *))
 \begin{verbatim}
-((( cell.input | add_prompts )))
+((( cell.source | add_prompts )))
 \end{verbatim}
 ((* endblock input *))

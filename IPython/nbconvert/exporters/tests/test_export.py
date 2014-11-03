@@ -2,29 +2,17 @@
 Module with tests for export.py
 """
 
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
+# Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 import os
 
-from IPython.nbformat import current as nbformat
+from IPython import nbformat
 
 from .base import ExportersTestsBase
 from ..export import *
 from ..python import PythonExporter
 
-#-----------------------------------------------------------------------------
-# Class
-#-----------------------------------------------------------------------------
 
 class TestExport(ExportersTestsBase):
     """Contains test functions for export.py"""
@@ -53,7 +41,7 @@ class TestExport(ExportersTestsBase):
         Can a notebook be exported by a notebook node handle?
         """
         with open(self._get_notebook(), 'r') as f:
-            notebook = nbformat.read(f, 'json')
+            notebook = nbformat.read(f, 4)
             (output, resources) = export_by_name('python', notebook)
         assert len(output) > 0
 

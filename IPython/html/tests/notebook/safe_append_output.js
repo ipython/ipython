@@ -26,7 +26,7 @@ casper.notebook_test(function () {
         var output = this.get_output_cell(0);
         this.test.assert(messages.length > 0, "Captured log message");
         this.test.assertEquals(messages[messages.length-1].substr(0,26), "Invalid type for image/png", "Logged Invalid type message");
-        this.test.assertEquals(output['image/png'], undefined, "Non-string png data was stripped");
-        this.test.assertEquals(output['text/plain'], '5', "text data is fine");
+        this.test.assertEquals(output.data['image/png'], undefined, "Non-string png data was stripped");
+        this.test.assertEquals(output.data['text/plain'], '5', "text data is fine");
     });
 });

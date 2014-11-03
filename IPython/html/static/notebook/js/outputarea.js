@@ -81,7 +81,7 @@ define([
      *
      */
     OutputArea.prototype._should_scroll = function (lines) {
-        if (lines <=0 ){ return }
+        if (lines <=0 ){ return; }
         if (!lines) {
             lines = 100;
         }
@@ -177,7 +177,7 @@ define([
     OutputArea.prototype.scroll_if_long = function (lines) {
         var n = lines | OutputArea.minimum_scroll_threshold;
         if(n <= 0){
-            return
+            return;
         }
 
         if (this._should_scroll(n)) {
@@ -211,16 +211,16 @@ define([
         var content = msg.content;
         if (msg_type === "stream") {
             json.text = content.text;
-            json.stream = content.name;
+            json.name = content.name;
         } else if (msg_type === "display_data") {
-            json = content.data;
+            json.data = content.data;
             json.output_type = msg_type;
             json.metadata = content.metadata;
         } else if (msg_type === "execute_result") {
-            json = content.data;
+            json.data = content.data;
             json.output_type = msg_type;
             json.metadata = content.metadata;
-            json.prompt_number = content.execution_count;
+            json.execution_count = content.execution_count;
         } else if (msg_type === "error") {
             json.ename = content.ename;
             json.evalue = content.evalue;
@@ -233,16 +233,6 @@ define([
     };
     
     
-    OutputArea.prototype.rename_keys = function (data, key_map) {
-        var remapped = {};
-        for (var key in data) {
-            var new_key = key_map[key] || key;
-            remapped[new_key] = data[key];
-        }
-        return remapped;
-    };
-
-
     OutputArea.output_types = [
         'application/javascript',
         'text/html',
@@ -257,12 +247,14 @@ define([
 
     OutputArea.prototype.validate_output = function (json) {
         // scrub invalid outputs
-        // TODO: right now everything is a string, but JSON really shouldn't be.
-        // nbformat 4 will fix that.
+        var data = json.data;
         $.map(OutputArea.output_types, function(key){
-            if (json[key] !== undefined && typeof json[key] !== 'string') {
-                console.log("Invalid type for " + key, json[key]);
-                delete json[key];
+            if (key !== 'application/json' &&
+                data[key] !== undefined &&
+                typeof data[key] !== 'string'
+            ) {
+                console.log("Invalid type for " + key, data[key]);
+                delete data[key];
             }
         });
         return json;
@@ -272,7 +264,9 @@ define([
         this.expand();
         
         // validate output data types
-        json = this.validate_output(json);
+        if (json.data) {
+            json = this.validate_output(json);
+        }
 
         // Clear the output if clear is queued.
         var needs_height_reset = false;
@@ -376,12 +370,12 @@ define([
         } else {
             return subarea;
         }
-    }
+    };
 
 
     OutputArea.prototype._append_javascript_error = function (err, element) {
         // display a message when a javascript error occurs in display output
-        var msg = "Javascript error adding output!"
+        var msg = "Javascript error adding output!";
         if ( element === undefined ) return;
         element
             .append($('<div/>').text(msg).addClass('js-error'))
@@ -410,7 +404,7 @@ define([
 
 
     OutputArea.prototype.append_execute_result = function (json) {
-        var n = json.prompt_number || ' ';
+        var n = json.execution_count || ' ';
         var toinsert = this.create_output_area();
         if (this.prompt_area) {
             toinsert.find('div.prompt').addClass('output_prompt').text('Out[' + n + ']:');
@@ -449,17 +443,12 @@ define([
 
 
     OutputArea.prototype.append_stream = function (json) {
-        // temporary fix: if stream undefined (json file written prior to this patch),
-        // default to most likely stdout:
-        if (json.stream === undefined){
-            json.stream = 'stdout';
-        }
         var text = json.text;
-        var subclass = "output_"+json.stream;
+        var subclass = "output_"+json.name;
         if (this.outputs.length > 0){
             // have at least one output to consider
             var last = this.outputs[this.outputs.length-1];
-            if (last.output_type == 'stream' && json.stream == last.stream){
+            if (last.output_type == 'stream' && json.name == last.name){
                 // latest output was in the same stream,
                 // so append directly into its pre tag
                 // escape ANSI & HTML specials:
@@ -518,8 +507,8 @@ define([
         for (var i=0; i < OutputArea.display_order.length; i++) {
             var type = OutputArea.display_order[i];
             var append = OutputArea.append_map[type];
-            if ((json[type] !== undefined) && append) {
-                var value = json[type];
+            if ((json.data[type] !== undefined) && append) {
+                var value = json.data[type];
                 if (!this.trusted && !OutputArea.safe_outputs[type]) {
                     // not trusted, sanitize HTML
                     if (type==='text/html' || type==='text/svg') {
@@ -722,11 +711,11 @@ define([
         var toinsert = this.create_output_subarea(md, "output_pdf", type);
         var a = $('<a/>').attr('href', 'data:application/pdf;base64,'+pdf);
         a.attr('target', '_blank');
-        a.text('View PDF')
+        a.text('View PDF');
         toinsert.append(a);
         element.append(toinsert);
         return toinsert;
-     }
+     };
 
     var append_latex = function (latex, md, element) {
         // This method cannot do the typesetting because the latex first has to
@@ -783,7 +772,7 @@ define([
         // This seemed to be needed otherwise only the cell would be focused.
         // But with the modal UI, this seems to work fine with one call to focus().
         raw_input.focus();
-    }
+    };
 
     OutputArea.prototype._submit_raw_input = function (evt) {
         var container = this.element.find("div.raw_input_container");
@@ -799,13 +788,13 @@ define([
             output_type : 'stream',
             stream : 'stdout',
             text : theprompt.text() + echo + '\n'
-        }
+        };
         // remove form container
         container.parent().remove();
         // replace with plaintext version in stdout
         this.append_output(content, false);
         this.events.trigger('send_input_reply.Kernel', value);
-    }
+    };
 
 
     OutputArea.prototype.handle_clear_output = function (msg) {
@@ -824,7 +813,7 @@ define([
             // If a clear is queued, clear before adding another to the queue.
             if (this.clear_queued) {
                 this.clear_output(false);
-            };
+            }
 
             this.clear_queued = true;
         } else {
@@ -846,76 +835,39 @@ define([
             this.trusted = true;
             this.unscroll_area();
             return;
-        };
+        }
     };
 
 
     // JSON serialization
 
-    OutputArea.prototype.fromJSON = function (outputs) {
+    OutputArea.prototype.fromJSON = function (outputs, metadata) {
         var len = outputs.length;
-        var data;
+        metadata = metadata || {};
 
         for (var i=0; i<len; i++) {
-            data = outputs[i];
-            var msg_type = data.output_type;
-            if (msg_type == "pyout") {
-                // pyout message has been renamed to execute_result,
-                // but the nbformat has not been updated,
-                // so transform back to pyout for json.
-                msg_type = data.output_type = "execute_result";
-            } else if (msg_type == "pyerr") {
-                // pyerr message has been renamed to error,
-                // but the nbformat has not been updated,
-                // so transform back to pyerr for json.
-                msg_type = data.output_type = "error";
+            this.append_output(outputs[i]);
+        }
+
+        if (metadata.collapsed !== undefined) {
+            this.collapsed = metadata.collapsed;
+            if (metadata.collapsed) {
+                this.collapse_output();
             }
-            if (msg_type === "display_data" || msg_type === "execute_result") {
-                // convert short keys to mime keys
-                // TODO: remove mapping of short keys when we update to nbformat 4
-                 data = this.rename_keys(data, OutputArea.mime_map_r);
-                 data.metadata = this.rename_keys(data.metadata, OutputArea.mime_map_r);
-                 // msg spec JSON is an object, nbformat v3 JSON is a JSON string
-                 if (data["application/json"] !== undefined && typeof data["application/json"] === 'string') {
-                     data["application/json"] = JSON.parse(data["application/json"]);
-                 }
+        }
+        if (metadata.autoscroll !== undefined) {
+            this.collapsed = metadata.collapsed;
+            if (metadata.collapsed) {
+                this.collapse_output();
+            } else {
+                this.expand_output();
             }
-            
-            this.append_output(data);
         }
     };
 
 
     OutputArea.prototype.toJSON = function () {
-        var outputs = [];
-        var len = this.outputs.length;
-        var data;
-        for (var i=0; i<len; i++) {
-            data = this.outputs[i];
-            var msg_type = data.output_type;
-            if (msg_type === "display_data" || msg_type === "execute_result") {
-                  // convert mime keys to short keys
-                 data = this.rename_keys(data, OutputArea.mime_map);
-                 data.metadata = this.rename_keys(data.metadata, OutputArea.mime_map);
-                 // msg spec JSON is an object, nbformat v3 JSON is a JSON string
-                 if (data.json !== undefined && typeof data.json !== 'string') {
-                     data.json = JSON.stringify(data.json);
-                 }
-            }
-            if (msg_type == "execute_result") {
-                // pyout message has been renamed to execute_result,
-                // but the nbformat has not been updated,
-                // so transform back to pyout for json.
-                data.output_type = "pyout";
-            } else if (msg_type == "error") {
-                // pyerr message has been renamed to error,
-                // but the nbformat has not been updated,
-                // so transform back to pyerr for json.
-                data.output_type = "pyerr";
-            }
-            outputs[i] = data;
-        }
-        return outputs;
+        return this.outputs;
     };
 
     /**
@@ -947,29 +899,6 @@ define([
      **/
     OutputArea.minimum_scroll_threshold = 20;
 
-
-
-    OutputArea.mime_map = {
-        "text/plain" : "text",
-        "text/html" : "html",
-        "image/svg+xml" : "svg",
-        "image/png" : "png",
-        "image/jpeg" : "jpeg",
-        "text/latex" : "latex",
-        "application/json" : "json",
-        "application/javascript" : "javascript",
-    };
-
-    OutputArea.mime_map_r = {
-        "text" : "text/plain",
-        "html" : "text/html",
-        "svg" : "image/svg+xml",
-        "png" : "image/png",
-        "jpeg" : "image/jpeg",
-        "latex" : "text/latex",
-        "json" : "application/json",
-        "javascript" : "application/javascript",
-    };
 
     OutputArea.display_order = [
         'application/javascript',

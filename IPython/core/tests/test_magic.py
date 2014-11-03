@@ -5,10 +5,6 @@ Needs to be run by nose (to make ipython session available).
 """
 from __future__ import absolute_import
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
 import io
 import os
 import sys
@@ -40,9 +36,6 @@ if py3compat.PY3:
 else:
     from StringIO import StringIO
 
-#-----------------------------------------------------------------------------
-# Test functions begin
-#-----------------------------------------------------------------------------
 
 @magic.magics_class
 class DummyMagics(magic.Magics): pass
@@ -624,42 +617,13 @@ def test_extension():
 
 
 # The nose skip decorator doesn't work on classes, so this uses unittest's skipIf
-@skipIf(dec.module_not_available('IPython.nbformat.current'), 'nbformat not importable')
+@skipIf(dec.module_not_available('IPython.nbformat'), 'nbformat not importable')
 class NotebookExportMagicTests(TestCase):
     def test_notebook_export_json(self):
         with TemporaryDirectory() as td:
             outfile = os.path.join(td, "nb.ipynb")
             _ip.ex(py3compat.u_format(u"u = {u}'héllo'"))
             _ip.magic("notebook -e %s" % outfile)
-
-    def test_notebook_export_py(self):
-        with TemporaryDirectory() as td:
-            outfile = os.path.join(td, "nb.py")
-            _ip.ex(py3compat.u_format(u"u = {u}'héllo'"))
-            _ip.magic("notebook -e %s" % outfile)
-
-    def test_notebook_reformat_py(self):
-        from IPython.nbformat.v3.tests.nbexamples import nb0
-        from IPython.nbformat import current
-        with TemporaryDirectory() as td:
-            infile = os.path.join(td, "nb.ipynb")
-            with io.open(infile, 'w', encoding='utf-8') as f:
-                current.write(nb0, f, 'json')
-
-            _ip.ex(py3compat.u_format(u"u = {u}'héllo'"))
-            _ip.magic("notebook -f py %s" % infile)
-
-    def test_notebook_reformat_json(self):
-        from IPython.nbformat.v3.tests.nbexamples import nb0
-        from IPython.nbformat import current
-        with TemporaryDirectory() as td:
-            infile = os.path.join(td, "nb.py")
-            with io.open(infile, 'w', encoding='utf-8') as f:
-                current.write(nb0, f, 'py')
-
-            _ip.ex(py3compat.u_format(u"u = {u}'héllo'"))
-            _ip.magic("notebook -f ipynb %s" % infile)
-            _ip.magic("notebook -f json %s" % infile)
 
 
 def test_env():

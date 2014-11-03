@@ -1,3 +1,4 @@
+# coding: utf-8
 """Tests for conversions from markdown to other formats"""
 
 # Copyright (c) IPython Development Team.
@@ -26,7 +27,8 @@ class TestMarkdown(TestsBase):
         '#test',
         '##test',
         'test\n----',
-        'test [link](https://google.com/)']
+        'test [link](https://google.com/)',
+    ]
 
     tokens = [
         '*test',
@@ -39,7 +41,8 @@ class TestMarkdown(TestsBase):
         'test',
         'test',
         'test',
-        ('test', 'https://google.com/')]
+        ('test', 'https://google.com/'),
+    ]
 
 
     @dec.onlyif_cmds_exist('pandoc')
@@ -86,6 +89,17 @@ class TestMarkdown(TestsBase):
         """markdown2html test"""
         for index, test in enumerate(self.tests):
             self._try_markdown(markdown2html, test, self.tokens[index])
+
+    def test_markdown2html_heading_anchors(self):
+        for md, tokens in [
+            ('# test',
+                ('<h1', '>test', 'id="test"', u'&#182;</a>', "anchor-link")
+            ),
+            ('###test head space',
+                ('<h3', '>test head space', 'id="test-head-space"', u'&#182;</a>', "anchor-link")
+            )
+        ]:
+            self._try_markdown(markdown2html, md, tokens)
 
     def test_markdown2html_math(self):
         # Mathematical expressions should be passed through unaltered

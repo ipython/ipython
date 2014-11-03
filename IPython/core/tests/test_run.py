@@ -7,11 +7,12 @@ will be kept in this separate file.  This makes it easier to aggregate in one
 place the tricks needed to handle it; most other magics are much easier to test
 and we do so in a common test_magic file.
 """
+
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from __future__ import absolute_import
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 import functools
 import os
@@ -32,9 +33,6 @@ from IPython.utils.io import capture_output
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.core import debugger
 
-#-----------------------------------------------------------------------------
-# Test functions begin
-#-----------------------------------------------------------------------------
 
 def doctest_refbug():
     """Very nasty problem with references held by multiple runs of a script.
@@ -372,19 +370,17 @@ tclass.py: deleting object: C-third
         with tt.AssertNotPrints('SystemExit'):
             _ip.magic('run -e %s' % self.fname)
 
-    @dec.skip_without('IPython.nbformat.current')  # Requires jsonschema
+    @dec.skip_without('IPython.nbformat')  # Requires jsonschema
     def test_run_nb(self):
         """Test %run notebook.ipynb"""
-        from IPython.nbformat import current
-        nb = current.new_notebook(
-            worksheets=[
-                current.new_worksheet(cells=[
-                    current.new_text_cell("The Ultimate Question of Everything"),
-                    current.new_code_cell("answer=42")
-                ])
+        from IPython.nbformat import v4, writes
+        nb = v4.new_notebook(
+           cells=[
+                v4.new_markdown_cell("The Ultimate Question of Everything"),
+                v4.new_code_cell("answer=42")
             ]
         )
-        src = current.writes(nb, 'json')
+        src = writes(nb, version=4)
         self.mktmp(src, ext='.ipynb')
         
         _ip.magic("run %s" % self.fname)
