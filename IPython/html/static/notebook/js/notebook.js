@@ -1862,7 +1862,9 @@ define([
         }
         var data = {
             cells: cell_array,
-            metadata : this.metadata
+            metadata: this.metadata,
+            nbformat: this.nbformat,
+            nbformat_minor: this.nbformat_minor
         };
         if (trusted != this.trusted) {
             this.trusted = trusted;
@@ -1905,16 +1907,12 @@ define([
      * @method save_notebook
      */
     Notebook.prototype.save_notebook = function (extra_settings) {
-        var content = $.extend(this.toJSON(), {
-            nbformat : this.nbformat,
-            nbformat_minor : this.nbformat_minor
-        });
         // Create a JSON model to be sent to the server.
         var model = {
             name : this.notebook_name,
             path : this.notebook_path,
             type : "notebook",
-            content : content
+            content : this.toJSON()
         };
         // time the ajax call for autosave tuning purposes.
         var start =  new Date().getTime();
