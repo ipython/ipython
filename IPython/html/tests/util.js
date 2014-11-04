@@ -32,7 +32,14 @@ casper.open_new_notebook = function () {
                 for (var i = 0; i < arguments.length; i++) {
                     var value = arguments[i];
                     if (value instanceof Object) {
-                        pretty_arguments.push(JSON.stringify(value, null, '  '));
+                        var name = value.name || 'Object';
+                        // Print a JSON string representation of the object.
+                        // If we don't do this, [Object object] gets printed
+                        // by casper, which is useless.  The long regular
+                        // expression reduces the verbosity of the JSON.
+                        pretty_arguments.push(name + ' {' + JSON.stringify(value, null, '  ')
+                            .replace(/(\s+)?({)?(\s+)?(}(\s+)?,?)?(\s+)?(\s+)?\n/g, '\n')
+                            .replace(/\n(\s+)?\n/g, '\n'));
                     } else {
                         pretty_arguments.push(value);
                     }
