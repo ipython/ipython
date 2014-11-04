@@ -40,19 +40,14 @@ define([
     };
 
     TerminalList.prototype.new_terminal = function () {
+        var w = window.open();
+        var base_url = this.base_url;
         var settings = {
             type : "POST",
-            cache : false,
-            async : false,
+            dataType: "json",
             success : function (data, status, xhr) {
                 var name = data.name;
-                window.open(
-                    utils.url_join_encode(
-                        this.base_url,
-                        'terminals',
-                        name),
-                    '_blank'
-                );
+                w.location = utils.url_join_encode(base_url, 'terminals', name);
             },
             error : utils.log_ajax_error,
         };
