@@ -2195,18 +2195,18 @@ define([
         var orig_nbformat_minor = nbmodel.metadata.orig_nbformat_minor;
         if (orig_nbformat !== undefined && nbmodel.nbformat !== orig_nbformat) {
             var src;
-            if (nbmodel.nbformat > nbmodel.orig_nbformat) {
+            if (nbmodel.nbformat > orig_nbformat) {
                 src = " an older notebook format ";
             } else {
                 src = " a newer notebook format ";
             }
             
             var msg = "This notebook has been converted from" + src +
-            "(v"+nbmodel.orig_nbformat+") to the current notebook " +
+            "(v"+orig_nbformat+") to the current notebook " +
             "format (v"+nbmodel.nbformat+"). The next time you save this notebook, the " +
             "current notebook format will be used.";
             
-            if (nbmodel.nbformat > nbmodel.orig_nbformat) {
+            if (nbmodel.nbformat > orig_nbformat) {
                 msg += " Older versions of IPython may not be able to read the new format.";
             } else {
                 msg += " Some features of the original notebook may not be available.";
