@@ -394,6 +394,16 @@ define([
     };
 
     /**
+     * Set the metadata of the cell and triggers the celltoolbars to update.
+     * @method set_metadata
+     * @param {dictionary} metadata
+     */
+    Cell.prototype.set_metadata = function (metadata) {
+        this.metadata = metadata;
+        this.celltoolbar.rebuild();
+    };
+
+    /**
      * should be overritten by subclass
      * serialise cell to json.
      * @method toJSON

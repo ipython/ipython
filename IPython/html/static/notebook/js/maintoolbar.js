@@ -22,6 +22,7 @@ define([
         this.events = options.events;
         this.notebook = options.notebook;
         this.construct();
+        this.add_filter_text();
         this.add_celltype_list();
         this.add_celltoolbar_list();
         this.bind_events();
@@ -129,7 +130,231 @@ define([
                         }
                 }
             ],'run_int');
+
+        this.add_buttons_group([{
+            id : 'filter_toggle',
+            label : 'Filter based on cell tags',
+            icon : 'fa-filter',
+            callback : $.proxy(this._handle_filter_click, this)}]);
     };
+    
+    MainToolBar.prototype.add_filter_text = function (e) {
+        this.$filter_text = $('<input/>')
+            .attr('type', 'text')
+            .attr('placeholder', 'Tag filter expression...')
+            .css('display', 'none')
+            .width(0)
+            .addClass('form-control input-sm');
+
+        // If a filter was save to the notebook's metadata, load and apply that
+        // filter by default.
+        var that = this;
+        this.events.on('notebook_loaded.Notebook', function() {
+            if (that.notebook.metadata.cellfilter !== undefined) { 
+                var filter_string = that.notebook.metadata.cellfilter;
+                that.$filter_text.val(filter_string);
+                that._handle_filter({currentTarget: that.$filter_text})
+                that._show_filter_textbox();
+            }
+        });  
+    };
+    
+    MainToolBar.prototype._handle_filter_click = function (e) {
+        // Handles when the filter button is clicked.
+
+        // If the filter textbox is visible, hide it.
+        if (this.$filter_text.css('display') != 'none') {
+
+            // Animate the textbox 'closing', and then remove it from the DOM.
+            var that = this;
+            this.$filter_text.animate({width: 0}, 200, 
+                'swing', function() {
+                that.$filter_text.val('');
+                that._handle_filter();
+                that.$filter_text.css('display', 'none');
+                that.$filter_text.detach();
+            });
+            
+        // The filter textbox is not visible, show it.
+        } else {
+            this._show_filter_textbox();
+        }
+    };
+
+    MainToolBar.prototype._show_filter_textbox = function() {
+        var $filter_button = $(this.selector).find('#filter_toggle');
+        this.$filter_text.css('display', '');
+        $filter_button.after(this.$filter_text);
+        
+        // Prevent notebook events from firing when the user types in the 
+        // filter textbox.
+        this.notebook.keyboard_manager.register_events(this.$filter_text);
+
+        // Make sure the button group has a css class that we can style.
+        $filter_button.parent().addClass('filter-control');
+
+        // Animate the textbox's display.
+        this.$filter_text.animate({width: 200}, 200, 'swing');
+
+        // Handle when the filter is changed.
+        this.$filter_text.on('change', $.proxy(this._handle_filter, this));
+    };    
+
+    MainToolBar.prototype._handle_filter = function(e) {
+        // Handle when the user sets a filter.
+
+        // If the event object `e` exists, assume this method was fired as the
+        // result of an event and get the value of the filter from the value of
+        // the object that caused the event to fire.  Otherwise, assume the 
+        // filter is empty.
+        var filter;
+        if (e) {
+            var $filter_text = $(e.currentTarget);
+            filter = $filter_text.val();
+        } else {
+            filter = '';
+        }
+        
+        // Evaluate the filter for each cell.
+        var cells = this.notebook.get_cells();
+        for (var i = 0; i < cells.length; i++) {
+            var tags = $.merge([], cells[i].metadata.tags || []);
+            // Add the cell type as a tag that can be filtered by.
+            tags.push(cells[i].cell_type);
+            cells[i].element.css('display', this._eval_expression(tags, filter) ? '' : 'none');
+        }
+        
+        // Persist the cell filter to the notebook's metadata.
+        if (filter) {
+            this.notebook.metadata.cellfilter = filter;
+        } else if (this.notebook.metadata.cellfilter !== undefined) {
+            delete this.notebook.metadata.cellfilter;
+        }
+    };
+
+    MainToolBar.prototype._eval_expression = function(truths, expression) {
+        // Evaluate a simple expression given a list of truths.
+        //
+        // Parameters
+        // ----------
+        // truths: list(of string)
+        //      Each value in this list is treated as a `true` boolean when the
+        //      expression is evaluated.
+        // expression: string
+        //      An expression.  `not`, `and`, `or`, and parenthesis are 
+        //      supported.  `true` and `false` are keywords of the evaluator.
+        //
+        // Returns
+        // -------
+        // boolean result of the expression.
+
+        // Find the opening parenthesis first, if it exists.  Then walk until
+        // the matching close parenthesis is found.  Make sure that 
+        var parenthesis_start = expression.indexOf('(');
+        var parenthesis_end = expression.lastIndexOf(')');
+        if (parenthesis_start != -1) {
+            var depth = 0;
+            for (var i = parenthesis_start + 1; i < expression.length; i++) {
+                if (expression[i] == '(') { depth++; }
+                if (expression[i] == ')') { depth--; }
+                if (depth == -1) {
+                    parenthesis_end = i;
+                    break;
+                }
+            }
+        }
+
+        // Check the parenthesis indicies to determine whether or not the 
+        // expression should be broken into pieces.  Also validate that the
+        // parenthesis are properly balanced.
+        if (parenthesis_start != -1 && parenthesis_end != -1) {
+            if (parenthesis_end > parenthesis_start) {
+
+                // Evaluate the sub-expression in the parenthesis first.  Then
+                // re-embed the sub-expression's results into the location in
+                // the expression that it existed in initially.
+                var start = expression.substring(0, parenthesis_start-1);
+                var mid_results = this._eval_expression(truths, expression.substring(parenthesis_start+1, parenthesis_end-1));
+                var end = expression.substring(parenthesis_end+1);
+                expression = start + ' ' + mid_results.toString().toLowerCase() && end;
+            } else {
+                console.log(') found before (');
+            }
+        } else if (parenthesis_start != -1 || parenthesis_end != -1) {
+            console.log('unbalanced parenthesis');
+        }
+        
+        // If the expression is empty, return true.
+        expression = expression.trim();
+        if (!expression) {
+            return true;
+        } else {
+
+            // Evaluation flags.
+            var needs_or = false;
+            var is_not = false;
+
+            // Evaluate the expression from left to right.
+            var parts = expression.split(' ');
+            for (var i = 0; i < parts.length; i++) {
+
+                // If an `or` is needed because the preceeding expression 
+                // evaluated to false and the `or` cannot be found, return false.
+                var part = parts[i].trim().toLowerCase();
+                if (part != 'or' && needs_or) {
+                    return false;
+                }
+                
+                // Evaluate the current word of the expression.
+                if (part == 'and') { 
+                } else if (part == 'or') {
+                    // An `or` was found.  If the `or` flag is set, reset it
+                    // and continue evaluation.  Otherwise, return true since
+                    // the preceeding expression evaluated to true.
+                    if (needs_or) {
+                        needs_or = false;
+                    } else {
+                        return true;
+                    }
+                } else if (part == 'not') {
+                    // Set the `not` flag.
+                    is_not = !is_not;
+                } else {
+                    var value;
+                    if (part == 'false' || part == 'true') {
+                        value = (part == 'true');
+                    } else {    
+                        // Value is a non-keyword.  Check if it exists in the
+                        // list of truths.  If it doesn't exist, it's a false.
+                        var contains = false;
+                        for (var j = 0; j < truths.length; j++) {
+                            if (truths[j].toLowerCase() == part) {
+                                contains = true;
+                                break;
+                            }
+                        }
+                        value = contains;
+                    }
+                    
+                    // Invert the results if the `not` flag is set.
+                    if (is_not) {
+                        value = !value;
+                        is_not = false;
+                    }
+                    
+                    // If the results are false, set the `or` flag to signify
+                    // that an `or` is required in order for the expression to
+                    // have a possibility of evaluating as true.
+                    if (!value) {
+                        needs_or = true;
+                    }
+                }
+            }
+            
+            return !needs_or;
+        }
+    }
+
     
     MainToolBar.prototype.add_celltype_list = function () {
         this.element

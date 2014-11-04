@@ -48,7 +48,31 @@
 
 }
 
+/* Cell tagging toolbar style */
 .celltoolbar label {
     margin-left: 5px;
     margin-right: 5px;
+}
+
+.celltoolbar .bootstrap-tags .tags {
+    margin-left: 1px;
+}
+
+.celltoolbar .bootstrap-tags .tag {
+    font-size: 12px;
+}
+
+.celltoolbar .bootstrap-tags input {
+    background: none;
+    border: none;
+    margin-left: 1px;
+    width: 100%;
+    
+    box-shadow: none;
+    -webkit-box-shadow: none;
+}
+
+.bootstrap-tags ul.tags-suggestion-list.dropdown-menu {
+    /* Make sure tag suggestions are always above the CodeMirror editor. */
+    z-index: 100;
 }

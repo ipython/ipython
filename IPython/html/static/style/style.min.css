@@ -9599,9 +9599,28 @@ textarea.celltoolbar select,
 select[multiple].celltoolbar select {
   height: auto;
 }
+/* Cell tagging toolbar style */
 .celltoolbar label {
   margin-left: 5px;
   margin-right: 5px;
+}
+.celltoolbar .bootstrap-tags .tags {
+  margin-left: 1px;
+}
+.celltoolbar .bootstrap-tags .tag {
+  font-size: 12px;
+}
+.celltoolbar .bootstrap-tags input {
+  background: none;
+  border: none;
+  margin-left: 1px;
+  width: 100%;
+  box-shadow: none;
+  -webkit-box-shadow: none;
+}
+.bootstrap-tags ul.tags-suggestion-list.dropdown-menu {
+  /* Make sure tag suggestions are always above the CodeMirror editor. */
+  z-index: 100;
 }
 .completions {
   position: absolute;
@@ -10317,6 +10336,15 @@ span#autosave_status {
 }
 .toolbar .btn {
   padding: 2px 8px;
+}
+.toolbar .filter-control input {
+  width: 0px;
+  height: 24px;
+  border-bottom-left-radius: 0px;
+  border-top-left-radius: 0px;
+  border-left-width: 0px;
+  -webkit-box-shadow: none;
+  box-shadow: none;
 }
 .toolbar .btn-group {
   margin-top: 0px;
