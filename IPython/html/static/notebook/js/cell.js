@@ -392,6 +392,16 @@ define([
      */
     Cell.prototype.set_text = function (text) {
     };
+ 
+    /**
+     * Set the metadata of the cell and triggers the celltoolbars to update.
+     * @method set_metadata
+     * @param {dictionary} metadata
+     */
+    Cell.prototype.set_metadata = function (metadata) {
+       this.metadata = metadata;
+       this.celltoolbar.rebuild();
+    };
 
     /**
      * should be overritten by subclass
@@ -406,14 +416,13 @@ define([
         return data;
     };
 
-
     /**
      * should be overritten by subclass
      * @method fromJSON
      **/
     Cell.prototype.fromJSON = function (data) {
         if (data.metadata !== undefined) {
-            this.metadata = data.metadata;
+            this.set_metadata(data.metadata);
         }
         this.celltoolbar.rebuild();
     };
