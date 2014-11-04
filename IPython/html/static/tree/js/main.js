@@ -64,17 +64,16 @@ require([
     var login_widget = new loginwidget.LoginWidget('#login_widget', common_options);
 
     $('#new_notebook').click(function (e) {
+        var w = window.open();
         contents.new_untitled(common_options.notebook_path, {
                 type: "notebook",
-                extra_settings: {async: false},  // So we can open a new window afterwards
                 success: function (data) {
-                    window.open(
-                        utils.url_join_encode(
-                            common_options.base_url, 'notebooks',
-                            data.path
-                        ), '_blank');
+                    w.location = utils.url_join_encode(
+                            common_options.base_url, 'notebooks', data.path
+                        );
                     },
                 error: function(error) {
+                    w.close();
                     dialog.modal({
                         title : 'Creating Notebook Failed',
                         body : "The error was: " + error.message,
