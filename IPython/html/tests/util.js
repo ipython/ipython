@@ -22,8 +22,11 @@ casper.open_new_notebook = function () {
     });
     this.waitFor(this.page_loaded);
 
+    // Hook the log and error methods of the console, forcing them to
+    // serialize their arguments before printing.  This allows the
+    // Objects to cross into the phantom/slimer regime for display.
     this.thenEvaluate(function(){
-        var fix_function = function(f, context) {
+        var serialize_arguments = function(f, context) {
             return function() {
                 var pretty_arguments = [];
                 for (var i = 0; i < arguments.length; i++) {
@@ -37,8 +40,8 @@ casper.open_new_notebook = function () {
                 f.apply(context, pretty_arguments);
             };
         };
-        console.log = fix_function(console.log, console);
-        console.error = fix_function(console.error, console);
+        console.log = serialize_arguments(console.log, console);
+        console.error = serialize_arguments(console.error, console);
     });
 
     // Make sure the kernel has started
@@ -675,7 +678,7 @@ casper.print_log = function () {
 casper.on("page.error", function onError(msg, trace) {
     // show errors in the browser
     this.echo("Page Error");
-    this.echo("  Message: " + msg);
+    this.echo("  Message:   " + msg.split('\n').join('\n             '));
     this.echo("  Call stack:");
     var local_path = this.get_notebook_server();
     for (var i = 0; i < trace.length; i++) {
