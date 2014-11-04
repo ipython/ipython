@@ -49,7 +49,10 @@ define([
                 var name = data.name;
                 w.location = utils.url_join_encode(base_url, 'terminals', name);
             },
-            error : utils.log_ajax_error,
+            error : function(jqXHR, status, error){
+                w.close();
+                utils.log_ajax_error(jqXHR, status, error);
+            },
         };
         var url = utils.url_join_encode(
             this.base_url,
