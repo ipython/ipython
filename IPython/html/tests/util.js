@@ -22,6 +22,25 @@ casper.open_new_notebook = function () {
     });
     this.waitFor(this.page_loaded);
 
+    this.thenEvaluate(function(){
+        var fix_function = function(f, context) {
+            return function() {
+                var pretty_arguments = [];
+                for (var i = 0; i < arguments.length; i++) {
+                    var value = arguments[i];
+                    if (value instanceof Object) {
+                        pretty_arguments.push(JSON.stringify(value, null, '  '));
+                    } else {
+                        pretty_arguments.push(value);
+                    }
+                }
+                f.apply(context, pretty_arguments);
+            };
+        };
+        console.log = fix_function(console.log, console);
+        console.error = fix_function(console.error, console);
+    });
+
     // Make sure the kernel has started
     this.waitFor(this.kernel_running);
     // track the IPython busy/idle state
@@ -673,8 +692,8 @@ casper.on("page.error", function onError(msg, trace) {
         if (file.indexOf(local_path) === 0) {
             file = file.substr(local_path.length);
         }
-        this.echo("    line " + frame.line + " of " + file + 
-            (frame.function.length > 0) ? " in " + frame.function: "");
+        var frame_text = (frame.function.length > 0) ? " in " + frame.function : "";
+        this.echo("    line " + frame.line + " of " + file + frame_text);
     }
 });
 
@@ -686,7 +705,8 @@ casper.capture_log = function () {
     this.on('remote.message', function(msg) {
         captured_log.push(msg);
     });
-    
+
+    var that = this;
     this.test.on("test.done", function (result) {
         // test.done runs per-file,
         // but suiteResults is per-suite (directory)
@@ -702,9 +722,13 @@ casper.capture_log = function () {
         if (current_errors > seen_errors && captured_log.length > 0) {
             casper.echo("\nCaptured console.log:");
             for (var i = 0; i < captured_log.length; i++) {
-                casper.echo("    " + captured_log[i]);
+                var output = String(captured_log[i]).split('\n');
+                for (var j = 0; j < output.length; j++) {
+                    casper.echo("    " + output[j]);
+                }
             }
         }
+
         seen_errors = current_errors;
         captured_log = [];
     });
