@@ -75,10 +75,7 @@ define(["widgets/js/manager",
                 case 'update':
                     this.state_change = this.state_change.then(function() {
                         return that.set_state(msg.content.data.state);
-                    }).catch(utils.reject({
-                        message: "Couldn't process update msg",
-                        model_id: that.id
-                    }, true));
+                    }).catch(utils.reject("Couldn't process update msg for model id '" + String(that.id) + "'", true));
                     break;
                 case 'custom':
                     this.trigger('msg:custom', msg.content.data.content);
@@ -86,10 +83,7 @@ define(["widgets/js/manager",
                 case 'display':
                     this.state_change = this.state_change.then(function () {
                         return that.widget_manager.display_view(msg, that);
-                    }).catch(utils.reject({
-                        message: "Couldn't process display msg",
-                        model_id: that.id
-                    }, true));
+                    }).catch(utils.reject("Couldn't process display msg for model id '" + String(that.id) + "'", true));
                     break;
             }
         },

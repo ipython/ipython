@@ -656,10 +656,7 @@ define([
                 if (registry && registry[class_name]) {
                     resolve(registry[class_name]);
                 } else {
-                    reject(new Error({
-                        message: 'Class '+class_name+' not found in registry ', 
-                        registry: registry
-                    }));
+                    reject(new Error('Class '+class_name+' not found in registry '));
                 }
             }
         });
