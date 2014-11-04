@@ -1892,7 +1892,7 @@ define([
      * 
      * @method save_notebook
      */
-    Notebook.prototype.save_notebook = function (extra_settings) {
+    Notebook.prototype.save_notebook = function () {
         // Create a JSON model to be sent to the server.
         var model = {
             type : "notebook",
@@ -1903,7 +1903,6 @@ define([
 
         var that = this;
         this.contents.save(this.notebook_path, model, {
-                extra_settings: extra_settings,
                 success: $.proxy(this.save_notebook_success, this, start),
                 error: function (error) {
                     that.events.trigger('notebook_save_failed.Notebook', error);
@@ -1977,7 +1976,7 @@ define([
      *
      * @method trust_notebook
      */
-    Notebook.prototype.trust_notebook = function (extra_settings) {
+    Notebook.prototype.trust_notebook = function () {
         var body = $("<div>").append($("<p>")
             .text("A trusted IPython notebook may execute hidden malicious code ")
             .append($("<strong>")
@@ -2024,15 +2023,18 @@ define([
 
     Notebook.prototype.copy_notebook = function(){
         var base_url = this.base_url;
+        var w = window.open();
         var parent = utils.url_path_split(this.notebook_path)[0];
         this.contents.copy(this.notebook_path, parent, {
-            // synchronous so we can open a new window on success
-            extra_settings: {async: false},
             success: function (data) {
-                window.open(utils.url_join_encode(
+                w.location = utils.url_join_encode(
                     base_url, 'notebooks', data.path
-                ), '_blank');
-            }
+                );
+            },
+            error : function(error) {
+                w.close();
+                console.log(error);
+            },
         });
     };
 

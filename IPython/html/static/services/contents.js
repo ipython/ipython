@@ -162,9 +162,6 @@ define([
             success : options.success || function() {},
             error : this.create_basic_error_handler(options.error)
         };
-        if (options.extra_settings) {
-            $.extend(settings, options.extra_settings);
-        }
         var url = this.api_url(path);
         $.ajax(url, settings);
     };
@@ -182,9 +179,6 @@ define([
             success: options.success || function() {},
             error: this.create_basic_error_handler(options.error)
         };
-        if (options.extra_settings) {
-            $.extend(settings, options.extra_settings);
-        }
         $.ajax(url, settings);
     };
 
