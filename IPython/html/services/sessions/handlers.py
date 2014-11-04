@@ -36,10 +36,6 @@ class SessionRootHandler(IPythonHandler):
         if model is None:
             raise web.HTTPError(400, "No JSON data provided")
         try:
-            name = model['notebook']['name']
-        except KeyError:
-            raise web.HTTPError(400, "Missing field in JSON data: notebook.name")
-        try:
             path = model['notebook']['path']
         except KeyError:
             raise web.HTTPError(400, "Missing field in JSON data: notebook.path")
@@ -50,11 +46,11 @@ class SessionRootHandler(IPythonHandler):
             kernel_name = None
 
         # Check to see if session exists
-        if sm.session_exists(name=name, path=path):
-            model = sm.get_session(name=name, path=path)
+        if sm.session_exists(path=path):
+            model = sm.get_session(path=path)
         else:
             try:
-                model = sm.create_session(name=name, path=path, kernel_name=kernel_name)
+                model = sm.create_session(path=path, kernel_name=kernel_name)
             except NoSuchKernel:
                 msg = ("The '%s' kernel is not available. Please pick another "
                        "suitable kernel instead, or install that kernel." % kernel_name)
@@ -92,8 +88,6 @@ class SessionHandler(IPythonHandler):
         changes = {}
         if 'notebook' in model:
             notebook = model['notebook']
-            if 'name' in notebook:
-                changes['name'] = notebook['name']
             if 'path' in notebook:
                 changes['path'] = notebook['path']
 

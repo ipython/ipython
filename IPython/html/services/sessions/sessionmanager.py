@@ -21,7 +21,7 @@ class SessionManager(LoggingConfigurable):
     # Session database initialized below
     _cursor = None
     _connection = None
-    _columns = {'session_id', 'name', 'path', 'kernel_id'}
+    _columns = {'session_id', 'path', 'kernel_id'}
     
     @property
     def cursor(self):
@@ -29,7 +29,7 @@ class SessionManager(LoggingConfigurable):
         if self._cursor is None:
             self._cursor = self.connection.cursor()
             self._cursor.execute("""CREATE TABLE session 
-                (session_id, name, path, kernel_id)""")
+                (session_id, path, kernel_id)""")
         return self._cursor
 
     @property
@@ -44,9 +44,9 @@ class SessionManager(LoggingConfigurable):
         """Close connection once SessionManager closes"""
         self.cursor.close()
 
-    def session_exists(self, name, path):
+    def session_exists(self, path):
         """Check to see if the session for a given notebook exists"""
-        self.cursor.execute("SELECT * FROM session WHERE name=? AND path=?", (name, path))
+        self.cursor.execute("SELECT * FROM session WHERE path=?", (path,))
         reply = self.cursor.fetchone()
         if reply is None:
             return False
@@ -57,17 +57,17 @@ class SessionManager(LoggingConfigurable):
         "Create a uuid for a new session"
         return unicode_type(uuid.uuid4())
 
-    def create_session(self, name=None, path=None, kernel_name=None):
+    def create_session(self, path=None, kernel_name=None):
         """Creates a session and returns its model"""
         session_id = self.new_session_id()
         # allow nbm to specify kernels cwd
-        kernel_path = self.contents_manager.get_kernel_path(name=name, path=path)
+        kernel_path = self.contents_manager.get_kernel_path(path=path)
         kernel_id = self.kernel_manager.start_kernel(path=kernel_path,
                                                      kernel_name=kernel_name)
-        return self.save_session(session_id, name=name, path=path,
+        return self.save_session(session_id, path=path,
                                  kernel_id=kernel_id)
 
-    def save_session(self, session_id, name=None, path=None, kernel_id=None):
+    def save_session(self, session_id, path=None, kernel_id=None):
         """Saves the items for the session with the given session_id
         
         Given a session_id (and any other of the arguments), this method
@@ -78,10 +78,8 @@ class SessionManager(LoggingConfigurable):
         ----------
         session_id : str
             uuid for the session; this method must be given a session_id
-        name : str
-            the .ipynb notebook name that started the session
         path : str
-            the path to the named notebook
+            the path for the given notebook
         kernel_id : str
             a uuid for the kernel associated with this session
         
@@ -90,8 +88,8 @@ class SessionManager(LoggingConfigurable):
         model : dict
             a dictionary of the session model
         """
-        self.cursor.execute("INSERT INTO session VALUES (?,?,?,?)",
-            (session_id, name, path, kernel_id)
+        self.cursor.execute("INSERT INTO session VALUES (?,?,?)",
+            (session_id, path, kernel_id)
         )
         return self.get_session(session_id=session_id)
 
@@ -105,7 +103,7 @@ class SessionManager(LoggingConfigurable):
         ----------
         **kwargs : keyword argument
             must be given one of the keywords and values from the session database
-            (i.e. session_id, name, path, kernel_id)
+            (i.e. session_id, path, kernel_id)
 
         Returns
         -------
@@ -182,7 +180,6 @@ class SessionManager(LoggingConfigurable):
         model = {
             'id': row['session_id'],
             'notebook': {
-                'name': row['name'],
                 'path': row['path']
             },
             'kernel': self.kernel_manager.kernel_model(row['kernel_id'])

@@ -32,24 +32,24 @@ class TestSessionManager(TestCase):
     
     def test_get_session(self):
         sm = SessionManager(kernel_manager=DummyMKM())
-        session_id = sm.create_session(name='test.ipynb', path='/path/to/',
+        session_id = sm.create_session(path='/path/to/test.ipynb',
                                        kernel_name='bar')['id']
         model = sm.get_session(session_id=session_id)
         expected = {'id':session_id,
-                    'notebook':{'name':u'test.ipynb', 'path': u'/path/to/'},
+                    'notebook':{'path': u'/path/to/test.ipynb'},
                     'kernel': {'id':u'A', 'name': 'bar'}}
         self.assertEqual(model, expected)
 
     def test_bad_get_session(self):
         # Should raise error if a bad key is passed to the database.
         sm = SessionManager(kernel_manager=DummyMKM())
-        session_id = sm.create_session(name='test.ipynb', path='/path/to/',
+        session_id = sm.create_session(path='/path/to/test.ipynb',
                                        kernel_name='foo')['id']
         self.assertRaises(TypeError, sm.get_session, bad_id=session_id) # Bad keyword
 
     def test_get_session_dead_kernel(self):
         sm = SessionManager(kernel_manager=DummyMKM())
-        session = sm.create_session(name='test1.ipynb', path='/path/to/1/', kernel_name='python')
+        session = sm.create_session(path='/path/to/1/test1.ipynb', kernel_name='python')
         # kill the kernel
         sm.kernel_manager.shutdown_kernel(session['kernel']['id'])
         with self.assertRaises(KeyError):
@@ -61,24 +61,33 @@ class TestSessionManager(TestCase):
     def test_list_sessions(self):
         sm = SessionManager(kernel_manager=DummyMKM())
         sessions = [
-            sm.create_session(name='test1.ipynb', path='/path/to/1/', kernel_name='python'),
-            sm.create_session(name='test2.ipynb', path='/path/to/2/', kernel_name='python'),
-            sm.create_session(name='test3.ipynb', path='/path/to/3/', kernel_name='python'),
+            sm.create_session(path='/path/to/1/test1.ipynb', kernel_name='python'),
+            sm.create_session(path='/path/to/2/test2.ipynb', kernel_name='python'),
+            sm.create_session(path='/path/to/3/test3.ipynb', kernel_name='python'),
         ]
         sessions = sm.list_sessions()
-        expected = [{'id':sessions[0]['id'], 'notebook':{'name':u'test1.ipynb', 
-                    'path': u'/path/to/1/'}, 'kernel':{'id':u'A', 'name':'python'}},
-                    {'id':sessions[1]['id'], 'notebook': {'name':u'test2.ipynb', 
-                    'path': u'/path/to/2/'}, 'kernel':{'id':u'B', 'name':'python'}},
-                    {'id':sessions[2]['id'], 'notebook':{'name':u'test3.ipynb', 
-                    'path': u'/path/to/3/'}, 'kernel':{'id':u'C', 'name':'python'}}]
+        expected = [
+            {
+                'id':sessions[0]['id'],
+                'notebook':{'path': u'/path/to/1/test1.ipynb'},
+                'kernel':{'id':u'A', 'name':'python'}
+            }, {
+                'id':sessions[1]['id'],
+                'notebook': {'path': u'/path/to/2/test2.ipynb'},
+                'kernel':{'id':u'B', 'name':'python'}
+            }, {
+                'id':sessions[2]['id'],
+                'notebook':{'path': u'/path/to/3/test3.ipynb'},
+                'kernel':{'id':u'C', 'name':'python'}
+            }
+        ]
         self.assertEqual(sessions, expected)
 
     def test_list_sessions_dead_kernel(self):
         sm = SessionManager(kernel_manager=DummyMKM())
         sessions = [
-            sm.create_session(name='test1.ipynb', path='/path/to/1/', kernel_name='python'),
-            sm.create_session(name='test2.ipynb', path='/path/to/2/', kernel_name='python'),
+            sm.create_session(path='/path/to/1/test1.ipynb', kernel_name='python'),
+            sm.create_session(path='/path/to/2/test2.ipynb', kernel_name='python'),
         ]
         # kill one of the kernels
         sm.kernel_manager.shutdown_kernel(sessions[0]['kernel']['id'])
@@ -87,8 +96,7 @@ class TestSessionManager(TestCase):
             {
                 'id': sessions[1]['id'],
                 'notebook': {
-                    'name': u'test2.ipynb',
-                    'path': u'/path/to/2/',
+                    'path': u'/path/to/2/test2.ipynb',
                 },
                 'kernel': {
                     'id': u'B',
@@ -100,41 +108,47 @@ class TestSessionManager(TestCase):
 
     def test_update_session(self):
         sm = SessionManager(kernel_manager=DummyMKM())
-        session_id = sm.create_session(name='test.ipynb', path='/path/to/',
+        session_id = sm.create_session(path='/path/to/test.ipynb',
                                        kernel_name='julia')['id']
-        sm.update_session(session_id, name='new_name.ipynb')
+        sm.update_session(session_id, path='/path/to/new_name.ipynb')
         model = sm.get_session(session_id=session_id)
         expected = {'id':session_id,
-                    'notebook':{'name':u'new_name.ipynb', 'path': u'/path/to/'},
+                    'notebook':{'path': u'/path/to/new_name.ipynb'},
                     'kernel':{'id':u'A', 'name':'julia'}}
         self.assertEqual(model, expected)
     
     def test_bad_update_session(self):
         # try to update a session with a bad keyword ~ raise error
         sm = SessionManager(kernel_manager=DummyMKM())
-        session_id = sm.create_session(name='test.ipynb', path='/path/to/',
+        session_id = sm.create_session(path='/path/to/test.ipynb',
                                        kernel_name='ir')['id']
         self.assertRaises(TypeError, sm.update_session, session_id=session_id, bad_kw='test.ipynb') # Bad keyword
 
     def test_delete_session(self):
         sm = SessionManager(kernel_manager=DummyMKM())
         sessions = [
-            sm.create_session(name='test1.ipynb', path='/path/to/1/', kernel_name='python'),
-            sm.create_session(name='test2.ipynb', path='/path/to/2/', kernel_name='python'),
-            sm.create_session(name='test3.ipynb', path='/path/to/3/', kernel_name='python'),
+            sm.create_session(path='/path/to/1/test1.ipynb', kernel_name='python'),
+            sm.create_session(path='/path/to/2/test2.ipynb', kernel_name='python'),
+            sm.create_session(path='/path/to/3/test3.ipynb', kernel_name='python'),
         ]
         sm.delete_session(sessions[1]['id'])
         new_sessions = sm.list_sessions()
-        expected = [{'id':sessions[0]['id'], 'notebook':{'name':u'test1.ipynb', 
-                    'path': u'/path/to/1/'}, 'kernel':{'id':u'A', 'name':'python'}},
-                    {'id':sessions[2]['id'], 'notebook':{'name':u'test3.ipynb', 
-                    'path': u'/path/to/3/'}, 'kernel':{'id':u'C', 'name':'python'}}]
+        expected = [{
+                'id': sessions[0]['id'],
+                'notebook': {'path': u'/path/to/1/test1.ipynb'},
+                'kernel': {'id':u'A', 'name':'python'}
+            }, {
+                'id': sessions[2]['id'],
+                'notebook': {'path': u'/path/to/3/test3.ipynb'},
+                'kernel': {'id':u'C', 'name':'python'}
+            }
+        ]
         self.assertEqual(new_sessions, expected)
 
     def test_bad_delete_session(self):
         # try to delete a session that doesn't exist ~ raise error
         sm = SessionManager(kernel_manager=DummyMKM())
-        sm.create_session(name='test.ipynb', path='/path/to/', kernel_name='python')
+        sm.create_session(path='/path/to/test.ipynb', kernel_name='python')
         self.assertRaises(TypeError, sm.delete_session, bad_kwarg='23424') # Bad keyword
         self.assertRaises(web.HTTPError, sm.delete_session, session_id='23424') # nonexistant
 
