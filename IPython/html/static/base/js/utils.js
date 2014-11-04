@@ -272,11 +272,11 @@ define([
                 } else {
                     line = "background-color: ";
                 }
-                line = line + "rgb(" + r + "," + g + "," + b + ");"
-                if ( !attrs["style"] ) {
-                    attrs["style"] = line;
+                line = line + "rgb(" + r + "," + g + "," + b + ");";
+                if ( !attrs.style ) {
+                    attrs.style = line;
                 } else {
-                    attrs["style"] += " " + line;
+                    attrs.style += " " + line;
                 }
             }
         }
@@ -285,7 +285,7 @@ define([
     function ansispan(str) {
         // ansispan function adapted from github.com/mmalecki/ansispan (MIT License)
         // regular ansi escapes (using the table above)
-        var is_open = false
+        var is_open = false;
         return str.replace(/\033\[(0?[01]|22|39)?([;\d]+)?m/g, function(match, prefix, pattern) {
             if (!pattern) {
                 // [(01|22|39|)m close spans
@@ -313,7 +313,7 @@ define([
                 return span + ">";
             }
         });
-    };
+    }
 
     // Transform ANSI color escape codes into HTML <span> tags with css
     // classes listed in the above ansi_colormap object. The actual color used
@@ -390,6 +390,18 @@ define([
         }
         url = url.replace(/\/\/+/, '/');
         return url;
+    };
+    
+    var url_path_split = function (path) {
+        // Like os.path.split for URLs.
+        // Always returns two strings, the directory path and the base filename
+        
+        var idx = path.lastIndexOf('/');
+        if (idx === -1) {
+            return ['', path];
+        } else {
+            return [ path.slice(0, idx), path.slice(idx + 1) ];
+        }
     };
     
     var parse_url = function (url) {
@@ -577,7 +589,7 @@ define([
         wrapped_error.xhr_status = status;
         wrapped_error.xhr_error = error;
         return wrapped_error;
-    }
+    };
     
     var utils = {
         regex_split : regex_split,
@@ -588,6 +600,7 @@ define([
         points_to_pixels : points_to_pixels,
         get_body_data : get_body_data,
         parse_url : parse_url,
+        url_path_split : url_path_split,
         url_path_join : url_path_join,
         url_join_encode : url_join_encode,
         encode_uri_components : encode_uri_components,

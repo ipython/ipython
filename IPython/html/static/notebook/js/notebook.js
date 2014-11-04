@@ -212,13 +212,13 @@ define([
         });
 
         this.events.on('kernel_ready.Kernel', function(event, data) {
-            var kinfo = data.kernel.info_reply
+            var kinfo = data.kernel.info_reply;
             var langinfo = kinfo.language_info || {};
             if (!langinfo.name)  langinfo.name = kinfo.language;
                 
             that.metadata.language_info = langinfo;
             // Mode 'null' should be plain, unhighlighted text.
-            var cm_mode = langinfo.codemirror_mode || langinfo.language || 'null'
+            var cm_mode = langinfo.codemirror_mode || langinfo.language || 'null';
             that.set_codemirror_mode(cm_mode);
         });
 
@@ -1029,7 +1029,7 @@ define([
                     text = '';
                 }
                 // metadata
-                target_cell.metadata = source_cell.metadata
+                target_cell.metadata = source_cell.metadata;
                 // We must show the editor before setting its contents
                 target_cell.unrender();
                 target_cell.set_text(text);
@@ -1231,8 +1231,6 @@ define([
      * @method split_cell
      */
     Notebook.prototype.split_cell = function () {
-        var mdc = textcell.MarkdownCell;
-        var rc = textcell.RawCell;
         var cell = this.get_selected_cell();
         if (cell.is_splittable()) {
             var texta = cell.get_pre_cursor();
@@ -1251,8 +1249,6 @@ define([
      * @method merge_cell_above
      */
     Notebook.prototype.merge_cell_above = function () {
-        var mdc = textcell.MarkdownCell;
-        var rc = textcell.RawCell;
         var index = this.get_selected_index();
         var cell = this.get_cell(index);
         var render = cell.rendered;
@@ -1288,8 +1284,6 @@ define([
      * @method merge_cell_below
      */
     Notebook.prototype.merge_cell_below = function () {
-        var mdc = textcell.MarkdownCell;
-        var rc = textcell.RawCell;
         var index = this.get_selected_index();
         var cell = this.get_cell(index);
         var render = cell.rendered;
@@ -1523,9 +1517,9 @@ define([
         }
         this.codemirror_mode = newmode;
         codecell.CodeCell.options_default.cm_config.mode = newmode;
-        modename = newmode.mode || newmode.name || newmode;
+        var modename = newmode.mode || newmode.name || newmode;
         
-        that = this;
+        var that = this;
         utils.requireCodeMirrorMode(modename, function () {
             $.map(that.get_cells(), function(cell, i) {
                 if (cell.cell_type === 'code'){
@@ -1547,7 +1541,6 @@ define([
      * @method start_session
      */
     Notebook.prototype.start_session = function (kernel_name) {
-        var that = this;
         if (this._session_starting) {
             throw new session.SessionAlreadyStarting();
         }
@@ -1629,7 +1622,6 @@ define([
     Notebook.prototype.execute_cell = function () {
         // mode = shift, ctrl, alt
         var cell = this.get_selected_cell();
-        var cell_index = this.find_cell_index(cell);
         
         cell.execute();
         this.command_mode();
@@ -1758,7 +1750,9 @@ define([
      * @param {String} name A new name for this notebook
      */
     Notebook.prototype.set_notebook_name = function (name) {
+        var parent = utils.url_path_split(this.notebook_path)[0];
         this.notebook_name = name;
+        this.notebook_path = utils.url_path_join(parent, name);
     };
 
     /**
@@ -1795,6 +1789,7 @@ define([
         // Save the metadata and name.
         this.metadata = content.metadata;
         this.notebook_name = data.name;
+        this.notebook_path = data.path;
         var trusted = true;
         
         // Trigger an event changing the kernel spec - this will set the default
@@ -1807,7 +1802,7 @@ define([
         if (this.metadata.language_info !== undefined) {
             var langinfo = this.metadata.language_info;
             // Mode 'null' should be plain, unhighlighted text.
-            var cm_mode = langinfo.codemirror_mode || langinfo.language || 'null'
+            var cm_mode = langinfo.codemirror_mode || langinfo.language || 'null';
             this.set_codemirror_mode(cm_mode);
         }
         
@@ -1900,8 +1895,6 @@ define([
     Notebook.prototype.save_notebook = function (extra_settings) {
         // Create a JSON model to be sent to the server.
         var model = {
-            name : this.notebook_name,
-            path : this.notebook_path,
             type : "notebook",
             content : this.toJSON()
         };
@@ -1909,11 +1902,11 @@ define([
         var start =  new Date().getTime();
 
         var that = this;
-        this.contents.save(this.notebook_path, this.notebook_name, model, {
+        this.contents.save(this.notebook_path, model, {
                 extra_settings: extra_settings,
                 success: $.proxy(this.save_notebook_success, this, start),
                 error: function (error) {
-                    that.events.trigger('notebook_save_failed.Notebook');
+                    that.events.trigger('notebook_save_failed.Notebook', error);
                 }
             });
     };
@@ -2031,15 +2024,15 @@ define([
 
     Notebook.prototype.copy_notebook = function(){
         var base_url = this.base_url;
-        this.contents.copy(this.notebook_path, null, this.notebook_name, {
+        var parent = utils.url_path_split(this.notebook_path)[0];
+        this.contents.copy(this.notebook_path, parent, {
             // synchronous so we can open a new window on success
             extra_settings: {async: false},
             success: function (data) {
                 window.open(utils.url_join_encode(
-                    base_url, 'notebooks', data.path, data.name
+                    base_url, 'notebooks', data.path
                 ), '_blank');
-            },
-            error : utils.log_ajax_error
+            }
         });
     };
 
@@ -2049,11 +2042,13 @@ define([
         }
 
         var that = this;
-        this.contents.rename(this.notebook_path, this.notebook_name,
-                             this.notebook_path, new_name, {
+        var parent = utils.url_path_split(this.notebook_path)[0];
+        var new_path = utils.url_path_join(parent, new_name);
+        this.contents.rename(this.notebook_path, new_path, {
             success: function (json) {
-                var name = that.notebook_name = json.name;
-                that.session.rename_notebook(name, json.path);
+                that.notebook_name = json.name;
+                that.notebook_path = json.path;
+                that.session.rename_notebook(json.path);
                 that.events.trigger('notebook_renamed.Notebook', json);
             },
             error: $.proxy(this.rename_error, this)
@@ -2061,7 +2056,7 @@ define([
     };
 
     Notebook.prototype.delete = function () {
-        this.contents.delete(this.notebook_name, this.notebook_path);
+        this.contents.delete(this.notebook_path);
     };
 
     Notebook.prototype.rename_error = function (error) {
@@ -2100,13 +2095,13 @@ define([
      * Request a notebook's data from the server.
      * 
      * @method load_notebook
-     * @param {String} notebook_name and path A notebook to load
+     * @param {String} notebook_path A notebook to load
      */
-    Notebook.prototype.load_notebook = function (notebook_name, notebook_path) {
-        this.notebook_name = notebook_name;
+    Notebook.prototype.load_notebook = function (notebook_path) {
         this.notebook_path = notebook_path;
+        this.notebook_name = utils.url_path_split(this.notebook_path)[1];
         this.events.trigger('notebook_loading.Notebook');
-        this.contents.load(notebook_path, notebook_name, {
+        this.contents.get(notebook_path, {
             success: $.proxy(this.load_notebook_success, this),
             error: $.proxy(this.load_notebook_error, this)
         });
@@ -2121,7 +2116,7 @@ define([
      * @param {Object} data JSON representation of a notebook
      */
     Notebook.prototype.load_notebook_success = function (data) {
-        var failed;
+        var failed, msg;
         try {
             this.fromJSON(data);
         } catch (e) {
@@ -2146,12 +2141,11 @@ define([
             }
 
             if (data.message) {
-                var msg;
                 if (failed) {
-                    msg = "The notebook also failed validation:"
+                    msg = "The notebook also failed validation:";
                 } else {
                     msg = "An invalid notebook may not function properly." +
-                    " The validation error was:"
+                    " The validation error was:";
                 }
                 body.append($("<p>").text(
                     msg
@@ -2192,7 +2186,7 @@ define([
                 src = " a newer notebook format ";
             }
             
-            var msg = "This notebook has been converted from" + src +
+            msg = "This notebook has been converted from" + src +
             "(v"+orig_nbformat+") to the current notebook " +
             "format (v"+nbmodel.nbformat+"). The next time you save this notebook, the " +
             "current notebook format will be used.";
@@ -2219,7 +2213,7 @@ define([
             var that = this;
             var orig_vs = 'v' + nbmodel.nbformat + '.' + orig_nbformat_minor;
             var this_vs = 'v' + nbmodel.nbformat + '.' + this.nbformat_minor;
-            var msg = "This notebook is version " + orig_vs + ", but we only fully support up to " +
+            msg = "This notebook is version " + orig_vs + ", but we only fully support up to " +
             this_vs + ".  You can still work with this notebook, but some features " +
             "introduced in later notebook versions may not be available.";
 
@@ -2270,7 +2264,7 @@ define([
     Notebook.prototype.load_notebook_error = function (error) {
         this.events.trigger('notebook_load_failed.Notebook', error);
         var msg;
-        if (error.name = utils.XHR_ERROR && error.xhr.status === 500) {
+        if (error.name === utils.XHR_ERROR && error.xhr.status === 500) {
             utils.log_ajax_error(error.xhr, error.xhr_status, error.xhr_error);
             msg = "An unknown error occurred while loading this notebook. " +
             "This version can load notebook formats " +
@@ -2330,10 +2324,10 @@ define([
      */
     Notebook.prototype.list_checkpoints = function () {
         var that = this;
-        this.contents.list_checkpoints(this.notebook_path, this.notebook_name, {
+        this.contents.list_checkpoints(this.notebook_path, {
             success: $.proxy(this.list_checkpoints_success, this),
             error: function(error) {
-                that.events.trigger('list_checkpoints_failed.Notebook');
+                that.events.trigger('list_checkpoints_failed.Notebook', error);
             }
         });
     };
@@ -2362,10 +2356,10 @@ define([
      */
     Notebook.prototype.create_checkpoint = function () {
         var that = this;
-        this.contents.create_checkpoint(this.notebook_path, this.notebook_name, {
+        this.contents.create_checkpoint(this.notebook_path, {
             success: $.proxy(this.create_checkpoint_success, this),
             error: function (error) {
-                that.events.trigger('checkpoint_failed.Notebook');
+                that.events.trigger('checkpoint_failed.Notebook', error);
             }
         });
     };
@@ -2432,11 +2426,11 @@ define([
     Notebook.prototype.restore_checkpoint = function (checkpoint) {
         this.events.trigger('notebook_restoring.Notebook', checkpoint);
         var that = this;
-        this.contents.restore_checkpoint(this.notebook_path, this.notebook_name,
+        this.contents.restore_checkpoint(this.notebook_path,
                                          checkpoint, {
             success: $.proxy(this.restore_checkpoint_success, this),
             error: function (error) {
-                that.events.trigger('checkpoint_restore_failed.Notebook');
+                that.events.trigger('checkpoint_restore_failed.Notebook', error);
             }
         });
     };
@@ -2448,7 +2442,7 @@ define([
      */
     Notebook.prototype.restore_checkpoint_success = function () {
         this.events.trigger('checkpoint_restored.Notebook');
-        this.load_notebook(this.notebook_name, this.notebook_path);
+        this.load_notebook(this.notebook_path);
     };
 
     /**
@@ -2460,7 +2454,7 @@ define([
     Notebook.prototype.delete_checkpoint = function (checkpoint) {
         this.events.trigger('notebook_restoring.Notebook', checkpoint);
         var that = this;
-        this.contents.delete_checkpoint(this.notebook_path, this.notebook_name, 
+        this.contents.delete_checkpoint(this.notebook_path, 
                                         checkpoint, {
             success: $.proxy(this.delete_checkpoint_success, this),
             error: function (error) {
@@ -2476,7 +2470,7 @@ define([
      */
     Notebook.prototype.delete_checkpoint_success = function () {
         this.events.trigger('checkpoint_deleted.Notebook');
-        this.load_notebook(this.notebook_name, this.notebook_path);
+        this.load_notebook(this.notebook_path);
     };
 
 

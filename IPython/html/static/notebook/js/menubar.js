@@ -2,13 +2,14 @@
 // Distributed under the terms of the Modified BSD License.
 
 define([
-    'base/js/namespace',
     'jquery',
+    'base/js/namespace',
+    'base/js/dialog',
     'base/js/utils',
     'notebook/js/tour',
     'bootstrap',
     'moment',
-], function(IPython, $, utils, tour, bootstrap, moment) {
+], function($, IPython, dialog, utils, tour, bootstrap, moment) {
     "use strict";
     
     var MenuBar = function (selector, options) {
@@ -89,14 +90,14 @@ define([
         this.element.find('#new_notebook').click(function () {
             // Create a new notebook in the same path as the current
             // notebook's path.
-            that.contents.new(that.notebook.notebook_path, null, {
+            var parent = utils.url_path_split(this.notebook_path)[0];
+            that.contents.new(parent, {
                     ext: ".ipynb",
                     extra_settings: {async: false},  // So we can open a new window afterwards
                     success: function (data) {
                         window.open(
                             utils.url_join_encode(
-                                that.base_url, 'notebooks',
-                                data.path, data.name
+                                that.base_url, 'notebooks', data.path
                             ), '_blank');
                         },
                     error: function(error) {
