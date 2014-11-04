@@ -114,9 +114,6 @@ define([
             success : options.success || function() {},
             error : this.create_basic_error_handler(options.error)
         };
-        if (options.extra_settings) {
-            $.extend(settings, options.extra_settings);
-        }
         $.ajax(this.api_url(path), settings);
     };
 
