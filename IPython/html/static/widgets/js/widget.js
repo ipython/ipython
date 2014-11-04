@@ -7,7 +7,7 @@ define(["widgets/js/manager",
         "jquery",
         "base/js/utils",
         "base/js/namespace",
-        "components/rsvp/rsvp.min",
+        "rsvp",
 ], function(widgetmanager, _, Backbone, $, utils, IPython, rsvp){
 
     var WidgetModel = Backbone.Model.extend({
@@ -75,15 +75,21 @@ define(["widgets/js/manager",
                 case 'update':
                     this.state_change = this.state_change.then(function() {
                         return that.set_state(msg.content.data.state);
-                    });
+                    }).catch(utils.reject({
+                        message: "Couldn't process update msg",
+                        model_id: that.id
+                    }, true));
                     break;
                 case 'custom':
                     this.trigger('msg:custom', msg.content.data.content);
                     break;
                 case 'display':
                     this.state_change = this.state_change.then(function () {
-                        that.widget_manager.display_view(msg, that);
-                    });
+                        return that.widget_manager.display_view(msg, that);
+                    }).catch(utils.reject({
+                        message: "Couldn't process display msg",
+                        model_id: that.id
+                    }, true));
                     break;
             }
         },

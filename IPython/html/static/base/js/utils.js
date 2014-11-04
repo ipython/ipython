@@ -5,7 +5,7 @@ define([
     'base/js/namespace',
     'jquery',
     'codemirror/lib/codemirror',
-    'components/rsvp/rsvp.min',
+    'rsvp',
 ], function(IPython, $, CodeMirror, rsvp){
     "use strict";
     

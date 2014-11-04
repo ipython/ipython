@@ -7,7 +7,7 @@ define([
     "jquery",
     "base/js/utils",
     "base/js/namespace",
-    'components/rsvp/rsvp.min',
+    'rsvp',
 ], function (_, Backbone, $, utils, IPython, rsvp) {
     "use strict";
     //--------------------------------------------------------------------
@@ -49,8 +49,9 @@ define([
     //--------------------------------------------------------------------
     WidgetManager.prototype.display_view = function(msg, model) {
         // Displays a view for a particular model.
+        var that = this;
         return new rsvp.Promise(function(resolve, reject) {
-            var cell = this.get_msg_cell(msg.parent_header.msg_id);
+            var cell = that.get_msg_cell(msg.parent_header.msg_id);
             if (cell === null) {
                 reject(new Error("Could not determine where the display" + 
                     " message was from.  Widget will not be displayed"));
@@ -61,8 +62,7 @@ define([
                     cell.widget_subarea.append(dummy);
                 }
 
-                var that = this;
-                this.create_view(model, {cell: cell}).then(function(view) {
+                that.create_view(model, {cell: cell}).then(function(view) {
                     that._handle_display_view(view);
                     if (dummy) {
                         dummy.replaceWith(view.$el);
@@ -74,8 +74,6 @@ define([
                 });
             }
         });
-
-        
     };
 
     WidgetManager.prototype._handle_display_view = function (view) {
@@ -174,7 +172,7 @@ define([
     };
 
     WidgetManager.prototype.get_model = function (model_id) {
-        return that._models[model_id];
+        return this._models[model_id];
     };
 
     WidgetManager.prototype._handle_comm_open = function (comm, msg) {
@@ -182,7 +180,7 @@ define([
         this.create_model({
             model_name: msg.content.data.model_name, 
             model_module: msg.content.data.model_module, 
-            comm: comm}).handle($.proxy(console.error, error));
+            comm: comm}).catch($.proxy(console.error, console));
     };
 
     WidgetManager.prototype.create_model = function (options) {
