@@ -44,6 +44,9 @@ class TestFileToRun(unittest.TestCase, tt.TempFileMixin):
         err = SQLITE_NOT_AVAILABLE_ERROR if sqlite_err_maybe else None
         tt.ipexec_validate(self.fname, self.fname, err)
 
+    # The commands option to ipexec_validate doesn't work on Windows, and it
+    # doesn't seem worth fixing
+    @dec.skip_win32
     def test_py_script_file_attribute_interactively(self):
         """Test that `__file__` is not set after `ipython -i file.py`"""
         src = "True\n"
@@ -53,6 +56,7 @@ class TestFileToRun(unittest.TestCase, tt.TempFileMixin):
         tt.ipexec_validate(self.fname, 'False', err, options=['-i'],
                            commands=['"__file__" in globals()', 'exit()'])
 
+    @dec.skip_win32
     @dec.skipif(PY3)
     def test_py_script_file_compiler_directive(self):
         """Test `__future__` compiler directives with `ipython -i file.py`"""
