@@ -655,7 +655,10 @@ casper.print_log = function () {
 
 casper.on("page.error", function onError(msg, trace) {
     // show errors in the browser
-    this.echo("Page Error!");
+    this.echo("Page Error");
+    this.echo("  Message: " + msg);
+    this.echo("  Call stack:");
+    var local_path = this.get_notebook_server();
     for (var i = 0; i < trace.length; i++) {
         var frame = trace[i];
         var file = frame.file;
@@ -664,12 +667,15 @@ casper.on("page.error", function onError(msg, trace) {
         if (file === "phantomjs://webpage.evaluate()") {
             file = "evaluate";
         }
-        this.echo("line " + frame.line + " of " + file);
-        if (frame.function.length > 0) {
-            this.echo("in " + frame.function);
+        // remove the version tag from the path
+        file = file.replace(/(\?v=[0-9abcdef]+)/, '');
+        // remove the local address from the beginning of the path
+        if (file.indexOf(local_path) === 0) {
+            file = file.substr(local_path.length);
         }
+        this.echo("    line " + frame.line + " of " + file + 
+            (frame.function.length > 0) ? " in " + frame.function: "");
     }
-    this.echo(msg);
 });
 
 
