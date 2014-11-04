@@ -21,6 +21,7 @@ define([
         //  options: dictionary
         //      Dictionary of keyword arguments.
         //          notebook: Notebook instance
+        //          contents: ContentManager instance
         //          layout_manager: LayoutManager instance
         //          events: $(Events) instance
         //          save_widget: SaveWidget instance
@@ -32,6 +33,7 @@ define([
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
         this.selector = selector;
         this.notebook = options.notebook;
+        this.contents = options.contents;
         this.layout_manager = options.layout_manager;
         this.events = options.events;
         this.save_widget = options.save_widget;
@@ -85,7 +87,26 @@ define([
         //  File
         var that = this;
         this.element.find('#new_notebook').click(function () {
-            that.notebook.new_notebook();
+            // Create a new notebook in the same path as the current
+            // notebook's path.
+            that.contents.new(that.notebook.notebook_path, null, {
+                    ext: ".ipynb",
+                    extra_settings: {async: false},  // So we can open a new window afterwards
+                    success: function (data) {
+                        window.open(
+                            utils.url_join_encode(
+                                that.base_url, 'notebooks',
+                                data.path, data.name
+                            ), '_blank');
+                        },
+                    error: function(error) {
+                        dialog.modal({
+                            title : 'Creating Notebook Failed',
+                            body : "The error was: " + error.message,
+                            buttons : {'OK' : {'class' : 'btn-primary'}}
+                        });
+                    }
+                });
         });
         this.element.find('#open_notebook').click(function () {
             window.open(utils.url_join_encode(

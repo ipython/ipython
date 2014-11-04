@@ -7,6 +7,7 @@ require([
     'base/js/events',
     'base/js/page',
     'base/js/utils',
+    'contents',
     'tree/js/notebooklist',
     'tree/js/clusterlist',
     'tree/js/sessionlist',
@@ -23,6 +24,7 @@ require([
     events,
     page, 
     utils, 
+    contents,
     notebooklist, 
     clusterlist, 
     sesssionlist, 
@@ -39,7 +41,11 @@ require([
     session_list = new sesssionlist.SesssionList($.extend({
         events: events}, 
         common_options));
+    contents = new contents.Contents($.extend({
+        events: events},
+        common_options));
     notebook_list = new notebooklist.NotebookList('#notebook_list', $.extend({
+        contents: contents,
         session_list:  session_list}, 
         common_options));
     cluster_list = new clusterlist.ClusterList('#cluster_list', common_options);
@@ -54,7 +60,24 @@ require([
     login_widget = new loginwidget.LoginWidget('#login_widget', common_options);
 
     $('#new_notebook').click(function (e) {
-        notebook_list.new_notebook();
+        contents.new(common_options.notebook_path, null, {
+                ext: ".ipynb",
+                extra_settings: {async: false},  // So we can open a new window afterwards
+                success: function (data) {
+                    window.open(
+                        utils.url_join_encode(
+                            common_options.base_url, 'notebooks',
+                            data.path, data.name
+                        ), '_blank');
+                    },
+                error: function(error) {
+                    dialog.modal({
+                        title : 'Creating Notebook Failed',
+                        body : "The error was: " + error.message,
+                        buttons : {'OK' : {'class' : 'btn-primary'}}
+                    });
+                }
+            });
     });
 
     var interval_id=0;
@@ -118,5 +141,4 @@ require([
     if (window.location.hash) {
         $("#tabs").find("a[href=" + window.location.hash + "]").click();
     }
-
 });

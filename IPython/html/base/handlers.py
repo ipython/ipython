@@ -136,6 +136,12 @@ class IPythonHandler(AuthenticatedHandler):
     @property
     def ws_url(self):
         return self.settings.get('websocket_url', '')
+
+    @property
+    def contents_js_source(self):
+        self.log.debug("Using contents: %s", self.settings.get('contents_js_source',
+            'services/contents'))
+        return self.settings.get('contents_js_source', 'services/contents')
     
     #---------------------------------------------------------------
     # Manager objects
@@ -224,7 +230,8 @@ class IPythonHandler(AuthenticatedHandler):
             logged_in=self.logged_in,
             login_available=self.login_available,
             static_url=self.static_url,
-            sys_info=sys_info
+            sys_info=sys_info,
+            contents_js_source=self.contents_js_source,
         )
     
     def get_json_body(self):
