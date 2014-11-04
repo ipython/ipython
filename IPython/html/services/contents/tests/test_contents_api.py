@@ -55,7 +55,7 @@ class API(object):
             body = json.dumps({'ext': ext})
         return self._req('POST', path, body)
 
-    def copy_untitled(self, copy_from, path='/'):
+    def copy(self, copy_from, path='/'):
         body = json.dumps({'copy_from':copy_from})
         return self._req('POST', path, body)
 
@@ -68,7 +68,7 @@ class API(object):
     def mkdir(self, path='/'):
         return self._req('PUT', path, json.dumps({'type': 'directory'}))
 
-    def copy(self, copy_from, path):
+    def copy_put(self, copy_from, path='/'):
         body = json.dumps({'copy_from':copy_from})
         return self._req('PUT', path, body)
 
@@ -352,25 +352,25 @@ class APITest(NotebookTestBase):
         data = resp.json()
         self.assertEqual(data['content']['nbformat'], 4)
 
-    def test_copy_untitled(self):
-        resp = self.api.copy_untitled(u'å b/ç d.ipynb', u'unicodé')
+    def test_copy(self):
+        resp = self.api.copy(u'å b/ç d.ipynb', u'unicodé')
         self._check_created(resp, u'unicodé/ç d-Copy0.ipynb')
         
-        resp = self.api.copy_untitled(u'å b/ç d.ipynb', u'å b')
+        resp = self.api.copy(u'å b/ç d.ipynb', u'å b')
         self._check_created(resp, u'å b/ç d-Copy0.ipynb')
 
-    def test_copy(self):
-        resp = self.api.copy(u'å b/ç d.ipynb', u'å b/cøpy.ipynb')
-        self._check_created(resp, u'å b/cøpy.ipynb')
-
     def test_copy_path(self):
-        resp = self.api.copy(u'foo/a.ipynb', u'å b/cøpyfoo.ipynb')
-        self._check_created(resp, u'å b/cøpyfoo.ipynb')
+        resp = self.api.copy(u'foo/a.ipynb', u'å b')
+        self._check_created(resp, u'å b/a-Copy0.ipynb')
+
+    def test_copy_put_400(self):
+        with assert_http_error(400):
+            resp = self.api.copy_put(u'å b/ç d.ipynb', u'å b/cøpy.ipynb')
 
     def test_copy_dir_400(self):
         # can't copy directories
         with assert_http_error(400):
-            resp = self.api.copy(u'å b', u'å c')
+            resp = self.api.copy(u'å b', u'foo')
 
     def test_delete(self):
         for d, name in self.dirs_nbs:

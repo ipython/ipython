@@ -158,23 +158,12 @@ class ContentsHandler(IPythonHandler):
           Save notebook at ``path/Name.ipynb``. Notebook structure is specified
           in `content` key of JSON request body. If content is not specified,
           create a new empty notebook.
-        PUT /api/contents/path/Name.ipynb
-          with JSON body::
-
-            {
-              "copy_from" : "[path/to/]OtherNotebook.ipynb"
-            }
-
-          Copy OtherNotebook to Name
         """
         model = self.get_json_body()
         if model:
-            copy_from = model.get('copy_from')
-            if copy_from:
-                if model.get('content'):
-                    raise web.HTTPError(400, "Can't upload and copy at the same time.")
-                self._copy(copy_from, path)
-            elif self.contents_manager.file_exists(path):
+            if model.get('copy_from'):
+                raise web.HTTPError(400, "Cannot copy with PUT, only POST")
+            if self.contents_manager.file_exists(path):
                 self._save(model, path)
             else:
                 self._upload(model, path)
