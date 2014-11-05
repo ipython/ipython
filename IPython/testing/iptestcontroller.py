@@ -81,18 +81,24 @@ class TestController(object):
         """
         pass
 
-    def launch(self, buffer_output=False):
+    def launch(self, buffer_output=False, capture_output=False):
         # print('*** ENV:', self.env)  # dbg
         # print('*** CMD:', self.cmd)  # dbg
         env = os.environ.copy()
         env.update(self.env)
-        output = subprocess.PIPE if buffer_output else None
-        stdout = subprocess.STDOUT if buffer_output else None
-        self.process = subprocess.Popen(self.cmd, stdout=output,
-                stderr=stdout, env=env)
+        if buffer_output:
+            capture_output = True
+        self.stdout_capturer = c = StreamCapturer(echo=not buffer_output)
+        c.start()
+        stdout = c.writefd if capture_output else None
+        stderr = subprocess.STDOUT if capture_output else None
+        self.process = subprocess.Popen(self.cmd, stdout=stdout,
+                stderr=stderr, env=env)
 
     def wait(self):
-        self.stdout, _ = self.process.communicate()
+        self.process.wait()
+        self.stdout_capturer.halt()
+        self.stdout = self.stdout_capturer.get_buffer()
         return self.process.returncode
 
     def print_extra_info(self):
@@ -224,7 +230,6 @@ class JSController(TestController):
     
     requirements =  ['zmq', 'tornado', 'jinja2', 'casperjs', 'sqlite3',
                      'jsonschema']
-    display_slimer_output = False
 
     def __init__(self, section, xunit=True, engine='phantomjs', url=None):
         """Create new test runner."""
@@ -279,8 +284,7 @@ class JSController(TestController):
         # If the engine is SlimerJS, we need to buffer the output because
         # SlimerJS does not support exit codes, so CasperJS always returns 0.
         if self.engine == 'slimerjs' and not buffer_output:
-            self.display_slimer_output = True
-            return super(JSController, self).launch(buffer_output=True)
+            return super(JSController, self).launch(capture_output=True)
 
         else:
             return super(JSController, self).launch(buffer_output=buffer_output)
@@ -292,8 +296,6 @@ class JSController(TestController):
         # errors.  Otherwise, just return the return code.
         if self.engine == 'slimerjs':
             stdout = bytes_to_str(self.stdout)
-            if self.display_slimer_output:
-                print(stdout)
             if ret != 0:
                 # This could still happen e.g. if it's stopped by SIGINT
                 return ret
