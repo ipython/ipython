@@ -1,0 +1,23 @@
+{% extends "page.html" %}
+
+{% block title %}{{page_title}}{% endblock %}
+
+{% block params %}
+
+data-base-url="{{base_url}}"
+
+{% endblock %}
+
+
+{% block site %}
+
+<div id="texteditor-container"></div>
+
+{% endblock %}
+
+{% block script %}
+
+    {{super()}}
+
+<script src="{{ static_url("texteditor/js/main.js") }}" type="text/javascript" charset="utf-8"></script>
+{% endblock %}
