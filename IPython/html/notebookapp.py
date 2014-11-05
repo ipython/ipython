@@ -53,7 +53,7 @@ from tornado.log import LogFormatter, app_log, access_log, gen_log
 
 from IPython.html import (
     DEFAULT_STATIC_FILES_PATH,
-    DEFAULT_TEMPLATE_FILES_PATH,
+    DEFAULT_TEMPLATE_PATH_LIST,
 )
 from .base.handlers import Template404
 from .log import log_request
@@ -536,8 +536,8 @@ class NotebookApp(BaseIPythonApplication):
 
     @property
     def template_file_path(self):
-        """return extra paths + the default location"""
-        return self.extra_template_paths + [DEFAULT_TEMPLATE_FILES_PATH]
+        """return extra paths + the default locations"""
+        return self.extra_template_paths + DEFAULT_TEMPLATE_PATH_LIST
 
     nbextensions_path = List(Unicode, config=True,
         help="""paths for Javascript extensions. By default, this is just IPYTHONDIR/nbextensions"""
