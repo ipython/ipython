@@ -12,7 +12,7 @@ DEFAULT_STATIC_FILES_PATH = os.path.join(os.path.dirname(__file__), "static")
 # template.
 #
 # For example, if you want to override a specific block of notebook.html, you
-# can create a file called notebook.html that inherits from from
+# can create a file called notebook.html that inherits from
 # templates/notebook.html, and the latter will resolve correctly to the base
 # implementation.
 DEFAULT_TEMPLATE_PATH_LIST = [
