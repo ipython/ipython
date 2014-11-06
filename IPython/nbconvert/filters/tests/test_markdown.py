@@ -4,6 +4,7 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import re
 from copy import copy
 
 from IPython.utils.py3compat import string_types
@@ -60,10 +61,18 @@ class TestMarkdown(TestsBase):
         self.assertEqual(markdown2latex(s, markup='markdown_strict'), s)
         # This string should be passed through unaltered with pandoc's
         # markdown_strict+tex_math_dollars reader
-        s = '$\\alpha$ latex math'
-        self.assertEqual(
+        s = r'$\alpha$ latex math'
+        # sometimes pandoc uses $math$, sometimes it uses \(math\)
+        expected = re.compile(r'(\$|\\\()\\alpha(\$|\\\)) latex math')
+        try:
+            # py3
+            assertRegex = self.assertRegex
+        except AttributeError:
+            # py2
+            assertRegex = self.assertRegexpMatches
+        assertRegex(
             markdown2latex(s, markup='markdown_strict+tex_math_dollars'),
-            s)
+            expected)
 
     @dec.onlyif_cmds_exist('pandoc')
     def test_pandoc_extra_args(self):
