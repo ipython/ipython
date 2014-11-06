@@ -93,7 +93,12 @@ define([
     
     WidgetManager.prototype.create_view = function(model, options) {
         // Creates a promise for a view of a given model
-        return utils.load_class(model.get('_view_name'), model.get('_view_module'),
+
+        // Make sure the view creation is not out of order with 
+        // any state updates.
+        model.state_change = model.state_change.then(function() {
+            console.log('create_view ' + model.id);
+            return utils.load_class(model.get('_view_name'), model.get('_view_module'),
             WidgetManager._view_types).then(function(ViewType) {
 
                 // If a view is passed into the method, use that view's cell as
@@ -109,6 +114,8 @@ define([
                 view.render();
                 return view;
             }, utils.reject("Couldn't create a view for model id '" + String(model.id) + "'"));
+        });
+        return model.state_change;
     };
 
     WidgetManager.prototype.get_msg_cell = function (msg_id) {

@@ -81,9 +81,8 @@ define(["widgets/js/manager",
                     this.trigger('msg:custom', msg.content.data.content);
                     break;
                 case 'display':
-                    this.state_change = this.state_change.then(function () {
-                        return that.widget_manager.display_view(msg, that);
-                    }).catch(utils.reject("Couldn't process display msg for model id '" + String(that.id) + "'", true));
+                    that.widget_manager.display_view(msg, that)
+                        .catch(utils.reject("Couldn't process display msg for model id '" + String(that.id) + "'", true));
                     break;
             }
         },
@@ -94,6 +93,8 @@ define(["widgets/js/manager",
             return this._unpack_models(state).then(function(state) {
                 that.state_lock = state;
                 try {
+                    console.log('set_state ' + that.id);
+                    console.log(state);
                     WidgetModel.__super__.set.call(that, state);
                 } finally {
                     that.state_lock = null;
