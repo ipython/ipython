@@ -5,8 +5,7 @@ define([
     'base/js/namespace',
     'jquery',
     'base/js/utils',
-    'base/js/dialog',
-], function(IPython, $, utils, dialog) {
+], function(IPython, $, utils) {
     var Contents = function(options) {
         // Constructor
         //
