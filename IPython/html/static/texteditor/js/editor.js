@@ -6,6 +6,7 @@ define([
     'base/js/utils',
     'codemirror/lib/codemirror',
     'codemirror/mode/meta',
+    'codemirror/addon/search/search'
     ],
 function($,
     utils,
