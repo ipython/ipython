@@ -5,16 +5,20 @@ require([
     'jquery',
     'base/js/utils',
     'base/js/page',
+    'base/js/events',
     'contents',
     'codemirror/lib/codemirror',
+    'texteditor/js/menubar',
     'codemirror/mode/meta',
     'custom/custom',
 ], function(
-    $, 
+    $,
     utils,
     page,
+    events,
     contents,
-    CodeMirror
+    CodeMirror,
+    menubar
     ){
     page = new page.Page();
 
@@ -29,7 +33,7 @@ require([
         basename = file_path;
     } else {
         dir_path = file_path.substring(0, ix);
-        basename = file_path.substring(ix);
+        basename = file_path.substring(ix+1);
     }
     contents.load(dir_path, basename, {
         success: function(model) {
@@ -38,6 +42,14 @@ require([
                 console.log(modeinfo);
                 var cm = CodeMirror($('#texteditor-container')[0], {
                     value: model.content,
+                });
+                
+                var menus = new menubar.MenuBar('#menubar', {
+                    base_url: base_url,
+                    codemirror: cm,
+                    contents: contents,
+                    events: events,
+                    file_path: file_path
                 });
                 
                 // Find and load the highlighting mode
