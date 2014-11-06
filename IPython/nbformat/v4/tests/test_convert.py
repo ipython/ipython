@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import copy
 
 import nose.tools as nt
@@ -32,6 +33,10 @@ def test_upgrade_heading():
         (
             v3h(source='foo\nbar\nmulti-line\n', level=4),
             v4m(source='#### foo bar multi-line'),
+        ),
+        (
+            v3h(source='unicode–conversion', level=4),
+            v4m(source=u'#### unicode–conversion'),
         ),
     ]:
         upgraded = convert.upgrade_cell(v3cell)
