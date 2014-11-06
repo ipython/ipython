@@ -84,7 +84,7 @@ class _Selection(DOMWidget):
         """        
         if self.values_lock.acquire(False):
             try:
-                self.values = self._make_values(x)
+                self.values = self._make_values(new)
                 self.values_dict = {i[0]: i[1] for i in self.values}
                 self.values_names = [i[0] for i in self.values]
                 self.values_values = [i[1] for i in self.values]
