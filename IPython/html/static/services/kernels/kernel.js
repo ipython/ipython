@@ -332,8 +332,11 @@ define([
      * @function reconnect
      */
     Kernel.prototype.reconnect = function () {
+        if (this.is_connected()) {
+            return;
+        }
         this.events.trigger('kernel_reconnecting.Kernel', {kernel: this});
-        setTimeout($.proxy(this.start_channels, this), 3000);
+        this.start_channels();
     };
 
     /**
@@ -527,7 +530,15 @@ define([
             this._reconnect_attempt = this._reconnect_attempt + 1;
             this.events.trigger('kernel_connection_failed.Kernel', {kernel: this, ws_url: ws_url, attempt: this._reconnect_attempt});
         }
-        this.reconnect();
+        if (this._reconnect_attempt < 7) {
+            var timeout = Math.pow(2, this._reconnect_attempt);
+            console.log("Connection lost, reconnecting in " + timeout + " seconds.");
+            setTimeout($.proxy(this.reconnect, this), 1e3 * timeout);
+        } else {
+            this._reconnect_attempt = 1;
+            this.events.trigger('kernel_connection_given_up.Kernel', {kernel: this, ws_url: ws_url, attempt: this._reconnect_attempt});
+            console.log("Failed to reconnect, giving up.");
+        }
     };
 
     /**
