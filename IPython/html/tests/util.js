@@ -744,4 +744,26 @@ casper.capture_log = function () {
     });
 };
 
+casper.interact = function() {
+    // Start an interactive Javascript console.
+    var system = require('system');
+    system.stdout.writeLine('JS interactive console.');
+    system.stdout.writeLine('Type `exit` to quit.');
+
+    function read_line() {
+        system.stdout.writeLine('JS: ');
+        var line = system.stdin.readLine();
+        return line;
+    }
+
+    var input = read_line();
+    while (input.trim() != 'exit') {
+        var output = this.evaluate(function(code) {
+            return String(eval(code));
+        }, {code: input});
+        system.stdout.writeLine('\nOut: ' + output);
+        input = read_line();
+    }
+};
+
 casper.capture_log();

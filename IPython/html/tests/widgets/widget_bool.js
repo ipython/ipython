@@ -13,7 +13,6 @@ casper.notebook_test(function () {
         'display(bool_widgets[1])\n' +
         'print("Success")');
     this.execute_cell_then(bool_index, function(index){
-
         this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Create bool widget cell executed with correct output.');
 
@@ -48,7 +47,6 @@ casper.notebook_test(function () {
         this.test.assert(this.cell_element_function(index, 
             '.widget-area .widget-subarea button', 'hasClass', ['active']),
             'Toggle button is toggled.');
-
     });
 
     index = this.append_cell(
@@ -56,6 +54,8 @@ casper.notebook_test(function () {
         'bool_widgets[1].value = False\n' +
         'print("Success")');
     this.execute_cell_then(index, function(index){
+
+        this.interact();
 
         this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Change bool widget value cell executed with correct output.');

@@ -70,6 +70,7 @@ define(["widgets/js/manager",
         _handle_comm_msg: function (msg) {
             // Handle incoming comm msg.
             var method = msg.content.data.method;
+            console.log(method);
             var that = this;
             switch (method) {
                 case 'update':
@@ -81,8 +82,9 @@ define(["widgets/js/manager",
                     this.trigger('msg:custom', msg.content.data.content);
                     break;
                 case 'display':
-                    that.widget_manager.display_view(msg, that)
-                        .catch(utils.reject("Couldn't process display msg for model id '" + String(that.id) + "'", true));
+                    this.state_change = this.state_change.then(function() {
+                        return that.widget_manager.display_view(msg, that);
+                    }).catch(utils.reject("Couldn't process display msg for model id '" + String(that.id) + "'", true));
                     break;
             }
         },
@@ -99,6 +101,7 @@ define(["widgets/js/manager",
                 } finally {
                     that.state_lock = null;
                 }
+                return rsvp.Promise.resolve();
             }, utils.reject("Couldn't set model state", true));
         },
 
