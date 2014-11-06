@@ -35,8 +35,8 @@ def test_upgrade_heading():
             v4m(source='#### foo bar multi-line'),
         ),
         (
-            v3h(source='unicode–conversion', level=4),
-            v4m(source=u'#### unicode–conversion'),
+            v3h(source='ünìcö∂e–cønvërsioñ', level=4),
+            v4m(source=u'#### ünìcö∂e–cønvërsioñ'),
         ),
     ]:
         upgraded = convert.upgrade_cell(v3cell)
