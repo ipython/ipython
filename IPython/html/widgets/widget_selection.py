@@ -18,7 +18,9 @@ from collections import OrderedDict
 from threading import Lock
 
 from .widget import DOMWidget, register
-from IPython.utils.traitlets import Unicode, List, Bool, Any, Dict, TraitError, CaselessStrEnum
+from IPython.utils.traitlets import (
+    Unicode, Bool, Any, Dict, TraitError, CaselessStrEnum, Tuple
+)
 from IPython.utils.py3compat import unicode_type
 from IPython.utils.warn import DeprecatedClass
 
