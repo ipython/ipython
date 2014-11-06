@@ -35,7 +35,7 @@ def test_upgrade_heading():
             v4m(source='#### foo bar multi-line'),
         ),
         (
-            v3h(source='ünìcö∂e–cønvërsioñ', level=4),
+            v3h(source=u'ünìcö∂e–cønvërsioñ', level=4),
             v4m(source=u'#### ünìcö∂e–cønvërsioñ'),
         ),
     ]:
