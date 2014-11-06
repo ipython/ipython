@@ -138,7 +138,15 @@ class NotebookWebApplication(web.Application):
                       log, base_url, default_url, settings_overrides,
                       jinja_env_options=None):
 
-        _template_path = settings_overrides.get("template_path", os.path.join(os.path.dirname(__file__), "templates"))
+        _default_template_path = [
+            ipython_app.profile_dir.template_dir,
+            os.path.join(os.path.dirname(__file__), "templates"),
+        ]
+
+        _template_path = settings_overrides.get(
+            "template_path",
+            _default_template_path,
+        )
         if isinstance(_template_path, str):
             _template_path = (_template_path,)
         template_path = [os.path.expanduser(path) for path in _template_path]
