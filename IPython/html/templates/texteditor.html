@@ -2,12 +2,18 @@
 
 {% block title %}{{page_title}}{% endblock %}
 
+{% block stylesheet %}
+<link rel="stylesheet" href="{{ static_url('components/codemirror/lib/codemirror.css') }}">
+
+{{super()}}
+{% endblock %}
+
 {% block params %}
 
 data-base-url="{{base_url}}"
+data-file-path="{{file_path}}"
 
 {% endblock %}
-
 
 {% block site %}
 
