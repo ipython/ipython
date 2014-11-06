@@ -59,7 +59,7 @@ function($, utils) {
     ConfigSection.prototype.update = function(newdata) {
         return new Promise(function(resolve, reject) {
             $.ajax(this.api_url(), {
-                processData: false;
+                processData: false,
                 type : "PATCH",
                 data: JSON.stringify(newdata),
                 dataType : "json",
