@@ -91,7 +91,7 @@ def upgrade_cell(cell):
     elif cell.cell_type == 'heading':
         cell.cell_type = 'markdown'
         level = cell.pop('level', 1)
-        cell.source = '{hashes} {single_line}'.format(
+        cell.source = u'{hashes} {single_line}'.format(
             hashes='#' * level,
             single_line = ' '.join(cell.get('source', '').splitlines()),
         )
