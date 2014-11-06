@@ -26,10 +26,7 @@ define([
         options = options || {};
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
         this.selector = selector;
-        this.codemirror = options.codemirror;
-        this.contents = options.contents;
-        this.events = options.events;
-        this.file_path = options.file_path;
+        this.editor = options.editor;
 
         if (this.selector !== undefined) {
             this.element = $(selector);
@@ -41,28 +38,7 @@ define([
         //  File
         var that = this;
         this.element.find('#save_file').click(function () {
-            var ix = that.file_path.lastIndexOf("/");
-            var dir_path, basename;
-            if (ix === -1) {
-                dir_path = '';
-                basename = that.file_path;
-            } else {
-                dir_path = that.file_path.substring(0, ix);
-                basename = that.file_path.substring(ix+1);
-            }
-            var model = {
-                path: dir_path,
-                name: basename,
-                type: 'file',
-                format: 'text',
-                content: that.codemirror.getValue(),
-            };
-            console.log(model);
-            that.contents.save(dir_path, basename, model, {
-                success: function() {
-                    that.events.trigger("save_succeeded.TextEditor");
-                }
-            });
+            that.editor.save();
         });
     };
 
