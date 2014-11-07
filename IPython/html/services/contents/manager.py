@@ -204,7 +204,7 @@ class ContentsManager(LoggingConfigurable):
         for i in itertools.count():
             name = u'{basename}{i}{ext}'.format(basename=basename, i=i,
                                                 ext=ext)
-            if not self.file_exists('{}/{}'.format(path, name)):
+            if not self.file_exists(u'{}/{}'.format(path, name)):
                 break
         return name
 
@@ -213,7 +213,7 @@ class ContentsManager(LoggingConfigurable):
         try:
             validate(model['content'])
         except ValidationError as e:
-            model['message'] = 'Notebook Validation failed: {}:\n{}'.format(
+            model['message'] = u'Notebook Validation failed: {}:\n{}'.format(
                 e.message, json.dumps(e.instance, indent=1, default=lambda obj: '<UNKNOWN>'),
             )
         return model
@@ -245,7 +245,7 @@ class ContentsManager(LoggingConfigurable):
                 raise HTTPError(400, "Unexpected model type: %r" % model['type'])
             
             name = self.increment_filename(untitled + ext, path)
-            path = '{0}/{1}'.format(path, name)
+            path = u'{0}/{1}'.format(path, name)
         model = self.save(model, path)
         return model
 
@@ -276,7 +276,7 @@ class ContentsManager(LoggingConfigurable):
             base, ext = os.path.splitext(from_name)
             copy_name = u'{0}-Copy{1}'.format(base, ext)
             to_name = self.increment_filename(copy_name, to_path)
-            to_path = '{0}/{1}'.format(to_path, to_name)
+            to_path = u'{0}/{1}'.format(to_path, to_name)
         
         model = self.save(model, to_path)
         return model
