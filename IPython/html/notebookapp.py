@@ -51,7 +51,10 @@ from tornado import httpserver
 from tornado import web
 from tornado.log import LogFormatter, app_log, access_log, gen_log
 
-from IPython.html import DEFAULT_STATIC_FILES_PATH
+from IPython.html import (
+    DEFAULT_STATIC_FILES_PATH,
+    DEFAULT_TEMPLATE_PATH_LIST,
+)
 from .base.handlers import Template404
 from .log import log_request
 from .services.kernels.kernelmanager import MappingKernelManager
@@ -138,7 +141,10 @@ class NotebookWebApplication(web.Application):
                       log, base_url, default_url, settings_overrides,
                       jinja_env_options=None):
 
-        _template_path = settings_overrides.get("template_path", os.path.join(os.path.dirname(__file__), "templates"))
+        _template_path = settings_overrides.get(
+            "template_path",
+            ipython_app.template_file_path,
+        )
         if isinstance(_template_path, str):
             _template_path = (_template_path,)
         template_path = [os.path.expanduser(path) for path in _template_path]
@@ -519,7 +525,20 @@ class NotebookApp(BaseIPythonApplication):
     def static_file_path(self):
         """return extra paths + the default location"""
         return self.extra_static_paths + [DEFAULT_STATIC_FILES_PATH]
-    
+
+    extra_template_paths = List(Unicode, config=True,
+        help="""Extra paths to search for serving jinja templates.
+
+        Can be used to override templates from IPython.html.templates."""
+    )
+    def _extra_template_paths_default(self):
+        return []
+
+    @property
+    def template_file_path(self):
+        """return extra paths + the default locations"""
+        return self.extra_template_paths + DEFAULT_TEMPLATE_PATH_LIST
+
     nbextensions_path = List(Unicode, config=True,
         help="""paths for Javascript extensions. By default, this is just IPYTHONDIR/nbextensions"""
     )
