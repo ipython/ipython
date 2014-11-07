@@ -66,6 +66,7 @@ define([
 
         this._autorestart_attempt = 0;
         this._reconnect_attempt = 0;
+        this.reconnect_limit = 7;
     };
 
     /**
@@ -335,7 +336,11 @@ define([
         if (this.is_connected()) {
             return;
         }
-        this.events.trigger('kernel_reconnecting.Kernel', {kernel: this});
+        this._reconnect_attempt = this._reconnect_attempt + 1;
+        this.events.trigger('kernel_reconnecting.Kernel', {
+            kernel: this,
+            attempt: this._reconnect_attempt,
+        });
         this.start_channels();
     };
 
@@ -527,20 +532,27 @@ define([
         this.events.trigger('kernel_disconnected.Kernel', {kernel: this});
         if (error) {
             console.log('WebSocket connection failed: ', ws_url);
-            this._reconnect_attempt = this._reconnect_attempt + 1;
             this.events.trigger('kernel_connection_failed.Kernel', {kernel: this, ws_url: ws_url, attempt: this._reconnect_attempt});
         }
-        if (this._reconnect_attempt < 7) {
+        this._schedule_reconnect();
+    };
+    
+    Kernel.prototype._schedule_reconnect = function () {
+        // function to call when kernel connection is lost
+        // schedules reconnect, or fires 'connection_dead' if reconnect limit is hit
+        if (this._reconnect_attempt < this.reconnect_limit) {
             var timeout = Math.pow(2, this._reconnect_attempt);
             console.log("Connection lost, reconnecting in " + timeout + " seconds.");
             setTimeout($.proxy(this.reconnect, this), 1e3 * timeout);
         } else {
-            this._reconnect_attempt = 1;
-            this.events.trigger('kernel_connection_given_up.Kernel', {kernel: this, ws_url: ws_url, attempt: this._reconnect_attempt});
+            this.events.trigger('kernel_connection_dead.Kernel', {
+                kernel: this,
+                reconnect_attempt: this._reconnect_attempt,
+            });
             console.log("Failed to reconnect, giving up.");
         }
     };
-
+    
     /**
      * Close the websocket channels. After successful close, the value
      * in `this.channels[channel_name]` will be null.
