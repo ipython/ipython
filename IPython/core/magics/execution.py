@@ -1060,7 +1060,7 @@ python-profiler package from non-free.""")
           following statement raises an error).
 
         This function provides very basic timing functionality.  Use the timeit 
-        magic for more controll over the measurement.
+        magic for more control over the measurement.
 
         Examples
         --------
