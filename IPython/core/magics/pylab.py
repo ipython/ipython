@@ -16,7 +16,7 @@ from __future__ import print_function
 # Our own packages
 from IPython.config.application import Application
 from IPython.core import magic_arguments
-from IPython.core.magic import Magics, magics_class, line_magic
+from IPython.core.magic import Magics, magics_class, line_magic, line_cell_magic
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.warn import warn
 from IPython.core.pylabtools import backends
@@ -40,16 +40,22 @@ class PylabMagics(Magics):
     """Magics related to matplotlib's pylab support"""
     
     @skip_doctest
-    @line_magic
+    @line_cell_magic
     @magic_arguments.magic_arguments()
     @magic_gui_arg
-    def matplotlib(self, line=''):
+    def matplotlib(self, line='', cell=None):
         """Set up matplotlib to work interactively.
-        
-        This function lets you activate matplotlib interactive support
-        at any point during an IPython session. It does not import anything
-        into the interactive namespace.
-        
+
+        This function can be used both as a line and cell magic.
+
+        As a line magic this function lets you activate matplotlib interactive
+        support at any point during an IPython session. It does not import
+        anything into the interactive namespace.
+
+        As a cell magic, the matplotlib backend is reverted back to its
+        previous value after the execution of the cell. If matplotlib
+        interactive support was not active, the choosen backend remains active.
+
         If you are using the inline matplotlib backend in the IPython Notebook
         you can set which figure formats are enabled using the following::
         
@@ -75,10 +81,21 @@ class PylabMagics(Magics):
         But you can explicitly request a different GUI backend::
 
             In [3]: %matplotlib qt
+
+        To enable the inline backend only for one cell and return to the
+        previous backend (qt in this case) afterwards::
+
+            In [4]: %%matplotlib inline
         """
+        if cell is not None:
+            previous_gui = self.shell.pylab_gui_select
         args = magic_arguments.parse_argstring(self.matplotlib, line)
         gui, backend = self.shell.enable_matplotlib(args.gui)
         self._show_matplotlib_backend(args.gui, backend)
+        if cell is not None:
+            self.shell.run_cell(cell)
+            if previous_gui is not None:
+                self.shell.enable_matplotlib(previous_gui)
 
     @skip_doctest
     @line_magic
