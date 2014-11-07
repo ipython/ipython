@@ -12,14 +12,14 @@ casper.notebook_test(function () {
     
     this.thenEvaluate(function (nbname) {
         require(['base/js/events'], function (events) {
-            IPython.notebook.notebook_name = nbname;
+            IPython.notebook.set_notebook_name(nbname);
             IPython._save_success = IPython._save_failed = false;
             events.on('notebook_saved.Notebook', function () {
                 IPython._save_success = true;
             });
             events.on('notebook_save_failed.Notebook',
-                function (event, xhr, status, error) {
-                    IPython._save_failed = "save failed with " + xhr.status + xhr.responseText;
+                function (event, error) {
+                    IPython._save_failed = "save failed with " + error;
             });
             IPython.notebook.save_notebook();
         });
@@ -42,6 +42,10 @@ casper.notebook_test(function () {
             return IPython.notebook.notebook_name;
         });
         this.test.assertEquals(current_name, nbname, "Save with complicated name");
+        var current_path = this.evaluate(function(){
+            return IPython.notebook.notebook_path;
+        });
+        this.test.assertEquals(current_path, nbname, "path OK");
     });
     
     this.thenEvaluate(function(){
@@ -68,11 +72,8 @@ casper.notebook_test(function () {
     });
 
     this.then(function(){
-        var baseUrl = this.get_notebook_server();
-        this.open(baseUrl);
+        this.open_dashboard();
     });
-
-    this.waitForSelector('.list_item');
     
     this.then(function(){
         var notebook_url = this.evaluate(function(nbname){
@@ -92,11 +93,11 @@ casper.notebook_test(function () {
     });
     
     // wait for the notebook
-    this.waitForSelector("#notebook");
+    this.waitFor(this.kernel_running);
     
-    this.waitFor(function(){
-        return this.evaluate(function(){
-            return IPython.notebook || false;
+    this.waitFor(function() {
+        return this.evaluate(function () {
+            return IPython && IPython.notebook && true;
         });
     });
     
