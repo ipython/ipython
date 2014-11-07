@@ -101,7 +101,7 @@ class TestContentsManager(TestCase):
 
     def new_notebook(self):
         cm = self.contents_manager
-        model = cm.create_file()
+        model = cm.new()
         name = model['name']
         path = model['path']
 
@@ -112,10 +112,10 @@ class TestContentsManager(TestCase):
         cm.save(full_model, path)
         return nb, name, path
 
-    def test_create_file(self):
+    def test_new(self):
         cm = self.contents_manager
         # Test in root directory
-        model = cm.create_file()
+        model = cm.new()
         assert isinstance(model, dict)
         self.assertIn('name', model)
         self.assertIn('path', model)
@@ -125,7 +125,7 @@ class TestContentsManager(TestCase):
         # Test in sub-directory
         sub_dir = '/foo/'
         self.make_dir(cm.root_dir, 'foo')
-        model = cm.create_file(path=sub_dir)
+        model = cm.new(path=sub_dir)
         assert isinstance(model, dict)
         self.assertIn('name', model)
         self.assertIn('path', model)
@@ -135,7 +135,7 @@ class TestContentsManager(TestCase):
     def test_get(self):
         cm = self.contents_manager
         # Create a notebook
-        model = cm.create_file()
+        model = cm.new()
         name = model['name']
         path = model['path']
 
@@ -150,7 +150,7 @@ class TestContentsManager(TestCase):
         # Test in sub-directory
         sub_dir = '/foo/'
         self.make_dir(cm.root_dir, 'foo')
-        model = cm.create_file(path=sub_dir, ext='.ipynb')
+        model = cm.new(path=sub_dir, ext='.ipynb')
         model2 = cm.get_model(sub_dir + name)
         assert isinstance(model2, dict)
         self.assertIn('name', model2)
@@ -165,7 +165,7 @@ class TestContentsManager(TestCase):
         path = 'test bad symlink'
         os_path = self.make_dir(cm.root_dir, path)
         
-        file_model = cm.create_file(path=path, ext='.txt')
+        file_model = cm.new(path=path, ext='.txt')
         
         # create a broken symlink
         os.symlink("target", os.path.join(os_path, "bad symlink"))
@@ -180,7 +180,7 @@ class TestContentsManager(TestCase):
         path = '{0}/{1}'.format(parent, name)
         os_path = self.make_dir(cm.root_dir, parent)
         
-        file_model = cm.create_file(path=parent, ext='.txt')
+        file_model = cm.new(path=parent, ext='.txt')
         
         # create a good symlink
         os.symlink(file_model['name'], os.path.join(os_path, name))
@@ -195,7 +195,7 @@ class TestContentsManager(TestCase):
     def test_update(self):
         cm = self.contents_manager
         # Create a notebook
-        model = cm.create_file()
+        model = cm.new()
         name = model['name']
         path = model['path']
 
@@ -214,7 +214,7 @@ class TestContentsManager(TestCase):
         # Create a directory and notebook in that directory
         sub_dir = '/foo/'
         self.make_dir(cm.root_dir, 'foo')
-        model = cm.create_file(None, sub_dir)
+        model = cm.new(None, sub_dir)
         name = model['name']
         path = model['path']
 
@@ -234,7 +234,7 @@ class TestContentsManager(TestCase):
     def test_save(self):
         cm = self.contents_manager
         # Create a notebook
-        model = cm.create_file()
+        model = cm.new()
         name = model['name']
         path = model['path']
 
@@ -253,7 +253,7 @@ class TestContentsManager(TestCase):
         # Create a directory and notebook in that directory
         sub_dir = '/foo/'
         self.make_dir(cm.root_dir, 'foo')
-        model = cm.create_file(None, sub_dir)
+        model = cm.new(None, sub_dir)
         name = model['name']
         path = model['path']
         model = cm.get_model(path)
@@ -283,7 +283,7 @@ class TestContentsManager(TestCase):
         name = u'nb √.ipynb'
         path = u'{0}/{1}'.format(parent, name)
         os.mkdir(os.path.join(cm.root_dir, parent))
-        orig = cm.create_file(path=path)
+        orig = cm.new(path=path)
 
         # copy with unspecified name
         copy = cm.copy(path)

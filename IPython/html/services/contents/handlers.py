@@ -92,7 +92,7 @@ class ContentsHandler(IPythonHandler):
     def _upload(self, model, path):
         """Handle upload of a new file to path"""
         self.log.info(u"Uploading file to %s", path)
-        model = self.contents_manager.create_file(model, path)
+        model = self.contents_manager.new(model, path)
         self.set_status(201)
         self._finish_model(model)
 
@@ -102,7 +102,7 @@ class ContentsHandler(IPythonHandler):
         If name specified, create it in path.
         """
         self.log.info(u"Creating new file in %s", path)
-        model = self.contents_manager.create_file(path=path, ext=ext)
+        model = self.contents_manager.new(path=path, ext=ext)
         self.set_status(201)
         self._finish_model(model)
 

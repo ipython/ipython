@@ -218,7 +218,7 @@ class ContentsManager(LoggingConfigurable):
             )
         return model
 
-    def create_file(self, model=None, path='', ext='.ipynb'):
+    def new(self, model=None, path='', ext='.ipynb'):
         """Create a new file or directory and return its model with no content."""
         path = path.strip('/')
         if model is None:
