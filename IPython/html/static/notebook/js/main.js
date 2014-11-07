@@ -49,6 +49,7 @@ require([
     custom
     ) {
     "use strict";
+    console.log(promise);
 
     // compat with old IPython, remove for IPython > 3.0
     window.CodeMirror = CodeMirror;

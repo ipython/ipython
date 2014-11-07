@@ -7,8 +7,7 @@ define(["widgets/js/manager",
         "jquery",
         "base/js/utils",
         "base/js/namespace",
-        "rsvp",
-], function(widgetmanager, _, Backbone, $, utils, IPython, rsvp){
+], function(widgetmanager, _, Backbone, $, utils, IPython){
 
     var WidgetModel = Backbone.Model.extend({
         constructor: function (widget_manager, model_id, comm) {
@@ -23,7 +22,7 @@ define(["widgets/js/manager",
             //      An ID unique to this model.
             // comm : Comm instance (optional)
             this.widget_manager = widget_manager;
-            this.state_change = rsvp.Promise.resolve();
+            this.state_change = Promise.resolve();
             this._buffered_state_diff = {};
             this.pending_msgs = 0;
             this.msg_buffer = null;
@@ -101,7 +100,7 @@ define(["widgets/js/manager",
                 } finally {
                     that.state_lock = null;
                 }
-                return rsvp.Promise.resolve();
+                return Promise.resolve();
             }, utils.reject("Couldn't set model state", true));
         },
 
@@ -262,7 +261,7 @@ define(["widgets/js/manager",
                 _.each(value, function(sub_value, key) {
                     unpacked.push(that._unpack_models(sub_value));
                 });
-                return rsvp.Promise.all(unpacked);
+                return Promise.all(unpacked);
             } else if (value instanceof Object) {
                 unpacked = {};
                 _.each(value, function(sub_value, key) {
@@ -273,7 +272,7 @@ define(["widgets/js/manager",
                 // get_model returns a promise already
                 return this.widget_manager.get_model(value.slice(10, value.length));
             } else {
-                return rsvp.Promise.resolve(value);
+                return Promise.resolve(value);
             }
         },
 

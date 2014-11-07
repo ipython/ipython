@@ -5,8 +5,7 @@ define([
     'base/js/namespace',
     'jquery',
     'codemirror/lib/codemirror',
-    'rsvp',
-], function(IPython, $, CodeMirror, rsvp){
+], function(IPython, $, CodeMirror){
     "use strict";
     
     IPython.load_extensions = function () {
@@ -641,7 +640,7 @@ define([
         // Tries to load a class from a module using require.js, if a module 
         // is specified, otherwise tries to load a class from the global 
         // registry, if the global registry is provided.
-        return new rsvp.Promise(function(resolve, reject) {
+        return new Promise(function(resolve, reject) {
 
             // Try loading the view module using require.js
             if (module_name) {
@@ -664,13 +663,13 @@ define([
 
     var resolve_dict = function(d) {
         // Resolve a promiseful dictionary.
-        // Returns a single rsvp.Promise.
+        // Returns a single Promise.
         var keys = Object.keys(d);
         var values = [];
         keys.forEach(function(key) {
             values.push(d[key]);
         });
-        return rsvp.Promise.all(values).then(function(v) {
+        return Promise.all(values).then(function(v) {
             d = {};
             for(var i=0; i<keys.length; i++) {
                 d[keys[i]] = v[i];
@@ -707,15 +706,15 @@ define([
     WrappedError.prototype = Object.create(Error.prototype, {});
 
     var reject = function(message, log) {
-        // Creates a wrappable rsvp.Promise rejection function.
+        // Creates a wrappable Promise rejection function.
         // 
-        // Creates a function that returns a rsvp.Promise.reject with a new WrappedError
+        // Creates a function that returns a Promise.reject with a new WrappedError
         // that has the provided message and wraps the original error that 
         // caused the promise to reject.
         return function(error) { 
             var wrapped_error = new WrappedError(message, error);
             if (log) console.error(wrapped_error); 
-            return rsvp.Promise.reject(wrapped_error); 
+            return Promise.reject(wrapped_error); 
         };
     };
 
