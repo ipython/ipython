@@ -93,7 +93,9 @@ def install_nbextension(files, overwrite=False, symlink=False, ipython_dir=None,
         If True, always install the files, regardless of what may already be installed.
     symlink : bool [default: False]
         If True, create a symlink in nbextensions, rather than copying files.
-        Not allowed with URLs or archives.
+        Not allowed with URLs or archives. Windows support for symlinks requires
+        Vista or above, Python 3, and a permission bit which only admin users
+        have by default, so don't rely on it.
     ipython_dir : str [optional]
         The path to an IPython directory, if the default value is not desired.
         get_ipython_dir() is used by default.
