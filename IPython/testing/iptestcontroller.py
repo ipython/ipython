@@ -309,10 +309,6 @@ class JSController(TestController):
     @property
     def will_run(self):
         should_run = all(have[a] for a in self.requirements + [self.engine])
-        tornado4 = test_for('tornado.version_info', (4,0,0), callback=None)
-        if should_run and self.engine == 'phantomjs' and tornado4:
-            print("phantomjs cannot connect websockets to tornado 4", file=sys.stderr)
-            return False
         return should_run
 
     def _init_server(self):
