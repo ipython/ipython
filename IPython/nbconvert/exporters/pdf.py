@@ -6,6 +6,7 @@
 import subprocess
 import os
 import sys
+import shutil
 
 from IPython.utils.traitlets import Integer, List, Bool, Instance
 from IPython.utils.tempdir import TemporaryWorkingDirectory
@@ -37,6 +38,11 @@ class PDFExporter(LatexExporter):
     
     writer = Instance("IPython.nbconvert.writers.FilesWriter", args=())
 
+    def valid_on_path(self, command):
+        """Ensure the given command exists in the OS PATH."""
+        if  (shutil.which(command)==None) :
+            raise FileNotFoundError("NBConvert requires this command to be on the System PATH: "+str(command))
+
     def run_command(self, command_list, filename, count, log_function):
         """Run command_list count times.
         
@@ -57,13 +63,17 @@ class PDFExporter(LatexExporter):
             or failed (False).
         """
         command = [c.format(filename=filename) for c in command_list]
-        #In windows and python 2.x there is a bug in subprocess.Popen and
+
+        # On windows with python 2.x there is a bug in subprocess.Popen and
         # unicode commands are not supported
-        if sys.platform == 'win32' or sys.version_info < (3,0):
+        if sys.platform == 'win32' and sys.version_info < (3,0):
             #We must use cp1252 encoding for calling subprocess.Popen
             #Note that sys.stdin.encoding and encoding.DEFAULT_ENCODING
             # could be different (cp437 in case of dos console)
             command = [c.encode('cp1252') for c in command]        
+
+        self.valid_on_path(command_list[0])
+        
         times = 'time' if count == 1 else 'times'
         self.log.info("Running %s %i %s: %s", command_list[0], count, times, command)
         with open(os.devnull, 'rb') as null:
@@ -88,8 +98,10 @@ class PDFExporter(LatexExporter):
         def log_error(command, out):
             self.log.critical(u"%s failed: %s\n%s", command[0], command, out)
 
+        the_cmd = self.latex_command[0]
+        self.log.info("About to test shutil of Running : %s", self.latex_command[0])
         return self.run_command(self.latex_command, filename, 
-            self.latex_count, log_error)
+            self.latex_count, log_error) 
 
     def run_bib(self, filename):
         """Run bibtex self.latex_count times."""
