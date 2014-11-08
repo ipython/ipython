@@ -325,7 +325,15 @@ class JSController(TestController):
             command.append('--KernelManager.transport=ipc')
         self.stream_capturer = c = StreamCapturer()
         c.start()
-        self.server = subprocess.Popen(command, stdout=c.writefd, stderr=subprocess.STDOUT, cwd=self.nbdir.name)
+        env = os.environ.copy()
+        if self.engine == 'phantomjs':
+            env['IPYTHON_ALLOW_DRAFT_WEBSOCKETS_FOR_PHANTOMJS'] = '1'
+        self.server = subprocess.Popen(command,
+            stdout=c.writefd,
+            stderr=subprocess.STDOUT,
+            cwd=self.nbdir.name,
+            env=env,
+        )
         self.server_info_file = os.path.join(self.ipydir.name,
             'profile_default', 'security', 'nbserver-%i.json' % self.server.pid
         )

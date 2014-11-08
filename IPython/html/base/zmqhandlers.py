@@ -4,8 +4,10 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import os
 import json
 import struct
+import warnings
 
 try:
     from urllib.parse import urlparse # Py 3
@@ -13,14 +15,14 @@ except ImportError:
     from urlparse import urlparse # Py 2
 
 import tornado
-from tornado import gen, ioloop, web, websocket
+from tornado import gen, ioloop, web
+from tornado.websocket import WebSocketHandler
 
 from IPython.kernel.zmq.session import Session
 from IPython.utils.jsonutil import date_default, extract_dates
 from IPython.utils.py3compat import cast_unicode
 
 from .handlers import IPythonHandler
-
 
 def serialize_binary_message(msg):
     """serialize a message as a binary blob
@@ -79,8 +81,18 @@ def deserialize_binary_message(bmsg):
     msg['buffers'] = bufs[1:]
     return msg
 
+# ping interval for keeping websockets alive (30 seconds)
+WS_PING_INTERVAL = 30000
 
-class ZMQStreamHandler(websocket.WebSocketHandler):
+if os.environ.get('IPYTHON_ALLOW_DRAFT_WEBSOCKETS_FOR_PHANTOMJS', False):
+    warnings.warn("""Allowing draft76 websocket connections!
+    This should only be done for testing with phantomjs!""")
+    from IPython.html import allow76
+    WebSocketHandler = allow76.AllowDraftWebSocketHandler
+    # draft 76 doesn't support ping
+    WS_PING_INTERVAL = 0
+
+class ZMQStreamHandler(WebSocketHandler):
     
     def check_origin(self, origin):
         """Check Origin == Host or Access-Control-Allow-Origin.
@@ -153,17 +165,6 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
             self.log.critical("Malformed message: %r" % msg_list, exc_info=True)
         else:
             self.write_message(msg, binary=isinstance(msg, bytes))
-
-    def allow_draft76(self):
-        """Allow draft 76, until browsers such as Safari update to RFC 6455.
-        
-        This has been disabled by default in tornado in release 2.2.0, and
-        support will be removed in later versions.
-        """
-        return True
-
-# ping interval for keeping websockets alive (30 seconds)
-WS_PING_INTERVAL = 30000
 
 class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
     ping_callback = None
