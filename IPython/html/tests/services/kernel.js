@@ -257,7 +257,11 @@ casper.notebook_test(function () {
         'ws_closed_error',
         [
             'kernel_disconnected.Kernel',
-            'kernel_connection_failed.Kernel'
+            'kernel_connection_failed.Kernel',
+            'kernel_reconnecting.Kernel',
+            'kernel_connected.Kernel',
+            'kernel_busy.Kernel',
+            'kernel_idle.Kernel'
         ],
         function () {
             this.thenEvaluate(function () {
