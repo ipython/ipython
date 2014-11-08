@@ -202,12 +202,6 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
         Extend this method to add logic that should fire before
         the websocket finishes completing.
         """
-        # Check to see that origin matches host directly, including ports
-        # Tornado 4 already does CORS checking
-        if tornado.version_info[0] < 4:
-            if not self.check_origin(self.get_origin()):
-                raise web.HTTPError(403)
-        
         # authenticate the request before opening the websocket
         if self.get_current_user() is None:
             self.log.warn("Couldn't authenticate WebSocket connection")
@@ -224,10 +218,7 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
         # assign and yield in two step to avoid tornado 3 issues
         res = self.pre_get()
         yield gen.maybe_future(res)
-        # FIXME: only do super get on tornado ≥ 4
-        # tornado 3 has no get, will raise 405
-        if tornado.version_info >= (4,):
-            super(AuthenticatedZMQStreamHandler, self).get(*args, **kwargs)
+        super(AuthenticatedZMQStreamHandler, self).get(*args, **kwargs)
     
     def initialize(self):
         self.log.debug("Initializing websocket connection %s", self.request.path)
@@ -235,12 +226,6 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
     
     def open(self, *args, **kwargs):
         self.log.debug("Opening websocket %s", self.request.path)
-        if tornado.version_info < (4,):
-            try:
-                self.get(*self.open_args, **self.open_kwargs)
-            except web.HTTPError:
-                self.close()
-                raise
         
         # start the pinging
         if self.ping_interval > 0:

@@ -27,22 +27,9 @@ class TermSocket(terminado.TermSocket, IPythonHandler):
     def get(self, *args, **kwargs):
         if not self.get_current_user():
             raise web.HTTPError(403)
-
-        # FIXME: only do super get on tornado ≥ 4
-        # tornado 3 has no get, will raise 405
-        if tornado.version_info >= (4,):
-            return super(TermSocket, self).get(*args, **kwargs)
+        return super(TermSocket, self).get(*args, **kwargs)
     
     def clear_cookie(self, *args, **kwargs):
         """meaningless for websockets"""
         pass
 
-    def open(self, *args, **kwargs):
-        if tornado.version_info < (4,):
-            try:
-                self.get(*self.open_args, **self.open_kwargs)
-            except web.HTTPError:
-                self.close()
-                raise
-
-        super(TermSocket, self).open(*args, **kwargs)
