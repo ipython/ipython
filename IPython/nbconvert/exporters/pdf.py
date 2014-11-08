@@ -98,10 +98,8 @@ class PDFExporter(LatexExporter):
         def log_error(command, out):
             self.log.critical(u"%s failed: %s\n%s", command[0], command, out)
 
-        the_cmd = self.latex_command[0]
-        self.log.info("About to test shutil of Running : %s", self.latex_command[0])
         return self.run_command(self.latex_command, filename, 
-            self.latex_count, log_error) 
+            self.latex_count, log_error)
 
     def run_bib(self, filename):
         """Run bibtex self.latex_count times."""
