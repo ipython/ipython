@@ -107,9 +107,8 @@ define([
         this.session = null;
         this.kernel = null;
         this.clipboard = null;
-        this.undelete_backup = null;
-        this.undelete_index = null;
-        this.undelete_below = false;
+        this.undelete_history = [];
+        this.undelete_max = 10;
         this.paste_enabled = false;
         // It is important to start out in command mode to match the intial mode
         // of the KeyboardManager.
@@ -749,9 +748,13 @@ define([
         if (!cell.is_deletable()) {
             return this;
         }
-
-        this.undelete_backup = cell.toJSON();
-        $('#undelete_cell').removeClass('disabled');
+        if (this.undelete_history.length >= this.undelete_max) {
+            this.undelete_history.shift();
+        }
+        var backup = cell.toJSON();
+        if (this.undelete_history.length === 1) {
+            $('#undelete_cell').removeClass('disabled');
+        }
         if (this.is_valid_cell_index(i)) {
             var old_ncells = this.ncells();
             var ce = this.get_cell_element(i);
@@ -762,17 +765,13 @@ define([
                     this.insert_cell_below('code');
                 }
                 this.select(0);
-                this.undelete_index = 0;
-                this.undelete_below = false;
             } else if (i === old_ncells-1 && i !== 0) {
                 this.select(i-1);
-                this.undelete_index = i - 1;
-                this.undelete_below = true;
             } else {
                 this.select(i);
-                this.undelete_index = i;
-                this.undelete_below = false;
             }
+            var index = i;
+            this.undelete_history.push( {"backup":backup,"index":index});
             this.events.trigger('delete.Cell', {'cell': cell, 'index': i});
             this.set_dirty(true);
         }
@@ -780,39 +779,63 @@ define([
     };
 
     /**
+     * Add delta to all indices in undelete_history
+     * which are bigger than index.
+     * 
+     * @method _fix_undelete_history
+     * @param {Number} index A cell's numeric index
+     * @param {Number} delta A difference between cell indices
+     */
+    Notebook.prototype._fix_undelete_history = function(index,delta) {
+        for (var i=0;i < this.undelete_history.length; i++) {
+            if (index< this.undelete_history[i]["index"]) {
+                this.undelete_history[i]["index"]=this.undelete_history[i]["index"]+delta;
+            }
+        }
+    }
+
+    /**
      * Restore the most recently deleted cell.
      * 
      * @method undelete
      */
     Notebook.prototype.undelete_cell = function() {
-        if (this.undelete_backup !== null && this.undelete_index !== null) {
+        if (this.undelete_history.length !== 0 ) {
+            //plan: always insert below last["index"]-1 unless last["index"]-1===-1, then insert above 0.
+            var last = this.undelete_history.pop();
             var current_index = this.get_selected_index();
-            if (this.undelete_index < current_index) {
+            var above = false;
+            if (last["index"] <= current_index) {
                 current_index = current_index + 1;
             }
-            if (this.undelete_index >= this.ncells()) {
+            if (last["index"] >= this.ncells()) {
                 this.select(this.ncells() - 1);
             }
-            else {
-                this.select(this.undelete_index);
+            else if (last["index"] === 0) {
+                this.select(last["index"]);
+                above = true;
+            } else {
+                this.select(last["index"]-1);
             }
-            var cell_data = this.undelete_backup;
+            var cell_data = last["backup"];
             var new_cell = null;
-            if (this.undelete_below) {
-                new_cell = this.insert_cell_below(cell_data.cell_type);
-            } else {
+            if (above) {
+                var created_index = this.get_selected_index();
                 new_cell = this.insert_cell_above(cell_data.cell_type);
-            }
-            new_cell.fromJSON(cell_data);
-            if (this.undelete_below) {
-                this.select(current_index+1);
             } else {
-                this.select(current_index);
+                var created_index = this.get_selected_index()+1;
+                new_cell = this.insert_cell_below(cell_data.cell_type);
             }
-            this.undelete_backup = null;
-            this.undelete_index = null;
+            //insert_cell_... will have shifted the indices of 
+            //undelete_history assuming that the inserted cell
+            //was not from the history ==> revert that change:
+            this._fix_undelete_history(created_index,-1);
+            new_cell.fromJSON(cell_data);
+            this.select(current_index);
         }
-        $('#undelete_cell').addClass('disabled');
+        if (this.undelete_history.length == 0) {
+            $('#undelete_cell').addClass('disabled');
+	}
     };
 
     /**
@@ -921,11 +944,12 @@ define([
         } else {
             return false;
         }
-
-        if (this.undelete_index !== null && index <= this.undelete_index) {
-            this.undelete_index = this.undelete_index + 1;
-            this.set_dirty(true);
-        }
+        //correct the indices in undelete_history to point to
+        //the right positions. Assume that the inserted element
+        //did not come from the history (no way to check for that).
+        //undelete_cell() will then reverse effect if needed.
+        this._fix_undelete_history(index,1);
+        this.set_dirty(true);
         return true;
     };
 
@@ -1245,80 +1269,73 @@ define([
         }
     };
 
+     /**
+     * Combine the cell at index j into the cell at index i.
+     * If below is true than text of cell at j appears below
+     * text of cell at i, otherwise above.
+     * 
+     * @method merge_cells
+     * @param {Number} i A cell's numeric index
+     * @param {Number} j A cell's numeric index
+     * @param {Bool} below Put cell j's text below i?
+     */
+    Notebook.prototype.merge_cells = function (i,j,below) {
+        //default is to merge text of cell at j below:
+        if(typeof(below)==='undefined') below = true;
+        var index = i
+        var other_index = j;
+        var cell = this.get_cell(i);
+        var render = cell.rendered;
+        if (!cell.is_mergeable()) {
+            return;
+        }
+        if (i >= 0 && i< this.ncells() && j >= 0 && j< this.ncells() && i!=j) {
+            var other_cell = this.get_cell(j);
+            if (!other_cell.is_mergeable()) {
+                return;
+            }
+            var other_text = other_cell.get_text();
+            var text = cell.get_text();
+            if (cell instanceof codecell.CodeCell) {
+                cell.unrender(); // Must unrender before we set_text.
+            }
+            if (below===true) {
+                cell.set_text(text+'\n'+other_text);
+            } else {
+                cell.set_text(other_text+'\n'+text);
+            }
+            if (render && cell instanceof codecell.CodeCell) {
+                // The rendered state of the final cell should match
+                // that of the original selected cell;
+                cell.render();
+            }
+            this.delete_cell(other_index);
+            this.undelete_history.pop();
+            //we now have to update the indices in the undelete_history since we just deleted a object from it:
+            this._fix_undelete_history(other_index,-1);
+            this.select(this.find_cell_index(cell));
+        }
+    };
+
     /**
-     * Combine the selected cell into the cell above it.
+     * Combine the cell above the selected one into the selected cell.
      * 
      * @method merge_cell_above
      */
     Notebook.prototype.merge_cell_above = function () {
-        var mdc = textcell.MarkdownCell;
-        var rc = textcell.RawCell;
-        var index = this.get_selected_index();
-        var cell = this.get_cell(index);
-        var render = cell.rendered;
-        if (!cell.is_mergeable()) {
-            return;
-        }
-        if (index > 0) {
-            var upper_cell = this.get_cell(index-1);
-            if (!upper_cell.is_mergeable()) {
-                return;
-            }
-            var upper_text = upper_cell.get_text();
-            var text = cell.get_text();
-            if (cell instanceof codecell.CodeCell) {
-                cell.set_text(upper_text+'\n'+text);
-            } else {
-                cell.unrender(); // Must unrender before we set_text.
-                cell.set_text(upper_text+'\n\n'+text);
-                if (render) {
-                    // The rendered state of the final cell should match
-                    // that of the original selected cell;
-                    cell.render();
-                }
-            }
-            this.delete_cell(index-1);
-            this.select(this.find_cell_index(cell));
-        }
+        var i = this.get_selected_index();
+        this.merge_cells(i,i-1,false);
     };
 
     /**
-     * Combine the selected cell into the cell below it.
+     * Combine the cell bellow the selected one into the selected cell.
      * 
      * @method merge_cell_below
      */
     Notebook.prototype.merge_cell_below = function () {
-        var mdc = textcell.MarkdownCell;
-        var rc = textcell.RawCell;
-        var index = this.get_selected_index();
-        var cell = this.get_cell(index);
-        var render = cell.rendered;
-        if (!cell.is_mergeable()) {
-            return;
-        }
-        if (index < this.ncells()-1) {
-            var lower_cell = this.get_cell(index+1);
-            if (!lower_cell.is_mergeable()) {
-                return;
-            }
-            var lower_text = lower_cell.get_text();
-            var text = cell.get_text();
-            if (cell instanceof codecell.CodeCell) {
-                cell.set_text(text+'\n'+lower_text);
-            } else {
-                cell.unrender(); // Must unrender before we set_text.
-                cell.set_text(text+'\n\n'+lower_text);
-                if (render) {
-                    // The rendered state of the final cell should match
-                    // that of the original selected cell;
-                    cell.render();
-                }
-            }
-            this.delete_cell(index+1);
-            this.select(this.find_cell_index(cell));
-        }
+        var i = this.get_selected_index();
+        this.merge_cells(i,i+1,true);
     };
-
 
     // Cell collapsing and output clearing
 
