@@ -269,6 +269,8 @@ casper.notebook_test(function () {
             });
         }
     );
+    // wait for any last idle/busy messages to be handled
+    this.wait_for_kernel_ready();
 
     // start the kernel back up
     this.thenEvaluate(function () {
