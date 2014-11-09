@@ -251,6 +251,14 @@ def embed(**kwargs):
         config = load_default_config()
         config.InteractiveShellEmbed = config.TerminalInteractiveShell
         kwargs['config'] = config
+    #save ps1/ps2 if defined
+    ps1 = None
+    ps2 = None
+    try:
+        ps1 = sys.ps1
+        ps2 = sys.ps2
+    except AttributeError:
+        pass
     #save previous instance
     saved_shell_instance = InteractiveShell._instance
     if saved_shell_instance is not None:
@@ -265,3 +273,6 @@ def embed(**kwargs):
         cls.clear_instance()
         for subclass in cls._walk_mro():
             subclass._instance = saved_shell_instance
+    if ps1 is not None:
+        sys.ps1 = ps1
+        sys.ps2 = ps2
