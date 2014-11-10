@@ -1518,7 +1518,7 @@ define([
      * @method set_codemirror_mode
      */
     Notebook.prototype.set_codemirror_mode = function(newmode){
-        if (newmode === this.codemirror_mode) {
+        if (newmode === this.codemirror_mode || newmode === 'null') {
             return;
         }
         this.codemirror_mode = newmode;
@@ -1803,11 +1803,18 @@ define([
             this.events.trigger('spec_changed.Kernel', this.metadata.kernelspec);
         }
         
+        // IJulia, IHaskell, IRuby and a few other have stored that in MD. 
+        // we scan use it for now until they have language_info
+        var mdlang;
+        if(typeof(this.metadata.language)=='string'){
+            mdlang = this.metadata.language.toLowercase();
+        }
+
         // Set the codemirror mode from language_info metadata
-        if (this.metadata.language_info !== undefined) {
+        if (this.metadata.language_info !== undefined || mdlang !== undefined ) {
             var langinfo = this.metadata.language_info;
             // Mode 'null' should be plain, unhighlighted text.
-            var cm_mode = langinfo.codemirror_mode || langinfo.language || 'null'
+            var cm_mode = langinfo.codemirror_mode || langinfo.language || mdlang || 'null';
             this.set_codemirror_mode(cm_mode);
         }
         
