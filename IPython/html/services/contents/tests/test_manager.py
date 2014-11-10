@@ -121,8 +121,8 @@ class TestContentsManager(TestCase):
         self.assertIn('path', model)
         self.assertIn('type', model)
         self.assertEqual(model['type'], 'notebook')
-        self.assertEqual(model['name'], 'Untitled0.ipynb')
-        self.assertEqual(model['path'], 'Untitled0.ipynb')
+        self.assertEqual(model['name'], 'Untitled.ipynb')
+        self.assertEqual(model['path'], 'Untitled.ipynb')
 
         # Test in sub-directory
         model = cm.new_untitled(type='directory')
@@ -131,8 +131,8 @@ class TestContentsManager(TestCase):
         self.assertIn('path', model)
         self.assertIn('type', model)
         self.assertEqual(model['type'], 'directory')
-        self.assertEqual(model['name'], 'Untitled Folder0')
-        self.assertEqual(model['path'], 'Untitled Folder0')
+        self.assertEqual(model['name'], 'Untitled Folder')
+        self.assertEqual(model['path'], 'Untitled Folder')
         sub_dir = model['path']
         
         model = cm.new_untitled(path=sub_dir)
@@ -141,8 +141,8 @@ class TestContentsManager(TestCase):
         self.assertIn('path', model)
         self.assertIn('type', model)
         self.assertEqual(model['type'], 'file')
-        self.assertEqual(model['name'], 'untitled0')
-        self.assertEqual(model['path'], '%s/untitled0' % sub_dir)
+        self.assertEqual(model['name'], 'untitled')
+        self.assertEqual(model['path'], '%s/untitled' % sub_dir)
 
     def test_get(self):
         cm = self.contents_manager
@@ -168,7 +168,7 @@ class TestContentsManager(TestCase):
         self.assertIn('name', model2)
         self.assertIn('path', model2)
         self.assertIn('content', model2)
-        self.assertEqual(model2['name'], 'Untitled0.ipynb')
+        self.assertEqual(model2['name'], 'Untitled.ipynb')
         self.assertEqual(model2['path'], '{0}/{1}'.format(sub_dir.strip('/'), name))
     
     @dec.skip_win32
@@ -274,8 +274,8 @@ class TestContentsManager(TestCase):
         assert isinstance(model, dict)
         self.assertIn('name', model)
         self.assertIn('path', model)
-        self.assertEqual(model['name'], 'Untitled0.ipynb')
-        self.assertEqual(model['path'], 'foo/Untitled0.ipynb')
+        self.assertEqual(model['name'], 'Untitled.ipynb')
+        self.assertEqual(model['path'], 'foo/Untitled.ipynb')
 
     def test_delete(self):
         cm = self.contents_manager
@@ -298,12 +298,16 @@ class TestContentsManager(TestCase):
 
         # copy with unspecified name
         copy = cm.copy(path)
-        self.assertEqual(copy['name'], orig['name'].replace('.ipynb', '-Copy0.ipynb'))
+        self.assertEqual(copy['name'], orig['name'].replace('.ipynb', '-Copy1.ipynb'))
 
         # copy with specified name
         copy2 = cm.copy(path, u'å b/copy 2.ipynb')
         self.assertEqual(copy2['name'], u'copy 2.ipynb')
         self.assertEqual(copy2['path'], u'å b/copy 2.ipynb')
+        # copy with specified path
+        copy2 = cm.copy(path, u'/')
+        self.assertEqual(copy2['name'], name)
+        self.assertEqual(copy2['path'], name)
 
     def test_trust_notebook(self):
         cm = self.contents_manager

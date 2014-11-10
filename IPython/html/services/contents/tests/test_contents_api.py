@@ -275,7 +275,7 @@ class APITest(NotebookTestBase):
 
     def test_create_untitled(self):
         resp = self.api.create_untitled(path=u'å b')
-        self._check_created(resp, u'å b/Untitled0.ipynb')
+        self._check_created(resp, u'å b/Untitled.ipynb')
 
         # Second time
         resp = self.api.create_untitled(path=u'å b')
@@ -283,13 +283,13 @@ class APITest(NotebookTestBase):
 
         # And two directories down
         resp = self.api.create_untitled(path='foo/bar')
-        self._check_created(resp, 'foo/bar/Untitled0.ipynb')
+        self._check_created(resp, 'foo/bar/Untitled.ipynb')
 
     def test_create_untitled_txt(self):
         resp = self.api.create_untitled(path='foo/bar', ext='.txt')
-        self._check_created(resp, 'foo/bar/untitled0.txt', type='file')
+        self._check_created(resp, 'foo/bar/untitled.txt', type='file')
 
-        resp = self.api.read(path='foo/bar/untitled0.txt')
+        resp = self.api.read(path='foo/bar/untitled.txt')
         model = resp.json()
         self.assertEqual(model['type'], 'file')
         self.assertEqual(model['format'], 'text')
@@ -304,15 +304,15 @@ class APITest(NotebookTestBase):
 
     def test_mkdir_untitled(self):
         resp = self.api.mkdir_untitled(path=u'å b')
-        self._check_created(resp, u'å b/Untitled Folder0', type='directory')
+        self._check_created(resp, u'å b/Untitled Folder', type='directory')
 
         # Second time
         resp = self.api.mkdir_untitled(path=u'å b')
-        self._check_created(resp, u'å b/Untitled Folder1', type='directory')
+        self._check_created(resp, u'å b/Untitled Folder 1', type='directory')
 
         # And two directories down
         resp = self.api.mkdir_untitled(path='foo/bar')
-        self._check_created(resp, 'foo/bar/Untitled Folder0', type='directory')
+        self._check_created(resp, 'foo/bar/Untitled Folder', type='directory')
 
     def test_mkdir(self):
         path = u'å b/New ∂ir'
@@ -374,15 +374,25 @@ class APITest(NotebookTestBase):
         self.assertEqual(data['content']['nbformat'], 4)
 
     def test_copy(self):
-        resp = self.api.copy(u'å b/ç d.ipynb', u'unicodé')
-        self._check_created(resp, u'unicodé/ç d-Copy0.ipynb')
+        resp = self.api.copy(u'å b/ç d.ipynb', u'å b')
+        self._check_created(resp, u'å b/ç d-Copy1.ipynb')
         
         resp = self.api.copy(u'å b/ç d.ipynb', u'å b')
-        self._check_created(resp, u'å b/ç d-Copy0.ipynb')
-
+        self._check_created(resp, u'å b/ç d-Copy2.ipynb')
+    
+    def test_copy_copy(self):
+        resp = self.api.copy(u'å b/ç d.ipynb', u'å b')
+        self._check_created(resp, u'å b/ç d-Copy1.ipynb')
+        
+        resp = self.api.copy(u'å b/ç d-Copy1.ipynb', u'å b')
+        self._check_created(resp, u'å b/ç d-Copy2.ipynb')
+    
     def test_copy_path(self):
         resp = self.api.copy(u'foo/a.ipynb', u'å b')
-        self._check_created(resp, u'å b/a-Copy0.ipynb')
+        self._check_created(resp, u'å b/a.ipynb')
+        
+        resp = self.api.copy(u'foo/a.ipynb', u'å b')
+        self._check_created(resp, u'å b/a-Copy1.ipynb')
 
     def test_copy_put_400(self):
         with assert_http_error(400):
