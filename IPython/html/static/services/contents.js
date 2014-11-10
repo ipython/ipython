@@ -98,9 +98,13 @@ define([
      * @param {String} path The path to create the new notebook at
      * @param {Object} options:
      *      ext: file extension to use
+     *      type: model type to create ('notebook', 'file', or 'directory')
      */
     Contents.prototype.new = function(path, options) {
-        var data = JSON.stringify({ext: options.ext || ".ipynb"});
+        var data = JSON.stringify({
+          ext: options.ext,
+          type: options.type
+        });
 
         var settings = {
             processData : false,

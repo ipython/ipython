@@ -119,7 +119,7 @@ class ContentsManager(LoggingConfigurable):
         raise NotImplementedError('must be implemented in a subclass')
 
     def exists(self, path):
-        """Does a file or directory exist at the given name and path?
+        """Does a file or directory exist at the given path?
 
         Like os.path.exists
 
@@ -181,7 +181,11 @@ class ContentsManager(LoggingConfigurable):
         return "Serving contents"
 
     def get_kernel_path(self, path, model=None):
-        """ Return the path to start kernel in """
+        """Return the API path for the kernel
+        
+        KernelManagers can turn this value into a filesystem path,
+        or ignore it altogether.
+        """
         return path
 
     def increment_filename(self, filename, path=''):
@@ -204,7 +208,7 @@ class ContentsManager(LoggingConfigurable):
         for i in itertools.count():
             name = u'{basename}{i}{ext}'.format(basename=basename, i=i,
                                                 ext=ext)
-            if not self.file_exists(u'{}/{}'.format(path, name)):
+            if not self.exists(u'{}/{}'.format(path, name)):
                 break
         return name
 
@@ -218,22 +222,35 @@ class ContentsManager(LoggingConfigurable):
             )
         return model
 
-    def new(self, model=None, path='', ext='.ipynb'):
-        """Create a new file or directory and return its model with no content."""
+    def new(self, model=None, path='', ext=''):
+        """Create a new file or directory and return its model with no content.
+        
+        If path is a directory, a new untitled file/directory is created in path.
+        Otherwise, a new file/directory is created exactly at path.
+        """
         path = path.strip('/')
         if model is None:
             model = {}
         else:
             model.pop('path', None)
-        if 'content' not in model and model.get('type', None) != 'directory':
-            if ext == '.ipynb':
+        
+        if ext and ext != '.ipynb':
+            model.setdefault('type', 'file')
+        else:
+            model.setdefault('type', 'notebook')
+        
+        # no content, not a directory, so fill out new-file model
+        if 'content' not in model and model['type'] != 'directory':
+            if model['type'] == 'notebook':
+                ext = '.ipynb'
                 model['content'] = new_notebook()
-                model['type'] = 'notebook'
                 model['format'] = 'json'
             else:
                 model['content'] = ''
                 model['type'] = 'file'
                 model['format'] = 'text'
+        
+        # if path is a directory, create an untitled file or directory
         if self.dir_exists(path):
             if model['type'] == 'directory':
                 untitled = self.untitled_directory
@@ -252,10 +269,10 @@ class ContentsManager(LoggingConfigurable):
     def copy(self, from_path, to_path=None):
         """Copy an existing file and return its new model.
 
-        If to_name not specified, increment `from_name-Copy#.ext`.
+        If to_path not specified, it will be the parent directory of from_path.
+        If to_path is a directory, filename will increment `from_path-Copy#.ext`.
 
-        copy_from can be a full path to a file,
-        or just a base name. If a base name, `path` is used.
+        from_path must be a full path to a file.
         """
         path = from_path.strip('/')
         if '/' in path:
@@ -325,7 +342,7 @@ class ContentsManager(LoggingConfigurable):
         nb : dict
             The notebook object (in current nbformat)
         path : string
-            The notebook's directory (for logging)
+            The notebook's path (for logging)
         """
         trusted = self.notary.check_signature(nb)
         if not trusted:

@@ -65,7 +65,7 @@ require([
 
     $('#new_notebook').click(function (e) {
         contents.new(common_options.notebook_path, {
-                ext: ".ipynb",
+                type: "notebook",
                 extra_settings: {async: false},  // So we can open a new window afterwards
                 success: function (data) {
                     window.open(

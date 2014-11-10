@@ -17,7 +17,7 @@ from ..utils import url_escape
 class NotebookHandler(IPythonHandler):
 
     @web.authenticated
-    def get(self, path=''):
+    def get(self, path):
         """get renders the notebook template if a name is given, or 
         redirects to the '/files/' handler if the name is not given."""
         path = path.strip('/')

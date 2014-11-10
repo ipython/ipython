@@ -61,9 +61,8 @@ class FileContentsManager(ContentsManager):
         except OSError as e:
             self.log.debug("copystat on %s failed", dest, exc_info=True)
 
-    def _get_os_path(self, path=''):
-        """Given a filename and API path, return its file system
-        path.
+    def _get_os_path(self, path):
+        """Given an API path, return its file system path.
 
         Parameters
         ----------
@@ -131,8 +130,8 @@ class FileContentsManager(ContentsManager):
             Whether the file exists.
         """
         path = path.strip('/')
-        nbpath = self._get_os_path(path)
-        return os.path.isfile(nbpath)
+        os_path = self._get_os_path(path)
+        return os.path.isfile(os_path)
 
     def exists(self, path):
         """Returns True if the path exists, else returns False.
@@ -167,7 +166,6 @@ class FileContentsManager(ContentsManager):
         model['created'] = created
         model['content'] = None
         model['format'] = None
-        model['message'] = None
         return model
 
     def _dir_model(self, path, content=True):
@@ -191,11 +189,15 @@ class FileContentsManager(ContentsManager):
         model['type'] = 'directory'
         if content:
             model['content'] = contents = []
-            for os_path in glob.glob(self._get_os_path('%s/*' % path)):
-                name = os.path.basename(os_path)
+            os_dir = self._get_os_path(path)
+            for name in os.listdir(os_dir):
+                os_path = os.path.join(os_dir, name)
                 # skip over broken symlinks in listing
                 if not os.path.exists(os_path):
                     self.log.warn("%s doesn't exist", os_path)
+                    continue
+                elif not os.path.isfile(os_path) and not os.path.isdir(os_path):
+                    self.log.debug("%s not a regular file", os_path)
                     continue
                 if self.should_list(name) and not is_hidden(os_path, self.root_dir):
                     contents.append(self.get_model(
@@ -217,6 +219,9 @@ class FileContentsManager(ContentsManager):
         model['type'] = 'file'
         if content:
             os_path = self._get_os_path(path)
+            if not os.path.isfile(os_path):
+                # could be FIFO
+                raise web.HTTPError(400, "Cannot get content of non-file %s" % os_path)
             with io.open(os_path, 'rb') as f:
                 bcontent = f.read()
             try:
@@ -407,14 +412,14 @@ class FileContentsManager(ContentsManager):
         old_os_path = self._get_os_path(old_path)
 
         # Should we proceed with the move?
-        if os.path.isfile(new_os_path):
-            raise web.HTTPError(409, u'File already exists: %s' % new_os_path)
+        if os.path.exists(new_os_path):
+            raise web.HTTPError(409, u'File already exists: %s' % new_path)
 
         # Move the file
         try:
             shutil.move(old_os_path, new_os_path)
         except Exception as e:
-            raise web.HTTPError(500, u'Unknown error renaming file: %s %s' % (old_os_path, e))
+            raise web.HTTPError(500, u'Unknown error renaming file: %s %s' % (old_path, e))
 
         # Move the checkpoints
         old_checkpoints = self.list_checkpoints(old_path)
@@ -462,6 +467,8 @@ class FileContentsManager(ContentsManager):
     def create_checkpoint(self, path):
         """Create a checkpoint from the current state of a file"""
         path = path.strip('/')
+        if not self.file_exists(path):
+            raise web.HTTPError(404)
         src_path = self._get_os_path(path)
         # only the one checkpoint ID:
         checkpoint_id = u"checkpoint"
@@ -521,7 +528,7 @@ class FileContentsManager(ContentsManager):
     def get_kernel_path(self, path, model=None):
         """Return the initial working dir a kernel associated with a given notebook"""
         if '/' in path:
-            os_dir = path.rsplit('/', 1)[0]
+            parent_dir = path.rsplit('/', 1)[0]
         else:
-            os_dir = ''
-        return self._get_os_path(os_dir)
+            parent_dir = ''
+        return self._get_os_path(parent_dir)

@@ -55,6 +55,9 @@ class API(object):
             body = json.dumps({'ext': ext})
         return self._req('POST', path, body)
 
+    def mkdir_untitled(self, path='/'):
+        return self._req('POST', path, json.dumps({'type': 'directory'}))
+
     def copy(self, copy_from, path='/'):
         body = json.dumps({'copy_from':copy_from})
         return self._req('POST', path, body)
@@ -64,6 +67,9 @@ class API(object):
 
     def upload(self, path, body):
         return self._req('PUT', path, body)
+
+    def mkdir_untitled(self, path='/'):
+        return self._req('POST', path, json.dumps({'type': 'directory'}))
 
     def mkdir(self, path='/'):
         return self._req('PUT', path, json.dumps({'type': 'directory'}))
@@ -193,8 +199,11 @@ class APITest(NotebookTestBase):
         self.assertEqual(nbnames, expected)
 
     def test_list_dirs(self):
+        print(self.api.list().json())
         dirs = dirs_only(self.api.list().json())
         dir_names = {normalize('NFC', d['name']) for d in dirs}
+        print(dir_names)
+        print(self.top_level_dirs)
         self.assertEqual(dir_names, self.top_level_dirs)  # Excluding hidden dirs
 
     def test_list_nonexistant_dir(self):
@@ -292,6 +301,18 @@ class APITest(NotebookTestBase):
         path = u'å b/Upload tést.ipynb'
         resp = self.api.upload(path, body=json.dumps(nbmodel))
         self._check_created(resp, path)
+
+    def test_mkdir_untitled(self):
+        resp = self.api.mkdir_untitled(path=u'å b')
+        self._check_created(resp, u'å b/Untitled Folder0', type='directory')
+
+        # Second time
+        resp = self.api.mkdir_untitled(path=u'å b')
+        self._check_created(resp, u'å b/Untitled Folder1', type='directory')
+
+        # And two directories down
+        resp = self.api.mkdir_untitled(path='foo/bar')
+        self._check_created(resp, 'foo/bar/Untitled Folder0', type='directory')
 
     def test_mkdir(self):
         path = u'å b/New ∂ir'

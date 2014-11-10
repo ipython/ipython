@@ -73,14 +73,11 @@ class ContentsHandler(IPythonHandler):
         model = self.get_json_body()
         if model is None:
             raise web.HTTPError(400, u'JSON body missing')
-        print('before', model)
         model = cm.update(model, path)
-        print('after', model)
         self._finish_model(model)
 
     def _copy(self, copy_from, copy_to=None):
-        """Copy a file, optionally specifying the new path.
-        """
+        """Copy a file, optionally specifying a target directory."""
         self.log.info(u"Copying {copy_from} to {copy_to}".format(
             copy_from=copy_from,
             copy_to=copy_to or '',
@@ -96,13 +93,17 @@ class ContentsHandler(IPythonHandler):
         self.set_status(201)
         self._finish_model(model)
 
-    def _create_empty_file(self, path, ext='.ipynb'):
-        """Create an empty file in path
-
-        If name specified, create it in path.
+    def _new(self, path, type='notebook', ext=''):
+        """Create an empty file or directory in directory specified by path
+        
+        ContentsManager picks the filename.
         """
-        self.log.info(u"Creating new file in %s", path)
-        model = self.contents_manager.new(path=path, ext=ext)
+        self.log.info(u"Creating new %s in %s", type or 'file', path)
+        if type:
+            model = {'type': type}
+        else:
+            model = None
+        model = self.contents_manager.new(model, path=path, ext=ext)
         self.set_status(201)
         self._finish_model(model)
 
@@ -115,9 +116,9 @@ class ContentsHandler(IPythonHandler):
     @web.authenticated
     @json_errors
     def post(self, path=''):
-        """Create a new file or directory in the specified path.
+        """Create a new file in the specified path.
 
-        POST creates new files or directories. The server always decides on the name.
+        POST creates new files. The server always decides on the name.
 
         POST /api/contents/path
           New untitled, empty file or directory.
@@ -129,7 +130,7 @@ class ContentsHandler(IPythonHandler):
         cm = self.contents_manager
 
         if cm.file_exists(path):
-            raise web.HTTPError(400, "Cannot POST to existing files, use PUT instead.")
+            raise web.HTTPError(400, "Cannot POST to files, use PUT instead.")
 
         if not cm.dir_exists(path):
             raise web.HTTPError(404, "No such directory: %s" % path)
@@ -138,13 +139,14 @@ class ContentsHandler(IPythonHandler):
 
         if model is not None:
             copy_from = model.get('copy_from')
-            ext = model.get('ext', '.ipynb')
+            ext = model.get('ext', '')
+            type = model.get('type')
             if copy_from:
                 self._copy(copy_from, path)
             else:
-                self._create_empty_file(path, ext=ext)
+                self._new(path, type=type, ext=ext)
         else:
-            self._create_empty_file(path)
+            self._new(path)
 
     @web.authenticated
     @json_errors
@@ -168,7 +170,7 @@ class ContentsHandler(IPythonHandler):
             else:
                 self._upload(model, path)
         else:
-            self._create_empty_file(path)
+            self._new(path)
 
     @web.authenticated
     @json_errors
