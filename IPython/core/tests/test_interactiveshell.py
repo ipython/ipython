@@ -544,6 +544,16 @@ class TestSystemRaw(unittest.TestCase, ExitCodeChecks):
         cmd = u'''python -c "'åäö'"   '''
         ip.system_raw(cmd)
 
+    @mock.patch('subprocess.call')
+    def test_control_c(self, call_mock):
+        call_mock.side_effect = KeyboardInterrupt()
+        try:
+            self.system("sleep 1 # wont happen")
+        except KeyboardInterrupt:
+            self.fail("system call should intercept "
+                      "keyboard interrupt from subprocess.call")
+        self.assertEqual(ip.user_ns['_exit_code'], -signal.SIGINT)
+
 # TODO: Exit codes are currently ignored on Windows.
 class TestSystemPipedExitCode(unittest.TestCase, ExitCodeChecks):
     system = ip.system_piped

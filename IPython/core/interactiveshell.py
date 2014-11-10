@@ -2355,19 +2355,31 @@ class InteractiveShell(SingletonConfigurable):
                 ec = os.system(cmd)
         else:
             cmd = py3compat.unicode_to_str(cmd)
-            # Call the cmd using the OS shell, instead of the default /bin/sh, if set.
-            ec = subprocess.call(cmd, shell=True, executable=os.environ.get('SHELL', None))
-            # exit code is positive for program failure, or negative for
-            # terminating signal number.
-            
-            # Interpret ec > 128 as signal
-            # Some shells (csh, fish) don't follow sh/bash conventions for exit codes
+            # For posix the result of the subprocess.call() below is an exit
+            # code, which by convention is zero for success, positive for
+            # program failure.  Exit codes above 128 are reserved for signals,
+            # and the formula for converting a signal to an exit code is usually
+            # signal_number+128.  To more easily differentiate between exit
+            # codes and signals, ipython uses negative numbers.  For instance
+            # since control-c is signal 2 but exit code 130, ipython's
+            # _exit_code variable will read -2.  Note that some shells like
+            # csh and fish don't follow sh/bash conventions for exit codes.
+            executable = os.environ.get('SHELL', None)
+            try:
+                # Use env shell instead of default /bin/sh
+                ec = subprocess.call(cmd, shell=True, executable=executable)
+            except KeyboardInterrupt:
+                # intercept control-C; a long traceback is not useful here
+                self.write_err("\nKeyboardInterrupt\n")
+                ec = 130
             if ec > 128:
                 ec = -(ec - 128)
         
         # We explicitly do NOT return the subprocess status code, because
         # a non-None value would trigger :func:`sys.displayhook` calls.
-        # Instead, we store the exit_code in user_ns.
+        # Instead, we store the exit_code in user_ns.  Note the semantics
+        # of _exit_code: for control-c, _exit_code == -signal.SIGNIT,
+        # but raising SystemExit(_exit_code) will give status 254!
         self.user_ns['_exit_code'] = ec
 
     # use piped system by default, because it is better behaved
