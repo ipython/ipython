@@ -31,6 +31,7 @@
             codemirror: 'components/codemirror',
             termjs: "components/term.js/src/term",
             contents: '{{ contents_js_source }}',
+            smartmenus: 'components/smartmenus/dist',
           },
           shim: {
             underscore: {
@@ -55,6 +56,10 @@
             highlight: {
               exports: "hljs"
             },
+            smartmenus: {
+              deps: ["jquery"],
+              exports: "$"
+            }
           }
       });
     </script>
