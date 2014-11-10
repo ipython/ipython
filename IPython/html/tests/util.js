@@ -180,10 +180,31 @@ casper.wait_for_widget = function (widget_info) {
     // widget_info : object
     //      Object which contains info related to the widget.  The model_id property
     //      is used to identify the widget.
+
+    // Clear the results of a previous query, if they exist.  Make sure a
+    // dictionary exists to store the async results in.
+    this.thenEvaluate(function(model_id) {
+        if (window.pending_msgs === undefined) { 
+            window.pending_msgs = {}; 
+        } else {
+            window.pending_msgs[model_id] = -1;
+        } 
+    }, {model_id: widget_info.model_id});
+
+    // Wait for the pending messages to be 0.
     this.waitFor(function () {
-        var pending = this.evaluate(function (m) {
-            return IPython.notebook.kernel.widget_manager.get_model(m).pending_msgs;
-        }, {m: widget_info.model_id});
+        var pending = this.evaluate(function (model_id) {
+
+            // Get the model.  Once the model is had, store it's pending_msgs
+            // count in the window's dictionary.
+            IPython.notebook.kernel.widget_manager.get_model(model_id)
+            .then(function(model) {     
+                window.pending_msgs[model_id] = model.pending_msgs; 
+            });
+
+            // Return the pending_msgs result.
+            return window.pending_msgs[model_id];
+        }, {model_id: widget_info.model_id});
 
         if (pending === 0) {
             return true;
@@ -314,13 +335,13 @@ casper.execute_cell_then = function(index, then_callback, expect_failure) {
     return return_val;
 };
 
-casper.waitfor_cell_element = function(index, selector){
+casper.wait_for_element = function(index, selector){
     // Utility function that allows us to easily wait for an element 
     // within a cell.  Uses JQuery selector to look for the element.
     var that = this;
     this.waitFor(function() {
         return that.cell_element_exists(index, selector);
-    }, function() { console.log('FOUND!'); });
+    });
 };
 
 casper.cell_element_exists = function(index, selector){

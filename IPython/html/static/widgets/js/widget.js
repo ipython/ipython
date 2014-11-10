@@ -80,7 +80,7 @@ define(["widgets/js/manager",
                     this.trigger('msg:custom', msg.content.data.content);
                     break;
                 case 'display':
-                    return that.widget_manager.display_view(msg, that);
+                    this.widget_manager.display_view(msg, that);
                     break;
             }
         },

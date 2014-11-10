@@ -58,21 +58,30 @@ casper.notebook_test(function () {
     this.execute_cell_then(selection_index, function(index){
         this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Create selection cell executed with correct output.');
+    });
 
-        this.test.assert(this.cell_element_exists(index, 
+    // Wait for the widgets to actually display.
+    this.wait_for_element(selection_index, combo_selector);
+    this.wait_for_element(selection_index, multibtn_selector);
+    this.wait_for_element(selection_index, radio_selector);
+    this.wait_for_element(selection_index, list_selector);
+
+    // Continue with the tests.
+    this.then(function() {
+        this.test.assert(this.cell_element_exists(selection_index, 
             '.widget-area .widget-subarea'),
             'Widget subarea exists.');
 
-        this.test.assert(this.cell_element_exists(index, combo_selector),
+        this.test.assert(this.cell_element_exists(selection_index, combo_selector),
              'Widget combobox exists.');
 
-        this.test.assert(this.cell_element_exists(index, multibtn_selector),
+        this.test.assert(this.cell_element_exists(selection_index, multibtn_selector),
             'Widget multibutton exists.');
 
-        this.test.assert(this.cell_element_exists(index, radio_selector),
+        this.test.assert(this.cell_element_exists(selection_index, radio_selector),
             'Widget radio buttons exists.');
 
-        this.test.assert(this.cell_element_exists(index, list_selector),
+        this.test.assert(this.cell_element_exists(selection_index, list_selector),
             'Widget list exists.');
 
         // Verify that no items are selected.
