@@ -684,6 +684,20 @@ class TestThis(TestCase):
         self.assertEqual(f.t, b)
         self.assertRaises(TraitError, setattr, b, 't', f)
 
+    def test_this_in_container(self):
+
+        class Tree(HasTraits):
+            value = Unicode()
+            leaves = List(This())
+
+        tree = Tree(
+            value='foo',
+            leaves=[Tree('bar'), Tree('buzz')]
+        )
+
+        with self.assertRaises(TraitError):
+            tree.leaves = [1, 2]
+
 class TraitTestBase(TestCase):
     """A best testing class for basic trait types."""
 
