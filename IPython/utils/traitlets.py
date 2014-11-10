@@ -984,17 +984,20 @@ class ForwardDeclaredMixin(object):
                 "Module {} has no attribute {}".format(modname, self.klass)
             )
 
+
 class ForwardDeclaredType(ForwardDeclaredMixin, Type):
     """
     Forward-declared version of Type.
     """
     pass
 
+
 class ForwardDeclaredInstance(ForwardDeclaredMixin, Instance):
     """
     Forward-declared version of Instance.
     """
     pass
+
 
 class This(ClassBasedTraitType):
     """A trait for instances of the class containing this trait.
