@@ -38,7 +38,7 @@ magic_gui_arg = magic_arguments.argument(
 @magics_class
 class PylabMagics(Magics):
     """Magics related to matplotlib's pylab support"""
-    
+
     @skip_doctest
     @line_cell_magic
     @magic_arguments.magic_arguments()
@@ -88,7 +88,15 @@ class PylabMagics(Magics):
             In [4]: %%matplotlib inline
         """
         if cell is not None:
-            previous_gui = self.shell.pylab_gui_select
+            if self.shell.pylab_gui_select is None:
+                # Check if the inline backend is active
+                import matplotlib
+                if matplotlib.rcParams["backend"] == backends["inline"]:
+                    previous_gui = "inline"
+                else:
+                    previous_gui = None
+            else:
+                previous_gui = self.shell.pylab_gui_select
         args = magic_arguments.parse_argstring(self.matplotlib, line)
         gui, backend = self.shell.enable_matplotlib(args.gui)
         self._show_matplotlib_backend(args.gui, backend)
