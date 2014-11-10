@@ -463,8 +463,9 @@ class FilesRedirectHandler(IPythonHandler):
 # URL pattern fragments for re-use
 #-----------------------------------------------------------------------------
 
-path_regex = r"(?P<path>.*)"
-notebook_path_regex = r"(?P<path>.+\.ipynb)"
+# path matches any number of `/foo[/bar...]` or just `/` or ''
+path_regex = r"(?P<path>(?:(?:/[^/]+)+|/?))"
+notebook_path_regex = r"(?P<path>(?:/[^/]+)+\.ipynb)"
 
 #-----------------------------------------------------------------------------
 # URL to handler mappings
