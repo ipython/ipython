@@ -2,6 +2,7 @@
 // Distributed under the terms of the Modified BSD License.
 
 require([
+    'es6promise',
     'base/js/namespace',
     'jquery',
     'notebook/js/notebook',
@@ -25,6 +26,7 @@ require([
     // only loaded, not used, please keep sure this is loaded last
     'custom/custom'
 ], function(
+    es6promise,
     IPython, 
     $,
     notebook, 
@@ -49,7 +51,6 @@ require([
     custom
     ) {
     "use strict";
-    console.log(promise);
 
     // compat with old IPython, remove for IPython > 3.0
     window.CodeMirror = CodeMirror;
