@@ -314,6 +314,15 @@ casper.execute_cell_then = function(index, then_callback, expect_failure) {
     return return_val;
 };
 
+casper.waitfor_cell_element = function(index, selector){
+    // Utility function that allows us to easily wait for an element 
+    // within a cell.  Uses JQuery selector to look for the element.
+    var that = this;
+    this.waitFor(function() {
+        return that.cell_element_exists(index, selector);
+    }, function() { console.log('FOUND!'); });
+};
+
 casper.cell_element_exists = function(index, selector){
     // Utility function that allows us to easily check if an element exists 
     // within a cell.  Uses JQuery selector to look for the element.

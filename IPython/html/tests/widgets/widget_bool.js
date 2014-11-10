@@ -1,12 +1,12 @@
 // Test widget bool class
 casper.notebook_test(function () {
-    index = this.append_cell(
-        'from IPython.html import widgets\n' + 
-        'from IPython.display import display, clear_output\n' +
-        'print("Success")');
-    this.execute_cell_then(index);
+    // index = this.append_cell(
+    //     'print("Success")');
+    // this.execute_cell_then(index);
 
     var bool_index = this.append_cell(
+        'from IPython.html import widgets\n' + 
+        'from IPython.display import display, clear_output\n' +
         'bool_widgets = [widgets.Checkbox(description="Title", value=True),\n' +
         '    widgets.ToggleButton(description="Title", value=True)]\n' +
         'display(bool_widgets[0])\n' +
@@ -15,36 +15,41 @@ casper.notebook_test(function () {
     this.execute_cell_then(bool_index, function(index){
         this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Create bool widget cell executed with correct output.');
+    });
 
-        this.test.assert(this.cell_element_exists(index, 
+    this.waitfor_cell_element(bool_index, '.widget-area .widget-subarea .widget-hbox input');
+    this.waitfor_cell_element(bool_index, '.widget-area .widget-subarea button');
+
+    this.then(function() {
+        this.test.assert(this.cell_element_exists(bool_index, 
             '.widget-area .widget-subarea'),
             'Widget subarea exists.');
 
-        this.test.assert(this.cell_element_exists(index, 
+        this.test.assert(this.cell_element_exists(bool_index, 
             '.widget-area .widget-subarea .widget-hbox input'),
             'Checkbox exists.');
 
-        this.test.assert(this.cell_element_function(index, 
+        this.test.assert(this.cell_element_function(bool_index, 
             '.widget-area .widget-subarea .widget-hbox input', 'prop', ['checked']),
             'Checkbox is checked.');
 
-        this.test.assert(this.cell_element_exists(index, 
+        this.test.assert(this.cell_element_exists(bool_index, 
             '.widget-area .widget-subarea .widget-hbox .widget-label'),
             'Checkbox label exists.');
 
-        this.test.assert(this.cell_element_function(index, 
+        this.test.assert(this.cell_element_function(bool_index, 
             '.widget-area .widget-subarea .widget-hbox .widget-label', 'html')=="Title",
             'Checkbox labeled correctly.');
 
-        this.test.assert(this.cell_element_exists(index, 
+        this.test.assert(this.cell_element_exists(bool_index, 
             '.widget-area .widget-subarea button'),
             'Toggle button exists.');
 
-        this.test.assert(this.cell_element_function(index, 
+        this.test.assert(this.cell_element_function(bool_index, 
             '.widget-area .widget-subarea button', 'html')=="Title",
             'Toggle button labeled correctly.');
 
-        this.test.assert(this.cell_element_function(index, 
+        this.test.assert(this.cell_element_function(bool_index, 
             '.widget-area .widget-subarea button', 'hasClass', ['active']),
             'Toggle button is toggled.');
     });
@@ -54,9 +59,6 @@ casper.notebook_test(function () {
         'bool_widgets[1].value = False\n' +
         'print("Success")');
     this.execute_cell_then(index, function(index){
-
-        this.interact();
-
         this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Change bool widget value cell executed with correct output.');
 

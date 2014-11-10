@@ -96,11 +96,6 @@ define([
         // Make sure the view creation is not out of order with 
         // any state updates.
         model.state_change = model.state_change.then(function() {
-            try {
-                console.log('create_view ' + model.id);
-                console.log(' _view_name ' + model.get('_view_name'));
-                console.log(' _view_module ' + model.get('_view_module'));
-            } catch (e) { }
             
             return utils.load_class(model.get('_view_name'), model.get('_view_module'),
             WidgetManager._view_types).then(function(ViewType) {
