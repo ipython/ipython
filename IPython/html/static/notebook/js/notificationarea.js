@@ -132,6 +132,13 @@ define([
             knw.warning("Connecting to kernel");
         });
 
+        this.events.on('kernel_connection_dead.Kernel', function (evt, info) {
+            knw.danger("Not Connected", undefined, function () {
+                // schedule reconnect a short time in the future, don't reconnect immediately
+                setTimeout($.proxy(info.kernel.reconnect, info.kernel), 500);
+            }, {title: 'click to reconnect'});
+        });
+
         this.events.on('kernel_connected.Kernel', function () {
             knw.info("Connected", 500);
         });

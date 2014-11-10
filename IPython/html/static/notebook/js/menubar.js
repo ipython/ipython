@@ -295,6 +295,9 @@ define([
         this.element.find('#restart_kernel').click(function () {
             that.notebook.restart_kernel();
         });
+        this.element.find('#reconnect_kernel').click(function () {
+            that.notebook.kernel.reconnect();
+        });
         // Help
         if (this.tour) {
             this.element.find('#notebook_tour').click(function () {
