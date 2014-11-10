@@ -49,7 +49,7 @@ class API(object):
     def read(self, path):
         return self._req('GET', path)
 
-    def create_untitled(self, path='/', ext=None):
+    def create_untitled(self, path='/', ext='.ipynb'):
         body = None
         if ext:
             body = json.dumps({'ext': ext})

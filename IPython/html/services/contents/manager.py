@@ -221,28 +221,60 @@ class ContentsManager(LoggingConfigurable):
                 e.message, json.dumps(e.instance, indent=1, default=lambda obj: '<UNKNOWN>'),
             )
         return model
-
-    def new(self, model=None, path='', ext=''):
+    
+    def new_untitled(self, path='', type='', ext=''):
+        """Create a new untitled file or directory in path
+        
+        path must be a directory
+        
+        File extension can be specified.
+        
+        Use `new` to create files with a fully specified path (including filename).
+        """
+        path = path.strip('/')
+        if not self.dir_exists(path):
+            raise HTTPError(404, 'No such directory: %s' % path)
+        
+        model = {}
+        if type:
+            model['type'] = type
+        
+        if ext == '.ipynb':
+            model.setdefault('type', 'notebook')
+        else:
+            model.setdefault('type', 'file')
+        
+        if model['type'] == 'directory':
+            untitled = self.untitled_directory
+        elif model['type'] == 'notebook':
+            untitled = self.untitled_notebook
+            ext = '.ipynb'
+        elif model['type'] == 'file':
+            untitled = self.untitled_file
+        else:
+            raise HTTPError(400, "Unexpected model type: %r" % model['type'])
+        
+        name = self.increment_filename(untitled + ext, path)
+        path = u'{0}/{1}'.format(path, name)
+        return self.new(model, path)
+    
+    def new(self, model=None, path=''):
         """Create a new file or directory and return its model with no content.
         
-        If path is a directory, a new untitled file/directory is created in path.
-        Otherwise, a new file/directory is created exactly at path.
+        To create a new untitled entity in a directory, use `new_untitled`.
         """
         path = path.strip('/')
         if model is None:
             model = {}
-        else:
-            model.pop('path', None)
         
-        if ext and ext != '.ipynb':
-            model.setdefault('type', 'file')
-        else:
+        if path.endswith('.ipynb'):
             model.setdefault('type', 'notebook')
+        else:
+            model.setdefault('type', 'file')
         
         # no content, not a directory, so fill out new-file model
         if 'content' not in model and model['type'] != 'directory':
             if model['type'] == 'notebook':
-                ext = '.ipynb'
                 model['content'] = new_notebook()
                 model['format'] = 'json'
             else:
@@ -250,19 +282,6 @@ class ContentsManager(LoggingConfigurable):
                 model['type'] = 'file'
                 model['format'] = 'text'
         
-        # if path is a directory, create an untitled file or directory
-        if self.dir_exists(path):
-            if model['type'] == 'directory':
-                untitled = self.untitled_directory
-            elif model['type'] == 'notebook':
-                untitled = self.untitled_notebook
-            elif model['type'] == 'file':
-                untitled = self.untitled_file
-            else:
-                raise HTTPError(400, "Unexpected model type: %r" % model['type'])
-            
-            name = self.increment_filename(untitled + ext, path)
-            path = u'{0}/{1}'.format(path, name)
         model = self.save(model, path)
         return model
 

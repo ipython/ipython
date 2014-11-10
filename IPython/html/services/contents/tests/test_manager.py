@@ -101,7 +101,7 @@ class TestContentsManager(TestCase):
 
     def new_notebook(self):
         cm = self.contents_manager
-        model = cm.new()
+        model = cm.new_untitled(type='notebook')
         name = model['name']
         path = model['path']
 
@@ -112,30 +112,42 @@ class TestContentsManager(TestCase):
         cm.save(full_model, path)
         return nb, name, path
 
-    def test_new(self):
+    def test_new_untitled(self):
         cm = self.contents_manager
         # Test in root directory
-        model = cm.new()
+        model = cm.new_untitled(type='notebook')
         assert isinstance(model, dict)
         self.assertIn('name', model)
         self.assertIn('path', model)
+        self.assertIn('type', model)
+        self.assertEqual(model['type'], 'notebook')
         self.assertEqual(model['name'], 'Untitled0.ipynb')
         self.assertEqual(model['path'], 'Untitled0.ipynb')
 
         # Test in sub-directory
-        sub_dir = '/foo/'
-        self.make_dir(cm.root_dir, 'foo')
-        model = cm.new(path=sub_dir)
+        model = cm.new_untitled(type='directory')
         assert isinstance(model, dict)
         self.assertIn('name', model)
         self.assertIn('path', model)
-        self.assertEqual(model['name'], 'Untitled0.ipynb')
-        self.assertEqual(model['path'], 'foo/Untitled0.ipynb')
+        self.assertIn('type', model)
+        self.assertEqual(model['type'], 'directory')
+        self.assertEqual(model['name'], 'Untitled Folder0')
+        self.assertEqual(model['path'], 'Untitled Folder0')
+        sub_dir = model['path']
+        
+        model = cm.new_untitled(path=sub_dir)
+        assert isinstance(model, dict)
+        self.assertIn('name', model)
+        self.assertIn('path', model)
+        self.assertIn('type', model)
+        self.assertEqual(model['type'], 'file')
+        self.assertEqual(model['name'], 'untitled0')
+        self.assertEqual(model['path'], '%s/untitled0' % sub_dir)
 
     def test_get(self):
         cm = self.contents_manager
         # Create a notebook
-        model = cm.new()
+        model = cm.new_untitled(type='notebook')
         name = model['name']
         path = model['path']
 
@@ -150,7 +162,7 @@ class TestContentsManager(TestCase):
         # Test in sub-directory
         sub_dir = '/foo/'
         self.make_dir(cm.root_dir, 'foo')
-        model = cm.new(path=sub_dir, ext='.ipynb')
+        model = cm.new_untitled(path=sub_dir, ext='.ipynb')
         model2 = cm.get_model(sub_dir + name)
         assert isinstance(model2, dict)
         self.assertIn('name', model2)
@@ -165,7 +177,7 @@ class TestContentsManager(TestCase):
         path = 'test bad symlink'
         os_path = self.make_dir(cm.root_dir, path)
         
-        file_model = cm.new(path=path, ext='.txt')
+        file_model = cm.new_untitled(path=path, ext='.txt')
         
         # create a broken symlink
         os.symlink("target", os.path.join(os_path, "bad symlink"))
@@ -180,12 +192,11 @@ class TestContentsManager(TestCase):
         path = '{0}/{1}'.format(parent, name)
         os_path = self.make_dir(cm.root_dir, parent)
         
-        file_model = cm.new(path=parent, ext='.txt')
+        file_model = cm.new(path=parent + '/zfoo.txt')
         
         # create a good symlink
         os.symlink(file_model['name'], os.path.join(os_path, name))
         symlink_model = cm.get_model(path, content=False)
-        
         dir_model = cm.get_model(parent)
         self.assertEqual(
             sorted(dir_model['content'], key=lambda x: x['name']),
@@ -195,7 +206,7 @@ class TestContentsManager(TestCase):
     def test_update(self):
         cm = self.contents_manager
         # Create a notebook
-        model = cm.new()
+        model = cm.new_untitled(type='notebook')
         name = model['name']
         path = model['path']
 
@@ -214,7 +225,7 @@ class TestContentsManager(TestCase):
         # Create a directory and notebook in that directory
         sub_dir = '/foo/'
         self.make_dir(cm.root_dir, 'foo')
-        model = cm.new(None, sub_dir)
+        model = cm.new_untitled(path=sub_dir, type='notebook')
         name = model['name']
         path = model['path']
 
@@ -234,7 +245,7 @@ class TestContentsManager(TestCase):
     def test_save(self):
         cm = self.contents_manager
         # Create a notebook
-        model = cm.new()
+        model = cm.new_untitled(type='notebook')
         name = model['name']
         path = model['path']
 
@@ -253,7 +264,7 @@ class TestContentsManager(TestCase):
         # Create a directory and notebook in that directory
         sub_dir = '/foo/'
         self.make_dir(cm.root_dir, 'foo')
-        model = cm.new(None, sub_dir)
+        model = cm.new_untitled(path=sub_dir, type='notebook')
         name = model['name']
         path = model['path']
         model = cm.get_model(path)

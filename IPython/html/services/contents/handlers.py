@@ -92,18 +92,11 @@ class ContentsHandler(IPythonHandler):
         model = self.contents_manager.new(model, path)
         self.set_status(201)
         self._finish_model(model)
-
-    def _new(self, path, type='notebook', ext=''):
-        """Create an empty file or directory in directory specified by path
         
-        ContentsManager picks the filename.
-        """
+    def _new_untitled(self, path, type='', ext=''):
+        """Create a new, empty untitled entity"""
         self.log.info(u"Creating new %s in %s", type or 'file', path)
-        if type:
-            model = {'type': type}
-        else:
-            model = None
-        model = self.contents_manager.new(model, path=path, ext=ext)
+        model = self.contents_manager.new_untitled(path=path, type=type, ext=ext)
         self.set_status(201)
         self._finish_model(model)
 
@@ -140,13 +133,13 @@ class ContentsHandler(IPythonHandler):
         if model is not None:
             copy_from = model.get('copy_from')
             ext = model.get('ext', '')
-            type = model.get('type')
+            type = model.get('type', '')
             if copy_from:
                 self._copy(copy_from, path)
             else:
-                self._new(path, type=type, ext=ext)
+                self._new_untitled(path, type=type, ext=ext)
         else:
-            self._new(path)
+            self._new_untitled(path)
 
     @web.authenticated
     @json_errors
@@ -170,7 +163,7 @@ class ContentsHandler(IPythonHandler):
             else:
                 self._upload(model, path)
         else:
-            self._new(path)
+            self._new_untitled(path)
 
     @web.authenticated
     @json_errors
