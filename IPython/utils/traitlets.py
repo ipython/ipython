@@ -967,6 +967,35 @@ class Instance(ClassBasedTraitType):
             return dv
 
 
+class ForwardDeclaredMixin(object):
+    """
+    Mixin for forward-declared versions of Instance and Type.
+    """
+    def _resolve_classes(self):
+        """
+        Find the specified class name by looking for it in the module in which
+        our this_class attribute was defined.
+        """
+        try:
+            modname = self.this_class.__module__
+            self.klass = import_item('.'.join([modname, self.klass]))
+        except AttributeError:
+            raise ImportError(
+                "Module {} has no attribute {}".format(modname, self.klass)
+            )
+
+class ForwardDeclaredType(ForwardDeclaredMixin, Type):
+    """
+    Forward-declared version of Type.
+    """
+    pass
+
+class ForwardDeclaredInstance(ForwardDeclaredMixin, Instance):
+    """
+    Forward-declared version of Instance.
+    """
+    pass
+
 class This(ClassBasedTraitType):
     """A trait for instances of the class containing this trait.
 

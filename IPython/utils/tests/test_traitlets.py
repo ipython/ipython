@@ -20,7 +20,7 @@ from IPython.utils.traitlets import (
     Int, Long, Integer, Float, Complex, Bytes, Unicode, TraitError,
     Undefined, Type, This, Instance, TCPAddress, List, Tuple,
     ObjectName, DottedObjectName, CRegExp, link, directional_link,
-    EventfulList, EventfulDict
+    EventfulList, EventfulDict, ForwardDeclaredType, ForwardDeclaredInstance,
 )
 from IPython.utils import py3compat
 from IPython.testing.decorators import skipif
@@ -969,6 +969,23 @@ class TestInstanceList(TraitTestBase):
     _good_values = [[Foo(), Foo(), None], None]
     _bad_values = [['1', 2,], '1', [Foo]]
 
+class ForwardDeclaredInstanceListTrait(HasTraits):
+
+    value = List(ForwardDeclaredInstance('Foo'))
+
+class TestForwardDeclaredInstanceList(TraitTestBase):
+
+    obj = ForwardDeclaredInstanceListTrait()
+
+    def test_klass(self):
+        """Test that the instance klass is properly assigned."""
+        self.assertIs(self.obj.traits()['value']._trait.klass, Foo)
+
+    _default_value = []
+    _good_values = [[Foo(), Foo(), None], None]
+    _bad_values = [['1', 2,], '1', [Foo]]
+
+
 class LenListTrait(HasTraits):
 
     value = List(Int, [0], minlen=1, maxlen=2)
@@ -1320,3 +1337,33 @@ class TestEventful(TestCase):
 
         # Is the output correct?
         self.assertEqual(a.x, {c: c for c in 'bz'})
+
+
+class ForwardDeclaredBar(object):
+    pass
+
+class ForwardDeclaredBarSub(ForwardDeclaredBar):
+    pass
+
+class ForwardDeclaredInstanceTrait(HasTraits):
+
+    value = ForwardDeclaredInstance(klass='ForwardDeclaredBar')
+
+class TestForwardDeclaredInstanceTrait(TraitTestBase):
+
+    obj = ForwardDeclaredInstanceTrait()
+    _default_value = None
+    _good_values = [None, ForwardDeclaredBar(), ForwardDeclaredBarSub()]
+    _bad_values = ['foo', 3, ForwardDeclaredBar, ForwardDeclaredBarSub]
+
+
+class ForwardDeclaredTypeTrait(HasTraits):
+
+    value = ForwardDeclaredType(klass='ForwardDeclaredBar')
+
+class TestForwardDeclaredInstanceTrait(TraitTestBase):
+
+    obj = ForwardDeclaredTypeTrait()
+    _default_value = None
+    _good_values = [None, ForwardDeclaredBar, ForwardDeclaredBarSub]
+    _bad_values = ['foo', 3, ForwardDeclaredBar(), ForwardDeclaredBarSub()]
