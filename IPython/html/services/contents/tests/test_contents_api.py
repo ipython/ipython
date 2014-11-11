@@ -35,7 +35,7 @@ class API(object):
     def __init__(self, base_url):
         self.base_url = base_url
 
-    def _req(self, verb, path, body=None):
+    def _req(self, verb, path, body=None, params=None):
         response = requests.request(verb,
                 url_path_join(self.base_url, 'api/contents', path),
                 data=body,
@@ -47,14 +47,12 @@ class API(object):
         return self._req('GET', path)
 
     def read(self, path, type_=None, format=None):
-        query = []
+        params = {}
         if type_ is not None:
-            query.append('type=' + type_)
+            params['type'] = type_
         if format is not None:
-            query.append('format=' + format)
-        if query:
-            path += '?' + '&'.join(query)
-        return self._req('GET', path)
+            params['format'] = format
+        return self._req('GET', path, params=params)
 
     def create_untitled(self, path='/', ext='.ipynb'):
         body = None

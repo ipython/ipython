@@ -87,10 +87,10 @@ define([
             error : this.create_basic_error_handler(options.error)
         };
         var url = this.api_url(path);
-        if (options.type) {
-            url += '?type=' + options.type;
-        }
-        $.ajax(url, settings);
+        params = {};
+        if (options.type) { params.type = options.type; }
+        if (options.format) { params.format = options.format; }
+        $.ajax(url + '?' + $.param(params), settings);
     };
 
 

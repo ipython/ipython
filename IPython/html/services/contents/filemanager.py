@@ -277,7 +277,7 @@ class FileContentsManager(ContentsManager):
             Whether to include the contents in the reply
         type_ : str, optional
             The requested type - 'file', 'notebook', or 'directory'.
-            Will raise HTTPError 406 if the content doesn't match.
+            Will raise HTTPError 400 if the content doesn't match.
         format : str, optional
             The requested format for file contents. 'text' or 'base64'.
             Ignored if this returns a notebook or directory model.
