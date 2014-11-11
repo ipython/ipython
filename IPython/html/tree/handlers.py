@@ -38,7 +38,7 @@ class TreeHandler(IPythonHandler):
         cm = self.contents_manager
         if cm.file_exists(path):
             # it's not a directory, we have redirecting to do
-            model = cm.get(path, content=False)
+            model = cm.get_model(path, content=False)
             # redirect to /api/notebooks if it's a notebook, otherwise /api/files
             service = 'notebooks' if model['type'] == 'notebook' else 'files'
             url = url_escape(url_path_join(
