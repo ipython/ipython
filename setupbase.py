@@ -403,6 +403,16 @@ class build_scripts_entrypt(build_scripts):
             with open(outfile, 'w') as f:
                 f.write(script_src.format(executable=sys.executable,
                                           mod=mod, func=func))
+            
+            if sys.platform == 'win32':
+                # Write .cmd wrappers for Windows so 'ipython' etc. work at the
+                # command line
+                cmd_file = os.path.join(self.build_dir, name + '.cmd')
+                cmd = '@"{python}" "%~dp0\{script}" %*\r\n'.format(
+                        python=sys.executable, script=name)
+                log.info("Writing %s wrapper script" % cmd_file)
+                with open(cmd_file, 'w') as f:
+                    f.write(cmd)
 
         return outfiles, outfiles
 
