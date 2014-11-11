@@ -360,15 +360,14 @@ def target_update(target,deps,cmd):
 #---------------------------------------------------------------------------
 
 def find_entry_points():
-    """Find IPython's scripts.
+    """Defines the command line entry points for IPython
 
-    if entry_points is True:
-        return setuptools entry_point-style definitions
-    else:
-        return file paths of plain scripts [default]
+    This always uses setuptools-style entry points. When setuptools is not in
+    use, our own build_scripts_entrypt class below parses these and builds
+    command line scripts.
 
-    suffix is appended to script names if entry_points is True, so that the
-    Python 3 scripts get named "ipython3" etc.
+    Each of our entry points gets both a plain name, e.g. ipython, and one
+    suffixed with the Python major version number, e.g. ipython3. 
     """
     ep = [
             'ipython%s = IPython:start_ipython',
@@ -388,6 +387,14 @@ if __name__ == '__main__':
 """
 
 class build_scripts_entrypt(build_scripts):
+    """Build the command line scripts
+    
+    Parse setuptools style entry points and write simple scripts to run the
+    target functions.
+    
+    On Windows, this also creates .cmd wrappers for the scripts so that you can
+    easily launch them from a command line.
+    """
     def run(self):
         self.mkpath(self.build_dir)
         outfiles = []
