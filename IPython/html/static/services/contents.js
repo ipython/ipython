@@ -29,8 +29,9 @@ define([
         // An error representing the result of attempting to delete a non-empty
         // directory.
         this.message = 'A directory must be empty before being deleted.';
-    }
-    Contents.DirectoryNotEmptyError.prototype = new Error;
+    };
+    
+    Contents.DirectoryNotEmptyError.prototype = Object.create(Error.prototype);
     Contents.DirectoryNotEmptyError.prototype.name =
         Contents.DIRECTORY_NOT_EMPTY_ERROR;
 
@@ -54,29 +55,28 @@ define([
      */
     Contents.prototype.create_basic_error_handler = function(callback) {
         if (!callback) {
-            return function(xhr, status, error) { };
+            return utils.log_ajax_error;
         }
         return function(xhr, status, error) {
             callback(utils.wrap_ajax_error(xhr, status, error));
         };
-    }
+    };
 
     /**
      * File Functions (including notebook operations)
      */
 
     /**
-     * Load a file.
+     * Get a file.
      *
      * Calls success with file JSON model, or error with error.
      *
-     * @method load_notebook
+     * @method get
      * @param {String} path
-     * @param {String} name
      * @param {Function} success
      * @param {Function} error
      */
-    Contents.prototype.load = function (path, name, options) {
+    Contents.prototype.get = function (path, options) {
         // We do the call with settings so we can set cache to false.
         var settings = {
             processData : false,
@@ -86,32 +86,29 @@ define([
             success : options.success,
             error : this.create_basic_error_handler(options.error)
         };
-        var url = this.api_url(path, name);
+        var url = this.api_url(path);
         $.ajax(url, settings);
     };
 
 
     /**
-     * Creates a new notebook file at the specified directory path.
+     * Creates a new untitled file or directory in the specified directory path.
      *
-     * @method scroll_to_cell
-     * @param {String} path The path to create the new notebook at
-     * @param {String} name Name for new file. Chosen by server if unspecified.
+     * @method new
+     * @param {String} path: the directory in which to create the new file/directory
      * @param {Object} options:
-     *      ext: file extension to use if name unspecified
+     *      ext: file extension to use
+     *      type: model type to create ('notebook', 'file', or 'directory')
      */
-    Contents.prototype.new = function(path, name, options) {
-        var method, data;
-        if (name) {
-            method = "PUT";
-        } else {
-            method = "POST";
-            data = JSON.stringify({ext: options.ext || ".ipynb"});
-        }
+    Contents.prototype.new_untitled = function(path, options) {
+        var data = JSON.stringify({
+          ext: options.ext,
+          type: options.type
+        });
 
         var settings = {
             processData : false,
-            type : method,
+            type : "POST",
             data: data,
             dataType : "json",
             success : options.success || function() {},
@@ -123,9 +120,8 @@ define([
         $.ajax(this.api_url(path), settings);
     };
 
-    Contents.prototype.delete = function(name, path, options) {
+    Contents.prototype.delete = function(path, options) {
         var error_callback = options.error || function() {};
-        var that = this;
         var settings = {
             processData : false,
             type : "DELETE",
@@ -140,12 +136,12 @@ define([
                 error_callback(utils.wrap_ajax_error(xhr, status, error));
             }
         };
-        var url = this.api_url(path, name);
+        var url = this.api_url(path);
         $.ajax(url, settings);
     };
 
-    Contents.prototype.rename = function(path, name, new_path, new_name, options) {
-        var data = {name: new_name, path: new_path};
+    Contents.prototype.rename = function(path, new_path, options) {
+        var data = {path: new_path};
         var settings = {
             processData : false,
             type : "PATCH",
@@ -155,11 +151,11 @@ define([
             success : options.success || function() {},
             error : this.create_basic_error_handler(options.error)
         };
-        var url = this.api_url(path, name);
+        var url = this.api_url(path);
         $.ajax(url, settings);
     };
 
-    Contents.prototype.save = function(path, name, model, options) {
+    Contents.prototype.save = function(path, model, options) {
         // We do the call with settings so we can set cache to false.
         var settings = {
             processData : false,
@@ -172,24 +168,19 @@ define([
         if (options.extra_settings) {
             $.extend(settings, options.extra_settings);
         }
-        var url = this.api_url(path, name);
+        var url = this.api_url(path);
         $.ajax(url, settings);
     };
     
-    Contents.prototype.copy = function(to_path, to_name, from, options) {
-        var url, method;
-        if (to_name) {
-            url = this.api_url(to_path, to_name);
-            method = "PUT";
-        } else {
-            url = this.api_url(to_path);
-            method = "POST";
-        }
+    Contents.prototype.copy = function(from_file, to_dir, options) {
+        // Copy a file into a given directory via POST
+        // The server will select the name of the copied file
+        var url = this.api_url(to_dir);
         
         var settings = {
             processData : false,
-            type: method,
-            data: JSON.stringify({copy_from: from}),
+            type: "POST",
+            data: JSON.stringify({copy_from: from_file}),
             dataType : "json",
             success: options.success || function() {},
             error: this.create_basic_error_handler(options.error)
@@ -204,8 +195,8 @@ define([
      * Checkpointing Functions
      */
 
-    Contents.prototype.create_checkpoint = function(path, name, options) {
-        var url = this.api_url(path, name, 'checkpoints');
+    Contents.prototype.create_checkpoint = function(path, options) {
+        var url = this.api_url(path, 'checkpoints');
         var settings = {
             type : "POST",
             success: options.success || function() {},
@@ -214,8 +205,8 @@ define([
         $.ajax(url, settings);
     };
 
-    Contents.prototype.list_checkpoints = function(path, name, options) {
-        var url = this.api_url(path, name, 'checkpoints');
+    Contents.prototype.list_checkpoints = function(path, options) {
+        var url = this.api_url(path, 'checkpoints');
         var settings = {
             type : "GET",
             success: options.success,
@@ -224,8 +215,8 @@ define([
         $.ajax(url, settings);
     };
 
-    Contents.prototype.restore_checkpoint = function(path, name, checkpoint_id, options) {
-        var url = this.api_url(path, name, 'checkpoints', checkpoint_id);
+    Contents.prototype.restore_checkpoint = function(path, checkpoint_id, options) {
+        var url = this.api_url(path, 'checkpoints', checkpoint_id);
         var settings = {
             type : "POST",
             success: options.success || function() {},
@@ -234,8 +225,8 @@ define([
         $.ajax(url, settings);
     };
 
-    Contents.prototype.delete_checkpoint = function(path, name, checkpoint_id, options) {
-        var url = this.api_url(path, name, 'checkpoints', checkpoint_id);
+    Contents.prototype.delete_checkpoint = function(path, checkpoint_id, options) {
+        var url = this.api_url(path, 'checkpoints', checkpoint_id);
         var settings = {
             type : "DELETE",
             success: options.success || function() {},
@@ -255,10 +246,8 @@ define([
      * representing individual files or directories.  Each dictionary has
      * the keys:
      *     type: "notebook" or "directory"
-     *     name: the name of the file or directory
      *     created: created date
      *     last_modified: last modified dat
-     *     path: the path
      * @method list_notebooks
      * @param {String} path The path to list notebooks in
      * @param {Function} load_callback called with list of notebooks on success

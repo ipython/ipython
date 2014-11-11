@@ -33,14 +33,6 @@ class ContentsManager(LoggingConfigurable):
     - if unspecified, path defaults to '',
       indicating the root path.
 
-    name is also unicode, and refers to a specfic target:
-
-    - unicode, not url-escaped
-    - must not contain '/'
-    - It refers to an individual filename
-    - It may refer to a directory name,
-      in the case of listing or creating directories.
-
     """
 
     notary = Instance(sign.NotebookNotary)
@@ -69,7 +61,7 @@ class ContentsManager(LoggingConfigurable):
     # ContentsManager API part 1: methods that must be
     # implemented in subclasses.
 
-    def path_exists(self, path):
+    def dir_exists(self, path):
         """Does the API-style path (directory) actually exist?
 
         Like os.path.isdir
@@ -105,8 +97,8 @@ class ContentsManager(LoggingConfigurable):
         """
         raise NotImplementedError
 
-    def file_exists(self, name, path=''):
-        """Does a file exist at the given name and path?
+    def file_exists(self, path=''):
+        """Does a file exist at the given path?
 
         Like os.path.isfile
 
@@ -126,15 +118,13 @@ class ContentsManager(LoggingConfigurable):
         """
         raise NotImplementedError('must be implemented in a subclass')
 
-    def exists(self, name, path=''):
-        """Does a file or directory exist at the given name and path?
+    def exists(self, path):
+        """Does a file or directory exist at the given path?
 
         Like os.path.exists
 
         Parameters
         ----------
-        name : string
-            The name of the file you are checking.
         path : string
             The relative path to the file's directory (with '/' as separator)
 
@@ -143,17 +133,17 @@ class ContentsManager(LoggingConfigurable):
         exists : bool
             Whether the target exists.
         """
-        return self.file_exists(name, path) or self.path_exists("%s/%s" % (path, name))
+        return self.file_exists(path) or self.dir_exists(path)
 
-    def get_model(self, name, path='', content=True):
+    def get_model(self, path, content=True):
         """Get the model of a file or directory with or without content."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def save(self, model, name, path=''):
+    def save(self, model, path):
         """Save the file or directory and return the model with no content."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def update(self, model, name, path=''):
+    def update(self, model, path):
         """Update the file or directory and return the model with no content.
 
         For use in PATCH requests, to enable renaming a file without
@@ -161,26 +151,26 @@ class ContentsManager(LoggingConfigurable):
         """
         raise NotImplementedError('must be implemented in a subclass')
 
-    def delete(self, name, path=''):
-        """Delete file or directory by name and path."""
+    def delete(self, path):
+        """Delete file or directory by path."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def create_checkpoint(self, name, path=''):
+    def create_checkpoint(self, path):
         """Create a checkpoint of the current state of a file
 
         Returns a checkpoint_id for the new checkpoint.
         """
         raise NotImplementedError("must be implemented in a subclass")
 
-    def list_checkpoints(self, name, path=''):
+    def list_checkpoints(self, path):
         """Return a list of checkpoints for a given file"""
         return []
 
-    def restore_checkpoint(self, checkpoint_id, name, path=''):
+    def restore_checkpoint(self, checkpoint_id, path):
         """Restore a file from one of its checkpoints"""
         raise NotImplementedError("must be implemented in a subclass")
 
-    def delete_checkpoint(self, checkpoint_id, name, path=''):
+    def delete_checkpoint(self, checkpoint_id, path):
         """delete a checkpoint for a file"""
         raise NotImplementedError("must be implemented in a subclass")
 
@@ -190,8 +180,12 @@ class ContentsManager(LoggingConfigurable):
     def info_string(self):
         return "Serving contents"
 
-    def get_kernel_path(self, name, path='', model=None):
-        """ Return the path to start kernel in """
+    def get_kernel_path(self, path, model=None):
+        """Return the API path for the kernel
+        
+        KernelManagers can turn this value into a filesystem path,
+        or ignore it altogether.
+        """
         return path
 
     def increment_filename(self, filename, path=''):
@@ -214,7 +208,7 @@ class ContentsManager(LoggingConfigurable):
         for i in itertools.count():
             name = u'{basename}{i}{ext}'.format(basename=basename, i=i,
                                                 ext=ext)
-            if not self.file_exists(name, path):
+            if not self.exists(u'{}/{}'.format(path, name)):
                 break
         return name
 
@@ -223,85 +217,124 @@ class ContentsManager(LoggingConfigurable):
         try:
             validate(model['content'])
         except ValidationError as e:
-            model['message'] = 'Notebook Validation failed: {}:\n{}'.format(
+            model['message'] = u'Notebook Validation failed: {}:\n{}'.format(
                 e.message, json.dumps(e.instance, indent=1, default=lambda obj: '<UNKNOWN>'),
             )
         return model
-
-    def create_file(self, model=None, path='', ext='.ipynb'):
-        """Create a new file or directory and return its model with no content."""
+    
+    def new_untitled(self, path='', type='', ext=''):
+        """Create a new untitled file or directory in path
+        
+        path must be a directory
+        
+        File extension can be specified.
+        
+        Use `new` to create files with a fully specified path (including filename).
+        """
+        path = path.strip('/')
+        if not self.dir_exists(path):
+            raise HTTPError(404, 'No such directory: %s' % path)
+        
+        model = {}
+        if type:
+            model['type'] = type
+        
+        if ext == '.ipynb':
+            model.setdefault('type', 'notebook')
+        else:
+            model.setdefault('type', 'file')
+        
+        if model['type'] == 'directory':
+            untitled = self.untitled_directory
+        elif model['type'] == 'notebook':
+            untitled = self.untitled_notebook
+            ext = '.ipynb'
+        elif model['type'] == 'file':
+            untitled = self.untitled_file
+        else:
+            raise HTTPError(400, "Unexpected model type: %r" % model['type'])
+        
+        name = self.increment_filename(untitled + ext, path)
+        path = u'{0}/{1}'.format(path, name)
+        return self.new(model, path)
+    
+    def new(self, model=None, path=''):
+        """Create a new file or directory and return its model with no content.
+        
+        To create a new untitled entity in a directory, use `new_untitled`.
+        """
         path = path.strip('/')
         if model is None:
             model = {}
-        if 'content' not in model and model.get('type', None) != 'directory':
-            if ext == '.ipynb':
+        
+        if path.endswith('.ipynb'):
+            model.setdefault('type', 'notebook')
+        else:
+            model.setdefault('type', 'file')
+        
+        # no content, not a directory, so fill out new-file model
+        if 'content' not in model and model['type'] != 'directory':
+            if model['type'] == 'notebook':
                 model['content'] = new_notebook()
-                model['type'] = 'notebook'
                 model['format'] = 'json'
             else:
                 model['content'] = ''
                 model['type'] = 'file'
                 model['format'] = 'text'
-        if 'name' not in model:
-            if model['type'] == 'directory':
-                untitled = self.untitled_directory
-            elif model['type'] == 'notebook':
-                untitled = self.untitled_notebook
-            elif model['type'] == 'file':
-                untitled = self.untitled_file
-            else:
-                raise HTTPError(400, "Unexpected model type: %r" % model['type'])
-            model['name'] = self.increment_filename(untitled + ext, path)
-
-        model['path'] = path
-        model = self.save(model, model['name'], model['path'])
+        
+        model = self.save(model, path)
         return model
 
-    def copy(self, from_name, to_name=None, path=''):
+    def copy(self, from_path, to_path=None):
         """Copy an existing file and return its new model.
 
-        If to_name not specified, increment `from_name-Copy#.ext`.
+        If to_path not specified, it will be the parent directory of from_path.
+        If to_path is a directory, filename will increment `from_path-Copy#.ext`.
 
-        copy_from can be a full path to a file,
-        or just a base name. If a base name, `path` is used.
+        from_path must be a full path to a file.
         """
-        path = path.strip('/')
-        if '/' in from_name:
-            from_path, from_name = from_name.rsplit('/', 1)
+        path = from_path.strip('/')
+        if '/' in path:
+            from_dir, from_name = path.rsplit('/', 1)
         else:
-            from_path = path
-        model = self.get_model(from_name, from_path)
+            from_dir = ''
+            from_name = path
+        
+        model = self.get_model(path)
+        model.pop('path', None)
+        model.pop('name', None)
         if model['type'] == 'directory':
             raise HTTPError(400, "Can't copy directories")
-        if not to_name:
+        
+        if not to_path:
+            to_path = from_dir
+        if self.dir_exists(to_path):
             base, ext = os.path.splitext(from_name)
             copy_name = u'{0}-Copy{1}'.format(base, ext)
-            to_name = self.increment_filename(copy_name, path)
-        model['name'] = to_name
-        model['path'] = path
-        model = self.save(model, to_name, path)
+            to_name = self.increment_filename(copy_name, to_path)
+            to_path = u'{0}/{1}'.format(to_path, to_name)
+        
+        model = self.save(model, to_path)
         return model
 
     def log_info(self):
         self.log.info(self.info_string())
 
-    def trust_notebook(self, name, path=''):
+    def trust_notebook(self, path):
         """Explicitly trust a notebook
 
         Parameters
         ----------
-        name : string
-            The filename of the notebook
         path : string
-            The notebook's directory
+            The path of a notebook
         """
-        model = self.get_model(name, path)
+        model = self.get_model(path)
         nb = model['content']
-        self.log.warn("Trusting notebook %s/%s", path, name)
+        self.log.warn("Trusting notebook %s", path)
         self.notary.mark_cells(nb, True)
-        self.save(model, name, path)
+        self.save(model, path)
 
-    def check_and_sign(self, nb, name='', path=''):
+    def check_and_sign(self, nb, path=''):
         """Check for trusted cells, and sign the notebook.
 
         Called as a part of saving notebooks.
@@ -310,17 +343,15 @@ class ContentsManager(LoggingConfigurable):
         ----------
         nb : dict
             The notebook dict
-        name : string
-            The filename of the notebook (for logging)
         path : string
-            The notebook's directory (for logging)
+            The notebook's path (for logging)
         """
         if self.notary.check_cells(nb):
             self.notary.sign(nb)
         else:
-            self.log.warn("Saving untrusted notebook %s/%s", path, name)
+            self.log.warn("Saving untrusted notebook %s", path)
 
-    def mark_trusted_cells(self, nb, name='', path=''):
+    def mark_trusted_cells(self, nb, path=''):
         """Mark cells as trusted if the notebook signature matches.
 
         Called as a part of loading notebooks.
@@ -329,14 +360,12 @@ class ContentsManager(LoggingConfigurable):
         ----------
         nb : dict
             The notebook object (in current nbformat)
-        name : string
-            The filename of the notebook (for logging)
         path : string
-            The notebook's directory (for logging)
+            The notebook's path (for logging)
         """
         trusted = self.notary.check_signature(nb)
         if not trusted:
-            self.log.warn("Notebook %s/%s is not trusted", path, name)
+            self.log.warn("Notebook %s is not trusted", path)
         self.notary.mark_cells(nb, trusted)
 
     def should_list(self, name):

@@ -187,9 +187,10 @@ class NotebookWebApplication(web.Application):
         return settings
 
     def init_handlers(self, settings):
-        # Load the (URL pattern, handler) tuples for each component.
+        """Load the (URL pattern, handler) tuples for each component."""
+        
+        # Order matters. The first handler to match the URL will handle the request.
         handlers = []
-        handlers.extend(load_handlers('base.handlers'))
         handlers.extend(load_handlers('tree.handlers'))
         handlers.extend(load_handlers('auth.login'))
         handlers.extend(load_handlers('auth.logout'))
@@ -206,6 +207,8 @@ class NotebookWebApplication(web.Application):
         handlers.append(
             (r"/nbextensions/(.*)", FileFindHandler, {'path' : settings['nbextensions_path']}),
         )
+        # register base handlers last
+        handlers.extend(load_handlers('base.handlers'))
         # set the URL that will be redirected from `/`
         handlers.append(
             (r'/?', web.RedirectHandler, {

@@ -75,22 +75,22 @@ class TestInstallNBExtension(TestCase):
             td.cleanup()
         nbextensions.get_ipython_dir = self.save_get_ipython_dir
     
-    def assert_path_exists(self, path):
+    def assert_dir_exists(self, path):
         if not os.path.exists(path):
             do_exist = os.listdir(os.path.dirname(path))
             self.fail(u"%s should exist (found %s)" % (path, do_exist))
     
-    def assert_not_path_exists(self, path):
+    def assert_not_dir_exists(self, path):
         if os.path.exists(path):
             self.fail(u"%s should not exist" % path)
     
     def assert_installed(self, relative_path, ipdir=None):
-        self.assert_path_exists(
+        self.assert_dir_exists(
             pjoin(ipdir or self.ipdir, u'nbextensions', relative_path)
         )
     
     def assert_not_installed(self, relative_path, ipdir=None):
-        self.assert_not_path_exists(
+        self.assert_not_dir_exists(
             pjoin(ipdir or self.ipdir, u'nbextensions', relative_path)
         )
     
@@ -99,7 +99,7 @@ class TestInstallNBExtension(TestCase):
         with TemporaryDirectory() as td:
             ipdir = pjoin(td, u'ipython')
             install_nbextension(self.src, ipython_dir=ipdir)
-            self.assert_path_exists(ipdir)
+            self.assert_dir_exists(ipdir)
             for file in self.files:
                 self.assert_installed(
                     pjoin(basename(self.src), file),

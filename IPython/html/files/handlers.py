@@ -17,13 +17,18 @@ class FilesHandler(IPythonHandler):
 
     @web.authenticated
     def get(self, path):
-        cm = self.settings['contents_manager']
+        cm = self.contents_manager
         if cm.is_hidden(path):
             self.log.info("Refusing to serve hidden file, via 404 Error")
             raise web.HTTPError(404)
-
-        path, name = os.path.split(path)
-        model = cm.get_model(name, path)
+        
+        path = path.strip('/')
+        if '/' in path:
+            _, name = path.rsplit('/', 1)
+        else:
+            name = path
+        
+        model = cm.get_model(path)
         
         if self.get_argument("download", False):
             self.set_header('Content-Disposition','attachment; filename="%s"' % name)

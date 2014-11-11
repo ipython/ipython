@@ -4,7 +4,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 from tornado import web
-from ..base.handlers import IPythonHandler, notebook_path_regex, path_regex
+from ..base.handlers import IPythonHandler, path_regex
 from ..utils import url_path_join, url_escape
 
 
@@ -33,18 +33,21 @@ class TreeHandler(IPythonHandler):
             return 'Home'
 
     @web.authenticated
-    def get(self, path='', name=None):
+    def get(self, path=''):
         path = path.strip('/')
         cm = self.contents_manager
-        if name is not None:
-            # is a notebook, redirect to notebook handler
+        if cm.file_exists(path):
+            # it's not a directory, we have redirecting to do
+            model = cm.get(path, content=False)
+            # redirect to /api/notebooks if it's a notebook, otherwise /api/files
+            service = 'notebooks' if model['type'] == 'notebook' else 'files'
             url = url_escape(url_path_join(
-                self.base_url, 'notebooks', path, name
+                self.base_url, service, path,
             ))
             self.log.debug("Redirecting %s to %s", self.request.path, url)
             self.redirect(url)
         else:
-            if not cm.path_exists(path=path):
+            if not cm.dir_exists(path=path):
                 # Directory is hidden or does not exist.
                 raise web.HTTPError(404)
             elif cm.is_hidden(path):
@@ -66,7 +69,6 @@ class TreeHandler(IPythonHandler):
 
 
 default_handlers = [
-    (r"/tree%s" % notebook_path_regex, TreeHandler),
     (r"/tree%s" % path_regex, TreeHandler),
     (r"/tree", TreeHandler),
     ]

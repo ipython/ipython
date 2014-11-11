@@ -2,8 +2,9 @@
 // Distributed under the terms of the Modified BSD License.
 
 require([
-    'base/js/namespace',
     'jquery',
+    'base/js/namespace',
+    'base/js/dialog',
     'base/js/events',
     'base/js/page',
     'base/js/utils',
@@ -19,18 +20,20 @@ require([
     'bootstrap',
     'custom/custom',
 ], function(
-    IPython, 
-    $, 
+    $,
+    IPython,
+    dialog,
     events,
-    page, 
-    utils, 
-    contents,
+    page,
+    utils,
+    contents_service,
     notebooklist, 
     clusterlist, 
     sesssionlist, 
     kernellist,
     terminallist,
     loginwidget){
+    "use strict";
 
     page = new page.Page();
     
@@ -38,36 +41,37 @@ require([
         base_url: utils.get_body_data("baseUrl"),
         notebook_path: utils.get_body_data("notebookPath"),
     };
-    session_list = new sesssionlist.SesssionList($.extend({
+    var session_list = new sesssionlist.SesssionList($.extend({
         events: events}, 
         common_options));
-    contents = new contents.Contents($.extend({
+    var contents = new contents_service.Contents($.extend({
         events: events},
         common_options));
-    notebook_list = new notebooklist.NotebookList('#notebook_list', $.extend({
+    var notebook_list = new notebooklist.NotebookList('#notebook_list', $.extend({
         contents: contents,
         session_list:  session_list}, 
         common_options));
-    cluster_list = new clusterlist.ClusterList('#cluster_list', common_options);
-    kernel_list = new kernellist.KernelList('#running_list',  $.extend({
+    var cluster_list = new clusterlist.ClusterList('#cluster_list', common_options);
+    var kernel_list = new kernellist.KernelList('#running_list',  $.extend({
         session_list:  session_list}, 
         common_options));
     
+    var terminal_list;
     if (utils.get_body_data("terminalsAvailable") === "True") {
         terminal_list = new terminallist.TerminalList('#terminal_list', common_options);
     }
 
-    login_widget = new loginwidget.LoginWidget('#login_widget', common_options);
+    var login_widget = new loginwidget.LoginWidget('#login_widget', common_options);
 
     $('#new_notebook').click(function (e) {
-        contents.new(common_options.notebook_path, null, {
-                ext: ".ipynb",
+        contents.new_untitled(common_options.notebook_path, {
+                type: "notebook",
                 extra_settings: {async: false},  // So we can open a new window afterwards
                 success: function (data) {
                     window.open(
                         utils.url_join_encode(
                             common_options.base_url, 'notebooks',
-                            data.path, data.name
+                            data.path
                         ), '_blank');
                     },
                 error: function(error) {

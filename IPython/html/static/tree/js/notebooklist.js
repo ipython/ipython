@@ -100,7 +100,7 @@ define([
             };
             reader.onerror = function (event) {
                 var item = $(event.target).data('item');
-                var name = item.data('name')
+                var name = item.data('name');
                 item.remove();
                 dialog.modal({
                     title : 'Failed to read file',
@@ -141,7 +141,7 @@ define([
     };
 
     NotebookList.prototype.load_list = function () {
-        var that = this
+        var that = this;
         this.contents.list_contents(that.notebook_path, {
             success: $.proxy(this.draw_notebook_list, this),
             error: function(error) {
@@ -177,7 +177,7 @@ define([
             model = {
                 type: 'directory',
                 name: '..',
-                path: path,
+                path: utils.url_path_split(path)[0],
             };
             this.add_link(model, item);
             offset += 1;
@@ -240,8 +240,7 @@ define([
                 utils.url_join_encode(
                     this.base_url,
                     uri_prefix,
-                    path,
-                    name
+                    path
                 )
             );
         // directory nav doesn't open new tabs
@@ -311,7 +310,6 @@ define([
     };
 
     NotebookList.prototype.add_delete_button = function (item) {
-        var new_buttons = $('<span/>').addClass("btn-group pull-right");
         var notebooklist = this;
         var delete_button = $("<button/>").text("Delete").addClass("btn btn-default btn-xs").
             click(function (e) {
@@ -322,7 +320,7 @@ define([
                 var parent_item = that.parents('div.list_item');
                 var name = parent_item.data('nbname');
                 var path = parent_item.data('path');
-                var message = 'Are you sure you want to permanently delete the file: ' + nbname + '?';
+                var message = 'Are you sure you want to permanently delete the file: ' + name + '?';
                 dialog.modal({
                     title : "Delete file",
                     body : message,
@@ -330,9 +328,9 @@ define([
                         Delete : {
                             class: "btn-danger",
                             click: function() {
-                                notebooklist.contents.delete(name, path, {
+                                notebooklist.contents.delete(path, {
                                     success: function() {
-                                        notebooklist.notebook_deleted(path, name);
+                                        notebooklist.notebook_deleted(path);
                                     }
                                 });
                             }
@@ -345,25 +343,24 @@ define([
         item.find(".item_buttons").text("").append(delete_button);
     };
 
-    NotebookList.prototype.notebook_deleted = function(path, name) {
+    NotebookList.prototype.notebook_deleted = function(path) {
         // Remove the deleted notebook.
         $( ":data(nbname)" ).each(function() {
-            var element = $( this );
-            if (element.data( "nbname" ) == d.name &&
-                element.data( "path" ) == d.path) {
+            var element = $(this);
+            if (element.data("path") == path) {
                 element.remove();
             }
         });
-    }
+    };
 
 
-    NotebookList.prototype.add_upload_button = function (item, type) {
+    NotebookList.prototype.add_upload_button = function (item) {
         var that = this;
         var upload_button = $('<button/>').text("Upload")
             .addClass('btn btn-primary btn-xs upload_button')
             .click(function (e) {
-                var path = that.notebook_path;
                 var filename = item.find('.item_name > input').val();
+                var path = utils.url_path_join(that.notebook_path, filename);
                 var filedata = item.data('filedata');
                 var format = 'text';
                 if (filename.length === 0 || filename[0] === '.') {
@@ -385,10 +382,7 @@ define([
                     filedata = btoa(bytes);
                     format = 'base64';
                 }
-                var model = {
-                    path: path,
-                    name: filename
-                };
+                var model = {};
 
                 var name_and_ext = utils.splitext(filename);
                 var file_ext = name_and_ext[1];
@@ -418,34 +412,22 @@ define([
                     model.content = filedata;
                     content_type = 'application/octet-stream';
                 }
-                var filedata = item.data('filedata');
+                filedata = item.data('filedata');
 
                 var settings = {
-                    processData : false,
-                    cache : false,
-                    type : 'PUT',
-                    data : JSON.stringify(model),
-                    contentType: content_type,
-                    success : function (data, status, xhr) {
+                    success : function () {
                         item.removeClass('new-file');
                         that.add_link(model, item);
                         that.add_delete_button(item);
                         that.session_list.load_sessions();
                     },
-                    error : utils.log_ajax_error,
                 };
-
-                var url = utils.url_join_encode(
-                    that.base_url,
-                    'api/contents',
-                    that.notebook_path,
-                    filename
-                );
                 
                 var exists = false;
                 $.each(that.element.find('.list_item:not(.new-file)'), function(k,v){
                     if ($(v).data('name') === filename) { exists = true; return false; }
                 });
+                
                 if (exists) {
                     dialog.modal({
                         title : "Replace file",
@@ -453,7 +435,9 @@ define([
                         buttons : {
                             Overwrite : {
                                 class: "btn-danger",
-                                click: function() { $.ajax(url, settings); }
+                                click: function () {
+                                        that.contents.save(path, model, settings);
+                                    }
                             },
                             Cancel : {
                                 click: function() { item.remove(); }
@@ -461,7 +445,7 @@ define([
                         }
                     });
                 } else {
-                    $.ajax(url, settings);
+                    that.contents.save(path, model, settings);
                 }
                 
                 return false;
@@ -478,7 +462,7 @@ define([
     };
 
 
-    // Backwards compatability.    
+    // Backwards compatability.
     IPython.NotebookList = NotebookList;
 
     return {'NotebookList': NotebookList};

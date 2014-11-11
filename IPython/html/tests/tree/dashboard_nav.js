@@ -11,13 +11,15 @@ casper.get_list_items = function () {
     });
 };
 
-casper.test_items = function (baseUrl) {
+casper.test_items = function (baseUrl, visited) {
+    visited = visited || {};
     casper.then(function () {
         var items = casper.get_list_items();
         casper.each(items, function (self, item) {
-            if (!item.label.match(/\.ipynb$/)) {
+            if (item.link.match(/^\/tree\//)) {
                 var followed_url = baseUrl+item.link;
-                if (!followed_url.match(/\/\.\.$/)) {
+                if (!visited[followed_url]) {
+                    visited[followed_url] = true;
                     casper.thenOpen(followed_url, function () {
                         this.waitFor(this.page_loaded);
                         casper.wait_for_dashboard();
@@ -25,7 +27,7 @@ casper.test_items = function (baseUrl) {
                         // but item.link is without host, and url-encoded
                         var expected = baseUrl + decodeURIComponent(item.link);
                         this.test.assertEquals(this.getCurrentUrl(), expected, 'Testing dashboard link: ' + expected);
-                        casper.test_items(baseUrl);
+                        casper.test_items(baseUrl, visited);
                         this.back();
                     });
                 }

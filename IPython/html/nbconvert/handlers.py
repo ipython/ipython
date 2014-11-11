@@ -76,12 +76,13 @@ class NbconvertFileHandler(IPythonHandler):
     SUPPORTED_METHODS = ('GET',)
     
     @web.authenticated
-    def get(self, format, path='', name=None):
+    def get(self, format, path):
         
         exporter = get_exporter(format, config=self.config, log=self.log)
         
         path = path.strip('/')
-        model = self.contents_manager.get_model(name=name, path=path)
+        model = self.contents_manager.get_model(path=path)
+        name = model['name']
 
         self.set_header('Last-Modified', model['last_modified'])
         
@@ -109,7 +110,7 @@ class NbconvertFileHandler(IPythonHandler):
 class NbconvertPostHandler(IPythonHandler):
     SUPPORTED_METHODS = ('POST',)
 
-    @web.authenticated 
+    @web.authenticated
     def post(self, format):
         exporter = get_exporter(format, config=self.config)
         

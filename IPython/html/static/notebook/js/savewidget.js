@@ -122,14 +122,12 @@ define([
 
     SaveWidget.prototype.update_address_bar = function(){
         var base_url = this.notebook.base_url;
-        var nbname = this.notebook.notebook_name;
         var path = this.notebook.notebook_path;
-        var state = {path : path, name: nbname};
+        var state = {path : path};
         window.history.replaceState(state, "", utils.url_join_encode(
             base_url,
             "notebooks",
-            path,
-            nbname)
+            path)
         );
     };
 
@@ -199,7 +197,7 @@ define([
                 $.proxy(that._regularly_update_checkpoint_date, that),
                 t + 1000
             );
-        }
+        };
         var tdelta = Math.ceil(new Date()-this._checkpoint_date);
 
         // update regularly for the first 6hours and show
