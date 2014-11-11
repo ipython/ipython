@@ -12,6 +12,11 @@ def get_tokens_unprocessed(self, text, stack=('root',)):
     """ Split ``text`` into (tokentype, text) pairs.
 
         Monkeypatched to store the final stack on the object itself.
+
+        The `text` parameter this gets passed is only the current line, so to
+        highlight things like multiline strings correctly, we need to retrieve
+        the state from the previous line (this is done in PygmentsHighlighter,
+        below), and use it to continue processing the current line.
     """
     pos = 0
     tokendefs = self._tokens
@@ -24,11 +29,12 @@ def get_tokens_unprocessed(self, text, stack=('root',)):
         for rexmatch, action, new_state in statetokens:
             m = rexmatch(text, pos)
             if m:
-                if type(action) is _TokenType:
-                    yield pos, action, m.group()
-                else:
-                    for item in action(self, m):
-                        yield item
+                if action is not None:
+                    if type(action) is _TokenType:
+                        yield pos, action, m.group()
+                    else:
+                        for item in action(self, m):
+                            yield item
                 pos = m.end()
                 if new_state is not None:
                     # state transition
