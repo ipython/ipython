@@ -192,7 +192,8 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         # like _ih and get_ipython() into the local namespace, but delete them
         # later.
         if local_ns is not None:
-            self.user_ns = local_ns
+            reentrant_local_ns = {k: v for (k, v) in local_ns.items() if k not in self.user_ns_hidden.keys()}
+            self.user_ns = reentrant_local_ns
             self.init_user_ns()
 
         # Compiler flags
@@ -208,8 +209,8 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         
         # now, purge out the local namespace of IPython's hidden variables.
         if local_ns is not None:
-            for name in self.user_ns_hidden:
-                local_ns.pop(name, None)
+            local_ns.update({k: v for (k, v) in self.user_ns.items() if k not in self.user_ns_hidden.keys()})
+
         
         # Restore original namespace so shell can shut down when we exit.
         self.user_module = orig_user_module
@@ -249,5 +250,7 @@ def embed(**kwargs):
         config = load_default_config()
         config.InteractiveShellEmbed = config.TerminalInteractiveShell
         kwargs['config'] = config
+    InteractiveShellEmbed.stack_push()
     shell = InteractiveShellEmbed.instance(**kwargs)
     shell(header=header, stack_depth=2, compile_flags=compile_flags)
+    InteractiveShellEmbed.stack_pop()

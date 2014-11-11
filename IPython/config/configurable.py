@@ -350,6 +350,97 @@ class SingletonConfigurable(Configurable):
         """Has an instance been created?"""
         return hasattr(cls, "_instance") and cls._instance is not None
 
+class StackableSingletonConfigurable(Configurable):
+    """A stackable configurable that only allows one instance.
+
+    This class is for classes that should only have one instance of itself
+    or *any* subclass. To create and retrieve such a class use the
+    :meth:`StackableSingletonConfigurable.instance` method.
+    """
+
+    _instances = [None]
+
+    @classmethod
+    def _walk_mro(cls):
+        """Walk the cls.mro() for parent classes that are also singletons
+
+        For use in instance()
+        """
+
+        for subclass in cls.mro():
+            if issubclass(cls, subclass) and \
+                    issubclass(subclass, StackableSingletonConfigurable) and \
+                    subclass != StackableSingletonConfigurable:
+                yield subclass
+
+    @classmethod
+    def clear_instance(cls):
+        """unset _instance for this class and singleton parents.
+        """
+        if not cls.initialized():
+            return
+        for subclass in cls._walk_mro():
+            if isinstance(subclass._instances[-1], cls):
+                # only clear instances that are instances
+                # of the calling class
+                subclass._instances[-1] = None
+
+    @classmethod
+    def instance(cls, *args, **kwargs):
+        """Returns a global instance of this class.
+
+        This method create a new instance if none have previously been created
+        and returns a previously created instance is one already exists.
+
+        The arguments and keyword arguments passed to this method are passed
+        on to the :meth:`__init__` method of the class upon instantiation.
+
+        Examples
+        --------
+
+        Create a singleton class using instance, and retrieve it::
+
+            >>> from IPython.config.configurable import StackableSingletonConfigurable
+            >>> class Foo(StackableSingletonConfigurable): pass
+            >>> foo = Foo.instance()
+            >>> foo == Foo.instance()
+            True
+
+        Create a subclass that is retrived using the base class instance::
+
+            >>> class Bar(StackableSingletonConfigurable): pass
+            >>> class Bam(Bar): pass
+            >>> bam = Bam.instance()
+            >>> bam == Bar.instance()
+            True
+        """
+        # Create and save the instance
+        if cls._instances[-1] is None:
+            inst = cls(*args, **kwargs)
+            # Now make sure that the instance will also be returned by
+            # parent classes' _instance attribute.
+            for subclass in cls._walk_mro():
+                subclass._instances[-1] = inst
+
+        if isinstance(cls._instances[-1], cls):
+            return cls._instances[-1]
+        else:
+            raise MultipleInstanceError(
+                'Multiple incompatible subclass instances of '
+                '%s are being created.' % cls.__name__
+            )
+
+    @classmethod
+    def initialized(cls):
+        """Has an instance been created?"""
+        return hasattr(cls, "_instances") and cls._instances[-1] is not None
+    @classmethod
+    def stack_push(cls):
+        cls._instances.append(None)
+    @classmethod
+    def stack_pop(cls):
+        cls._instances.pop()
+
 
 class LoggingConfigurable(Configurable):
     """A parent class for Configurables that log.
