@@ -28,7 +28,7 @@ class InProcessChannel(object):
     """Base class for in-process channels."""
     proxy_methods = []
 
-    def __init__(self, client):
+    def __init__(self, client=None):
         super(InProcessChannel, self).__init__()
         self.client = client
         self._is_alive = False
