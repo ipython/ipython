@@ -748,7 +748,10 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
 
 
 class ClassBasedTraitType(TraitType):
-    """A trait with error reporting for Type, Instance and This."""
+    """
+    A trait with error reporting and string -> type resolution for Type,
+    Instance and This.
+    """
 
     def _resolve_string(self, string):
         """
