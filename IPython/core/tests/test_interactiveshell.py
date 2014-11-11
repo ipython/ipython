@@ -544,9 +544,9 @@ class TestSystemRaw(unittest.TestCase, ExitCodeChecks):
         cmd = u'''python -c "'åäö'"   '''
         ip.system_raw(cmd)
 
-    @mock.patch('subprocess.call')
-    def test_control_c(self, call_mock):
-        call_mock.side_effect = KeyboardInterrupt()
+    @mock.patch('subprocess.call', side_effect=KeyboardInterrupt)
+    @mock.patch('os.system', side_effect=KeyboardInterrupt)
+    def test_control_c(self, *mocks):
         try:
             self.system("sleep 1 # wont happen")
         except KeyboardInterrupt:
