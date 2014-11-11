@@ -46,7 +46,9 @@ class API(object):
     def list(self, path='/'):
         return self._req('GET', path)
 
-    def read(self, path):
+    def read(self, path, type_=None):
+        if type_ is not None:
+            path += '?type=' + type_
         return self._req('GET', path)
 
     def create_untitled(self, path='/', ext='.ipynb'):
@@ -258,6 +260,13 @@ class APITest(NotebookTestBase):
         # Name that doesn't exist - should be a 404
         with assert_http_error(404):
             self.api.read('foo/q.txt')
+
+    def test_get_bad_type(self):
+        with assert_http_error(400):
+            self.api.read(u'unicodé', type_='file')  # this is a directory
+
+        with assert_http_error(400):
+            self.api.read(u'unicodé/innonascii.ipynb', type_='directory')
 
     def _check_created(self, resp, path, type='notebook'):
         self.assertEqual(resp.status_code, 201)

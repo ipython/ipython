@@ -58,7 +58,11 @@ class ContentsHandler(IPythonHandler):
         of the files and directories it contains.
         """
         path = path or ''
-        model = self.contents_manager.get_model(path=path)
+        type_ = self.get_query_argument('type', default=None)
+        if type_ not in {None, 'directory', 'file', 'notebook'}:
+            raise web.HTTPError(400, u'Type %r is invalid' % type_)
+
+        model = self.contents_manager.get_model(path=path, type_=type_)
         if model['type'] == 'directory':
             # group listing by type, then by name (case-insensitive)
             # FIXME: sorting should be done in the frontends

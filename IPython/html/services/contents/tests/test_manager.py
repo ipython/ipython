@@ -159,6 +159,12 @@ class TestContentsManager(TestCase):
         self.assertEqual(model['name'], name)
         self.assertEqual(model['path'], path)
 
+        nb_as_file = cm.get_model(path, content=True, type_='file')
+        self.assertEqual(nb_as_file['path'], path)
+        self.assertEqual(nb_as_file['type'], 'file')
+        self.assertEqual(nb_as_file['format'], 'text')
+        self.assertNotIsInstance(nb_as_file['content'], dict)
+
         # Test in sub-directory
         sub_dir = '/foo/'
         self.make_dir(cm.root_dir, 'foo')
@@ -170,6 +176,14 @@ class TestContentsManager(TestCase):
         self.assertIn('content', model2)
         self.assertEqual(model2['name'], 'Untitled0.ipynb')
         self.assertEqual(model2['path'], '{0}/{1}'.format(sub_dir.strip('/'), name))
+
+        # Test getting directory model
+        dirmodel = cm.get_model('foo')
+        self.assertEqual(dirmodel['type'], 'directory')
+
+        with self.assertRaises(HTTPError):
+            cm.get_model('foo', type_='file')
+
     
     @dec.skip_win32
     def test_bad_symlink(self):
