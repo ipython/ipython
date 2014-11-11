@@ -16,8 +16,9 @@ from tornado import web
 from .manager import ContentsManager
 from IPython import nbformat
 from IPython.utils.io import atomic_writing
+from IPython.utils.importstring import import_item
 from IPython.utils.path import ensure_dir_exists
-from IPython.utils.traitlets import Unicode, Bool, TraitError
+from IPython.utils.traitlets import Any, Unicode, Bool, TraitError
 from IPython.utils.py3compat import getcwd, str_to_unicode
 from IPython.utils import tz
 from IPython.html.utils import is_hidden, to_os_path, to_api_path
@@ -70,6 +71,40 @@ class FileContentsManager(ContentsManager):
         Automatically saving notebooks as scripts has been removed.
         Use `ipython nbconvert --to python [notebook]` instead.
         """)
+
+    post_save_hook = Any(None, config=True,
+        help="""Python callable or importstring thereof
+
+        to be called on the path of a file just saved.
+
+        This can be used to
+        This can be used to process the file on disk,
+        such as converting the notebook to other formats, such as Python or HTML via nbconvert
+
+        It will be called as (all arguments passed by keyword):
+
+            hook(os_path=os_path, model=model, contents_manager=instance)
+
+        path: the filesystem path to the file just written
+        model: the model representing the file
+        contents_manager: this ContentsManager instance
+        """
+    )
+    def _post_save_hook_changed(self, name, old, new):
+        if new and isinstance(new, string_types):
+            self.post_save_hook = import_item(self.post_save_hook)
+        elif new:
+            if not callable(new):
+                raise TraitError("post_save_hook must be callable")
+
+    def run_post_save_hook(self, model, os_path):
+        """Run the post-save hook if defined, and log errors"""
+        if self.post_save_hook:
+            try:
+                self.log.debug("Running post-save hook on %s", os_path)
+                self.post_save_hook(os_path=os_path, model=model, contents_manager=self)
+            except Exception:
+                self.log.error("Post-save hook failed on %s", os_path, exc_info=True)
 
     def _root_dir_changed(self, name, old, new):
         """Do a bit of validation of the root_dir."""
@@ -404,6 +439,8 @@ class FileContentsManager(ContentsManager):
         if 'content' not in model and model['type'] != 'directory':
             raise web.HTTPError(400, u'No file content provided')
 
+        self.run_pre_save_hook(model=model, path=path)
+
         # One checkpoint should always exist
         if self.file_exists(path) and not self.list_checkpoints(path):
             self.create_checkpoint(path)
@@ -433,6 +470,9 @@ class FileContentsManager(ContentsManager):
         model = self.get(path, content=False)
         if validation_message:
             model['message'] = validation_message
+
+        self.run_post_save_hook(model=model, os_path=os_path)
+
         return model
 
     def update(self, model, path):

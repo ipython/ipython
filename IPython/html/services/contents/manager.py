@@ -14,7 +14,9 @@ from tornado.web import HTTPError
 from IPython.config.configurable import LoggingConfigurable
 from IPython.nbformat import sign, validate, ValidationError
 from IPython.nbformat.v4 import new_notebook
-from IPython.utils.traitlets import Instance, Unicode, List
+from IPython.utils.importstring import import_item
+from IPython.utils.traitlets import Instance, Unicode, List, Any, TraitError
+from IPython.utils.py3compat import string_types
 
 copy_pat = re.compile(r'\-Copy\d*\.')
 
@@ -59,6 +61,41 @@ class ContentsManager(LoggingConfigurable):
     untitled_directory = Unicode("Untitled Folder", config=True,
         help="The base name used when creating untitled directories."
     )
+
+    pre_save_hook = Any(None, config=True,
+        help="""Python callable or importstring thereof
+
+        To be called on a contents model prior to save.
+
+        This can be used to process the structure,
+        such as removing notebook outputs or other side effects that
+        should not be saved.
+
+        It will be called as (all arguments passed by keyword):
+
+            hook(path=path, model=model, contents_manager=self)
+
+        model: the model to be saved. Includes file contents.
+               modifying this dict will affect the file that is stored.
+        path: the API path of the save destination
+        contents_manager: this ContentsManager instance
+        """
+    )
+    def _pre_save_hook_changed(self, name, old, new):
+        if new and isinstance(new, string_types):
+            self.pre_save_hook = import_item(self.pre_save_hook)
+        elif new:
+            if not callable(new):
+                raise TraitError("pre_save_hook must be callable")
+
+    def run_pre_save_hook(self, model, path, **kwargs):
+        """Run the pre-save hook if defined, and log errors"""
+        if self.pre_save_hook:
+            try:
+                self.log.debug("Running pre-save hook on %s", path)
+                self.pre_save_hook(model=model, path=path, contents_manager=self, **kwargs)
+            except Exception:
+                self.log.error("Pre-save hook failed on %s", path, exc_info=True)
 
     # ContentsManager API part 1: methods that must be
     # implemented in subclasses.
@@ -142,7 +179,11 @@ class ContentsManager(LoggingConfigurable):
         raise NotImplementedError('must be implemented in a subclass')
 
     def save(self, model, path):
-        """Save the file or directory and return the model with no content."""
+        """Save the file or directory and return the model with no content.
+
+        Save implementations should call self.run_pre_save_hook(model=model, path=path)
+        prior to writing any data.
+        """
         raise NotImplementedError('must be implemented in a subclass')
 
     def update(self, model, path):
