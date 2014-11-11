@@ -1388,7 +1388,7 @@ class Container(Instance):
     def instance_init(self, obj):
         if isinstance(self._trait, TraitType):
             self._trait.this_class = self.this_class
-        if isinstance(self._trait, Instance):
+        if hasattr(self._trait, '_resolve_classes'):
             self._trait._resolve_classes()
         super(Container, self).instance_init(obj)
 
