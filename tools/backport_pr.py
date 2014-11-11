@@ -64,7 +64,7 @@ def backport_pr(branch, num, project='ipython/ipython'):
     fname = "PR%i.patch" % num
     if os.path.exists(fname):
         print("using patch from {fname}".format(**locals()))
-        with open(fname) as f:
+        with open(fname, 'rb') as f:
             patch = f.read()
     else:
         req = urlopen(patch_url)
