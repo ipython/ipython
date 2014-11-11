@@ -165,6 +165,9 @@ class TestContentsManager(TestCase):
         self.assertEqual(nb_as_file['format'], 'text')
         self.assertNotIsInstance(nb_as_file['content'], dict)
 
+        nb_as_bin_file = cm.get_model(path, content=True, type_='file', format='base64')
+        self.assertEqual(nb_as_bin_file['format'], 'base64')
+
         # Test in sub-directory
         sub_dir = '/foo/'
         self.make_dir(cm.root_dir, 'foo')

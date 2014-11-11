@@ -46,9 +46,14 @@ class API(object):
     def list(self, path='/'):
         return self._req('GET', path)
 
-    def read(self, path, type_=None):
+    def read(self, path, type_=None, format=None):
+        query = []
         if type_ is not None:
-            path += '?type=' + type_
+            query.append('type=' + type_)
+        if format is not None:
+            query.append('format=' + format)
+        if query:
+            path += '?' + '&'.join(query)
         return self._req('GET', path)
 
     def create_untitled(self, path='/', ext='.ipynb'):
@@ -244,6 +249,10 @@ class APITest(NotebookTestBase):
         # Name that doesn't exist - should be a 404
         with assert_http_error(404):
             self.api.read('foo/q.txt')
+
+        # Specifying format=text should fail on a non-UTF-8 file
+        with assert_http_error(400):
+            self.api.read('foo/bar/baz.blob', type_='file', format='text')
 
     def test_get_binary_file_contents(self):
         for d, name in self.dirs_nbs:
