@@ -91,7 +91,7 @@ define([
             // Create a new notebook in the same path as the current
             // notebook's path.
             var parent = utils.url_path_split(that.notebook.notebook_path)[0];
-            that.contents.new(parent, {
+            that.contents.new_untitled(parent, {
                     type: "notebook",
                     extra_settings: {async: false},  // So we can open a new window afterwards
                     success: function (data) {

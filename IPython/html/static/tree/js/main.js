@@ -64,7 +64,7 @@ require([
     var login_widget = new loginwidget.LoginWidget('#login_widget', common_options);
 
     $('#new_notebook').click(function (e) {
-        contents.new(common_options.notebook_path, {
+        contents.new_untitled(common_options.notebook_path, {
                 type: "notebook",
                 extra_settings: {async: false},  // So we can open a new window afterwards
                 success: function (data) {
