@@ -252,12 +252,6 @@ needs_setuptools = set(('develop', 'release', 'bdist_egg', 'bdist_rpm',
            'bdist', 'bdist_dumb', 'bdist_wininst', 'bdist_wheel',
            'egg_info', 'easy_install', 'upload', 'install_egg_info',
             ))
-if sys.platform == 'win32':
-    # Depend on setuptools for install on *Windows only*
-    # If we get script-installation working without setuptools,
-    # then we can back off, but until then use it.
-    # See Issue #369 on GitHub for more
-    needs_setuptools.add('install')
 
 if len(needs_setuptools.intersection(sys.argv)) > 0:
     import setuptools
