@@ -88,19 +88,19 @@ define([
         //  File
         var that = this;
         this.element.find('#new_notebook').click(function () {
+            var w = window.open();
             // Create a new notebook in the same path as the current
             // notebook's path.
             var parent = utils.url_path_split(that.notebook.notebook_path)[0];
             that.contents.new_untitled(parent, {
                     type: "notebook",
-                    extra_settings: {async: false},  // So we can open a new window afterwards
                     success: function (data) {
-                        window.open(
-                            utils.url_join_encode(
+                        w.location = utils.url_join_encode(
                                 that.base_url, 'notebooks', data.path
-                            ), '_blank');
+                            );
                         },
                     error: function(error) {
+                        w.close();
                         dialog.modal({
                             title : 'Creating Notebook Failed',
                             body : "The error was: " + error.message,

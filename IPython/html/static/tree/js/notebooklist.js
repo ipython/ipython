@@ -318,7 +318,7 @@ define([
                 // We use the filename from the parent list_item element's
                 // data because the outer scope's values change as we iterate through the loop.
                 var parent_item = that.parents('div.list_item');
-                var name = parent_item.data('nbname');
+                var name = parent_item.data('name');
                 var path = parent_item.data('path');
                 var message = 'Are you sure you want to permanently delete the file: ' + name + '?';
                 dialog.modal({
@@ -345,7 +345,7 @@ define([
 
     NotebookList.prototype.notebook_deleted = function(path) {
         // Remove the deleted notebook.
-        $( ":data(nbname)" ).each(function() {
+        $( ":data(path)" ).each(function() {
             var element = $(this);
             if (element.data("path") == path) {
                 element.remove();
