@@ -39,11 +39,28 @@ define([
         $('#new_terminal').click($.proxy(this.new_terminal, this));
     };
 
-    TerminalList.prototype.new_terminal = function() {
-        var url = utils.url_join_encode(this.base_url, 'terminals/new');
-        window.open(url, '_blank');
+    TerminalList.prototype.new_terminal = function () {
+        var w = window.open();
+        var base_url = this.base_url;
+        var settings = {
+            type : "POST",
+            dataType: "json",
+            success : function (data, status, xhr) {
+                var name = data.name;
+                w.location = utils.url_join_encode(base_url, 'terminals', name);
+            },
+            error : function(jqXHR, status, error){
+                w.close();
+                utils.log_ajax_error(jqXHR, status, error);
+            },
+        };
+        var url = utils.url_join_encode(
+            this.base_url,
+            'api/terminals'
+        );
+        $.ajax(url, settings);
     };
-
+    
     TerminalList.prototype.load_terminals = function() {
         var that = this;
         var url = utils.url_join_encode(this.base_url, 'api/terminals');
