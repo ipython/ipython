@@ -1326,11 +1326,11 @@ class TestEventful(TestCase):
 ###
 class ForwardDeclaredInstanceTrait(HasTraits):
 
-    value = ForwardDeclaredInstance(klass='ForwardDeclaredBar')
+    value = ForwardDeclaredInstance('ForwardDeclaredBar')
 
 class ForwardDeclaredTypeTrait(HasTraits):
 
-    value = ForwardDeclaredType(klass='ForwardDeclaredBar')
+    value = ForwardDeclaredType('ForwardDeclaredBar')
 
 class ForwardDeclaredInstanceListTrait(HasTraits):
 
