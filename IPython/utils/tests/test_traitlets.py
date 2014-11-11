@@ -969,23 +969,6 @@ class TestInstanceList(TraitTestBase):
     _good_values = [[Foo(), Foo(), None], None]
     _bad_values = [['1', 2,], '1', [Foo]]
 
-class ForwardDeclaredInstanceListTrait(HasTraits):
-
-    value = List(ForwardDeclaredInstance('Foo'))
-
-class TestForwardDeclaredInstanceList(TraitTestBase):
-
-    obj = ForwardDeclaredInstanceListTrait()
-
-    def test_klass(self):
-        """Test that the instance klass is properly assigned."""
-        self.assertIs(self.obj.traits()['value']._trait.klass, Foo)
-
-    _default_value = []
-    _good_values = [[Foo(), Foo(), None], None]
-    _bad_values = [['1', 2,], '1', [Foo]]
-
-
 class LenListTrait(HasTraits):
 
     value = List(Int, [0], minlen=1, maxlen=2)
@@ -1338,17 +1321,43 @@ class TestEventful(TestCase):
         # Is the output correct?
         self.assertEqual(a.x, {c: c for c in 'bz'})
 
+###
+# Traits for Forward Declaration Tests
+###
+class ForwardDeclaredInstanceTrait(HasTraits):
 
+    value = ForwardDeclaredInstance(klass='ForwardDeclaredBar')
+
+class ForwardDeclaredTypeTrait(HasTraits):
+
+    value = ForwardDeclaredType(klass='ForwardDeclaredBar')
+
+class ForwardDeclaredInstanceListTrait(HasTraits):
+
+    value = List(ForwardDeclaredInstance('ForwardDeclaredBar'))
+
+class ForwardDeclaredTypeListTrait(HasTraits):
+
+    value = List(ForwardDeclaredType('ForwardDeclaredBar'))
+###
+# End Traits for Forward Declaration Tests
+###
+
+###
+# Classes for Forward Declaration Tests
+###
 class ForwardDeclaredBar(object):
     pass
 
 class ForwardDeclaredBarSub(ForwardDeclaredBar):
     pass
+###
+# End Classes for Forward Declaration Tests
+###
 
-class ForwardDeclaredInstanceTrait(HasTraits):
-
-    value = ForwardDeclaredInstance(klass='ForwardDeclaredBar')
-
+###
+# Forward Declaration Tests
+###
 class TestForwardDeclaredInstanceTrait(TraitTestBase):
 
     obj = ForwardDeclaredInstanceTrait()
@@ -1356,14 +1365,58 @@ class TestForwardDeclaredInstanceTrait(TraitTestBase):
     _good_values = [None, ForwardDeclaredBar(), ForwardDeclaredBarSub()]
     _bad_values = ['foo', 3, ForwardDeclaredBar, ForwardDeclaredBarSub]
 
-
-class ForwardDeclaredTypeTrait(HasTraits):
-
-    value = ForwardDeclaredType(klass='ForwardDeclaredBar')
-
 class TestForwardDeclaredInstanceTrait(TraitTestBase):
 
     obj = ForwardDeclaredTypeTrait()
     _default_value = None
     _good_values = [None, ForwardDeclaredBar, ForwardDeclaredBarSub]
     _bad_values = ['foo', 3, ForwardDeclaredBar(), ForwardDeclaredBarSub()]
+
+class TestForwardDeclaredInstanceList(TraitTestBase):
+
+    obj = ForwardDeclaredInstanceListTrait()
+
+    def test_klass(self):
+        """Test that the instance klass is properly assigned."""
+        self.assertIs(self.obj.traits()['value']._trait.klass, ForwardDeclaredBar)
+
+    _default_value = []
+    _good_values = [
+        [ForwardDeclaredBar(), ForwardDeclaredBarSub(), None],
+        [None],
+        [],
+        None,
+    ]
+    _bad_values = [
+        ForwardDeclaredBar(),
+        [ForwardDeclaredBar(), 3],
+        '1',
+        # Note that this is the type, not an instance.
+        [ForwardDeclaredBar]
+    ]
+
+class TestForwardDeclaredTypeList(TraitTestBase):
+
+    obj = ForwardDeclaredTypeListTrait()
+
+    def test_klass(self):
+        """Test that the instance klass is properly assigned."""
+        self.assertIs(self.obj.traits()['value']._trait.klass, ForwardDeclaredBar)
+
+    _default_value = []
+    _good_values = [
+        [ForwardDeclaredBar, ForwardDeclaredBarSub, None],
+        [],
+        [None],
+        None,
+    ]
+    _bad_values = [
+        ForwardDeclaredBar,
+        [ForwardDeclaredBar, 3],
+        '1',
+        # Note that this is an instance, not the type.
+        [ForwardDeclaredBar()]
+    ]
+###
+# End Forward Declaration Tests
+###
