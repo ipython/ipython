@@ -413,6 +413,8 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 # this should not be necessary, but KeyboardInterrupt
                 # handling seems rather unpredictable...
                 self.write("\nKeyboardInterrupt in interact()\n")
+
+        self.client.shell_channel.shutdown()
     
     def _banner1_default(self):
         return "IPython Console {version}\n".format(version=release.version)
