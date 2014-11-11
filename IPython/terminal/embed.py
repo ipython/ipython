@@ -14,6 +14,7 @@ import warnings
 from IPython.core import ultratb, compilerop
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.core.interactiveshell import DummyMod
+from IPython.core.interactiveshell import InteractiveShell
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.terminal.ipapp import load_default_config
 
@@ -192,7 +193,8 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         # like _ih and get_ipython() into the local namespace, but delete them
         # later.
         if local_ns is not None:
-            self.user_ns = local_ns
+            reentrant_local_ns = {k: v for (k, v) in local_ns.items() if k not in self.user_ns_hidden.keys()}
+            self.user_ns = reentrant_local_ns
             self.init_user_ns()
 
         # Compiler flags
@@ -208,8 +210,8 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         
         # now, purge out the local namespace of IPython's hidden variables.
         if local_ns is not None:
-            for name in self.user_ns_hidden:
-                local_ns.pop(name, None)
+            local_ns.update({k: v for (k, v) in self.user_ns.items() if k not in self.user_ns_hidden.keys()})
+
         
         # Restore original namespace so shell can shut down when we exit.
         self.user_module = orig_user_module
@@ -249,5 +251,28 @@ def embed(**kwargs):
         config = load_default_config()
         config.InteractiveShellEmbed = config.TerminalInteractiveShell
         kwargs['config'] = config
+    #save ps1/ps2 if defined
+    ps1 = None
+    ps2 = None
+    try:
+        ps1 = sys.ps1
+        ps2 = sys.ps2
+    except AttributeError:
+        pass
+    #save previous instance
+    saved_shell_instance = InteractiveShell._instance
+    if saved_shell_instance is not None:
+        cls = type(saved_shell_instance)
+        cls.clear_instance()
     shell = InteractiveShellEmbed.instance(**kwargs)
     shell(header=header, stack_depth=2, compile_flags=compile_flags)
+    InteractiveShellEmbed.clear_instance()
+    #restore previous instance
+    if saved_shell_instance is not None:
+        cls = type(saved_shell_instance)
+        cls.clear_instance()
+        for subclass in cls._walk_mro():
+            subclass._instance = saved_shell_instance
+    if ps1 is not None:
+        sys.ps1 = ps1
+        sys.ps2 = ps2
