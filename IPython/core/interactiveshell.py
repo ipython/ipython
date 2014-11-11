@@ -2352,7 +2352,11 @@ class InteractiveShell(SingletonConfigurable):
                 if path is not None:
                     cmd = '"pushd %s &&"%s' % (path, cmd)
                 cmd = py3compat.unicode_to_str(cmd)
-                ec = os.system(cmd)
+                try:
+                    ec = os.system(cmd)
+                except KeyboardInterrupt:
+                    self.write_err("\nKeyboardInterrupt\n")
+                    ec = -2
         else:
             cmd = py3compat.unicode_to_str(cmd)
             # For posix the result of the subprocess.call() below is an exit
