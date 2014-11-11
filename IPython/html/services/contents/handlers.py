@@ -66,7 +66,7 @@ class ContentsHandler(IPythonHandler):
         if format not in {None, 'text', 'base64'}:
             raise web.HTTPError(400, u'Format %r is invalid' % format)
 
-        model = self.contents_manager.get_model(path=path, type_=type_, format=format)
+        model = self.contents_manager.get(path=path, type_=type_, format=format)
         if model['type'] == 'directory':
             # group listing by type, then by name (case-insensitive)
             # FIXME: sorting should be done in the frontends

@@ -81,7 +81,7 @@ class NbconvertFileHandler(IPythonHandler):
         exporter = get_exporter(format, config=self.config, log=self.log)
         
         path = path.strip('/')
-        model = self.contents_manager.get_model(path=path)
+        model = self.contents_manager.get(path=path)
         name = model['name']
 
         self.set_header('Last-Modified', model['last_modified'])

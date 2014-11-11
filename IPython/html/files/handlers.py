@@ -28,7 +28,7 @@ class FilesHandler(IPythonHandler):
         else:
             name = path
         
-        model = cm.get_model(path)
+        model = cm.get(path)
         
         if self.get_argument("download", False):
             self.set_header('Content-Disposition','attachment; filename="%s"' % name)

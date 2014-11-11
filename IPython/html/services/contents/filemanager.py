@@ -200,7 +200,7 @@ class FileContentsManager(ContentsManager):
                     self.log.debug("%s not a regular file", os_path)
                     continue
                 if self.should_list(name) and not is_hidden(os_path, self.root_dir):
-                    contents.append(self.get_model(
+                    contents.append(self.get(
                         path='%s/%s' % (path, name),
                         content=False)
                     )
@@ -266,7 +266,7 @@ class FileContentsManager(ContentsManager):
             self.validate_notebook_model(model)
         return model
 
-    def get_model(self, path, content=True, type_=None, format=None):
+    def get(self, path, content=True, type_=None, format=None):
         """ Takes a path for an entity and returns its model
 
         Parameters
@@ -380,7 +380,7 @@ class FileContentsManager(ContentsManager):
             self.validate_notebook_model(model)
             validation_message = model.get('message', None)
 
-        model = self.get_model(path, content=False)
+        model = self.get(path, content=False)
         if validation_message:
             model['message'] = validation_message
         return model
@@ -395,7 +395,7 @@ class FileContentsManager(ContentsManager):
         new_path = model.get('path', path).strip('/')
         if path != new_path:
             self.rename(path, new_path)
-        model = self.get_model(new_path, content=False)
+        model = self.get(new_path, content=False)
         return model
 
     def delete(self, path):
