@@ -267,7 +267,7 @@ def atomic_writing(path, text=True, encoding='utf-8', **kwargs):
         path = os.path.join(os.path.dirname(path), os.readlink(path))
 
     dirname, basename = os.path.split(path)
-    handle, tmp_path = tempfile.mkstemp(prefix=basename, dir=dirname, text=text)
+    handle, tmp_path = tempfile.mkstemp(prefix=basename, dir=dirname)
     if text:
         fileobj = io.open(handle, 'w', encoding=encoding, **kwargs)
     else:
