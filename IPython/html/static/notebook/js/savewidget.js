@@ -46,6 +46,11 @@ define([
         this.events.on('notebook_save_failed.Notebook', function () {
             that.set_save_status('Autosave Failed!');
         });
+        this.events.on('notebook_read_only.Notebook', function () {
+            that.set_save_status('(read only)');
+            // disable future set_save_status
+            that.set_save_status = function () {};
+        });
         this.events.on('checkpoints_listed.Notebook', function (event, data) {
             that._set_last_checkpoint(data[0]);
         });
