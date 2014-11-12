@@ -38,7 +38,7 @@ class API(object):
     def _req(self, verb, path, body=None, params=None):
         response = requests.request(verb,
                 url_path_join(self.base_url, 'api/contents', path),
-                data=body,
+                data=body, params=params,
         )
         response.raise_for_status()
         return response
