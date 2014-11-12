@@ -21,10 +21,10 @@ name = 'ipython'
 # version
 _version_major = 2
 _version_minor = 3
-_version_patch = 1
-# _version_extra = 'maint'
+_version_patch = 2
+_version_extra = 'maint'
 # _version_extra = 'rc1'
-_version_extra = ''  # Uncomment this for full releases
+# _version_extra = ''  # Uncomment this for full releases
 
 # release.codename is deprecated in 2.0, will be removed in 3.0
 codename = ''
