@@ -205,7 +205,7 @@ class MainWindow(QtGui.QMainWindow):
                         for slave in slave_tabs:
                             background(slave.kernel_client.stop_channels)
                             self.tab_widget.removeTab(self.tab_widget.indexOf(slave))
-                        closing_widget.execute("exit")
+                        kernel_manager.shutdown_kernel()
                         self.tab_widget.removeTab(current_tab)
                         background(kernel_client.stop_channels)
                     elif reply == 0: # close Console
