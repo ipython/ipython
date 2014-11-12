@@ -175,7 +175,8 @@ class Widget(LoggingConfigurable):
 
     def _comm_changed(self, name, new):
         """Called when the comm is changed."""
-        self.comm = new
+        if new is None:
+            return
         self._model_id = self.model_id
         
         self.comm.on_msg(self._handle_msg)
