@@ -5,6 +5,7 @@
 import json
 import os
 import io
+import errno
 from tornado import web
 
 from IPython.utils.py3compat import PY3
@@ -33,8 +34,19 @@ def recursive_update(target, new):
 class ConfigHandler(IPythonHandler):
     SUPPORTED_METHODS = ('GET', 'PUT', 'PATCH')
 
+    @property
+    def config_dir(self):
+        return os.path.join(self.profile_dir, 'nbconfig')
+
+    def ensure_config_dir_exists(self):
+        try:
+            os.mkdir(self.config_dir, 0o755)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+
     def file_name(self, section_name):
-        return os.path.join(self.profile_dir, 'nb_%s_config.json' % section_name)
+        return os.path.join(self.config_dir, section_name+'.json')
 
     @web.authenticated
     @json_errors
@@ -52,6 +64,7 @@ class ConfigHandler(IPythonHandler):
     def put(self, section_name):
         self.get_json_body()  # Will raise 400 if content is not valid JSON
         filename = self.file_name(section_name)
+        self.ensure_config_dir_exists()
         with open(filename, 'wb') as f:
             f.write(self.request.body)
         self.set_status(204)
@@ -69,6 +82,7 @@ class ConfigHandler(IPythonHandler):
         update = self.get_json_body()
         recursive_update(section, update)
 
+        self.ensure_config_dir_exists()
         if PY3:
             f = io.open(filename, 'w', encoding='utf-8')
         else:
