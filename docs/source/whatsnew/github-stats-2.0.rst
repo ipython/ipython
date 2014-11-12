@@ -3,6 +3,20 @@
 Issues closed in the 2.x development cycle
 ==========================================
 
+
+Issues closed in 2.3.1
+----------------------
+
+Just one bugfix: fixed bad CRCRLF line-endings in notebooks on Windows
+
+Pull Requests (1):
+
+* :ghpull:`6911`: don't use text mode in mkstemp
+
+Issues (1):
+
+* :ghissue:`6599`: Notebook.ipynb CR+LF turned into CR+CR+LF
+
 Issues closed in 2.3.0
 ----------------------
 
