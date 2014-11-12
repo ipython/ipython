@@ -56,7 +56,7 @@ sh('./setup.py register')
 # Upload all files
 sh(sdists + ' upload')
 for py in ('2.7', '3.4'):
-    sh('python%s setupegg.py bdist_wheel' % py)
+    sh('python%s setupegg.py bdist_wheel upload' % py)
 
 cd(distdir)
 print( 'Uploading distribution files...')
