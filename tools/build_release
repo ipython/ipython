@@ -3,6 +3,7 @@
 """
 
 import os
+from shutil import rmtree
 
 from toollib import *
 
@@ -20,7 +21,7 @@ compile_tree()
 for d in ['build', 'dist', pjoin('docs', 'build'), pjoin('docs', 'dist'),
           pjoin('docs', 'source', 'api', 'generated')]:
     if os.path.isdir(d):
-        remove_tree(d)
+        rmtree(d)
 
 # Build source and binary distros
 sh(sdists)
