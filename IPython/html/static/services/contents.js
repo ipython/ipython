@@ -83,14 +83,12 @@ define([
             cache : false,
             type : "GET",
             dataType : "json",
-            success : options.success,
-            error : this.create_basic_error_handler(options.error)
         };
         var url = this.api_url(path);
         params = {};
         if (options.type) { params.type = options.type; }
         if (options.format) { params.format = options.format; }
-        $.ajax(url + '?' + $.param(params), settings);
+        return utils.promising_ajax(url + '?' + $.param(params), settings);
     };
 
 
@@ -246,9 +244,8 @@ define([
      * @param {String} path The path to list notebooks in
      * @param {Object} options including success and error callbacks
      */
-    Contents.prototype.list_contents = function(path, options) {
-        options.type = 'directory';
-        this.get(path, options);
+    Contents.prototype.list_contents = function(path) {
+        return this.get(path, {type: 'directory'});
     };
 
 

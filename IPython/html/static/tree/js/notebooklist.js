@@ -142,12 +142,12 @@ define([
 
     NotebookList.prototype.load_list = function () {
         var that = this;
-        this.contents.list_contents(that.notebook_path, {
-            success: $.proxy(this.draw_notebook_list, this),
-            error: function(error) {
+        this.contents.list_contents(that.notebook_path).then(
+            $.proxy(this.draw_notebook_list, this),
+            function(error) {
                 that.draw_notebook_list({content: []}, "Server error: " + error.message);
             }
-        });
+        );
     };
 
     /**
