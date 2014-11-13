@@ -8,6 +8,7 @@ from __future__ import print_function
 
 import os
 import pipes
+import shlex
 import subprocess
 
 from IPython import get_ipython
@@ -15,7 +16,7 @@ from IPython.core.error import TryNext
 from IPython.utils import py3compat
 
 
-def install_editor(template, wait=False):
+def install_editor(template_list, wait=False):
     """Installs the editor that is called by IPython for the %edit magic.
 
     This overrides the default editor, which is generally set by your EDITOR
@@ -48,6 +49,9 @@ def install_editor(template, wait=False):
             line = 0
         cmd = template.format(filename=pipes.quote(filename), line=line)
         print(">", cmd)
+        # pipes.quote doesn't work right on Windows, but it does after splitting
+        if sys.platform.startswith('win'):
+            cmd = shlex.split(cmd)
         proc = subprocess.Popen(cmd, shell=True)
         if wait and proc.wait() != 0:
             raise TryNext()
