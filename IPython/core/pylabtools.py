@@ -7,6 +7,7 @@ from __future__ import print_function
 
 from io import BytesIO
 
+from IPython.core.interactiveshell import InteractiveShell
 from IPython.core.display import _pngxy
 from IPython.utils.decorators import flag_calls
 from IPython.utils import py3compat
@@ -366,3 +367,16 @@ def configure_inline_support(shell, backend):
     # Setup the default figure format
     select_figure_formats(shell, cfg.figure_formats, **cfg.print_figure_kwargs)
 
+class use_backend(object):
+
+    def __init__(self, backend):
+        from matplotlib import pyplot
+        self.shell = InteractiveShell.instance()
+        self.old_backend = backend2gui[str(pyplot.get_backend())]
+        self.new_backend = backend
+
+    def __enter__(self):
+        gui, backend = self.shell.enable_matplotlib(self.new_backend)
+
+    def __exit__(self, type, value, tb):
+        gui, backend = self.shell.enable_matplotlib(self.old_backend)
