@@ -5,6 +5,7 @@ define([
     'base/js/namespace',
     'jquery',
     'codemirror/lib/codemirror',
+    'es6promise',
 ], function(IPython, $, CodeMirror){
     "use strict";
     
@@ -591,6 +592,21 @@ define([
         return wrapped_error;
     };
     
+    var promising_ajax = function(url, settings) {
+        // Like $.ajax, but returning an ES6 promise. success and error settings
+        // will be ignored.
+        return new Promise(function(resolve, reject) {
+            settings.success = function(data, status, jqXHR) {
+                resolve(data);
+            }
+            settings.error = function(jqXHR, status, error) {
+                log_ajax_error(jqXHR, status, error);
+                reject(wrap_ajax_error(jqXHR, status, error));
+            }
+            $.ajax(url, settings);
+        });
+    };
+    
     var utils = {
         regex_split : regex_split,
         uuid : uuid,
@@ -618,7 +634,8 @@ define([
         log_ajax_error : log_ajax_error,
         requireCodeMirrorMode : requireCodeMirrorMode,
         XHR_ERROR : XHR_ERROR,
-        wrap_ajax_error : wrap_ajax_error
+        wrap_ajax_error : wrap_ajax_error,
+        promising_ajax : promising_ajax,
     };
 
     // Backwards compatability.
