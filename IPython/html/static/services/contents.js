@@ -183,6 +183,7 @@ define([
         var url = this.api_url(path, 'checkpoints');
         var settings = {
             type : "POST",
+            dataType : "json",
         };
         return utils.promising_ajax(url, settings);
     };
@@ -191,6 +192,8 @@ define([
         var url = this.api_url(path, 'checkpoints');
         var settings = {
             type : "GET",
+            cache: false,
+            dataType: "json",
         };
         return utils.promising_ajax(url, settings);
     };
