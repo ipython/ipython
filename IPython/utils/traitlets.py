@@ -885,7 +885,7 @@ class Instance(ClassBasedTraitType):
         """Construct an Instance trait.
 
         This trait allows values that are instances of a particular
-        class or its sublclasses.  Our implementation is quite different
+        class or its subclasses.  Our implementation is quite different
         from that of enthough.traits as we don't allow instances to be used
         for klass and we handle the ``args`` and ``kw`` arguments differently.
 
@@ -1025,6 +1025,41 @@ class This(ClassBasedTraitType):
         else:
             self.error(obj, value)
 
+
+class Union(TraitType):
+    """A trait type representing a Union type."""
+
+    def __init__(self, trait_types, **metadata):
+        """Construct a Union  trait.
+
+        This trait allows values that are allowed by at least one of the
+        specified trait types.
+
+        Parameters
+        ----------
+        trait_types: sequence
+            The list of trait types of length at least 1.
+
+        Notes
+        -----
+        Union([Float(), Bool(), Int()]) attempts to validate the provided values
+        with the validation function of Float, then Bool, and finally Int.
+        """
+        self.trait_types = trait_types
+        self.info_text = " or ".join([tt.info_text for tt in self.trait_types])
+        self.default_value = self.trait_types[0].get_default_value()
+        super(Union, self).__init__(**metadata)
+
+    def validate(self, obj, value):
+        for trait_type in self.trait_types:
+            try:
+                if hasattr(trait_type, 'validate'):
+                    return trait_type.validate(obj, value)
+                else:
+                    return value
+            except Exception:
+                continue
+        self.error(obj, value)
 
 #-----------------------------------------------------------------------------
 # Basic TraitTypes implementations/subclasses
