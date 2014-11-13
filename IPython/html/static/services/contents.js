@@ -73,8 +73,9 @@ define([
      *
      * @method get
      * @param {String} path
-     * @param {Function} success
-     * @param {Function} error
+     * @param {Object} options
+     *    type : 'notebook', 'file', or 'directory'
+     *    format: 'text' or 'base64'; only relevant for type: 'file'
      */
     Contents.prototype.get = function (path, options) {
         // We do the call with settings so we can set cache to false.
@@ -229,7 +230,6 @@ define([
      *     last_modified: last modified dat
      * @method list_notebooks
      * @param {String} path The path to list notebooks in
-     * @param {Object} options including success and error callbacks
      */
     Contents.prototype.list_contents = function(path) {
         return this.get(path, {type: 'directory'});
