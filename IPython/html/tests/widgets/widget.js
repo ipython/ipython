@@ -81,6 +81,7 @@ casper.notebook_test(function () {
         test_packing([1, false]);
         test_packing([1, false, {a: 'hi'}]);
         test_packing([1, false, ['hi']]);
+        test_packing([String('hi'), Date("Thu Nov 13 2014 13:46:21 GMT-0500")])
 
         // Test multi-set, single touch code.  First create a custom widget.
         this.evaluate(function() {
