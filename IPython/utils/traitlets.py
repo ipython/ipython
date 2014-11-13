@@ -985,13 +985,8 @@ class ForwardDeclaredMixin(object):
         Find the specified class name by looking for it in the module in which
         our this_class attribute was defined.
         """
-        try:
-            modname = self.this_class.__module__
-            return import_item('.'.join([modname, string]))
-        except AttributeError:
-            raise ImportError(
-                "Module {} has no attribute {}".format(modname, string)
-            )
+        modname = self.this_class.__module__
+        return import_item('.'.join([modname, string]))
 
 
 class ForwardDeclaredType(ForwardDeclaredMixin, Type):
