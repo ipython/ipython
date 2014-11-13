@@ -7,6 +7,7 @@ from fnmatch import fnmatch
 import itertools
 import json
 import os
+import re
 
 from tornado.web import HTTPError
 
@@ -15,6 +16,7 @@ from IPython.nbformat import sign, validate, ValidationError
 from IPython.nbformat.v4 import new_notebook
 from IPython.utils.traitlets import Instance, Unicode, List
 
+copy_pat = re.compile(r'\-Copy\d*\.')
 
 class ContentsManager(LoggingConfigurable):
     """Base class for serving files and directories.
@@ -188,7 +190,7 @@ class ContentsManager(LoggingConfigurable):
         """
         return path
 
-    def increment_filename(self, filename, path=''):
+    def increment_filename(self, filename, path='', insert=''):
         """Increment a filename until it is unique.
 
         Parameters
@@ -206,8 +208,12 @@ class ContentsManager(LoggingConfigurable):
         path = path.strip('/')
         basename, ext = os.path.splitext(filename)
         for i in itertools.count():
-            name = u'{basename}{i}{ext}'.format(basename=basename, i=i,
-                                                ext=ext)
+            if i:
+                insert_i = '{}{}'.format(insert, i)
+            else:
+                insert_i = ''
+            name = u'{basename}{insert}{ext}'.format(basename=basename,
+                insert=insert_i, ext=ext)
             if not self.exists(u'{}/{}'.format(path, name)):
                 break
         return name
@@ -244,8 +250,10 @@ class ContentsManager(LoggingConfigurable):
         else:
             model.setdefault('type', 'file')
         
+        insert = ''
         if model['type'] == 'directory':
             untitled = self.untitled_directory
+            insert = ' '
         elif model['type'] == 'notebook':
             untitled = self.untitled_notebook
             ext = '.ipynb'
@@ -254,7 +262,7 @@ class ContentsManager(LoggingConfigurable):
         else:
             raise HTTPError(400, "Unexpected model type: %r" % model['type'])
         
-        name = self.increment_filename(untitled + ext, path)
+        name = self.increment_filename(untitled + ext, path, insert=insert)
         path = u'{0}/{1}'.format(path, name)
         return self.new(model, path)
     
@@ -309,9 +317,8 @@ class ContentsManager(LoggingConfigurable):
         if not to_path:
             to_path = from_dir
         if self.dir_exists(to_path):
-            base, ext = os.path.splitext(from_name)
-            copy_name = u'{0}-Copy{1}'.format(base, ext)
-            to_name = self.increment_filename(copy_name, to_path)
+            name = copy_pat.sub(u'.', from_name)
+            to_name = self.increment_filename(name, to_path, insert='-Copy')
             to_path = u'{0}/{1}'.format(to_path, to_name)
         
         model = self.save(model, to_path)
