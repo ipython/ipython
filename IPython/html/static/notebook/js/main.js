@@ -22,6 +22,8 @@ require([
     'notebook/js/kernelselector',
     'codemirror/lib/codemirror',
     'notebook/js/about',
+    'smartmenus/jquery.smartmenus.min',
+    'smartmenus/addons/bootstrap/jquery.smartmenus.bootstrap.min',
     // only loaded, not used, please keep sure this is loaded last
     'custom/custom'
 ], function(
@@ -45,6 +47,8 @@ require([
     kernelselector,
     CodeMirror,
     about,
+    smartmenus,
+    smartmenus_bs,
     // please keep sure that even if not used, this is loaded last
     custom
     ) {
