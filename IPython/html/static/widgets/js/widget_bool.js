@@ -76,7 +76,7 @@ define([
                     e.preventDefault();
                     that.handle_click();
                 }));
-
+            this.$el.attr("data-toggle", "tooltip");
             this.model.on('change:button_style', function(model, value) {
                 this.update_button_style();
             }, this);
@@ -113,6 +113,7 @@ define([
                 this.$el.prop('disabled', disabled);
 
                 var description = this.model.get('description');
+                this.$el.attr("title", this.model.get("tooltip"));
                 if (description.trim().length === 0) {
                     this.$el.html("&nbsp;"); // Preserve button height
                 } else {
