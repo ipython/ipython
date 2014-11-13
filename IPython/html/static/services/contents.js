@@ -87,7 +87,10 @@ define([
             error : this.create_basic_error_handler(options.error)
         };
         var url = this.api_url(path);
-        $.ajax(url, settings);
+        params = {};
+        if (options.type) { params.type = options.type; }
+        if (options.format) { params.format = options.format; }
+        $.ajax(url + '?' + $.param(params), settings);
     };
 
 
@@ -241,20 +244,11 @@ define([
      *     last_modified: last modified dat
      * @method list_notebooks
      * @param {String} path The path to list notebooks in
-     * @param {Function} load_callback called with list of notebooks on success
-     * @param {Function} error called with ajax results on error
+     * @param {Object} options including success and error callbacks
      */
     Contents.prototype.list_contents = function(path, options) {
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "GET",
-            dataType : "json",
-            success : options.success,
-            error : this.create_basic_error_handler(options.error)
-        };
-
-        $.ajax(this.api_url(path), settings);
+        options.type = 'directory';
+        this.get(path, options);
     };
 
 

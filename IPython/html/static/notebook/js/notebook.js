@@ -2104,6 +2104,7 @@ define([
         this.notebook_name = utils.url_path_split(this.notebook_path)[1];
         this.events.trigger('notebook_loading.Notebook');
         this.contents.get(notebook_path, {
+            type: 'notebook',
             success: $.proxy(this.load_notebook_success, this),
             error: $.proxy(this.load_notebook_error, this)
         });

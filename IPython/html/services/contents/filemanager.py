@@ -200,7 +200,7 @@ class FileContentsManager(ContentsManager):
                     self.log.debug("%s not a regular file", os_path)
                     continue
                 if self.should_list(name) and not is_hidden(os_path, self.root_dir):
-                    contents.append(self.get_model(
+                    contents.append(self.get(
                         path='%s/%s' % (path, name),
                         content=False)
                     )
@@ -209,11 +209,15 @@ class FileContentsManager(ContentsManager):
 
         return model
 
-    def _file_model(self, path, content=True):
+    def _file_model(self, path, content=True, format=None):
         """Build a model for a file
 
         if content is requested, include the file contents.
-        UTF-8 text files will be unicode, binary files will be base64-encoded.
+
+        format:
+          If 'text', the contents will be decoded as UTF-8.
+          If 'base64', the raw bytes contents will be encoded as base64.
+          If not specified, try to decode as UTF-8, and fall back to base64
         """
         model = self._base_model(path)
         model['type'] = 'file'
@@ -224,13 +228,20 @@ class FileContentsManager(ContentsManager):
                 raise web.HTTPError(400, "Cannot get content of non-file %s" % os_path)
             with io.open(os_path, 'rb') as f:
                 bcontent = f.read()
-            try:
-                model['content'] = bcontent.decode('utf8')
-            except UnicodeError as e:
+
+            if format != 'base64':
+                try:
+                    model['content'] = bcontent.decode('utf8')
+                except UnicodeError as e:
+                    if format == 'text':
+                        raise web.HTTPError(400, "%s is not UTF-8 encoded" % path)
+                else:
+                    model['format'] = 'text'
+
+            if model['content'] is None:
                 model['content'] = base64.encodestring(bcontent).decode('ascii')
                 model['format'] = 'base64'
-            else:
-                model['format'] = 'text'
+
         return model
 
 
@@ -255,13 +266,21 @@ class FileContentsManager(ContentsManager):
             self.validate_notebook_model(model)
         return model
 
-    def get_model(self, path, content=True):
+    def get(self, path, content=True, type_=None, format=None):
         """ Takes a path for an entity and returns its model
 
         Parameters
         ----------
         path : str
             the API path that describes the relative path for the target
+        content : bool
+            Whether to include the contents in the reply
+        type_ : str, optional
+            The requested type - 'file', 'notebook', or 'directory'.
+            Will raise HTTPError 400 if the content doesn't match.
+        format : str, optional
+            The requested format for file contents. 'text' or 'base64'.
+            Ignored if this returns a notebook or directory model.
 
         Returns
         -------
@@ -276,11 +295,17 @@ class FileContentsManager(ContentsManager):
 
         os_path = self._get_os_path(path)
         if os.path.isdir(os_path):
+            if type_ not in (None, 'directory'):
+                raise web.HTTPError(400,
+                                u'%s is a directory, not a %s' % (path, type_))
             model = self._dir_model(path, content=content)
-        elif path.endswith('.ipynb'):
+        elif type_ == 'notebook' or (type_ is None and path.endswith('.ipynb')):
             model = self._notebook_model(path, content=content)
         else:
-            model = self._file_model(path, content=content)
+            if type_ == 'directory':
+                raise web.HTTPError(400,
+                                u'%s is not a directory')
+            model = self._file_model(path, content=content, format=format)
         return model
 
     def _save_notebook(self, os_path, model, path=''):
@@ -355,7 +380,7 @@ class FileContentsManager(ContentsManager):
             self.validate_notebook_model(model)
             validation_message = model.get('message', None)
 
-        model = self.get_model(path, content=False)
+        model = self.get(path, content=False)
         if validation_message:
             model['message'] = validation_message
         return model
@@ -370,7 +395,7 @@ class FileContentsManager(ContentsManager):
         new_path = model.get('path', path).strip('/')
         if path != new_path:
             self.rename(path, new_path)
-        model = self.get_model(new_path, content=False)
+        model = self.get(new_path, content=False)
         return model
 
     def delete(self, path):

@@ -35,10 +35,10 @@ class API(object):
     def __init__(self, base_url):
         self.base_url = base_url
 
-    def _req(self, verb, path, body=None):
+    def _req(self, verb, path, body=None, params=None):
         response = requests.request(verb,
                 url_path_join(self.base_url, 'api/contents', path),
-                data=body,
+                data=body, params=params,
         )
         response.raise_for_status()
         return response
@@ -46,8 +46,13 @@ class API(object):
     def list(self, path='/'):
         return self._req('GET', path)
 
-    def read(self, path):
-        return self._req('GET', path)
+    def read(self, path, type_=None, format=None):
+        params = {}
+        if type_ is not None:
+            params['type'] = type_
+        if format is not None:
+            params['format'] = format
+        return self._req('GET', path, params=params)
 
     def create_untitled(self, path='/', ext='.ipynb'):
         body = None
@@ -243,6 +248,10 @@ class APITest(NotebookTestBase):
         with assert_http_error(404):
             self.api.read('foo/q.txt')
 
+        # Specifying format=text should fail on a non-UTF-8 file
+        with assert_http_error(400):
+            self.api.read('foo/bar/baz.blob', type_='file', format='text')
+
     def test_get_binary_file_contents(self):
         for d, name in self.dirs_nbs:
             path = url_path_join(d, name + '.blob')
@@ -258,6 +267,13 @@ class APITest(NotebookTestBase):
         # Name that doesn't exist - should be a 404
         with assert_http_error(404):
             self.api.read('foo/q.txt')
+
+    def test_get_bad_type(self):
+        with assert_http_error(400):
+            self.api.read(u'unicodé', type_='file')  # this is a directory
+
+        with assert_http_error(400):
+            self.api.read(u'unicodé/innonascii.ipynb', type_='directory')
 
     def _check_created(self, resp, path, type='notebook'):
         self.assertEqual(resp.status_code, 201)

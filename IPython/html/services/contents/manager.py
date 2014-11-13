@@ -135,7 +135,7 @@ class ContentsManager(LoggingConfigurable):
         """
         return self.file_exists(path) or self.dir_exists(path)
 
-    def get_model(self, path, content=True):
+    def get(self, path, content=True, type_=None, format=None):
         """Get the model of a file or directory with or without content."""
         raise NotImplementedError('must be implemented in a subclass')
 
@@ -300,7 +300,7 @@ class ContentsManager(LoggingConfigurable):
             from_dir = ''
             from_name = path
         
-        model = self.get_model(path)
+        model = self.get(path)
         model.pop('path', None)
         model.pop('name', None)
         if model['type'] == 'directory':
@@ -328,7 +328,7 @@ class ContentsManager(LoggingConfigurable):
         path : string
             The path of a notebook
         """
-        model = self.get_model(path)
+        model = self.get(path)
         nb = model['content']
         self.log.warn("Trusting notebook %s", path)
         self.notary.mark_cells(nb, True)

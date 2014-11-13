@@ -110,11 +110,8 @@ define([
                 });
         });
         this.element.find('#open_notebook').click(function () {
-            window.open(utils.url_join_encode(
-                that.notebook.base_url,
-                'tree',
-                that.notebook.notebook_path
-            ));
+            var parent = utils.url_path_split(that.notebook.notebook_path)[0];
+            window.open(utils.url_join_encode(that.base_url, 'tree', parent));
         });
         this.element.find('#copy_notebook').click(function () {
             that.notebook.copy_notebook();
