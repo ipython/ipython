@@ -1365,7 +1365,7 @@ class TestForwardDeclaredInstanceTrait(TraitTestBase):
     _good_values = [None, ForwardDeclaredBar(), ForwardDeclaredBarSub()]
     _bad_values = ['foo', 3, ForwardDeclaredBar, ForwardDeclaredBarSub]
 
-class TestForwardDeclaredInstanceTrait(TraitTestBase):
+class TestForwardDeclaredTypeTrait(TraitTestBase):
 
     obj = ForwardDeclaredTypeTrait()
     _default_value = None
