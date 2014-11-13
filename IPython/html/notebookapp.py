@@ -35,7 +35,7 @@ from zmq.eventloop import ioloop
 ioloop.install()
 
 # check for tornado 3.1.0
-msg = "The IPython Notebook requires tornado >= 3.1.0"
+msg = "The IPython Notebook requires tornado >= 4.0"
 try:
     import tornado
 except ImportError:
@@ -44,7 +44,7 @@ try:
     version_info = tornado.version_info
 except AttributeError:
     raise ImportError(msg + ", but you have < 1.1.0")
-if version_info < (3,1,0):
+if version_info < (4,0):
     raise ImportError(msg + ", but you have %s" % tornado.version)
 
 from tornado import httpserver

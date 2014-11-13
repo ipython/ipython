@@ -16,12 +16,10 @@ before_install:
     - sudo add-apt-repository -y ppa:marutter/c2d4u
     - sudo apt-get update
     - sudo apt-get install pandoc casperjs libzmq3-dev
-    # pin tornado < 4 for js tests while phantom is on super old webkit
     - git clone --quiet --depth 1 https://github.com/minrk/travis-wheels travis-wheels
-    - if [[ $GROUP == 'js' ]]; then pip install -f travis-wheels/wheelhouse 'tornado<4'; fi
-    - if [[ $GROUP == 'js' ]]; then python -m IPython.external.mathjax; fi
+    - 'if [[ $GROUP == js* ]]; then python -m IPython.external.mathjax; fi'
 install:
-    - time pip install -f travis-wheels/wheelhouse file://$PWD#egg=ipython[all]
+    - pip install -f travis-wheels/wheelhouse file://$PWD#egg=ipython[all]
 script:
     - cd /tmp && iptest $GROUP
 
