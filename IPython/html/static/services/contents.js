@@ -129,9 +129,9 @@ define([
                 // TODO: update IPEP27 to specify errors more precisely, so
                 // that error types can be detected here with certainty.
                 if (error.xhr.status === 400) {
-                    return Promise.reject(new Contents.DirectoryNotEmptyError());
+                    throw new Contents.DirectoryNotEmptyError();
                 }
-                return Promise.reject(error);
+                throw error;
             }
         );
     };
