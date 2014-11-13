@@ -26,6 +26,11 @@ except ImportError:
         sqlite3 = None
 import threading
 
+try:
+    from queue import Empty  # Py 3
+except ImportError:
+    from Queue import Empty  # Py 2
+
 # Our own packages
 from IPython.config.configurable import Configurable
 from IPython.external.decorator import decorator
@@ -98,9 +103,56 @@ def catch_corrupt_db(f, self, *a, **kw):
             # The hist_file is probably :memory: or something else.
             raise
         
+class HistoryAccessorBase(Configurable):
+    input_hist_parsed = List([""])
+    input_hist_raw = List([""])
+    output_hist = Dict()
+    dir_hist = List()
+    output_hist_reprs = Dict()
 
+    def end_session(self):
+        pass
 
-class HistoryAccessor(Configurable):
+    def reset(self, new_session=True):
+        """Clear the session history, releasing all object references, and
+        optionally open a new session."""
+        self.output_hist.clear()
+        # The directory history can't be completely empty
+        self.dir_hist[:] = [py3compat.getcwd()]
+        
+        if new_session:
+            if self.session_number:
+                self.end_session()
+            self.input_hist_parsed[:] = [""]
+            self.input_hist_raw[:] = [""]
+            self.new_session()
+
+    def new_session(self, conn=None):
+        pass
+
+    def writeout_cache(self):
+        pass
+
+    def get_tail(self, n=10, raw=True, output=False, include_latest=False):
+        return []
+
+    def search(self, pattern="*", raw=True, search_raw=True,
+               output=False, n=None, unique=False):
+        return []
+
+    def get_range(self, session, start=1, stop=None, raw=True,output=False):
+        return []
+
+    def get_range_by_str(self, rangestr, raw=True, output=False):
+        return []
+
+    def store_inputs(self, line_num, source, source_raw=None):
+        pass
+
+    def store_output(self, line_num):
+        pass
+
+class HistoryAccessor(HistoryAccessorBase):
     """Access the history database without adding to it.
     
     This is intended for use by standalone history tools. IPython shells use
@@ -544,7 +596,7 @@ class HistoryManager(HistoryAccessor):
             self.input_hist_parsed[:] = [""]
             self.input_hist_raw[:] = [""]
             self.new_session()
-    
+
     # ------------------------------
     # Methods for retrieving history
     # ------------------------------
@@ -747,6 +799,54 @@ class HistoryManager(HistoryAccessor):
                       "in database. Output will not be stored.")
             finally:
                 self.db_output_cache = []
+
+class KernelHistoryManager(HistoryAccessorBase):
+    def __init__(self, client):
+        self.client = client
+        self._load_history()
+
+    def _load_history(self):
+        msg_id = self.client.history()
+        while True:
+            try:
+                reply = self.client.get_shell_msg(timeout=1)
+            except Empty:
+                break
+            else:
+                if reply['parent_header'].get('msg_id') == msg_id:
+                    history = reply['content'].get('history', [])
+                    break
+        self.history = history
+        print("_load_history:", self.history)
+
+    def writeout_cache(self):
+        """dump cache before certain database lookups."""
+        print("write_cache")
+
+    def get_tail(self, n=10, raw=True, output=False, include_latest=False):
+        print("get_tail: ", n)
+        return self.history[-n:]
+
+    def search(self, pattern="*", raw=True, search_raw=True,
+               output=False, n=None, unique=False):
+        print("search: ", pattern)
+        return []
+
+    def get_range(self, session, start=1, stop=None, raw=True,output=False):
+        print("get_range: ", start, stop)
+        if stop is None:
+            stop = -1
+        return self.history[start:stop]
+
+    def get_range_by_str(self, rangestr, raw=True, output=False):
+        print("get_range_by_str: " + rangestr)
+        return []
+
+    def store_inputs(self, line_num, source, source_raw=None):
+        print("store_inputs")
+
+    def store_output(self, line_num):
+        print("store_output")
 
 
 class HistorySavingThread(threading.Thread):
