@@ -8070,6 +8070,9 @@ ul.breadcrumb span {
 .item_buttons {
   line-height: 1em;
 }
+.item_buttons .btn {
+  min-width: 13ex;
+}
 .toolbar_info {
   height: 24px;
   line-height: 24px;
