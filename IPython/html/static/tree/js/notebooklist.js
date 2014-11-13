@@ -328,11 +328,11 @@ define([
                         Delete : {
                             class: "btn-danger",
                             click: function() {
-                                notebooklist.contents.delete(path, {
-                                    success: function() {
+                                notebooklist.contents.delete(path).then(
+                                    function() {
                                         notebooklist.notebook_deleted(path);
                                     }
-                                });
+                                );
                             }
                         },
                         Cancel : {}
@@ -414,13 +414,11 @@ define([
                 }
                 filedata = item.data('filedata');
 
-                var settings = {
-                    success : function () {
-                        item.removeClass('new-file');
-                        that.add_link(model, item);
-                        that.add_delete_button(item);
-                        that.session_list.load_sessions();
-                    },
+                var on_success = function () {
+                    item.removeClass('new-file');
+                    that.add_link(model, item);
+                    that.add_delete_button(item);
+                    that.session_list.load_sessions();
                 };
                 
                 var exists = false;
@@ -436,8 +434,8 @@ define([
                             Overwrite : {
                                 class: "btn-danger",
                                 click: function () {
-                                        that.contents.save(path, model, settings);
-                                    }
+                                    that.contents.save(path, model).then(on_success);
+                                }
                             },
                             Cancel : {
                                 click: function() { item.remove(); }
@@ -445,7 +443,7 @@ define([
                         }
                     });
                 } else {
-                    that.contents.save(path, model, settings);
+                    that.contents.save(path, model).then(on_success);
                 }
                 
                 return false;

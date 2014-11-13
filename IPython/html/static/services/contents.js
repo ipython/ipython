@@ -112,33 +112,31 @@ define([
             type : "POST",
             data: data,
             dataType : "json",
-            success : options.success || function() {},
-            error : this.create_basic_error_handler(options.error)
         };
-        $.ajax(this.api_url(path), settings);
+        return utils.promising_ajax(this.api_url(path), settings);
     };
 
-    Contents.prototype.delete = function(path, options) {
-        var error_callback = options.error || function() {};
+    Contents.prototype.delete = function(path) {
         var settings = {
             processData : false,
             type : "DELETE",
             dataType : "json",
-            success : options.success || function() {},
-            error : function(xhr, status, error) {
-                // TODO: update IPEP27 to specify errors more precisely, so
-                // that error types can be detected here with certainty.
-                if (xhr.status === 400) {
-                    error_callback(new Contents.DirectoryNotEmptyError());
-                }
-                error_callback(utils.wrap_ajax_error(xhr, status, error));
-            }
         };
         var url = this.api_url(path);
-        $.ajax(url, settings);
+        return utils.promising_ajax(url, settings).catch(
+            // Translate certain errors to more specific ones.
+            function(error) {
+                // TODO: update IPEP27 to specify errors more precisely, so
+                // that error types can be detected here with certainty.
+                if (error.xhr.status === 400) {
+                    return Promise.reject(new Contents.DirectoryNotEmptyError());
+                }
+                return Promise.reject(error);
+            }
+        );
     };
 
-    Contents.prototype.rename = function(path, new_path, options) {
+    Contents.prototype.rename = function(path, new_path) {
         var data = {path: new_path};
         var settings = {
             processData : false,
@@ -146,28 +144,24 @@ define([
             data : JSON.stringify(data),
             dataType: "json",
             contentType: 'application/json',
-            success : options.success || function() {},
-            error : this.create_basic_error_handler(options.error)
         };
         var url = this.api_url(path);
-        $.ajax(url, settings);
+        return utils.promising_ajax(url, settings);
     };
 
-    Contents.prototype.save = function(path, model, options) {
+    Contents.prototype.save = function(path, model) {
         // We do the call with settings so we can set cache to false.
         var settings = {
             processData : false,
             type : "PUT",
             data : JSON.stringify(model),
             contentType: 'application/json',
-            success : options.success || function() {},
-            error : this.create_basic_error_handler(options.error)
         };
         var url = this.api_url(path);
-        $.ajax(url, settings);
+        return utils.promising_ajax(url, settings);
     };
     
-    Contents.prototype.copy = function(from_file, to_dir, options) {
+    Contents.prototype.copy = function(from_file, to_dir) {
         // Copy a file into a given directory via POST
         // The server will select the name of the copied file
         var url = this.api_url(to_dir);
@@ -177,54 +171,44 @@ define([
             type: "POST",
             data: JSON.stringify({copy_from: from_file}),
             dataType : "json",
-            success: options.success || function() {},
-            error: this.create_basic_error_handler(options.error)
         };
-        $.ajax(url, settings);
+        return utils.promising_ajax(url, settings);
     };
 
     /**
      * Checkpointing Functions
      */
 
-    Contents.prototype.create_checkpoint = function(path, options) {
+    Contents.prototype.create_checkpoint = function(path) {
         var url = this.api_url(path, 'checkpoints');
         var settings = {
             type : "POST",
-            success: options.success || function() {},
-            error : this.create_basic_error_handler(options.error)
         };
-        $.ajax(url, settings);
+        return utils.promising_ajax(url, settings);
     };
 
-    Contents.prototype.list_checkpoints = function(path, options) {
+    Contents.prototype.list_checkpoints = function(path) {
         var url = this.api_url(path, 'checkpoints');
         var settings = {
             type : "GET",
-            success: options.success,
-            error : this.create_basic_error_handler(options.error)
         };
-        $.ajax(url, settings);
+        return utils.promising_ajax(url, settings);
     };
 
-    Contents.prototype.restore_checkpoint = function(path, checkpoint_id, options) {
+    Contents.prototype.restore_checkpoint = function(path, checkpoint_id) {
         var url = this.api_url(path, 'checkpoints', checkpoint_id);
         var settings = {
             type : "POST",
-            success: options.success || function() {},
-            error : this.create_basic_error_handler(options.error)
         };
-        $.ajax(url, settings);
+        return utils.promising_ajax(url, settings);
     };
 
-    Contents.prototype.delete_checkpoint = function(path, checkpoint_id, options) {
+    Contents.prototype.delete_checkpoint = function(path, checkpoint_id) {
         var url = this.api_url(path, 'checkpoints', checkpoint_id);
         var settings = {
             type : "DELETE",
-            success: options.success || function() {},
-            error : this.create_basic_error_handler(options.error)
         };
-        $.ajax(url, settings);
+        return utils.promising_ajax(url, settings);
     };
 
     /**

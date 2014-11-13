@@ -65,14 +65,13 @@ require([
 
     $('#new_notebook').click(function (e) {
         var w = window.open();
-        contents.new_untitled(common_options.notebook_path, {
-                type: "notebook",
-                success: function (data) {
+        contents.new_untitled(common_options.notebook_path, {type: "notebook"}).then(
+                function (data) {
                     w.location = utils.url_join_encode(
                             common_options.base_url, 'notebooks', data.path
                         );
-                    },
-                error: function(error) {
+                },
+                function(error) {
                     w.close();
                     dialog.modal({
                         title : 'Creating Notebook Failed',
@@ -80,7 +79,7 @@ require([
                         buttons : {'OK' : {'class' : 'btn-primary'}}
                     });
                 }
-            });
+            );
     });
 
     var interval_id=0;
