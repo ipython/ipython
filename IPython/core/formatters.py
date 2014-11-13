@@ -24,6 +24,7 @@ from IPython.core.getipython import get_ipython
 from IPython.lib import pretty
 from IPython.utils.traitlets import (
     Bool, Dict, Integer, Unicode, CUnicode, ObjectName, List,
+    Instance,
 )
 from IPython.utils.py3compat import (
     unicode_to_str, with_metaclass, PY3, string_types, unicode_type,
@@ -88,6 +89,10 @@ class DisplayFormatter(Configurable):
                 formatter.enabled = True
             else:
                 formatter.enabled = False
+    
+    self_formatter = Instance(__name__ +'.SelfDisplayingFormatter')
+    def _self_formatter_default(self):
+        return SelfDisplayingFormatter(parent=self)
     
     # A dict of formatter whose keys are format types (MIME types) and whose
     # values are subclasses of BaseFormatter.
@@ -158,7 +163,11 @@ class DisplayFormatter(Configurable):
         """
         format_dict = {}
         md_dict = {}
-
+        
+        if self.self_formatter(obj):
+            # object handled itself, don't proceed
+            return {}, {}
+        
         for format_type, formatter in self.formatters.items():
             if include and format_type not in include:
                 continue
@@ -831,6 +840,40 @@ class PDFFormatter(BaseFormatter):
 
     _return_type = (bytes, unicode_type)
 
+class SelfDisplayingFormatter(BaseFormatter):
+    """A Formatter for objects that know how to display themselves.
+    
+    To define the callables that compute the representation of your
+    objects, define a :meth:`_ipython_display_` method or use the :meth:`for_type`
+    or :meth:`for_type_by_name` methods to register functions that handle
+    this. Unlike mime-type displays, this method should not return anything,
+    instead calling any appropriate display methods itself.
+    
+    This display formatter has highest priority.
+    If it fires, no other display formatter will be called.
+    """
+    print_method = ObjectName('_ipython_display_')
+    _return_type = (type(None), bool)
+    
+
+    @warn_format_error
+    def __call__(self, obj):
+        """Compute the format for an object."""
+        if self.enabled:
+            # lookup registered printer
+            try:
+                printer = self.lookup(obj)
+            except KeyError:
+                pass
+            else:
+                printer(obj)
+                return True
+            # Finally look for special method names
+            method = _safe_get_formatter_method(obj, self.print_method)
+            if method is not None:
+                method()
+                return True
+
 
 FormatterABC.register(BaseFormatter)
 FormatterABC.register(PlainTextFormatter)
@@ -843,6 +886,7 @@ FormatterABC.register(JPEGFormatter)
 FormatterABC.register(LatexFormatter)
 FormatterABC.register(JSONFormatter)
 FormatterABC.register(JavascriptFormatter)
+FormatterABC.register(SelfDisplayingFormatter)
 
 
 def format_display_data(obj, include=None, exclude=None):
