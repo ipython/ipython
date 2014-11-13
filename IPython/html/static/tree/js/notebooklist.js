@@ -248,15 +248,16 @@ define([
         if (model.type !== "directory") {
             link.attr('target','_blank');
         }
-        var path_name = utils.url_path_join(path, name);
+        if (model.type !== 'directory') {
+            this.add_duplicate_button(item);
+        }
         if (model.type == 'file') {
             this.add_delete_button(item);
         } else if (model.type == 'notebook') {
-            if(this.sessions[path_name] === undefined){
+            if (this.sessions[path] === undefined){
                 this.add_delete_button(item);
-                this.add_duplicate_button(item);
             } else {
-                this.add_shutdown_button(item, this.sessions[path_name]);
+                this.add_shutdown_button(item, this.sessions[path]);
             }
         }
     };
@@ -311,20 +312,20 @@ define([
     };
 
     NotebookList.prototype.add_duplicate_button = function (item) {
-        var new_buttons = $('<span/>').addClass("btn-group pull-right");
         var notebooklist = this;
-        var duplicate_button = $("<button/>").text("Duplicate").addClass("btn btn-defaultbtn-xs").
+        var duplicate_button = $("<button/>").text("Duplicate").addClass("btn btn-default btn-xs").
             click(function (e) {
                 // $(this) is the button that was clicked.
                 var that = $(this);
                 // We use the nbname and notebook_id from the parent notebook_item element's
                 // data because the outer scopes values change as we iterate through the loop.
                 var parent_item = that.parents('div.list_item');
-                var nbname = parent_item.data('nbname');
-                var message = 'Are you sure you want to duplicate the notebook: ' + nbname + '?';
-                var copy_from = {'copy_from' : nbname}
+                var name = parent_item.data('name');
+                var path = parent_item.data('path');
+                var message = 'Are you sure you want to duplicate ' + name + '?';
+                var copy_from = {copy_from : path};
                 IPython.dialog.modal({
-                    title : "Duplicate notebook",
+                    title : "Duplicate " + name,
                     body : message,
                     buttons : {
                         Duplicate : {
@@ -336,13 +337,13 @@ define([
                                     type : "POST",
                                     dataType : "json",
                                     data : JSON.stringify(copy_from),
-                                    success : function (data, status, xhr) {
+                                    success : function () {
                                         notebooklist.load_list();
                                     }
                                 };
                                 var url = utils.url_join_encode(
                                     notebooklist.base_url,
-                                    'api/notebooks',
+                                    'api/contents',
                                     notebooklist.notebook_path
                                 );
                                 $.ajax(url, settings);

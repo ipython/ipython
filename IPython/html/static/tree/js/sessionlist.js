@@ -40,10 +40,7 @@ define([
         var len = data.length;
         var nb_path;
         for (var i=0; i<len; i++) {
-            nb_path = utils.url_path_join(
-                data[i].notebook.path,
-                data[i].notebook.name
-            );
+            nb_path = data[i].notebook.path;
             this.sessions[nb_path] = data[i].id;
         }
         this.events.trigger('sessions_loaded.Dashboard', this.sessions);
