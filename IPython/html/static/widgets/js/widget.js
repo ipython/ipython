@@ -236,7 +236,8 @@ define(["widgets/js/manager",
                     packed.push(that._pack_models(sub_value));
                 });
                 return packed;
-
+            } else if (value instanceof Date || value instanceof String) {
+                return value;
             } else if (value instanceof Object) {
                 packed = {};
                 _.each(value, function(sub_value, key) {
