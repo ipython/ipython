@@ -1432,6 +1432,7 @@ div.cell.text_cell.rendered {
 }
 .widget-hbox input[type="checkbox"] {
   margin-top: 9px;
+  margin-bottom: 10px;
 }
 .widget-hbox .widget-label {
   /* Horizontal Label */
