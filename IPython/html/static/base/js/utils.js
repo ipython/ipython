@@ -598,11 +598,11 @@ define([
         return new Promise(function(resolve, reject) {
             settings.success = function(data, status, jqXHR) {
                 resolve(data);
-            }
+            };
             settings.error = function(jqXHR, status, error) {
                 log_ajax_error(jqXHR, status, error);
                 reject(wrap_ajax_error(jqXHR, status, error));
-            }
+            };
             $.ajax(url, settings);
         });
     };
