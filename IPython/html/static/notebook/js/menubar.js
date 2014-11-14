@@ -76,7 +76,7 @@ define([
             this.base_url,
             'nbconvert',
             format,
-            notebook_path,
+            notebook_path
         ) + "?download=" + download.toString();
 
         window.open(url);
