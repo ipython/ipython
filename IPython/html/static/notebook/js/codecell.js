@@ -86,6 +86,17 @@ define([
         // deactivated, it's popped from the stack.  When the stack is empty,
         // the cell's output area is used.
         this.active_output_areas = [];
+        var that = this;
+        Object.defineProperty(this, 'active_output_area', {
+            get: function() {
+                if (that.active_output_areas && that.active_output_areas.length > 0) {
+                    return that.active_output_areas[that.active_output_areas.length-1];
+                } else {
+                    return that.output_area;
+                }
+            },
+        });
+
         this.last_msg_id = null;
         this.completer = null;
 
@@ -98,8 +109,6 @@ define([
 
         // Attributes we want to override in this subclass.
         this.cell_type = "code";
-
-        var that = this;
         this.element.focusout(
             function() { that.auto_highlight(); }
         );
@@ -123,17 +132,6 @@ define([
     CodeCell.msg_cells = {};
 
     CodeCell.prototype = Object.create(Cell.prototype);
-
-    /**
-     * @method get_output_area
-     */
-    CodeCell.prototype.get_output_area = function () {
-        if (this.active_output_areas && this.active_output_areas.length > 0) {
-            return this.active_output_areas[this.active_output_areas.length-1];
-        } else {
-            return this.output_area;
-        }
-    };
 
     /**
      * @method push_output_area
@@ -318,7 +316,7 @@ define([
             return;
         }
 
-        this.get_output_area().clear_output();
+        this.active_output_area.clear_output();
         
         // Clear widget area
         this.widget_subarea.html('');
@@ -358,12 +356,10 @@ define([
             },
             iopub : {
                 output : function() { 
-                    var output_area = that.get_output_area();
-                    output_area.handle_output.apply(output_area, arguments);
+                    that.active_output_area.handle_output.apply(output_area, arguments);
                 }, 
                 clear_output : function() { 
-                    var output_area = that.get_output_area();
-                    output_area.handle_clear_output.apply(output_area, arguments);
+                    that.active_output_area.handle_clear_output.apply(output_area, arguments);
                 }, 
             },
             input : $.proxy(this._handle_input_request, this)
@@ -398,7 +394,7 @@ define([
      * @private
      */
     CodeCell.prototype._handle_input_request = function (msg) {
-        this.get_output_area().append_raw_input(msg);
+        this.active_output_area.append_raw_input(msg);
     };
 
 
@@ -501,7 +497,7 @@ define([
 
 
     CodeCell.prototype.clear_output = function (wait) {
-        this.get_output_area().clear_output(wait);
+        this.active_output_area.clear_output(wait);
         this.set_input_prompt();
     };
 

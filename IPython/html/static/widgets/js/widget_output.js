@@ -5,7 +5,8 @@ define([
     "widgets/js/widget",
     "jquery",
     'notebook/js/outputarea',
-], function(widget, $, outputarea){
+], function(widget, $, outputarea) {
+    'use strict';
 
     var OutputView = widget.DOMWidgetView.extend({
         initialize: function (parameters) {
