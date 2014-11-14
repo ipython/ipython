@@ -45,7 +45,18 @@ define([
         this.selected = false;
         this.rendered = false;
         this.mode = 'command';
-        this.metadata = {};
+
+        // Metadata property
+        var that = this;
+        this._metadata = {};
+        Object.defineProperty(this, 'metadata', {
+            get: function() { return that._metadata; },
+            set: function(value) {
+                that._metadata = value;
+                that.celltoolbar.rebuild();
+            }
+        });
+
         // load this from metadata later ?
         this.user_highlight = 'auto';
         this.cm_config = config.cm_config;
@@ -406,7 +417,6 @@ define([
         return data;
     };
 
-
     /**
      * should be overritten by subclass
      * @method fromJSON
@@ -415,7 +425,6 @@ define([
         if (data.metadata !== undefined) {
             this.metadata = data.metadata;
         }
-        this.celltoolbar.rebuild();
     };
 
 
