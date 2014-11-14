@@ -5,23 +5,22 @@
 # Distributed under the terms of the Modified BSD License.
 
 from tornado import web
-from ..base.handlers import IPythonHandler, file_path_regex
+from ..base.handlers import IPythonHandler, path_regex
 from ..utils import url_escape
 
 class EditorHandler(IPythonHandler):
-    """Render the terminal interface."""
+    """Render the text editor interface."""
     @web.authenticated
-    def get(self, path, name):
+    def get(self, path):
         path = path.strip('/')
-        if not self.contents_manager.file_exists(name, path):
-            raise web.HTTPError(404, u'File does not exist: %s/%s' % (path, name))
+        if not self.contents_manager.file_exists(path):
+            raise web.HTTPError(404, u'File does not exist: %s' % path)
 
-        file_path = url_escape(path) + "/" + url_escape(name)
         self.write(self.render_template('texteditor.html',
-            file_path=file_path,
+            file_path=url_escape(path),
             )
         )
 
 default_handlers = [
-    (r"/texteditor%s" % file_path_regex, EditorHandler),
+    (r"/texteditor%s" % path_regex, EditorHandler),
 ]
