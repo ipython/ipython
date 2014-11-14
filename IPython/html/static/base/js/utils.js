@@ -5,7 +5,6 @@ define([
     'base/js/namespace',
     'jquery',
     'codemirror/lib/codemirror',
-    'es6promise',
 ], function(IPython, $, CodeMirror){
     "use strict";
     
