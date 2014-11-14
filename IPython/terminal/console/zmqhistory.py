@@ -12,7 +12,6 @@
 #-----------------------------------------------------------------------------
 
 from IPython.core.history import HistoryAccessorBase
-from IPython.utils import py3compat
 from IPython.utils.traitlets import Dict, List
 
 try:
@@ -46,9 +45,6 @@ class ZMQHistoryManager(HistoryAccessorBase):
         Load the history over ZMQ from the kernel. Wraps the history
         messaging with loop to wait to get history results.
         """
-        # 'range' (fill in session, start and stop params), 
-        # 'tail' (fill in n)
-        # 'search' (fill in pattern param).
         msg_id = self.client.history(raw=raw, output=output, 
                                      hist_access_type=hist_access_type, 
                                      **kwargs)
@@ -63,12 +59,6 @@ class ZMQHistoryManager(HistoryAccessorBase):
                     history = reply['content'].get('history', [])
                     break
         return history
-
-    def writeout_cache(self):
-        """
-        Not needed for ZMQ-based histories.
-        """
-        pass
 
     def get_tail(self, n=10, raw=True, output=False, include_latest=False):
         return self._load_history(hist_access_type='tail', n=n, raw=raw, 
@@ -87,7 +77,7 @@ class ZMQHistoryManager(HistoryAccessorBase):
 
     def get_range_by_str(self, rangestr, raw=True, output=False):
         return self._load_history(hist_access_type='range', raw=raw, 
-                                  output=output, rangestr=rangetr)
+                                  output=output, rangestr=rangestr)
 
     def end_session(self):
         """
@@ -96,16 +86,8 @@ class ZMQHistoryManager(HistoryAccessorBase):
         pass
 
     def reset(self, new_session=True):
-        """Clear the session history, releasing all object references, and
-        optionally open a new session."""
-        self.output_hist.clear()
-        # The directory history can't be completely empty
-        self.dir_hist[:] = [py3compat.getcwd()]
-        
-        if new_session:
-            if self.session_number:
-                self.end_session()
-            self.input_hist_parsed[:] = [""]
-            self.input_hist_raw[:] = [""]
-            self.new_session()
+        """
+        Nothing to do for ZMQ-based histories.
+        """
+        pass
 

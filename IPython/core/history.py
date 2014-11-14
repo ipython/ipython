@@ -15,7 +15,6 @@ from __future__ import print_function
 # Stdlib imports
 import atexit
 import datetime
-import abc
 import os
 import re
 try:
@@ -103,22 +102,19 @@ def catch_corrupt_db(f, self, *a, **kw):
 class HistoryAccessorBase(Configurable):
     """An abstract class for History Accessors """
 
-    @abc.abstractmethod
     def get_tail(self, n=10, raw=True, output=False, include_latest=False):
-        pass
+        raise NotImplementedError
 
-    @abc.abstractmethod
     def search(self, pattern="*", raw=True, search_raw=True,
                output=False, n=None, unique=False):
-        pass
+        raise NotImplementedError
 
-    @abc.abstractmethod
     def get_range(self, session, start=1, stop=None, raw=True,output=False):
-        pass
+        raise NotImplementedError
 
-    @abc.abstractmethod
     def get_range_by_str(self, rangestr, raw=True, output=False):
-        pass
+        raise NotImplementedError
+
 
 class HistoryAccessor(HistoryAccessorBase):
     """Access the history database without adding to it.
