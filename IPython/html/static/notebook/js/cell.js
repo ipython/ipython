@@ -45,7 +45,18 @@ define([
         this.selected = false;
         this.rendered = false;
         this.mode = 'command';
-        this.metadata = {};
+
+        // Metadata property
+        var that = this;
+        this._metadata = {};
+        Object.defineProperty(this, 'metadata', {
+            get: function() { return that._metadata; },
+            set: function(value) {
+                that._metadata = value;
+                that.celltoolbar.rebuild();
+            }
+        });
+
         // load this from metadata later ?
         this.user_highlight = 'auto';
         this.cm_config = config.cm_config;
@@ -392,16 +403,6 @@ define([
      */
     Cell.prototype.set_text = function (text) {
     };
- 
-    /**
-     * Set the metadata of the cell and triggers the celltoolbars to update.
-     * @method set_metadata
-     * @param {dictionary} metadata
-     */
-    Cell.prototype.set_metadata = function (metadata) {
-       this.metadata = metadata;
-       this.celltoolbar.rebuild();
-    };
 
     /**
      * should be overritten by subclass
@@ -422,9 +423,8 @@ define([
      **/
     Cell.prototype.fromJSON = function (data) {
         if (data.metadata !== undefined) {
-            this.set_metadata(data.metadata);
+            this.metadata = data.metadata;
         }
-        this.celltoolbar.rebuild();
     };
 
 

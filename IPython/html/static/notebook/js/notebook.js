@@ -995,7 +995,7 @@ define([
                     text = '';
                 }
                 //metadata
-                target_cell.set_metadata(source_cell.metadata);
+                target_cell.metadata = source_cell.metadata;
 
                 target_cell.set_text(text);
                 // make this value the starting point, so that we can only undo
@@ -1029,7 +1029,7 @@ define([
                     text = '';
                 }
                 // metadata
-                target_cell.set_metadata(source_cell.metadata);
+                target_cell.metadata = source_cell.metadata;
                 // We must show the editor before setting its contents
                 target_cell.unrender();
                 target_cell.set_text(text);
@@ -1067,7 +1067,7 @@ define([
                     text = '';
                 }
                 //metadata
-                target_cell.set_metadata(source_cell.metadata);
+                target_cell.metadata = source_cell.metadata;
                 // We must show the editor before setting its contents
                 target_cell.unrender();
                 target_cell.set_text(text);
