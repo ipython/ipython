@@ -1050,11 +1050,27 @@ class Union(TraitType):
         self.default_value = self.trait_types[0].get_default_value()
         super(Union, self).__init__(**metadata)
 
+    def instance_init(self, obj):
+        for trait_type in self.trait_types:
+            trait_type.name = self.name
+            trait_type.this_class = self.this_class
+        super(Union, self).instance_init(obj)
+
     def validate(self, obj, value):
         for trait_type in self.trait_types:
             try:
+                if value is None and trait_type.allow_none:
+                    return value
                 if hasattr(trait_type, 'validate'):
                     return trait_type.validate(obj, value)
+                elif hasattr(trait_type, 'is_valid_for'):
+                    valid = trait_type.is_valid_for(value)
+                    if valid:
+                        return value
+                    else:
+                        raise TraitError('invalid value for type: %r' % value)
+                elif hasattr(trait_type, 'value_for'):
+                    return trait_type.value_for(value)
                 else:
                     return value
             except Exception:
