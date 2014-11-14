@@ -120,6 +120,11 @@ define([
         this.target_name = target_name;
         this.comm_id = comm_id || utils.uuid();
         this._msg_callback = this._close_callback = null;
+
+        var that = this;
+        this.msg_promise = new Promise(function(resolve, reject) {
+            that.resolve_msg_promise = resolve;
+        });
     };
     
     // methods for sending messages
@@ -155,6 +160,7 @@ define([
     
     Comm.prototype.on_msg = function (callback) {
         this._register_callback('msg', callback);
+        this.resolve_msg_promise();
     };
     
     Comm.prototype.on_close = function (callback) {
@@ -175,7 +181,10 @@ define([
     };
     
     Comm.prototype.handle_msg = function (msg) {
-        this._maybe_callback('msg', msg);
+        var that = this;
+        this.msg_promise.then(function() {
+            that._maybe_callback('msg', msg);
+        });
     };
     
     Comm.prototype.handle_close = function (msg) {
