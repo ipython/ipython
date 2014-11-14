@@ -18,20 +18,13 @@ from IPython.config.application import boolean_flag
 from IPython.core.profiledir import ProfileDir
 from IPython.kernel.blocking import BlockingKernelClient
 from IPython.kernel import KernelManager
-from IPython.kernel import tunnel_to_kernel, find_connection_file, swallow_argv
+from IPython.kernel import tunnel_to_kernel, find_connection_file
 from IPython.kernel.kernelspec import NoSuchKernel
 from IPython.utils.path import filefind
 from IPython.utils.traitlets import (
     Dict, List, Unicode, CUnicode, CBool, Any
 )
-from IPython.kernel.zmq.kernelapp import (
-    kernel_flags,
-    kernel_aliases,
-    IPKernelApp
-)
-from IPython.kernel.zmq.pylab.config import InlineBackend
 from IPython.kernel.zmq.session import Session
-from IPython.kernel.zmq.zmqshell import ZMQInteractiveShell
 from IPython.kernel.connect import ConnectionFileMixin
 
 from IPython.utils.localinterfaces import localhost
@@ -40,7 +33,7 @@ from IPython.utils.localinterfaces import localhost
 # Aliases and Flags
 #-----------------------------------------------------------------------------
 
-flags = dict(kernel_flags)
+flags = {}
 
 # the flags that are specific to the frontend
 # these must be scrubbed before being passed to the kernel,
@@ -60,7 +53,7 @@ app_flags.update(boolean_flag(
 ))
 flags.update(app_flags)
 
-aliases = dict(kernel_aliases)
+aliases = {}
 
 # also scrub aliases from the frontend
 app_aliases = dict(
@@ -140,19 +133,12 @@ class IPythonConsoleApp(ConnectionFileMixin):
         to force a direct exit without any confirmation.""",
     )
     
-    @property
-    def help_classes(self):
-        """ConsoleApps can configure kernels on the command-line
-        
-        But this shouldn't be written to a file
-        """
-        return self.classes + [IPKernelApp] + IPKernelApp.classes
-    
     def build_kernel_argv(self, argv=None):
-        """build argv to be passed to kernel subprocess"""
-        if argv is None:
-            argv = sys.argv[1:]
-        self.kernel_argv = swallow_argv(argv, self.frontend_aliases, self.frontend_flags)
+        """build argv to be passed to kernel subprocess
+        
+        Override in subclasses if any args should be passed to the kernel
+        """
+        self.kernel_argv = self.extra_args
     
     def init_connection_file(self):
         """find the connection file, and load the info if found.
