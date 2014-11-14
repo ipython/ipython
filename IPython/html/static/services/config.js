@@ -35,45 +35,28 @@ function($, utils) {
     };
     
     ConfigSection.prototype.load = function() {
-        var p = new Promise(function(resolve, reject) {
-            $.ajax(this.api_url(), {
-                cache : false,
-                type : "GET",
-                dataType : "json",
-                success: function(data, status, jqXHR) {
-                    this.data = data;
-                    this._load_done();
-                    resolve(data);
-                },
-                error: function(jqXHR, status, error) {
-                    // Should never happen; mark as loaded so things don't keep
-                    // waiting.
-                    this._load_done();
-                    utils.log_ajax_error(jqXHR, status, error);
-                    reject(utils.wrap_ajax_error(jqXHR, status, error));
-                }
-            });
+        return utils.promising_ajax(this.api_url(), {
+            cache: false,
+            type: "GET",
+            dataType: "json",
+        }).then(function(data) {
+            this.data = data;
+            this._load_done();
+            return data;
         });
     };
     
     ConfigSection.prototype.update = function(newdata) {
-        return new Promise(function(resolve, reject) {
-            $.ajax(this.api_url(), {
-                processData: false,
-                type : "PATCH",
-                data: JSON.stringify(newdata),
-                dataType : "json",
-                contentType: 'application/json',
-                success: function(data, status, jqXHR) {
-                    this.data = data;
-                    this._load_done();
-                    resolve(data);
-                },
-                error: function(jqXHR, status, error) {
-                    utils.log_ajax_error(jqXHR, status, error);
-                    reject(utils.wrap_ajax_error(jqXHR, status, error));
-                }
-            });
+        return utils.promising_ajax(this.api_url(), {
+            processData: false,
+            type : "PATCH",
+            data: JSON.stringify(newdata),
+            dataType : "json",
+            contentType: 'application/json',
+        }).then(function(data) {
+            this.data = data;
+            this._load_done();
+            return data;
         });
     };
 
