@@ -51,7 +51,7 @@ define([
     
     CommManager.prototype.register_comm = function (comm) {
         // Register a comm in the mapping
-        this.comms[comm.comm_id] = new Promise(function(resolve) {resolve(comm);});
+        this.comms[comm.comm_id] = Promise.resolve(comm);
         comm.kernel = this.kernel;
         return comm.comm_id;
     };
@@ -74,7 +74,10 @@ define([
             var comm = new Comm(content.target_name, comm_id);
             comm.kernel = that.kernel;
             try {
-                target(comm, msg);
+                var response = target(comm, msg);
+                if (response instanceof Promise) {
+                    return response.then(function() { Promise.resolve(comm); });
+                }
             } catch (e) {
                 comm.close();
                 that.unregister_comm(comm);
@@ -82,7 +85,7 @@ define([
                 console.error(wrapped_error);
                 return Promise.reject(wrapped_error);
             }
-            return comm;
+            return Promise.resolve(comm);
         }, utils.reject('Could not open comm', true));
         return this.comms[comm_id];
     };
