@@ -26,6 +26,7 @@ define([
         this.outputs = [];
         this.collapsed = false;
         this.scrolled = false;
+        this.scroll_state = 'auto';
         this.trusted = true;
         this.clear_queued = null;
         if (options.prompt_area === undefined) {
@@ -72,24 +73,28 @@ define([
 
     /**
      * Should the OutputArea scroll?
-     * Returns whether the height (in lines) exceeds a threshold.
-     *
-     * @private
-     * @method _should_scroll
-     * @param [lines=100]{Integer}
-     * @return {Bool}
+     * Returns whether the height (in lines) exceeds the current threshold.
+     * Threshold will be OutputArea.minimum_scroll_threshold if scroll_state=true (manually requested)
+     * or OutputArea.auto_scroll_threshold if scroll_state='auto'.
+     * This will always return false if scroll_state=false (scroll disabled).
      *
      */
-    OutputArea.prototype._should_scroll = function (lines) {
-        if (lines <=0 ){ return; }
-        if (!lines) {
-            lines = 100;
+    OutputArea.prototype._should_scroll = function () {
+        var threshold;
+        if (this.scroll_state === false) {
+            return false;
+        } else if (this.scroll_state === true) {
+            threshold = OutputArea.minimum_scroll_threshold;
+        } else {
+            threshold = OutputArea.auto_scroll_threshold;
+        }
+        if (threshold <=0) {
+            return false;
         }
         // line-height from http://stackoverflow.com/questions/1185151
         var fontSize = this.element.css('font-size');
         var lineHeight = Math.floor(parseInt(fontSize.replace('px','')) * 1.5);
-        
-        return (this.element.height() > lines * lineHeight);
+        return (this.element.height() > threshold * lineHeight);
     };
 
 
@@ -105,7 +110,7 @@ define([
             }
             // maybe scroll output,
             // if it's grown large enough and hasn't already been scrolled.
-            if ( !that.scrolled && that._should_scroll(OutputArea.auto_scroll_threshold)) {
+            if (!that.scrolled && that._should_scroll()) {
                 that.scroll_area();
             }
         });
@@ -123,6 +128,8 @@ define([
                 this.collapse_button.show();
             }
             this.collapsed = true;
+            // collapsing output clears scroll state
+            this.scroll_state = 'auto';
         }
     };
 
@@ -133,6 +140,7 @@ define([
             this.element.show();
             this.prompt_overlay.show();
             this.collapsed = false;
+            this.scroll_if_long();
         }
     };
 
@@ -160,34 +168,30 @@ define([
     };
 
     /**
+     * Scroll OutputArea if height exceeds a threshold.
      *
-     * Scroll OutputArea if height supperior than a threshold (in lines).
-     *
-     * Threshold is a maximum number of lines. If unspecified, defaults to
-     * OutputArea.minimum_scroll_threshold.
-     *
-     * Negative threshold will prevent the OutputArea from ever scrolling.
-     *
-     * @method scroll_if_long
-     *
-     * @param [lines=20]{Number} Default to 20 if not set,
-     * behavior undefined for value of `0`.
+     * Threshold is OutputArea.minimum_scroll_threshold if scroll_state = true,
+     * OutputArea.auto_scroll_threshold if scroll_state='auto'.
      *
      **/
-    OutputArea.prototype.scroll_if_long = function (lines) {
-        var n = lines || OutputArea.minimum_scroll_threshold;
-        if(n <= 0){
-            return;
-        }
-
-        if (this._should_scroll(n)) {
+    OutputArea.prototype.scroll_if_long = function () {
+        var should_scroll = this._should_scroll();
+        if (!this.scrolled && should_scroll) {
             // only allow scrolling long-enough output
             this.scroll_area();
+        } else if (this.scrolled && !should_scroll) {
+            // scrolled and shouldn't be
+            this.unscroll_area();
         }
     };
 
 
     OutputArea.prototype.toggle_scroll = function () {
+        if (this.scroll_state == 'auto') {
+            this.scroll_state = false;
+        } else {
+            this.scroll_state = !this.scroll_state;
+        }
         if (this.scrolled) {
             this.unscroll_area();
         } else {
@@ -517,7 +521,7 @@ define([
                 .attr("href", "#")
                 .text("Unrecognized output: " + json.output_type)
                 .click(function () {
-                    that.events.trigger('unrecognized_output.OutputArea', {output: json})
+                    that.events.trigger('unrecognized_output.OutputArea', {output: json});
                 })
         );
         this._safe_append(toinsert);
@@ -905,19 +909,18 @@ define([
         for (var i=0; i<len; i++) {
             this.append_output(outputs[i]);
         }
-
         if (metadata.collapsed !== undefined) {
             this.collapsed = metadata.collapsed;
             if (metadata.collapsed) {
-                this.collapse_output();
+                this.collapse();
             }
         }
-        if (metadata.autoscroll !== undefined) {
-            this.collapsed = metadata.collapsed;
-            if (metadata.collapsed) {
-                this.collapse_output();
+        if (metadata.scrolled !== undefined) {
+            this.scroll_state = metadata.scrolled;
+            if (metadata.scrolled) {
+                this.scroll_if_long();
             } else {
-                this.expand_output();
+                this.unscroll_area();
             }
         }
     };

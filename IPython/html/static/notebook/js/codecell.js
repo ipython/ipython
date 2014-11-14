@@ -624,14 +624,7 @@ define([
             }
             this.set_input_prompt(data.execution_count);
             this.output_area.trusted = data.metadata.trusted || false;
-            this.output_area.fromJSON(data.outputs);
-            if (data.metadata.collapsed !== undefined) {
-                if (data.metadata.collapsed) {
-                    this.collapse_output();
-                } else {
-                    this.expand_output();
-                }
-            }
+            this.output_area.fromJSON(data.outputs, data.metadata);
         }
     };
 
@@ -649,6 +642,11 @@ define([
         data.outputs = outputs;
         data.metadata.trusted = this.output_area.trusted;
         data.metadata.collapsed = this.output_area.collapsed;
+        if (this.output_area.scroll_state === 'auto') {
+            delete data.metadata.scrolled;
+        } else {
+            data.metadata.scrolled = this.output_area.scroll_state;
+        }
         return data;
     };
 
