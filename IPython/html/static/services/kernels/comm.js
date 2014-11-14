@@ -76,7 +76,7 @@ define([
             try {
                 var response = target(comm, msg);
                 if (response instanceof Promise) {
-                    return response.then(function() { Promise.resolve(comm); });
+                    return response.then(function() { return Promise.resolve(comm); });
                 }
             } catch (e) {
                 comm.close();
