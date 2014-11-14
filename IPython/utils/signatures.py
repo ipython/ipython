@@ -72,10 +72,13 @@ def signature(obj):
         raise TypeError('{0!r} is not a callable object'.format(obj))
 
     if isinstance(obj, types.MethodType):
-        # In this case we skip the first parameter of the underlying
-        # function (usually `self` or `cls`).
-        sig = signature(obj.__func__)
-        return sig.replace(parameters=tuple(sig.parameters.values())[1:])
+        if obj.__self__ is None:
+            # Unbound method - treat it as a function (no distinction in Py 3)
+            obj = obj.__func__
+        else:
+            # Bound method: trim off the first parameter (typically self or cls)
+            sig = signature(obj.__func__)
+            return sig.replace(parameters=tuple(sig.parameters.values())[1:])
 
     try:
         sig = obj.__signature__
