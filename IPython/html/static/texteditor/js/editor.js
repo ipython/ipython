@@ -46,6 +46,9 @@ function($,
                 that.save_enabled = false;
             }
         );
+        cm.setOption("extraKeys", {
+            "Ctrl-S": $.proxy(this.save, this),
+        });
     };
 
     Editor.prototype.save = function() {
