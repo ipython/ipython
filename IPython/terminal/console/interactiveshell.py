@@ -23,7 +23,7 @@ except ImportError:
 
 from IPython.core import page
 from IPython.core import release
-from IPython.core.history import KernelHistoryManager
+from IPython.terminal.console.zmqhistory import ZMQHistoryManager
 from IPython.utils.warn import warn, error
 from IPython.utils import io
 from IPython.utils.py3compat import string_types, input
@@ -573,6 +573,6 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
 
     def init_history(self):
         """Sets up the command history. """
-        self.history_manager = KernelHistoryManager(client=self.client) 
+        self.history_manager = ZMQHistoryManager(client=self.client) 
         self.configurables.append(self.history_manager)
 
