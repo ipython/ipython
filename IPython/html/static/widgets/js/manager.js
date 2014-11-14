@@ -183,7 +183,7 @@ define([
 
     WidgetManager.prototype._handle_comm_open = function (comm, msg) {
         // Handle when a comm is opened.
-        this.create_model({
+        return this.create_model({
             model_name: msg.content.data.model_name, 
             model_module: msg.content.data.model_module, 
             comm: comm}).catch($.proxy(console.error, console));
