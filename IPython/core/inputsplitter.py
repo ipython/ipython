@@ -20,6 +20,7 @@ import ast
 import codeop
 import re
 import sys
+import warnings
 
 from IPython.utils.py3compat import cast_unicode
 from IPython.core.inputtransformer import (leading_indent,
@@ -308,14 +309,16 @@ class InputSplitter(object):
 
         self._update_indent(lines)
         try:
-            self.code = self._compile(source, symbol="exec")
+            with warnings.catch_warnings():
+                warnings.simplefilter('error', SyntaxWarning)
+                self.code = self._compile(source, symbol="exec")
         # Invalid syntax can produce any of a number of different errors from
         # inside the compiler, so we have to catch them all.  Syntax errors
         # immediately produce a 'ready' block, so the invalid Python can be
         # sent to the kernel for evaluation with possible ipython
         # special-syntax conversion.
         except (SyntaxError, OverflowError, ValueError, TypeError,
-                MemoryError):
+                MemoryError, SyntaxWarning):
             self._is_complete = True
             self._is_invalid = True
         else:
