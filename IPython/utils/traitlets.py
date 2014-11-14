@@ -748,7 +748,16 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
 
 
 class ClassBasedTraitType(TraitType):
-    """A trait with error reporting for Type, Instance and This."""
+    """
+    A trait with error reporting and string -> type resolution for Type,
+    Instance and This.
+    """
+
+    def _resolve_string(self, string):
+        """
+        Resolve a string supplied for a type into an actual object.
+        """
+        return import_item(string)
 
     def error(self, obj, value):
         kind = type(value)
@@ -813,7 +822,7 @@ class Type(ClassBasedTraitType):
         """Validates that the value is a valid object instance."""
         if isinstance(value, py3compat.string_types):
             try:
-                value = import_item(value)
+                value = self._resolve_string(value)
             except ImportError:
                 raise TraitError("The '%s' trait of %s instance must be a type, but "
                                 "%r could not be imported" % (self.name, obj, value))
@@ -842,9 +851,9 @@ class Type(ClassBasedTraitType):
 
     def _resolve_classes(self):
         if isinstance(self.klass, py3compat.string_types):
-            self.klass = import_item(self.klass)
+            self.klass = self._resolve_string(self.klass)
         if isinstance(self.default_value, py3compat.string_types):
-            self.default_value = import_item(self.default_value)
+            self.default_value = self._resolve_string(self.default_value)
 
     def get_default_value(self):
         return self.default_value
@@ -951,7 +960,7 @@ class Instance(ClassBasedTraitType):
 
     def _resolve_classes(self):
         if isinstance(self.klass, py3compat.string_types):
-            self.klass = import_item(self.klass)
+            self.klass = self._resolve_string(self.klass)
 
     def get_default_value(self):
         """Instantiate a default value instance.
@@ -965,6 +974,33 @@ class Instance(ClassBasedTraitType):
             return dv.generate(self.klass)
         else:
             return dv
+
+
+class ForwardDeclaredMixin(object):
+    """
+    Mixin for forward-declared versions of Instance and Type.
+    """
+    def _resolve_string(self, string):
+        """
+        Find the specified class name by looking for it in the module in which
+        our this_class attribute was defined.
+        """
+        modname = self.this_class.__module__
+        return import_item('.'.join([modname, string]))
+
+
+class ForwardDeclaredType(ForwardDeclaredMixin, Type):
+    """
+    Forward-declared version of Type.
+    """
+    pass
+
+
+class ForwardDeclaredInstance(ForwardDeclaredMixin, Instance):
+    """
+    Forward-declared version of Instance.
+    """
+    pass
 
 
 class This(ClassBasedTraitType):
@@ -1354,8 +1390,10 @@ class Container(Instance):
         return self.klass(validated)
 
     def instance_init(self, obj):
-        if isinstance(self._trait, Instance):
-            self._trait._resolve_classes()
+        if isinstance(self._trait, TraitType):
+            self._trait.this_class = self.this_class
+        if hasattr(self._trait, 'instance_init'):
+            self._trait.instance_init(obj)
         super(Container, self).instance_init(obj)
 
 
