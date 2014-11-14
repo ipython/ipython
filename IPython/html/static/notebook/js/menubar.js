@@ -69,7 +69,6 @@ define([
     MenuBar.prototype._nbconvert = function (format, download) {
         download = download || false;
         var notebook_path = this.notebook.notebook_path;
-        var notebook_name = this.notebook.notebook_name;
         if (this.notebook.dirty) {
             this.notebook.save_notebook({async : false});
         }
@@ -78,7 +77,6 @@ define([
             'nbconvert',
             format,
             notebook_path,
-            notebook_name
         ) + "?download=" + download.toString();
 
         window.open(url);
@@ -120,17 +118,11 @@ define([
         this.element.find('#download_ipynb').click(function () {
             var base_url = that.notebook.base_url;
             var notebook_path = that.notebook.notebook_path;
-            var notebook_name = that.notebook.notebook_name;
             if (that.notebook.dirty) {
                 that.notebook.save_notebook({async : false});
             }
             
-            var url = utils.url_join_encode(
-                base_url,
-                'files',
-                notebook_path,
-                notebook_name
-            );
+            var url = utils.url_join_encode(base_url, 'files', notebook_path);
             window.open(url + '?download=1');
         });
         
