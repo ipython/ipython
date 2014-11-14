@@ -51,7 +51,7 @@ define([
     
     CommManager.prototype.register_comm = function (comm) {
         // Register a comm in the mapping
-        this.comms[comm.comm_id] = comm;
+        this.comms[comm.comm_id] = new Promise(function(resolve) {resolve(comm);});
         comm.kernel = this.kernel;
         return comm.comm_id;
     };
@@ -66,12 +66,13 @@ define([
     CommManager.prototype.comm_open = function (msg) {
         var content = msg.content;
         var that = this;
-        
-        return utils.load_class(content.target_name, content.target_module, 
+        var comm_id = content.comm_id;
+
+        this.comms[comm_id] = utils.load_class(content.target_name, content.target_module, 
             this.targets).then(function(target) {
 
-            var comm = new Comm(content.target_name, content.comm_id);
-            that.register_comm(comm);
+            var comm = new Comm(content.target_name, comm_id);
+            comm.kernel = that.kernel;
             try {
                 target(comm, msg);
             } catch (e) {
@@ -83,33 +84,40 @@ define([
             }
             return comm;
         }, utils.reject('Could not open comm', true));
+        return this.comms[comm_id];
     };
     
-    CommManager.prototype.comm_close = function (msg) {
+    CommManager.prototype.comm_close = function(msg) {
         var content = msg.content;
-        var comm = this.comms[content.comm_id];
-        if (comm === undefined) {
+        if (!this.comms[content.comm_id]) {
+            console.error('Comm promise not found for comm id ' + content.comm_id);
             return;
         }
-        this.unregister_comm(comm);
-        try {
-            comm.handle_close(msg);
-        } catch (e) {
-            console.log("Exception closing comm: ", e, e.stack, msg);
-        }
+
+        this.comms[content.comm_id].then(function(comm) {
+            this.unregister_comm(comm);
+            try {
+                comm.handle_close(msg);
+            } catch (e) {
+                console.log("Exception closing comm: ", e, e.stack, msg);
+            }
+        });
     };
     
-    CommManager.prototype.comm_msg = function (msg) {
+    CommManager.prototype.comm_msg = function(msg) {
         var content = msg.content;
-        var comm = this.comms[content.comm_id];
-        if (comm === undefined) {
+        if (!this.comms[content.comm_id]) {
+            console.error('Comm promise not found for comm id ' + content.comm_id);
             return;
         }
-        try {
-            comm.handle_msg(msg);
-        } catch (e) {
-            console.log("Exception handling comm msg: ", e, e.stack, msg);
-        }
+
+        this.comms[content.comm_id].then(function(comm) {
+            try {
+                comm.handle_msg(msg);
+            } catch (e) {
+                console.log("Exception handling comm msg: ", e, e.stack, msg);
+            }
+        });
     };
     
     //-----------------------------------------------------------------------
@@ -182,8 +190,9 @@ define([
     
     Comm.prototype.handle_msg = function (msg) {
         var that = this;
-        this.msg_promise.then(function() {
+        this.msg_promise = this.msg_promise.then(function() {
             that._maybe_callback('msg', msg);
+            return Promise.resolve();
         });
     };
     

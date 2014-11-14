@@ -26,9 +26,7 @@ casper.notebook_test(function () {
             'Widget float textbox exists.');
 
         this.cell_element_function(float_text.index, float_text.query, 'val', ['']);
-        console.log('send keys');
         this.sendKeys(float_text.query, '1.05');
-        console.log('send keys done');
     });
 
     this.wait_for_widget(float_text);
