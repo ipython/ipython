@@ -4,7 +4,7 @@
 
 import nose.tools as nt
 
-from IPython.utils.tokenutil import token_at_cursor
+from IPython.utils.tokenutil import token_at_cursor, line_at_cursor
 
 def expect_token(expected, cell, cursor_pos):
     token = token_at_cursor(cell, cursor_pos)
@@ -68,3 +68,9 @@ def test_attrs():
     expected = 'obj.attr.subattr'
     for i in range(idx, len(cell)):
         expect_token(expected, cell, i)
+
+def test_line_at_cursor():
+    cell = ""
+    (line, offset) = line_at_cursor(cell, cursor_pos=11)
+    assert line == "", ("Expected '', got %r" % line)
+    assert offset == 0, ("Expected '', got %r" % line)

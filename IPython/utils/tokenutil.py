@@ -49,6 +49,8 @@ def line_at_cursor(cell, cursor_pos=0):
         if next_offset >= cursor_pos:
             break
         offset = next_offset
+    else:
+        line = ""
     return (line, offset)
 
 def token_at_cursor(cell, cursor_pos=0):
