@@ -63,10 +63,8 @@ function($,
             content: this.codemirror.getValue(),
         };
         var that = this;
-        this.contents.save(this.file_path, model, {
-            success: function() {
-                that.events.trigger("save_succeeded.TextEditor");
-            }
+        this.contents.save(this.file_path, model).then(function() {
+            that.events.trigger("save_succeeded.TextEditor");
         });
     };
 

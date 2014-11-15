@@ -1,97 +1,29 @@
-// Copyright (c) IPython Development Team.
-// Distributed under the terms of the Modified BSD License.
-
 define([
     'base/js/namespace',
     'jquery',
     'base/js/utils',
     'base/js/dialog',
-    'notebook/js/notificationwidget',
+    'base/js/notificationarea',
     'moment'
-], function(IPython, $, utils, dialog, notificationwidget, moment) {
+], function(IPython, $, utils, dialog, notificationarea, moment) {
     "use strict";
-
-    // store reference to the NotificationWidget class
-    var NotificationWidget = notificationwidget.NotificationWidget;
-
-    /**
-     * Construct the NotificationArea object. Options are:
-     *     events: $(Events) instance
-     *     save_widget: SaveWidget instance
-     *     notebook: Notebook instance
-     *     keyboard_manager: KeyboardManager instance
-     *
-     * @constructor
-     * @param {string} selector - a jQuery selector string for the
-     * notification area element
-     * @param {Object} [options] - a dictionary of keyword arguments.
-     */
-    var NotificationArea = function (selector, options) {
-        this.selector = selector;
-        this.events = options.events;
+    var NotificationArea = notificationarea.NotificationArea;
+    
+    var NotebookNotificationArea = function(selector, options) {
+        NotificationArea.apply(this, [selector, options]);
         this.save_widget = options.save_widget;
         this.notebook = options.notebook;
         this.keyboard_manager = options.keyboard_manager;
-        if (this.selector !== undefined) {
-            this.element = $(selector);
-        }
-        this.widget_dict = {};
-    };
-
-    /**
-     * Get a widget by name, creating it if it doesn't exist.
-     *
-     * @method widget
-     * @param {string} name - the widget name
-     */
-    NotificationArea.prototype.widget = function (name) {
-        if (this.widget_dict[name] === undefined) {
-            return this.new_notification_widget(name);
-        }
-        return this.get_widget(name);
-    };
-
-    /**
-     * Get a widget by name, throwing an error if it doesn't exist.
-     *
-     * @method get_widget
-     * @param {string} name - the widget name
-     */
-    NotificationArea.prototype.get_widget = function (name) {
-        if(this.widget_dict[name] === undefined) {
-            throw('no widgets with this name');
-        }
-        return this.widget_dict[name];
-    };
-
-    /**
-     * Create a new notification widget with the given name. The
-     * widget must not already exist.
-     *
-     * @method new_notification_widget
-     * @param {string} name - the widget name
-     */
-    NotificationArea.prototype.new_notification_widget = function (name) {
-        if (this.widget_dict[name] !== undefined) {
-            throw('widget with that name already exists!');
-        }
-
-        // create the element for the notification widget and add it
-        // to the notification aread element
-        var div = $('<div/>').attr('id', 'notification_' + name);
-        $(this.selector).append(div);
-
-        // create the widget object and return it
-        this.widget_dict[name] = new NotificationWidget('#notification_' + name);
-        return this.widget_dict[name];
-    };
-
+    }
+    
+    NotebookNotificationArea.prototype = Object.create(NotificationArea.prototype);
+    
     /**
      * Initialize the default set of notification widgets.
      *
      * @method init_notification_widgets
      */
-    NotificationArea.prototype.init_notification_widgets = function () {
+    NotebookNotificationArea.prototype.init_notification_widgets = function () {
         this.init_kernel_notification_widget();
         this.init_notebook_notification_widget();
     };
@@ -101,7 +33,7 @@ define([
      *
      * @method init_kernel_notification_widget
      */
-    NotificationArea.prototype.init_kernel_notification_widget = function () {
+    NotebookNotificationArea.prototype.init_kernel_notification_widget = function () {
         var that = this;
         var knw = this.new_notification_widget('kernel');
         var $kernel_ind_icon = $("#kernel_indicator_icon");
@@ -324,7 +256,7 @@ define([
      *
      * @method init_notebook_notification_widget
      */
-    NotificationArea.prototype.init_notebook_notification_widget = function () {
+    NotebookNotificationArea.prototype.init_notebook_notification_widget = function () {
         var nnw = this.new_notification_widget('notebook');
 
         // Notebook events
@@ -381,7 +313,8 @@ define([
         });
     };
 
-    IPython.NotificationArea = NotificationArea;
-
-    return {'NotificationArea': NotificationArea};
+    // Backwards compatibility.
+    IPython.NotificationArea = NotebookNotificationArea;
+    
+    return {'NotebookNotificationArea': NotebookNotificationArea};
 });

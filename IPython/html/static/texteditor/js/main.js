@@ -10,6 +10,7 @@ require([
     'contents',
     'texteditor/js/editor',
     'texteditor/js/menubar',
+    'texteditor/js/notificationarea',
     'custom/custom',
 ], function(
     $,
@@ -19,7 +20,8 @@ require([
     events,
     contents,
     editor,
-    menubar
+    menubar,
+    notificationarea
     ){
     page = new page.Page();
 
@@ -41,6 +43,12 @@ require([
         base_url: base_url,
         editor: editor,
     });
+    
+    var notification_area = new notificationarea.EditorNotificationArea(
+        '#notification_area', {
+        events: events,
+    });
+    notification_area.init_notification_widgets();
 
     editor.load();
     page.show();
