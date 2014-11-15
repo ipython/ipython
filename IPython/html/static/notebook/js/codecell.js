@@ -356,10 +356,10 @@ define([
             },
             iopub : {
                 output : function() { 
-                    that.active_output_area.handle_output.apply(output_area, arguments);
+                    that.active_output_area.handle_output.apply(that.active_output_area, arguments);
                 }, 
                 clear_output : function() { 
-                    that.active_output_area.handle_clear_output.apply(output_area, arguments);
+                    that.active_output_area.handle_clear_output.apply(that.active_output_area, arguments);
                 }, 
             },
             input : $.proxy(this._handle_input_request, this)
