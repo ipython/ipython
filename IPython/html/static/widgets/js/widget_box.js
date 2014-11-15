@@ -319,7 +319,7 @@ define([
             if (description.trim().length === 0) {
                 this.$title.html("&nbsp;"); // Preserve title height
             } else {
-                this.typeset(description, this.$title);
+                this.typeset(this.$title, description);
             }
             
             var button_text = this.model.get('button_text');

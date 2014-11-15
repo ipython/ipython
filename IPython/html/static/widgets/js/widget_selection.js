@@ -97,7 +97,7 @@ define([
                 if (description.length === 0) {
                     this.$label.hide();
                 } else {
-                    this.typeset(description, this.$label);
+                    this.typeset(this.$label, description);
                     this.$label.show();
                 }
             }
@@ -230,7 +230,7 @@ define([
                     this.$label.hide();
                 } else {
                     this.$label.text(description);
-                    this.typeset(description, this.$label);
+                    this.typeset(this.$label, description);
                     this.$label.show();
                 }
             }
@@ -345,7 +345,7 @@ define([
                     this.$label.hide();
                 } else {
                     this.$label.text();
-                    this.typeset(description, this.$label);
+                    this.typeset(this.$label, description);
                     this.$label.show();
                 }
             }
@@ -467,7 +467,7 @@ define([
                 if (description.length === 0) {
                     this.$label.hide();
                 } else {
-                    this.typeset(description, this.$label);
+                    this.typeset(this.$label, description);
                     this.$label.show();
                 }
             }

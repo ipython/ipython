@@ -43,7 +43,7 @@ define([
              * Called when the model is changed.  The model may have been 
              * changed by another view or by a state update from the back-end.
              */
-            this.typeset(this.model.get('value'), this.$el);
+            this.typeset(this.$el, this.model.get('value'));
             return LatexView.__super__.update.apply(this);
         }, 
     });
@@ -114,7 +114,7 @@ define([
                 if (description.length === 0) {
                     this.$label.hide();
                 } else {
-                    this.typeset(description, this.$label);
+                    this.typeset(this.$label, description);
                     this.$label.show();
                 }
             }
@@ -197,7 +197,7 @@ define([
                 if (description.length === 0) {
                     this.$label.hide();
                 } else {
-                    this.typeset(description, this.$label);
+                    this.typeset(this.$label, description);
                     this.$label.show();
                 }
             }
