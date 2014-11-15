@@ -45,19 +45,21 @@ class ZMQHistoryManager(HistoryAccessorBase):
         Load the history over ZMQ from the kernel. Wraps the history
         messaging with loop to wait to get history results.
         """
-        msg_id = self.client.history(raw=raw, output=output, 
-                                     hist_access_type=hist_access_type, 
-                                     **kwargs)
         history = []
-        while True:
-            try:
-                reply = self.client.get_shell_msg(timeout=1)
-            except Empty:
-                break
-            else:
-                if reply['parent_header'].get('msg_id') == msg_id:
-                    history = reply['content'].get('history', [])
+        if hasattr(self.client, "history"):
+            ## In tests, KernelClient may not have a history method
+            msg_id = self.client.history(raw=raw, output=output,
+                                         hist_access_type=hist_access_type,
+                                         **kwargs)
+            while True:
+                try:
+                    reply = self.client.get_shell_msg(timeout=1)
+                except Empty:
                     break
+                else:
+                    if reply['parent_header'].get('msg_id') == msg_id:
+                        history = reply['content'].get('history', [])
+                        break
         return history
 
     def get_tail(self, n=10, raw=True, output=False, include_latest=False):
