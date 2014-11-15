@@ -18,6 +18,7 @@ class EditorHandler(IPythonHandler):
 
         self.write(self.render_template('texteditor.html',
             file_path=url_escape(path),
+            page_title=path.rsplit('/', 1)[-1] + " (editing)",
             )
         )
 
