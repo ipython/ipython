@@ -131,7 +131,7 @@ casper.notebook_test(function () {
         multiset.model_id = this.get_output_cell(index).text.trim();
     });
 
-    this.wait_for_widget(multiset); 
+    this.wait_for_widget(multiset);
 
     index = this.append_cell(
         'print("%d%d%d" % (multiset.a, multiset.b, multiset.c))');

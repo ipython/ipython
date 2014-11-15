@@ -92,12 +92,12 @@ define([
     
     CommManager.prototype.comm_close = function(msg) {
         var content = msg.content;
-        if (!this.comms[content.comm_id]) {
+        if (this.comms[content.comm_id] === undefined) {
             console.error('Comm promise not found for comm id ' + content.comm_id);
             return;
         }
 
-        this.comms[content.comm_id].then(function(comm) {
+        this.comms[content.comm_id] = this.comms[content.comm_id].then(function(comm) {
             this.unregister_comm(comm);
             try {
                 comm.handle_close(msg);
@@ -109,12 +109,12 @@ define([
     
     CommManager.prototype.comm_msg = function(msg) {
         var content = msg.content;
-        if (!this.comms[content.comm_id]) {
+        if (this.comms[content.comm_id] === undefined) {
             console.error('Comm promise not found for comm id ' + content.comm_id);
             return;
         }
 
-        this.comms[content.comm_id].then(function(comm) {
+        this.comms[content.comm_id] = this.comms[content.comm_id].then(function(comm) {
             try {
                 comm.handle_msg(msg);
             } catch (e) {
@@ -174,7 +174,7 @@ define([
     
     // methods for handling incoming messages
     
-    Comm.prototype._maybe_callback = function (key, msg) {
+    Comm.prototype._callback = function (key, msg) {
         var callback = this['_' + key + '_callback'];
         if (callback) {
             try {
@@ -186,11 +186,11 @@ define([
     };
     
     Comm.prototype.handle_msg = function (msg) {
-        that._maybe_callback('msg', msg);
+        this._callback('msg', msg);
     };
     
     Comm.prototype.handle_close = function (msg) {
-        this._maybe_callback('close', msg);
+        this._callback('close', msg);
     };
     
     // For backwards compatability.

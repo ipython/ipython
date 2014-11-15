@@ -186,7 +186,7 @@ define([
         return this.create_model({
             model_name: msg.content.data.model_name, 
             model_module: msg.content.data.model_module, 
-            comm: comm}).catch($.proxy(console.error, console));
+            comm: comm}).catch(utils.reject("Couldn't create a model."));
     };
 
     WidgetManager.prototype.create_model = function (options) {
