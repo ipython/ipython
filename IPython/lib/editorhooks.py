@@ -10,13 +10,14 @@ import os
 import pipes
 import shlex
 import subprocess
+import sys
 
 from IPython import get_ipython
 from IPython.core.error import TryNext
 from IPython.utils import py3compat
 
 
-def install_editor(template_list, wait=False):
+def install_editor(template, wait=False):
     """Installs the editor that is called by IPython for the %edit magic.
 
     This overrides the default editor, which is generally set by your EDITOR
