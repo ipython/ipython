@@ -8164,6 +8164,10 @@ input.engine_num_input {
 .file_icon:before.pull-right {
   margin-left: .3em;
 }
+ul#new-notebook-menu {
+  left: auto;
+  right: 0;
+}
 /*!
 *
 * IPython notebook

@@ -14,6 +14,7 @@ require([
     'tree/js/sessionlist',
     'tree/js/kernellist',
     'tree/js/terminallist',
+    'tree/js/newnotebook',
     'auth/js/loginwidget',
     // only loaded, not used:
     'jqueryui',
@@ -27,11 +28,12 @@ require([
     page,
     utils,
     contents_service,
-    notebooklist, 
-    clusterlist, 
-    sesssionlist, 
+    notebooklist,
+    clusterlist,
+    sesssionlist,
     kernellist,
     terminallist,
+    newnotebook,
     loginwidget){
     "use strict";
 
@@ -63,24 +65,12 @@ require([
 
     var login_widget = new loginwidget.LoginWidget('#login_widget', common_options);
 
-    $('#new_notebook').click(function (e) {
-        var w = window.open();
-        contents.new_untitled(common_options.notebook_path, {type: "notebook"}).then(
-                function (data) {
-                    w.location = utils.url_join_encode(
-                            common_options.base_url, 'notebooks', data.path
-                        );
-                },
-                function(error) {
-                    w.close();
-                    dialog.modal({
-                        title : 'Creating Notebook Failed',
-                        body : "The error was: " + error.message,
-                        buttons : {'OK' : {'class' : 'btn-primary'}}
-                    });
-                }
-            );
-    });
+    var nnw = new newnotebook.NewNotebookWidget("#new-notebook-buttons",
+        $.extend(
+            {contents: contents},
+            common_options
+        )
+    );
 
     var interval_id=0;
     // auto refresh every xx secondes, no need to be fast,
