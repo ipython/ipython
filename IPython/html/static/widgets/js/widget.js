@@ -576,16 +576,20 @@ define(["widgets/js/manager",
             return elements;
         },
 
-        typeset: function($el, text){
-            // after (optionally) updating a selection's text, check if 
-            // MathJax is available and typeset it
+        typeset: function(element, text){
+            // after (optionally) updating a node(list) or jQuery selection's 
+            // text, check if MathJax is available and typeset it
+            var $el = element.jquery ? element : $(element);
+
             if(arguments.length > 1){
                 $el.text(text);
             }
             if(!window.MathJax){
                 return;
             }
-            return MathJax.Hub.Queue(["Typeset", MathJax.Hub, $el.get(0)]);
+            return $el.map(function(){
+                return MathJax.Hub.Queue(["Typeset", MathJax.Hub, this]);
+            });
         },
     });
 
