@@ -335,8 +335,10 @@ define([
             
             // Try to parse value as a int.
             var numericalValue = 0;
-            if (e.target.value !== '') {
-                var trimmed = e.target.value.trim();
+            var trimmed = e.target.value.trim();
+            if (trimmed === '') {
+                return;
+            } else {
                 if (!(['-', '-.', '.', '+.', '+'].indexOf(trimmed) >= 0)) {
                     numericalValue = this._parse_value(e.target.value);    
                 }                
@@ -366,7 +368,7 @@ define([
         
         handleChanged: function(e) {
             // Applies validated input.
-            if (this.model.get('value') != e.target.value) {
+            if (e.target.value.trim() === '' || e.target.value !== this.model.get('value')) {
                 e.target.value = this.model.get('value');
             }
         },
