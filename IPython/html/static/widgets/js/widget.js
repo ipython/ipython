@@ -388,18 +388,6 @@ define(["widgets/js/manager",
             } else {
                 this.on('displayed', callback, context);
             }
-        },
-
-        typeset: function($el, text){
-            // after (optionally) updating a selection's text, check if 
-            // MathJax is available and typeset it
-            if(arguments.length > 1){
-                $el.text(text);
-            }
-            if(!window.MathJax){
-                return;
-            }
-            return MathJax.Hub.Queue(["Typeset", MathJax.Hub, $el.get(0)]);
         }
     });
 
@@ -586,6 +574,18 @@ define(["widgets/js/manager",
                 elements = this.$el.find(selector).addBack(selector);
             }
             return elements;
+        },
+
+        typeset: function($el, text){
+            // after (optionally) updating a selection's text, check if 
+            // MathJax is available and typeset it
+            if(arguments.length > 1){
+                $el.text(text);
+            }
+            if(!window.MathJax){
+                return;
+            }
+            return MathJax.Hub.Queue(["Typeset", MathJax.Hub, $el.get(0)]);
         },
     });
 
