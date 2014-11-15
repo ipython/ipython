@@ -241,34 +241,35 @@ define([
     MarkdownCell.prototype.render = function () {
         var cont = TextCell.prototype.render.apply(this);
         if (cont) {
+            var that = this;
             var text = this.get_text();
             var math = null;
             if (text === "") { text = this.placeholder; }
             var text_and_math = mathjaxutils.remove_math(text);
             text = text_and_math[0];
             math = text_and_math[1];
-            var html = marked.parser(marked.lexer(text));
-            html = mathjaxutils.replace_math(html, math);
-            html = security.sanitize_html(html);
-            html = $($.parseHTML(html));
-            // add anchors to headings
-            // console.log(html);
-            html.find(":header").addBack(":header").each(function (i, h) {
-                h = $(h);
-                var hash = h.text().replace(/ /g, '-');
-                h.attr('id', hash);
-                h.append(
-                    $('<a/>')
-                        .addClass('anchor-link')
-                        .attr('href', '#' + hash)
-                        .text('¶')
-                );
-            })
-            // links in markdown cells should open in new tabs
-            html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
-            this.set_rendered(html);
-            this.typeset();
-            this.events.trigger("rendered.MarkdownCell", {cell: this})
+            marked(text, function (err, html) {
+                html = mathjaxutils.replace_math(html, math);
+                html = security.sanitize_html(html);
+                html = $($.parseHTML(html));
+                // add anchors to headings
+                html.find(":header").addBack(":header").each(function (i, h) {
+                    h = $(h);
+                    var hash = h.text().replace(/ /g, '-');
+                    h.attr('id', hash);
+                    h.append(
+                        $('<a/>')
+                            .addClass('anchor-link')
+                            .attr('href', '#' + hash)
+                            .text('¶')
+                    );
+                });
+                // links in markdown cells should open in new tabs
+                html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
+                that.set_rendered(html);
+                that.typeset();
+                that.events.trigger("rendered.MarkdownCell", {cell: that});
+            });
         }
         return cont;
     };
