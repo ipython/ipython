@@ -67,6 +67,7 @@ define([
         if (spec) {
             display_name = spec.display_name;
             localStorage.default_kernel_name = kernel_name;
+            this.element.find("#current-kernel").text(display_name);
         } else {
             display_name = 'default kernel';
             delete localStorage.default_kernel_name;
