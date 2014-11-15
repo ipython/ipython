@@ -541,7 +541,16 @@ define([
         if (navigator.appVersion.indexOf("Linux")!=-1) OSName="Linux";
         return OSName;
     })();
-
+    
+    var get_url_param = function (name) {
+        // get a URL parameter. I cannot believe we actually need this.
+        // Based on http://stackoverflow.com/a/25359264/938949
+        var match = new RegExp('[\?&]' + name + '=([^&]*)').exec(window.location.search);
+        if (match){
+            return decodeURIComponent(match[1] || '');
+        }
+    };
+    
     var is_or_has = function (a, b) {
         /**
          * Is b a child of a or a itself?
@@ -786,6 +795,7 @@ define([
         from_absolute_cursor_pos : from_absolute_cursor_pos,
         browser : browser,
         platform: platform,
+        get_url_param: get_url_param,
         is_or_has : is_or_has,
         is_focused : is_focused,
         mergeopt: mergeopt,
