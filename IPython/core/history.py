@@ -32,7 +32,6 @@ from IPython.external.decorator import decorator
 from IPython.utils.decorators import undoc
 from IPython.utils.path import locate_profile
 from IPython.utils import py3compat
-from IPython.utils.py3compat import with_metaclass
 from IPython.utils.traitlets import (
     Any, Bool, Dict, Instance, Integer, List, Unicode, TraitError,
 )
