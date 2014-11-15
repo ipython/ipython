@@ -98,9 +98,24 @@ def catch_corrupt_db(f, self, *a, **kw):
             # The hist_file is probably :memory: or something else.
             raise
         
+class HistoryAccessorBase(Configurable):
+    """An abstract class for History Accessors """
+
+    def get_tail(self, n=10, raw=True, output=False, include_latest=False):
+        raise NotImplementedError
+
+    def search(self, pattern="*", raw=True, search_raw=True,
+               output=False, n=None, unique=False):
+        raise NotImplementedError
+
+    def get_range(self, session, start=1, stop=None, raw=True,output=False):
+        raise NotImplementedError
+
+    def get_range_by_str(self, rangestr, raw=True, output=False):
+        raise NotImplementedError
 
 
-class HistoryAccessor(Configurable):
+class HistoryAccessor(HistoryAccessorBase):
     """Access the history database without adding to it.
     
     This is intended for use by standalone history tools. IPython shells use
@@ -544,7 +559,7 @@ class HistoryManager(HistoryAccessor):
             self.input_hist_parsed[:] = [""]
             self.input_hist_raw[:] = [""]
             self.new_session()
-    
+
     # ------------------------------
     # Methods for retrieving history
     # ------------------------------

@@ -424,7 +424,7 @@ class InteractiveShell(SingletonConfigurable):
     display_trap = Instance('IPython.core.display_trap.DisplayTrap')
     extension_manager = Instance('IPython.core.extensions.ExtensionManager')
     payload_manager = Instance('IPython.core.payload.PayloadManager')
-    history_manager = Instance('IPython.core.history.HistoryManager')
+    history_manager = Instance('IPython.core.history.HistoryAccessorBase')
     magics_manager = Instance('IPython.core.magic.MagicsManager')
 
     profile_dir = Instance('IPython.core.application.ProfileDir')
