@@ -24,7 +24,7 @@ function($, utils) {
     };
 
     ConfigSection.prototype.api_url = function() {
-        return utils.url_join_encode(this.base_url, 'api/config', that.section_name);
+        return utils.url_join_encode(this.base_url, 'api/config', this.section_name);
     };
     
     ConfigSection.prototype._load_done = function() {
@@ -35,18 +35,20 @@ function($, utils) {
     };
     
     ConfigSection.prototype.load = function() {
+        var that = this;
         return utils.promising_ajax(this.api_url(), {
             cache: false,
             type: "GET",
             dataType: "json",
         }).then(function(data) {
-            this.data = data;
-            this._load_done();
+            that.data = data;
+            that._load_done();
             return data;
         });
     };
     
     ConfigSection.prototype.update = function(newdata) {
+        var that = this;
         return utils.promising_ajax(this.api_url(), {
             processData: false,
             type : "PATCH",
@@ -54,8 +56,8 @@ function($, utils) {
             dataType : "json",
             contentType: 'application/json',
         }).then(function(data) {
-            this.data = data;
-            this._load_done();
+            that.data = data;
+            that._load_done();
             return data;
         });
     };
