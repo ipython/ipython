@@ -59,5 +59,7 @@ function($, utils) {
             return data;
         });
     };
+    
+    return {ConfigSection: ConfigSection};
 
 });
