@@ -155,8 +155,7 @@ define([
                 if (description.length === 0) {
                     this.$label.hide();
                 } else {
-                    this.$label.text(description);
-                    this.typeset(this.$label.get(0));
+                    this.typeset(description, this.$label);
                     this.$label.show();
                 }
                 
@@ -323,8 +322,7 @@ define([
                 if (description.length === 0) {
                     this.$label.hide();
                 } else {
-                    this.$label.text(description);
-                    this.typeset(this.$label.get(0));
+                    this.typeset(description, this.$label);
                     this.$label.show();
                 }
             }
@@ -443,8 +441,7 @@ define([
             if (description.length === 0) {
                 this.$label.hide();
             } else {
-                this.$label.text(description);
-                this.typeset(this.$label.get(0));
+                this.typeset(description, this.$label);
                 this.$label.show();
             }
             return ProgressView.__super__.update.apply(this);

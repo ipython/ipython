@@ -62,8 +62,7 @@ define([
                 if (description.trim().length === 0) {
                     this.$label.hide();
                 } else {
-                    this.$label.text(description);
-                    this.typeset(this.$label.get(0));
+                    this.typeset(description, this.$label);
                     this.$label.show();
                 }
             }

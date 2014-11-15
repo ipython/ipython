@@ -390,15 +390,12 @@ define(["widgets/js/manager",
             }
         },
 
-        typeset: function(element){
+        typeset: function(text, $el){
             // check if MathJax is available, and if so use it to
-            // typeset some DOM
+            // typeset some jQuery selection
+            $el.text(text);
             if(!window.MathJax){ return; }
-            return MathJax.Hub.Queue([
-                "Typeset",
-                MathJax.Hub,
-                element
-            ]);
+            return MathJax.Hub.Queue(["Typeset", MathJax.Hub, $el.get(0)]);
         }
     });
 
