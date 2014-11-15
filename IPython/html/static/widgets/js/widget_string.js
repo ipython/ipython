@@ -44,8 +44,7 @@ define([
              * changed by another view or by a state update from the back-end.
              */
             this.$el.text(this.model.get('value'));
-            MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.$el.get(0)]);
-
+            this.typeset(this.$el.get(0));
             return LatexView.__super__.update.apply(this);
         }, 
     });
@@ -117,7 +116,7 @@ define([
                     this.$label.hide();
                 } else {
                     this.$label.text(description);
-                    MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.$label.get(0)]);
+                    this.typeset(this.$label.get(0));
                     this.$label.show();
                 }
             }
@@ -201,7 +200,7 @@ define([
                     this.$label.hide();
                 } else {
                     this.$label.text(description);
-                    MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.$label.get(0)]);
+                    this.typeset(this.$label.get(0));
                     this.$label.show();
                 }
             }

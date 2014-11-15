@@ -156,7 +156,7 @@ define([
                     this.$label.hide();
                 } else {
                     this.$label.text(description);
-                    MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.$label.get(0)]);
+                    this.typeset(this.$label.get(0));
                     this.$label.show();
                 }
                 
@@ -324,7 +324,7 @@ define([
                     this.$label.hide();
                 } else {
                     this.$label.text(description);
-                    MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.$label.get(0)]);
+                    this.typeset(this.$label.get(0));
                     this.$label.show();
                 }
             }
@@ -444,7 +444,7 @@ define([
                 this.$label.hide();
             } else {
                 this.$label.text(description);
-                MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.$label.get(0)]);
+                this.typeset(this.$label.get(0));
                 this.$label.show();
             }
             return ProgressView.__super__.update.apply(this);

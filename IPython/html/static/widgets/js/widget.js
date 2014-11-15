@@ -389,6 +389,17 @@ define(["widgets/js/manager",
                 this.on('displayed', callback, context);
             }
         },
+
+        typeset: function(element){
+            // check if MathJax is available, and if so use it to
+            // typeset some DOM
+            if(!window.MathJax){ return; }
+            return MathJax.Hub.Queue([
+                "Typeset",
+                MathJax.Hub,
+                element
+            ]);
+        }
     });
 
 
