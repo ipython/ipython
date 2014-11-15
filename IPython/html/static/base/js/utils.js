@@ -641,6 +641,7 @@ define([
          * Like $.ajax, but returning an ES6 promise. success and error settings
          * will be ignored.
          */
+        settings = settings || {};
         return new Promise(function(resolve, reject) {
             settings.success = function(data, status, jqXHR) {
                 resolve(data);
