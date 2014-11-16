@@ -69,8 +69,7 @@ class AllowDraftWebSocketHandler(WebSocketHandler):
         self.stream.set_close_callback(self.on_connection_close)
 
         if self.request.headers.get("Sec-WebSocket-Version") in ("7", "8", "13"):
-            self.ws_connection = WebSocketProtocol13(
-                self, compression_options=self.get_compression_options())
+            self.ws_connection = WebSocketProtocol13(self)
             self.ws_connection.accept_connection()
         #--------------- BEGIN PATCH ----------------
         elif (self.allow_draft76() and
