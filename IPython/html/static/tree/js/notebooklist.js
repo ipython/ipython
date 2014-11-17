@@ -307,7 +307,6 @@ define([
                 $.ajax(url, settings);
                 return false;
             });
-        // var new_buttons = item.find('a'); // shutdown_button;
         item.find(".item_buttons").append(shutdown_button);
     };
 
@@ -317,11 +316,8 @@ define([
             click(function (e) {
                 // $(this) is the button that was clicked.
                 var that = $(this);
-                // We use the nbname and notebook_id from the parent notebook_item element's
-                // data because the outer scopes values change as we iterate through the loop.
-                var parent_item = that.parents('div.list_item');
-                var name = parent_item.data('name');
-                var path = parent_item.data('path');
+                var name = item.data('name');
+                var path = item.data('path');
                 var message = 'Are you sure you want to duplicate ' + name + '?';
                 var copy_from = {copy_from : path};
                 IPython.dialog.modal({
@@ -331,22 +327,9 @@ define([
                         Duplicate : {
                             class: "btn-primary",
                             click: function() {
-                                var settings = {
-                                    processData : false,
-                                    cache : false,
-                                    type : "POST",
-                                    dataType : "json",
-                                    data : JSON.stringify(copy_from),
-                                    success : function () {
-                                        notebooklist.load_list();
-                                    }
-                                };
-                                var url = utils.url_join_encode(
-                                    notebooklist.base_url,
-                                    'api/contents',
-                                    notebooklist.notebook_path
-                                );
-                                $.ajax(url, settings);
+                                notebooklist.contents.copy(path, notebooklist.notebook_path).then(function () {
+                                    notebooklist.load_list();
+                                });
                             }
                         },
                         Cancel : {}
