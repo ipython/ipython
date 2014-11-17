@@ -344,11 +344,6 @@ class NotebookApp(BaseIPythonApplication):
 
     # file to be opened in the notebook server
     file_to_run = Unicode('', config=True)
-    def _file_to_run_changed(self, name, old, new):
-        path, base = os.path.split(new)
-        if path:
-            self.file_to_run = base
-            self.notebook_dir = path
 
     # Network related information
     
@@ -627,10 +622,6 @@ class NotebookApp(BaseIPythonApplication):
         info_file = "nbserver-%s.json"%os.getpid()
         return os.path.join(self.profile_dir.security_dir, info_file)
     
-    notebook_dir = Unicode(py3compat.getcwd(), config=True,
-        help="The directory to use for notebooks and kernels."
-    )
-    
     pylab = Unicode('disabled', config=True,
         help="""
         DISABLED: use %pylab or %matplotlib in the notebook to enable matplotlib.
@@ -647,6 +638,16 @@ class NotebookApp(BaseIPythonApplication):
             "Please use `%pylab{0}` or `%matplotlib{0}` in the notebook itself.".format(backend)
         )
         self.exit(1)
+
+    notebook_dir = Unicode(config=True,
+        help="The directory to use for notebooks and kernels."
+    )
+
+    def _notebook_dir_default(self):
+        if self.file_to_run:
+            return os.path.dirname(os.path.abspath(self.file_to_run))
+        else:
+            return py3compat.getcwd()
 
     def _notebook_dir_changed(self, name, old, new):
         """Do a bit of validation of the notebook dir."""
@@ -942,12 +943,12 @@ class NotebookApp(BaseIPythonApplication):
                 browser = None
             
             if self.file_to_run:
-                fullpath = os.path.join(self.notebook_dir, self.file_to_run)
-                if not os.path.exists(fullpath):
-                    self.log.critical("%s does not exist" % fullpath)
+                if not os.path.exists(self.file_to_run):
+                    self.log.critical("%s does not exist" % self.file_to_run)
                     self.exit(1)
-                
-                uri = url_path_join('notebooks', self.file_to_run)
+
+                relpath = os.path.relpath(self.file_to_run, self.notebook_dir)
+                uri = url_path_join('notebooks', *relpath.split(os.sep))
             else:
                 uri = 'tree'
             if browser:

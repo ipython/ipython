@@ -12,7 +12,7 @@ import os
 from tornado import web
 
 from IPython.kernel.multikernelmanager import MultiKernelManager
-from IPython.utils.traitlets import Unicode, TraitError
+from IPython.utils.traitlets import List, Unicode, TraitError
 
 from IPython.html.utils import to_os_path
 from IPython.utils.py3compat import getcwd
@@ -24,7 +24,12 @@ class MappingKernelManager(MultiKernelManager):
     def _kernel_manager_class_default(self):
         return "IPython.kernel.ioloop.IOLoopKernelManager"
 
-    root_dir = Unicode(getcwd(), config=True)
+    kernel_argv = List(Unicode)
+
+    root_dir = Unicode(config=True)
+
+    def _root_dir_default(self):
+        return self.parent.notebook_dir
 
     def _root_dir_changed(self, name, old, new):
         """Do a bit of validation of the root dir."""
