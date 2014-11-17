@@ -8168,6 +8168,17 @@ ul#new-notebook-menu {
   left: auto;
   right: 0;
 }
+.kernel-menu-icon {
+  padding-right: 12px;
+  width: 24px;
+  content: "\f096";
+}
+.kernel-menu-icon:before {
+  content: "\f096";
+}
+.kernel-menu-icon-current:before {
+  content: "\f00c";
+}
 /*!
 *
 * IPython notebook

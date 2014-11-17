@@ -43,13 +43,21 @@ define([
         for (var i = 0; i < data.length; i++) {
             var ks = data[i];
             this.kernelspecs[ks.name] = ks;
-            var ksentry = $("<li>").attr("id", "kernel-" +ks.name).append($('<a>')
-                .attr('href', '#')
-                .click($.proxy(this.new_with_kernel, this, ks.name))
-                .text(ks.display_name)
-                .attr('title', 'Create a new notebook with ' + ks.display_name)
+            var li = $("<li>")
+                .attr("id", "kernel-" +ks.name)
+                .data('kernelspec', ks).append(
+                    $('<a>').attr('href', '#').append($('<i>')
+                        .addClass('kernel-menu-icon fa')
+                        .attr('href', '#')
+                        .click($.proxy(this.select_kernel, this, ks.name))
+                    ).append($('<span>')
+                        .attr('href', '#')
+                        .click($.proxy(this.new_notebook, this, ks.name))
+                        .text(ks.display_name)
+                        .attr('title', 'Create a new notebook with ' + ks.display_name)
+                    )
             );
-            menu.append(ksentry);
+            menu.append(li);
         }
         this._load_default_kernelspec();
     };
@@ -75,11 +83,23 @@ define([
         this.element.find("#new_notebook").attr('title',
             'Create a new notebook with ' + display_name
         );
+        this.element.find("li").map(function (i, li) {
+            li = $(li);
+            var ks = li.data('kernelspec');
+            if (ks.name == kernel_name) {
+                li.find(".kernel-menu-icon")
+                    .attr('title', display_name + ' is the default kernel')
+                    .addClass("kernel-menu-icon-current");
+            } else {
+                li.find(".kernel-menu-icon")
+                    .attr('title', 'Make ' + ks.display_name + ' the default kernel')
+                    .removeClass("kernel-menu-icon-current");
+            }
+        });
     };
     
     NewNotebookWidget.prototype.new_with_kernel = function (kernel_name) {
         /** record current selection and open a new notebook */
-        this.select_kernel(kernel_name);
         this.new_notebook(kernel_name);
     };
     
