@@ -661,7 +661,7 @@ define([
         });
     };
 
-    var resolve_dict = function(d) {
+    var resolve_promises_dict = function(d) {
         // Resolve a promiseful dictionary.
         // Returns a single Promise.
         var keys = Object.keys(d);
@@ -749,7 +749,7 @@ define([
         promising_ajax : promising_ajax,
         WrappedError: WrappedError,
         load_class: load_class,
-        resolve_dict: resolve_dict,
+        resolve_promises_dict: resolve_promises_dict,
         reject: reject,
     };
 

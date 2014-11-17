@@ -54,18 +54,12 @@ define([
             if (cell === null) {
                 reject(new Error("Could not determine where the display" + 
                     " message was from.  Widget will not be displayed"));
-            } else {
-                var dummy = null;
-                if (cell.widget_subarea) {
-                    dummy = $('<div />');
-                    cell.widget_subarea.append(dummy);
-                }
-
+            } else if (cell.widget_subarea) {
+                var dummy = $('<div />');
+                cell.widget_subarea.append(dummy);
                 that.create_view(model, {cell: cell}).then(function(view) {
                     that._handle_display_view(view);
-                    if (dummy) {
-                        dummy.replaceWith(view.$el);
-                    }
+                    dummy.replaceWith(view.$el);
                     view.trigger('displayed');
                     resolve(view);
                 }, function(error) { 
@@ -178,6 +172,7 @@ define([
     };
 
     WidgetManager.prototype.get_model = function (model_id) {
+        // Get a promise for a model by model id.
         return this._models[model_id];
     };
 

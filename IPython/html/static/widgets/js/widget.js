@@ -80,7 +80,7 @@ define(["widgets/js/manager",
                     this.trigger('msg:custom', msg.content.data.content);
                     break;
                 case 'display':
-                    this.widget_manager.display_view(msg, that);
+                    this.widget_manager.display_view(msg, this);
                     break;
             }
         },
@@ -262,7 +262,7 @@ define(["widgets/js/manager",
                 _.each(value, function(sub_value, key) {
                     unpacked[key] = that._unpack_models(sub_value);
                 });
-                return utils.resolve_dict(unpacked);
+                return utils.resolve_promises_dict(unpacked);
             } else if (typeof value === 'string' && value.slice(0,10) === "IPY_MODEL_") {
                 // get_model returns a promise already
                 return this.widget_manager.get_model(value.slice(10, value.length));
