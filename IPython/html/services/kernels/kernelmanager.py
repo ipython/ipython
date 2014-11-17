@@ -29,7 +29,10 @@ class MappingKernelManager(MultiKernelManager):
     root_dir = Unicode(config=True)
 
     def _root_dir_default(self):
-        return self.parent.notebook_dir
+        try:
+            return self.parent.notebook_dir
+        except AttributeError:
+            return getcwd()
 
     def _root_dir_changed(self, name, old, new):
         """Do a bit of validation of the root dir."""
