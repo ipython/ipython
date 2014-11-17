@@ -324,7 +324,7 @@ class NotebookApp(BaseIPythonApplication):
         list=(NbserverListApp, NbserverListApp.description.splitlines()[0]),
     )
 
-    kernel_argv = List(Unicode)
+    ipython_kernel_argv = List(Unicode)
     
     _log_formatter_cls = LogFormatter
 
@@ -683,16 +683,17 @@ class NotebookApp(BaseIPythonApplication):
             self.update_config(c)
 
     def init_kernel_argv(self):
-        """construct the kernel arguments"""
+        """add the profile-dir to arguments to be passed to IPython kernels"""
+        # FIXME: remove special treatment of IPython kernels
         # Kernel should get *absolute* path to profile directory
-        self.kernel_argv = ["--profile-dir", self.profile_dir.location]
+        self.ipython_kernel_argv = ["--profile-dir", self.profile_dir.location]
 
     def init_configurables(self):
         # force Session default to be secure
         default_secure(self.config)
         kls = import_item(self.kernel_manager_class)
         self.kernel_manager = kls(
-            parent=self, log=self.log, kernel_argv=self.kernel_argv,
+            parent=self, log=self.log, ipython_kernel_argv=self.ipython_kernel_argv,
             connection_dir = self.profile_dir.security_dir,
         )
         kls = import_item(self.contents_manager_class)

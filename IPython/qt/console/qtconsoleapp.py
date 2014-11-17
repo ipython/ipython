@@ -193,8 +193,10 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
                                 autorestart=True,
         )
         # start the kernel
-        kwargs = dict()
-        kwargs['extra_arguments'] = self.kernel_argv
+        kwargs = {}
+        # FIXME: remove special treatment of IPython kernels
+        if self.kernel_manager.ipython_kernel:
+            kwargs['extra_arguments'] = self.kernel_argv
         kernel_manager.start_kernel(**kwargs)
         kernel_manager.client_factory = self.kernel_client_class
         kernel_client = kernel_manager.client()

@@ -1,34 +1,17 @@
-"""A kernel manager relating notebooks and kernels
+"""A kernel manager relating notebooks and kernels"""
 
-Authors:
-
-* Brian Granger
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import os
 
 from tornado import web
 
 from IPython.kernel.multikernelmanager import MultiKernelManager
-from IPython.utils.traitlets import List, Unicode, TraitError
+from IPython.utils.traitlets import Unicode, TraitError
 
 from IPython.html.utils import to_os_path
 from IPython.utils.py3compat import getcwd
-
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
 
 
 class MappingKernelManager(MultiKernelManager):
@@ -36,8 +19,6 @@ class MappingKernelManager(MultiKernelManager):
 
     def _kernel_manager_class_default(self):
         return "IPython.kernel.ioloop.IOLoopKernelManager"
-
-    kernel_argv = List(Unicode)
 
     root_dir = Unicode(getcwd(), config=True)
 
@@ -89,7 +70,6 @@ class MappingKernelManager(MultiKernelManager):
             an existing kernel is returned, but it may be checked in the future.
         """
         if kernel_id is None:
-            kwargs['extra_arguments'] = self.kernel_argv
             if path is not None:
                 kwargs['cwd'] = self.cwd_for_path(path)
             kernel_id = super(MappingKernelManager, self).start_kernel(
