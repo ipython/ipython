@@ -78,16 +78,22 @@ class APITest(NotebookTestBase):
         with open(pjoin(bad_kernel_dir, 'kernel.json'), 'w') as f:
             f.write("garbage")
         
-        specs = self.ks_api.list().json()
-        assert isinstance(specs, list)
+        model = self.ks_api.list().json()
+        assert isinstance(model, dict)
+        self.assertEqual(model['default'], NATIVE_KERNEL_NAME)
+        specs = model['kernelspecs']
+        assert isinstance(specs, dict)
         # 2: the sample kernelspec created in setUp, and the native Python kernel
         self.assertGreaterEqual(len(specs), 2)
         
         shutil.rmtree(bad_kernel_dir)
     
     def test_list_kernelspecs(self):
-        specs = self.ks_api.list().json()
-        assert isinstance(specs, list)
+        model = self.ks_api.list().json()
+        assert isinstance(model, dict)
+        self.assertEqual(model['default'], NATIVE_KERNEL_NAME)
+        specs = model['kernelspecs']
+        assert isinstance(specs, dict)
 
         # 2: the sample kernelspec created in setUp, and the native Python kernel
         self.assertGreaterEqual(len(specs), 2)
@@ -98,8 +104,8 @@ class APITest(NotebookTestBase):
         def is_default_kernelspec(s):
             return s['name'] == NATIVE_KERNEL_NAME and s['display_name'].startswith("IPython")
 
-        assert any(is_sample_kernelspec(s) for s in specs), specs
-        assert any(is_default_kernelspec(s) for s in specs), specs
+        assert any(is_sample_kernelspec(s) for s in specs.values()), specs
+        assert any(is_default_kernelspec(s) for s in specs.values()), specs
 
     def test_get_kernelspec(self):
         spec = self.ks_api.kernel_spec_info('Sample').json()  # Case insensitive

@@ -25,16 +25,27 @@ define([
     
     KernelSelector.prototype.request_kernelspecs = function() {
         var url = utils.url_join_encode(this.notebook.base_url, 'api/kernelspecs');
-        $.ajax(url, {success: $.proxy(this._got_kernelspecs, this)});
+        utils.promising_ajax(url).then($.proxy(this._got_kernelspecs, this));
     };
     
-    KernelSelector.prototype._got_kernelspecs = function(data, status, xhr) {
-        this.kernelspecs = {};
+    KernelSelector.prototype._got_kernelspecs = function(data) {
+        this.kernelspecs = data.kernelspecs;
         var menu = this.element.find("#kernel_selector");
         var change_kernel_submenu = $("#menu-change-kernel-submenu");
-        for (var i = 0; i < data.length; i++) {
-            var ks = data[i];
-            this.kernelspecs[ks.name] = ks;
+        var keys = Object.keys(data.kernelspecs).sort(function (a, b) {
+            // sort by display_name
+            var da = data.kernelspecs[a].display_name;
+            var db = data.kernelspecs[b].display_name;
+            if (da === db) {
+                return 0;
+            } else if (da > db) {
+                return 1;
+            } else {
+                return -1;
+            }
+        });
+        for (var i = 0; i < keys.length; i++) {
+            var ks = this.kernelspecs[keys[i]];
             var ksentry = $("<li>").attr("id", "kernel-" +ks.name).append($('<a>')
                 .attr('href', '#')
                 .click($.proxy(this.change_kernel, this, ks.name))

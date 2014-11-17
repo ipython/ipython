@@ -38,11 +38,21 @@ define([
     
     NewNotebookWidget.prototype._load_kernelspecs = function (data) {
         /** load kernelspec list */
-        this.kernelspecs = {};
+        this.kernelspecs = data.kernelspecs;
         var menu = this.element.find("#new-notebook-menu");
-        for (var i = 0; i < data.length; i++) {
-            var ks = data[i];
-            this.kernelspecs[ks.name] = ks;
+        var keys = Object.keys(data.kernelspecs).sort(function (a, b) {
+            var da = data.kernelspecs[a].display_name;
+            var db = data.kernelspecs[b].display_name;
+            if (da === db) {
+                return 0;
+            } else if (da > db) {
+                return 1;
+            } else {
+                return -1;
+            }
+        });
+        for (var i = 0; i < keys.length; i++) {
+            var ks = this.kernelspecs[keys[i]];
             var li = $("<li>")
                 .attr("id", "kernel-" +ks.name)
                 .data('kernelspec', ks).append(
@@ -59,12 +69,12 @@ define([
             );
             menu.append(li);
         }
-        this._load_default_kernelspec();
+        this._load_default_kernelspec(data['default']);
     };
     
-    NewNotebookWidget.prototype._load_default_kernelspec = function () {
+    NewNotebookWidget.prototype._load_default_kernelspec = function (default_name) {
         /** load default kernelspec name from localStorage, if defined */
-        this.select_kernel(localStorage.default_kernel_name);
+        this.select_kernel(localStorage.default_kernel_name || default_name);
     };
 
     NewNotebookWidget.prototype.select_kernel = function (kernel_name) {

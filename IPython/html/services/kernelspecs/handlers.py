@@ -7,8 +7,6 @@ from tornado import web
 
 from ...base.handlers import IPythonHandler, json_errors
 
-from IPython.kernel.kernelspec import _pythonfirst
-
 
 class MainKernelSpecHandler(IPythonHandler):
     SUPPORTED_METHODS = ('GET',)
@@ -17,18 +15,21 @@ class MainKernelSpecHandler(IPythonHandler):
     @json_errors
     def get(self):
         ksm = self.kernel_spec_manager
-        results = []
-        for kernel_name in sorted(ksm.find_kernel_specs(), key=_pythonfirst):
+        km = self.kernel_manager
+        model = {}
+        model['default'] = km.default_kernel_name
+        model['kernelspecs'] = specs = {}
+        for kernel_name in ksm.find_kernel_specs():
             try:
                 d = ksm.get_kernel_spec(kernel_name).to_dict()
             except Exception:
                 self.log.error("Failed to load kernel spec: '%s'", kernel_name, exc_info=True)
                 continue
             d['name'] = kernel_name
-            results.append(d)
+            specs[kernel_name] = d
 
         self.set_header("Content-Type", 'application/json')
-        self.finish(json.dumps(results))
+        self.finish(json.dumps(model))
 
 
 class KernelSpecHandler(IPythonHandler):
