@@ -1054,6 +1054,8 @@ class Union(TraitType):
         for trait_type in self.trait_types:
             trait_type.name = self.name
             trait_type.this_class = self.this_class
+            if hasattr(trait_type, '_resolve_classes'):
+                trait_type._resolve_classes()
         super(Union, self).instance_init(obj)
 
     def validate(self, obj, value):
