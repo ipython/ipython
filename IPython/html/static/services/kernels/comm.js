@@ -120,6 +120,7 @@ define([
             } catch (e) {
                 console.log("Exception handling comm msg: ", e, e.stack, msg);
             }
+            return Promise.resolve(comm);
         });
     };
     
