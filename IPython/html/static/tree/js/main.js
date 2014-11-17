@@ -8,6 +8,7 @@ require([
     'base/js/events',
     'base/js/page',
     'base/js/utils',
+    'services/config',
     'contents',
     'tree/js/notebooklist',
     'tree/js/clusterlist',
@@ -27,6 +28,7 @@ require([
     events,
     page,
     utils,
+    config,
     contents_service,
     notebooklist,
     clusterlist,
@@ -43,6 +45,10 @@ require([
         base_url: utils.get_body_data("baseUrl"),
         notebook_path: utils.get_body_data("notebookPath"),
     };
+    var cfg = new config.ConfigSection('tree', common_options);
+    cfg.load();
+    common_options.config = cfg;
+    
     var session_list = new sesssionlist.SesssionList($.extend({
         events: events}, 
         common_options));

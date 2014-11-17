@@ -15,6 +15,7 @@ define([
         this.notebook_path = options.notebook_path;
         this.contents = options.contents;
         this.current_selection = null;
+        this.config = options.config;
         this.kernelspecs = {};
         if (this.selector !== undefined) {
             this.element = $(selector);
@@ -38,6 +39,7 @@ define([
     
     NewNotebookWidget.prototype._load_kernelspecs = function (data) {
         /** load kernelspec list */
+        var that = this;
         this.kernelspecs = data.kernelspecs;
         var menu = this.element.find("#new-notebook-menu");
         var keys = Object.keys(data.kernelspecs).sort(function (a, b) {
@@ -69,17 +71,30 @@ define([
             );
             menu.append(li);
         }
-        this._load_default_kernelspec(data['default']);
+        this.config.loaded.then(function () {
+            that._load_default_kernelspec(data['default']);
+        });
     };
     
     NewNotebookWidget.prototype._load_default_kernelspec = function (default_name) {
         /** load default kernelspec name from localStorage, if defined */
-        this.select_kernel(localStorage.default_kernel_name || default_name);
+        if (this.config.data.NewNotebookWidget &&
+            this.config.data.NewNotebookWidget.current_selection &&
+            this.kernelspecs[this.config.data.NewNotebookWidget.current_selection] !== undefined
+        ) {
+            default_name = this.config.data.NewNotebookWidget.current_selection;
+        }
+        this.select_kernel(default_name);
     };
 
     NewNotebookWidget.prototype.select_kernel = function (kernel_name) {
         /** select the current default kernel */
         this.current_selection = kernel_name;
+        this.config.update({
+            NewNotebookWidget: {
+                current_selection: kernel_name
+            }
+        });
         var spec = this.kernelspecs[kernel_name];
         var display_name;
         if (spec) {
