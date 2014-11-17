@@ -248,14 +248,16 @@ define([
         if (model.type !== "directory") {
             link.attr('target','_blank');
         }
-        var path_name = utils.url_path_join(path, name);
+        if (model.type !== 'directory') {
+            this.add_duplicate_button(item);
+        }
         if (model.type == 'file') {
             this.add_delete_button(item);
         } else if (model.type == 'notebook') {
-            if(this.sessions[path_name] === undefined){
+            if (this.sessions[path] === undefined){
                 this.add_delete_button(item);
             } else {
-                this.add_shutdown_button(item, this.sessions[path_name]);
+                this.add_shutdown_button(item, this.sessions[path]);
             }
         }
     };
@@ -305,8 +307,37 @@ define([
                 $.ajax(url, settings);
                 return false;
             });
-        // var new_buttons = item.find('a'); // shutdown_button;
-        item.find(".item_buttons").text("").append(shutdown_button);
+        item.find(".item_buttons").append(shutdown_button);
+    };
+
+    NotebookList.prototype.add_duplicate_button = function (item) {
+        var notebooklist = this;
+        var duplicate_button = $("<button/>").text("Duplicate").addClass("btn btn-default btn-xs").
+            click(function (e) {
+                // $(this) is the button that was clicked.
+                var that = $(this);
+                var name = item.data('name');
+                var path = item.data('path');
+                var message = 'Are you sure you want to duplicate ' + name + '?';
+                var copy_from = {copy_from : path};
+                IPython.dialog.modal({
+                    title : "Duplicate " + name,
+                    body : message,
+                    buttons : {
+                        Duplicate : {
+                            class: "btn-primary",
+                            click: function() {
+                                notebooklist.contents.copy(path, notebooklist.notebook_path).then(function () {
+                                    notebooklist.load_list();
+                                });
+                            }
+                        },
+                        Cancel : {}
+                    }
+                });
+                return false;
+            });
+        item.find(".item_buttons").append(duplicate_button);
     };
 
     NotebookList.prototype.add_delete_button = function (item) {
@@ -340,7 +371,7 @@ define([
                 });
                 return false;
             });
-        item.find(".item_buttons").text("").append(delete_button);
+        item.find(".item_buttons").append(delete_button);
     };
 
     NotebookList.prototype.notebook_deleted = function(path) {
