@@ -616,11 +616,22 @@ class NotebookApp(BaseIPythonApplication):
     def _kernel_spec_manager_default(self):
         return KernelSpecManager(ipython_dir=self.ipython_dir)
 
+
+    kernel_spec_manager_class = DottedObjectName('IPython.kernel.kernelspec.KernelSpecManager',
+            config=True,
+            help="""
+            The kernel spec manager class to use. Should be a subclass
+            of `IPython.kernel.kernelspec.KernelSpecManager`.
+
+            The Api of KernelSpecManager is provisional and might change
+            without warning between this version of IPython and the next stable one.
+            """)
+
     trust_xheaders = Bool(False, config=True,
         help=("Whether to trust or not X-Scheme/X-Forwarded-Proto and X-Real-Ip/X-Forwarded-For headers"
               "sent by the upstream reverse proxy. Necessary if the proxy handles SSL")
     )
-    
+
     info_file = Unicode()
 
     def _info_file_default(self):
@@ -690,6 +701,9 @@ class NotebookApp(BaseIPythonApplication):
     def init_configurables(self):
         # force Session default to be secure
         default_secure(self.config)
+        kls = import_item(self.kernel_spec_manager_class)
+        self.kernel_spec_manager = kls(ipython_dir=self.ipython_dir)
+
         kls = import_item(self.kernel_manager_class)
         self.kernel_manager = kls(
             parent=self, log=self.log, kernel_argv=self.kernel_argv,
