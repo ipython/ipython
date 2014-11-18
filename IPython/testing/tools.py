@@ -218,6 +218,11 @@ def ipexec(fname, options=None, commands=()):
     full_cmd = ipython_cmd + cmdargs + [full_fname]
     env = os.environ.copy()
     env.pop('PYTHONWARNINGS', None)  # Avoid extraneous warnings appearing on stderr
+    for k, v in env.items():
+        # Debug a bizarre failure we've seen on Windows:
+        # TypeError: environment can only contain strings
+        if not isinstance(v, str):
+            print(v)
     p = Popen(full_cmd, stdout=PIPE, stderr=PIPE, stdin=PIPE, env=env)
     out, err = p.communicate(input=py3compat.str_to_bytes('\n'.join(commands)) or None)
     out, err = py3compat.bytes_to_str(out), py3compat.bytes_to_str(err)
