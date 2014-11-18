@@ -44,6 +44,24 @@ class LoginHandler(IPythonHandler):
 
         self.redirect(self.get_argument('next', default=self.base_url))
     
+    @staticmethod
+    def get_user(handler):
+        """Called by handlers for identifying the current user."""
+        # Can't call this get_current_user because it will collide when
+        # called on LoginHandler itself.
+        
+        user_id = handler.get_secure_cookie(handler.cookie_name)
+        # For now the user_id should not return empty, but it could eventually
+        if user_id == '':
+            user_id = 'anonymous'
+        if user_id is None:
+            # prevent extra Invalid cookie sig warnings:
+            handler.clear_login_cookie()
+            if not handler.login_available:
+                user_id = 'anonymous'
+        return user_id
+        
+    
     @classmethod
     def validate_notebook_app_security(cls, notebook_app, ssl_options=None):
         if not notebook_app.ip:
