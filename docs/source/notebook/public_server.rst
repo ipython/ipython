@@ -107,6 +107,18 @@ You can then start the notebook and access it later by pointing your browser
 to ``https://your.host.com:9999`` with ``ipython notebook 
 --profile=nbserver``.
 
+
+Firewall Setup
+``````````````
+
+To function correctly, the firewall on computer running the ipython server must be 
+configured to allow connections from client machines on the ``c.NotebookApp.port``
+port to allow connections to the web interface.  The firewall must also allow 
+connections from 127.0.0.1 on ports in the range of 10000 to 65535, which are used
+by the server to communicate with the notebook kernels.  The kernel communication
+ports are chosen randomly by ZeroMQ, and my require multiple connections per kernel
+so a large range of ports must be accessible.
+
 Running with a different URL prefix
 -----------------------------------
 
