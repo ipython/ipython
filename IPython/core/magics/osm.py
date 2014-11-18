@@ -413,7 +413,7 @@ class OSMagics(Magics):
             err = "refusing to set env var with whitespace: '{0}'"
             err = err.format(val)
             raise UsageError(err)
-        os.environ[var] = py3compat.cast_bytes_py2(val)
+        os.environ[py3compat.cast_bytes_py2(var)] = py3compat.cast_bytes_py2(val)
         print('env: {0}={1}'.format(var,val))
 
     @line_magic
