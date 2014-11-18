@@ -1,4 +1,8 @@
-"""A kernel manager relating notebooks and kernels"""
+"""A MultiKernelManager for use in the notebook webserver
+
+- raises HTTPErrors
+- creates REST API models
+"""
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
