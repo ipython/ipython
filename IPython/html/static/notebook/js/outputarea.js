@@ -418,9 +418,9 @@ define([
         }
         this._safe_append(toinsert);
         // If we just output latex, typeset it.
-        if ((json['text/latex'] !== undefined) ||
-            (json['text/html'] !== undefined) ||
-            (json['text/markdown'] !== undefined)) {
+        if ((json.data['text/latex'] !== undefined) ||
+            (json.data['text/html'] !== undefined) ||
+            (json.data['text/markdown'] !== undefined)) {
             this.typeset();
         }
     };
@@ -490,9 +490,9 @@ define([
         if (this.append_mime_type(json, toinsert, handle_inserted)) {
             this._safe_append(toinsert);
             // If we just output latex, typeset it.
-            if ((json['text/latex'] !== undefined) ||
-                (json['text/html'] !== undefined) ||
-                (json['text/markdown'] !== undefined)) {
+            if ((json.data['text/latex'] !== undefined) ||
+                (json.data['text/html'] !== undefined) ||
+                (json.data['text/markdown'] !== undefined)) {
                 this.typeset();
             }
         }
