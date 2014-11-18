@@ -21,6 +21,11 @@ function($,
         
         this.codemirror = CodeMirror($(this.selector)[0]);
         
+        // It appears we have to set commands on the CodeMirror class, not the
+        // instance. I'd like to be wrong, but since there should only be one CM
+        // instance on the page, this is good enough for now.
+        CodeMirror.commands.save = $.proxy(this.save, this);
+        
         this.save_enabled = false;
     };
     
@@ -46,9 +51,6 @@ function($,
                 that.save_enabled = false;
             }
         );
-        cm.setOption("extraKeys", {
-            "Ctrl-S": $.proxy(this.save, this),
-        });
     };
 
     Editor.prototype.save = function() {
