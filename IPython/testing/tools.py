@@ -222,7 +222,7 @@ def ipexec(fname, options=None, commands=()):
         # Debug a bizarre failure we've seen on Windows:
         # TypeError: environment can only contain strings
         if not isinstance(v, str):
-            print(v)
+            print(k, v)
     p = Popen(full_cmd, stdout=PIPE, stderr=PIPE, stdin=PIPE, env=env)
     out, err = p.communicate(input=py3compat.str_to_bytes('\n'.join(commands)) or None)
     out, err = py3compat.bytes_to_str(out), py3compat.bytes_to_str(err)
