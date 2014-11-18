@@ -4,8 +4,9 @@
 define([
     "widgets/js/widget",
     "jqueryui",
+    "base/js/utils",
     "bootstrap",
-], function(widget, $){
+], function(widget, $, utils){
 
     var BoxView = widget.DOMWidgetView.extend({
         initialize: function(){
@@ -75,14 +76,17 @@ define([
         add_child_model: function(model) {
             // Called when a model is added to the children list.
             var that = this;
-            this.create_child_view(model, {callback: function(view) {
-                that.$box.append(view.$el);
+            var dummy = $('<div/>');
+            that.$box.append(dummy);
+            return this.create_child_view(model).then(function(view) {
+                dummy.replaceWith(view.el);
 
                 // Trigger the displayed event of the child view.
                 that.after_displayed(function() {
                     view.trigger('displayed');
                 });
-            }});
+                return view;
+            }, utils.reject("Couldn't add child view to box", true));
         },
     });
 

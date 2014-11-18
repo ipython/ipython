@@ -51,7 +51,7 @@ define([
     
     CommManager.prototype.register_comm = function (comm) {
         // Register a comm in the mapping
-        this.comms[comm.comm_id] = comm;
+        this.comms[comm.comm_id] = Promise.resolve(comm);
         comm.kernel = this.kernel;
         return comm.comm_id;
     };
@@ -66,67 +66,62 @@ define([
     CommManager.prototype.comm_open = function (msg) {
         var content = msg.content;
         var that = this;
-        
-        var instantiate_comm = function(target) {
-            var comm = new Comm(content.target_name, content.comm_id);
-            that.register_comm(comm);
+        var comm_id = content.comm_id;
+
+        this.comms[comm_id] = utils.load_class(content.target_name, content.target_module, 
+            this.targets).then(function(target) {
+
+            var comm = new Comm(content.target_name, comm_id);
+            comm.kernel = that.kernel;
             try {
-                target(comm, msg);
+                var response = target(comm, msg);
+                if (response instanceof Promise) {
+                    return response.then(function() { return Promise.resolve(comm); });
+                }
             } catch (e) {
-                console.log("Exception opening new comm:", e, e.stack, msg);
                 comm.close();
                 that.unregister_comm(comm);
+                var wrapped_error = new utils.WrappedError("Exception opening new comm", e);
+                console.error(wrapped_error);
+                return Promise.reject(wrapped_error);
             }
-        };
+            return Promise.resolve(comm);
+        }, utils.reject('Could not open comm', true));
+        return this.comms[comm_id];
+    };
+    
+    CommManager.prototype.comm_close = function(msg) {
+        var content = msg.content;
+        if (this.comms[content.comm_id] === undefined) {
+            console.error('Comm promise not found for comm id ' + content.comm_id);
+            return;
+        }
 
-        if (content.target_module) {
-            // Load requirejs module for comm target
-            require([content.target_module], function(mod) {
-                var target = mod[content.target_name];
-                if (target !== undefined) {
-                    instantiate_comm(target)
-                } else {
-                    console.log("Comm target " + content.target_name + 
-                        " not found in module " + content.target_module);
-                }
-            }, function(err) { console.log(err); });
-        } else {
-            // No requirejs module specified: look for target in registry
-            var f = this.targets[content.target_name];
-            if (f === undefined) {
-                console.log("No such target registered: ", content.target_name);
-                console.log("Available targets are: ", this.targets);
-                return;
+        this.comms[content.comm_id] = this.comms[content.comm_id].then(function(comm) {
+            this.unregister_comm(comm);
+            try {
+                comm.handle_close(msg);
+            } catch (e) {
+                console.log("Exception closing comm: ", e, e.stack, msg);
             }
-            instantiate_comm(f)
-        }
+        });
     };
     
-    CommManager.prototype.comm_close = function (msg) {
+    CommManager.prototype.comm_msg = function(msg) {
         var content = msg.content;
-        var comm = this.comms[content.comm_id];
-        if (comm === undefined) {
+        if (this.comms[content.comm_id] === undefined) {
+            console.error('Comm promise not found for comm id ' + content.comm_id);
             return;
         }
-        this.unregister_comm(comm);
-        try {
-            comm.handle_close(msg);
-        } catch (e) {
-            console.log("Exception closing comm: ", e, e.stack, msg);
-        }
-    };
-    
-    CommManager.prototype.comm_msg = function (msg) {
-        var content = msg.content;
-        var comm = this.comms[content.comm_id];
-        if (comm === undefined) {
-            return;
-        }
-        try {
-            comm.handle_msg(msg);
-        } catch (e) {
-            console.log("Exception handling comm msg: ", e, e.stack, msg);
-        }
+
+        this.comms[content.comm_id] = this.comms[content.comm_id].then(function(comm) {
+            try {
+                comm.handle_msg(msg);
+            } catch (e) {
+                console.log("Exception handling comm msg: ", e, e.stack, msg);
+            }
+            return Promise.resolve(comm);
+        });
     };
     
     //-----------------------------------------------------------------------
@@ -180,7 +175,7 @@ define([
     
     // methods for handling incoming messages
     
-    Comm.prototype._maybe_callback = function (key, msg) {
+    Comm.prototype._callback = function (key, msg) {
         var callback = this['_' + key + '_callback'];
         if (callback) {
             try {
@@ -192,11 +187,11 @@ define([
     };
     
     Comm.prototype.handle_msg = function (msg) {
-        this._maybe_callback('msg', msg);
+        this._callback('msg', msg);
     };
     
     Comm.prototype.handle_close = function (msg) {
-        this._maybe_callback('close', msg);
+        this._callback('close', msg);
     };
     
     // For backwards compatability.

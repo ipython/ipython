@@ -3,13 +3,14 @@
 
 define(["widgets/js/manager",
         "underscore",
-        "backbone", 
-        "jquery",   
+        "backbone",
+        "jquery",
+        "base/js/utils",
         "base/js/namespace",
-], function(widgetmanager, _, Backbone, $, IPython){
+], function(widgetmanager, _, Backbone, $, utils, IPython){
 
     var WidgetModel = Backbone.Model.extend({
-        constructor: function (widget_manager, model_id, comm, init_state_callback) {
+        constructor: function (widget_manager, model_id, comm) {
             // Constructor
             //
             // Creates a WidgetModel instance.
@@ -20,11 +21,8 @@ define(["widgets/js/manager",
             // model_id : string
             //      An ID unique to this model.
             // comm : Comm instance (optional)
-            // init_state_callback : callback (optional)
-            //      Called once when the first state message is recieved from 
-            //      the back-end.
             this.widget_manager = widget_manager;
-            this.init_state_callback = init_state_callback;
+            this.state_change = Promise.resolve();
             this._buffered_state_diff = {};
             this.pending_msgs = 0;
             this.msg_buffer = null;
@@ -71,13 +69,12 @@ define(["widgets/js/manager",
         _handle_comm_msg: function (msg) {
             // Handle incoming comm msg.
             var method = msg.content.data.method;
+            var that = this;
             switch (method) {
                 case 'update':
-                    this.set_state(msg.content.data.state);
-                    if (this.init_state_callback) {
-                        this.init_state_callback.apply(this, [this]);
-                        delete this.init_state_callback;
-                    }
+                    this.state_change = this.state_change.then(function() {
+                        return that.set_state(msg.content.data.state);
+                    }).catch(utils.reject("Couldn't process update msg for model id '" + String(that.id) + "'", true));
                     break;
                 case 'custom':
                     this.trigger('msg:custom', msg.content.data.content);
@@ -89,17 +86,17 @@ define(["widgets/js/manager",
         },
 
         set_state: function (state) {
+            var that = this;
             // Handle when a widget is updated via the python side.
-            this.state_lock = state;
-            try {
-                var that = this;
-                WidgetModel.__super__.set.apply(this, [Object.keys(state).reduce(function(obj, key) {
-                    obj[key] = that._unpack_models(state[key]);
-                    return obj;
-                }, {})]);
-            } finally {
-               this.state_lock = null;
-            }
+            return this._unpack_models(state).then(function(state) {
+                that.state_lock = state;
+                try {
+                    WidgetModel.__super__.set.call(that, state);
+                } finally {
+                    that.state_lock = null;
+                }
+                return Promise.resolve();
+            }, utils.reject("Couldn't set model state", true));
         },
 
         _handle_status: function (msg, callbacks) {
@@ -259,24 +256,18 @@ define(["widgets/js/manager",
                 _.each(value, function(sub_value, key) {
                     unpacked.push(that._unpack_models(sub_value));
                 });
-                return unpacked;
-
+                return Promise.all(unpacked);
             } else if (value instanceof Object) {
                 unpacked = {};
                 _.each(value, function(sub_value, key) {
                     unpacked[key] = that._unpack_models(sub_value);
                 });
-                return unpacked;
-
+                return utils.resolve_promises_dict(unpacked);
             } else if (typeof value === 'string' && value.slice(0,10) === "IPY_MODEL_") {
-                var model = this.widget_manager.get_model(value.slice(10, value.length));
-                if (model) {
-                    return model;
-                } else {
-                    return value;
-                }
+                // get_model returns a promise already
+                return this.widget_manager.get_model(value.slice(10, value.length));
             } else {
-                    return value;
+                return Promise.resolve(value);
             }
         },
 
@@ -304,7 +295,7 @@ define(["widgets/js/manager",
             this.options = parameters.options;
             this.child_model_views = {};
             this.child_views = {};
-            this.id = this.id || IPython.utils.uuid();
+            this.id = this.id || utils.uuid();
             this.model.views[this.id] = this;
             this.on('displayed', function() { 
                 this.is_displayed = true; 
@@ -318,29 +309,19 @@ define(["widgets/js/manager",
         },
 
         create_child_view: function(child_model, options) {
-            // Create and return a child view.
-            //
-            // -given a model and (optionally) a view name if the view name is 
-            // not given, it defaults to the model's default view attribute.
-        
-            // TODO: this is hacky, and makes the view depend on this cell attribute and widget manager behavior
-            // it would be great to have the widget manager add the cell metadata
-            // to the subview without having to add it here.
+            // Create and promise that resolves to a child view of a given model
             var that = this;
-            var old_callback = options.callback || function(view) {};
-            options = $.extend({ parent: this, success: function(child_view) {
+            options = $.extend({ parent: this }, options || {});
+            return this.model.widget_manager.create_view(child_model, options).then(function(child_view) {
                 // Associate the view id with the model id.
                 if (that.child_model_views[child_model.id] === undefined) {
                     that.child_model_views[child_model.id] = [];
                 }
                 that.child_model_views[child_model.id].push(child_view.id);
-
                 // Remember the view by id.
                 that.child_views[child_view.id] = child_view;
-                old_callback(child_view);
-             }}, options || {});
-            
-            this.model.widget_manager.create_view(child_model, options);
+                return child_view;
+            }, utils.reject("Couldn't create child view"));
         },
 
         pop_child_view: function(child_model) {

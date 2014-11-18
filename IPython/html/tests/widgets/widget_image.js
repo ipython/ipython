@@ -26,19 +26,23 @@ casper.notebook_test(function () {
         'display(image)\n' + 
         'print("Success")\n');
     this.execute_cell_then(image_index, function(index){
-
         this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Create image executed with correct output.');
+    });
 
-        this.test.assert(this.cell_element_exists(index, 
+    // Wait for the widget to actually display.
+    var img_selector = '.widget-area .widget-subarea img';
+    this.wait_for_element(image_index, img_selector);
+
+    this.then(function(){
+        this.test.assert(this.cell_element_exists(image_index, 
             '.widget-area .widget-subarea'),
             'Widget subarea exists.');
 
-        var img_sel = '.widget-area .widget-subarea img';
-        this.test.assert(this.cell_element_exists(index, img_sel), 'Image exists.');
+        this.test.assert(this.cell_element_exists(image_index, img_selector), 'Image exists.');
 
         // Verify that the image's base64 data has made it into the DOM.
-        var img_src = this.cell_element_function(image_index, img_sel, 'attr', ['src']);
+        var img_src = this.cell_element_function(image_index, img_selector, 'attr', ['src']);
         this.test.assert(img_src.indexOf(test_jpg) > -1, 'Image src data exists.');
     });    
 });

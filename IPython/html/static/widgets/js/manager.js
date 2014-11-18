@@ -5,8 +5,9 @@ define([
     "underscore",
     "backbone",
     "jquery",
-    "base/js/namespace"
-], function (_, Backbone, $, IPython) {
+    "base/js/utils",
+    "base/js/namespace",
+], function (_, Backbone, $, utils, IPython) {
     "use strict";
     //--------------------------------------------------------------------
     // WidgetManager class
@@ -47,20 +48,25 @@ define([
     //--------------------------------------------------------------------
     WidgetManager.prototype.display_view = function(msg, model) {
         // Displays a view for a particular model.
-        var cell = this.get_msg_cell(msg.parent_header.msg_id);
-        if (cell === null) {
-            console.log("Could not determine where the display" + 
-                " message was from.  Widget will not be displayed");
-        } else {
-            var that = this;
-            this.create_view(model, {cell: cell, success: function(view) {
-                that._handle_display_view(view);
-                if (cell.widget_subarea) {
-                    cell.widget_subarea.append(view.$el);
-                }
-                view.trigger('displayed');
-            }});
-        }
+        var that = this;
+        return new Promise(function(resolve, reject) {
+            var cell = that.get_msg_cell(msg.parent_header.msg_id);
+            if (cell === null) {
+                reject(new Error("Could not determine where the display" + 
+                    " message was from.  Widget will not be displayed"));
+            } else if (cell.widget_subarea) {
+                var dummy = $('<div />');
+                cell.widget_subarea.append(dummy);
+                that.create_view(model, {cell: cell}).then(function(view) {
+                    that._handle_display_view(view);
+                    dummy.replaceWith(view.$el);
+                    view.trigger('displayed');
+                    resolve(view);
+                }, function(error) { 
+                    reject(new utils.WrappedError('Could not display view', error)); 
+                });
+            }
+        });
     };
 
     WidgetManager.prototype._handle_display_view = function (view) {
@@ -70,52 +76,39 @@ define([
         if (this.keyboard_manager) {
             this.keyboard_manager.register_events(view.$el);
         
-        if (view.additional_elements) {
-            for (var i = 0; i < view.additional_elements.length; i++) {
+            if (view.additional_elements) {
+                for (var i = 0; i < view.additional_elements.length; i++) {
                     this.keyboard_manager.register_events(view.additional_elements[i]);
-            }
-        } 
+                }
+            } 
         }
     };
     
-
     WidgetManager.prototype.create_view = function(model, options) {
-        // Creates a view for a particular model.
-        
-        var view_name = model.get('_view_name');
-        var view_mod = model.get('_view_module');
-        var error = options.error || function(error) { console.log(error); };
+        // Creates a promise for a view of a given model
 
-        var instantiate_view = function(ViewType) {
-            if (ViewType) {
+        // Make sure the view creation is not out of order with 
+        // any state updates.
+        model.state_change = model.state_change.then(function() {
+            
+            return utils.load_class(model.get('_view_name'), model.get('_view_module'),
+            WidgetManager._view_types).then(function(ViewType) {
+
                 // If a view is passed into the method, use that view's cell as
                 // the cell for the view that is created.
                 options = options || {};
                 if (options.parent !== undefined) {
                     options.cell = options.parent.options.cell;
                 }
-
                 // Create and render the view...
                 var parameters = {model: model, options: options};
                 var view = new ViewType(parameters);
+                view.listenTo(model, 'destroy', view.remove);
                 view.render();
-                model.on('destroy', view.remove, view);
-                if (options.success) {
-                    options.success(view);
-                }
-            } else {
-                error({unknown_view: true, view_name: view_name,
-                         view_module: view_mod});
-            }
-        };
-
-        if (view_mod) {
-            require([view_mod], function(module) {
-                instantiate_view(module[view_name]);
-            }, error);
-        } else {
-            instantiate_view(WidgetManager._view_types[view_name]);
-        }
+                return view;
+            }, utils.reject("Couldn't create a view for model id '" + String(model.id) + "'"));
+        });
+        return model.state_change;
     };
 
     WidgetManager.prototype.get_msg_cell = function (msg_id) {
@@ -179,24 +172,20 @@ define([
     };
 
     WidgetManager.prototype.get_model = function (model_id) {
-        // Look-up a model instance by its id.
-        var model = this._models[model_id];
-        if (model !== undefined && model.id == model_id) {
-            return model;
-        }
-        return null;
+        // Get a promise for a model by model id.
+        return this._models[model_id];
     };
 
     WidgetManager.prototype._handle_comm_open = function (comm, msg) {
         // Handle when a comm is opened.
-        this.create_model({
+        return this.create_model({
             model_name: msg.content.data.model_name, 
             model_module: msg.content.data.model_module, 
-            comm: comm});
+            comm: comm}).catch(utils.reject("Couldn't create a model."));
     };
 
     WidgetManager.prototype.create_model = function (options) {
-        // Create and return a new widget model.
+        // Create and return a promise for a new widget model
         //
         // Minimally, one must provide the model_name and widget_class
         // parameters to create a model from Javascript.
@@ -206,8 +195,9 @@ define([
         // JS:
         // IPython.notebook.kernel.widget_manager.create_model({
         //      model_name: 'WidgetModel', 
-        //      widget_class: 'IPython.html.widgets.widget_int.IntSlider',
-        //      init_state_callback: function(model) { console.log('Create success!', model); }});
+        //      widget_class: 'IPython.html.widgets.widget_int.IntSlider'})
+        //      .then(function(model) { console.log('Create success!', model); },
+        //      $.proxy(console.error, console));
         //
         // Parameters
         // ----------
@@ -220,60 +210,33 @@ define([
         //      widget_class: (optional) string
         //          Target name of the widget in the back-end.
         //      comm: (optional) Comm
-        //      success: (optional) callback
-        //          Callback for when the model was created successfully.
-        //      error: (optional) callback
-        //          Callback for when the model wasn't created.
-        //      init_state_callback: (optional) callback
-        //          Called when the first state push from the back-end is 
-        //          recieved.  Allows you to modify the model after it's
-        //          complete state is filled and synced.
-
-        // Make default callbacks if not specified.
-        var error = options.error || function(error) { console.log(error); };
-
+        
         // Create a comm if it wasn't provided.
         var comm = options.comm;
         if (!comm) {
             comm = this.comm_manager.new_comm('ipython.widget', {'widget_class': options.widget_class});
         }
 
-        // Create a new model that is connected to the comm.
         var that = this;
-        var instantiate_model = function(ModelType) {
-            var model_id = comm.comm_id;
-            var widget_model = new ModelType(that, model_id, comm, options.init_state_callback);
-            widget_model.on('comm:close', function () {
-              delete that._models[model_id];
+        var model_id = comm.comm_id;
+        var model_promise =  utils.load_class(options.model_name, options.model_module, WidgetManager._model_types)
+            .then(function(ModelType) {
+                var widget_model = new ModelType(that, model_id, comm);
+                widget_model.once('comm:close', function () {
+                    delete that._models[model_id];
+                });
+                return widget_model;
+
+            }, function(error) {
+                delete that._models[model_id];
+                var wrapped_error = new utils.WrappedError("Couldn't create model", error);
+                return Promise.reject(wrapped_error);
             });
-            that._models[model_id] = widget_model;
-            if (options.success) {                
-                options.success(widget_model);
-            }
-        };
-        
-        // Get the model type using require or through the registry.
-        var widget_type_name = options.model_name;
-        var widget_module = options.model_module;
-        if (widget_module) {
-
-            // Load the module containing the widget model
-            require([widget_module], function(mod) {
-                if (mod[widget_type_name]) {
-                    instantiate_model(mod[widget_type_name]);
-                } else {
-                    error("Error creating widget model: " + widget_type_name
-                            + " not found in " + widget_module);
-                }
-            }, error);
-        } else {
-
-            // No module specified, load from the global models registry
-            instantiate_model(WidgetManager._model_types[widget_type_name]);
-        }
+        this._models[model_id] = model_promise;
+        return model_promise;
     };
 
-    // Backwards compatability.
+    // Backwards compatibility.
     IPython.WidgetManager = WidgetManager;
 
     return {'WidgetManager': WidgetManager};

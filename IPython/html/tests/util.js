@@ -22,6 +22,35 @@ casper.open_new_notebook = function () {
     });
     this.waitFor(this.page_loaded);
 
+    // Hook the log and error methods of the console, forcing them to
+    // serialize their arguments before printing.  This allows the
+    // Objects to cross into the phantom/slimer regime for display.
+    this.thenEvaluate(function(){
+        var serialize_arguments = function(f, context) {
+            return function() {
+                var pretty_arguments = [];
+                for (var i = 0; i < arguments.length; i++) {
+                    var value = arguments[i];
+                    if (value instanceof Object) {
+                        var name = value.name || 'Object';
+                        // Print a JSON string representation of the object.
+                        // If we don't do this, [Object object] gets printed
+                        // by casper, which is useless.  The long regular
+                        // expression reduces the verbosity of the JSON.
+                        pretty_arguments.push(name + ' {' + JSON.stringify(value, null, '  ')
+                            .replace(/(\s+)?({)?(\s+)?(}(\s+)?,?)?(\s+)?(\s+)?\n/g, '\n')
+                            .replace(/\n(\s+)?\n/g, '\n'));
+                    } else {
+                        pretty_arguments.push(value);
+                    }
+                }
+                f.apply(context, pretty_arguments);
+            };
+        };
+        console.log = serialize_arguments(console.log, console);
+        console.error = serialize_arguments(console.error, console);
+    });
+
     // Make sure the kernel has started
     this.waitFor(this.kernel_running);
     // track the IPython busy/idle state
@@ -151,10 +180,31 @@ casper.wait_for_widget = function (widget_info) {
     // widget_info : object
     //      Object which contains info related to the widget.  The model_id property
     //      is used to identify the widget.
+
+    // Clear the results of a previous query, if they exist.  Make sure a
+    // dictionary exists to store the async results in.
+    this.thenEvaluate(function(model_id) {
+        if (window.pending_msgs === undefined) { 
+            window.pending_msgs = {}; 
+        } else {
+            window.pending_msgs[model_id] = -1;
+        } 
+    }, {model_id: widget_info.model_id});
+
+    // Wait for the pending messages to be 0.
     this.waitFor(function () {
-        var pending = this.evaluate(function (m) {
-            return IPython.notebook.kernel.widget_manager.get_model(m).pending_msgs;
-        }, {m: widget_info.model_id});
+        var pending = this.evaluate(function (model_id) {
+
+            // Get the model.  Once the model is had, store it's pending_msgs
+            // count in the window's dictionary.
+            IPython.notebook.kernel.widget_manager.get_model(model_id)
+            .then(function(model) {     
+                window.pending_msgs[model_id] = model.pending_msgs; 
+            });
+
+            // Return the pending_msgs result.
+            return window.pending_msgs[model_id];
+        }, {model_id: widget_info.model_id});
 
         if (pending === 0) {
             return true;
@@ -283,6 +333,15 @@ casper.execute_cell_then = function(index, then_callback, expect_failure) {
     });
 
     return return_val;
+};
+
+casper.wait_for_element = function(index, selector){
+    // Utility function that allows us to easily wait for an element 
+    // within a cell.  Uses JQuery selector to look for the element.
+    var that = this;
+    this.waitFor(function() {
+        return that.cell_element_exists(index, selector);
+    });
 };
 
 casper.cell_element_exists = function(index, selector){
@@ -655,7 +714,10 @@ casper.print_log = function () {
 
 casper.on("page.error", function onError(msg, trace) {
     // show errors in the browser
-    this.echo("Page Error!");
+    this.echo("Page Error");
+    this.echo("  Message:   " + msg.split('\n').join('\n             '));
+    this.echo("  Call stack:");
+    var local_path = this.get_notebook_server();
     for (var i = 0; i < trace.length; i++) {
         var frame = trace[i];
         var file = frame.file;
@@ -664,12 +726,15 @@ casper.on("page.error", function onError(msg, trace) {
         if (file === "phantomjs://webpage.evaluate()") {
             file = "evaluate";
         }
-        this.echo("line " + frame.line + " of " + file);
-        if (frame.function.length > 0) {
-            this.echo("in " + frame.function);
+        // remove the version tag from the path
+        file = file.replace(/(\?v=[0-9abcdef]+)/, '');
+        // remove the local address from the beginning of the path
+        if (file.indexOf(local_path) === 0) {
+            file = file.substr(local_path.length);
         }
+        var frame_text = (frame.function.length > 0) ? " in " + frame.function : "";
+        this.echo("    line " + frame.line + " of " + file + frame_text);
     }
-    this.echo(msg);
 });
 
 
@@ -680,7 +745,8 @@ casper.capture_log = function () {
     this.on('remote.message', function(msg) {
         captured_log.push(msg);
     });
-    
+
+    var that = this;
     this.test.on("test.done", function (result) {
         // test.done runs per-file,
         // but suiteResults is per-suite (directory)
@@ -696,12 +762,38 @@ casper.capture_log = function () {
         if (current_errors > seen_errors && captured_log.length > 0) {
             casper.echo("\nCaptured console.log:");
             for (var i = 0; i < captured_log.length; i++) {
-                casper.echo("    " + captured_log[i]);
+                var output = String(captured_log[i]).split('\n');
+                for (var j = 0; j < output.length; j++) {
+                    casper.echo("    " + output[j]);
+                }
             }
         }
+
         seen_errors = current_errors;
         captured_log = [];
     });
+};
+
+casper.interact = function() {
+    // Start an interactive Javascript console.
+    var system = require('system');
+    system.stdout.writeLine('JS interactive console.');
+    system.stdout.writeLine('Type `exit` to quit.');
+
+    function read_line() {
+        system.stdout.writeLine('JS: ');
+        var line = system.stdin.readLine();
+        return line;
+    }
+
+    var input = read_line();
+    while (input.trim() != 'exit') {
+        var output = this.evaluate(function(code) {
+            return String(eval(code));
+        }, {code: input});
+        system.stdout.writeLine('\nOut: ' + output);
+        input = read_line();
+    }
 };
 
 casper.capture_log();

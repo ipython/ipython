@@ -59,13 +59,27 @@ casper.notebook_test(function () {
                 JSON.stringify(input) + ' passed through Model._pack_model unchanged');
         };
         var test_unpack = function (input) {
-            var output = that.evaluate(function(input) {
+            that.thenEvaluate(function(input) {
+                window.results = undefined;
                 var model = new IPython.WidgetModel(IPython.notebook.kernel.widget_manager, undefined);
-                var results = model._unpack_models(input);
-                return results;
+                model._unpack_models(input).then(function(results) { 
+                    window.results = results; 
+                });    
             }, {input: input});
-            that.test.assert(recursive_compare(input, output), 
-                JSON.stringify(input) + ' passed through Model._unpack_model unchanged');
+            
+            that.waitFor(function check() {
+                return that.evaluate(function() { 
+                    return window.results; 
+                }); 
+            });
+            
+            that.then(function() {
+                var results = that.evaluate(function() { 
+                    return window.results; 
+                });
+                that.test.assert(recursive_compare(input, results), 
+                    JSON.stringify(input) + ' passed through Model._unpack_model unchanged');
+            });
         };
         var test_packing = function(input) {
             test_pack(input);
@@ -84,7 +98,7 @@ casper.notebook_test(function () {
         test_packing([String('hi'), Date("Thu Nov 13 2014 13:46:21 GMT-0500")])
 
         // Test multi-set, single touch code.  First create a custom widget.
-        this.evaluate(function() {
+        this.thenEvaluate(function() {
             var MultiSetView = IPython.DOMWidgetView.extend({
                 render: function(){
                     this.model.set('a', 1);
