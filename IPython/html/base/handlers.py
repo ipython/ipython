@@ -95,7 +95,7 @@ class AuthenticatedHandler(web.RequestHandler):
     @property
     def login_handler(self):
         """Return the login handler for this application."""
-        return self.settings['login_handler_class']
+        return self.settings.get('login_handler_class', None)
 
     @property
     def login_available(self):
@@ -105,6 +105,8 @@ class AuthenticatedHandler(web.RequestHandler):
         whether the user is already logged in or not.
 
         """
+        if self.login_handler is None:
+            return False
         return bool(self.login_handler.login_available(self.settings))
 
 
