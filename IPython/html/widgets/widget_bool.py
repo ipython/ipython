@@ -38,6 +38,7 @@ class ToggleButton(_Bool):
     """Displays a boolean `value`."""
     
     _view_name = Unicode('ToggleButtonView', sync=True)
+    tooltip = Unicode(help="Tooltip caption of the toggle button.", sync=True)
 
     button_style = CaselessStrEnum(
         values=['primary', 'success', 'info', 'warning', 'danger', ''], 
