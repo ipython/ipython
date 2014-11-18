@@ -88,14 +88,12 @@ class AuthenticatedHandler(web.RequestHandler):
     
     @property
     def logged_in(self):
-        """Is a user currently logged in?
-
-        """
+        """Is a user currently logged in?"""
         user = self.get_current_user()
         return (user and not user == 'anonymous')
 
     @property
-    def _login_handler(self):
+    def login_handler(self):
         """Return the login handler for this application."""
         return self.settings['login_handler_class']
 
@@ -107,7 +105,7 @@ class AuthenticatedHandler(web.RequestHandler):
         whether the user is already logged in or not.
 
         """
-        return bool(self._login_handler.login_available(self.application))
+        return bool(self.login_handler.login_available(self.settings))
 
 
 class IPythonHandler(AuthenticatedHandler):
