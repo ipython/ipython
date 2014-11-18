@@ -57,7 +57,7 @@ class FileContentsManager(ContentsManager):
                 yield f
     
     @contextmanager
-    def open_w(self, os_path, *args, **kwargs):
+    def atomic_writing(self, os_path, *args, **kwargs):
         """wrapper around atomic_writing that turns permission errors into 403"""
         with self.perm_to_403(os_path):
             with atomic_writing(os_path, *args, **kwargs) as f:
@@ -358,7 +358,7 @@ class FileContentsManager(ContentsManager):
 
         self.check_and_sign(nb, path)
 
-        with self.open_w(os_path, encoding='utf-8') as f:
+        with self.atomic_writing(os_path, encoding='utf-8') as f:
             nbformat.write(nb, f, version=nbformat.NO_CONVERT)
 
     def _save_file(self, os_path, model, path=''):
@@ -375,7 +375,7 @@ class FileContentsManager(ContentsManager):
                 bcontent = base64.decodestring(b64_bytes)
         except Exception as e:
             raise web.HTTPError(400, u'Encoding error saving %s: %s' % (os_path, e))
-        with self.open_w(os_path, text=False) as f:
+        with self.atomic_writing(os_path, text=False) as f:
             f.write(bcontent)
 
     def _save_directory(self, os_path, model, path=''):
