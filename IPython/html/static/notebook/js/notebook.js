@@ -2066,51 +2066,18 @@ define([
         var that = this;
         var parent = utils.url_path_split(this.notebook_path)[0];
         var new_path = utils.url_path_join(parent, new_name);
-        this.contents.rename(this.notebook_path, new_path).then(
+        return this.contents.rename(this.notebook_path, new_path).then(
             function (json) {
                 that.notebook_name = json.name;
                 that.notebook_path = json.path;
                 that.session.rename_notebook(json.path);
                 that.events.trigger('notebook_renamed.Notebook', json);
-            },
-            $.proxy(this.rename_error, this)
+            }
         );
     };
 
     Notebook.prototype.delete = function () {
         this.contents.delete(this.notebook_path);
-    };
-
-    Notebook.prototype.rename_error = function (error) {
-        var that = this;
-        var dialog_body = $('<div/>').append(
-            $("<p/>").text('This notebook name already exists.')
-        );
-        this.events.trigger('notebook_rename_failed.Notebook', error);
-        dialog.modal({
-            notebook: this,
-            keyboard_manager: this.keyboard_manager,
-            title: "Notebook Rename Error!",
-            body: dialog_body,
-            buttons : {
-                "Cancel": {},
-                "OK": {
-                    class: "btn-primary",
-                    click: function () {
-                        that.save_widget.rename_notebook({notebook:that});
-                }}
-                },
-            open : function (event, ui) {
-                var that = $(this);
-                // Upon ENTER, click the OK button.
-                that.find('input[type="text"]').keydown(function (event, ui) {
-                    if (event.which === this.keyboard.keycodes.enter) {
-                        that.find('.btn-primary').first().click();
-                    }
-                });
-                that.find('input[type="text"]').focus();
-            }
-        });
     };
 
     /**

@@ -28,7 +28,7 @@ define([
     SaveWidget.prototype.bind_events = function () {
         var that = this;
         this.element.find('span#notebook_name').click(function () {
-            that.rename_notebook();
+            that.rename_notebook({notebook: that.notebook});
         });
         this.events.on('notebook_loaded.Notebook', function () {
             that.update_notebook_name();
@@ -69,9 +69,9 @@ define([
             $("<br/>")
         ).append(
             $('<input/>').attr('type','text').attr('size','25').addClass('form-control')
-            .val(that.notebook.get_notebook_name())
+            .val(options.notebook.get_notebook_name())
         );
-        dialog.modal({
+        var d = dialog.modal({
             title: "Rename Notebook",
             body: dialog_body,
             notebook: options.notebook,
@@ -80,30 +80,40 @@ define([
                 "OK": {
                     class: "btn-primary",
                     click: function () {
-                    var new_name = $(this).find('input').val();
-                    if (!that.notebook.test_notebook_name(new_name)) {
-                        $(this).find('.rename-message').text(
-                            "Invalid notebook name. Notebook names must "+
-                            "have 1 or more characters and can contain any characters " +
-                            "except :/\\. Please enter a new notebook name:"
-                        );
-                        return false;
-                    } else {
-                        that.notebook.rename(new_name);
+                        var new_name = d.find('input').val();
+                        if (!options.notebook.test_notebook_name(new_name)) {
+                            d.find('.rename-message').text(
+                                "Invalid notebook name. Notebook names must "+
+                                "have 1 or more characters and can contain any characters " +
+                                "except :/\\. Please enter a new notebook name:"
+                            );
+                            return false;
+                        } else {
+                            d.find('.rename-message').text("Renaming...");
+                            d.find('input[type="text"]').prop('disabled', true);
+                            that.notebook.rename(new_name).then(
+                                function () {
+                                    d.modal('hide');
+                                }, function (error) {
+                                    d.find('.rename-message').text(error.message || 'Unknown error');
+                                    d.find('input[type="text"]').prop('disabled', false).focus().select();
+                                }
+                            );
+                            return false;
+                        }
                     }
-                }},
+                },
                 "Cancel": {}
                 },
-            open : function (event, ui) {
-                var that = $(this);
+            open : function () {
                 // Upon ENTER, click the OK button.
-                that.find('input[type="text"]').keydown(function (event, ui) {
+                d.find('input[type="text"]').keydown(function (event) {
                     if (event.which === keyboard.keycodes.enter) {
-                        that.find('.btn-primary').first().click();
+                        d.find('.btn-primary').first().click();
                         return false;
                     }
                 });
-                that.find('input[type="text"]').focus().select();
+                d.find('input[type="text"]').focus().select();
             }
         });
     };
