@@ -278,6 +278,11 @@ define([
      * @method execute
      */
     CodeCell.prototype.execute = function () {
+        if (!this.kernel || !this.kernel.is_connected()) {
+            console.log("Can't execute, kernel is not connected.");
+            return;
+        }
+        
         this.output_area.clear_output();
         
         // Clear widget area
