@@ -23,6 +23,27 @@ from IPython.utils.py3compat import getcwd, str_to_unicode
 from IPython.utils import tz
 from IPython.html.utils import is_hidden, to_os_path, to_api_path
 
+_script_exporter = None
+def _post_save_script(model, os_path, contents_manager, **kwargs):
+    """convert notebooks to Python script after save with nbconvert
+
+    replaces `ipython notebook --script`
+    """
+    from IPython.nbconvert.exporters.python import PythonExporter
+
+    if model['type'] != 'notebook':
+        return
+    global _script_exporter
+    if _script_exporter is None:
+        _script_exporter = PythonExporter(parent=contents_manager)
+    log = contents_manager.log
+
+    base, ext = os.path.splitext(os_path)
+    py_fname = base + '.py'
+    log.info("Writing %s", py_fname)
+    py, resources = _script_exporter.from_filename(os_path)
+    with io.open(py_fname, 'w', encoding='utf-8') as f:
+        f.write(py)
 
 class FileContentsManager(ContentsManager):
 
@@ -65,12 +86,22 @@ class FileContentsManager(ContentsManager):
             with atomic_writing(os_path, *args, **kwargs) as f:
                 yield f
     
-    save_script = Bool(False, config=True, help='DEPRECATED, IGNORED')
+    save_script = Bool(False, config=True, help='DEPRECATED, use post_save_hook')
     def _save_script_changed(self):
         self.log.warn("""
-        Automatically saving notebooks as scripts has been removed.
-        Use `ipython nbconvert --to python [notebook]` instead.
+        `--script` is deprecated. You can trigger nbconvert via pre- or post-save hooks:
+
+            ContentsManager.pre_save_hook
+            FileContentsManager.post_save_hook
+
+        A post-save hook has been registered that calls:
+
+            ipython nbconvert --to python [notebook]
+
+        which behaves similar to `--script`.
         """)
+
+        self.post_save_hook = _post_save_script
 
     post_save_hook = Any(None, config=True,
         help="""Python callable or importstring thereof
