@@ -16,7 +16,7 @@ import nose.tools as nt
 from nose import SkipTest
 
 from IPython.utils.traitlets import (
-    HasTraits, MetaHasTraits, TraitType, Any, CBytes, Dict,
+    HasTraits, MetaHasTraits, TraitType, Any, Bool, CBytes, Dict,
     Int, Long, Integer, Float, Complex, Bytes, Unicode, TraitError,
     Union, Undefined, Type, This, Instance, TCPAddress, List, Tuple,
     ObjectName, DottedObjectName, CRegExp, link, directional_link,
@@ -762,13 +762,22 @@ class AnyTraitTest(TraitTestBase):
 
 class UnionTrait(HasTraits):
 
-    value = Union([Type(), Unicode()])
+    value = Union([Type(), Bool()])
 
 class UnionTraitTest(TraitTestBase):
 
-    obj = UnionTrait()
-    _default_value = None
-    _good_values = [int, float, 'ten']
+    obj = UnionTrait(value='IPython.utils.ipstruct.Struct')
+    _good_values = [int, float, True]
+    _bad_values = [[], (0,), 1j]
+
+class OrTrait(HasTraits):
+
+    value = Bool() | Unicode()
+
+class OrTraitTest(TraitTestBase):
+
+    obj = OrTrait()
+    _good_values = [True, False, 'ten']
     _bad_values = [[], (0,), 1j]
 
 class IntTrait(HasTraits):

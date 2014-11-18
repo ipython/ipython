@@ -445,6 +445,12 @@ class TraitType(object):
         else:
             return value
 
+    def __or__(self, other):
+        if isinstance(other, Union):
+            return Union([self] + other.trait_types)
+        else:
+            return Union([self, other])
+
     def info(self):
         return self.info_text
 
@@ -1062,9 +1068,15 @@ class Union(TraitType):
         for trait_type in self.trait_types:
             try:
                 return trait_type._validate(obj, value)
-            except Exception:
+            except TraitError:
                 continue
         self.error(obj, value)
+
+    def __or__(self, other):
+        if isinstance(other, Union):
+            return Union(self.trait_types + other.trait_types)
+        else:
+            return Union(self.trait_types + [other])
 
 #-----------------------------------------------------------------------------
 # Basic TraitTypes implementations/subclasses
