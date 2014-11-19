@@ -192,14 +192,14 @@ class link(object):
             raise TypeError('At least two traitlets must be provided.')
 
         self.objects = {}
-        initial = getattr(args[0][0], args[0][1])
-        for obj,attr in args:
-            if getattr(obj, attr) != initial:
-                setattr(obj, attr, initial)
 
-            callback = self._make_closure(obj,attr)
+        initial = getattr(args[0][0], args[0][1])
+        for obj, attr in args:
+            setattr(obj, attr, initial)
+
+            callback = self._make_closure(obj, attr)
             obj.on_trait_change(callback, attr)
-            self.objects[(obj,attr)] = callback
+            self.objects[(obj, attr)] = callback
 
     @contextlib.contextmanager
     def _busy_updating(self):
@@ -218,13 +218,12 @@ class link(object):
         if self.updating:
             return
         with self._busy_updating():
-            for obj,attr in self.objects.keys():
-                if obj is not sending_obj or attr != sending_attr:
-                    setattr(obj, attr, new)
-    
+            for obj, attr in self.objects.keys():
+                setattr(obj, attr, new)
+
     def unlink(self):
         for key, callback in self.objects.items():
-            (obj,attr) = key
+            (obj, attr) = key
             obj.on_trait_change(callback, attr, remove=True)
 
 @skip_doctest
@@ -252,8 +251,7 @@ class directional_link(object):
         # Update current value
         src_attr_value = getattr(source[0], source[1])
         for obj, attr in targets:
-            if getattr(obj, attr) != src_attr_value:
-                setattr(obj, attr, src_attr_value)
+            setattr(obj, attr, src_attr_value)
 
         # Wire
         self.source[0].on_trait_change(self._update, self.source[1])
