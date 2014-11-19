@@ -149,7 +149,7 @@ def install_nbextension(files, overwrite=False, symlink=False, ipython_dir=None,
         if overwrite and os.path.exists(dest):
             if verbose >= 1:
                 print("removing %s" % dest)
-            if os.path.isdir(dest):
+            if os.path.isdir(dest) and not os.path.islink(dest):
                 shutil.rmtree(dest)
             else:
                 os.remove(dest)
