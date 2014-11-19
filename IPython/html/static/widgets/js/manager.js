@@ -49,24 +49,21 @@ define([
     WidgetManager.prototype.display_view = function(msg, model) {
         // Displays a view for a particular model.
         var that = this;
-        return new Promise(function(resolve, reject) {
-            var cell = that.get_msg_cell(msg.parent_header.msg_id);
-            if (cell === null) {
-                reject(new Error("Could not determine where the display" + 
-                    " message was from.  Widget will not be displayed"));
-            } else if (cell.widget_subarea) {
-                var dummy = $('<div />');
-                cell.widget_subarea.append(dummy);
-                that.create_view(model, {cell: cell}).then(function(view) {
+        var cell = this.get_msg_cell(msg.parent_header.msg_id);
+        if (cell === null) {
+            return Promise.reject(new Error("Could not determine where the display" +
+                                            " message was from.  Widget will not be displayed"));
+        } else if (cell.widget_subarea) {
+            var dummy = $('<div />');
+            cell.widget_subarea.append(dummy);
+            return this.create_view(model, {cell: cell}).then(
+                function(view) {
                     that._handle_display_view(view);
                     dummy.replaceWith(view.$el);
                     view.trigger('displayed');
-                    resolve(view);
-                }, function(error) { 
-                    reject(new utils.WrappedError('Could not display view', error)); 
-                });
-            }
-        });
+                    return view;
+                }, utils.reject('Could not display view'));
+        }
     };
 
     WidgetManager.prototype._handle_display_view = function (view) {

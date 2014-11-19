@@ -70,23 +70,21 @@ define([
 
         this.comms[comm_id] = utils.load_class(content.target_name, content.target_module, 
             this.targets).then(function(target) {
-
-            var comm = new Comm(content.target_name, comm_id);
-            comm.kernel = that.kernel;
-            try {
-                var response = target(comm, msg);
-                if (response instanceof Promise) {
-                    return response.then(function() { return Promise.resolve(comm); });
+                var comm = new Comm(content.target_name, comm_id);
+                comm.kernel = that.kernel;
+                try {
+                    var response = target(comm, msg);
+                } catch (e) {
+                    comm.close();
+                    that.unregister_comm(comm);
+                    var wrapped_error = new utils.WrappedError("Exception opening new comm", e);
+                    console.error(wrapped_error);
+                    return Promise.reject(wrapped_error);
                 }
-            } catch (e) {
-                comm.close();
-                that.unregister_comm(comm);
-                var wrapped_error = new utils.WrappedError("Exception opening new comm", e);
-                console.error(wrapped_error);
-                return Promise.reject(wrapped_error);
-            }
-            return Promise.resolve(comm);
-        }, utils.reject('Could not open comm', true));
+                // Regardless of the target return value, we need to
+                // then return the comm
+                return Promise.resolve(response).then(function() {return comm;});
+            }, utils.reject('Could not open comm', true));
         return this.comms[comm_id];
     };
     
@@ -104,6 +102,8 @@ define([
             } catch (e) {
                 console.log("Exception closing comm: ", e, e.stack, msg);
             }
+            // don't return a comm, so that further .then() functions
+            // get an undefined comm input
         });
     };
     
@@ -120,7 +120,7 @@ define([
             } catch (e) {
                 console.log("Exception handling comm msg: ", e, e.stack, msg);
             }
-            return Promise.resolve(comm);
+            return comm;
         });
     };
     
