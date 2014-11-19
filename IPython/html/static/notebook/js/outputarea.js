@@ -790,7 +790,7 @@ define([
         }
         var content = {
             output_type : 'stream',
-            stream : 'stdout',
+            name : 'stdout',
             text : theprompt.text() + echo + '\n'
         };
         // remove form container
