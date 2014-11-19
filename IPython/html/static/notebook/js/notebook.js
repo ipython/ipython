@@ -40,6 +40,7 @@ define([
     slideshow_celltoolbar,
     scrollmanager
     ) {
+    "use strict";
 
     var Notebook = function (selector, options) {
         // Constructor
@@ -99,7 +100,7 @@ define([
                     }
                     utils.requireCodeMirrorMode(lang, function () {
                         var el = document.createElement("div");
-                        mode = CodeMirror.getMode({}, lang);
+                        var mode = CodeMirror.getMode({}, lang);
                         if (!mode) {
                             console.log("No CodeMirror mode: " + lang);
                             callback(null, code);
@@ -149,21 +150,25 @@ define([
         this.codemirror_mode = 'ipython';
         this.create_elements();
         this.bind_events();
-        this.save_notebook = function() { // don't allow save until notebook_loaded
-            this.save_notebook_error(null, null, "Load failed, save is disabled");
-        };
+        this.kernel_selector = null;
+        this.dirty = null;
+        this.trusted = null;
+        this._fully_loaded = false;
 
         // Trigger cell toolbar registration.
         default_celltoolbar.register(this);
         rawcell_celltoolbar.register(this);
         slideshow_celltoolbar.register(this);
+
+        // prevent assign to miss-typed properties.
+        Object.seal(this);
     };
 
     Notebook.options_default = {
         // can be any cell type, or the special values of
         // 'above', 'below', or 'selected' to get the value from another cell.
         Notebook: {
-            default_cell_type: 'code',
+            default_cell_type: 'code'
         }
     };
 
@@ -880,7 +885,7 @@ define([
                 config: this.config, 
                 keyboard_manager: this.keyboard_manager, 
                 notebook: this,
-                tooltip: this.tooltip,
+                tooltip: this.tooltip
             };
             switch(type) {
             case 'code':
@@ -1116,7 +1121,7 @@ define([
                 '## This is a level 2 heading'
             )),
             buttons : {
-                "OK" : {},
+                "OK" : {}
             }
         });
     };
@@ -1913,6 +1918,12 @@ define([
      * @method save_notebook
      */
     Notebook.prototype.save_notebook = function () {
+        if(!this._fully_loaded){
+            this.events.trigger('notebook_save_failed.Notebook',
+                new Error("Load failed, save is disabled")
+            );
+            return;
+        }
         // Create a JSON model to be sent to the server.
         var model = {
             type : "notebook",
@@ -2240,7 +2251,7 @@ define([
         }
 
         // now that we're fully loaded, it is safe to restore save functionality
-        delete(this.save_notebook);
+        this._fully_loaded = true;
         this.events.trigger('notebook_loaded.Notebook');
     };
 
