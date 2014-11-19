@@ -1922,7 +1922,7 @@ define([
         var start =  new Date().getTime();
 
         var that = this;
-        this.contents.save(this.notebook_path, model).then(
+        return this.contents.save(this.notebook_path, model).then(
                 $.proxy(this.save_notebook_success, this, start),
                 function (error) {
                     that.events.trigger('notebook_save_failed.Notebook', error);

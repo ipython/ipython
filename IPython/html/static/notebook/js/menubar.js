@@ -69,17 +69,21 @@ define([
     MenuBar.prototype._nbconvert = function (format, download) {
         download = download || false;
         var notebook_path = this.notebook.notebook_path;
-        if (this.notebook.dirty) {
-            this.notebook.save_notebook({async : false});
-        }
         var url = utils.url_join_encode(
             this.base_url,
             'nbconvert',
             format,
             notebook_path
         ) + "?download=" + download.toString();
-
-        window.open(url);
+        
+        var w = window.open()
+        if (this.notebook.dirty) {
+            this.notebook.save_notebook().then(function() {
+                w.location = url;
+            });
+        } else {
+            w.location = url;
+        }
     };
 
     MenuBar.prototype.bind_events = function () {
