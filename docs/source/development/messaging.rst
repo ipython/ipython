@@ -689,6 +689,9 @@ Message type: ``kernel_info_reply``::
         'language_info': {
             'mimetype': str,
 
+            # Extension without the dot, e.g. 'py'
+            'file_extension': str,
+
             # Pygments lexer, for highlighting
             # Only needed if it differs from the top level 'language' field.
             'pygments_lexer': str,
@@ -696,6 +699,11 @@ Message type: ``kernel_info_reply``::
             # Codemirror mode, for for highlighting in the notebook.
             # Only needed if it differs from the top level 'language' field.
             'codemirror_mode': str or dict,
+
+            # Nbconvert exporter, if notebooks written with this kernel should
+            # be exported with something other than the general 'script'
+            # exporter.
+            'nbconvert_exporter': str,
         },
 
         # A banner of information about the kernel,

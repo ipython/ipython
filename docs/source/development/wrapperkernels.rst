@@ -38,9 +38,10 @@ following methods and attributes:
 
      Language information for :ref:`msging_kernel_info` replies, in a dictionary.
      This should contain the key ``mimetype`` with the mimetype of code in the
-     target language (e.g. ``'text/x-python'``). It may also contain keys
-     ``codemirror_mode`` and ``pygments_lexer`` if they need to differ from
-     :attr:`language`.
+     target language (e.g. ``'text/x-python'``), and ``file_extension`` (e.g.
+     ``'py'``).
+     It may also contain keys ``codemirror_mode`` and ``pygments_lexer`` if they
+     need to differ from :attr:`language`.
 
      Other keys may be added to this later.
 
