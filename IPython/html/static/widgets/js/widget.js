@@ -95,7 +95,6 @@ define(["widgets/js/manager",
                 } finally {
                     that.state_lock = null;
                 }
-                return Promise.resolve();
             }, utils.reject("Couldn't set model state", true));
         },
 
