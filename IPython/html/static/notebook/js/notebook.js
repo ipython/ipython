@@ -100,7 +100,7 @@ define([
                     }
                     utils.requireCodeMirrorMode(lang, function () {
                         var el = document.createElement("div");
-                        mode = CodeMirror.getMode({}, lang);
+                        var mode = CodeMirror.getMode({}, lang);
                         if (!mode) {
                             console.log("No CodeMirror mode: " + lang);
                             callback(null, code);
@@ -168,7 +168,7 @@ define([
         // can be any cell type, or the special values of
         // 'above', 'below', or 'selected' to get the value from another cell.
         Notebook: {
-            default_cell_type: 'code',
+            default_cell_type: 'code'
         }
     };
 
@@ -885,7 +885,7 @@ define([
                 config: this.config, 
                 keyboard_manager: this.keyboard_manager, 
                 notebook: this,
-                tooltip: this.tooltip,
+                tooltip: this.tooltip
             };
             switch(type) {
             case 'code':
@@ -1121,7 +1121,7 @@ define([
                 '## This is a level 2 heading'
             )),
             buttons : {
-                "OK" : {},
+                "OK" : {}
             }
         });
     };
@@ -1922,7 +1922,7 @@ define([
             this.events.trigger('notebook_save_failed.Notebook',
                 new Error("Load failed, save is disabled")
             );
-            return
+            return;
         }
         // Create a JSON model to be sent to the server.
         var model = {
