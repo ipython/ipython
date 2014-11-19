@@ -1919,7 +1919,10 @@ define([
      */
     Notebook.prototype.save_notebook = function () {
         if(!this._fully_loaded){
-            return this.save_notebook_error(null, null, "Load failed, save is disabled");
+            this.events.trigger('notebook_save_failed.Notebook',
+                new Error("Load failed, save is disabled")
+            );
+            return
         }
         // Create a JSON model to be sent to the server.
         var model = {
