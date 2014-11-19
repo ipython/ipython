@@ -13,8 +13,8 @@ class ClientSideContentsManager(ContentsManager):
     this class as the contents manager allows those pages to render without
     checking something that the server doesn't know about.
     """
-    def path_exists(self, path):
-       return True
+    def dir_exists(self, path):
+        return True
 
     def is_hidden(self, path):
         return False
