@@ -62,10 +62,7 @@ define([
                     dummy.replaceWith(view.$el);
                     view.trigger('displayed');
                     return view;
-                },
-                function(error) {
-                    return Promise.reject(new utils.WrappedError('Could not display view', error));
-                });
+                }, utils.reject('Could not display view'));
         }
     };
 
