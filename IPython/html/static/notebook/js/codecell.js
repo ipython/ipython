@@ -221,7 +221,7 @@ define([
     *  Display a widget view in the cell.
     */
     CodeCell.prototype.display_widget_view = function(view_promise) {
-        
+
         // Display a dummy element
         var dummy = $('<div/>');
         this.widget_subarea.append(dummy);
@@ -229,8 +229,9 @@ define([
         // Display the view.
         var that = this;
         return view_promise.then(function(view) {
+            that.widget_area.show();
             dummy.replaceWith(view.$el);
-            this.widget_views.push(view);
+            that.widget_views.push(view);
             return view;
         });
     };

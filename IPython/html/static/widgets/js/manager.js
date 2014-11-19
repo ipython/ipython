@@ -61,26 +61,29 @@ define([
                 reject(new Error("Could not determine where the display" + 
                     " message was from.  Widget will not be displayed"));
             } else {
-                return that.display_view_in_cell(cell, model);
+                return that.display_view_in_cell(cell, model)
+                .catch(function(error) { 
+                    reject(new utils.WrappedError('View could not be displayed.', error)); 
+                });
             }
         });
     };
 
     WidgetManager.prototype.display_view_in_cell = function(cell, model) {
         // Displays a view in a cell.
+        var that = this;
         return new Promise(function(resolve, reject) {
             if (cell.display_widget_view) {
                 cell.display_widget_view(that.create_view(model, {cell: cell}))
                 .then(function(view) {
-
                     that._handle_display_view(view);
                     view.trigger('displayed');
                     resolve(view);
                 }, function(error) { 
-                    reject(new utils.WrappedError('Could not display view', error)); 
+                    reject(new utils.WrappedError('Could not create or display view', error)); 
                 });
             } else {
-                reject(new Error('Cell does not have a `display_widget_view` method.'));
+                reject(new Error('Cell does not have a `display_widget_view` method'));
             }
         });
     };
@@ -280,7 +283,8 @@ define([
         //          Only return models with one or more displayed views.
         //      not_alive: (optional) boolean=false
         //          Include models that have comms with severed connections.
-        return utils.resolve_promise_dict(function(models) {
+        var that = this;
+        return utils.resolve_promises_dict(this._models).then(function(models) {
             var state = {};
             for (var model_id in models) {
                 if (models.hasOwnProperty(model_id)) {
@@ -291,9 +295,10 @@ define([
                     var displayed_flag = !(options && options.only_displayed) || Object.keys(model.views).length > 0;
                     var alive_flag = (options && options.not_alive) || model.comm_alive;
                     if (displayed_flag && alive_flag) {
-                        state[model.model_id] = {
+                        state[model_id] = {
                             model_name: model.name,
                             model_module: model.module,
+                            state: model.get_state(),
                             views: [],
                         };
 
@@ -301,8 +306,8 @@ define([
                         for (var id in model.views) {
                             if (model.views.hasOwnProperty(id)) {
                                 var view = model.views[id];
-                                var cell_index = this.notebook.find_cell_index(view.options.cell);
-                                state[model.model_id].views.push(cell_index);
+                                var cell_index = that.notebook.find_cell_index(view.options.cell);
+                                state[model_id].views.push(cell_index);
                             }
                         }
                     }
@@ -321,40 +326,60 @@ define([
         // Get the kernel when it's available.
         var that = this;
         return (new Promise(function(resolve, reject) {
-            if (that.kernel) {
-                resolve(that.kernel);
+            if (that.comm_manager && that.comm_manager.kernel) {
+                resolve(that.comm_manager.kernel);
             } else {
-                that.events.on('kernel_created.Session', function(event, data) {
+                that.events.on('kernel_connected.Session', function(event, data) {
                     resolve(data.kernel);
                 });
             }    
         })).then(function(kernel) {
             
-            // Recreate all the widget models for the given state.
-            that.widget_models = [];
-            for (var i = 0; i < state.length; i++) {
+            // Recreate all the widget models for the given state and 
+            // display the views.
+            that.all_views = [];
+            var model_ids = Object.keys(state);
+            for (var i = 0; i < model_ids.length; i++) {
+                var model_id = model_ids[i];
+                
                 // Recreate a comm using the widget's model id (model_id == comm_id).
-                var new_comm = new comm.Comm(kernel.widget_manager.comm_target_name, state[i].model_id);
+                var new_comm = new comm.Comm(kernel.widget_manager.comm_target_name, model_id);
                 kernel.comm_manager.register_comm(new_comm);
 
                 // Create the model using the recreated comm.  When the model is
                 // created we don't know yet if the comm is valid so set_comm_alive
                 // false.  Once we receive the first state push from the back-end
                 // we know the comm is alive.
-                var model = kernel.widget_manager.create_model({
+                var views = kernel.widget_manager.create_model({
                     comm: new_comm, 
-                    model_name: state[i].model_name, 
-                    model_module: state[i].model_module}).then(function(model) {
-                        model.set_comm_alive(false);
-                        model.request_state();
-                        model.received_state.then(function() {
+                    model_name: state[model_id].model_name, 
+                    model_module: state[model_id].model_module})
+                .then(function(model) {
+
+                    model.set_comm_alive(false);
+                    var view_promise = Promise.resolve().then(function() {
+                        return model.set_state(state[model.id].state);
+                    }).then(function() {
+                        model.request_state().then(function() {
                             model.set_comm_alive(true);
                         });
-                        return model;
+
+                        // Display the views of the model.
+                        var views = [];
+                        var model_views = state[model.id].views;
+                        for (var j=0; j<model_views.length; j++) {
+                            var cell_index = model_views[j];
+                            var cell = that.notebook.get_cell(cell_index);
+                            views.push(that.display_view_in_cell(cell, model));
+                        }
+                        return Promise.all(views);
                     });
-                that.widget_models.push(model);
+                    return view_promise;
+                });
+
+                that.all_views.push(views);
             }
-            return Promise.all(that.widget_models);
+            return Promise.all(that.all_views);
 
         });
         

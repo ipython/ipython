@@ -32,13 +32,6 @@ define(["widgets/js/manager",
             this.id = model_id;
             this.views = {};
 
-            // Promise that is resolved when a state is received
-            // from the back-end.
-            var that = this;
-            this.received_state = new Promise(function(resolve) {
-                that._resolve_received_state = resolve;
-            });
-
             if (comm !== undefined) {
                 // Remember comm associated with the model.
                 this.comm = comm;
@@ -75,7 +68,16 @@ define(["widgets/js/manager",
                 console.error("Could not request_state because comm doesn't exist!");
                 return;
             }
+
+            // Promise that is resolved when a state is received
+            // from the back-end.
+            var that = this;
+            var received_state = new Promise(function(resolve) {
+                that._resolve_received_state = resolve;
+            });
+
             this.comm.send({method: 'request_state'}, callbacks || this.widget_manager.callbacks());
+            return received_state;
         },
 
         set_comm_alive: function(alive) {
@@ -132,7 +134,8 @@ define(["widgets/js/manager",
                     this.trigger('msg:custom', msg.content.data.content);
                     break;
                 case 'display':
-                    this.widget_manager.display_view(msg, this);
+                    this.widget_manager.display_view(msg, this)
+                    .catch(utils.reject('Could not display view.', true));
                     break;
             }
         },
@@ -147,7 +150,10 @@ define(["widgets/js/manager",
                 } finally {
                     that.state_lock = null;
                 }
-                that._resolve_received_state();
+                
+                if (that._resolve_received_state !== undefined) {
+                    that._resolve_received_state();
+                }
                 return Promise.resolve();
             }, utils.reject("Couldn't set model state", true));
         },
