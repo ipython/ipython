@@ -129,10 +129,6 @@ define([
             that._nbconvert('html', false);
         });
 
-        this.element.find('#download_py').click(function () {
-            that._nbconvert('python', true);
-        });
-
         this.element.find('#download_html').click(function () {
             that._nbconvert('html', true);
         });
@@ -308,6 +304,16 @@ define([
         this.events.on('checkpoint_created.Notebook', function (event, data) {
             that.update_restore_checkpoint(that.notebook.checkpoints);
         });
+        
+        this.events.on('notebook_loaded.Notebook', function() {
+            var langinfo = that.notebook.metadata.language_info || {};
+            that.update_nbconvert_script(langinfo);
+        });
+        
+        this.events.on('kernel_ready.Kernel', function(event, data) {
+            var langinfo = data.kernel.info_reply.language_info || {};
+            that.update_nbconvert_script(langinfo);
+        });
     };
 
     MenuBar.prototype.update_restore_checkpoint = function(checkpoints) {
@@ -339,6 +345,31 @@ define([
                 )
             );
         });
+    };
+    
+    MenuBar.prototype.update_nbconvert_script = function(langinfo) {
+        // Set the 'Download as foo' menu option for the relevant language.
+        var el = this.element.find('#download_script');
+        var that = this;
+        
+        // Set menu entry text to e.g. "Python (.py)"
+        var langname = (langinfo.name || 'Script')
+        langname = langname.charAt(0).toUpperCase()+langname.substr(1) // Capitalise
+        el.find('a').text(langname + ' (.'+(langinfo.file_extension || 'txt')+')');
+        
+        // Unregister any previously registered handlers
+        el.off('click');
+        if (langinfo.nbconvert_exporter) {
+            // Metadata specifies a specific exporter, e.g. 'python'
+            el.click(function() {
+                that._nbconvert(langinfo.nbconvert_exporter, true);
+            });
+        } else {
+            // Use generic 'script' exporter
+            el.click(function() {
+                that._nbconvert('script', true);
+            });
+        }
     };
 
     // Backwards compatability.
