@@ -389,7 +389,7 @@ define([
      * @private
      */
     CodeCell.prototype._handle_set_next_input = function (payload) {
-        var data = {'cell': this, 'text': payload.text};
+        var data = {'cell': this, 'text': payload.text, replace: payload.replace};
         this.events.trigger('set_next_input.Notebook', data);
     };
 

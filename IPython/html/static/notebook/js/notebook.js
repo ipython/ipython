@@ -209,9 +209,13 @@ define([
         var that = this;
 
         this.events.on('set_next_input.Notebook', function (event, data) {
-            var index = that.find_cell_index(data.cell);
-            var new_cell = that.insert_cell_below('code',index);
-            new_cell.set_text(data.text);
+            if (data.replace) {
+                data.cell.set_text(data.text);
+            } else {
+                var index = that.find_cell_index(data.cell);
+                var new_cell = that.insert_cell_below('code',index);
+                new_cell.set_text(data.text);
+            }
             that.dirty = true;
         });
 
