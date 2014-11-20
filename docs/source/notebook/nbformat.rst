@@ -36,11 +36,15 @@ At the highest level, a Jupyter notebook is a dictionary with a few keys:
       "metadata" : {
         "signature": "hex-digest", # used for authenticating unsafe outputs on load
         "kernel_info": {
-            # if kernel_info is defined, its name and language fields are required.
-            "name" : "the name of the kernel",
-            "language" : "the programming language of the kernel",
-            "codemirror_mode": "The name of the codemirror mode to use [optional]"
+            # if kernel_info is defined, its name field is required.
+            "name" : "the name of the kernel"
         },
+        "language_info": {
+            # if language_info is defined, its name field is required.
+            "name" : "the programming language of the kernel",
+            "version": "the version of the language",
+            "codemirror_mode": "The name of the codemirror mode to use [optional]"
+        }
       },
       "nbformat": 4,
       "nbformat_minor": 0,
