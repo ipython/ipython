@@ -643,7 +643,8 @@ define(["widgets/js/manager",
                 for (; i < new_models.length; i++) {
                     added_views.push(create.call(context, new_models[i]));
                 }
-                that._models = new_models;
+                // make a copy of the input array
+                that._models = new_models.slice();
                 return Promise.all(added_views, function(added) {
                     that.views = that.views.slice(0,first_removed).concat(added);
                 });
