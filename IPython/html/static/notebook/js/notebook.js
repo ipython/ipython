@@ -211,6 +211,7 @@ define([
         this.events.on('set_next_input.Notebook', function (event, data) {
             if (data.replace) {
                 data.cell.set_text(data.text);
+                data.cell.clear_output();
             } else {
                 var index = that.find_cell_index(data.cell);
                 var new_cell = that.insert_cell_below('code',index);
