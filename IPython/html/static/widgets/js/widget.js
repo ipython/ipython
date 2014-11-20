@@ -613,7 +613,7 @@ define(["widgets/js/manager",
             this._models = [];
             this.views = [];
             this._create_view = create_view;
-            this._remove_view = remove_view || function(view) {view.remove()};
+            this._remove_view = remove_view || function(view) {view.remove();};
         },
 
         update: function(new_models, create_view, remove_view, context) {
