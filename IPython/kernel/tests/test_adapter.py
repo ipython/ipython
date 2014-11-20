@@ -169,6 +169,26 @@ class V4toV5TestCase(AdapterTest):
         text = v5c['data']['text/plain']
         self.assertEqual(text, '\n'.join([v4c['definition'], v4c['docstring']]))
     
+    def test_kernel_info_reply(self):
+        msg = self.msg("kernel_info_reply", {
+            'language': 'python',
+            'language_version': [2,8,0],
+            'ipython_version': [1,2,3],
+        })
+        v4, v5 = self.adapt(msg)
+        v4c = v4['content']
+        v5c = v5['content']
+        self.assertEqual(v5c, {
+            'protocol_version': '4.1',
+            'implementation': 'ipython',
+            'implementation_version': '1.2.3',
+            'language_info': {
+                'name': 'python',
+                'version': '2.8.0',
+            },
+            'banner' : '',
+        })
+    
     # iopub channel
     
     def test_display_data(self):
@@ -304,6 +324,29 @@ class V5toV4TestCase(AdapterTest):
         v5c = v5['content']
         self.assertEqual(sorted(v4c), ['found', 'oname'])
         self.assertEqual(v4c['found'], False)
+    
+    def test_kernel_info_reply(self):
+        msg = self.msg("kernel_info_reply", {
+            'protocol_version': '5.0',
+            'implementation': 'ipython',
+            'implementation_version': '1.2.3',
+            'language_info': {
+                'name': 'python',
+                'version': '2.8.0',
+                'mimetype': 'text/x-python',
+            },
+            'banner' : 'the banner',
+        })
+        v5, v4 = self.adapt(msg)
+        v4c = v4['content']
+        v5c = v5['content']
+        info = v5c['language_info']
+        self.assertEqual(v4c, {
+            'protocol_version': [5,0],
+            'language': 'python',
+            'language_version': [2,8,0],
+            'ipython_version': [1,2,3],
+        })
     
     # iopub channel
     

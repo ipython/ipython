@@ -69,9 +69,10 @@ class IPythonKernel(KernelBase):
     # Kernel info fields
     implementation = 'ipython'
     implementation_version = release.version
-    language = 'python'
-    language_version = sys.version.split()[0]
-    language_info = {'mimetype': 'text/x-python',
+    language_info = {
+                     'name': 'python',
+                     'version': sys.version.split()[0],
+                     'mimetype': 'text/x-python',
                      'codemirror_mode': {'name': 'ipython',
                                          'version': sys.version_info[0]},
                      'pygments_lexer': 'ipython%d' % (3 if PY3 else 2),

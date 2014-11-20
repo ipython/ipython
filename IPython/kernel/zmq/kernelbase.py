@@ -455,8 +455,6 @@ class Kernel(SingletonConfigurable):
             'protocol_version': release.kernel_protocol_version,
             'implementation': self.implementation,
             'implementation_version': self.implementation_version,
-            'language': self.language,
-            'language_version': self.language_version,
             'language_info': self.language_info,
             'banner': self.banner,
         }

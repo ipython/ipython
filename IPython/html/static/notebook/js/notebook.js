@@ -240,9 +240,6 @@ define([
         this.events.on('kernel_ready.Kernel', function(event, data) {
             var kinfo = data.kernel.info_reply;
             var langinfo = kinfo.language_info || {};
-            if (!langinfo.name) {
-                langinfo.name = kinfo.language;
-            }
             that.metadata.language_info = langinfo;
             // Mode 'null' should be plain, unhighlighted text.
             var cm_mode = langinfo.codemirror_mode || langinfo.name || 'null';
