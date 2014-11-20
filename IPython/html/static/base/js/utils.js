@@ -5,6 +5,8 @@ define([
     'base/js/namespace',
     'jquery',
     'codemirror/lib/codemirror',
+    // silently upgrades CodeMirror
+    'codemirror/mode/meta',
 ], function(IPython, $, CodeMirror){
     "use strict";
     
@@ -604,19 +606,43 @@ define([
         console.log(msg);
     };
     
+    // monkeypatch from CM4.7+... will be available soon, along with aliases!
+    CodeMirror.findModeByName = CodeMirror.findModeByName || function(name) {
+      name = name.toLowerCase();
+      for (var i = 0; i < CodeMirror.modeInfo.length; i++) {
+        var info = CodeMirror.modeInfo[i];
+        if (info.name.toLowerCase() == name) return info;
+        if (info.alias) for (var j = 0; j < info.alias.length; j++)
+          if (info.alias[j].toLowerCase() == name) return info;
+      }
+    };
+
     var requireCodeMirrorMode = function (mode, callback, errback) {
-        /**
-         * load a mode with requirejs
+        /** 
+         * find a predefined mode or detect from CM metadata then
+         * require and callback with the resolveable mode string: mime or
+         * custom name
          */
         if (typeof mode != "string") mode = mode.name;
+
         if (CodeMirror.modes.hasOwnProperty(mode)) {
-            callback(CodeMirror.modes.mode);
+            callback(mode);
             return;
         }
+
+        var info = CodeMirror.findModeByName(mode) ||
+            CodeMirror.findModeByExtension(mode.split(".").slice(-1)) ||
+            CodeMirror.findModeByMIME(mode);
+
+        if(!info){
+            errback && errback();
+            return;
+        }
+
         require([
                 // might want to use CodeMirror.modeURL here
-                ['codemirror/mode', mode, mode].join('/'),
-            ], callback, errback
+                ['codemirror/mode', info.mode, info.mode].join('/'),
+            ], function() { callback(info.mime); }, errback
         );
     };
     

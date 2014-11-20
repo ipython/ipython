@@ -558,8 +558,8 @@ define([
                         return;
                     }
                     if (mode.search('magic_') !== 0) {
-                        utils.requireCodeMirrorMode(mode, function () {
-                            that.code_mirror.setOption('mode', mode);
+                        utils.requireCodeMirrorMode(mode, function (spec) {
+                            that.code_mirror.setOption('mode', spec);
                         });
                         return;
                     }
@@ -570,7 +570,7 @@ define([
                     if(current_mode == magic_mode){
                         return;
                     }
-                    utils.requireCodeMirrorMode(mode, function () {
+                    utils.requireCodeMirrorMode(mode, function (spec) {
                         // create on the fly a mode that switch between
                         // plain/text and something else, otherwise `%%` is
                         // source of some highlight issues.
@@ -579,7 +579,7 @@ define([
                                 CodeMirror.getMode(config, 'text/plain'),
                                 // always set something on close
                                 {open: open, close: close,
-                                 mode: CodeMirror.getMode(config, mode),
+                                 mode: CodeMirror.getMode(config, spec),
                                  delimStyle: "delimit"
                                 }
                             );

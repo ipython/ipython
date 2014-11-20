@@ -102,16 +102,16 @@ define([
                             return code;
                         }
                     }
-                    utils.requireCodeMirrorMode(lang, function () {
+                    utils.requireCodeMirrorMode(lang, function (spec) {
                         var el = document.createElement("div");
-                        var mode = CodeMirror.getMode({}, lang);
+                        var mode = CodeMirror.getMode({}, spec);
                         if (!mode) {
                             console.log("No CodeMirror mode: " + lang);
                             callback(null, code);
                             return;
                         }
                         try {
-                            CodeMirror.runMode(code, mode, el);
+                            CodeMirror.runMode(code, spec, el);
                             callback(null, el.innerHTML);
                         } catch (err) {
                             console.log("Failed to highlight " + lang + " code", err);
