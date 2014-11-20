@@ -353,7 +353,9 @@ class CodeMagics(Magics):
                 print('Operation cancelled.')
                 return
 
-        self.shell.set_next_input(contents)
+        contents = "# %load {}\n".format(arg_s) + contents
+
+        self.shell.set_next_input(contents, replace=True)
 
     @staticmethod
     def _find_edit_target(shell, args, opts, last_call):
