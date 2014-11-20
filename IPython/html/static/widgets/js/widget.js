@@ -604,11 +604,11 @@ define(["widgets/js/manager",
         //   will be called in that context.
 
         this.initialize.apply(this, arguments);
-        this.state_change = Promise.resolve();
     }
 
     _.extend(ViewList.prototype, {
         initialize: function(create_view, remove_view, context) {
+            this.state_change = Promise.resolve();
             this._handler_context = context || this;
             this._models = [];
             this.views = [];
