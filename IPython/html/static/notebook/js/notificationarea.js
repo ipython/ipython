@@ -340,8 +340,11 @@ define([
         this.events.on('notebook_saved.Notebook', function () {
             nnw.set_message("Notebook saved",2000);
         });
-        this.events.on('notebook_save_failed.Notebook', function (evt, xhr, status, data) {
-            nnw.warning(data || "Notebook save failed");
+        this.events.on('notebook_save_failed.Notebook', function (evt, error) {
+            nnw.warning(error.message || "Notebook save failed");
+        });
+        this.events.on('notebook_copy_failed.Notebook', function (evt, error) {
+            nnw.warning(error.message || "Notebook copy failed");
         });
         
         // Checkpoint events

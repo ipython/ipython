@@ -110,7 +110,7 @@ define([
                             CodeMirror.runMode(code, mode, el);
                             callback(null, el.innerHTML);
                         } catch (err) {
-                            console.log("Failed to highlight " + lang + " code", error);
+                            console.log("Failed to highlight " + lang + " code", err);
                             callback(err, code);
                         }
                     }, function (err) {
@@ -132,6 +132,7 @@ define([
         this.undelete_index = null;
         this.undelete_below = false;
         this.paste_enabled = false;
+        this.writable = false;
         // It is important to start out in command mode to match the intial mode
         // of the KeyboardManager.
         this.mode = 'command';
@@ -1896,6 +1897,10 @@ define([
         if (this.autosave_timer) {
             clearInterval(this.autosave_timer);
         }
+        if (!this.writable) {
+            // disable autosave if not writable
+            interval = 0;
+        }
         
         this.autosave_interval = this.minimum_autosave_interval = interval;
         if (interval) {
@@ -1918,12 +1923,18 @@ define([
      * @method save_notebook
      */
     Notebook.prototype.save_notebook = function () {
-        if(!this._fully_loaded){
+        if (!this._fully_loaded) {
             this.events.trigger('notebook_save_failed.Notebook',
                 new Error("Load failed, save is disabled")
             );
             return;
+        } else if (!this.writable) {
+            this.events.trigger('notebook_save_failed.Notebook',
+                new Error("Notebook is read-only")
+            );
+            return;
         }
+
         // Create a JSON model to be sent to the server.
         var model = {
             type : "notebook",
@@ -2052,7 +2063,8 @@ define([
         });
     };
 
-    Notebook.prototype.copy_notebook = function(){
+    Notebook.prototype.copy_notebook = function () {
+        var that = this;
         var base_url = this.base_url;
         var w = window.open();
         var parent = utils.url_path_split(this.notebook_path)[0];
@@ -2064,7 +2076,7 @@ define([
             },
             function(error) {
                 w.close();
-                console.log(error);
+                that.events.trigger('notebook_copy_failed', error);
             }
         );
     };
@@ -2175,6 +2187,7 @@ define([
         }
         this.set_dirty(false);
         this.scroll_to_top();
+        this.writable = data.writable || false;
         var nbmodel = data.content;
         var orig_nbformat = nbmodel.metadata.orig_nbformat;
         var orig_nbformat_minor = nbmodel.metadata.orig_nbformat_minor;
@@ -2249,7 +2262,12 @@ define([
         } else {
             celltoolbar.CellToolbar.global_hide();
         }
-
+        
+        if (!this.writable) {
+            this.set_autosave_interval(0);
+            this.events.trigger('notebook_read_only.Notebook');
+        }
+        
         // now that we're fully loaded, it is safe to restore save functionality
         this._fully_loaded = true;
         this.events.trigger('notebook_loaded.Notebook');
