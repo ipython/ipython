@@ -23,7 +23,13 @@ from IPython.html.utils import is_hidden, to_os_path, url_path_join
 
 class FileContentsManager(ContentsManager):
 
-    root_dir = Unicode(getcwd(), config=True)
+    root_dir = Unicode(config=True)
+
+    def _root_dir_default(self):
+        try:
+            return self.parent.notebook_dir
+        except AttributeError:
+            return getcwd()
 
     save_script = Bool(False, config=True, help='DEPRECATED, IGNORED')
     def _save_script_changed(self):
