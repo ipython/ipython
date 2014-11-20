@@ -325,7 +325,7 @@ define(["widgets/js/manager",
 
         pop_child_view: function(child_model) {
             // Delete a child view that was previously created using create_child_view.
-            console.error("Deprecated use of WidgetView.pop_child_view; use a ViewList instead");
+            console.error("Deprecated pop_child_view; use a ViewList or similar class instead");
             var view_ids = this.child_model_views[child_model.id];
             if (view_ids !== undefined) {
 
@@ -359,7 +359,7 @@ define(["widgets/js/manager",
             //      Callback that is called for each item added.
 
             // Walk the lists until an unequal entry is found.
-            console.error("Deprecated _do_diff; use a ViewList or related class instead");
+            console.error("Deprecated _do_diff; use a ViewList or similar class instead");
 
             var i;
             for (i = 0; i < new_list.length; i++) {
