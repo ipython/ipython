@@ -212,6 +212,7 @@ class link(object):
             if self.failure is not None:
                 self.failure(e)
             else:
+                self.unlink()
                 raise e
         finally:
             for obj, attr in args:
@@ -293,6 +294,7 @@ class directional_link(object):
             if self.failure is not None:
                 self.failure(e)
             else:
+                self.unlink()
                 raise e
         finally:
             self.source[0].on_trait_change(self._update, self.source[1])
