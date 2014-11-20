@@ -177,4 +177,14 @@ div.output_unrecognized {
   padding: 5px;
   font-weight: bold;
   color: red;
+  // remove decoration from link
+  a {
+      color: inherit;
+      text-decoration: none;
+
+      &:hover {
+          color: inherit;
+          text-decoration: none;
+      }
+  }
 }

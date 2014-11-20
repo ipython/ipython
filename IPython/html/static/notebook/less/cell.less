@@ -74,6 +74,16 @@ div.unrecognized_cell {
         color: red;
         border: 1px solid @light_border_color;
         background: darken(@cell_background, 5%);
+        // remove decoration from link
+        a {
+            color: inherit;
+            text-decoration: none;
+
+            &:hover {
+                color: inherit;
+                text-decoration: none;
+            }
+        }
     }
 }
 @media (max-width: 480px) {

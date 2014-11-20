@@ -271,7 +271,6 @@ define([
         }
 
         var record_output = true;
-        console.log("appending", json);
         switch(json.output_type) {
             case 'execute_result':
                 json = this.validate_mimebundle(json);
@@ -490,10 +489,18 @@ define([
 
 
     OutputArea.prototype.append_unrecognized = function (json) {
+        var that = this;
         var toinsert = this.create_output_area();
         var subarea = $('<div/>').addClass('output_subarea output_unrecognized');
         toinsert.append(subarea);
-        subarea.text("Unrecognized output: " + json.output_type);
+        subarea.append(
+            $("<a>")
+                .attr("href", "#")
+                .text("Unrecognized output: " + json.output_type)
+                .click(function () {
+                    that.events.trigger('unrecognized_output.OutputArea', {output: json})
+                })
+        );
         this._safe_append(toinsert);
     };
 

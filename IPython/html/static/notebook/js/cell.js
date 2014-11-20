@@ -636,7 +636,7 @@ define([
         } else {
             data.metadata = this.metadata;
         }
-        this.element.find('.inner_cell').text("Unrecognized cell type: " + data.cell_type);
+        this.element.find('.inner_cell').find("a").text("Unrecognized cell type: " + data.cell_type);
     };
     
     UnrecognizedCell.prototype.create_element = function () {
@@ -647,9 +647,22 @@ define([
         var prompt = $('<div/>').addClass('prompt input_prompt');
         cell.append(prompt);
         var inner_cell = $('<div/>').addClass('inner_cell');
-        inner_cell.text("Unrecognized cell type");
+        inner_cell.append(
+            $("<a>")
+                .attr("href", "#")
+                .text("Unrecognized cell type")
+        );
         cell.append(inner_cell);
         this.element = cell;
+    };
+    
+    UnrecognizedCell.prototype.bind_events = function () {
+        Cell.prototype.bind_events.apply(this, arguments);
+        var cell = this;
+        
+        this.element.find('.inner_cell').find("a").click(function () {
+            cell.events.trigger('unrecognized_cell.Cell', {cell: cell})
+        });
     };
 
     // Backwards compatibility.

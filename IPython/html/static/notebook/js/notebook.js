@@ -147,7 +147,7 @@ define([
         this.minimum_autosave_interval = 120000;
         this.notebook_name_blacklist_re = /[\/\\:]/;
         this.nbformat = 4; // Increment this when changing the nbformat
-        this.nbformat_minor = 0; // Increment this when changing the nbformat
+        this.nbformat_minor = this.current_nbformat_minor = 0; // Increment this when changing the nbformat
         this.codemirror_mode = 'ipython';
         this.create_elements();
         this.bind_events();
@@ -205,6 +205,14 @@ define([
             var new_cell = that.insert_cell_below('code',index);
             new_cell.set_text(data.text);
             that.dirty = true;
+        });
+
+        this.events.on('unrecognized_cell.Cell', function () {
+            that.warn_nbformat_minor();
+        });
+
+        this.events.on('unrecognized_output.OutputArea', function () {
+            that.warn_nbformat_minor();
         });
 
         this.events.on('set_dirty.Notebook', function (event, data) {
@@ -300,6 +308,28 @@ define([
             return null;
         };
     };
+    
+    Notebook.prototype.warn_nbformat_minor = function (event) {
+        // trigger a warning dialog about missing functionality from newer minor versions
+        var v = 'v' + this.nbformat + '.';
+        var orig_vs = v + this.nbformat_minor;
+        var this_vs = v + this.current_nbformat_minor;
+        var msg = "This notebook is version " + orig_vs + ", but we only fully support up to " +
+        this_vs + ".  You can still work with this notebook, but cell and output types " +
+        "introduced in later notebook versions will not be available.";
+
+        dialog.modal({
+            notebook: this,
+            keyboard_manager: this.keyboard_manager,
+            title : "Newer Notebook",
+            body : msg,
+            buttons : {
+                OK : {
+                    "class" : "btn-danger"
+                }
+            }
+        });
+    }
 
     /**
      * Set the dirty flag, and trigger the set_dirty.Notebook event
@@ -2234,26 +2264,8 @@ define([
                     }
                 }
             });
-        } else if (orig_nbformat_minor !== undefined && nbmodel.nbformat_minor < orig_nbformat_minor) {
-            var that = this;
-            var orig_vs = 'v' + nbmodel.nbformat + '.' + orig_nbformat_minor;
-            var this_vs = 'v' + nbmodel.nbformat + '.' + this.nbformat_minor;
-            msg = "This notebook is version " + orig_vs + ", but we only fully support up to " +
-            this_vs + ".  You can still work with this notebook, but some features " +
-            "introduced in later notebook versions may not be available.";
-
-            dialog.modal({
-                notebook: this,
-                keyboard_manager: this.keyboard_manager,
-                title : "Newer Notebook",
-                body : msg,
-                buttons : {
-                    OK : {
-                        class : "btn-danger"
-                    }
-                }
-            });
-
+        } else if (this.nbformat_minor < nbmodel.nbformat_minor) {
+            this.nbformat_minor = nbmodel.nbformat_minor;
         }
         
         // Create the session after the notebook is completely loaded to prevent
