@@ -5,6 +5,8 @@
 
 from .manager import ContentsManager
 
+import os.path
+
 class ClientSideContentsManager(ContentsManager):
     """Dummy contents manager for use with client-side contents APIs like GDrive
 
@@ -21,3 +23,10 @@ class ClientSideContentsManager(ContentsManager):
 
     def file_exists(self, name, path=''):
         return True
+
+    def get_kernel_path(self, path, model=None):
+         """Return the initial working dir a kernel associated with a given notebook
+         
+         Here just alway return home directory
+         """
+         return os.path.expanduser('~')
