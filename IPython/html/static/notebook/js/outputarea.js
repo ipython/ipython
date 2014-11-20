@@ -245,7 +245,7 @@ define([
         'text/plain'
     ];
 
-    OutputArea.prototype.validate_output = function (json) {
+    OutputArea.prototype.validate_mimebundle = function (json) {
         // scrub invalid outputs
         var data = json.data;
         $.map(OutputArea.output_types, function(key){
@@ -263,11 +263,6 @@ define([
     OutputArea.prototype.append_output = function (json) {
         this.expand();
         
-        // validate output data types
-        if (json.data) {
-            json = this.validate_output(json);
-        }
-
         // Clear the output if clear is queued.
         var needs_height_reset = false;
         if (this.clear_queued) {
@@ -276,14 +271,26 @@ define([
         }
 
         var record_output = true;
-
-        if (json.output_type === 'execute_result') {
-            this.append_execute_result(json);
-        } else if (json.output_type === 'error') {
-            this.append_error(json);
-        } else if (json.output_type === 'stream') {
-            // append_stream might have merged the output with earlier stream output
-            record_output = this.append_stream(json);
+        console.log("appending", json);
+        switch(json.output_type) {
+            case 'execute_result':
+                json = this.validate_mimebundle(json);
+                this.append_execute_result(json);
+                break;
+            case 'stream':
+                // append_stream might have merged the output with earlier stream output
+                record_output = this.append_stream(json);
+                break;
+            case 'error':
+                this.append_error(json);
+                break;
+            case 'display_data':
+                // append handled below
+                json = this.validate_mimebundle(json);
+                break;
+            default:
+                console.log("unrecognized output type: " + json.output_type);
+                this.append_unrecognized(json);
         }
 
         // We must release the animation fixed height in a callback since Gecko
@@ -479,6 +486,15 @@ define([
         }
         this._safe_append(toinsert);
         return true;
+    };
+
+
+    OutputArea.prototype.append_unrecognized = function (json) {
+        var toinsert = this.create_output_area();
+        var subarea = $('<div/>').addClass('output_subarea output_unrecognized');
+        toinsert.append(subarea);
+        subarea.text("Unrecognized output: " + json.output_type);
+        this._safe_append(toinsert);
     };
 
 

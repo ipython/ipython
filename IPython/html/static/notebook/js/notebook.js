@@ -6,6 +6,7 @@ define([
     'jquery',
     'base/js/utils',
     'base/js/dialog',
+    'notebook/js/cell',
     'notebook/js/textcell',
     'notebook/js/codecell',
     'services/sessions/session',
@@ -22,13 +23,14 @@ define([
     'notebook/js/scrollmanager'
 ], function (
     IPython, 
-    $, 
-    utils, 
-    dialog, 
-    textcell, 
-    codecell, 
+    $,
+    utils,
+    dialog,
+    cellmod,
+    textcell,
+    codecell,
     session, 
-    celltoolbar, 
+    celltoolbar,
     marked,
     CodeMirror,
     runMode,
@@ -894,7 +896,8 @@ define([
                 cell = new textcell.RawCell(cell_options);
                 break;
             default:
-                console.log("invalid cell type: ", type);
+                console.log("Unrecognized cell type: ", type, cellmod);
+                cell = new cellmod.UnrecognizedCell(cell_options);
             }
 
             if(this._insert_element_at_index(cell.element,index)) {
