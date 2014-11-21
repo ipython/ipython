@@ -4,14 +4,17 @@
 define([
     'base/js/namespace',
     'jquery',
-], function(IPython, $){
+    'base/js/events',
+], function(IPython, $, events){
     "use strict";
 
     var Page = function () {
         this.bind_events();
+        this._resize_header();
     };
 
     Page.prototype.bind_events = function () {
+        events.on('resize-header.Page', $.proxy(this._resize_header, this));
     };
 
     Page.prototype.show = function () {
@@ -39,6 +42,11 @@ define([
          * TODO: selector are hardcoded, pass as constructor argument
          */
         $('div#site').css('display','block');
+    };
+
+    Page.prototype._resize_header = function() {
+        // Update the header's size.
+        $('#header-spacer').height($('#header').height());
     };
 
     // Register self in the global namespace for convenience.

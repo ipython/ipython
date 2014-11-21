@@ -81,7 +81,7 @@
 </noscript>
 
 <div id="header" class="navbar navbar-static-top">
-  <div class="container">
+  <div id="header-container" class="container">
   <div id="ipython_notebook" class="nav navbar-brand pull-left"><a href="{{base_url}}tree" alt='dashboard'>{% block logo %}<img src='{{static_url("base/images/logo.png") }}' alt='Jupyter Notebook'/>{% endblock %}</a></div>
 
   {% block login_widget %}
@@ -96,10 +96,15 @@
 
   {% endblock %}
 
-  {% block header %}
+  {% block headercontainer %}
   {% endblock %}
   </div>
+  <div class="header-bar"></div>
+
+  {% block header %}
+  {% endblock %}
 </div>
+<div id="header-spacer"></div>
 
 <div id="site">
 {% block site %}

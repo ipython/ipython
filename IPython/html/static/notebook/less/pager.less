@@ -1,25 +1,31 @@
-div#pager_splitter {
-    height: 8px;
-    .border-box-sizing();
-}
-
-#pager-container {
-    position: relative;
-    padding: 15px 0px;
-    .border-box-sizing();
-}
-
 div#pager {
+    background-color:   @body-bg;
     font-size: @notebook_font_size;
     line-height: @notebook_line_height;
     overflow: auto;
     display: none;
+    position: fixed;
+    bottom: 0px;
+    width: 100%;
+    border-top: 1px solid @navbar-default-border;
+
+    /* Display over codemirror */
+    z-index: 100;
+
+    /* Hack which prevents jquery ui resizable from changing top. */
+    top: inherit !important; 
 
     pre {
-      line-height: @code_line_height;
-      color: @text-color;
-      background-color: @cell_background;
-      padding: @code_padding;
+        line-height: @code_line_height;
+        color: @text-color;
+        background-color: @cell_background;
+        padding: @code_padding;
     }
-    .border-box-sizing();
+
+    #pager-container {
+        position: relative;
+        padding: 15px 0px;
+        .border-box-sizing();
+    }
+
 }

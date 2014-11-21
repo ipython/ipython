@@ -8,48 +8,21 @@ define([
 ], function(IPython, $, utils) {
     "use strict";
 
-    var Pager = function (pager_selector, pager_splitter_selector, options) {
+    var Pager = function (pager_selector, options) {
         /**
          * Constructor
          *
          * Parameters:
          *  pager_selector: string
-         *  pager_splitter_selector: string
          *  options: dictionary
          *      Dictionary of keyword arguments.
          *          events: $(Events) instance
-         *          layout_manager: LayoutManager instance
          */
         this.events = options.events;
         this.pager_element = $(pager_selector);
         this.pager_button_area = $('#pager_button_area');
-        var that = this;
-        this.percentage_height = 0.40;
-        options.layout_manager.pager = this;
-        this.pager_splitter_element = $(pager_splitter_selector)
-            .draggable({
-                        containment: 'window',
-                        axis:'y',
-                        helper: null ,
-                        drag: function(event, ui) {
-                            /**
-                             * recalculate the amount of space the pager should take
-                             */
-                            var pheight = ($(document.body).height()-event.clientY-4);
-                            var downprct = pheight/options.layout_manager.app_height();
-                                downprct = Math.min(0.9, downprct);
-                            if (downprct < 0.1) {
-                                that.percentage_height = 0.1;
-                                that.collapse({'duration':0});
-                            } else if (downprct > 0.2) {
-                                that.percentage_height = downprct;
-                                that.expand({'duration':0});
-                            }
-                            options.layout_manager.do_resize();
-                       }
-            });
+        this.pager_element.resizable({handles: 'n'});        
         this.expanded = false;
-        this.style();
         this.create_button_area();
         this.bind_events();
     };
@@ -78,11 +51,6 @@ define([
         );
     };
 
-    Pager.prototype.style = function () {
-        this.pager_splitter_element.addClass('ui-widget ui-state-default');
-        this.pager_splitter_element.attr('title', 'Click to Show/Hide pager area, drag to Resize');
-    };
-
 
     Pager.prototype.bind_events = function () {
         var that = this;
@@ -101,19 +69,6 @@ define([
                 time = extrap.duration;
             }
             that.pager_element.show(time);
-        });
-
-        this.pager_splitter_element.hover(
-            function () {
-                that.pager_splitter_element.addClass('ui-state-hover');
-            },
-            function () {
-                that.pager_splitter_element.removeClass('ui-state-hover');
-            }
-        );
-
-        this.pager_splitter_element.click(function () {
-            that.toggle();
         });
 
         this.events.on('open_with_text.Pager', function (event, payload) {
