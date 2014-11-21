@@ -72,7 +72,7 @@ from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import (format_screen, LSString, SList,
                                 DollarFormatter)
-from IPython.utils.traitlets import (Integer, CBool, CaselessStrEnum, Enum,
+from IPython.utils.traitlets import (Integer, Bool, CBool, CaselessStrEnum, Enum,
                                      List, Unicode, Instance, Type)
 from IPython.utils.warn import warn, error
 import IPython.core.hooks
@@ -333,6 +333,10 @@ class InteractiveShell(SingletonConfigurable):
     )
     multiline_history = CBool(sys.platform != 'win32', config=True,
         help="Save multi-line entries as one entry in readline history"
+    )
+    display_page = Bool(False, config=True,
+        help="""If True, anything that would be passed to the pager
+        will be displayed as regular output instead."""
     )
 
     # deprecated prompt traits:
@@ -820,7 +824,10 @@ class InteractiveShell(SingletonConfigurable):
             # default hooks have priority 100, i.e. low; user hooks should have
             # 0-100 priority
             self.set_hook(hook_name,getattr(hooks,hook_name), 100, _warn_deprecated=False)
-
+        
+        if self.display_page:
+            self.set_hook('show_in_pager', page.as_hook(page.display_page), 90)
+    
     def set_hook(self,name,hook, priority=50, str_key=None, re_key=None,
                  _warn_deprecated=True):
         """set_hook(name,hook) -> sets an internal IPython hook.

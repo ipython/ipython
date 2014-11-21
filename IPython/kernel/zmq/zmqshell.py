@@ -31,7 +31,7 @@ from IPython.core.displaypub import DisplayPublisher
 from IPython.core.error import UsageError
 from IPython.core.magics import MacroToEdit, CodeMagics
 from IPython.core.magic import magics_class, line_magic, Magics
-from IPython.core.payloadpage import install_payload_page
+from IPython.core import payloadpage
 from IPython.core.usage import default_gui_banner
 from IPython.display import display, Javascript
 from IPython.kernel.inprocess.socket import SocketABC
@@ -391,9 +391,7 @@ class ZMQInteractiveShell(InteractiveShell):
             raise UsageError("%s" % e)
 
     def init_environment(self):
-        """Configure the user's environment.
-
-        """
+        """Configure the user's environment."""
         env = os.environ
         # These two ensure 'ls' produces nice coloring on BSD-derived systems
         env['TERM'] = 'xterm-color'
@@ -403,10 +401,11 @@ class ZMQInteractiveShell(InteractiveShell):
         # subprocesses as much as possible.
         env['PAGER'] = 'cat'
         env['GIT_PAGER'] = 'cat'
-        
-        # And install the payload version of page.
-        install_payload_page()
-
+    
+    def init_hooks(self):
+        super(ZMQInteractiveShell, self).init_hooks()
+        self.set_hook('show_in_pager', page.as_hook(payloadpage.page), 99)
+    
     def ask_exit(self):
         """Engage the exit actions."""
         self.exit_now = (not self.keepkernel_on_exit)
