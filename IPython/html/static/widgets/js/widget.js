@@ -345,7 +345,7 @@ define(["widgets/js/manager",
             return null;
         },
 
-        do_diff: function(old_list, new_list, removed_callback, added_callback) {
+        _do_diff: function(old_list, new_list, removed_callback, added_callback) {
             // Difference a changed list and call remove and add callbacks for 
             // each removed and added item in the new list.
             //
@@ -359,8 +359,6 @@ define(["widgets/js/manager",
             //      Callback that is called for each item added.
 
             // Walk the lists until an unequal entry is found.
-            console.error("Deprecated _do_diff; use a ViewList or similar class instead");
-
             var i;
             for (i = 0; i < new_list.length; i++) {
                 if (i >= old_list.length || new_list[i] !== old_list[i]) {
@@ -536,7 +534,7 @@ define(["widgets/js/manager",
             if ($el===undefined) {
                 $el = this.$el;
             }
-            this.do_diff(old_classes, new_classes, function(removed) {
+            this._do_diff(old_classes, new_classes, function(removed) {
                 $el.removeClass(removed);
             }, function(added) {
                 $el.addClass(added);
