@@ -37,7 +37,7 @@ class LatexExporter(TemplateExporter):
     """
 
     def _file_extension_default(self):
-        return 'tex'
+        return '.tex'
 
     def _template_file_default(self):
         return 'article'

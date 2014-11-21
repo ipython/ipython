@@ -25,7 +25,7 @@ class SlidesExporter(HTMLExporter):
     """Exports HTML slides with reveal.js"""
     
     def _file_extension_default(self):
-        return 'slides.html'
+        return '.slides.html'
 
     def _template_file_default(self):
         return 'slides_reveal'
