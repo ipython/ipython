@@ -50,9 +50,6 @@ def _valid_formatter(f):
     """
     if f is None:
         return False
-    elif isinstance(f, type(str.find)):
-        # unbound methods on compiled classes have type method_descriptor
-        return False
     elif isinstance(f, types.BuiltinFunctionType):
         # bound methods on compiled classes have type builtin_function
         return True
@@ -68,6 +65,9 @@ def _valid_formatter(f):
 
 def _safe_get_formatter_method(obj, name):
     """Safely get a formatter method"""
+    if inspect.isclass(obj):
+        # repr methods only make sense on instances, not classes
+        return None
     method = pretty._safe_getattr(obj, name, None)
     # formatter methods must be bound
     if _valid_formatter(method):

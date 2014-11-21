@@ -314,7 +314,6 @@ def test_print_method_bound():
     class MyHTML(object):
         def _repr_html_(self):
             return "hello"
-
     with capture_output() as captured:
         result = f(MyHTML)
     nt.assert_is(result, None)
@@ -324,6 +323,45 @@ def test_print_method_bound():
         result = f(MyHTML())
     nt.assert_equal(result, "hello")
     nt.assert_equal(captured.stderr, "")
+
+def test_print_method_weird():
+
+    class TextMagicHat(object):
+        def __getattr__(self, key):
+            return key
+
+    f = HTMLFormatter()
+    
+    text_hat = TextMagicHat()
+    nt.assert_equal(text_hat._repr_html_, '_repr_html_')
+    with capture_output() as captured:
+        result = f(text_hat)
+    
+    nt.assert_is(result, None)
+    nt.assert_not_in("FormatterWarning", captured.stderr)
+
+    class CallableMagicHat(object):
+        def __getattr__(self, key):
+            return lambda : key
+    
+    call_hat = CallableMagicHat()
+    with capture_output() as captured:
+        result = f(call_hat)
+    
+    nt.assert_equal(result, '_repr_html_')
+    nt.assert_not_in("FormatterWarning", captured.stderr)
+
+    class BadReprArgs(object):
+        def _repr_html_(self, extra, args):
+            return "html"
+    
+    bad = BadReprArgs()
+    with capture_output() as captured:
+        result = f(bad)
+    
+    nt.assert_is(result, None)
+    nt.assert_not_in("FormatterWarning", captured.stderr)
+
 
 def test_format_config():
     """config objects don't pretend to support fancy reprs with lazy attrs"""
