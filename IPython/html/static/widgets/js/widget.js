@@ -621,6 +621,9 @@ define(["widgets/js/manager",
             // returns a promise that resolves after this update is done
             var remove = remove_view || this._remove_view;
             var create = create_view || this._create_view;
+            if (create === undefined || remove === undefined){
+                console.error("Must define a create a remove function");
+            }
             var context = context || this._handler_context;
             var added_views = [];
             var that = this;
