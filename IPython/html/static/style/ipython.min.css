@@ -1158,9 +1158,6 @@ h5:hover .anchor-link,
 h6:hover .anchor-link {
   visibility: visible;
 }
-div.cell.text_cell.rendered {
-  padding: 0px;
-}
 .text_cell.rendered .input_area {
   display: none;
 }

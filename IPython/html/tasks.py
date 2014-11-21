@@ -11,7 +11,7 @@ components_dir = pjoin(static_dir, 'components')
 here = os.path.dirname(__file__)
 
 min_less_version = '1.7.5'
-max_less_version = '1.8.0' # exclusive
+max_less_version = None # exclusive if string
 
 def _need_css_update():
     """Does less need to run?"""
@@ -66,9 +66,9 @@ def _compile_less(source, target, sourcemap, minify=True, verbose=False):
                          % (min_less_version, max_less_version))
     out = out.decode('utf8', 'replace')
     less_version = out.split()[1]
-    if V(less_version) < V(min_less_version):
+    if min_less_version and V(less_version) < V(min_less_version):
         raise ValueError("lessc too old: %s < %s. Use `$ npm install less@X.Y.Z` to install a specific version of less" % (less_version, min_less_version))
-    if V(less_version) >= V(max_less_version):
+    if max_less_version and V(less_version) >= V(max_less_version):
         raise ValueError("lessc too new: %s >= %s. Use `$ npm install less@X.Y.Z` to install a specific version of less" % (less_version, max_less_version))
     
     static_path = pjoin(here, static_dir)
