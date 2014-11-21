@@ -648,6 +648,7 @@ define(["widgets/js/manager",
                 that._models = new_models.slice();
                 return Promise.all(added_views, function(added) {
                     that.views = that.views.slice(0,first_removed).concat(added);
+                    return that.views;
                 });
             });
             return this.state_change;
