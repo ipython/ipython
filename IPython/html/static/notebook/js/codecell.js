@@ -338,6 +338,7 @@ define([
         }
         CodeCell.msg_cells[this.last_msg_id] = this;
         this.render();
+        this.events.trigger('execute.CodeCell');
     };
     
     /**
