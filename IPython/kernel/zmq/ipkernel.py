@@ -76,7 +76,7 @@ class IPythonKernel(KernelBase):
                                          'version': sys.version_info[0]},
                      'pygments_lexer': 'ipython%d' % (3 if PY3 else 2),
                      'nbconvert_exporter': 'python',
-                     'file_extension': 'py'
+                     'file_extension': '.py'
                     }
     @property
     def banner(self):

@@ -359,7 +359,7 @@ define([
         // Set menu entry text to e.g. "Python (.py)"
         var langname = (langinfo.name || 'Script')
         langname = langname.charAt(0).toUpperCase()+langname.substr(1) // Capitalise
-        el.find('a').text(langname + ' (.'+(langinfo.file_extension || 'txt')+')');
+        el.find('a').text(langname + ' ('+(langinfo.file_extension || 'txt')+')');
         
         // Unregister any previously registered handlers
         el.off('click');

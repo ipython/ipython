@@ -135,7 +135,7 @@ class PDFExporter(LatexExporter):
         
         # convert output extension to pdf
         # the writer above required it to be tex
-        resources['output_extension'] = 'pdf'
+        resources['output_extension'] = '.pdf'
         
         return pdf_data, resources
     

@@ -43,7 +43,7 @@ def respond_zip(handler, name, output, resources):
     # Prepare the zip file
     buffer = io.BytesIO()
     zipf = zipfile.ZipFile(buffer, mode='w', compression=zipfile.ZIP_DEFLATED)
-    output_filename = os.path.splitext(name)[0] + '.' + resources['output_extension']
+    output_filename = os.path.splitext(name)[0] + resources['output_extension']
     zipf.writestr(output_filename, cast_bytes(output, 'utf-8'))
     for filename, data in output_files.items():
         zipf.writestr(os.path.basename(filename), data)
@@ -96,7 +96,7 @@ class NbconvertFileHandler(IPythonHandler):
 
         # Force download if requested
         if self.get_argument('download', 'false').lower() == 'true':
-            filename = os.path.splitext(name)[0] + '.' + resources['output_extension']
+            filename = os.path.splitext(name)[0] + resources['output_extension']
             self.set_header('Content-Disposition',
                                'attachment; filename="%s"' % filename)
 
