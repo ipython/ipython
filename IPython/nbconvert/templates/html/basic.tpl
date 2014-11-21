@@ -23,7 +23,11 @@
 
 {% block in_prompt -%}
 <div class="prompt input_prompt">
-In&nbsp;[{{ cell.prompt_number }}]:
+{%- if cell.prompt_number is defined -%}
+In&nbsp;[{{ cell.prompt_number|replace(None, "&nbsp;") }}]:
+{%- else -%}
+In&nbsp;[&nbsp;]:
+{%- endif -%}
 </div>
 {%- endblock in_prompt %}
 
@@ -51,7 +55,11 @@ In&nbsp;[{{ cell.prompt_number }}]:
 <div class="output_area">
 {%- if output.output_type == 'pyout' -%}
     <div class="prompt output_prompt">
-    Out[{{ cell.prompt_number }}]:
+{%- if cell.prompt_number is defined -%}
+    Out[{{ cell.prompt_number|replace(None, "&nbsp;") }}]:
+{%- else -%}
+    Out[&nbsp;]:
+{%- endif -%}
 {%- else -%}
     <div class="prompt">
 {%- endif -%}

@@ -396,7 +396,7 @@ var IPython = (function (IPython) {
 
     CodeCell.input_prompt_classical = function (prompt_value, lines_number) {
         var ns;
-        if (prompt_value === undefined) {
+        if (prompt_value === undefined || prompt_value === null) {
             ns = "&nbsp;";
         } else {
             ns = encodeURIComponent(prompt_value);

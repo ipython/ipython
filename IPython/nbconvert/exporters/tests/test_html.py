@@ -15,6 +15,7 @@
 from .base import ExportersTestsBase
 from ..html import HTMLExporter
 from IPython.testing.decorators import onlyif_any_cmd_exists
+import re
 
 #-----------------------------------------------------------------------------
 # Class
@@ -59,3 +60,18 @@ class TestHTMLExporter(ExportersTestsBase):
         (output, resources) = HTMLExporter(template_file='full').from_filename(self._get_notebook())
         assert len(output) > 0
 
+    @onlyif_any_cmd_exists('nodejs', 'node', 'pandoc')
+    def test_prompt_number(self):
+        """
+        Does HTMLExporter properly format input and output prompts?
+        """
+        (output, resources) = HTMLExporter(template_file='full').from_filename(
+            self._get_notebook(nb_name="prompt_numbers.ipynb"))
+        in_regex = r"In&nbsp;\[(.*)\]:"
+        out_regex = r"Out\[(.*)\]:"
+
+        ins = ["2", "10", "&nbsp;", "&nbsp;", "*", "0"]
+        outs = ["10"]
+
+        assert re.findall(in_regex, output) == ins
+        assert re.findall(out_regex, output) == outs
