@@ -56,7 +56,7 @@ class AuthenticatedHandler(web.RequestHandler):
                                "report-uri " + url_path_join(self.base_url, csp_report_uri) + 
                                ";"
             )
-            self.log.info(reporter_policy)
+            self.log.debug(reporter_policy)
 
             headers["Content-Security-Policy-Report-Only"] = reporter_policy
 
