@@ -186,10 +186,14 @@ IFrame embedding
 The IPython Notebook and its APIs by default will only be allowed to be
 embedded in an iframe on the same origin.
 
-To override this, set ``headers[X-Frame-Options]`` to one of
+Override ``headers['Content-Security-Policy']`` within your notebook
+configuration to extend for alternate domains and security settings.::
 
-* DENY
-* SAMEORIGIN
-* ALLOW-FROM uri
+    c.NotebookApp.tornado_settings = {
+        'headers': {
+            'Content-Security-Policy': "default-src 'self' *.jupyter.org
+        }
+    }
 
-See `Mozilla's guide to X-Frame-Options <https://developer.mozilla.org/en-US/docs/Web/HTTP/X-Frame-Options>`_ for more examples.
+For a more thorough and accurate guide on Content Security Policies, check out
+`MDN's Using Content Security Policy <https://developer.mozilla.org/en-US/docs/Web/Security/CSP/Using_Content_Security_Policy>`_ for more examples.
