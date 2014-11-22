@@ -229,7 +229,7 @@ syntax_ml = \
           ('    ...: ', ''),
           ],
          [('In [24]: for i in range(10):','for i in range(10):'),
-          # Sometimes whitespace preceding '...' has been removed (issue #6674)
+          # Sometimes whitespace preceding '...' has been removed
           ('...:     print i','    print i'),
           ('...: ', ''),
           ],
