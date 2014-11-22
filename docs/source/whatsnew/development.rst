@@ -180,20 +180,30 @@ Backwards incompatible changes
 
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. INCOMPAT INSERTION POINT.
 
-IFrame embedding
-````````````````
+Content Security Policy
+```````````````````````
 
-The IPython Notebook and its APIs by default will only be allowed to be
-embedded in an iframe on the same origin.
+The Content Security Policy is a web standard for adding a layer of security to
+detect and mitigate certain classes of attacks, including Cross Site Scripting
+(XSS) and data injection attacks. This was introduced into the notebook to
+ensure that the IPython Notebook and its APIs (by default) can only be embedded
+in an iframe on the same origin.
 
 Override ``headers['Content-Security-Policy']`` within your notebook
 configuration to extend for alternate domains and security settings.::
 
     c.NotebookApp.tornado_settings = {
         'headers': {
-            'Content-Security-Policy': "default-src 'self' *.jupyter.org
+            'Content-Security-Policy': "default-src 'self' *.jupyter.org"
         }
     }
+
+Example policies::
+
+    Content-Security-Policy: default-src 'self' https://*.jupyter.org
+
+Matches embeddings on any subdomain of jupyter.org, so long as they are served
+over SSL.
 
 For a more thorough and accurate guide on Content Security Policies, check out
 `MDN's Using Content Security Policy <https://developer.mozilla.org/en-US/docs/Web/Security/CSP/Using_Content_Security_Policy>`_ for more examples.
