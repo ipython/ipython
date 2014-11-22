@@ -48,8 +48,7 @@ class AuthenticatedHandler(web.RequestHandler):
         headers = self.settings.get('headers', {})
 
         if "Content-Security-Policy" not in headers:
-            #headers["Content-Security-Policy"] = ""
-            pass
+            headers["Content-Security-Policy"] = ""
 
         if "Content-Security-Policy-Report-Only" not in headers:
 
