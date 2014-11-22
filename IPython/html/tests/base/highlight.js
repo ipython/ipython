@@ -31,7 +31,7 @@ casper.notebook_test(function () {
         {from: ["../"], error: true},
         {from: ["//"], error: true},
     ].map(function (mode) {
-        mode.from.concat(mode.to || []).map(function(from){
+        (mode.from || []).concat(mode.to || []).map(function(from){
             casper.evaluate(function(from, expected, error_expected){
                 IPython.utils.requireCodeMirrorMode(from, function(observed){
                     window.callPhantom({
