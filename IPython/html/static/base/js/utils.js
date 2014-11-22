@@ -605,17 +605,6 @@ define([
         msg += ajax_error_msg(jqXHR);
         console.log(msg);
     };
-    
-    // monkeypatch from CM4.7+... will be available soon, along with aliases!
-    CodeMirror.findModeByName = CodeMirror.findModeByName || function(name) {
-      name = name.toLowerCase();
-      for (var i = 0; i < CodeMirror.modeInfo.length; i++) {
-        var info = CodeMirror.modeInfo[i];
-        if (info.name.toLowerCase() == name) return info;
-        if (info.alias) for (var j = 0; j < info.alias.length; j++)
-          if (info.alias[j].toLowerCase() == name) return info;
-      }
-    };
 
     var requireCodeMirrorMode = function (mode, callback, errback) {
         /** 
