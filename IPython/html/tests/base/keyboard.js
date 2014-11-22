@@ -13,7 +13,9 @@ var to_normalize = [
 var unshifted = "` 1 2 3 4 5 6 7 8 9 0 - = q w e r t y u i o p [ ] \\ a s d f g h j k l ; ' z x c v b n m , . /";
 //  shifted   = '~ ! @ # $ % ^ & * ( ) _ + Q W E R T Y U I O P { } |  A S D F G H J K L : " Z X C V B N M < > ?';
 
+
 casper.notebook_test(function () {
+    var that = this;
 
     this.then(function () {
         this.each(unshifted.split(' '), function (self, item) {
@@ -45,5 +47,38 @@ casper.notebook_test(function () {
             this.test.assertEquals(result, item, 'Shortcut to event roundtrip: '+item);
         });
     });
+
+    this.then(function(){
+
+        var shortcuts_test = {
+            'i,e,e,e,e,e'                                 : '[[5E]]',
+            'i,d,d,q,d'                                   : '[[TEST1]]',
+            'i,d,d'                                       : '[[TEST1 WILL BE SHADOWED]]',
+            'i,d,k'                                       : '[[SHOULD SHADOW TEST2]]',
+            'i,d,k,r,q'                                   : '[[TEST2 NOT SHADOWED]]',
+            ';,up,down,up,down,left,right,left,right,b,a' : '[[KONAMI]]',
+            'ctrl-x,meta-c,meta-b,u,t,t,e,r,f,l,y'        : '[[XKCD]]'
+
+        };
+
+        that.msgs = [];
+        that.on('remote.message', function(msg) {
+          that.msgs.push(msg);
+        })
+        that.evaluate(function (obj) {
+            for(var k in obj){
+                IPython.keyboard_manager.command_shortcuts.add_shortcut(k, function(){console.log(obj[k])});
+            }
+        }, shortcuts_test);
+
+        var longer_first = false;
+        var longer_last = false;
+        for(var m in that.msgs){
+            longer_first = longer_first||(that.msgs[m].match(/you are overriting/)!= null);
+            longer_last = longer_last  ||(that.msgs[m].match(/will be shadowed/) != null);
+        }
+        this.test.assert(longer_first, 'no warnign if registering shorter shortut');
+        this.test.assert(longer_last , 'no warnign if registering longer shortut');
+    })
 
 });
