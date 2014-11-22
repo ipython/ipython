@@ -1,5 +1,11 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"""Tornado handlers for security logging."""
+
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
+from tornado import gen, web
+
+from ...base.handlers import IPythonHandler, json_errors
 
 class CSPReportHandler(IPythonHandler):
     '''Accepts a content security policy violation report'''

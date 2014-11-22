@@ -32,6 +32,8 @@ from IPython.utils.path import filefind
 from IPython.utils.py3compat import string_types
 from IPython.html.utils import is_hidden, url_path_join, url_escape
 
+from IPython.html.services.security.handlers import csp_report_uri
+
 #-----------------------------------------------------------------------------
 # Top-level handlers
 #-----------------------------------------------------------------------------
@@ -46,8 +48,20 @@ class AuthenticatedHandler(web.RequestHandler):
         headers = self.settings.get('headers', {})
 
         if "Content-Security-Policy" not in headers:
-            headers["Content-Security-Policy"] = "default-src 'self'"
+            #headers["Content-Security-Policy"] = ""
+            pass
 
+        if "Content-Security-Policy-Report-Only" not in headers:
+
+            reporter_policy = ("default-src 'self'; " +
+                               "report-uri " + url_path_join(self.base_url, csp_report_uri) + 
+                               ";"
+            )
+            self.log.info(reporter_policy)
+
+            headers["Content-Security-Policy-Report-Only"] = reporter_policy
+
+        # Allow for overriding headers
         for header_name,value in headers.items() :
             try:
                 self.set_header(header_name, value)
