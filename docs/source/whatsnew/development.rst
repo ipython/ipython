@@ -194,7 +194,7 @@ configuration to extend for alternate domains and security settings.::
 
     c.NotebookApp.tornado_settings = {
         'headers': {
-            'Content-Security-Policy': "default-src 'self' *.jupyter.org"
+            'Content-Security-Policy': "frame-ancestors 'self'"
         }
     }
 
@@ -204,6 +204,18 @@ Example policies::
 
 Matches embeddings on any subdomain of jupyter.org, so long as they are served
 over SSL.
+
+There is a `report-uri <https://developer.mozilla.org/en-US/docs/Web/Security/CSP/CSP_policy_directives#report-uri>`_ endpoint available for logging CSP violations, located at
+``/api/security/csp-report``. To use it, set ``report-uri`` as part of the CSP::
+
+    c.NotebookApp.tornado_settings = {
+        'headers': {
+            'Content-Security-Policy': "frame-ancestors 'self'; report-uri /api/security/csp-report"
+        }
+    }
+
+It simply provides the CSP report as a warning in IPython's logs. The default
+CSP sets this report-uri relative to the ``base_url`` (not shown above).
 
 For a more thorough and accurate guide on Content Security Policies, check out
 `MDN's Using Content Security Policy <https://developer.mozilla.org/en-US/docs/Web/Security/CSP/Using_Content_Security_Policy>`_ for more examples.
