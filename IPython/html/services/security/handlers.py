@@ -6,6 +6,7 @@
 from tornado import gen, web
 
 from ...base.handlers import IPythonHandler, json_errors
+from . import csp_report_uri
 
 class CSPReportHandler(IPythonHandler):
     '''Accepts a content security policy violation report'''
@@ -15,8 +16,6 @@ class CSPReportHandler(IPythonHandler):
         '''Log a content security policy violation report'''
         csp_report = self.get_json_body()
         self.log.debug(csp_report)
-
-csp_report_uri = r"/api/security/csp-report" 
 
 default_handlers = [
     (csp_report_uri, CSPReportHandler)
