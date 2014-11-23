@@ -55,18 +55,17 @@ class AuthenticatedHandler(web.RequestHandler):
                                "report-uri " + url_path_join(self.base_url, csp_report_uri) + 
                                ";"
             )
-            self.log.debug(reporter_policy)
-
             headers["Content-Security-Policy-Report-Only"] = reporter_policy
 
         # Allow for overriding headers
         for header_name,value in headers.items() :
             try:
                 self.set_header(header_name, value)
-            except Exception:
+            except Exception as e:
                 # tornado raise Exception (not a subclass)
                 # if method is unsupported (websocket and Access-Control-Allow-Origin
                 # for example, so just ignore)
+                self.log.debug(e)
                 pass
     
     def clear_login_cookie(self):
