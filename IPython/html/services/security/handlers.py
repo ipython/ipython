@@ -15,7 +15,7 @@ class CSPReportHandler(IPythonHandler):
     def post(self):
         '''Log a content security policy violation report'''
         csp_report = self.get_json_body()
-        self.log.debug(csp_report)
+        self.log.warn(csp_report)
 
 default_handlers = [
     (csp_report_uri, CSPReportHandler)
