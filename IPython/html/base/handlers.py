@@ -50,9 +50,8 @@ class AuthenticatedHandler(web.RequestHandler):
         if "Content-Security-Policy" not in headers:
             headers["Content-Security-Policy"] = (
                     "frame-ancestors 'self'; "
-                    # Make sure the report-uri comes out on the base_url
-                    "report-uri " + url_path_join(self.base_url, csp_report_uri) + 
-                    ";"
+                    # Make sure the report-uri is relative to the base_url
+                    "report-uri " + url_path_join(self.base_url, csp_report_uri) + ";"
             )
 
         # Allow for overriding headers
