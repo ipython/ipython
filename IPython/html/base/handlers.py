@@ -48,10 +48,9 @@ class AuthenticatedHandler(web.RequestHandler):
         headers = self.settings.get('headers', {})
 
         if "Content-Security-Policy" not in headers:
-            headers["Content-Security-Policy"] = ""
+            headers["Content-Security-Policy"] = "frame-ancestors 'self'"
 
         if "Content-Security-Policy-Report-Only" not in headers:
-
             reporter_policy = ("default-src 'self'; " +
                                "report-uri " + url_path_join(self.base_url, csp_report_uri) + 
                                ";"
