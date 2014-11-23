@@ -50,13 +50,6 @@ class AuthenticatedHandler(web.RequestHandler):
         if "Content-Security-Policy" not in headers:
             headers["Content-Security-Policy"] = "frame-ancestors 'self'"
 
-        if "Content-Security-Policy-Report-Only" not in headers:
-            reporter_policy = ("default-src 'self'; " +
-                               "report-uri " + url_path_join(self.base_url, csp_report_uri) + 
-                               ";"
-            )
-            headers["Content-Security-Policy-Report-Only"] = reporter_policy
-
         # Allow for overriding headers
         for header_name,value in headers.items() :
             try:
