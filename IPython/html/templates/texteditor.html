@@ -9,6 +9,12 @@
 #texteditor-container {
     border-bottom: 1px solid #ccc;
 }
+
+#filename {
+    font-size: 16pt;
+    display: table;
+    padding: 0px 5px;
+}
 </style>
 
 {{super()}}
@@ -18,6 +24,12 @@
 
 data-base-url="{{base_url}}"
 data-file-path="{{file_path}}"
+
+{% endblock %}
+
+{% block header %}
+
+<span id="filename">{{ basename }}</span>
 
 {% endblock %}
 

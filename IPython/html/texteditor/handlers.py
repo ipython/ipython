@@ -16,9 +16,11 @@ class EditorHandler(IPythonHandler):
         if not self.contents_manager.file_exists(path):
             raise web.HTTPError(404, u'File does not exist: %s' % path)
 
+        basename = path.rsplit('/', 1)[-1]
         self.write(self.render_template('texteditor.html',
             file_path=url_escape(path),
-            page_title=path.rsplit('/', 1)[-1] + " (editing)",
+            basename=basename,
+            page_title=basename + " (editing)",
             )
         )
 
