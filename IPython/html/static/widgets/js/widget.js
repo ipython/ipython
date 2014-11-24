@@ -359,8 +359,6 @@ define(["widgets/js/manager",
             //      Callback that is called for each item added.
 
             // Walk the lists until an unequal entry is found.
-            console.error("Deprecated _do_diff; use a ViewList or similar class instead");
-
             var i;
             for (i = 0; i < new_list.length; i++) {
                 if (i >= old_list.length || new_list[i] !== old_list[i]) {
@@ -605,7 +603,7 @@ define(["widgets/js/manager",
         //   will be called in that context.
 
         this.initialize.apply(this, arguments);
-    }
+    };
 
     _.extend(ViewList.prototype, {
         initialize: function(create_view, remove_view, context) {
@@ -661,7 +659,7 @@ define(["widgets/js/manager",
             this.state_change = this.state_change.then(function() {
                 for (var i = 0, len=that.views.length; i <len; i++) {
                     that._remove_view.call(that._handler_context, that.views[i]);
-                };
+                }
                 that._models = [];
                 that.views = [];
             });
