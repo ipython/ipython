@@ -36,7 +36,10 @@
                     },
                     "codemirror_mode": {
                         "description": "The codemirror mode to use for code in this language.",
-                        "type": "string"
+                        "oneOf": [
+                          {"type": "string"},
+                          {"type": "object"}
+                        ]
                     },
                     "file_extension": {
                         "description": "The file extension for files in this language.",
