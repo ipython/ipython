@@ -1,11 +1,6 @@
 define([
-    'base/js/namespace',
-    'jquery',
-    'base/js/utils',
-    'base/js/dialog',
-    'base/js/notificationarea',
-    'moment'
-], function(IPython, $, utils, dialog, notificationarea, moment) {
+    'base/js/notificationarea'
+], function(notificationarea) {
     "use strict";
     var NotificationArea = notificationarea.NotificationArea;
     
