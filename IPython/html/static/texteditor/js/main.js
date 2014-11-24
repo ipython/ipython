@@ -2,7 +2,6 @@
 // Distributed under the terms of the Modified BSD License.
 
 require([
-    'jquery',
     'base/js/namespace',
     'base/js/utils',
     'base/js/page',
@@ -13,7 +12,6 @@ require([
     'texteditor/js/notificationarea',
     'custom/custom',
 ], function(
-    $,
     IPython,
     utils,
     page,
