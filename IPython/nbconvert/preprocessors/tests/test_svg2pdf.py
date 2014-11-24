@@ -45,9 +45,6 @@ class Testsvg2pdf(PreprocessorTestsBase):
         outputs = [nbformat.new_output(output_type='display_data',
                                        data={'image/svg+xml':self.simple_svg})
                   ]
-        
-        slide_metadata = {'slideshow' : {'slide_type': 'slide'}}
-        subslide_metadata = {'slideshow' : {'slide_type': 'subslide'}}
 
         cells=[nbformat.new_code_cell(source="", execution_count=1, outputs=outputs)]
 
