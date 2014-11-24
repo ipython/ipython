@@ -355,13 +355,11 @@ Message type: ``execute_reply``::
 When status is 'ok', the following extra fields are present::
 
     {
-      # 'payload' will be a list of payload dicts.
-      # Each execution payload is a dict with string keys that may have been
-      # produced by the code being executed.  It is retrieved by the kernel at
-      # the end of the execution and sent back to the front end, which can take
-      # action on it as needed.
+      # 'payload' will be a list of payload dicts, and is optional.
+      # payloads are considered deprecated.
       # The only requirement of each payload dict is that it have a 'source' key,
-      # which is a string classifying the payload (e.g. 'pager').
+      # which is a string classifying the payload (e.g. 'page').
+      
       'payload' : list(dict),
 
       # Results for the user_expressions.
@@ -372,24 +370,6 @@ When status is 'ok', the following extra fields are present::
 
     ``user_variables`` is removed, use user_expressions instead.
 
-.. admonition:: Execution payloads
-    
-   The notion of an 'execution payload' is different from a return value of a
-   given set of code, which normally is just displayed on the execute_result stream
-   through the PUB socket.  The idea of a payload is to allow special types of
-   code, typically magics, to populate a data container in the IPython kernel
-   that will be shipped back to the caller via this channel.  The kernel
-   has an API for this in the PayloadManager::
-
-       ip.payload_manager.write_payload(payload_dict)
-
-   which appends a dictionary to the list of payloads.
-   
-   The payload API is not yet stabilized,
-   and should probably not be supported by non-Python kernels at this time.
-   In such cases, the payload list should always be empty.
-
-   
 When status is 'error', the following extra fields are present::
 
     {
@@ -410,6 +390,72 @@ When status is 'error', the following extra fields are present::
 
 When status is 'abort', there are for now no additional data fields.  This
 happens when the kernel was interrupted by a signal.
+
+Payloads
+********
+
+.. admonition:: Execution payloads
+
+    Payloads are considered deprecated, though their replacement is not yet implemented.
+
+Payloads are a way to trigger frontend actions from the kernel. Current payloads:
+
+**page**: display data in a pager.
+
+Pager output is used for introspection, or other displayed information that's not considered output.
+Pager payloads are generally displayed in a separate pane, that can be viewed alongside code,
+and are not included in notebook documents.
+
+.. sourcecode:: python
+
+    {
+      "source": "page",
+      # mime-bundle of data to display in the pager.
+      # Must include text/plain.
+      "data": mimebundle,
+      # line offset to start from
+      "start": int,
+    }
+
+**set_next_input**: create a new output
+
+used to create new cells in the notebook,
+or set the next input in a console interface.
+The main example being ``%load``.
+
+.. sourcecode:: python
+
+    {
+      "source": "set_next_input",
+      # the text contents of the cell to create
+      "text": "some cell content",
+    }
+
+**edit**: open a file for editing.
+
+Triggered by `%edit`. Only the QtConsole currently supports edit payloads.
+
+.. sourcecode:: python
+
+    {
+      "source": "edit",
+      "filename": "/path/to/file.py", # the file to edit
+      "line_number": int, # the line number to start with
+    }
+
+**ask_exit**: instruct the frontend to prompt the user for exit
+
+Allows the kernel to request exit, e.g. via ``%exit`` in IPython.
+Only for console frontends.
+
+.. sourcecode:: python
+
+    {
+      "source": "ask_exit",
+      # whether the kernel should be left running, only closing the client
+      "keepkernel": bool,
+    }
+
 
 .. _msging_inspection:
 

@@ -103,7 +103,7 @@ class IPythonWidget(FrontendWidget):
 
     # IPythonWidget protected class variables.
     _PromptBlock = namedtuple('_PromptBlock', ['block', 'length', 'number'])
-    _payload_source_edit = 'edit_magic'
+    _payload_source_edit = 'edit'
     _payload_source_exit = 'ask_exit'
     _payload_source_next_input = 'set_next_input'
     _payload_source_page = 'page'

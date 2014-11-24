@@ -38,7 +38,6 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
         source='page',
         data=data,
         start=start,
-        screen_lines=screen_lines,
         )
     shell.payload_manager.write_payload(payload)
 
