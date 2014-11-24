@@ -603,7 +603,7 @@ define(["widgets/js/manager",
         //   will be called in that context.
 
         this.initialize.apply(this, arguments);
-    }
+    };
 
     _.extend(ViewList.prototype, {
         initialize: function(create_view, remove_view, context) {
@@ -663,7 +663,7 @@ define(["widgets/js/manager",
             this.state_change = this.state_change.then(function() {
                 for (var i = 0, len=that.views.length; i <len; i++) {
                     that._remove_view.call(that._handler_context, that.views[i]);
-                };
+                }
                 that._models = [];
                 that.views = [];
             });

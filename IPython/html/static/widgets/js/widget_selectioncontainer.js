@@ -9,18 +9,23 @@ define([
 ], function(widget, utils, $){
 
     var AccordionView = widget.DOMWidgetView.extend({
+        initialize: function(){
+            AccordionView.__super__.initialize.apply(this, arguments);
+
+            this.containers = [];
+            this.model_containers = {};
+            this.children_views = new widget.ViewList(this.add_child_model, this.remove_child_model, this);
+            this.listenTo(this.model, 'change:children', function(model, value) {
+                this.children_views.update(value);
+            }, this);
+        },
+
         render: function(){
             // Called when view is rendered.
             var guid = 'panel-group' + utils.uuid();
             this.$el
                 .attr('id', guid)
                 .addClass('panel-group');
-            this.containers = [];
-            this.model_containers = {};
-            this.update_children([], this.model.get('children'));
-            this.model.on('change:children', function(model, value, options) {
-                this.update_children(model.previous('children'), value);
-            }, this);
             this.model.on('change:selected_index', function(model, value, options) {
                 this.update_selected_index(model.previous('selected_index'), value, options);
             }, this);
@@ -31,6 +36,7 @@ define([
             this.on('displayed', function() {
                 this.update_titles();
             }, this);
+            this.children_views.update(this.model.get('children'));
         },
 
         update_titles: function(titles) {
@@ -60,14 +66,6 @@ define([
                     this.containers[new_index].find('.panel-collapse').collapse('show');
                 }
             }
-        },
-        
-        update_children: function(old_list, new_list) {
-            // Called when the children list is modified.
-            this.do_diff(old_list, 
-                new_list, 
-                $.proxy(this.remove_child_model, this),
-                $.proxy(this.add_child_model, this));
         },
 
         remove_child_model: function(model) {
@@ -128,14 +126,24 @@ define([
                 return view;
             }, utils.reject("Couldn't add child view to box", true));
         },
+        
+        remove: function() {
+            AccordionView.__super__.remove.apply(this, arguments);
+            this.children_views.remove();
+        },
     });
     
 
     var TabView = widget.DOMWidgetView.extend({    
         initialize: function() {
             // Public constructor.
-            this.containers = [];
             TabView.__super__.initialize.apply(this, arguments);
+            
+            this.containers = [];
+            this.children_views = new widget.ViewList(this.add_child_model, this.remove_child_model, this);
+            this.listenTo(this.model, 'change:children', function(model, value) {
+                this.children_views.update(value);
+            }, this);
         },
 
         render: function(){
@@ -149,24 +157,12 @@ define([
             this.$tab_contents = $('<div />', {id: uuid + 'Content'})
                 .addClass('tab-content')
                 .appendTo(this.$el);
-            this.containers = [];
-            this.update_children([], this.model.get('children'));
-            this.model.on('change:children', function(model, value, options) {
-                this.update_children(model.previous('children'), value);
-            }, this);
+            this.children_views.update(this.model.get('children'));
         },
 
         update_attr: function(name, value) {
             // Set a css attr of the widget view.
             this.$tabs.css(name, value);
-        },
-
-        update_children: function(old_list, new_list) {
-            // Called when the children list is modified.
-            this.do_diff(old_list, 
-                new_list, 
-                $.proxy(this.remove_child_model, this),
-                $.proxy(this.add_child_model, this));
         },
 
         remove_child_model: function(model) {
@@ -253,6 +249,11 @@ define([
             this.$tabs.find('li')
                 .removeClass('active');
             this.containers[index].tab('show');
+        },
+        
+        remove: function() {
+            TabView.__super__.remove.apply(this, arguments);
+            this.children_views.remove();
         },
     });
 
