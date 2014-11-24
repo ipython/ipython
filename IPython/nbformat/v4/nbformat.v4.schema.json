@@ -22,11 +22,11 @@
                         "display_name": {
                             "description": "Display name of the kernel specification.",
                             "type": "string"
-                        },
+                        }
                     }
                 },
                 "language_info" : {
-                    "description": "Notebook programming language information."
+                    "description": "Notebook programming language information.",
                     "type": "object",
                     "additionalProperties": true
                 },
