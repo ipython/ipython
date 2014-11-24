@@ -63,7 +63,6 @@ class AuthenticatedHandler(web.RequestHandler):
                 # if method is unsupported (websocket and Access-Control-Allow-Origin
                 # for example, so just ignore)
                 self.log.debug(e)
-                pass
     
     def clear_login_cookie(self):
         self.clear_cookie(self.cookie_name)
