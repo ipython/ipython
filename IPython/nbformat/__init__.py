@@ -13,6 +13,10 @@ from . import v2
 from . import v3
 from . import v4
 
+__all__ = ['versions', 'validate', 'ValidationError', 'convert', 'from_dict',
+           'NotebookNode', 'current_nbformat', 'current_nbformat_minor',
+           'NBFormatError', 'NO_CONVERT', 'reads', 'read', 'writes', 'write']
+
 versions = {
     1: v1,
     2: v2,
