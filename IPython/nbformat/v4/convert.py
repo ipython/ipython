@@ -73,7 +73,8 @@ def upgrade(nb, from_version=3, from_minor=0):
 def upgrade_cell(cell):
     """upgrade a cell from v3 to v4
 
-    heading cell -> markdown heading
+    heading cell:
+        - -> markdown heading
     code cell:
         - remove language metadata
         - cell.input -> cell.source

@@ -1,20 +1,16 @@
 """The main API for the v3 notebook format.
-
-Authors:
-
-* Brian Granger
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+__all__ = ['NotebookNode', 'new_code_cell', 'new_text_cell', 'new_notebook',
+           'new_output', 'new_worksheet', 'new_metadata', 'new_author',
+           'new_heading_cell', 'nbformat', 'nbformat_minor', 'nbformat_schema',
+           'reads_json', 'writes_json', 'read_json', 'write_json',
+           'to_notebook_json', 'reads_py', 'writes_py', 'read_py', 'write_py',
+           'to_notebook_py', 'downgrade', 'upgrade', 'parse_filename'
+        ]
 
 import os
 
@@ -35,9 +31,6 @@ from .nbpy import to_notebook as to_notebook_py
 
 from .convert import downgrade, upgrade
 
-#-----------------------------------------------------------------------------
-# Code
-#-----------------------------------------------------------------------------
 
 def parse_filename(fname):
     """Parse a notebook filename.
