@@ -6,7 +6,8 @@ define([
     'jquery',
     'base/js/utils',
     'base/js/dialog',
-], function(IPython, $, utils, dialog) {
+    'base/js/events',
+], function(IPython, $, utils, dialog, events) {
     "use strict";
     
     var NotebookList = function (selector, options) {
@@ -187,6 +188,8 @@ define([
             item = this.new_item(i+offset);
             this.add_link(model, item);
         }
+        // Trigger an event when we've finished drawing the notebook list.
+        events.trigger('draw_notebook_list.NotebookList');
     };
 
 
@@ -380,6 +383,7 @@ define([
             var element = $(this);
             if (element.data("path") == path) {
                 element.remove();
+                events.trigger('notebook_deleted.NotebookList');
             }
         });
     };
