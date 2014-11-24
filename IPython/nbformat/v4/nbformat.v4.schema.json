@@ -10,24 +10,25 @@
             "type": "object",
             "additionalProperties": true,
             "properties": {
-                "kernel_info": {
+                "kernelspec": {
                     "description": "Kernel information.",
                     "type": "object",
-                    "required": ["name", "language"],
+                    "required": ["name", "display_name"],
                     "properties": {
                         "name": {
                             "description": "Name of the kernel specification.",
                             "type": "string"
                         },
-                        "language": {
-                            "description": "The programming language which this kernel runs.",
+                        "display_name": {
+                            "description": "Display name of the kernel specification.",
                             "type": "string"
                         },
-                        "codemirror_mode": {
-                            "description": "The codemirror mode to use for code in this language.",
-                            "type": "string"
-                        }
                     }
+                },
+                "language_info" : {
+                    "description": "Notebook programming language information."
+                    "type": "object",
+                    "additionalProperties": true
                 },
                 "signature": {
                     "description": "Hash of the notebook.",
