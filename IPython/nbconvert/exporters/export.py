@@ -19,6 +19,7 @@ from .markdown import MarkdownExporter
 from .python import PythonExporter
 from .rst import RSTExporter
 from .notebook import NotebookExporter
+from .script import ScriptExporter
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -74,6 +75,7 @@ __all__ = [
     'export_pdf',
     'export_markdown',
     'export_python',
+    'export_script',
     'export_rst',
     'export_by_name',
     'get_export_names',
@@ -132,6 +134,7 @@ exporter_map = dict(
     python=PythonExporter,
     rst=RSTExporter,
     notebook=NotebookExporter,
+    script=ScriptExporter,
 )
 
 def _make_exporter(name, E):

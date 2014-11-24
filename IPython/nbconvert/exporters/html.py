@@ -32,7 +32,7 @@ class HTMLExporter(TemplateExporter):
     """
     
     def _file_extension_default(self):
-        return 'html'
+        return '.html'
 
     def _default_template_path_default(self):
         return os.path.join("..", "templates", "html")

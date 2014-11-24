@@ -69,17 +69,21 @@ define([
     MenuBar.prototype._nbconvert = function (format, download) {
         download = download || false;
         var notebook_path = this.notebook.notebook_path;
-        if (this.notebook.dirty) {
-            this.notebook.save_notebook({async : false});
-        }
         var url = utils.url_join_encode(
             this.base_url,
             'nbconvert',
             format,
             notebook_path
         ) + "?download=" + download.toString();
-
-        window.open(url);
+        
+        var w = window.open()
+        if (this.notebook.dirty) {
+            this.notebook.save_notebook().then(function() {
+                w.location = url;
+            });
+        } else {
+            w.location = url;
+        }
     };
 
     MenuBar.prototype.bind_events = function () {
@@ -127,10 +131,6 @@ define([
         
         this.element.find('#print_preview').click(function () {
             that._nbconvert('html', false);
-        });
-
-        this.element.find('#download_py').click(function () {
-            that._nbconvert('python', true);
         });
 
         this.element.find('#download_html').click(function () {
@@ -308,6 +308,16 @@ define([
         this.events.on('checkpoint_created.Notebook', function (event, data) {
             that.update_restore_checkpoint(that.notebook.checkpoints);
         });
+        
+        this.events.on('notebook_loaded.Notebook', function() {
+            var langinfo = that.notebook.metadata.language_info || {};
+            that.update_nbconvert_script(langinfo);
+        });
+        
+        this.events.on('kernel_ready.Kernel', function(event, data) {
+            var langinfo = data.kernel.info_reply.language_info || {};
+            that.update_nbconvert_script(langinfo);
+        });
     };
 
     MenuBar.prototype.update_restore_checkpoint = function(checkpoints) {
@@ -339,6 +349,31 @@ define([
                 )
             );
         });
+    };
+    
+    MenuBar.prototype.update_nbconvert_script = function(langinfo) {
+        // Set the 'Download as foo' menu option for the relevant language.
+        var el = this.element.find('#download_script');
+        var that = this;
+        
+        // Set menu entry text to e.g. "Python (.py)"
+        var langname = (langinfo.name || 'Script')
+        langname = langname.charAt(0).toUpperCase()+langname.substr(1) // Capitalise
+        el.find('a').text(langname + ' ('+(langinfo.file_extension || 'txt')+')');
+        
+        // Unregister any previously registered handlers
+        el.off('click');
+        if (langinfo.nbconvert_exporter) {
+            // Metadata specifies a specific exporter, e.g. 'python'
+            el.click(function() {
+                that._nbconvert(langinfo.nbconvert_exporter, true);
+            });
+        } else {
+            // Use generic 'script' exporter
+            el.click(function() {
+                that._nbconvert('script', true);
+            });
+        }
     };
 
     // Backwards compatability.

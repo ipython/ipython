@@ -32,7 +32,7 @@ class Exporter(LoggingConfigurable):
     """
 
     file_extension = Unicode(
-        'txt', config=True,
+        '.txt', config=True,
         help="Extension of the file that should be written to disk"
         )
 

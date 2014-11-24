@@ -23,7 +23,7 @@ class PythonExporter(TemplateExporter):
     Exports a Python code file.
     """
     def _file_extension_default(self):
-        return 'py'
+        return '.py'
 
     def _template_file_default(self):
         return 'python'

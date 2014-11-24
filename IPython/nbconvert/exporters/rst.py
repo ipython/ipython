@@ -26,7 +26,7 @@ class RSTExporter(TemplateExporter):
     """
     
     def _file_extension_default(self):
-        return 'rst'
+        return '.rst'
 
     def _template_file_default(self):
         return 'rst'

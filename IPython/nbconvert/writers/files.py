@@ -93,7 +93,7 @@ class FilesWriter(WriterBase):
 
             # Determine where to write conversion results.
             if output_extension is not None:
-                dest = notebook_name + '.' + output_extension
+                dest = notebook_name + output_extension
             else:
                 dest = notebook_name
             if self.build_directory:

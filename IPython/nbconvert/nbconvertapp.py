@@ -286,7 +286,7 @@ class NbConvertApp(BaseIPythonApplication):
                 # strip duplicate extension from output_base, to avoid Basname.ext.ext
                 if getattr(exporter, 'file_extension', False):
                     base, ext = os.path.splitext(self.output_base)
-                    if ext == '.' + exporter.file_extension:
+                    if ext == exporter.file_extension:
                         self.output_base = base
                 notebook_name = self.output_base
             resources = {}
