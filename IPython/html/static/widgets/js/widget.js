@@ -345,38 +345,6 @@ define(["widgets/js/manager",
             return null;
         },
 
-        _do_diff: function(old_list, new_list, removed_callback, added_callback) {
-            // Difference a changed list and call remove and add callbacks for 
-            // each removed and added item in the new list.
-            //
-            // Parameters
-            // ----------
-            // old_list : array
-            // new_list : array
-            // removed_callback : Callback(item)
-            //      Callback that is called for each item removed.
-            // added_callback : Callback(item)
-            //      Callback that is called for each item added.
-
-            // Walk the lists until an unequal entry is found.
-            var i;
-            for (i = 0; i < new_list.length; i++) {
-                if (i >= old_list.length || new_list[i] !== old_list[i]) {
-                    break;
-                }
-            }
-
-            // Remove the non-matching items from the old list.
-            for (var j = i; j < old_list.length; j++) {
-                removed_callback(old_list[j]);
-            }
-
-            // Add the rest of the new list items.
-            for (; i < new_list.length; i++) {
-                added_callback(new_list[i]);
-            }
-        },
-
         callbacks: function(){
             // Create msg callbacks for a comm msg.
             return this.model.callbacks(this);
@@ -534,11 +502,8 @@ define(["widgets/js/manager",
             if ($el===undefined) {
                 $el = this.$el;
             }
-            this._do_diff(old_classes, new_classes, function(removed) {
-                $el.removeClass(removed);
-            }, function(added) {
-                $el.addClass(added);
-            });
+            _.difference(old_classes, new_classes).map(function(c) {$el.removeClass(c);})
+            _.difference(new_classes, old_classes).map(function(c) {$el.addClass(c);})
         },
 
         update_mapped_classes: function(class_map, trait_name, previous_trait_value, $el) {
