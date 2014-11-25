@@ -130,6 +130,11 @@ class IPythonHandler(AuthenticatedHandler):
     #---------------------------------------------------------------
     
     @property
+    def version_hash(self):
+        """The version hash to use for cache hints for static files"""
+        return self.settings.get('version_hash', '')
+    
+    @property
     def mathjax_url(self):
         return self.settings.get('mathjax_url', '')
     
@@ -240,6 +245,7 @@ class IPythonHandler(AuthenticatedHandler):
             static_url=self.static_url,
             sys_info=sys_info,
             contents_js_source=self.contents_js_source,
+            version_hash=self.version_hash,
         )
     
     def get_json_body(self):
