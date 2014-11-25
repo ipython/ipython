@@ -10283,7 +10283,7 @@ div#pager {
   background-color: #ffffff;
   font-size: 14px;
   line-height: 20px;
-  overflow: auto;
+  overflow: hidden;
   display: none;
   position: fixed;
   bottom: 0px;
@@ -10301,7 +10301,18 @@ div#pager pre {
   background-color: #f7f7f7;
   padding: 0.4em;
 }
-div#pager #pager-container {
+div#pager #pager-button-area {
+  position: absolute;
+  top: 0px;
+  right: 20px;
+}
+div#pager #pager-contents {
+  position: relative;
+  overflow: auto;
+  width: 100%;
+  height: 100%;
+}
+div#pager #pager-contents #pager-container {
   position: relative;
   padding: 15px 0px;
   box-sizing: border-box;

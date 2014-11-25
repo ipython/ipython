@@ -20,8 +20,8 @@ define([
          */
         this.events = options.events;
         this.pager_element = $(pager_selector);
-        this.pager_button_area = $('#pager_button_area');
-        this.pager_element.resizable({handles: 'n'});        
+        this.pager_button_area = $('#pager-button-area');    
+        this.pager_element.resizable({handles: 'n'});    
         this.expanded = false;
         this.create_button_area();
         this.bind_events();
@@ -34,7 +34,6 @@ define([
                     .attr('title',"Open the pager in an external window")
                     .addClass('ui-button')
                     .click(function(){that.detach();})
-                    .attr('style','position: absolute; right: 20px;')
                     .append(
                         $('<span>').addClass("ui-icon ui-icon-extlink")
                     )
@@ -44,7 +43,6 @@ define([
                     .attr('title',"Close the pager")
                     .addClass('ui-button')
                     .click(function(){that.collapse();})
-                    .attr('style','position: absolute; right: 5px;')
                     .append(
                         $('<span>').addClass("ui-icon ui-icon-close")
                     )
@@ -56,19 +54,22 @@ define([
         var that = this;
 
         this.pager_element.bind('collapse_pager', function (event, extrap) {
-            var time = 'fast';
-            if (extrap && extrap.duration) {
-                time = extrap.duration;
-            }
-            that.pager_element.hide(time);
+            // Animate hiding of the pager.
+            that.pager_element.hide((extrap && extrap.duration) ? extrap.duration : 'fast');
         });
 
         this.pager_element.bind('expand_pager', function (event, extrap) {
-            var time = 'fast';
-            if (extrap && extrap.duration) {
-                time = extrap.duration;
-            }
-            that.pager_element.show(time);
+            // Clear the pager's height attr if it's set.  This allows the
+            // pager to size itself according to its contents.
+            that.pager_element.height('initial');
+
+            // Animate the showing of the pager
+            var time = (extrap && extrap.duration) ? extrap.duration : 'fast';
+            that.pager_element.show(time, function() {
+                // Explicitly set pager height once the pager has shown itself.
+                // This allows the pager-contents div to use percentage sizing.
+                that.pager_element.height(that.pager_element.height());
+            });
         });
 
         this.events.on('open_with_text.Pager', function (event, payload) {
