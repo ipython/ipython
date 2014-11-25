@@ -43,7 +43,7 @@ define([
             if (save_callback) {
                 that.get_state(options).then(function(state) {
                     save_callback.call(that, state);
-                });
+                }).catch(utils.reject('Could not call widget save state callback.', true));
             }
         });
     };
