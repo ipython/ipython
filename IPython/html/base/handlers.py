@@ -320,7 +320,7 @@ class AuthenticatedFileHandler(IPythonHandler, web.StaticFileHandler):
     
     def set_headers(self):
         super(AuthenticatedFileHandler, self).set_headers()
-        # disable browser caching, rely in 304 replies for savings
+        # disable browser caching, rely on 304 replies for savings
         if "v" not in self.request.arguments:
             self.add_header("Cache-Control", "no-cache")
     
@@ -394,11 +394,14 @@ class FileFindHandler(web.StaticFileHandler):
     
     def set_headers(self):
         super(FileFindHandler, self).set_headers()
-        # disable browser caching, rely in 304 replies for savings
-        if "v" not in self.request.arguments:
+        # disable browser caching, rely on 304 replies for savings
+        if "v" not in self.request.arguments or \
+                any(self.request.path.startswith(path) for path in self.no_cache_paths):
             self.add_header("Cache-Control", "no-cache")
     
-    def initialize(self, path, default_filename=None):
+    def initialize(self, path, default_filename=None, no_cache_paths=None):
+        self.no_cache_paths = no_cache_paths or []
+        
         if isinstance(path, string_types):
             path = [path]
         

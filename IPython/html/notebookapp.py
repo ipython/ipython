@@ -171,6 +171,10 @@ class NotebookWebApplication(web.Application):
             static_path=ipython_app.static_file_path,
             static_handler_class = FileFindHandler,
             static_url_prefix = url_path_join(base_url,'/static/'),
+            static_handler_args = {
+                # don't cache custom.js
+                'no_cache_paths': [url_path_join(base_url, 'static', 'custom')],
+            },
             version_hash=version_hash,
             
             # authentication
@@ -218,8 +222,12 @@ class NotebookWebApplication(web.Application):
         handlers.extend(load_handlers('services.sessions.handlers'))
         handlers.extend(load_handlers('services.nbconvert.handlers'))
         handlers.extend(load_handlers('services.kernelspecs.handlers'))
+        
         handlers.append(
-            (r"/nbextensions/(.*)", FileFindHandler, {'path' : settings['nbextensions_path']}),
+            (r"/nbextensions/(.*)", FileFindHandler, {
+                'path': settings['nbextensions_path'],
+                'no_cache_paths': ['/'], # don't cache anything in nbextensions
+            }),
         )
         # register base handlers last
         handlers.extend(load_handlers('base.handlers'))
