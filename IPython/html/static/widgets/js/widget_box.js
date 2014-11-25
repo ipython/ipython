@@ -75,7 +75,7 @@ define([
                     view.trigger('displayed');
                 });
                 return view;
-            }, utils.reject("Couldn't add child view to box", true));
+            }).catch(utils.reject("Couldn't add child view to box", true));
         },
         
         remove: function() {

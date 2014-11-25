@@ -95,7 +95,7 @@ define(["widgets/js/manager",
                 } finally {
                     that.state_lock = null;
                 }
-            }, utils.reject("Couldn't set model state", true));
+            }).catch(utils.reject("Couldn't set model state", true));
         },
 
         _handle_status: function (msg, callbacks) {
@@ -309,7 +309,7 @@ define(["widgets/js/manager",
             // Create and promise that resolves to a child view of a given model
             var that = this;
             options = $.extend({ parent: this }, options || {});
-            return this.model.widget_manager.create_view(child_model, options).catch(utils.reject("Couldn't create child view"));
+            return this.model.widget_manager.create_view(child_model, options).catch(utils.reject("Couldn't create child view"), true);
         },
 
         callbacks: function(){
