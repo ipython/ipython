@@ -239,16 +239,19 @@ class IPythonHandler(AuthenticatedHandler):
         static_path = self.settings.get('static_path', 'static')
         normal_path = StaticHandler.get_absolute_path(static_path, path)
         minified_path = StaticHandler.get_absolute_path(static_path, path[:-3] + '.min.js')
-        try:
-            norm_mtime = os.stat(normal_path).st_mtime
-        except OSError as e:
-            norm_mtime = 0
-        try:
-            min_mtime = os.stat(minified_path).st_mtime
-        except OSError as e:
-            min_mtime = 0
-        if min_mtime >= norm_mtime:
-            path = path[:-3] + '.min.js'
+        if os.path.exists(minified_path):
+            try:
+                norm_mtime = os.stat(normal_path).st_mtime
+            except OSError as e:
+                norm_mtime = 0
+            try:
+                min_mtime = os.stat(minified_path).st_mtime
+            except OSError as e:
+                min_mtime = 0
+            if min_mtime >= norm_mtime:
+                path = path[:-3] + '.min.js'
+            else:
+                self.log.debug("Not serving out-of-date %s", minified_path)
         return self.static_url(path, *args, **kwargs)
     
     @property
