@@ -7,9 +7,9 @@ require([
     'base/js/page',
     'base/js/events',
     'contents',
-    'texteditor/js/editor',
-    'texteditor/js/menubar',
-    'texteditor/js/notificationarea',
+    'edit/js/editor',
+    'edit/js/menubar',
+    'edit/js/notificationarea',
     'custom/custom',
 ], function(
     IPython,
