@@ -344,8 +344,14 @@ define([
                         for (var id in model.views) {
                             if (model.views.hasOwnProperty(id)) {
                                 var view = model.views[id];
-                                var cell_index = that.notebook.find_cell_index(view.options.cell);
-                                state[model_id].views.push(cell_index);
+                                var cell = view.options.cell;
+
+                                // Only store the cell reference if this view is a top level
+                                // child of the cell.
+                                if (cell.widget_views.indexOf(view) != -1) {
+                                    var cell_index = that.notebook.find_cell_index(cell);
+                                    state[model_id].views.push(cell_index);
+                                }
                             }
                         }
                     }
