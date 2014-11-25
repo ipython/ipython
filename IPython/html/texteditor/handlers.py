@@ -25,5 +25,5 @@ class EditorHandler(IPythonHandler):
         )
 
 default_handlers = [
-    (r"/texteditor%s" % path_regex, EditorHandler),
+    (r"/edit%s" % path_regex, EditorHandler),
 ]
