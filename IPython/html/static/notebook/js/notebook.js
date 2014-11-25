@@ -1980,6 +1980,10 @@ define([
             return;
         }
 
+        // Trigger an event before save, which allows listeners to modify
+        // the notebook as needed.
+        this.events.trigger('before_save.Notebook');
+
         // Create a JSON model to be sent to the server.
         var model = {
             type : "notebook",

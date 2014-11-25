@@ -37,7 +37,7 @@ define([
 
         // Setup state saving code.
         var that = this;
-        this.notebook.events.on('notebook_saved.Notebook', function() {
+        this.notebook.events.on('before_save.Notebook', function() {
             var save_callback = WidgetManager._save_callback;
             var options = WidgetManager._get_state_options;
             if (save_callback) {
