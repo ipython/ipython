@@ -292,8 +292,6 @@ define(["widgets/js/manager",
             // Public constructor.
             this.model.on('change',this.update,this);
             this.options = parameters.options;
-            this.child_model_views = {};
-            this.child_views = {};
             this.id = this.id || utils.uuid();
             this.model.views[this.id] = this;
             this.on('displayed', function() { 
@@ -311,38 +309,7 @@ define(["widgets/js/manager",
             // Create and promise that resolves to a child view of a given model
             var that = this;
             options = $.extend({ parent: this }, options || {});
-            return this.model.widget_manager.create_view(child_model, options).then(function(child_view) {
-                // Associate the view id with the model id.
-                if (that.child_model_views[child_model.id] === undefined) {
-                    that.child_model_views[child_model.id] = [];
-                }
-                that.child_model_views[child_model.id].push(child_view.id);
-                // Remember the view by id.
-                that.child_views[child_view.id] = child_view;
-                return child_view;
-            }, utils.reject("Couldn't create child view"));
-        },
-
-        pop_child_view: function(child_model) {
-            // Delete a child view that was previously created using create_child_view.
-            console.error("Deprecated pop_child_view; use a ViewList or similar class instead");
-            var view_ids = this.child_model_views[child_model.id];
-            if (view_ids !== undefined) {
-
-                // Only delete the first view in the list.
-                var view_id = view_ids[0];
-                var view = this.child_views[view_id];
-                delete this.child_views[view_id];
-                view_ids.splice(0,1);
-                delete child_model.views[view_id];
-            
-                // Remove the view list specific to this model if it is empty.
-                if (view_ids.length === 0) {
-                    delete this.child_model_views[child_model.id];
-                }
-                return view;
-            }
-            return null;
+            return this.model.widget_manager.create_view(child_model, options).catch(utils.reject("Couldn't create child view"));
         },
 
         callbacks: function(){
