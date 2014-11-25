@@ -10289,6 +10289,7 @@ div#pager {
   bottom: 0px;
   width: 100%;
   border-top: 1px solid #e7e7e7;
+  max-height: 50%;
   /* Display over codemirror */
   z-index: 100;
   /* Hack which prevents jquery ui resizable from changing top. */
