@@ -79,6 +79,9 @@ define([
         },
         
         remove: function() {
+            // We remove this widget before removing the children as an optimization
+            // we want to remove the entire container from the DOM first before
+            // removing each individual child separately.
             BoxView.__super__.remove.apply(this, arguments);
             this.children_views.remove();
         },
