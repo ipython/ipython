@@ -14,7 +14,7 @@ define([
 
             this.containers = [];
             this.model_containers = {};
-            this.children_views = new widget.ViewList(this.add_child_model, this.remove_child_model, this);
+            this.children_views = new widget.ViewList(this.add_child_view, this.remove_child_view, this);
             this.listenTo(this.model, 'change:children', function(model, value) {
                 this.children_views.update(value);
             }, this);
@@ -68,16 +68,17 @@ define([
             }
         },
 
-        remove_child_model: function(model) {
+        remove_child_view: function(view) {
             // Called when a child is removed from children list.
+            // TODO: does this handle two different views of the same model as children?
+            var model = view.model;
             var accordion_group = this.model_containers[model.id];
             this.containers.splice(accordion_group.container_index, 1);
             delete this.model_containers[model.id];
             accordion_group.remove();
-            this.pop_child_view(model);
         },
 
-        add_child_model: function(model) {
+        add_child_view: function(model) {
             // Called when a child is added to children list.
             var index = this.containers.length;
             var uuid = utils.uuid();
@@ -143,7 +144,7 @@ define([
             TabView.__super__.initialize.apply(this, arguments);
             
             this.containers = [];
-            this.children_views = new widget.ViewList(this.add_child_model, this.remove_child_model, this);
+            this.children_views = new widget.ViewList(this.add_child_view, this.remove_child_view, this);
             this.listenTo(this.model, 'change:children', function(model, value) {
                 this.children_views.update(value);
             }, this);
@@ -168,16 +169,15 @@ define([
             this.$tabs.css(name, value);
         },
 
-        remove_child_model: function(model) {
+        remove_child_view: function(view) {
             // Called when a child is removed from children list.
-            var view = this.pop_child_view(model);
             this.containers.splice(view.parent_tab.tab_text_index, 1);
             view.parent_tab.remove();
             view.parent_container.remove();
             view.remove();
         },
 
-        add_child_model: function(model) {
+        add_child_view: function(model) {
             // Called when a child is added to children list.
             var index = this.containers.length;
             var uuid = utils.uuid();
