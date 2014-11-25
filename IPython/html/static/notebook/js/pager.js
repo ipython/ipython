@@ -86,7 +86,7 @@ define([
     Pager.prototype.collapse = function (extrap) {
         if (this.expanded === true) {
             this.expanded = false;
-            this.pager_element.add($('div#notebook')).trigger('collapse_pager', extrap);
+            this.pager_element.trigger('collapse_pager', extrap);
         }
     };
 
@@ -94,7 +94,7 @@ define([
     Pager.prototype.expand = function (extrap) {
         if (this.expanded !== true) {
             this.expanded = true;
-            this.pager_element.add($('div#notebook')).trigger('expand_pager', extrap);
+            this.pager_element.trigger('expand_pager', extrap);
         }
     };
 
