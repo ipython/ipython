@@ -1,9 +1,11 @@
-"""invoke task file to build CSS"""
+"""invoke task file to build CSS/JS"""
 
-from invoke import task, run
 import os
+from contextlib import contextmanager
 from distutils.version import LooseVersion as V
 from subprocess import check_output
+
+from invoke import task, run
 
 pjoin = os.path.join
 static_dir = 'static'
@@ -12,6 +14,17 @@ here = os.path.dirname(__file__)
 
 min_less_version = '1.7.5'
 max_less_version = '1.8.0' # exclusive
+
+@contextmanager
+def lcd(path):
+    """Context manager for setting CWD"""
+    cwd = os.getcwd()
+    try:
+        os.chdir(path)
+        yield
+    finally:
+        os.chdir(cwd)
+
 
 def _need_css_update():
     """Does less need to run?"""
@@ -72,12 +85,26 @@ def _compile_less(source, target, sourcemap, minify=True, verbose=False):
         raise ValueError("lessc too new: %s >= %s. Use `$ npm install lesscss@X.Y.Z` to install a specific version of less" % (less_version, max_less_version))
     
     static_path = pjoin(here, static_dir)
-    cwd = os.getcwd()
-    try:
-        os.chdir(static_dir)
+    with lcd(static_path):
         run('lessc {min_flag} {ver_flag} --source-map={sourcemap} --source-map-basepath={static_path} --source-map-rootpath="../" {source} {target}'.format(**locals()),
             echo=True,
         )
-    finally:
-        os.chdir(cwd)
+
+def _rjs(name):
+    with lcd(here):
+        run("r.js -o build.js 'name={name}' 'out=static/{name}.min.js'".format(name=name))
+
+@task
+def js():
+    """Compile minified javascript"""
+    try:
+        out = check_output(['r.js', '-v'])
+    except OSError as err:
+        raise ValueError("Unable to find r.js.  Please install with `npm install -g requirejs`")
+    
+    for name in ['notebook', 'tree']:
+        _rjs(pjoin(name, 'js', 'main'))
+
+    for name in ['logout', 'login']:
+        _rjs(pjoin('auth', 'js', name + 'main'))
 
