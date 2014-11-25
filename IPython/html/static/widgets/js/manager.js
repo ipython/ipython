@@ -343,7 +343,7 @@ define([
                         for (var id in model.views) {
                             if (model.views.hasOwnProperty(id)) {
                                 var view = model.views[id];
-                                var cell_index = this.notebook.find_cell_index(view.options.cell);
+                                var cell_index = that.notebook.find_cell_index(view.options.cell);
                                 state[model_id].views.push(cell_index);
                             }
                         }
