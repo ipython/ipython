@@ -9,6 +9,7 @@ import io
 import os
 import shutil
 from contextlib import contextmanager
+import mimetypes
 
 from tornado import web
 
@@ -204,6 +205,7 @@ class FileContentsManager(ContentsManager):
         model['created'] = created
         model['content'] = None
         model['format'] = None
+        model['mimetype'] = None
         try:
             model['writable'] = os.access(os_path, os.W_OK)
         except OSError:
@@ -264,8 +266,11 @@ class FileContentsManager(ContentsManager):
         """
         model = self._base_model(path)
         model['type'] = 'file'
+
+        os_path = self._get_os_path(path)
+        model['mimetype'] = mimetypes.guess_type(os_path)[0] or 'text/plain'
+
         if content:
-            os_path = self._get_os_path(path)
             if not os.path.isfile(os_path):
                 # could be FIFO
                 raise web.HTTPError(400, "Cannot get content of non-file %s" % os_path)
