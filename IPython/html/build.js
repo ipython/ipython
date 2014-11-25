@@ -7,10 +7,11 @@
     jquery: 'components/jquery/jquery.min',
     bootstrap: 'components/bootstrap/js/bootstrap.min',
     bootstraptour: 'components/bootstrap-tour/build/js/bootstrap-tour.min',
-    dateformat: 'dateformat/date.format',
     jqueryui: 'components/jquery-ui/ui/minified/jquery-ui.min',
-    highlight: 'components/highlight.js/build/highlight.pack',
-    moment: "components/moment/moment",
+    moment: 'components/moment/moment',
+    codemirror: 'components/codemirror',
+    termjs: 'components/term.js/src/term',
+    contents: 'services/contents'
   },
   shim: {
     underscore: {
@@ -28,20 +29,14 @@
       deps: ["bootstrap"],
       exports: "Tour"
     },
-    dateformat: {
-      exports: "dateFormat"
-    },
     jqueryui: {
       deps: ["jquery"],
       exports: "$"
-    },
-    highlight: {
-      exports: "hljs"
-    },
+    }
   },
-    
+
   exclude: [
-  "custom/custom",
+    "custom/custom",
   ],
   optimize: "none",
 })
