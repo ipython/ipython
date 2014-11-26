@@ -8,6 +8,7 @@ import json
 import os
 
 from IPython.config import LoggingConfigurable
+from IPython.utils.path import locate_profile
 from IPython.utils.py3compat import PY3
 from IPython.utils.traitlets import Unicode
 
@@ -35,6 +36,8 @@ def recursive_update(target, new):
 
 class ConfigManager(LoggingConfigurable):
     profile_dir = Unicode()
+    def _profile_dir_default(self):
+        return locate_profile()
 
     @property
     def config_dir(self):
