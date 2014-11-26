@@ -593,7 +593,7 @@ define(["widgets/js/manager",
             // returns a promise that resolves after this removal is done
             var that = this;
             this.state_change = this.state_change.then(function() {
-                for (var i = 0, len=that.views.length; i <len; i++) {
+                for (var i = 0; i < that.views.length; i++) {
                     that._remove_view.call(that._handler_context, that.views[i]);
                 }
                 that._models = [];
