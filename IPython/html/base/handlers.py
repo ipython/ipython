@@ -175,6 +175,10 @@ class IPythonHandler(AuthenticatedHandler):
     def kernel_spec_manager(self):
         return self.settings['kernel_spec_manager']
 
+    @property
+    def config_manager(self):
+        return self.settings['config_manager']
+
     #---------------------------------------------------------------
     # CORS
     #---------------------------------------------------------------

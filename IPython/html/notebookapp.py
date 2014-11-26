@@ -125,19 +125,21 @@ def load_handlers(name):
 class NotebookWebApplication(web.Application):
 
     def __init__(self, ipython_app, kernel_manager, contents_manager,
-                 cluster_manager, session_manager, kernel_spec_manager, log,
+                 cluster_manager, session_manager, kernel_spec_manager,
+                 config_manager, log,
                  base_url, default_url, settings_overrides, jinja_env_options):
 
         settings = self.init_settings(
             ipython_app, kernel_manager, contents_manager, cluster_manager,
-            session_manager, kernel_spec_manager, log, base_url, default_url,
-            settings_overrides, jinja_env_options)
+            session_manager, kernel_spec_manager, config_manager, log, base_url,
+            default_url, settings_overrides, jinja_env_options)
         handlers = self.init_handlers(settings)
 
         super(NotebookWebApplication, self).__init__(handlers, **settings)
 
     def init_settings(self, ipython_app, kernel_manager, contents_manager,
                       cluster_manager, session_manager, kernel_spec_manager,
+                      config_manager,
                       log, base_url, default_url, settings_overrides,
                       jinja_env_options=None):
 
@@ -172,6 +174,7 @@ class NotebookWebApplication(web.Application):
             cluster_manager=cluster_manager,
             session_manager=session_manager,
             kernel_spec_manager=kernel_spec_manager,
+            config_manager=config_manager,
 
             # IPython stuff
             nbextensions_path = ipython_app.nbextensions_path,
@@ -607,6 +610,11 @@ class NotebookApp(BaseIPythonApplication):
         help='The cluster manager class to use.'
     )
 
+    config_manager_class = DottedObjectName('IPython.html.services.config.manager.ConfigManager',
+        config = True,
+        help='The config manager class to use'
+    )
+
     kernel_spec_manager = Instance(KernelSpecManager)
 
     def _kernel_spec_manager_default(self):
@@ -722,6 +730,10 @@ class NotebookApp(BaseIPythonApplication):
         self.cluster_manager = kls(parent=self, log=self.log)
         self.cluster_manager.update_profiles()
 
+        kls = import_item(self.config_manager_class)
+        self.config_manager = kls(parent=self, log=self.log,
+                                  profile_dir=self.profile_dir.location)
+
     def init_logging(self):
         # This prevents double log messages because tornado use a root logger that
         # self.log is a child of. The logging module dipatches log messages to a log
@@ -747,6 +759,7 @@ class NotebookApp(BaseIPythonApplication):
         self.web_app = NotebookWebApplication(
             self, self.kernel_manager, self.contents_manager,
             self.cluster_manager, self.session_manager, self.kernel_spec_manager,
+            self.config_manager,
             self.log, self.base_url, self.default_url, self.tornado_settings,
             self.jinja_environment_options
         )
