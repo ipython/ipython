@@ -36,28 +36,40 @@ data-file-path="{{file_path}}"
 {% block site %}
 
 <div id="menubar-container" class="container">
-<div id="menubar">
+  <div id="menubar">
     <div id="menus" class="navbar navbar-default" role="navigation">
-        <div class="container-fluid">
-            <button type="button" class="btn btn-default navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-              <i class="fa fa-bars"></i>
-              <span class="navbar-text">Menu</span>
-            </button>
-            <ul class="nav navbar-nav navbar-right">
-              <li id="notification_area"></li>
-            </ul>
-            <div class="navbar-collapse collapse">
-              <ul class="nav navbar-nav">
-                <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">File</a>
-                    <ul id="file_menu" class="dropdown-menu">
-                        <li id="save_file"><a href="#">Save</a></li>
-                    </ul>
-                </li>
+      <div class="container-fluid">
+        <button type="button" class="btn btn-default navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          <i class="fa fa-bars"></i>
+          <span class="navbar-text">Menu</span>
+        </button>
+        <ul class="nav navbar-nav navbar-right">
+          <li id="notification_area"></li>
+        </ul>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">File</a>
+              <ul id="file-menu" class="dropdown-menu">
+                <li id="new-file"><a href="#">New</a></li>
+                <li id="save-file"><a href="#">Save</a></li>
               </ul>
-            </div>
+            </li>
+            <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Edit</a>
+              <ul id="edit-menu" class="dropdown-menu">
+                <li id="menu-find"><a href="#">Find</a></li>
+                <li id="menu-replace"><a href="#">Find &amp; Replace</a></li>
+              </ul>
+            </li>
+            <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">View</a>
+              <ul id="view-menu" class="dropdown-menu">
+                <li id="menu-line-numbers"><a href="#">Hide Line Numbers</a></li>
+              </ul>
+            </li>
+          </ul>
         </div>
+      </div>
     </div>
-</div>
+  </div>
 </div>
 
 <div id="texteditor-container" class="container"></div>

@@ -6,20 +6,31 @@ define([
     'base/js/utils',
     'codemirror/lib/codemirror',
     'codemirror/mode/meta',
-    'codemirror/addon/search/search'
+    'codemirror/addon/comment/comment',
+    'codemirror/addon/dialog/dialog',
+    'codemirror/addon/edit/closebrackets',
+    'codemirror/addon/edit/matchbrackets',
+    'codemirror/addon/search/searchcursor',
+    'codemirror/addon/search/search',
+    'codemirror/keymap/emacs',
+    'codemirror/keymap/sublime',
+    'codemirror/keymap/vim',
     ],
 function($,
     utils,
     CodeMirror
 ) {
+    "use strict";
+    
     var Editor = function(selector, options) {
+        var that = this;
         this.selector = selector;
         this.contents = options.contents;
         this.events = options.events;
         this.base_url = options.base_url;
         this.file_path = options.file_path;
-        
-        this.codemirror = CodeMirror($(this.selector)[0]);
+        this.config = options.config;
+        this.codemirror = new CodeMirror($(this.selector)[0]);
         
         // It appears we have to set commands on the CodeMirror class, not the
         // instance. I'd like to be wrong, but since there should only be one CM
@@ -27,12 +38,34 @@ function($,
         CodeMirror.commands.save = $.proxy(this.save, this);
         
         this.save_enabled = false;
+        
+        this.config.loaded.then(function () {
+            // load codemirror config
+            var cfg = that.config.data.Editor || {};
+            var cmopts = $.extend(true, {}, // true = recursive copy
+                Editor.default_codemirror_options,
+                cfg.codemirror_options || {}
+            );
+            that.set_codemirror_options(cmopts, false);
+            that.events.trigger('config_changed.Editor', {config: that.config});
+        });
+    };
+    
+    // default CodeMirror options
+    Editor.default_codemirror_options = {
+        extraKeys: {
+            "Tab" :  "indentMore",
+        },
+        indentUnit: 4,
+        theme: "ipython",
+        lineNumbers: true,
     };
     
     Editor.prototype.load = function() {
+        /** load the file */
         var that = this;
         var cm = this.codemirror;
-        this.contents.get(this.file_path, {type: 'file', format: 'text'})
+        return this.contents.get(this.file_path, {type: 'file', format: 'text'})
             .then(function(model) {
                 cm.setValue(model.content);
 
@@ -56,6 +89,7 @@ function($,
     };
 
     Editor.prototype.save = function() {
+        /** save the file */
         if (!this.save_enabled) {
             console.log("Not saving, save disabled");
             return;
@@ -67,9 +101,29 @@ function($,
             content: this.codemirror.getValue(),
         };
         var that = this;
-        this.contents.save(this.file_path, model).then(function() {
+        return this.contents.save(this.file_path, model).then(function() {
             that.events.trigger("save_succeeded.TextEditor");
         });
+    };
+    
+    Editor.prototype._set_codemirror_options = function (options) {
+        // update codemirror options from a dict
+        for (var opt in options) {
+            this.codemirror.setOption(opt, options[opt]);
+        }
+    };
+    
+    Editor.prototype.update_codemirror_options = function (options) {
+        /** update codemirror options locally and save changes in config */
+        var that = this;
+        this._set_codemirror_options(options);
+        return this.config.update({
+            Editor: {
+                codemirror_options: options
+            }
+        }).then(
+            that.events.trigger('config_changed.Editor', {config: that.config})
+        );
     };
 
     return {Editor: Editor};

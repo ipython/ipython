@@ -36,6 +36,7 @@ require([
         events: events,
         contents: contents,
         file_path: file_path,
+        config: config,
     });
     
     // Make it available for debugging
@@ -44,6 +45,7 @@ require([
     var menus = new menubar.MenuBar('#menubar', {
         base_url: base_url,
         editor: editor,
+        events: events,
     });
     
     var notification_area = new notificationarea.EditorNotificationArea(

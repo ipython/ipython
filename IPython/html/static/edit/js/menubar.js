@@ -29,6 +29,7 @@ define([
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
         this.selector = selector;
         this.editor = options.editor;
+        this.events = options.events;
 
         if (this.selector !== undefined) {
             this.element = $(selector);
@@ -41,8 +42,31 @@ define([
          *  File
          */
         var that = this;
-        this.element.find('#save_file').click(function () {
-            that.editor.save();
+        var editor = that.editor;
+        this.element.find('#save-file').click(function () {
+            editor.save();
+        });
+        
+        // Edit
+        this.element.find('#menu-find').click(function () {
+            editor.codemirror.execCommand("find");
+        });
+        this.element.find('#menu-replace').click(function () {
+            editor.codemirror.execCommand("replace");
+        });
+        
+        // View
+        this.element.find('#menu-line-numbers').click(function () {
+            var current = editor.codemirror.getOption('lineNumbers');
+            var value = Boolean(1-current);
+            editor.update_codemirror_options({lineNumbers: value});
+        });
+        
+        this.events.on("config_changed.Editor", function () {
+            var lineNumbers = editor.codemirror.getOption('lineNumbers');
+            var text = lineNumbers ? "Hide" : "Show";
+            text = text + " Line Numbers";
+            that.element.find('#menu-line-numbers').find("a").text(text);
         });
     };
 
