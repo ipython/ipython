@@ -120,10 +120,6 @@ class IPythonHandler(AuthenticatedHandler):
             return Application.instance().log
         else:
             return app_log
-
-    @property
-    def profile_dir(self):
-        return self.settings.get('profile_dir', '')
     
     #---------------------------------------------------------------
     # URLs

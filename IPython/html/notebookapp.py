@@ -183,7 +183,6 @@ class NotebookWebApplication(web.Application):
             config=ipython_app.config,
             jinja2_env=env,
             terminals_available=False,  # Set later if terminals are available
-            profile_dir = ipython_app.profile_dir.location,
         )
 
         # allow custom overrides for the tornado web app.
