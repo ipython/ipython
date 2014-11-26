@@ -6,6 +6,7 @@ require([
     'jquery',
     'notebook/js/notebook',
     'contents',
+    'services/config',
     'base/js/utils',
     'base/js/page',
     'notebook/js/layoutmanager',
@@ -30,6 +31,7 @@ require([
     $,
     notebook, 
     contents,
+    configmod,
     utils, 
     page, 
     layoutmanager, 
@@ -79,6 +81,8 @@ require([
     var contents = new contents.Contents($.extend({
         events: events},
         common_options));
+    var config_section = new configmod.ConfigSection('notebook', common_options);
+    config_section.load();
     var notebook = new notebook.Notebook('div#notebook', $.extend({
         events: events,
         keyboard_manager: keyboard_manager,
@@ -158,6 +162,13 @@ require([
     IPython.tooltip = notebook.tooltip;
 
     events.trigger('app_initialized.NotebookApp');
+    config_section.loaded.then(function() {
+        if (config_section.data.load_extensions) {
+            var nbextension_paths = Object.getOwnPropertyNames(
+                                        config_section.data.load_extensions);
+            IPython.load_extensions.apply(this, nbextension_paths);
+        }
+    });
     notebook.load_notebook(common_options.notebook_path);
 
 });
