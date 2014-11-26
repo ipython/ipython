@@ -31,6 +31,7 @@ define(["widgets/js/manager",
             this.state_lock = null;
             this.id = model_id;
             this.views = {};
+            this._resolve_received_state = {};
 
             if (comm !== undefined) {
                 // Remember comm associated with the model.
@@ -42,9 +43,9 @@ define(["widgets/js/manager",
                 comm.on_msg($.proxy(this._handle_comm_msg, this));
 
                 // Assume the comm is alive.
-                this.set_comm_alive(true);
+                this.set_comm_live(true);
             } else {
-                this.set_comm_alive(false);
+                this.set_comm_live(false);
             }
             return Backbone.Model.apply(this);
         },
@@ -69,24 +70,24 @@ define(["widgets/js/manager",
                 return;
             }
 
+            var msg_id = this.comm.send({method: 'request_state'}, callbacks || this.widget_manager.callbacks());
+
             // Promise that is resolved when a state is received
             // from the back-end.
             var that = this;
             var received_state = new Promise(function(resolve) {
-                that._resolve_received_state = resolve;
+                that._resolve_received_state[msg_id] = resolve;
             });
-
-            this.comm.send({method: 'request_state'}, callbacks || this.widget_manager.callbacks());
             return received_state;
         },
 
-        set_comm_alive: function(alive) {
+        set_comm_live: function(live) {
             /** 
-             * Change the comm_alive state of the model.
+             * Change the comm_live state of the model.
              */
-            if (this.comm_alive === undefined || this.comm_alive != alive) {
-                this.comm_alive = alive;
-                this.trigger(alive ? 'comm_is_live' : 'comm_is_dead', {model: this});
+            if (this.comm_live === undefined || this.comm_live != live) {
+                this.comm_live = live;
+                this.trigger(live ? 'comm:live' : 'comm:dead', {model: this});
             }
         },
 
@@ -126,9 +127,17 @@ define(["widgets/js/manager",
             var that = this;
             switch (method) {
                 case 'update':
-                    this.state_change = this.state_change.then(function() {
-                        return that.set_state(msg.content.data.state);
-                    }).catch(utils.reject("Couldn't process update msg for model id '" + String(that.id) + "'", true));
+                    this.state_change = this.state_change
+                        .then(function() {
+                            return that.set_state(msg.content.data.state);
+                        }).catch(utils.reject("Couldn't process update msg for model id '" + String(that.id) + "'", true))
+                        .then(function() {
+                            var parent_id = msg.parent_header.msg_id;
+                            if (that._resolve_received_state[parent_id] !== undefined) {
+                                that._resolve_received_state[parent_id].call();
+                                delete that._resolve_received_state[parent_id];
+                            }
+                        }).catch(utils.reject("Couldn't resolve state request promise.", true));
                     break;
                 case 'custom':
                     this.trigger('msg:custom', msg.content.data.content);
@@ -150,11 +159,6 @@ define(["widgets/js/manager",
                 } finally {
                     that.state_lock = null;
                 }
-                
-                if (that._resolve_received_state !== undefined) {
-                    that._resolve_received_state();
-                }
-                return Promise.resolve();
             }, utils.reject("Couldn't set model state", true));
         },
 

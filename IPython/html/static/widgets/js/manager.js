@@ -88,38 +88,32 @@ define([
         /**
          * Displays a view for a particular model.
          */
-        var that = this;
-        return new Promise(function(resolve, reject) {
-            var cell = that.get_msg_cell(msg.parent_header.msg_id);
-            if (cell === null) {
-                reject(new Error("Could not determine where the display" + 
-                    " message was from.  Widget will not be displayed"));
-            } else {
-                return that.display_view_in_cell(cell, model)
-                .catch(function(error) { 
-                    reject(new utils.WrappedError('View could not be displayed.', error)); 
-                });
-            }
-        });
+        var cell = this.get_msg_cell(msg.parent_header.msg_id);
+        if (cell === null) {
+            return Promise.reject(new Error("Could not determine where the display" + 
+                " message was from.  Widget will not be displayed"));
+        } else {
+            return this.display_view_in_cell(cell, model)
+                .catch(utils.reject('View could not be displayed.', true)); 
+        }
     };
 
     WidgetManager.prototype.display_view_in_cell = function(cell, model) {
         // Displays a view in a cell.
-        var that = this;
-        return new Promise(function(resolve, reject) {
-            if (cell.display_widget_view) {
-                cell.display_widget_view(that.create_view(model, {cell: cell}))
-                .then(function(view) {
-                    that._handle_display_view(view);
-                    view.trigger('displayed');
-                    resolve(view);
-                }, function(error) { 
-                    reject(new utils.WrappedError('Could not create or display view', error)); 
-                });
-            } else {
-                reject(new Error('Cell does not have a `display_widget_view` method'));
-            }
-        });
+        if (cell.display_widget_view) {
+            var that = this;
+            return cell.display_widget_view(this.create_view(model, {
+                cell: cell,
+                // Only set cell_index when view is displayed as directly.
+                cell_index: that.notebook.find_cell_index(cell),
+            })).then(function(view) {
+                that._handle_display_view(view);
+                view.trigger('displayed');
+                resolve(view);
+            }).catch(utils.reject('Could not create or display view', true)); 
+        } else {
+            return Promise.reject(new Error('Cell does not have a `display_widget_view` method'));
+        }
     };
 
     WidgetManager.prototype._handle_display_view = function (view) {
@@ -315,7 +309,7 @@ define([
         //  Dictionary of options with the following contents:
         //      only_displayed: (optional) boolean=false
         //          Only return models with one or more displayed views.
-        //      not_alive: (optional) boolean=false
+        //      not_live: (optional) boolean=false
         //          Include models that have comms with severed connections.
         //
         // Returns
@@ -331,8 +325,8 @@ define([
                     // If the model has one or more views defined for it,
                     // consider it displayed.
                     var displayed_flag = !(options && options.only_displayed) || Object.keys(model.views).length > 0;
-                    var alive_flag = (options && options.not_alive) || model.comm_alive;
-                    if (displayed_flag && alive_flag) {
+                    var live_flag = (options && options.not_live) || model.comm_live;
+                    if (displayed_flag && live_flag) {
                         state[model_id] = {
                             model_name: model.name,
                             model_module: model.module,
@@ -344,13 +338,8 @@ define([
                         for (var id in model.views) {
                             if (model.views.hasOwnProperty(id)) {
                                 var view = model.views[id];
-                                var cell = view.options.cell;
-
-                                // Only store the cell reference if this view is a top level
-                                // child of the cell.
-                                if (cell.widget_views.indexOf(view) != -1) {
-                                    var cell_index = that.notebook.find_cell_index(cell);
-                                    state[model_id].views.push(cell_index);
+                                if (view.options.cell_index) {
+                                    state[model_id].views.push(view.options.cell_index);
                                 }
                             }
                         }
@@ -358,7 +347,7 @@ define([
                 }
             }
             return state;
-        });
+        }).catch(utils.reject('Could not get state of widget manager', true));
     };
     
     WidgetManager.prototype.set_state = function(state) {
@@ -383,7 +372,7 @@ define([
                 kernel.comm_manager.register_comm(new_comm);
 
                 // Create the model using the recreated comm.  When the model is
-                // created we don't know yet if the comm is valid so set_comm_alive
+                // created we don't know yet if the comm is valid so set_comm_live
                 // false.  Once we receive the first state push from the back-end
                 // we know the comm is alive.
                 var views = kernel.widget_manager.create_model({
@@ -392,12 +381,12 @@ define([
                     model_module: state[model_id].model_module})
                 .then(function(model) {
 
-                    model.set_comm_alive(false);
+                    model.set_comm_live(false);
                     var view_promise = Promise.resolve().then(function() {
                         return model.set_state(state[model.id].state);
                     }).then(function() {
                         model.request_state().then(function() {
-                            model.set_comm_alive(true);
+                            model.set_comm_live(true);
                         });
 
                         // Display the views of the model.
