@@ -8119,6 +8119,25 @@ ul#new-notebook-menu {
 }
 /*!
 *
+* IPython text editor webapp
+*
+*/
+.selected-keymap i.fa {
+  padding: 0px 5px;
+}
+.selected-keymap i.fa:before {
+  content: "\f00c";
+}
+#texteditor-container {
+  border-bottom: 1px solid #ccc;
+}
+#filename {
+  font-size: 16pt;
+  display: table;
+  padding: 0px 5px;
+}
+/*!
+*
 * IPython notebook
 *
 */
