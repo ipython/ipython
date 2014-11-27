@@ -35,7 +35,11 @@ function($,
         this.contents.get(this.file_path, {type: 'file', format: 'text'})
             .then(function(model) {
                 cm.setValue(model.content);
-                
+
+                // Setting the file's initial value creates a history entry,
+                // which we don't want.
+                cm.clearHistory();
+
                 // Find and load the highlighting mode
                 var modeinfo = CodeMirror.findModeByMIME(model.mimetype);
                 if (modeinfo) {
