@@ -7,6 +7,7 @@
 from __future__ import print_function
 
 import base64
+import datetime
 import errno
 import io
 import json
@@ -84,6 +85,7 @@ from IPython.utils.traitlets import (
 )
 from IPython.utils import py3compat
 from IPython.utils.path import filefind, get_ipython_dir
+from IPython.utils.sysinfo import get_sys_info
 
 from .utils import url_path_join
 
@@ -151,6 +153,15 @@ class NotebookWebApplication(web.Application):
 
         jenv_opt = jinja_env_options if jinja_env_options else {}
         env = Environment(loader=FileSystemLoader(template_path), **jenv_opt)
+        
+        sys_info = get_sys_info()
+        if sys_info['commit_source'] == 'repository':
+            # don't cache (rely on 304) when working from master
+            version_hash = ''
+        else:
+            # reset the cache on server restart
+            version_hash = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+
         settings = dict(
             # basics
             log_function=log_request,
@@ -160,6 +171,11 @@ class NotebookWebApplication(web.Application):
             static_path=ipython_app.static_file_path,
             static_handler_class = FileFindHandler,
             static_url_prefix = url_path_join(base_url,'/static/'),
+            static_handler_args = {
+                # don't cache custom.js
+                'no_cache_paths': [url_path_join(base_url, 'static', 'custom')],
+            },
+            version_hash=version_hash,
             
             # authentication
             cookie_secret=ipython_app.cookie_secret,
@@ -207,8 +223,12 @@ class NotebookWebApplication(web.Application):
         handlers.extend(load_handlers('services.sessions.handlers'))
         handlers.extend(load_handlers('services.nbconvert.handlers'))
         handlers.extend(load_handlers('services.kernelspecs.handlers'))
+        
         handlers.append(
-            (r"/nbextensions/(.*)", FileFindHandler, {'path' : settings['nbextensions_path']}),
+            (r"/nbextensions/(.*)", FileFindHandler, {
+                'path': settings['nbextensions_path'],
+                'no_cache_paths': ['/'], # don't cache anything in nbextensions
+            }),
         )
         # register base handlers last
         handlers.extend(load_handlers('base.handlers'))

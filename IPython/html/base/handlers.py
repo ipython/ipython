@@ -130,6 +130,11 @@ class IPythonHandler(AuthenticatedHandler):
     #---------------------------------------------------------------
     
     @property
+    def version_hash(self):
+        """The version hash to use for cache hints for static files"""
+        return self.settings.get('version_hash', '')
+    
+    @property
     def mathjax_url(self):
         return self.settings.get('mathjax_url', '')
     
@@ -240,6 +245,7 @@ class IPythonHandler(AuthenticatedHandler):
             static_url=self.static_url,
             sys_info=sys_info,
             contents_js_source=self.contents_js_source,
+            version_hash=self.version_hash,
         )
     
     def get_json_body(self):
@@ -312,6 +318,12 @@ class AuthenticatedFileHandler(IPythonHandler, web.StaticFileHandler):
         
         return web.StaticFileHandler.get(self, path)
     
+    def set_headers(self):
+        super(AuthenticatedFileHandler, self).set_headers()
+        # disable browser caching, rely on 304 replies for savings
+        if "v" not in self.request.arguments:
+            self.add_header("Cache-Control", "no-cache")
+    
     def compute_etag(self):
         return None
     
@@ -380,7 +392,16 @@ class FileFindHandler(web.StaticFileHandler):
     # cache search results, don't search for files more than once
     _static_paths = {}
     
-    def initialize(self, path, default_filename=None):
+    def set_headers(self):
+        super(FileFindHandler, self).set_headers()
+        # disable browser caching, rely on 304 replies for savings
+        if "v" not in self.request.arguments or \
+                any(self.request.path.startswith(path) for path in self.no_cache_paths):
+            self.add_header("Cache-Control", "no-cache")
+    
+    def initialize(self, path, default_filename=None, no_cache_paths=None):
+        self.no_cache_paths = no_cache_paths or []
+        
         if isinstance(path, string_types):
             path = [path]
         
