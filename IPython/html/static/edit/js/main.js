@@ -19,7 +19,7 @@ require([
     events,
     contents,
     configmod,
-    editor,
+    editmod,
     menubar,
     notificationarea
     ){
@@ -28,10 +28,10 @@ require([
     var base_url = utils.get_body_data('baseUrl');
     var file_path = utils.get_body_data('filePath');
     contents = new contents.Contents({base_url: base_url});
-    var config = new configmod.ConfigSection('edit', {base_url: base_url})
+    var config = new configmod.ConfigSection('edit', {base_url: base_url});
     config.load();
     
-    var editor = new editor.Editor('#texteditor-container', {
+    var editor = new editmod.Editor('#texteditor-container', {
         base_url: base_url,
         events: events,
         contents: contents,
@@ -63,4 +63,11 @@ require([
     });
     editor.load();
     page.show();
+
+    window.onbeforeunload = function () {
+        if (!editor.codemirror.isClean(editor.generation)) {
+            return "Unsaved changes will be lost. Close anyway?";
+        }
+    };
+
 });
