@@ -612,21 +612,19 @@ define([
          * require and callback with the resolveable mode string: mime or
          * custom name
          */
-        if (typeof mode != "string") mode = mode.name;
 
-        if (CodeMirror.modes.hasOwnProperty(mode)) {
+        var modename = (typeof mode == "string") ? mode :
+            mode.mode || mode.name;
+
+        if (CodeMirror.modes.hasOwnProperty(modename)) {
             callback(mode);
             return;
         }
 
-        var info = CodeMirror.findModeByName(mode) ||
-            CodeMirror.findModeByExtension(mode.split(".").slice(-1)) ||
-            CodeMirror.findModeByMIME(mode);
-
-        if(!info){
-            errback && errback();
-            return;
-        }
+        var info = (mode && mode.mode && mode.mime && mode) ||
+            CodeMirror.findModeByName(modename) ||
+            CodeMirror.findModeByExtension(modename.split(".").slice(-1)) ||
+            CodeMirror.findModeByMIME(modename);
 
         require([
                 // might want to use CodeMirror.modeURL here

@@ -1585,10 +1585,9 @@ define([
         }
         this.codemirror_mode = newmode;
         codecell.CodeCell.options_default.cm_config.mode = newmode;
-        var modename = newmode.mode || newmode.name || newmode;
         
         var that = this;
-        utils.requireCodeMirrorMode(modename, function () {
+        utils.requireCodeMirrorMode(newmode, function () {
             that.get_cells().map(function(cell, i) {
                 if (cell.cell_type === 'code'){
                     cell.code_mirror.setOption('mode', newmode);
