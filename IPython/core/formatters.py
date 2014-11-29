@@ -13,6 +13,7 @@ Inheritance diagram:
 import abc
 import inspect
 import sys
+import traceback
 import types
 import warnings
 
@@ -229,7 +230,7 @@ def warn_format_error(method, self, *args, **kwargs):
     """decorator for warning on failed format call"""
     try:
         r = method(self, *args, **kwargs)
-    except NotImplementedError as e:
+    except NotImplementedError:
         # don't warn on NotImplementedErrors
         return None
     except Exception:
