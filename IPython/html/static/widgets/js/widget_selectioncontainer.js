@@ -9,18 +9,23 @@ define([
 ], function(widget, utils, $){
 
     var AccordionView = widget.DOMWidgetView.extend({
+        initialize: function(){
+            AccordionView.__super__.initialize.apply(this, arguments);
+
+            this.containers = [];
+            this.model_containers = {};
+            this.children_views = new widget.ViewList(this.add_child_view, this.remove_child_view, this);
+            this.listenTo(this.model, 'change:children', function(model, value) {
+                this.children_views.update(value);
+            }, this);
+        },
+
         render: function(){
             // Called when view is rendered.
             var guid = 'panel-group' + utils.uuid();
             this.$el
                 .attr('id', guid)
                 .addClass('panel-group');
-            this.containers = [];
-            this.model_containers = {};
-            this.update_children([], this.model.get('children'));
-            this.model.on('change:children', function(model, value, options) {
-                this.update_children(model.previous('children'), value);
-            }, this);
             this.model.on('change:selected_index', function(model, value, options) {
                 this.update_selected_index(model.previous('selected_index'), value, options);
             }, this);
@@ -31,6 +36,7 @@ define([
             this.on('displayed', function() {
                 this.update_titles();
             }, this);
+            this.children_views.update(this.model.get('children'));
         },
 
         update_titles: function(titles) {
@@ -61,25 +67,18 @@ define([
                 }
             }
         },
-        
-        update_children: function(old_list, new_list) {
-            // Called when the children list is modified.
-            this.do_diff(old_list, 
-                new_list, 
-                $.proxy(this.remove_child_model, this),
-                $.proxy(this.add_child_model, this));
-        },
 
-        remove_child_model: function(model) {
+        remove_child_view: function(view) {
             // Called when a child is removed from children list.
+            // TODO: does this handle two different views of the same model as children?
+            var model = view.model;
             var accordion_group = this.model_containers[model.id];
             this.containers.splice(accordion_group.container_index, 1);
             delete this.model_containers[model.id];
             accordion_group.remove();
-            this.pop_child_view(model);
         },
 
-        add_child_model: function(model) {
+        add_child_view: function(model) {
             // Called when a child is added to children list.
             var index = this.containers.length;
             var uuid = utils.uuid();
@@ -126,7 +125,15 @@ define([
                     view.trigger('displayed');
                 });
                 return view;
-            }, utils.reject("Couldn't add child view to box", true));
+            }).catch(utils.reject("Couldn't add child view to box", true));
+        },
+        
+        remove: function() {
+            // We remove this widget before removing the children as an optimization
+            // we want to remove the entire container from the DOM first before
+            // removing each individual child separately.
+            AccordionView.__super__.remove.apply(this, arguments);
+            this.children_views.remove();
         },
     });
     
@@ -134,8 +141,13 @@ define([
     var TabView = widget.DOMWidgetView.extend({    
         initialize: function() {
             // Public constructor.
-            this.containers = [];
             TabView.__super__.initialize.apply(this, arguments);
+            
+            this.containers = [];
+            this.children_views = new widget.ViewList(this.add_child_view, this.remove_child_view, this);
+            this.listenTo(this.model, 'change:children', function(model, value) {
+                this.children_views.update(value);
+            }, this);
         },
 
         render: function(){
@@ -149,11 +161,7 @@ define([
             this.$tab_contents = $('<div />', {id: uuid + 'Content'})
                 .addClass('tab-content')
                 .appendTo(this.$el);
-            this.containers = [];
-            this.update_children([], this.model.get('children'));
-            this.model.on('change:children', function(model, value, options) {
-                this.update_children(model.previous('children'), value);
-            }, this);
+            this.children_views.update(this.model.get('children'));
         },
 
         update_attr: function(name, value) {
@@ -161,24 +169,15 @@ define([
             this.$tabs.css(name, value);
         },
 
-        update_children: function(old_list, new_list) {
-            // Called when the children list is modified.
-            this.do_diff(old_list, 
-                new_list, 
-                $.proxy(this.remove_child_model, this),
-                $.proxy(this.add_child_model, this));
-        },
-
-        remove_child_model: function(model) {
+        remove_child_view: function(view) {
             // Called when a child is removed from children list.
-            var view = this.pop_child_view(model);
             this.containers.splice(view.parent_tab.tab_text_index, 1);
             view.parent_tab.remove();
             view.parent_container.remove();
             view.remove();
         },
 
-        add_child_model: function(model) {
+        add_child_view: function(model) {
             // Called when a child is added to children list.
             var index = this.containers.length;
             var uuid = utils.uuid();
@@ -221,7 +220,7 @@ define([
                     view.trigger('displayed');
                 });
                 return view;
-            }, utils.reject("Couldn't add child view to box", true));
+            }).catch(utils.reject("Couldn't add child view to box", true));
         },
 
         update: function(options) {
@@ -253,6 +252,14 @@ define([
             this.$tabs.find('li')
                 .removeClass('active');
             this.containers[index].tab('show');
+        },
+        
+        remove: function() {
+            // We remove this widget before removing the children as an optimization
+            // we want to remove the entire container from the DOM first before
+            // removing each individual child separately.
+            TabView.__super__.remove.apply(this, arguments);
+            this.children_views.remove();
         },
     });
 

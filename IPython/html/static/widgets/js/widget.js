@@ -95,7 +95,7 @@ define(["widgets/js/manager",
                 } finally {
                     that.state_lock = null;
                 }
-            }, utils.reject("Couldn't set model state", true));
+            }).catch(utils.reject("Couldn't set model state", true));
         },
 
         _handle_status: function (msg, callbacks) {
@@ -292,8 +292,6 @@ define(["widgets/js/manager",
             // Public constructor.
             this.model.on('change',this.update,this);
             this.options = parameters.options;
-            this.child_model_views = {};
-            this.child_views = {};
             this.id = this.id || utils.uuid();
             this.model.views[this.id] = this;
             this.on('displayed', function() { 
@@ -311,69 +309,7 @@ define(["widgets/js/manager",
             // Create and promise that resolves to a child view of a given model
             var that = this;
             options = $.extend({ parent: this }, options || {});
-            return this.model.widget_manager.create_view(child_model, options).then(function(child_view) {
-                // Associate the view id with the model id.
-                if (that.child_model_views[child_model.id] === undefined) {
-                    that.child_model_views[child_model.id] = [];
-                }
-                that.child_model_views[child_model.id].push(child_view.id);
-                // Remember the view by id.
-                that.child_views[child_view.id] = child_view;
-                return child_view;
-            }, utils.reject("Couldn't create child view"));
-        },
-
-        pop_child_view: function(child_model) {
-            // Delete a child view that was previously created using create_child_view.
-            var view_ids = this.child_model_views[child_model.id];
-            if (view_ids !== undefined) {
-
-                // Only delete the first view in the list.
-                var view_id = view_ids[0];
-                var view = this.child_views[view_id];
-                delete this.child_views[view_id];
-                view_ids.splice(0,1);
-                delete child_model.views[view_id];
-            
-                // Remove the view list specific to this model if it is empty.
-                if (view_ids.length === 0) {
-                    delete this.child_model_views[child_model.id];
-                }
-                return view;
-            }
-            return null;
-        },
-
-        do_diff: function(old_list, new_list, removed_callback, added_callback) {
-            // Difference a changed list and call remove and add callbacks for 
-            // each removed and added item in the new list.
-            //
-            // Parameters
-            // ----------
-            // old_list : array
-            // new_list : array
-            // removed_callback : Callback(item)
-            //      Callback that is called for each item removed.
-            // added_callback : Callback(item)
-            //      Callback that is called for each item added.
-
-            // Walk the lists until an unequal entry is found.
-            var i;
-            for (i = 0; i < new_list.length; i++) {
-                if (i >= old_list.length || new_list[i] !== old_list[i]) {
-                    break;
-                }
-            }
-
-            // Remove the non-matching items from the old list.
-            for (var j = i; j < old_list.length; j++) {
-                removed_callback(old_list[j]);
-            }
-
-            // Add the rest of the new list items.
-            for (; i < new_list.length; i++) {
-                added_callback(new_list[i]);
-            }
+            return this.model.widget_manager.create_view(child_model, options).catch(utils.reject("Couldn't create child view"), true);
         },
 
         callbacks: function(){
@@ -533,11 +469,8 @@ define(["widgets/js/manager",
             if ($el===undefined) {
                 $el = this.$el;
             }
-            this.do_diff(old_classes, new_classes, function(removed) {
-                $el.removeClass(removed);
-            }, function(added) {
-                $el.addClass(added);
-            });
+            _.difference(old_classes, new_classes).map(function(c) {$el.removeClass(c);})
+            _.difference(new_classes, old_classes).map(function(c) {$el.addClass(c);})
         },
 
         update_mapped_classes: function(class_map, trait_name, previous_trait_value, $el) {
@@ -588,11 +521,93 @@ define(["widgets/js/manager",
         },
     });
 
-    
+
+    var ViewList = function(create_view, remove_view, context) {
+        // * create_view and remove_view are default functions called when adding or removing views
+        // * create_view takes a model and returns a view or a promise for a view for that model
+        // * remove_view takes a view and destroys it (including calling `view.remove()`)
+        // * each time the update() function is called with a new list, the create and remove
+        //   callbacks will be called in an order so that if you append the views created in the
+        //   create callback and remove the views in the remove callback, you will duplicate 
+        //   the order of the list.
+        // * the remove callback defaults to just removing the view (e.g., pass in null for the second parameter)
+        // * the context defaults to the created ViewList.  If you pass another context, the create and remove
+        //   will be called in that context.
+
+        this.initialize.apply(this, arguments);
+    };
+
+    _.extend(ViewList.prototype, {
+        initialize: function(create_view, remove_view, context) {
+            this.state_change = Promise.resolve();
+            this._handler_context = context || this;
+            this._models = [];
+            this.views = [];
+            this._create_view = create_view;
+            this._remove_view = remove_view || function(view) {view.remove();};
+        },
+
+        update: function(new_models, create_view, remove_view, context) {
+            // the create_view, remove_view, and context arguments override the defaults
+            // specified when the list is created.
+            // returns a promise that resolves after this update is done
+            var remove = remove_view || this._remove_view;
+            var create = create_view || this._create_view;
+            if (create === undefined || remove === undefined){
+                console.error("Must define a create a remove function");
+            }
+            var context = context || this._handler_context;
+            var added_views = [];
+            var that = this;
+            this.state_change = this.state_change.then(function() {
+                var i;
+                 // first, skip past the beginning of the lists if they are identical
+                for (i = 0; i < new_models.length; i++) {
+                    if (i >= that._models.length || new_models[i] !== that._models[i]) {
+                        break;
+                    }
+                }
+                var first_removed = i;
+                // Remove the non-matching items from the old list.
+                for (var j = first_removed; j < that._models.length; j++) {
+                    remove.call(context, that.views[j]);
+                }
+
+                // Add the rest of the new list items.
+                for (; i < new_models.length; i++) {
+                    added_views.push(create.call(context, new_models[i]));
+                }
+                // make a copy of the input array
+                that._models = new_models.slice();
+                return Promise.all(added_views).then(function(added) {
+                    Array.prototype.splice.apply(that.views, [first_removed, that.views.length].concat(added));
+                    return that.views;
+                });
+            });
+            return this.state_change;
+        },
+
+        remove: function() {
+            // removes every view in the list; convenience function for `.update([])`
+            // that should be faster
+            // returns a promise that resolves after this removal is done
+            var that = this;
+            this.state_change = this.state_change.then(function() {
+                for (var i = 0; i < that.views.length; i++) {
+                    that._remove_view.call(that._handler_context, that.views[i]);
+                }
+                that._models = [];
+                that.views = [];
+            });
+            return this.state_change;
+        },
+    });
+
     var widget = {
         'WidgetModel': WidgetModel,
         'WidgetView': WidgetView,
         'DOMWidgetView': DOMWidgetView,
+        'ViewList': ViewList,
     };
 
     // For backwards compatability.

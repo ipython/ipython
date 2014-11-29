@@ -62,7 +62,7 @@ define([
                     dummy.replaceWith(view.$el);
                     view.trigger('displayed');
                     return view;
-                }, utils.reject('Could not display view'));
+                }).catch(utils.reject('Could not display view', true));
         }
     };
 
@@ -103,7 +103,7 @@ define([
                 view.listenTo(model, 'destroy', view.remove);
                 view.render();
                 return view;
-            }, utils.reject("Couldn't create a view for model id '" + String(model.id) + "'"));
+            }).catch(utils.reject("Couldn't create a view for model id '" + String(model.id) + "'", true));
         });
         return model.state_change;
     };
@@ -178,7 +178,7 @@ define([
         return this.create_model({
             model_name: msg.content.data.model_name, 
             model_module: msg.content.data.model_module, 
-            comm: comm}).catch(utils.reject("Couldn't create a model."));
+            comm: comm}).catch(utils.reject("Couldn't create a model.", true));
     };
 
     WidgetManager.prototype.create_model = function (options) {
