@@ -379,7 +379,7 @@ define([
      * @return {jQuery} A selector of all cell elements
      */
     Notebook.prototype.get_cell_elements = function () {
-        return this.container.children("div.cell");
+        return this.container.find(".cell").not('.cell .cell');
     };
 
     /**
