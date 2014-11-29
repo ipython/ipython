@@ -11,6 +11,7 @@ import os
 import sys
 import subprocess
 
+from IPython.utils.py3compat import cast_unicode_py2
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.traitlets import Unicode
 
@@ -64,7 +65,7 @@ class SVG2PDFPreprocessor(ConvertFiguresPreprocessor):
             input_filename = os.path.join(tmpdir, 'figure.svg')
             # SVG data is unicode text
             with io.open(input_filename, 'w', encoding='utf8') as f:
-                f.write(data)
+                f.write(cast_unicode_py2(data))
 
             #Call conversion application
             output_filename = os.path.join(tmpdir, 'figure.pdf')
