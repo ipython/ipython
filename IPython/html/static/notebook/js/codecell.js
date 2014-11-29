@@ -226,6 +226,10 @@ define([
      *  true = ignore, false = don't ignore.
      *  @method handle_codemirror_keyevent
      */
+
+     /* Correction here */
+
+
     CodeCell.prototype.handle_codemirror_keyevent = function (editor, event) {
 
         var that = this;
