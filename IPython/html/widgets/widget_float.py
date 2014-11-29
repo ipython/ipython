@@ -55,6 +55,26 @@ class BoundedFloatText(_BoundedFloat):
 
 @register('IPython.FloatSlider')
 class FloatSlider(_BoundedFloat):
+    """ Slider/trackbar of floating values with the specified range.
+
+	Parameters
+	----------
+	value : float
+	    initial position of the slider
+	min : float
+	    minimal position of the slider
+	max : float
+	    maximal position of the slider
+	step : float
+	    step of the trackbar
+	description : str
+	    name of the slider
+	orientation : {'vertical', 'horizontal}, optional
+            default is horizontal
+	readout : {True, False}, optional
+	    default is True, display the current value of the slider next to it		
+	
+    """
     _view_name = Unicode('FloatSliderView', sync=True)
     orientation = CaselessStrEnum(values=['horizontal', 'vertical'], 
         default_value='horizontal', 
@@ -66,6 +86,22 @@ class FloatSlider(_BoundedFloat):
 
 @register('IPython.FloatProgress')
 class FloatProgress(_BoundedFloat):
+    """ Progress bar.
+
+    Parameters
+    -----------
+    value : float
+	current position within the range of the progress bar
+    min : float
+	minimal position of the slider
+    max : float
+	maximal position of the slider
+    step : float
+	step of the progress bar
+    description : str
+	name of the progress bar
+
+"""
     _view_name = Unicode('ProgressView', sync=True)
 
     bar_style = CaselessStrEnum(
