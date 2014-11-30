@@ -529,7 +529,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
             except KeyboardInterrupt:
                 #double-guard against keyboardinterrupts during kbdint handling
                 try:
-                    self.write('\nKeyboardInterrupt\n')
+                    self.write('\n' + self.get_exception_only())
                     source_raw = self.input_splitter.raw_reset()
                     hlen_b4_cell = self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
                     more = False
