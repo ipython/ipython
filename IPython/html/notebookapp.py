@@ -501,14 +501,6 @@ class NotebookApp(BaseIPythonApplication):
             help="Supply extra arguments that will be passed to Jinja environment.")
 
     
-    ensure_ascii = Bool(True, config=True,
-        help="""Whether the output file only contains ASCII characters.
-        If ensure_ascii is True (the default), all non-ASCII characters
-        in the output are escaped with \\uXXXX sequences. If ensure_ascii
-        is False, these characters are represented using UTF-8.
-        """
-    )
-    
     enable_mathjax = Bool(True, config=True,
         help="""Whether to enable MathJax for typesetting math/TeX
 

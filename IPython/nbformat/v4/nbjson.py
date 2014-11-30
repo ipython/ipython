@@ -12,6 +12,7 @@ from .nbbase import from_dict
 from .rwbase import (
     NotebookReader, NotebookWriter, rejoin_lines, split_lines, strip_transient
 )
+from IPython.utils.traitlets import Bool
 
 
 class BytesEncoder(json.JSONEncoder):
@@ -42,6 +43,14 @@ class JSONReader(NotebookReader):
 
 
 class JSONWriter(NotebookWriter):
+
+    ensure_ascii = Bool(True, config=True,
+        help="""Whether the output file only contains ASCII characters.
+        If ensure_ascii is True (the default), all non-ASCII characters
+        in the output are escaped with \\uXXXX sequences. If ensure_ascii
+        is False, these characters are represented using UTF-8.
+        """
+    )
 
     def writes(self, nb, **kwargs):
         """Serialize a NotebookNode object as a JSON string"""
