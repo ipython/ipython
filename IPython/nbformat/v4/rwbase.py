@@ -82,7 +82,7 @@ class NotebookReader(object):
         return self.reads(nbs, **kwargs)
 
 
-class NotebookWriter(object):
+class NotebookWriter(IPython.config.Configurable):
     """A class for writing notebooks."""
 
     def writes(self, nb, **kwargs):
