@@ -45,11 +45,39 @@ class _BoundedFloat(_Float):
 
 @register('IPython.FloatText')
 class FloatText(_Float):
+    """ Displays a float value within a textbox. For a textbox in
+	which the value must be within a specific range, use BoundedFloatText.
+
+	Parameters
+	----------
+	value : float
+	    value displayed
+	description : str
+	    description displayed next to the textbox   
+	color : str Unicode color code (eg. '#C13535'), optional
+	    color of the value displayed   
+    """
     _view_name = Unicode('FloatTextView', sync=True)
 
 
 @register('IPython.BoundedFloatText')
 class BoundedFloatText(_BoundedFloat):
+    """ Displays a float value within a textbox. Value must be within the range specified.
+	For a textbox in which the value doesn't need to be within a specific range, use FloatText.
+
+	Parameters
+	----------
+	value : float
+	    value displayed
+	min : float
+	    minimal value of the range of possible values displayed
+	max : float
+	    maximal value of the range of possible values displayed
+	description : str
+	    description displayed next to the textbox  
+	color : str Unicode color code (eg. '#C13535'), optional
+	    color of the value displayed   
+    """
     _view_name = Unicode('FloatTextView', sync=True)
 
 
@@ -60,7 +88,7 @@ class FloatSlider(_BoundedFloat):
 	Parameters
 	----------
 	value : float
-	    initial position of the slider
+	    position of the slider
 	min : float
 	    minimal position of the slider
 	max : float
@@ -73,6 +101,10 @@ class FloatSlider(_BoundedFloat):
             default is horizontal
 	readout : {True, False}, optional
 	    default is True, display the current value of the slider next to it		
+	slider_color : str Unicode color code (eg. '#C13535'), optional 
+	    color of the slider 
+	color : str Unicode color code (eg. '#C13535'), optional
+	    color of the value displayed (if readout == True)
 	
     """
     _view_name = Unicode('FloatSliderView', sync=True)
@@ -86,12 +118,12 @@ class FloatSlider(_BoundedFloat):
 
 @register('IPython.FloatProgress')
 class FloatProgress(_BoundedFloat):
-    """ Progress bar.
+    """ Displays a progress bar.
 
     Parameters
     -----------
     value : float
-	current position within the range of the progress bar
+	position within the range of the progress bar
     min : float
 	minimal position of the slider
     max : float
@@ -100,7 +132,9 @@ class FloatProgress(_BoundedFloat):
 	step of the progress bar
     description : str
 	name of the progress bar
-
+    bar_style: {'success', 'info', 'warning', 'danger', ''}, optional
+	color of the progress bar, default is '' (blue)
+	colors are: 'success'-green, 'info'-light blue, 'warning'-orange, 'danger'-red
 """
     _view_name = Unicode('ProgressView', sync=True)
 
@@ -205,6 +239,30 @@ class _BoundedFloatRange(_FloatRange):
 
 @register('IPython.FloatRangeSlider')
 class FloatRangeSlider(_BoundedFloatRange):
+    """ Slider/trackbar for displaying a floating value range (within the specified range of values).
+
+	Parameters
+	----------
+	value : float tuple
+	    range of the slider displayed
+	min : float
+	    minimal position of the slider
+	max : float
+	    maximal position of the slider
+	step : float
+	    step of the trackbar
+	description : str
+	    name of the slider
+	orientation : {'vertical', 'horizontal}, optional
+            default is horizontal
+	readout : {True, False}, optional
+	    default is True, display the current value of the slider next to it		
+	slider_color : str Unicode color code (eg. '#C13535'), optional 
+	    color of the slider 
+	color : str Unicode color code (eg. '#C13535'), optional
+	    color of the value displayed (if readout == True)
+	
+    """
     _view_name = Unicode('FloatSliderView', sync=True)
     orientation = CaselessStrEnum(values=['horizontal', 'vertical'], 
         default_value='horizontal', allow_none=False, 
