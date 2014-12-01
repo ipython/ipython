@@ -120,10 +120,6 @@ class IPythonHandler(AuthenticatedHandler):
             return Application.instance().log
         else:
             return app_log
-
-    @property
-    def profile_dir(self):
-        return self.settings.get('profile_dir', '')
     
     #---------------------------------------------------------------
     # URLs
@@ -179,6 +175,10 @@ class IPythonHandler(AuthenticatedHandler):
     @property
     def kernel_spec_manager(self):
         return self.settings['kernel_spec_manager']
+
+    @property
+    def config_manager(self):
+        return self.settings['config_manager']
 
     #---------------------------------------------------------------
     # CORS
