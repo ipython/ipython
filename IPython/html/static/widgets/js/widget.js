@@ -425,16 +425,6 @@ define(["widgets/js/manager",
              */
         },
 
-        show: function(){
-            /**
-             * Show the widget-area
-             */
-            if (this.options && this.options.cell &&
-                this.options.cell.widget_area !== undefined) {
-                this.options.cell.widget_area.show();
-            }
-        },
-
         send: function (content) {
             /**
              * Send a custom msg associated with this view.
@@ -472,7 +462,6 @@ define(["widgets/js/manager",
              * Public constructor
              */
             DOMWidgetView.__super__.initialize.apply(this, [parameters]);
-            this.on('displayed', this.show, this);
             this.model.on('change:visible', this.update_visible, this);
             this.model.on('change:_css', this.update_css, this);
 
