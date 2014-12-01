@@ -105,7 +105,6 @@ class FloatSlider(_BoundedFloat):
 	    color of the slider 
 	color : str Unicode color code (eg. '#C13535'), optional
 	    color of the value displayed (if readout == True)
-	
     """
     _view_name = Unicode('FloatSliderView', sync=True)
     orientation = CaselessStrEnum(values=['horizontal', 'vertical'], 
@@ -261,7 +260,6 @@ class FloatRangeSlider(_BoundedFloatRange):
 	    color of the slider 
 	color : str Unicode color code (eg. '#C13535'), optional
 	    color of the value displayed (if readout == True)
-	
     """
     _view_name = Unicode('FloatSliderView', sync=True)
     orientation = CaselessStrEnum(values=['horizontal', 'vertical'], 
