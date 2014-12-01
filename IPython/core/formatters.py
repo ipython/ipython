@@ -39,38 +39,21 @@ else:
 #-----------------------------------------------------------------------------
 
 
-def _valid_formatter(f):
-    """Return whether an object is a valid formatter
-    
-    Cases checked:
-    
-    - bound methods             OK
-    - unbound methods           NO
-    - callable with zero args   OK
-    """
-    if f is None:
-        return False
-    elif isinstance(f, types.BuiltinFunctionType):
-        # bound methods on compiled classes have type builtin_function
-        return True
-    elif callable(f):
-        # anything that works with zero args should be okay
-        try:
-            inspect.getcallargs(f)
-        except Exception:
-            return False
-        else:
-            return True
-    return False
-
 def _safe_get_formatter_method(obj, name):
-    """Safely get a formatter method"""
+    """Safely get a formatter method
+    
+    - Classes cannot have formatter methods, only instance
+    - protect against proxy objects that claim to have everything
+    """
     if inspect.isclass(obj):
         # repr methods only make sense on instances, not classes
         return None
     method = pretty._safe_getattr(obj, name, None)
-    # formatter methods must be bound
-    if _valid_formatter(method):
+    if callable(method):
+        # obj claims to have repr method...
+        if callable(pretty._safe_getattr(obj, '_ipython_canary_method_should_not_exist_', None)):
+            # ...but don't trust proxy objects that claim to have everything
+            return None
         return method
 
 

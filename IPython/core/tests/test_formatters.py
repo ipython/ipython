@@ -348,8 +348,7 @@ def test_print_method_weird():
     with capture_output() as captured:
         result = f(call_hat)
     
-    nt.assert_equal(result, '_repr_html_')
-    nt.assert_not_in("FormatterWarning", captured.stderr)
+    nt.assert_equal(result, None)
 
     class BadReprArgs(object):
         def _repr_html_(self, extra, args):
