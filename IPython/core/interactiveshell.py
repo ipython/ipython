@@ -76,6 +76,9 @@ from IPython.utils.traitlets import (Integer, CBool, CaselessStrEnum, Enum,
 from IPython.utils.warn import warn, error
 import IPython.core.hooks
 
+from IPython.utils.deprecate import with_deprecate, dec_deprecated, WithClass
+from IPython.utils import deprecate
+
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
@@ -116,7 +119,6 @@ class SpaceInInput(Exception): pass
 
 @undoc
 class Bunch: pass
-
 
 def get_default_colors():
     if sys.platform=='darwin':
@@ -335,16 +337,19 @@ class InteractiveShell(SingletonConfigurable):
     )
 
     # deprecated prompt traits:
-    
-    prompt_in1 = Unicode('In [\\#]: ', config=True,
-        help="Deprecated, use PromptManager.in_template")
-    prompt_in2 = Unicode('   .\\D.: ', config=True,
-        help="Deprecated, use PromptManager.in2_template")
-    prompt_out = Unicode('Out[\\#]: ', config=True,
-        help="Deprecated, use PromptManager.out_template")
-    prompts_pad_left = CBool(True, config=True,
-        help="Deprecated, use PromptManager.justify")
-    
+
+    with WithClass((4,0,0), nocompat=False):
+     
+        prompt_in1 = Unicode('In [\\#]: ', config=True,
+            help="Deprecated, use PromptManager.in_template")
+        prompt_in2 = Unicode('   .\\D.: ', config=True,
+            help="Deprecated, use PromptManager.in2_template")
+        prompt_out = Unicode('Out[\\#]: ', config=True,
+            help="Deprecated, use PromptManager.out_template")
+        prompts_pad_left = CBool(True, config=True,
+            help="Deprecated, use PromptManager.justify")
+
+    #@dec_deprecated((3,0,0))
     def _prompt_trait_changed(self, name, old, new):
         table = {
             'prompt_in1' : 'in_template',
@@ -875,6 +880,7 @@ class InteractiveShell(SingletonConfigurable):
 
         self.events.register("pre_execute", self._clear_warning_registry)
 
+    @dec_deprecated((4,0,0)) 
     def register_post_execute(self, func):
         """DEPRECATED: Use ip.events.register('post_run_cell', func)
         

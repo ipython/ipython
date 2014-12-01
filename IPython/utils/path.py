@@ -21,6 +21,7 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.process import system
 from IPython.utils.importstring import import_item
 from IPython.utils import py3compat
+from IPython.utils import deprecate
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
@@ -269,10 +270,11 @@ def get_ipython_dir():
     home_dir = get_home_dir()
     xdg_dir = get_xdg_dir()
     
-    # import pdb; pdb.set_trace()  # dbg
-    if 'IPYTHON_DIR' in env:
-        warn('The environment variable IPYTHON_DIR is deprecated. '
-                'Please use IPYTHONDIR instead.')
+    with deprecate.WithClass((4,0,0), nocompat=False):
+        # import pdb; pdb.set_trace()  # dbg
+        if 'IPYTHON_DIR' in env:
+            warn('The environment variable IPYTHON_DIR is deprecated. '
+                    'Please use IPYTHONDIR instead.')
     ipdir = env.get('IPYTHONDIR', env.get('IPYTHON_DIR', None))
     if ipdir is None:
         # not set explicitly, use ~/.ipython

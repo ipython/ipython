@@ -17,6 +17,7 @@ from IPython.utils import py3compat
 from IPython.utils.encoding import DEFAULT_ENCODING
 from IPython.utils.py3compat import unicode_type, iteritems
 from IPython.utils.traitlets import HasTraits, List, Any
+from IPython.utils import deprecate
 
 #-----------------------------------------------------------------------------
 # Exceptions
@@ -173,7 +174,8 @@ class Config(dict):
                     and isinstance(obj, dict) \
                     and not isinstance(obj, Config):
                 setattr(self, key, Config(obj))
-    
+
+    @deprecate.on_call((4,0,0))
     def _merge(self, other):
         """deprecated alias, use Config.merge()"""
         self.merge(other)
@@ -205,7 +207,8 @@ class Config(dict):
         return super(Config, self).__contains__(key)
     
     # .has_key is deprecated for dictionaries.
-    has_key = __contains__
+    with deprecate.with_deprecate('2.7'):
+        has_key = __contains__
     
     def _has_section(self, key):
         return _is_section_key(key) and key in self
