@@ -415,7 +415,11 @@ class TraitType(object):
 
     def __set__(self, obj, value):
         new_value = self._validate(obj, value)
-        old_value = self.__get__(obj)
+        try:
+            old_value = obj._trait_values[self.name]
+        except KeyError:
+            old_value = None
+
         obj._trait_values[self.name] = new_value
         try:
             silent = bool(old_value == new_value)

@@ -13,6 +13,7 @@ This module does not import anything from matplotlib.
 # Imports
 #-----------------------------------------------------------------------------
 
+from IPython.config import Config
 from IPython.config.configurable import SingletonConfigurable
 from IPython.utils.traitlets import (
     Dict, Instance, CaselessStrEnum, Set, Bool, Int, TraitError, Unicode
@@ -42,7 +43,7 @@ class InlineBackend(InlineBackendConfig):
 
     def _config_changed(self, name, old, new):
         # warn on change of renamed config section
-        if new.InlineBackendConfig != old.InlineBackendConfig:
+        if new.InlineBackendConfig != getattr(old, 'InlineBackendConfig', Config()):
             warn("InlineBackendConfig has been renamed to InlineBackend")
         super(InlineBackend, self)._config_changed(name, old, new)
 
