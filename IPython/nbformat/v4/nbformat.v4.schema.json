@@ -54,18 +54,19 @@
         "cells": {
             "description": "Array of cells of the current notebook.",
             "type": "array",
-            "items": {
-                "type": "object",
-                "oneOf": [
-                    {"$ref": "#/definitions/raw_cell"},
-                    {"$ref": "#/definitions/markdown_cell"},
-                    {"$ref": "#/definitions/code_cell"}
-                ]
-            }
+            "items": {"$ref": "#/definitions/cell"}
         }
     },
 
     "definitions": {
+        "cell": {
+            "type": "object",
+            "oneOf": [
+                {"$ref": "#/definitions/raw_cell"},
+                {"$ref": "#/definitions/markdown_cell"},
+                {"$ref": "#/definitions/code_cell"}
+            ]
+        },
 
         "raw_cell": {
             "description": "Notebook raw nbconvert cell.",
@@ -157,6 +158,31 @@
                 }
             }
         },
+        
+        "unrecognized_cell": {
+            "description": "Unrecognized cell from a future minor-revision to the notebook format.",
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["cell_type", "metadata"],
+            "properties": {
+                "cell_type": {
+                    "description": "String identifying the type of cell.",
+                    "not" : {
+                      "enum": ["markdown", "code", "raw"]
+                    }
+                },
+                "metadata": {
+                    "description": "Cell-level metadata.",
+                    "type": "object",
+                    "properties": {
+                        "name": {"$ref": "#/definitions/misc/metadata_name"},
+                        "tags": {"$ref": "#/definitions/misc/metadata_tags"}
+                    },
+                    "additionalProperties": true
+                }
+            }
+        },
+        
         "output": {
             "type": "object",
             "oneOf": [
@@ -245,6 +271,21 @@
                     "description": "The error's traceback, represented as an array of strings.",
                     "type": "array",
                     "items": {"type": "string"}
+                }
+            }
+        },
+
+        "unrecognized_output": {
+            "description": "Unrecognized output from a future minor-revision to the notebook format.",
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["output_type"],
+            "properties": {
+                "output_type": {
+                    "description": "Type of cell output.",
+                    "not": {
+                        "enum": ["execute_result", "display_data", "stream", "error"]
+                    }
                 }
             }
         },

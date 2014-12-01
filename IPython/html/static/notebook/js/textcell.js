@@ -338,7 +338,7 @@ define([
     var textcell = {
         TextCell: TextCell,
         MarkdownCell: MarkdownCell,
-        RawCell: RawCell,
+        RawCell: RawCell
     };
     return textcell;
 });

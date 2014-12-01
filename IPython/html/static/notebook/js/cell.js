@@ -53,7 +53,9 @@ define([
             get: function() { return that._metadata; },
             set: function(value) {
                 that._metadata = value;
-                that.celltoolbar.rebuild();
+                if (that.celltoolbar) {
+                    that.celltoolbar.rebuild();
+                }
             }
         });
 
@@ -194,11 +196,11 @@ define([
         if((cur.line !== 0 || cur.ch !==0) && event.keyCode === 38){
             event._ipkmIgnore = true;
         }
-        var nLastLine = editor.lastLine()
-        if(    ( event.keyCode === 40)
-            && (( cur.line !== nLastLine)
-            ||  ( cur.ch   !== editor.getLineHandle(nLastLine).text.length))
-          ){
+        var nLastLine = editor.lastLine();
+        if ((event.keyCode === 40) &&
+             ((cur.line !== nLastLine) ||
+               (cur.ch !== editor.getLineHandle(nLastLine).text.length))
+           ) {
             event._ipkmIgnore = true;
         }
         // if this is an edit_shortcuts shortcut, the global keyboard/shortcut
@@ -252,6 +254,14 @@ define([
         } else {
             return false;
         }
+    };
+
+    /**
+     * should be overritten by subclass
+     * @method execute
+     */
+    Cell.prototype.execute = function () {
+        return;
     };
 
     /**
@@ -386,7 +396,9 @@ define([
      * @method refresh
      */
     Cell.prototype.refresh = function () {
-        this.code_mirror.refresh();
+        if (this.code_mirror) {
+            this.code_mirror.refresh();
+        }
     };
 
     /**
@@ -590,8 +602,74 @@ define([
         this.code_mirror.setOption('mode', default_mode);
     };
 
+    var UnrecognizedCell = function (options) {
+        /** Constructor for unrecognized cells */
+        Cell.apply(this, arguments);
+        this.cell_type = 'unrecognized';
+        this.celltoolbar = null;
+        this.data = {};
+        
+        Object.seal(this);
+    };
+
+    UnrecognizedCell.prototype = Object.create(Cell.prototype);
+    
+    
+    // cannot merge or split unrecognized cells
+    UnrecognizedCell.prototype.is_mergeable = function () {
+        return false;
+    };
+    
+    UnrecognizedCell.prototype.is_splittable = function () {
+        return false;
+    };
+    
+    UnrecognizedCell.prototype.toJSON = function () {
+        // deepcopy the metadata so copied cells don't share the same object
+        return JSON.parse(JSON.stringify(this.data));
+    };
+
+    UnrecognizedCell.prototype.fromJSON = function (data) {
+        this.data = data;
+        if (data.metadata !== undefined) {
+            this.metadata = data.metadata;
+        } else {
+            data.metadata = this.metadata;
+        }
+        this.element.find('.inner_cell').find("a").text("Unrecognized cell type: " + data.cell_type);
+    };
+    
+    UnrecognizedCell.prototype.create_element = function () {
+        Cell.prototype.create_element.apply(this, arguments);
+        var cell = this.element = $("<div>").addClass('cell unrecognized_cell');
+        cell.attr('tabindex','2');
+
+        var prompt = $('<div/>').addClass('prompt input_prompt');
+        cell.append(prompt);
+        var inner_cell = $('<div/>').addClass('inner_cell');
+        inner_cell.append(
+            $("<a>")
+                .attr("href", "#")
+                .text("Unrecognized cell type")
+        );
+        cell.append(inner_cell);
+        this.element = cell;
+    };
+    
+    UnrecognizedCell.prototype.bind_events = function () {
+        Cell.prototype.bind_events.apply(this, arguments);
+        var cell = this;
+        
+        this.element.find('.inner_cell').find("a").click(function () {
+            cell.events.trigger('unrecognized_cell.Cell', {cell: cell})
+        });
+    };
+
     // Backwards compatibility.
     IPython.Cell = Cell;
 
-    return {'Cell': Cell};
+    return {
+        Cell: Cell,
+        UnrecognizedCell: UnrecognizedCell
+    };
 });

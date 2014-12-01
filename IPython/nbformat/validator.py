@@ -30,7 +30,6 @@ def _relax_additional_properties(obj):
     if isinstance(obj, dict):
         for key, value in obj.items():
             if key == 'additionalProperties':
-                print(obj)
                 value = True
             else:
                 value = _relax_additional_properties(value)
@@ -39,6 +38,15 @@ def _relax_additional_properties(obj):
         for i, value in enumerate(obj):
             obj[i] = _relax_additional_properties(value)
     return obj
+
+def _allow_undefined(schema):
+    schema['definitions']['cell']['oneOf'].append(
+        {"$ref": "#/definitions/unrecognized_cell"}
+    )
+    schema['definitions']['output']['oneOf'].append(
+        {"$ref": "#/definitions/unrecognized_output"}
+    )
+    return schema
 
 def get_validator(version=None, version_minor=None):
     """Load the JSON schema into a Validator"""
@@ -66,6 +74,8 @@ def get_validator(version=None, version_minor=None):
         if current_minor < version_minor:
             # notebook from the future, relax all `additionalProperties: False` requirements
             schema_json = _relax_additional_properties(schema_json)
+            # and allow undefined cell types and outputs
+            schema_json = _allow_undefined(schema_json)
 
         validators[version_tuple] = Validator(schema_json)
     return validators[version_tuple]
