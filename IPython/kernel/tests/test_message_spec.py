@@ -4,8 +4,8 @@
 # Distributed under the terms of the Modified BSD License.
 
 import re
+import sys
 from distutils.version import LooseVersion as V
-from subprocess import PIPE
 try:
     from queue import Empty  # Py 3
 except ImportError:
@@ -13,10 +13,8 @@ except ImportError:
 
 import nose.tools as nt
 
-from IPython.kernel import KernelManager
-
 from IPython.utils.traitlets import (
-    HasTraits, TraitError, Bool, Unicode, Dict, Integer, List, Enum, Any,
+    HasTraits, TraitError, Bool, Unicode, Dict, Integer, List, Enum,
 )
 from IPython.utils.py3compat import string_types, iteritems
 
@@ -150,15 +148,20 @@ class CompleteReply(Reference):
     cursor_end = Integer()
     status = Unicode()
 
+class LanguageInfo(Reference):
+    name = Unicode('python')
+    version = Unicode(sys.version.split()[0])
 
 class KernelInfoReply(Reference):
     protocol_version = Version(min='5.0')
     implementation = Unicode('ipython')
     implementation_version = Version(min='2.1')
-    language_version = Version(min='2.7')
-    language = Unicode('python')
     language_info = Dict()
     banner = Unicode()
+    
+    def check(self, d):
+        Reference.check(self, d)
+        LanguageInfo().check(d['language_info'])
 
 
 class IsCompleteReply(Reference):

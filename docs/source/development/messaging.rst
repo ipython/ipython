@@ -720,19 +720,20 @@ Message type: ``kernel_info_reply``::
         # Implementation version number.
         # The version number of the kernel's implementation
         # (e.g. IPython.__version__ for the IPython kernel)
-        'implementation_version': 'X.Y.Z', 
-
-        # Programming language in which kernel is implemented.
-        # Kernel included in IPython returns 'python'.
-        'language': str,
-        
-        # Language version number.
-        # It is Python version number (e.g., '2.7.3') for the kernel
-        # included in IPython.
-        'language_version': 'X.Y.Z',
+        'implementation_version': 'X.Y.Z',
 
         # Information about the language of code for the kernel
         'language_info': {
+            # Name of the programming language in which kernel is implemented.
+            # Kernel included in IPython returns 'python'.
+            'name': str,
+            
+            # Language version number.
+            # It is Python version number (e.g., '2.7.3') for the kernel
+            # included in IPython.
+            'version': 'X.Y.Z',
+            
+            # mimetype for script files in this language
             'mimetype': str,
 
             # Extension without the dot, e.g. 'py'
@@ -778,6 +779,14 @@ and `codemirror modes <http://codemirror.net/mode/index.html>`_ for those fields
 
     ``language_info``, ``implementation``, ``implementation_version``, ``banner``
     and ``help_links`` keys are added.
+
+.. versionchanged:: 5.0
+
+    ``language_version`` moved to ``language_info.version``
+
+.. versionchanged:: 5.0
+
+    ``language`` moved to ``language_info.name``
 
 .. _msging_shutdown:
 
