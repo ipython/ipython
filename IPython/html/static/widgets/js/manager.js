@@ -31,12 +31,14 @@ define([
 
         // Load the initial state of the widget manager if a load callback was
         // registered.
+        var that = this;
         if (WidgetManager._load_callback) {
-            this.set_state(WidgetManager._load_callback.call(this));
+            Promise.resolve(WidgetManager._load_callback.call(this)).then(function(state) {
+                that.set_state(state);
+            }).catch(utils.reject('Error loading widget manager state', true));
         }
 
         // Setup state saving code.
-        var that = this;
         this.notebook.events.on('before_save.Notebook', function() {
             var save_callback = WidgetManager._save_callback;
             var options = WidgetManager._get_state_options;
@@ -69,6 +71,17 @@ define([
 
     WidgetManager.set_state_callbacks = function (load_callback, save_callback, options) {
         // Registers callbacks for widget state persistence.
+        // 
+        // Parameters
+        // ----------
+        // load_callback: function()
+        //      function that is called when the widget manager state should be
+        //      loaded.  This function should return a promise for the widget
+        //      manager state.  An empty state is an empty dictionary `{}`.
+        // save_callback: function(state as dictionary)
+        //      function that is called when the notebook is saved or autosaved.
+        //      The current state of the widget manager is passed in as the first
+        //      argument.
         WidgetManager._load_callback = load_callback;
         WidgetManager._save_callback = save_callback;
         WidgetManager._get_state_options = options;
@@ -76,7 +89,9 @@ define([
         // Use the load callback to immediately load widget states.
         WidgetManager._managers.forEach(function(manager) {
             if (load_callback) {
-                manager.set_state(load_callback.call(manager));
+                Promise.resolve(load_callback.call(manager)).then(function(state) {
+                    manager.set_state(state);
+                }).catch(utils.reject('Error loading widget manager state', true));
             }
         });
     };
