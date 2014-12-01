@@ -10288,7 +10288,7 @@ div#pager {
   position: fixed;
   bottom: 0px;
   width: 100%;
-  border-top: 1px solid #e7e7e7;
+  border-top: 4px solid #e7e7e7;
   max-height: 50%;
   /* Display over codemirror */
   z-index: 100;
@@ -10318,6 +10318,9 @@ div#pager #pager-contents #pager-container {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
+}
+div#pager .ui-resizable-handle {
+  top: 0px;
 }
 .quickhelp {
   /* Old browsers */
