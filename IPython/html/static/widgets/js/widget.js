@@ -137,14 +137,14 @@ define(["widgets/js/manager",
                                 that._resolve_received_state[parent_id].call();
                                 delete that._resolve_received_state[parent_id];
                             }
-                        }).catch(utils.reject("Couldn't resolve state request promise.", true));
+                        }).catch(utils.reject("Couldn't resolve state request promise", true));
                     break;
                 case 'custom':
                     this.trigger('msg:custom', msg.content.data.content);
                     break;
                 case 'display':
                     this.widget_manager.display_view(msg, this)
-                    .catch(utils.reject('Could not display view.', true));
+                        .catch(utils.reject('Could not process display view msg', true));
                     break;
             }
         },
@@ -159,7 +159,7 @@ define(["widgets/js/manager",
                 } finally {
                     that.state_lock = null;
                 }
-            }, utils.reject("Couldn't set model state", true));
+            }).catch(utils.reject("Couldn't set model state", true));
         },
 
         get_state: function() {

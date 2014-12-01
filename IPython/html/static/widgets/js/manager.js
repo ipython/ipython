@@ -94,7 +94,7 @@ define([
                 " message was from.  Widget will not be displayed"));
         } else {
             return this.display_view_in_cell(cell, model)
-                .catch(utils.reject('View could not be displayed.', true)); 
+                .catch(utils.reject('Could not display view', true)); 
         }
     };
 
