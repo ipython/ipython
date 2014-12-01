@@ -495,7 +495,10 @@ class InteractiveShellTestCase(unittest.TestCase):
             raise DerivedInterrupt("foo")
         except KeyboardInterrupt:
             msg = ip.get_exception_only()
-        self.assertEqual(msg, 'DerivedInterrupt: foo\n')
+        if sys.version_info[0] <= 2:
+            self.assertEqual(msg, 'DerivedInterrupt: foo\n')
+        else:
+            self.assertEqual(msg, 'IPython.core.tests.test_interactiveshell.DerivedInterrupt: foo\n')
 
 class TestSafeExecfileNonAsciiPath(unittest.TestCase):
 
