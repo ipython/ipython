@@ -47,7 +47,7 @@ function($,
                 Editor.default_codemirror_options,
                 cfg.codemirror_options || {}
             );
-            that.set_codemirror_options(cmopts, false);
+            that._set_codemirror_options(cmopts);
             that.events.trigger('config_changed.Editor', {config: that.config});
         });
     };
@@ -113,6 +113,10 @@ function($,
     Editor.prototype._set_codemirror_options = function (options) {
         // update codemirror options from a dict
         for (var opt in options) {
+            if (!options.hasOwnProperty(opt)) {
+                continue;
+            }
+            console.log(opt, options[opt]);
             this.codemirror.setOption(opt, options[opt]);
         }
     };
