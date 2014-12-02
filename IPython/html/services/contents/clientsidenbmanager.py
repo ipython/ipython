@@ -21,13 +21,3 @@ class ClientSideContentsManager(ContentsManager):
 
     def file_exists(self, name, path=''):
         return True
-
-    def get_kernel_path(self, path, model=None):
-         """Return the API path for the kernel
-         
-         KernelManagers can turn this value into a filesystem path,
-         or ignore it altogether.
-         
-         Here just always return home directory
-         """
-         return '/'
