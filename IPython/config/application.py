@@ -6,6 +6,7 @@
 
 from __future__ import print_function
 
+import json
 import logging
 import os
 import re
@@ -535,8 +536,17 @@ class Application(SingletonConfigurable):
     def load_config_file(self, filename, path=None):
         """Load config files by filename and path."""
         filename, ext = os.path.splitext(filename)
+        loaded = []
         for config in self._load_config_files(filename, path=path, log=self.log):
+            loaded.append(config)
             self.update_config(config)
+        if len(loaded) > 1:
+            collisions = loaded[0].collisions(loaded[1])
+            if collisions:
+                self.log.warn("Collisions detected in {0}.py and {0}.json config files."
+                              " {0}.json has higher priority: {1}".format(
+                              filename, json.dumps(collisions, indent=2),
+                ))
 
 
     def generate_config_file(self):
