@@ -624,7 +624,8 @@ define([
         var info = (mode && mode.mode && mode.mime && mode) ||
             CodeMirror.findModeByName(modename) ||
             CodeMirror.findModeByExtension(modename.split(".").slice(-1)) ||
-            CodeMirror.findModeByMIME(modename);
+            CodeMirror.findModeByMIME(modename) ||
+            {mode: modename, mime: modename};
 
         require([
                 // might want to use CodeMirror.modeURL here

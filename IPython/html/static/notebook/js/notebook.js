@@ -1587,14 +1587,14 @@ define([
         codecell.CodeCell.options_default.cm_config.mode = newmode;
         
         var that = this;
-        utils.requireCodeMirrorMode(newmode, function () {
+        utils.requireCodeMirrorMode(newmode, function (spec) {
             that.get_cells().map(function(cell, i) {
                 if (cell.cell_type === 'code'){
-                    cell.code_mirror.setOption('mode', newmode);
+                    cell.code_mirror.setOption('mode', spec);
                     // This is currently redundant, because cm_config ends up as
                     // codemirror's own .options object, but I don't want to
                     // rely on that.
-                    cell.cm_config.mode = newmode;
+                    cell.cm_config.mode = spec;
                 }
             });
         });
