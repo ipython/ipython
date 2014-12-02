@@ -101,8 +101,7 @@ define([
                 var parameters = {model: model, options: options};
                 var view = new ViewType(parameters);
                 view.listenTo(model, 'destroy', view.remove);
-                view.render();
-                return view;
+                return Promise.resolve(view.render()).then(function() {return view;});
             }).catch(utils.reject("Couldn't create a view for model id '" + String(model.id) + "'", true));
         });
         return model.state_change;
