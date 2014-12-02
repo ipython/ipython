@@ -36,7 +36,8 @@ class _Selection(DOMWidget):
     
     value = Any(help="Selected value")
     value_name = Unicode(help="The name of the selected value", sync=True)
-    values = Any(sync=True, help="""List of (key, value) tuples the user can select.
+    values = Any(help="""List of (key, value) tuples or dict of values that the 
+        user can select.
     
     The keys of this list are the strings that will be displayed in the UI,
     representing the actual Python choices.
@@ -84,10 +85,12 @@ class _Selection(DOMWidget):
         """        
         if self.values_lock.acquire(False):
             try:
-                self.values = self._make_values(new)
-                self.values_dict = {i[0]: i[1] for i in self.values}
-                self.values_names = [i[0] for i in self.values]
-                self.values_values = [i[1] for i in self.values]
+                self.values = new
+                
+                values = self._make_values(new)
+                self.values_dict = {i[0]: i[1] for i in values}
+                self.values_names = [i[0] for i in values]
+                self.values_values = [i[1] for i in values]
                 self._value_in_values()
             finally:
                 self.values_lock.release()
