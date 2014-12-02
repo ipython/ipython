@@ -7,9 +7,9 @@ import os
 import platform
 import time
 try:
-    from _thread import interrupt_main  # Py 3
-except ImportError:
     from thread import interrupt_main  # Py 2
+except ImportError:
+    from _thread import interrupt_main  # Py 3
 from threading import Thread
 
 from IPython.utils.warn import warn
