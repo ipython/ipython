@@ -77,7 +77,7 @@ define([
         this.element.find('#menu-keymap-default').click(function () {
             editor.update_codemirror_options({
                 vimMode: false,
-                keyMap: null
+                keyMap: 'default'
             });
         });
         this.element.find('#menu-keymap-sublime').click(function () {
