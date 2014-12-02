@@ -5,8 +5,9 @@ define([
     'base/js/namespace',
     'jquery',
     'base/js/utils',
+    'base/js/dialog',
     'bootstrap',
-], function(IPython, $, utils, bootstrap) {
+], function(IPython, $, utils, dialog, bootstrap) {
     "use strict";
     
     var MenuBar = function (selector, options) {
@@ -38,11 +39,30 @@ define([
     };
 
     MenuBar.prototype.bind_events = function () {
-        /**
-         *  File
-         */
         var that = this;
         var editor = that.editor;
+        
+        //  File
+        this.element.find('#new-file').click(function () {
+            var w = window.open();
+            // Create a new file in the current directory
+            var parent = utils.url_path_split(editor.file_path)[0];
+            editor.contents.new_untitled(parent, {type: "file"}).then(
+                function (data) {
+                    w.location = utils.url_join_encode(
+                        that.base_url, 'edit', data.path
+                    );
+                },
+                function(error) {
+                    w.close();
+                    dialog.modal({
+                        title : 'Creating New File Failed',
+                        body : "The error was: " + error.message,
+                        buttons : {'OK' : {'class' : 'btn-primary'}}
+                    });
+                }
+            );
+        });
         this.element.find('#save-file').click(function () {
             editor.save();
         });
