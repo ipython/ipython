@@ -71,6 +71,7 @@ var IPython = (function (IPython) {
         var knw = this.new_notification_widget('kernel');
         var $kernel_ind_icon = $("#kernel_indicator_icon");
         var $modal_ind_icon = $("#modal_indicator_icon");
+        var $unsolicited_output_icon = $("#unsolicited_output_icon");
 
         // Command/Edit mode
         $([IPython.events]).on('edit_mode.Notebook',function () {
@@ -192,6 +193,11 @@ var IPython = (function (IPython) {
             nnw.set_message(data || "Notebook save failed");
         });
         
+        $([IPython.events]).on('toggle_unsolicited_msgs.Notebook', function(evt, ignored) {
+            var msg = (ignored? "Ignoring": "Showing") + " I/O from external clients";
+            nnw.set_message(msg, 1000);
+        });
+
         // Checkpoint events
         $([IPython.events]).on('checkpoint_created.Notebook', function (evt, data) {
             var msg = "Checkpoint created";

@@ -395,6 +395,14 @@ var IPython = (function (IPython) {
                 return false;
             }
         },
+        'e': {
+            help    : 'toggle display from other clients',
+            help_index : 'gb',
+            handler : function (event) {
+                IPython.notebook.toggle_ignore_unsolicited_msgs();
+                return false;
+            },
+        },
         'i' : {
             help    : 'interrupt kernel (press twice)',
             help_index : 'ha',

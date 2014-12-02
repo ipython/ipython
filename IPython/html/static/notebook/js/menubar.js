@@ -273,6 +273,9 @@ var IPython = (function (IPython) {
         });
         
         // Kernel
+        this.element.find('#toggle_unsolicited').click(function() {
+            IPython.notebook.toggle_ignore_unsolicited_msgs();
+        });
         this.element.find('#int_kernel').click(function () {
             IPython.notebook.session.interrupt_kernel();
         });

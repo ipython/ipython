@@ -31,6 +31,7 @@ var IPython = (function (IPython) {
         this.username = "username";
         this.session_id = utils.uuid();
         this._msg_callbacks = {};
+        this.unsolicited_msg_callback = null;
 
         if (typeof(WebSocket) !== 'undefined') {
             this.WebSocket = WebSocket;
@@ -79,6 +80,7 @@ var IPython = (function (IPython) {
         this._iopub_handlers = {};
         this.register_iopub_handler('status', $.proxy(this._handle_status_message, this));
         this.register_iopub_handler('clear_output', $.proxy(this._handle_clear_output, this));
+        this.register_iopub_handler('pyin', $.proxy(this._handle_input_message, this));
         
         for (var i=0; i < output_types.length; i++) {
             this.register_iopub_handler(output_types[i], $.proxy(this._handle_output_message, this));
@@ -576,11 +578,24 @@ var IPython = (function (IPython) {
     Kernel.prototype._handle_output_message = function (msg) {
         var callbacks = this.get_callbacks_for_msg(msg.parent_header.msg_id);
         if (!callbacks || !callbacks.iopub) {
+            // The message came from another client. Let the UI decide what to
+            // do with it.
+            if (this.unsolicited_msg_callback) {
+                this.unsolicited_msg_callback(msg);
+            }
             return;
         }
         var callback = callbacks.iopub.output;
         if (callback) {
             callback(msg);
+        }
+    };
+
+    // handle pyin message. These messages come from other clients.
+    Kernel.prototype._handle_input_message = function (msg) {
+        var callbacks = this.get_callbacks_for_msg(msg.parent_header.msg_id);
+        if (!callbacks && this.unsolicited_msg_callback) {
+            this.unsolicited_msg_callback(msg);
         }
     };
 
