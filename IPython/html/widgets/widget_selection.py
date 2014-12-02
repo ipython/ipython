@@ -99,10 +99,8 @@ class _Selection(DOMWidget):
                 self.value = next(iter(self.values_values))
     
     def _values_readonly_changed(self, name, old, new):
-        if not self.values_lock.acquire(False):
+        if not self.values_lock.locked():
             raise TraitError("`.%s` is a read-only trait. Use the `.values` tuple instead." % name)
-        else:
-            self.values_lock.release()
 
     def _value_changed(self, name, old, new):
         """Called when value has been changed"""
