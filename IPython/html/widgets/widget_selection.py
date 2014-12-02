@@ -46,8 +46,8 @@ class _Selection(DOMWidget):
     """)
     
     values_dict = Dict()
-    values_names = Tuple(sync=True)
-    values_values = Tuple()
+    value_names = Tuple(sync=True)
+    value_values = Tuple()
 
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
@@ -55,7 +55,7 @@ class _Selection(DOMWidget):
     def __init__(self, *args, **kwargs):
         self.value_lock = Lock()
         self.values_lock = Lock()
-        self.on_trait_change(self._values_readonly_changed, ['values_dict', 'values_names', 'values_values', '_values'])
+        self.on_trait_change(self._values_readonly_changed, ['values_dict', 'value_names', 'value_values', '_values'])
         if 'values' in kwargs:
             self.values = kwargs.pop('values')
         DOMWidget.__init__(self, *args, **kwargs)
@@ -86,20 +86,20 @@ class _Selection(DOMWidget):
         if self.values_lock.acquire(False):
             try:
                 self.values = new
-                
+
                 values = self._make_values(new)
                 self.values_dict = {i[0]: i[1] for i in values}
-                self.values_names = [i[0] for i in values]
-                self.values_values = [i[1] for i in values]
+                self.value_names = [i[0] for i in values]
+                self.value_values = [i[1] for i in values]
                 self._value_in_values()
             finally:
                 self.values_lock.release()
         
     def _value_in_values(self):
         # ensure that the chosen value is one of the choices
-        if self.values_values:
-            if self.value not in self.values_values:
-                self.value = next(iter(self.values_values))
+        if self.value_values:
+            if self.value not in self.value_values:
+                self.value = next(iter(self.value_values))
     
     def _values_readonly_changed(self, name, old, new):
         if not self.values_lock.locked():
