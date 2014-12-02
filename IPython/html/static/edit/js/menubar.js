@@ -54,6 +54,30 @@ define([
         this.element.find('#menu-replace').click(function () {
             editor.codemirror.execCommand("replace");
         });
+        this.element.find('#menu-keymap-default').click(function () {
+            editor.update_codemirror_options({
+                vimMode: false,
+                keyMap: null
+            });
+        });
+        this.element.find('#menu-keymap-sublime').click(function () {
+            editor.update_codemirror_options({
+                vimMode: false,
+                keyMap: 'sublime'
+            });
+        });
+        this.element.find('#menu-keymap-emacs').click(function () {
+            editor.update_codemirror_options({
+                vimMode: false,
+                keyMap: 'emacs'
+            });
+        });
+        this.element.find('#menu-keymap-vim').click(function () {
+            editor.update_codemirror_options({
+                vimMode: true,
+                keyMap: 'vim'
+            });
+        });
         
         // View
         this.element.find('#menu-line-numbers').click(function () {
@@ -67,6 +91,9 @@ define([
             var text = lineNumbers ? "Hide" : "Show";
             text = text + " Line Numbers";
             that.element.find('#menu-line-numbers').find("a").text(text);
+            var keyMap = editor.codemirror.getOption('keyMap') || "default";
+            that.element.find(".selected-keymap").removeClass("selected-keymap");
+            that.element.find("#menu-keymap-" + keyMap).addClass("selected-keymap");
         });
     };
 
