@@ -65,7 +65,10 @@ class KernelAPITest(NotebookTestBase):
         self.assertEqual(r.status_code, 201)
         self.assertIsInstance(kern1, dict)
 
-        self.assertEqual(r.headers['x-frame-options'], "SAMEORIGIN")
+        self.assertEqual(r.headers['Content-Security-Policy'], (
+                            "frame-ancestors 'self'; "
+                            "report-uri /api/security/csp-report;"
+        ))
 
     def test_main_kernel_handler(self):
         # POST request
@@ -75,7 +78,10 @@ class KernelAPITest(NotebookTestBase):
         self.assertEqual(r.status_code, 201)
         self.assertIsInstance(kern1, dict)
 
-        self.assertEqual(r.headers['x-frame-options'], "SAMEORIGIN")
+        self.assertEqual(r.headers['Content-Security-Policy'], (
+                            "frame-ancestors 'self'; "
+                            "report-uri /api/security/csp-report;"
+        ))
 
         # GET request
         r = self.kern_api.list()

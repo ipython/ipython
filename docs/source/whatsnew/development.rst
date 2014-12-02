@@ -180,16 +180,42 @@ Backwards incompatible changes
 
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. INCOMPAT INSERTION POINT.
 
-IFrame embedding
-````````````````
+Content Security Policy
+```````````````````````
 
-The IPython Notebook and its APIs by default will only be allowed to be
-embedded in an iframe on the same origin.
+The Content Security Policy is a web standard for adding a layer of security to
+detect and mitigate certain classes of attacks, including Cross Site Scripting
+(XSS) and data injection attacks. This was introduced into the notebook to
+ensure that the IPython Notebook and its APIs (by default) can only be embedded
+in an iframe on the same origin.
 
-To override this, set ``headers[X-Frame-Options]`` to one of
+Override ``headers['Content-Security-Policy']`` within your notebook
+configuration to extend for alternate domains and security settings.::
 
-* DENY
-* SAMEORIGIN
-* ALLOW-FROM uri
+    c.NotebookApp.tornado_settings = {
+        'headers': {
+            'Content-Security-Policy': "frame-ancestors 'self'"
+        }
+    }
 
-See `Mozilla's guide to X-Frame-Options <https://developer.mozilla.org/en-US/docs/Web/HTTP/X-Frame-Options>`_ for more examples.
+Example policies::
+
+    Content-Security-Policy: default-src 'self' https://*.jupyter.org
+
+Matches embeddings on any subdomain of jupyter.org, so long as they are served
+over SSL.
+
+There is a `report-uri <https://developer.mozilla.org/en-US/docs/Web/Security/CSP/CSP_policy_directives#report-uri>`_ endpoint available for logging CSP violations, located at
+``/api/security/csp-report``. To use it, set ``report-uri`` as part of the CSP::
+
+    c.NotebookApp.tornado_settings = {
+        'headers': {
+            'Content-Security-Policy': "frame-ancestors 'self'; report-uri /api/security/csp-report"
+        }
+    }
+
+It simply provides the CSP report as a warning in IPython's logs. The default
+CSP sets this report-uri relative to the ``base_url`` (not shown above).
+
+For a more thorough and accurate guide on Content Security Policies, check out
+`MDN's Using Content Security Policy <https://developer.mozilla.org/en-US/docs/Web/Security/CSP/Using_Content_Security_Policy>`_ for more examples.

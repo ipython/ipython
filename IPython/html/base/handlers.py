@@ -32,6 +32,8 @@ from IPython.utils.path import filefind
 from IPython.utils.py3compat import string_types
 from IPython.html.utils import is_hidden, url_path_join, url_escape
 
+from IPython.html.services.security import csp_report_uri
+
 #-----------------------------------------------------------------------------
 # Top-level handlers
 #-----------------------------------------------------------------------------
@@ -45,17 +47,22 @@ class AuthenticatedHandler(web.RequestHandler):
     def set_default_headers(self):
         headers = self.settings.get('headers', {})
 
-        if "X-Frame-Options" not in headers:
-            headers["X-Frame-Options"] = "SAMEORIGIN"
+        if "Content-Security-Policy" not in headers:
+            headers["Content-Security-Policy"] = (
+                    "frame-ancestors 'self'; "
+                    # Make sure the report-uri is relative to the base_url
+                    "report-uri " + url_path_join(self.base_url, csp_report_uri) + ";"
+            )
 
+        # Allow for overriding headers
         for header_name,value in headers.items() :
             try:
                 self.set_header(header_name, value)
-            except Exception:
+            except Exception as e:
                 # tornado raise Exception (not a subclass)
                 # if method is unsupported (websocket and Access-Control-Allow-Origin
                 # for example, so just ignore)
-                pass
+                self.log.debug(e)
     
     def clear_login_cookie(self):
         self.clear_cookie(self.cookie_name)
