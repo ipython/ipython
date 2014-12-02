@@ -9030,9 +9030,6 @@ h5:hover .anchor-link,
 h6:hover .anchor-link {
   visibility: visible;
 }
-div.cell.text_cell.rendered {
-  padding: 0px;
-}
 .text_cell.rendered .input_area {
   display: none;
 }
@@ -9550,7 +9547,7 @@ p {
   border: thin solid #CFCFCF;
   border-bottom: none;
   background: #EEE;
-  border-radius: 3px 3px 0px 0px;
+  border-radius: 4px 4px 0px 0px;
   width: 100%;
   height: 29px;
   padding-right: 4px;
