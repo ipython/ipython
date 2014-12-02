@@ -116,8 +116,11 @@ function($,
             if (!options.hasOwnProperty(opt)) {
                 continue;
             }
-            console.log(opt, options[opt]);
-            this.codemirror.setOption(opt, options[opt]);
+            var value = options[opt];
+            if (value === null) {
+                value = CodeMirror.defaults[opt];
+            }
+            this.codemirror.setOption(opt, value);
         }
     };
     
