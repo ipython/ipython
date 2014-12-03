@@ -60,28 +60,34 @@ define([
     WidgetManager._save_callback = null;
 
     WidgetManager.register_widget_model = function (model_name, model_type) {
-        // Registers a widget model by name.
+        /** 
+         * Registers a widget model by name.
+         */
         WidgetManager._model_types[model_name] = model_type;
     };
 
     WidgetManager.register_widget_view = function (view_name, view_type) {
-        // Registers a widget view by name.
+        /** 
+         * Registers a widget view by name.
+         */
         WidgetManager._view_types[view_name] = view_type;
     };
 
     WidgetManager.set_state_callbacks = function (load_callback, save_callback, options) {
-        // Registers callbacks for widget state persistence.
-        // 
-        // Parameters
-        // ----------
-        // load_callback: function()
-        //      function that is called when the widget manager state should be
-        //      loaded.  This function should return a promise for the widget
-        //      manager state.  An empty state is an empty dictionary `{}`.
-        // save_callback: function(state as dictionary)
-        //      function that is called when the notebook is saved or autosaved.
-        //      The current state of the widget manager is passed in as the first
-        //      argument.
+        /**
+         * Registers callbacks for widget state persistence.
+         * 
+         * Parameters
+         * ----------
+         * load_callback: function()
+         *      function that is called when the widget manager state should be
+         *      loaded.  This function should return a promise for the widget
+         *      manager state.  An empty state is an empty dictionary `{}`.
+         * save_callback: function(state as dictionary)
+         *      function that is called when the notebook is saved or autosaved.
+         *      The current state of the widget manager is passed in as the first
+         *      argument.
+         */
         WidgetManager._load_callback = load_callback;
         WidgetManager._save_callback = save_callback;
         WidgetManager._get_state_options = options;
@@ -313,23 +319,25 @@ define([
     };
 
     WidgetManager.prototype.get_state = function(options) {
-        // Asynchronously get the state of the widget manager.
-        //
-        // This includes all of the widget models and the cells that they are
-        // displayed in.
-        //
-        // Parameters
-        // ----------
-        // options: dictionary
-        //  Dictionary of options with the following contents:
-        //      only_displayed: (optional) boolean=false
-        //          Only return models with one or more displayed views.
-        //      not_live: (optional) boolean=false
-        //          Include models that have comms with severed connections.
-        //
-        // Returns
-        // -------
-        // Promise for a state dictionary
+        /**
+         * Asynchronously get the state of the widget manager.
+         *
+         * This includes all of the widget models and the cells that they are
+         * displayed in.
+         *
+         * Parameters
+         * ----------
+         * options: dictionary
+         *  Dictionary of options with the following contents:
+         *      only_displayed: (optional) boolean=false
+         *          Only return models with one or more displayed views.
+         *      not_live: (optional) boolean=false
+         *          Include models that have comms with severed connections.
+         *
+         * Returns
+         * -------
+         * Promise for a state dictionary
+         */
         var that = this;
         return utils.resolve_promises_dict(this._models).then(function(models) {
             var state = {};
@@ -366,11 +374,13 @@ define([
     };
     
     WidgetManager.prototype.set_state = function(state) {
-        // Set the notebook's state.
-        //
-        // Reconstructs all of the widget models and attempts to redisplay the
-        // widgets in the appropriate cells by cell index.
-
+        /**
+         * Set the notebook's state.
+         *
+         * Reconstructs all of the widget models and attempts to redisplay the
+         * widgets in the appropriate cells by cell index.
+         */
+        
         // Get the kernel when it's available.
         var that = this;
         return this._get_connected_kernel().then(function(kernel) {
@@ -423,7 +433,9 @@ define([
     };
 
     WidgetManager.prototype._get_connected_kernel = function() {
-        // Gets a promise for a connected kernel.
+        /**
+         * Gets a promise for a connected kernel
+         */
         var that = this;
         return new Promise(function(resolve, reject) {
             if (that.comm_manager && 
