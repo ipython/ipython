@@ -710,7 +710,7 @@ class NotebookApp(BaseIPythonApplication):
         self.config.FileContentsManager.root_dir = new
         self.config.MappingKernelManager.root_dir = new
 
-    extensions = List(Unicode(), config=True,
+    server_extensions = List(Unicode(), config=True,
         help="Python modules to load as notebook server extensions"
     )
 
@@ -921,13 +921,13 @@ class NotebookApp(BaseIPythonApplication):
             self.log.warn("components submodule unclean, you may see 404s on static/components")
             self.log.warn("run `setup.py submodule` or `git submodule update` to update")
 
-    def init_extensions(self):
+    def init_server_extensions(self):
         """Load any extensions specified by config.
 
         Import the module, then call the load_jupyter_server_extension function,
         if one exists.
         """
-        for modulename in self.extensions:
+        for modulename in self.server_extensions:
             try:
                 mod = importlib.import_module(modulename)
                 func = getattr(mod, 'load_jupyter_server_extension', None)
@@ -947,7 +947,7 @@ class NotebookApp(BaseIPythonApplication):
         self.init_webapp()
         self.init_terminals()
         self.init_signal()
-        self.init_extensions()
+        self.init_server_extensions()
 
     def cleanup_kernels(self):
         """Shutdown all kernels.
