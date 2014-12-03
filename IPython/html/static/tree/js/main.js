@@ -88,7 +88,9 @@ require([
     var time_refresh = 60; // in sec
 
     var enable_autorefresh = function(){
-        //refresh immediately , then start interval
+        /**
+         *refresh immediately , then start interval
+         */
         session_list.load_sessions();
         cluster_list.load_list();
 	if (terminal_list) {

@@ -154,7 +154,9 @@ define([
 
 
     var uuid = function () {
-        // http://www.ietf.org/rfc/rfc4122.txt
+        /**
+         * http://www.ietf.org/rfc/rfc4122.txt
+         */
         var s = [];
         var hexDigits = "0123456789ABCDEF";
         for (var i = 0; i < 32; i++) {
@@ -355,7 +357,9 @@ define([
     }
 
     var points_to_pixels = function (points) {
-        // A reasonably good way of converting between points and pixels.
+        /**
+         * A reasonably good way of converting between points and pixels.
+         */
         var test = $('<div style="display: none; width: 10000pt; padding:0; border:0;"></div>');
         $(body).append(test);
         var pixel_per_point = test.width()/10000;
@@ -364,10 +368,12 @@ define([
     };
     
     var always_new = function (constructor) {
-        // wrapper around contructor to avoid requiring `var a = new constructor()`
-        // useful for passing constructors as callbacks,
-        // not for programmer laziness.
-        // from http://programmers.stackexchange.com/questions/118798
+        /**
+         * wrapper around contructor to avoid requiring `var a = new constructor()`
+         * useful for passing constructors as callbacks,
+         * not for programmer laziness.
+         * from http://programmers.stackexchange.com/questions/118798
+         */
         return function () {
             var obj = Object.create(constructor.prototype);
             constructor.apply(obj, arguments);
@@ -376,7 +382,9 @@ define([
     };
 
     var url_path_join = function () {
-        // join a sequence of url components with '/'
+        /**
+         * join a sequence of url components with '/'
+         */
         var url = '';
         for (var i = 0; i < arguments.length; i++) {
             if (arguments[i] === '') {
@@ -393,8 +401,10 @@ define([
     };
     
     var url_path_split = function (path) {
-        // Like os.path.split for URLs.
-        // Always returns two strings, the directory path and the base filename
+        /**
+         * Like os.path.split for URLs.
+         * Always returns two strings, the directory path and the base filename
+         */
         
         var idx = path.lastIndexOf('/');
         if (idx === -1) {
@@ -405,35 +415,43 @@ define([
     };
     
     var parse_url = function (url) {
-        // an `a` element with an href allows attr-access to the parsed segments of a URL
-        // a = parse_url("http://localhost:8888/path/name#hash")
-        // a.protocol = "http:"
-        // a.host     = "localhost:8888"
-        // a.hostname = "localhost"
-        // a.port     = 8888
-        // a.pathname = "/path/name"
-        // a.hash     = "#hash"
+        /**
+         * an `a` element with an href allows attr-access to the parsed segments of a URL
+         * a = parse_url("http://localhost:8888/path/name#hash")
+         * a.protocol = "http:"
+         * a.host     = "localhost:8888"
+         * a.hostname = "localhost"
+         * a.port     = 8888
+         * a.pathname = "/path/name"
+         * a.hash     = "#hash"
+         */
         var a = document.createElement("a");
         a.href = url;
         return a;
     };
     
     var encode_uri_components = function (uri) {
-        // encode just the components of a multi-segment uri,
-        // leaving '/' separators
+        /**
+         * encode just the components of a multi-segment uri,
+         * leaving '/' separators
+         */
         return uri.split('/').map(encodeURIComponent).join('/');
     };
     
     var url_join_encode = function () {
-        // join a sequence of url components with '/',
-        // encoding each component with encodeURIComponent
+        /**
+         * join a sequence of url components with '/',
+         * encoding each component with encodeURIComponent
+         */
         return encode_uri_components(url_path_join.apply(null, arguments));
     };
 
 
     var splitext = function (filename) {
-        // mimic Python os.path.splitext
-        // Returns ['base', '.ext']
+        /**
+         * mimic Python os.path.splitext
+         * Returns ['base', '.ext']
+         */
         var idx = filename.lastIndexOf('.');
         if (idx > 0) {
             return [filename.slice(0, idx), filename.slice(idx)];
@@ -444,20 +462,26 @@ define([
 
 
     var escape_html = function (text) {
-        // escape text to HTML
+        /**
+         * escape text to HTML
+         */
         return $("<div/>").text(text).html();
     };
 
 
     var get_body_data = function(key) {
-        // get a url-encoded item from body.data and decode it
-        // we should never have any encoded URLs anywhere else in code
-        // until we are building an actual request
+        /**
+         * get a url-encoded item from body.data and decode it
+         * we should never have any encoded URLs anywhere else in code
+         * until we are building an actual request
+         */
         return decodeURIComponent($('body').data(key));
     };
     
     var to_absolute_cursor_pos = function (cm, cursor) {
-        // get the absolute cursor position from CodeMirror's col, ch
+        /**
+         * get the absolute cursor position from CodeMirror's col, ch
+         */
         if (!cursor) {
             cursor = cm.getCursor();
         }
@@ -469,7 +493,9 @@ define([
     };
     
     var from_absolute_cursor_pos = function (cm, cursor_pos) {
-        // turn absolute cursor postion into CodeMirror col, ch cursor
+        /**
+         * turn absolute cursor postion into CodeMirror col, ch cursor
+         */
         var i, line;
         var offset = 0;
         for (i = 0, line=cm.getLine(i); line !== undefined; i++, line=cm.getLine(i)) {
@@ -517,12 +543,16 @@ define([
     })();
 
     var is_or_has = function (a, b) {
-        // Is b a child of a or a itself?
+        /**
+         * Is b a child of a or a itself?
+         */
         return a.has(b).length !==0 || a.is(b);
     };
 
     var is_focused = function (e) {
-        // Is element e, or one of its children focused?
+        /**
+         * Is element e, or one of its children focused?
+         */
         e = $(e);
         var target = $(document.activeElement);
         if (target.length > 0) {
@@ -543,8 +573,10 @@ define([
     };
     
     var ajax_error_msg = function (jqXHR) {
-        // Return a JSON error message if there is one,
-        // otherwise the basic HTTP status text.
+        /**
+         * Return a JSON error message if there is one,
+         * otherwise the basic HTTP status text.
+         */
         if (jqXHR.responseJSON && jqXHR.responseJSON.traceback) {
             return jqXHR.responseJSON.traceback;
         } else if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
@@ -554,7 +586,9 @@ define([
         }
     };
     var log_ajax_error = function (jqXHR, status, error) {
-        // log ajax failures with informative messages
+        /**
+         * log ajax failures with informative messages
+         */
         var msg = "API request failed (" + jqXHR.status + "): ";
         console.log(jqXHR);
         msg += ajax_error_msg(jqXHR);
@@ -562,7 +596,9 @@ define([
     };
     
     var requireCodeMirrorMode = function (mode, callback, errback) {
-        // load a mode with requirejs
+        /**
+         * load a mode with requirejs
+         */
         if (typeof mode != "string") mode = mode.name;
         if (CodeMirror.modes.hasOwnProperty(mode)) {
             callback(CodeMirror.modes.mode);
@@ -592,8 +628,10 @@ define([
     };
     
     var promising_ajax = function(url, settings) {
-        // Like $.ajax, but returning an ES6 promise. success and error settings
-        // will be ignored.
+        /**
+         * Like $.ajax, but returning an ES6 promise. success and error settings
+         * will be ignored.
+         */
         return new Promise(function(resolve, reject) {
             settings.success = function(data, status, jqXHR) {
                 resolve(data);
@@ -607,11 +645,13 @@ define([
     };
 
     var WrappedError = function(message, error){
-        // Wrappable Error class
-
-        // The Error class doesn't actually act on `this`.  Instead it always
-        // returns a new instance of Error.  Here we capture that instance so we
-        // can apply it's properties to `this`.
+        /**
+         * Wrappable Error class
+         *
+         * The Error class doesn't actually act on `this`.  Instead it always
+         * returns a new instance of Error.  Here we capture that instance so we
+         * can apply it's properties to `this`.
+         */
         var tmp = Error.apply(this, [message]);
 
         // Copy the properties of the error over to this.
@@ -635,11 +675,13 @@ define([
 
 
     var load_class = function(class_name, module_name, registry) {
-        // Tries to load a class
-        //
-        // Tries to load a class from a module using require.js, if a module 
-        // is specified, otherwise tries to load a class from the global 
-        // registry, if the global registry is provided.
+        /**
+         * Tries to load a class
+         *
+         * Tries to load a class from a module using require.js, if a module 
+         * is specified, otherwise tries to load a class from the global 
+         * registry, if the global registry is provided.
+         */
         return new Promise(function(resolve, reject) {
 
             // Try loading the view module using require.js
@@ -662,8 +704,10 @@ define([
     };
 
     var resolve_promises_dict = function(d) {
-        // Resolve a promiseful dictionary.
-        // Returns a single Promise.
+        /**
+         * Resolve a promiseful dictionary.
+         * Returns a single Promise.
+         */
         var keys = Object.keys(d);
         var values = [];
         keys.forEach(function(key) {
@@ -679,11 +723,13 @@ define([
     };
 
     var WrappedError = function(message, error){
-        // Wrappable Error class
-
-        // The Error class doesn't actually act on `this`.  Instead it always
-        // returns a new instance of Error.  Here we capture that instance so we
-        // can apply it's properties to `this`.
+        /**
+         * Wrappable Error class
+         *
+         * The Error class doesn't actually act on `this`.  Instead it always
+         * returns a new instance of Error.  Here we capture that instance so we
+         * can apply it's properties to `this`.
+         */
         var tmp = Error.apply(this, [message]);
 
         // Copy the properties of the error over to this.
@@ -706,11 +752,13 @@ define([
     WrappedError.prototype = Object.create(Error.prototype, {});
 
     var reject = function(message, log) {
-        // Creates a wrappable Promise rejection function.
-        // 
-        // Creates a function that returns a Promise.reject with a new WrappedError
-        // that has the provided message and wraps the original error that 
-        // caused the promise to reject.
+        /**
+         * Creates a wrappable Promise rejection function.
+         * 
+         * Creates a function that returns a Promise.reject with a new WrappedError
+         * that has the provided message and wraps the original error that 
+         * caused the promise to reject.
+         */
         return function(error) { 
             var wrapped_error = new WrappedError(message, error);
             if (log) console.error(wrapped_error); 

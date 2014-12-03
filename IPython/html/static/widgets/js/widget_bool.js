@@ -9,7 +9,9 @@ define([
 
     var CheckboxView = widget.DOMWidgetView.extend({
         render : function(){
-            // Called when view is rendered.
+            /**
+             * Called when view is rendered.
+             */
             this.$el
                 .addClass('widget-hbox widget-checkbox');
             this.$label = $('<div />')
@@ -25,25 +27,31 @@ define([
         },
 
         update_attr: function(name, value) {
-            // Set a css attr of the widget view.
+            /**
+             * Set a css attr of the widget view.
+             */
             this.$checkbox.css(name, value);
         },
 
         handle_click: function() {
-            // Handles when the checkbox is clicked.
-
-            // Calling model.set will trigger all of the other views of the 
-            // model to update.
+            /**
+             * Handles when the checkbox is clicked.
+             *
+             * Calling model.set will trigger all of the other views of the 
+             * model to update.
+             */
             var value = this.model.get('value');
             this.model.set('value', ! value, {updated_view: this});
             this.touch();
         },
         
         update : function(options){
-            // Update the contents of this view
-            //
-            // Called when the model is changed.  The model may have been 
-            // changed by another view or by a state update from the back-end.
+            /**
+             * Update the contents of this view
+             *
+             * Called when the model is changed.  The model may have been 
+             * changed by another view or by a state update from the back-end.
+             */
             this.$checkbox.prop('checked', this.model.get('value'));
 
             if (options === undefined || options.updated_view != this) {
@@ -67,7 +75,9 @@ define([
 
     var ToggleButtonView = widget.DOMWidgetView.extend({
         render : function() {
-            // Called when view is rendered.
+            /**
+             * Called when view is rendered.
+             */
             var that = this;
             this.setElement($('<button />')
                 .addClass('btn btn-default')
@@ -97,10 +107,12 @@ define([
         },
         
         update : function(options){
-            // Update the contents of this view
-            //
-            // Called when the model is changed.  The model may have been 
-            // changed by another view or by a state update from the back-end.
+            /**
+             * Update the contents of this view
+             *
+             * Called when the model is changed.  The model may have been 
+             * changed by another view or by a state update from the back-end.
+             */
             if (this.model.get('value')) {
                 this.$el.addClass('active');
             } else {
@@ -124,10 +136,12 @@ define([
         },
         
         handle_click: function(e) { 
-            // Handles and validates user input.
-
-            // Calling model.set will trigger all of the other views of the 
-            // model to update.
+            /**
+             * Handles and validates user input.
+             *
+             * Calling model.set will trigger all of the other views of the 
+             * model to update.
+             */
             var value = this.model.get('value');
             this.model.set('value', ! value, {updated_view: this});
             this.touch();

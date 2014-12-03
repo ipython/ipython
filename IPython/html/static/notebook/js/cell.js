@@ -112,8 +112,10 @@ define([
     };
 
     Cell.prototype.init_classes = function () {
-        // Call after this.element exists to initialize the css classes
-        // related to selected, rendered and mode.
+        /**
+         * Call after this.element exists to initialize the css classes
+         * related to selected, rendered and mode.
+         */
         if (this.selected) {
             this.element.addClass('selected');
         } else {
@@ -534,7 +536,9 @@ define([
      * @param {String|object|undefined} - CodeMirror mode | 'auto'
      **/
     Cell.prototype._auto_highlight = function (modes) {
-        //Here we handle manually selected modes
+        /**
+         *Here we handle manually selected modes
+         */
         var that = this;
         var mode;
         if( this.user_highlight !== undefined &&  this.user_highlight != 'auto' )
@@ -625,7 +629,9 @@ define([
     };
     
     UnrecognizedCell.prototype.toJSON = function () {
-        // deepcopy the metadata so copied cells don't share the same object
+        /**
+         * deepcopy the metadata so copied cells don't share the same object
+         */
         return JSON.parse(JSON.stringify(this.data));
     };
 

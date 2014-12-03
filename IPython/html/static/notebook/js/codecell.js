@@ -53,21 +53,23 @@ define([
     var keycodes = keyboard.keycodes;
 
     var CodeCell = function (kernel, options) {
-        // Constructor
-        //
-        // A Cell conceived to write code.
-        //
-        // Parameters:
-        //  kernel: Kernel instance
-        //      The kernel doesn't have to be set at creation time, in that case
-        //      it will be null and set_kernel has to be called later.
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance 
-        //          config: dictionary
-        //          keyboard_manager: KeyboardManager instance 
-        //          notebook: Notebook instance
-        //          tooltip: Tooltip instance
+        /**
+         * Constructor
+         *
+         * A Cell conceived to write code.
+         *
+         * Parameters:
+         *  kernel: Kernel instance
+         *      The kernel doesn't have to be set at creation time, in that case
+         *      it will be null and set_kernel has to be called later.
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          events: $(Events) instance 
+         *          config: dictionary
+         *          keyboard_manager: KeyboardManager instance 
+         *          notebook: Notebook instance
+         *          tooltip: Tooltip instance
+         */
         this.kernel = kernel || null;
         this.notebook = options.notebook;
         this.collapsed = false;

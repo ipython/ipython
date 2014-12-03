@@ -11,14 +11,16 @@ define([
     var platform = utils.platform;
 
     var QuickHelp = function (options) {
-        // Constructor
-        //
-        // Parameters:
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance
-        //          keyboard_manager: KeyboardManager instance
-        //          notebook: Notebook instance
+        /**
+         * Constructor
+         *
+         * Parameters:
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          events: $(Events) instance
+         *          keyboard_manager: KeyboardManager instance
+         *          notebook: Notebook instance
+         */
         this.keyboard_manager = options.keyboard_manager;
         this.notebook = options.notebook;
         this.keyboard_manager.quick_help = this;
@@ -66,7 +68,9 @@ define([
 
 
     QuickHelp.prototype.show_keyboard_shortcuts = function () {
-        // toggles display of keyboard shortcut dialog
+        /**
+         * toggles display of keyboard shortcut dialog
+         */
         var that = this;
         if ( this.force_rebuild ) {
             this.shortcut_dialog.remove();

@@ -92,8 +92,10 @@ define([
     };
 
     var kernel_modal = function (options) {
-        // only one kernel dialog should be open at a time -- but
-        // other modal dialogs can still be open
+        /**
+         * only one kernel dialog should be open at a time -- but
+         * other modal dialogs can still be open
+         */
         $('.kernel-modal').modal('hide');
         var dialog = modal(options);
         dialog.addClass('kernel-modal');
@@ -140,7 +142,9 @@ define([
             buttons: {
                 OK: { class : "btn-primary",
                     click: function() {
-                        // validate json and set it
+                        /**
+                         * validate json and set it
+                         */
                         var new_md;
                         try {
                             new_md = JSON.parse(editor.getValue());

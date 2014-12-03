@@ -12,7 +12,9 @@ define([
     "use strict";
 
     var SaveWidget = function (selector, options) {
-        // TODO: Remove circular ref.
+        /**
+         * TODO: Remove circular ref.
+         */
         this.notebook = undefined;
         this.selector = selector;
         this.events = options.events;
@@ -111,7 +113,9 @@ define([
                 "Cancel": {}
                 },
             open : function () {
-                // Upon ENTER, click the OK button.
+                /**
+                 * Upon ENTER, click the OK button.
+                 */
                 d.find('input[type="text"]').keydown(function (event) {
                     if (event.which === keyboard.keycodes.enter) {
                         d.find('.btn-primary').first().click();
@@ -206,8 +210,10 @@ define([
 
         var that = this;
         var recall  = function(t){
-            // recall slightly later (1s) as long timeout in js might be imprecise,
-            // and you want to be call **after** the change of formatting should happend.
+            /**
+             * recall slightly later (1s) as long timeout in js might be imprecise,
+             * and you want to be call **after** the change of formatting should happend.
+             */
             return setTimeout(
                 $.proxy(that._regularly_update_checkpoint_date, that),
                 t + 1000

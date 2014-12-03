@@ -10,13 +10,17 @@ define([
 
     var OutputView = widget.DOMWidgetView.extend({
         initialize: function (parameters) {
-            // Public constructor
+            /**
+             * Public constructor
+             */
             OutputView.__super__.initialize.apply(this, [parameters]);
             this.model.on('msg:custom', this._handle_route_msg, this);
         },
 
         render: function(){
-            // Called when view is rendered.
+            /**
+             * Called when view is rendered.
+             */
             this.output_area = new outputarea.OutputArea({
                 selector: this.$el, 
                 prompt_area: false, 
