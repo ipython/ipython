@@ -223,7 +223,7 @@ define([
 
         // update regularly for the first 6hours and show
         // <x time> ago
-        if(tdelta < tdelta < 6*3600*1000){  
+        if(tdelta < 6*3600*1000){  
             recall(_next_timeago_update(tdelta));
             this._set_checkpoint_status(chkd.fromNow(), longdate);
         // otherwise update every hour and show
