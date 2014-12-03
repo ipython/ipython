@@ -11,17 +11,19 @@ define([
     "use strict";
     
     var NotebookList = function (selector, options) {
-        // Constructor
-        //
-        // Parameters:
-        //  selector: string
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          session_list: SessionList instance
-        //          element_name: string
-        //          base_url: string
-        //          notebook_path: string
-        //          contents: Contents instance
+        /**
+         * Constructor
+         *
+         * Parameters:
+         *  selector: string
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          session_list: SessionList instance
+         *          element_name: string
+         *          base_url: string
+         *          notebook_path: string
+         *          contents: Contents instance
+         */
         var that = this;
         this.session_list = options.session_list;
         // allow code re-use by just changing element_name in kernellist.js
@@ -119,11 +121,13 @@ define([
     };
 
     NotebookList.prototype.clear_list = function (remove_uploads) {
-        // Clears the navigation tree.
-        //
-        // Parameters
-        // remove_uploads: bool=False
-        //      Should upload prompts also be removed from the tree.
+        /**
+         * Clears the navigation tree.
+         *
+         * Parameters
+         * remove_uploads: bool=False
+         *      Should upload prompts also be removed from the tree.
+         */
         if (remove_uploads) {
             this.element.children('.list_item').remove();
         } else {
@@ -378,7 +382,9 @@ define([
     };
 
     NotebookList.prototype.notebook_deleted = function(path) {
-        // Remove the deleted notebook.
+        /**
+         * Remove the deleted notebook.
+         */
         $( ":data(path)" ).each(function() {
             var element = $(this);
             if (element.data("path") == path) {

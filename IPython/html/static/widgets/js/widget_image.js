@@ -8,16 +8,20 @@ define([
     
     var ImageView = widget.DOMWidgetView.extend({  
         render : function(){
-            // Called when view is rendered.
+            /**
+             * Called when view is rendered.
+             */
             this.setElement($("<img />"));
             this.update(); // Set defaults.
         },
         
         update : function(){
-            // Update the contents of this view
-            //
-            // Called when the model is changed.  The model may have been 
-            // changed by another view or by a state update from the back-end.
+            /**
+             * Update the contents of this view
+             *
+             * Called when the model is changed.  The model may have been 
+             * changed by another view or by a state update from the back-end.
+             */
             var image_src = 'data:image/' + this.model.get('format') + ';base64,' + this.model.get('_b64value');
             this.$el.attr('src', image_src);
             

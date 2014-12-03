@@ -246,7 +246,9 @@ define([
     ];
 
     OutputArea.prototype.validate_mimebundle = function (json) {
-        // scrub invalid outputs
+        /**
+         * scrub invalid outputs
+         */
         var data = json.data;
         $.map(OutputArea.output_types, function(key){
             if (key !== 'application/json' &&
@@ -297,8 +299,10 @@ define([
         // available.
         var that = this;
         var handle_appended = function ($el) {
-            // Only reset the height to automatic if the height is currently
-            // fixed (done by wait=True flag on clear_output).
+            /**
+             * Only reset the height to automatic if the height is currently
+             * fixed (done by wait=True flag on clear_output).
+             */
             if (needs_height_reset) {
                 that.element.height('');
             }
@@ -380,7 +384,9 @@ define([
 
 
     OutputArea.prototype._append_javascript_error = function (err, element) {
-        // display a message when a javascript error occurs in display output
+        /**
+         * display a message when a javascript error occurs in display output
+         */
         var msg = "Javascript error adding output!";
         if ( element === undefined ) return;
         element
@@ -390,10 +396,12 @@ define([
     };
     
     OutputArea.prototype._safe_append = function (toinsert) {
-        // safely append an item to the document
-        // this is an object created by user code,
-        // and may have errors, which should not be raised
-        // under any circumstances.
+        /**
+         * safely append an item to the document
+         * this is an object created by user code,
+         * and may have errors, which should not be raised
+         * under any circumstances.
+         */
         try {
             this.element.append(toinsert);
         } catch(err) {
@@ -588,7 +596,9 @@ define([
 
 
     var append_javascript = function (js, md, element) {
-        // We just eval the JS code, element appears in the local scope.
+        /**
+         * We just eval the JS code, element appears in the local scope.
+         */
         var type = 'application/javascript';
         var toinsert = this.create_output_subarea(md, "output_javascript", type);
         this.keyboard_manager.register_events(toinsert);
@@ -652,14 +662,16 @@ define([
     };
 
     OutputArea.prototype._dblclick_to_reset_size = function (img, immediately, resize_parent) {
-        // Add a resize handler to an element
-        //
-        // img: jQuery element
-        // immediately: bool=False
-        //      Wait for the element to load before creating the handle.
-        // resize_parent: bool=True
-        //      Should the parent of the element be resized when the element is
-        //      reset (by double click).
+        /**
+         * Add a resize handler to an element
+         *
+         * img: jQuery element
+         * immediately: bool=False
+         *      Wait for the element to load before creating the handle.
+         * resize_parent: bool=True
+         *      Should the parent of the element be resized when the element is
+         *      reset (by double click).
+         */
         var callback = function (){
             var h0 = img.height();
             var w0 = img.width();
@@ -690,7 +702,9 @@ define([
     };
     
     var set_width_height = function (img, md, mime) {
-        // set width and height of an img element from metadata
+        /**
+         * set width and height of an img element from metadata
+         */
         var height = _get_metadata_key(md, 'height', mime);
         if (height !== undefined) img.attr('height', height);
         var width = _get_metadata_key(md, 'width', mime);
@@ -745,8 +759,10 @@ define([
      };
 
     var append_latex = function (latex, md, element) {
-        // This method cannot do the typesetting because the latex first has to
-        // be on the page.
+        /**
+         * This method cannot do the typesetting because the latex first has to
+         * be on the page.
+         */
         var type = 'text/latex';
         var toinsert = this.create_output_subarea(md, "output_latex", type);
         toinsert.append(latex);
@@ -825,11 +841,13 @@ define([
 
 
     OutputArea.prototype.handle_clear_output = function (msg) {
-        // msg spec v4 had stdout, stderr, display keys
-        // v4.1 replaced these with just wait
-        // The default behavior is the same (stdout=stderr=display=True, wait=False),
-        // so v4 messages will still be properly handled,
-        // except for the rarely used clearing less than all output.
+        /**
+         * msg spec v4 had stdout, stderr, display keys
+         * v4.1 replaced these with just wait
+         * The default behavior is the same (stdout=stderr=display=True, wait=False),
+         * so v4 messages will still be properly handled,
+         * except for the rarely used clearing less than all output.
+         */
         this.clear_output(msg.content.wait || false);
     };
 

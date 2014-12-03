@@ -9,15 +9,17 @@ define([
     "use strict";
 
     var KernelList = function (selector, options) {
-        // Constructor
-        //
-        // Parameters:
-        //  selector: string
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          session_list: SessionList instance
-        //          base_url: string
-        //          notebook_path: string
+        /**
+         * Constructor
+         *
+         * Parameters:
+         *  selector: string
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          session_list: SessionList instance
+         *          base_url: string
+         *          notebook_path: string
+         */
         notebooklist.NotebookList.call(this, selector, $.extend({
             element_name: 'running'},
             options));
@@ -26,7 +28,9 @@ define([
     KernelList.prototype = Object.create(notebooklist.NotebookList.prototype);
 
     KernelList.prototype.add_duplicate_button = function () {
-        // do nothing
+        /**
+         * do nothing
+         */
     };
     
     KernelList.prototype.sessions_loaded = function (d) {

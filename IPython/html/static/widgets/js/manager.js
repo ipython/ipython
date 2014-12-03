@@ -13,7 +13,9 @@ define([
     // WidgetManager class
     //--------------------------------------------------------------------
     var WidgetManager = function (comm_manager, notebook) {
-        // Public constructor
+        /**
+         * Public constructor
+         */
         WidgetManager._managers.push(this);
 
         // Attach a comm manager to the 
@@ -47,7 +49,9 @@ define([
     // Instance level
     //--------------------------------------------------------------------
     WidgetManager.prototype.display_view = function(msg, model) {
-        // Displays a view for a particular model.
+        /**
+         * Displays a view for a particular model.
+         */
         var that = this;
         var cell = this.get_msg_cell(msg.parent_header.msg_id);
         if (cell === null) {
@@ -67,9 +71,11 @@ define([
     };
 
     WidgetManager.prototype._handle_display_view = function (view) {
-        // Have the IPython keyboard manager disable its event
-        // handling so the widget can capture keyboard input.
-        // Note, this is only done on the outer most widgets.
+        /**
+         * Have the IPython keyboard manager disable its event
+         * handling so the widget can capture keyboard input.
+         * Note, this is only done on the outer most widgets.
+         */
         if (this.keyboard_manager) {
             this.keyboard_manager.register_events(view.$el);
         
@@ -82,10 +88,12 @@ define([
     };
     
     WidgetManager.prototype.create_view = function(model, options) {
-        // Creates a promise for a view of a given model
-
-        // Make sure the view creation is not out of order with 
-        // any state updates.
+        /**
+         * Creates a promise for a view of a given model
+         *
+         * Make sure the view creation is not out of order with 
+         * any state updates.
+         */
         model.state_change = model.state_change.then(function() {
             
             return utils.load_class(model.get('_view_name'), model.get('_view_module'),
@@ -135,7 +143,9 @@ define([
     };
 
     WidgetManager.prototype.callbacks = function (view) {
-        // callback handlers specific a view
+        /**
+         * callback handlers specific a view
+         */
         var callbacks = {};
         if (view && view.options.cell) {
 
@@ -168,12 +178,16 @@ define([
     };
 
     WidgetManager.prototype.get_model = function (model_id) {
-        // Get a promise for a model by model id.
+        /**
+         * Get a promise for a model by model id.
+         */
         return this._models[model_id];
     };
 
     WidgetManager.prototype._handle_comm_open = function (comm, msg) {
-        // Handle when a comm is opened.
+        /**
+         * Handle when a comm is opened.
+         */
         return this.create_model({
             model_name: msg.content.data.model_name, 
             model_module: msg.content.data.model_module, 
@@ -181,33 +195,35 @@ define([
     };
 
     WidgetManager.prototype.create_model = function (options) {
-        // Create and return a promise for a new widget model
-        //
-        // Minimally, one must provide the model_name and widget_class
-        // parameters to create a model from Javascript.
-        //
-        // Example
-        // --------
-        // JS:
-        // IPython.notebook.kernel.widget_manager.create_model({
-        //      model_name: 'WidgetModel', 
-        //      widget_class: 'IPython.html.widgets.widget_int.IntSlider'})
-        //      .then(function(model) { console.log('Create success!', model); },
-        //      $.proxy(console.error, console));
-        //
-        // Parameters
-        // ----------
-        // options: dictionary
-        //  Dictionary of options with the following contents:
-        //      model_name: string
-        //          Target name of the widget model to create.
-        //      model_module: (optional) string
-        //          Module name of the widget model to create.
-        //      widget_class: (optional) string
-        //          Target name of the widget in the back-end.
-        //      comm: (optional) Comm
-        
-        // Create a comm if it wasn't provided.
+        /**
+         * Create and return a promise for a new widget model
+         *
+         * Minimally, one must provide the model_name and widget_class
+         * parameters to create a model from Javascript.
+         *
+         * Example
+         * --------
+         * JS:
+         * IPython.notebook.kernel.widget_manager.create_model({
+         *      model_name: 'WidgetModel', 
+         *      widget_class: 'IPython.html.widgets.widget_int.IntSlider'})
+         *      .then(function(model) { console.log('Create success!', model); },
+         *      $.proxy(console.error, console));
+         *
+         * Parameters
+         * ----------
+         * options: dictionary
+         *  Dictionary of options with the following contents:
+         *      model_name: string
+         *          Target name of the widget model to create.
+         *      model_module: (optional) string
+         *          Module name of the widget model to create.
+         *      widget_class: (optional) string
+         *          Target name of the widget in the back-end.
+         *      comm: (optional) Comm
+         *
+         * Create a comm if it wasn't provided.
+         */
         var comm = options.comm;
         if (!comm) {
             comm = this.comm_manager.new_comm('ipython.widget', {'widget_class': options.widget_class});

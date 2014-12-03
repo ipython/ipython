@@ -31,9 +31,11 @@ define([
     };
     
     var _deserialize_binary = function(data, callback) {
-        // deserialize the binary message format
-        // callback will be called with a message whose buffers attribute
-        // will be an array of DataViews.
+        /**
+         * deserialize the binary message format
+         * callback will be called with a message whose buffers attribute
+         * will be an array of DataViews.
+         */
         if (data instanceof Blob) {
             // data is Blob, have to deserialize from ArrayBuffer in reader callback
             var reader = new FileReader();
@@ -50,7 +52,9 @@ define([
     };
 
     var deserialize = function (data, callback) {
-        // deserialize a message and pass the unpacked message object to callback
+        /**
+         * deserialize a message and pass the unpacked message object to callback
+         */
         if (typeof data === "string") {
             // text JSON message
             callback(JSON.parse(data));
@@ -61,8 +65,10 @@ define([
     };
     
     var _serialize_binary = function (msg) {
-        // implement the binary serialization protocol
-        // serializes JSON message to ArrayBuffer
+        /**
+         * implement the binary serialization protocol
+         * serializes JSON message to ArrayBuffer
+         */
         msg = _.clone(msg);
         var offsets = [];
         var buffers = [];

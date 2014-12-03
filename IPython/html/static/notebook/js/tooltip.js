@@ -116,7 +116,9 @@ define([
     };
 
     Tooltip.prototype.showInPager = function (cell) {
-        // reexecute last call in pager by appending ? to show back in pager
+        /**
+         * reexecute last call in pager by appending ? to show back in pager
+         */
         this.events.trigger('open_with_text.Pager', this._reply.content);
         this.remove_and_cancel_tooltip();
     };
@@ -144,9 +146,11 @@ define([
     // return true on successfully removing a visible tooltip; otherwise return
     // false.
     Tooltip.prototype.remove_and_cancel_tooltip = function (force) {
-        // note that we don't handle closing directly inside the calltip
-        // as in the completer, because it is not focusable, so won't
-        // get the event.
+        /**
+         * note that we don't handle closing directly inside the calltip
+         * as in the completer, because it is not focusable, so won't
+         * get the event.
+         */
         this.cancel_pending();
         if (!this._hidden) {
           if (force || !this._sticky) {
@@ -186,9 +190,11 @@ define([
 
     // make an immediate completion request
     Tooltip.prototype.request = function (cell, hide_if_no_docstring) {
-        // request(codecell)
-        // Deal with extracting the text from the cell and counting
-        // call in a row
+        /**
+         * request(codecell)
+         * Deal with extracting the text from the cell and counting
+         * call in a row
+         */
         this.cancel_pending();
         var editor = cell.code_mirror;
         var cursor = editor.getCursor();
@@ -250,8 +256,10 @@ define([
 
     // should be called with the kernel reply to actually show the tooltip
     Tooltip.prototype._show = function (reply) {
-        // move the bubble if it is not hidden
-        // otherwise fade it
+        /**
+         * move the bubble if it is not hidden
+         * otherwise fade it
+         */
         this._reply = reply;
         var content = reply.content;
         if (!content.found) {

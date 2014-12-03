@@ -266,7 +266,9 @@ define([
 
         var that = this;
         var on_success = function (data, status, xhr) {
-            // get kernel info so we know what state the kernel is in
+            /**
+             * get kernel info so we know what state the kernel is in
+             */
             that.kernel_info();
             if (success) {
                 success(data, status, xhr);
@@ -538,8 +540,10 @@ define([
     };
     
     Kernel.prototype._schedule_reconnect = function () {
-        // function to call when kernel connection is lost
-        // schedules reconnect, or fires 'connection_dead' if reconnect limit is hit
+        /**
+         * function to call when kernel connection is lost
+         * schedules reconnect, or fires 'connection_dead' if reconnect limit is hit
+         */
         if (this._reconnect_attempt < this.reconnect_limit) {
             var timeout = Math.pow(2, this._reconnect_attempt);
             console.log("Connection lost, reconnecting in " + timeout + " seconds.");

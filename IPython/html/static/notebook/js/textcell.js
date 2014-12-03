@@ -18,18 +18,20 @@ define([
     var Cell = cell.Cell;
 
     var TextCell = function (options) {
-        // Constructor
-        //
-        // Construct a new TextCell, codemirror mode is by default 'htmlmixed', 
-        // and cell type is 'text' cell start as not redered.
-        //
-        // Parameters:
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance 
-        //          config: dictionary
-        //          keyboard_manager: KeyboardManager instance 
-        //          notebook: Notebook instance
+        /**
+         * Constructor
+         *
+         * Construct a new TextCell, codemirror mode is by default 'htmlmixed', 
+         * and cell type is 'text' cell start as not redered.
+         *
+         * Parameters:
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          events: $(Events) instance 
+         *          config: dictionary
+         *          keyboard_manager: KeyboardManager instance 
+         *          notebook: Notebook instance
+         */
         options = options || {};
 
         // in all TextCell/Cell subclasses
@@ -195,15 +197,17 @@ define([
 
 
     var MarkdownCell = function (options) {
-        // Constructor
-        //
-        // Parameters:
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance 
-        //          config: dictionary
-        //          keyboard_manager: KeyboardManager instance 
-        //          notebook: Notebook instance
+        /**
+         * Constructor
+         *
+         * Parameters:
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          events: $(Events) instance 
+         *          config: dictionary
+         *          keyboard_manager: KeyboardManager instance 
+         *          notebook: Notebook instance
+         */
         options = options || {};
         var config = utils.mergeopt(MarkdownCell, options.config);
         TextCell.apply(this, [$.extend({}, options, {config: config})]);
@@ -221,7 +225,9 @@ define([
     MarkdownCell.prototype = Object.create(TextCell.prototype);
 
     MarkdownCell.prototype.set_heading_level = function (level) {
-        // make a markdown cell a heading
+        /**
+         * make a markdown cell a heading
+         */
         level = level || 1;
         var source = this.get_text();
         source = source.replace(/^(#*)\s?/,
@@ -274,15 +280,17 @@ define([
 
 
     var RawCell = function (options) {
-        // Constructor
-        //
-        // Parameters:
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance 
-        //          config: dictionary
-        //          keyboard_manager: KeyboardManager instance 
-        //          notebook: Notebook instance
+        /**
+         * Constructor
+         *
+         * Parameters:
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          events: $(Events) instance 
+         *          config: dictionary
+         *          keyboard_manager: KeyboardManager instance 
+         *          notebook: Notebook instance
+         */
         options = options || {};
         var config = utils.mergeopt(RawCell, options.config);
         TextCell.apply(this, [$.extend({}, options, {config: config})]);

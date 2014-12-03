@@ -7,16 +7,18 @@ define([
     'base/js/utils',
 ], function(IPython, $, utils) {
     var Contents = function(options) {
-        // Constructor
-        //
-        // A contents handles passing file operations
-        // to the back-end.  This includes checkpointing
-        // with the normal file operations.
-        //
-        // Parameters:
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          base_url: string
+        /**
+         * Constructor
+         *
+         * A contents handles passing file operations
+         * to the back-end.  This includes checkpointing
+         * with the normal file operations.
+         *
+         * Parameters:
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          base_url: string
+         */
         this.base_url = options.base_url;
     };
 
@@ -78,7 +80,9 @@ define([
      *    format: 'text' or 'base64'; only relevant for type: 'file'
      */
     Contents.prototype.get = function (path, options) {
-        // We do the call with settings so we can set cache to false.
+        /**
+         * We do the call with settings so we can set cache to false.
+         */
         var settings = {
             processData : false,
             cache : false,
@@ -151,7 +155,9 @@ define([
     };
 
     Contents.prototype.save = function(path, model) {
-        // We do the call with settings so we can set cache to false.
+        /**
+         * We do the call with settings so we can set cache to false.
+         */
         var settings = {
             processData : false,
             type : "PUT",
@@ -163,8 +169,10 @@ define([
     };
     
     Contents.prototype.copy = function(from_file, to_dir) {
-        // Copy a file into a given directory via POST
-        // The server will select the name of the copied file
+        /**
+         * Copy a file into a given directory via POST
+         * The server will select the name of the copied file
+         */
         var url = this.api_url(to_dir);
         
         var settings = {

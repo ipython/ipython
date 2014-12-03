@@ -21,7 +21,9 @@ define([
     };
     
     CommManager.prototype.init_kernel = function (kernel) {
-        // connect the kernel, and register message handlers
+        /**
+         * connect the kernel, and register message handlers
+         */
         this.kernel = kernel;
         var msg_types = ['comm_open', 'comm_msg', 'comm_close'];
         for (var i = 0; i < msg_types.length; i++) {
@@ -31,8 +33,10 @@ define([
     };
     
     CommManager.prototype.new_comm = function (target_name, data, callbacks, metadata) {
-        // Create a new Comm, register it, and open its Kernel-side counterpart
-        // Mimics the auto-registration in `Comm.__init__` in the IPython Comm
+        /**
+         * Create a new Comm, register it, and open its Kernel-side counterpart
+         * Mimics the auto-registration in `Comm.__init__` in the IPython Comm
+         */
         var comm = new Comm(target_name);
         this.register_comm(comm);
         comm.open(data, callbacks, metadata);
@@ -40,24 +44,32 @@ define([
     };
     
     CommManager.prototype.register_target = function (target_name, f) {
-        // Register a target function for a given target name
+        /**
+         * Register a target function for a given target name
+         */
         this.targets[target_name] = f;
     };
     
     CommManager.prototype.unregister_target = function (target_name, f) {
-        // Unregister a target function for a given target name
+        /**
+         * Unregister a target function for a given target name
+         */
         delete this.targets[target_name];
     };
     
     CommManager.prototype.register_comm = function (comm) {
-        // Register a comm in the mapping
+        /**
+         * Register a comm in the mapping
+         */
         this.comms[comm.comm_id] = Promise.resolve(comm);
         comm.kernel = this.kernel;
         return comm.comm_id;
     };
     
     CommManager.prototype.unregister_comm = function (comm) {
-        // Remove a comm from the mapping
+        /**
+         * Remove a comm from the mapping
+         */
         delete this.comms[comm.comm_id];
     };
     
