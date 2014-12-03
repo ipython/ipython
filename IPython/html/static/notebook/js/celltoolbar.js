@@ -9,17 +9,19 @@ define([
     "use strict";
 
     var CellToolbar = function (options) {
-        // Constructor
-        //
-        // Parameters:
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance 
-        //          cell: Cell instance
-        //          notebook: Notebook instance 
-        //
-        //  TODO: This leaks, when cell are deleted
-        //  There is still a reference to each celltoolbars. 
+        /**
+         * Constructor
+         *
+         * Parameters:
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          events: $(Events) instance 
+         *          cell: Cell instance
+         *          notebook: Notebook instance 
+         *
+         *  TODO: This leaks, when cell are deleted
+         *  There is still a reference to each celltoolbars.
+         */
         CellToolbar._instances.push(this);
         this.notebook = options.notebook;
         this.cell = options.cell;
@@ -248,9 +250,11 @@ define([
      * @method rebuild
      */
     CellToolbar.prototype.rebuild = function(){
-        // strip evrything from the div
-        // which is probably inner_element
-        // or this.element.
+        /**
+         * strip evrything from the div
+         * which is probably inner_element
+         * or this.element.
+         */
         this.inner_element.empty();
         this.ui_controls_list = [];
 

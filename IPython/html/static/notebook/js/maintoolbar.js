@@ -10,14 +10,16 @@ define([
     "use strict";
 
     var MainToolBar = function (selector, options) {
-        // Constructor
-        //
-        // Parameters:
-        //  selector: string
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance
-        //          notebook: Notebook instance
+        /**
+         * Constructor
+         *
+         * Parameters:
+         *  selector: string
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          events: $(Events) instance
+         *          notebook: Notebook instance
+         */
         toolbar.ToolBar.apply(this, arguments);
         this.events = options.events;
         this.notebook = options.notebook;
@@ -108,7 +110,9 @@ define([
                     label : 'Run Cell',
                     icon : 'fa-play',
                     callback : function () {
-                        // emulate default shift-enter behavior
+                        /**
+                         * emulate default shift-enter behavior
+                         */
                         that.notebook.execute_cell_and_select_below();
                     }
                 },

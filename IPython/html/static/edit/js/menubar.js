@@ -10,19 +10,21 @@ define([
     "use strict";
     
     var MenuBar = function (selector, options) {
-        // Constructor
-        //
-        // A MenuBar Class to generate the menubar of IPython notebook
-        //
-        // Parameters:
-        //  selector: string
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          codemirror: CodeMirror instance
-        //          contents: ContentManager instance
-        //          events: $(Events) instance
-        //          base_url : string
-        //          file_path : string
+        /**
+         * Constructor
+         *
+         * A MenuBar Class to generate the menubar of IPython notebook
+         *
+         * Parameters:
+         *  selector: string
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          codemirror: CodeMirror instance
+         *          contents: ContentManager instance
+         *          events: $(Events) instance
+         *          base_url : string
+         *          file_path : string
+         */
         options = options || {};
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
         this.selector = selector;
@@ -35,7 +37,9 @@ define([
     };
 
     MenuBar.prototype.bind_events = function () {
-        //  File
+        /**
+         *  File
+         */
         var that = this;
         this.element.find('#save_file').click(function () {
             that.editor.save();

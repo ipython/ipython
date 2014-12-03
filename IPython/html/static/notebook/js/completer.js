@@ -92,8 +92,10 @@ define([
     };
 
     Completer.prototype.startCompletion = function () {
-        // call for a 'first' completion, that will set the editor and do some
-        // special behavior like autopicking if only one completion available.
+        /**
+         * call for a 'first' completion, that will set the editor and do some
+         * special behavior like autopicking if only one completion available.
+         */
         if (this.editor.somethingSelected()|| this.editor.getSelections().length > 1) return;
         this.done = false;
         // use to get focus back on opera
@@ -119,9 +121,11 @@ define([
      * shared start
      **/
     Completer.prototype.carry_on_completion = function (first_invocation) {
-        // Pass true as parameter if you want the completer to autopick when
-        // only one completion. This function is automatically reinvoked at
-        // each keystroke with first_invocation = false
+        /**
+         * Pass true as parameter if you want the completer to autopick when
+         * only one completion. This function is automatically reinvoked at
+         * each keystroke with first_invocation = false
+         */
         var cur = this.editor.getCursor();
         var line = this.editor.getLine(cur.line);
         var pre_cursor = this.editor.getRange({
@@ -164,8 +168,10 @@ define([
     };
 
     Completer.prototype.finish_completing = function (msg) {
-        // let's build a function that wrap all that stuff into what is needed
-        // for the new completer:
+        /**
+         * let's build a function that wrap all that stuff into what is needed
+         * for the new completer:
+         */
         var content = msg.content;
         var start = content.cursor_start;
         var end = content.cursor_end;
@@ -376,11 +382,13 @@ define([
     };
 
     Completer.prototype.keypress = function (event) {
-        // FIXME: This is a band-aid.
-        // on keypress, trigger insertion of a single character.
-        // This simulates the old behavior of completion as you type,
-        // before events were disconnected and CodeMirror stopped
-        // receiving events while the completer is focused.
+        /**
+         * FIXME: This is a band-aid.
+         * on keypress, trigger insertion of a single character.
+         * This simulates the old behavior of completion as you type,
+         * before events were disconnected and CodeMirror stopped
+         * receiving events while the completer is focused.
+         */
         
         var that = this;
         var code = event.keyCode;

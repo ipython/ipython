@@ -10,7 +10,9 @@ define([
     
     var IntSliderView = widget.DOMWidgetView.extend({
         render : function(){
-            // Called when view is rendered.
+            /**
+             * Called when view is rendered.
+             */
             this.$el
                 .addClass('widget-hbox widget-slider');
             this.$label = $('<div />')
@@ -43,7 +45,9 @@ define([
         },
 
         update_attr: function(name, value) {
-            // Set a css attr of the widget view.
+            /**
+             * Set a css attr of the widget view.
+             */
             if (name == 'color') {
                 this.$readout.css(name, value);
             } else if (name.substring(0, 4) == 'font') {
@@ -59,10 +63,12 @@ define([
         },
         
         update : function(options){
-            // Update the contents of this view
-            //
-            // Called when the model is changed.  The model may have been 
-            // changed by another view or by a state update from the back-end.
+            /**
+             * Update the contents of this view
+             *
+             * Called when the model is changed.  The model may have been 
+             * changed by another view or by a state update from the back-end.
+             */
             if (options === undefined || options.updated_view != this) {
                 // JQuery slider option keys.  These keys happen to have a
                 // one-to-one mapping with the corrosponding keys of the model.
@@ -179,15 +185,17 @@ define([
         },
 
         handleTextChange: function() {
-            // this handles the entry of text into the contentEditable label
-            // first, the value is checked if it contains a parseable number
-            //      (or pair of numbers, for the _range case)
-            // then it is clamped within the min-max range of the slider
-            // finally, the model is updated if the value is to be changed
-            //
-            // if any of these conditions are not met, the text is reset
-            //
-            // the step size is not enforced
+            /**
+             * this handles the entry of text into the contentEditable label
+             * first, the value is checked if it contains a parseable number
+             *      (or pair of numbers, for the _range case)
+             * then it is clamped within the min-max range of the slider
+             * finally, the model is updated if the value is to be changed
+             *
+             * if any of these conditions are not met, the text is reset
+             *
+             * the step size is not enforced
+             */
 
             var text = this.$readout.text();
             var vmin = this.model.get('min');
@@ -245,10 +253,12 @@ define([
         _range_regex: /^\s*([+-]?\d+)\s*[-:]\s*([+-]?\d+)/,
 
         handleSliderChange: function(e, ui) { 
-            // Called when the slider value is changed.
-
-            // Calling model.set will trigger all of the other views of the 
-            // model to update.
+            /**
+             * Called when the slider value is changed.
+             *
+             * Calling model.set will trigger all of the other views of the 
+             * model to update.
+             */
             if (this.model.get("_range")) {
                 var actual_value = ui.values.map(this._validate_slide_value);
                 this.$readout.text(actual_value.join("-"));
@@ -261,10 +271,12 @@ define([
         },
 
         _validate_slide_value: function(x) {
-            // Validate the value of the slider before sending it to the back-end
-            // and applying it to the other views on the page.
-
-            // Double bit-wise not truncates the decimel (int cast).
+            /**
+             * Validate the value of the slider before sending it to the back-end
+             * and applying it to the other views on the page.
+             *
+             * Double bit-wise not truncates the decimel (int cast).
+             */
             return ~~x;
         },
     });
@@ -272,7 +284,9 @@ define([
 
     var IntTextView = widget.DOMWidgetView.extend({    
         render : function(){
-            // Called when view is rendered.
+            /**
+             * Called when view is rendered.
+             */
             this.$el
                 .addClass('widget-hbox widget-text');
             this.$label = $('<div />')
@@ -287,10 +301,12 @@ define([
         },
         
         update : function(options){
-            // Update the contents of this view
-            //
-            // Called when the model is changed.  The model may have been 
-            // changed by another view or by a state update from the back-end.
+            /**
+             * Update the contents of this view
+             *
+             * Called when the model is changed.  The model may have been 
+             * changed by another view or by a state update from the back-end.
+             */
             if (options === undefined || options.updated_view != this) {
                 var value = this.model.get('value');
                 if (this._parse_value(this.$textbox.val()) != value) {
@@ -316,7 +332,9 @@ define([
         },
 
         update_attr: function(name, value) {
-            // Set a css attr of the widget view.
+            /**
+             * Set a css attr of the widget view.
+             */
             this.$textbox.css(name, value);
         },
 
@@ -331,9 +349,11 @@ define([
         }, 
         
         handleChanging: function(e) { 
-            // Handles and validates user input.
-            
-            // Try to parse value as a int.
+            /**
+             * Handles and validates user input.
+             *
+             * Try to parse value as a int.
+             */
             var numericalValue = 0;
             var trimmed = e.target.value.trim();
             if (trimmed === '') {
@@ -367,7 +387,9 @@ define([
         },
         
         handleChanged: function(e) {
-            // Applies validated input.
+            /**
+             * Applies validated input.
+             */
             if (e.target.value.trim() === '' || e.target.value !== this.model.get('value')) {
                 e.target.value = this.model.get('value');
             }
@@ -379,7 +401,9 @@ define([
 
     var ProgressView = widget.DOMWidgetView.extend({
         render : function(){
-            // Called when view is rendered.
+            /**
+             * Called when view is rendered.
+             */
             this.$el
                 .addClass('widget-hbox widget-progress');
             this.$label = $('<div />')
@@ -403,10 +427,12 @@ define([
         },
         
         update : function(){
-            // Update the contents of this view
-            //
-            // Called when the model is changed.  The model may have been 
-            // changed by another view or by a state update from the back-end.
+            /**
+             * Update the contents of this view
+             *
+             * Called when the model is changed.  The model may have been 
+             * changed by another view or by a state update from the back-end.
+             */
             var value = this.model.get('value');
             var max = this.model.get('max');
             var min = this.model.get('min');
@@ -435,7 +461,9 @@ define([
         },
 
         update_attr: function(name, value) {
-            // Set a css attr of the widget view.
+            /**
+             * Set a css attr of the widget view.
+             */
             if (name.substring(0, 6) == 'border' || name == 'width' || 
                 name == 'height' || name == 'background' || name == 'margin' || 
                 name == 'padding') {

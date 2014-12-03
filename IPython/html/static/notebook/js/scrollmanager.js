@@ -4,47 +4,57 @@ define(['jquery'], function($){
     "use strict";
 
     var ScrollManager = function(notebook, options) {
-        // Public constructor.
+        /**
+         * Public constructor.
+         */
         this.notebook = notebook;
         options = options || {};
         this.animation_speed = options.animation_speed || 250; //ms
     };
 
     ScrollManager.prototype.scroll = function (delta) {
-        // Scroll the document.
-        //
-        // Parameters
-        // ----------
-        // delta: integer
-        //  direction to scroll the document.  Positive is downwards. 
-        //  Unit is one page length.
+        /**
+         * Scroll the document.
+         *
+         * Parameters
+         * ----------
+         * delta: integer
+         *  direction to scroll the document.  Positive is downwards. 
+         *  Unit is one page length.
+         */
         this.scroll_some(delta);
         return false;
     };
 
     ScrollManager.prototype.scroll_to = function(selector) {
-        // Scroll to an element in the notebook.
+        /**
+         * Scroll to an element in the notebook.
+         */
         $('#notebook').animate({'scrollTop': $(selector).offset().top + $('#notebook').scrollTop() - $('#notebook').offset().top}, this.animation_speed);
     };
 
     ScrollManager.prototype.scroll_some = function(pages) {
-        // Scroll up or down a given number of pages.
-        //
-        // Parameters
-        // ----------
-        // pages: integer
-        //  number of pages to scroll the document, may be positive or negative.
+        /**
+         * Scroll up or down a given number of pages.
+         *
+         * Parameters
+         * ----------
+         * pages: integer
+         *  number of pages to scroll the document, may be positive or negative.
+         */
         $('#notebook').animate({'scrollTop': $('#notebook').scrollTop() + pages * $('#notebook').height()}, this.animation_speed);
     };
 
     ScrollManager.prototype.get_first_visible_cell = function() {
-        // Gets the index of the first visible cell in the document.
-
-        // First, attempt to be smart by guessing the index of the cell we are
-        // scrolled to.  Then, walk from there up or down until the right cell 
-        // is found.  To guess the index, get the top of the last cell, and
-        // divide that by the number of cells to get an average cell height.  
-        // Then divide the scroll height by the average cell height.
+        /**
+         * Gets the index of the first visible cell in the document.
+         *
+         * First, attempt to be smart by guessing the index of the cell we are
+         * scrolled to.  Then, walk from there up or down until the right cell 
+         * is found.  To guess the index, get the top of the last cell, and
+         * divide that by the number of cells to get an average cell height.  
+         * Then divide the scroll height by the average cell height.
+         */
         var cell_count = this.notebook.ncells();
         var first_cell_top = this.notebook.get_cell(0).element.offset().top;
         var last_cell_top = this.notebook.get_cell(cell_count-1).element.offset().top;
@@ -65,34 +75,40 @@ define(['jquery'], function($){
 
 
     var TargetScrollManager = function(notebook, options) {
-        // Public constructor.
+        /**
+         * Public constructor.
+         */
         ScrollManager.apply(this, [notebook, options]);
     };
     TargetScrollManager.prototype = Object.create(ScrollManager.prototype);
 
     TargetScrollManager.prototype.is_target = function (index) {
-        // Check if a cell should be a scroll stop.
-        //
-        // Returns `true` if the cell is a cell that the scroll manager
-        // should scroll to.  Otherwise, false is returned. 
-        //
-        // Parameters
-        // ----------
-        // index: integer
-        //  index of the cell to test.
+        /**
+         * Check if a cell should be a scroll stop.
+         *
+         * Returns `true` if the cell is a cell that the scroll manager
+         * should scroll to.  Otherwise, false is returned. 
+         *
+         * Parameters
+         * ----------
+         * index: integer
+         *  index of the cell to test.
+         */
         return false;
     };
 
     TargetScrollManager.prototype.scroll = function (delta) {
-        // Scroll the document.
-        //
-        // Parameters
-        // ----------
-        // delta: integer
-        //  direction to scroll the document.  Positive is downwards.
-        //  Units are targets.
-
-        // Try to scroll to the next slide.
+        /**
+         * Scroll the document.
+         *
+         * Parameters
+         * ----------
+         * delta: integer
+         *  direction to scroll the document.  Positive is downwards.
+         *  Units are targets.
+         *
+         * Try to scroll to the next slide.
+         */
         var cell_count = this.notebook.ncells();
         var selected_index = this.get_first_visible_cell() + delta;
         while (0 <= selected_index && selected_index < cell_count && !this.is_target(selected_index)) {
@@ -111,7 +127,9 @@ define(['jquery'], function($){
 
 
     var SlideScrollManager = function(notebook, options) {
-        // Public constructor.
+        /**
+         * Public constructor.
+         */
         TargetScrollManager.apply(this, [notebook, options]);
     };
     SlideScrollManager.prototype = Object.create(TargetScrollManager.prototype);
@@ -126,7 +144,9 @@ define(['jquery'], function($){
 
 
     var HeadingScrollManager = function(notebook, options) {
-        // Public constructor.
+        /**
+         * Public constructor.
+         */
         ScrollManager.apply(this, [notebook, options]);
         options = options || {};
         this._level = options.heading_level || 1;
@@ -134,16 +154,18 @@ define(['jquery'], function($){
     HeadingScrollManager.prototype = Object.create(ScrollManager.prototype)
 
     HeadingScrollManager.prototype.scroll = function (delta) {
-        // Scroll the document.
-        //
-        // Parameters
-        // ----------
-        // delta: integer
-        //  direction to scroll the document.  Positive is downwards.
-        //  Units are headers.
-
-        // Get all of the header elements that match the heading level or are of
-        // greater magnitude (a smaller header number).
+        /**
+         * Scroll the document.
+         *
+         * Parameters
+         * ----------
+         * delta: integer
+         *  direction to scroll the document.  Positive is downwards.
+         *  Units are headers.
+         *
+         * Get all of the header elements that match the heading level or are of
+         * greater magnitude (a smaller header number).
+         */
         var headers = $();
         var i;
         for (i = 1; i <= this._level; i++) {

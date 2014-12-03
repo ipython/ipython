@@ -45,22 +45,24 @@ define([
     "use strict";
 
     var Notebook = function (selector, options) {
-        // Constructor
-        //
-        // A notebook contains and manages cells.
-        //
-        // Parameters:
-        //  selector: string
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance
-        //          keyboard_manager: KeyboardManager instance
-        //          contents: Contents instance
-        //          save_widget: SaveWidget instance
-        //          config: dictionary
-        //          base_url : string
-        //          notebook_path : string
-        //          notebook_name : string
+        /**
+         * Constructor
+         *
+         * A notebook contains and manages cells.
+         *
+         * Parameters:
+         *  selector: string
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          events: $(Events) instance
+         *          keyboard_manager: KeyboardManager instance
+         *          contents: Contents instance
+         *          save_widget: SaveWidget instance
+         *          config: dictionary
+         *          base_url : string
+         *          notebook_path : string
+         *          notebook_name : string
+         */
         this.config = utils.mergeopt(Notebook, options.config);
         this.base_url = options.base_url;
         this.notebook_path = options.notebook_path;
@@ -315,7 +317,9 @@ define([
     };
     
     Notebook.prototype.warn_nbformat_minor = function (event) {
-        // trigger a warning dialog about missing functionality from newer minor versions
+        /**
+         * trigger a warning dialog about missing functionality from newer minor versions
+         */
         var v = 'v' + this.nbformat + '.';
         var orig_vs = v + this.nbformat_minor;
         var this_vs = v + this.current_nbformat_minor;
@@ -1142,7 +1146,9 @@ define([
     };
     
     Notebook.prototype._warn_heading = function () {
-        // warn about heading cells being removed
+        /**
+         * warn about heading cells being removed
+         */
         dialog.modal({
             notebook: this,
             keyboard_manager: this.keyboard_manager,
@@ -1733,7 +1739,9 @@ define([
      * @method execute_cell
      */
     Notebook.prototype.execute_cell = function () {
-        // mode = shift, ctrl, alt
+        /**
+         * mode = shift, ctrl, alt
+         */
         var cell = this.get_selected_cell();
         
         cell.execute();
@@ -1944,7 +1952,9 @@ define([
      * @return {Object} A JSON-friendly representation of this notebook.
      */
     Notebook.prototype.toJSON = function () {
-        // remove the conversion indicator, which only belongs in-memory
+        /**
+         * remove the conversion indicator, which only belongs in-memory
+         */
         delete this.metadata.orig_nbformat;
         delete this.metadata.orig_nbformat_minor;
 

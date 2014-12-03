@@ -10,7 +10,9 @@ define([
 
     var BoxView = widget.DOMWidgetView.extend({
         initialize: function(){
-            // Public constructor
+            /**
+             * Public constructor
+             */
             BoxView.__super__.initialize.apply(this, arguments);
             this.children_views = new widget.ViewList(this.add_child_model, null, this);
             this.listenTo(this.model, 'change:children', function(model, value) {
@@ -28,12 +30,16 @@ define([
         },
 
         update_attr: function(name, value) {
-            // Set a css attr of the widget view.
+            /**
+             * Set a css attr of the widget view.
+             */
             this.$box.css(name, value);
         },
 
         render: function(){
-            // Called when view is rendered.
+            /**
+             * Called when view is rendered.
+             */
             this.$box = this.$el;
             this.$box.addClass('widget-box');
             this.children_views.update(this.model.get('children'));
@@ -43,12 +49,16 @@ define([
         },
 
         update_overflow_x: function() {
-            // Called when the x-axis overflow setting is changed.
+            /**
+             * Called when the x-axis overflow setting is changed.
+             */
             this.$box.css('overflow-x', this.model.get('overflow_x'));
         },
 
         update_overflow_y: function() {
-            // Called when the y-axis overflow setting is changed.
+            /**
+             * Called when the y-axis overflow setting is changed.
+             */
             this.$box.css('overflow-y', this.model.get('overflow_y'));
         },
 
@@ -63,7 +73,9 @@ define([
         },
         
         add_child_model: function(model) {
-            // Called when a model is added to the children list.
+            /**
+             * Called when a model is added to the children list.
+             */
             var that = this;
             var dummy = $('<div/>');
             that.$box.append(dummy);
@@ -79,9 +91,11 @@ define([
         },
         
         remove: function() {
-            // We remove this widget before removing the children as an optimization
-            // we want to remove the entire container from the DOM first before
-            // removing each individual child separately.
+            /**
+             * We remove this widget before removing the children as an optimization
+             * we want to remove the entire container from the DOM first before
+             * removing each individual child separately.
+             */
             BoxView.__super__.remove.apply(this, arguments);
             this.children_views.remove();
         },
@@ -135,7 +149,9 @@ define([
     var PopupView = BoxView.extend({
 
         render: function(){
-            // Called when view is rendered.
+            /**
+             * Called when view is rendered.
+             */
             var that = this;
             
             this.$el.on("remove", function(){
@@ -245,13 +261,17 @@ define([
         },
         
         hide: function() {
-            // Called when the modal hide button is clicked.
+            /**
+             * Called when the modal hide button is clicked.
+             */
             this.$window.hide();
             this.$show_button.removeClass('btn-info');
         },
         
         show: function() {
-            // Called when the modal show button is clicked.
+            /**
+             * Called when the modal show button is clicked.
+             */
             this.$show_button.addClass('btn-info');
             this.$window.show();
             if (this.popped_out) {
@@ -264,7 +284,9 @@ define([
         },
         
         bring_to_front: function() {
-            // Make the modal top-most, z-ordered about the other modals.
+            /**
+             * Make the modal top-most, z-ordered about the other modals.
+             */
             var $widget_modals = $(".widget-modal");
             var max_zindex = 0;
             $widget_modals.each(function (index, el){
@@ -287,10 +309,12 @@ define([
         },
         
         update: function(){
-            // Update the contents of this view
-            //
-            // Called when the model is changed.  The model may have been 
-            // changed by another view or by a state update from the back-end.
+            /**
+             * Update the contents of this view
+             *
+             * Called when the model is changed.  The model may have been 
+             * changed by another view or by a state update from the back-end.
+             */
             var description = this.model.get('description');
             if (description.trim().length === 0) {
                 this.$title.html("&nbsp;"); // Preserve title height
@@ -315,15 +339,17 @@ define([
         },
         
         _get_selector_element: function(selector) {
-            // Get an element view a 'special' jquery selector.  (see widget.js)
-            //
-            // Since the modal actually isn't within the $el in the DOM, we need to extend
-            // the selector logic to allow the user to set css on the modal if need be.
-            // The convention used is:
-            // "modal" - select the modal div
-            // "modal [selector]" - select element(s) within the modal div.
-            // "[selector]" - select elements within $el
-            // "" - select the $el
+            /**
+             * Get an element view a 'special' jquery selector.  (see widget.js)
+             *
+             * Since the modal actually isn't within the $el in the DOM, we need to extend
+             * the selector logic to allow the user to set css on the modal if need be.
+             * The convention used is:
+             * "modal" - select the modal div
+             * "modal [selector]" - select element(s) within the modal div.
+             * "[selector]" - select elements within $el
+             * "" - select the $el
+             */
             if (selector.substring(0, 5) == 'modal') {
                 if (selector == 'modal') {
                     return this.$window;

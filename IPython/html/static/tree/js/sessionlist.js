@@ -9,13 +9,15 @@ define([
     "use strict";
 
     var SesssionList = function (options) {
-        // Constructor
-        //
-        // Parameters:
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance
-        //          base_url : string
+        /**
+         * Constructor
+         *
+         * Parameters:
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          events: $(Events) instance
+         *          base_url : string
+         */
         this.events = options.events;
         this.sessions = {};
         this.base_url = options.base_url || utils.get_body_data("baseUrl");

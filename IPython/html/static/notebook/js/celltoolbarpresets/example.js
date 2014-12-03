@@ -119,7 +119,9 @@ define([
                 width: 650,
                 modal: true,
                 close: function() {
-                    //cleanup on close
+                    /**
+                     *cleanup on close
+                     */
                     $(this).remove();
                 }
         });

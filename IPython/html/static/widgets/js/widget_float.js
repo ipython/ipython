@@ -15,8 +15,10 @@ define([
         _range_regex: /^\s*([+-]?(?:\d*\.?\d+|\d+\.)(?:[eE][+-]?\d+)?)\s*[-:]\s*([+-]?(?:\d*\.?\d+|\d+\.)(?:[eE][+-]?\d+)?)/,
 
         _validate_slide_value: function(x) {
-            // Validate the value of the slider before sending it to the back-end
-            // and applying it to the other views on the page.
+            /**
+             * Validate the value of the slider before sending it to the back-end
+             * and applying it to the other views on the page.
+             */
             return x;
         },
     });

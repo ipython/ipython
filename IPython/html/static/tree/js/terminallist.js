@@ -10,13 +10,15 @@ define([
     "use strict";
 
     var TerminalList = function (selector, options) {
-        // Constructor
-        //
-        // Parameters:
-        //  selector: string
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          base_url: string
+        /**
+         * Constructor
+         *
+         * Parameters:
+         *  selector: string
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          base_url: string
+         */
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
         this.element_name = options.element_name || 'terminal';
         this.selector = selector;

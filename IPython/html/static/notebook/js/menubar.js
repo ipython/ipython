@@ -13,23 +13,25 @@ define([
     "use strict";
     
     var MenuBar = function (selector, options) {
-        // Constructor
-        //
-        // A MenuBar Class to generate the menubar of IPython notebook
-        //
-        // Parameters:
-        //  selector: string
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          notebook: Notebook instance
-        //          contents: ContentManager instance
-        //          layout_manager: LayoutManager instance
-        //          events: $(Events) instance
-        //          save_widget: SaveWidget instance
-        //          quick_help: QuickHelp instance
-        //          base_url : string
-        //          notebook_path : string
-        //          notebook_name : string
+        /**
+         * Constructor
+         *
+         * A MenuBar Class to generate the menubar of IPython notebook
+         *
+         * Parameters:
+         *  selector: string
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          notebook: Notebook instance
+         *          contents: ContentManager instance
+         *          layout_manager: LayoutManager instance
+         *          events: $(Events) instance
+         *          save_widget: SaveWidget instance
+         *          quick_help: QuickHelp instance
+         *          base_url : string
+         *          notebook_path : string
+         *          notebook_name : string
+         */
         options = options || {};
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
         this.selector = selector;
@@ -87,7 +89,9 @@ define([
     };
 
     MenuBar.prototype.bind_events = function () {
-        //  File
+        /**
+         *  File
+         */
         var that = this;
         this.element.find('#new_notebook').click(function () {
             var w = window.open();
@@ -169,7 +173,9 @@ define([
         });
         this.element.find('#kill_and_exit').click(function () {
             var close_window = function () {
-                // allow closing of new tabs in Chromium, impossible in FF
+                /**
+                 * allow closing of new tabs in Chromium, impossible in FF
+                 */
                 window.open('', '_self', '');
                 window.close();
             };
@@ -355,7 +361,9 @@ define([
     };
     
     MenuBar.prototype.update_nbconvert_script = function(langinfo) {
-        // Set the 'Download as foo' menu option for the relevant language.
+        /**
+         * Set the 'Download as foo' menu option for the relevant language.
+         */
         var el = this.element.find('#download_script');
         var that = this;
         

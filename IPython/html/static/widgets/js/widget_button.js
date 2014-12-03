@@ -9,7 +9,9 @@ define([
 
     var ButtonView = widget.DOMWidgetView.extend({
         render : function(){
-            // Called when view is rendered.
+            /**
+             * Called when view is rendered.
+             */
             this.setElement($("<button />")
                 .addClass('btn btn-default'));
             this.$el.attr("data-toggle", "tooltip");
@@ -22,10 +24,12 @@ define([
         },
         
         update : function(){
-            // Update the contents of this view
-            //
-            // Called when the model is changed.  The model may have been 
-            // changed by another view or by a state update from the back-end.
+            /**
+             * Update the contents of this view
+             *
+             * Called when the model is changed.  The model may have been 
+             * changed by another view or by a state update from the back-end.
+             */
             var description = this.model.get('description');
             this.$el.attr("title", this.model.get("tooltip"));
             if (description.length === 0) {
@@ -60,7 +64,9 @@ define([
         },
         
         _handle_click: function(){
-            // Handles when the button is clicked.
+            /**
+             * Handles when the button is clicked.
+             */
             this.send({event: 'click'});
         },
     });
