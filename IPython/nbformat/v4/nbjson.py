@@ -12,6 +12,7 @@ from .nbbase import from_dict
 from .rwbase import (
     NotebookReader, NotebookWriter, rejoin_lines, split_lines, strip_transient
 )
+from IPython.utils.traitlets import Bool
 
 
 class BytesEncoder(json.JSONEncoder):

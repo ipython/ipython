@@ -6,6 +6,8 @@
 from .exporter import Exporter
 from IPython import nbformat
 from IPython.utils.traitlets import Enum
+from IPython.utils.traitlets import Bool
+
 
 class NotebookExporter(Exporter):
     """Exports to an IPython notebook."""
