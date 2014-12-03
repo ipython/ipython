@@ -193,7 +193,27 @@ class Config(dict):
                     to_update[k] = copy.deepcopy(v)
 
         self.update(to_update)
-
+    
+    def collisions(self, other):
+        """Check for collisions between two config objects.
+        
+        Returns a dict of the form {"Class": {"trait": "collision message"}}`,
+        indicating which values have been ignored.
+        
+        An empty dict indicates no collisions.
+        """
+        collisions = {}
+        for section in self:
+            if section not in other:
+                continue
+            mine = self[section]
+            theirs = other[section]
+            for key in mine:
+                if key in theirs and mine[key] != theirs[key]:
+                    collisions.setdefault(section, {})
+                    collisions[section][key] = "%r ignored, using %r" % (mine[key], theirs[key])
+        return collisions
+    
     def __contains__(self, key):
         # allow nested contains of the form `"Section.key" in config`
         if '.' in key:
@@ -565,7 +585,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
 
 
     def _decode_argv(self, argv, enc=None):
-        """decode argv if bytes, using stin.encoding, falling back on default enc"""
+        """decode argv if bytes, using stdin.encoding, falling back on default enc"""
         uargv = []
         if enc is None:
             enc = DEFAULT_ENCODING
