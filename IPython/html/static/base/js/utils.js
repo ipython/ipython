@@ -79,9 +79,7 @@ define([
      * // -> ['..', 'word', '1', ' ', 'word', '2', '..']
      */
     var regex_split = function (str, separator, limit) {
-        /**
-         * If `separator` is not a regex, use `split`
-         */
+        // If `separator` is not a regex, use `split`
         if (Object.prototype.toString.call(separator) !== "[object RegExp]") {
             return split.call(str, separator, limit);
         }

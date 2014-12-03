@@ -580,15 +580,15 @@ define(["widgets/js/manager",
 
     var ViewList = function(create_view, remove_view, context) {
         /**
-         * * create_view and remove_view are default functions called when adding or removing views
-         * * create_view takes a model and returns a view or a promise for a view for that model
-         * * remove_view takes a view and destroys it (including calling `view.remove()`)
-         * * each time the update() function is called with a new list, the create and remove
+         * - create_view and remove_view are default functions called when adding or removing views
+         * - create_view takes a model and returns a view or a promise for a view for that model
+         * - remove_view takes a view and destroys it (including calling `view.remove()`)
+         * - each time the update() function is called with a new list, the create and remove
          *   callbacks will be called in an order so that if you append the views created in the
          *   create callback and remove the views in the remove callback, you will duplicate 
          *   the order of the list.
-         * * the remove callback defaults to just removing the view (e.g., pass in null for the second parameter)
-         * * the context defaults to the created ViewList.  If you pass another context, the create and remove
+         * - the remove callback defaults to just removing the view (e.g., pass in null for the second parameter)
+         * - the context defaults to the created ViewList.  If you pass another context, the create and remove
          *   will be called in that context.
          */
 
