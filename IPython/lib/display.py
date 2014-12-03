@@ -3,7 +3,7 @@
 Authors : MinRK, gregcaporaso, dannystaple
 """
 from os.path import exists, isfile, splitext, abspath, join, isdir
-from os import walk, sep, listdir
+from os import walk, sep
 
 from IPython.core.display import DisplayObject
 
@@ -397,6 +397,8 @@ class FileLinks(FileLink):
         included_suffixes : list
           The file suffixes that should be included in the output (passing None
           meansto include all suffixes in the output in the built-in formatters)
+        recursive : boolean
+          Whether to recurse into subdirectories. Default is True.
 
         The function should return a list of lines that will be printed in the
         notebook (if passing notebook_display_formatter) or the terminal (if
