@@ -1,28 +1,12 @@
 # encoding: utf-8
-"""
-Tests for IPython.config.loader
+"""Tests for IPython.config.loader"""
 
-Authors:
-
-* Brian Granger
-* Fernando Perez (design help)
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008 The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import os
 import pickle
 import sys
-import json
 
 from tempfile import mkstemp
 from unittest import TestCase
@@ -42,10 +26,6 @@ from IPython.config.loader import (
     KVArgParseConfigLoader,
     ConfigError,
 )
-
-#-----------------------------------------------------------------------------
-# Actual tests
-#-----------------------------------------------------------------------------
 
 
 pyfile = """
@@ -117,6 +97,34 @@ class TestFileCL(TestCase):
         cl = JSONFileConfigLoader(fname, log=log)
         config = cl.load_config()
         self._check_conf(config)
+    
+    def test_collision(self):
+        a = Config()
+        b = Config()
+        self.assertEqual(a.collisions(b), {})
+        a.A.trait1 = 1
+        b.A.trait2 = 2
+        self.assertEqual(a.collisions(b), {})
+        b.A.trait1 = 1
+        self.assertEqual(a.collisions(b), {})
+        b.A.trait1 = 0
+        self.assertEqual(a.collisions(b), {
+            'A': {
+                'trait1': "1 ignored, using 0",
+            }
+        })
+        self.assertEqual(b.collisions(a), {
+            'A': {
+                'trait1': "0 ignored, using 1",
+            }
+        })
+        a.A.trait2 = 3
+        self.assertEqual(b.collisions(a), {
+            'A': {
+                'trait1': "0 ignored, using 1",
+                'trait2': "2 ignored, using 3",
+            }
+        })
 
     def test_v2raise(self):
         fd, fname = mkstemp('.json')

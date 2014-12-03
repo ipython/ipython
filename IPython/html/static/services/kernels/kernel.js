@@ -286,16 +286,16 @@ define([
         });
     };
 
-    /**
-     * POST /api/kernels/[:kernel_id]/restart
-     *
-     * Restart the kernel.
-     *
-     * @function interrupt
-     * @param {function} [success] - function executed on ajax success
-     * @param {function} [error] - functon executed on ajax error
-     */
     Kernel.prototype.restart = function (success, error) {
+        /**
+         * POST /api/kernels/[:kernel_id]/restart
+         *
+         * Restart the kernel.
+         *
+         * @function interrupt
+         * @param {function} [success] - function executed on ajax success
+         * @param {function} [error] - functon executed on ajax error
+         */
         this.events.trigger('kernel_restarting.Kernel', {kernel: this});
         this.stop_channels();
 
@@ -327,14 +327,14 @@ define([
         });
     };
 
-    /**
-     * Reconnect to a disconnected kernel. This is not actually a
-     * standard HTTP request, but useful function nonetheless for
-     * reconnecting to the kernel if the connection is somehow lost.
-     *
-     * @function reconnect
-     */
     Kernel.prototype.reconnect = function () {
+        /**
+         * Reconnect to a disconnected kernel. This is not actually a
+         * standard HTTP request, but useful function nonetheless for
+         * reconnecting to the kernel if the connection is somehow lost.
+         *
+         * @function reconnect
+         */
         if (this.is_connected()) {
             return;
         }
@@ -346,15 +346,15 @@ define([
         this.start_channels();
     };
 
-    /**
-     * Handle a successful AJAX request by updating the kernel id and
-     * name from the response, and then optionally calling a provided
-     * callback.
-     *
-     * @function _on_success
-     * @param {function} success - callback
-     */
     Kernel.prototype._on_success = function (success) {
+        /**
+         * Handle a successful AJAX request by updating the kernel id and
+         * name from the response, and then optionally calling a provided
+         * callback.
+         *
+         * @function _on_success
+         * @param {function} success - callback
+         */
         var that = this;
         return function (data, status, xhr) {
             if (data) {
@@ -368,14 +368,14 @@ define([
         };
     };
 
-    /**
-     * Handle a failed AJAX request by logging the error message, and
-     * then optionally calling a provided callback.
-     *
-     * @function _on_error
-     * @param {function} error - callback
-     */
     Kernel.prototype._on_error = function (error) {
+        /**
+         * Handle a failed AJAX request by logging the error message, and
+         * then optionally calling a provided callback.
+         *
+         * @function _on_error
+         * @param {function} error - callback
+         */
         return function (xhr, status, err) {
             utils.log_ajax_error(xhr, status, err);
             if (error) {
@@ -384,27 +384,27 @@ define([
         };
     };
 
-    /**
-     * Perform necessary tasks once the kernel has been started,
-     * including actually connecting to the kernel.
-     *
-     * @function _kernel_created
-     * @param {Object} data - information about the kernel including id
-     */
     Kernel.prototype._kernel_created = function (data) {
+        /**
+         * Perform necessary tasks once the kernel has been started,
+         * including actually connecting to the kernel.
+         *
+         * @function _kernel_created
+         * @param {Object} data - information about the kernel including id
+         */
         this.id = data.id;
         this.kernel_url = utils.url_join_encode(this.kernel_service_url, this.id);
         this.start_channels();
     };
 
-    /**
-     * Perform necessary tasks once the connection to the kernel has
-     * been established. This includes requesting information about
-     * the kernel.
-     *
-     * @function _kernel_connected
-     */
     Kernel.prototype._kernel_connected = function () {
+        /**
+         * Perform necessary tasks once the connection to the kernel has
+         * been established. This includes requesting information about
+         * the kernel.
+         *
+         * @function _kernel_connected
+         */
         this.events.trigger('kernel_connected.Kernel', {kernel: this});
         this.events.trigger('kernel_starting.Kernel', {kernel: this});
         // get kernel info so we know what state the kernel is in
@@ -415,24 +415,24 @@ define([
         });
     };
 
-    /**
-     * Perform necessary tasks after the kernel has died. This closing
-     * communication channels to the kernel if they are still somehow
-     * open.
-     *
-     * @function _kernel_dead
-     */
     Kernel.prototype._kernel_dead = function () {
+        /**
+         * Perform necessary tasks after the kernel has died. This closing
+         * communication channels to the kernel if they are still somehow
+         * open.
+         *
+         * @function _kernel_dead
+         */
         this.stop_channels();
     };
 
-    /**
-     * Start the `shell`and `iopub` channels.
-     * Will stop and restart them if they already exist.
-     *
-     * @function start_channels
-     */
     Kernel.prototype.start_channels = function () {
+        /**
+         * Start the `shell`and `iopub` channels.
+         * Will stop and restart them if they already exist.
+         *
+         * @function start_channels
+         */
         var that = this;
         this.stop_channels();
         var ws_host_url = this.ws_url + this.kernel_url;
@@ -506,29 +506,29 @@ define([
         this.channels.stdin.onmessage = $.proxy(this._handle_input_request, this);
     };
 
-    /**
-     * Handle a websocket entering the open state,
-     * signaling that the kernel is connected when all channels are open.
-     *
-     * @function _ws_opened
-     */
     Kernel.prototype._ws_opened = function (evt) {
+        /**
+         * Handle a websocket entering the open state,
+         * signaling that the kernel is connected when all channels are open.
+         *
+         * @function _ws_opened
+         */
         if (this.is_connected()) {
             // all events ready, trigger started event.
             this._kernel_connected();
         }
     };
 
-    /**
-     * Handle a websocket entering the closed state. This closes the
-     * other communication channels if they are open. If the websocket
-     * was not closed due to an error, try to reconnect to the kernel.
-     *
-     * @function _ws_closed
-     * @param {string} ws_url - the websocket url
-     * @param {bool} error - whether the connection was closed due to an error
-     */
     Kernel.prototype._ws_closed = function(ws_url, error) {
+        /**
+         * Handle a websocket entering the closed state. This closes the
+         * other communication channels if they are open. If the websocket
+         * was not closed due to an error, try to reconnect to the kernel.
+         *
+         * @function _ws_closed
+         * @param {string} ws_url - the websocket url
+         * @param {bool} error - whether the connection was closed due to an error
+         */
         this.stop_channels();
 
         this.events.trigger('kernel_disconnected.Kernel', {kernel: this});
@@ -555,13 +555,13 @@ define([
         }
     };
     
-    /**
-     * Close the websocket channels. After successful close, the value
-     * in `this.channels[channel_name]` will be null.
-     *
-     * @function stop_channels
-     */
     Kernel.prototype.stop_channels = function () {
+        /**
+         * Close the websocket channels. After successful close, the value
+         * in `this.channels[channel_name]` will be null.
+         *
+         * @function stop_channels
+         */
         var that = this;
         var close = function (c) {
             return function () {
@@ -582,15 +582,15 @@ define([
         }
     };
 
-    /**
-     * Check whether there is a connection to the kernel. This
-     * function only returns true if all channel objects have been
-     * created and have a state of WebSocket.OPEN.
-     *
-     * @function is_connected
-     * @returns {bool} - whether there is a connection
-     */
     Kernel.prototype.is_connected = function () {
+        /**
+         * Check whether there is a connection to the kernel. This
+         * function only returns true if all channel objects have been
+         * created and have a state of WebSocket.OPEN.
+         *
+         * @function is_connected
+         * @returns {bool} - whether there is a connection
+         */
         for (var c in this.channels) {
             // if any channel is not ready, then we're not connected
             if (this.channels[c] === null) {
@@ -603,15 +603,15 @@ define([
         return true;
     };
 
-    /**
-     * Check whether the connection to the kernel has been completely
-     * severed. This function only returns true if all channel objects
-     * are null.
-     *
-     * @function is_fully_disconnected
-     * @returns {bool} - whether the kernel is fully disconnected
-     */
     Kernel.prototype.is_fully_disconnected = function () {
+        /**
+         * Check whether the connection to the kernel has been completely
+         * severed. This function only returns true if all channel objects
+         * are null.
+         *
+         * @function is_fully_disconnected
+         * @returns {bool} - whether the kernel is fully disconnected
+         */
         for (var c in this.channels) {
             if (this.channels[c] === null) {
                 return true;
@@ -620,12 +620,12 @@ define([
         return false;
     };
     
-    /**
-     * Send a message on the Kernel's shell channel
-     *
-     * @function send_shell_message
-     */
     Kernel.prototype.send_shell_message = function (msg_type, content, callbacks, metadata, buffers) {
+        /**
+         * Send a message on the Kernel's shell channel
+         *
+         * @function send_shell_message
+         */
         if (!this.is_connected()) {
             throw new Error("kernel is not connected");
         }
@@ -635,17 +635,17 @@ define([
         return msg.header.msg_id;
     };
 
-    /**
-     * Get kernel info
-     *
-     * @function kernel_info
-     * @param callback {function}
-     *
-     * When calling this method, pass a callback function that expects one argument.
-     * The callback will be passed the complete `kernel_info_reply` message documented
-     * [here](http://ipython.org/ipython-doc/dev/development/messaging.html#kernel-info)
-     */
     Kernel.prototype.kernel_info = function (callback) {
+        /**
+         * Get kernel info
+         *
+         * @function kernel_info
+         * @param callback {function}
+         *
+         * When calling this method, pass a callback function that expects one argument.
+         * The callback will be passed the complete `kernel_info_reply` message documented
+         * [here](http://ipython.org/ipython-doc/dev/development/messaging.html#kernel-info)
+         */
         var callbacks;
         if (callback) {
             callbacks = { shell : { reply : callback } };
@@ -653,19 +653,19 @@ define([
         return this.send_shell_message("kernel_info_request", {}, callbacks);
     };
 
-    /**
-     * Get info on an object
-     *
-     * When calling this method, pass a callback function that expects one argument.
-     * The callback will be passed the complete `inspect_reply` message documented
-     * [here](http://ipython.org/ipython-doc/dev/development/messaging.html#object-information)
-     *
-     * @function inspect
-     * @param code {string}
-     * @param cursor_pos {integer}
-     * @param callback {function}
-     */
     Kernel.prototype.inspect = function (code, cursor_pos, callback) {
+        /**
+         * Get info on an object
+         *
+         * When calling this method, pass a callback function that expects one argument.
+         * The callback will be passed the complete `inspect_reply` message documented
+         * [here](http://ipython.org/ipython-doc/dev/development/messaging.html#object-information)
+         *
+         * @function inspect
+         * @param code {string}
+         * @param cursor_pos {integer}
+         * @param callback {function}
+         */
         var callbacks;
         if (callback) {
             callbacks = { shell : { reply : callback } };
@@ -679,56 +679,56 @@ define([
         return this.send_shell_message("inspect_request", content, callbacks);
     };
 
-    /**
-     * Execute given code into kernel, and pass result to callback.
-     *
-     * @async
-     * @function execute
-     * @param {string} code
-     * @param [callbacks] {Object} With the following keys (all optional)
-     *      @param callbacks.shell.reply {function}
-     *      @param callbacks.shell.payload.[payload_name] {function}
-     *      @param callbacks.iopub.output {function}
-     *      @param callbacks.iopub.clear_output {function}
-     *      @param callbacks.input {function}
-     * @param {object} [options]
-     *      @param [options.silent=false] {Boolean}
-     *      @param [options.user_expressions=empty_dict] {Dict}
-     *      @param [options.allow_stdin=false] {Boolean} true|false
-     *
-     * @example
-     *
-     * The options object should contain the options for the execute
-     * call. Its default values are:
-     *
-     *      options = {
-     *        silent : true,
-     *        user_expressions : {},
-     *        allow_stdin : false
-     *      }
-     *
-     * When calling this method pass a callbacks structure of the
-     * form:
-     *
-     *      callbacks = {
-     *       shell : {
-     *         reply : execute_reply_callback,
-     *         payload : {
-     *           set_next_input : set_next_input_callback,
-     *         }
-     *       },
-     *       iopub : {
-     *         output : output_callback,
-     *         clear_output : clear_output_callback,
-     *       },
-     *       input : raw_input_callback
-     *      }
-     *
-     * Each callback will be passed the entire message as a single
-     * arugment.  Payload handlers will be passed the corresponding
-     * payload and the execute_reply message.
-     */
     Kernel.prototype.execute = function (code, callbacks, options) {
+        /**
+         * Execute given code into kernel, and pass result to callback.
+         *
+         * @async
+         * @function execute
+         * @param {string} code
+         * @param [callbacks] {Object} With the following keys (all optional)
+         *      @param callbacks.shell.reply {function}
+         *      @param callbacks.shell.payload.[payload_name] {function}
+         *      @param callbacks.iopub.output {function}
+         *      @param callbacks.iopub.clear_output {function}
+         *      @param callbacks.input {function}
+         * @param {object} [options]
+         *      @param [options.silent=false] {Boolean}
+         *      @param [options.user_expressions=empty_dict] {Dict}
+         *      @param [options.allow_stdin=false] {Boolean} true|false
+         *
+         * @example
+         *
+         * The options object should contain the options for the execute
+         * call. Its default values are:
+         *
+         *      options = {
+         *        silent : true,
+         *        user_expressions : {},
+         *        allow_stdin : false
+         *      }
+         *
+         * When calling this method pass a callbacks structure of the
+         * form:
+         *
+         *      callbacks = {
+         *       shell : {
+         *         reply : execute_reply_callback,
+         *         payload : {
+         *           set_next_input : set_next_input_callback,
+         *         }
+         *       },
+         *       iopub : {
+         *         output : output_callback,
+         *         clear_output : clear_output_callback,
+         *       },
+         *       input : raw_input_callback
+         *      }
+         *
+         * Each callback will be passed the entire message as a single
+         * arugment.  Payload handlers will be passed the corresponding
+         * payload and the execute_reply message.
+         */
         var content = {
             code : code,
             silent : true,

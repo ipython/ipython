@@ -225,7 +225,7 @@ class NotebookWebApplication(web.Application):
         handlers.extend(load_handlers('services.sessions.handlers'))
         handlers.extend(load_handlers('services.nbconvert.handlers'))
         handlers.extend(load_handlers('services.kernelspecs.handlers'))
-        
+        handlers.extend(load_handlers('services.security.handlers'))
         handlers.append(
             (r"/nbextensions/(.*)", FileFindHandler, {
                 'path': settings['nbextensions_path'],
