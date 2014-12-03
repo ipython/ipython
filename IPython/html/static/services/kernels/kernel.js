@@ -47,6 +47,7 @@ define([
         this.session_id = utils.uuid();
         this._msg_callbacks = {};
         this.info_reply = {}; // kernel_info_reply stored here after starting
+        this.unsolicited_msg_callback = null;
 
         if (typeof(WebSocket) !== 'undefined') {
             this.WebSocket = WebSocket;
@@ -136,6 +137,7 @@ define([
         this._iopub_handlers = {};
         this.register_iopub_handler('status', $.proxy(this._handle_status_message, this));
         this.register_iopub_handler('clear_output', $.proxy(this._handle_clear_output, this));
+        this.register_iopub_handler('execute_input', $.proxy(this._handle_input_message, this));
         
         for (var i=0; i < output_msg_types.length; i++) {
             this.register_iopub_handler(output_msg_types[i], $.proxy(this._handle_output_message, this));
@@ -994,11 +996,30 @@ define([
     Kernel.prototype._handle_output_message = function (msg) {
         var callbacks = this.get_callbacks_for_msg(msg.parent_header.msg_id);
         if (!callbacks || !callbacks.iopub) {
+            if (this.unsolicited_msg_callback) {
+                // The message came from another client. Let the UI decide what
+                // to do with it.
+                this.unsolicited_msg_callback(msg);
+            }
             return;
         }
         var callback = callbacks.iopub.output;
         if (callback) {
             callback(msg);
+        }
+    };
+
+    /**
+     * Handle an input message (execute_input).
+     *
+     * @function _handle_input message
+     */
+    Kernel.prototype._handle_input_message = function (msg) {
+        var callbacks = this.get_callbacks_for_msg(msg.parent_header.msg_id);
+        if (!callbacks && this.unsolicited_msg_callback) {
+            // The message came from another client. Let the UI decide what to
+            // do with it.
+            this.unsolicited_msg_callback(msg);
         }
     };
 
