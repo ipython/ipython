@@ -122,8 +122,6 @@ class QtIOPubChannelMixin(ChannelQObject):
         signal = getattr(self, msg_type + '_received', None)
         if signal:
             signal.emit(msg)
-        elif msg_type in ('stdout', 'stderr'):
-            self.stream_received.emit(msg)
 
     def flush(self):
         """ Reimplemented to ensure that signals are dispatched immediately.
