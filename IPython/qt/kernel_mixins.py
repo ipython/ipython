@@ -17,6 +17,13 @@ class ChannelQObject(SuperQObject):
     # Emitted when the channel is stopped.
     stopped = QtCore.Signal()
 
+    # Emitted when any message is received.
+    message_received = QtCore.Signal(object)
+
+    #---------------------------------------------------------------------------
+    # Channel interface
+    #---------------------------------------------------------------------------
+
     def start(self):
         """ Reimplemented to emit signal.
         """
@@ -43,99 +50,6 @@ class ChannelQObject(SuperQObject):
         """ Process any pending GUI events.
         """
         QtCore.QCoreApplication.instance().processEvents()
-
-
-class QtShellChannelMixin(ChannelQObject):
-
-    # Emitted when any message is received.
-    message_received = QtCore.Signal(object)
-
-    # Emitted when a reply has been received for the corresponding request type.
-    execute_reply = QtCore.Signal(object)
-    complete_reply = QtCore.Signal(object)
-    inspect_reply = QtCore.Signal(object)
-    history_reply = QtCore.Signal(object)
-    kernel_info_reply = QtCore.Signal(object)
-
-    def call_handlers(self, msg):
-        """ Reimplemented to emit signals instead of making callbacks.
-        """
-        # Emit the generic signal.
-        self.message_received.emit(msg)
-
-        # Emit signals for specialized message types.
-        msg_type = msg['header']['msg_type']
-        if msg_type == 'kernel_info_reply':
-            self._handle_kernel_info_reply(msg)
-        
-        signal = getattr(self, msg_type, None)
-        if signal:
-            signal.emit(msg)
-
-
-class QtIOPubChannelMixin(ChannelQObject):
-
-    # Emitted when any message is received.
-    message_received = QtCore.Signal(object)
-
-    # Emitted when a message of type 'stream' is received.
-    stream_received = QtCore.Signal(object)
-
-    # Emitted when a message of type 'execute_input' is received.
-    execute_input_received = QtCore.Signal(object)
-
-    # Emitted when a message of type 'execute_result' is received.
-    execute_result_received = QtCore.Signal(object)
-
-    # Emitted when a message of type 'error' is received.
-    error_received = QtCore.Signal(object)
-
-    # Emitted when a message of type 'display_data' is received
-    display_data_received = QtCore.Signal(object)
-
-    # Emitted when a crash report message is received from the kernel's
-    # last-resort sys.excepthook.
-    crash_received = QtCore.Signal(object)
-
-    # Emitted when a shutdown is noticed.
-    shutdown_reply_received = QtCore.Signal(object)
-
-    def call_handlers(self, msg):
-        """ Reimplemented to emit signals instead of making callbacks.
-        """
-        # Emit the generic signal.
-        self.message_received.emit(msg)
-        # Emit signals for specialized message types.
-        msg_type = msg['header']['msg_type']
-        signal = getattr(self, msg_type + '_received', None)
-        if signal:
-            signal.emit(msg)
-
-    def flush(self):
-        """ Reimplemented to ensure that signals are dispatched immediately.
-        """
-        super(QtIOPubChannelMixin, self).flush()
-        QtCore.QCoreApplication.instance().processEvents()
-
-
-class QtStdInChannelMixin(ChannelQObject):
-
-    # Emitted when any message is received.
-    message_received = QtCore.Signal(object)
-
-    # Emitted when an input request is received.
-    input_requested = QtCore.Signal(object)
-
-    def call_handlers(self, msg):
-        """ Reimplemented to emit signals instead of making callbacks.
-        """
-        # Emit the generic signal.
-        self.message_received.emit(msg)
-
-        # Emit signals for specialized message types.
-        msg_type = msg['header']['msg_type']
-        if msg_type == 'input_request':
-            self.input_requested.emit(msg)
 
 
 class QtHBChannelMixin(ChannelQObject):
@@ -170,12 +84,6 @@ class QtKernelClientMixin(MetaQObjectHasTraits('NewBase', (HasTraits, SuperQObje
 
     # Emitted when the kernel client has stopped listening.
     stopped_channels = QtCore.Signal()
-
-    # Use Qt-specific channel classes that emit signals.
-    iopub_channel_class = Type(QtIOPubChannelMixin)
-    shell_channel_class = Type(QtShellChannelMixin)
-    stdin_channel_class = Type(QtStdInChannelMixin)
-    hb_channel_class = Type(QtHBChannelMixin)
 
     #---------------------------------------------------------------------------
     # 'KernelClient' interface
