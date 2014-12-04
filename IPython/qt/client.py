@@ -203,13 +203,6 @@ class QtZMQSocketChannel(SuperQObject, Thread):
 class QtShellChannel(QtZMQSocketChannel):
     """The shell channel for issuing request/replies to the kernel."""
 
-    # Emitted when a reply has been received for the corresponding request type.
-    execute_reply = QtCore.Signal(object)
-    complete_reply = QtCore.Signal(object)
-    inspect_reply = QtCore.Signal(object)
-    history_reply = QtCore.Signal(object)
-    kernel_info_reply = QtCore.Signal(object)
-
     def __init__(self, socket, session):
         super(QtShellChannel, self).__init__(socket, session)
         self.ioloop = ioloop.IOLoop()
@@ -228,11 +221,6 @@ class QtShellChannel(QtZMQSocketChannel):
         if msg_type == 'kernel_info_reply':
             self._handle_kernel_info_reply(msg)
 
-        # Emit specific signals
-        signal = getattr(self, msg_type, None)
-        if signal:
-            signal.emit(msg)
-
     def _handle_kernel_info_reply(self, msg):
         """handle kernel info reply
 
@@ -248,27 +236,6 @@ class QtIOPubChannel(QtZMQSocketChannel):
 
     This channel is where all output is published to frontends.
     """
-    # Emitted when a message of type 'stream' is received.
-    stream_received = QtCore.Signal(object)
-
-    # Emitted when a message of type 'execute_input' is received.
-    execute_input_received = QtCore.Signal(object)
-
-    # Emitted when a message of type 'execute_result' is received.
-    execute_result_received = QtCore.Signal(object)
-
-    # Emitted when a message of type 'error' is received.
-    error_received = QtCore.Signal(object)
-
-    # Emitted when a message of type 'display_data' is received
-    display_data_received = QtCore.Signal(object)
-
-    # Emitted when a crash report message is received from the kernel's
-    # last-resort sys.excepthook.
-    crash_received = QtCore.Signal(object)
-
-    # Emitted when a shutdown is noticed.
-    shutdown_reply_received = QtCore.Signal(object)
 
     def __init__(self, socket, session):
         super(QtIOPubChannel, self).__init__(socket, session)
@@ -279,15 +246,6 @@ class QtIOPubChannel(QtZMQSocketChannel):
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()
-
-    def call_handlers(self, msg):
-        super(QtIOPubChannel, self).call_handlers(msg)
-
-        # Emit signals for specialized message types.
-        msg_type = msg['header']['msg_type']
-        signal = getattr(self, msg_type + '_received', None)
-        if signal:
-            signal.emit(msg)
 
     def flush(self, timeout=1.0):
         """Immediately processes all pending messages on the iopub channel.
@@ -325,9 +283,6 @@ class QtStdInChannel(QtZMQSocketChannel):
     msg_queue = None
     proxy_methods = ['input']
 
-    # Emitted when an input request is received.
-    input_requested = QtCore.Signal(object)
-
     def __init__(self, socket, session):
         super(QtStdInChannel, self).__init__(socket, session)
         self.ioloop = ioloop.IOLoop()
@@ -337,14 +292,6 @@ class QtStdInChannel(QtZMQSocketChannel):
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()
-
-    def call_handlers(self, msg):
-        super(QtStdInChannel, self).call_handlers(msg)
-
-        # Emit signals for specialized message types.
-        msg_type = msg['header']['msg_type']
-        if msg_type == 'input_request':
-            self.input_requested.emit(msg)
 
 
 ShellChannelABC.register(QtShellChannel)
@@ -357,12 +304,13 @@ class QtKernelClient(QtKernelClientMixin, KernelClient):
     """
     def start_channels(self, shell=True, iopub=True, stdin=True, hb=True):
         if shell:
-            self.shell_channel.kernel_info_reply.connect(self._handle_kernel_info_reply)
+            self.shell_channel.message_received.connect(self._check_kernel_info_reply)
         super(QtKernelClient, self).start_channels(shell, iopub, stdin, hb)
 
-    def _handle_kernel_info_reply(self, msg):
-        super(QtKernelClient, self)._handle_kernel_info_reply(msg)
-        self.shell_channel.kernel_info_reply.disconnect(self._handle_kernel_info_reply)
+    def _check_kernel_info_reply(self, msg):
+        if msg['msg_type'] == 'kernel_info_reply':
+            self._handle_kernel_info_reply(msg)
+            self.shell_channel.message_received.disconnect(self._check_kernel_info_reply)
 
     iopub_channel_class = Type(QtIOPubChannel)
     shell_channel_class = Type(QtShellChannel)
