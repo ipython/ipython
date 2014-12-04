@@ -20,10 +20,6 @@ class ChannelQObject(SuperQObject):
     # Emitted when any message is received.
     message_received = QtCore.Signal(object)
 
-    #---------------------------------------------------------------------------
-    # Channel interface
-    #---------------------------------------------------------------------------
-
     def start(self):
         """ Reimplemented to emit signal.
         """
@@ -36,20 +32,25 @@ class ChannelQObject(SuperQObject):
         super(ChannelQObject, self).stop()
         self.stopped.emit()
 
-    #---------------------------------------------------------------------------
-    # InProcessChannel interface
-    #---------------------------------------------------------------------------
-
     def call_handlers_later(self, *args, **kwds):
         """ Call the message handlers later.
         """
         do_later = lambda: self.call_handlers(*args, **kwds)
         QtCore.QTimer.singleShot(0, do_later)
 
+    def call_handlers(self, msg):
+        self.message_received.emit(msg)
+
     def process_events(self):
         """ Process any pending GUI events.
         """
         QtCore.QCoreApplication.instance().processEvents()
+
+    def flush(self):
+        """ Reimplemented to ensure that signals are dispatched immediately.
+        """
+        super(ChannelQObject, self).flush()
+        self.process_events()
 
 
 class QtHBChannelMixin(ChannelQObject):
