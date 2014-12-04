@@ -94,8 +94,8 @@ qt_flags = {
 }
 qt_flags.update(boolean_flag(
     'banner', 'IPythonQtConsoleApp.display_banner',
-    "Display a banner upon starting IPython.",
-    "Don't display a banner upon starting IPython."
+    "Display a banner upon starting the QtConsole.",
+    "Don't display a banner upon starting the QtConsole."
 ))
 
 # and app_flags from the Console Mixin
