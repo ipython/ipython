@@ -45,12 +45,9 @@ def validate_string_dict(dct):
 
 class ZMQSocketChannel(object):
     """The base class for the channels that use ZMQ sockets."""
-    context = None
     session = None
     socket = None
-    ioloop = None
     stream = None
-    _address = None
     _exiting = False
     proxy_methods = []
 
@@ -67,7 +64,6 @@ class ZMQSocketChannel(object):
             Standard (ip, port) tuple that the kernel is listening on.
         """
         super(ZMQSocketChannel, self).__init__()
-        self.daemon = True
 
         self.socket = socket
         self.session = session
@@ -133,30 +129,6 @@ class ZMQSocketChannel(object):
     def start(self):
         pass
 
-
-class BlockingShellChannel(ZMQSocketChannel):
-    """The shell channel for issuing request/replies to the kernel."""
-
-    def start(self):
-        self.socket = make_stdin_socket(self.context, self.session.bsession, self.address)
-
-
-class BlockingIOPubChannel(ZMQSocketChannel):
-    """The iopub channel which listens for messages that the kernel publishes.
-
-    This channel is where all output is published to frontends.
-    """
-    def start(self):
-        self.socket = make_iopub_socket(self.context, self.session.bsession, self.address)
-
-class BlockingStdInChannel(ZMQSocketChannel):
-    """The stdin channel to handle raw_input requests that the kernel makes."""
-    def start(self):
-        self.socket = make_stdin_socket(self.context, self.session.bsession, self.address)
-
-ShellChannelABC.register(BlockingShellChannel)
-IOPubChannelABC.register(BlockingIOPubChannel)
-StdInChannelABC.register(BlockingStdInChannel)
 
 
 class BlockingHBChannel(HBChannel):
