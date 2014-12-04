@@ -203,7 +203,7 @@ class IPythonWidget(FrontendWidget):
                 self._retrying_history_request = True
                 # wait out the kernel's queue flush, which is currently timed at 0.1s
                 time.sleep(0.25)
-                self.kernel_client.shell_channel.history(hist_access_type='tail',n=1000)
+                self.kernel_client.history(hist_access_type='tail',n=1000)
             else:
                 self._retrying_history_request = False
             return
@@ -296,12 +296,11 @@ class IPythonWidget(FrontendWidget):
         # The reply will trigger %guiref load provided language=='python'
         self.kernel_client.kernel_info()
 
-        self.kernel_client.shell_channel.history(hist_access_type='tail',
-                                                  n=1000)
+        self.kernel_client.history(hist_access_type='tail', n=1000)
     
     def _load_guiref_magic(self):
         """Load %guiref magic."""
-        self.kernel_client.shell_channel.execute('\n'.join([
+        self.kernel_client.execute('\n'.join([
             "try:",
             "    _usage",
             "except:",
@@ -385,7 +384,7 @@ class IPythonWidget(FrontendWidget):
         """
         # If a number was not specified, make a prompt number request.
         if number is None:
-            msg_id = self.kernel_client.shell_channel.execute('', silent=True)
+            msg_id = self.kernel_client.execute('', silent=True)
             info = self._ExecutionRequest(msg_id, 'prompt')
             self._request_info['execute'][msg_id] = info
             return

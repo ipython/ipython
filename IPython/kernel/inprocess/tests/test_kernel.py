@@ -61,7 +61,7 @@ class InProcessKernelTestCase(unittest.TestCase):
 
         kc = BlockingInProcessKernelClient(kernel=kernel)
         kernel.frontends.append(kc)
-        kc.shell_channel.execute('print("bar")')
+        kc.execute('print("bar")')
         msg = get_stream_message(kc)
         self.assertEqual(msg['content']['text'], 'bar\n')
 

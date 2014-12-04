@@ -36,7 +36,7 @@ class ZMQCompleter(IPCompleter):
         
         # send completion request to kernel
         # Give the kernel up to 0.5s to respond
-        msg_id = self.client.shell_channel.complete(
+        msg_id = self.client.complete(
             code=line,
             cursor_pos=cursor_pos,
         )

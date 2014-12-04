@@ -157,8 +157,8 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         # flush stale replies, which could have been ignored, due to missed heartbeats
         while self.client.shell_channel.msg_ready():
             self.client.shell_channel.get_msg()
-        # shell_channel.execute takes 'hidden', which is the inverse of store_hist
-        msg_id = self.client.shell_channel.execute(cell, not store_history)
+        # execute takes 'hidden', which is the inverse of store_hist
+        msg_id = self.client.execute(cell, not store_history)
         
         # first thing is wait for any side effects (output, stdin, etc.)
         self._executing = True
@@ -399,7 +399,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
             # only send stdin reply if there *was not* another request
             # or execution finished while we were reading.
             if not (self.client.stdin_channel.msg_ready() or self.client.shell_channel.msg_ready()):
-                self.client.stdin_channel.input(raw_data)
+                self.client.input(raw_data)
 
     def mainloop(self, display_banner=False):
         while True:
@@ -414,7 +414,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 # handling seems rather unpredictable...
                 self.write("\nKeyboardInterrupt in interact()\n")
 
-        self.client.shell_channel.shutdown()
+        self.client.shutdown()
     
     def _banner1_default(self):
         return "IPython Console {version}\n".format(version=release.version)

@@ -463,7 +463,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self.kernel_client.iopub_channel.flush()
 
         def callback(line):
-            self.kernel_client.stdin_channel.input(line)
+            self.kernel_client.input(line)
         if self._reading:
             self.log.debug("Got second input request, assuming first was interrupted.")
             self._reading = False
