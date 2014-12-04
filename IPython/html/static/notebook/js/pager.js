@@ -20,8 +20,9 @@ define([
          */
         this.events = options.events;
         this.pager_element = $(pager_selector);
-        this.pager_button_area = $('#pager-button-area');    
-        this.pager_element.resizable({handles: 'n'});    
+        this.pager_button_area = $('#pager-button-area');
+        this._default_end_space = 200;
+        this.pager_element.resizable({handles: 'n', resize: $.proxy(this._resize, this)});
         this.expanded = false;
         this.create_button_area();
         this.bind_events();
@@ -55,7 +56,10 @@ define([
 
         this.pager_element.bind('collapse_pager', function (event, extrap) {
             // Animate hiding of the pager.
-            that.pager_element.hide((extrap && extrap.duration) ? extrap.duration : 'fast');
+            var time = (extrap && extrap.duration) ? extrap.duration : 'fast';
+            that.pager_element.hide(time, function() {
+                $('.end_space').css('height', that._default_end_space);
+            });
         });
 
         this.pager_element.bind('expand_pager', function (event, extrap) {
@@ -69,6 +73,7 @@ define([
                 // Explicitly set pager height once the pager has shown itself.
                 // This allows the pager-contents div to use percentage sizing.
                 that.pager_element.height(that.pager_element.height());
+                that._resize();
             });
         });
 
@@ -138,6 +143,18 @@ define([
          * the fixConsole() method.
          */
         this.pager_element.find(".container").append($('<pre/>').html(utils.fixCarriageReturn(utils.fixConsole(text))));
+    };
+
+
+    Pager.prototype._resize = function() {
+        /**
+         * Update document based on pager size.
+         */
+        
+        // Make sure the padding at the end of the notebook is large
+        // enough that the user can scroll to the bottom of the 
+        // notebook.
+        $('.end_space').css('height', Math.max(this.pager_element.height(), this._default_end_space));
     };
 
     // Backwards compatability.
