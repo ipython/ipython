@@ -14,8 +14,9 @@ try:
 except ImportError:
     from Queue import Queue, Empty  # Py 2
 
-from IPython.kernel.channels import IOPubChannel, HBChannel, \
-    ShellChannel, StdInChannel, InvalidPortNumber, major_protocol_version
+from IPython.kernel.channels import  HBChannel,\
+    make_iopub_socket, make_shell_socket, make_stdin_socket,\
+    InvalidPortNumber, major_protocol_version
 from IPython.utils.py3compat import string_types, iteritems
 
 # some utilities to validate message structure, these might get moved elsewhere
@@ -154,10 +155,7 @@ class BlockingShellChannel(ZMQSocketChannel):
     ]
 
     def start(self):
-        self.socket = self.context.socket(zmq.DEALER)
-        self.socket.linger = 1000
-        self.socket.setsockopt(zmq.IDENTITY, self.session.bsession)
-        self.socket.connect(self.address)
+        self.socket = make_stdin_socket(self.context, self.session.bsession, self.address)
 
     def execute(self, code, silent=False, store_history=True,
                 user_expressions=None, allow_stdin=None):
@@ -354,12 +352,7 @@ class BlockingIOPubChannel(ZMQSocketChannel):
     This channel is where all output is published to frontends.
     """
     def start(self):
-        self.socket = self.context.socket(zmq.SUB)
-        self.socket.linger = 1000
-        self.socket.setsockopt(zmq.SUBSCRIBE,b'')
-        self.socket.setsockopt(zmq.IDENTITY, self.session.bsession)
-        self.socket.connect(self.address)
-
+        self.socket = make_iopub_socket(self.context, self.session.bsession, self.address)
 
 class BlockingStdInChannel(ZMQSocketChannel):
     """The stdin channel to handle raw_input requests that the kernel makes."""
@@ -367,10 +360,7 @@ class BlockingStdInChannel(ZMQSocketChannel):
     proxy_methods = ['input']
 
     def start(self):
-        self.socket = self.context.socket(zmq.DEALER)
-        self.socket.linger = 1000
-        self.socket.setsockopt(zmq.IDENTITY, self.session.bsession)
-        self.socket.connect(self.address)
+        self.socket = make_stdin_socket(self.context, self.session.bsession, self.address)
 
     def input(self, string):
         """Send a string of raw input to the kernel."""

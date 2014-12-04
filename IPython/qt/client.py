@@ -15,7 +15,8 @@ from IPython.external.qt import QtCore
 
 # Local imports
 from IPython.utils.traitlets import Type
-from IPython.kernel.channels import HBChannel
+from IPython.kernel.channels import HBChannel,\
+    make_shell_socket, make_iopub_socket, make_stdin_socket
 from IPython.kernel import KernelClient
 
 from .kernel_mixins import (QtHBChannelMixin, QtKernelClientMixin)
@@ -38,16 +39,6 @@ class InvalidPortNumber(Exception):
 
 # some utilities to validate message structure, these might get moved elsewhere
 # if they prove to have more generic utility
-
-def validate_string_list(lst):
-    """Validate that the input is a list of strings.
-
-    Raises ValueError if not."""
-    if not isinstance(lst, list):
-        raise ValueError('input %r must be a list' % lst)
-    for x in lst:
-        if not isinstance(x, string_types):
-            raise ValueError('element %r in list must be a string' % x)
 
 
 def validate_string_dict(dct):
@@ -246,10 +237,7 @@ class QtShellChannel(QtZMQSocketChannel):
 
     def run(self):
         """The thread's main activity.  Call start() instead."""
-        self.socket = self.context.socket(zmq.DEALER)
-        self.socket.linger = 1000
-        self.socket.setsockopt(zmq.IDENTITY, self.session.bsession)
-        self.socket.connect(self.address)
+        self.socket = make_shell_socket(self.context, self.session.bsession, self.address)
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()
@@ -482,11 +470,7 @@ class QtIOPubChannel(QtZMQSocketChannel):
 
     def run(self):
         """The thread's main activity.  Call start() instead."""
-        self.socket = self.context.socket(zmq.SUB)
-        self.socket.linger = 1000
-        self.socket.setsockopt(zmq.SUBSCRIBE,b'')
-        self.socket.setsockopt(zmq.IDENTITY, self.session.bsession)
-        self.socket.connect(self.address)
+        self.socket = make_iopub_socket(self.context, self.session.bsession, self.address)
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()
@@ -545,10 +529,7 @@ class QtStdInChannel(QtZMQSocketChannel):
 
     def run(self):
         """The thread's main activity.  Call start() instead."""
-        self.socket = self.context.socket(zmq.DEALER)
-        self.socket.linger = 1000
-        self.socket.setsockopt(zmq.IDENTITY, self.session.bsession)
-        self.socket.connect(self.address)
+        self.socket = make_stdin_socket(self.context, self.session.bsession, self.address)
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()
