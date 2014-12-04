@@ -44,7 +44,7 @@ def validate_string_dict(dct):
 
 
 class ZMQSocketChannel(object):
-    """The base class for the channels that use ZMQ sockets."""
+    """A ZMQ socket in a simple blocking API"""
     session = None
     socket = None
     stream = None
@@ -112,14 +112,6 @@ class ZMQSocketChannel(object):
 
     def is_alive(self):
         return (self.socket is not None)
-
-    @property
-    def address(self):
-        """Get the channel's address as a zmq url string.
-
-        These URLS have the form: 'tcp://127.0.0.1:5555'.
-        """
-        return self._address
 
     def _queue_send(self, msg):
         """Pass a message to the ZMQ socket to send

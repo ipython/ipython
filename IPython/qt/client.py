@@ -54,7 +54,7 @@ def validate_string_dict(dct):
 
 
 class QtZMQSocketChannel(SuperQObject):
-    """The base class for the channels that use ZMQ sockets."""
+    """A ZMQ socket emitting a Qt signal when a message is received."""
     session = None
     socket = None
     ioloop = None
@@ -115,14 +115,6 @@ class QtZMQSocketChannel(SuperQObject):
             except Exception:
                 pass
             self.socket = None
-
-    @property
-    def address(self):
-        """Get the channel's address as a zmq url string.
-
-        These URLS have the form: 'tcp://127.0.0.1:5555'.
-        """
-        return self._address
 
     def _queue_send(self, msg):
         """Queue a message to be sent from the IOLoop's thread.
