@@ -54,7 +54,7 @@ class ZMQSocketChannel(object):
     _exiting = False
     proxy_methods = []
 
-    def __init__(self, context, session, address):
+    def __init__(self, socket, session):
         """Create a channel.
 
         Parameters
@@ -69,14 +69,8 @@ class ZMQSocketChannel(object):
         super(ZMQSocketChannel, self).__init__()
         self.daemon = True
 
-        self.context = context
+        self.socket = socket
         self.session = session
-        if isinstance(address, tuple):
-            if address[1] == 0:
-                message = 'The port number for a channel cannot be 0.'
-                raise InvalidPortNumber(message)
-            address = "tcp://%s:%i" % address
-        self._address = address
 
     def _recv(self, **kwargs):
         msg = self.socket.recv_multipart(**kwargs)
@@ -135,6 +129,9 @@ class ZMQSocketChannel(object):
         """Pass a message to the ZMQ socket to send
         """
         self.session.send(self.socket, msg)
+
+    def start(self):
+        pass
 
 
 class BlockingShellChannel(ZMQSocketChannel):

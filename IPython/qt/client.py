@@ -55,12 +55,10 @@ def validate_string_dict(dct):
 
 class QtZMQSocketChannel(SuperQObject, Thread):
     """The base class for the channels that use ZMQ sockets."""
-    context = None
     session = None
     socket = None
     ioloop = None
     stream = None
-    _address = None
     _exiting = False
     proxy_methods = []
 
@@ -87,7 +85,7 @@ class QtZMQSocketChannel(SuperQObject, Thread):
         """
         QtCore.QCoreApplication.instance().processEvents()
 
-    def __init__(self, context, session, address):
+    def __init__(self, socket, session):
         """Create a channel.
 
         Parameters
@@ -102,14 +100,8 @@ class QtZMQSocketChannel(SuperQObject, Thread):
         super(QtZMQSocketChannel, self).__init__()
         self.daemon = True
 
-        self.context = context
+        self.socket = socket
         self.session = session
-        if isinstance(address, tuple):
-            if address[1] == 0:
-                message = 'The port number for a channel cannot be 0.'
-                raise InvalidPortNumber(message)
-            address = "tcp://%s:%i" % address
-        self._address = address
         atexit.register(self._notice_exit)
 
     def _notice_exit(self):
@@ -218,13 +210,12 @@ class QtShellChannel(QtZMQSocketChannel):
     history_reply = QtCore.Signal(object)
     kernel_info_reply = QtCore.Signal(object)
 
-    def __init__(self, context, session, address):
-        super(QtShellChannel, self).__init__(context, session, address)
+    def __init__(self, socket, session):
+        super(QtShellChannel, self).__init__(socket, session)
         self.ioloop = ioloop.IOLoop()
 
     def run(self):
         """The thread's main activity.  Call start() instead."""
-        self.socket = make_shell_socket(self.context, self.session.bsession, self.address)
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()
@@ -279,13 +270,12 @@ class QtIOPubChannel(QtZMQSocketChannel):
     # Emitted when a shutdown is noticed.
     shutdown_reply_received = QtCore.Signal(object)
 
-    def __init__(self, context, session, address):
-        super(QtIOPubChannel, self).__init__(context, session, address)
+    def __init__(self, socket, session):
+        super(QtIOPubChannel, self).__init__(socket, session)
         self.ioloop = ioloop.IOLoop()
 
     def run(self):
         """The thread's main activity.  Call start() instead."""
-        self.socket = make_iopub_socket(self.context, self.session.bsession, self.address)
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()
@@ -338,13 +328,12 @@ class QtStdInChannel(QtZMQSocketChannel):
     # Emitted when an input request is received.
     input_requested = QtCore.Signal(object)
 
-    def __init__(self, context, session, address):
-        super(QtStdInChannel, self).__init__(context, session, address)
+    def __init__(self, socket, session):
+        super(QtStdInChannel, self).__init__(socket, session)
         self.ioloop = ioloop.IOLoop()
 
     def run(self):
         """The thread's main activity.  Call start() instead."""
-        self.socket = make_stdin_socket(self.context, self.session.bsession, self.address)
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()

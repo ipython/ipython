@@ -12,10 +12,7 @@ except ImportError:
 
 from IPython.utils.traitlets import Type
 from IPython.kernel.client import KernelClient
-from .channels import (
-    BlockingIOPubChannel, BlockingHBChannel,
-    BlockingShellChannel, BlockingStdInChannel
-)
+from .channels import ZMQSocketChannel, BlockingHBChannel
 
 class BlockingKernelClient(KernelClient):
     def wait_for_ready(self):
@@ -35,7 +32,7 @@ class BlockingKernelClient(KernelClient):
                 break
 
     # The classes to use for the various channels
-    shell_channel_class = Type(BlockingShellChannel)
-    iopub_channel_class = Type(BlockingIOPubChannel)
-    stdin_channel_class = Type(BlockingStdInChannel)
+    shell_channel_class = Type(ZMQSocketChannel)
+    iopub_channel_class = Type(ZMQSocketChannel)
+    stdin_channel_class = Type(ZMQSocketChannel)
     hb_channel_class = Type(BlockingHBChannel)
