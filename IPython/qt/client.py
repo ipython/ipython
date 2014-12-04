@@ -206,15 +206,10 @@ class QtZMQSocketChannel(SuperQObject, Thread):
         # Emit the generic signal.
         self.message_received.emit(msg)
 
-
-class QtIOPubChannel(QtZMQSocketChannel):
-    """The iopub channel which listens for messages that the kernel publishes.
-
-    This channel is where all output is published to frontends.
-    """
-
     def flush(self, timeout=1.0):
-        """Immediately processes all pending messages on the iopub channel.
+        """Immediately processes all pending messages on this channel.
+
+        This is only used for the IOPub channel.
 
         Callers should use this method to ensure that :meth:`call_handlers`
         has been called for all messages that have been received on the
@@ -242,8 +237,6 @@ class QtIOPubChannel(QtZMQSocketChannel):
         self.stream.flush()
         self._flushed = True
 
-IOPubChannelABC.register(QtIOPubChannel)
-
 
 class QtKernelClient(QtKernelClientMixin, KernelClient):
     """ A KernelClient that provides signals and slots.
@@ -258,7 +251,7 @@ class QtKernelClient(QtKernelClientMixin, KernelClient):
             self._handle_kernel_info_reply(msg)
             self.shell_channel.message_received.disconnect(self._check_kernel_info_reply)
 
-    iopub_channel_class = Type(QtIOPubChannel)
+    iopub_channel_class = Type(QtZMQSocketChannel)
     shell_channel_class = Type(QtZMQSocketChannel)
     stdin_channel_class = Type(QtZMQSocketChannel)
     hb_channel_class = Type(QtHBChannel)
