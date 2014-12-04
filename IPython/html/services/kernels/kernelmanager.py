@@ -54,14 +54,10 @@ class MappingKernelManager(MultiKernelManager):
 
     def cwd_for_path(self, path):
         """Turn API path into absolute OS path."""
-        # short circuit for NotebookManagers that pass in absolute paths
-        if os.path.exists(path):
-            return path
-
         os_path = to_os_path(path, self.root_dir)
         # in the case of notebooks and kernels not being on the same filesystem,
         # walk up to root_dir if the paths don't exist
-        while not os.path.exists(os_path) and os_path != self.root_dir:
+        while not os.path.isdir(os_path) and os_path != self.root_dir:
             os_path = os.path.dirname(os_path)
         return os_path
 
