@@ -17,7 +17,7 @@ except ImportError:
 from . import codeutil  # This registers a hook when it's imported
 from . import py3compat
 from .importstring import import_item
-from .py3compat import string_types, iteritems
+from .py3compat import string_types, iteritems, buffer_to_bytes_py2
 
 from IPython.config import Application
 from IPython.utils.log import get_logger
@@ -260,8 +260,8 @@ class CannedArray(CannedObject):
         from numpy import frombuffer
         data = self.buffers[0]
         if self.pickled:
-            # no shape, we just pickled it
-            return pickle.loads(data)
+            # we just pickled it
+            return pickle.loads(buffer_to_bytes_py2(data))
         else:
             return frombuffer(data, dtype=self.dtype).reshape(self.shape)
 
