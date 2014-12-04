@@ -11,10 +11,8 @@ from IPython.utils.traitlets import (
     Any, Instance, Type,
 )
 
-from .zmq.session import Session
-from .channels import (
-    ShellChannel, IOPubChannel,
-    HBChannel, StdInChannel,
+from .channelsabc import (
+    ShellChannelABC, IOPubChannelABC, HBChannelABC, StdInChannelABC
 )
 from .clientabc import KernelClientABC
 from .connect import ConnectionFileMixin
@@ -42,10 +40,10 @@ class KernelClient(ConnectionFileMixin):
         return zmq.Context.instance()
 
     # The classes to use for the various channels
-    shell_channel_class = Type(ShellChannel)
-    iopub_channel_class = Type(IOPubChannel)
-    stdin_channel_class = Type(StdInChannel)
-    hb_channel_class = Type(HBChannel)
+    shell_channel_class = Type(ShellChannelABC)
+    iopub_channel_class = Type(IOPubChannelABC)
+    stdin_channel_class = Type(StdInChannelABC)
+    hb_channel_class = Type(HBChannelABC)
 
     # Protected traits
     _shell_channel = Any

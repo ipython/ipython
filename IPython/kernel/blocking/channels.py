@@ -6,14 +6,13 @@ Useful for test suites and blocking terminal interfaces.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import atexit
-import zmq
-
 try:
     from queue import Queue, Empty  # Py 3
 except ImportError:
     from Queue import Queue, Empty  # Py 2
 
+from IPython.kernel.channelsabc import ShellChannelABC, IOPubChannelABC, \
+    StdInChannelABC
 from IPython.kernel.channels import  HBChannel,\
     make_iopub_socket, make_shell_socket, make_stdin_socket,\
     InvalidPortNumber, major_protocol_version
@@ -367,6 +366,10 @@ class BlockingStdInChannel(ZMQSocketChannel):
         content = dict(value=string)
         msg = self.session.msg('input_reply', content)
         self._queue_send(msg)
+
+ShellChannelABC.register(BlockingShellChannel)
+IOPubChannelABC.register(BlockingIOPubChannel)
+StdInChannelABC.register(BlockingStdInChannel)
 
 
 class BlockingHBChannel(HBChannel):
