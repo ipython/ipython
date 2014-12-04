@@ -46,7 +46,7 @@ class ExecutePreprocessor(Preprocessor):
         if cell.cell_type != 'code':
             return cell, resources
         try:
-            outputs = self.run_cell(self.kc.shell_channel, self.kc.iopub_channel, cell)
+            outputs = self.run_cell(cell)
         except Exception as e:
             self.log.error("failed to run cell: " + repr(e))
             self.log.error(str(cell.source))
@@ -54,13 +54,13 @@ class ExecutePreprocessor(Preprocessor):
         cell.outputs = outputs
         return cell, resources
 
-    def run_cell(self, shell, iopub, cell):
-        msg_id = shell.execute(cell.source)
+    def run_cell(self, cell):
+        msg_id = self.kc.execute(cell.source)
         self.log.debug("Executing cell:\n%s", cell.source)
         # wait for finish, with timeout
         while True:
             try:
-                msg = shell.get_msg(timeout=self.timeout)
+                msg = self.kc.shell_channel.get_msg(timeout=self.timeout)
             except Empty:
                 self.log.error("Timeout waiting for execute reply")
                 raise
@@ -74,7 +74,7 @@ class ExecutePreprocessor(Preprocessor):
 
         while True:
             try:
-                msg = iopub.get_msg(timeout=self.timeout)
+                msg = self.kc.iopub_channel.get_msg(timeout=self.timeout)
             except Empty:
                 self.log.warn("Timeout waiting for IOPub output")
                 break
