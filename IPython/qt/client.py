@@ -249,8 +249,8 @@ class QtKernelClient(QtKernelClientMixin, KernelClient):
         if shell:
             self.shell_channel.message_received.connect(self._check_kernel_info_reply)
 
-        self.channel_listener_thread = IOLoopThread(self.ioloop)
-        self.channel_listener_thread.start()
+        self.ioloop_thread = IOLoopThread(self.ioloop)
+        self.ioloop_thread.start()
 
         super(QtKernelClient, self).start_channels(shell, iopub, stdin, hb)
 
