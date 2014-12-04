@@ -15,6 +15,7 @@ import argparse
 import json
 import multiprocessing.pool
 import os
+import stat
 import re
 import requests
 import shutil
@@ -170,6 +171,18 @@ class PyTestController(TestController):
         # This means we won't get odd effects from our own matplotlib config
         self.env['MPLCONFIGDIR'] = workingdir.name
 
+        # Add a non-accessible directory to PATH (see gh-7053)
+        noaccess = os.path.join(self.workingdir.name, "_no_access_")
+        self.noaccess = noaccess
+        os.mkdir(noaccess, 0)
+
+        PATH = os.environ.get('PATH', '')
+        if PATH:
+            PATH = noaccess + os.pathsep + PATH
+        else:
+            PATH = noaccess
+        self.env['PATH'] = PATH
+
         # From options:
         if self.options.xunit:
             self.add_xunit()
@@ -177,6 +190,14 @@ class PyTestController(TestController):
             self.add_coverage()
         self.env['IPTEST_SUBPROC_STREAMS'] = self.options.subproc_streams
         self.cmd.extend(self.options.extra_args)
+
+    def cleanup(self):
+        """
+        Make the non-accessible directory created in setup() accessible
+        again, otherwise deleting the workingdir will fail.
+        """
+        os.chmod(self.noaccess, stat.S_IRWXU)
+        TestController.cleanup(self)
 
     @property
     def will_run(self):
