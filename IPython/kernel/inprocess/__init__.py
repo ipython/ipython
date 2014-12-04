@@ -1,7 +1,5 @@
 from .channels import (
-    InProcessShellChannel,
-    InProcessIOPubChannel,
-    InProcessStdInChannel,
+    InProcessChannel,
     InProcessHBChannel,
 )
 

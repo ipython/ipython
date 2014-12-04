@@ -19,10 +19,8 @@ from IPython.kernel.client import KernelClient
 
 # Local imports
 from .channels import (
-    InProcessShellChannel,
-    InProcessIOPubChannel,
+    InProcessChannel,
     InProcessHBChannel,
-    InProcessStdInChannel,
 
 )
 
@@ -41,9 +39,9 @@ class InProcessKernelClient(KernelClient):
     """
 
     # The classes to use for the various channels.
-    shell_channel_class = Type(InProcessShellChannel)
-    iopub_channel_class = Type(InProcessIOPubChannel)
-    stdin_channel_class = Type(InProcessStdInChannel)
+    shell_channel_class = Type(InProcessChannel)
+    iopub_channel_class = Type(InProcessChannel)
+    stdin_channel_class = Type(InProcessChannel)
     hb_channel_class = Type(InProcessHBChannel)
 
     kernel = Instance('IPython.kernel.inprocess.ipkernel.InProcessKernel')

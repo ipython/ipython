@@ -26,6 +26,7 @@ class InProcessKernelTestCase(unittest.TestCase):
         self.km.start_kernel()
         self.kc = BlockingInProcessKernelClient(kernel=self.km.kernel)
         self.kc.start_channels()
+        self.kc.wait_for_ready()
 
     @skipif_not_matplotlib
     def test_pylab(self):

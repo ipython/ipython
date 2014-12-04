@@ -23,10 +23,6 @@ class InProcessChannel(object):
         self.client = client
         self._is_alive = False
 
-    #--------------------------------------------------------------------------
-    # Channel interface
-    #--------------------------------------------------------------------------
-
     def is_alive(self):
         return self._is_alive
 
@@ -46,9 +42,6 @@ class InProcessChannel(object):
     def flush(self, timeout=1.0):
         pass
 
-    #--------------------------------------------------------------------------
-    # InProcessChannel interface
-    #--------------------------------------------------------------------------
 
     def call_handlers_later(self, *args, **kwds):
         """ Call the message handlers later.
@@ -66,20 +59,6 @@ class InProcessChannel(object):
         loop (e.g., a terminal frontend).
         """
         raise NotImplementedError
-
-
-class InProcessShellChannel(InProcessChannel):
-    """See `IPython.kernel.channels.ShellChannel` for docstrings."""
-
-    # flag for whether execute requests should be allowed to call raw_input
-    allow_stdin = True
-
-class InProcessIOPubChannel(InProcessChannel):
-    """See `IPython.kernel.channels.IOPubChannel` for docstrings."""
-
-
-class InProcessStdInChannel(InProcessChannel):
-    """See `IPython.kernel.channels.StdInChannel` for docstrings."""
 
 
 
@@ -101,11 +80,5 @@ class InProcessHBChannel(InProcessChannel):
     def is_beating(self):
         return not self._pause
 
-#-----------------------------------------------------------------------------
-# ABC Registration
-#-----------------------------------------------------------------------------
 
-ShellChannelABC.register(InProcessShellChannel)
-IOPubChannelABC.register(InProcessIOPubChannel)
 HBChannelABC.register(InProcessHBChannel)
-StdInChannelABC.register(InProcessStdInChannel)

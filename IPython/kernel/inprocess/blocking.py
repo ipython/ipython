@@ -21,16 +21,14 @@ from IPython.utils.traitlets import Type
 
 # Local imports
 from .channels import (
-    InProcessShellChannel,
-    InProcessIOPubChannel,
-    InProcessStdInChannel,
+    InProcessChannel,
 )
 from .client import InProcessKernelClient
 
-class BlockingChannelMixin(object):
+class BlockingInProcessChannel(InProcessChannel):
 
     def __init__(self, *args, **kwds):
-        super(BlockingChannelMixin, self).__init__(*args, **kwds)
+        super(BlockingInProcessChannel, self).__init__(*args, **kwds)
         self._in_queue = Queue()
 
     def call_handlers(self, msg):
@@ -58,14 +56,8 @@ class BlockingChannelMixin(object):
         """ Is there a message that has been received? """
         return not self._in_queue.empty()
 
-class BlockingInProcessShellChannel(BlockingChannelMixin, InProcessShellChannel):
-    pass
 
-class BlockingInProcessIOPubChannel(BlockingChannelMixin, InProcessIOPubChannel):
-    pass
-
-class BlockingInProcessStdInChannel(BlockingChannelMixin, InProcessStdInChannel):
-
+class BlockingInProcessStdInChannel(BlockingInProcessChannel):
     def call_handlers(self, msg):
         """ Overridden for the in-process channel.
 
@@ -76,11 +68,27 @@ class BlockingInProcessStdInChannel(BlockingChannelMixin, InProcessStdInChannel)
             _raw_input = self.client.kernel._sys_raw_input
             prompt = msg['content']['prompt']
             raw_print(prompt, end='')
-            self.input(_raw_input())
+            self.client.input(_raw_input())
 
 class BlockingInProcessKernelClient(InProcessKernelClient):
 
     # The classes to use for the various channels.
-    shell_channel_class = Type(BlockingInProcessShellChannel)
-    iopub_channel_class = Type(BlockingInProcessIOPubChannel)
+    shell_channel_class = Type(BlockingInProcessChannel)
+    iopub_channel_class = Type(BlockingInProcessChannel)
     stdin_channel_class = Type(BlockingInProcessStdInChannel)
+
+    def wait_for_ready(self):
+        # Wait for kernel info reply on shell channel
+        while True:
+            msg = self.shell_channel.get_msg(block=True)
+            if msg['msg_type'] == 'kernel_info_reply':
+                self._handle_kernel_info_reply(msg)
+                break
+
+        # Flush IOPub channel
+        while True:
+            try:
+                msg = self.iopub_channel.get_msg(block=True, timeout=0.2)
+                print(msg['msg_type'])
+            except Empty:
+                break
