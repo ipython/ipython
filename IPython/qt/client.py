@@ -103,6 +103,7 @@ class QtZMQSocketChannel(SuperQObject, Thread):
         self.socket = socket
         self.session = session
         atexit.register(self._notice_exit)
+        self.ioloop = ioloop.IOLoop()
 
     def _notice_exit(self):
         self._exiting = True
@@ -130,6 +131,12 @@ class QtZMQSocketChannel(SuperQObject, Thread):
         """
         super(QtZMQSocketChannel, self).start()
         self.started.emit()
+
+    def run(self):
+        """The thread's main activity.  Call start() instead."""
+        self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
+        self.stream.on_recv(self._handle_recv)
+        self._run_loop()
 
     def stop(self):
         """Stop the channel's event loop and join its thread.
@@ -200,52 +207,11 @@ class QtZMQSocketChannel(SuperQObject, Thread):
         self.message_received.emit(msg)
 
 
-class QtShellChannel(QtZMQSocketChannel):
-    """The shell channel for issuing request/replies to the kernel."""
-
-    def __init__(self, socket, session):
-        super(QtShellChannel, self).__init__(socket, session)
-        self.ioloop = ioloop.IOLoop()
-
-    def run(self):
-        """The thread's main activity.  Call start() instead."""
-        self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
-        self.stream.on_recv(self._handle_recv)
-        self._run_loop()
-
-    def call_handlers(self, msg):
-        super(QtShellChannel, self).call_handlers(msg)
-
-        # Catch kernel_info_reply for message spec adaptation
-        msg_type = msg['header']['msg_type']
-        if msg_type == 'kernel_info_reply':
-            self._handle_kernel_info_reply(msg)
-
-    def _handle_kernel_info_reply(self, msg):
-        """handle kernel info reply
-
-        sets protocol adaptation version
-        """
-        adapt_version = int(msg['content']['protocol_version'].split('.')[0])
-        if adapt_version != major_protocol_version:
-            self.session.adapt_version = adapt_version
-
-
 class QtIOPubChannel(QtZMQSocketChannel):
     """The iopub channel which listens for messages that the kernel publishes.
 
     This channel is where all output is published to frontends.
     """
-
-    def __init__(self, socket, session):
-        super(QtIOPubChannel, self).__init__(socket, session)
-        self.ioloop = ioloop.IOLoop()
-
-    def run(self):
-        """The thread's main activity.  Call start() instead."""
-        self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
-        self.stream.on_recv(self._handle_recv)
-        self._run_loop()
 
     def flush(self, timeout=1.0):
         """Immediately processes all pending messages on the iopub channel.
@@ -276,27 +242,7 @@ class QtIOPubChannel(QtZMQSocketChannel):
         self.stream.flush()
         self._flushed = True
 
-
-class QtStdInChannel(QtZMQSocketChannel):
-    """The stdin channel to handle raw_input requests that the kernel makes."""
-
-    msg_queue = None
-    proxy_methods = ['input']
-
-    def __init__(self, socket, session):
-        super(QtStdInChannel, self).__init__(socket, session)
-        self.ioloop = ioloop.IOLoop()
-
-    def run(self):
-        """The thread's main activity.  Call start() instead."""
-        self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
-        self.stream.on_recv(self._handle_recv)
-        self._run_loop()
-
-
-ShellChannelABC.register(QtShellChannel)
 IOPubChannelABC.register(QtIOPubChannel)
-StdInChannelABC.register(QtStdInChannel)
 
 
 class QtKernelClient(QtKernelClientMixin, KernelClient):
@@ -313,6 +259,6 @@ class QtKernelClient(QtKernelClientMixin, KernelClient):
             self.shell_channel.message_received.disconnect(self._check_kernel_info_reply)
 
     iopub_channel_class = Type(QtIOPubChannel)
-    shell_channel_class = Type(QtShellChannel)
-    stdin_channel_class = Type(QtStdInChannel)
+    shell_channel_class = Type(QtZMQSocketChannel)
+    stdin_channel_class = Type(QtZMQSocketChannel)
     hb_channel_class = Type(QtHBChannel)
