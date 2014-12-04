@@ -32,35 +32,6 @@ class ShellChannelABC(ChannelABC):
     `IPython.kernel.channels.ShellChannel`
     """
 
-    @abc.abstractproperty
-    def allow_stdin(self):
-        pass
-
-    @abc.abstractmethod
-    def execute(self, code, silent=False, store_history=True,
-                user_expressions=None, allow_stdin=None):
-        pass
-
-    @abc.abstractmethod
-    def complete(self, text, line, cursor_pos, block=None):
-        pass
-
-    @abc.abstractmethod
-    def inspect(self, oname, detail_level=0):
-        pass
-
-    @abc.abstractmethod
-    def history(self, raw=True, output=False, hist_access_type='range', **kwargs):
-        pass
-
-    @abc.abstractmethod
-    def kernel_info(self):
-        pass
-
-    @abc.abstractmethod
-    def shutdown(self, restart=False):
-        pass
-
 
 class IOPubChannelABC(ChannelABC):
     """IOPubChannel ABC.
@@ -83,9 +54,6 @@ class StdInChannelABC(ChannelABC):
     `IPython.kernel.channels.StdInChannel`
     """
 
-    @abc.abstractmethod
-    def input(self, string):
-        pass
 
 
 class HBChannelABC(ChannelABC):

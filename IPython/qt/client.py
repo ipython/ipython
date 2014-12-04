@@ -211,19 +211,6 @@ class QtZMQSocketChannel(SuperQObject, Thread):
 class QtShellChannel(QtZMQSocketChannel):
     """The shell channel for issuing request/replies to the kernel."""
 
-    command_queue = None
-    # flag for whether execute requests should be allowed to call raw_input:
-    allow_stdin = True
-    proxy_methods = [
-        'execute',
-        'complete',
-        'inspect',
-        'history',
-        'kernel_info',
-        'shutdown',
-        'is_complete',
-    ]
-
     # Emitted when a reply has been received for the corresponding request type.
     execute_reply = QtCore.Signal(object)
     complete_reply = QtCore.Signal(object)
@@ -255,156 +242,6 @@ class QtShellChannel(QtZMQSocketChannel):
         if signal:
             signal.emit(msg)
 
-    def execute(self, code, silent=False, store_history=True,
-                user_expressions=None, allow_stdin=None):
-        """Execute code in the kernel.
-
-        Parameters
-        ----------
-        code : str
-            A string of Python code.
-
-        silent : bool, optional (default False)
-            If set, the kernel will execute the code as quietly possible, and
-            will force store_history to be False.
-
-        store_history : bool, optional (default True)
-            If set, the kernel will store command history.  This is forced
-            to be False if silent is True.
-
-        user_expressions : dict, optional
-            A dict mapping names to expressions to be evaluated in the user's
-            dict. The expression values are returned as strings formatted using
-            :func:`repr`.
-
-        allow_stdin : bool, optional (default self.allow_stdin)
-            Flag for whether the kernel can send stdin requests to frontends.
-
-            Some frontends (e.g. the Notebook) do not support stdin requests.
-            If raw_input is called from code executed from such a frontend, a
-            StdinNotImplementedError will be raised.
-
-        Returns
-        -------
-        The msg_id of the message sent.
-        """
-        if user_expressions is None:
-            user_expressions = {}
-        if allow_stdin is None:
-            allow_stdin = self.allow_stdin
-
-
-        # Don't waste network traffic if inputs are invalid
-        if not isinstance(code, string_types):
-            raise ValueError('code %r must be a string' % code)
-        validate_string_dict(user_expressions)
-
-        # Create class for content/msg creation. Related to, but possibly
-        # not in Session.
-        content = dict(code=code, silent=silent, store_history=store_history,
-                       user_expressions=user_expressions,
-                       allow_stdin=allow_stdin,
-                       )
-        msg = self.session.msg('execute_request', content)
-        self._queue_send(msg)
-        return msg['header']['msg_id']
-
-    def complete(self, code, cursor_pos=None):
-        """Tab complete text in the kernel's namespace.
-
-        Parameters
-        ----------
-        code : str
-            The context in which completion is requested.
-            Can be anything between a variable name and an entire cell.
-        cursor_pos : int, optional
-            The position of the cursor in the block of code where the completion was requested.
-            Default: ``len(code)``
-
-        Returns
-        -------
-        The msg_id of the message sent.
-        """
-        if cursor_pos is None:
-            cursor_pos = len(code)
-        content = dict(code=code, cursor_pos=cursor_pos)
-        msg = self.session.msg('complete_request', content)
-        self._queue_send(msg)
-        return msg['header']['msg_id']
-
-    def inspect(self, code, cursor_pos=None, detail_level=0):
-        """Get metadata information about an object in the kernel's namespace.
-
-        It is up to the kernel to determine the appropriate object to inspect.
-
-        Parameters
-        ----------
-        code : str
-            The context in which info is requested.
-            Can be anything between a variable name and an entire cell.
-        cursor_pos : int, optional
-            The position of the cursor in the block of code where the info was requested.
-            Default: ``len(code)``
-        detail_level : int, optional
-            The level of detail for the introspection (0-2)
-
-        Returns
-        -------
-        The msg_id of the message sent.
-        """
-        if cursor_pos is None:
-            cursor_pos = len(code)
-        content = dict(code=code, cursor_pos=cursor_pos,
-            detail_level=detail_level,
-        )
-        msg = self.session.msg('inspect_request', content)
-        self._queue_send(msg)
-        return msg['header']['msg_id']
-
-    def history(self, raw=True, output=False, hist_access_type='range', **kwargs):
-        """Get entries from the kernel's history list.
-
-        Parameters
-        ----------
-        raw : bool
-            If True, return the raw input.
-        output : bool
-            If True, then return the output as well.
-        hist_access_type : str
-            'range' (fill in session, start and stop params), 'tail' (fill in n)
-             or 'search' (fill in pattern param).
-
-        session : int
-            For a range request, the session from which to get lines. Session
-            numbers are positive integers; negative ones count back from the
-            current session.
-        start : int
-            The first line number of a history range.
-        stop : int
-            The final (excluded) line number of a history range.
-
-        n : int
-            The number of lines of history to get for a tail request.
-
-        pattern : str
-            The glob-syntax pattern for a search request.
-
-        Returns
-        -------
-        The msg_id of the message sent.
-        """
-        content = dict(raw=raw, output=output, hist_access_type=hist_access_type,
-                                                                    **kwargs)
-        msg = self.session.msg('history_request', content)
-        self._queue_send(msg)
-        return msg['header']['msg_id']
-
-    def kernel_info(self):
-        """Request kernel info."""
-        msg = self.session.msg('kernel_info_request')
-        self._queue_send(msg)
-        return msg['header']['msg_id']
-
     def _handle_kernel_info_reply(self, msg):
         """handle kernel info reply
 
@@ -413,28 +250,6 @@ class QtShellChannel(QtZMQSocketChannel):
         adapt_version = int(msg['content']['protocol_version'].split('.')[0])
         if adapt_version != major_protocol_version:
             self.session.adapt_version = adapt_version
-
-    def shutdown(self, restart=False):
-        """Request an immediate kernel shutdown.
-
-        Upon receipt of the (empty) reply, client code can safely assume that
-        the kernel has shut down and it's safe to forcefully terminate it if
-        it's still alive.
-
-        The kernel will send the reply via a function registered with Python's
-        atexit module, ensuring it's truly done as the kernel is done with all
-        normal operation.
-        """
-        # Send quit message to kernel. Once we implement kernel-side setattr,
-        # this should probably be done that way, but for now this will do.
-        msg = self.session.msg('shutdown_request', {'restart':restart})
-        self._queue_send(msg)
-        return msg['header']['msg_id']
-
-    def is_complete(self, code):
-        msg = self.session.msg('is_complete_request', {'code': code})
-        self._queue_send(msg)
-        return msg['header']['msg_id']
 
 
 class QtIOPubChannel(QtZMQSocketChannel):
@@ -542,11 +357,6 @@ class QtStdInChannel(QtZMQSocketChannel):
         if msg_type == 'input_request':
             self.input_requested.emit(msg)
 
-    def input(self, string):
-        """Send a string of raw input to the kernel."""
-        content = dict(value=string)
-        msg = self.session.msg('input_reply', content)
-        self._queue_send(msg)
 
 ShellChannelABC.register(QtShellChannel)
 IOPubChannelABC.register(QtIOPubChannel)
