@@ -69,6 +69,21 @@ def default_aliases():
                           # things which are executable
                           ('lx', 'ls -F -o --color %l | grep ^-..x'),
                           ]
+        elif sys.platform.startswith('openbsd') or sys.platform.startswith('netbsd'):
+            # OpenBSD, NetBSD. The ls implementation on these platforms do not support
+            # the -G switch and lack the ability to use colorized output.
+            ls_aliases = [('ls', 'ls -F'),
+                          # long ls
+                          ('ll', 'ls -F -l'),
+                          # ls normal files only
+                          ('lf', 'ls -F -l %l | grep ^-'),
+                          # ls symbolic links
+                          ('lk', 'ls -F -l %l | grep ^l'),
+                          # directories or links to directories,
+                          ('ldir', 'ls -F -l %l | grep /$'),
+                          # things which are executable
+                          ('lx', 'ls -F -l %l | grep ^-..x'),
+                          ]
         else:
             # BSD, OSX, etc.
             ls_aliases = [('ls', 'ls -F -G'),

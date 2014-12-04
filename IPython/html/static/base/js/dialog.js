@@ -4,7 +4,8 @@
 define([
     'base/js/namespace',
     'jquery',
-], function(IPython, $) {
+    'codemirror/lib/codemirror',
+], function(IPython, $, CodeMirror) {
     "use strict";
     
     var modal = function (options) {
@@ -90,6 +91,17 @@ define([
         return modal.modal(options);
     };
 
+    var kernel_modal = function (options) {
+        /**
+         * only one kernel dialog should be open at a time -- but
+         * other modal dialogs can still be open
+         */
+        $('.kernel-modal').modal('hide');
+        var dialog = modal(options);
+        dialog.addClass('kernel-modal');
+        return dialog;
+    };
+
     var edit_metadata = function (options) {
         options.name = options.name || "Cell";
         var error_div = $('<div/>').css('color', 'red');
@@ -130,7 +142,9 @@ define([
             buttons: {
                 OK: { class : "btn-primary",
                     click: function() {
-                        // validate json and set it
+                        /**
+                         * validate json and set it
+                         */
                         var new_md;
                         try {
                             new_md = JSON.parse(editor.getValue());
@@ -153,6 +167,7 @@ define([
     
     var dialog = {
         modal : modal,
+        kernel_modal : kernel_modal,
         edit_metadata : edit_metadata,
     };
 

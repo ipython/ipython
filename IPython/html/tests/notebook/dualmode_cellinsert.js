@@ -52,12 +52,12 @@ casper.notebook_test(function () {
     
     this.then(function () {
         this.select_cell(2);
-        this.trigger_keydown('1'); // switch it to heading for the next test
-        this.test.assertEquals(this.get_cell(2).cell_type, 'heading', 'test cell is heading');
+        this.trigger_keydown('y'); // switch it to code for the next test
+        this.test.assertEquals(this.get_cell(2).cell_type, 'code', 'test cell is code');
         this.trigger_keydown('b'); // new cell below
-        this.test.assertEquals(this.get_cell(3).cell_type, 'heading', 'b; inserts a heading cell below heading cell');
+        this.test.assertEquals(this.get_cell(3).cell_type, 'code', 'b; inserts a code cell below code cell');
         this.trigger_keydown('a'); // new cell above
-        this.test.assertEquals(this.get_cell(3).cell_type, 'heading', 'a; inserts a heading cell below heading cell');
+        this.test.assertEquals(this.get_cell(3).cell_type, 'code', 'a; inserts a code cell above code cell');
     });
     
     this.thenEvaluate(function() {
@@ -72,6 +72,6 @@ casper.notebook_test(function () {
         this.test.assertEquals(this.get_cell(2).cell_type, 'raw', 'a; inserts a raw cell above raw cell');
         this.trigger_keydown('y'); // switch it to code for the next test
         this.trigger_keydown('b'); // new cell below
-        this.test.assertEquals(this.get_cell(3).cell_type, 'raw', 'b; inserts a raw cell above raw cell');
+        this.test.assertEquals(this.get_cell(3).cell_type, 'raw', 'b; inserts a raw cell below raw cell');
     });
 });

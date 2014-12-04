@@ -722,15 +722,23 @@ class VerboseTB(TBTools):
             #print '*** record:',file,lnum,func,lines,index  # dbg
             if not file:
                 file = '?'
-            elif not (file.startswith(str("<")) and file.endswith(str(">"))):
-                # Guess that filenames like <string> aren't real filenames, so
-                # don't call abspath on them.
-                try:
-                    file = abspath(file)
-                except OSError:
-                    # Not sure if this can still happen: abspath now works with
-                    # file names like <string>
-                    pass
+            elif file.startswith(str("<")) and file.endswith(str(">")):
+                # Not a real filename, no problem...
+                pass
+            elif not os.path.isabs(file):
+                # Try to make the filename absolute by trying all
+                # sys.path entries (which is also what linecache does)
+                for dirname in sys.path:
+                    try:
+                        fullname = os.path.join(dirname, file)
+                        if os.path.isfile(fullname):
+                            file = os.path.abspath(fullname)
+                            break
+                    except Exception:
+                        # Just in case that sys.path contains very
+                        # strange entries...
+                        pass
+
             file = py3compat.cast_unicode(file, util_path.fs_encoding)
             link = tpl_link % file
             args, varargs, varkw, locals = inspect.getargvalues(frame)

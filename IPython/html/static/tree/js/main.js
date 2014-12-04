@@ -2,31 +2,38 @@
 // Distributed under the terms of the Modified BSD License.
 
 require([
-    'base/js/namespace',
     'jquery',
+    'base/js/namespace',
+    'base/js/dialog',
     'base/js/events',
     'base/js/page',
     'base/js/utils',
+    'contents',
     'tree/js/notebooklist',
     'tree/js/clusterlist',
     'tree/js/sessionlist',
     'tree/js/kernellist',
+    'tree/js/terminallist',
     'auth/js/loginwidget',
     // only loaded, not used:
     'jqueryui',
     'bootstrap',
     'custom/custom',
 ], function(
-    IPython, 
-    $, 
+    $,
+    IPython,
+    dialog,
     events,
-    page, 
-    utils, 
+    page,
+    utils,
+    contents_service,
     notebooklist, 
     clusterlist, 
     sesssionlist, 
-    kernellist, 
+    kernellist,
+    terminallist,
     loginwidget){
+    "use strict";
 
     page = new page.Page();
     
@@ -34,20 +41,45 @@ require([
         base_url: utils.get_body_data("baseUrl"),
         notebook_path: utils.get_body_data("notebookPath"),
     };
-    session_list = new sesssionlist.SesssionList($.extend({
+    var session_list = new sesssionlist.SesssionList($.extend({
         events: events}, 
         common_options));
-    notebook_list = new notebooklist.NotebookList('#notebook_list', $.extend({
+    var contents = new contents_service.Contents($.extend({
+        events: events},
+        common_options));
+    var notebook_list = new notebooklist.NotebookList('#notebook_list', $.extend({
+        contents: contents,
         session_list:  session_list}, 
         common_options));
-    cluster_list = new clusterlist.ClusterList('#cluster_list', common_options);
-    kernel_list = new kernellist.KernelList('#running_list',  $.extend({
+    var cluster_list = new clusterlist.ClusterList('#cluster_list', common_options);
+    var kernel_list = new kernellist.KernelList('#running_list',  $.extend({
         session_list:  session_list}, 
         common_options));
-    login_widget = new loginwidget.LoginWidget('#login_widget', common_options);
+    
+    var terminal_list;
+    if (utils.get_body_data("terminalsAvailable") === "True") {
+        terminal_list = new terminallist.TerminalList('#terminal_list', common_options);
+    }
+
+    var login_widget = new loginwidget.LoginWidget('#login_widget', common_options);
 
     $('#new_notebook').click(function (e) {
-        notebook_list.new_notebook();
+        var w = window.open();
+        contents.new_untitled(common_options.notebook_path, {type: "notebook"}).then(
+                function (data) {
+                    w.location = utils.url_join_encode(
+                            common_options.base_url, 'notebooks', data.path
+                        );
+                },
+                function(error) {
+                    w.close();
+                    dialog.modal({
+                        title : 'Creating Notebook Failed',
+                        body : "The error was: " + error.message,
+                        buttons : {'OK' : {'class' : 'btn-primary'}}
+                    });
+                }
+            );
     });
 
     var interval_id=0;
@@ -56,13 +88,21 @@ require([
     var time_refresh = 60; // in sec
 
     var enable_autorefresh = function(){
-        //refresh immediately , then start interval
+        /**
+         *refresh immediately , then start interval
+         */
         session_list.load_sessions();
         cluster_list.load_list();
+	if (terminal_list) {
+	    terminal_list.load_terminals();
+	}
         if (!interval_id){
             interval_id = setInterval(function(){
                     session_list.load_sessions();
                     cluster_list.load_list();
+		    if (terminal_list) {
+		        terminal_list.load_terminals();
+		    }
                 }, time_refresh*1000);
             }
     };
@@ -111,5 +151,4 @@ require([
     if (window.location.hash) {
         $("#tabs").find("a[href=" + window.location.hash + "]").click();
     }
-
 });

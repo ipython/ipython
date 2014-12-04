@@ -176,7 +176,7 @@ class ZMQSocketChannel(Thread):
         Unpacks message, and calls handlers with it.
         """
         ident,smsg = self.session.feed_identities(msg)
-        msg = self.session.unserialize(smsg)
+        msg = self.session.deserialize(smsg)
         self.call_handlers(msg)
 
 
@@ -194,6 +194,7 @@ class ShellChannel(ZMQSocketChannel):
         'history',
         'kernel_info',
         'shutdown',
+        'is_complete',
     ]
 
     def __init__(self, context, session, address):
@@ -396,6 +397,10 @@ class ShellChannel(ZMQSocketChannel):
         self._queue_send(msg)
         return msg['header']['msg_id']
 
+    def is_complete(self, code):
+        msg = self.session.msg('is_complete_request', {'code': code})
+        self._queue_send(msg)
+        return msg['header']['msg_id']
 
 
 class IOPubChannel(ZMQSocketChannel):

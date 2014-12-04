@@ -61,3 +61,34 @@ div.prompt:empty {
     padding-top: 0;
     padding-bottom: 0;
 }
+
+div.unrecognized_cell {
+    // from text_cell
+    padding: 5px 5px 5px 0px;
+    .hbox();
+    
+    .inner_cell {
+        .border-radius(@border-radius-base);
+        padding: 5px;
+        font-weight: bold;
+        color: red;
+        border: 1px solid @light_border_color;
+        background: darken(@cell_background, 5%);
+        // remove decoration from link
+        a {
+            color: inherit;
+            text-decoration: none;
+
+            &:hover {
+                color: inherit;
+                text-decoration: none;
+            }
+        }
+    }
+}
+@media (max-width: 480px) {
+    // remove prompt indentation on small screens
+    div.unrecognized_cell > div.prompt {
+        display: none;
+    }
+}

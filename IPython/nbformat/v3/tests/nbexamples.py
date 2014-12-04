@@ -13,12 +13,11 @@ from ..nbbase import (
 png = encodestring(os.urandom(5)).decode('ascii')
 jpeg = encodestring(os.urandom(6)).decode('ascii')
 
-ws = new_worksheet(name='worksheet1')
+ws = new_worksheet()
 
 ws.cells.append(new_text_cell(
     u'html',
     source='Some NumPy Examples',
-    rendered='Some NumPy Examples'
 ))
 
 
@@ -31,7 +30,6 @@ ws.cells.append(new_code_cell(
 ws.cells.append(new_text_cell(
     u'markdown',
     source='A random array',
-    rendered='A random array'
 ))
 
 ws.cells.append(new_text_cell(
@@ -70,7 +68,7 @@ ws.cells.append(new_code_cell(
         output_png=png,
         output_jpeg=jpeg,
         output_svg=u'<svg>',
-        output_json=u'json data',
+        output_json=u'{"json": "data"}',
         output_javascript=u'var i=0;',
         prompt_number=3
     ),new_output(
@@ -81,7 +79,7 @@ ws.cells.append(new_code_cell(
         output_png=png,
         output_jpeg=jpeg,
         output_svg=u'<svg>',
-        output_json=u'json data',
+        output_json=u'{"json": "data"}',
         output_javascript=u'var i=0;'
     ),new_output(
         output_type=u'pyerr',
@@ -104,7 +102,7 @@ md = new_metadata(name=u'My Notebook',license=u'BSD',created=u'8601_goes_here',
     modified=u'8601_goes_here',gistid=u'21341231',authors=authors)
 
 nb0 = new_notebook(
-    worksheets=[ws, new_worksheet(name='worksheet2')],
+    worksheets=[ws, new_worksheet()],
     metadata=md
 )
 

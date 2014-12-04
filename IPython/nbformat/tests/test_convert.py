@@ -1,30 +1,18 @@
-"""
-Contains tests class for convert.py
-"""
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+"""Tests for nbformat.convert"""
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from .base import TestsBase
 
-from ..convert import convert
+from ..converter import convert
 from ..reader import read, get_version
-from ..current import current_nbformat
+from .. import current_nbformat
 
-#-----------------------------------------------------------------------------
-# Classes and functions
-#-----------------------------------------------------------------------------
 
 class TestConvert(TestsBase):
 
-    def test_downgrade(self):
+    def test_downgrade_3_2(self):
         """Do notebook downgrades work?"""
 
         # Open a version 3 notebook and attempt to downgrade it to version 2.
@@ -37,7 +25,7 @@ class TestConvert(TestsBase):
         self.assertEqual(major, 2)
 
 
-    def test_upgrade(self):
+    def test_upgrade_2_3(self):
         """Do notebook upgrades work?"""
 
         # Open a version 2 notebook and attempt to upgrade it to version 3.

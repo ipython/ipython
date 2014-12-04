@@ -9,17 +9,19 @@ define([
     "use strict";
 
     var CellToolbar = function (options) {
-        // Constructor
-        //
-        // Parameters:
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance 
-        //          cell: Cell instance
-        //          notebook: Notebook instance 
-        //
-        //  TODO: This leaks, when cell are deleted
-        //  There is still a reference to each celltoolbars. 
+        /**
+         * Constructor
+         *
+         * Parameters:
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          events: $(Events) instance 
+         *          cell: Cell instance
+         *          notebook: Notebook instance 
+         *
+         *  TODO: This leaks, when cell are deleted
+         *  There is still a reference to each celltoolbars.
+         */
         CellToolbar._instances.push(this);
         this.notebook = options.notebook;
         this.cell = options.cell;
@@ -114,7 +116,7 @@ define([
      * @param name {String} name to use to refer to the callback. It is advised to use a prefix with the name
      * for easier sorting and avoid collision
      * @param callback {function(div, cell)} callback that will be called to generate the ui element
-     * @param [cell_types] {List of String|undefined} optional list of cell types. If present the UI element
+     * @param [cell_types] {List_of_String|undefined} optional list of cell types. If present the UI element
      * will be added only to cells of types in the list.
      *
      *
@@ -163,7 +165,7 @@ define([
      * @method register_preset
      * @param name {String} name to use to refer to the preset. It is advised to use a prefix with the name
      * for easier sorting and avoid collision
-     * @param  preset_list {List of String} reverse order of the button in the toolbar. Each String of the list
+     * @param  preset_list {List_of_String} reverse order of the button in the toolbar. Each String of the list
      *          should correspond to a name of a registerd callback.
      *
      * @private
@@ -248,9 +250,11 @@ define([
      * @method rebuild
      */
     CellToolbar.prototype.rebuild = function(){
-        // strip evrything from the div
-        // which is probably inner_element
-        // or this.element.
+        /**
+         * strip evrything from the div
+         * which is probably inner_element
+         * or this.element.
+         */
         this.inner_element.empty();
         this.ui_controls_list = [];
 
@@ -288,8 +292,6 @@ define([
     };
 
 
-    /**
-     */
     CellToolbar.utils = {};
 
 
@@ -385,7 +387,7 @@ define([
      * @method utils.select_ui_generator
      * @static
      *
-     * @param list_list {list of sublist} List of sublist of metadata value and name in the dropdown list.
+     * @param list_list {list_of_sublist} List of sublist of metadata value and name in the dropdown list.
      *        subslit shoud contain 2 element each, first a string that woul be displayed in the dropdown list,
      *        and second the corresponding value to  be passed to setter/return by getter. the corresponding value 
      *        should not be "undefined" or behavior can be unexpected.

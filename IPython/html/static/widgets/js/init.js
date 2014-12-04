@@ -10,6 +10,7 @@ define([
     "widgets/js/widget_float",
     "widgets/js/widget_image",
     "widgets/js/widget_int",
+    "widgets/js/widget_output",
     "widgets/js/widget_selection",
     "widgets/js/widget_selectioncontainer",
     "widgets/js/widget_string",

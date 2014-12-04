@@ -144,7 +144,10 @@ def test_atomic_writing():
         try:
             os.symlink(f1, f2)
             have_symlink = True
-        except (AttributeError, NotImplementedError):
+        except (AttributeError, NotImplementedError, OSError):
+            # AttributeError: Python doesn't support it
+            # NotImplementedError: The system doesn't support it
+            # OSError: The user lacks the privilege (Windows)
             have_symlink = False
 
         with nt.assert_raises(CustomExc):
@@ -173,3 +176,40 @@ def test_atomic_writing():
             
             with stdlib_io.open(f1, 'r') as f:
                 nt.assert_equal(f.read(), u'written from symlink')
+
+def test_atomic_writing_newlines():
+    with TemporaryDirectory() as td:
+        path = os.path.join(td, 'testfile')
+        
+        lf = u'a\nb\nc\n'
+        plat = lf.replace(u'\n', os.linesep)
+        crlf = lf.replace(u'\n', u'\r\n')
+        
+        # test default
+        with stdlib_io.open(path, 'w') as f:
+            f.write(lf)
+        with stdlib_io.open(path, 'r', newline='') as f:
+            read = f.read()
+        nt.assert_equal(read, plat)
+        
+        # test newline=LF
+        with stdlib_io.open(path, 'w', newline='\n') as f:
+            f.write(lf)
+        with stdlib_io.open(path, 'r', newline='') as f:
+            read = f.read()
+        nt.assert_equal(read, lf)
+        
+        # test newline=CRLF
+        with atomic_writing(path, newline='\r\n') as f:
+            f.write(lf)
+        with stdlib_io.open(path, 'r', newline='') as f:
+            read = f.read()
+        nt.assert_equal(read, crlf)
+        
+        # test newline=no convert
+        text = u'crlf\r\ncr\rlf\n'
+        with atomic_writing(path, newline='') as f:
+            f.write(text)
+        with stdlib_io.open(path, 'r', newline='') as f:
+            read = f.read()
+        nt.assert_equal(read, text)

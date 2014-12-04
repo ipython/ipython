@@ -5,6 +5,7 @@ _build
 docs/man/*.gz
 docs/source/api/generated
 docs/source/config/options
+docs/source/interactive/magics-generated.txt
 docs/gh-pages
 IPython/html/notebook/static/mathjax
 IPython/html/static/style/*.map
@@ -16,3 +17,6 @@ __pycache__
 .ipynb_checkpoints
 .tox
 .DS_Store
+\#*#
+.#*
+.coverage

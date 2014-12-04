@@ -11,14 +11,16 @@ define([
     var platform = utils.platform;
 
     var QuickHelp = function (options) {
-        // Constructor
-        //
-        // Parameters:
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance
-        //          keyboard_manager: KeyboardManager instance
-        //          notebook: Notebook instance
+        /**
+         * Constructor
+         *
+         * Parameters:
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          events: $(Events) instance
+         *          keyboard_manager: KeyboardManager instance
+         *          notebook: Notebook instance
+         */
         this.keyboard_manager = options.keyboard_manager;
         this.notebook = options.notebook;
         this.keyboard_manager.quick_help = this;
@@ -34,10 +36,10 @@ define([
         platform_specific = [
             { shortcut: "Cmd-Up",     help:"go to cell start"  },
             { shortcut: "Cmd-Down",   help:"go to cell end"  },
-            { shortcut: "Opt-Left",   help:"go one word left"  },
-            { shortcut: "Opt-Right",  help:"go one word right"  },
-            { shortcut: "Opt-Backspace",      help:"del word before"  },
-            { shortcut: "Opt-Delete",         help:"del word after"  },
+            { shortcut: "Alt-Left",   help:"go one word left"  },
+            { shortcut: "Alt-Right",  help:"go one word right"  },
+            { shortcut: "Alt-Backspace",      help:"del word before"  },
+            { shortcut: "Alt-Delete",         help:"del word after"  },
         ];
     } else {
         // PC specific
@@ -65,12 +67,10 @@ define([
     ].concat( platform_specific );
 
 
-
-      
-
-
     QuickHelp.prototype.show_keyboard_shortcuts = function () {
-        // toggles display of keyboard shortcut dialog
+        /**
+         * toggles display of keyboard shortcut dialog
+         */
         var that = this;
         if ( this.force_rebuild ) {
             this.shortcut_dialog.remove();
@@ -139,7 +139,9 @@ define([
                 keys[i] = "<code><strong>" + k + "</strong></code>";
                 continue; // leave individual keys lower-cased
             }
-            keys[i] = ( special_case[k] ? special_case[k] : k.charAt(0).toUpperCase() + k.slice(1) );
+            if (k.indexOf(',') === -1){
+                keys[i] = ( special_case[k] ? special_case[k] : k.charAt(0).toUpperCase() + k.slice(1) );
+            }
             keys[i] = "<code><strong>" + keys[i] + "</strong></code>";
         }
         return keys.join('-');

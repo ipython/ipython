@@ -5,14 +5,16 @@
 
 import json
 import logging
-from tornado import web
+from tornado import gen, web
+from tornado.concurrent import Future
+from tornado.ioloop import IOLoop
 
 from IPython.utils.jsonutil import date_default
-from IPython.utils.py3compat import string_types
+from IPython.utils.py3compat import cast_unicode
 from IPython.html.utils import url_path_join, url_escape
 
 from ...base.handlers import IPythonHandler, json_errors
-from ...base.zmqhandlers import AuthenticatedZMQStreamHandler
+from ...base.zmqhandlers import AuthenticatedZMQStreamHandler, deserialize_binary_message
 
 from IPython.core.release import kernel_protocol_version
 
@@ -27,16 +29,16 @@ class MainKernelHandler(IPythonHandler):
     @web.authenticated
     @json_errors
     def post(self):
+        km = self.kernel_manager
         model = self.get_json_body()
         if model is None:
-            raise web.HTTPError(400, "No JSON data provided")
-        try:
-            name = model['name']
-        except KeyError:
-            raise web.HTTPError(400, "Missing field in JSON data: name")
+            model = {
+                'name': km.default_kernel_name
+            }
+        else:
+            model.setdefault('name', km.default_kernel_name)
 
-        km = self.kernel_manager
-        kernel_id = km.start_kernel(kernel_name=name)
+        kernel_id = km.start_kernel(kernel_name=model['name'])
         model = km.kernel_model(kernel_id)
         location = url_path_join(self.base_url, 'api', 'kernels', kernel_id)
         self.set_header('Location', url_escape(location))
@@ -84,6 +86,10 @@ class KernelActionHandler(IPythonHandler):
 
 class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
     
+    @property
+    def kernel_info_timeout(self):
+        return self.settings.get('kernel_info_timeout', 10)
+    
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, getattr(self, 'kernel_id', 'uninitialized'))
     
@@ -91,17 +97,29 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
         km = self.kernel_manager
         meth = getattr(km, 'connect_%s' % self.channel)
         self.zmq_stream = meth(self.kernel_id, identity=self.session.bsession)
-        # Create a kernel_info channel to query the kernel protocol version.
-        # This channel will be closed after the kernel_info reply is received.
-        self.kernel_info_channel = None
-        self.kernel_info_channel = km.connect_shell(self.kernel_id)
-        self.kernel_info_channel.on_recv(self._handle_kernel_info_reply)
-        self._request_kernel_info()
     
-    def _request_kernel_info(self):
+    def request_kernel_info(self):
         """send a request for kernel_info"""
-        self.log.debug("requesting kernel info")
-        self.session.send(self.kernel_info_channel, "kernel_info_request")
+        km = self.kernel_manager
+        kernel = km.get_kernel(self.kernel_id)
+        try:
+            # check for previous request
+            future = kernel._kernel_info_future
+        except AttributeError:
+            self.log.debug("Requesting kernel info from %s", self.kernel_id)
+            # Create a kernel_info channel to query the kernel protocol version.
+            # This channel will be closed after the kernel_info reply is received.
+            if self.kernel_info_channel is None:
+                self.kernel_info_channel = km.connect_shell(self.kernel_id)
+            self.kernel_info_channel.on_recv(self._handle_kernel_info_reply)
+            self.session.send(self.kernel_info_channel, "kernel_info_request")
+            # store the future on the kernel, so only one request is sent
+            kernel._kernel_info_future = self._kernel_info_future
+        else:
+            if not future.done():
+                self.log.debug("Waiting for pending kernel_info request")
+            future.add_done_callback(lambda f: self._finish_kernel_info(f.result()))
+        return self._kernel_info_future
     
     def _handle_kernel_info_reply(self, msg):
         """process the kernel_info_reply
@@ -110,35 +128,75 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
         """
         idents,msg = self.session.feed_identities(msg)
         try:
-            msg = self.session.unserialize(msg)
+            msg = self.session.deserialize(msg)
         except:
             self.log.error("Bad kernel_info reply", exc_info=True)
-            self._request_kernel_info()
+            self._kernel_info_future.set_result({})
             return
         else:
-            if msg['msg_type'] != 'kernel_info_reply' or 'protocol_version' not in msg['content']:
-                self.log.error("Kernel info request failed, assuming current %s", msg['content'])
-            else:
-                protocol_version = msg['content']['protocol_version']
-                if protocol_version != kernel_protocol_version:
-                    self.session.adapt_version = int(protocol_version.split('.')[0])
-                    self.log.info("adapting kernel to %s" % protocol_version)
-        self.kernel_info_channel.close()
+            info = msg['content']
+            self.log.debug("Received kernel info: %s", info)
+            if msg['msg_type'] != 'kernel_info_reply' or 'protocol_version' not in info:
+                self.log.error("Kernel info request failed, assuming current %s", info)
+                info = {}
+            self._finish_kernel_info(info)
+        
+        # close the kernel_info channel, we don't need it anymore
+        if self.kernel_info_channel:
+            self.kernel_info_channel.close()
         self.kernel_info_channel = None
     
+    def _finish_kernel_info(self, info):
+        """Finish handling kernel_info reply
+        
+        Set up protocol adaptation, if needed,
+        and signal that connection can continue.
+        """
+        protocol_version = info.get('protocol_version', kernel_protocol_version)
+        if protocol_version != kernel_protocol_version:
+            self.session.adapt_version = int(protocol_version.split('.')[0])
+            self.log.info("Kernel %s speaks protocol %s", self.kernel_id, protocol_version)
+        if not self._kernel_info_future.done():
+            self._kernel_info_future.set_result(info)
     
-    def initialize(self, *args, **kwargs):
+    def initialize(self):
+        super(ZMQChannelHandler, self).initialize()
         self.zmq_stream = None
+        self.kernel_id = None
+        self.kernel_info_channel = None
+        self._kernel_info_future = Future()
     
-    def on_first_message(self, msg):
-        try:
-            super(ZMQChannelHandler, self).on_first_message(msg)
-        except web.HTTPError:
-            self.close()
-            return
+    @gen.coroutine
+    def pre_get(self):
+        # authenticate first
+        super(ZMQChannelHandler, self).pre_get()
+        # then request kernel info, waiting up to a certain time before giving up.
+        # We don't want to wait forever, because browsers don't take it well when
+        # servers never respond to websocket connection requests.
+        future = self.request_kernel_info()
+        
+        def give_up():
+            """Don't wait forever for the kernel to reply"""
+            if future.done():
+                return
+            self.log.warn("Timeout waiting for kernel_info reply from %s", self.kernel_id)
+            future.set_result({})
+        loop = IOLoop.current()
+        loop.add_timeout(loop.time() + self.kernel_info_timeout, give_up)
+        # actually wait for it
+        yield future
+    
+    @gen.coroutine
+    def get(self, kernel_id):
+        self.kernel_id = cast_unicode(kernel_id, 'ascii')
+        yield super(ZMQChannelHandler, self).get(kernel_id=kernel_id)
+    
+    def open(self, kernel_id):
+        super(ZMQChannelHandler, self).open()
         try:
             self.create_stream()
-        except web.HTTPError:
+        except web.HTTPError as e:
+            self.log.error("Error opening stream: %s", e)
             # WebSockets don't response to traditional error codes so we
             # close the connection.
             if not self.stream.closed():
@@ -154,7 +212,10 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
             self.log.info("%s closed, closing websocket.", self)
             self.close()
             return
-        msg = json.loads(msg)
+        if isinstance(msg, bytes):
+            msg = deserialize_binary_message(msg)
+        else:
+            msg = json.loads(msg)
         self.session.send(self.zmq_stream, msg)
 
     def on_close(self):

@@ -95,9 +95,6 @@ commented; the minimum set you need to uncomment and edit is the following::
 
      c = get_config()
 
-     # Kernel config
-     c.IPKernelApp.pylab = 'inline'  # if you want plotting support always
-
      # Notebook config
      c.NotebookApp.certfile = u'/absolute/path/to/your/certificate/mycert.pem'
      c.NotebookApp.ip = '*'
@@ -109,6 +106,18 @@ commented; the minimum set you need to uncomment and edit is the following::
 You can then start the notebook and access it later by pointing your browser 
 to ``https://your.host.com:9999`` with ``ipython notebook 
 --profile=nbserver``.
+
+
+Firewall Setup
+``````````````
+
+To function correctly, the firewall on the computer running the ipython server must be 
+configured to allow connections from client machines on the ``c.NotebookApp.port``
+port to allow connections to the web interface.  The firewall must also allow 
+connections from 127.0.0.1 (localhost) on ports from 49152 to 65535.
+These ports are used by the server to communicate with the notebook kernels.  
+The kernel communication ports are chosen randomly by ZeroMQ, and may require 
+multiple connections per kernel, so a large range of ports must be accessible.
 
 Running with a different URL prefix
 -----------------------------------

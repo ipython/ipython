@@ -172,3 +172,19 @@ input.raw_input:focus {
 p.p-space {
     margin-bottom: 10px;
 }
+
+div.output_unrecognized {
+  padding: 5px;
+  font-weight: bold;
+  color: red;
+  // remove decoration from link
+  a {
+      color: inherit;
+      text-decoration: none;
+
+      &:hover {
+          color: inherit;
+          text-decoration: none;
+      }
+  }
+}

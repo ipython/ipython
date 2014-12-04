@@ -103,11 +103,6 @@ MAIN FEATURES
   If you just want to see an object's docstring, type '%pdoc object' (without
   quotes, and without % if you have automagic on).
 
-  Both %pdoc and ?/?? give you access to documentation even on things which are
-  not explicitely defined. Try for example typing {}.get? or after import os,
-  type os.path.abspath??. The magic functions %pdef, %source and %file operate
-  similarly.
-
 * Completion in the local namespace, by typing TAB at the prompt.
 
   At any time, hitting tab will complete any available python commands or

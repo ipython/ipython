@@ -27,7 +27,7 @@ from IPython.utils.capture import RichOutput
 from IPython.utils.coloransi import TermColors
 from IPython.utils.jsonutil import rekey, extract_dates, parse_date
 from IPython.utils.localinterfaces import localhost, is_local_ip
-from IPython.utils.path import get_ipython_dir
+from IPython.utils.path import get_ipython_dir, compress_user
 from IPython.utils.py3compat import cast_bytes, string_types, xrange, iteritems
 from IPython.utils.traitlets import (HasTraits, Integer, Instance, Unicode,
                                     Dict, List, Bool, Set, Any)
@@ -47,6 +47,7 @@ from .view import DirectView, LoadBalancedView
 # Decorators for Client methods
 #--------------------------------------------------------------------------
 
+
 @decorator
 def spin_first(f, self, *args, **kwargs):
     """Call spin() to sync state prior to calling the method."""
@@ -58,6 +59,10 @@ def spin_first(f, self, *args, **kwargs):
 # Classes
 #--------------------------------------------------------------------------
 
+_no_connection_file_msg = """
+Failed to connect because no Controller could be found.
+Please double-check your profile and ensure that a cluster is running.
+"""
 
 class ExecuteReply(RichOutput):
     """wrapper for finished Execute results"""
@@ -382,6 +387,11 @@ class Client(HasTraits):
 
         self._setup_profile_dir(self.profile, profile_dir, ipython_dir)
         
+        no_file_msg = '\n'.join([
+        "You have attempted to connect to an IPython Cluster but no Controller could be found.",
+        "Please double-check your configuration and ensure that a cluster is running.",
+        ])
+        
         if self._cd is not None:
             if url_file is None:
                 if not cluster_id:
@@ -389,10 +399,19 @@ class Client(HasTraits):
                 else:
                     client_json = 'ipcontroller-%s-client.json' % cluster_id
                 url_file = pjoin(self._cd.security_dir, client_json)
+                if not os.path.exists(url_file):
+                    msg = '\n'.join([
+                        "Connection file %r not found." % compress_user(url_file),
+                        no_file_msg,
+                    ])
+                    raise IOError(msg)
         if url_file is None:
-            raise ValueError(
-                "I can't find enough information to connect to a hub!"
-                " Please specify at least one of url_file or profile."
+            raise IOError(no_file_msg)
+        
+        if not os.path.exists(url_file):
+            # Connection file explicitly specified, but not found
+            raise IOError("Connection file %r not found. Is a controller running?" % \
+                compress_user(url_file)
             )
         
         with open(url_file) as f:
@@ -782,7 +801,7 @@ class Client(HasTraits):
 
         # construct result:
         if content['status'] == 'ok':
-            self.results[msg_id] = serialize.unserialize_object(msg['buffers'])[0]
+            self.results[msg_id] = serialize.deserialize_object(msg['buffers'])[0]
         elif content['status'] == 'aborted':
             self.results[msg_id] = error.TaskAborted(msg_id)
         elif content['status'] == 'resubmitted':
@@ -874,7 +893,7 @@ class Client(HasTraits):
             if msg_type == 'stream':
                 name = content['name']
                 s = md[name] or ''
-                md[name] = s + content['data']
+                md[name] = s + content['text']
             elif msg_type == 'error':
                 md.update({'error' : self._unwrap_exception(content)})
             elif msg_type == 'execute_input':
@@ -884,7 +903,7 @@ class Client(HasTraits):
             elif msg_type == 'execute_result':
                 md['execute_result'] = content
             elif msg_type == 'data_message':
-                data, remainder = serialize.unserialize_object(msg['buffers'])
+                data, remainder = serialize.deserialize_object(msg['buffers'])
                 md['data'].update(data)
             elif msg_type == 'status':
                 # idle message comes after all outputs
@@ -1593,7 +1612,7 @@ class Client(HasTraits):
                 
                 if rcontent['status'] == 'ok':
                     if header['msg_type'] == 'apply_reply':
-                        res,buffers = serialize.unserialize_object(buffers)
+                        res,buffers = serialize.deserialize_object(buffers)
                     elif header['msg_type'] == 'execute_reply':
                         res = ExecuteReply(msg_id, rcontent, md)
                     else:

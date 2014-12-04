@@ -252,12 +252,6 @@ needs_setuptools = set(('develop', 'release', 'bdist_egg', 'bdist_rpm',
            'bdist', 'bdist_dumb', 'bdist_wininst', 'bdist_wheel',
            'egg_info', 'easy_install', 'upload', 'install_egg_info',
             ))
-if sys.platform == 'win32':
-    # Depend on setuptools for install on *Windows only*
-    # If we get script-installation working without setuptools,
-    # then we can back off, but until then use it.
-    # See Issue #369 on GitHub for more
-    needs_setuptools.add('install')
 
 if len(needs_setuptools.intersection(sys.argv)) > 0:
     import setuptools
@@ -273,10 +267,10 @@ extras_require = dict(
     qtconsole = ['pyzmq>=2.1.11', 'pygments'],
     zmq = ['pyzmq>=2.1.11'],
     doc = ['Sphinx>=1.1', 'numpydoc'],
-    test = ['nose>=0.10.1'],
+    test = ['nose>=0.10.1', 'requests'],
     terminal = [],
-    nbformat = ['jsonschema>=2.0', 'jsonpointer>=1.3'],
-    notebook = ['tornado>=3.1', 'pyzmq>=2.1.11', 'jinja2', 'pygments', 'mistune>=0.3.1'],
+    nbformat = ['jsonschema>=2.0'],
+    notebook = ['tornado>=4.0', 'pyzmq>=2.1.11', 'jinja2', 'pygments', 'mistune>=0.3.1'],
     nbconvert = ['pygments', 'jinja2', 'mistune>=0.3.1']
 )
 
@@ -295,7 +289,7 @@ install_requires = []
 
 # add readline
 if sys.platform == 'darwin':
-    if any(arg.startswith('bdist') for arg in sys.argv) or not setupext.check_for_readline():
+    if 'bdist_wheel' in sys.argv[1:] or not setupext.check_for_readline():
         install_requires.append('gnureadline')
 elif sys.platform.startswith('win'):
     extras_require['terminal'].append('pyreadline>=2.0')

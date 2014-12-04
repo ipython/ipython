@@ -261,6 +261,8 @@ class ProfileCreate(BaseIPythonApplication):
         from IPython.terminal.ipapp import TerminalIPythonApp
         apps = [TerminalIPythonApp]
         for app_path in (
+            'IPython.kernel.zmq.kernelapp.IPKernelApp',
+            'IPython.terminal.console.app.ZMQTerminalIPythonApp',
             'IPython.qt.console.qtconsoleapp.IPythonQtConsoleApp',
             'IPython.html.notebookapp.NotebookApp',
             'IPython.nbconvert.nbconvertapp.NbConvertApp',

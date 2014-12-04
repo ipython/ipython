@@ -9,13 +9,15 @@ define([
     "use strict";
 
     var SesssionList = function (options) {
-        // Constructor
-        //
-        // Parameters:
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance
-        //          base_url : string
+        /**
+         * Constructor
+         *
+         * Parameters:
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          events: $(Events) instance
+         *          base_url : string
+         */
         this.events = options.events;
         this.sessions = {};
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
@@ -40,10 +42,7 @@ define([
         var len = data.length;
         var nb_path;
         for (var i=0; i<len; i++) {
-            nb_path = utils.url_path_join(
-                data[i].notebook.path,
-                data[i].notebook.name
-            );
+            nb_path = data[i].notebook.path;
             this.sessions[nb_path] = data[i].id;
         }
         this.events.trigger('sessions_loaded.Dashboard', this.sessions);

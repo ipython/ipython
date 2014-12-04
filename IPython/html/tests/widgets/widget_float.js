@@ -1,26 +1,28 @@
 // Test widget float class
 casper.notebook_test(function () {
-    index = this.append_cell(
-        'from IPython.html import widgets\n' + 
-        'from IPython.display import display, clear_output\n' +
-        'print("Success")');
-    this.execute_cell_then(index);
-
     var float_text = {};
     float_text.query = '.widget-area .widget-subarea .my-second-float-text input';
     float_text.index = this.append_cell(
+        'from IPython.html import widgets\n' + 
+        'from IPython.display import display, clear_output\n' +
         'float_widget = widgets.FloatText()\n' +
         'display(float_widget)\n' + 
         'float_widget._dom_classes = ["my-second-float-text"]\n' + 
         'print(float_widget.model_id)\n');
     this.execute_cell_then(float_text.index, function(index){
         float_text.model_id = this.get_output_cell(index).text.trim();
-        
-        this.test.assert(this.cell_element_exists(index, 
+    });
+
+    // Wait for the widget to actually display.
+    this.wait_for_element(float_text.index, float_text.query);
+
+    // Continue with the tests
+    this.then(function(){        
+        this.test.assert(this.cell_element_exists(float_text.index, 
             '.widget-area .widget-subarea'),
             'Widget subarea exists.');
 
-        this.test.assert(this.cell_element_exists(index, float_text.query),
+        this.test.assert(this.cell_element_exists(float_text.index, float_text.query),
             'Widget float textbox exists.');
 
         this.cell_element_function(float_text.index, float_text.query, 'val', ['']);
@@ -64,18 +66,23 @@ casper.notebook_test(function () {
         '[display(floatrange[i]) for i in range(2)]\n' + 
         'print("Success")\n');
     this.execute_cell_then(slider.index, function(index){
-
         this.test.assertEquals(this.get_output_cell(index).text, 'Success\n', 
             'Create float range cell executed with correct output.');
+    });
 
-        this.test.assert(this.cell_element_exists(index, 
+    // Wait for the widgets to actually display.
+    this.wait_for_element(slider.index, slider.query);
+    this.wait_for_element(slider.index, float_text_query);
+
+    this.then(function(){
+        this.test.assert(this.cell_element_exists(slider.index, 
             '.widget-area .widget-subarea'),
             'Widget subarea exists.');
 
-        this.test.assert(this.cell_element_exists(index, slider.query),
+        this.test.assert(this.cell_element_exists(slider.index, slider.query),
             'Widget slider exists.');
 
-        this.test.assert(this.cell_element_exists(index, float_text_query),
+        this.test.assert(this.cell_element_exists(slider.index, float_text_query),
             'Widget float textbox exists.');
     });
 

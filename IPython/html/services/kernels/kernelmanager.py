@@ -1,20 +1,11 @@
-"""A kernel manager relating notebooks and kernels
+"""A MultiKernelManager for use in the notebook webserver
 
-Authors:
-
-* Brian Granger
+- raises HTTPErrors
+- creates REST API models
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import os
 
@@ -26,10 +17,6 @@ from IPython.utils.traitlets import List, Unicode, TraitError
 from IPython.html.utils import to_os_path
 from IPython.utils.py3compat import getcwd
 
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
-
 
 class MappingKernelManager(MultiKernelManager):
     """A KernelManager that handles notebook mapping and HTTP error handling"""
@@ -39,7 +26,13 @@ class MappingKernelManager(MultiKernelManager):
 
     kernel_argv = List(Unicode)
 
-    root_dir = Unicode(getcwd(), config=True)
+    root_dir = Unicode(config=True)
+
+    def _root_dir_default(self):
+        try:
+            return self.parent.notebook_dir
+        except AttributeError:
+            return getcwd()
 
     def _root_dir_changed(self, name, old, new):
         """Do a bit of validation of the root dir."""
@@ -61,14 +54,10 @@ class MappingKernelManager(MultiKernelManager):
 
     def cwd_for_path(self, path):
         """Turn API path into absolute OS path."""
-        # short circuit for NotebookManagers that pass in absolute paths
-        if os.path.exists(path):
-            return path
-
         os_path = to_os_path(path, self.root_dir)
         # in the case of notebooks and kernels not being on the same filesystem,
         # walk up to root_dir if the paths don't exist
-        while not os.path.exists(os_path) and os_path != self.root_dir:
+        while not os.path.isdir(os_path) and os_path != self.root_dir:
             os_path = os.path.dirname(os_path)
         return os_path
 
@@ -89,7 +78,6 @@ class MappingKernelManager(MultiKernelManager):
             an existing kernel is returned, but it may be checked in the future.
         """
         if kernel_id is None:
-            kwargs['extra_arguments'] = self.kernel_argv
             if path is not None:
                 kwargs['cwd'] = self.cwd_for_path(path)
             kernel_id = super(MappingKernelManager, self).start_kernel(

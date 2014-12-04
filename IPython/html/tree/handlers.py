@@ -4,7 +4,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 from tornado import web
-from ..base.handlers import IPythonHandler, notebook_path_regex, path_regex
+from ..base.handlers import IPythonHandler, path_regex
 from ..utils import url_path_join, url_escape
 
 
@@ -33,21 +33,11 @@ class TreeHandler(IPythonHandler):
             return 'Home'
 
     @web.authenticated
-    def get(self, path='', name=None):
+    def get(self, path=''):
         path = path.strip('/')
         cm = self.contents_manager
-        if name is not None:
-            # is a notebook, redirect to notebook handler
-            url = url_escape(url_path_join(
-                self.base_url, 'notebooks', path, name
-            ))
-            self.log.debug("Redirecting %s to %s", self.request.path, url)
-            self.redirect(url)
-        else:
-            if not cm.path_exists(path=path):
-                # Directory is hidden or does not exist.
-                raise web.HTTPError(404)
-            elif cm.is_hidden(path):
+        if cm.dir_exists(path=path):
+            if cm.is_hidden(path):
                 self.log.info("Refusing to serve hidden directory, via 404 Error")
                 raise web.HTTPError(404)
             breadcrumbs = self.generate_breadcrumbs(path)
@@ -55,8 +45,21 @@ class TreeHandler(IPythonHandler):
             self.write(self.render_template('tree.html',
                 page_title=page_title,
                 notebook_path=path,
-                breadcrumbs=breadcrumbs
+                breadcrumbs=breadcrumbs,
+                terminals_available=self.settings['terminals_available'],
             ))
+        elif cm.file_exists(path):
+            # it's not a directory, we have redirecting to do
+            model = cm.get(path, content=False)
+            # redirect to /api/notebooks if it's a notebook, otherwise /api/files
+            service = 'notebooks' if model['type'] == 'notebook' else 'files'
+            url = url_escape(url_path_join(
+                self.base_url, service, path,
+            ))
+            self.log.debug("Redirecting %s to %s", self.request.path, url)
+            self.redirect(url)
+        else:
+            raise web.HTTPError(404)
 
 
 #-----------------------------------------------------------------------------
@@ -65,7 +68,6 @@ class TreeHandler(IPythonHandler):
 
 
 default_handlers = [
-    (r"/tree%s" % notebook_path_regex, TreeHandler),
     (r"/tree%s" % path_regex, TreeHandler),
     (r"/tree", TreeHandler),
     ]

@@ -10,23 +10,28 @@ define([
     'notebook/js/mathjaxutils',
     'notebook/js/celltoolbar',
     'components/marked/lib/marked',
-], function(IPython, utils, $, cell, security, mathjaxutils, celltoolbar, marked) {
+    'codemirror/lib/codemirror',
+    'codemirror/mode/gfm/gfm',
+    'notebook/js/codemirror-ipythongfm'
+], function(IPython,utils , $, cell, security, mathjaxutils, celltoolbar, marked, CodeMirror, gfm, ipgfm) {
     "use strict";
     var Cell = cell.Cell;
 
     var TextCell = function (options) {
-        // Constructor
-        //
-        // Construct a new TextCell, codemirror mode is by default 'htmlmixed', 
-        // and cell type is 'text' cell start as not redered.
-        //
-        // Parameters:
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance 
-        //          config: dictionary
-        //          keyboard_manager: KeyboardManager instance 
-        //          notebook: Notebook instance
+        /**
+         * Constructor
+         *
+         * Construct a new TextCell, codemirror mode is by default 'htmlmixed', 
+         * and cell type is 'text' cell start as not redered.
+         *
+         * Parameters:
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          events: $(Events) instance 
+         *          config: dictionary
+         *          keyboard_manager: KeyboardManager instance 
+         *          notebook: Notebook instance
+         */
         options = options || {};
 
         // in all TextCell/Cell subclasses
@@ -38,10 +43,7 @@ define([
         this.config = options.config;
         
         // we cannot put this as a class key as it has handle to "this".
-        var cm_overwrite_options  = {
-            onKeyEvent: $.proxy(this.handle_keyevent,this)
-        };
-        var config = utils.mergeopt(TextCell, this.config, {cm_config:cm_overwrite_options});
+        var config = utils.mergeopt(TextCell, this.config);
         Cell.apply(this, [{
                     config: config, 
                     keyboard_manager: options.keyboard_manager, 
@@ -52,7 +54,7 @@ define([
         this.rendered = false;
     };
 
-    TextCell.prototype = new Cell();
+    TextCell.prototype = Object.create(Cell.prototype);
 
     TextCell.options_default = {
         cm_config : {
@@ -83,6 +85,7 @@ define([
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
         this.code_mirror = new CodeMirror(input_area.get(0), this.cm_config);
+        this.code_mirror.on('keydown', $.proxy(this.handle_keyevent,this))
         // The tabindex=-1 makes this div focusable.
         var render_area = $('<div/>').addClass('text_cell_render rendered_html')
             .attr('tabindex','-1');
@@ -91,27 +94,6 @@ define([
         this.element = cell;
     };
 
-
-    /**
-     * Bind the DOM evet to cell actions
-     * Need to be called after TextCell.create_element
-     * @private
-     * @method bind_event
-     */
-    TextCell.prototype.bind_events = function () {
-        Cell.prototype.bind_events.apply(this);
-        var that = this;
-
-        this.element.dblclick(function () {
-            if (that.selected === false) {
-                this.events.trigger('select.Cell', {'cell':that});
-            }
-            var cont = that.unrender();
-            if (cont) {
-                that.focus_editor();
-            }
-        });
-    };
 
     // Cell level actions
     
@@ -131,8 +113,6 @@ define([
         if (cont) {
             var text_cell = this.element;
             var output = text_cell.find("div.text_cell_render");
-            output.hide();
-            text_cell.find('div.input_area').show();
             if (this.get_text() === this.placeholder) {
                 this.set_text('');
             }
@@ -217,15 +197,17 @@ define([
 
 
     var MarkdownCell = function (options) {
-        // Constructor
-        //
-        // Parameters:
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance 
-        //          config: dictionary
-        //          keyboard_manager: KeyboardManager instance 
-        //          notebook: Notebook instance
+        /**
+         * Constructor
+         *
+         * Parameters:
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          events: $(Events) instance 
+         *          config: dictionary
+         *          keyboard_manager: KeyboardManager instance 
+         *          notebook: Notebook instance
+         */
         options = options || {};
         var config = utils.mergeopt(MarkdownCell, options.config);
         TextCell.apply(this, [$.extend({}, options, {config: config})]);
@@ -240,7 +222,22 @@ define([
         placeholder: "Type *Markdown* and LaTeX: $\\alpha^2$"
     };
 
-    MarkdownCell.prototype = new TextCell();
+    MarkdownCell.prototype = Object.create(TextCell.prototype);
+
+    MarkdownCell.prototype.set_heading_level = function (level) {
+        /**
+         * make a markdown cell a heading
+         */
+        level = level || 1;
+        var source = this.get_text();
+        source = source.replace(/^(#*)\s?/,
+            new Array(level + 1).join('#') + ' ');
+        this.set_text(source);
+        this.refresh();
+        if (this.rendered) {
+            this.render();
+        }
+    };
 
     /**
      * @method render
@@ -248,43 +245,56 @@ define([
     MarkdownCell.prototype.render = function () {
         var cont = TextCell.prototype.render.apply(this);
         if (cont) {
+            var that = this;
             var text = this.get_text();
             var math = null;
             if (text === "") { text = this.placeholder; }
             var text_and_math = mathjaxutils.remove_math(text);
             text = text_and_math[0];
             math = text_and_math[1];
-            var html = marked.parser(marked.lexer(text));
-            html = mathjaxutils.replace_math(html, math);
-            html = security.sanitize_html(html);
-            html = $($.parseHTML(html));
-            // links in markdown cells should open in new tabs
-            html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
-            this.set_rendered(html);
-            this.element.find('div.input_area').hide();
-            this.element.find("div.text_cell_render").show();
-            this.typeset();
+            marked(text, function (err, html) {
+                html = mathjaxutils.replace_math(html, math);
+                html = security.sanitize_html(html);
+                html = $($.parseHTML(html));
+                // add anchors to headings
+                html.find(":header").addBack(":header").each(function (i, h) {
+                    h = $(h);
+                    var hash = h.text().replace(/ /g, '-');
+                    h.attr('id', hash);
+                    h.append(
+                        $('<a/>')
+                            .addClass('anchor-link')
+                            .attr('href', '#' + hash)
+                            .text('¶')
+                    );
+                });
+                // links in markdown cells should open in new tabs
+                html.find("a[href]").not('[href^="#"]').attr("target", "_blank");
+                that.set_rendered(html);
+                that.typeset();
+                that.events.trigger("rendered.MarkdownCell", {cell: that});
+            });
         }
         return cont;
     };
 
 
     var RawCell = function (options) {
-        // Constructor
-        //
-        // Parameters:
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance 
-        //          config: dictionary
-        //          keyboard_manager: KeyboardManager instance 
-        //          notebook: Notebook instance
+        /**
+         * Constructor
+         *
+         * Parameters:
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          events: $(Events) instance 
+         *          config: dictionary
+         *          keyboard_manager: KeyboardManager instance 
+         *          notebook: Notebook instance
+         */
         options = options || {};
         var config = utils.mergeopt(RawCell, options.config);
         TextCell.apply(this, [$.extend({}, options, {config: config})]);
 
-        // RawCell should always hide its rendered div
-        this.element.find('div.text_cell_render').hide();
         this.cell_type = 'raw';
     };
 
@@ -294,7 +304,7 @@ define([
             "When passing through nbconvert, a Raw Cell's content is added to the output unmodified."
     };
 
-    RawCell.prototype = new TextCell();
+    RawCell.prototype = Object.create(TextCell.prototype);
 
     /** @method bind_events **/
     RawCell.prototype.bind_events = function () {
@@ -328,123 +338,15 @@ define([
         return cont;
     };
 
-
-    var HeadingCell = function (options) {
-        // Constructor
-        //
-        // Parameters:
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance 
-        //          config: dictionary
-        //          keyboard_manager: KeyboardManager instance 
-        //          notebook: Notebook instance
-        options = options || {};
-        var config = utils.mergeopt(HeadingCell, options.config);
-        TextCell.apply(this, [$.extend({}, options, {config: config})]);
-
-        this.level = 1;
-        this.cell_type = 'heading';
-    };
-
-    HeadingCell.options_default = {
-        cm_config: {
-            theme: 'heading-1'
-        },
-        placeholder: "Type Heading Here"
-    };
-
-    HeadingCell.prototype = new TextCell();
-
-    /** @method fromJSON */
-    HeadingCell.prototype.fromJSON = function (data) {
-        if (data.level !== undefined){
-            this.level = data.level;
-        }
-        TextCell.prototype.fromJSON.apply(this, arguments);
-        this.code_mirror.setOption("theme", "heading-"+this.level);
-    };
-
-
-    /** @method toJSON */
-    HeadingCell.prototype.toJSON = function () {
-        var data = TextCell.prototype.toJSON.apply(this);
-        data.level = this.get_level();
-        return data;
-    };
-
-    /**
-     * Change heading level of cell, and re-render
-     * @method set_level
-     */
-    HeadingCell.prototype.set_level = function (level) {
-        this.level = level;
-        this.code_mirror.setOption("theme", "heading-"+level);
-
-        if (this.rendered) {
-            this.rendered = false;
-            this.render();
-        }
-    };
-
-    /** The depth of header cell, based on html (h1 to h6)
-     * @method get_level
-     * @return {integer} level - for 1 to 6
-     */
-    HeadingCell.prototype.get_level = function () {
-        return this.level;
-    };
-
-
-    HeadingCell.prototype.get_rendered = function () {
-        var r = this.element.find("div.text_cell_render");
-        return r.children().first().html();
-    };
-
-    HeadingCell.prototype.render = function () {
-        var cont = TextCell.prototype.render.apply(this);
-        if (cont) {
-            var text = this.get_text();
-            var math = null;
-            // Markdown headings must be a single line
-            text = text.replace(/\n/g, ' ');
-            if (text === "") { text = this.placeholder; }
-            text = new Array(this.level + 1).join("#") + " " + text;
-            var text_and_math = mathjaxutils.remove_math(text);
-            text = text_and_math[0];
-            math = text_and_math[1];
-            var html = marked.parser(marked.lexer(text));
-            html = mathjaxutils.replace_math(html, math);
-            html = security.sanitize_html(html);
-            var h = $($.parseHTML(html));
-            // add id and linkback anchor
-            var hash = h.text().trim().replace(/ /g, '-');
-            h.attr('id', hash);
-            h.append(
-                $('<a/>')
-                    .addClass('anchor-link')
-                    .attr('href', '#' + hash)
-                    .text('¶')
-            );
-            this.set_rendered(h);
-            this.element.find('div.input_area').hide();
-            this.element.find("div.text_cell_render").show();
-            this.typeset();
-        }
-        return cont;
-    };
-
     // Backwards compatability.
     IPython.TextCell = TextCell;
     IPython.MarkdownCell = MarkdownCell;
     IPython.RawCell = RawCell;
-    IPython.HeadingCell = HeadingCell;
 
     var textcell = {
-        'TextCell': TextCell,
-        'MarkdownCell': MarkdownCell,
-        'RawCell': RawCell,
-        'HeadingCell': HeadingCell,
+        TextCell: TextCell,
+        MarkdownCell: MarkdownCell,
+        RawCell: RawCell
     };
     return textcell;
 });

@@ -519,7 +519,15 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' public interface
     #---------------------------------------------------------------------------
-
+    
+    include_other_output = Bool(False, config=True,
+        help="""Whether to include output from clients
+        other than this one sharing the same kernel.
+        
+        Outputs are not displayed until enter is pressed.
+        """
+    )
+    
     def can_copy(self):
         """ Returns whether text can be copied to the clipboard.
         """
@@ -1486,6 +1494,22 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
         elif key == QtCore.Qt.Key_Backspace:
             new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
                                         QtCore.Qt.Key_PageUp,
+                                        QtCore.Qt.NoModifier)
+            QtGui.qApp.sendEvent(self._page_control, new_event)
+            return True
+
+        # vi/less -like key bindings
+        elif key == QtCore.Qt.Key_J:
+            new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
+                                        QtCore.Qt.Key_Down,
+                                        QtCore.Qt.NoModifier)
+            QtGui.qApp.sendEvent(self._page_control, new_event)
+            return True
+
+        # vi/less -like key bindings
+        elif key == QtCore.Qt.Key_K:
+            new_event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
+                                        QtCore.Qt.Key_Up,
                                         QtCore.Qt.NoModifier)
             QtGui.qApp.sendEvent(self._page_control, new_event)
             return True

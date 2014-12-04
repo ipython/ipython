@@ -562,7 +562,7 @@ class ConnectionFileMixin(LoggingConfigurable):
         return self._create_connected_socket('hb', identity=identity)
 
     def connect_control(self, identity=None):
-        """return zmq Socket connected to the Heartbeat channel"""
+        """return zmq Socket connected to the Control channel"""
         return self._create_connected_socket('control', identity=identity)
 
 

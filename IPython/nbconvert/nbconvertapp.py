@@ -53,11 +53,16 @@ nbconvert_aliases.update({
     'post': 'NbConvertApp.postprocessor_class',
     'output': 'NbConvertApp.output_base',
     'reveal-prefix': 'RevealHelpPreprocessor.url_prefix',
+    'nbformat': 'NotebookExporter.nbformat_version',
 })
 
 nbconvert_flags = {}
 nbconvert_flags.update(base_flags)
 nbconvert_flags.update({
+    'execute' : (
+        {'ExecutePreprocessor' : {'enabled' : True}},
+        "Execute the notebook prior to export."
+        ),
     'stdout' : (
         {'NbConvertApp' : {'writer_class' : "StdoutWriter"}},
         "Write notebook output to stdout instead of files."
@@ -92,7 +97,7 @@ class NbConvertApp(BaseIPythonApplication):
         WARNING: THE COMMANDLINE INTERFACE MAY CHANGE IN FUTURE RELEASES.""")
 
     output_base = Unicode('', config=True, help='''overwrite base name use for output files.
-            can only  be use when converting one notebook at a time.
+            can only be used when converting one notebook at a time.
             ''')
 
     examples = Unicode(u"""
@@ -281,7 +286,7 @@ class NbConvertApp(BaseIPythonApplication):
                 # strip duplicate extension from output_base, to avoid Basname.ext.ext
                 if getattr(exporter, 'file_extension', False):
                     base, ext = os.path.splitext(self.output_base)
-                    if ext == '.' + exporter.file_extension:
+                    if ext == exporter.file_extension:
                         self.output_base = base
                 notebook_name = self.output_base
             resources = {}
@@ -298,6 +303,8 @@ class NbConvertApp(BaseIPythonApplication):
                       exc_info=True)
                 self.exit(1)
             else:
+                if 'output_suffix' in resources and not self.output_base:
+                    notebook_name += resources['output_suffix']
                 write_results = self.writer.write(output, resources, notebook_name=notebook_name)
 
                 #Post-process if post processor has been defined.

@@ -1,44 +1,39 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
+/**
+ *
+ *
+ * @module cell
+ * @namespace cell
+ * @class Cell
+ */
+
+
 define([
     'base/js/namespace',
     'jquery',
     'base/js/utils',
-], function(IPython, $, utils) {
+    'codemirror/lib/codemirror',
+    'codemirror/addon/edit/matchbrackets',
+    'codemirror/addon/edit/closebrackets',
+    'codemirror/addon/comment/comment'
+], function(IPython, $, utils, CodeMirror, cm_match, cm_closeb, cm_comment) {
     // TODO: remove IPython dependency here 
     "use strict";
 
-    // monkey patch CM to be able to syntax highlight cell magics
-    // bug reported upstream,
-    // see https://github.com/codemirror/CodeMirror/issues/670
-    if(CodeMirror.getMode(1,'text/plain').indent === undefined ){
-        CodeMirror.modes.null = function() {
-            return {token: function(stream) {stream.skipToEnd();},indent : function(){return 0;}};
-        };
-    }
-
-    CodeMirror.patchedGetMode = function(config, mode){
-            var cmmode = CodeMirror.getMode(config, mode);
-            if(cmmode.indent === null) {
-                console.log('patch mode "' , mode, '" on the fly');
-                cmmode.indent = function(){return 0;};
-            }
-            return cmmode;
-        };
-    // end monkey patching CodeMirror
-
     var Cell = function (options) {
-        // Constructor
-        //
-        // The Base `Cell` class from which to inherit.
-        //
-        // Parameters:
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance 
-        //          config: dictionary
-        //          keyboard_manager: KeyboardManager instance 
+        /* Constructor
+         *
+         * The Base `Cell` class from which to inherit.
+         * @constructor
+         * @param:
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          events: $(Events) instance
+         *          config: dictionary
+         *          keyboard_manager: KeyboardManager instance
+         */
         options = options || {};
         this.keyboard_manager = options.keyboard_manager;
         this.events = options.events;
@@ -50,7 +45,20 @@ define([
         this.selected = false;
         this.rendered = false;
         this.mode = 'command';
-        this.metadata = {};
+
+        // Metadata property
+        var that = this;
+        this._metadata = {};
+        Object.defineProperty(this, 'metadata', {
+            get: function() { return that._metadata; },
+            set: function(value) {
+                that._metadata = value;
+                if (that.celltoolbar) {
+                    that.celltoolbar.rebuild();
+                }
+            }
+        });
+
         // load this from metadata later ?
         this.user_highlight = 'auto';
         this.cm_config = config.cm_config;
@@ -104,8 +112,10 @@ define([
     };
 
     Cell.prototype.init_classes = function () {
-        // Call after this.element exists to initialize the css classes
-        // related to selected, rendered and mode.
+        /**
+         * Call after this.element exists to initialize the css classes
+         * related to selected, rendered and mode.
+         */
         if (this.selected) {
             this.element.addClass('selected');
         } else {
@@ -157,6 +167,16 @@ define([
                 that.events.trigger('command_mode.Cell', {cell: that});
             });
         }
+
+        this.element.dblclick(function () {
+            if (that.selected === false) {
+                this.events.trigger('select.Cell', {'cell':that});
+            }
+            var cont = that.unrender();
+            if (cont) {
+                that.focus_editor();
+            }
+        });
     };
     
     /**
@@ -174,9 +194,22 @@ define([
     Cell.prototype.handle_codemirror_keyevent = function (editor, event) {
         var shortcuts = this.keyboard_manager.edit_shortcuts;
 
+        var cur = editor.getCursor();
+        if((cur.line !== 0 || cur.ch !==0) && event.keyCode === 38){
+            event._ipkmIgnore = true;
+        }
+        var nLastLine = editor.lastLine();
+        if ((event.keyCode === 40) &&
+             ((cur.line !== nLastLine) ||
+               (cur.ch !== editor.getLineHandle(nLastLine).text.length))
+           ) {
+            event._ipkmIgnore = true;
+        }
         // if this is an edit_shortcuts shortcut, the global keyboard/shortcut
         // manager will handle it
-        if (shortcuts.handles(event)) { return true; }
+        if (shortcuts.handles(event)) {
+            return true;
+        }
         
         return false;
     };
@@ -226,6 +259,14 @@ define([
     };
 
     /**
+     * should be overritten by subclass
+     * @method execute
+     */
+    Cell.prototype.execute = function () {
+        return;
+    };
+
+    /**
      * handle cell level logic when a cell is rendered
      * @method render
      * @return is the action being taken
@@ -267,9 +308,6 @@ define([
      * @return {Boolean} `true` if CodeMirror should ignore the event, `false` Otherwise
      */
     Cell.prototype.handle_keyevent = function (editor, event) {
-
-        // console.log('CM', this.mode, event.which, event.type)
-
         if (this.mode === 'command') {
             return true;
         } else if (this.mode === 'edit') {
@@ -360,7 +398,9 @@ define([
      * @method refresh
      */
     Cell.prototype.refresh = function () {
-        this.code_mirror.refresh();
+        if (this.code_mirror) {
+            this.code_mirror.refresh();
+        }
     };
 
     /**
@@ -385,11 +425,11 @@ define([
      **/
     Cell.prototype.toJSON = function () {
         var data = {};
-        data.metadata = this.metadata;
+        // deepcopy the metadata so copied cells don't share the same object
+        data.metadata = JSON.parse(JSON.stringify(this.metadata));
         data.cell_type = this.cell_type;
         return data;
     };
-
 
     /**
      * should be overritten by subclass
@@ -399,27 +439,39 @@ define([
         if (data.metadata !== undefined) {
             this.metadata = data.metadata;
         }
-        this.celltoolbar.rebuild();
     };
 
 
     /**
-     * can the cell be split into two cells
+     * can the cell be split into two cells (false if not deletable)
      * @method is_splittable
      **/
     Cell.prototype.is_splittable = function () {
-        return true;
+        return this.is_deletable();
     };
 
 
     /**
-     * can the cell be merged with other cells
+     * can the cell be merged with other cells (false if not deletable)
      * @method is_mergeable
      **/
     Cell.prototype.is_mergeable = function () {
-        return true;
+        return this.is_deletable();
     };
 
+    /**
+     * is the cell deletable? only false (undeletable) if
+     * metadata.deletable is explicitly false -- everything else
+     * counts as true
+     *
+     * @method is_deletable
+     **/
+    Cell.prototype.is_deletable = function () {
+        if (this.metadata.deletable === false) {
+            return false;
+        }
+        return true;
+    };
 
     /**
      * @return {String} - the text before the cursor
@@ -484,7 +536,10 @@ define([
      * @param {String|object|undefined} - CodeMirror mode | 'auto'
      **/
     Cell.prototype._auto_highlight = function (modes) {
-        //Here we handle manually selected modes
+        /**
+         *Here we handle manually selected modes
+         */
+        var that = this;
         var mode;
         if( this.user_highlight !== undefined &&  this.user_highlight != 'auto' )
         {
@@ -506,33 +561,34 @@ define([
                         return;
                     }
                     if (mode.search('magic_') !== 0) {
-                        this.code_mirror.setOption('mode', mode);
-                        CodeMirror.autoLoadMode(this.code_mirror, mode);
+                        utils.requireCodeMirrorMode(mode, function () {
+                            that.code_mirror.setOption('mode', mode);
+                        });
                         return;
                     }
                     var open = modes[mode].open || "%%";
                     var close = modes[mode].close || "%%end";
-                    var mmode = mode;
-                    mode = mmode.substr(6);
-                    if(current_mode == mode){
+                    var magic_mode = mode;
+                    mode = magic_mode.substr(6);
+                    if(current_mode == magic_mode){
                         return;
                     }
-                    CodeMirror.autoLoadMode(this.code_mirror, mode);
-                    // create on the fly a mode that swhitch between
-                    // plain/text and smth else otherwise `%%` is
-                    // source of some highlight issues.
-                    // we use patchedGetMode to circumvent a bug in CM
-                    CodeMirror.defineMode(mmode , function(config) {
-                        return CodeMirror.multiplexingMode(
-                        CodeMirror.patchedGetMode(config, 'text/plain'),
-                            // always set someting on close
-                            {open: open, close: close,
-                             mode: CodeMirror.patchedGetMode(config, mode),
-                             delimStyle: "delimit"
-                            }
-                        );
+                    utils.requireCodeMirrorMode(mode, function () {
+                        // create on the fly a mode that switch between
+                        // plain/text and something else, otherwise `%%` is
+                        // source of some highlight issues.
+                        CodeMirror.defineMode(magic_mode, function(config) {
+                            return CodeMirror.multiplexingMode(
+                                CodeMirror.getMode(config, 'text/plain'),
+                                // always set something on close
+                                {open: open, close: close,
+                                 mode: CodeMirror.getMode(config, mode),
+                                 delimStyle: "delimit"
+                                }
+                            );
+                        });
+                        that.code_mirror.setOption('mode', magic_mode);
                     });
-                    this.code_mirror.setOption('mode', mmode);
                     return;
                 }
             }
@@ -550,8 +606,76 @@ define([
         this.code_mirror.setOption('mode', default_mode);
     };
 
+    var UnrecognizedCell = function (options) {
+        /** Constructor for unrecognized cells */
+        Cell.apply(this, arguments);
+        this.cell_type = 'unrecognized';
+        this.celltoolbar = null;
+        this.data = {};
+        
+        Object.seal(this);
+    };
+
+    UnrecognizedCell.prototype = Object.create(Cell.prototype);
+    
+    
+    // cannot merge or split unrecognized cells
+    UnrecognizedCell.prototype.is_mergeable = function () {
+        return false;
+    };
+    
+    UnrecognizedCell.prototype.is_splittable = function () {
+        return false;
+    };
+    
+    UnrecognizedCell.prototype.toJSON = function () {
+        /**
+         * deepcopy the metadata so copied cells don't share the same object
+         */
+        return JSON.parse(JSON.stringify(this.data));
+    };
+
+    UnrecognizedCell.prototype.fromJSON = function (data) {
+        this.data = data;
+        if (data.metadata !== undefined) {
+            this.metadata = data.metadata;
+        } else {
+            data.metadata = this.metadata;
+        }
+        this.element.find('.inner_cell').find("a").text("Unrecognized cell type: " + data.cell_type);
+    };
+    
+    UnrecognizedCell.prototype.create_element = function () {
+        Cell.prototype.create_element.apply(this, arguments);
+        var cell = this.element = $("<div>").addClass('cell unrecognized_cell');
+        cell.attr('tabindex','2');
+
+        var prompt = $('<div/>').addClass('prompt input_prompt');
+        cell.append(prompt);
+        var inner_cell = $('<div/>').addClass('inner_cell');
+        inner_cell.append(
+            $("<a>")
+                .attr("href", "#")
+                .text("Unrecognized cell type")
+        );
+        cell.append(inner_cell);
+        this.element = cell;
+    };
+    
+    UnrecognizedCell.prototype.bind_events = function () {
+        Cell.prototype.bind_events.apply(this, arguments);
+        var cell = this;
+        
+        this.element.find('.inner_cell').find("a").click(function () {
+            cell.events.trigger('unrecognized_cell.Cell', {cell: cell})
+        });
+    };
+
     // Backwards compatibility.
     IPython.Cell = Cell;
 
-    return {'Cell': Cell};
+    return {
+        Cell: Cell,
+        UnrecognizedCell: UnrecognizedCell
+    };
 });

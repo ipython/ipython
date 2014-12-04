@@ -135,16 +135,16 @@ This template does not define a docclass, the inheriting class must define this.
 % Displaying simple data text
 ((* block data_text *))
     \begin{verbatim}
-((( output.text )))
+((( output.data['text/plain'] )))
     \end{verbatim}
 ((* endblock data_text *))
 
 % Display python error text as-is
-((* block pyerr *))
+((* block error *))
     \begin{Verbatim}[commandchars=\\\{\}]
 ((( super() )))
     \end{Verbatim}
-((* endblock pyerr *))
+((* endblock error *))
 ((* block traceback_line *))
     ((( line | indent | strip_ansi | escape_latex )))
 ((* endblock traceback_line *))
@@ -158,21 +158,21 @@ This template does not define a docclass, the inheriting class must define this.
 
 % Display latex
 ((* block data_latex -*))
-    ((*- if output.latex.startswith('$'): -*))
+    ((*- if output.data['text/latex'].startswith('$'): -*))
         ((= Replace $ symbols with more explicit, equation block. =))
         \begin{equation*}\adjustbox{max width=\hsize}{$
-        ((( output.latex | strip_dollars )))
+        ((( output.data['text/latex'] | strip_dollars )))
         $}\end{equation*}
     ((*- else -*))
-        ((( output.latex )))
+        ((( output.data['text/latex'] )))
     ((*- endif *))
 ((* endblock data_latex *))
 
 % Default mechanism for rendering figures
-((*- block data_png -*))((( draw_figure(output.png_filename) )))((*- endblock -*))
-((*- block data_jpg -*))((( draw_figure(output.jpeg_filename) )))((*- endblock -*))
-((*- block data_svg -*))((( draw_figure(output.svg_filename) )))((*- endblock -*))
-((*- block data_pdf -*))((( draw_figure(output['application/pdf_filename']) )))((*- endblock -*))
+((*- block data_png -*))((( draw_figure(output.metadata.filenames['image/png']) )))((*- endblock -*))
+((*- block data_jpg -*))((( draw_figure(output.metadata.filenames['image/jpeg']) )))((*- endblock -*))
+((*- block data_svg -*))((( draw_figure(output.metadata.filenames['image/svg+xml']) )))((*- endblock -*))
+((*- block data_pdf -*))((( draw_figure(output.metadata.filenames['application/pdf']) )))((*- endblock -*))
 
 % Draw a figure using the graphicx package.
 ((* macro draw_figure(filename) -*))
@@ -185,32 +185,12 @@ This template does not define a docclass, the inheriting class must define this.
 ((*- endblock figure -*))
 ((*- endmacro *))
 
-% Draw heading cell.  Explicitly map different cell levels.
-((* block headingcell scoped *))
-
-    ((* if cell.level == 1 -*))
-        ((* block h1 -*))\section((* endblock h1 -*))
-    ((* elif cell.level == 2 -*))
-        ((* block h2 -*))\subsection((* endblock h2 -*))
-    ((* elif cell.level == 3 -*))
-        ((* block h3 -*))\subsubsection((* endblock h3 -*))
-    ((* elif cell.level == 4 -*))
-        ((* block h4 -*))\paragraph((* endblock h4 -*))
-    ((* elif cell.level == 5 -*))
-        ((* block h5 -*))\subparagraph((* endblock h5 -*))
-    ((* elif cell.level == 6 -*))
-        ((* block h6 -*))\\*\textit((* endblock h6 -*))
-    ((*- endif -*))
-    {((( cell.source | replace('\n', ' ') | citation2latex | strip_files_prefix | markdown2latex )))}
-
-((* endblock headingcell *))
-
-% Redirect pyout to display data priority.
-((* block pyout scoped *))
+% Redirect execute_result to display data priority.
+((* block execute_result scoped *))
     ((* block data_priority scoped *))
     ((( super() )))
     ((* endblock *))
-((* endblock pyout *))
+((* endblock execute_result *))
 
 % Render markdown
 ((* block markdowncell scoped *))

@@ -20,6 +20,7 @@ import ast
 import codeop
 import re
 import sys
+import warnings
 
 from IPython.utils.py3compat import cast_unicode
 from IPython.core.inputtransformer import (leading_indent,
@@ -208,6 +209,8 @@ class InputSplitter(object):
     _full_dedent = False
     # Boolean indicating whether the current block is complete
     _is_complete = None
+    # Boolean indicating whether the current block has an unrecoverable syntax error
+    _is_invalid = False
 
     def __init__(self):
         """Create a new InputSplitter instance.
@@ -223,6 +226,7 @@ class InputSplitter(object):
         self.source = ''
         self.code = None
         self._is_complete = False
+        self._is_invalid = False
         self._full_dedent = False
 
     def source_reset(self):
@@ -231,6 +235,42 @@ class InputSplitter(object):
         out = self.source
         self.reset()
         return out
+
+    def check_complete(self, source):
+        """Return whether a block of code is ready to execute, or should be continued
+        
+        This is a non-stateful API, and will reset the state of this InputSplitter.
+        
+        Parameters
+        ----------
+        source : string
+          Python input code, which can be multiline.
+        
+        Returns
+        -------
+        status : str
+          One of 'complete', 'incomplete', or 'invalid' if source is not a
+          prefix of valid code.
+        indent_spaces : int or None
+          The number of spaces by which to indent the next line of code. If
+          status is not 'incomplete', this is None.
+        """
+        self.reset()
+        try:
+            self.push(source)
+        except SyntaxError:
+            # Transformers in IPythonInputSplitter can raise SyntaxError,
+            # which push() will not catch.
+            return 'invalid', None
+        else:
+            if self._is_invalid:
+                return 'invalid', None
+            elif self.push_accepts_more():
+                return 'incomplete', self.indent_spaces
+            else:
+                return 'complete', None
+        finally:
+            self.reset()
 
     def push(self, lines):
         """Push one or more lines of input.
@@ -261,6 +301,7 @@ class InputSplitter(object):
         # exception is raised in compilation, we don't mislead by having
         # inconsistent code/source attributes.
         self.code, self._is_complete = None, None
+        self._is_invalid = False
 
         # Honor termination lines properly
         if source.endswith('\\\n'):
@@ -268,15 +309,18 @@ class InputSplitter(object):
 
         self._update_indent(lines)
         try:
-            self.code = self._compile(source, symbol="exec")
+            with warnings.catch_warnings():
+                warnings.simplefilter('error', SyntaxWarning)
+                self.code = self._compile(source, symbol="exec")
         # Invalid syntax can produce any of a number of different errors from
         # inside the compiler, so we have to catch them all.  Syntax errors
         # immediately produce a 'ready' block, so the invalid Python can be
         # sent to the kernel for evaluation with possible ipython
         # special-syntax conversion.
         except (SyntaxError, OverflowError, ValueError, TypeError,
-                MemoryError):
+                MemoryError, SyntaxWarning):
             self._is_complete = True
+            self._is_invalid = True
         else:
             # Compilation didn't produce any exceptions (though it may not have
             # given a complete code object)

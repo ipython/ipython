@@ -16,11 +16,11 @@ import nose.tools as nt
 from nose import SkipTest
 
 from IPython.utils.traitlets import (
-    HasTraits, MetaHasTraits, TraitType, Any, CBytes, Dict,
+    HasTraits, MetaHasTraits, TraitType, Any, Bool, CBytes, Dict,
     Int, Long, Integer, Float, Complex, Bytes, Unicode, TraitError,
-    Undefined, Type, This, Instance, TCPAddress, List, Tuple,
+    Union, Undefined, Type, This, Instance, TCPAddress, List, Tuple,
     ObjectName, DottedObjectName, CRegExp, link, directional_link,
-    EventfulList, EventfulDict
+    EventfulList, EventfulDict, ForwardDeclaredType, ForwardDeclaredInstance,
 )
 from IPython.utils import py3compat
 from IPython.testing.decorators import skipif
@@ -684,6 +684,20 @@ class TestThis(TestCase):
         self.assertEqual(f.t, b)
         self.assertRaises(TraitError, setattr, b, 't', f)
 
+    def test_this_in_container(self):
+
+        class Tree(HasTraits):
+            value = Unicode()
+            leaves = List(This())
+
+        tree = Tree(
+            value='foo',
+            leaves=[Tree('bar'), Tree('buzz')]
+        )
+
+        with self.assertRaises(TraitError):
+            tree.leaves = [1, 2]
+
 class TraitTestBase(TestCase):
     """A best testing class for basic trait types."""
 
@@ -746,6 +760,25 @@ class AnyTraitTest(TraitTestBase):
     _good_values   = [10.0, 'ten', u'ten', [10], {'ten': 10},(10,), None, 1j]
     _bad_values    = []
 
+class UnionTrait(HasTraits):
+
+    value = Union([Type(), Bool()])
+
+class UnionTraitTest(TraitTestBase):
+
+    obj = UnionTrait(value='IPython.utils.ipstruct.Struct')
+    _good_values = [int, float, True]
+    _bad_values = [[], (0,), 1j]
+
+class OrTrait(HasTraits):
+
+    value = Bool() | Unicode()
+
+class OrTraitTest(TraitTestBase):
+
+    obj = OrTrait()
+    _good_values = [True, False, 'ten']
+    _bad_values = [[], (0,), 1j]
 
 class IntTrait(HasTraits):
 
@@ -1306,3 +1339,103 @@ class TestEventful(TestCase):
 
         # Is the output correct?
         self.assertEqual(a.x, {c: c for c in 'bz'})
+
+###
+# Traits for Forward Declaration Tests
+###
+class ForwardDeclaredInstanceTrait(HasTraits):
+
+    value = ForwardDeclaredInstance('ForwardDeclaredBar')
+
+class ForwardDeclaredTypeTrait(HasTraits):
+
+    value = ForwardDeclaredType('ForwardDeclaredBar')
+
+class ForwardDeclaredInstanceListTrait(HasTraits):
+
+    value = List(ForwardDeclaredInstance('ForwardDeclaredBar'))
+
+class ForwardDeclaredTypeListTrait(HasTraits):
+
+    value = List(ForwardDeclaredType('ForwardDeclaredBar'))
+###
+# End Traits for Forward Declaration Tests
+###
+
+###
+# Classes for Forward Declaration Tests
+###
+class ForwardDeclaredBar(object):
+    pass
+
+class ForwardDeclaredBarSub(ForwardDeclaredBar):
+    pass
+###
+# End Classes for Forward Declaration Tests
+###
+
+###
+# Forward Declaration Tests
+###
+class TestForwardDeclaredInstanceTrait(TraitTestBase):
+
+    obj = ForwardDeclaredInstanceTrait()
+    _default_value = None
+    _good_values = [None, ForwardDeclaredBar(), ForwardDeclaredBarSub()]
+    _bad_values = ['foo', 3, ForwardDeclaredBar, ForwardDeclaredBarSub]
+
+class TestForwardDeclaredTypeTrait(TraitTestBase):
+
+    obj = ForwardDeclaredTypeTrait()
+    _default_value = None
+    _good_values = [None, ForwardDeclaredBar, ForwardDeclaredBarSub]
+    _bad_values = ['foo', 3, ForwardDeclaredBar(), ForwardDeclaredBarSub()]
+
+class TestForwardDeclaredInstanceList(TraitTestBase):
+
+    obj = ForwardDeclaredInstanceListTrait()
+
+    def test_klass(self):
+        """Test that the instance klass is properly assigned."""
+        self.assertIs(self.obj.traits()['value']._trait.klass, ForwardDeclaredBar)
+
+    _default_value = []
+    _good_values = [
+        [ForwardDeclaredBar(), ForwardDeclaredBarSub(), None],
+        [None],
+        [],
+        None,
+    ]
+    _bad_values = [
+        ForwardDeclaredBar(),
+        [ForwardDeclaredBar(), 3],
+        '1',
+        # Note that this is the type, not an instance.
+        [ForwardDeclaredBar]
+    ]
+
+class TestForwardDeclaredTypeList(TraitTestBase):
+
+    obj = ForwardDeclaredTypeListTrait()
+
+    def test_klass(self):
+        """Test that the instance klass is properly assigned."""
+        self.assertIs(self.obj.traits()['value']._trait.klass, ForwardDeclaredBar)
+
+    _default_value = []
+    _good_values = [
+        [ForwardDeclaredBar, ForwardDeclaredBarSub, None],
+        [],
+        [None],
+        None,
+    ]
+    _bad_values = [
+        ForwardDeclaredBar,
+        [ForwardDeclaredBar, 3],
+        '1',
+        # Note that this is an instance, not the type.
+        [ForwardDeclaredBar()]
+    ]
+###
+# End Forward Declaration Tests
+###

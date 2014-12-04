@@ -9,18 +9,22 @@ define([
     var IntTextView = int_widgets.IntTextView;
 
     var FloatSliderView = IntSliderView.extend({
+        _parse_value: parseFloat,
+
+        // matches: whitespace?, float, whitespace?, [-:], whitespace?, float
+        _range_regex: /^\s*([+-]?(?:\d*\.?\d+|\d+\.)(?:[eE][+-]?\d+)?)\s*[-:]\s*([+-]?(?:\d*\.?\d+|\d+\.)(?:[eE][+-]?\d+)?)/,
+
         _validate_slide_value: function(x) {
-            // Validate the value of the slider before sending it to the back-end
-            // and applying it to the other views on the page.
+            /**
+             * Validate the value of the slider before sending it to the back-end
+             * and applying it to the other views on the page.
+             */
             return x;
         },
     });
 
     var FloatTextView = IntTextView.extend({
-        _parse_value: function(value) {
-            // Parse the value stored in a string.
-            return  parseFloat(value);
-        },
+        _parse_value: parseFloat
     });
 
     return {

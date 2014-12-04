@@ -13,7 +13,8 @@ These magics will automatically become available when you create a Client:
 
 .. sourcecode:: ipython
 
-    In [2]: rc = parallel.Client()
+    In [1]: from IPython.parallel import Client
+    In [2]: rc = Client()
 
 The initially active View will have attributes ``targets='all', block=True``,
 which is a blocking view of all engines, evaluated at request time

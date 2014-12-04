@@ -355,13 +355,11 @@ Message type: ``execute_reply``::
 When status is 'ok', the following extra fields are present::
 
     {
-      # 'payload' will be a list of payload dicts.
-      # Each execution payload is a dict with string keys that may have been
-      # produced by the code being executed.  It is retrieved by the kernel at
-      # the end of the execution and sent back to the front end, which can take
-      # action on it as needed.
+      # 'payload' will be a list of payload dicts, and is optional.
+      # payloads are considered deprecated.
       # The only requirement of each payload dict is that it have a 'source' key,
-      # which is a string classifying the payload (e.g. 'pager').
+      # which is a string classifying the payload (e.g. 'page').
+      
       'payload' : list(dict),
 
       # Results for the user_expressions.
@@ -372,24 +370,6 @@ When status is 'ok', the following extra fields are present::
 
     ``user_variables`` is removed, use user_expressions instead.
 
-.. admonition:: Execution payloads
-    
-   The notion of an 'execution payload' is different from a return value of a
-   given set of code, which normally is just displayed on the execute_result stream
-   through the PUB socket.  The idea of a payload is to allow special types of
-   code, typically magics, to populate a data container in the IPython kernel
-   that will be shipped back to the caller via this channel.  The kernel
-   has an API for this in the PayloadManager::
-
-       ip.payload_manager.write_payload(payload_dict)
-
-   which appends a dictionary to the list of payloads.
-   
-   The payload API is not yet stabilized,
-   and should probably not be supported by non-Python kernels at this time.
-   In such cases, the payload list should always be empty.
-
-   
 When status is 'error', the following extra fields are present::
 
     {
@@ -410,6 +390,72 @@ When status is 'error', the following extra fields are present::
 
 When status is 'abort', there are for now no additional data fields.  This
 happens when the kernel was interrupted by a signal.
+
+Payloads
+********
+
+.. admonition:: Execution payloads
+
+    Payloads are considered deprecated, though their replacement is not yet implemented.
+
+Payloads are a way to trigger frontend actions from the kernel. Current payloads:
+
+**page**: display data in a pager.
+
+Pager output is used for introspection, or other displayed information that's not considered output.
+Pager payloads are generally displayed in a separate pane, that can be viewed alongside code,
+and are not included in notebook documents.
+
+.. sourcecode:: python
+
+    {
+      "source": "page",
+      # mime-bundle of data to display in the pager.
+      # Must include text/plain.
+      "data": mimebundle,
+      # line offset to start from
+      "start": int,
+    }
+
+**set_next_input**: create a new output
+
+used to create new cells in the notebook,
+or set the next input in a console interface.
+The main example being ``%load``.
+
+.. sourcecode:: python
+
+    {
+      "source": "set_next_input",
+      # the text contents of the cell to create
+      "text": "some cell content",
+    }
+
+**edit**: open a file for editing.
+
+Triggered by `%edit`. Only the QtConsole currently supports edit payloads.
+
+.. sourcecode:: python
+
+    {
+      "source": "edit",
+      "filename": "/path/to/file.py", # the file to edit
+      "line_number": int, # the line number to start with
+    }
+
+**ask_exit**: instruct the frontend to prompt the user for exit
+
+Allows the kernel to request exit, e.g. via ``%exit`` in IPython.
+Only for console frontends.
+
+.. sourcecode:: python
+
+    {
+      "source": "ask_exit",
+      # whether the kernel should be left running, only closing the client
+      "keepkernel": bool,
+    }
+
 
 .. _msging_inspection:
 
@@ -573,6 +619,51 @@ Message type: ``history_reply``::
       'history' : list,
     }
 
+.. _msging_is_complete:
+
+Code completeness
+-----------------
+
+.. versionadded:: 5.0
+
+When the user enters a line in a console style interface, the console must
+decide whether to immediately execute the current code, or whether to show a
+continuation prompt for further input. For instance, in Python ``a = 5`` would
+be executed immediately, while ``for i in range(5):`` would expect further input.
+
+There are four possible replies:
+
+- *complete* code is ready to be executed
+- *incomplete* code should prompt for another line
+- *invalid* code will typically be sent for execution, so that the user sees the
+  error soonest.
+- *unknown* - if the kernel is not able to determine this. The frontend should
+  also handle the kernel not replying promptly. It may default to sending the
+  code for execution, or it may implement simple fallback heuristics for whether
+  to execute the code (e.g. execute after a blank line).
+
+Frontends may have ways to override this, forcing the code to be sent for
+execution or forcing a continuation prompt.
+
+Message type: ``is_complete_request``::
+
+    content = {
+        # The code entered so far as a multiline string
+        'code' : str,
+    }
+
+Message type: ``is_complete_reply``::
+
+    content = {
+        # One of 'complete', 'incomplete', 'invalid', 'unknown'
+        'status' : str,
+        
+        # If status is 'incomplete', indent should contain the characters to use
+        # to indent the next line. This is only a hint: frontends may ignore it
+        # and use their own autoindentation rules. For other statuses, this
+        # field does not exist.
+        'indent': str,
+    }
 
 Connect
 -------
@@ -629,21 +720,52 @@ Message type: ``kernel_info_reply``::
         # Implementation version number.
         # The version number of the kernel's implementation
         # (e.g. IPython.__version__ for the IPython kernel)
-        'implementation_version': 'X.Y.Z', 
+        'implementation_version': 'X.Y.Z',
 
-        # Programming language in which kernel is implemented.
-        # Kernel included in IPython returns 'python'.
-        'language': str,
-        
-        # Language version number.
-        # It is Python version number (e.g., '2.7.3') for the kernel
-        # included in IPython.
-        'language_version': 'X.Y.Z',
+        # Information about the language of code for the kernel
+        'language_info': {
+            # Name of the programming language in which kernel is implemented.
+            # Kernel included in IPython returns 'python'.
+            'name': str,
+            
+            # Language version number.
+            # It is Python version number (e.g., '2.7.3') for the kernel
+            # included in IPython.
+            'version': 'X.Y.Z',
+            
+            # mimetype for script files in this language
+            'mimetype': str,
+
+            # Extension without the dot, e.g. 'py'
+            'file_extension': str,
+
+            # Pygments lexer, for highlighting
+            # Only needed if it differs from the top level 'language' field.
+            'pygments_lexer': str,
+
+            # Codemirror mode, for for highlighting in the notebook.
+            # Only needed if it differs from the top level 'language' field.
+            'codemirror_mode': str or dict,
+
+            # Nbconvert exporter, if notebooks written with this kernel should
+            # be exported with something other than the general 'script'
+            # exporter.
+            'nbconvert_exporter': str,
+        },
 
         # A banner of information about the kernel,
         # which may be desplayed in console environments.
         'banner' : str,
+
+        # Optional: A list of dictionaries, each with keys 'text' and 'url'.
+        # These will be displayed in the help menu in the notebook UI.
+        'help_links': [
+            {'text': str, 'url': str}
+        ],
     }
+
+Refer to the lists of available `Pygments lexers <http://pygments.org/docs/lexers/>`_
+and `codemirror modes <http://codemirror.net/mode/index.html>`_ for those fields.
 
 .. versionchanged:: 5.0
 
@@ -655,7 +777,16 @@ Message type: ``kernel_info_reply``::
 
 .. versionchanged:: 5.0
 
-    ``implementation``, ``implementation_version``, and ``banner`` keys are added.
+    ``language_info``, ``implementation``, ``implementation_version``, ``banner``
+    and ``help_links`` keys are added.
+
+.. versionchanged:: 5.0
+
+    ``language_version`` moved to ``language_info.version``
+
+.. versionchanged:: 5.0
+
+    ``language`` moved to ``language_info.name``
 
 .. _msging_shutdown:
 
@@ -711,9 +842,13 @@ Message type: ``stream``::
         # The name of the stream is one of 'stdout', 'stderr'
         'name' : str,
     
-        # The data is an arbitrary string to be written to that stream
-        'data' : str,
+        # The text is an arbitrary string to be written to that stream
+        'text' : str,
     }
+
+.. versionchanged:: 5.0
+
+    'data' key renamed to 'text' for conistency with the notebook format.
 
 Display Data
 ------------

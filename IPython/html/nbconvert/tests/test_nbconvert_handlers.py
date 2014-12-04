@@ -10,9 +10,10 @@ import requests
 
 from IPython.html.utils import url_path_join
 from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
-from IPython.nbformat.current import (new_notebook, write, new_worksheet,
-                                      new_heading_cell, new_code_cell,
-                                      new_output)
+from IPython.nbformat import write
+from IPython.nbformat.v4 import (
+    new_notebook, new_markdown_cell, new_code_cell, new_output,
+)
 
 from IPython.testing.decorators import onlyif_cmds_exist
 
@@ -43,7 +44,8 @@ class NbconvertAPI(object):
 
 png_green_pixel = base64.encodestring(b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00'
 b'\x00\x00\x01\x00\x00x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDAT'
-b'\x08\xd7c\x90\xfb\xcf\x00\x00\x02\\\x01\x1e.~d\x87\x00\x00\x00\x00IEND\xaeB`\x82')
+b'\x08\xd7c\x90\xfb\xcf\x00\x00\x02\\\x01\x1e.~d\x87\x00\x00\x00\x00IEND\xaeB`\x82'
+).decode('ascii')
 
 class APITest(NotebookTestBase):
     def setUp(self):
@@ -52,19 +54,20 @@ class APITest(NotebookTestBase):
         if not os.path.isdir(pjoin(nbdir, 'foo')):
             os.mkdir(pjoin(nbdir, 'foo'))
         
-        nb = new_notebook(name='testnb')
+        nb = new_notebook()
         
-        ws = new_worksheet()
-        nb.worksheets = [ws]
-        ws.cells.append(new_heading_cell(u'Created by test ³'))
-        cc1 = new_code_cell(input=u'print(2*6)')
-        cc1.outputs.append(new_output(output_text=u'12', output_type='stream'))
-        cc1.outputs.append(new_output(output_png=png_green_pixel, output_type='pyout'))
-        ws.cells.append(cc1)
+        nb.cells.append(new_markdown_cell(u'Created by test ³'))
+        cc1 = new_code_cell(source=u'print(2*6)')
+        cc1.outputs.append(new_output(output_type="stream", text=u'12'))
+        cc1.outputs.append(new_output(output_type="execute_result",
+            data={'image/png' : png_green_pixel},
+            execution_count=1,
+        ))
+        nb.cells.append(cc1)
         
         with io.open(pjoin(nbdir, 'foo', 'testnb.ipynb'), 'w',
                      encoding='utf-8') as f:
-            write(nb, f, format='ipynb')
+            write(nb, f, version=4)
 
         self.nbconvert_api = NbconvertAPI(self.base_url())
 

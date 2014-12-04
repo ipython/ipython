@@ -79,6 +79,8 @@ def start_global_kernel():
     if KM is None:
         KM, KC = start_new_kernel()
         atexit.register(stop_global_kernel)
+    else:
+        flush_channels(KC)
     return KC
 
 @contextmanager
@@ -140,9 +142,9 @@ def assemble_output(iopub):
             break
         elif msg['msg_type'] == 'stream':
             if content['name'] == 'stdout':
-                stdout += content['data']
+                stdout += content['text']
             elif content['name'] == 'stderr':
-                stderr += content['data']
+                stderr += content['text']
             else:
                 raise KeyError("bad stream: %r" % content['name'])
         else:

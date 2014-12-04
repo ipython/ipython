@@ -116,7 +116,7 @@ class MagicHelper(QtGui.QDockWidget):
            instance is expected to invoke populate_magic_helper() when magic
            info is available.
         """
-        if not visible or self.data != None:
+        if not visible or self.data is not None:
             return
         self.data = {}
         self.search_class.clear()
@@ -178,14 +178,14 @@ class MagicHelper(QtGui.QDockWidget):
         """Emit pasteRequested signal with currently selected item text
         """
         text = self._get_current_search_item(item)
-        if text != None:
+        if text is not None:
             self.pasteRequested.emit(text)
 
     def run_requested(self, item = None):
         """Emit runRequested signal with currently selected item text
         """
         text = self._get_current_search_item(item)
-        if text != None:            
+        if text is not None:
             self.runRequested.emit(text)
 
     def filter_magic_helper(self, regex, cls):
@@ -193,9 +193,9 @@ class MagicHelper(QtGui.QDockWidget):
            regex and class match cls.
            If cls equals 'any' - any class matches.
         """
-        if regex == "" or regex == None:
+        if regex == "" or regex is None:
             regex = '.'
-        if cls == None:
+        if cls is None:
             cls = 'any'
 
         self.search_list.clear()

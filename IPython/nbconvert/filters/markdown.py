@@ -21,6 +21,7 @@ from pygments.formatters import HtmlFormatter
 from pygments.util import ClassNotFound
 
 # IPython imports
+from IPython.nbconvert.filters.strings import add_anchor
 from IPython.nbconvert.utils.pandoc import pandoc
 from IPython.nbconvert.utils.exceptions import ConversionException
 from IPython.utils.decorators import undoc
@@ -45,7 +46,7 @@ class NodeJSMissing(ConversionException):
     """Exception raised when node.js is missing."""
     pass
 
-def markdown2latex(source, extra_args=None):
+def markdown2latex(source, markup='markdown', extra_args=None):
     """Convert a markdown string to LaTeX via pandoc.
 
     This function will raise an error if pandoc is not installed.
@@ -55,13 +56,17 @@ def markdown2latex(source, extra_args=None):
     ----------
     source : string
       Input string, assumed to be valid markdown.
+    markup : string
+      Markup used by pandoc's reader
+      default : pandoc extended markdown
+      (see http://johnmacfarlane.net/pandoc/README.html#pandocs-markdown)
 
     Returns
     -------
     out : string
       Output as returned by pandoc.
     """
-    return pandoc(source, 'markdown', 'latex', extra_args=extra_args)
+    return pandoc(source, markup, 'latex', extra_args=extra_args)
 
 
 @undoc
@@ -96,6 +101,7 @@ class MathBlockLexer(mistune.BlockLexer):
 @undoc
 class MathInlineGrammar(mistune.InlineGrammar):
     math = re.compile("^\$(.+?)\$")
+    text = re.compile(r'^[\s\S]+?(?=[\\<!\[_*`~$]|https?://| {2,}\n|$)')
 
 @undoc
 class MathInlineLexer(mistune.InlineLexer):
@@ -140,6 +146,10 @@ class IPythonRenderer(mistune.Renderer):
 
         formatter = HtmlFormatter()
         return highlight(code, lexer, formatter)
+
+    def header(self, text, level, raw=None):
+        html = super(IPythonRenderer, self).header(text, level, raw=raw)
+        return add_anchor(html)
 
     # Pass math through unaltered - mathjax does the rendering in the browser
     def block_math(self, text):

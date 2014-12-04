@@ -1,44 +1,23 @@
-"""Manage IPython.parallel clusters in the notebook.
+"""Manage IPython.parallel clusters in the notebook."""
 
-Authors:
-
-* Brian Granger
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from tornado import web
-from zmq.eventloop import ioloop
 
 from IPython.config.configurable import LoggingConfigurable
-from IPython.utils.traitlets import Dict, Instance, CFloat
+from IPython.utils.traitlets import Dict, Instance, Float
 from IPython.core.profileapp import list_profiles_in
 from IPython.core.profiledir import ProfileDir
 from IPython.utils import py3compat
 from IPython.utils.path import get_ipython_dir
 
 
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
-
-
-
-
 class ClusterManager(LoggingConfigurable):
 
     profiles = Dict()
 
-    delay = CFloat(1., config=True,
+    delay = Float(1., config=True,
         help="delay (in s) between starting the controller and the engines")
 
     loop = Instance('zmq.eventloop.ioloop.IOLoop')
@@ -75,16 +54,24 @@ class ClusterManager(LoggingConfigurable):
     def update_profiles(self):
         """List all profiles in the ipython_dir and cwd.
         """
+        
+        stale = set(self.profiles)
         for path in [get_ipython_dir(), py3compat.getcwd()]:
             for profile in list_profiles_in(path):
+                if profile in stale:
+                    stale.remove(profile)
                 pd = self.get_profile_dir(profile, path)
                 if profile not in self.profiles:
-                    self.log.debug("Adding cluster profile '%s'" % profile)
+                    self.log.debug("Adding cluster profile '%s'", profile)
                     self.profiles[profile] = {
                         'profile': profile,
                         'profile_dir': pd,
                         'status': 'stopped'
                     }
+        for profile in stale:
+            # remove profiles that no longer exist
+            self.log.debug("Profile '%s' no longer exists", profile)
+            self.profiles.pop(stale)
 
     def list_profiles(self):
         self.update_profiles()
@@ -133,11 +120,13 @@ class ClusterManager(LoggingConfigurable):
                 esl.stop()
             clean_data()
         cl.on_stop(controller_stopped)
-
-        dc = ioloop.DelayedCallback(lambda: cl.start(), 0, self.loop)
-        dc.start()
-        dc = ioloop.DelayedCallback(lambda: esl.start(n), 1000*self.delay, self.loop)
-        dc.start()
+        loop = self.loop
+        
+        def start():
+            """start the controller, then the engines after a delay"""
+            cl.start()
+            loop.add_timeout(self.loop.time() + self.delay, lambda : esl.start(n))
+        self.loop.add_callback(start)
 
         self.log.debug('Cluster started')
         data['controller_launcher'] = cl

@@ -4,8 +4,8 @@
 # Distributed under the terms of the Modified BSD License.
 
 import re
+import sys
 from distutils.version import LooseVersion as V
-from subprocess import PIPE
 try:
     from queue import Empty  # Py 3
 except ImportError:
@@ -13,10 +13,8 @@ except ImportError:
 
 import nose.tools as nt
 
-from IPython.kernel import KernelManager
-
 from IPython.utils.traitlets import (
-    HasTraits, TraitError, Bool, Unicode, Dict, Integer, List, Enum, Any,
+    HasTraits, TraitError, Bool, Unicode, Dict, Integer, List, Enum,
 )
 from IPython.utils.py3compat import string_types, iteritems
 
@@ -150,14 +148,32 @@ class CompleteReply(Reference):
     cursor_end = Integer()
     status = Unicode()
 
+class LanguageInfo(Reference):
+    name = Unicode('python')
+    version = Unicode(sys.version.split()[0])
 
 class KernelInfoReply(Reference):
     protocol_version = Version(min='5.0')
     implementation = Unicode('ipython')
     implementation_version = Version(min='2.1')
-    language_version = Version(min='2.7')
-    language = Unicode('python')
+    language_info = Dict()
     banner = Unicode()
+    
+    def check(self, d):
+        Reference.check(self, d)
+        LanguageInfo().check(d['language_info'])
+
+
+class IsCompleteReply(Reference):
+    status = Enum((u'complete', u'incomplete', u'invalid', u'unknown'))
+    
+    def check(self, d):
+        Reference.check(self, d)
+        if d['status'] == 'incomplete':
+            IsCompleteReplyIncomplete().check(d)
+
+class IsCompleteReplyIncomplete(Reference):
+    indent = Unicode()
 
 
 # IOPub messages
@@ -172,7 +188,7 @@ Error = ExecuteReplyError
 
 class Stream(Reference):
     name = Enum((u'stdout', u'stderr'))
-    data = Unicode()
+    text = Unicode()
 
 
 class DisplayData(MimeBundle):
@@ -189,6 +205,7 @@ references = {
     'status' : Status(),
     'complete_reply' : CompleteReply(),
     'kernel_info_reply': KernelInfoReply(),
+    'is_complete_reply': IsCompleteReply(),
     'execute_input' : ExecuteInput(),
     'execute_result' : ExecuteResult(),
     'error' : Error(),
@@ -382,6 +399,12 @@ def test_single_payload():
     next_input_pls = [pl for pl in payload if pl["source"] == "set_next_input"]
     nt.assert_equal(len(next_input_pls), 1)
 
+def test_is_complete():
+    flush_channels()
+    
+    msg_id = KC.is_complete("a = 1")
+    reply = KC.get_shell_msg(timeout=TIMEOUT)
+    validate_message(reply, 'is_complete_reply', msg_id)
 
 # IOPub channel
 
@@ -394,7 +417,7 @@ def test_stream():
     stdout = KC.iopub_channel.get_msg(timeout=TIMEOUT)
     validate_message(stdout, 'stream', msg_id)
     content = stdout['content']
-    nt.assert_equal(content['data'], u'hi\n')
+    nt.assert_equal(content['text'], u'hi\n')
 
 
 def test_display_data():

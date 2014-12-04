@@ -55,7 +55,7 @@ except:
 from .importstring import import_item
 from IPython.utils import py3compat
 from IPython.utils import eventful
-from IPython.utils.py3compat import iteritems
+from IPython.utils.py3compat import iteritems, string_types
 from IPython.testing.skipdoctest import skip_doctest
 
 SequenceTypes = (list, tuple, set, frozenset)
@@ -133,13 +133,13 @@ def parse_notifier_name(name):
     >>> parse_notifier_name(None)
     ['anytrait']
     """
-    if isinstance(name, str):
+    if isinstance(name, string_types):
         return [name]
     elif name is None:
         return ['anytrait']
     elif isinstance(name, (list, tuple)):
         for n in name:
-            assert isinstance(n, str), "names must be strings"
+            assert isinstance(n, string_types), "names must be strings"
         return name
 
 
@@ -192,14 +192,14 @@ class link(object):
             raise TypeError('At least two traitlets must be provided.')
 
         self.objects = {}
-        initial = getattr(args[0][0], args[0][1])
-        for obj,attr in args:
-            if getattr(obj, attr) != initial:
-                setattr(obj, attr, initial)
 
-            callback = self._make_closure(obj,attr)
+        initial = getattr(args[0][0], args[0][1])
+        for obj, attr in args:
+            setattr(obj, attr, initial)
+
+            callback = self._make_closure(obj, attr)
             obj.on_trait_change(callback, attr)
-            self.objects[(obj,attr)] = callback
+            self.objects[(obj, attr)] = callback
 
     @contextlib.contextmanager
     def _busy_updating(self):
@@ -218,13 +218,12 @@ class link(object):
         if self.updating:
             return
         with self._busy_updating():
-            for obj,attr in self.objects.keys():
-                if obj is not sending_obj or attr != sending_attr:
-                    setattr(obj, attr, new)
-    
+            for obj, attr in self.objects.keys():
+                setattr(obj, attr, new)
+
     def unlink(self):
         for key, callback in self.objects.items():
-            (obj,attr) = key
+            (obj, attr) = key
             obj.on_trait_change(callback, attr, remove=True)
 
 @skip_doctest
@@ -252,8 +251,7 @@ class directional_link(object):
         # Update current value
         src_attr_value = getattr(source[0], source[1])
         for obj, attr in targets:
-            if getattr(obj, attr) != src_attr_value:
-                setattr(obj, attr, src_attr_value)
+            setattr(obj, attr, src_attr_value)
 
         # Wire
         self.source[0].on_trait_change(self._update, self.source[1])
@@ -417,7 +415,11 @@ class TraitType(object):
 
     def __set__(self, obj, value):
         new_value = self._validate(obj, value)
-        old_value = self.__get__(obj)
+        try:
+            old_value = obj._trait_values[self.name]
+        except KeyError:
+            old_value = None
+
         obj._trait_values[self.name] = new_value
         try:
             silent = bool(old_value == new_value)
@@ -444,6 +446,12 @@ class TraitType(object):
             return self.value_for(value)
         else:
             return value
+
+    def __or__(self, other):
+        if isinstance(other, Union):
+            return Union([self] + other.trait_types)
+        else:
+            return Union([self, other])
 
     def info(self):
         return self.info_text
@@ -748,7 +756,16 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
 
 
 class ClassBasedTraitType(TraitType):
-    """A trait with error reporting for Type, Instance and This."""
+    """
+    A trait with error reporting and string -> type resolution for Type,
+    Instance and This.
+    """
+
+    def _resolve_string(self, string):
+        """
+        Resolve a string supplied for a type into an actual object.
+        """
+        return import_item(string)
 
     def error(self, obj, value):
         kind = type(value)
@@ -813,7 +830,7 @@ class Type(ClassBasedTraitType):
         """Validates that the value is a valid object instance."""
         if isinstance(value, py3compat.string_types):
             try:
-                value = import_item(value)
+                value = self._resolve_string(value)
             except ImportError:
                 raise TraitError("The '%s' trait of %s instance must be a type, but "
                                 "%r could not be imported" % (self.name, obj, value))
@@ -842,9 +859,9 @@ class Type(ClassBasedTraitType):
 
     def _resolve_classes(self):
         if isinstance(self.klass, py3compat.string_types):
-            self.klass = import_item(self.klass)
+            self.klass = self._resolve_string(self.klass)
         if isinstance(self.default_value, py3compat.string_types):
-            self.default_value = import_item(self.default_value)
+            self.default_value = self._resolve_string(self.default_value)
 
     def get_default_value(self):
         return self.default_value
@@ -876,7 +893,7 @@ class Instance(ClassBasedTraitType):
         """Construct an Instance trait.
 
         This trait allows values that are instances of a particular
-        class or its sublclasses.  Our implementation is quite different
+        class or its subclasses.  Our implementation is quite different
         from that of enthough.traits as we don't allow instances to be used
         for klass and we handle the ``args`` and ``kw`` arguments differently.
 
@@ -951,7 +968,7 @@ class Instance(ClassBasedTraitType):
 
     def _resolve_classes(self):
         if isinstance(self.klass, py3compat.string_types):
-            self.klass = import_item(self.klass)
+            self.klass = self._resolve_string(self.klass)
 
     def get_default_value(self):
         """Instantiate a default value instance.
@@ -965,6 +982,33 @@ class Instance(ClassBasedTraitType):
             return dv.generate(self.klass)
         else:
             return dv
+
+
+class ForwardDeclaredMixin(object):
+    """
+    Mixin for forward-declared versions of Instance and Type.
+    """
+    def _resolve_string(self, string):
+        """
+        Find the specified class name by looking for it in the module in which
+        our this_class attribute was defined.
+        """
+        modname = self.this_class.__module__
+        return import_item('.'.join([modname, string]))
+
+
+class ForwardDeclaredType(ForwardDeclaredMixin, Type):
+    """
+    Forward-declared version of Type.
+    """
+    pass
+
+
+class ForwardDeclaredInstance(ForwardDeclaredMixin, Instance):
+    """
+    Forward-declared version of Instance.
+    """
+    pass
 
 
 class This(ClassBasedTraitType):
@@ -989,6 +1033,52 @@ class This(ClassBasedTraitType):
         else:
             self.error(obj, value)
 
+
+class Union(TraitType):
+    """A trait type representing a Union type."""
+
+    def __init__(self, trait_types, **metadata):
+        """Construct a Union  trait.
+
+        This trait allows values that are allowed by at least one of the
+        specified trait types.
+
+        Parameters
+        ----------
+        trait_types: sequence
+            The list of trait types of length at least 1.
+
+        Notes
+        -----
+        Union([Float(), Bool(), Int()]) attempts to validate the provided values
+        with the validation function of Float, then Bool, and finally Int.
+        """
+        self.trait_types = trait_types
+        self.info_text = " or ".join([tt.info_text for tt in self.trait_types])
+        self.default_value = self.trait_types[0].get_default_value()
+        super(Union, self).__init__(**metadata)
+
+    def instance_init(self, obj):
+        for trait_type in self.trait_types:
+            trait_type.name = self.name
+            trait_type.this_class = self.this_class
+            if hasattr(trait_type, '_resolve_classes'):
+                trait_type._resolve_classes()
+        super(Union, self).instance_init(obj)
+
+    def validate(self, obj, value):
+        for trait_type in self.trait_types:
+            try:
+                return trait_type._validate(obj, value)
+            except TraitError:
+                continue
+        self.error(obj, value)
+
+    def __or__(self, other):
+        if isinstance(other, Union):
+            return Union(self.trait_types + other.trait_types)
+        else:
+            return Union(self.trait_types + [other])
 
 #-----------------------------------------------------------------------------
 # Basic TraitTypes implementations/subclasses
@@ -1193,7 +1283,7 @@ class ObjectName(TraitType):
     def validate(self, obj, value):
         value = self.coerce_str(obj, value)
 
-        if isinstance(value, str) and py3compat.isidentifier(value):
+        if isinstance(value, string_types) and py3compat.isidentifier(value):
             return value
         self.error(obj, value)
 
@@ -1202,7 +1292,7 @@ class DottedObjectName(ObjectName):
     def validate(self, obj, value):
         value = self.coerce_str(obj, value)
 
-        if isinstance(value, str) and py3compat.isidentifier(value, dotted=True):
+        if isinstance(value, string_types) and py3compat.isidentifier(value, dotted=True):
             return value
         self.error(obj, value)
 
@@ -1354,8 +1444,10 @@ class Container(Instance):
         return self.klass(validated)
 
     def instance_init(self, obj):
-        if isinstance(self._trait, Instance):
-            self._trait._resolve_classes()
+        if isinstance(self._trait, TraitType):
+            self._trait.this_class = self.this_class
+        if hasattr(self._trait, 'instance_init'):
+            self._trait.instance_init(obj)
         super(Container, self).instance_init(obj)
 
 

@@ -14,7 +14,7 @@ pages.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from .widget_box import Box
+from .widget_box import Box, register
 from IPython.utils.traitlets import Unicode, Dict, CInt
 from IPython.utils.warn import DeprecatedClass
 
@@ -51,12 +51,13 @@ class _SelectionContainer(Box):
         else:
             return None
 
-
+@register('IPython.Accordion')
 class Accordion(_SelectionContainer):
     """Displays children each on a separate accordion page."""
     _view_name = Unicode('AccordionView', sync=True)
 
 
+@register('IPython.Tab')
 class Tab(_SelectionContainer):
     """Displays children each on a separate accordion tab."""
     _view_name = Unicode('TabView', sync=True)

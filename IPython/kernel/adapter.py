@@ -15,6 +15,8 @@ def code_to_line(code, cursor_pos):
     
     For adapting ``complete_`` and ``object_info_request``.
     """
+    if not code:
+        return "", 0
     for line in code.splitlines(True):
         n = len(line)
         if cursor_pos > n:
@@ -100,16 +102,20 @@ class V5toV4(Adapter):
     # shell channel
     
     def kernel_info_reply(self, msg):
+        v4c = {}
         content = msg['content']
-        content.pop('banner', None)
         for key in ('language_version', 'protocol_version'):
             if key in content:
-                content[key] = _version_str_to_list(content[key])
-        if content.pop('implementation', '') == 'ipython' \
+                v4c[key] = _version_str_to_list(content[key])
+        if content.get('implementation', '') == 'ipython' \
             and 'implementation_version' in content:
-            content['ipython_version'] = content.pop('implmentation_version')
-        content.pop('implementation_version', None)
-        content.setdefault("implmentation", content['language'])
+            v4c['ipython_version'] = _version_str_to_list(content['implementation_version'])
+        language_info = content.get('language_info', {})
+        language = language_info.get('name', '')
+        v4c.setdefault('language', language)
+        if 'version' in language_info:
+            v4c.setdefault('language_version', _version_str_to_list(language_info['version']))
+        msg['content'] = v4c
         return msg
     
     def execute_request(self, msg):
@@ -158,11 +164,16 @@ class V5toV4(Adapter):
     
     def object_info_reply(self, msg):
         """inspect_reply can't be easily backward compatible"""
-        msg['content'] = {'found' : False, 'name' : 'unknown'}
+        msg['content'] = {'found' : False, 'oname' : 'unknown'}
         return msg
     
     # iopub channel
     
+    def stream(self, msg):
+        content = msg['content']
+        content['data'] = content.pop('text')
+        return msg
+
     def display_data(self, msg):
         content = msg['content']
         content.setdefault("source", "display")
@@ -197,13 +208,22 @@ class V4toV5(Adapter):
     
     def kernel_info_reply(self, msg):
         content = msg['content']
-        for key in ('language_version', 'protocol_version', 'ipython_version'):
+        for key in ('protocol_version', 'ipython_version'):
             if key in content:
-                content[key] = ".".join(map(str, content[key]))
+                content[key] = '.'.join(map(str, content[key]))
+        
+        content.setdefault('protocol_version', '4.1')
         
         if content['language'].startswith('python') and 'ipython_version' in content:
             content['implementation'] = 'ipython'
             content['implementation_version'] = content.pop('ipython_version')
+        
+        language = content.pop('language')
+        language_info = content.setdefault('language_info', {})
+        language_info.setdefault('name', language)
+        if 'language_version' in content:
+            language_version = '.'.join(map(str, content.pop('language_version')))
+            language_info.setdefault('version', language_version)
         
         content['banner'] = ''
         return msg
@@ -267,7 +287,7 @@ class V4toV5(Adapter):
         content = msg['content']
         new_content = msg['content'] = {'status' : 'ok'}
         found = new_content['found'] = content['found']
-        new_content['name'] = content['name']
+        new_content['name'] = content['oname']
         new_content['data'] = data = {}
         new_content['metadata'] = {}
         if found:
@@ -287,6 +307,11 @@ class V4toV5(Adapter):
     
     # iopub channel
     
+    def stream(self, msg):
+        content = msg['content']
+        content['text'] = content.pop('data')
+        return msg
+
     def display_data(self, msg):
         content = msg['content']
         content.pop("source", None)

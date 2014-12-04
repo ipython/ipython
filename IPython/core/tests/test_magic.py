@@ -5,10 +5,6 @@ Needs to be run by nose (to make ipython session available).
 """
 from __future__ import absolute_import
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
 import io
 import os
 import sys
@@ -23,6 +19,7 @@ except ImportError:
 import nose.tools as nt
 
 from IPython.core import magic
+from IPython.core.error import UsageError
 from IPython.core.magic import (Magics, magics_class, line_magic,
                                 cell_magic, line_cell_magic,
                                 register_line_magic, register_cell_magic,
@@ -40,9 +37,6 @@ if py3compat.PY3:
 else:
     from StringIO import StringIO
 
-#-----------------------------------------------------------------------------
-# Test functions begin
-#-----------------------------------------------------------------------------
 
 @magic.magics_class
 class DummyMagics(magic.Magics): pass
@@ -624,7 +618,7 @@ def test_extension():
 
 
 # The nose skip decorator doesn't work on classes, so this uses unittest's skipIf
-@skipIf(dec.module_not_available('IPython.nbformat.current'), 'nbformat not importable')
+@skipIf(dec.module_not_available('IPython.nbformat'), 'nbformat not importable')
 class NotebookExportMagicTests(TestCase):
     def test_notebook_export_json(self):
         with TemporaryDirectory() as td:
@@ -632,39 +626,36 @@ class NotebookExportMagicTests(TestCase):
             _ip.ex(py3compat.u_format(u"u = {u}'héllo'"))
             _ip.magic("notebook -e %s" % outfile)
 
-    def test_notebook_export_py(self):
-        with TemporaryDirectory() as td:
-            outfile = os.path.join(td, "nb.py")
-            _ip.ex(py3compat.u_format(u"u = {u}'héllo'"))
-            _ip.magic("notebook -e %s" % outfile)
 
-    def test_notebook_reformat_py(self):
-        from IPython.nbformat.v3.tests.nbexamples import nb0
-        from IPython.nbformat import current
-        with TemporaryDirectory() as td:
-            infile = os.path.join(td, "nb.ipynb")
-            with io.open(infile, 'w', encoding='utf-8') as f:
-                current.write(nb0, f, 'json')
+class TestEnv(TestCase):
 
-            _ip.ex(py3compat.u_format(u"u = {u}'héllo'"))
-            _ip.magic("notebook -f py %s" % infile)
+    def test_env(self):
+        env = _ip.magic("env")
+        self.assertTrue(isinstance(env, dict))
 
-    def test_notebook_reformat_json(self):
-        from IPython.nbformat.v3.tests.nbexamples import nb0
-        from IPython.nbformat import current
-        with TemporaryDirectory() as td:
-            infile = os.path.join(td, "nb.py")
-            with io.open(infile, 'w', encoding='utf-8') as f:
-                current.write(nb0, f, 'py')
+    def test_env_get_set_simple(self):
+        env = _ip.magic("env var val1")
+        self.assertEqual(env, None)
+        self.assertEqual(os.environ['var'], 'val1')
+        self.assertEqual(_ip.magic("env var"), 'val1')
+        env = _ip.magic("env var=val2")
+        self.assertEqual(env, None)
+        self.assertEqual(os.environ['var'], 'val2')
 
-            _ip.ex(py3compat.u_format(u"u = {u}'héllo'"))
-            _ip.magic("notebook -f ipynb %s" % infile)
-            _ip.magic("notebook -f json %s" % infile)
+    def test_env_get_set_complex(self):
+        env = _ip.magic("env var 'val1 '' 'val2")
+        self.assertEqual(env, None)
+        self.assertEqual(os.environ['var'], "'val1 '' 'val2")
+        self.assertEqual(_ip.magic("env var"), "'val1 '' 'val2")
+        env = _ip.magic('env var=val2 val3="val4')
+        self.assertEqual(env, None)
+        self.assertEqual(os.environ['var'], 'val2 val3="val4')
 
+    def test_env_set_bad_input(self):
+        self.assertRaises(UsageError, lambda: _ip.magic("set_env var"))
 
-def test_env():
-    env = _ip.magic("env")
-    assert isinstance(env, dict), type(env)
+    def test_env_set_whitespace(self):
+        self.assertRaises(UsageError, lambda: _ip.magic("env var A=B"))
 
 
 class CellMagicTestCase(TestCase):

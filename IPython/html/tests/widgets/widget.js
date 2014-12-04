@@ -38,14 +38,6 @@ var recursive_compare = function(a, b) {
 // Test the widget framework.
 casper.notebook_test(function () {
     var index;
-    
-    this.then(function () {
-    
-        // Check if the WidgetManager class is defined.
-        this.test.assert(this.evaluate(function() {
-            return IPython.WidgetManager !== undefined; 
-        }), 'WidgetManager class is defined');
-    });
 
     index = this.append_cell(
         'from IPython.html import widgets\n' + 
@@ -54,10 +46,6 @@ casper.notebook_test(function () {
     this.execute_cell_then(index);
 
     this.then(function () {
-        // Check if the widget manager has been instantiated.
-        this.test.assert(this.evaluate(function() {
-            return IPython.notebook.kernel.widget_manager !== undefined; 
-        }), 'Notebook widget manager instantiated');
 
         // Functions that can be used to test the packing and unpacking APIs
         var that = this;
@@ -71,13 +59,27 @@ casper.notebook_test(function () {
                 JSON.stringify(input) + ' passed through Model._pack_model unchanged');
         };
         var test_unpack = function (input) {
-            var output = that.evaluate(function(input) {
+            that.thenEvaluate(function(input) {
+                window.results = undefined;
                 var model = new IPython.WidgetModel(IPython.notebook.kernel.widget_manager, undefined);
-                var results = model._unpack_models(input);
-                return results;
+                model._unpack_models(input).then(function(results) { 
+                    window.results = results; 
+                });    
             }, {input: input});
-            that.test.assert(recursive_compare(input, output), 
-                JSON.stringify(input) + ' passed through Model._unpack_model unchanged');
+            
+            that.waitFor(function check() {
+                return that.evaluate(function() { 
+                    return window.results; 
+                }); 
+            });
+            
+            that.then(function() {
+                var results = that.evaluate(function() { 
+                    return window.results; 
+                });
+                that.test.assert(recursive_compare(input, results), 
+                    JSON.stringify(input) + ' passed through Model._unpack_model unchanged');
+            });
         };
         var test_packing = function(input) {
             test_pack(input);
@@ -93,9 +95,10 @@ casper.notebook_test(function () {
         test_packing([1, false]);
         test_packing([1, false, {a: 'hi'}]);
         test_packing([1, false, ['hi']]);
+        test_packing([String('hi'), Date("Thu Nov 13 2014 13:46:21 GMT-0500")])
 
         // Test multi-set, single touch code.  First create a custom widget.
-        this.evaluate(function() {
+        this.thenEvaluate(function() {
             var MultiSetView = IPython.DOMWidgetView.extend({
                 render: function(){
                     this.model.set('a', 1);
@@ -118,8 +121,8 @@ casper.notebook_test(function () {
         '    b = CInt(0, sync=True)\n' +
         '    c = CInt(0, sync=True)\n' +
         '    d = CInt(-1, sync=True)\n' + // See if it sends a full state.
-        '    def _handle_receive_state(self, sync_data):\n' +
-        '        widgets.Widget._handle_receive_state(self, sync_data)\n'+
+        '    def set_state(self, sync_data):\n' +
+        '        widgets.Widget.set_state(self, sync_data)\n'+
         '        self.d = len(sync_data)\n' +
         'multiset = MultiSetWidget()\n' +
         'display(multiset)\n' +
@@ -182,7 +185,7 @@ casper.notebook_test(function () {
         this.test.assert(outputs.length <= 5, 'Messages throttled.');
 
         // We also need to verify that the last state sent was correct.
-        var last_state = outputs[outputs.length-1]['text/plain'];
+        var last_state = outputs[outputs.length-1].data['text/plain'];
         this.test.assertEquals(last_state, "20", "Last state sent when throttling.");
     });
 });

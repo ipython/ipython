@@ -49,7 +49,6 @@ from IPython.utils.warn import error
 from IPython.kernel.zmq.displayhook import ZMQShellDisplayHook
 from IPython.kernel.zmq.datapub import ZMQDataPublisher
 from IPython.kernel.zmq.session import extract_header
-from IPython.kernel.comm import CommManager
 from .session import Session
 
 #-----------------------------------------------------------------------------
@@ -103,72 +102,6 @@ class KernelMagics(Magics):
     # moved into a separate machinery as well.  For now, at least isolate here
     # the magics which this class needs to implement differently from the base
     # class, or that are unique to it.
-
-    @line_magic
-    def doctest_mode(self, parameter_s=''):
-        """Toggle doctest mode on and off.
-
-        This mode is intended to make IPython behave as much as possible like a
-        plain Python shell, from the perspective of how its prompts, exceptions
-        and output look.  This makes it easy to copy and paste parts of a
-        session into doctests.  It does so by:
-
-        - Changing the prompts to the classic ``>>>`` ones.
-        - Changing the exception reporting mode to 'Plain'.
-        - Disabling pretty-printing of output.
-
-        Note that IPython also supports the pasting of code snippets that have
-        leading '>>>' and '...' prompts in them.  This means that you can paste
-        doctests from files or docstrings (even if they have leading
-        whitespace), and the code will execute correctly.  You can then use
-        '%history -t' to see the translated history; this will give you the
-        input after removal of all the leading prompts and whitespace, which
-        can be pasted back into an editor.
-
-        With these features, you can switch into this mode easily whenever you
-        need to do testing and changes to doctests, without having to leave
-        your existing IPython session.
-        """
-
-        from IPython.utils.ipstruct import Struct
-
-        # Shorthands
-        shell = self.shell
-        disp_formatter = self.shell.display_formatter
-        ptformatter = disp_formatter.formatters['text/plain']
-        # dstore is a data store kept in the instance metadata bag to track any
-        # changes we make, so we can undo them later.
-        dstore = shell.meta.setdefault('doctest_mode', Struct())
-        save_dstore = dstore.setdefault
-
-        # save a few values we'll need to recover later
-        mode = save_dstore('mode', False)
-        save_dstore('rc_pprint', ptformatter.pprint)
-        save_dstore('rc_active_types',disp_formatter.active_types)
-        save_dstore('xmode', shell.InteractiveTB.mode)
-
-        if mode == False:
-            # turn on
-            ptformatter.pprint = False
-            disp_formatter.active_types = ['text/plain']
-            shell.magic('xmode Plain')
-        else:
-            # turn off
-            ptformatter.pprint = dstore.rc_pprint
-            disp_formatter.active_types = dstore.rc_active_types
-            shell.magic("xmode " + dstore.xmode)
-
-        # Store new mode and inform on console
-        dstore.mode = bool(1-int(mode))
-        mode_label = ['OFF','ON'][dstore.mode]
-        print('Doctest mode is:', mode_label)
-
-        # Send the payload back so that clients can modify their prompt display
-        payload = dict(
-            source='doctest_mode',
-            mode=dstore.mode)
-        shell.payload_manager.write_payload(payload)
-        
     
     _find_edit_target = CodeMagics._find_edit_target
 
@@ -474,25 +407,11 @@ class ZMQInteractiveShell(InteractiveShell):
         # And install the payload version of page.
         install_payload_page()
 
-    def auto_rewrite_input(self, cmd):
-        """Called to show the auto-rewritten input for autocall and friends.
-
-        FIXME: this payload is currently not correctly processed by the
-        frontend.
-        """
-        new = self.prompt_manager.render('rewrite') + cmd
-        payload = dict(
-            source='auto_rewrite_input',
-            transformed_input=new,
-            )
-        self.payload_manager.write_payload(payload)
-
     def ask_exit(self):
         """Engage the exit actions."""
         self.exit_now = (not self.keepkernel_on_exit)
         payload = dict(
             source='ask_exit',
-            exit=True,
             keepkernel=self.keepkernel_on_exit,
             )
         self.payload_manager.write_payload(payload)
@@ -563,10 +482,6 @@ class ZMQInteractiveShell(InteractiveShell):
         super(ZMQInteractiveShell, self).init_magics()
         self.register_magics(KernelMagics)
         self.magics_manager.register_alias('ed', 'edit')
-    
-    def init_comms(self):
-        self.comm_manager = CommManager(shell=self, parent=self)
-        self.configurables.append(self.comm_manager)
 
 
 InteractiveShellABC.register(ZMQInteractiveShell)

@@ -103,7 +103,7 @@ class IPythonWidget(FrontendWidget):
 
     # IPythonWidget protected class variables.
     _PromptBlock = namedtuple('_PromptBlock', ['block', 'length', 'number'])
-    _payload_source_edit = 'edit_magic'
+    _payload_source_edit = 'edit'
     _payload_source_exit = 'ask_exit'
     _payload_source_next_input = 'set_next_input'
     _payload_source_page = 'page'
@@ -151,8 +151,23 @@ class IPythonWidget(FrontendWidget):
             start = content['cursor_start']
             end = content['cursor_end']
             
+            start = max(start, 0)
+            end = max(end, start)
+
+            # Move the control's cursor to the desired end point
+            cursor_pos = self._get_input_buffer_cursor_pos()
+            if end < cursor_pos:
+                cursor.movePosition(QtGui.QTextCursor.Left,
+                                    n=(cursor_pos - end))
+            elif end > cursor_pos:
+                cursor.movePosition(QtGui.QTextCursor.Right,
+                                    n=(end - cursor_pos))
+            # This line actually applies the move to control's cursor
+            self._control.setTextCursor(cursor)
+
             offset = end - start
-            # Move the cursor to the start of the match and complete.
+            # Move the local cursor object to the start of the match and
+            # complete.
             cursor.movePosition(QtGui.QTextCursor.Left, n=offset)
             self._complete_with_items(cursor, matches)
 
@@ -204,12 +219,30 @@ class IPythonWidget(FrontendWidget):
                 items.append(cell)
                 last_cell = cell
         self._set_history(items)
+    
+    def _insert_other_input(self, cursor, content):
+        """Insert function for input from other frontends"""
+        cursor.beginEditBlock()
+        start = cursor.position()
+        n = content.get('execution_count', 0)
+        cursor.insertText('\n')
+        self._insert_html(cursor, self._make_in_prompt(n))
+        cursor.insertText(content['code'])
+        self._highlighter.rehighlightBlock(cursor.block())
+        cursor.endEditBlock()
+        
+    def _handle_execute_input(self, msg):
+        """Handle an execute_input message"""
+        self.log.debug("execute_input: %s", msg.get('content', ''))
+        if self.include_output(msg):
+            self._append_custom(self._insert_other_input, msg['content'], before_prompt=True)
 
+    
     def _handle_execute_result(self, msg):
         """ Reimplemented for IPython-style "display hook".
         """
         self.log.debug("execute_result: %s", msg.get('content', ''))
-        if not self._hidden and self._is_from_this_session(msg):
+        if self.include_output(msg):
             self.flush_clearoutput()
             content = msg['content']
             prompt_number = content.get('execution_count', 0)
@@ -231,7 +264,7 @@ class IPythonWidget(FrontendWidget):
         # For now, we don't display data from other frontends, but we
         # eventually will as this allows all frontends to monitor the display
         # data. But we need to figure out how to handle this in the GUI.
-        if not self._hidden and self._is_from_this_session(msg):
+        if self.include_output(msg):
             self.flush_clearoutput()
             data = msg['content']['data']
             metadata = msg['content']['metadata']

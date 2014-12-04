@@ -19,7 +19,7 @@ import zmq
 from zmq.eventloop import ioloop
 from zmq.eventloop.zmqstream import ZMQStream
 
-from IPython.config.configurable import Configurable
+from IPython.config.configurable import SingletonConfigurable
 from IPython.core.error import StdinNotImplementedError
 from IPython.core import release
 from IPython.utils import py3compat
@@ -32,7 +32,7 @@ from IPython.utils.traitlets import (
 from .session import Session
 
 
-class Kernel(Configurable):
+class Kernel(SingletonConfigurable):
 
     #---------------------------------------------------------------------------
     # Kernel interface
@@ -59,6 +59,10 @@ class Kernel(Configurable):
 
     def _ident_default(self):
         return unicode_type(uuid.uuid4())
+
+    # This should be overridden by wrapper kernels that implement any real
+    # language.
+    language_info = {}
 
     # Private interface
     
@@ -114,7 +118,7 @@ class Kernel(Configurable):
                       'inspect_request', 'history_request',
                       'kernel_info_request',
                       'connect_request', 'shutdown_request',
-                      'apply_request',
+                      'apply_request', 'is_complete_request',
                     ]
         self.shell_handlers = {}
         for msg_type in msg_types:
@@ -130,7 +134,7 @@ class Kernel(Configurable):
         """dispatch control requests"""
         idents,msg = self.session.feed_identities(msg, copy=False)
         try:
-            msg = self.session.unserialize(msg, content=True, copy=False)
+            msg = self.session.deserialize(msg, content=True, copy=False)
         except:
             self.log.error("Invalid Control Message", exc_info=True)
             return
@@ -165,7 +169,7 @@ class Kernel(Configurable):
         
         idents,msg = self.session.feed_identities(msg, copy=False)
         try:
-            msg = self.session.unserialize(msg, content=True, copy=False)
+            msg = self.session.deserialize(msg, content=True, copy=False)
         except:
             self.log.error("Invalid Message", exc_info=True)
             return
@@ -451,8 +455,7 @@ class Kernel(Configurable):
             'protocol_version': release.kernel_protocol_version,
             'implementation': self.implementation,
             'implementation_version': self.implementation_version,
-            'language': self.language,
-            'language_version': self.language_version,
+            'language_info': self.language_info,
             'banner': self.banner,
         }
 
@@ -479,6 +482,22 @@ class Kernel(Configurable):
         kernel.
         """
         return {'status': 'ok', 'restart': restart}
+    
+    def is_complete_request(self, stream, ident, parent):
+        content = parent['content']
+        code = content['code']
+        
+        reply_content = self.do_is_complete(code)
+        reply_content = json_clean(reply_content)
+        reply_msg = self.session.send(stream, 'is_complete_reply',
+                                           reply_content, parent, ident)
+        self.log.debug("%s", reply_msg)
+
+    def do_is_complete(self, code):
+        """Override in subclasses to find completions.
+        """
+        return {'status' : 'unknown',
+                }
 
     #---------------------------------------------------------------------------
     # Engine methods

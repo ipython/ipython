@@ -19,7 +19,7 @@ import os
 from IPython.utils.traitlets import Unicode
 from IPython.config import Config
 
-from IPython.nbconvert import filters, preprocessors
+from IPython.nbconvert.filters.highlight import Highlight2Latex
 from .templateexporter import TemplateExporter
 
 #-----------------------------------------------------------------------------
@@ -37,7 +37,7 @@ class LatexExporter(TemplateExporter):
     """
 
     def _file_extension_default(self):
-        return 'tex'
+        return '.tex'
 
     def _template_file_default(self):
         return 'article'
@@ -67,7 +67,7 @@ class LatexExporter(TemplateExporter):
     def default_config(self):
         c = Config({
             'NbConvertBase': {
-                'display_data_priority' : ['latex', 'application/pdf', 'png', 'jpg', 'svg', 'jpeg', 'text']
+                'display_data_priority' : ['text/latex', 'application/pdf', 'image/png', 'image/jpeg', 'image/svg+xml', 'text/plain']
                 },
              'ExtractOutputPreprocessor': {
                     'enabled':True
@@ -87,3 +87,10 @@ class LatexExporter(TemplateExporter):
          })
         c.merge(super(LatexExporter,self).default_config)
         return c
+
+    def from_notebook_node(self, nb, resources=None, **kw):
+        langinfo = nb.metadata.get('language_info', {})
+        lexer = langinfo.get('pygments_lexer', langinfo.get('name', None))
+        self.register_filter('highlight_code',
+                             Highlight2Latex(pygments_lexer=lexer, parent=self))
+        return super(LatexExporter, self).from_notebook_node(nb, resources, **kw)

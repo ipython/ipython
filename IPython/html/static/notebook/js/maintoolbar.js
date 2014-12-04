@@ -10,14 +10,16 @@ define([
     "use strict";
 
     var MainToolBar = function (selector, options) {
-        // Constructor
-        //
-        // Parameters:
-        //  selector: string
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance
-        //          notebook: Notebook instance
+        /**
+         * Constructor
+         *
+         * Parameters:
+         *  selector: string
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          events: $(Events) instance
+         *          notebook: Notebook instance
+         */
         toolbar.ToolBar.apply(this, arguments);
         this.events = options.events;
         this.notebook = options.notebook;
@@ -27,7 +29,7 @@ define([
         this.bind_events();
     };
 
-    MainToolBar.prototype = new toolbar.ToolBar();
+    MainToolBar.prototype = Object.create(toolbar.ToolBar.prototype);
 
     MainToolBar.prototype.construct = function () {
         var that = this;
@@ -108,7 +110,9 @@ define([
                     label : 'Run Cell',
                     icon : 'fa-play',
                     callback : function () {
-                        // emulate default shift-enter behavior
+                        /**
+                         * emulate default shift-enter behavior
+                         */
                         that.notebook.execute_cell_and_select_below();
                     }
                 },
@@ -117,7 +121,7 @@ define([
                     label : 'Interrupt',
                     icon : 'fa-stop',
                     callback : function () {
-                        that.notebook.session.interrupt_kernel();
+                        that.notebook.kernel.interrupt();
                         }
                 },
                 {
@@ -139,12 +143,7 @@ define([
                 .append($('<option/>').attr('value','code').text('Code'))
                 .append($('<option/>').attr('value','markdown').text('Markdown'))
                 .append($('<option/>').attr('value','raw').text('Raw NBConvert'))
-                .append($('<option/>').attr('value','heading1').text('Heading 1'))
-                .append($('<option/>').attr('value','heading2').text('Heading 2'))
-                .append($('<option/>').attr('value','heading3').text('Heading 3'))
-                .append($('<option/>').attr('value','heading4').text('Heading 4'))
-                .append($('<option/>').attr('value','heading5').text('Heading 5'))
-                .append($('<option/>').attr('value','heading6').text('Heading 6'))
+                .append($('<option/>').attr('value','heading').text('Heading'))
             );
     };
 
@@ -190,24 +189,23 @@ define([
         
         this.element.find('#cell_type').change(function () {
             var cell_type = $(this).val();
-            if (cell_type === 'code') {
+            switch (cell_type) {
+            case 'code':
                 that.notebook.to_code();
-            } else if (cell_type === 'markdown')  {
+                break;
+            case 'markdown':
                 that.notebook.to_markdown();
-            } else if (cell_type === 'raw')  {
+                break;
+            case 'raw':
                 that.notebook.to_raw();
-            } else if (cell_type === 'heading1')  {
-                that.notebook.to_heading(undefined, 1);
-            } else if (cell_type === 'heading2')  {
-                that.notebook.to_heading(undefined, 2);
-            } else if (cell_type === 'heading3')  {
-                that.notebook.to_heading(undefined, 3);
-            } else if (cell_type === 'heading4')  {
-                that.notebook.to_heading(undefined, 4);
-            } else if (cell_type === 'heading5')  {
-                that.notebook.to_heading(undefined, 5);
-            } else if (cell_type === 'heading6')  {
-                that.notebook.to_heading(undefined, 6);
+                break;
+            case 'heading':
+                that.notebook._warn_heading();
+                that.notebook.to_heading();
+                that.element.find('#cell_type').val("markdown");
+                break;
+            default:
+                console.log("unrecognized cell type:", cell_type);
             }
         });
         this.events.on('selected_cell_type_changed.Notebook', function (event, data) {

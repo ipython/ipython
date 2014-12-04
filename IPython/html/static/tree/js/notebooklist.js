@@ -6,20 +6,24 @@ define([
     'jquery',
     'base/js/utils',
     'base/js/dialog',
-], function(IPython, $, utils, dialog) {
+    'base/js/events',
+], function(IPython, $, utils, dialog, events) {
     "use strict";
     
     var NotebookList = function (selector, options) {
-        // Constructor
-        //
-        // Parameters:
-        //  selector: string
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          session_list: SessionList instance
-        //          element_name: string
-        //          base_url: string
-        //          notebook_path: string
+        /**
+         * Constructor
+         *
+         * Parameters:
+         *  selector: string
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          session_list: SessionList instance
+         *          element_name: string
+         *          base_url: string
+         *          notebook_path: string
+         *          contents: Contents instance
+         */
         var that = this;
         this.session_list = options.session_list;
         // allow code re-use by just changing element_name in kernellist.js
@@ -34,6 +38,7 @@ define([
         this.sessions = {};
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
         this.notebook_path = options.notebook_path || utils.get_body_data("notebookPath");
+        this.contents = options.contents;
         if (this.session_list && this.session_list.events) {
             this.session_list.events.on('sessions_loaded.Dashboard', 
                 function(e, d) { that.sessions_loaded(d); });
@@ -98,7 +103,7 @@ define([
             };
             reader.onerror = function (event) {
                 var item = $(event.target).data('item');
-                var name = item.data('name')
+                var name = item.data('name');
                 item.remove();
                 dialog.modal({
                     title : 'Failed to read file',
@@ -116,11 +121,13 @@ define([
     };
 
     NotebookList.prototype.clear_list = function (remove_uploads) {
-        // Clears the navigation tree.
-        //
-        // Parameters
-        // remove_uploads: bool=False
-        //      Should upload prompts also be removed from the tree.
+        /**
+         * Clears the navigation tree.
+         *
+         * Parameters
+         * remove_uploads: bool=False
+         *      Should upload prompts also be removed from the tree.
+         */
         if (remove_uploads) {
             this.element.children('.list_item').remove();
         } else {
@@ -140,37 +147,26 @@ define([
 
     NotebookList.prototype.load_list = function () {
         var that = this;
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "GET",
-            dataType : "json",
-            success : $.proxy(this.list_loaded, this),
-            error : $.proxy( function(xhr, status, error){
-                utils.log_ajax_error(xhr, status, error);
-                that.list_loaded([], null, null, {msg:"Error connecting to server."});
-                             },this)
-        };
-
-        var url = utils.url_join_encode(
-                this.base_url,
-                'api',
-                'contents',
-                this.notebook_path
+        this.contents.list_contents(that.notebook_path).then(
+            $.proxy(this.draw_notebook_list, this),
+            function(error) {
+                that.draw_notebook_list({content: []}, "Server error: " + error.message);
+            }
         );
-        $.ajax(url, settings);
     };
 
-
-    NotebookList.prototype.list_loaded = function (data, status, xhr, param) {
-        var message = 'Notebook list empty.';
-        if (param !== undefined && param.msg) {
-            message = param.msg;
-        }
+    /**
+     * Draw the list of notebooks
+     * @method draw_notebook_list
+     * @param {Array} list An array of dictionaries representing files or
+     *     directories.
+     * @param {String} error_msg An error message
+     */
+    NotebookList.prototype.draw_notebook_list = function (list, error_msg) {
+        var message = error_msg || 'Notebook list empty.';
         var item = null;
         var model = null;
-        var list = data.content;
-        var len = list.length;
+        var len = list.content.length;
         this.clear_list();
         var n_uploads = this.element.children('.list_item').length;
         if (len === 0) {
@@ -186,16 +182,18 @@ define([
             model = {
                 type: 'directory',
                 name: '..',
-                path: path,
+                path: utils.url_path_split(path)[0],
             };
             this.add_link(model, item);
             offset += 1;
         }
         for (var i=0; i<len; i++) {
-            model = list[i];
+            model = list.content[i];
             item = this.new_item(i+offset);
             this.add_link(model, item);
         }
+        // Trigger an event when we've finished drawing the notebook list.
+        events.trigger('draw_notebook_list.NotebookList');
     };
 
 
@@ -249,8 +247,7 @@ define([
                 utils.url_join_encode(
                     this.base_url,
                     uri_prefix,
-                    path,
-                    name
+                    path
                 )
             );
         // directory nav doesn't open new tabs
@@ -258,14 +255,16 @@ define([
         if (model.type !== "directory") {
             link.attr('target','_blank');
         }
-        var path_name = utils.url_path_join(path, name);
+        if (model.type !== 'directory') {
+            this.add_duplicate_button(item);
+        }
         if (model.type == 'file') {
             this.add_delete_button(item);
         } else if (model.type == 'notebook') {
-            if(this.sessions[path_name] === undefined){
+            if (this.sessions[path] === undefined){
                 this.add_delete_button(item);
             } else {
-                this.add_shutdown_button(item, this.sessions[path_name]);
+                this.add_shutdown_button(item, this.sessions[path]);
             }
         }
     };
@@ -315,12 +314,40 @@ define([
                 $.ajax(url, settings);
                 return false;
             });
-        // var new_buttons = item.find('a'); // shutdown_button;
-        item.find(".item_buttons").text("").append(shutdown_button);
+        item.find(".item_buttons").append(shutdown_button);
+    };
+
+    NotebookList.prototype.add_duplicate_button = function (item) {
+        var notebooklist = this;
+        var duplicate_button = $("<button/>").text("Duplicate").addClass("btn btn-default btn-xs").
+            click(function (e) {
+                // $(this) is the button that was clicked.
+                var that = $(this);
+                var name = item.data('name');
+                var path = item.data('path');
+                var message = 'Are you sure you want to duplicate ' + name + '?';
+                var copy_from = {copy_from : path};
+                IPython.dialog.modal({
+                    title : "Duplicate " + name,
+                    body : message,
+                    buttons : {
+                        Duplicate : {
+                            class: "btn-primary",
+                            click: function() {
+                                notebooklist.contents.copy(path, notebooklist.notebook_path).then(function () {
+                                    notebooklist.load_list();
+                                });
+                            }
+                        },
+                        Cancel : {}
+                    }
+                });
+                return false;
+            });
+        item.find(".item_buttons").append(duplicate_button);
     };
 
     NotebookList.prototype.add_delete_button = function (item) {
-        var new_buttons = $('<span/>').addClass("btn-group pull-right");
         var notebooklist = this;
         var delete_button = $("<button/>").text("Delete").addClass("btn btn-default btn-xs").
             click(function (e) {
@@ -330,6 +357,7 @@ define([
                 // data because the outer scope's values change as we iterate through the loop.
                 var parent_item = that.parents('div.list_item');
                 var name = parent_item.data('name');
+                var path = parent_item.data('path');
                 var message = 'Are you sure you want to permanently delete the file: ' + name + '?';
                 dialog.modal({
                     title : "Delete file",
@@ -338,23 +366,11 @@ define([
                         Delete : {
                             class: "btn-danger",
                             click: function() {
-                                var settings = {
-                                    processData : false,
-                                    cache : false,
-                                    type : "DELETE",
-                                    dataType : "json",
-                                    success : function (data, status, xhr) {
-                                        parent_item.remove();
-                                    },
-                                    error : utils.log_ajax_error,
-                                };
-                                var url = utils.url_join_encode(
-                                    notebooklist.base_url,
-                                    'api/contents',
-                                    notebooklist.notebook_path,
-                                    name
+                                notebooklist.contents.delete(path).then(
+                                    function() {
+                                        notebooklist.notebook_deleted(path);
+                                    }
                                 );
-                                $.ajax(url, settings);
                             }
                         },
                         Cancel : {}
@@ -362,17 +378,30 @@ define([
                 });
                 return false;
             });
-        item.find(".item_buttons").text("").append(delete_button);
+        item.find(".item_buttons").append(delete_button);
+    };
+
+    NotebookList.prototype.notebook_deleted = function(path) {
+        /**
+         * Remove the deleted notebook.
+         */
+        $( ":data(path)" ).each(function() {
+            var element = $(this);
+            if (element.data("path") == path) {
+                element.remove();
+                events.trigger('notebook_deleted.NotebookList');
+            }
+        });
     };
 
 
-    NotebookList.prototype.add_upload_button = function (item, type) {
+    NotebookList.prototype.add_upload_button = function (item) {
         var that = this;
         var upload_button = $('<button/>').text("Upload")
             .addClass('btn btn-primary btn-xs upload_button')
             .click(function (e) {
-                var path = that.notebook_path;
                 var filename = item.find('.item_name > input').val();
+                var path = utils.url_path_join(that.notebook_path, filename);
                 var filedata = item.data('filedata');
                 var format = 'text';
                 if (filename.length === 0 || filename[0] === '.') {
@@ -394,10 +423,7 @@ define([
                     filedata = btoa(bytes);
                     format = 'base64';
                 }
-                var model = {
-                    path: path,
-                    name: filename
-                };
+                var model = {};
 
                 var name_and_ext = utils.splitext(filename);
                 var file_ext = name_and_ext[1];
@@ -427,34 +453,20 @@ define([
                     model.content = filedata;
                     content_type = 'application/octet-stream';
                 }
-                var filedata = item.data('filedata');
+                filedata = item.data('filedata');
 
-                var settings = {
-                    processData : false,
-                    cache : false,
-                    type : 'PUT',
-                    data : JSON.stringify(model),
-                    headers : {'Content-Type': content_type},
-                    success : function (data, status, xhr) {
-                        item.removeClass('new-file');
-                        that.add_link(model, item);
-                        that.add_delete_button(item);
-                        that.session_list.load_sessions();
-                    },
-                    error : utils.log_ajax_error,
+                var on_success = function () {
+                    item.removeClass('new-file');
+                    that.add_link(model, item);
+                    that.add_delete_button(item);
+                    that.session_list.load_sessions();
                 };
-
-                var url = utils.url_join_encode(
-                    that.base_url,
-                    'api/contents',
-                    that.notebook_path,
-                    filename
-                );
                 
                 var exists = false;
                 $.each(that.element.find('.list_item:not(.new-file)'), function(k,v){
                     if ($(v).data('name') === filename) { exists = true; return false; }
                 });
+                
                 if (exists) {
                     dialog.modal({
                         title : "Replace file",
@@ -462,7 +474,9 @@ define([
                         buttons : {
                             Overwrite : {
                                 class: "btn-danger",
-                                click: function() { $.ajax(url, settings); }
+                                click: function () {
+                                    that.contents.save(path, model).then(on_success);
+                                }
                             },
                             Cancel : {
                                 click: function() { item.remove(); }
@@ -470,7 +484,7 @@ define([
                         }
                     });
                 } else {
-                    $.ajax(url, settings);
+                    that.contents.save(path, model).then(on_success);
                 }
                 
                 return false;
@@ -486,52 +500,6 @@ define([
             .append(cancel_button);
     };
 
-
-    NotebookList.prototype.new_notebook = function(){
-        var path = this.notebook_path;
-        var base_url = this.base_url;
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "POST",
-            dataType : "json",
-            async : false,
-            success : function (data, status, xhr) {
-                var notebook_name = data.name;
-                window.open(
-                    utils.url_join_encode(
-                        base_url,
-                        'notebooks',
-                        path,
-                        notebook_name),
-                    '_blank'
-                );
-            },
-            error : $.proxy(this.new_notebook_failed, this),
-        };
-        var url = utils.url_join_encode(
-            base_url,
-            'api/contents',
-            path
-        );
-        $.ajax(url, settings);
-    };
-    
-    
-    NotebookList.prototype.new_notebook_failed = function (xhr, status, error) {
-        utils.log_ajax_error(xhr, status, error);
-        var msg;
-        if (xhr.responseJSON && xhr.responseJSON.message) {
-            msg = xhr.responseJSON.message;
-        } else {
-            msg = xhr.statusText;
-        }
-        dialog.modal({
-            title : 'Creating Notebook Failed',
-            body : "The error was: " + msg,
-            buttons : {'OK' : {'class' : 'btn-primary'}}
-        });
-    };
 
     // Backwards compatability.
     IPython.NotebookList = NotebookList;

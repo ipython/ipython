@@ -19,6 +19,11 @@ import unittest
 
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
+from IPython.utils.py3compat import PY3
+
+sqlite_err_maybe = dec.module_not_available('sqlite3')
+SQLITE_NOT_AVAILABLE_ERROR = ('WARNING: IPython History requires SQLite,'
+                              ' your history will not be saved\n')
 
 class TestFileToRun(unittest.TestCase, tt.TempFileMixin):
     """Test the behavior of the file_to_run parameter."""
@@ -28,10 +33,7 @@ class TestFileToRun(unittest.TestCase, tt.TempFileMixin):
         src = "print(__file__)\n"
         self.mktmp(src)
 
-        if dec.module_not_available('sqlite3'):
-            err = 'WARNING: IPython History requires SQLite, your history will not be saved\n'
-        else:
-            err = None
+        err = SQLITE_NOT_AVAILABLE_ERROR if sqlite_err_maybe else None
         tt.ipexec_validate(self.fname, self.fname, err)
 
     def test_ipy_script_file_attribute(self):
@@ -39,11 +41,28 @@ class TestFileToRun(unittest.TestCase, tt.TempFileMixin):
         src = "print(__file__)\n"
         self.mktmp(src, ext='.ipy')
 
-        if dec.module_not_available('sqlite3'):
-            err = 'WARNING: IPython History requires SQLite, your history will not be saved\n'
-        else:
-            err = None
+        err = SQLITE_NOT_AVAILABLE_ERROR if sqlite_err_maybe else None
         tt.ipexec_validate(self.fname, self.fname, err)
 
-    # Ideally we would also test that `__file__` is not set in the
-    # interactive namespace after running `ipython -i <file>`.
+    # The commands option to ipexec_validate doesn't work on Windows, and it
+    # doesn't seem worth fixing
+    @dec.skip_win32
+    def test_py_script_file_attribute_interactively(self):
+        """Test that `__file__` is not set after `ipython -i file.py`"""
+        src = "True\n"
+        self.mktmp(src)
+
+        err = SQLITE_NOT_AVAILABLE_ERROR if sqlite_err_maybe else None
+        tt.ipexec_validate(self.fname, 'False', err, options=['-i'],
+                           commands=['"__file__" in globals()', 'exit()'])
+
+    @dec.skip_win32
+    @dec.skipif(PY3)
+    def test_py_script_file_compiler_directive(self):
+        """Test `__future__` compiler directives with `ipython -i file.py`"""
+        src = "from __future__ import division\n"
+        self.mktmp(src)
+
+        err = SQLITE_NOT_AVAILABLE_ERROR if sqlite_err_maybe else None
+        tt.ipexec_validate(self.fname, 'float', err, options=['-i'],
+                           commands=['type(1/2)', 'exit()'])

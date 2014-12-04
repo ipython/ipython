@@ -17,18 +17,16 @@ from ..utils import url_escape
 class NotebookHandler(IPythonHandler):
 
     @web.authenticated
-    def get(self, path='', name=None):
+    def get(self, path):
         """get renders the notebook template if a name is given, or 
         redirects to the '/files/' handler if the name is not given."""
         path = path.strip('/')
         cm = self.contents_manager
-        if name is None:
-            raise web.HTTPError(500, "This shouldn't be accessible: %s" % self.request.uri)
         
         # a .ipynb filename was given
-        if not cm.file_exists(name, path):
-            raise web.HTTPError(404, u'Notebook does not exist: %s/%s' % (path, name))
-        name = url_escape(name)
+        if not cm.file_exists(path):
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % path)
+        name = url_escape(path.rsplit('/', 1)[-1])
         path = url_escape(path)
         self.write(self.render_template('notebook.html',
             notebook_path=path,

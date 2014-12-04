@@ -183,7 +183,7 @@ class ModuleReloader(object):
         return top_module, top_name
 
     def filename_and_mtime(self, module):
-        if not hasattr(module, '__file__'):
+        if not hasattr(module, '__file__') or module.__file__ is None:
             return None, None
 
         if module.__name__ == '__main__':

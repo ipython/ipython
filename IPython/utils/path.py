@@ -12,9 +12,9 @@ import errno
 import shutil
 import random
 import tempfile
-import warnings
-from hashlib import md5
 import glob
+from warnings import warn
+from hashlib import md5
 
 import IPython
 from IPython.testing.skipdoctest import skip_doctest
@@ -271,8 +271,8 @@ def get_ipython_dir():
     
     # import pdb; pdb.set_trace()  # dbg
     if 'IPYTHON_DIR' in env:
-        warnings.warn('The environment variable IPYTHON_DIR is deprecated. '
-                      'Please use IPYTHONDIR instead.')
+        warn('The environment variable IPYTHON_DIR is deprecated. '
+                'Please use IPYTHONDIR instead.')
     ipdir = env.get('IPYTHONDIR', env.get('IPYTHON_DIR', None))
     if ipdir is None:
         # not set explicitly, use ~/.ipython
@@ -285,28 +285,28 @@ def get_ipython_dir():
             if _writable_dir(xdg_ipdir):
                 cu = compress_user
                 if os.path.exists(ipdir):
-                    warnings.warn(('Ignoring {0} in favour of {1}. Remove {0} '
-                    'to get rid of this message').format(cu(xdg_ipdir), cu(ipdir)))
+                    warn(('Ignoring {0} in favour of {1}. Remove {0} to '
+                        'get rid of this message').format(cu(xdg_ipdir), cu(ipdir)))
                 elif os.path.islink(xdg_ipdir):
-                    warnings.warn(('{0} is deprecated. Move link to {1} '
-                    'to get rid of this message').format(cu(xdg_ipdir), cu(ipdir)))
+                    warn(('{0} is deprecated. Move link to {1} to '
+                        'get rid of this message').format(cu(xdg_ipdir), cu(ipdir)))
                 else:
-                    warnings.warn('Moving {0} to {1}'.format(cu(xdg_ipdir), cu(ipdir)))
+                    warn('Moving {0} to {1}'.format(cu(xdg_ipdir), cu(ipdir)))
                     shutil.move(xdg_ipdir, ipdir)
 
     ipdir = os.path.normpath(os.path.expanduser(ipdir))
 
     if os.path.exists(ipdir) and not _writable_dir(ipdir):
         # ipdir exists, but is not writable
-        warnings.warn("IPython dir '%s' is not a writable location,"
-                        " using a temp directory."%ipdir)
+        warn("IPython dir '{0}' is not a writable location,"
+                " using a temp directory.".format(ipdir))
         ipdir = tempfile.mkdtemp()
     elif not os.path.exists(ipdir):
         parent = os.path.dirname(ipdir)
         if not _writable_dir(parent):
             # ipdir does not exist and parent isn't writable
-            warnings.warn("IPython parent '%s' is not a writable location,"
-                        " using a temp directory."%parent)
+            warn("IPython parent '{0}' is not a writable location,"
+                    " using a temp directory.".format(parent))
             ipdir = tempfile.mkdtemp()
 
     return py3compat.cast_unicode(ipdir, fs_encoding)
@@ -473,11 +473,11 @@ def check_for_old_config(ipython_dir=None):
             if filehash(f) == old_config_md5.get(cfg, ''):
                 os.unlink(f)
             else:
-                warnings.warn("Found old IPython config file %r (modified by user)"%f)
+                warn("Found old IPython config file {!r} (modified by user)".format(f))
                 warned = True
 
     if warned:
-        warnings.warn("""
+        warn("""
   The IPython configuration system has changed as of 0.11, and these files will
   be ignored. See http://ipython.github.com/ipython-doc/dev/config for details
   of the new config system.

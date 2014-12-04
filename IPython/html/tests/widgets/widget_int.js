@@ -1,26 +1,28 @@
 // Test widget int class
 casper.notebook_test(function () {
-    index = this.append_cell(
-        'from IPython.html import widgets\n' + 
-        'from IPython.display import display, clear_output\n' +
-        'print("Success")');
-    this.execute_cell_then(index);
-
     var int_text = {};
     int_text.query = '.widget-area .widget-subarea .my-second-int-text input';
     int_text.index = this.append_cell(
+        'from IPython.html import widgets\n' + 
+        'from IPython.display import display, clear_output\n' +
         'int_widget = widgets.IntText()\n' +
         'display(int_widget)\n' + 
         'int_widget._dom_classes = ["my-second-int-text"]\n' + 
         'print(int_widget.model_id)\n');
     this.execute_cell_then(int_text.index, function(index){
         int_text.model_id = this.get_output_cell(index).text.trim();
-        
-        this.test.assert(this.cell_element_exists(index, 
+    });
+
+    // Wait for the widget to actually display.
+    this.wait_for_element(int_text.index, int_text.query);
+
+    // Continue with the tests.
+    this.then(function() {
+        this.test.assert(this.cell_element_exists(int_text.index, 
             '.widget-area .widget-subarea'),
             'Widget subarea exists.');
 
-        this.test.assert(this.cell_element_exists(index, int_text.query),
+        this.test.assert(this.cell_element_exists(int_text.index, int_text.query),
             'Widget int textbox exists.');
 
         this.cell_element_function(int_text.index, int_text.query, 'val', ['']);
@@ -54,13 +56,6 @@ casper.notebook_test(function () {
         this.test.assertEquals(this.get_output_cell(index).text, '12\n', 
             'Invald int textbox value caught and filtered.');
     });
-    
-    index = this.append_cell(
-        'from IPython.html import widgets\n' + 
-        'from IPython.display import display, clear_output\n' +
-        'print("Success")');
-    this.execute_cell_then(index);
-
 
     var slider_query = '.widget-area .widget-subarea .slider';
     var int_text2 = {};
@@ -73,15 +68,22 @@ casper.notebook_test(function () {
         'print(intrange[0].model_id)\n');
     this.execute_cell_then(int_text2.index, function(index){
         int_text2.model_id = this.get_output_cell(index).text.trim();
+    });
 
-        this.test.assert(this.cell_element_exists(index, 
+    // Wait for the widgets to actually display.
+    this.wait_for_element(int_text2.index, int_text2.query);
+    this.wait_for_element(int_text2.index, slider_query);
+
+    // Continue with the tests.
+    this.then(function(){
+        this.test.assert(this.cell_element_exists(int_text2.index, 
             '.widget-area .widget-subarea'),
             'Widget subarea exists.');
 
-        this.test.assert(this.cell_element_exists(index, slider_query),
+        this.test.assert(this.cell_element_exists(int_text2.index, slider_query),
             'Widget slider exists.');
 
-        this.test.assert(this.cell_element_exists(index, int_text2.query),
+        this.test.assert(this.cell_element_exists(int_text2.index, int_text2.query),
             'Widget int textbox exists.');
     });
 
@@ -154,4 +156,22 @@ casper.notebook_test(function () {
         this.test.assertEquals(this.get_output_cell(index).text, '50\n', 
             'Invalid int textbox characters ignored');
     });    
+
+    index = this.append_cell(
+        'a = widgets.IntSlider()\n' +
+        'display(a)\n' +
+        'a.max = -1\n' +
+        'print("Success")\n');
+    this.execute_cell_then(index, function(index){
+        this.test.assertEquals(0, 0, 'Invalid int range max bound does not cause crash.');
+    }, true); 
+
+    index = this.append_cell(
+        'a = widgets.IntSlider()\n' +
+        'display(a)\n' +
+        'a.min = 101\n' +
+        'print("Success")\n');
+    this.execute_cell_then(index, function(index){
+        this.test.assertEquals(0, 0, 'Invalid int range min bound does not cause crash.');
+    }, true);
 });

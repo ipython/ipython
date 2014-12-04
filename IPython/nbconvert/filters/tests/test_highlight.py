@@ -25,9 +25,7 @@ import xml
 
 highlight2html = Highlight2HTML()
 highlight2latex = Highlight2Latex()
-c = Config()
-c.Highlight2HTML.default_language='ruby'
-highlight2html_ruby = Highlight2HTML(config=c)
+highlight2html_ruby = Highlight2HTML(pygments_lexer='ruby')
 
 class TestHighlight(TestsBase):
     """Contains test functions for highlight.py"""
@@ -37,8 +35,10 @@ class TestHighlight(TestsBase):
         """
         #Hello World Example
 
+        import foo
+
         def say(text):
-            print(text)
+            foo.bar(text)
 
         end
 
@@ -51,7 +51,7 @@ class TestHighlight(TestsBase):
         ]   
 
     tokens = [
-        ['Hello World Example', 'say', 'text', 'print', 'def'],
+        ['Hello World Example', 'say', 'text', 'import', 'def'],
         ['pylab', 'plot']]
 
 
@@ -72,11 +72,13 @@ class TestHighlight(TestsBase):
         rb =  highlight2html_ruby(self.tests[0])
 
         for lang,tkns in [
-                ( ht, ('def','print') ),
+                ( ht, ('def', )),
                 ( rb, ('def','end'  ) )
                 ]:
+            print(tkns)
+            print(lang)
             root = xml.etree.ElementTree.fromstring(lang)
-            assert self._extract_tokens(root,'k') == set(tkns)
+            self.assertEqual(self._extract_tokens(root,'k'), set(tkns))
 
     def _extract_tokens(self, root, cls):
         return set(map(lambda x:x.text,root.findall(".//*[@class='"+cls+"']")))

@@ -301,7 +301,10 @@ class InteractiveShellTestCase(unittest.TestCase):
             assert post_explicit.called
         finally:
             # remove post-exec
-            ip.events.reset_all()
+            ip.events.unregister('pre_run_cell', pre_explicit)
+            ip.events.unregister('pre_execute', pre_always)
+            ip.events.unregister('post_run_cell', post_explicit)
+            ip.events.unregister('post_execute', post_always)
     
     def test_silent_noadvance(self):
         """run_cell(silent=True) doesn't advance execution_count"""
@@ -479,6 +482,24 @@ class InteractiveShellTestCase(unittest.TestCase):
         mod = ip.new_main_mod(u'%s.py' % name, name)
         self.assertEqual(mod.__name__, name)
 
+    def test_get_exception_only(self):
+        try:
+            raise KeyboardInterrupt
+        except KeyboardInterrupt:
+            msg = ip.get_exception_only()
+        self.assertEqual(msg, 'KeyboardInterrupt\n')
+
+        class DerivedInterrupt(KeyboardInterrupt):
+            pass
+        try:
+            raise DerivedInterrupt("foo")
+        except KeyboardInterrupt:
+            msg = ip.get_exception_only()
+        if sys.version_info[0] <= 2:
+            self.assertEqual(msg, 'DerivedInterrupt: foo\n')
+        else:
+            self.assertEqual(msg, 'IPython.core.tests.test_interactiveshell.DerivedInterrupt: foo\n')
+
 class TestSafeExecfileNonAsciiPath(unittest.TestCase):
 
     @onlyif_unicode_paths
@@ -540,6 +561,16 @@ class TestSystemRaw(unittest.TestCase, ExitCodeChecks):
         """
         cmd = u'''python -c "'åäö'"   '''
         ip.system_raw(cmd)
+
+    @mock.patch('subprocess.call', side_effect=KeyboardInterrupt)
+    @mock.patch('os.system', side_effect=KeyboardInterrupt)
+    def test_control_c(self, *mocks):
+        try:
+            self.system("sleep 1 # wont happen")
+        except KeyboardInterrupt:
+            self.fail("system call should intercept "
+                      "keyboard interrupt from subprocess.call")
+        self.assertEqual(ip.user_ns['_exit_code'], -signal.SIGINT)
 
 # TODO: Exit codes are currently ignored on Windows.
 class TestSystemPipedExitCode(unittest.TestCase, ExitCodeChecks):
@@ -840,3 +871,17 @@ class TestSyntaxErrorTransformer(unittest.TestCase):
 
 
 
+def test_warning_suppression():
+    ip.run_cell("import warnings")
+    try:
+        with tt.AssertPrints("UserWarning: asdf", channel="stderr"):
+            ip.run_cell("warnings.warn('asdf')")
+        # Here's the real test -- if we run that again, we should get the
+        # warning again. Traditionally, each warning was only issued once per
+        # IPython session (approximately), even if the user typed in new and
+        # different code that should have also triggered the warning, leading
+        # to much confusion.
+        with tt.AssertPrints("UserWarning: asdf", channel="stderr"):
+            ip.run_cell("warnings.warn('asdf')")
+    finally:
+        ip.run_cell("del warnings")

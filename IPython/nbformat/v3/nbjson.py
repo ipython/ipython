@@ -1,34 +1,19 @@
-"""Read and write notebooks in JSON format.
+"""Read and write notebooks in JSON format."""
 
-Authors:
-
-* Brian Granger
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import copy
 import json
 
 from .nbbase import from_dict
 from .rwbase import (
-    NotebookReader, NotebookWriter, restore_bytes, rejoin_lines, split_lines
+    NotebookReader, NotebookWriter, restore_bytes, rejoin_lines, split_lines,
+    strip_transient,
 )
 
 from IPython.utils import py3compat
 
-#-----------------------------------------------------------------------------
-# Code
-#-----------------------------------------------------------------------------
 
 class BytesEncoder(json.JSONEncoder):
     """A JSON encoder that accepts b64 (and other *ascii*) bytestrings."""
@@ -43,6 +28,7 @@ class JSONReader(NotebookReader):
     def reads(self, s, **kwargs):
         nb = json.loads(s, **kwargs)
         nb = self.to_notebook(nb, **kwargs)
+        nb = strip_transient(nb)
         return nb
 
     def to_notebook(self, d, **kwargs):
@@ -56,8 +42,10 @@ class JSONWriter(NotebookWriter):
         kwargs['indent'] = 1
         kwargs['sort_keys'] = True
         kwargs['separators'] = (',',': ')
+        nb = copy.deepcopy(nb)
+        nb = strip_transient(nb)
         if kwargs.pop('split_lines', True):
-            nb = split_lines(copy.deepcopy(nb))
+            nb = split_lines(nb)
         return py3compat.str_to_unicode(json.dumps(nb, **kwargs), 'utf-8')
     
 

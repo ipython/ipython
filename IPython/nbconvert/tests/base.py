@@ -1,17 +1,7 @@
-"""
-Contains base test class for nbconvert
-"""
-#-----------------------------------------------------------------------------
-#Copyright (c) 2013, the IPython Development Team.
-#
-#Distributed under the terms of the Modified BSD License.
-#
-#The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+"""Base test class for nbconvert"""
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import io
 import os
@@ -20,7 +10,7 @@ import shutil
 import unittest
 
 import IPython
-from IPython.nbformat import current
+from IPython.nbformat import v4, write
 from IPython.utils.tempdir import TemporaryWorkingDirectory
 from IPython.utils.path import get_ipython_package_dir
 from IPython.utils.process import get_output_error_code
@@ -28,10 +18,6 @@ from IPython.testing.tools import get_ipython_cmd
 
 # a trailing space allows for simpler concatenation with the other arguments
 ipy_cmd = get_ipython_cmd(as_string=True) + " "
-
-#-----------------------------------------------------------------------------
-# Classes and functions
-#-----------------------------------------------------------------------------
 
 
 class TestsBase(unittest.TestCase):
@@ -115,11 +101,9 @@ class TestsBase(unittest.TestCase):
         return temp_dir
     
     def create_empty_notebook(self, path):
-        nb = current.new_notebook()
-        nb.worksheets.append(current.new_worksheet())
+        nb = v4.new_notebook()
         with io.open(path, 'w', encoding='utf-8') as f:
-            current.write(nb, f, 'json')
-
+            write(nb, f, 4)
 
     def copy_files_to(self, copy_filenames, dest='.'):
         "Copy test files into the destination directory"

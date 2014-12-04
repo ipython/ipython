@@ -62,6 +62,7 @@ default_filters = {
         'path2url': filters.path2url,
         'add_prompts': filters.add_prompts,
         'ascii_only': filters.ascii_only,
+        'prevent_list_blocks': filters.prevent_list_blocks,
 }
 
 #-----------------------------------------------------------------------------
@@ -198,7 +199,7 @@ class TemplateExporter(Exporter):
     
         Parameters
         ----------
-        nb : :class:`~IPython.nbformat.current.NotebookNode`
+        nb : :class:`~IPython.nbformat.NotebookNode`
           Notebook node
         resources : dict
           Additional resources that can be accessed read/write by

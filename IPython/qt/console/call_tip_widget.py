@@ -1,6 +1,5 @@
 # Standard library imports
 import re
-import textwrap
 from unicodedata import category
 
 # System library imports
@@ -37,6 +36,7 @@ class CallTipWidget(QtGui.QLabel):
                 QtGui.QStyle.PM_ToolTipLabelFrameWidth, None, self))
         self.setWindowOpacity(self.style().styleHint(
                 QtGui.QStyle.SH_ToolTipLabel_Opacity, None, self, None) / 255.0)
+        self.setWordWrap(True)
 
     def eventFilter(self, obj, event):
         """ Reimplemented to hide on certain key presses and on text edit focus
@@ -189,8 +189,9 @@ class CallTipWidget(QtGui.QLabel):
                 horizontal = 'Left'
         pos = getattr(cursor_rect, '%s%s' %(vertical, horizontal))
         point = text_edit.mapToGlobal(pos())
+        point.setY(point.y() + padding)
         if vertical == 'top':
-            point.setY(point.y() - tip_height - padding)
+            point.setY(point.y() - tip_height)
         if horizontal == 'Left':
             point.setX(point.x() - tip_width - padding)
 
@@ -244,16 +245,6 @@ class CallTipWidget(QtGui.QLabel):
 
     def _format_tooltip(self, doc):
         doc = re.sub(r'\033\[(\d|;)+?m', '', doc)
-
-        # make sure a long argument list does not make
-        # the first row overflow the width of the actual tip body
-        rows = doc.split("\n")
-        # An object which is not a callable has '<no docstring>' as doc
-        if len(rows) == 1:
-            return doc
-        max_text_width = max(80, max([len(x) for x in rows[1:]]))
-        rows= textwrap.wrap(rows[0],max_text_width) + rows[1:]
-        doc = "\n".join(rows)
         return doc
 
     #------ Signal handlers ----------------------------------------------------

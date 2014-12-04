@@ -89,7 +89,7 @@ def serialize_object(obj, buffer_threshold=MAX_BYTES, item_threshold=MAX_ITEMS):
     buffers.insert(0, pickle.dumps(cobj, PICKLE_PROTOCOL))
     return buffers
 
-def unserialize_object(buffers, g=None):
+def deserialize_object(buffers, g=None):
     """reconstruct an object serialized by serialize_object from data buffers.
     
     Parameters
@@ -170,14 +170,14 @@ def unpack_apply_message(bufs, g=None, copy=True):
     
     args = []
     for i in range(info['nargs']):
-        arg, arg_bufs = unserialize_object(arg_bufs, g)
+        arg, arg_bufs = deserialize_object(arg_bufs, g)
         args.append(arg)
     args = tuple(args)
     assert not arg_bufs, "Shouldn't be any arg bufs left over"
     
     kwargs = {}
     for key in info['kw_keys']:
-        kwarg, kwarg_bufs = unserialize_object(kwarg_bufs, g)
+        kwarg, kwarg_bufs = deserialize_object(kwarg_bufs, g)
         kwargs[key] = kwarg
     assert not kwarg_bufs, "Shouldn't be any kwarg bufs left over"
     

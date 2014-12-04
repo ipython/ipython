@@ -5,13 +5,13 @@
     border: thin solid #CFCFCF;
     border-bottom: none;
     background : #EEE;
-    border-radius : 3px 3px 0px 0px;
+    border-radius : @border-radius-base @border-radius-base 0px 0px;
     width:100%;
     -webkit-box-pack: end;
     height: @celltoolbar-height;
     padding-right: 4px;
     .hbox();
-    .reverse();
+    .end();
 }
 
 .ctb_hideshow {

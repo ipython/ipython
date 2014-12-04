@@ -1,16 +1,8 @@
 # coding: utf-8
 """test the IPython Kernel"""
 
-#-------------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-------------------------------------------------------------------------------
-
-#-------------------------------------------------------------------------------
-# Imports
-#-------------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import io
 import os.path
@@ -25,10 +17,6 @@ from IPython.utils.tempdir import TemporaryDirectory
 
 from .utils import (new_kernel, kernel, TIMEOUT, assemble_output, execute,
                     flush_channels, wait_for_idle)
-
-#-------------------------------------------------------------------------------
-# Tests
-#-------------------------------------------------------------------------------
 
 
 def _check_mp_mode(kc, expected=False, stream="stdout"):
@@ -205,3 +193,36 @@ def test_help_output():
     """ipython kernel --help-all works"""
     tt.help_all_output_test('kernel')
 
+def test_is_complete():
+    with kernel() as kc:
+        # There are more test cases for this in core - here we just check
+        # that the kernel exposes the interface correctly.
+        kc.is_complete('2+2')
+        reply = kc.get_shell_msg(block=True, timeout=TIMEOUT)
+        assert reply['content']['status'] == 'complete'
+
+        # SyntaxError should mean it's complete
+        kc.is_complete('raise = 2')
+        reply = kc.get_shell_msg(block=True, timeout=TIMEOUT)
+        assert reply['content']['status'] == 'invalid'
+        
+        kc.is_complete('a = [1,\n2,')
+        reply = kc.get_shell_msg(block=True, timeout=TIMEOUT)
+        assert reply['content']['status'] == 'incomplete'
+        assert reply['content']['indent'] == ''
+
+def test_complete():
+    with kernel() as kc:
+        execute(u'a = 1', kc=kc)
+        wait_for_idle(kc)
+        cell = 'import IPython\nb = a.'
+        kc.complete(cell)
+        reply = kc.get_shell_msg(block=True, timeout=TIMEOUT)
+        c = reply['content']
+        nt.assert_equal(c['status'], 'ok')
+        nt.assert_equal(c['cursor_start'], cell.find('a.'))
+        nt.assert_equal(c['cursor_end'], cell.find('a.') + 2)
+        matches = c['matches']
+        nt.assert_greater(len(matches), 0)
+        for match in matches:
+            nt.assert_equal(match[:2], 'a.')

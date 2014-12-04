@@ -251,7 +251,7 @@ class TaskScheduler(SessionFactory):
             self.log.warn("task::Invalid Message: %r",msg)
             return
         try:
-            msg = self.session.unserialize(msg)
+            msg = self.session.deserialize(msg)
         except ValueError:
             self.log.warn("task::Unauthorized message from: %r"%idents)
             return
@@ -270,7 +270,7 @@ class TaskScheduler(SessionFactory):
             self.log.warn("task::Invalid Message: %r",msg)
             return
         try:
-            msg = self.session.unserialize(msg)
+            msg = self.session.deserialize(msg)
         except ValueError:
             self.log.warn("task::Unauthorized message from: %r"%idents)
             return
@@ -321,8 +321,9 @@ class TaskScheduler(SessionFactory):
         # wait 5 seconds before cleaning up pending jobs, since the results might
         # still be incoming
         if self.pending[uid]:
-            dc = ioloop.DelayedCallback(lambda : self.handle_stranded_tasks(uid), 5000, self.loop)
-            dc.start()
+            self.loop.add_timeout(self.loop.time() + 5,
+                lambda : self.handle_stranded_tasks(uid),
+            )
         else:
             self.completed.pop(uid)
             self.failed.pop(uid)
@@ -374,7 +375,7 @@ class TaskScheduler(SessionFactory):
         self.notifier_stream.flush()
         try:
             idents, msg = self.session.feed_identities(raw_msg, copy=False)
-            msg = self.session.unserialize(msg, content=False, copy=False)
+            msg = self.session.deserialize(msg, content=False, copy=False)
         except Exception:
             self.log.error("task::Invaid task msg: %r"%raw_msg, exc_info=True)
             return
@@ -620,7 +621,7 @@ class TaskScheduler(SessionFactory):
         """dispatch method for result replies"""
         try:
             idents,msg = self.session.feed_identities(raw_msg, copy=False)
-            msg = self.session.unserialize(msg, content=False, copy=False)
+            msg = self.session.deserialize(msg, content=False, copy=False)
             engine = idents[0]
             try:
                 idx = self.targets.index(engine)

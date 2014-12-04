@@ -59,7 +59,7 @@ class Testfiles(TestsBase):
         with self.create_temp_cwd():
 
             # Create the resoruces dictionary
-            res = {'output_extension': 'txt'}
+            res = {'output_extension': '.txt'}
 
             # Create files writer, test output
             writer = FilesWriter()

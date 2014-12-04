@@ -9,15 +9,17 @@ define([
     "use strict";
 
     var Pager = function (pager_selector, pager_splitter_selector, options) {
-        // Constructor
-        //
-        // Parameters:
-        //  pager_selector: string
-        //  pager_splitter_selector: string
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance
-        //          layout_manager: LayoutManager instance
+        /**
+         * Constructor
+         *
+         * Parameters:
+         *  pager_selector: string
+         *  pager_splitter_selector: string
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          events: $(Events) instance
+         *          layout_manager: LayoutManager instance
+         */
         this.events = options.events;
         this.pager_element = $(pager_selector);
         this.pager_button_area = $('#pager_button_area');
@@ -30,7 +32,9 @@ define([
                         axis:'y',
                         helper: null ,
                         drag: function(event, ui) {
-                            // recalculate the amount of space the pager should take
+                            /**
+                             * recalculate the amount of space the pager should take
+                             */
                             var pheight = ($(document.body).height()-event.clientY-4);
                             var downprct = pheight/options.layout_manager.app_height();
                                 downprct = Math.min(0.9, downprct);
@@ -173,8 +177,10 @@ define([
     };
 
     Pager.prototype.append_text = function (text) {
-        // The only user content injected with this HTML call is escaped by
-        // the fixConsole() method.
+        /**
+         * The only user content injected with this HTML call is escaped by
+         * the fixConsole() method.
+         */
         this.pager_element.find(".container").append($('<pre/>').html(utils.fixCarriageReturn(utils.fixConsole(text))));
     };
 

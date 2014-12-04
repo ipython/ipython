@@ -5,6 +5,8 @@ require([
     'base/js/namespace',
     'jquery',
     'notebook/js/notebook',
+    'contents',
+    'services/config',
     'base/js/utils',
     'base/js/page',
     'notebook/js/layoutmanager',
@@ -16,15 +18,20 @@ require([
     'notebook/js/menubar',
     'notebook/js/notificationarea',
     'notebook/js/savewidget',
+    'notebook/js/actions',
     'notebook/js/keyboardmanager',
     'notebook/js/config',
     'notebook/js/kernelselector',
-    // only loaded, not used:
-    'custom/custom',
+    'codemirror/lib/codemirror',
+    'notebook/js/about',
+    // only loaded, not used, please keep sure this is loaded last
+    'custom/custom'
 ], function(
     IPython, 
     $,
     notebook, 
+    contents,
+    configmod,
     utils, 
     page, 
     layoutmanager, 
@@ -35,16 +42,24 @@ require([
     quickhelp, 
     menubar, 
     notificationarea, 
-    savewidget, 
+    savewidget,
+    actions,
     keyboardmanager,
     config,
-    kernelselector
+    kernelselector,
+    CodeMirror,
+    about,
+    // please keep sure that even if not used, this is loaded last
+    custom
     ) {
     "use strict";
 
+    // compat with old IPython, remove for IPython > 3.0
+    window.CodeMirror = CodeMirror;
+
     var common_options = {
+        ws_url : utils.get_body_data("wsUrl"),
         base_url : utils.get_body_data("baseUrl"),
-        ws_url : IPython.utils.get_body_data("wsUrl"),
         notebook_path : utils.get_body_data("notebookPath"),
         notebook_name : utils.get_body_data('notebookName')
     };
@@ -55,34 +70,46 @@ require([
     var pager = new pager.Pager('div#pager', 'div#pager_splitter', {
         layout_manager: layout_manager, 
         events: events});
+    var acts = new actions.init();
     var keyboard_manager = new keyboardmanager.KeyboardManager({
         pager: pager, 
-        events: events});
+        events: events, 
+        actions: acts });
     var save_widget = new savewidget.SaveWidget('span#save_widget', {
         events: events, 
         keyboard_manager: keyboard_manager});
+    var contents = new contents.Contents($.extend({
+        events: events},
+        common_options));
+    var config_section = new configmod.ConfigSection('notebook', common_options);
+    config_section.load();
     var notebook = new notebook.Notebook('div#notebook', $.extend({
         events: events,
         keyboard_manager: keyboard_manager,
         save_widget: save_widget,
+        contents: contents,
         config: user_config},
         common_options));
     var login_widget = new loginwidget.LoginWidget('span#login_widget', common_options);
     var toolbar = new maintoolbar.MainToolBar('#maintoolbar-container', {
         notebook: notebook, 
-        events: events}); 
+        events: events, 
+        actions: acts}); 
     var quick_help = new quickhelp.QuickHelp({
         keyboard_manager: keyboard_manager, 
         events: events,
         notebook: notebook});
+    keyboard_manager.set_notebook(notebook);
+    keyboard_manager.set_quickhelp(quick_help);
     var menubar = new menubar.MenuBar('#menubar', $.extend({
         notebook: notebook, 
+        contents: contents,
         layout_manager: layout_manager, 
         events: events, 
         save_widget: save_widget, 
         quick_help: quick_help}, 
         common_options));
-    var notification_area = new notificationarea.NotificationArea(
+    var notification_area = new notificationarea.NotebookNotificationArea(
         '#notification_area', {
         events: events, 
         save_widget: save_widget, 
@@ -122,6 +149,7 @@ require([
     IPython.page = page;
     IPython.layout_manager = layout_manager;
     IPython.notebook = notebook;
+    IPython.contents = contents;
     IPython.pager = pager;
     IPython.quick_help = quick_help;
     IPython.login_widget = login_widget;
@@ -134,6 +162,13 @@ require([
     IPython.tooltip = notebook.tooltip;
 
     events.trigger('app_initialized.NotebookApp');
-    notebook.load_notebook(common_options.notebook_name, common_options.notebook_path);
+    config_section.loaded.then(function() {
+        if (config_section.data.load_extensions) {
+            var nbextension_paths = Object.getOwnPropertyNames(
+                                        config_section.data.load_extensions);
+            IPython.load_extensions.apply(this, nbextension_paths);
+        }
+    });
+    notebook.load_notebook(common_options.notebook_path);
 
 });

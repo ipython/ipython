@@ -5,11 +5,13 @@ import sys
 import traceback
 
 from IPython.core import release
+from IPython.html.widgets import Widget
 from IPython.utils.py3compat import builtin_mod, PY3
-from IPython.utils.tokenutil import token_at_cursor
+from IPython.utils.tokenutil import token_at_cursor, line_at_cursor
 from IPython.utils.traitlets import Instance, Type, Any
 from IPython.utils.decorators import undoc
 
+from ..comm import CommManager
 from .kernelbase import Kernel as KernelBase
 from .serialize import serialize_object, unpack_apply_message
 from .zmqshell import ZMQInteractiveShell
@@ -55,16 +57,28 @@ class IPythonKernel(KernelBase):
         # TMP - hack while developing
         self.shell._reply_content = None
 
+        self.comm_manager = CommManager(shell=self.shell, parent=self, 
+                                        kernel=self)
+        self.comm_manager.register_target('ipython.widget', Widget.handle_comm_opened)
+
+        self.shell.configurables.append(self.comm_manager)
         comm_msg_types = [ 'comm_open', 'comm_msg', 'comm_close' ]
-        comm_manager = self.shell.comm_manager
         for msg_type in comm_msg_types:
-            self.shell_handlers[msg_type] = getattr(comm_manager, msg_type)
+            self.shell_handlers[msg_type] = getattr(self.comm_manager, msg_type)
 
     # Kernel info fields
     implementation = 'ipython'
     implementation_version = release.version
-    language = 'python'
-    language_version = sys.version.split()[0]
+    language_info = {
+                     'name': 'python',
+                     'version': sys.version.split()[0],
+                     'mimetype': 'text/x-python',
+                     'codemirror_mode': {'name': 'ipython',
+                                         'version': sys.version_info[0]},
+                     'pygments_lexer': 'ipython%d' % (3 if PY3 else 2),
+                     'nbconvert_exporter': 'python',
+                     'file_extension': '.py'
+                    }
     @property
     def banner(self):
         return self.shell.banner
@@ -183,7 +197,15 @@ class IPythonKernel(KernelBase):
         return reply_content
 
     def do_complete(self, code, cursor_pos):
-        txt, matches = self.shell.complete('', code, cursor_pos)
+        # FIXME: IPython completers currently assume single line,
+        # but completion messages give multi-line context
+        # For now, extract line from cell, based on cursor_pos:
+        if cursor_pos is None:
+            cursor_pos = len(code)
+        line, offset = line_at_cursor(code, cursor_pos)
+        line_cursor = cursor_pos - offset
+
+        txt, matches = self.shell.complete('', line, line_cursor)
         return {'matches' : matches,
                 'cursor_end' : cursor_pos,
                 'cursor_start' : cursor_pos - len(txt),
@@ -228,6 +250,13 @@ class IPythonKernel(KernelBase):
     def do_shutdown(self, restart):
         self.shell.exit_now = True
         return dict(status='ok', restart=restart)
+
+    def do_is_complete(self, code):
+        status, indent_spaces = self.shell.input_transformer_manager.check_complete(code)
+        r = {'status': status}
+        if status == 'incomplete':
+            r['indent'] = ' ' * indent_spaces
+        return r
 
     def do_apply(self, content, bufs, msg_id, reply_metadata):
         shell = self.shell

@@ -1,28 +1,17 @@
 """Tests for RSTExporter"""
 
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
+# Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 import io
 
-from IPython.nbformat import current
+from IPython import nbformat
+from IPython.nbformat import v4
 
 from .base import ExportersTestsBase
 from ..rst import RSTExporter
 from IPython.testing.decorators import onlyif_cmds_exist
 
-#-----------------------------------------------------------------------------
-# Class
-#-----------------------------------------------------------------------------
 
 class TestRSTExporter(ExportersTestsBase):
     """Tests for RSTExporter"""
@@ -50,14 +39,14 @@ class TestRSTExporter(ExportersTestsBase):
         """No empty code cells in rst"""
         nbname = self._get_notebook()
         with io.open(nbname, encoding='utf8') as f:
-            nb = current.read(f, 'json')
+            nb = nbformat.read(f, 4)
         
         exporter = self.exporter_class()
         
         (output, resources) = exporter.from_notebook_node(nb)
         # add an empty code cell
-        nb.worksheets[0].cells.append(
-            current.new_code_cell(input="")
+        nb.cells.append(
+            v4.new_code_cell(source="")
         )
         (output2, resources) = exporter.from_notebook_node(nb)
         # adding an empty code cell shouldn't change output

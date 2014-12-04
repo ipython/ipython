@@ -4,49 +4,61 @@
 define([
     "widgets/js/widget",
     "jqueryui",
+    "base/js/utils",
     "bootstrap",
-], function(widget, $){
+], function(widget, $, utils){
 
     var BoxView = widget.DOMWidgetView.extend({
         initialize: function(){
-            // Public constructor
+            /**
+             * Public constructor
+             */
             BoxView.__super__.initialize.apply(this, arguments);
-            this.model.on('change:children', function(model, value) {
-                this.update_children(model.previous('children'), value);
+            this.children_views = new widget.ViewList(this.add_child_model, null, this);
+            this.listenTo(this.model, 'change:children', function(model, value) {
+                this.children_views.update(value);
             }, this);
-            this.model.on('change:overflow_x', function(model, value) {
+            this.listenTo(this.model, 'change:overflow_x', function(model, value) {
                 this.update_overflow_x();
             }, this);
-            this.model.on('change:overflow_y', function(model, value) {
+            this.listenTo(this.model, 'change:overflow_y', function(model, value) {
                 this.update_overflow_y();
             }, this);
-            this.model.on('change:box_style', function(model, value) {
+            this.listenTo(this.model, 'change:box_style', function(model, value) {
                 this.update_box_style();
             }, this);
         },
 
         update_attr: function(name, value) {
-            // Set a css attr of the widget view.
+            /**
+             * Set a css attr of the widget view.
+             */
             this.$box.css(name, value);
         },
 
         render: function(){
-            // Called when view is rendered.
+            /**
+             * Called when view is rendered.
+             */
             this.$box = this.$el;
             this.$box.addClass('widget-box');
-            this.update_children([], this.model.get('children'));
+            this.children_views.update(this.model.get('children'));
             this.update_overflow_x();
             this.update_overflow_y();
             this.update_box_style('');
         },
 
         update_overflow_x: function() {
-            // Called when the x-axis overflow setting is changed.
+            /**
+             * Called when the x-axis overflow setting is changed.
+             */
             this.$box.css('overflow-x', this.model.get('overflow_x'));
         },
 
         update_overflow_y: function() {
-            // Called when the y-axis overflow setting is changed.
+            /**
+             * Called when the y-axis overflow setting is changed.
+             */
             this.$box.css('overflow-y', this.model.get('overflow_y'));
         },
 
@@ -60,27 +72,32 @@ define([
             this.update_mapped_classes(class_map, 'box_style', previous_trait_value, this.$box);
         },
         
-        update_children: function(old_list, new_list) {
-            // Called when the children list changes.
-            this.do_diff(old_list, new_list, 
-                $.proxy(this.remove_child_model, this),
-                $.proxy(this.add_child_model, this));
-        },
-
-        remove_child_model: function(model) {
-            // Called when a model is removed from the children list.
-            this.pop_child_view(model).remove();
-        },
-
         add_child_model: function(model) {
-            // Called when a model is added to the children list.
-            var view = this.create_child_view(model);
-            this.$box.append(view.$el);
+            /**
+             * Called when a model is added to the children list.
+             */
+            var that = this;
+            var dummy = $('<div/>');
+            that.$box.append(dummy);
+            return this.create_child_view(model).then(function(view) {
+                dummy.replaceWith(view.el);
 
-            // Trigger the displayed event of the child view.
-            this.after_displayed(function() {
-                view.trigger('displayed');
-            });
+                // Trigger the displayed event of the child view.
+                that.after_displayed(function() {
+                    view.trigger('displayed');
+                });
+                return view;
+            }).catch(utils.reject("Couldn't add child view to box", true));
+        },
+        
+        remove: function() {
+            /**
+             * We remove this widget before removing the children as an optimization
+             * we want to remove the entire container from the DOM first before
+             * removing each individual child separately.
+             */
+            BoxView.__super__.remove.apply(this, arguments);
+            this.children_views.remove();
         },
     });
 
@@ -88,10 +105,10 @@ define([
     var FlexBoxView = BoxView.extend({
         render: function(){
             FlexBoxView.__super__.render.apply(this);
-            this.model.on('change:orientation', this.update_orientation, this);
-            this.model.on('change:flex', this._flex_changed, this);
-            this.model.on('change:pack', this._pack_changed, this);
-            this.model.on('change:align', this._align_changed, this);
+            this.listenTo(this.model, 'change:orientation', this.update_orientation, this);
+            this.listenTo(this.model, 'change:flex', this._flex_changed, this);
+            this.listenTo(this.model, 'change:pack', this._pack_changed, this);
+            this.listenTo(this.model, 'change:align', this._align_changed, this);
             this._flex_changed();
             this._pack_changed();
             this._align_changed();
@@ -132,7 +149,9 @@ define([
     var PopupView = BoxView.extend({
 
         render: function(){
-            // Called when view is rendered.
+            /**
+             * Called when view is rendered.
+             */
             var that = this;
             
             this.$el.on("remove", function(){
@@ -238,20 +257,21 @@ define([
             this._shown_once = false;
             this.popped_out = true;
 
-            this.update_children([], this.model.get('children'));
-            this.model.on('change:children', function(model, value) {
-                this.update_children(model.previous('children'), value);
-            }, this);
+            this.children_views.update(this.model.get('children'))
         },
         
         hide: function() {
-            // Called when the modal hide button is clicked.
+            /**
+             * Called when the modal hide button is clicked.
+             */
             this.$window.hide();
             this.$show_button.removeClass('btn-info');
         },
         
         show: function() {
-            // Called when the modal show button is clicked.
+            /**
+             * Called when the modal show button is clicked.
+             */
             this.$show_button.addClass('btn-info');
             this.$window.show();
             if (this.popped_out) {
@@ -264,7 +284,9 @@ define([
         },
         
         bring_to_front: function() {
-            // Make the modal top-most, z-ordered about the other modals.
+            /**
+             * Make the modal top-most, z-ordered about the other modals.
+             */
             var $widget_modals = $(".widget-modal");
             var max_zindex = 0;
             $widget_modals.each(function (index, el){
@@ -287,10 +309,12 @@ define([
         },
         
         update: function(){
-            // Update the contents of this view
-            //
-            // Called when the model is changed.  The model may have been 
-            // changed by another view or by a state update from the back-end.
+            /**
+             * Update the contents of this view
+             *
+             * Called when the model is changed.  The model may have been 
+             * changed by another view or by a state update from the back-end.
+             */
             var description = this.model.get('description');
             if (description.trim().length === 0) {
                 this.$title.html("&nbsp;"); // Preserve title height
@@ -315,15 +339,17 @@ define([
         },
         
         _get_selector_element: function(selector) {
-            // Get an element view a 'special' jquery selector.  (see widget.js)
-            //
-            // Since the modal actually isn't within the $el in the DOM, we need to extend
-            // the selector logic to allow the user to set css on the modal if need be.
-            // The convention used is:
-            // "modal" - select the modal div
-            // "modal [selector]" - select element(s) within the modal div.
-            // "[selector]" - select elements within $el
-            // "" - select the $el
+            /**
+             * Get an element view a 'special' jquery selector.  (see widget.js)
+             *
+             * Since the modal actually isn't within the $el in the DOM, we need to extend
+             * the selector logic to allow the user to set css on the modal if need be.
+             * The convention used is:
+             * "modal" - select the modal div
+             * "modal [selector]" - select element(s) within the modal div.
+             * "[selector]" - select elements within $el
+             * "" - select the $el
+             */
             if (selector.substring(0, 5) == 'modal') {
                 if (selector == 'modal') {
                     return this.$window;

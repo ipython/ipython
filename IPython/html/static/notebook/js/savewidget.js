@@ -12,7 +12,9 @@ define([
     "use strict";
 
     var SaveWidget = function (selector, options) {
-        // TODO: Remove circular ref.
+        /**
+         * TODO: Remove circular ref.
+         */
         this.notebook = undefined;
         this.selector = selector;
         this.events = options.events;
@@ -28,7 +30,7 @@ define([
     SaveWidget.prototype.bind_events = function () {
         var that = this;
         this.element.find('span#notebook_name').click(function () {
-            that.rename_notebook();
+            that.rename_notebook({notebook: that.notebook});
         });
         this.events.on('notebook_loaded.Notebook', function () {
             that.update_notebook_name();
@@ -45,6 +47,11 @@ define([
         });
         this.events.on('notebook_save_failed.Notebook', function () {
             that.set_save_status('Autosave Failed!');
+        });
+        this.events.on('notebook_read_only.Notebook', function () {
+            that.set_save_status('(read only)');
+            // disable future set_save_status
+            that.set_save_status = function () {};
         });
         this.events.on('checkpoints_listed.Notebook', function (event, data) {
             that._set_last_checkpoint(data[0]);
@@ -69,41 +76,53 @@ define([
             $("<br/>")
         ).append(
             $('<input/>').attr('type','text').attr('size','25').addClass('form-control')
-            .val(that.notebook.get_notebook_name())
+            .val(options.notebook.get_notebook_name())
         );
-        dialog.modal({
+        var d = dialog.modal({
             title: "Rename Notebook",
             body: dialog_body,
             notebook: options.notebook,
             keyboard_manager: this.keyboard_manager,
             buttons : {
-                "Cancel": {},
                 "OK": {
                     class: "btn-primary",
                     click: function () {
-                    var new_name = $(this).find('input').val();
-                    if (!that.notebook.test_notebook_name(new_name)) {
-                        $(this).find('.rename-message').text(
-                            "Invalid notebook name. Notebook names must "+
-                            "have 1 or more characters and can contain any characters " +
-                            "except :/\\. Please enter a new notebook name:"
-                        );
-                        return false;
-                    } else {
-                        that.notebook.rename(new_name);
+                        var new_name = d.find('input').val();
+                        if (!options.notebook.test_notebook_name(new_name)) {
+                            d.find('.rename-message').text(
+                                "Invalid notebook name. Notebook names must "+
+                                "have 1 or more characters and can contain any characters " +
+                                "except :/\\. Please enter a new notebook name:"
+                            );
+                            return false;
+                        } else {
+                            d.find('.rename-message').text("Renaming...");
+                            d.find('input[type="text"]').prop('disabled', true);
+                            that.notebook.rename(new_name).then(
+                                function () {
+                                    d.modal('hide');
+                                }, function (error) {
+                                    d.find('.rename-message').text(error.message || 'Unknown error');
+                                    d.find('input[type="text"]').prop('disabled', false).focus().select();
+                                }
+                            );
+                            return false;
+                        }
                     }
-                }}
                 },
-            open : function (event, ui) {
-                var that = $(this);
-                // Upon ENTER, click the OK button.
-                that.find('input[type="text"]').keydown(function (event, ui) {
+                "Cancel": {}
+                },
+            open : function () {
+                /**
+                 * Upon ENTER, click the OK button.
+                 */
+                d.find('input[type="text"]').keydown(function (event) {
                     if (event.which === keyboard.keycodes.enter) {
-                        that.find('.btn-primary').first().click();
+                        d.find('.btn-primary').first().click();
                         return false;
                     }
                 });
-                that.find('input[type="text"]').focus().select();
+                d.find('input[type="text"]').focus().select();
             }
         });
     };
@@ -122,14 +141,12 @@ define([
 
     SaveWidget.prototype.update_address_bar = function(){
         var base_url = this.notebook.base_url;
-        var nbname = this.notebook.notebook_name;
         var path = this.notebook.notebook_path;
-        var state = {path : path, name: nbname};
+        var state = {path : path};
         window.history.replaceState(state, "", utils.url_join_encode(
             base_url,
             "notebooks",
-            path,
-            nbname)
+            path)
         );
     };
 
@@ -193,13 +210,15 @@ define([
 
         var that = this;
         var recall  = function(t){
-            // recall slightly later (1s) as long timeout in js might be imprecise,
-            // and you want to be call **after** the change of formatting should happend.
+            /**
+             * recall slightly later (1s) as long timeout in js might be imprecise,
+             * and you want to be call **after** the change of formatting should happend.
+             */
             return setTimeout(
                 $.proxy(that._regularly_update_checkpoint_date, that),
                 t + 1000
             );
-        }
+        };
         var tdelta = Math.ceil(new Date()-this._checkpoint_date);
 
         // update regularly for the first 6hours and show

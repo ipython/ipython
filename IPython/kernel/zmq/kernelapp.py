@@ -97,7 +97,7 @@ To read more about this, see https://github.com/ipython/ipython/issues/2049
 
 class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
         ConnectionFileMixin):
-    name='ipkernel'
+    name='ipython-kernel'
     aliases = Dict(kernel_aliases)
     flags = Dict(kernel_flags)
     classes = [IPythonKernel, ZMQInteractiveShell, ProfileDir, Session]
@@ -113,10 +113,6 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
     poller = Any() # don't restrict this even though current pollers are all Threads
     heartbeat = Instance(Heartbeat)
     ports = Dict()
-    
-    # ipkernel doesn't get its own config file
-    def _config_file_name_default(self):
-        return 'ipython_config.py'
     
     # connection info:
     
@@ -306,7 +302,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
         shell_stream = ZMQStream(self.shell_socket)
         control_stream = ZMQStream(self.control_socket)
         
-        kernel_factory = self.kernel_class
+        kernel_factory = self.kernel_class.instance
 
         kernel = kernel_factory(parent=self, session=self.session,
                                 shell_streams=[shell_stream, control_stream],

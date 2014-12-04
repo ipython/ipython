@@ -3,30 +3,34 @@
 
 define(["widgets/js/manager",
         "underscore",
-        "backbone", 
-        "jquery",   
+        "backbone",
+        "jquery",
+        "base/js/utils",
         "base/js/namespace",
-], function(widgetmanager, _, Backbone, $, IPython){
+], function(widgetmanager, _, Backbone, $, utils, IPython){
 
     var WidgetModel = Backbone.Model.extend({
         constructor: function (widget_manager, model_id, comm) {
-            // Constructor
-            //
-            // Creates a WidgetModel instance.
-            //
-            // Parameters
-            // ----------
-            // widget_manager : WidgetManager instance
-            // model_id : string
-            //      An ID unique to this model.
-            // comm : Comm instance (optional)
+            /**
+             * Constructor
+             *
+             * Creates a WidgetModel instance.
+             *
+             * Parameters
+             * ----------
+             * widget_manager : WidgetManager instance
+             * model_id : string
+             *      An ID unique to this model.
+             * comm : Comm instance (optional)
+             */
             this.widget_manager = widget_manager;
+            this.state_change = Promise.resolve();
             this._buffered_state_diff = {};
             this.pending_msgs = 0;
             this.msg_buffer = null;
             this.state_lock = null;
             this.id = model_id;
-            this.views = [];
+            this.views = {};
 
             if (comm !== undefined) {
                 // Remember comm associated with the model.
@@ -41,7 +45,9 @@ define(["widgets/js/manager",
         },
 
         send: function (content, callbacks) {
-            // Send a custom msg over the comm.
+            /**
+             * Send a custom msg over the comm.
+             */
             if (this.comm !== undefined) {
                 var data = {method: 'custom', content: content};
                 this.comm.send(data, callbacks);
@@ -50,24 +56,33 @@ define(["widgets/js/manager",
         },
 
         _handle_comm_closed: function (msg) {
-            // Handle when a widget is closed.
+            /**
+             * Handle when a widget is closed.
+             */
             this.trigger('comm:close');
             this.stopListening();
             this.trigger('destroy', this);
             delete this.comm.model; // Delete ref so GC will collect widget model.
             delete this.comm;
             delete this.model_id; // Delete id from model so widget manager cleans up.
-            _.each(this.views, function(view, i) {
-                view.remove();
-            });
+            for (var id in this.views) {
+                if (this.views.hasOwnProperty(id)) {
+                    this.views[id].remove();
+                }
+            }
         },
 
         _handle_comm_msg: function (msg) {
-            // Handle incoming comm msg.
+            /**
+             * Handle incoming comm msg.
+             */
             var method = msg.content.data.method;
+            var that = this;
             switch (method) {
                 case 'update':
-                    this.apply_update(msg.content.data.state);
+                    this.state_change = this.state_change.then(function() {
+                        return that.set_state(msg.content.data.state);
+                    }).catch(utils.reject("Couldn't process update msg for model id '" + String(that.id) + "'", true));
                     break;
                 case 'custom':
                     this.trigger('msg:custom', msg.content.data.content);
@@ -78,24 +93,25 @@ define(["widgets/js/manager",
             }
         },
 
-        apply_update: function (state) {
+        set_state: function (state) {
+            var that = this;
             // Handle when a widget is updated via the python side.
-            this.state_lock = state;
-            try {
-                var that = this;
-                WidgetModel.__super__.set.apply(this, [Object.keys(state).reduce(function(obj, key) {
-                    obj[key] = that._unpack_models(state[key]);
-                    return obj;
-                }, {})]);
-            } finally {
-               this.state_lock = null;
-            }
+            return this._unpack_models(state).then(function(state) {
+                that.state_lock = state;
+                try {
+                    WidgetModel.__super__.set.call(that, state);
+                } finally {
+                    that.state_lock = null;
+                }
+            }).catch(utils.reject("Couldn't set model state", true));
         },
 
         _handle_status: function (msg, callbacks) {
-            // Handle status msgs.
-
-            // execution_state : ('busy', 'idle', 'starting')
+            /**
+             * Handle status msgs.
+             *
+             * execution_state : ('busy', 'idle', 'starting')
+             */
             if (this.comm !== undefined) {
                 if (msg.content.execution_state ==='idle') {
                     // Send buffer if this message caused another message to be
@@ -113,7 +129,9 @@ define(["widgets/js/manager",
         },
 
         callbacks: function(view) {
-            // Create msg callbacks for a comm msg.
+            /**
+             * Create msg callbacks for a comm msg.
+             */
             var callbacks = this.widget_manager.callbacks(view);
 
             if (callbacks.iopub === undefined) {
@@ -128,7 +146,9 @@ define(["widgets/js/manager",
         },
 
         set: function(key, val, options) {
-            // Set a value.
+            /**
+             * Set a value.
+             */
             var return_value = WidgetModel.__super__.set.apply(this, arguments);
 
             // Backbone only remembers the diff of the most recent set()
@@ -139,9 +159,11 @@ define(["widgets/js/manager",
         },
 
         sync: function (method, model, options) {
-            // Handle sync to the back-end.  Called when a model.save() is called.
-
-            // Make sure a comm exists.
+            /**
+             * Handle sync to the back-end.  Called when a model.save() is called.
+             *
+             * Make sure a comm exists.
+             */
             var error = options.error || function() {
                 console.error('Backbone sync error:', arguments);
             };
@@ -207,14 +229,18 @@ define(["widgets/js/manager",
         },
 
         save_changes: function(callbacks) {
-            // Push this model's state to the back-end
-            //
-            // This invokes a Backbone.Sync.
+            /**
+             * Push this model's state to the back-end
+             *
+             * This invokes a Backbone.Sync.
+             */
             this.save(this._buffered_state_diff, {patch: true, callbacks: callbacks});
         },
 
         _pack_models: function(value) {
-            // Replace models with model ids recursively.
+            /**
+             * Replace models with model ids recursively.
+             */
             var that = this;
             var packed;
             if (value instanceof Backbone.Model) {
@@ -226,7 +252,8 @@ define(["widgets/js/manager",
                     packed.push(that._pack_models(sub_value));
                 });
                 return packed;
-
+            } else if (value instanceof Date || value instanceof String) {
+                return value;
             } else if (value instanceof Object) {
                 packed = {};
                 _.each(value, function(sub_value, key) {
@@ -240,7 +267,9 @@ define(["widgets/js/manager",
         },
 
         _unpack_models: function(value) {
-            // Replace model ids with models recursively.
+            /**
+             * Replace model ids with models recursively.
+             */
             var that = this;
             var unpacked;
             if ($.isArray(value)) {
@@ -248,33 +277,29 @@ define(["widgets/js/manager",
                 _.each(value, function(sub_value, key) {
                     unpacked.push(that._unpack_models(sub_value));
                 });
-                return unpacked;
-
+                return Promise.all(unpacked);
             } else if (value instanceof Object) {
                 unpacked = {};
                 _.each(value, function(sub_value, key) {
                     unpacked[key] = that._unpack_models(sub_value);
                 });
-                return unpacked;
-
+                return utils.resolve_promises_dict(unpacked);
             } else if (typeof value === 'string' && value.slice(0,10) === "IPY_MODEL_") {
-                var model = this.widget_manager.get_model(value.slice(10, value.length));
-                if (model) {
-                    return model;
-                } else {
-                    return value;
-                }
+                // get_model returns a promise already
+                return this.widget_manager.get_model(value.slice(10, value.length));
             } else {
-                    return value;
+                return Promise.resolve(value);
             }
         },
 
         on_some_change: function(keys, callback, context) {
-            // on_some_change(["key1", "key2"], foo, context) differs from
-            // on("change:key1 change:key2", foo, context).
-            // If the widget attributes key1 and key2 are both modified, 
-            // the second form will result in foo being called twice
-            // while the first will call foo only once.
+            /**
+             * on_some_change(["key1", "key2"], foo, context) differs from
+             * on("change:key1 change:key2", foo, context).
+             * If the widget attributes key1 and key2 are both modified, 
+             * the second form will result in foo being called twice
+             * while the first will call foo only once.
+             */
             this.on('change', function() {
                 if (keys.some(this.hasChanged, this)) {
                     callback.apply(context);
@@ -288,113 +313,54 @@ define(["widgets/js/manager",
 
     var WidgetView = Backbone.View.extend({
         initialize: function(parameters) {
-            // Public constructor.
+            /**
+             * Public constructor.
+             */
             this.model.on('change',this.update,this);
             this.options = parameters.options;
-            this.child_model_views = {};
-            this.child_views = {};
-            this.model.views.push(this);
-            this.id = this.id || IPython.utils.uuid();
+            this.id = this.id || utils.uuid();
+            this.model.views[this.id] = this;
             this.on('displayed', function() { 
                 this.is_displayed = true; 
             }, this);
         },
 
         update: function(){
-            // Triggered on model change.
-            //
-            // Update view to be consistent with this.model
+            /**
+             * Triggered on model change.
+             *
+             * Update view to be consistent with this.model
+             */
         },
 
         create_child_view: function(child_model, options) {
-            // Create and return a child view.
-            //
-            // -given a model and (optionally) a view name if the view name is 
-            // not given, it defaults to the model's default view attribute.
-        
-            // TODO: this is hacky, and makes the view depend on this cell attribute and widget manager behavior
-            // it would be great to have the widget manager add the cell metadata
-            // to the subview without having to add it here.
+            /**
+             * Create and promise that resolves to a child view of a given model
+             */
+            var that = this;
             options = $.extend({ parent: this }, options || {});
-            var child_view = this.model.widget_manager.create_view(child_model, options, this);
-            
-            // Associate the view id with the model id.
-            if (this.child_model_views[child_model.id] === undefined) {
-                this.child_model_views[child_model.id] = [];
-            }
-            this.child_model_views[child_model.id].push(child_view.id);
-
-            // Remember the view by id.
-            this.child_views[child_view.id] = child_view;
-            return child_view;
-        },
-
-        pop_child_view: function(child_model) {
-            // Delete a child view that was previously created using create_child_view.
-            var view_ids = this.child_model_views[child_model.id];
-            if (view_ids !== undefined) {
-
-                // Only delete the first view in the list.
-                var view_id = view_ids[0];
-                var view = this.child_views[view_id];
-                delete this.child_views[view_id];
-                view_ids.splice(0,1);
-                child_model.views.pop(view);
-            
-                // Remove the view list specific to this model if it is empty.
-                if (view_ids.length === 0) {
-                    delete this.child_model_views[child_model.id];
-                }
-                return view;
-            }
-            return null;
-        },
-
-        do_diff: function(old_list, new_list, removed_callback, added_callback) {
-            // Difference a changed list and call remove and add callbacks for 
-            // each removed and added item in the new list.
-            //
-            // Parameters
-            // ----------
-            // old_list : array
-            // new_list : array
-            // removed_callback : Callback(item)
-            //      Callback that is called for each item removed.
-            // added_callback : Callback(item)
-            //      Callback that is called for each item added.
-
-            // Walk the lists until an unequal entry is found.
-            var i;
-            for (i = 0; i < new_list.length; i++) {
-                if (i >= old_list.length || new_list[i] !== old_list[i]) {
-                    break;
-                }
-            }
-
-            // Remove the non-matching items from the old list.
-            for (var j = i; j < old_list.length; j++) {
-                removed_callback(old_list[j]);
-            }
-
-            // Add the rest of the new list items.
-            for (; i < new_list.length; i++) {
-                added_callback(new_list[i]);
-            }
+            return this.model.widget_manager.create_view(child_model, options).catch(utils.reject("Couldn't create child view"), true);
         },
 
         callbacks: function(){
-            // Create msg callbacks for a comm msg.
+            /**
+             * Create msg callbacks for a comm msg.
+             */
             return this.model.callbacks(this);
         },
 
         render: function(){
-            // Render the view.
-            //
-            // By default, this is only called the first time the view is created
+            /**
+             * Render the view.
+             *
+             * By default, this is only called the first time the view is created
+             */
         },
 
         show: function(){
-            // Show the widget-area
+            /**
+             * Show the widget-area
+             */
             if (this.options && this.options.cell &&
                 this.options.cell.widget_area !== undefined) {
                 this.options.cell.widget_area.show();
@@ -402,7 +368,9 @@ define(["widgets/js/manager",
         },
 
         send: function (content) {
-            // Send a custom msg associated with this view.
+            /**
+             * Send a custom msg associated with this view.
+             */
             this.model.send(content, this.callbacks());
         },
 
@@ -411,8 +379,10 @@ define(["widgets/js/manager",
         },
 
         after_displayed: function (callback, context) {
-            // Calls the callback right away is the view is already displayed
-            // otherwise, register the callback to the 'displayed' event.
+            /**
+             * Calls the callback right away is the view is already displayed
+             * otherwise, register the callback to the 'displayed' event.
+             */
             if (this.is_displayed) {
                 callback.apply(context);
             } else {
@@ -424,7 +394,9 @@ define(["widgets/js/manager",
 
     var DOMWidgetView = WidgetView.extend({
         initialize: function (parameters) {
-            // Public constructor
+            /**
+             * Public constructor
+             */
             DOMWidgetView.__super__.initialize.apply(this, [parameters]);
             this.on('displayed', this.show, this);
             this.model.on('change:visible', this.update_visible, this);
@@ -479,9 +451,8 @@ define(["widgets/js/manager",
 
             this.after_displayed(function() {
                 this.update_visible(this.model, this.model.get("visible"));
-                this.update_css(this.model, this.model.get("_css"));
-
                 this.update_classes([], this.model.get('_dom_classes'));
+                
                 this.update_attr('color', this.model.get('color'));
                 this.update_attr('background', this.model.get('background_color'));
                 this.update_attr('width', this.model.get('width'));
@@ -496,11 +467,15 @@ define(["widgets/js/manager",
                 this.update_attr('padding', this.model.get('padding'));
                 this.update_attr('margin', this.model.get('margin'));
                 this.update_attr('border-radius', this.model.get('border_radius'));
+
+                this.update_css(this.model, this.model.get("_css"));
             }, this);
         },
 
         _default_px: function(value) {
-            // Makes browser interpret a numerical string as a pixel value.
+            /**
+             * Makes browser interpret a numerical string as a pixel value.
+             */
             if (/^\d+\.?(\d+)?$/.test(value.trim())) {
                 return value.trim() + 'px';
             }
@@ -508,17 +483,23 @@ define(["widgets/js/manager",
         },
 
         update_attr: function(name, value) {
-            // Set a css attr of the widget view.
+            /**
+             * Set a css attr of the widget view.
+             */
             this.$el.css(name, value);
         },
 
         update_visible: function(model, value) {
-            // Update visibility
+            /**
+             * Update visibility
+             */
             this.$el.toggle(value);
          },
 
         update_css: function (model, css) {
-            // Update the css styling of this view.
+            /**
+             * Update the css styling of this view.
+             */
             var e = this.$el;
             if (css === undefined) {return;}
             for (var i = 0; i < css.length; i++) {
@@ -534,42 +515,43 @@ define(["widgets/js/manager",
         },
 
         update_classes: function (old_classes, new_classes, $el) {
-            // Update the DOM classes applied to an element, default to this.$el.
+            /**
+             * Update the DOM classes applied to an element, default to this.$el.
+             */
             if ($el===undefined) {
                 $el = this.$el;
             }
-            this.do_diff(old_classes, new_classes, function(removed) {
-                $el.removeClass(removed);
-            }, function(added) {
-                $el.addClass(added);
-            });
+            _.difference(old_classes, new_classes).map(function(c) {$el.removeClass(c);})
+            _.difference(new_classes, old_classes).map(function(c) {$el.addClass(c);})
         },
 
         update_mapped_classes: function(class_map, trait_name, previous_trait_value, $el) {
-            // Update the DOM classes applied to the widget based on a single
-            // trait's value.
-            //
-            // Given a trait value classes map, this function automatically
-            // handles applying the appropriate classes to the widget element
-            // and removing classes that are no longer valid.
-            //
-            // Parameters
-            // ----------
-            // class_map: dictionary
-            //  Dictionary of trait values to class lists.
-            //  Example:
-            //      {
-            //          success: ['alert', 'alert-success'],
-            //          info: ['alert', 'alert-info'],
-            //          warning: ['alert', 'alert-warning'],
-            //          danger: ['alert', 'alert-danger']
-            //      };
-            // trait_name: string
-            //  Name of the trait to check the value of.
-            // previous_trait_value: optional string, default ''
-            //  Last trait value
-            // $el: optional jQuery element handle, defaults to this.$el
-            //  Element that the classes are applied to.
+            /**
+             * Update the DOM classes applied to the widget based on a single
+             * trait's value.
+             *
+             * Given a trait value classes map, this function automatically
+             * handles applying the appropriate classes to the widget element
+             * and removing classes that are no longer valid.
+             *
+             * Parameters
+             * ----------
+             * class_map: dictionary
+             *  Dictionary of trait values to class lists.
+             *  Example:
+             *      {
+             *          success: ['alert', 'alert-success'],
+             *          info: ['alert', 'alert-info'],
+             *          warning: ['alert', 'alert-warning'],
+             *          danger: ['alert', 'alert-danger']
+             *      };
+             * trait_name: string
+             *  Name of the trait to check the value of.
+             * previous_trait_value: optional string, default ''
+             *  Last trait value
+             * $el: optional jQuery element handle, defaults to this.$el
+             *  Element that the classes are applied to.
+             */
             var key = previous_trait_value;
             if (key === undefined) {
                 key = this.model.previous(trait_name);
@@ -582,7 +564,9 @@ define(["widgets/js/manager",
         },
         
         _get_selector_element: function (selector) {
-            // Get the elements via the css selector.
+            /**
+             * Get the elements via the css selector.
+             */
             var elements;
             if (!selector) {
                 elements = this.$el;
@@ -593,11 +577,99 @@ define(["widgets/js/manager",
         },
     });
 
-    
+
+    var ViewList = function(create_view, remove_view, context) {
+        /**
+         * - create_view and remove_view are default functions called when adding or removing views
+         * - create_view takes a model and returns a view or a promise for a view for that model
+         * - remove_view takes a view and destroys it (including calling `view.remove()`)
+         * - each time the update() function is called with a new list, the create and remove
+         *   callbacks will be called in an order so that if you append the views created in the
+         *   create callback and remove the views in the remove callback, you will duplicate 
+         *   the order of the list.
+         * - the remove callback defaults to just removing the view (e.g., pass in null for the second parameter)
+         * - the context defaults to the created ViewList.  If you pass another context, the create and remove
+         *   will be called in that context.
+         */
+
+        this.initialize.apply(this, arguments);
+    };
+
+    _.extend(ViewList.prototype, {
+        initialize: function(create_view, remove_view, context) {
+            this.state_change = Promise.resolve();
+            this._handler_context = context || this;
+            this._models = [];
+            this.views = [];
+            this._create_view = create_view;
+            this._remove_view = remove_view || function(view) {view.remove();};
+        },
+
+        update: function(new_models, create_view, remove_view, context) {
+            /**
+             * the create_view, remove_view, and context arguments override the defaults
+             * specified when the list is created.
+             * returns a promise that resolves after this update is done
+             */
+            var remove = remove_view || this._remove_view;
+            var create = create_view || this._create_view;
+            if (create === undefined || remove === undefined){
+                console.error("Must define a create a remove function");
+            }
+            var context = context || this._handler_context;
+            var added_views = [];
+            var that = this;
+            this.state_change = this.state_change.then(function() {
+                var i;
+                 // first, skip past the beginning of the lists if they are identical
+                for (i = 0; i < new_models.length; i++) {
+                    if (i >= that._models.length || new_models[i] !== that._models[i]) {
+                        break;
+                    }
+                }
+                var first_removed = i;
+                // Remove the non-matching items from the old list.
+                for (var j = first_removed; j < that._models.length; j++) {
+                    remove.call(context, that.views[j]);
+                }
+
+                // Add the rest of the new list items.
+                for (; i < new_models.length; i++) {
+                    added_views.push(create.call(context, new_models[i]));
+                }
+                // make a copy of the input array
+                that._models = new_models.slice();
+                return Promise.all(added_views).then(function(added) {
+                    Array.prototype.splice.apply(that.views, [first_removed, that.views.length].concat(added));
+                    return that.views;
+                });
+            });
+            return this.state_change;
+        },
+
+        remove: function() {
+            /**
+             * removes every view in the list; convenience function for `.update([])`
+             * that should be faster
+             * returns a promise that resolves after this removal is done
+             */
+            var that = this;
+            this.state_change = this.state_change.then(function() {
+                for (var i = 0; i < that.views.length; i++) {
+                    that._remove_view.call(that._handler_context, that.views[i]);
+                }
+                that._models = [];
+                that.views = [];
+            });
+            return this.state_change;
+        },
+    });
+
     var widget = {
         'WidgetModel': WidgetModel,
         'WidgetView': WidgetView,
         'DOMWidgetView': DOMWidgetView,
+        'ViewList': ViewList,
     };
 
     // For backwards compatability.

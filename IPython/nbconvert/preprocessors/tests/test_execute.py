@@ -7,10 +7,11 @@ Module with tests for the execute preprocessor.
 
 import copy
 import glob
+import io
 import os
 import re
 
-from IPython.nbformat import current as nbformat
+from IPython import nbformat
 
 from .base import PreprocessorTestsBase
 from ..execute import ExecutePreprocessor
@@ -32,8 +33,9 @@ class TestExecute(PreprocessorTestsBase):
             del output['metadata']
         if 'text' in output:
             output['text'] = re.sub(addr_pat, '<HEXADDR>', output['text'])
-        if 'svg' in output:
-            del output['text']
+        if 'text/plain' in output.get('data', {}):
+            output['data']['text/plain'] = \
+                re.sub(addr_pat, '<HEXADDR>', output['data']['text/plain'])
         if 'traceback' in output:
             tb = []
             for line in output['traceback']:
@@ -44,20 +46,20 @@ class TestExecute(PreprocessorTestsBase):
 
 
     def assert_notebooks_equal(self, expected, actual):
-        expected_cells = expected['worksheets'][0]['cells']
-        actual_cells = actual['worksheets'][0]['cells']
-        assert len(expected_cells) == len(actual_cells)
+        expected_cells = expected['cells']
+        actual_cells = actual['cells']
+        self.assertEqual(len(expected_cells), len(actual_cells))
 
         for expected_cell, actual_cell in zip(expected_cells, actual_cells):
             expected_outputs = expected_cell.get('outputs', [])
             actual_outputs = actual_cell.get('outputs', [])
             normalized_expected_outputs = list(map(self.normalize_output, expected_outputs))
             normalized_actual_outputs = list(map(self.normalize_output, actual_outputs))
-            assert normalized_expected_outputs == normalized_actual_outputs
+            self.assertEqual(normalized_expected_outputs, normalized_actual_outputs)
 
-            expected_prompt_number = expected_cell.get('prompt_number', None)
-            actual_prompt_number = actual_cell.get('prompt_number', None)
-            assert expected_prompt_number == actual_prompt_number
+            expected_execution_count = expected_cell.get('execution_count', None)
+            actual_execution_count = actual_cell.get('execution_count', None)
+            self.assertEqual(expected_execution_count, actual_execution_count)
 
 
     def build_preprocessor(self):
@@ -77,14 +79,14 @@ class TestExecute(PreprocessorTestsBase):
         current_dir = os.path.dirname(__file__)
         input_files = glob.glob(os.path.join(current_dir, 'files', '*.ipynb'))
         for filename in input_files:
-            with open(os.path.join(current_dir, 'files', filename)) as f:
-                input_nb = nbformat.read(f, 'ipynb')
+            with io.open(os.path.join(current_dir, 'files', filename)) as f:
+                input_nb = nbformat.read(f, 4)
             res = self.build_resources()
             preprocessor = self.build_preprocessor()
             cleaned_input_nb = copy.deepcopy(input_nb)
-            for cell in cleaned_input_nb.worksheets[0].cells:
-                if 'prompt_number' in cell:
-                    del cell['prompt_number']
+            for cell in cleaned_input_nb.cells:
+                if 'execution_count' in cell:
+                    del cell['execution_count']
                 cell['outputs'] = []
             output_nb, _ = preprocessor(cleaned_input_nb, res)
             self.assert_notebooks_equal(output_nb, input_nb)

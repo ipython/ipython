@@ -4,6 +4,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 import re
+from IPython.utils.log import get_logger
 
 def cell_preprocessor(function):
     """
@@ -21,14 +22,11 @@ def cell_preprocessor(function):
     """
     
     def wrappedfunc(nb, resources):
-        from IPython.config import Application
-        if Application.initialized():
-            Application.instance().log.debug(
+        get_logger().debug(
                 "Applying preprocessor: %s", function.__name__
             )
-        for worksheet in nb.worksheets:
-            for index, cell in enumerate(worksheet.cells):
-                worksheet.cells[index], resources = function(cell, resources, index)
+        for index, cell in enumerate(nb.cells):
+            nb.cells[index], resources = function(cell, resources, index)
         return nb, resources
     return wrappedfunc
 
@@ -60,7 +58,7 @@ def coalesce_streams(cell, resources, index):
     for output in outputs[1:]:
         if (output.output_type == 'stream' and
             last.output_type == 'stream' and
-            last.stream == output.stream
+            last.name == output.name
         ):
             last.text += output.text
 

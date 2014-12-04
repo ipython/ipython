@@ -1,30 +1,19 @@
 """A matplotlib backend for publishing figures via display_data"""
-#-----------------------------------------------------------------------------
-#       Copyright (C) 2011 The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from __future__ import print_function
 
-# Third-party imports
 import matplotlib
 from matplotlib.backends.backend_agg import new_figure_manager, FigureCanvasAgg # analysis: ignore
 from matplotlib._pylab_helpers import Gcf
 
-# Local imports
 from IPython.core.getipython import get_ipython
 from IPython.core.display import display
 
 from .config import InlineBackend
 
-#-----------------------------------------------------------------------------
-# Functions
-#-----------------------------------------------------------------------------
 
 def show(close=None):
     """Show all figures as SVG/PNG payloads sent to the IPython clients.
@@ -43,7 +32,9 @@ def show(close=None):
             display(figure_manager.canvas.figure)
     finally:
         show._to_draw = []
-        if close:
+        # only call close('all') if any to close
+        # close triggers gc.collect, which can be slow
+        if close and Gcf.get_all_fig_managers():
             matplotlib.pyplot.close('all')
 
 

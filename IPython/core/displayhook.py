@@ -2,25 +2,11 @@
 """Displayhook for IPython.
 
 This defines a callable class that IPython uses for `sys.displayhook`.
-
-Authors:
-
-* Fernando Perez
-* Brian Granger
-* Robert Kern
 """
 
-#-----------------------------------------------------------------------------
-#       Copyright (C) 2008-2011 The IPython Development Team
-#       Copyright (C) 2001-2007 Fernando Perez <fperez@colorado.edu>
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 from __future__ import print_function
 
 import sys
@@ -29,12 +15,8 @@ from IPython.core.formatters import _safe_get_formatter_method
 from IPython.config.configurable import Configurable
 from IPython.utils import io
 from IPython.utils.py3compat import builtin_mod
-from IPython.utils.traitlets import Instance
+from IPython.utils.traitlets import Instance, Float
 from IPython.utils.warn import warn
-
-#-----------------------------------------------------------------------------
-# Main displayhook class
-#-----------------------------------------------------------------------------
 
 # TODO: Move the various attributes (cache_size, [others now moved]). Some
 # of these are also attributes of InteractiveShell. They should be on ONE object
@@ -48,10 +30,10 @@ class DisplayHook(Configurable):
     """
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    cull_fraction = Float(0.2)
 
     def __init__(self, shell=None, cache_size=1000, **kwargs):
         super(DisplayHook, self).__init__(shell=shell, **kwargs)
-
         cache_size_min = 3
         if cache_size <= 0:
             self.do_full_cache = 0
@@ -168,6 +150,9 @@ class DisplayHook(Configurable):
         md_dict : dict (optional)
             The metadata dict to be associated with the display data.
         """
+        if 'text/plain' not in format_dict:
+            # nothing to do
+            return
         # We want to print because we want to always make sure we have a
         # newline, even if all the prompt separators are ''. This is the
         # standard IPython behavior.
@@ -193,13 +178,7 @@ class DisplayHook(Configurable):
         # Avoid recursive reference when displaying _oh/Out
         if result is not self.shell.user_ns['_oh']:
             if len(self.shell.user_ns['_oh']) >= self.cache_size and self.do_full_cache:
-                warn('Output cache limit (currently '+
-                      repr(self.cache_size)+' entries) hit.\n'
-                     'Flushing cache and resetting history counter...\n'
-                     'The only history variables available will be _,__,___ and _1\n'
-                     'with the current result.')
-
-                self.flush()
+                self.cull_cache()
             # Don't overwrite '_' and friends if '_' is in __builtin__ (otherwise
             # we cause buggy behavior for things like gettext).
 
@@ -221,6 +200,9 @@ class DisplayHook(Configurable):
 
     def log_output(self, format_dict):
         """Log the output."""
+        if 'text/plain' not in format_dict:
+            # nothing to do
+            return
         if self.shell.logger.log_output:
             self.shell.logger.log_write(format_dict['text/plain'], 'output')
         self.shell.history_manager.output_hist_reprs[self.prompt_count] = \
@@ -254,6 +236,21 @@ class DisplayHook(Configurable):
             self.update_user_ns(result)
             self.log_output(format_dict)
             self.finish_displayhook()
+
+    def cull_cache(self):
+        """Output cache is full, cull the oldest entries"""
+        oh = self.shell.user_ns.get('_oh', {})
+        sz = len(oh)
+        cull_count = max(int(sz * self.cull_fraction), 2)
+        warn('Output cache limit (currently {sz} entries) hit.\n'
+             'Flushing oldest {cull_count} entries.'.format(sz=sz, cull_count=cull_count))
+        
+        for i, n in enumerate(sorted(oh)):
+            if i >= cull_count:
+                break
+            self.shell.user_ns.pop('_%i' % n, None)
+            oh.pop(n, None)
+        
 
     def flush(self):
         if not self.do_full_cache:

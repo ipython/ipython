@@ -116,12 +116,10 @@ define([
     };
 
     Tooltip.prototype.showInPager = function (cell) {
-        // reexecute last call in pager by appending ? to show back in pager
-        var that = this;
-        var payload = {};
-        payload.text = that._reply.content.data['text/plain'];
-        
-        this.events.trigger('open_with_text.Pager', payload);
+        /**
+         * reexecute last call in pager by appending ? to show back in pager
+         */
+        this.events.trigger('open_with_text.Pager', this._reply.content);
         this.remove_and_cancel_tooltip();
     };
 
@@ -148,9 +146,11 @@ define([
     // return true on successfully removing a visible tooltip; otherwise return
     // false.
     Tooltip.prototype.remove_and_cancel_tooltip = function (force) {
-        // note that we don't handle closing directly inside the calltip
-        // as in the completer, because it is not focusable, so won't
-        // get the event.
+        /**
+         * note that we don't handle closing directly inside the calltip
+         * as in the completer, because it is not focusable, so won't
+         * get the event.
+         */
         this.cancel_pending();
         if (!this._hidden) {
           if (force || !this._sticky) {
@@ -183,39 +183,18 @@ define([
     // easy access for julia monkey patching.
     Tooltip.last_token_re = /[a-z_][0-9a-z._]*$/gi;
 
-    Tooltip.prototype.extract_oir_token = function(line){
-        // use internally just to make the request to the kernel
-        // Feel free to shorten this logic if you are better
-        // than me in regEx
-        // basicaly you shoul be able to get xxx.xxx.xxx from
-        // something(range(10), kwarg=smth) ; xxx.xxx.xxx( firstarg, rand(234,23), kwarg1=2,
-        // remove everything between matchin bracket (need to iterate)
-        var matchBracket = /\([^\(\)]+\)/g;
-        var endBracket = /\([^\(]*$/g;
-        var oldline = line;
-
-        line = line.replace(matchBracket, "");
-        while (oldline != line) {
-            oldline = line;
-            line = line.replace(matchBracket, "");
-        }
-        // remove everything after last open bracket
-        line = line.replace(endBracket, "");
-        // reset the regex object
-        Tooltip.last_token_re.lastIndex = 0;
-        return Tooltip.last_token_re.exec(line);
-    };
-
     Tooltip.prototype._request_tooltip = function (cell, text, cursor_pos) {
         var callbacks = $.proxy(this._show, this);
         var msg_id = cell.kernel.inspect(text, cursor_pos, callbacks);
     };
 
-    // make an imediate completion request
+    // make an immediate completion request
     Tooltip.prototype.request = function (cell, hide_if_no_docstring) {
-        // request(codecell)
-        // Deal with extracting the text from the cell and counting
-        // call in a row
+        /**
+         * request(codecell)
+         * Deal with extracting the text from the cell and counting
+         * call in a row
+         */
         this.cancel_pending();
         var editor = cell.code_mirror;
         var cursor = editor.getCursor();
@@ -225,10 +204,11 @@ define([
         this._hide_if_no_docstring = hide_if_no_docstring;
 
         if(editor.somethingSelected()){
+            // get only the most recent selection.
             text = editor.getSelection();
         }
 
-        // need a permanent handel to code_mirror for future auto recall
+        // need a permanent handle to code_mirror for future auto recall
         this.code_mirror = editor;
 
         // now we treat the different number of keypress
@@ -276,8 +256,10 @@ define([
 
     // should be called with the kernel reply to actually show the tooltip
     Tooltip.prototype._show = function (reply) {
-        // move the bubble if it is not hidden
-        // otherwise fade it
+        /**
+         * move the bubble if it is not hidden
+         * otherwise fade it
+         */
         this._reply = reply;
         var content = reply.content;
         if (!content.found) {
@@ -328,7 +310,7 @@ define([
         this.text.scrollTop(0);
     };
 
-    // Backwards compatability.
+    // Backwards compatibility.
     IPython.Tooltip = Tooltip;
 
     return {'Tooltip': Tooltip};

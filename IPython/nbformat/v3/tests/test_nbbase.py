@@ -41,45 +41,37 @@ class TestCell(TestCase):
         tc = new_text_cell(u'html')
         self.assertEqual(tc.cell_type, u'html')
         self.assertEqual(u'source' not in tc, True)
-        self.assertEqual(u'rendered' not in tc, True)
 
     def test_html_cell(self):
-        tc = new_text_cell(u'html', 'hi', 'hi')
+        tc = new_text_cell(u'html', 'hi')
         self.assertEqual(tc.source, u'hi')
-        self.assertEqual(tc.rendered, u'hi')
 
     def test_empty_markdown_cell(self):
         tc = new_text_cell(u'markdown')
         self.assertEqual(tc.cell_type, u'markdown')
         self.assertEqual(u'source' not in tc, True)
-        self.assertEqual(u'rendered' not in tc, True)
 
     def test_markdown_cell(self):
-        tc = new_text_cell(u'markdown', 'hi', 'hi')
+        tc = new_text_cell(u'markdown', 'hi')
         self.assertEqual(tc.source, u'hi')
-        self.assertEqual(tc.rendered, u'hi')
 
     def test_empty_raw_cell(self):
         tc = new_text_cell(u'raw')
         self.assertEqual(tc.cell_type, u'raw')
         self.assertEqual(u'source' not in tc, True)
-        self.assertEqual(u'rendered' not in tc, True)
 
     def test_raw_cell(self):
-        tc = new_text_cell(u'raw', 'hi', 'hi')
+        tc = new_text_cell(u'raw', 'hi')
         self.assertEqual(tc.source, u'hi')
-        self.assertEqual(tc.rendered, u'hi')
 
     def test_empty_heading_cell(self):
         tc = new_heading_cell()
         self.assertEqual(tc.cell_type, u'heading')
         self.assertEqual(u'source' not in tc, True)
-        self.assertEqual(u'rendered' not in tc, True)
 
     def test_heading_cell(self):
-        tc = new_heading_cell(u'hi', u'hi', level=2)
+        tc = new_heading_cell(u'hi', level=2)
         self.assertEqual(tc.source, u'hi')
-        self.assertEqual(tc.rendered, u'hi')
         self.assertEqual(tc.level, 2)
 
 
@@ -92,9 +84,8 @@ class TestWorksheet(TestCase):
 
     def test_worksheet(self):
         cells = [new_code_cell(), new_text_cell(u'html')]
-        ws = new_worksheet(cells=cells,name=u'foo')
+        ws = new_worksheet(cells=cells)
         self.assertEqual(ws.cells,cells)
-        self.assertEqual(ws.name,u'foo')
 
 class TestNotebook(TestCase):
 

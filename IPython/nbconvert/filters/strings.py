@@ -4,17 +4,9 @@
 Contains a collection of useful string manipulation filters for use in Jinja
 templates.
 """
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
-# Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import os
 import re
@@ -28,9 +20,6 @@ from xml.etree import ElementTree
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.utils import py3compat
 
-#-----------------------------------------------------------------------------
-# Functions
-#-----------------------------------------------------------------------------
 
 __all__ = [
     'wrap_text',
@@ -45,6 +34,7 @@ __all__ = [
     'path2url',
     'add_prompts',
     'ascii_only',
+    'prevent_list_blocks',
 ]
 
 
@@ -87,9 +77,9 @@ def html2text(element):
 
 
 def add_anchor(html):
-    """Add an anchor-link to an html header tag
+    """Add an anchor-link to an html header
     
-    For use in heading cells
+    For use on markdown headings
     """
     try:
         h = ElementTree.fromstring(py3compat.cast_bytes_py2(html, encoding='utf-8'))
@@ -219,3 +209,13 @@ def ascii_only(s):
     """ensure a string is ascii"""
     s = py3compat.cast_unicode(s)
     return s.encode('ascii', 'replace').decode('ascii')
+
+def prevent_list_blocks(s):
+    """
+    Prevent presence of enumerate or itemize blocks in latex headings cells
+    """
+    out = re.sub('(^\s*\d*)\.', '\\1\.', s)
+    out = re.sub('(^\s*)\-', '\\1\-', out)
+    out = re.sub('(^\s*)\+', '\\1\+', out)
+    out = re.sub('(^\s*)\*', '\\1\*', out)
+    return out

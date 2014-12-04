@@ -8,7 +8,7 @@ import json
 from unittest import TestCase
 import nose.tools as nt
 
-from IPython.kernel.adapter import adapt, V4toV5, V5toV4
+from IPython.kernel.adapter import adapt, V4toV5, V5toV4, code_to_line
 from IPython.kernel.zmq.session import Session
 
 
@@ -20,6 +20,10 @@ def test_default_version():
     adapted = adapt(original)
     nt.assert_equal(adapted['header']['version'], V4toV5.version)
 
+def test_code_to_line_no_code():
+    line, pos = code_to_line("", 0)
+    nt.assert_equal(line, "")
+    nt.assert_equal(pos, 0)
 
 class AdapterTest(TestCase):
     
@@ -151,7 +155,7 @@ class V4toV5TestCase(AdapterTest):
     
     def test_object_info_reply(self):
         msg = self.msg("object_info_reply", {
-            'name' : 'foo',
+            'oname' : 'foo',
             'found' : True,
             'status' : 'ok',
             'definition' : 'foo(a=5)',
@@ -164,6 +168,26 @@ class V4toV5TestCase(AdapterTest):
         self.assertEqual(sorted(v5c), [ 'data', 'found', 'metadata', 'name', 'status'])
         text = v5c['data']['text/plain']
         self.assertEqual(text, '\n'.join([v4c['definition'], v4c['docstring']]))
+    
+    def test_kernel_info_reply(self):
+        msg = self.msg("kernel_info_reply", {
+            'language': 'python',
+            'language_version': [2,8,0],
+            'ipython_version': [1,2,3],
+        })
+        v4, v5 = self.adapt(msg)
+        v4c = v4['content']
+        v5c = v5['content']
+        self.assertEqual(v5c, {
+            'protocol_version': '4.1',
+            'implementation': 'ipython',
+            'implementation_version': '1.2.3',
+            'language_info': {
+                'name': 'python',
+                'version': '2.8.0',
+            },
+            'banner' : '',
+        })
     
     # iopub channel
     
@@ -298,8 +322,31 @@ class V5toV4TestCase(AdapterTest):
         self.assertEqual(v4['header']['msg_type'], 'object_info_reply')
         v4c = v4['content']
         v5c = v5['content']
-        self.assertEqual(sorted(v4c), ['found', 'name'])
+        self.assertEqual(sorted(v4c), ['found', 'oname'])
         self.assertEqual(v4c['found'], False)
+    
+    def test_kernel_info_reply(self):
+        msg = self.msg("kernel_info_reply", {
+            'protocol_version': '5.0',
+            'implementation': 'ipython',
+            'implementation_version': '1.2.3',
+            'language_info': {
+                'name': 'python',
+                'version': '2.8.0',
+                'mimetype': 'text/x-python',
+            },
+            'banner' : 'the banner',
+        })
+        v5, v4 = self.adapt(msg)
+        v4c = v4['content']
+        v5c = v5['content']
+        info = v5c['language_info']
+        self.assertEqual(v4c, {
+            'protocol_version': [5,0],
+            'language': 'python',
+            'language_version': [2,8,0],
+            'ipython_version': [1,2,3],
+        })
     
     # iopub channel
     

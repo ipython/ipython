@@ -1,5 +1,13 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
+/**
+ *
+ *
+ * @module codecell
+ * @namespace codecell
+ * @class CodeCell
+ */
+
 
 define([
     'base/js/namespace',
@@ -10,8 +18,12 @@ define([
     'notebook/js/outputarea',
     'notebook/js/completer',
     'notebook/js/celltoolbar',
-], function(IPython, $, utils, keyboard, cell, outputarea, completer, celltoolbar) {
+    'codemirror/lib/codemirror',
+    'codemirror/mode/python/python',
+    'notebook/js/codemirror-ipython'
+], function(IPython, $, utils, keyboard, cell, outputarea, completer, celltoolbar, CodeMirror, cmpython, cmip) {
     "use strict";
+    
     var Cell = cell.Cell;
 
     /* local util for codemirror */
@@ -41,21 +53,23 @@ define([
     var keycodes = keyboard.keycodes;
 
     var CodeCell = function (kernel, options) {
-        // Constructor
-        //
-        // A Cell conceived to write code.
-        //
-        // Parameters:
-        //  kernel: Kernel instance
-        //      The kernel doesn't have to be set at creation time, in that case
-        //      it will be null and set_kernel has to be called later.
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance 
-        //          config: dictionary
-        //          keyboard_manager: KeyboardManager instance 
-        //          notebook: Notebook instance
-        //          tooltip: Tooltip instance
+        /**
+         * Constructor
+         *
+         * A Cell conceived to write code.
+         *
+         * Parameters:
+         *  kernel: Kernel instance
+         *      The kernel doesn't have to be set at creation time, in that case
+         *      it will be null and set_kernel has to be called later.
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          events: $(Events) instance 
+         *          config: dictionary
+         *          keyboard_manager: KeyboardManager instance 
+         *          notebook: Notebook instance
+         *          tooltip: Tooltip instance
+         */
         this.kernel = kernel || null;
         this.notebook = options.notebook;
         this.collapsed = false;
@@ -68,15 +82,28 @@ define([
         this.input_prompt_number = null;
         this.celltoolbar = null;
         this.output_area = null;
+        // Keep a stack of the 'active' output areas (where active means the 
+        // output area that recieves output).  When a user activates an output
+        // area, it gets pushed to the stack.  Then, when the output area is
+        // deactivated, it's popped from the stack.  When the stack is empty,
+        // the cell's output area is used.
+        this.active_output_areas = [];
+        var that = this;
+        Object.defineProperty(this, 'active_output_area', {
+            get: function() {
+                if (that.active_output_areas && that.active_output_areas.length > 0) {
+                    return that.active_output_areas[that.active_output_areas.length-1];
+                } else {
+                    return that.output_area;
+                }
+            },
+        });
+
         this.last_msg_id = null;
         this.completer = null;
 
 
-        var cm_overwrite_options  = {
-            onKeyEvent: $.proxy(this.handle_keyevent,this)
-        };
-
-        var config = utils.mergeopt(CodeCell, this.config, {cm_config: cm_overwrite_options});
+        var config = utils.mergeopt(CodeCell, this.config);
         Cell.apply(this,[{
             config: config, 
             keyboard_manager: options.keyboard_manager, 
@@ -84,8 +111,6 @@ define([
 
         // Attributes we want to override in this subclass.
         this.cell_type = "code";
-
-        var that = this;
         this.element.focusout(
             function() { that.auto_highlight(); }
         );
@@ -102,15 +127,30 @@ define([
             },
             mode: 'ipython',
             theme: 'ipython',
-            matchBrackets: true,
-             // don't auto-close strings because of CodeMirror #2385
-            autoCloseBrackets: "()[]{}"
+            matchBrackets: true
         }
     };
 
     CodeCell.msg_cells = {};
 
-    CodeCell.prototype = new Cell();
+    CodeCell.prototype = Object.create(Cell.prototype);
+
+    /**
+     * @method push_output_area
+     */
+    CodeCell.prototype.push_output_area = function (output_area) {
+        this.active_output_areas.push(output_area);
+    };
+
+    /**
+     * @method pop_output_area
+     */
+    CodeCell.prototype.pop_output_area = function (output_area) {
+        var index = this.active_output_areas.lastIndexOf(output_area);
+        if (index > -1) {
+            this.active_output_areas.splice(index, 1);
+        }
+    };
 
     /**
      * @method auto_highlight
@@ -135,6 +175,7 @@ define([
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
         this.code_mirror = new CodeMirror(input_area.get(0), this.cm_config);
+        this.code_mirror.on('keydown', $.proxy(this.handle_keyevent,this))
         $(this.code_mirror.getInputField()).attr("spellcheck", "false");
         inner_cell.append(input_area);
         input.append(prompt).append(inner_cell);
@@ -187,6 +228,7 @@ define([
      *  true = ignore, false = don't ignore.
      *  @method handle_codemirror_keyevent
      */
+
     CodeCell.prototype.handle_codemirror_keyevent = function (editor, event) {
 
         var that = this;
@@ -220,10 +262,11 @@ define([
             }
             // If we closed the tooltip, don't let CM or the global handlers
             // handle this event.
-            event.stop();
+            event.codemirrorIgnore = true;
+            event.preventDefault();
             return true;
         } else if (event.keyCode === keycodes.tab && event.type === 'keydown' && event.shiftKey) {
-                if (editor.somethingSelected()){
+                if (editor.somethingSelected() || editor.getSelections().length !== 1){
                     var anchor = editor.getCursor("anchor");
                     var head = editor.getCursor("head");
                     if( anchor.line != head.line){
@@ -231,12 +274,15 @@ define([
                     }
                 }
                 this.tooltip.request(that);
-                event.stop();
+                event.codemirrorIgnore = true;
+                event.preventDefault();
                 return true;
         } else if (event.keyCode === keycodes.tab && event.type == 'keydown') {
             // Tab completion.
             this.tooltip.remove_and_cancel_tooltip();
-            if (editor.somethingSelected()) {
+
+            // completion does not work on multicursor, it might be possible though in some cases
+            if (editor.somethingSelected() || editor.getSelections().length > 1) {
                 return false;
             }
             var pre_cursor = editor.getRange({line:cur.line,ch:0},cur);
@@ -245,7 +291,8 @@ define([
                 // is empty.  In this case, let CodeMirror handle indentation.
                 return false;
             } else {
-                event.stop();
+                event.codemirrorIgnore = true;
+                event.preventDefault();
                 this.completer.startCompletion();
                 return true;
             }
@@ -267,7 +314,12 @@ define([
      * @method execute
      */
     CodeCell.prototype.execute = function () {
-        this.output_area.clear_output();
+        if (!this.kernel || !this.kernel.is_connected()) {
+            console.log("Can't execute, kernel is not connected.");
+            return;
+        }
+
+        this.active_output_area.clear_output();
         
         // Clear widget area
         this.widget_subarea.html('');
@@ -288,6 +340,8 @@ define([
             delete CodeCell.msg_cells[old_msg_id];
         }
         CodeCell.msg_cells[this.last_msg_id] = this;
+        this.render();
+        this.events.trigger('execute.CodeCell', {cell: this});
     };
     
     /**
@@ -295,6 +349,7 @@ define([
      * @method get_callbacks
      */
     CodeCell.prototype.get_callbacks = function () {
+        var that = this;
         return {
             shell : {
                 reply : $.proxy(this._handle_execute_reply, this),
@@ -304,8 +359,12 @@ define([
                 }
             },
             iopub : {
-                output : $.proxy(this.output_area.handle_output, this.output_area),
-                clear_output : $.proxy(this.output_area.handle_clear_output, this.output_area),
+                output : function() { 
+                    that.active_output_area.handle_output.apply(that.active_output_area, arguments);
+                }, 
+                clear_output : function() { 
+                    that.active_output_area.handle_clear_output.apply(that.active_output_area, arguments);
+                }, 
             },
             input : $.proxy(this._handle_input_request, this)
         };
@@ -339,7 +398,7 @@ define([
      * @private
      */
     CodeCell.prototype._handle_input_request = function (msg) {
-        this.output_area.append_raw_input(msg);
+        this.active_output_area.append_raw_input(msg);
     };
 
 
@@ -360,11 +419,6 @@ define([
         return cont;
     };
     
-    CodeCell.prototype.unrender = function () {
-        // CodeCell is always rendered
-        return false;
-    };
-
     CodeCell.prototype.select_all = function () {
         var start = {line: 0, ch: 0};
         var nlines = this.code_mirror.lineCount();
@@ -375,13 +429,11 @@ define([
 
 
     CodeCell.prototype.collapse_output = function () {
-        this.collapsed = true;
         this.output_area.collapse();
     };
 
 
     CodeCell.prototype.expand_output = function () {
-        this.collapsed = false;
         this.output_area.expand();
         this.output_area.unscroll_area();
     };
@@ -392,7 +444,6 @@ define([
     };
 
     CodeCell.prototype.toggle_output = function () {
-        this.collapsed = Boolean(1 - this.collapsed);
         this.output_area.toggle_output();
     };
 
@@ -403,7 +454,7 @@ define([
 
     CodeCell.input_prompt_classical = function (prompt_value, lines_number) {
         var ns;
-        if (prompt_value === undefined) {
+        if (prompt_value === undefined || prompt_value === null) {
             ns = "&nbsp;";
         } else {
             ns = encodeURIComponent(prompt_value);
@@ -450,7 +501,7 @@ define([
 
 
     CodeCell.prototype.clear_output = function (wait) {
-        this.output_area.clear_output(wait);
+        this.active_output_area.clear_output(wait);
         this.set_input_prompt();
     };
 
@@ -460,22 +511,18 @@ define([
     CodeCell.prototype.fromJSON = function (data) {
         Cell.prototype.fromJSON.apply(this, arguments);
         if (data.cell_type === 'code') {
-            if (data.input !== undefined) {
-                this.set_text(data.input);
+            if (data.source !== undefined) {
+                this.set_text(data.source);
                 // make this value the starting point, so that we can only undo
                 // to this state, instead of a blank cell
                 this.code_mirror.clearHistory();
                 this.auto_highlight();
             }
-            if (data.prompt_number !== undefined) {
-                this.set_input_prompt(data.prompt_number);
-            } else {
-                this.set_input_prompt();
-            }
-            this.output_area.trusted = data.trusted || false;
+            this.set_input_prompt(data.execution_count);
+            this.output_area.trusted = data.metadata.trusted || false;
             this.output_area.fromJSON(data.outputs);
-            if (data.collapsed !== undefined) {
-                if (data.collapsed) {
+            if (data.metadata.collapsed !== undefined) {
+                if (data.metadata.collapsed) {
                     this.collapse_output();
                 } else {
                     this.expand_output();
@@ -487,16 +534,17 @@ define([
 
     CodeCell.prototype.toJSON = function () {
         var data = Cell.prototype.toJSON.apply(this);
-        data.input = this.get_text();
+        data.source = this.get_text();
         // is finite protect against undefined and '*' value
         if (isFinite(this.input_prompt_number)) {
-            data.prompt_number = this.input_prompt_number;
+            data.execution_count = this.input_prompt_number;
+        } else {
+            data.execution_count = null;
         }
         var outputs = this.output_area.toJSON();
         data.outputs = outputs;
-        data.language = 'python';
-        data.trusted = this.output_area.trusted;
-        data.collapsed = this.collapsed;
+        data.metadata.trusted = this.output_area.trusted;
+        data.metadata.collapsed = this.output_area.collapsed;
         return data;
     };
 

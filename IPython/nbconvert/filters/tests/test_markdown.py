@@ -1,8 +1,10 @@
+# coding: utf-8
 """Tests for conversions from markdown to other formats"""
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import re
 from copy import copy
 
 from IPython.utils.py3compat import string_types
@@ -26,7 +28,8 @@ class TestMarkdown(TestsBase):
         '#test',
         '##test',
         'test\n----',
-        'test [link](https://google.com/)']
+        'test [link](https://google.com/)',
+    ]
 
     tokens = [
         '*test',
@@ -39,7 +42,8 @@ class TestMarkdown(TestsBase):
         'test',
         'test',
         'test',
-        ('test', 'https://google.com/')]
+        ('test', 'https://google.com/'),
+    ]
 
 
     @dec.onlyif_cmds_exist('pandoc')
@@ -49,10 +53,32 @@ class TestMarkdown(TestsBase):
             self._try_markdown(markdown2latex, test, self.tokens[index])
 
     @dec.onlyif_cmds_exist('pandoc')
+    def test_markdown2latex_markup(self):
+        """markdown2latex with markup kwarg test"""
+        # This string should be passed through unaltered with pandoc's
+        # markdown_strict reader
+        s = '1) arabic number with parenthesis'
+        self.assertEqual(markdown2latex(s, markup='markdown_strict'), s)
+        # This string should be passed through unaltered with pandoc's
+        # markdown_strict+tex_math_dollars reader
+        s = r'$\alpha$ latex math'
+        # sometimes pandoc uses $math$, sometimes it uses \(math\)
+        expected = re.compile(r'(\$|\\\()\\alpha(\$|\\\)) latex math')
+        try:
+            # py3
+            assertRegex = self.assertRegex
+        except AttributeError:
+            # py2
+            assertRegex = self.assertRegexpMatches
+        assertRegex(
+            markdown2latex(s, markup='markdown_strict+tex_math_dollars'),
+            expected)
+
+    @dec.onlyif_cmds_exist('pandoc')
     def test_pandoc_extra_args(self):
         # pass --no-wrap
         s = '\n'.join([
-            "#latex {{long_line | md2l(['--no-wrap'])}}",
+            "#latex {{long_line | md2l('markdown', ['--no-wrap'])}}",
             "#rst {{long_line | md2r(['--columns', '5'])}}",
         ])
         long_line = ' '.join(['long'] * 30)
@@ -64,7 +90,7 @@ class TestMarkdown(TestsBase):
         tpl = env.from_string(s)
         rendered = tpl.render(long_line=long_line)
         _, latex, rst = rendered.split('#')
-        
+
         self.assertEqual(latex.strip(), 'latex %s' % long_line)
         self.assertEqual(rst.strip(), 'rst %s' % long_line.replace(' ', '\n'))
 
@@ -72,6 +98,17 @@ class TestMarkdown(TestsBase):
         """markdown2html test"""
         for index, test in enumerate(self.tests):
             self._try_markdown(markdown2html, test, self.tokens[index])
+
+    def test_markdown2html_heading_anchors(self):
+        for md, tokens in [
+            ('# test',
+                ('<h1', '>test', 'id="test"', u'&#182;</a>', "anchor-link")
+            ),
+            ('###test head space',
+                ('<h3', '>test head space', 'id="test-head-space"', u'&#182;</a>', "anchor-link")
+            )
+        ]:
+            self._try_markdown(markdown2html, md, tokens)
 
     def test_markdown2html_math(self):
         # Mathematical expressions should be passed through unaltered
@@ -86,6 +123,12 @@ class TestMarkdown(TestsBase):
         for case in cases:
             self.assertIn(case, markdown2html(case))
 
+    def test_markdown2html_math_paragraph(self):
+        # https://github.com/ipython/ipython/issues/6724
+        a = """Water that is stored in $t$, $s_t$, must equal the storage content of the previous stage,
+$s_{t-1}$, plus a stochastic inflow, $I_t$, minus what is being released in $t$, $r_t$.
+With $s_0$ defined as the initial storage content in $t=1$, we have"""
+        self.assertIn(a, markdown2html(a))
 
     @dec.onlyif_cmds_exist('pandoc')
     def test_markdown2rst(self):

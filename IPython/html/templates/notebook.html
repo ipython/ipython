@@ -42,7 +42,7 @@ class="notebook_app"
 </span>
 
 <span id="kernel_selector_widget" class="pull-right dropdown">
-    <button href="#" class="dropdown-toggle" data-toggle="dropdown" type='button' id="current_kernel_spec">
+    <button class="dropdown-toggle" data-toggle="dropdown" type='button' id="current_kernel_spec">
         <span class='kernel_name'>Python</span>
         <span class="caret"></span> 
     </button>
@@ -59,7 +59,21 @@ class="notebook_app"
 <div id="menubar">
     <div id="menus" class="navbar navbar-default" role="navigation">
         <div class="container-fluid">
-            <ul class="nav navbar-nav">
+            <button type="button" class="btn btn-default navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <i class="fa fa-bars"></i>
+              <span class="navbar-text">Menu</span>
+            </button>
+            <ul class="nav navbar-nav navbar-right">
+              <li id="kernel_indicator">
+                <i id="kernel_indicator_icon"></i>
+              </li>
+              <li id="modal_indicator">
+                <i id="modal_indicator_icon"></i>
+              </li>
+              <li id="notification_area"></li>
+            </ul>
+            <div class="navbar-collapse collapse">
+              <ul class="nav navbar-nav">
                 <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">File</a>
                     <ul id="file_menu" class="dropdown-menu">
                         <li id="new_notebook"
@@ -91,7 +105,7 @@ class="notebook_app"
                         <li class="dropdown-submenu"><a href="#">Download as</a>
                             <ul class="dropdown-menu">
                                 <li id="download_ipynb"><a href="#">IPython Notebook (.ipynb)</a></li>
-                                <li id="download_py"><a href="#">Python (.py)</a></li>
+                                <li id="download_script"><a href="#">Script</a></li>
                                 <li id="download_html"><a href="#">HTML (.html)</a></li>
                                 <li id="download_rst"><a href="#">reST (.rst)</a></li>
                                 <li id="download_pdf"><a href="#">PDF (.pdf)</a></li>
@@ -175,12 +189,6 @@ class="notebook_app"
                               <li id="to_raw"
                                   title="Contents will pass through nbconvert unmodified">
                                   <a href="#">Raw NBConvert</a></li>
-                              <li id="to_heading1"><a href="#">Heading 1</a></li>
-                              <li id="to_heading2"><a href="#">Heading 2</a></li>
-                              <li id="to_heading3"><a href="#">Heading 3</a></li>
-                              <li id="to_heading4"><a href="#">Heading 4</a></li>
-                              <li id="to_heading5"><a href="#">Heading 5</a></li>
-                              <li id="to_heading6"><a href="#">Heading 6</a></li>
                             </ul>
                         </li>
                         <li class="divider"></li>
@@ -222,10 +230,16 @@ class="notebook_app"
                     <ul id="kernel_menu" class="dropdown-menu">
                         <li id="int_kernel"
                             title="Send KeyboardInterrupt (CTRL-C) to the Kernel">
-                            <a href="#">Interrupt</a></li>
+                            <a href="#">Interrupt</a>
+                        </li>
                         <li id="restart_kernel"
                             title="Restart the Kernel">
-                            <a href="#">Restart</a></li>
+                            <a href="#">Restart</a>
+                        </li>
+                        <li id="reconnect_kernel"
+                            title="Reconnect to the Kernel">
+                            <a href="#">Reconnect</a>
+                        </li>
                         <li class="divider"></li>
                         <li id="menu-change-kernel" class="dropdown-submenu">
                             <a href="#">Change kernel</a>
@@ -245,7 +259,7 @@ class="notebook_app"
                                     ("http://nbviewer.ipython.org/github/ipython/ipython/tree/2.x/examples/Index.ipynb", "Notebook Help", True),
                                 ),(
                                     ("http://docs.python.org","Python",True),
-                            ("http://help.github.com/articles/github-flavored-markdown","Markdown",True),
+                                    ("http://help.github.com/articles/github-flavored-markdown","Markdown",True),
                                     ("http://docs.scipy.org/doc/numpy/reference/","NumPy",True),
                                     ("http://docs.scipy.org/doc/scipy/reference/","SciPy",True),
                                     ("http://matplotlib.org/contents.html","Matplotlib",True),
@@ -266,19 +280,12 @@ class="notebook_app"
                                 <li class="divider"></li>
                             {% endif %}
                         {% endfor %}
-                        </li>
+                        <li class="divider"></li>
+                        <li title="About IPython Notebook"><a id="notebook_about" href="#">About</a></li>
                     </ul>
                 </li>
-            </ul>
-            <ul class="nav navbar-nav navbar-right">
-                <div id="kernel_indicator">
-                   <i id="kernel_indicator_icon"></i>
-                </div>
-                <div id="modal_indicator">
-                   <i id="modal_indicator_icon"></i>
-                </div>
-                <div id="notification_area"></div>
-            </ul>
+              </ul>
+            </div>
         </div>
     </div>
 </div>
@@ -310,26 +317,11 @@ class="notebook_app"
 
 {% block script %}
 {{super()}}
-
-<script src="{{ static_url("components/codemirror/lib/codemirror.js") }}" charset="utf-8"></script>
 <script type="text/javascript">
-    CodeMirror.modeURL = "{{ static_url("components/codemirror/mode/%N/%N.js", include_version=False) }}";
+    sys_info = {{sys_info}};
 </script>
-<script src="{{ static_url("components/codemirror/addon/mode/loadmode.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/addon/mode/multiplex.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/addon/mode/overlay.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/addon/edit/matchbrackets.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/addon/edit/closebrackets.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/addon/comment/comment.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/mode/htmlmixed/htmlmixed.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/mode/xml/xml.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/mode/javascript/javascript.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/mode/css/css.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/mode/rst/rst.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/mode/markdown/markdown.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/mode/python/python.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("notebook/js/codemirror-ipython.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("notebook/js/codemirror-ipythongfm.js") }}" charset="utf-8"></script>
+
+<script src="{{ static_url("components/text-encoding/lib/encoding.js") }}" charset="utf-8"></script>
 
 <script src="{{ static_url("notebook/js/main.js") }}" charset="utf-8"></script>
 

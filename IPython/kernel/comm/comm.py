@@ -6,7 +6,7 @@
 import uuid
 
 from IPython.config import LoggingConfigurable
-from IPython.core.getipython import get_ipython
+from IPython.kernel.zmq.kernelbase import Kernel
 
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.traitlets import Instance, Unicode, Bytes, Bool, Dict, Any
@@ -14,20 +14,25 @@ from IPython.utils.traitlets import Instance, Unicode, Bytes, Bool, Dict, Any
 
 class Comm(LoggingConfigurable):
     
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
-    def _shell_default(self):
-        return get_ipython()
+    # If this is instantiated by a non-IPython kernel, shell will be None
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC',
+                     allow_none=True)
+    kernel = Instance('IPython.kernel.zmq.kernelbase.Kernel')
+    def _kernel_default(self):
+        if Kernel.initialized():
+            return Kernel.instance()
     
     iopub_socket = Any()
     def _iopub_socket_default(self):
-        return self.shell.kernel.iopub_socket
+        return self.kernel.iopub_socket
     session = Instance('IPython.kernel.zmq.session.Session')
     def _session_default(self):
-        if self.shell is None or not hasattr(self.shell, 'kernel'):
-            return
-        return self.shell.kernel.session
+        if self.kernel is not None:
+            return self.kernel.session
     
     target_name = Unicode('comm')
+    target_module = Unicode(None, allow_none=True, help="""requirejs module from
+        which to load comm target.""")
     
     topic = Bytes()
     def _topic_default(self):
@@ -39,7 +44,7 @@ class Comm(LoggingConfigurable):
     _msg_callback = Any()
     _close_callback = Any()
     
-    _closed = Bool(False)
+    _closed = Bool(True)
     comm_id = Unicode()
     def _comm_id_default(self):
         return uuid.uuid4().hex
@@ -53,19 +58,21 @@ class Comm(LoggingConfigurable):
         if self.primary:
             # I am primary, open my peer.
             self.open(data)
+        else:
+            self._closed = False
     
-    def _publish_msg(self, msg_type, data=None, metadata=None, **keys):
+    def _publish_msg(self, msg_type, data=None, metadata=None, buffers=None, **keys):
         """Helper for sending a comm message on IOPub"""
-        if self.session is not None:
-            data = {} if data is None else data
-            metadata = {} if metadata is None else metadata
-            content = json_clean(dict(data=data, comm_id=self.comm_id, **keys))
-            self.session.send(self.iopub_socket, msg_type,
-                content,
-                metadata=json_clean(metadata),
-                parent=self.shell.get_parent(),
-                ident=self.topic,
-            )
+        data = {} if data is None else data
+        metadata = {} if metadata is None else metadata
+        content = json_clean(dict(data=data, comm_id=self.comm_id, **keys))
+        self.session.send(self.iopub_socket, msg_type,
+            content,
+            metadata=json_clean(metadata),
+            parent=self.kernel._parent_header,
+            ident=self.topic,
+            buffers=buffers,
+        )
     
     def __del__(self):
         """trigger close on gc"""
@@ -73,32 +80,45 @@ class Comm(LoggingConfigurable):
     
     # publishing messages
     
-    def open(self, data=None, metadata=None):
+    def open(self, data=None, metadata=None, buffers=None):
         """Open the frontend-side version of this comm"""
         if data is None:
             data = self._open_data
-        self._closed = False
-        ip = get_ipython()
-        if hasattr(ip, 'comm_manager'):
-            ip.comm_manager.register_comm(self)
-        self._publish_msg('comm_open', data, metadata, target_name=self.target_name)
+        comm_manager = getattr(self.kernel, 'comm_manager', None)
+        if comm_manager is None:
+            raise RuntimeError("Comms cannot be opened without a kernel "
+                        "and a comm_manager attached to that kernel.")
+
+        comm_manager.register_comm(self)
+        try:
+            self._publish_msg('comm_open',
+                              data=data, metadata=metadata, buffers=buffers,
+                              target_name=self.target_name,
+                              target_module=self.target_module,
+                              )
+            self._closed = False
+        except:
+            comm_manager.unregister_comm(self)
+            raise
     
-    def close(self, data=None, metadata=None):
+    def close(self, data=None, metadata=None, buffers=None):
         """Close the frontend-side version of this comm"""
         if self._closed:
             # only close once
             return
+        self._closed = True
         if data is None:
             data = self._close_data
-        self._publish_msg('comm_close', data, metadata)
-        ip = get_ipython()
-        if hasattr(ip, 'comm_manager'):
-            ip.comm_manager.unregister_comm(self)
-        self._closed = True
+        self._publish_msg('comm_close',
+            data=data, metadata=metadata, buffers=buffers,
+        )
+        self.kernel.comm_manager.unregister_comm(self)
     
-    def send(self, data=None, metadata=None):
+    def send(self, data=None, metadata=None, buffers=None):
         """Send a message to the frontend-side version of this comm"""
-        self._publish_msg('comm_msg', data, metadata)
+        self._publish_msg('comm_msg',
+            data=data, metadata=metadata, buffers=buffers,
+        )
     
     # registering callbacks
     
@@ -132,9 +152,11 @@ class Comm(LoggingConfigurable):
         """Handle a comm_msg message"""
         self.log.debug("handle_msg[%s](%s)", self.comm_id, msg)
         if self._msg_callback:
-            self.shell.events.trigger('pre_execute')
+            if self.shell:
+                self.shell.events.trigger('pre_execute')
             self._msg_callback(msg)
-            self.shell.events.trigger('post_execute')
+            if self.shell:
+                self.shell.events.trigger('post_execute')
 
 
 __all__ = ['Comm']

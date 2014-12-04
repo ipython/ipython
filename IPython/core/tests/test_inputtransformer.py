@@ -228,6 +228,16 @@ syntax_ml = \
           ('    ...:     print i','    print i'),
           ('    ...: ', ''),
           ],
+         [('In [24]: for i in range(10):','for i in range(10):'),
+          # Sometimes whitespace preceding '...' has been removed
+          ('...:     print i','    print i'),
+          ('...: ', ''),
+          ],
+         [('In [24]: for i in range(10):','for i in range(10):'),
+          # Space after last continuation prompt has been removed (issue #6674)
+          ('...:     print i','    print i'),
+          ('...:', ''),
+          ],
          [('In [2]: a="""','a="""'),
           ('   ...: 123"""','123"""'),
           ],

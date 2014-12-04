@@ -36,13 +36,8 @@ def _pythonfirst(s):
 class KernelSpec(HasTraits):
     argv = List()
     display_name = Unicode()
-    language = Unicode()
-    codemirror_mode = Any() # can be unicode or dict
     env = Dict()
     resource_dir = Unicode()
-    
-    def _codemirror_mode_default(self):
-        return self.language
     
     @classmethod
     def from_resource_dir(cls, resource_dir):
@@ -56,12 +51,12 @@ class KernelSpec(HasTraits):
         return cls(resource_dir=resource_dir, **kernel_dict)
     
     def to_dict(self):
-        return dict(argv=self.argv,
-                    env=self.env,
-                    display_name=self.display_name,
-                    language=self.language,
-                    codemirror_mode=self.codemirror_mode,
-                   )
+        d = dict(argv=self.argv,
+                 env=self.env,
+                 display_name=self.display_name,
+                )
+
+        return d
 
     def to_json(self):
         return json.dumps(self.to_dict())
@@ -108,13 +103,9 @@ class KernelSpecManager(HasTraits):
         The native kernel is the kernel using the same Python runtime as this
         process. This will put its informatino in the user kernels directory.
         """
-        return {'argv':make_ipkernel_cmd(
-                       'from IPython.kernel.zmq.kernelapp import main; main()'),
-               'display_name': 'IPython (Python %d)' % (3 if PY3 else 2),
-               'language': 'python',
-               'codemirror_mode': {'name': 'ipython',
-                                   'version': sys.version_info[0]},
-              }
+        return {'argv': make_ipkernel_cmd(),
+                'display_name': 'IPython (Python %d)' % (3 if PY3 else 2),
+               }
 
     @property
     def _native_kernel_resource_dir(self):

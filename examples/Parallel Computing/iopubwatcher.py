@@ -59,7 +59,7 @@ def main(connection_file):
             # stdout/stderr
             # stream names are in msg['content']['name'], if you want to handle
             # them differently
-            print("%s: %s" % (topic, msg['content']['data']))
+            print("%s: %s" % (topic, msg['content']['text']))
         elif msg['msg_type'] == 'pyerr':
             # Python traceback
             c = msg['content']

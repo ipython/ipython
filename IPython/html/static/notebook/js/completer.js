@@ -7,7 +7,8 @@ define([
     'base/js/utils',
     'base/js/keyboard',
     'notebook/js/contexthint',
-], function(IPython, $, utils, keyboard) {
+    'codemirror/lib/codemirror',
+], function(IPython, $, utils, keyboard, CodeMirror) {
     "use strict";
 
     // easier key mapping
@@ -82,18 +83,20 @@ define([
         this.cell = cell;
         this.editor = cell.code_mirror;
         var that = this;
-        events.on('status_busy.Kernel', function () {
+        events.on('kernel_busy.Kernel', function () {
             that.skip_kernel_completion = true;
         });
-        events.on('status_idle.Kernel', function () {
+        events.on('kernel_idle.Kernel', function () {
             that.skip_kernel_completion = false;
         });
     };
 
     Completer.prototype.startCompletion = function () {
-        // call for a 'first' completion, that will set the editor and do some
-        // special behavior like autopicking if only one completion available.
-        if (this.editor.somethingSelected()) return;
+        /**
+         * call for a 'first' completion, that will set the editor and do some
+         * special behavior like autopicking if only one completion available.
+         */
+        if (this.editor.somethingSelected()|| this.editor.getSelections().length > 1) return;
         this.done = false;
         // use to get focus back on opera
         this.carry_on_completion(true);
@@ -118,9 +121,11 @@ define([
      * shared start
      **/
     Completer.prototype.carry_on_completion = function (first_invocation) {
-        // Pass true as parameter if you want the completer to autopick when
-        // only one completion. This function is automatically reinvoked at
-        // each keystroke with first_invocation = false
+        /**
+         * Pass true as parameter if you want the completer to autopick when
+         * only one completion. This function is automatically reinvoked at
+         * each keystroke with first_invocation = false
+         */
         var cur = this.editor.getCursor();
         var line = this.editor.getLine(cur.line);
         var pre_cursor = this.editor.getRange({
@@ -142,7 +147,7 @@ define([
         }
 
         // We want a single cursor position.
-        if (this.editor.somethingSelected()) {
+        if (this.editor.somethingSelected()|| this.editor.getSelections().length > 1) {
             return;
         }
 
@@ -163,8 +168,10 @@ define([
     };
 
     Completer.prototype.finish_completing = function (msg) {
-        // let's build a function that wrap all that stuff into what is needed
-        // for the new completer:
+        /**
+         * let's build a function that wrap all that stuff into what is needed
+         * for the new completer:
+         */
         var content = msg.content;
         var start = content.cursor_start;
         var end = content.cursor_end;
@@ -316,11 +323,15 @@ define([
 
         // Enter
         if (code == keycodes.enter) {
-            CodeMirror.e_stop(event);
+            event.codemirrorIgnore = true;
+            event._ipkmIgnore = true;
+            event.preventDefault();
             this.pick();
         // Escape or backspace
         } else if (code == keycodes.esc || code == keycodes.backspace) {
-            CodeMirror.e_stop(event);
+            event.codemirrorIgnore = true;
+            event._ipkmIgnore = true;
+            event.preventDefault();
             this.close();
         } else if (code == keycodes.tab) {
             //all the fastforwarding operation,
@@ -339,7 +350,9 @@ define([
         } else if (code == keycodes.up || code == keycodes.down) {
             // need to do that to be able to move the arrow
             // when on the first or last line ofo a code cell
-            CodeMirror.e_stop(event);
+            event.codemirrorIgnore = true;
+            event._ipkmIgnore = true;
+            event.preventDefault();
 
             var options = this.sel.find('option');
             var index = this.sel[0].selectedIndex;
@@ -352,7 +365,7 @@ define([
             index = Math.min(Math.max(index, 0), options.length-1);
             this.sel[0].selectedIndex = index;
         } else if (code == keycodes.pageup || code == keycodes.pagedown) {
-            CodeMirror.e_stop(event);
+            event._ipkmIgnore = true;
 
             var options = this.sel.find('option');
             var index = this.sel[0].selectedIndex;
@@ -369,11 +382,13 @@ define([
     };
 
     Completer.prototype.keypress = function (event) {
-        // FIXME: This is a band-aid.
-        // on keypress, trigger insertion of a single character.
-        // This simulates the old behavior of completion as you type,
-        // before events were disconnected and CodeMirror stopped
-        // receiving events while the completer is focused.
+        /**
+         * FIXME: This is a band-aid.
+         * on keypress, trigger insertion of a single character.
+         * This simulates the old behavior of completion as you type,
+         * before events were disconnected and CodeMirror stopped
+         * receiving events while the completer is focused.
+         */
         
         var that = this;
         var code = event.keyCode;

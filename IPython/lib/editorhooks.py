@@ -8,7 +8,9 @@ from __future__ import print_function
 
 import os
 import pipes
+import shlex
 import subprocess
+import sys
 
 from IPython import get_ipython
 from IPython.core.error import TryNext
@@ -48,6 +50,9 @@ def install_editor(template, wait=False):
             line = 0
         cmd = template.format(filename=pipes.quote(filename), line=line)
         print(">", cmd)
+        # pipes.quote doesn't work right on Windows, but it does after splitting
+        if sys.platform.startswith('win'):
+            cmd = shlex.split(cmd)
         proc = subprocess.Popen(cmd, shell=True)
         if wait and proc.wait() != 0:
             raise TryNext()

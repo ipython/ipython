@@ -294,7 +294,7 @@ div.traceback-wrapper {
   color: darkgreen;
 }
 .ansiyellow {
-  color: brown;
+  color: #c4a000;
 }
 .ansiblue {
   color: darkblue;
@@ -349,12 +349,6 @@ div.cell {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  /* Old browsers */
-  -webkit-box-flex: 0;
-  -moz-box-flex: 0;
-  box-flex: 0;
-  /* Modern browsers */
-  flex: none;
   border-radius: 4px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -405,12 +399,6 @@ div.inner_cell {
   flex-direction: column;
   align-items: stretch;
   /* Old browsers */
-  -webkit-box-flex: 0;
-  -moz-box-flex: 0;
-  box-flex: 0;
-  /* Modern browsers */
-  flex: none;
-  /* Old browsers */
   -webkit-box-flex: 1;
   -moz-box-flex: 1;
   box-flex: 1;
@@ -431,6 +419,44 @@ div.prompt:empty {
   padding-top: 0;
   padding-bottom: 0;
 }
+div.unrecognized_cell {
+  padding: 5px 5px 5px 0px;
+  /* Old browsers */
+  display: -webkit-box;
+  -webkit-box-orient: horizontal;
+  -webkit-box-align: stretch;
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  -moz-box-align: stretch;
+  display: box;
+  box-orient: horizontal;
+  box-align: stretch;
+  /* Modern browsers */
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+div.unrecognized_cell .inner_cell {
+  border-radius: 4px;
+  padding: 5px;
+  font-weight: bold;
+  color: red;
+  border: 1px solid #cfcfcf;
+  background: #eaeaea;
+}
+div.unrecognized_cell .inner_cell a {
+  color: inherit;
+  text-decoration: none;
+}
+div.unrecognized_cell .inner_cell a:hover {
+  color: inherit;
+  text-decoration: none;
+}
+@media (max-width: 480px) {
+  div.unrecognized_cell > div.prompt {
+    display: none;
+  }
+}
 /* any special styling for code cells that are currently running goes here */
 div.input {
   page-break-inside: avoid;
@@ -448,12 +474,6 @@ div.input {
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  /* Old browsers */
-  -webkit-box-flex: 0;
-  -moz-box-flex: 0;
-  box-flex: 0;
-  /* Modern browsers */
-  flex: none;
 }
 @media (max-width: 480px) {
   div.input {
@@ -471,12 +491,6 @@ div.input {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    /* Old browsers */
-    -webkit-box-flex: 0;
-    -moz-box-flex: 0;
-    box-flex: 0;
-    /* Modern browsers */
-    flex: none;
   }
 }
 /* input_area and input_prompt must match in top border and margin for alignment */
@@ -730,12 +744,6 @@ div.output_wrapper {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  /* Old browsers */
-  -webkit-box-flex: 0;
-  -moz-box-flex: 0;
-  box-flex: 0;
-  /* Modern browsers */
-  flex: none;
 }
 /* class for the output area when it should be height-limited */
 div.output_scroll {
@@ -767,12 +775,6 @@ div.output_collapsed {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  /* Old browsers */
-  -webkit-box-flex: 0;
-  -moz-box-flex: 0;
-  box-flex: 0;
-  /* Modern browsers */
-  flex: none;
 }
 div.out_prompt_overlay {
   height: 100%;
@@ -807,12 +809,6 @@ div.output_area {
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  /* Old browsers */
-  -webkit-box-flex: 0;
-  -moz-box-flex: 0;
-  box-flex: 0;
-  /* Modern browsers */
-  flex: none;
 }
 div.output_area .MathJax_Display {
   text-align: left !important;
@@ -842,12 +838,6 @@ div.output_area .rendered_html img {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  /* Old browsers */
-  -webkit-box-flex: 0;
-  -moz-box-flex: 0;
-  box-flex: 0;
-  /* Modern browsers */
-  flex: none;
 }
 @media (max-width: 480px) {
   div.output_area {
@@ -865,12 +855,6 @@ div.output_area .rendered_html img {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    /* Old browsers */
-    -webkit-box-flex: 0;
-    -moz-box-flex: 0;
-    box-flex: 0;
-    /* Modern browsers */
-    flex: none;
   }
 }
 div.output_area pre {
@@ -941,6 +925,19 @@ input.raw_input:focus {
 }
 p.p-space {
   margin-bottom: 10px;
+}
+div.output_unrecognized {
+  padding: 5px;
+  font-weight: bold;
+  color: red;
+}
+div.output_unrecognized a {
+  color: inherit;
+  text-decoration: none;
+}
+div.output_unrecognized a:hover {
+  color: inherit;
+  text-decoration: none;
 }
 .rendered_html {
   color: #000000;
@@ -1130,12 +1127,6 @@ div.text_cell {
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  /* Old browsers */
-  -webkit-box-flex: 0;
-  -moz-box-flex: 0;
-  box-flex: 0;
-  /* Modern browsers */
-  flex: none;
 }
 @media (max-width: 480px) {
   div.text_cell > div.prompt {
@@ -1167,36 +1158,39 @@ h5:hover .anchor-link,
 h6:hover .anchor-link {
   visibility: visible;
 }
-div.cell.text_cell.rendered {
-  padding: 0px;
+.text_cell.rendered .input_area {
+  display: none;
 }
-.cm-s-heading-1,
-.cm-s-heading-2,
-.cm-s-heading-3,
-.cm-s-heading-4,
-.cm-s-heading-5,
-.cm-s-heading-6 {
+.text_cell.unrendered .text_cell_render {
+  display: none;
+}
+.cm-header-1,
+.cm-header-2,
+.cm-header-3,
+.cm-header-4,
+.cm-header-5,
+.cm-header-6 {
   font-weight: bold;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
-.cm-s-heading-1 {
-  font-size: 150%;
+.cm-header-1 {
+  font-size: 185.7%;
 }
-.cm-s-heading-2 {
-  font-size: 130%;
+.cm-header-2 {
+  font-size: 157.1%;
 }
-.cm-s-heading-3 {
-  font-size: 120%;
+.cm-header-3 {
+  font-size: 128.6%;
 }
-.cm-s-heading-4 {
+.cm-header-4 {
   font-size: 110%;
 }
-.cm-s-heading-5 {
+.cm-header-5 {
   font-size: 100%;
   font-style: italic;
 }
-.cm-s-heading-6 {
-  font-size: 90%;
+.cm-header-6 {
+  font-size: 100%;
   font-style: italic;
 }
 .widget-area {
@@ -1229,12 +1223,6 @@ div.cell.text_cell.rendered {
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  /* Old browsers */
-  -webkit-box-flex: 0;
-  -moz-box-flex: 0;
-  box-flex: 0;
-  /* Modern browsers */
-  flex: none;
 }
 .widget-area .widget-subarea {
   padding: 0.44em 0.4em 0.4em 1px;
@@ -1256,12 +1244,6 @@ div.cell.text_cell.rendered {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  /* Old browsers */
-  -webkit-box-flex: 0;
-  -moz-box-flex: 0;
-  box-flex: 0;
-  /* Modern browsers */
-  flex: none;
   /* Old browsers */
   -webkit-box-flex: 2;
   -moz-box-flex: 2;
@@ -1336,12 +1318,6 @@ div.cell.text_cell.rendered {
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  /* Old browsers */
-  -webkit-box-flex: 0;
-  -moz-box-flex: 0;
-  box-flex: 0;
-  /* Modern browsers */
-  flex: none;
 }
 .widget-hslider .ui-slider {
   /* Inner, invisible slide div */
@@ -1361,12 +1337,6 @@ div.cell.text_cell.rendered {
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  /* Old browsers */
-  -webkit-box-flex: 0;
-  -moz-box-flex: 0;
-  box-flex: 0;
-  /* Modern browsers */
-  flex: none;
   /* Old browsers */
   -webkit-box-flex: 1;
   -moz-box-flex: 1;
@@ -1415,12 +1385,6 @@ div.cell.text_cell.rendered {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  /* Old browsers */
-  -webkit-box-flex: 0;
-  -moz-box-flex: 0;
-  box-flex: 0;
-  /* Modern browsers */
-  flex: none;
 }
 .widget-vslider .ui-slider {
   /* Inner, invisible slide div */
@@ -1442,12 +1406,6 @@ div.cell.text_cell.rendered {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  /* Old browsers */
-  -webkit-box-flex: 0;
-  -moz-box-flex: 0;
-  box-flex: 0;
-  /* Modern browsers */
-  flex: none;
   /* Old browsers */
   -webkit-box-flex: 1;
   -moz-box-flex: 1;
@@ -1515,16 +1473,14 @@ div.cell.text_cell.rendered {
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  /* Old browsers */
-  -webkit-box-flex: 0;
-  -moz-box-flex: 0;
-  box-flex: 0;
-  /* Modern browsers */
-  flex: none;
-  margin: 5px;
+  margin-top: 0px !important;
+  margin-bottom: 0px !important;
+  margin-right: 5px;
+  margin-left: 5px;
 }
 .widget-hbox input[type="checkbox"] {
   margin-top: 9px;
+  margin-bottom: 10px;
 }
 .widget-hbox .widget-label {
   /* Horizontal Label */
@@ -1556,12 +1512,6 @@ div.cell.text_cell.rendered {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  /* Old browsers */
-  -webkit-box-flex: 0;
-  -moz-box-flex: 0;
-  box-flex: 0;
-  /* Modern browsers */
-  flex: none;
 }
 .widget-vbox .widget-label {
   /* Vertical Label */
@@ -1615,12 +1565,6 @@ div.cell.text_cell.rendered {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  /* Old browsers */
-  -webkit-box-flex: 0;
-  -moz-box-flex: 0;
-  box-flex: 0;
-  /* Modern browsers */
-  flex: none;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;

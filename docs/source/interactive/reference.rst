@@ -88,13 +88,13 @@ current execution block.  Cell magics can in fact make arbitrary modifications
 to the input they receive, which need not even be valid Python code at all.
 They receive the whole block as a single string.
 
-As a line magic example, the ``%cd`` magic works just like the OS command of
+As a line magic example, the :magic:`cd` magic works just like the OS command of
 the same name::
 
       In [8]: %cd
       /home/fperez
 
-The following uses the builtin ``timeit`` in cell mode::
+The following uses the builtin :magic:`timeit` in cell mode::
   
   In [10]: %%timeit x = range(10000)
       ...: min(x)
@@ -104,7 +104,7 @@ The following uses the builtin ``timeit`` in cell mode::
 
 In this case, ``x = range(10000)`` is called as the line argument, and the
 block with ``min(x)`` and ``max(x)`` is called as the cell body.  The
-``timeit`` magic receives both.
+:magic:`timeit` magic receives both.
   
 If you have 'automagic' enabled (as it by default), you don't need to type in
 the single ``%`` explicitly for line magics; IPython will scan its internal
@@ -156,6 +156,9 @@ docstrings of all currently available magic commands.
 
 .. seealso::
 
+   :doc:`magics`
+     A list of the line and cell magics available in IPython by default
+
    :ref:`defining_magics`
      How to define and register additional magic functions
 
@@ -185,21 +188,19 @@ Typing ``??word`` or ``word??`` gives access to the full information, including
 the source code where possible. Long strings are not snipped.
 
 The following magic functions are particularly useful for gathering
-information about your working environment. You can get more details by
-typing ``%magic`` or querying them individually (``%function_name?``);
-this is just a summary:
+information about your working environment:
 
-    * **%pdoc <object>**: Print (or run through a pager if too long) the
+    * :magic:`pdoc` **<object>**: Print (or run through a pager if too long) the
       docstring for an object. If the given object is a class, it will
       print both the class and the constructor docstrings.
-    * **%pdef <object>**: Print the call signature for any callable
+    * :magic:`pdef` **<object>**: Print the call signature for any callable
       object. If the object is a class, print the constructor information.
-    * **%psource <object>**: Print (or run through a pager if too long)
+    * :magic:`psource` **<object>**: Print (or run through a pager if too long)
       the source code for an object.
-    * **%pfile <object>**: Show the entire source file where an object was
+    * :magic:`pfile` **<object>**: Show the entire source file where an object was
       defined via a pager, opening it at the line where the object
       definition begins.
-    * **%who/%whos**: These functions give information about identifiers
+    * :magic:`who`/:magic:`whos`: These functions give information about identifiers
       you have defined interactively (not things you loaded or defined
       in your configuration files). %who just prints a list of
       identifiers and %whos prints a table with some basic details about
@@ -310,7 +311,7 @@ Session logging and restoring
 
 You can log all input from a session either by starting IPython with the
 command line switch ``--logfile=foo.py`` (see :ref:`here <command_line_options>`)
-or by activating the logging at any moment with the magic function %logstart.
+or by activating the logging at any moment with the magic function :magic:`logstart`.
 
 Log files can later be reloaded by running them as scripts and IPython
 will attempt to 'replay' the log by executing all the lines in it, thus
@@ -322,7 +323,7 @@ any code you wrote while experimenting. Log files are regular text files
 which you can later open in your favorite text editor to extract code or
 to 'clean them up' before using them to replay a session.
 
-The `%logstart` function for activating logging in mid-session is used as
+The :magic:`logstart` function for activating logging in mid-session is used as
 follows::
 
     %logstart [log_name [log_mode]]
@@ -341,7 +342,7 @@ one of (note that the modes are given unquoted):
     * [append:] well, that says it.
     * [rotate:] create rotating logs log_name.1~, log_name.2~, etc.
 
-The %logoff and %logon functions allow you to temporarily stop and
+The :magic:`logoff` and :magic:`logon` functions allow you to temporarily stop and
 resume logging to a file which had previously been started with
 %logstart. They will fail (with an explanation) if you try to use them
 before logging has been started.
@@ -362,7 +363,7 @@ You can assign the result of a system command to a Python variable with the
 syntax ``myfiles = !ls``. This gets machine readable output from stdout 
 (e.g. without colours), and splits on newlines. To explicitly get this sort of
 output without assigning to a variable, use two exclamation marks (``!!ls``) or
-the ``%sx`` magic command.
+the :magic:`sx` magic command.
 
 The captured list has some convenience features. ``myfiles.n`` or ``myfiles.s``
 returns a string delimited by newlines or spaces, respectively. ``myfiles.p``
@@ -387,10 +388,12 @@ For simple cases, you can alternatively prepend $ to a variable name::
     In [7]: !echo "A system variable: $$HOME"  # Use $$ for literal $
     A system variable: /home/fperez
 
+Note that `$$` is used to represent a literal `$`.
+
 System command aliases
 ----------------------
 
-The %alias magic function allows you to define magic functions which are in fact
+The :magic:`alias` magic function allows you to define magic functions which are in fact
 system shell commands. These aliases can have parameters.
 
 ``%alias alias_name cmd`` defines 'alias_name' as an alias for 'cmd'
@@ -409,10 +412,10 @@ replaced by a positional parameter to the call to %parts::
     In [3]: parts A  
     ERROR: Alias <parts> requires 2 arguments, 1 given.
 
-If called with no parameters, %alias prints the table of currently
+If called with no parameters, :magic:`alias` prints the table of currently
 defined aliases.
 
-The %rehashx magic allows you to load your entire $PATH as
+The :magic:`rehashx` magic allows you to load your entire $PATH as
 ipython aliases. See its docstring for further details.
 
 
@@ -438,7 +441,7 @@ detailed tracebacks. Furthermore, both normal and verbose tracebacks can
 be colored (if your terminal supports it) which makes them much easier
 to parse visually.
 
-See the magic xmode and colors functions for details.
+See the magic :magic:`xmode` and :magic:`colors` functions for details.
 
 These features are basically a terminal version of Ka-Ping Yee's cgitb
 module, now part of the standard Python library.
@@ -452,8 +455,8 @@ Input caching system
 IPython offers numbered prompts (In/Out) with input and output caching
 (also referred to as 'input history'). All input is saved and can be 
 retrieved as variables (besides the usual arrow key recall), in 
-addition to the %rep magic command that brings a history entry
-up for editing on the next  command line.
+addition to the :magic:`rep` magic command that brings a history entry
+up for editing on the next command line.
 
 The following variables always exist:
 
@@ -474,17 +477,17 @@ characters. You can also manipulate them like regular variables (they
 are strings), modify or exec them.
 
 You can also re-execute multiple lines of input easily by using the
-magic %rerun or %macro functions. The macro system also allows you to re-execute
+magic :magic:`rerun` or :magic:`macro` functions. The macro system also allows you to re-execute
 previous lines which include magic function calls (which require special
 processing). Type %macro? for more details on the macro system.
 
-A history function %hist allows you to see any part of your input
+A history function :magic:`history` allows you to see any part of your input
 history by printing a range of the _i variables.
 
 You can also search ('grep') through your history by typing 
 ``%hist -g somestring``. This is handy for searching for URLs, IP addresses,
 etc. You can bring history entries listed by '%hist -g' up for editing
-with the %recall command, or run them immediately with %rerun.
+with the %recall command, or run them immediately with :magic:`rerun`.
 
 .. _output_caching:
 
@@ -520,15 +523,15 @@ This system obviously can potentially put heavy memory demands on your
 system, since it prevents Python's garbage collector from removing any
 previously computed results. You can control how many results are kept
 in memory with the configuration option ``InteractiveShell.cache_size``.
-If you set it to 0, output caching is disabled. You can also use the ``%reset``
-and ``%xdel`` magics to clear large items from memory.
+If you set it to 0, output caching is disabled. You can also use the :magic:`reset`
+and :magic:`xdel` magics to clear large items from memory.
 
 Directory history
 -----------------
 
 Your history of visited directories is kept in the global list _dh, and
-the magic %cd command can be used to go to any entry in that list. The
-%dhist command allows you to view this history. Do ``cd -<TAB>`` to
+the magic :magic:`cd` command can be used to go to any entry in that list. The
+:magic:`dhist` command allows you to view this history. Do ``cd -<TAB>`` to
 conveniently view the directory history.
 
 
@@ -705,7 +708,7 @@ allows you to step through code, set breakpoints, watch variables,
 etc.  IPython makes it very easy to start any script under the control
 of pdb, regardless of whether you have wrapped it into a 'main()'
 function or not. For this, simply type ``%run -d myscript`` at an
-IPython prompt. See the %run command's documentation for more details, including
+IPython prompt. See the :magic:`run` command's documentation for more details, including
 how to control where pdb will stop execution first.
 
 For more information on the use of the pdb debugger, see :ref:`debugger-commands`
@@ -722,9 +725,9 @@ while your program is at this point 'dead', all the data is still
 available and you can walk up and down the stack frame and understand
 the origin of the problem.
 
-You can use the ``%debug`` magic after an exception has occurred to start
+You can use the :magic:`debug` magic after an exception has occurred to start
 post-mortem debugging. IPython can also call debugger every time your code
-triggers an uncaught exception. This feature can be toggled with the %pdb magic
+triggers an uncaught exception. This feature can be toggled with the :magic:`pdb` magic
 command, or you can start IPython with the ``--pdb`` option.
 
 For a post-mortem debugger in your programs outside IPython,
@@ -803,7 +806,7 @@ advantages of this are:
   all of these things.
 
 For users, enabling GUI event loop integration is simple.  You simple use the
-``%gui`` magic as follows::
+:magic:`gui` magic as follows::
 
     %gui [GUINAME]
 
@@ -902,7 +905,7 @@ scientific computing, all with a syntax compatible with that of the popular
 Matlab program.
 
 To start IPython with matplotlib support, use the ``--matplotlib`` switch. If
-IPython is already running, you can run the ``%matplotlib`` magic.  If no
+IPython is already running, you can run the :magic:`matplotlib` magic.  If no
 arguments are given, IPython will automatically detect your choice of
 matplotlib backend.  You can also request a specific backend with
 ``%matplotlib backend``, where ``backend`` must be one of: 'tk', 'qt', 'wx',

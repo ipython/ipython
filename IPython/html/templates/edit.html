@@ -1,0 +1,72 @@
+{% extends "page.html" %}
+
+{% block title %}{{page_title}}{% endblock %}
+
+{% block stylesheet %}
+<link rel="stylesheet" href="{{ static_url('components/codemirror/lib/codemirror.css') }}">
+<link rel="stylesheet" href="{{ static_url('components/codemirror/addon/dialog/dialog.css') }}">
+<style>
+#texteditor-container {
+    border-bottom: 1px solid #ccc;
+}
+
+#filename {
+    font-size: 16pt;
+    display: table;
+    padding: 0px 5px;
+}
+</style>
+
+{{super()}}
+{% endblock %}
+
+{% block params %}
+
+data-base-url="{{base_url}}"
+data-file-path="{{file_path}}"
+
+{% endblock %}
+
+{% block header %}
+
+<span id="filename">{{ basename }}</span>
+
+{% endblock %}
+
+{% block site %}
+
+<div id="menubar-container" class="container">
+<div id="menubar">
+    <div id="menus" class="navbar navbar-default" role="navigation">
+        <div class="container-fluid">
+            <button type="button" class="btn btn-default navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <i class="fa fa-bars"></i>
+              <span class="navbar-text">Menu</span>
+            </button>
+            <ul class="nav navbar-nav navbar-right">
+              <li id="notification_area"></li>
+            </ul>
+            <div class="navbar-collapse collapse">
+              <ul class="nav navbar-nav">
+                <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">File</a>
+                    <ul id="file_menu" class="dropdown-menu">
+                        <li id="save_file"><a href="#">Save</a></li>
+                    </ul>
+                </li>
+              </ul>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<div id="texteditor-container" class="container"></div>
+
+{% endblock %}
+
+{% block script %}
+
+    {{super()}}
+
+<script src="{{ static_url("edit/js/main.js") }}" type="text/javascript" charset="utf-8"></script>
+{% endblock %}

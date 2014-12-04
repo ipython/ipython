@@ -57,11 +57,11 @@ def commit_api(api):
     if api == QT_API_PYSIDE:
         ID.forbid('PyQt4')
         ID.forbid('PyQt5')
-    elif api == QT_API_PYQT:
+    elif api == QT_API_PYQT5:
         ID.forbid('PySide')
-        ID.forbid('PyQt5')
-    else:
         ID.forbid('PyQt4')
+    else:   # There are three other possibilities, all representing PyQt4
+        ID.forbid('PyQt5')
         ID.forbid('PySide')
 
 
@@ -241,7 +241,7 @@ def load_qt(api_options):
     ----------
     api_options: List of strings
         The order of APIs to try. Valid items are 'pyside',
-        'pyqt', 'pyqt5' and 'pyqtv1'
+        'pyqt', 'pyqt5', 'pyqtv1' and 'pyqtdefault'
 
     Returns
     -------

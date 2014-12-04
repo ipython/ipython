@@ -1,12 +1,8 @@
 // Test widget button class
 casper.notebook_test(function () {
-    index = this.append_cell(
+    var button_index = this.append_cell(
         'from IPython.html import widgets\n' + 
         'from IPython.display import display, clear_output\n' +
-        'print("Success")');
-    this.execute_cell_then(index);
-
-    var button_index = this.append_cell(
         'button = widgets.Button(description="Title")\n' +
         'display(button)\n' +
         'print("Success")\n' +
@@ -14,30 +10,36 @@ casper.notebook_test(function () {
         '    display("Clicked")\n' +
         'button.on_click(handle_click)');
     this.execute_cell_then(button_index, function(index){
-
         this.test.assertEquals(this.get_output_cell(index).text, 'Success\n',
             'Create button cell executed with correct output.');
+    });
 
-        this.test.assert(this.cell_element_exists(index, 
+    // Wait for the widgets to actually display.
+    var widget_button_selector = '.widget-area .widget-subarea button';
+    this.wait_for_element(button_index, widget_button_selector);
+
+    // Continue with the tests.
+    this.then(function() {
+        this.test.assert(this.cell_element_exists(button_index, 
             '.widget-area .widget-subarea'),
             'Widget subarea exists.');
 
-        this.test.assert(this.cell_element_exists(index, 
-            '.widget-area .widget-subarea button'),
+        this.test.assert(this.cell_element_exists(button_index, 
+            widget_button_selector),
             'Widget button exists.');
 
-        this.test.assert(this.cell_element_function(index, 
-            '.widget-area .widget-subarea button', 'html')=='Title',
+        this.test.assert(this.cell_element_function(button_index, 
+            widget_button_selector, 'html')=='Title',
             'Set button description.');
 
-        this.cell_element_function(index, 
-            '.widget-area .widget-subarea button', 'click');
+        this.cell_element_function(button_index, 
+            widget_button_selector, 'click');
     });
 
     this.wait_for_output(button_index, 1);
 
     this.then(function () {
-        this.test.assertEquals(this.get_output_cell(button_index, 1)['text/plain'], "'Clicked'",
+        this.test.assertEquals(this.get_output_cell(button_index, 1).data['text/plain'], "'Clicked'",
             'Button click event fires.');
     });
 });

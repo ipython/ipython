@@ -47,18 +47,12 @@ class ConvertFiguresPreprocessor(Preprocessor):
         """
 
         # Loop through all of the datatypes of the outputs in the cell.
-        for index, cell_out in enumerate(cell.get('outputs', [])):
-            for data_type, data in list(cell_out.items()):
-                # this must run *before* extract outputs,
-                # so figure_name and filename do not exist
-                self._convert_figure(cell_out, resources, data_type, data)
+        for output in cell.get('outputs', []):
+            if output.output_type in {'execute_result', 'display_data'} \
+                    and self.from_format in output.data \
+                    and self.to_format not in output.data:
+
+                output.data[self.to_format] = self.convert_figure(
+                            self.from_format, output.data[self.from_format])
+
         return cell, resources
-
-
-    def _convert_figure(self, cell_out, resources, data_type, data):
-        """
-        Convert a figure and output the results to the cell output
-        """
-        if not self.to_format in cell_out and data_type == self.from_format:
-            data = self.convert_figure(data_type, data)
-            cell_out[self.to_format] = data

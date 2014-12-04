@@ -18,7 +18,7 @@ import os
 from ...tests.base import TestsBase
 from ..strings import (wrap_text, html2text, add_anchor, strip_dollars, 
     strip_files_prefix, get_lines, comment_lines, ipython2python, posix_path,
-    add_prompts
+    add_prompts, prevent_list_blocks
 )
 
 
@@ -151,3 +151,15 @@ class TestStrings(TestsBase):
         text1 = """for i in range(10):\n  i += 1\n  print i"""
         text2 = """>>> for i in range(10):\n...   i += 1\n...   print i"""
         self.assertEqual(text2, add_prompts(text1))
+
+    def test_prevent_list_blocks(self):
+        """prevent_list_blocks test"""
+        tests = [
+            ('1. arabic point', '1\\. arabic point'),
+            ('* bullet asterisk', '\\* bullet asterisk'),
+            ('+ bullet Plus Sign', '\\+ bullet Plus Sign'),
+            ('- bullet Hyphen-Minus', '\\- bullet Hyphen-Minus'),
+            ('  1. spaces + arabic point', '  1\\. spaces + arabic point'),
+        ]
+        for test in tests:
+            self.assertEqual(prevent_list_blocks(test[0]), test[1])

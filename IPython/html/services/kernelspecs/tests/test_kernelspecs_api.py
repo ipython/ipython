@@ -5,6 +5,7 @@ import errno
 import io
 import json
 import os
+import shutil
 
 pjoin = os.path.join
 
@@ -18,7 +19,6 @@ from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_erro
 # break these tests
 sample_kernel_json = {'argv':['cat', '{connection_file}'],
                       'display_name':'Test kernel',
-                      'language':'bash',
                      }
 
 some_resource = u"The very model of a modern major general"
@@ -66,6 +66,25 @@ class APITest(NotebookTestBase):
 
         self.ks_api = KernelSpecAPI(self.base_url())
 
+    def test_list_kernelspecs_bad(self):
+        """Can list kernelspecs when one is invalid"""
+        bad_kernel_dir = pjoin(self.ipython_dir.name, 'kernels', 'bad')
+        try:
+            os.makedirs(bad_kernel_dir)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+        
+        with open(pjoin(bad_kernel_dir, 'kernel.json'), 'w') as f:
+            f.write("garbage")
+        
+        specs = self.ks_api.list().json()
+        assert isinstance(specs, list)
+        # 2: the sample kernelspec created in setUp, and the native Python kernel
+        self.assertGreaterEqual(len(specs), 2)
+        
+        shutil.rmtree(bad_kernel_dir)
+    
     def test_list_kernelspecs(self):
         specs = self.ks_api.list().json()
         assert isinstance(specs, list)
@@ -84,7 +103,7 @@ class APITest(NotebookTestBase):
 
     def test_get_kernelspec(self):
         spec = self.ks_api.kernel_spec_info('Sample').json()  # Case insensitive
-        self.assertEqual(spec['language'], 'bash')
+        self.assertEqual(spec['display_name'], 'Test kernel')
 
     def test_get_nonexistant_kernelspec(self):
         with assert_http_error(404):

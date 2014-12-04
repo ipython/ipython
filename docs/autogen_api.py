@@ -21,10 +21,12 @@ if __name__ == '__main__':
                                         # Extensions are documented elsewhere.
                                         r'\.extensions',
                                         r'\.config\.profile',
-                                        # These should be accessed via nbformat.current
-                                        r'\.nbformat\.v\d+',
+                                        # Old nbformat versions
+                                        r'\.nbformat\.v[1-2]',
                                         # Public API for this is in kernel.zmq.eventloops
                                         r'\.kernel\.zmq\.gui',
+                                        # Magics are documented separately
+                                        r'\.core\.magics',
                                         ]
 
     # The inputhook* modules often cause problems on import, such as trying to
@@ -39,14 +41,21 @@ if __name__ == '__main__':
                                         r'\.core\.magics\.deprecated',
                                         # We document this manually.
                                         r'\.utils\.py3compat',
-                                        # These are exposed by nbformat.current
+                                        # These are exposed by nbformat
                                         r'\.nbformat\.convert',
                                         r'\.nbformat\.validator',
+                                        r'\.nbformat\.notebooknode',
+                                        # Deprecated
+                                        r'\.nbformat\.current',
+                                        # Exposed by nbformat.vN
+                                        r'\.nbformat\.v[3-4]\.nbbase',
                                         # These are exposed in display
                                         r'\.core\.display',
                                         r'\.lib\.display',
                                         # This isn't actually a module
-                                        r'\.html\.fabfile',
+                                        r'\.html\.tasks',
+                                        # This is private
+                                        r'\.html\.allow76'
                                         ]
 
     # These modules import functions and classes from other places to expose
@@ -54,7 +63,9 @@ if __name__ == '__main__':
     # non-API modules they import from should be excluded by the skip patterns
     # above.
     docwriter.names_from__all__.update({
-        'IPython.nbformat.current',
+        'IPython.nbformat',
+        'IPython.nbformat.v3',
+        'IPython.nbformat.v4',
         'IPython.display',
     })
     

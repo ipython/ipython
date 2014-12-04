@@ -5,7 +5,7 @@
     <meta charset="utf-8">
 
     <title>{% block title %}IPython Notebook{% endblock %}</title>
-    <link rel="shortcut icon" type="image/x-icon" href="{{static_url("base/images/favicon.ico") }}">
+    {% block favicon %}<link rel="shortcut icon" type="image/x-icon" href="{{static_url("base/images/favicon.ico") }}">{% endblock %}
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <link rel="stylesheet" href="{{static_url("components/jquery-ui/themes/smoothness/jquery-ui.min.css") }}" type="text/css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,9 +14,13 @@
     <link rel="stylesheet" href="{{ static_url("style/style.min.css") }}" type="text/css"/>
     {% endblock %}
     <link rel="stylesheet" href="{{ static_url("custom/custom.css") }}" type="text/css" />
+    <script src="{{static_url("components/es6-promise/promise.min.js")}}" type="text/javascript" charset="utf-8"></script>
     <script src="{{static_url("components/requirejs/require.js") }}" type="text/javascript" charset="utf-8"></script>
     <script>
       require.config({
+          {% if version_hash %}
+          urlArgs: "v={{version_hash}}",
+          {% endif %}
           baseUrl: '{{static_url("", include_version=False)}}',
           paths: {
             nbextensions : '{{ base_url }}nbextensions',
@@ -25,10 +29,10 @@
             jquery: 'components/jquery/jquery.min',
             bootstrap: 'components/bootstrap/js/bootstrap.min',
             bootstraptour: 'components/bootstrap-tour/build/js/bootstrap-tour.min',
-            dateformat: 'dateformat/date.format',
             jqueryui: 'components/jquery-ui/ui/minified/jquery-ui.min',
-            highlight: 'components/highlight.js/build/highlight.pack',
-            moment: "components/moment/moment",
+            moment: 'components/moment/moment',
+            codemirror: 'components/codemirror',
+            termjs: 'components/term.js/src/term',
           },
           shim: {
             underscore: {
@@ -46,16 +50,18 @@
               deps: ["bootstrap"],
               exports: "Tour"
             },
-            dateformat: {
-              exports: "dateFormat"
-            },
             jqueryui: {
               deps: ["jquery"],
               exports: "$"
-            },
-            highlight: {
-              exports: "hljs"
-            },
+            }
+          }
+      });
+
+      require.config({
+          map: {
+              '*':{
+                'contents': '{{ contents_js_source }}',
+              }
           }
       });
     </script>
@@ -76,7 +82,7 @@
 
 <div id="header" class="navbar navbar-static-top">
   <div class="container">
-  <div id="ipython_notebook" class="nav navbar-brand pull-left"><a href="{{base_url}}tree/{{notebook_path}}" alt='dashboard'><img src='{{static_url("base/images/ipynblogo.png") }}' alt='IPython Notebook'/></a></div>
+  <div id="ipython_notebook" class="nav navbar-brand pull-left"><a href="{{base_url}}tree" alt='dashboard'>{% block logo %}<img src='{{static_url("base/images/logo.png") }}' alt='Jupyter Notebook'/>{% endblock %}</a></div>
 
   {% block login_widget %}
 

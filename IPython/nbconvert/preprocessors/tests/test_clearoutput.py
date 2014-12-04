@@ -5,18 +5,9 @@ Module with tests for the clearoutput preprocessor.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-from IPython.nbformat import current as nbformat
-
 from .base import PreprocessorTestsBase
 from ..clearoutput import ClearOutputPreprocessor
 
-
-#-----------------------------------------------------------------------------
-# Class
-#-----------------------------------------------------------------------------
 
 class TestClearOutput(PreprocessorTestsBase):
     """Contains test functions for clearoutput.py"""
@@ -38,5 +29,5 @@ class TestClearOutput(PreprocessorTestsBase):
         res = self.build_resources()
         preprocessor = self.build_preprocessor()
         nb, res = preprocessor(nb, res)
-        assert nb.worksheets[0].cells[0].outputs == []
-        assert nb.worksheets[0].cells[0].prompt_number is None
+        assert nb.cells[0].outputs == []
+        assert nb.cells[0].execution_count is None

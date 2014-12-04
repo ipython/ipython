@@ -9,12 +9,12 @@ else
   PREVIOUS_HEAD=$1
 fi
 
-# if style changed (and less/fabric available), rebuild sourcemaps
+# if style changed (and less/invoke available), rebuild sourcemaps
 if [[
   ! -z "$(git diff $PREVIOUS_HEAD IPython/html/static/style/ipython.min.css)"
   && ! -z "$(git diff $PREVIOUS_HEAD IPython/html/static/style/style.min.css)"
   && ! -z $(which 2>/dev/null lessc)
-  && ! -z $(which 2>/dev/null fab)
+  && ! -z $(which 2>/dev/null invoke)
 ]]; then
   echo "rebuilding sourcemaps"
   cd IPython/html

@@ -1,17 +1,9 @@
-"""Module containing a preprocessor that extracts all of the outputs from the
+"""A preprocessor that extracts all of the outputs from the
 notebook file.  The extracted outputs are returned in the 'resources' dictionary.
 """
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
-# Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import base64
 import sys
@@ -22,9 +14,6 @@ from IPython.utils.traitlets import Unicode, Set
 from .base import Preprocessor
 from IPython.utils import py3compat
 
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
 
 class ExtractOutputPreprocessor(Preprocessor):
     """
@@ -35,7 +24,7 @@ class ExtractOutputPreprocessor(Preprocessor):
     output_filename_template = Unicode(
         "{unique_key}_{cell_index}_{index}{extension}", config=True)
 
-    extract_output_types = Set({'png', 'jpeg', 'svg', 'application/pdf'}, config=True)
+    extract_output_types = Set({'image/png', 'image/jpeg', 'image/svg+xml', 'application/pdf'}, config=True)
 
     def preprocess_cell(self, cell, resources, cell_index):
         """
@@ -64,14 +53,15 @@ class ExtractOutputPreprocessor(Preprocessor):
             
         #Loop through all of the outputs in the cell
         for index, out in enumerate(cell.get('outputs', [])):
-
+            if out.output_type not in {'display_data', 'execute_result'}:
+                continue
             #Get the output in data formats that the template needs extracted
-            for out_type in self.extract_output_types:
-                if out_type in out:
-                    data = out[out_type]
+            for mime_type in self.extract_output_types:
+                if mime_type in out.data:
+                    data = out.data[mime_type]
 
                     #Binary files are base64-encoded, SVG is already XML
-                    if out_type in {'png', 'jpeg', 'application/pdf'}:
+                    if mime_type in {'image/png', 'image/jpeg', 'application/pdf'}:
 
                         # data is b64-encoded as text (str, unicode)
                         # decodestring only accepts bytes
@@ -82,14 +72,9 @@ class ExtractOutputPreprocessor(Preprocessor):
                     else:
                         data = data.encode("UTF-8")
                     
-                    # Build an output name
-                    # filthy hack while we have some mimetype output, and some not
-                    if '/' in out_type:
-                        ext = guess_extension(out_type)
-                        if ext is None:
-                            ext = '.' + out_type.rsplit('/')[-1]
-                    else:
-                        ext = '.' + out_type
+                    ext = guess_extension(mime_type)
+                    if ext is None:
+                        ext = '.' + mime_type.rsplit('/')[-1]
                     
                     filename = self.output_filename_template.format(
                                     unique_key=unique_key,
@@ -97,13 +82,14 @@ class ExtractOutputPreprocessor(Preprocessor):
                                     index=index,
                                     extension=ext)
 
-                    #On the cell, make the figure available via 
-                    #   cell.outputs[i].svg_filename  ... etc (svg in example)
-                    # Where
-                    #   cell.outputs[i].svg  contains the data
+                    # On the cell, make the figure available via
+                    #   cell.outputs[i].metadata.filenames['mime/type']
+                    # where
+                    #   cell.outputs[i].data['mime/type'] contains the data
                     if output_files_dir is not None:
                         filename = os.path.join(output_files_dir, filename)
-                    out[out_type + '_filename'] = filename
+                    out.metadata.setdefault('filenames', {})
+                    out.metadata['filenames'][mime_type] = filename
 
                     #In the resources, make the figure available via
                     #   resources['outputs']['filename'] = data

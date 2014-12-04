@@ -9,15 +9,17 @@ define([
     "use strict";
 
     var KernelList = function (selector, options) {
-        // Constructor
-        //
-        // Parameters:
-        //  selector: string
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          session_list: SessionList instance
-        //          base_url: string
-        //          notebook_path: string
+        /**
+         * Constructor
+         *
+         * Parameters:
+         *  selector: string
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          session_list: SessionList instance
+         *          base_url: string
+         *          notebook_path: string
+         */
         notebooklist.NotebookList.call(this, selector, $.extend({
             element_name: 'running'},
             options));
@@ -25,22 +27,27 @@ define([
 
     KernelList.prototype = Object.create(notebooklist.NotebookList.prototype);
 
+    KernelList.prototype.add_duplicate_button = function () {
+        /**
+         * do nothing
+         */
+    };
+    
     KernelList.prototype.sessions_loaded = function (d) {
         this.sessions = d;
         this.clear_list();
-        var item, path_name;
-        for (path_name in d) {
-            if (!d.hasOwnProperty(path_name)) {
+        var item, path;
+        for (path in d) {
+            if (!d.hasOwnProperty(path)) {
                 // nothing is safe in javascript
                 continue;
             }
             item = this.new_item(-1);
             this.add_link({
-                name: path_name,
-                path: '',
+                name: path,
+                path: path,
                 type: 'notebook',
             }, item);
-            this.add_shutdown_button(item, this.sessions[path_name]);
         }
         $('#running_list_header').toggle($.isEmptyObject(d));
     };

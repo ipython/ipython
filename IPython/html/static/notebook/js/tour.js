@@ -11,13 +11,13 @@ define([
     var tour_style = "<div class='popover tour'>\n" +
         "<div class='arrow'></div>\n" +
         "<div style='position:absolute; top:7px; right:7px'>\n" +
-            "<button class='btn btn-default btn-sm icon-remove' data-role='end'></button>\n" +
+            "<button class='btn btn-default btn-sm fa fa-times' data-role='end'></button>\n" +
         "</div><h3 class='popover-title'></h3>\n" +
         "<div class='popover-content'></div>\n" +
         "<div class='popover-navigation'>\n" +
-            "<button class='btn btn-default icon-step-backward' data-role='prev'></button>\n" +
-            "<button class='btn btn-default icon-step-forward pull-right' data-role='next'></button>\n" +
-            "<button id='tour-pause' class='btn btn-sm btn-default icon-pause' data-resume-text='' data-pause-text='' data-role='pause-resume'></button>\n" +
+            "<button class='btn btn-default fa fa-step-backward' data-role='prev'></button>\n" +
+            "<button class='btn btn-default fa fa-step-forward pull-right' data-role='next'></button>\n" +
+            "<button id='tour-pause' class='btn btn-sm btn-default fa fa-pause' data-resume-text='' data-pause-text='' data-role='pause-resume'></button>\n" +
         "</div>\n" +
     "</div>";
 
@@ -31,7 +31,7 @@ define([
                 title: "Welcome to the Notebook Tour",
                 placement: 'bottom',
                 orphan: true,
-                content: "You can use the left and right arrow keys to go backwards and forwards.",
+                content: "You can use the left and right arrow keys to go backwards and forwards."
             }, {
                 element: "#notebook_name",
                 title: "Filename",
@@ -91,31 +91,31 @@ define([
                 element: "#kernel_indicator",
                 title: "Kernel Indicator",
                 placement: 'bottom',
-                onShow: function(tour) { events.trigger('status_idle.Kernel');},
-                content: "This is the Kernel indicator. It looks like this when the Kernel is idle.",
+                onShow: function(tour) { events.trigger('kernel_idle.Kernel');},
+                content: "This is the Kernel indicator. It looks like this when the Kernel is idle."
             }, {
                 element: "#kernel_indicator",
                 title: "Kernel Indicator",
                 placement: 'bottom',
-                onShow: function(tour) { events.trigger('status_busy.Kernel'); },
-                content: "The Kernel indicator looks like this when the Kernel is busy.",
+                onShow: function(tour) { events.trigger('kernel_busy.Kernel'); },
+                content: "The Kernel indicator looks like this when the Kernel is busy."
             }, {
-                element: ".icon-stop",
+                element: ".fa-stop",
                 placement: 'bottom',
                 title: "Interrupting the Kernel",
-                onHide: function(tour) { events.trigger('status_idle.Kernel'); },
+                onHide: function(tour) { events.trigger('kernel_idle.Kernel'); },
                 content: "To cancel a computation in progress, you can click here."
             }, {
                 element: "#notification_kernel",
                 placement: 'bottom',
-                onShow: function(tour) { $('.icon-stop').click(); },
+                onShow: function(tour) { $('.fa-stop').click(); },
                 title: "Notification Area",
                 content: "Messages in response to user actions (Save, Interrupt, etc) appear here."
             }, {
                 title: "Fin.",
                 placement: 'bottom',
                 orphan: true,
-                content: "This concludes the IPython Notebook User Interface tour.Tour. Happy hacking!",
+                content: "This concludes the IPython Notebook User Interface Tour. Happy hacking!"
             }
         ];
 
@@ -156,7 +156,7 @@ define([
     };
     
     NotebookTour.prototype.toggle_pause_play = function () { 
-        $('#tour-pause').toggleClass('icon-pause icon-play'); 
+        $('#tour-pause').toggleClass('fa-pause fa-play'); 
     };
     
     NotebookTour.prototype.edit_mode = function() { 

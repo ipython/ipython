@@ -21,7 +21,6 @@ from IPython.qt.base_frontend_mixin import BaseFrontendMixin
 from IPython.utils.traitlets import Any, Bool, Instance, Unicode, DottedObjectName
 from .bracket_matcher import BracketMatcher
 from .call_tip_widget import CallTipWidget
-from .completion_lexer import CompletionLexer
 from .history_console_widget import HistoryConsoleWidget
 from .pygments_highlighter import PygmentsHighlighter
 
@@ -163,7 +162,6 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         # FrontendWidget protected variables.
         self._bracket_matcher = BracketMatcher(self._control)
         self._call_tip_widget = CallTipWidget(self._control)
-        self._completion_lexer = CompletionLexer(self.lexer)
         self._copy_raw_action = QtGui.QAction('Copy (Raw Text)', None)
         self._hidden = False
         self._highlighter = FrontendHighlighter(self, lexer=self.lexer)
@@ -215,7 +213,10 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         elif self._control.hasFocus():
             text = self._control.textCursor().selection().toPlainText()
             if text:
+                was_newline = text[-1] == '\n'
                 text = self._prompt_transformer.transform_cell(text)
+                if not was_newline: # user doesn't need newline
+                    text = text[:-1]
                 QtGui.QApplication.clipboard().setText(text)
         else:
             self.log.debug("frontend widget : unknown copy target")
@@ -347,24 +348,12 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     #---------------------------------------------------------------------------
     def _handle_clear_output(self, msg):
         """Handle clear output messages."""
-        if not self._hidden and self._is_from_this_session(msg):
+        if include_output(msg):
             wait = msg['content'].get('wait', True)
             if wait:
                 self._pending_clearoutput = True
             else:
                 self.clear_output()
-
-    def _handle_complete_reply(self, rep):
-        """ Handle replies for tab completion.
-        """
-        self.log.debug("complete: %s", rep.get('content', ''))
-        cursor = self._get_cursor()
-        info = self._request_info.get('complete')
-        if info and info.id == rep['parent_header']['msg_id'] and \
-                info.pos == cursor.position():
-            text = '.'.join(self._get_context())
-            cursor.movePosition(QtGui.QTextCursor.Left, n=len(text))
-            self._complete_with_items(cursor, rep['content']['matches'])
 
     def _silent_exec_callback(self, expr, callback):
         """Silently execute `expr` in the kernel and call `callback` with reply
@@ -513,14 +502,14 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if info and info.id == rep['parent_header']['msg_id'] and \
                 info.pos == cursor.position():
             content = rep['content']
-            if content.get('status') == 'ok':
+            if content.get('status') == 'ok' and content.get('found', False):
                 self._call_tip_widget.show_inspect_data(content)
 
     def _handle_execute_result(self, msg):
         """ Handle display hook output.
         """
         self.log.debug("execute_result: %s", msg.get('content', ''))
-        if not self._hidden and self._is_from_this_session(msg):
+        if self.include_output(msg):
             self.flush_clearoutput()
             text = msg['content']['data']
             self._append_plain_text(text + '\n', before_prompt=True)
@@ -529,16 +518,16 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Handle stdout, stderr, and stdin.
         """
         self.log.debug("stream: %s", msg.get('content', ''))
-        if not self._hidden and self._is_from_this_session(msg):
+        if self.include_output(msg):
             self.flush_clearoutput()
-            self.append_stream(msg['content']['data'])
+            self.append_stream(msg['content']['text'])
 
     def _handle_shutdown_reply(self, msg):
         """ Handle shutdown signal, only if from other console.
         """
         self.log.info("shutdown: %s", msg.get('content', ''))
         restart = msg.get('content', {}).get('restart', False)
-        if not self._hidden and not self._is_from_this_session(msg):
+        if not self._hidden and not self.from_here(msg):
             # got shutdown reply, request came from session other than ours
             if restart:
                 # someone restarted the kernel, handle it
@@ -626,10 +615,11 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         if clear:
             self._control.clear()
-            self._append_plain_text(self.banner)
-            if self.kernel_banner:
-                self._append_plain_text(self.kernel_banner)
-                
+            if self._display_banner:
+                self._append_plain_text(self.banner)
+                if self.kernel_banner:
+                    self._append_plain_text(self.kernel_banner)
+
         # update output marker for stdout/stderr, so that startup
         # messages appear after banner:
         self._append_before_prompt_pos = self._get_cursor().position()
@@ -711,10 +701,20 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     #---------------------------------------------------------------------------
     # 'FrontendWidget' protected interface
     #---------------------------------------------------------------------------
-
-    def _call_tip(self):
-        """ Shows a call tip, if appropriate, at the current cursor location.
+    
+    def _auto_call_tip(self):
+        """Trigger call tip automatically on open parenthesis
+        
+        Call tips can be requested explcitly with `_call_tip`.
         """
+        cursor = self._get_cursor()
+        cursor.movePosition(QtGui.QTextCursor.Left)
+        if cursor.document().characterAt(cursor.position()) == '(':
+            # trigger auto call tip on open paren
+            self._call_tip()
+    
+    def _call_tip(self):
+        """Shows a call tip, if appropriate, at the current cursor location."""
         # Decide if it makes sense to show a call tip
         if not self.enable_calltips or not self.kernel_client.shell_channel.is_alive():
             return False
@@ -729,27 +729,14 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def _complete(self):
         """ Performs completion at the current cursor location.
         """
-        context = self._get_context()
-        if context:
-            # Send the completion request to the kernel
-            msg_id = self.kernel_client.complete(
-                code=self.input_buffer,
-                cursor_pos=self._get_input_buffer_cursor_pos(),
-            )
-            pos = self._get_cursor().position()
-            info = self._CompletionRequest(msg_id, pos)
-            self._request_info['complete'] = info
-
-    def _get_context(self, cursor=None):
-        """ Gets the context for the specified cursor (or the current cursor
-            if none is specified).
-        """
-        if cursor is None:
-            cursor = self._get_cursor()
-        cursor.movePosition(QtGui.QTextCursor.StartOfBlock,
-                            QtGui.QTextCursor.KeepAnchor)
-        text = cursor.selection().toPlainText()
-        return self._completion_lexer.get_context(text)
+        # Send the completion request to the kernel
+        msg_id = self.kernel_client.complete(
+            code=self.input_buffer,
+            cursor_pos=self._get_input_buffer_cursor_pos(),
+        )
+        pos = self._get_cursor().position()
+        info = self._CompletionRequest(msg_id, pos)
+        self._request_info['complete'] = info
 
     def _process_execute_abort(self, msg):
         """ Process a reply for an aborted execution request.
@@ -809,7 +796,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         document = self._control.document()
         if position == self._get_cursor().position():
-            self._call_tip()
+            self._auto_call_tip()
 
     #------ Trait default initializers -----------------------------------------
 

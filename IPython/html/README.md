@@ -4,10 +4,9 @@
 
 Developers of the IPython Notebook will need to install the following tools:
 
-* fabric
+* invoke
 * node.js
 * less (`npm install -g less`)
-* bower (`npm install -g bower`)
 
 ## Components
 
@@ -15,14 +14,13 @@ We are moving to a model where our JavaScript dependencies are managed using
 [bower](http://bower.io/). These packages are installed in `static/components`
 and committed into a separate git repo [ipython/ipython-components](ipython/ipython-components).
 Our dependencies are described in the file
-`static/components/bower.json`. To update our bower packages, run `fab update`
+`static/components/bower.json`. To update our bower packages, run `bower install`
 in this directory.
 
 ## less
 
 If you edit our `.less` files you will need to run the less compiler to build
-our minified css files.  This can be done by running `fab css` from this directory,
-or `python setup.py css` from the root of the repository. 
+our minified css files.  This can be done by running `python setup.py css` from the root of the repository. 
 If you are working frequently with `.less` files please consider installing git hooks that
 rebuild the css files and corresponding maps in `${RepoRoot}/git-hooks/install-hooks.sh`.
 

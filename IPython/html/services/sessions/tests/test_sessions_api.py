@@ -11,7 +11,8 @@ pjoin = os.path.join
 
 from IPython.html.utils import url_path_join
 from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
-from IPython.nbformat.current import new_notebook, write
+from IPython.nbformat.v4 import new_notebook
+from IPython.nbformat import write
 
 class SessionAPI(object):
     """Wrapper for notebook API calls."""
@@ -37,13 +38,13 @@ class SessionAPI(object):
     def get(self, id):
         return self._req('GET', id)
 
-    def create(self, name, path, kernel_name='python'):
-        body = json.dumps({'notebook': {'name':name, 'path':path},
+    def create(self, path, kernel_name='python'):
+        body = json.dumps({'notebook': {'path':path},
                            'kernel': {'name': kernel_name}})
         return self._req('POST', '', body)
 
-    def modify(self, id, name, path):
-        body = json.dumps({'notebook': {'name':name, 'path':path}})
+    def modify(self, id, path):
+        body = json.dumps({'notebook': {'path':path}})
         return self._req('PATCH', id, body)
 
     def delete(self, id):
@@ -62,8 +63,8 @@ class SessionAPITest(NotebookTestBase):
 
         with io.open(pjoin(nbdir, 'foo', 'nb1.ipynb'), 'w',
                      encoding='utf-8') as f:
-            nb = new_notebook(name='nb1')
-            write(nb, f, format='ipynb')
+            nb = new_notebook()
+            write(nb, f, version=4)
 
         self.sess_api = SessionAPI(self.base_url())
 
@@ -77,12 +78,11 @@ class SessionAPITest(NotebookTestBase):
         sessions = self.sess_api.list().json()
         self.assertEqual(len(sessions), 0)
 
-        resp = self.sess_api.create('nb1.ipynb', 'foo')
+        resp = self.sess_api.create('foo/nb1.ipynb')
         self.assertEqual(resp.status_code, 201)
         newsession = resp.json()
         self.assertIn('id', newsession)
-        self.assertEqual(newsession['notebook']['name'], 'nb1.ipynb')
-        self.assertEqual(newsession['notebook']['path'], 'foo')
+        self.assertEqual(newsession['notebook']['path'], 'foo/nb1.ipynb')
         self.assertEqual(resp.headers['Location'], '/api/sessions/{0}'.format(newsession['id']))
 
         sessions = self.sess_api.list().json()
@@ -94,7 +94,7 @@ class SessionAPITest(NotebookTestBase):
         self.assertEqual(got, newsession)
 
     def test_delete(self):
-        newsession = self.sess_api.create('nb1.ipynb', 'foo').json()
+        newsession = self.sess_api.create('foo/nb1.ipynb').json()
         sid = newsession['id']
 
         resp = self.sess_api.delete(sid)
@@ -107,10 +107,9 @@ class SessionAPITest(NotebookTestBase):
             self.sess_api.get(sid)
 
     def test_modify(self):
-        newsession = self.sess_api.create('nb1.ipynb', 'foo').json()
+        newsession = self.sess_api.create('foo/nb1.ipynb').json()
         sid = newsession['id']
 
-        changed = self.sess_api.modify(sid, 'nb2.ipynb', '').json()
+        changed = self.sess_api.modify(sid, 'nb2.ipynb').json()
         self.assertEqual(changed['id'], sid)
-        self.assertEqual(changed['notebook']['name'], 'nb2.ipynb')
-        self.assertEqual(changed['notebook']['path'], '')
+        self.assertEqual(changed['notebook']['path'], 'nb2.ipynb')

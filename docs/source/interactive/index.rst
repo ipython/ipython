@@ -8,6 +8,7 @@ Using IPython for interactive work
    tutorial
    tips
    reference
+   magics
    shell
    qtconsole
 

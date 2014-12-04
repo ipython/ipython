@@ -4,14 +4,17 @@
 define([
     "widgets/js/widget",
     "jqueryui",
-    "bootstrap",
-], function(widget, $){
+    "base/js/keyboard",
+    "bootstrap"
+], function(widget, $, keyboard){
     
     var IntSliderView = widget.DOMWidgetView.extend({
         render : function(){
-            // Called when view is rendered.
+            /**
+             * Called when view is rendered.
+             */
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-slider');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
@@ -29,6 +32,7 @@ define([
             this.$readout = $('<div/>')
                 .appendTo(this.$el)
                 .addClass('widget-readout')
+                .attr('contentEditable', true)
                 .hide();
 
             this.model.on('change:slider_color', function(sender, value) {
@@ -41,7 +45,9 @@ define([
         },
 
         update_attr: function(name, value) {
-            // Set a css attr of the widget view.
+            /**
+             * Set a css attr of the widget view.
+             */
             if (name == 'color') {
                 this.$readout.css(name, value);
             } else if (name.substring(0, 4) == 'font') {
@@ -57,14 +63,16 @@ define([
         },
         
         update : function(options){
-            // Update the contents of this view
-            //
-            // Called when the model is changed.  The model may have been 
-            // changed by another view or by a state update from the back-end.
+            /**
+             * Update the contents of this view
+             *
+             * Called when the model is changed.  The model may have been 
+             * changed by another view or by a state update from the back-end.
+             */
             if (options === undefined || options.updated_view != this) {
                 // JQuery slider option keys.  These keys happen to have a
                 // one-to-one mapping with the corrosponding keys of the model.
-                var jquery_slider_keys = ['step', 'max', 'min', 'disabled'];
+                var jquery_slider_keys = ['step', 'disabled'];
                 var that = this;
                 that.$slider.slider({});
                 _.each(jquery_slider_keys, function(key, i) {
@@ -73,6 +81,14 @@ define([
                         that.$slider.slider("option", key, model_value);
                     }
                 });
+
+                var max = this.model.get('max');
+                var min = this.model.get('min');
+                if (min <= max) {
+                    if (max !== undefined) this.$slider.slider('option', 'max', max);
+                    if (min !== undefined) this.$slider.slider('option', 'min', min);
+                }
+
                 var range_value = this.model.get("_range");
                 if (range_value !== undefined) {
                     this.$slider.slider("option", "range", range_value);
@@ -156,14 +172,93 @@ define([
         
         events: {
             // Dictionary of events and their handlers.
-            "slide" : "handleSliderChange"
+            "slide" : "handleSliderChange",
+            "blur [contentEditable=true]": "handleTextChange",
+            "keydown [contentEditable=true]": "handleKeyDown"
         }, 
 
-        handleSliderChange: function(e, ui) { 
-            // Called when the slider value is changed.
+        handleKeyDown: function(e) {
+            if (e.keyCode == keyboard.keycodes.enter) {
+                e.preventDefault();
+                this.handleTextChange();
+            }
+        },
 
-            // Calling model.set will trigger all of the other views of the 
-            // model to update.
+        handleTextChange: function() {
+            /**
+             * this handles the entry of text into the contentEditable label
+             * first, the value is checked if it contains a parseable number
+             *      (or pair of numbers, for the _range case)
+             * then it is clamped within the min-max range of the slider
+             * finally, the model is updated if the value is to be changed
+             *
+             * if any of these conditions are not met, the text is reset
+             *
+             * the step size is not enforced
+             */
+
+            var text = this.$readout.text();
+            var vmin = this.model.get('min');
+            var vmax = this.model.get('max');
+            if (this.model.get("_range")) {
+                // range case
+                // ranges can be expressed either "val-val" or "val:val" (+spaces)
+                var match = this._range_regex.exec(text);
+                if (match) {
+                    var values = [this._parse_value(match[1]),
+                                  this._parse_value(match[2])];
+                    // reject input where NaN or lower > upper
+                    if (isNaN(values[0]) ||
+                        isNaN(values[1]) ||
+                        (values[0] > values[1])) {
+                        this.$readout.text(this.model.get('value').join('-'));
+                    } else {
+                        // clamp to range
+                        values = [Math.max(Math.min(values[0], vmax), vmin),
+                                  Math.max(Math.min(values[1], vmax), vmin)];
+
+                        if ((values[0] != this.model.get('value')[0]) ||
+                            (values[1] != this.model.get('value')[1])) {
+                            this.$readout.text(values.join('-'));
+                            this.model.set('value', values, {updated_view: this});
+                            this.touch();
+                        } else {
+                            this.$readout.text(this.model.get('value').join('-'));
+                        }
+                    }
+                } else {
+                    this.$readout.text(this.model.get('value').join('-'));
+                }
+            } else {
+                // single value case
+                var value = this._parse_value(text);
+                if (isNaN(value)) {
+                    this.$readout.text(this.model.get('value'));
+                } else {
+                    value = Math.max(Math.min(value, vmax), vmin);
+
+                    if (value != this.model.get('value')) {
+                        this.$readout.text(value);
+                        this.model.set('value', value, {updated_view: this});
+                        this.touch();
+                    } else {
+                        this.$readout.text(this.model.get('value'));
+                    }
+                }
+            }
+        },
+
+        _parse_value: parseInt,
+
+        _range_regex: /^\s*([+-]?\d+)\s*[-:]\s*([+-]?\d+)/,
+
+        handleSliderChange: function(e, ui) { 
+            /**
+             * Called when the slider value is changed.
+             *
+             * Calling model.set will trigger all of the other views of the 
+             * model to update.
+             */
             if (this.model.get("_range")) {
                 var actual_value = ui.values.map(this._validate_slide_value);
                 this.$readout.text(actual_value.join("-"));
@@ -176,10 +271,12 @@ define([
         },
 
         _validate_slide_value: function(x) {
-            // Validate the value of the slider before sending it to the back-end
-            // and applying it to the other views on the page.
-
-            // Double bit-wise not truncates the decimel (int cast).
+            /**
+             * Validate the value of the slider before sending it to the back-end
+             * and applying it to the other views on the page.
+             *
+             * Double bit-wise not truncates the decimel (int cast).
+             */
             return ~~x;
         },
     });
@@ -187,9 +284,11 @@ define([
 
     var IntTextView = widget.DOMWidgetView.extend({    
         render : function(){
-            // Called when view is rendered.
+            /**
+             * Called when view is rendered.
+             */
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-text');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
@@ -202,10 +301,12 @@ define([
         },
         
         update : function(options){
-            // Update the contents of this view
-            //
-            // Called when the model is changed.  The model may have been 
-            // changed by another view or by a state update from the back-end.
+            /**
+             * Update the contents of this view
+             *
+             * Called when the model is changed.  The model may have been 
+             * changed by another view or by a state update from the back-end.
+             */
             if (options === undefined || options.updated_view != this) {
                 var value = this.model.get('value');
                 if (this._parse_value(this.$textbox.val()) != value) {
@@ -231,7 +332,9 @@ define([
         },
 
         update_attr: function(name, value) {
-            // Set a css attr of the widget view.
+            /**
+             * Set a css attr of the widget view.
+             */
             this.$textbox.css(name, value);
         },
 
@@ -246,12 +349,16 @@ define([
         }, 
         
         handleChanging: function(e) { 
-            // Handles and validates user input.
-            
-            // Try to parse value as a int.
+            /**
+             * Handles and validates user input.
+             *
+             * Try to parse value as a int.
+             */
             var numericalValue = 0;
-            if (e.target.value !== '') {
-                var trimmed = e.target.value.trim();
+            var trimmed = e.target.value.trim();
+            if (trimmed === '') {
+                return;
+            } else {
                 if (!(['-', '-.', '.', '+.', '+'].indexOf(trimmed) >= 0)) {
                     numericalValue = this._parse_value(e.target.value);    
                 }                
@@ -280,24 +387,25 @@ define([
         },
         
         handleChanged: function(e) {
-            // Applies validated input.
-            if (this.model.get('value') != e.target.value) {
+            /**
+             * Applies validated input.
+             */
+            if (e.target.value.trim() === '' || e.target.value !== this.model.get('value')) {
                 e.target.value = this.model.get('value');
             }
         },
 
-        _parse_value: function(value) {
-            // Parse the value stored in a string.
-            return  parseInt(value);
-        },
+        _parse_value: parseInt
     });
 
 
     var ProgressView = widget.DOMWidgetView.extend({
         render : function(){
-            // Called when view is rendered.
+            /**
+             * Called when view is rendered.
+             */
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-progress');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
@@ -319,10 +427,12 @@ define([
         },
         
         update : function(){
-            // Update the contents of this view
-            //
-            // Called when the model is changed.  The model may have been 
-            // changed by another view or by a state update from the back-end.
+            /**
+             * Update the contents of this view
+             *
+             * Called when the model is changed.  The model may have been 
+             * changed by another view or by a state update from the back-end.
+             */
             var value = this.model.get('value');
             var max = this.model.get('max');
             var min = this.model.get('min');
@@ -351,7 +461,9 @@ define([
         },
 
         update_attr: function(name, value) {
-            // Set a css attr of the widget view.
+            /**
+             * Set a css attr of the widget view.
+             */
             if (name.substring(0, 6) == 'border' || name == 'width' || 
                 name == 'height' || name == 'background' || name == 'margin' || 
                 name == 'padding') {

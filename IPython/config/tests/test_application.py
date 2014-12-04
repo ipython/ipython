@@ -1,26 +1,17 @@
 # coding: utf-8
 """
 Tests for IPython.config.application.Application
-
-Authors:
-
-* Brian Granger
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import logging
+import os
 from io import StringIO
 from unittest import TestCase
+
+pjoin = os.path.join
 
 import nose.tools as nt
 
@@ -31,13 +22,11 @@ from IPython.config.application import (
     Application
 )
 
+from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.traitlets import (
     Bool, Unicode, Integer, List, Dict
 )
 
-#-----------------------------------------------------------------------------
-# Code
-#-----------------------------------------------------------------------------
 
 class Foo(Configurable):
 
@@ -189,5 +178,21 @@ class TestApplication(TestCase):
     def test_unicode_argv(self):
         app = MyApp()
         app.parse_command_line(['ünîcødé'])
-        
+    
+    def test_multi_file(self):
+        app = MyApp()
+        app.log = logging.getLogger()
+        name = 'config.py'
+        with TemporaryDirectory('_1') as td1:
+            with open(pjoin(td1, name), 'w') as f1:
+                f1.write("get_config().MyApp.Bar.b = 1")
+            with TemporaryDirectory('_2') as td2:
+                with open(pjoin(td2, name), 'w') as f2:
+                    f2.write("get_config().MyApp.Bar.b = 2")
+                app.load_config_file(name, path=[td2, td1])
+                app.init_bar()
+                self.assertEqual(app.bar.b, 2)
+                app.load_config_file(name, path=[td1, td2])
+                app.init_bar()
+                self.assertEqual(app.bar.b, 1)
 

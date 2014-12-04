@@ -6,6 +6,7 @@ The IPython notebook
     :maxdepth: 2
 
     notebook
+    nbformat
     nbconvert
     public_server
     security

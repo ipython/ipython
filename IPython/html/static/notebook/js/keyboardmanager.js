@@ -1,5 +1,12 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
+/**
+ *
+ *
+ * @module keyboardmanager
+ * @namespace keyboardmanager
+ * @class KeyboardManager
+ */
 
 define([
     'base/js/namespace',
@@ -9,491 +16,138 @@ define([
 ], function(IPython, $, utils, keyboard) {
     "use strict";
     
-    var browser = utils.browser[0];
-    var platform = utils.platform;
-
     // Main keyboard manager for the notebook
     var keycodes = keyboard.keycodes;
 
     var KeyboardManager = function (options) {
-        // Constructor
-        //
-        // Parameters:
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance
-        //          pager: Pager instance
+        /**
+         * A class to deal with keyboard event and shortcut
+         *
+         * @class KeyboardManager
+         * @constructor
+         * @param options {dict} Dictionary of keyword arguments :
+         *    @param options.events {$(Events)} instance 
+         *    @param options.pager: {Pager}  pager instance
+         */
         this.mode = 'command';
         this.enabled = true;
         this.pager = options.pager;
         this.quick_help = undefined;
         this.notebook = undefined;
+        this.last_mode = undefined;
         this.bind_events();
-        this.command_shortcuts = new keyboard.ShortcutManager(undefined, options.events);
+        this.env = {pager:this.pager};
+        this.actions = options.actions;
+        this.command_shortcuts = new keyboard.ShortcutManager(undefined, options.events, this.actions, this.env );
         this.command_shortcuts.add_shortcuts(this.get_default_common_shortcuts());
         this.command_shortcuts.add_shortcuts(this.get_default_command_shortcuts());
-        this.edit_shortcuts = new keyboard.ShortcutManager(undefined, options.events);
+        this.edit_shortcuts = new keyboard.ShortcutManager(undefined, options.events, this.actions, this.env);
         this.edit_shortcuts.add_shortcuts(this.get_default_common_shortcuts());
         this.edit_shortcuts.add_shortcuts(this.get_default_edit_shortcuts());
+        Object.seal(this);
     };
 
-    KeyboardManager.prototype.get_default_common_shortcuts = function() {
-        var that = this;
-        var shortcuts = {
-            'shift' : {
-                help    : '',
-                help_index : '',
-                handler : function (event) {
-                    // ignore shift keydown
-                    return true;
-                }
-            },
-            'shift-enter' : {
-                help    : 'run cell, select below',
-                help_index : 'ba',
-                handler : function (event) {
-                    that.notebook.execute_cell_and_select_below();
-                    return false;
-                }
-            },
-            'ctrl-enter' : {
-                help    : 'run cell',
-                help_index : 'bb',
-                handler : function (event) {
-                    that.notebook.execute_cell();
-                    return false;
-                }
-            },
-            'alt-enter' : {
-                help    : 'run cell, insert below',
-                help_index : 'bc',
-                handler : function (event) {
-                    that.notebook.execute_cell_and_insert_below();
-                    return false;
-                }
-            }
-        };
 
-        if (platform === 'MacOS') {
-            shortcuts['cmd-s'] =
-                {
-                    help    : 'save notebook',
-                    help_index : 'fb',
-                    handler : function (event) {
-                        that.notebook.save_checkpoint();
-                        event.preventDefault();
-                        return false;
-                    }
-                };
-        } else {
-            shortcuts['ctrl-s'] =
-                {
-                    help    : 'save notebook',
-                    help_index : 'fb',
-                    handler : function (event) {
-                        that.notebook.save_checkpoint();
-                        event.preventDefault();
-                        return false;
-                    }
-                };
-        }
-        return shortcuts;
+
+
+    /**
+     * Return a dict of common shortcut
+     * @method get_default_common_shortcuts
+     *
+     * @example Example of returned shortcut
+     * ```
+     * 'shortcut-key': 'action-name'
+     * // a string representing the shortcut as dash separated value.
+     * // e.g. 'shift' , 'shift-enter', 'cmd-t'
+     *```
+     */
+    KeyboardManager.prototype.get_default_common_shortcuts = function() {
+        return {
+            'shift'       : 'ipython.ignore',
+            'shift-enter' : 'ipython.run-select-next',
+            'ctrl-enter'  : 'ipython.execute-in-place',
+            'alt-enter'   : 'ipython.execute-and-insert-after',
+            // cmd on mac, ctrl otherwise
+            'cmdtrl-s'    : 'ipython.save-notebook',
+        };
     };
 
     KeyboardManager.prototype.get_default_edit_shortcuts = function() {
-        var that = this;
         return {
-            'esc' : {
-                help    : 'command mode',
-                help_index : 'aa',
-                handler : function (event) {
-                    that.notebook.command_mode();
-                    return false;
-                }
-            },
-            'ctrl-m' : {
-                help    : 'command mode',
-                help_index : 'ab',
-                handler : function (event) {
-                    that.notebook.command_mode();
-                    return false;
-                }
-            },
-            'up' : {
-                help    : '',
-                help_index : '',
-                handler : function (event) {
-                    var index = that.notebook.get_selected_index();
-                    var cell = that.notebook.get_cell(index);
-                    if (cell && cell.at_top() && index !== 0) {
-                        event.preventDefault();
-                        that.notebook.command_mode();
-                        that.notebook.select_prev();
-                        that.notebook.edit_mode();
-                        var cm = that.notebook.get_selected_cell().code_mirror;
-                        cm.setCursor(cm.lastLine(), 0);
-                        return false;
-                    } else if (cell) {
-                        var cm = cell.code_mirror;
-                        cm.execCommand('goLineUp');
-                        return false;
-                    }
-                }
-            },
-            'down' : {
-                help    : '',
-                help_index : '',
-                handler : function (event) {
-                    var index = that.notebook.get_selected_index();
-                    var cell = that.notebook.get_cell(index);
-                    if (cell.at_bottom() && index !== (that.notebook.ncells()-1)) {
-                        event.preventDefault();
-                        that.notebook.command_mode();
-                        that.notebook.select_next();
-                        that.notebook.edit_mode();
-                        var cm = that.notebook.get_selected_cell().code_mirror;
-                        cm.setCursor(0, 0);
-                        return false;
-                    } else {
-                        var cm = cell.code_mirror;
-                        cm.execCommand('goLineDown');
-                        return false;
-                    }
-                }
-            },
-            'ctrl-shift--' : {
-                help    : 'split cell',
-                help_index : 'ea',
-                handler : function (event) {
-                    that.notebook.split_cell();
-                    return false;
-                }
-            },
-            'ctrl-shift-subtract' : {
-                help    : '',
-                help_index : 'eb',
-                handler : function (event) {
-                    that.notebook.split_cell();
-                    return false;
-                }
-            },
+            'esc'                 : 'ipython.go-to-command-mode',
+            'ctrl-m'              : 'ipython.go-to-command-mode',
+            'up'                  : 'ipython.move-cursor-up-or-previous-cell',
+            'down'                : 'ipython.move-cursor-down-or-next-cell',
+            'ctrl-shift--'        : 'ipython.split-cell-at-cursor',
+            'ctrl-shift-subtract' : 'ipython.split-cell-at-cursor'
         };
     };
 
     KeyboardManager.prototype.get_default_command_shortcuts = function() {
-        var that = this;
         return {
-            'space': {
-                help: "Scroll down",
-                handler: function(event) {
-                    return that.notebook.scroll_manager.scroll(1);
-                },
-            },
-            'shift-space': {
-                help: "Scroll up",
-                handler: function(event) {
-                    return that.notebook.scroll_manager.scroll(-1);
-                },
-            },
-            'enter' : {
-                help    : 'edit mode',
-                help_index : 'aa',
-                handler : function (event) {
-                    that.notebook.edit_mode();
-                    return false;
-                }
-            },
-            'up' : {
-                help    : 'select previous cell',
-                help_index : 'da',
-                handler : function (event) {
-                    var index = that.notebook.get_selected_index();
-                    if (index !== 0 && index !== null) {
-                        that.notebook.select_prev();
-                        that.notebook.focus_cell();
-                    }
-                    return false;
-                }
-            },
-            'down' : {
-                help    : 'select next cell',
-                help_index : 'db',
-                handler : function (event) {
-                    var index = that.notebook.get_selected_index();
-                    if (index !== (that.notebook.ncells()-1) && index !== null) {
-                        that.notebook.select_next();
-                        that.notebook.focus_cell();
-                    }
-                    return false;
-                }
-            },
-            'k' : {
-                help    : 'select previous cell',
-                help_index : 'dc',
-                handler : function (event) {
-                    var index = that.notebook.get_selected_index();
-                    if (index !== 0 && index !== null) {
-                        that.notebook.select_prev();
-                        that.notebook.focus_cell();
-                    }
-                    return false;
-                }
-            },
-            'j' : {
-                help    : 'select next cell',
-                help_index : 'dd',
-                handler : function (event) {
-                    var index = that.notebook.get_selected_index();
-                    if (index !== (that.notebook.ncells()-1) && index !== null) {
-                        that.notebook.select_next();
-                        that.notebook.focus_cell();
-                    }
-                    return false;
-                }
-            },
-            'x' : {
-                help    : 'cut cell',
-                help_index : 'ee',
-                handler : function (event) {
-                    that.notebook.cut_cell();
-                    return false;
-                }
-            },
-            'c' : {
-                help    : 'copy cell',
-                help_index : 'ef',
-                handler : function (event) {
-                    that.notebook.copy_cell();
-                    return false;
-                }
-            },
-            'shift-v' : {
-                help    : 'paste cell above',
-                help_index : 'eg',
-                handler : function (event) {
-                    that.notebook.paste_cell_above();
-                    return false;
-                }
-            },
-            'v' : {
-                help    : 'paste cell below',
-                help_index : 'eh',
-                handler : function (event) {
-                    that.notebook.paste_cell_below();
-                    return false;
-                }
-            },
-            'd' : {
-                help    : 'delete cell (press twice)',
-                help_index : 'ej',
-                count: 2,
-                handler : function (event) {
-                    that.notebook.delete_cell();
-                    return false;
-                }
-            },
-            'a' : {
-                help    : 'insert cell above',
-                help_index : 'ec',
-                handler : function (event) {
-                    that.notebook.insert_cell_above();
-                    that.notebook.select_prev();
-                    that.notebook.focus_cell();
-                    return false;
-                }
-            },
-            'b' : {
-                help    : 'insert cell below',
-                help_index : 'ed',
-                handler : function (event) {
-                    that.notebook.insert_cell_below();
-                    that.notebook.select_next();
-                    that.notebook.focus_cell();
-                    return false;
-                }
-            },
-            'y' : {
-                help    : 'to code',
-                help_index : 'ca',
-                handler : function (event) {
-                    that.notebook.to_code();
-                    return false;
-                }
-            },
-            'm' : {
-                help    : 'to markdown',
-                help_index : 'cb',
-                handler : function (event) {
-                    that.notebook.to_markdown();
-                    return false;
-                }
-            },
-            'r' : {
-                help    : 'to raw',
-                help_index : 'cc',
-                handler : function (event) {
-                    that.notebook.to_raw();
-                    return false;
-                }
-            },
-            '1' : {
-                help    : 'to heading 1',
-                help_index : 'cd',
-                handler : function (event) {
-                    that.notebook.to_heading(undefined, 1);
-                    return false;
-                }
-            },
-            '2' : {
-                help    : 'to heading 2',
-                help_index : 'ce',
-                handler : function (event) {
-                    that.notebook.to_heading(undefined, 2);
-                    return false;
-                }
-            },
-            '3' : {
-                help    : 'to heading 3',
-                help_index : 'cf',
-                handler : function (event) {
-                    that.notebook.to_heading(undefined, 3);
-                    return false;
-                }
-            },
-            '4' : {
-                help    : 'to heading 4',
-                help_index : 'cg',
-                handler : function (event) {
-                    that.notebook.to_heading(undefined, 4);
-                    return false;
-                }
-            },
-            '5' : {
-                help    : 'to heading 5',
-                help_index : 'ch',
-                handler : function (event) {
-                    that.notebook.to_heading(undefined, 5);
-                    return false;
-                }
-            },
-            '6' : {
-                help    : 'to heading 6',
-                help_index : 'ci',
-                handler : function (event) {
-                    that.notebook.to_heading(undefined, 6);
-                    return false;
-                }
-            },
-            'o' : {
-                help    : 'toggle output',
-                help_index : 'gb',
-                handler : function (event) {
-                    that.notebook.toggle_output();
-                    return false;
-                }
-            },
-            'shift-o' : {
-                help    : 'toggle output scrolling',
-                help_index : 'gc',
-                handler : function (event) {
-                    that.notebook.toggle_output_scroll();
-                    return false;
-                }
-            },
-            's' : {
-                help    : 'save notebook',
-                help_index : 'fa',
-                handler : function (event) {
-                    that.notebook.save_checkpoint();
-                    return false;
-                }
-            },
-            'ctrl-j' : {
-                help    : 'move cell down',
-                help_index : 'eb',
-                handler : function (event) {
-                    that.notebook.move_cell_down();
-                    return false;
-                }
-            },
-            'ctrl-k' : {
-                help    : 'move cell up',
-                help_index : 'ea',
-                handler : function (event) {
-                    that.notebook.move_cell_up();
-                    return false;
-                }
-            },
-            'l' : {
-                help    : 'toggle line numbers',
-                help_index : 'ga',
-                handler : function (event) {
-                    that.notebook.cell_toggle_line_numbers();
-                    return false;
-                }
-            },
-            'i' : {
-                help    : 'interrupt kernel (press twice)',
-                help_index : 'ha',
-                count: 2,
-                handler : function (event) {
-                    that.notebook.kernel.interrupt();
-                    return false;
-                }
-            },
-            '0' : {
-                help    : 'restart kernel (press twice)',
-                help_index : 'hb',
-                count: 2,
-                handler : function (event) {
-                    that.notebook.restart_kernel();
-                    return false;
-                }
-            },
-            'h' : {
-                help    : 'keyboard shortcuts',
-                help_index : 'ge',
-                handler : function (event) {
-                    that.quick_help.show_keyboard_shortcuts();
-                    return false;
-                }
-            },
-            'z' : {
-                help    : 'undo last delete',
-                help_index : 'ei',
-                handler : function (event) {
-                    that.notebook.undelete_cell();
-                    return false;
-                }
-            },
-            'shift-m' : {
-                help    : 'merge cell below',
-                help_index : 'ek',
-                handler : function (event) {
-                    that.notebook.merge_cell_below();
-                    return false;
-                }
-            },
-            'q' : {
-                help    : 'close pager',
-                help_index : 'gd',
-                handler : function (event) {
-                    that.pager.collapse();
-                    return false;
-                }
-            },
+            'shift-space': 'ipython.scroll-up',
+            'shift-v' : 'ipython.paste-cell-before',
+            'shift-m' : 'ipython.merge-selected-cell-with-cell-after',
+            'shift-o' : 'ipython.toggle-output-scrolling-selected-cell',
+            'ctrl-j' : 'ipython.move-selected-cell-down',
+            'ctrl-k' : 'ipython.move-selected-cell-up',
+            'enter' : 'ipython.enter-edit-mode',
+            'space' : 'ipython.scroll-down',
+            'down' : 'ipython.select-next-cell',
+            'i,i' : 'ipython.interrupt-kernel',
+            '0,0' : 'ipython.restart-kernel',
+            'd,d' : 'ipython.delete-cell',
+            'esc': 'ipython.close-pager',
+            'up' : 'ipython.select-previous-cell',
+            'k' : 'ipython.select-previous-cell',
+            'j' : 'ipython.select-next-cell',
+            'x' : 'ipython.cut-selected-cell',
+            'c' : 'ipython.copy-selected-cell',
+            'v' : 'ipython.paste-cell-after',
+            'a' : 'ipython.insert-cell-before',
+            'b' : 'ipython.insert-cell-after',
+            'y' : 'ipython.change-selected-cell-to-code-cell',
+            'm' : 'ipython.change-selected-cell-to-markdown-cell',
+            'r' : 'ipython.change-selected-cell-to-raw-cell',
+            '1' : 'ipython.change-selected-cell-to-heading-1',
+            '2' : 'ipython.change-selected-cell-to-heading-2',
+            '3' : 'ipython.change-selected-cell-to-heading-3',
+            '4' : 'ipython.change-selected-cell-to-heading-4',
+            '5' : 'ipython.change-selected-cell-to-heading-5',
+            '6' : 'ipython.change-selected-cell-to-heading-6',
+            'o' : 'ipython.toggle-output-visibility-selected-cell',
+            's' : 'ipython.save-notebook',
+            'l' : 'ipython.toggle-line-number-selected-cell',
+            'h' : 'ipython.show-keyboard-shortcut-help-dialog',
+            'z' : 'ipython.undo-last-cell-deletion',
+            'q' : 'ipython.close-pager',
         };
     };
 
     KeyboardManager.prototype.bind_events = function () {
         var that = this;
         $(document).keydown(function (event) {
+            if(event._ipkmIgnore===true||(event.originalEvent||{})._ipkmIgnore===true){
+                return false;
+            }
             return that.handle_keydown(event);
         });
     };
 
+    KeyboardManager.prototype.set_notebook = function (notebook) {
+        this.notebook = notebook;
+        this.actions.extend_env({notebook:notebook});
+    };
+    
+    KeyboardManager.prototype.set_quickhelp = function (notebook) {
+        this.actions.extend_env({quick_help:notebook});
+    };
+
+
     KeyboardManager.prototype.handle_keydown = function (event) {
-        var notebook = this.notebook;
+        /**
+         *  returning false from this will stop event propagation
+         **/
 
         if (event.which === keycodes.esc) {
             // Intercept escape at highest level to avoid closing
@@ -503,8 +157,7 @@ define([
         
         if (!this.enabled) {
             if (event.which === keycodes.esc) {
-                // ESC
-                notebook.command_mode();
+                this.notebook.command_mode();
                 return false;
             }
             return true;
@@ -571,7 +224,8 @@ define([
         });
     };
 
-    // For backwards compatability.
+
+    // For backwards compatibility.
     IPython.KeyboardManager = KeyboardManager;
 
     return {'KeyboardManager': KeyboardManager};

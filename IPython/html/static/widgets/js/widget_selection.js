@@ -10,9 +10,11 @@ define([
 
     var DropdownView = widget.DOMWidgetView.extend({
         render : function(){
-            // Called when view is rendered.
+            /**
+             * Called when view is rendered.
+             */
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-dropdown');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
@@ -47,10 +49,12 @@ define([
         },
         
         update : function(options){
-            // Update the contents of this view
-            //
-            // Called when the model is changed.  The model may have been 
-            // changed by another view or by a state update from the back-end.
+            /**
+             * Update the contents of this view
+             *
+             * Called when the model is changed.  The model may have been 
+             * changed by another view or by a state update from the back-end.
+             */
 
             if (options === undefined || options.updated_view != this) {
                 var selected_item_text = this.model.get('value_name');
@@ -114,7 +118,9 @@ define([
         },
 
         update_attr: function(name, value) {
-            // Set a css attr of the widget view.
+            /**
+             * Set a css attr of the widget view.
+             */
             if (name.substring(0, 6) == 'border' || name == 'background' || name == 'color') {
                 this.$droplabel.css(name, value);
                 this.$dropbutton.css(name, value);
@@ -137,10 +143,12 @@ define([
         },
 
         handle_click: function (e) {
-            // Handle when a value is clicked.
-            
-            // Calling model.set will trigger all of the other views of the 
-            // model to update.
+            /**
+             * Handle when a value is clicked.
+             *
+             * Calling model.set will trigger all of the other views of the 
+             * model to update.
+             */
             this.model.set('value_name', $(e.target).text(), {updated_view: this});
             this.touch();
         },
@@ -150,9 +158,11 @@ define([
 
     var RadioButtonsView = widget.DOMWidgetView.extend({    
         render : function(){
-            // Called when view is rendered.
+            /**
+             * Called when view is rendered.
+             */
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-radio');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
@@ -164,10 +174,12 @@ define([
         },
         
         update : function(options){
-            // Update the contents of this view
-            //
-            // Called when the model is changed.  The model may have been 
-            // changed by another view or by a state update from the back-end.
+            /**
+             * Update the contents of this view
+             *
+             * Called when the model is changed.  The model may have been 
+             * changed by another view or by a state update from the back-end.
+             */
             if (options === undefined || options.updated_view != this) {
                 // Add missing items to the DOM.
                 var items = this.model.get('value_names');
@@ -227,15 +239,19 @@ define([
         },
 
         update_attr: function(name, value) {
-            // Set a css attr of the widget view.
+            /**
+             * Set a css attr of the widget view.
+             */
             this.$container.css(name, value);
         },
 
         handle_click: function (e) {
-            // Handle when a value is clicked.
-            
-            // Calling model.set will trigger all of the other views of the 
-            // model to update.
+            /**
+             * Handle when a value is clicked.
+             *
+             * Calling model.set will trigger all of the other views of the 
+             * model to update.
+             */
             this.model.set('value_name', $(e.target).val(), {updated_view: this});
             this.touch();
         },
@@ -249,9 +265,11 @@ define([
         },
 
         render: function() {
-            // Called when view is rendered.
+            /**
+             * Called when view is rendered.
+             */
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-toggle-buttons');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
@@ -269,10 +287,12 @@ define([
         },
         
         update : function(options){
-            // Update the contents of this view
-            //
-            // Called when the model is changed.  The model may have been 
-            // changed by another view or by a state update from the back-end.
+            /**
+             * Update the contents of this view
+             *
+             * Called when the model is changed.  The model may have been 
+             * changed by another view or by a state update from the back-end.
+             */
             if (options === undefined || options.updated_view != this) {
                 // Add missing items to the DOM.
                 var items = this.model.get('value_names');
@@ -334,7 +354,9 @@ define([
         },
 
         update_attr: function(name, value) {
-            // Set a css attr of the widget view.
+            /**
+             * Set a css attr of the widget view.
+             */
             this._css_state[name] = value;
             this.update_style_traits();
         },
@@ -367,10 +389,12 @@ define([
         },
 
         handle_click: function (e) {
-            // Handle when a value is clicked.
-            
-            // Calling model.set will trigger all of the other views of the 
-            // model to update.
+            /**
+             * Handle when a value is clicked.
+             *
+             * Calling model.set will trigger all of the other views of the 
+             * model to update.
+             */
             this.model.set('value_name', $(e.target).data('value'), {updated_view: this});
             this.touch();
         },    
@@ -379,9 +403,11 @@ define([
 
     var SelectView = widget.DOMWidgetView.extend({    
         render : function(){
-            // Called when view is rendered.
+            /**
+             * Called when view is rendered.
+             */
             this.$el
-                .addClass('widget-hbox');
+                .addClass('widget-hbox widget-select');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
@@ -394,16 +420,18 @@ define([
         },
         
         update : function(options){
-            // Update the contents of this view
-            //
-            // Called when the model is changed.  The model may have been 
-            // changed by another view or by a state update from the back-end.
+            /**
+             * Update the contents of this view
+             *
+             * Called when the model is changed.  The model may have been 
+             * changed by another view or by a state update from the back-end.
+             */
             if (options === undefined || options.updated_view != this) {
                 // Add missing items to the DOM.
                 var items = this.model.get('value_names');
                 var that = this;
                 _.each(items, function(item, index) {
-                   var item_query = ' :contains("' + item + '")';
+                   var item_query = 'option[value_name="' + item + '"]';
                     if (that.$listbox.find(item_query).length === 0) {
                         $('<option />')
                             .text(item)
@@ -449,15 +477,19 @@ define([
         },
 
         update_attr: function(name, value) {
-            // Set a css attr of the widget view.
+            /**
+             * Set a css attr of the widget view.
+             */
             this.$listbox.css(name, value);
         },
 
         handle_click: function (e) {
-            // Handle when a value is clicked.
-            
-            // Calling model.set will trigger all of the other views of the 
-            // model to update.
+            /**
+             * Handle when a value is clicked.
+             *
+             * Calling model.set will trigger all of the other views of the 
+             * model to update.
+             */
             this.model.set('value_name', $(e.target).text(), {updated_view: this});
             this.touch();
         },    
