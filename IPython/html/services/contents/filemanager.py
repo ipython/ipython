@@ -27,6 +27,14 @@ class FileContentsManager(ContentsManager):
 
     root_dir = Unicode(config=True)
 
+    ensure_ascii = Bool(True, config=True,
+        help="""Whether the output file only contains ASCII characters.
+        If ensure_ascii is True (the default), all non-ASCII characters
+        in the output are escaped with \\uXXXX sequences. If ensure_ascii
+        is False, these characters are represented using UTF-8.
+        """
+    )
+
     def _root_dir_default(self):
         try:
             return self.parent.notebook_dir
@@ -364,7 +372,7 @@ class FileContentsManager(ContentsManager):
         self.check_and_sign(nb, path)
 
         with self.atomic_writing(os_path, encoding='utf-8') as f:
-            nbformat.write(nb, f, version=nbformat.NO_CONVERT)
+            nbformat.write(nb, f, version=nbformat.NO_CONVERT, ensure_ascii=self.ensure_ascii)
 
     def _save_file(self, os_path, model, path=''):
         """save a non-notebook file"""

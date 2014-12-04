@@ -6,6 +6,8 @@
 from .exporter import Exporter
 from IPython import nbformat
 from IPython.utils.traitlets import Enum
+from IPython.utils.traitlets import Bool
+
 
 class NotebookExporter(Exporter):
     """Exports to an IPython notebook."""
@@ -17,6 +19,15 @@ class NotebookExporter(Exporter):
         Use this to downgrade notebooks.
         """
     )
+
+    ensure_ascii = Bool(True, config=True,
+        help="""Whether the output file only contains ASCII characters.
+        If ensure_ascii is True (the default), all non-ASCII characters
+        in the output are escaped with \\uXXXX sequences. If ensure_ascii
+        is False, these characters are represented using UTF-8.
+        """
+    )
+
     def _file_extension_default(self):
         return 'ipynb'
 
@@ -28,5 +39,5 @@ class NotebookExporter(Exporter):
             resources['output_suffix'] = '.v%i' % self.nbformat_version
         else:
             resources['output_suffix'] = '.nbconvert'
-        output = nbformat.writes(nb_copy, version=self.nbformat_version)
+        output = nbformat.writes(nb_copy, version=self.nbformat_version, ensure_ascii=self.ensure_ascii)
         return output, resources

@@ -4,7 +4,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 from IPython.utils.py3compat import string_types, cast_unicode_py2
-
+import IPython.config
 
 def rejoin_lines(nb):
     """rejoin multiline text into strings
@@ -74,7 +74,7 @@ class NotebookReader(object):
 
     def reads(self, s, **kwargs):
         """Read a notebook from a string."""
-        raise NotImplementedError("loads must be implemented in a subclass")
+        raise NotImplementedError("reads must be implemented in a subclass")
 
     def read(self, fp, **kwargs):
         """Read a notebook from a file like object"""
@@ -82,12 +82,12 @@ class NotebookReader(object):
         return self.reads(nbs, **kwargs)
 
 
-class NotebookWriter(object):
+class NotebookWriter(IPython.config.Configurable):
     """A class for writing notebooks."""
 
     def writes(self, nb, **kwargs):
         """Write a notebook to a string."""
-        raise NotImplementedError("loads must be implemented in a subclass")
+        raise NotImplementedError("writes must be implemented in a subclass")
 
     def write(self, nb, fp, **kwargs):
         """Write a notebook to a file like object"""

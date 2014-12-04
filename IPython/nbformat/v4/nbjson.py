@@ -12,6 +12,7 @@ from .nbbase import from_dict
 from .rwbase import (
     NotebookReader, NotebookWriter, rejoin_lines, split_lines, strip_transient
 )
+from IPython.utils.traitlets import Bool
 
 
 class BytesEncoder(json.JSONEncoder):
@@ -43,12 +44,14 @@ class JSONReader(NotebookReader):
 
 class JSONWriter(NotebookWriter):
 
+
     def writes(self, nb, **kwargs):
         """Serialize a NotebookNode object as a JSON string"""
         kwargs['cls'] = BytesEncoder
         kwargs['indent'] = 1
         kwargs['sort_keys'] = True
         kwargs['separators'] = (',',': ')
+        kwargs.setdefault('ensure_ascii', False)
         # don't modify in-memory dict
         nb = copy.deepcopy(nb)
         if kwargs.pop('split_lines', True):
