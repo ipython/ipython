@@ -22,6 +22,7 @@ import re
 import runpy
 import sys
 import tempfile
+import traceback
 import types
 import subprocess
 from io import open as io_open
@@ -1786,6 +1787,15 @@ class InteractiveShell(SingletonConfigurable):
         """
         self.write_err("UsageError: %s" % exc)
     
+    def get_exception_only(self, exc_tuple=None):
+        """
+        Return as a string (ending with a newline) the exception that
+        just occurred, without any traceback.
+        """
+        etype, value, tb = self._get_exc_info(exc_tuple)
+        msg = traceback.format_exception_only(etype, value)
+        return ''.join(msg)
+
     def showtraceback(self, exc_tuple=None, filename=None, tb_offset=None,
                       exception_only=False):
         """Display the exception that just occurred.
@@ -1838,7 +1848,7 @@ class InteractiveShell(SingletonConfigurable):
                 self._showtraceback(etype, value, stb)
 
         except KeyboardInterrupt:
-            self.write_err("\nKeyboardInterrupt\n")
+            self.write_err('\n' + self.get_exception_only())
 
     def _showtraceback(self, etype, evalue, stb):
         """Actually show a traceback.
@@ -2355,7 +2365,7 @@ class InteractiveShell(SingletonConfigurable):
                 try:
                     ec = os.system(cmd)
                 except KeyboardInterrupt:
-                    self.write_err("\nKeyboardInterrupt\n")
+                    self.write_err('\n' + self.get_exception_only())
                     ec = -2
         else:
             cmd = py3compat.unicode_to_str(cmd)
@@ -2374,7 +2384,7 @@ class InteractiveShell(SingletonConfigurable):
                 ec = subprocess.call(cmd, shell=True, executable=executable)
             except KeyboardInterrupt:
                 # intercept control-C; a long traceback is not useful here
-                self.write_err("\nKeyboardInterrupt\n")
+                self.write_err('\n' + self.get_exception_only())
                 ec = 130
             if ec > 128:
                 ec = -(ec - 128)
