@@ -175,7 +175,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         help="Use a plaintext widget instead of rich text (plain can't print/save).")
 
     display_banner = CBool(True, config=True,
-        help="Whether to display a banner upon starting IPython."
+        help="Whether to display a banner upon starting the QtConsole."
     )
 
     def _plain_changed(self, name, old, new):
