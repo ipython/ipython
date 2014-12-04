@@ -30,6 +30,12 @@ def cast_bytes(s, encoding=None):
         return encode(s, encoding)
     return s
 
+def buffer_to_bytes(buf):
+    """Cast a buffer object to bytes"""
+    if not isinstance(buf, bytes):
+        buf = bytes(buf)
+    return buf
+
 def _modify_str_or_docstring(str_change_func):
     @functools.wraps(str_change_func)
     def wrapper(func_or_str):
@@ -86,6 +92,7 @@ if sys.version_info[0] >= 3:
     bytes_to_str = decode
     cast_bytes_py2 = no_code
     cast_unicode_py2 = no_code
+    buffer_to_bytes_py2 = no_code
     
     string_types = (str,)
     unicode_type = str
@@ -151,6 +158,7 @@ else:
     bytes_to_str = no_code
     cast_bytes_py2 = cast_bytes
     cast_unicode_py2 = cast_unicode
+    buffer_to_bytes_py2 = buffer_to_bytes
     
     string_types = (str, unicode)
     unicode_type = unicode
