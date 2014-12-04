@@ -51,17 +51,17 @@ class ZMQSocketChannel(object):
     _exiting = False
     proxy_methods = []
 
-    def __init__(self, socket, session):
+    def __init__(self, socket, session, loop=None):
         """Create a channel.
 
         Parameters
         ----------
-        context : :class:`zmq.Context`
-            The ZMQ context to use.
+        socket : :class:`zmq.Socket`
+            The ZMQ socket to use.
         session : :class:`session.Session`
             The session to use.
-        address : zmq url
-            Standard (ip, port) tuple that the kernel is listening on.
+        loop
+            Unused here, for other implementations
         """
         super(ZMQSocketChannel, self).__init__()
 

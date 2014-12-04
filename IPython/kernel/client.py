@@ -124,6 +124,8 @@ class KernelClient(ConnectionFileMixin):
         return (self.shell_channel.is_alive() or self.iopub_channel.is_alive() or
                 self.stdin_channel.is_alive() or self.hb_channel.is_alive())
 
+    ioloop = None  # Overridden in subclasses that use pyzmq event loop
+
     @property
     def shell_channel(self):
         """Get the shell channel object for this kernel."""
@@ -132,7 +134,7 @@ class KernelClient(ConnectionFileMixin):
             self.log.debug("connecting shell channel to %s", url)
             socket = make_shell_socket(self.context, self.session.bsession, url)
             self._shell_channel = self.shell_channel_class(
-                socket, self.session
+                socket, self.session, self.ioloop
             )
         return self._shell_channel
 
@@ -144,7 +146,7 @@ class KernelClient(ConnectionFileMixin):
             self.log.debug("connecting iopub channel to %s", url)
             socket = make_iopub_socket(self.context, self.session.bsession, url)
             self._iopub_channel = self.iopub_channel_class(
-                socket, self.session
+                socket, self.session, self.ioloop
             )
         return self._iopub_channel
 
@@ -156,7 +158,7 @@ class KernelClient(ConnectionFileMixin):
             self.log.debug("connecting stdin channel to %s", url)
             socket = make_stdin_socket(self.context, self.session.bsession, url)
             self._stdin_channel = self.stdin_channel_class(
-                socket, self.session
+                socket, self.session, self.ioloop
             )
         return self._stdin_channel
 
