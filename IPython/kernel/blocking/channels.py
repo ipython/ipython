@@ -143,21 +143,6 @@ class BlockingShellChannel(ZMQSocketChannel):
     def start(self):
         self.socket = make_stdin_socket(self.context, self.session.bsession, self.address)
 
-    def _handle_kernel_info_reply(self, msg):
-        """handle kernel info reply
-
-        sets protocol adaptation version
-        """
-        adapt_version = int(msg['content']['protocol_version'].split('.')[0])
-        if adapt_version != major_protocol_version:
-            self.session.adapt_version = adapt_version
-
-    def _recv(self, **kwargs):
-        # Listen for kernel_info_reply message to do protocol adaptation
-        msg = ZMQSocketChannel._recv(self, **kwargs)
-        if msg['msg_type'] == 'kernel_info_reply':
-            self._handle_kernel_info_reply(msg)
-        return msg
 
 class BlockingIOPubChannel(ZMQSocketChannel):
     """The iopub channel which listens for messages that the kernel publishes.
@@ -169,9 +154,6 @@ class BlockingIOPubChannel(ZMQSocketChannel):
 
 class BlockingStdInChannel(ZMQSocketChannel):
     """The stdin channel to handle raw_input requests that the kernel makes."""
-    msg_queue = None
-    proxy_methods = ['input']
-
     def start(self):
         self.socket = make_stdin_socket(self.context, self.session.bsession, self.address)
 

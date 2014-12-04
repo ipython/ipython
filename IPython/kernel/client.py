@@ -4,7 +4,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 from __future__ import absolute_import
-from IPython.kernel.channels import validate_string_dict
+from IPython.kernel.channels import validate_string_dict, major_protocol_version
 from IPython.utils.py3compat import string_types
 
 import zmq
@@ -90,6 +90,7 @@ class KernelClient(ConnectionFileMixin):
         """
         if shell:
             self.shell_channel.start()
+            self.kernel_info()
         if iopub:
             self.iopub_channel.start()
         if stdin:
@@ -326,6 +327,15 @@ class KernelClient(ConnectionFileMixin):
         msg = self.session.msg('kernel_info_request')
         self.shell_channel._queue_send(msg)
         return msg['header']['msg_id']
+
+    def _handle_kernel_info_reply(self, msg):
+        """handle kernel info reply
+
+        sets protocol adaptation version
+        """
+        adapt_version = int(msg['content']['protocol_version'].split('.')[0])
+        if adapt_version != major_protocol_version:
+            self.session.adapt_version = adapt_version
 
     def shutdown(self, restart=False):
         """Request an immediate kernel shutdown.

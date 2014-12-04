@@ -366,6 +366,14 @@ StdInChannelABC.register(QtStdInChannel)
 class QtKernelClient(QtKernelClientMixin, KernelClient):
     """ A KernelClient that provides signals and slots.
     """
+    def start_channels(self, shell=True, iopub=True, stdin=True, hb=True):
+        if shell:
+            self.shell_channel.kernel_info_reply.connect(self._handle_kernel_info_reply)
+        super(QtKernelClient, self).start_channels(shell, iopub, stdin, hb)
+
+    def _handle_kernel_info_reply(self, msg):
+        super(QtKernelClient, self)._handle_kernel_info_reply(msg)
+        self.shell_channel.kernel_info_reply.disconnect(self._handle_kernel_info_reply)
 
     iopub_channel_class = Type(QtIOPubChannel)
     shell_channel_class = Type(QtShellChannel)
