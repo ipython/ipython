@@ -101,25 +101,13 @@ def make_ipkernel_cmd(mod='IPython.kernel', executable=None, extra_arguments=[],
         executable = sys.executable
     arguments = [ executable, '-m', mod, '-f', '{connection_file}' ]
     arguments.extend(extra_arguments)
-
-    if sys.platform == 'win32':
-
-        # If the kernel is running on pythonw and stdout/stderr are not been
-        # re-directed, it will crash when more than 4KB of data is written to
-        # stdout or stderr. This is a bug that has been with Python for a very
-        # long time; see http://bugs.python.org/issue706263.
-        # A cleaner solution to this problem would be to pass os.devnull to
-        # Popen directly. Unfortunately, that does not work.
-        if executable.endswith('pythonw.exe'):
-            arguments.append('--no-stdout')
-            arguments.append('--no-stderr')
-
+    
     return arguments
 
 
 def launch_kernel(cmd, stdin=None, stdout=None, stderr=None, env=None,
                         independent=False,
-                        cwd=None, ipython_kernel=True,
+                        cwd=None,
                         **kw
                         ):
     """ Launches a localhost kernel, binding to the specified ports.
@@ -140,10 +128,6 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None, env=None,
 
     cwd : path, optional
         The working dir of the kernel process (default: cwd of this process).
-
-    ipython_kernel : bool, optional
-        Whether the kernel is an official IPython one,
-        and should get a bit of special treatment.
 
     Returns
     -------
@@ -166,14 +150,22 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None, env=None,
     # stderr are all invalid.
     redirect_out = sys.executable.endswith('pythonw.exe')
     if redirect_out:
-        _stdout = PIPE if stdout is None else stdout
-        _stderr = PIPE if stderr is None else stderr
+        blackhole = open(os.devnull, 'w')
+        _stdout = blackhole if stdout is None else stdout
+        _stderr = blackhole if stderr is None else stderr
     else:
         _stdout, _stderr = stdout, stderr
     
     env = env if (env is not None) else os.environ.copy()
 
     encoding = getdefaultencoding(prefer_stream=False)
+    kwargs = dict(
+        stdin=_stdin,
+        stdout=_stdout,
+        stderr=_stderr,
+        cwd=cwd,
+        env=env,
+    )
     
     # Spawn a kernel.
     if sys.platform == 'win32':
@@ -181,73 +173,47 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None, env=None,
         cmd = [ cast_bytes_py2(c, encoding) for c in cmd ]
         if cwd:
             cwd = cast_bytes_py2(cwd, sys.getfilesystemencoding() or 'ascii')
+            kwargs['cwd'] = cwd
         
         from IPython.kernel.zmq.parentpoller import ParentPollerWindows
-        # Create a Win32 event for interrupting the kernel.
+        # Create a Win32 event for interrupting the kernel
+        # and store it in an environment variable.
         interrupt_event = ParentPollerWindows.create_interrupt_event()
-        # Store this in an environment variable for third party kernels, but at
-        # present, our own kernel expects this as a command line argument.
-        env["IPY_INTERRUPT_EVENT"] = str(interrupt_event)
-        if ipython_kernel:
-            cmd += [ '--interrupt=%i' % interrupt_event ]
+        env["JPY_INTERRUPT_EVENT"] = str(interrupt_event)
 
-            # If the kernel is running on pythonw and stdout/stderr are not been
-            # re-directed, it will crash when more than 4KB of data is written to
-            # stdout or stderr. This is a bug that has been with Python for a very
-            # long time; see http://bugs.python.org/issue706263.
-            # A cleaner solution to this problem would be to pass os.devnull to
-            # Popen directly. Unfortunately, that does not work.
-            if cmd[0].endswith('pythonw.exe'):
-                if stdout is None:
-                    cmd.append('--no-stdout')
-                if stderr is None:
-                    cmd.append('--no-stderr')
-
-        # Launch the kernel process.
+        try:
+            from _winapi import DuplicateHandle, GetCurrentProcess, \
+                DUPLICATE_SAME_ACCESS, CREATE_NEW_PROCESS_GROUP
+        except:
+            from _subprocess import DuplicateHandle, GetCurrentProcess, \
+                DUPLICATE_SAME_ACCESS, CREATE_NEW_PROCESS_GROUP
+        # Launch the kernel process
         if independent:
-            proc = Popen(cmd,
-                         creationflags=512, # CREATE_NEW_PROCESS_GROUP
-                         stdin=_stdin, stdout=_stdout, stderr=_stderr, env=env)
+            kwargs['creationflags'] = CREATE_NEW_PROCESS_GROUP
         else:
-            if ipython_kernel:
-                try:
-                    from _winapi import DuplicateHandle, GetCurrentProcess, \
-                        DUPLICATE_SAME_ACCESS
-                except:
-                    from _subprocess import DuplicateHandle, GetCurrentProcess, \
-                        DUPLICATE_SAME_ACCESS
-                pid = GetCurrentProcess()
-                handle = DuplicateHandle(pid, pid, pid, 0,
-                                         True, # Inheritable by new processes.
-                                         DUPLICATE_SAME_ACCESS)
-                cmd +=[ '--parent=%i' % handle ]
-            
-            
-            proc = Popen(cmd,
-                         stdin=_stdin, stdout=_stdout, stderr=_stderr, cwd=cwd, env=env)
+            pid = GetCurrentProcess()
+            handle = DuplicateHandle(pid, pid, pid, 0,
+                                     True, # Inheritable by new processes.
+                                     DUPLICATE_SAME_ACCESS)
+            env['JPY_PARENT_PID'] = str(handle)
+        
+        proc = Popen(cmd, **kwargs)
 
         # Attach the interrupt event to the Popen objet so it can be used later.
         proc.win32_interrupt_event = interrupt_event
 
     else:
         if independent:
-            proc = Popen(cmd, preexec_fn=lambda: os.setsid(),
-                         stdin=_stdin, stdout=_stdout, stderr=_stderr, cwd=cwd, env=env)
+            kwargs['preexec_fn'] = lambda: os.setsid()
         else:
-            if ipython_kernel:
-                cmd += ['--parent=1']
-            proc = Popen(cmd,
-                         stdin=_stdin, stdout=_stdout, stderr=_stderr, cwd=cwd, env=env)
+            env['JPY_PARENT_PID'] = str(os.getpid())
+        
+        proc = Popen(cmd, **kwargs)
 
     # Clean up pipes created to work around Popen bug.
     if redirect_in:
         if stdin is None:
             proc.stdin.close()
-    if redirect_out:
-        if stdout is None:
-            proc.stdout.close()
-        if stderr is None:
-            proc.stderr.close()
 
     return proc
 

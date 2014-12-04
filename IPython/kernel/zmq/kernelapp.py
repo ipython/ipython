@@ -53,11 +53,8 @@ kernel_aliases.update({
     'stdin' : 'IPKernelApp.stdin_port',
     'control' : 'IPKernelApp.control_port',
     'f' : 'IPKernelApp.connection_file',
-    'parent': 'IPKernelApp.parent_handle',
     'transport': 'IPKernelApp.transport',
 })
-if sys.platform.startswith('win'):
-    kernel_aliases['interrupt'] = 'IPKernelApp.interrupt'
 
 kernel_flags = dict(base_flags)
 kernel_flags.update({
@@ -133,11 +130,11 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
         config=True, help="The importstring for the DisplayHook factory")
 
     # polling
-    parent_handle = Integer(0, config=True,
+    parent_handle = Integer(int(os.environ.get('JPY_PARENT_PID') or 0), config=True,
         help="""kill this process if its parent dies.  On Windows, the argument
         specifies the HANDLE of the parent process, otherwise it is simply boolean.
         """)
-    interrupt = Integer(0, config=True,
+    interrupt = Integer(int(os.environ.get('JPY_INTERRUPT_EVENT') or 0), config=True,
         help="""ONLY USED ON WINDOWS
         Interrupt this process when the parent is signaled.
         """)

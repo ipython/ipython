@@ -237,7 +237,6 @@ class KernelManager(ConnectionFileMixin):
             env.update(self.kernel_spec.env or {})
         # launch the kernel subprocess
         self.kernel = self._launch_kernel(kernel_cmd, env=env,
-                                    ipython_kernel=self.ipython_kernel,
                                     **kw)
         self.start_restarter()
         self._connect_control_socket()
