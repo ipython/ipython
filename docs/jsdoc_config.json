@@ -11,6 +11,5 @@
     "templates": {
         "cleverLinks": false,
         "monospaceLinks": false
-    },
-    "destination": "./out/"
+    }
 }
