@@ -77,7 +77,7 @@ class MathBlockGrammar(mistune.BlockGrammar):
 
 @undoc
 class MathBlockLexer(mistune.BlockLexer):
-    default_features = ['block_math', 'latex_environment'] + mistune.BlockLexer.default_features
+    default_rules = ['block_math', 'latex_environment'] + mistune.BlockLexer.default_rules
 
     def __init__(self, rules=None, **kwargs):
         if rules is None:
@@ -105,7 +105,7 @@ class MathInlineGrammar(mistune.InlineGrammar):
 
 @undoc
 class MathInlineLexer(mistune.InlineLexer):
-    default_features = ['math'] + mistune.InlineLexer.default_features
+    default_rules = ['math'] + mistune.InlineLexer.default_rules
 
     def __init__(self, renderer, rules=None, **kwargs):
         if rules is None:
