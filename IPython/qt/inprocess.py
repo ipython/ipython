@@ -55,7 +55,12 @@ class QtInProcessChannel(SuperQObject, InProcessChannel):
         """
         super(QtInProcessChannel, self).flush()
         self.process_events()
-        
+
+
+class QtInProcessHBChannel(SuperQObject, InProcessHBChannel):
+    # This signal will never be fired, but it needs to exist
+    kernel_died = QtCore.Signal()
+
 
 class QtInProcessKernelClient(QtKernelClientMixin, InProcessKernelClient):
     """ An in-process KernelManager with signals and slots.
@@ -64,7 +69,7 @@ class QtInProcessKernelClient(QtKernelClientMixin, InProcessKernelClient):
     iopub_channel_class = Type(QtInProcessChannel)
     shell_channel_class = Type(QtInProcessChannel)
     stdin_channel_class = Type(QtInProcessChannel)
-    hb_channel_class = Type(InProcessHBChannel)
+    hb_channel_class = Type(QtInProcessHBChannel)
 
 class QtInProcessKernelManager(QtKernelManagerMixin, InProcessKernelManager):
     client_class = __module__ + '.QtInProcessKernelClient'
