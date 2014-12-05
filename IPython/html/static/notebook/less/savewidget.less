@@ -1,33 +1,41 @@
-span#save_widget {
+span.save_widget {
     margin-top: 6px;
+    
+    span.filename {
+        height: 1em;
+        line-height: 1em;
+        padding: 3px;
+        border: none;
+        font-size: 146.5%;
+        &:hover{
+            // ensure body is lighter on dark palette, 
+            // and vice versa
+            background-color:contrast(@body-bg, lighten(@body-bg,30%), darken(@body-bg,10%));
+        }
+        .corner-all;
+    }
 }
 
-span#checkpoint_status, span#autosave_status {
+span.checkpoint_status, span.autosave_status {
     font-size: small;
 }
 
 @media (max-width: 767px) {
-    span#save_widget {
+    span.save_widget {
         font-size: small;
     }
-    span#checkpoint_status, span#autosave_status {
-        font-size: x-small;
-    }
-}
-
-@media (max-width: 767px) {
-    span#checkpoint_status, span#autosave_status {
-        display: none;
+    span.checkpoint_status, span.autosave_status {
+      display: none;
     }
 }
 
 @media (min-width: 768px) and (max-width: 979px) {
-    span#checkpoint_status {
+    span.checkpoint_status {
         display: none;
     }
-    span#autosave_status {
+    span.autosave_status {
         font-size: x-small;
     }
 }
 
-  
+
