@@ -81,6 +81,7 @@ function($,
                 });
                 that.save_enabled = true;
                 that.generation = cm.changeGeneration();
+                that.events.trigger("file_loaded.Editor", model);
             },
             function(error) {
                 cm.setValue("Error! " + error.message +
@@ -89,8 +90,26 @@ function($,
             }
         );
     };
+    
+    Editor.prototype.get_filename = function () {
+        return utils.url_path_split(this.file_path)[1];
 
-    Editor.prototype.save = function() {
+    }
+
+    Editor.prototype.rename = function (new_name) {
+        /** rename the file */
+        var that = this;
+        var parent = utils.url_path_split(this.file_path)[0];
+        var new_path = utils.url_path_join(parent, new_name);
+        return this.contents.rename(this.file_path, new_path).then(
+            function (json) {
+                that.file_path = json.path;
+                that.events.trigger('file_renamed.Editor', json);
+            }
+        );
+    };
+    
+    Editor.prototype.save = function () {
         /** save the file */
         if (!this.save_enabled) {
             console.log("Not saving, save disabled");
@@ -105,8 +124,8 @@ function($,
         var that = this;
         // record change generation for isClean
         this.generation = this.codemirror.changeGeneration();
-        return this.contents.save(this.file_path, model).then(function() {
-            that.events.trigger("save_succeeded.TextEditor");
+        return this.contents.save(this.file_path, model).then(function(data) {
+            that.events.trigger("file_saved.Editor", data);
         });
     };
     

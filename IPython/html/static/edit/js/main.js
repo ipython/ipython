@@ -10,6 +10,7 @@ require([
     'services/config',
     'edit/js/editor',
     'edit/js/menubar',
+    'edit/js/savewidget',
     'edit/js/notificationarea',
     'custom/custom',
 ], function(
@@ -21,6 +22,7 @@ require([
     configmod,
     editmod,
     menubar,
+    savewidget,
     notificationarea
     ){
     page = new page.Page();
@@ -44,6 +46,11 @@ require([
     
     var menus = new menubar.MenuBar('#menubar', {
         base_url: base_url,
+        editor: editor,
+        events: events,
+    });
+    
+    var save_widget = new savewidget.SaveWidget('span#save_widget', {
         editor: editor,
         events: events,
     });

@@ -17,7 +17,10 @@ data-file-path="{{file_path}}"
 
 {% block header %}
 
-<span id="filename">{{ basename }}</span>
+<span id="save_widget" class="nav pull-left save_widget">
+    <span class="filename"></span>
+    <span class="last_modified"></span>
+</span>
 
 {% endblock %}
 
