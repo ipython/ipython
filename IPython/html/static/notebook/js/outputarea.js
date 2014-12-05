@@ -199,9 +199,7 @@ define([
 
     // typeset with MathJax if MathJax is available
     OutputArea.prototype.typeset = function () {
-        if (window.MathJax){
-            MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
-        }
+        utils.typeset(this.element);
     };
 
 

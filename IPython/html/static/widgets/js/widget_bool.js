@@ -62,8 +62,7 @@ define([
                 if (description.trim().length === 0) {
                     this.$label.hide();
                 } else {
-                    this.$label.text(description);
-                    MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.$label.get(0)]);
+                    this.typeset(this.$label, description);
                     this.$label.show();
                 }
             }

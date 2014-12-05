@@ -387,7 +387,7 @@ define(["widgets/js/manager",
             } else {
                 this.on('displayed', callback, context);
             }
-        },
+        }
     });
 
 
@@ -573,6 +573,10 @@ define(["widgets/js/manager",
                 elements = this.$el.find(selector).addBack(selector);
             }
             return elements;
+        },
+
+        typeset: function(element, text){
+            utils.typeset.apply(null, arguments);
         },
     });
 

@@ -319,8 +319,7 @@ define([
             if (description.trim().length === 0) {
                 this.$title.html("&nbsp;"); // Preserve title height
             } else {
-                this.$title.text(description);
-                MathJax.Hub.Queue(["Typeset",MathJax.Hub,this.$title.get(0)]);
+                this.typeset(this.$title, description);
             }
             
             var button_text = this.model.get('button_text');

@@ -766,6 +766,33 @@ define([
         };
     };
 
+    var typeset = function(element, text) {
+        /**
+         * Apply MathJax rendering to an element, and optionally set its text
+         *
+         * If MathJax is not available, make no changes.
+         *
+         * Returns the output any number of typeset elements, or undefined if
+         * MathJax was not available.
+         *
+         * Parameters
+         * ----------
+         * element: Node, NodeList, or jQuery selection
+         * text: option string
+         */
+        if(!window.MathJax){
+            return;
+        }
+        var $el = element.jquery ? element : $(element);
+        if(arguments.length > 1){
+            $el.text(text);
+        }
+        return $el.map(function(){
+            // MathJax takes a DOM node: $.map makes `this` the context
+            return MathJax.Hub.Queue(["Typeset", MathJax.Hub, this]);
+        });
+    };
+
     var utils = {
         regex_split : regex_split,
         uuid : uuid,
@@ -799,6 +826,7 @@ define([
         load_class: load_class,
         resolve_promises_dict: resolve_promises_dict,
         reject: reject,
+        typeset: typeset,
     };
 
     // Backwards compatability.
