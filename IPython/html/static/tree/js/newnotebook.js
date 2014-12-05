@@ -14,7 +14,7 @@ define([
         this.base_url = options.base_url;
         this.notebook_path = options.notebook_path;
         this.contents = options.contents;
-        this.current_selection = null;
+        this.default_kernel = null;
         this.config = options.config;
         this.kernelspecs = {};
         if (this.selector !== undefined) {
@@ -74,20 +74,20 @@ define([
     NewNotebookWidget.prototype._load_default_kernelspec = function (default_name) {
         /** load default kernelspec name from config, if defined */
         if (this.config.data.NewNotebookWidget &&
-            this.config.data.NewNotebookWidget.current_selection &&
-            this.kernelspecs[this.config.data.NewNotebookWidget.current_selection] !== undefined
+            this.config.data.NewNotebookWidget.default_kernel &&
+            this.kernelspecs[this.config.data.NewNotebookWidget.default_kernel] !== undefined
         ) {
-            default_name = this.config.data.NewNotebookWidget.current_selection;
+            default_name = this.config.data.NewNotebookWidget.default_kernel;
         }
         this.set_default_kernel(default_name);
     };
 
     NewNotebookWidget.prototype.set_default_kernel = function (kernel_name) {
         /** select the current default kernel */
-        this.current_selection = kernel_name;
+        this.default_kernel = kernel_name;
         this.config.update({
             NewNotebookWidget: {
-                current_selection: kernel_name
+                default_kernel: kernel_name
             }
         });
         var spec = this.kernelspecs[kernel_name];
@@ -108,7 +108,7 @@ define([
     NewNotebookWidget.prototype.new_notebook = function (kernel_name) {
         /** create and open a new notebook */
         var that = this;
-        kernel_name = kernel_name || this.current_selection;
+        kernel_name = kernel_name || this.default_kernel;
         var w = window.open();
         this.contents.new_untitled(that.notebook_path, {type: "notebook"}).then(
             function (data) {
