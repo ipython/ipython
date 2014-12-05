@@ -179,7 +179,13 @@ define([
                 return Promise.resolve(view.render()).then(function() {return view;});
             }).catch(utils.reject("Couldn't create a view for model id '" + String(model.id) + "'", true));
         });
-        model.views[utils.uuid()] = model.state_change;
+        var id = utils.uuid();
+        model.views[id] = model.state_change;
+        model.state_change.then(function(view) { 
+            view.on('remove', function() {
+                delete view.model.views[id];
+            }, this);
+        });
         return model.state_change;
     };
 

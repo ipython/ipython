@@ -388,9 +388,6 @@ define(["widgets/js/manager",
             this.on('displayed', function() { 
                 this.is_displayed = true; 
             }, this);
-            this.on('remove', function() {
-                delete this.model.views[this.id];
-            }, this);
         },
 
         update: function(){
