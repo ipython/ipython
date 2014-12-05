@@ -72,16 +72,6 @@ class QtZMQSocketChannel(SuperQObject):
 
     message_received = QtCore.Signal(object)
 
-    #---------------------------------------------------------------------------
-    # InProcessChannel interface
-    #---------------------------------------------------------------------------
-
-    def call_handlers_later(self, *args, **kwds):
-        """ Call the message handlers later.
-        """
-        do_later = lambda: self.call_handlers(*args, **kwds)
-        QtCore.QTimer.singleShot(0, do_later)
-
     def process_events(self):
         """ Process any pending GUI events.
         """
