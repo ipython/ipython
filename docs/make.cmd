@@ -43,11 +43,11 @@ FOR %%L IN (html pickle htmlhelp latex changes linkcheck) DO (
     )
 )
 
-IF "%1" == "clean" (
+IF "%1" == "jsapi" (
     %JSDOC% -c jsdoc_config.json -d ./build/jsapi_html/
 )
 
-IF "%1" == "jsapi" (
+IF "%1" == "clean" (
     RD /s /q build dist %SRCDIR%\api\generated 2>NUL
     IF ERRORLEVEL 0 ECHO Build environment cleaned!
     GOTO END

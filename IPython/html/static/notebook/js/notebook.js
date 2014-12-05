@@ -1097,9 +1097,9 @@ define([
     
     Notebook.prototype._warn_heading = function () {
         /**
+         * warn about heading cells being removed
          * @private
          */
-        // warn about heading cells being removed
         dialog.modal({
             notebook: this,
             keyboard_manager: this.keyboard_manager,

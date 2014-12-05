@@ -1,19 +1,20 @@
 {
-    "tags": {
-        "allowUnknownTags": true
+    "markdown": {
+        "parser": "gfm"
     },
+    "plugins": [ 
+        "plugins/markdown" 
+    ],
     "source": {
         "include": [
             "../IPython/html/static/notebook/js/notebook.js"
         ]
     },
-    "plugins": [],
+    "tags": {
+        "allowUnknownTags": true
+    },
     "templates": {
         "cleverLinks": false,
         "monospaceLinks": false
-    },
-    "plugins": [ "plugins/markdown" ],
-    "markdown": {
-        "parser": "gfm"
     }
 }
