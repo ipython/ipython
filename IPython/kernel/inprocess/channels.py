@@ -63,7 +63,12 @@ class InProcessChannel(object):
 
 
 class InProcessHBChannel(object):
-    """See `IPython.kernel.channels.HBChannel` for docstrings."""
+    """A dummy heartbeat channel interface for in-process kernels.
+
+    Normally we use the heartbeat to check that the kernel process is alive.
+    When the kernel is in-process, that doesn't make sense, but clients still
+    expect this interface.
+    """
 
     time_to_dead = 3.0
 
