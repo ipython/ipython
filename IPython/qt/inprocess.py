@@ -10,14 +10,11 @@ from IPython.kernel.inprocess.channels import InProcessChannel
 
 from IPython.utils.traitlets import Type
 from .kernel_mixins import ( ChannelQObject,
-    QtHBChannelMixin, QtKernelClientMixin,
+    QtKernelClientMixin,
     QtKernelManagerMixin,
 )
 
 class QtInProcessChannel(ChannelQObject, InProcessChannel):
-    pass
-
-class QtInProcessHBChannel(QtHBChannelMixin, InProcessHBChannel):
     pass
 
 class QtInProcessKernelClient(QtKernelClientMixin, InProcessKernelClient):
@@ -27,7 +24,7 @@ class QtInProcessKernelClient(QtKernelClientMixin, InProcessKernelClient):
     iopub_channel_class = Type(QtInProcessChannel)
     shell_channel_class = Type(QtInProcessChannel)
     stdin_channel_class = Type(QtInProcessChannel)
-    hb_channel_class = Type(QtInProcessHBChannel)
+    hb_channel_class = Type(InProcessHBChannel)
 
 class QtInProcessKernelManager(QtKernelManagerMixin, InProcessKernelManager):
     client_class = __module__ + '.QtInProcessKernelClient'

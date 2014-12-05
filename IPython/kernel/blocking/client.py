@@ -11,8 +11,9 @@ except ImportError:
     from Queue import Empty  # Python 2
 
 from IPython.utils.traitlets import Type
+from IPython.kernel.channels import HBChannel
 from IPython.kernel.client import KernelClient
-from .channels import ZMQSocketChannel, BlockingHBChannel
+from .channels import ZMQSocketChannel
 
 class BlockingKernelClient(KernelClient):
     def wait_for_ready(self):
@@ -35,4 +36,4 @@ class BlockingKernelClient(KernelClient):
     shell_channel_class = Type(ZMQSocketChannel)
     iopub_channel_class = Type(ZMQSocketChannel)
     stdin_channel_class = Type(ZMQSocketChannel)
-    hb_channel_class = Type(BlockingHBChannel)
+    hb_channel_class = Type(HBChannel)

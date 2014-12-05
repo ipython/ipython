@@ -53,17 +53,6 @@ class ChannelQObject(SuperQObject):
         self.process_events()
 
 
-class QtHBChannelMixin(ChannelQObject):
-
-    # Emitted when the kernel has died.
-    kernel_died = QtCore.Signal(object)
-
-    def call_handlers(self, since_last_heartbeat):
-        """ Reimplemented to emit signals instead of making callbacks.
-        """
-        self.kernel_died.emit(since_last_heartbeat)
-
-
 class QtKernelRestarterMixin(MetaQObjectHasTraits('NewBase', (HasTraits, SuperQObject), {})):
 
     _timer = None

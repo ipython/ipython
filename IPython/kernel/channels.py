@@ -210,7 +210,7 @@ class HBChannel(ZMQSocketChannel):
     as appropriate.
     """
 
-    time_to_dead = 3.0
+    time_to_dead = 1.
     socket = None
     poller = None
     _running = None
@@ -332,7 +332,7 @@ class HBChannel(ZMQSocketChannel):
         so that some logic must be done to ensure that the application level
         handlers are called in the application thread.
         """
-        raise NotImplementedError('call_handlers must be defined in a subclass.')
+        pass
 
 
 HBChannelABC.register(HBChannel)

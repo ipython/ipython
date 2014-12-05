@@ -62,14 +62,25 @@ class InProcessChannel(object):
 
 
 
-class InProcessHBChannel(InProcessChannel):
+class InProcessHBChannel(object):
     """See `IPython.kernel.channels.HBChannel` for docstrings."""
 
     time_to_dead = 3.0
 
-    def __init__(self, *args, **kwds):
-        super(InProcessHBChannel, self).__init__(*args, **kwds)
+    def __init__(self, client=None):
+        super(InProcessHBChannel, self).__init__()
+        self.client = client
+        self._is_alive = False
         self._pause = True
+
+    def is_alive(self):
+        return self._is_alive
+
+    def start(self):
+        self._is_alive = True
+
+    def stop(self):
+        self._is_alive = False
 
     def pause(self):
         self._pause = True

@@ -11,11 +11,6 @@ try:
 except ImportError:
     from Queue import Queue, Empty  # Py 2
 
-from IPython.kernel.channelsabc import ShellChannelABC, IOPubChannelABC, \
-    StdInChannelABC
-from IPython.kernel.channels import  HBChannel,\
-    make_iopub_socket, make_shell_socket, make_stdin_socket,\
-    InvalidPortNumber, major_protocol_version
 from IPython.utils.py3compat import string_types, iteritems
 
 # some utilities to validate message structure, these might get moved elsewhere
@@ -121,15 +116,3 @@ class ZMQSocketChannel(object):
     def start(self):
         pass
 
-
-
-class BlockingHBChannel(HBChannel):
-
-    # This kernel needs quicker monitoring, shorten to 1 sec.
-    # less than 0.5s is unreliable, and will get occasional
-    # false reports of missed beats.
-    time_to_dead = 1.
-
-    def call_handlers(self, since_last_heartbeat):
-        """ Pause beating on missed heartbeat. """
-        pass

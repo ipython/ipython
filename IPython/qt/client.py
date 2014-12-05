@@ -19,11 +19,21 @@ from IPython.kernel.channels import HBChannel,\
     make_shell_socket, make_iopub_socket, make_stdin_socket
 from IPython.kernel import KernelClient
 
-from .kernel_mixins import (QtHBChannelMixin, QtKernelClientMixin)
+from .kernel_mixins import QtKernelClientMixin
 from .util import SuperQObject
 
-class QtHBChannel(QtHBChannelMixin, HBChannel):
-    pass
+class QtHBChannel(SuperQObject, HBChannel):
+    # A longer timeout than the base class
+    time_to_dead = 3.0
+
+    # Emitted when the kernel has died.
+    kernel_died = QtCore.Signal(object)
+
+    def call_handlers(self, since_last_heartbeat):
+        """ Reimplemented to emit signals instead of making callbacks.
+        """
+        # Emit the generic signal.
+        self.kernel_died.emit(since_last_heartbeat)
 
 from IPython.core.release import kernel_protocol_version_info
 
