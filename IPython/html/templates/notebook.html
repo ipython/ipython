@@ -42,12 +42,12 @@ class="notebook_app"
 </span>
 
 <span id="kernel_selector_widget" class="pull-right dropdown">
-    <button class="dropdown-toggle" data-toggle="dropdown" type='button' id="current_kernel_spec">
-        <span class='kernel_name'>Kernel</span>
-        <span class="caret"></span> 
-    </button>
-    <ul id="kernel_selector" class="dropdown-menu">
-    </ul>
+  <button class="dropdown-toggle btn btn-sm navbar-btn" data-toggle="dropdown" type='button' id="current_kernel_spec">
+    <span class='kernel_name'>Kernel</span>
+    <span class="caret"></span> 
+  </button>
+  <ul id="kernel_selector" class="dropdown-menu">
+  </ul>
 </span>
 
 {% endblock headercontainer %}
@@ -57,19 +57,17 @@ class="notebook_app"
 <div id="menubar">
     <div id="menus" class="navbar navbar-default" role="navigation">
         <div class="container-fluid">
-            <button type="button" class="btn btn-default navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <button type="button" class="btn btn-default navbar-btn navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
               <i class="fa fa-bars"></i>
               <span class="navbar-text">Menu</span>
             </button>
-            <ul class="nav navbar-nav navbar-right">
-              <li id="kernel_indicator">
-                <i id="kernel_indicator_icon"></i>
-              </li>
-              <li id="modal_indicator">
-                <i id="modal_indicator_icon"></i>
-              </li>
-              <li id="notification_area"></li>
-            </ul>
+            <p id="kernel_indicator" class="navbar-text">
+              <i id="kernel_indicator_icon"></i>
+            </p>
+            <p id="modal_indicator" class="navbar-text">
+              <i id="modal_indicator_icon"></i>
+            </p>
+            <span id="notification_area"></span>
             <div class="navbar-collapse collapse">
               <ul class="nav navbar-nav">
                 <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">File</a>

@@ -33,7 +33,10 @@ define([
      * @method style
      */
     NotificationWidget.prototype.style = function () {
-        this.element.addClass('notification_widget');
+        // use explicit bootstrap classes here,
+        // because multiple inheritance in LESS doesn't work
+        // for this particular combination
+        this.element.addClass('notification_widget btn btn-xs navbar-btn');
     };
 
     /**
