@@ -82,6 +82,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     # The text to show when the kernel is (re)started.
     banner = Unicode(config=True)
     kernel_banner = Unicode()
+    # Whether to show the banner
+    _display_banner = Bool(False)
 
     # An option and corresponding signal for overriding the default kernel
     # interrupt behavior.
