@@ -429,6 +429,9 @@ The main example being ``%load``.
       "source": "set_next_input",
       # the text contents of the cell to create
       "text": "some cell content",
+      # If true, replace the current cell in document UIs instead of inserting
+      # a cell. Ignored in console UIs.
+      "replace": bool,
     }
 
 **edit**: open a file for editing.
