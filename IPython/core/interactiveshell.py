@@ -2003,7 +2003,7 @@ class InteractiveShell(SingletonConfigurable):
                     continue
 
     @skip_doctest
-    def set_next_input(self, s):
+    def set_next_input(self, s, replace=False):
         """ Sets the 'default' input string for the next command line.
 
         Requires readline.

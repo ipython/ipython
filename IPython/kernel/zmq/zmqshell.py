@@ -447,12 +447,13 @@ class ZMQInteractiveShell(InteractiveShell):
 
         return exc_content
 
-    def set_next_input(self, text):
+    def set_next_input(self, text, replace=False):
         """Send the specified text to the frontend to be presented at the next
         input cell."""
         payload = dict(
             source='set_next_input',
-            text=text
+            text=text,
+            replace=replace,
         )
         self.payload_manager.write_payload(payload)
     
