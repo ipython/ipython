@@ -577,19 +577,7 @@ define(["widgets/js/manager",
         },
 
         typeset: function(element, text){
-            // after (optionally) updating a node(list) or jQuery selection's 
-            // text, check if MathJax is available and typeset it
-            var $el = element.jquery ? element : $(element);
-
-            if(arguments.length > 1){
-                $el.text(text);
-            }
-            if(!window.MathJax){
-                return;
-            }
-            return $el.map(function(){
-                return MathJax.Hub.Queue(["Typeset", MathJax.Hub, this]);
-            });
+            utils.typeset.apply(null, arguments);
         },
     });
 
