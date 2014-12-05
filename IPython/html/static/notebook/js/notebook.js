@@ -48,11 +48,18 @@ define([
     "use strict";
 
     /**
-     *
-     * @exports Notebook
-     * @class
+     * Contains and manages cells.
+     * @class Notebook
      * @param {String} selector
-     * @param {dictionary} options
+     * @param {dictionary} options - Dictionary of keyword arguments.  
+     *                     events: $(Events) instance  
+     *                     keyboard_manager: KeyboardManager instance  
+     *                     contents: Contents instance  
+     *                     save_widget: SaveWidget instance  
+     *                     config: dictionary  
+     *                     base_url : string  
+     *                     notebook_path : string  
+     *                     notebook_name : string  
      */
     var Notebook = function (selector, options) {
         this.config = utils.mergeopt(Notebook, options.config);
@@ -168,7 +175,6 @@ define([
             default_cell_type: 'code'
         }
     };
-
 
     /**
      * Create an HTML and CSS representation of the notebook.
