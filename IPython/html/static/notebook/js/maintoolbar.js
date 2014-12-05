@@ -11,14 +11,16 @@ define([
     "use strict";
 
     var MainToolBar = function (selector, options) {
-        // Constructor
-        //
-        // Parameters:
-        //  selector: string
-        //  options: dictionary
-        //      Dictionary of keyword arguments.
-        //          events: $(Events) instance
-        //          notebook: Notebook instance
+        /**
+         * Constructor
+         *
+         * Parameters:
+         *  selector: string
+         *  options: dictionary
+         *      Dictionary of keyword arguments.
+         *          events: $(Events) instance
+         *          notebook: Notebook instance
+         **/
         toolbar.ToolBar.apply(this, [selector, undefined ,options] );
         this.events = options.events;
         this.notebook = options.notebook;
