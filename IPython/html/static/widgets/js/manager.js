@@ -112,6 +112,7 @@ define([
                 return Promise.resolve(view.render()).then(function() {return view;});
             }).catch(utils.reject("Couldn't create a view for model id '" + String(model.id) + "'", true));
         });
+        model.views[utils.uuid()] = model.state_change;
         return model.state_change;
     };
 
