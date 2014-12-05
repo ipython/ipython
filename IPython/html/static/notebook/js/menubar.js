@@ -154,6 +154,10 @@ define([
             that._nbconvert('pdf', true);
         });
 
+        this.element.find('#download_script').click(function () {
+            that._nbconvert('script', true);
+        });
+
         this.element.find('#rename_notebook').click(function () {
             that.save_widget.rename_notebook({notebook: that.notebook});
         });
@@ -373,20 +377,6 @@ define([
         var langname = (langinfo.name || 'Script')
         langname = langname.charAt(0).toUpperCase()+langname.substr(1) // Capitalise
         el.find('a').text(langname + ' ('+(langinfo.file_extension || 'txt')+')');
-        
-        // Unregister any previously registered handlers
-        el.off('click');
-        if (langinfo.nbconvert_exporter) {
-            // Metadata specifies a specific exporter, e.g. 'python'
-            el.click(function() {
-                that._nbconvert(langinfo.nbconvert_exporter, true);
-            });
-        } else {
-            // Use generic 'script' exporter
-            el.click(function() {
-                that._nbconvert('script', true);
-            });
-        }
     };
 
     // Backwards compatability.
