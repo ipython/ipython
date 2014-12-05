@@ -94,7 +94,9 @@ define([
         var display_name;
         if (spec) {
             display_name = spec.display_name;
-            this.element.find("#current-kernel").text(display_name);
+            this.element.find("#current-kernel")
+                .text(display_name)
+                .attr('title', display_name + " is the default kernel for new notebooks");
         } else {
             display_name = 'default kernel';
         }
