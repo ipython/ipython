@@ -152,7 +152,7 @@ def write(nb, fp, version=NO_CONVERT, **kwargs):
         the notebook's own version will be used and no conversion performed.
     """
     if isinstance(fp, py3compat.string_types):
-        with open(fp, 'w', encoding='utf-8') as f:
+        with io.open(fp, 'w', encoding='utf-8') as f:
             return write(nb, f, version=version, **kwargs)
 
     s = writes(nb, version, **kwargs)
