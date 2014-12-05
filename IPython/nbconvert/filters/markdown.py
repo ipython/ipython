@@ -84,14 +84,14 @@ class MathBlockLexer(mistune.BlockLexer):
             rules = MathBlockGrammar()
         super(MathBlockLexer, self).__init__(rules, **kwargs)
 
-    def parse_block_math(self, m):
+    def output_block_math(self, m):
         """Parse a $$math$$ block"""
         self.tokens.append({
             'type': 'block_math',
             'text': m.group(1)
         })
 
-    def parse_latex_environment(self, m):
+    def output_latex_environment(self, m):
         self.tokens.append({
             'type': 'latex_environment',
             'name': m.group(1),
@@ -124,10 +124,10 @@ class MarkdownWithMath(mistune.Markdown):
             kwargs['block'] = MathBlockLexer
         super(MarkdownWithMath, self).__init__(renderer, **kwargs)
 
-    def parse_block_math(self):
+    def output_block_math(self):
         return self.renderer.block_math(self.token['text'])
 
-    def parse_latex_environment(self):
+    def output_latex_environment(self):
         return self.renderer.latex_environment(self.token['name'], self.token['text'])
 
 @undoc
