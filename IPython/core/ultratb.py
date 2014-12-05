@@ -245,14 +245,16 @@ def fix_frame_records_filenames(records):
     """
     fixed_records = []
     for frame, filename, line_no, func_name, lines, index in records:
-        # Look inside the frame's globals dictionary for __file__, which should
-        # be better.
-        better_fn = frame.f_globals.get('__file__', None)
-        if isinstance(better_fn, str):
-            # Check the type just in case someone did something weird with
-            # __file__. It might also be None if the error occurred during
-            # import.
-            filename = better_fn
+        # Look inside the frame's globals dictionary for __file__,
+        # which should be better. However, keep Cython filenames since
+        # we prefer the source filenames over the compiled .so file.
+        if not filename.endswith(('.pyx', '.pxd', '.pxi')):
+            better_fn = frame.f_globals.get('__file__', None)
+            if isinstance(better_fn, str):
+                # Check the type just in case someone did something weird with
+                # __file__. It might also be None if the error occurred during
+                # import.
+                filename = better_fn
         fixed_records.append((frame, filename, line_no, func_name, lines, index))
     return fixed_records
 
