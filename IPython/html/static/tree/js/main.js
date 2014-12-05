@@ -130,6 +130,7 @@ require([
     IPython.session_list = session_list;
     IPython.kernel_list = kernel_list;
     IPython.login_widget = login_widget;
+    IPython.new_notebook_widget = nnw;
 
     events.trigger('app_initialized.DashboardApp');
     
