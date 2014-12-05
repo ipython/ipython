@@ -28,7 +28,7 @@ define([
     SaveWidget.prototype.bind_events = function () {
         var that = this;
         this.element.find('span.filename').click(function () {
-            that.rename({editor: that.editor});
+            that.rename();
         });
         this.events.on('file_loaded.Editor', function (evt, model) {
             that.update_filename(model.name);
@@ -61,7 +61,7 @@ define([
             $("<br/>")
         ).append(
             $('<input/>').attr('type','text').attr('size','25').addClass('form-control')
-            .val(options.editor.get_filename())
+            .val(that.editor.get_filename())
         );
         var d = dialog.modal({
             title: "Rename File",

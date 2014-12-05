@@ -44,15 +44,16 @@ require([
     // Make it available for debugging
     IPython.editor = editor;
     
-    var menus = new menubar.MenuBar('#menubar', {
-        base_url: base_url,
+    var save_widget = new savewidget.SaveWidget('span#save_widget', {
         editor: editor,
         events: events,
     });
     
-    var save_widget = new savewidget.SaveWidget('span#save_widget', {
+    var menus = new menubar.MenuBar('#menubar', {
+        base_url: base_url,
         editor: editor,
         events: events,
+        save_widget: save_widget,
     });
     
     var notification_area = new notificationarea.EditorNotificationArea(

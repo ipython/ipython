@@ -31,11 +31,13 @@ define([
         this.selector = selector;
         this.editor = options.editor;
         this.events = options.events;
+        this.save_widget = options.save_widget;
 
         if (this.selector !== undefined) {
             this.element = $(selector);
             this.bind_events();
         }
+        Object.seal(this);
     };
 
     MenuBar.prototype.bind_events = function () {
@@ -65,6 +67,9 @@ define([
         });
         this.element.find('#save-file').click(function () {
             editor.save();
+        });
+        this.element.find('#rename-file').click(function () {
+            that.save_widget.rename();
         });
         
         // Edit
