@@ -19,31 +19,34 @@ from IPython.utils.io import atomic_writing
 from IPython.utils.importstring import import_item
 from IPython.utils.path import ensure_dir_exists
 from IPython.utils.traitlets import Any, Unicode, Bool, TraitError
-from IPython.utils.py3compat import getcwd, str_to_unicode
+from IPython.utils.py3compat import getcwd, str_to_unicode, string_types
 from IPython.utils import tz
 from IPython.html.utils import is_hidden, to_os_path, to_api_path
 
 _script_exporter = None
+
 def _post_save_script(model, os_path, contents_manager, **kwargs):
     """convert notebooks to Python script after save with nbconvert
 
     replaces `ipython notebook --script`
     """
-    from IPython.nbconvert.exporters.python import PythonExporter
+    from IPython.nbconvert.exporters.script import ScriptExporter
 
     if model['type'] != 'notebook':
         return
+
     global _script_exporter
     if _script_exporter is None:
-        _script_exporter = PythonExporter(parent=contents_manager)
+        _script_exporter = ScriptExporter(parent=contents_manager)
     log = contents_manager.log
 
     base, ext = os.path.splitext(os_path)
     py_fname = base + '.py'
-    log.info("Writing %s", py_fname)
-    py, resources = _script_exporter.from_filename(os_path)
-    with io.open(py_fname, 'w', encoding='utf-8') as f:
-        f.write(py)
+    script, resources = _script_exporter.from_filename(os_path)
+    script_fname = base + resources.get('output_extension', '.txt')
+    log.info("Saving script /%s", to_api_path(script_fname, contents_manager.root_dir))
+    with io.open(script_fname, 'w', encoding='utf-8') as f:
+        f.write(script)
 
 class FileContentsManager(ContentsManager):
 
@@ -96,9 +99,9 @@ class FileContentsManager(ContentsManager):
 
         A post-save hook has been registered that calls:
 
-            ipython nbconvert --to python [notebook]
+            ipython nbconvert --to script [notebook]
 
-        which behaves similar to `--script`.
+        which behaves similarly to `--script`.
         """)
 
         self.post_save_hook = _post_save_script
