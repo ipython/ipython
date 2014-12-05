@@ -14,12 +14,10 @@ import zmq
 # import ZMQError in top-level namespace, to avoid ugly attribute-error messages
 # during garbage collection of threads at exit:
 from zmq import ZMQError
-from zmq.eventloop import ioloop, zmqstream
 
 from IPython.core.release import kernel_protocol_version_info
 
 from .channelsabc import HBChannelABC
-from IPython.utils.py3compat import string_types, iteritems
 
 #-----------------------------------------------------------------------------
 # Constants and exceptions
@@ -29,23 +27,6 @@ major_protocol_version = kernel_protocol_version_info[0]
 
 class InvalidPortNumber(Exception):
     pass
-
-#-----------------------------------------------------------------------------
-# Utility functions
-#-----------------------------------------------------------------------------
-
-# some utilities to validate message structure, these might get moved elsewhere
-# if they prove to have more generic utility
-
-def validate_string_dict(dct):
-    """Validate that the input is a dict with string keys and values.
-
-    Raises ValueError if not."""
-    for k,v in iteritems(dct):
-        if not isinstance(k, string_types):
-            raise ValueError('key %r in dict must be a string' % k)
-        if not isinstance(v, string_types):
-            raise ValueError('value %r in dict must be a string' % v)
 
 
 def make_shell_socket(context, identity, address):

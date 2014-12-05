@@ -4,8 +4,8 @@
 # Distributed under the terms of the Modified BSD License.
 
 from __future__ import absolute_import
-from IPython.kernel.channels import validate_string_dict, major_protocol_version
-from IPython.utils.py3compat import string_types
+from IPython.kernel.channels import major_protocol_version
+from IPython.utils.py3compat import string_types, iteritems
 
 import zmq
 
@@ -19,6 +19,20 @@ from .channels import (
 )
 from .clientabc import KernelClientABC
 from .connect import ConnectionFileMixin
+
+
+# some utilities to validate message structure, these might get moved elsewhere
+# if they prove to have more generic utility
+
+def validate_string_dict(dct):
+    """Validate that the input is a dict with string keys and values.
+
+    Raises ValueError if not."""
+    for k,v in iteritems(dct):
+        if not isinstance(k, string_types):
+            raise ValueError('key %r in dict must be a string' % k)
+        if not isinstance(v, string_types):
+            raise ValueError('value %r in dict must be a string' % v)
 
 
 class KernelClient(ConnectionFileMixin):

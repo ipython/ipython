@@ -11,21 +11,6 @@ try:
 except ImportError:
     from Queue import Queue, Empty  # Py 2
 
-from IPython.utils.py3compat import string_types, iteritems
-
-# some utilities to validate message structure, these might get moved elsewhere
-# if they prove to have more generic utility
-
-def validate_string_dict(dct):
-    """Validate that the input is a dict with string keys and values.
-
-    Raises ValueError if not."""
-    for k,v in iteritems(dct):
-        if not isinstance(k, string_types):
-            raise ValueError('key %r in dict must be a string' % k)
-        if not isinstance(v, string_types):
-            raise ValueError('value %r in dict must be a string' % v)
-
 
 class ZMQSocketChannel(object):
     """A ZMQ socket in a simple blocking API"""
