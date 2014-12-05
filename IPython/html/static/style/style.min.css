@@ -10288,8 +10288,8 @@ div#pager {
   position: fixed;
   bottom: 0px;
   width: 100%;
-  border-top: 4px solid #e7e7e7;
   max-height: 50%;
+  padding-top: 7px;
   /* Display over codemirror */
   z-index: 100;
   /* Hack which prevents jquery ui resizable from changing top. */
@@ -10303,7 +10303,7 @@ div#pager pre {
 }
 div#pager #pager-button-area {
   position: absolute;
-  top: 0px;
+  top: 7px;
   right: 20px;
 }
 div#pager #pager-contents {
@@ -10321,6 +10321,9 @@ div#pager #pager-contents #pager-container {
 }
 div#pager .ui-resizable-handle {
   top: 0px;
+  height: 7px;
+  background: #cfcfcf;
+  border-bottom: 1px solid #ababab;
 }
 .quickhelp {
   /* Old browsers */

@@ -7,8 +7,8 @@ div#pager {
     position: fixed;
     bottom: 0px;
     width: 100%;
-    border-top: 4px solid @navbar-default-border;
     max-height: 50%;
+    padding-top: 7px;
 
     /* Display over codemirror */
     z-index: 100;
@@ -25,7 +25,7 @@ div#pager {
 
     #pager-button-area {
         position: absolute;
-        top: 0px;
+        top: 7px;
         right: 20px; 
     }
 
@@ -44,5 +44,8 @@ div#pager {
 
     .ui-resizable-handle {
         top: 0px;
+        height: 7px;
+        background: @light_border_color;
+        border-bottom: 1px solid @border_color;
     }
 }
