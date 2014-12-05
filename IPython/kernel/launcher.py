@@ -180,6 +180,8 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None, env=None,
         # and store it in an environment variable.
         interrupt_event = ParentPollerWindows.create_interrupt_event()
         env["JPY_INTERRUPT_EVENT"] = str(interrupt_event)
+        # deprecated old env name:
+        env["IPY_INTERRUPT_EVENT"] = env["JPY_INTERRUPT_EVENT"]
 
         try:
             from _winapi import DuplicateHandle, GetCurrentProcess, \
