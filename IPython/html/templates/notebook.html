@@ -32,7 +32,7 @@ class="notebook_app"
 {% endblock %}
 
 
-{% block header %}
+{% block headercontainer %}
 
 
 <span id="save_widget" class="nav pull-left">
@@ -50,11 +50,9 @@ class="notebook_app"
     </ul>
 </span>
 
-{% endblock %}
+{% endblock headercontainer %}
 
-
-{% block site %}
-
+{% block header %}
 <div id="menubar-container" class="container">
 <div id="menubar">
     <div id="menus" class="navbar navbar-default" role="navigation">
@@ -289,6 +287,7 @@ class="notebook_app"
         </div>
     </div>
 </div>
+
 <div id="maintoolbar" class="navbar">
   <div class="toolbar-inner navbar-inner navbar-nobg">
     <div id="maintoolbar-container" class="container"></div>
@@ -296,19 +295,25 @@ class="notebook_app"
 </div>
 </div>
 
-<div id="ipython-main-app">
+<div class="lower-header-bar"></div>
+{% endblock header %}
 
+{% block site %}
+
+
+<div id="ipython-main-app">
     <div id="notebook_panel">
         <div id="notebook"></div>
-        <div id="pager_splitter"></div>
-        <div id="pager">
-            <div id='pager_button_area'>
-            </div>
-            <div id="pager-container" class="container"></div>
-        </div>
     </div>
-
 </div>
+
+<div id="pager">
+    <div id="pager-contents">
+        <div id="pager-container" class="container"></div>
+    </div>
+    <div id='pager-button-area'></div>
+</div>
+
 <div id='tooltip' class='ipython_tooltip' style='display:none'></div>
 
 

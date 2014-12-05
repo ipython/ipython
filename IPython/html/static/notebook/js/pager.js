@@ -8,48 +8,22 @@ define([
 ], function(IPython, $, utils) {
     "use strict";
 
-    var Pager = function (pager_selector, pager_splitter_selector, options) {
+    var Pager = function (pager_selector, options) {
         /**
          * Constructor
          *
          * Parameters:
          *  pager_selector: string
-         *  pager_splitter_selector: string
          *  options: dictionary
          *      Dictionary of keyword arguments.
          *          events: $(Events) instance
-         *          layout_manager: LayoutManager instance
          */
         this.events = options.events;
         this.pager_element = $(pager_selector);
-        this.pager_button_area = $('#pager_button_area');
-        var that = this;
-        this.percentage_height = 0.40;
-        options.layout_manager.pager = this;
-        this.pager_splitter_element = $(pager_splitter_selector)
-            .draggable({
-                        containment: 'window',
-                        axis:'y',
-                        helper: null ,
-                        drag: function(event, ui) {
-                            /**
-                             * recalculate the amount of space the pager should take
-                             */
-                            var pheight = ($(document.body).height()-event.clientY-4);
-                            var downprct = pheight/options.layout_manager.app_height();
-                                downprct = Math.min(0.9, downprct);
-                            if (downprct < 0.1) {
-                                that.percentage_height = 0.1;
-                                that.collapse({'duration':0});
-                            } else if (downprct > 0.2) {
-                                that.percentage_height = downprct;
-                                that.expand({'duration':0});
-                            }
-                            options.layout_manager.do_resize();
-                       }
-            });
+        this.pager_button_area = $('#pager-button-area');
+        this._default_end_space = 200;
+        this.pager_element.resizable({handles: 'n', resize: $.proxy(this._resize, this)});
         this.expanded = false;
-        this.style();
         this.create_button_area();
         this.bind_events();
     };
@@ -61,7 +35,6 @@ define([
                     .attr('title',"Open the pager in an external window")
                     .addClass('ui-button')
                     .click(function(){that.detach();})
-                    .attr('style','position: absolute; right: 20px;')
                     .append(
                         $('<span>').addClass("ui-icon ui-icon-extlink")
                     )
@@ -71,16 +44,10 @@ define([
                     .attr('title',"Close the pager")
                     .addClass('ui-button')
                     .click(function(){that.collapse();})
-                    .attr('style','position: absolute; right: 5px;')
                     .append(
                         $('<span>').addClass("ui-icon ui-icon-close")
                     )
         );
-    };
-
-    Pager.prototype.style = function () {
-        this.pager_splitter_element.addClass('ui-widget ui-state-default');
-        this.pager_splitter_element.attr('title', 'Click to Show/Hide pager area, drag to Resize');
     };
 
 
@@ -88,32 +55,26 @@ define([
         var that = this;
 
         this.pager_element.bind('collapse_pager', function (event, extrap) {
-            var time = 'fast';
-            if (extrap && extrap.duration) {
-                time = extrap.duration;
-            }
-            that.pager_element.hide(time);
+            // Animate hiding of the pager.
+            var time = (extrap && extrap.duration) ? extrap.duration : 'fast';
+            that.pager_element.hide(time, function() {
+                $('.end_space').css('height', that._default_end_space);
+            });
         });
 
         this.pager_element.bind('expand_pager', function (event, extrap) {
-            var time = 'fast';
-            if (extrap && extrap.duration) {
-                time = extrap.duration;
-            }
-            that.pager_element.show(time);
-        });
+            // Clear the pager's height attr if it's set.  This allows the
+            // pager to size itself according to its contents.
+            that.pager_element.height('initial');
 
-        this.pager_splitter_element.hover(
-            function () {
-                that.pager_splitter_element.addClass('ui-state-hover');
-            },
-            function () {
-                that.pager_splitter_element.removeClass('ui-state-hover');
-            }
-        );
-
-        this.pager_splitter_element.click(function () {
-            that.toggle();
+            // Animate the showing of the pager
+            var time = (extrap && extrap.duration) ? extrap.duration : 'fast';
+            that.pager_element.show(time, function() {
+                // Explicitly set pager height once the pager has shown itself.
+                // This allows the pager-contents div to use percentage sizing.
+                that.pager_element.height(that.pager_element.height());
+                that._resize();
+            });
         });
 
         this.events.on('open_with_text.Pager', function (event, payload) {
@@ -130,7 +91,7 @@ define([
     Pager.prototype.collapse = function (extrap) {
         if (this.expanded === true) {
             this.expanded = false;
-            this.pager_element.add($('div#notebook')).trigger('collapse_pager', extrap);
+            this.pager_element.trigger('collapse_pager', extrap);
         }
     };
 
@@ -138,7 +99,7 @@ define([
     Pager.prototype.expand = function (extrap) {
         if (this.expanded !== true) {
             this.expanded = true;
-            this.pager_element.add($('div#notebook')).trigger('expand_pager', extrap);
+            this.pager_element.trigger('expand_pager', extrap);
         }
     };
 
@@ -182,6 +143,18 @@ define([
          * the fixConsole() method.
          */
         this.pager_element.find(".container").append($('<pre/>').html(utils.fixCarriageReturn(utils.fixConsole(text))));
+    };
+
+
+    Pager.prototype._resize = function() {
+        /**
+         * Update document based on pager size.
+         */
+        
+        // Make sure the padding at the end of the notebook is large
+        // enough that the user can scroll to the bottom of the 
+        // notebook.
+        $('.end_space').css('height', Math.max(this.pager_element.height(), this._default_end_space));
     };
 
     // Backwards compatability.

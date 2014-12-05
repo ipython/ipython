@@ -20,11 +20,33 @@ body {
 div#header {
     /* Initially hidden to prevent FLOUC */
     display: none;
-    margin-bottom: 0px;
-    padding-left: 30px;
-    padding-bottom: 5px;
-    border-bottom: 1px solid @navbar-default-border;
-    .border-box-sizing();
+    margin-bottom: -6px;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background-color: @body-bg;
+    min-height: 31px;
+
+    /* Display over codemirror */
+    z-index: 100;
+
+    #header-container {
+        margin-bottom: 0px;
+        padding-left: 30px;
+        padding-bottom: 5px;
+        .border-box-sizing();
+    }
+
+    .header-bar {
+        width: 100%;
+        height: 0px;
+        border-bottom: 1px solid @navbar-default-border;
+    }
+}
+
+#header-spacer {
+    width: 100%;
+    visibility: hidden;
 }
 
 #ipython_notebook {

@@ -24,7 +24,6 @@ define([
          *      Dictionary of keyword arguments.
          *          notebook: Notebook instance
          *          contents: ContentManager instance
-         *          layout_manager: LayoutManager instance
          *          events: $(Events) instance
          *          save_widget: SaveWidget instance
          *          quick_help: QuickHelp instance
@@ -37,7 +36,6 @@ define([
         this.selector = selector;
         this.notebook = options.notebook;
         this.contents = options.contents;
-        this.layout_manager = options.layout_manager;
         this.events = options.events;
         this.save_widget = options.save_widget;
         this.quick_help = options.quick_help;
@@ -86,6 +84,13 @@ define([
         } else {
             w.location = url;
         }
+    };
+
+    MenuBar.prototype._size_header = function() {
+        /** 
+         * Update header spacer size.
+         */
+        this.events.trigger('resize-header.Page');
     };
 
     MenuBar.prototype.bind_events = function () {
@@ -218,12 +223,12 @@ define([
         
         // View
         this.element.find('#toggle_header').click(function () {
-            $('div#header').toggle();
-            that.layout_manager.do_resize();
+            $('div#header-container').toggle();
+            that._size_header();
         });
         this.element.find('#toggle_toolbar').click(function () {
             $('div#maintoolbar').toggle();
-            that.layout_manager.do_resize();
+            that._size_header();
         });
         // Insert
         this.element.find('#insert_cell_above').click(function () {
