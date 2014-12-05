@@ -11,5 +11,9 @@
     "templates": {
         "cleverLinks": false,
         "monospaceLinks": false
+    },
+    "plugins": [ "plugins/markdown" ],
+    "markdown": {
+        "parser": "gfm"
     }
 }
