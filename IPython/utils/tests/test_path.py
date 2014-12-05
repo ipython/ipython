@@ -462,14 +462,13 @@ def test_not_writable_ipdir():
     env.pop('XDG_CONFIG_HOME', None)
     env['HOME'] = tmpdir
     ipdir = os.path.join(tmpdir, '.ipython')
-    os.mkdir(ipdir)
-    os.chmod(ipdir, 600)
+    os.mkdir(ipdir, 0o555)
     try:
-        os.listdir(ipdir)
-    except OSError:
+        open(os.path.join(ipdir, "_foo_"), 'w').close()
+    except IOError:
         pass
     else:
-        # I can still read an unreadable dir,
+        # I can still write to an unwritable dir,
         # assume I'm root and skip the test
         raise SkipTest("I can't create directories that I can't list")
     with AssertPrints('is not a writable location', channel='stderr'):
