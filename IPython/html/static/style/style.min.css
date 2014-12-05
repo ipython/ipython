@@ -7999,14 +7999,15 @@ span#login_widget > .button .badge,
   margin: 0;
 }
 .alternate_upload input.fileinput {
-  background-color: red;
-  position: relative;
+  display: inline;
   opacity: 0;
   z-index: 2;
-  width: 295px;
-  margin-left: 163px;
-  cursor: pointer;
-  height: 26px;
+  width: 12ex;
+  margin-right: -12ex;
+}
+.alternate_upload .input-overlay {
+  display: inline-block;
+  font-weight: bold;
 }
 /**
  * Primary styles

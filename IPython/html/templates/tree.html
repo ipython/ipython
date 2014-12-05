@@ -34,15 +34,16 @@ data-terminals-available="{{terminals_available}}"
     <div class="tab-content">
     <div id="notebooks" class="tab-pane active">
         <div id="notebook_toolbar" class="row">
-            <div class="col-sm-8 no-padding">
-                <form id='alternate_upload'  class='alternate_upload' >
-                    <span id="notebook_list_info" style="position:absolute" >
-                        To import a notebook, drag the file onto the listing below or <strong>click here</strong>.
+            <div class="col-sm-12 no-padding">
+                <form id='alternate_upload'  class='alternate_upload'>
+                    <span id="notebook_list_info">
+                        To import a notebook, drag the file onto the listing below or
+                        <span class="input-overlay">
+                          <input type="file" name="datafile" class="fileinput" multiple='multiple'>
+                          click here.
+                        </span>
                     </span>
-                    <input type="file" name="datafile" class="fileinput" multiple='multiple'>
                 </form>
-            </div>
-            <div class="col-sm-4 no-padding tree-buttons">
               <span id="notebook_buttons" class="pull-right">
                 <div id="new-notebook-buttons" class="btn-group">
                   <button id="new_notebook" class="btn btn-default btn-xs">
