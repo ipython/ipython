@@ -13,9 +13,7 @@ from IPython.utils.traitlets import (
     Any, Instance, Type,
 )
 
-from .channelsabc import (
-    ShellChannelABC, IOPubChannelABC, HBChannelABC, StdInChannelABC
-)
+from .channelsabc import (ChannelABC, HBChannelABC)
 from .channels import (
     make_shell_socket, make_stdin_socket, make_iopub_socket
 )
@@ -45,9 +43,9 @@ class KernelClient(ConnectionFileMixin):
         return zmq.Context.instance()
 
     # The classes to use for the various channels
-    shell_channel_class = Type(ShellChannelABC)
-    iopub_channel_class = Type(IOPubChannelABC)
-    stdin_channel_class = Type(StdInChannelABC)
+    shell_channel_class = Type(ChannelABC)
+    iopub_channel_class = Type(ChannelABC)
+    stdin_channel_class = Type(ChannelABC)
     hb_channel_class = Type(HBChannelABC)
 
     # Protected traits

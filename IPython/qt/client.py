@@ -37,9 +37,6 @@ class QtHBChannel(SuperQObject, HBChannel):
 
 from IPython.core.release import kernel_protocol_version_info
 
-from IPython.kernel.channelsabc import (
-    ShellChannelABC, IOPubChannelABC, StdInChannelABC,
-)
 from IPython.utils.py3compat import string_types, iteritems
 
 major_protocol_version = kernel_protocol_version_info[0]

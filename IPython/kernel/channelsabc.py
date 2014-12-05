@@ -24,38 +24,6 @@ class ChannelABC(with_metaclass(abc.ABCMeta, object)):
         pass
 
 
-class ShellChannelABC(ChannelABC):
-    """ShellChannel ABC.
-
-    The docstrings for this class can be found in the base implementation:
-
-    `IPython.kernel.channels.ShellChannel`
-    """
-
-
-class IOPubChannelABC(ChannelABC):
-    """IOPubChannel ABC.
-
-    The docstrings for this class can be found in the base implementation:
-
-    `IPython.kernel.channels.IOPubChannel`
-    """
-
-    @abc.abstractmethod
-    def flush(self, timeout=1.0):
-        pass
-
-
-class StdInChannelABC(ChannelABC):
-    """StdInChannel ABC.
-
-    The docstrings for this class can be found in the base implementation:
-
-    `IPython.kernel.channels.StdInChannel`
-    """
-
-
-
 class HBChannelABC(ChannelABC):
     """HBChannel ABC.
 

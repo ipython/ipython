@@ -3,10 +3,7 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from IPython.kernel.channelsabc import (
-    ShellChannelABC, IOPubChannelABC,
-    HBChannelABC, StdInChannelABC,
-)
+from IPython.kernel.channelsabc import HBChannelABC
 
 from .socket import DummySocket
 

@@ -18,10 +18,7 @@ from zmq.eventloop import ioloop, zmqstream
 
 from IPython.core.release import kernel_protocol_version_info
 
-from .channelsabc import (
-    ShellChannelABC, IOPubChannelABC,
-    HBChannelABC, StdInChannelABC,
-)
+from .channelsabc import HBChannelABC
 from IPython.utils.py3compat import string_types, iteritems
 
 #-----------------------------------------------------------------------------
