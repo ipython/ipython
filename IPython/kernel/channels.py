@@ -40,17 +40,6 @@ class InvalidPortNumber(Exception):
 # some utilities to validate message structure, these might get moved elsewhere
 # if they prove to have more generic utility
 
-def validate_string_list(lst):
-    """Validate that the input is a list of strings.
-
-    Raises ValueError if not."""
-    if not isinstance(lst, list):
-        raise ValueError('input %r must be a list' % lst)
-    for x in lst:
-        if not isinstance(x, string_types):
-            raise ValueError('element %r in list must be a string' % x)
-
-
 def validate_string_dict(dct):
     """Validate that the input is a dict with string keys and values.
 
