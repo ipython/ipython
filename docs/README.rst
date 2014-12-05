@@ -7,11 +7,12 @@ Requirements
 ------------
 The following tools are needed to build the documentation:
 
-sphinx
+sphinx jsdoc
 
 On Debian-based systems, you should be able to run::
 
-    sudo apt-get install sphinx 
+    sudo apt-get install sphinx npm
+    sudo npm install -g jsdoc@"<=3.3.0"
 
 The documentation gets built using ``make``, and comes in several flavors.
 
