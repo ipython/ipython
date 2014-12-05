@@ -161,6 +161,7 @@ define([
         var settings = {
             processData : false,
             type : "PUT",
+            dataType: "json",
             data : JSON.stringify(model),
             contentType: 'application/json',
         };
