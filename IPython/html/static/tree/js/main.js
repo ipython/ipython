@@ -89,18 +89,18 @@ require([
          */
         session_list.load_sessions();
         cluster_list.load_list();
-	if (terminal_list) {
-	    terminal_list.load_terminals();
-	}
+        if (terminal_list) {
+            terminal_list.load_terminals();
+        }
         if (!interval_id){
             interval_id = setInterval(function(){
-                    session_list.load_sessions();
-                    cluster_list.load_list();
-		    if (terminal_list) {
-		        terminal_list.load_terminals();
-		    }
-                }, time_refresh*1000);
-            }
+                session_list.load_sessions();
+                cluster_list.load_list();
+                if (terminal_list) {
+                    terminal_list.load_terminals();
+                }
+            }, time_refresh*1000);
+        }
     };
 
     var disable_autorefresh = function(){
