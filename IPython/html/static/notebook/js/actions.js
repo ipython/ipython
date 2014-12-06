@@ -253,8 +253,8 @@ define(['require'
                 env.notebook.delete_cell();
             }
         },
-        'toggle-unsolicited-message-display':{
-            help: 'toggle display from external clients',
+        'show-other-output':{
+            help: 'show/ignore output from other clients',
             icon: 'fa-sitemap',
             help_index: 'gb',
             handler: function (env) {

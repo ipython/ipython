@@ -137,7 +137,7 @@ define([
         this.undelete_below = false;
         this.paste_enabled = false;
         this.writable = false;
-        this.ignore_unsolicited_msgs = false;
+        this.include_other_output = true;
         // It is important to start out in command mode to match the intial mode
         // of the KeyboardManager.
         this.mode = 'command';
@@ -1579,10 +1579,10 @@ define([
      * @method toggle_ignore_unsolicited_msgs
      */
     Notebook.prototype.toggle_ignore_unsolicited_msgs = function () {
-        this.ignore_unsolicited_msgs = !this.ignore_unsolicited_msgs;
-        this.events.trigger('toggle_unsolicited_msgs.Notebook',
-                [this.ignore_unsolicited_msgs]);
-        return this.ignore_unsolicited_msgs;
+        this.include_other_output = !this.include_other_output;
+        this.events.trigger('toggle_other_client_output.Notebook',
+                [this.include_other_output]);
+        return this.include_other_output;
     };
 
     /**
@@ -1593,7 +1593,7 @@ define([
      * @method handle_unsolicited_msg
      */
     Notebook.prototype.handle_unsolicited_msg = function(msg) {
-        if (this.ignore_unsolicited_msgs) {
+        if (!this.include_other_output) {
             return;
         }
         if (msg.msg_type == 'execute_input') {
