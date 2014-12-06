@@ -4,11 +4,13 @@
 # Distributed under the terms of the Modified BSD License.
 
 import json
+import os
 
 from .base import TestsBase
 
+from IPython.utils.tempdir import TemporaryDirectory
 from ..reader import get_version
-from IPython.nbformat import read, current_nbformat, writes
+from IPython.nbformat import read, current_nbformat, writes, write
 
 
 class TestAPI(TestsBase):
@@ -35,3 +37,13 @@ class TestAPI(TestsBase):
         nb2 = json.loads(jsons)
         (major, minor) = get_version(nb2)
         self.assertEqual(major, 2)
+
+    def test_read_write_path(self):
+        """read() and write() take filesystem paths"""
+        path = os.path.join(self._get_files_path(), u'test4.ipynb')
+        nb = read(path, as_version=4)
+
+        with TemporaryDirectory() as td:
+            dest = os.path.join(td, 'echidna.ipynb')
+            write(nb, dest)
+            assert os.path.isfile(dest)
