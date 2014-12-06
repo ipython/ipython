@@ -470,7 +470,7 @@ def test_not_writable_ipdir():
     else:
         # I can still write to an unwritable dir,
         # assume I'm root and skip the test
-        raise SkipTest("I can't create directories that I can't list")
+        raise SkipTest("I can't create directories that I can't write to")
     with AssertPrints('is not a writable location', channel='stderr'):
         ipdir = path.get_ipython_dir()
     env.pop('IPYTHON_DIR', None)
