@@ -563,144 +563,102 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
 Adapted from GitHub theme
 
 */
-pre code {
-  display: block;
-  padding: 0.5em;
+.highlight-base {
+  color: #000000;
 }
-.highlight-base,
-pre code,
-pre .subst,
-pre .tag .title,
-pre .lisp .title,
-pre .clojure .built_in,
-pre .nginx .title {
-  color: black;
+.highlight-variable {
+  color: #000000;
 }
-.highlight-string,
-pre .string,
-pre .constant,
-pre .parent,
-pre .tag .value,
-pre .rules .value,
-pre .rules .value .number,
-pre .preprocessor,
-pre .ruby .symbol,
-pre .ruby .symbol .string,
-pre .aggregate,
-pre .template_tag,
-pre .django .variable,
-pre .smalltalk .class,
-pre .addition,
-pre .flow,
-pre .stream,
-pre .bash .variable,
-pre .apache .tag,
-pre .apache .cbracket,
-pre .tex .command,
-pre .tex .special,
-pre .erlang_repl .function_or_atom,
-pre .markdown .header {
+.highlight-variable-2 {
+  color: #1a1a1a;
+}
+.highlight-variable-3 {
+  color: #333333;
+}
+.highlight-string {
   color: #BA2121;
 }
-.highlight-comment,
-pre .comment,
-pre .annotation,
-pre .template_comment,
-pre .diff .header,
-pre .chunk,
-pre .markdown .blockquote {
+.highlight-comment {
   color: #408080;
   font-style: italic;
 }
-.highlight-number,
-pre .number,
-pre .date,
-pre .regexp,
-pre .literal,
-pre .smalltalk .symbol,
-pre .smalltalk .char,
-pre .go .constant,
-pre .change,
-pre .markdown .bullet,
-pre .markdown .link_url {
+.highlight-number {
   color: #080;
 }
-pre .label,
-pre .javadoc,
-pre .ruby .string,
-pre .decorator,
-pre .filter .argument,
-pre .localvars,
-pre .array,
-pre .attr_selector,
-pre .important,
-pre .pseudo,
-pre .pi,
-pre .doctype,
-pre .deletion,
-pre .envvar,
-pre .shebang,
-pre .apache .sqbracket,
-pre .nginx .built_in,
-pre .tex .formula,
-pre .erlang_repl .reserved,
-pre .prompt,
-pre .markdown .link_label,
-pre .vhdl .attribute,
-pre .clojure .attribute,
-pre .coffeescript .property {
-  color: #8888ff;
+.highlight-atom {
+  color: #88F;
 }
-.highlight-keyword,
-pre .keyword,
-pre .id,
-pre .phpdoc,
-pre .aggregate,
-pre .css .tag,
-pre .javadoctag,
-pre .phpdoc,
-pre .yardoctag,
-pre .smalltalk .class,
-pre .winutils,
-pre .bash .variable,
-pre .apache .tag,
-pre .go .typename,
-pre .tex .command,
-pre .markdown .strong,
-pre .request,
-pre .status {
+.highlight-keyword {
   color: #008000;
   font-weight: bold;
 }
-.highlight-builtin,
-pre .built_in {
+.highlight-builtin {
   color: #008000;
 }
-pre .markdown .emphasis {
-  font-style: italic;
+.highlight-error {
+  color: #f00;
 }
-pre .nginx .built_in {
-  font-weight: normal;
+.highlight-operator {
+  color: #AA22FF;
+  font-weight: bold;
 }
-pre .coffeescript .javascript,
-pre .javascript .xml,
-pre .tex .formula,
-pre .xml .javascript,
-pre .xml .vbscript,
-pre .xml .css,
-pre .xml .cdata {
-  opacity: 0.5;
+.highlight-meta {
+  color: #AA22FF;
+}
+/* previously not defined, copying from default codemirror */
+.highlight-def {
+  color: #00f;
+}
+.highlight-string-2 {
+  color: #f50;
+}
+.highlight-qualifier {
+  color: #555;
+}
+.highlight-bracket {
+  color: #997;
+}
+.highlight-tag {
+  color: #170;
+}
+.highlight-attribute {
+  color: #00c;
+}
+.highlight-header {
+  color: blue;
+}
+.highlight-quote {
+  color: #090;
+}
+.highlight-link {
+  color: #00c;
 }
 /* apply the same style to codemirror */
-.cm-s-ipython span.cm-variable {
-  color: black;
-}
 .cm-s-ipython span.cm-keyword {
   color: #008000;
   font-weight: bold;
 }
+.cm-s-ipython span.cm-atom {
+  color: #88F;
+}
 .cm-s-ipython span.cm-number {
   color: #080;
+}
+.cm-s-ipython span.cm-def {
+  color: #00f;
+}
+.cm-s-ipython span.cm-variable {
+  color: #000000;
+}
+.cm-s-ipython span.cm-operator {
+  color: #AA22FF;
+  font-weight: bold;
+}
+.cm-s-ipython span.cm-variable-2 {
+  color: #1a1a1a;
+}
+.cm-s-ipython span.cm-variable-3 {
+  color: #333333;
 }
 .cm-s-ipython span.cm-comment {
   color: #408080;
@@ -709,18 +667,38 @@ pre .xml .cdata {
 .cm-s-ipython span.cm-string {
   color: #BA2121;
 }
-.cm-s-ipython span.cm-builtin {
-  color: #008000;
-}
-.cm-s-ipython span.cm-error {
-  color: #f00;
-}
-.cm-s-ipython span.cm-operator {
-  color: #AA22FF;
-  font-weight: bold;
+.cm-s-ipython span.cm-string-2 {
+  color: #f50;
 }
 .cm-s-ipython span.cm-meta {
   color: #AA22FF;
+}
+.cm-s-ipython span.cm-qualifier {
+  color: #555;
+}
+.cm-s-ipython span.cm-builtin {
+  color: #008000;
+}
+.cm-s-ipython span.cm-bracket {
+  color: #997;
+}
+.cm-s-ipython span.cm-tag {
+  color: #170;
+}
+.cm-s-ipython span.cm-attribute {
+  color: #00c;
+}
+.cm-s-ipython span.cm-header {
+  color: blue;
+}
+.cm-s-ipython span.cm-quote {
+  color: #090;
+}
+.cm-s-ipython span.cm-link {
+  color: #00c;
+}
+.cm-s-ipython span.cm-error {
+  color: #f00;
 }
 .cm-s-ipython span.cm-tab {
   background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAMCAYAAAAkuj5RAAAAAXNSR0IArs4c6QAAAGFJREFUSMft1LsRQFAQheHPowAKoACx3IgEKtaEHujDjORSgWTH/ZOdnZOcM/sgk/kFFWY0qV8foQwS4MKBCS3qR6ixBJvElOobYAtivseIE120FaowJPN75GMu8j/LfMwNjh4HUpwg4LUAAAAASUVORK5CYII=);

@@ -616,11 +616,15 @@ define([
         var modename = (typeof mode == "string") ? mode :
             mode.mode || mode.name;
 
+        // simplest, cheapest check by mode name: mode may also have config
         if (CodeMirror.modes.hasOwnProperty(modename)) {
-            callback(mode);
+            // return the full mode object, if it has a name
+            callback(mode.name ? mode : modename);
             return;
         }
 
+        // *somehow* get back a CM.modeInfo-like object that has .mode and
+        // .mime
         var info = (mode && mode.mode && mode.mime && mode) ||
             CodeMirror.findModeByName(modename) ||
             CodeMirror.findModeByExtension(modename.split(".").slice(-1)) ||
@@ -630,7 +634,11 @@ define([
         require([
                 // might want to use CodeMirror.modeURL here
                 ['codemirror/mode', info.mode, info.mode].join('/'),
-            ], function() { callback(info.mime); }, errback
+            ], function() {
+              // return the original mode, as from a kernelspec on first load
+              // or the mimetype, as for most highlighting
+              callback(mode.name ? mode : info.mime);
+            }, errback
         );
     };
     
