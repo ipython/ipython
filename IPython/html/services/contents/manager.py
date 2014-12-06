@@ -187,8 +187,12 @@ class ContentsManager(LoggingConfigurable):
         
         KernelManagers can turn this value into a filesystem path,
         or ignore it altogether.
+
+        The default value here will start kernels in the directory of the
+        notebook server. FileContentsManager overrides this to use the
+        directory containing the notebook.
         """
-        return path
+        return ''
 
     def increment_filename(self, filename, path='', insert=''):
         """Increment a filename until it is unique.

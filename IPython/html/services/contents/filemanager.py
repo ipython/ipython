@@ -611,9 +611,9 @@ class FileContentsManager(ContentsManager):
         return "Serving notebooks from local directory: %s" % self.root_dir
 
     def get_kernel_path(self, path, model=None):
-        """Return the initial working dir a kernel associated with a given notebook"""
+        """Return the initial API path of  a kernel associated with a given notebook"""
         if '/' in path:
             parent_dir = path.rsplit('/', 1)[0]
         else:
             parent_dir = ''
-        return self._get_os_path(parent_dir)
+        return parent_dir

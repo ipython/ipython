@@ -210,9 +210,14 @@ define([
         var that = this;
 
         this.events.on('set_next_input.Notebook', function (event, data) {
-            var index = that.find_cell_index(data.cell);
-            var new_cell = that.insert_cell_below('code',index);
-            new_cell.set_text(data.text);
+            if (data.replace) {
+                data.cell.set_text(data.text);
+                data.cell.clear_output();
+            } else {
+                var index = that.find_cell_index(data.cell);
+                var new_cell = that.insert_cell_below('code',index);
+                new_cell.set_text(data.text);
+            }
             that.dirty = true;
         });
 
@@ -2326,9 +2331,13 @@ define([
         // Create the session after the notebook is completely loaded to prevent
         // code execution upon loading, which is a security risk.
         if (this.session === null) {
-            var kernelspec = this.metadata.kernelspec || {};
-            var kernel_name = kernelspec.name;
-
+            var kernel_name;
+            if (this.metadata.kernelspec) {
+                var kernelspec = this.metadata.kernelspec || {};
+                kernel_name = kernelspec.name;
+            } else {
+                kernel_name = utils.get_url_param('kernel_name');
+            }
             this.start_session(kernel_name);
         }
         // load our checkpoint list

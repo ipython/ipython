@@ -65,11 +65,12 @@ define(["widgets/js/manager",
             delete this.comm.model; // Delete ref so GC will collect widget model.
             delete this.comm;
             delete this.model_id; // Delete id from model so widget manager cleans up.
-            for (var id in this.views) {
-                if (this.views.hasOwnProperty(id)) {
-                    this.views[id].remove();
-                }
-            }
+            _.each(this.views, function(v, id, views) {
+                v.then(function(view) {
+                    view.remove();
+                    delete views[id];
+                });
+            });
         },
 
         _handle_comm_msg: function (msg) {
@@ -318,8 +319,6 @@ define(["widgets/js/manager",
              */
             this.model.on('change',this.update,this);
             this.options = parameters.options;
-            this.id = this.id || utils.uuid();
-            this.model.views[this.id] = this;
             this.on('displayed', function() { 
                 this.is_displayed = true; 
             }, this);
@@ -388,7 +387,7 @@ define(["widgets/js/manager",
             } else {
                 this.on('displayed', callback, context);
             }
-        },
+        }
     });
 
 
@@ -574,6 +573,10 @@ define(["widgets/js/manager",
                 elements = this.$el.find(selector).addBack(selector);
             }
             return elements;
+        },
+
+        typeset: function(element, text){
+            utils.typeset.apply(null, arguments);
         },
     });
 

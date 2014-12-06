@@ -17,10 +17,6 @@ class ChannelQObject(SuperQObject):
     # Emitted when the channel is stopped.
     stopped = QtCore.Signal()
 
-    #---------------------------------------------------------------------------
-    # Channel interface
-    #---------------------------------------------------------------------------
-
     def start(self):
         """ Reimplemented to emit signal.
         """
@@ -60,10 +56,6 @@ class QtShellChannelMixin(ChannelQObject):
     inspect_reply = QtCore.Signal(object)
     history_reply = QtCore.Signal(object)
     kernel_info_reply = QtCore.Signal(object)
-
-    #---------------------------------------------------------------------------
-    # 'ShellChannel' interface
-    #---------------------------------------------------------------------------
 
     def call_handlers(self, msg):
         """ Reimplemented to emit signals instead of making callbacks.
@@ -108,10 +100,6 @@ class QtIOPubChannelMixin(ChannelQObject):
     # Emitted when a shutdown is noticed.
     shutdown_reply_received = QtCore.Signal(object)
 
-    #---------------------------------------------------------------------------
-    # 'IOPubChannel' interface
-    #---------------------------------------------------------------------------
-
     def call_handlers(self, msg):
         """ Reimplemented to emit signals instead of making callbacks.
         """
@@ -122,8 +110,6 @@ class QtIOPubChannelMixin(ChannelQObject):
         signal = getattr(self, msg_type + '_received', None)
         if signal:
             signal.emit(msg)
-        elif msg_type in ('stdout', 'stderr'):
-            self.stream_received.emit(msg)
 
     def flush(self):
         """ Reimplemented to ensure that signals are dispatched immediately.
@@ -139,10 +125,6 @@ class QtStdInChannelMixin(ChannelQObject):
 
     # Emitted when an input request is received.
     input_requested = QtCore.Signal(object)
-
-    #---------------------------------------------------------------------------
-    # 'StdInChannel' interface
-    #---------------------------------------------------------------------------
 
     def call_handlers(self, msg):
         """ Reimplemented to emit signals instead of making callbacks.
@@ -161,14 +143,9 @@ class QtHBChannelMixin(ChannelQObject):
     # Emitted when the kernel has died.
     kernel_died = QtCore.Signal(object)
 
-    #---------------------------------------------------------------------------
-    # 'HBChannel' interface
-    #---------------------------------------------------------------------------
-
     def call_handlers(self, since_last_heartbeat):
         """ Reimplemented to emit signals instead of making callbacks.
         """
-        # Emit the generic signal.
         self.kernel_died.emit(since_last_heartbeat)
 
 

@@ -541,7 +541,16 @@ define([
         if (navigator.appVersion.indexOf("Linux")!=-1) OSName="Linux";
         return OSName;
     })();
-
+    
+    var get_url_param = function (name) {
+        // get a URL parameter. I cannot believe we actually need this.
+        // Based on http://stackoverflow.com/a/25359264/938949
+        var match = new RegExp('[\?&]' + name + '=([^&]*)').exec(window.location.search);
+        if (match){
+            return decodeURIComponent(match[1] || '');
+        }
+    };
+    
     var is_or_has = function (a, b) {
         /**
          * Is b a child of a or a itself?
@@ -632,6 +641,7 @@ define([
          * Like $.ajax, but returning an ES6 promise. success and error settings
          * will be ignored.
          */
+        settings = settings || {};
         return new Promise(function(resolve, reject) {
             settings.success = function(data, status, jqXHR) {
                 resolve(data);
@@ -766,6 +776,33 @@ define([
         };
     };
 
+    var typeset = function(element, text) {
+        /**
+         * Apply MathJax rendering to an element, and optionally set its text
+         *
+         * If MathJax is not available, make no changes.
+         *
+         * Returns the output any number of typeset elements, or undefined if
+         * MathJax was not available.
+         *
+         * Parameters
+         * ----------
+         * element: Node, NodeList, or jQuery selection
+         * text: option string
+         */
+        if(!window.MathJax){
+            return;
+        }
+        var $el = element.jquery ? element : $(element);
+        if(arguments.length > 1){
+            $el.text(text);
+        }
+        return $el.map(function(){
+            // MathJax takes a DOM node: $.map makes `this` the context
+            return MathJax.Hub.Queue(["Typeset", MathJax.Hub, this]);
+        });
+    };
+
     var utils = {
         regex_split : regex_split,
         uuid : uuid,
@@ -786,6 +823,7 @@ define([
         from_absolute_cursor_pos : from_absolute_cursor_pos,
         browser : browser,
         platform: platform,
+        get_url_param: get_url_param,
         is_or_has : is_or_has,
         is_focused : is_focused,
         mergeopt: mergeopt,
@@ -799,6 +837,7 @@ define([
         load_class: load_class,
         resolve_promises_dict: resolve_promises_dict,
         reject: reject,
+        typeset: typeset,
     };
 
     // Backwards compatability.

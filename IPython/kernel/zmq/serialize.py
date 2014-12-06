@@ -11,14 +11,14 @@ except:
     import pickle
 
 # IPython imports
-from IPython.utils import py3compat
+from IPython.utils.py3compat import PY3, buffer_to_bytes_py2
 from IPython.utils.data import flatten
 from IPython.utils.pickleutil import (
     can, uncan, can_sequence, uncan_sequence, CannedObject,
     istype, sequence_types, PICKLE_PROTOCOL,
 )
 
-if py3compat.PY3:
+if PY3:
     buffer = memoryview
 
 #-----------------------------------------------------------------------------
@@ -105,10 +105,7 @@ def deserialize_object(buffers, g=None):
     (newobj, bufs) : unpacked object, and the list of remaining unused buffers.
     """
     bufs = list(buffers)
-    pobj = bufs.pop(0)
-    if not isinstance(pobj, bytes):
-        # a zmq message
-        pobj = bytes(pobj)
+    pobj = buffer_to_bytes_py2(bufs.pop(0))
     canned = pickle.loads(pobj)
     if istype(canned, sequence_types) and len(canned) < MAX_ITEMS:
         for c in canned:
@@ -161,11 +158,10 @@ def unpack_apply_message(bufs, g=None, copy=True):
     Returns: original f,args,kwargs"""
     bufs = list(bufs) # allow us to pop
     assert len(bufs) >= 2, "not enough buffers!"
-    if not copy:
-        for i in range(2):
-            bufs[i] = bufs[i].bytes
-    f = uncan(pickle.loads(bufs.pop(0)), g)
-    info = pickle.loads(bufs.pop(0))
+    pf = buffer_to_bytes_py2(bufs.pop(0))
+    f = uncan(pickle.loads(pf), g)
+    pinfo = buffer_to_bytes_py2(bufs.pop(0))
+    info = pickle.loads(pinfo)
     arg_bufs, kwarg_bufs = bufs[:info['narg_bufs']], bufs[info['narg_bufs']:]
     
     args = []

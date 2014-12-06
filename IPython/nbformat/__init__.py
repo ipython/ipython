@@ -5,6 +5,8 @@ Use this module to read or write notebook files as particular nbformat versions.
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
+import io
+from IPython.utils import py3compat
 
 from IPython.utils.log import get_logger
 
@@ -112,8 +114,8 @@ def read(fp, as_version, **kwargs):
 
     Parameters
     ----------
-    fp : file
-        Any file-like object with a read method.
+    fp : file or str
+        Any file-like object with a read method, or a path to a file.
     as_version: int
         The version of the notebook format to return.
         The notebook will be converted, if necessary.
@@ -124,6 +126,10 @@ def read(fp, as_version, **kwargs):
     nb : NotebookNode
         The notebook that was read.
     """
+    if isinstance(fp, py3compat.string_types):
+        with io.open(fp, encoding='utf-8') as f:
+            return read(f, as_version, **kwargs)
+
     return reads(fp.read(), as_version, **kwargs)
 
 
@@ -136,14 +142,19 @@ def write(nb, fp, version=NO_CONVERT, **kwargs):
     ----------
     nb : NotebookNode
         The notebook to write.
-    fp : file
-        Any file-like object with a write method that accepts unicode.
+    fp : file or str
+        Any file-like object with a write method that accepts unicode, or
+        a path to write a file.
     version : int, optional
         The nbformat version to write.
         If nb is not this version, it will be converted.
         If unspecified, or specified as nbformat.NO_CONVERT,
         the notebook's own version will be used and no conversion performed.
     """
+    if isinstance(fp, py3compat.string_types):
+        with io.open(fp, 'w', encoding='utf-8') as f:
+            return write(nb, f, version=version, **kwargs)
+
     s = writes(nb, version, **kwargs)
     if isinstance(s, bytes):
         s = s.decode('utf8')

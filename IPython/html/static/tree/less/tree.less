@@ -154,3 +154,23 @@ input.engine_num_input {
 .file_icon:before {
     .icon(@fa-var-file-o)
 }
+
+ul#new-notebook-menu {
+    // align right instead of left
+    left: auto;
+    right: 0;
+}
+
+.kernel-menu-icon {
+    padding-right: 12px;
+    width: 24px;
+    content: @fa-var-square-o;
+}
+
+.kernel-menu-icon:before {
+    content: @fa-var-square-o;
+}
+
+.kernel-menu-icon-current:before {
+  content: @fa-var-check;
+}

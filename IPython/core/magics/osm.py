@@ -165,7 +165,6 @@ class OSMagics(Magics):
 
         path = [os.path.abspath(os.path.expanduser(p)) for p in
             os.environ.get('PATH','').split(os.pathsep)]
-        path = filter(os.path.isdir,path)
 
         syscmdlist = []
         # Now define isexec in a cross platform manner.
@@ -189,8 +188,12 @@ class OSMagics(Magics):
             # the innermost part
             if os.name == 'posix':
                 for pdir in path:
-                    os.chdir(pdir)
-                    for ff in os.listdir(pdir):
+                    try:
+                        os.chdir(pdir)
+                        dirlist = os.listdir(pdir)
+                    except OSError:
+                        continue
+                    for ff in dirlist:
                         if isexec(ff):
                             try:
                                 # Removes dots from the name since ipython
@@ -205,8 +208,12 @@ class OSMagics(Magics):
             else:
                 no_alias = Alias.blacklist
                 for pdir in path:
-                    os.chdir(pdir)
-                    for ff in os.listdir(pdir):
+                    try:
+                        os.chdir(pdir)
+                        dirlist = os.listdir(pdir)
+                    except OSError:
+                        continue
+                    for ff in dirlist:
                         base, ext = os.path.splitext(ff)
                         if isexec(ff) and base.lower() not in no_alias:
                             if ext.lower() == '.exe':

@@ -270,7 +270,7 @@ extras_require = dict(
     test = ['nose>=0.10.1', 'requests'],
     terminal = [],
     nbformat = ['jsonschema>=2.0'],
-    notebook = ['tornado>=4.0', 'pyzmq>=2.1.11', 'jinja2', 'pygments', 'mistune>=0.3.1'],
+    notebook = ['tornado>=4.0', 'pyzmq>=2.1.11', 'jinja2', 'pygments', 'mistune>=0.5'],
     nbconvert = ['pygments', 'jinja2', 'mistune>=0.3.1']
 )
 

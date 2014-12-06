@@ -50,6 +50,7 @@ if os.name == 'nt':
 from IPython.external.qt import QtCore, QtGui
 
 # Local imports
+from IPython.config.application import boolean_flag
 from IPython.config.application import catch_config_error
 from IPython.core.application import BaseIPythonApplication
 from IPython.qt.console.ipython_widget import IPythonWidget
@@ -91,6 +92,11 @@ qt_flags = {
     'plain' : ({'IPythonQtConsoleApp' : {'plain' : True}},
             "Disable rich text support."),
 }
+qt_flags.update(boolean_flag(
+    'banner', 'IPythonQtConsoleApp.display_banner',
+    "Display a banner upon starting the QtConsole.",
+    "Don't display a banner upon starting the QtConsole."
+))
 
 # and app_flags from the Console Mixin
 qt_flags.update(app_flags)
@@ -167,6 +173,10 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
 
     plain = CBool(False, config=True,
         help="Use a plaintext widget instead of rich text (plain can't print/save).")
+
+    display_banner = CBool(True, config=True,
+        help="Whether to display a banner upon starting the QtConsole."
+    )
 
     def _plain_changed(self, name, old, new):
         kind = 'plain' if new else 'rich'
@@ -255,6 +265,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         self.widget._existing = self.existing
         self.widget._may_close = not self.existing
         self.widget._confirm_exit = self.confirm_exit
+        self.widget._display_banner = self.display_banner
 
         self.widget.kernel_manager = self.kernel_manager
         self.widget.kernel_client = self.kernel_client

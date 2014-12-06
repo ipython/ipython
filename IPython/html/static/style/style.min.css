@@ -7751,13 +7751,31 @@ body {
 div#header {
   /* Initially hidden to prevent FLOUC */
   display: none;
+  margin-bottom: -6px;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background-color: #ffffff;
+  min-height: 31px;
+  /* Display over codemirror */
+  z-index: 100;
+}
+div#header #header-container {
   margin-bottom: 0px;
   padding-left: 30px;
   padding-bottom: 5px;
-  border-bottom: 1px solid #e7e7e7;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
+}
+div#header .header-bar {
+  width: 100%;
+  height: 0px;
+  border-bottom: 1px solid #e7e7e7;
+}
+#header-spacer {
+  width: 100%;
+  visibility: hidden;
 }
 #ipython_notebook {
   padding-left: 0px;
@@ -7981,14 +7999,15 @@ span#login_widget > .button .badge,
   margin: 0;
 }
 .alternate_upload input.fileinput {
-  background-color: red;
-  position: relative;
+  display: inline;
   opacity: 0;
   z-index: 2;
-  width: 295px;
-  margin-left: 163px;
-  cursor: pointer;
-  height: 26px;
+  width: 12ex;
+  margin-right: -12ex;
+}
+.alternate_upload .input-overlay {
+  display: inline-block;
+  font-weight: bold;
 }
 /**
  * Primary styles
@@ -8145,6 +8164,21 @@ input.engine_num_input {
 }
 .file_icon:before.pull-right {
   margin-left: .3em;
+}
+ul#new-notebook-menu {
+  left: auto;
+  right: 0;
+}
+.kernel-menu-icon {
+  padding-right: 12px;
+  width: 24px;
+  content: "\f096";
+}
+.kernel-menu-icon:before {
+  content: "\f096";
+}
+.kernel-menu-icon-current:before {
+  content: "\f00c";
 }
 /*!
 *
@@ -9461,9 +9495,6 @@ h6:hover .anchor-link {
 body {
   background-color: #ffffff;
 }
-body.notebook_app {
-  overflow: hidden;
-}
 @media (max-width: 767px) {
   body.notebook_app {
     padding-left: 0px;
@@ -9489,8 +9520,6 @@ span#notebook_name:hover {
 div#notebook_panel {
   margin: 0px 0px 0px 0px;
   padding: 0px;
-  -webkit-box-shadow: inset 1px 4px 9px -6px rgba(0, 0, 0, 0.25);
-  box-shadow: inset 1px 4px 9px -6px rgba(0, 0, 0, 0.25);
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -9498,13 +9527,12 @@ div#notebook_panel {
 div#notebook {
   font-size: 14px;
   line-height: 20px;
-  overflow-y: scroll;
+  overflow-y: hidden;
   overflow-x: auto;
   width: 100%;
   /* This spaces the cell away from the edge of the notebook area */
-  padding: 1em 0 1em 0;
+  padding: 2em 0 2em 0;
   margin: 0px;
-  border-top: 1px solid #e7e7e7;
   outline: none;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -9541,6 +9569,16 @@ p {
 }
 .end_space {
   height: 200px;
+}
+.lower-header-bar {
+  width: 100%;
+  height: 0px;
+  border-bottom: 1px solid #e7e7e7;
+  margin-bottom: -1px;
+}
+.notebook_app #header {
+  -webkit-box-shadow: 1px 4px 9px -6px rgba(0, 0, 0, 0.25);
+  box-shadow: 1px 4px 9px -6px rgba(0, 0, 0, 0.25);
 }
 /* CSS for the cell toolbar */
 .celltoolbar {
@@ -9779,7 +9817,7 @@ fieldset[disabled] #kernel_selector_widget > button.active {
 }
 #menubar {
   margin-top: 0px;
-  margin-bottom: -19px;
+  margin-bottom: -24px;
   position: relative;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -9788,6 +9826,7 @@ fieldset[disabled] #kernel_selector_widget > button.active {
 #menubar .navbar {
   border-top: 1px;
   border-radius: 0px 0px 4px 4px;
+  margin-bottom: 23px;
 }
 #menubar .navbar-toggle {
   float: left;
@@ -10256,33 +10295,51 @@ fieldset[disabled] .notification_widget.danger.active {
   color: #d9534f;
   background-color: #ffffff;
 }
-div#pager_splitter {
-  height: 8px;
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-}
-#pager-container {
-  position: relative;
-  padding: 15px 0px;
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-}
 div#pager {
+  background-color: #ffffff;
   font-size: 14px;
   line-height: 20px;
-  overflow: auto;
+  overflow: hidden;
   display: none;
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
+  position: fixed;
+  bottom: 0px;
+  width: 100%;
+  max-height: 50%;
+  padding-top: 7px;
+  /* Display over codemirror */
+  z-index: 100;
+  /* Hack which prevents jquery ui resizable from changing top. */
+  top: inherit !important;
 }
 div#pager pre {
   line-height: 1.21429em;
   color: #000000;
   background-color: #f7f7f7;
   padding: 0.4em;
+}
+div#pager #pager-button-area {
+  position: absolute;
+  top: 7px;
+  right: 20px;
+}
+div#pager #pager-contents {
+  position: relative;
+  overflow: auto;
+  width: 100%;
+  height: 100%;
+}
+div#pager #pager-contents #pager-container {
+  position: relative;
+  padding: 15px 0px;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+}
+div#pager .ui-resizable-handle {
+  top: 0px;
+  height: 7px;
+  background: #cfcfcf;
+  border-bottom: 1px solid #ababab;
 }
 .quickhelp {
   /* Old browsers */
@@ -10350,6 +10407,7 @@ span#autosave_status {
   padding: 0px;
   margin-left: -5px;
   margin-top: -5px;
+  margin-bottom: 5px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -10380,8 +10438,8 @@ span#autosave_status {
   border: 0px;
   min-height: 27px;
   margin-left: 32px;
-  padding-top: 6px;
-  padding-bottom: 8px;
+  padding-top: 11px;
+  padding-bottom: 3px;
 }
 #maintoolbar .navbar-text {
   float: none;
@@ -10389,9 +10447,6 @@ span#autosave_status {
   text-align: right;
   margin-left: 5px;
   margin-right: 0px;
-  margin-top: 0px;
-}
-#maintoolbar .toolbar {
   margin-top: 0px;
 }
 .select-xs {

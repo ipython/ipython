@@ -220,10 +220,7 @@ define([
      * @method typeset
      */
     Cell.prototype.typeset = function () {
-        if (window.MathJax) {
-            var cell_math = this.element.get(0);
-            MathJax.Hub.Queue(["Typeset", MathJax.Hub, cell_math]);
-        }
+        utils.typeset(this.element);
     };
 
     /**

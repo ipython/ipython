@@ -245,14 +245,16 @@ def fix_frame_records_filenames(records):
     """
     fixed_records = []
     for frame, filename, line_no, func_name, lines, index in records:
-        # Look inside the frame's globals dictionary for __file__, which should
-        # be better.
-        better_fn = frame.f_globals.get('__file__', None)
-        if isinstance(better_fn, str):
-            # Check the type just in case someone did something weird with
-            # __file__. It might also be None if the error occurred during
-            # import.
-            filename = better_fn
+        # Look inside the frame's globals dictionary for __file__,
+        # which should be better. However, keep Cython filenames since
+        # we prefer the source filenames over the compiled .so file.
+        if not filename.endswith(('.pyx', '.pxd', '.pxi')):
+            better_fn = frame.f_globals.get('__file__', None)
+            if isinstance(better_fn, str):
+                # Check the type just in case someone did something weird with
+                # __file__. It might also be None if the error occurred during
+                # import.
+                filename = better_fn
         fixed_records.append((frame, filename, line_no, func_name, lines, index))
     return fixed_records
 
@@ -722,15 +724,23 @@ class VerboseTB(TBTools):
             #print '*** record:',file,lnum,func,lines,index  # dbg
             if not file:
                 file = '?'
-            elif not (file.startswith(str("<")) and file.endswith(str(">"))):
-                # Guess that filenames like <string> aren't real filenames, so
-                # don't call abspath on them.
-                try:
-                    file = abspath(file)
-                except OSError:
-                    # Not sure if this can still happen: abspath now works with
-                    # file names like <string>
-                    pass
+            elif file.startswith(str("<")) and file.endswith(str(">")):
+                # Not a real filename, no problem...
+                pass
+            elif not os.path.isabs(file):
+                # Try to make the filename absolute by trying all
+                # sys.path entries (which is also what linecache does)
+                for dirname in sys.path:
+                    try:
+                        fullname = os.path.join(dirname, file)
+                        if os.path.isfile(fullname):
+                            file = os.path.abspath(fullname)
+                            break
+                    except Exception:
+                        # Just in case that sys.path contains very
+                        # strange entries...
+                        pass
+
             file = py3compat.cast_unicode(file, util_path.fs_encoding)
             link = tpl_link % file
             args, varargs, varkw, locals = inspect.getargvalues(frame)
