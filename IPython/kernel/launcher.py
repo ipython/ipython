@@ -197,7 +197,7 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None, env=None,
             handle = DuplicateHandle(pid, pid, pid, 0,
                                      True, # Inheritable by new processes.
                                      DUPLICATE_SAME_ACCESS)
-            env['JPY_PARENT_PID'] = str(handle)
+            env['JPY_PARENT_PID'] = str(int(handle))
         
         proc = Popen(cmd, **kwargs)
 
