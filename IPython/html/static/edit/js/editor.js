@@ -41,12 +41,10 @@ function($,
                 cm.clearHistory();
 
                 // Find and load the highlighting mode
-                var modeinfo = CodeMirror.findModeByMIME(model.mimetype);
-                if (modeinfo) {
-                    utils.requireCodeMirrorMode(modeinfo.mode, function() {
-                        cm.setOption('mode', modeinfo.mode);
-                    });
-                }
+                utils.requireCodeMirrorMode(model.mimetype, function(spec) {
+                    var mode = CodeMirror.getMode({}, spec);
+                    cm.setOption('mode', mode);
+                });
                 that.save_enabled = true;
             },
             function(error) {
