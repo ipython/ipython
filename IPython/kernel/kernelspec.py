@@ -24,6 +24,15 @@ else:
     
 NATIVE_KERNEL_NAME = 'python3' if PY3 else 'python2'
 
+def find_install_prefix():
+    if sys.platform=='darwin' and sys.prefix.startswith('/System/Library/Frameworks/'):
+        return '/usr/local'
+    elif sys.prefix == '/usr':
+        # TODO: When building distro packages, /usr is OK
+        return '/usr/local'
+    else:
+        return sys.prefix
+
 def _pythonfirst(s):
     "Sort key function that will put strings starting with 'python' first."
     if s == NATIVE_KERNEL_NAME:
@@ -92,9 +101,12 @@ class KernelSpecManager(HasTraits):
         help="List of kernel directories to search. Later ones take priority over earlier."    
     )    
     def _kernel_dirs_default(self):
-        return SYSTEM_KERNEL_DIRS + [
-            self.user_kernel_dir,
-        ]
+        dirs = SYSTEM_KERNEL_DIRS[:]
+        prefix = find_install_prefix()
+        if prefix not in {'/usr', '/usr/local'}:
+            dirs.append(os.path.join(prefix, 'share', 'ipython', 'kernels'))
+        dirs.append(self.user_kernel_dir)
+        return dirs
 
     @property
     def _native_kernel_dict(self):
@@ -140,7 +152,7 @@ class KernelSpecManager(HasTraits):
     def _get_destination_dir(self, kernel_name, system=False):
         if system:
             if SYSTEM_KERNEL_DIRS:
-                return os.path.join(SYSTEM_KERNEL_DIRS[-1], kernel_name)
+                return os.path.join(find_install_prefix(), 'share', 'ipython', 'kernels', kernel_name)
             else:
                 raise EnvironmentError("No system kernel directory is available")
         else:
