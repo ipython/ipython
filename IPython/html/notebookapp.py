@@ -1025,7 +1025,8 @@ def list_running_servers(profile='default'):
                 info = json.load(f)
 
             # Simple check whether that process is really still running
-            if check_pid(info['pid']):
+            # Also remove leftover files from IPython 2.x without a pid field
+            if ('pid' in info) and check_pid(info['pid']):
                 yield info
             else:
                 # If the process has died, try to delete its info file
