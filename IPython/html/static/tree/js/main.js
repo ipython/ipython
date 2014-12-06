@@ -8,12 +8,14 @@ require([
     'base/js/events',
     'base/js/page',
     'base/js/utils',
+    'services/config',
     'contents',
     'tree/js/notebooklist',
     'tree/js/clusterlist',
     'tree/js/sessionlist',
     'tree/js/kernellist',
     'tree/js/terminallist',
+    'tree/js/newnotebook',
     'auth/js/loginwidget',
     // only loaded, not used:
     'jqueryui',
@@ -26,12 +28,14 @@ require([
     events,
     page,
     utils,
+    config,
     contents_service,
-    notebooklist, 
-    clusterlist, 
-    sesssionlist, 
+    notebooklist,
+    clusterlist,
+    sesssionlist,
     kernellist,
     terminallist,
+    newnotebook,
     loginwidget){
     "use strict";
 
@@ -41,6 +45,10 @@ require([
         base_url: utils.get_body_data("baseUrl"),
         notebook_path: utils.get_body_data("notebookPath"),
     };
+    var cfg = new config.ConfigSection('tree', common_options);
+    cfg.load();
+    common_options.config = cfg;
+    
     var session_list = new sesssionlist.SesssionList($.extend({
         events: events}, 
         common_options));
@@ -63,24 +71,12 @@ require([
 
     var login_widget = new loginwidget.LoginWidget('#login_widget', common_options);
 
-    $('#new_notebook').click(function (e) {
-        var w = window.open();
-        contents.new_untitled(common_options.notebook_path, {type: "notebook"}).then(
-                function (data) {
-                    w.location = utils.url_join_encode(
-                            common_options.base_url, 'notebooks', data.path
-                        );
-                },
-                function(error) {
-                    w.close();
-                    dialog.modal({
-                        title : 'Creating Notebook Failed',
-                        body : "The error was: " + error.message,
-                        buttons : {'OK' : {'class' : 'btn-primary'}}
-                    });
-                }
-            );
-    });
+    var nnw = new newnotebook.NewNotebookWidget("#new-notebook-buttons",
+        $.extend(
+            {contents: contents},
+            common_options
+        )
+    );
 
     var interval_id=0;
     // auto refresh every xx secondes, no need to be fast,
@@ -93,18 +89,18 @@ require([
          */
         session_list.load_sessions();
         cluster_list.load_list();
-	if (terminal_list) {
-	    terminal_list.load_terminals();
-	}
+        if (terminal_list) {
+            terminal_list.load_terminals();
+        }
         if (!interval_id){
             interval_id = setInterval(function(){
-                    session_list.load_sessions();
-                    cluster_list.load_list();
-		    if (terminal_list) {
-		        terminal_list.load_terminals();
-		    }
-                }, time_refresh*1000);
-            }
+                session_list.load_sessions();
+                cluster_list.load_list();
+                if (terminal_list) {
+                    terminal_list.load_terminals();
+                }
+            }, time_refresh*1000);
+        }
     };
 
     var disable_autorefresh = function(){
@@ -134,6 +130,7 @@ require([
     IPython.session_list = session_list;
     IPython.kernel_list = kernel_list;
     IPython.login_widget = login_widget;
+    IPython.new_notebook_widget = nnw;
 
     events.trigger('app_initialized.DashboardApp');
     

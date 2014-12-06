@@ -7999,14 +7999,15 @@ span#login_widget > .button .badge,
   margin: 0;
 }
 .alternate_upload input.fileinput {
-  background-color: red;
-  position: relative;
+  display: inline;
   opacity: 0;
   z-index: 2;
-  width: 295px;
-  margin-left: 163px;
-  cursor: pointer;
-  height: 26px;
+  width: 12ex;
+  margin-right: -12ex;
+}
+.alternate_upload .input-overlay {
+  display: inline-block;
+  font-weight: bold;
 }
 /**
  * Primary styles
@@ -8163,6 +8164,21 @@ input.engine_num_input {
 }
 .file_icon:before.pull-right {
   margin-left: .3em;
+}
+ul#new-notebook-menu {
+  left: auto;
+  right: 0;
+}
+.kernel-menu-icon {
+  padding-right: 12px;
+  width: 24px;
+  content: "\f096";
+}
+.kernel-menu-icon:before {
+  content: "\f096";
+}
+.kernel-menu-icon-current:before {
+  content: "\f00c";
 }
 /*!
 *
