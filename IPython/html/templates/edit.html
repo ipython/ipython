@@ -15,16 +15,16 @@ data-file-path="{{file_path}}"
 
 {% endblock %}
 
-{% block header %}
+{% block headercontainer %}
 
-<span id="save_widget" class="nav pull-left save_widget">
+<span id="save_widget" class="pull-left save_widget">
     <span class="filename"></span>
     <span class="last_modified"></span>
 </span>
 
 {% endblock %}
 
-{% block site %}
+{% block header %}
 
 <div id="menubar-container" class="container">
   <div id="menubar">
@@ -69,6 +69,11 @@ data-file-path="{{file_path}}"
     </div>
   </div>
 </div>
+
+{% endblock %}
+
+{% block site %}
+
 
 <div id="texteditor-container" class="container"></div>
 
