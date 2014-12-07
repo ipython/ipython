@@ -21,7 +21,7 @@ function($,
     CodeMirror
 ) {
     "use strict";
-    
+
     var Editor = function(selector, options) {
         var that = this;
         this.selector = selector;
@@ -74,11 +74,21 @@ function($,
                 // which we don't want.
                 cm.clearHistory();
 
-                // Find and load the highlighting mode
-                utils.requireCodeMirrorMode(model.mimetype, function(spec) {
-                    var mode = CodeMirror.getMode({}, spec);
-                    cm.setOption('mode', mode);
-                });
+                // Find and load the highlighting mode,
+                // first by mime-type, then by file extension
+                var modeinfo = CodeMirror.findModeByMIME(model.mimetype);
+                if (modeinfo.mode === "null") {
+                    // find by mime failed, use find by ext
+                    var ext_idx = model.name.lastIndexOf('.');
+                    
+                    if (ext_idx > 0) {
+                        // CodeMirror.findModeByExtension wants extension without '.'
+                        modeinfo = CodeMirror.findModeByExtension(model.name.slice(ext_idx + 1));
+                    }
+                }
+                if (modeinfo) {
+                    that.set_codemirror_mode(modeinfo);
+                }
                 that.save_enabled = true;
                 that.generation = cm.changeGeneration();
                 that.events.trigger("file_loaded.Editor", model);
@@ -91,10 +101,18 @@ function($,
         );
     };
     
+    Editor.prototype.set_codemirror_mode = function (modeinfo) {
+        /** set the codemirror mode from a modeinfo struct */
+        var that = this;
+        utils.requireCodeMirrorMode(modeinfo, function () {
+            that.codemirror.setOption('mode', modeinfo.mode);
+            that.events.trigger("mode_changed.Editor", modeinfo);
+        });
+    };
+    
     Editor.prototype.get_filename = function () {
         return utils.url_path_split(this.file_path)[1];
-
-    }
+    };
 
     Editor.prototype.rename = function (new_name) {
         /** rename the file */

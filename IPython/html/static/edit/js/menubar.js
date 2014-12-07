@@ -2,12 +2,14 @@
 // Distributed under the terms of the Modified BSD License.
 
 define([
-    'base/js/namespace',
     'jquery',
+    'base/js/namespace',
     'base/js/utils',
     'base/js/dialog',
+    'codemirror/lib/codemirror',
+    'codemirror/mode/meta',
     'bootstrap',
-], function(IPython, $, utils, dialog, bootstrap) {
+], function($, IPython, utils, dialog, CodeMirror) {
     "use strict";
     
     var MenuBar = function (selector, options) {
@@ -37,6 +39,7 @@ define([
             this.element = $(selector);
             this.bind_events();
         }
+        this._load_mode_menu();
         Object.seal(this);
     };
 
@@ -120,6 +123,36 @@ define([
             that.element.find(".selected-keymap").removeClass("selected-keymap");
             that.element.find("#menu-keymap-" + keyMap).addClass("selected-keymap");
         });
+        
+        this.events.on("mode_changed.Editor", function (evt, modeinfo) {
+            that.element.find("#current-mode")
+                .text(modeinfo.name)
+                .attr(
+                    'title',
+                    "The current highlighting mode is " + modeinfo.name
+                );
+        });
+    };
+    
+    MenuBar.prototype._load_mode_menu = function () {
+        var list = this.element.find("#mode-menu");
+        var editor = this.editor;
+        function make_set_mode(info) {
+            return function () {
+                editor.set_codemirror_mode(info);
+            };
+        }
+        for (var i = 0; i < CodeMirror.modeInfo.length; i++) {
+            var info = CodeMirror.modeInfo[i];
+            list.append($("<li>").append(
+                $("<a>").attr("href", "#")
+                    .text(info.name)
+                    .click(make_set_mode(info))
+                    .attr('title',
+                        "Set highlighting mode to " + info.name
+                    )
+            ));
+        }
     };
 
     return {'MenuBar': MenuBar};

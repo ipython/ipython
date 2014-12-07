@@ -8125,6 +8125,10 @@ ul#new-notebook-menu {
 .selected-keymap i.fa:before {
   content: "\f00c";
 }
+#mode-menu {
+  overflow: auto;
+  max-height: 20em;
+}
 #texteditor-container {
   border-bottom: 1px solid #ccc;
 }
