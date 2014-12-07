@@ -115,10 +115,6 @@ define([
         });
         
         this.events.on("config_changed.Editor", function () {
-            var lineNumbers = editor.codemirror.getOption('lineNumbers');
-            var text = lineNumbers ? "Hide" : "Show";
-            text = text + " Line Numbers";
-            that.element.find('#menu-line-numbers').find("a").text(text);
             var keyMap = editor.codemirror.getOption('keyMap') || "default";
             that.element.find(".selected-keymap").removeClass("selected-keymap");
             that.element.find("#menu-keymap-" + keyMap).addClass("selected-keymap");
