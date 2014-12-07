@@ -73,22 +73,7 @@ function($,
                 // Setting the file's initial value creates a history entry,
                 // which we don't want.
                 cm.clearHistory();
-
-                // Find and load the highlighting mode,
-                // first by mime-type, then by file extension
-                var modeinfo = CodeMirror.findModeByMIME(model.mimetype);
-                if (modeinfo.mode === "null") {
-                    // find by mime failed, use find by ext
-                    var ext_idx = model.name.lastIndexOf('.');
-                    
-                    if (ext_idx > 0) {
-                        // CodeMirror.findModeByExtension wants extension without '.'
-                        modeinfo = CodeMirror.findModeByExtension(model.name.slice(ext_idx + 1));
-                    }
-                }
-                if (modeinfo) {
-                    that.set_codemirror_mode(modeinfo);
-                }
+                that._set_mode_for_model(model);
                 that.save_enabled = true;
                 that.generation = cm.changeGeneration();
                 that.events.trigger("file_loaded.Editor", model);
@@ -99,6 +84,26 @@ function($,
                 that.save_enabled = false;
             }
         );
+    };
+
+    Editor.prototype._set_mode_for_model = function (model) {
+        /** Set the CodeMirror mode based on the file model */
+        
+        // Find and load the highlighting mode,
+        // first by mime-type, then by file extension
+        var modeinfo = CodeMirror.findModeByMIME(model.mimetype);
+        if (modeinfo.mode === "null") {
+            // find by mime failed, use find by ext
+            var ext_idx = model.name.lastIndexOf('.');
+            
+            if (ext_idx > 0) {
+                // CodeMirror.findModeByExtension wants extension without '.'
+                modeinfo = CodeMirror.findModeByExtension(model.name.slice(ext_idx + 1));
+            }
+        }
+        if (modeinfo) {
+            this.set_codemirror_mode(modeinfo);
+        }
     };
     
     Editor.prototype.set_codemirror_mode = function (modeinfo) {
@@ -120,9 +125,10 @@ function($,
         var parent = utils.url_path_split(this.file_path)[0];
         var new_path = utils.url_path_join(parent, new_name);
         return this.contents.rename(this.file_path, new_path).then(
-            function (json) {
-                that.file_path = json.path;
-                that.events.trigger('file_renamed.Editor', json);
+            function (model) {
+                that.file_path = model.path;
+                that.events.trigger('file_renamed.Editor', model);
+                that._set_mode_for_model(model);
             }
         );
     };
