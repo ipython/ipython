@@ -183,6 +183,7 @@ class NotebookWebApplication(web.Application):
             cookie_secret=ipython_app.cookie_secret,
             login_url=url_path_join(base_url,'/login'),
             login_handler_class=ipython_app.login_handler_class,
+            logout_handler_class=ipython_app.logout_handler_class,
             password=ipython_app.password,
 
             # managers
@@ -213,7 +214,7 @@ class NotebookWebApplication(web.Application):
         handlers = []
         handlers.extend(load_handlers('tree.handlers'))
         handlers.extend([(r"/login", settings['login_handler_class'])])
-        handlers.extend(load_handlers('auth.logout'))
+        handlers.extend([(r"/logout", settings['logout_handler_class'])])
         handlers.extend(load_handlers('files.handlers'))
         handlers.extend(load_handlers('notebook.handlers'))
         handlers.extend(load_handlers('nbconvert.handlers'))
@@ -653,6 +654,10 @@ class NotebookApp(BaseIPythonApplication):
         config=True,
         help='The login handler class to use.')
 
+    logout_handler = DottedObjectName('IPython.html.auth.logout.LogoutHandler',
+        config=True,
+        help='The logout handler class to use.')
+
     trust_xheaders = Bool(False, config=True,
         help=("Whether to trust or not X-Scheme/X-Forwarded-Proto and X-Real-Ip/X-Forwarded-For headers"
               "sent by the upstream reverse proxy. Necessary if the proxy handles SSL")
@@ -751,6 +756,7 @@ class NotebookApp(BaseIPythonApplication):
         self.cluster_manager = kls(parent=self, log=self.log)
         self.cluster_manager.update_profiles()
         self.login_handler_class = import_item(self.login_handler)
+        self.logout_handler_class = import_item(self.logout_handler)
 
         kls = import_item(self.config_manager_class)
         self.config_manager = kls(parent=self, log=self.log,
