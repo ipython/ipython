@@ -111,9 +111,8 @@ class FileContentsManager(ContentsManager):
 
         to be called on the path of a file just saved.
 
-        This can be used to
         This can be used to process the file on disk,
-        such as converting the notebook to other formats, such as Python or HTML via nbconvert
+        such as converting the notebook to a script or HTML via nbconvert.
 
         It will be called as (all arguments passed by keyword):
 
