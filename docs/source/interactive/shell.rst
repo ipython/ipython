@@ -24,6 +24,18 @@ the default profile such that:
  * turn ``%autocall`` to full mode
 
 
+Environment variables
+=====================
+
+Rather than manipulating os.environ directly, you may like to use the magic
+`%env` command.  With no arguments, this displays all environment variables
+and values.  To get the value of a specific variable, use `%env var`.  To set
+the value of a specific variable, use `%env foo bar`, `%env foo=bar`.  By
+default values are considered to be strings so quoting them is unnecessary.
+However, python variables are expanded as usual in the magic command, so
+`%env foo=$bar` means "set the environment variable foo to the value of the
+python variable `bar`".
+
 Aliases
 =======
 
