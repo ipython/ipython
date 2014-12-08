@@ -60,6 +60,7 @@ function($,
         indentUnit: 4,
         theme: "ipython",
         lineNumbers: true,
+        lineWrapping: true,
     };
     
     Editor.prototype.load = function() {
