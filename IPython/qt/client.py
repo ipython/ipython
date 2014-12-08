@@ -96,7 +96,7 @@ class QtZMQSocketChannel(SuperQObject):
                 pass
             self.socket = None
 
-    def _queue_send(self, msg):
+    def send(self, msg):
         """Queue a message to be sent from the IOLoop's thread.
 
         Parameters

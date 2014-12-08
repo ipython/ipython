@@ -82,7 +82,7 @@ class ZMQSocketChannel(object):
     def is_alive(self):
         return (self.socket is not None)
 
-    def _queue_send(self, msg):
+    def send(self, msg):
         """Pass a message to the ZMQ socket to send
         """
         self.session.send(self.socket, msg)

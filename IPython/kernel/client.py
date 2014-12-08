@@ -249,7 +249,7 @@ class KernelClient(ConnectionFileMixin):
                        allow_stdin=allow_stdin,
                        )
         msg = self.session.msg('execute_request', content)
-        self.shell_channel._queue_send(msg)
+        self.shell_channel.send(msg)
         return msg['header']['msg_id']
 
     def complete(self, code, cursor_pos=None):
@@ -272,7 +272,7 @@ class KernelClient(ConnectionFileMixin):
             cursor_pos = len(code)
         content = dict(code=code, cursor_pos=cursor_pos)
         msg = self.session.msg('complete_request', content)
-        self.shell_channel._queue_send(msg)
+        self.shell_channel.send(msg)
         return msg['header']['msg_id']
 
     def inspect(self, code, cursor_pos=None, detail_level=0):
@@ -301,7 +301,7 @@ class KernelClient(ConnectionFileMixin):
             detail_level=detail_level,
         )
         msg = self.session.msg('inspect_request', content)
-        self.shell_channel._queue_send(msg)
+        self.shell_channel.send(msg)
         return msg['header']['msg_id']
 
     def history(self, raw=True, output=False, hist_access_type='range', **kwargs):
@@ -339,13 +339,13 @@ class KernelClient(ConnectionFileMixin):
         content = dict(raw=raw, output=output, hist_access_type=hist_access_type,
                                                                     **kwargs)
         msg = self.session.msg('history_request', content)
-        self.shell_channel._queue_send(msg)
+        self.shell_channel.send(msg)
         return msg['header']['msg_id']
 
     def kernel_info(self):
         """Request kernel info."""
         msg = self.session.msg('kernel_info_request')
-        self.shell_channel._queue_send(msg)
+        self.shell_channel.send(msg)
         return msg['header']['msg_id']
 
     def _handle_kernel_info_reply(self, msg):
@@ -371,19 +371,19 @@ class KernelClient(ConnectionFileMixin):
         # Send quit message to kernel. Once we implement kernel-side setattr,
         # this should probably be done that way, but for now this will do.
         msg = self.session.msg('shutdown_request', {'restart':restart})
-        self.shell_channel._queue_send(msg)
+        self.shell_channel.send(msg)
         return msg['header']['msg_id']
 
     def is_complete(self, code):
         msg = self.session.msg('is_complete_request', {'code': code})
-        self.shell_channel._queue_send(msg)
+        self.shell_channel.send(msg)
         return msg['header']['msg_id']
 
     def input(self, string):
         """Send a string of raw input to the kernel."""
         content = dict(value=string)
         msg = self.session.msg('input_reply', content)
-        self.stdin_channel._queue_send(msg)
+        self.stdin_channel.send(msg)
 
 
 KernelClientABC.register(KernelClient)
