@@ -314,10 +314,10 @@ define([
         };
     };
     
+    /**
+     * trigger a warning dialog about missing functionality from newer minor versions
+     */
     Notebook.prototype.warn_nbformat_minor = function (event) {
-        /**
-         * trigger a warning dialog about missing functionality from newer minor versions
-         */
         var v = 'v' + this.nbformat + '.';
         var orig_vs = v + this.nbformat_minor;
         var this_vs = v + this.current_nbformat_minor;
@@ -446,9 +446,9 @@ define([
      * 
      * @return {Array} This notebook's Cell objects
      */
-    // TODO: we are often calling cells as cells()[i], which we should optimize
-    // to cells(i) or a new method.
     Notebook.prototype.get_cells = function () {
+        // TODO: we are often calling cells as cells()[i], which we should optimize
+        // to cells(i) or a new method.
         return this.get_cell_elements().toArray().map(function (e) {
             return $(e).data("cell");
         });
@@ -1988,6 +1988,10 @@ define([
         });
     };
 
+    /**
+     * Make a copy of the current notebook.
+     * @return {null}
+     */
     Notebook.prototype.copy_notebook = function () {
         var that = this;
         var base_url = this.base_url;
@@ -2006,6 +2010,11 @@ define([
         );
     };
 
+    /**
+     * Rename the notebook
+     * @param  {string} new_name
+     * @return {Promise} promise that resolves when the notebook is renamed.
+     */
     Notebook.prototype.rename = function (new_name) {
         if (!new_name.match(/\.ipynb$/)) {
             new_name = new_name + ".ipynb";
@@ -2024,6 +2033,10 @@ define([
         );
     };
 
+    /**
+     * Delete this notebook
+     * @return {null}
+     */
     Notebook.prototype.delete = function () {
         this.contents.delete(this.notebook_path);
     };
