@@ -125,7 +125,7 @@ define([
                 .text(modeinfo.name)
                 .attr(
                     'title',
-                    "The current highlighting mode is " + modeinfo.name
+                    "The current language is " + modeinfo.name
                 );
         });
     };
@@ -145,7 +145,7 @@ define([
                     .text(info.name)
                     .click(make_set_mode(info))
                     .attr('title',
-                        "Set highlighting mode to " + info.name
+                        "Set language to " + info.name
                     )
             ));
         }
