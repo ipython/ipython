@@ -50,7 +50,7 @@ define([
     /**
      * Contains and manages cells.
      * @class Notebook
-     * @param {String} selector
+     * @param {string} selector
      * @param {dictionary} options - Dictionary of keyword arguments.  
      *                     events: $(Events) instance  
      *                     keyboard_manager: KeyboardManager instance  
@@ -315,7 +315,7 @@ define([
     };
     
     /**
-     * trigger a warning dialog about missing functionality from newer minor versions
+     * Trigger a warning dialog about missing functionality from newer minor versions
      */
     Notebook.prototype.warn_nbformat_minor = function (event) {
         var v = 'v' + this.nbformat + '.';
@@ -354,9 +354,9 @@ define([
     /**
      * Scroll the top of the page to a given cell.
      * 
-     * @param {Number} cell_number An index of the cell to view
-     * @param {Number} time Animation time in milliseconds
-     * @return {Number} Pixel offset from the top of the container
+     * @param {number} cell_number An index of the cell to view
+     * @param {number} time Animation time in milliseconds
+     * @return {number} Pixel offset from the top of the container
      */
     Notebook.prototype.scroll_to_cell = function (cell_number, time) {
         var cells = this.get_cells();
@@ -384,6 +384,10 @@ define([
 
     // Edit Notebook metadata
 
+    /**
+     * Display a dialog that allows the user to edit the Notebook's metadata.
+     * @return {null}
+     */
     Notebook.prototype.edit_metadata = function () {
         var that = this;
         dialog.edit_metadata({
@@ -410,7 +414,7 @@ define([
     /**
      * Get a particular cell element.
      * 
-     * @param {Number} index An index of a cell to select
+     * @param {number} index An index of a cell to select
      * @return {jQuery} A selector of the given cell.
      */
     Notebook.prototype.get_cell_element = function (index) {
@@ -425,7 +429,7 @@ define([
     /**
      * Try to get a particular cell by msg_id.
      * 
-     * @param {String} msg_id A message UUID
+     * @param {string} msg_id A message UUID
      * @return {Cell} Cell or null if no cell was found.
      */
     Notebook.prototype.get_msg_cell = function (msg_id) {
@@ -435,7 +439,7 @@ define([
     /**
      * Count the cells in this notebook.
      * 
-     * @return {Number} The number of cells in this notebook
+     * @return {number} The number of cells in this notebook
      */
     Notebook.prototype.ncells = function () {
         return this.get_cell_elements().length;
@@ -457,7 +461,7 @@ define([
     /**
      * Get a Cell object from this notebook.
      * 
-     * @param {Number} index An index of a cell to retrieve
+     * @param {number} index An index of a cell to retrieve
      * @return {Cell} Cell or null if no cell was found.
      */
     Notebook.prototype.get_cell = function (index) {
@@ -503,7 +507,7 @@ define([
      * Get the numeric index of a given cell.
      * 
      * @param {Cell} cell The provided cell
-     * @return {Number} The cell's numeric index or null if no cell was found.
+     * @return {number} The cell's numeric index or null if no cell was found.
      */
     Notebook.prototype.find_cell_index = function (cell) {
         var result = null;
@@ -518,8 +522,8 @@ define([
     /**
      * Get a given index , or the selected index if none is provided.
      * 
-     * @param {Number} index A cell's index
-     * @return {Number} The given index, or selected index if none is provided.
+     * @param {number} index A cell's index
+     * @return {number} The given index, or selected index if none is provided.
      */
     Notebook.prototype.index_or_selected = function (index) {
         var i;
@@ -546,7 +550,7 @@ define([
     /**
      * Check whether a cell index is valid.
      * 
-     * @param {Number} index A cell index
+     * @param {number} index A cell index
      * @return True if the index is valid, false otherwise
      */
     Notebook.prototype.is_valid_cell_index = function (index) {
@@ -560,7 +564,7 @@ define([
     /**
      * Get the index of the currently selected cell.
      
-     * @return {Number} The selected cell's numeric index
+     * @return {number} The selected cell's numeric index
      */
     Notebook.prototype.get_selected_index = function () {
         var result = null;
@@ -578,7 +582,7 @@ define([
     /**
      * Programmatically select a cell.
      * 
-     * @param {Number} index A cell's index
+     * @param {number} index A cell's index
      * @return {Notebook} This notebook
      */
     Notebook.prototype.select = function (index) {
@@ -635,7 +639,7 @@ define([
     /**
      * Gets the index of the cell that is in edit mode.
      *
-     * @return index {int}
+     * @return index {integer}
      **/
     Notebook.prototype.get_edit_index = function () {
         var result = null;
@@ -650,7 +654,7 @@ define([
     /**
      * Handle when a a cell blurs and the notebook should enter command mode.
      *
-     * @param [cell] {Cell} Cell to enter command mode on.
+     * @param {Cell} [cell] Cell to enter command mode on.
      **/
     Notebook.prototype.handle_command_mode = function (cell) {
         if (this.mode !== 'command') {
@@ -677,7 +681,7 @@ define([
     /**
      * Handle when a cell fires it's edit_mode event.
      *
-     * @param [cell] {Cell} Cell to enter edit mode on.
+     * @param {Cell} [cell] Cell to enter edit mode on.
      **/
     Notebook.prototype.handle_edit_mode = function (cell) {
         if (cell && this.mode !== 'edit') {
@@ -713,7 +717,7 @@ define([
     /**
      * Move given (or selected) cell up and select it.
      * 
-     * @param [index] {integer} cell index
+     * @param {integer} [index] cell index
      * @return {Notebook} This notebook
      **/
     Notebook.prototype.move_cell_up = function (index) {
@@ -737,7 +741,7 @@ define([
     /**
      * Move given (or selected) cell down and select it
      * 
-     * @param [index] {integer} cell index
+     * @param {integer} [index] cell index
      * @return {Notebook} This notebook
      **/
     Notebook.prototype.move_cell_down = function (index) {
@@ -763,7 +767,7 @@ define([
     /**
      * Delete a cell from the notebook.
      * 
-     * @param [index] A cell's numeric index
+     * @param {integer} [index] cell's numeric index
      * @return {Notebook} This notebook
      */
     Notebook.prototype.delete_cell = function (index) {
@@ -846,10 +850,10 @@ define([
      *
      * Index will be brought back into the accessible range [0,n]
      *
-     * @param [type] {string} in ['code','markdown', 'raw'], defaults to 'code'
-     * @param [index] {int} a valid index where to insert cell
+     * @param {string} [type] in ['code','markdown', 'raw'], defaults to 'code'
+     * @param {integer} [index] a valid index where to insert cell
      *
-     * @return cell {cell|null} created cell or null
+     * @return {Cell|null} created cell or null
      **/
     Notebook.prototype.insert_cell_at_index = function(type, index){
 
@@ -917,9 +921,9 @@ define([
      * Insert an element at given cell index.
      * return true if everything whent fine.
      *
-     * @param element {dom_element} a cell element
-     * @param [index] {int} a valid index where to inser cell
      * @private
+     * @param {HTMLElement} element - a cell element
+     * @param {integer} [index] a valid index where to inser cell
      **/
     Notebook.prototype._insert_element_at_index = function(element, index){
         if (element === undefined){
@@ -954,10 +958,10 @@ define([
      *
      * default index value is the one of currently selected cell
      *
-     * @param [type] {string} cell type
-     * @param [index] {integer}
+     * @param {string} [type] cell type
+     * @param {integer} [index]
      *
-     * @return handle to created cell or null
+     * @return {Cell|null} handle to created cell or null
      **/
     Notebook.prototype.insert_cell_above = function (type, index) {
         index = this.index_or_selected(index);
@@ -970,10 +974,10 @@ define([
      *
      * default index value is the one of currently selected cell
      *
-     * @param [type] {string} cell type
-     * @param [index] {integer}
+     * @param {string} [type] cell type
+     * @param {integer} [index]
      *
-     * @return handle to created cell or null
+     * @return {Cell|null} handle to created cell or null
      **/
     Notebook.prototype.insert_cell_below = function (type, index) {
         index = this.index_or_selected(index);
@@ -984,9 +988,9 @@ define([
     /**
      * Insert cell at end of notebook
      *
-     * @param {String} type cell type
+     * @param {string} type cell type
      *
-     * @return the added cell; or null
+     * @return {Cell|null} the added cell; or null
      **/
     Notebook.prototype.insert_cell_at_bottom = function (type){
         var len = this.ncells();
@@ -996,7 +1000,7 @@ define([
     /**
      * Turn a cell into a code cell.
      * 
-     * @param {Number} [index] A cell's index
+     * @param {number} [index] A cell's index
      */
     Notebook.prototype.to_code = function (index) {
         var i = this.index_or_selected(index);
@@ -1027,7 +1031,7 @@ define([
     /**
      * Turn a cell into a Markdown cell.
      * 
-     * @param {Number} [index] A cell's index
+     * @param {number} [index] A cell's index
      */
     Notebook.prototype.to_markdown = function (index) {
         var i = this.index_or_selected(index);
@@ -1064,7 +1068,7 @@ define([
     /**
      * Turn a cell into a raw text cell.
      * 
-     * @param {Number} [index] A cell's index
+     * @param {number} [index] A cell's index
      */
     Notebook.prototype.to_raw = function (index) {
         var i = this.index_or_selected(index);
@@ -1095,11 +1099,11 @@ define([
         }
     };
     
+    /**
+     * warn about heading cells being removed
+     * @private
+     */
     Notebook.prototype._warn_heading = function () {
-        /**
-         * warn about heading cells being removed
-         * @private
-         */
         dialog.modal({
             notebook: this,
             keyboard_manager: this.keyboard_manager,
@@ -1116,13 +1120,13 @@ define([
         });
     };
     
-    Notebook.prototype.to_heading = function (index, level) {
     /**
      * Turn a cell into a markdown cell with a heading.
      * 
-     * @param {Number} [index] A cell's index
-     * @param {Number} [level] A heading level (e.g., 1 for h1)
+     * @param {number} [index] A cell's index
+     * @param {number} [level] A heading level (e.g., 1 for h1)
      */
+    Notebook.prototype.to_heading = function (index, level) {
         this.to_markdown(index);
         level = level || 1;
         var i = this.index_or_selected(index);
@@ -1313,7 +1317,7 @@ define([
     /**
      * Hide a cell's output.
      * 
-     * @param {Number} index A cell's numeric index
+     * @param {integer} index - A cell's numeric index
      */
     Notebook.prototype.collapse_output = function (index) {
         var i = this.index_or_selected(index);
@@ -1340,7 +1344,7 @@ define([
     /**
      * Show a cell's output.
      * 
-     * @param {Number} index A cell's numeric index
+     * @param {integer} index - A cell's numeric index
      */
     Notebook.prototype.expand_output = function (index) {
         var i = this.index_or_selected(index);
@@ -1367,7 +1371,7 @@ define([
     /**
      * Clear the selected CodeCell's output area.
      * 
-     * @param {Number} index A cell's numeric index
+     * @param {integer} index - A cell's numeric index
      */
     Notebook.prototype.clear_output = function (index) {
         var i = this.index_or_selected(index);
@@ -1393,7 +1397,7 @@ define([
     /**
      * Scroll the selected CodeCell's output area.
      * 
-     * @param {Number} index A cell's numeric index
+     * @param {integer} index - A cell's numeric index
      */
     Notebook.prototype.scroll_output = function (index) {
         var i = this.index_or_selected(index);
@@ -1419,7 +1423,7 @@ define([
 
     /** Toggle whether a cell's output is collapsed or expanded.
      * 
-     * @param {Number} index A cell's numeric index
+     * @param {integer} index - A cell's numeric index
      */
     Notebook.prototype.toggle_output = function (index) {
         var i = this.index_or_selected(index);
@@ -1446,7 +1450,7 @@ define([
     /**
      * Toggle a scrollbar for long cell outputs.
      * 
-     * @param {Number} index A cell's numeric index
+     * @param {integer} index - A cell's numeric index
      */
     Notebook.prototype.toggle_output_scroll = function (index) {
         var i = this.index_or_selected(index);
@@ -1676,8 +1680,8 @@ define([
     /**
      * Execute a contiguous range of cells.
      * 
-     * @param {Number} start Index of the first cell to execute (inclusive)
-     * @param {Number} end Index of the last cell to execute (exclusive)
+     * @param {integer} start - Index of the first cell to execute (inclusive)
+     * @param {integer} end - Index of the last cell to execute (exclusive)
      */
     Notebook.prototype.execute_cell_range = function (start, end) {
         this.command_mode();
@@ -1692,7 +1696,7 @@ define([
     /**
      * Getter method for this notebook's name.
      * 
-     * @return {String} This notebook's name (excluding file extension)
+     * @return {string} This notebook's name (excluding file extension)
      */
     Notebook.prototype.get_notebook_name = function () {
         var nbname = this.notebook_name.substring(0,this.notebook_name.length-6);
@@ -1702,7 +1706,7 @@ define([
     /**
      * Setter method for this notebook's name.
      *
-     * @param {String} name A new name for this notebook
+     * @param {string} name A new name for this notebook
      */
     Notebook.prototype.set_notebook_name = function (name) {
         var parent = utils.url_path_split(this.notebook_path)[0];
@@ -1713,8 +1717,8 @@ define([
     /**
      * Check that a notebook's name is valid.
      * 
-     * @param {String} nbname A name for this notebook
-     * @return {Boolean} True if the name is valid, false if invalid
+     * @param {string} nbname - A name for this notebook
+     * @return {boolean} True if the name is valid, false if invalid
      */
     Notebook.prototype.test_notebook_name = function (nbname) {
         nbname = nbname || '';
@@ -1728,7 +1732,7 @@ define([
     /**
      * Load a notebook from JSON (.ipynb).
      * 
-     * @param {Object} data JSON representation of a notebook
+     * @param {Object} data - JSON representation of a notebook
      */
     Notebook.prototype.fromJSON = function (data) {
 
@@ -1814,7 +1818,7 @@ define([
     /**
      * Start an autosave timer, for periodically saving the notebook.
      * 
-     * @param {Integer} interval the autosave interval in milliseconds
+     * @param {integer} interval - the autosave interval in milliseconds
      */
     Notebook.prototype.set_autosave_interval = function (interval) {
         var that = this;
@@ -1882,8 +1886,8 @@ define([
     /**
      * Success callback for saving a notebook.
      * 
-     * @param {Integer} start Time when the save request start
-     * @param {Object} data JSON representation of a notebook
+     * @param {integer} start - Time when the save request start
+     * @param {Object} data - JSON representation of a notebook
      */
     Notebook.prototype.save_notebook_success = function (start, data) {
         this.set_dirty(false);
@@ -1922,7 +1926,7 @@ define([
     /**
      * update the autosave interval based on how long the last save took
      * 
-     * @param {Integer} timestamp when the save request started
+     * @param {integer} timestamp - when the save request started
      * @private
      */
     Notebook.prototype._update_autosave_interval = function (start) {
@@ -1941,7 +1945,6 @@ define([
 
     /**
      * Explicitly trust the output of this notebook.
-     *
      */
     Notebook.prototype.trust_notebook = function () {
         var body = $("<div>").append($("<p>")
@@ -2044,7 +2047,7 @@ define([
     /**
      * Request a notebook's data from the server.
      * 
-     * @param {String} notebook_path A notebook to load
+     * @param {string} notebook_path - A notebook to load
      */
     Notebook.prototype.load_notebook = function (notebook_path) {
         this.notebook_path = notebook_path;
@@ -2268,7 +2271,7 @@ define([
     /**
      * Success callback for listing checkpoints.
      * 
-     * @param {Object} data JSON representation of a checkpoint
+     * @param {Object} data - JSON representation of a checkpoint
      */
     Notebook.prototype.list_checkpoints_success = function (data) {
         this.checkpoints = data;
@@ -2296,13 +2299,18 @@ define([
     /**
      * Success callback for creating a checkpoint.
      * 
-     * @param {Object} data JSON representation of a checkpoint
+     * @param {Object} data - JSON representation of a checkpoint
      */
     Notebook.prototype.create_checkpoint_success = function (data) {
         this.add_checkpoint(data);
         this.events.trigger('checkpoint_created.Notebook', data);
     };
 
+    /**
+     * Display the restore checkpoint dialog
+     * @param  {string} checkpoint ID
+     * @return {null}
+     */
     Notebook.prototype.restore_checkpoint_dialog = function (checkpoint) {
         var that = this;
         checkpoint = checkpoint || this.last_checkpoint;
@@ -2347,7 +2355,7 @@ define([
     /**
      * Restore the notebook to a checkpoint state.
      * 
-     * @param {String} checkpoint ID
+     * @param {string} checkpoint ID
      */
     Notebook.prototype.restore_checkpoint = function (checkpoint) {
         this.events.trigger('notebook_restoring.Notebook', checkpoint);
@@ -2371,7 +2379,7 @@ define([
     /**
      * Delete a notebook checkpoint.
      * 
-     * @param {String} checkpoint ID
+     * @param {string} checkpoint ID
      */
     Notebook.prototype.delete_checkpoint = function (checkpoint) {
         this.events.trigger('notebook_restoring.Notebook', checkpoint);
