@@ -253,14 +253,6 @@ define(['require'
                 env.notebook.delete_cell();
             }
         },
-        'show-other-output':{
-            help: 'show/ignore output from other clients',
-            icon: 'fa-sitemap',
-            help_index: 'gb',
-            handler: function (env) {
-                env.notebook.toggle_ignore_unsolicited_msgs();
-            }
-        },
         'interrupt-kernel':{
             icon: 'fa-stop',
             help_index : 'ha',

@@ -95,7 +95,6 @@ define([
             'space' : 'ipython.scroll-down',
             'down' : 'ipython.select-next-cell',
             'i,i' : 'ipython.interrupt-kernel',
-            'e': 'ipython.show-other-output',
             '0,0' : 'ipython.restart-kernel',
             'd,d' : 'ipython.delete-cell',
             'esc': 'ipython.close-pager',
