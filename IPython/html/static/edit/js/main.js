@@ -73,7 +73,7 @@ require([
     page.show();
 
     window.onbeforeunload = function () {
-        if (!editor.codemirror.isClean(editor.generation)) {
+        if (editor.save_enabled && !editor.codemirror.isClean(editor.generation)) {
             return "Unsaved changes will be lost. Close anyway?";
         }
     };

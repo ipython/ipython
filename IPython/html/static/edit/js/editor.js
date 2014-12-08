@@ -79,6 +79,14 @@ function($,
                 that.events.trigger("file_loaded.Editor", model);
             },
             function(error) {
+                that.events.trigger("file_load_failed.Editor", error);
+                if (error.xhr.responseJSON.reason === 'bad format') {
+                    window.location = utils.url_path_join(
+                        that.base_url,
+                        'files',
+                        that.file_path
+                    );
+                }
                 cm.setValue("Error! " + error.message +
                                 "\nSaving disabled.");
                 that.save_enabled = false;

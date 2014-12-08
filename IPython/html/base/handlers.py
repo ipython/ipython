@@ -370,7 +370,8 @@ def json_errors(method):
             message = e.log_message
             self.log.warn(message)
             self.set_status(e.status_code)
-            self.finish(json.dumps(dict(message=message)))
+            reply = dict(message=message, reason=e.reason)
+            self.finish(json.dumps(reply))
         except Exception:
             self.log.error("Unhandled error in API request", exc_info=True)
             status = 500
@@ -378,7 +379,7 @@ def json_errors(method):
             t, value, tb = sys.exc_info()
             self.set_status(status)
             tb_text = ''.join(traceback.format_exception(t, value, tb))
-            reply = dict(message=message, traceback=tb_text)
+            reply = dict(message=message, reason=None, traceback=tb_text)
             self.finish(json.dumps(reply))
         else:
             return result
