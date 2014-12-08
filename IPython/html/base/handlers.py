@@ -87,7 +87,7 @@ class AuthenticatedHandler(web.RequestHandler):
 
     @property
     def login_handler(self):
-        """Return the login handler for this application."""
+        """Return the login handler for this application, if any."""
         return self.settings.get('login_handler_class', None)
 
     @property

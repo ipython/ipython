@@ -797,7 +797,7 @@ class NotebookApp(BaseIPythonApplication):
                 ssl_options['keyfile'] = self.keyfile
         else:
             ssl_options = None
-        self.login_handler_class.validate_notebook_app_security(self, ssl_options=ssl_options)
+        self.login_handler_class.validate_security(self, ssl_options=ssl_options)
         self.http_server = httpserver.HTTPServer(self.web_app, ssl_options=ssl_options,
                                                  xheaders=self.trust_xheaders)
 

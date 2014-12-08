@@ -44,14 +44,17 @@ class LoginHandler(IPythonHandler):
 
         self.redirect(self.get_argument('next', default=self.base_url))
     
-    @staticmethod
-    def get_user(handler):
-        """Called by handlers for identifying the current user."""
+    @classmethod
+    def get_user(cls, handler):
+        """Called by handlers.get_current_user for identifying the current user.
+        
+        See tornado.web.RequestHandler.get_current_user for details.
+        """
         # Can't call this get_current_user because it will collide when
         # called on LoginHandler itself.
         
         user_id = handler.get_secure_cookie(handler.cookie_name)
-        # For now the user_id should not return empty, but it could eventually
+        # For now the user_id should not return empty, but it could, eventually.
         if user_id == '':
             user_id = 'anonymous'
         if user_id is None:
@@ -63,18 +66,22 @@ class LoginHandler(IPythonHandler):
         
     
     @classmethod
-    def validate_notebook_app_security(cls, notebook_app, ssl_options=None):
-        if not notebook_app.ip:
+    def validate_security(cls, app, ssl_options=None):
+        """Check the notebook application's security.
+        
+        Show messages, or abort if necessary, based on the security configuration.
+        """
+        if not app.ip:
             warning = "WARNING: The notebook server is listening on all IP addresses"
             if ssl_options is None:
-                notebook_app.log.critical(warning + " and not using encryption. This "
+                app.log.critical(warning + " and not using encryption. This "
                     "is not recommended.")
-            if not notebook_app.password:
-                notebook_app.log.critical(warning + " and not using authentication. "
+            if not app.password:
+                app.log.critical(warning + " and not using authentication. "
                     "This is highly insecure and not recommended.")
 
-    @staticmethod
-    def password_from_settings(settings):
+    @classmethod
+    def password_from_settings(cls, settings):
         """Return the hashed password from the tornado settings.
         
         If there is no configured password, an empty string will be returned.
