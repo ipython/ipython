@@ -80,7 +80,7 @@
   </div>
 </noscript>
 
-<div id="header" class="navbar navbar-static-top">
+<div id="header" class="navbar navbar-fixed-top">
   <div id="header-container" class="container">
   <div id="ipython_notebook" class="nav navbar-brand pull-left"><a href="{{base_url}}tree" alt='dashboard'>{% block logo %}<img src='{{static_url("base/images/logo.png") }}' alt='Jupyter Notebook'/>{% endblock %}</a></div>
 
@@ -88,9 +88,9 @@
 
     <span id="login_widget">
       {% if logged_in %}
-        <button id="logout">Logout</button>
+        <button id="logout" class="btn btn-sm navbar-btn">Logout</button>
       {% elif login_available and not logged_in %}
-        <button id="login">Login</button>
+        <button id="login" class="btn btn-sm navbar-btn">Login</button>
       {% endif %}
     </span>
 

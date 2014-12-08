@@ -20,20 +20,15 @@ body {
 div#header {
     /* Initially hidden to prevent FLOUC */
     display: none;
-    margin-bottom: -6px;
-    position: fixed;
-    top: 0;
-    width: 100%;
     background-color: @body-bg;
-    min-height: 31px;
 
     /* Display over codemirror */
     z-index: 100;
 
     #header-container {
-        margin-bottom: 0px;
         padding-left: 30px;
         padding-bottom: 5px;
+        padding-top: 5px;
         .border-box-sizing();
     }
 
@@ -51,6 +46,8 @@ div#header {
 
 #ipython_notebook {
     padding-left: 0px;
+    padding-top: (@navbar-height - @logo_height) / 2;
+    padding-bottom: (@navbar-height - @logo_height) / 2;
 }
 
 #noscript {
@@ -65,8 +62,8 @@ div#header {
 
 #ipython_notebook img {
     font-family: Verdana, "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
-    height: 24px;
-    text-decoration:none;
+    height: @logo_height;
+    text-decoration: none;
     color: black;
 }
 
@@ -85,9 +82,6 @@ div#header {
 input.ui-button {
     padding: 0.3em 0.9em;
 }
-.navbar span {
-  margin-top: 3px;
-}
 
 span#login_widget {
     float: right;
@@ -96,9 +90,7 @@ span#login_widget {
 span#login_widget > .button,
 #logout
 {
-    .btn();
     .btn-default();
-    .btn-sm();
 }
 
 .nav-header {
