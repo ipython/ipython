@@ -155,16 +155,13 @@ function($,
     
     Editor.prototype._set_codemirror_options = function (options) {
         // update codemirror options from a dict
-        for (var opt in options) {
-            if (!options.hasOwnProperty(opt)) {
-                continue;
-            }
-            var value = options[opt];
+        var codemirror = this.codemirror;
+        $.map(options, function (value, opt) {
             if (value === null) {
                 value = CodeMirror.defaults[opt];
             }
-            this.codemirror.setOption(opt, value);
-        }
+            codemirror.setOption(opt, value);
+        });
     };
     
     Editor.prototype.update_codemirror_options = function (options) {
