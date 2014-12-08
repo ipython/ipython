@@ -219,6 +219,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         widget._existing = False
         widget._may_close = True
         widget._confirm_exit = self.confirm_exit
+        widget._display_banner = self.display_banner
         return widget
 
     def new_frontend_slave(self, current_widget):
@@ -241,6 +242,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         widget._existing = True
         widget._may_close = False
         widget._confirm_exit = False
+        widget._display_banner = self.display_banner
         widget.kernel_client = kernel_client
         widget.kernel_manager = current_widget.kernel_manager
         return widget

@@ -171,6 +171,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._request_info = {}
         self._request_info['execute'] = {};
         self._callback_dict = {}
+        self._display_banner = True
 
         # Configure the ConsoleWidget.
         self.tab_width = 4
