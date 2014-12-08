@@ -336,7 +336,7 @@ define([
                 }
             }
         });
-    }
+    };
 
     /**
      * Set the dirty flag, and trigger the set_dirty.Notebook event
@@ -921,7 +921,6 @@ define([
      * Insert an element at given cell index.
      * return true if everything whent fine.
      *
-     * @private
      * @param {HTMLElement} element - a cell element
      * @param {integer} [index] a valid index where to inser cell
      **/
@@ -1101,7 +1100,6 @@ define([
     
     /**
      * warn about heading cells being removed
-     * @private
      */
     Notebook.prototype._warn_heading = function () {
         dialog.modal({
@@ -1543,7 +1541,6 @@ define([
     /**
      * Once a session is started, link the code cells to the kernel and pass the 
      * comm manager to the widget manager
-     * @private
      */
     Notebook.prototype._session_started = function (){
         this._session_starting = false;
@@ -1557,7 +1554,6 @@ define([
         }
     };
     /**
-     * @private
      */
     Notebook.prototype._session_start_failed = function (jqxhr, status, error){
         this._session_starting = false;
@@ -1927,7 +1923,6 @@ define([
      * update the autosave interval based on how long the last save took
      * 
      * @param {integer} timestamp - when the save request started
-     * @private
      */
     Notebook.prototype._update_autosave_interval = function (start) {
         var duration = (new Date().getTime() - start);

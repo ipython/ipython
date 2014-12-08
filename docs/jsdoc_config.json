@@ -3,7 +3,8 @@
         "parser": "gfm"
     },
     "plugins": [ 
-        "plugins/markdown" 
+        "plugins/markdown" ,
+        "jsdoc_plugin.js"
     ],
     "source": {
         "include": [
