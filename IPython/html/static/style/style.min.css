@@ -9266,7 +9266,7 @@ h6:hover .anchor-link {
 .widget-text {
   /* String Textbox - used for TextBoxView and TextAreaView */
   width: 350px;
-  margin: 0px !important;
+  margin: 0px;
 }
 .widget-listbox {
   /* Listbox */
@@ -9276,7 +9276,7 @@ h6:hover .anchor-link {
 .widget-numeric-text {
   /* Single Line Textbox - used for IntTextView and FloatTextView */
   width: 150px;
-  margin: 0px !important;
+  margin: 0px;
 }
 .widget-progress {
   /* Progress Bar */
@@ -9314,10 +9314,6 @@ h6:hover .anchor-link {
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  margin-top: 0px !important;
-  margin-bottom: 0px !important;
-  margin-right: 5px;
-  margin-left: 5px;
 }
 .widget-hbox input[type="checkbox"] {
   margin-top: 9px;

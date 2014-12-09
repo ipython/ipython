@@ -30,7 +30,11 @@ define([
             /**
              * Set a css attr of the widget view.
              */
-            this.$checkbox.css(name, value);
+            if (name == 'padding' || name == 'margin') {
+                this.$el.css(name, value);
+            } else {
+                this.$checkbox.css(name, value);
+            }
         },
 
         handle_click: function() {

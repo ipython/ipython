@@ -57,6 +57,8 @@ define([
                 this.$slider_container.css(name, value);
             } else if (name == 'width' || name == 'height' || name == 'background') {
                 this.$slider_container.css(name, value);
+            } else if (name == 'padding' || name == 'margin') {
+                this.$el.css(name, value);
             } else {
                 this.$slider.css(name, value);
             }
@@ -333,7 +335,11 @@ define([
             /**
              * Set a css attr of the widget view.
              */
-            this.$textbox.css(name, value);
+            if (name == 'padding' || name == 'margin') {
+                this.$el.css(name, value);
+            } else {
+                this.$textbox.css(name, value);
+            }
         },
 
         events: {
@@ -468,6 +474,8 @@ define([
                 this.$progress.css(name, value);
             } else if (name == 'color') {                
                 this.$bar.css('background', value);
+            } else if (name == 'padding' || name == 'margin') {
+                this.$el.css(name, value);
             } else {
                 this.$bar.css(name, value);
             }

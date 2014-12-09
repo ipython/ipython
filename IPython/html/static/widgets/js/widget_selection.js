@@ -135,6 +135,8 @@ define([
             } else if (name == 'height') {
                 this.$droplabel.css(name, value);
                 this.$dropbutton.css(name, value);
+            } else if (name == 'padding' || name == 'margin') {
+                this.$el.css(name, value);
             } else {
                 this.$droplist.css(name, value);
                 this.$droplabel.css(name, value);
@@ -241,7 +243,11 @@ define([
             /**
              * Set a css attr of the widget view.
              */
-            this.$container.css(name, value);
+            if (name == 'padding' || name == 'margin') {
+                this.$el.css(name, value);
+            } else {
+                this.$container.css(name, value);
+            }
         },
 
         handle_click: function (e) {
@@ -356,8 +362,12 @@ define([
             /**
              * Set a css attr of the widget view.
              */
-            this._css_state[name] = value;
-            this.update_style_traits();
+            if (name == 'padding' || name == 'margin') {
+                this.$el.css(name, value);
+            } else {
+                this._css_state[name] = value;
+                this.update_style_traits();
+            }
         },
 
         update_style_traits: function(button) {
@@ -478,7 +488,11 @@ define([
             /**
              * Set a css attr of the widget view.
              */
-            this.$listbox.css(name, value);
+            if (name == 'padding' || name == 'margin') {
+                this.$el.css(name, value);
+            } else {
+                this.$listbox.css(name, value);
+            }
         },
 
         handle_click: function (e) {
