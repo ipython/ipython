@@ -2,29 +2,17 @@
 """
 Paging capabilities for IPython.core
 
-Authors:
-
-* Brian Granger
-* Fernando Perez
-
 Notes
 -----
 
-For now this uses ipapi, so it can't be in IPython.utils.  If we can get
+For now this uses IPython hooks, so it can't be in IPython.utils.  If we can get
 rid of that dependency, we could move it there.
 -----
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 from __future__ import print_function
 
 import os
@@ -35,6 +23,7 @@ import tempfile
 from io import UnsupportedOperation
 
 from IPython import get_ipython
+from IPython.core.display import display
 from IPython.core.error import TryNext
 from IPython.utils.data import chop
 from IPython.utils import io
@@ -43,9 +32,24 @@ from IPython.utils.terminal import get_terminal_size
 from IPython.utils import py3compat
 
 
-#-----------------------------------------------------------------------------
-# Classes and functions
-#-----------------------------------------------------------------------------
+def display_page(strng, start=0, screen_lines=25):
+    """Just display, no paging. screen_lines is ignored."""
+    if isinstance(strng, dict):
+        data = strng
+    else:
+        if start:
+            strng = u'\n'.join(strng.splitlines()[start:])
+        data = {'text/plain': strng}
+    display(data, raw=True)
+
+
+def as_hook(page_func):
+    """Wrap a pager func to strip the `self` arg
+    
+    so it can be called as a hook.
+    """
+    return lambda self, *args, **kwargs: page_func(*args, **kwargs)
+
 
 esc_re = re.compile(r"(\x1b[^m]+m)")
 
@@ -132,7 +136,7 @@ def _detect_screen_size(screen_lines_def):
     #print '***Screen size:',screen_lines_real,'lines x',\
     #screen_cols,'columns.' # dbg
 
-def page(strng, start=0, screen_lines=0, pager_cmd=None):
+def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
     """Display a string, piping through a pager after a certain length.
     
     strng can be a mime-bundle dict, supplying multiple representations,
@@ -159,19 +163,6 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
     # for compatibility with mime-bundle form:
     if isinstance(strng, dict):
         strng = strng['text/plain']
-
-    # Some routines may auto-compute start offsets incorrectly and pass a
-    # negative value.  Offset to 0 for robustness.
-    start = max(0, start)
-
-    # first, try the hook
-    ip = get_ipython()
-    if ip:
-        try:
-            ip.hooks.show_in_pager(strng)
-            return
-        except TryNext:
-            pass
 
     # Ugly kludge, but calling curses.initscr() flat out crashes in emacs
     TERM = os.environ.get('TERM','dumb')
@@ -250,6 +241,32 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
                 retval = 1
         if retval is not None:
             page_dumb(strng,screen_lines=screen_lines)
+
+
+def page(data, start=0, screen_lines=0, pager_cmd=None):
+    """Display content in a pager, piping through a pager after a certain length.
+    
+    data can be a mime-bundle dict, supplying multiple representations,
+    keyed by mime-type, or text.
+    
+    Pager is dispatched via the `show_in_pager` IPython hook.
+    If no hook is registered, `pager_page` will be used.
+    """
+    # Some routines may auto-compute start offsets incorrectly and pass a
+    # negative value.  Offset to 0 for robustness.
+    start = max(0, start)
+
+    # first, try the hook
+    ip = get_ipython()
+    if ip:
+        try:
+            ip.hooks.show_in_pager(data, start=start, screen_lines=screen_lines)
+            return
+        except TryNext:
+            pass
+    
+    # fallback on default pager
+    return pager_page(data, start, screen_lines, pager_cmd)
 
 
 def page_file(fname, start=0, pager_cmd=None):
