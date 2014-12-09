@@ -109,8 +109,7 @@ class KernelSpecManager(HasTraits):
 
     @property
     def _native_kernel_resource_dir(self):
-        # TODO: This may be different when we actually have any resources
-        return os.path.dirname(__file__)
+        return pjoin(os.path.dirname(__file__), 'resources')
 
     def find_kernel_specs(self):
         """Returns a dict mapping kernel names to resource directories."""
@@ -128,7 +127,8 @@ class KernelSpecManager(HasTraits):
         Raises :exc:`NoSuchKernel` if the given kernel name is not found.
         """
         if kernel_name in {'python', NATIVE_KERNEL_NAME}:
-            return KernelSpec(self._native_kernel_resource_dir, **self._native_kernel_dict)
+            return KernelSpec(resource_dir=self._native_kernel_resource_dir,
+                              **self._native_kernel_dict)
 
         d = self.find_kernel_specs()
         try:
@@ -187,7 +187,9 @@ class KernelSpecManager(HasTraits):
         os.makedirs(path, mode=0o755)
         with open(pjoin(path, 'kernel.json'), 'w') as f:
             json.dump(self._native_kernel_dict, f, indent=1)
-        # TODO: Copy icons into directory
+        copy_from = self._native_kernel_resource_dir
+        for file in os.listdir(copy_from):
+            shutil.copy(pjoin(copy_from, file), path)
         return path
 
 def find_kernel_specs():

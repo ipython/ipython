@@ -9685,6 +9685,10 @@ fieldset[disabled] #kernel_selector_widget > button.active {
 #kernel_selector_widget > button > span.caret {
   margin-top: 0px;
 }
+#kernel_selector_widget > img#current_kernel_logo {
+  width: 32px;
+  height: 32px;
+}
 #menubar {
   box-sizing: border-box;
   -moz-box-sizing: border-box;

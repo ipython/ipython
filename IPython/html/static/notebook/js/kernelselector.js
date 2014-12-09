@@ -85,6 +85,7 @@ define([
         this.events.on('spec_changed.Kernel', function(event, data) {
             that.current_selection = data.name;
             that.element.find("#current_kernel_spec").find('.kernel_name').text(data.display_name);
+            that.element.find("#current_kernel_logo").attr("src", "/kernelspecs/"+data.name+"/logo-64x64.png");
         });
         
         this.events.on('kernel_created.Session', function(event, data) {
@@ -95,6 +96,14 @@ define([
                 var ks = that.kernelspecs[data.kernel.name];
                 that.events.trigger('spec_changed.Kernel', ks);
             }
+        });
+        
+        var logo_img = this.element.find("#current_kernel_logo")
+        logo_img.on("load", function() {
+            logo_img.show();
+        });
+        logo_img.on("error", function() {
+            logo_img.hide();
         });
     };
 
