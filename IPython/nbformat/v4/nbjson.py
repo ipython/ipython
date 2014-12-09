@@ -49,6 +49,7 @@ class JSONWriter(NotebookWriter):
         kwargs['indent'] = 1
         kwargs['sort_keys'] = True
         kwargs['separators'] = (',',': ')
+        kwargs.setdefault('ensure_ascii', False)
         # don't modify in-memory dict
         nb = copy.deepcopy(nb)
         if kwargs.pop('split_lines', True):
