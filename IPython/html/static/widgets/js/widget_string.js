@@ -125,7 +125,11 @@ define([
             /**
              * Set a css attr of the widget view.
              */
-            this.$textbox.css(name, value);
+            if (name == 'padding' || name == 'margin') {
+                this.$el.css(name, value);
+            } else {
+                this.$textbox.css(name, value);
+            }
         },
         
         events: {
@@ -208,7 +212,11 @@ define([
             /**
              * Set a css attr of the widget view.
              */
-            this.$textbox.css(name, value);
+            if (name == 'padding' || name == 'margin') {
+                this.$el.css(name, value);
+            } else {
+                this.$textbox.css(name, value);
+            }
         },
         
         events: {

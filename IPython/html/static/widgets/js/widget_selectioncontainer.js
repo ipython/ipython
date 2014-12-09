@@ -184,7 +184,11 @@ define([
             /**
              * Set a css attr of the widget view.
              */
-            this.$tabs.css(name, value);
+            if (name == 'padding' || name == 'margin') {
+                this.$el.css(name, value);
+            } else {
+                this.$tabs.css(name, value);
+            }
         },
 
         remove_child_view: function(view) {

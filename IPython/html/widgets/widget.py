@@ -427,7 +427,7 @@ class DOMWidget(Widget):
     
     width = CUnicode(sync=True)
     height = CUnicode(sync=True)
-    padding = CUnicode(sync=True)
+    padding = CUnicode(2.5, sync=True)
     margin = CUnicode(sync=True)
 
     color = Unicode(sync=True)
