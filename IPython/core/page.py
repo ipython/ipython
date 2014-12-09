@@ -164,10 +164,6 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
     if isinstance(strng, dict):
         strng = strng['text/plain']
 
-    # Some routines may auto-compute start offsets incorrectly and pass a
-    # negative value.  Offset to 0 for robustness.
-    start = max(0, start)
-    
     # Ugly kludge, but calling curses.initscr() flat out crashes in emacs
     TERM = os.environ.get('TERM','dumb')
     if TERM in ['dumb','emacs'] and os.name != 'nt':
