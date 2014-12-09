@@ -7752,9 +7752,6 @@ div#header {
   /* Initially hidden to prevent FLOUC */
   display: none;
   background-color: #ffffff;
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
   /* Display over codemirror */
   z-index: 100;
 }
@@ -8210,6 +8207,12 @@ div.cell.selected {
 div.cell.edit_mode {
   border-color: green;
 }
+/* Don't border the cells when printing */
+@media print {
+  div.cell {
+    border-color: transparent !important;
+  }
+}
 div.prompt {
   /* This needs to be wide enough for 3 digit prompt numbers: In[100]: */
   min-width: 15ex;
@@ -8298,6 +8301,12 @@ div.unrecognized_cell .inner_cell a:hover {
 @media (max-width: 480px) {
   div.unrecognized_cell > div.prompt {
     display: none;
+  }
+}
+/* avoid page breaking on code cells when printing */
+@media print {
+  div.code_cell {
+    page-break-inside: avoid;
   }
 }
 /* any special styling for code cells that are currently running goes here */
@@ -9495,6 +9504,13 @@ p {
   -webkit-box-shadow: 1px 4px 9px -6px rgba(0, 0, 0, 0.25);
   box-shadow: 1px 4px 9px -6px rgba(0, 0, 0, 0.25);
 }
+/* Hide the header when printing */
+@media print {
+  #header,
+  #header-spacer {
+    display: none !important;
+  }
+}
 /* CSS for the cell toolbar */
 .celltoolbar {
   border: thin solid #CFCFCF;
@@ -9681,7 +9697,6 @@ fieldset[disabled] #kernel_selector_widget > button.active {
   margin-top: 0px;
 }
 #menubar {
-  margin-top: 0px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
