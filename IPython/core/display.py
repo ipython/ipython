@@ -164,20 +164,13 @@ def display(*objs, **kwargs):
         format = InteractiveShell.instance().display_formatter.format
 
     for obj in objs:
-
-        # If _ipython_display_ is defined, use that to display this object.
-        display_method = _safe_get_formatter_method(obj, '_ipython_display_')
-        if display_method is not None:
-            try:
-                display_method(**kwargs)
-            except NotImplementedError:
-                pass
-            else:
-                continue
         if raw:
             publish_display_data(data=obj, metadata=metadata)
         else:
             format_dict, md_dict = format(obj, include=include, exclude=exclude)
+            if not format_dict:
+                # nothing to display (e.g. _ipython_display_ took over)
+                continue
             if metadata:
                 # kwarg-specified metadata gets precedence
                 _merge(md_dict, metadata)

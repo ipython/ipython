@@ -221,20 +221,13 @@ class DisplayHook(Configurable):
         """
         self.check_for_underscore()
         if result is not None and not self.quiet():
-            # If _ipython_display_ is defined, use that to display this object.
-            display_method = _safe_get_formatter_method(result, '_ipython_display_')
-            if display_method is not None:
-                try:
-                    return display_method()
-                except NotImplementedError:
-                    pass
-            
             self.start_displayhook()
             self.write_output_prompt()
             format_dict, md_dict = self.compute_format_data(result)
-            self.write_format_data(format_dict, md_dict)
             self.update_user_ns(result)
-            self.log_output(format_dict)
+            if format_dict:
+                self.write_format_data(format_dict, md_dict)
+                self.log_output(format_dict)
             self.finish_displayhook()
 
     def cull_cache(self):
