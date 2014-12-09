@@ -427,7 +427,8 @@ class DOMWidget(Widget):
     
     width = CUnicode(sync=True)
     height = CUnicode(sync=True)
-    padding = CUnicode(2.5, sync=True)
+    # A default padding of 2.5 px makes the widgets look nice when displayed inline.
+    padding = CUnicode("2.5px", sync=True)
     margin = CUnicode(sync=True)
 
     color = Unicode(sync=True)
