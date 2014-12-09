@@ -182,8 +182,10 @@ class NotebookWebApplication(web.Application):
             # authentication
             cookie_secret=ipython_app.cookie_secret,
             login_url=url_path_join(base_url,'/login'),
+            login_handler_class=ipython_app.login_handler_class,
+            logout_handler_class=ipython_app.logout_handler_class,
             password=ipython_app.password,
-            
+
             # managers
             kernel_manager=kernel_manager,
             contents_manager=contents_manager,
@@ -193,7 +195,7 @@ class NotebookWebApplication(web.Application):
             config_manager=config_manager,
 
             # IPython stuff
-            nbextensions_path = ipython_app.nbextensions_path,
+            nbextensions_path=ipython_app.nbextensions_path,
             websocket_url=ipython_app.websocket_url,
             mathjax_url=ipython_app.mathjax_url,
             config=ipython_app.config,
@@ -211,8 +213,8 @@ class NotebookWebApplication(web.Application):
         # Order matters. The first handler to match the URL will handle the request.
         handlers = []
         handlers.extend(load_handlers('tree.handlers'))
-        handlers.extend(load_handlers('auth.login'))
-        handlers.extend(load_handlers('auth.logout'))
+        handlers.extend([(r"/login", settings['login_handler_class'])])
+        handlers.extend([(r"/logout", settings['logout_handler_class'])])
         handlers.extend(load_handlers('files.handlers'))
         handlers.extend(load_handlers('notebook.handlers'))
         handlers.extend(load_handlers('nbconvert.handlers'))
@@ -501,7 +503,6 @@ class NotebookApp(BaseIPythonApplication):
 
     jinja_environment_options = Dict(config=True, 
             help="Supply extra arguments that will be passed to Jinja environment.")
-
     
     enable_mathjax = Bool(True, config=True,
         help="""Whether to enable MathJax for typesetting math/TeX
@@ -639,7 +640,6 @@ class NotebookApp(BaseIPythonApplication):
     def _kernel_spec_manager_default(self):
         return KernelSpecManager(ipython_dir=self.ipython_dir)
 
-
     kernel_spec_manager_class = DottedObjectName('IPython.kernel.kernelspec.KernelSpecManager',
             config=True,
             help="""
@@ -649,6 +649,14 @@ class NotebookApp(BaseIPythonApplication):
             The Api of KernelSpecManager is provisional and might change
             without warning between this version of IPython and the next stable one.
             """)
+
+    login_handler = DottedObjectName('IPython.html.auth.login.LoginHandler',
+        config=True,
+        help='The login handler class to use.')
+
+    logout_handler = DottedObjectName('IPython.html.auth.logout.LogoutHandler',
+        config=True,
+        help='The logout handler class to use.')
 
     trust_xheaders = Bool(False, config=True,
         help=("Whether to trust or not X-Scheme/X-Forwarded-Proto and X-Real-Ip/X-Forwarded-For headers"
@@ -700,7 +708,6 @@ class NotebookApp(BaseIPythonApplication):
         # setting App.notebook_dir implies setting notebook and kernel dirs as well
         self.config.FileContentsManager.root_dir = new
         self.config.MappingKernelManager.root_dir = new
-        
 
     def parse_command_line(self, argv=None):
         super(NotebookApp, self).parse_command_line(argv)
@@ -748,6 +755,8 @@ class NotebookApp(BaseIPythonApplication):
         kls = import_item(self.cluster_manager_class)
         self.cluster_manager = kls(parent=self, log=self.log)
         self.cluster_manager.update_profiles()
+        self.login_handler_class = import_item(self.login_handler)
+        self.logout_handler_class = import_item(self.logout_handler)
 
         kls = import_item(self.config_manager_class)
         self.config_manager = kls(parent=self, log=self.log,
@@ -788,17 +797,10 @@ class NotebookApp(BaseIPythonApplication):
                 ssl_options['keyfile'] = self.keyfile
         else:
             ssl_options = None
-        self.web_app.password = self.password
+        self.login_handler_class.validate_security(self, ssl_options=ssl_options)
         self.http_server = httpserver.HTTPServer(self.web_app, ssl_options=ssl_options,
                                                  xheaders=self.trust_xheaders)
-        if not self.ip:
-            warning = "WARNING: The notebook server is listening on all IP addresses"
-            if ssl_options is None:
-                self.log.critical(warning + " and not using encryption. This "
-                    "is not recommended.")
-            if not self.password:
-                self.log.critical(warning + " and not using authentication. "
-                    "This is highly insecure and not recommended.")
+
         success = None
         for port in random_ports(self.port, self.port_retries+1):
             try:

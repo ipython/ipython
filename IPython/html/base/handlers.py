@@ -68,16 +68,9 @@ class AuthenticatedHandler(web.RequestHandler):
         self.clear_cookie(self.cookie_name)
     
     def get_current_user(self):
-        user_id = self.get_secure_cookie(self.cookie_name)
-        # For now the user_id should not return empty, but it could eventually
-        if user_id == '':
-            user_id = 'anonymous'
-        if user_id is None:
-            # prevent extra Invalid cookie sig warnings:
-            self.clear_login_cookie()
-            if not self.login_available:
-                user_id = 'anonymous'
-        return user_id
+        if self.login_handler is None:
+            return 'anonymous'
+        return self.login_handler.get_user(self)
 
     @property
     def cookie_name(self):
@@ -87,17 +80,15 @@ class AuthenticatedHandler(web.RequestHandler):
         return self.settings.get('cookie_name', default_cookie_name)
     
     @property
-    def password(self):
-        """our password"""
-        return self.settings.get('password', '')
-    
-    @property
     def logged_in(self):
-        """Is a user currently logged in?
-
-        """
+        """Is a user currently logged in?"""
         user = self.get_current_user()
         return (user and not user == 'anonymous')
+
+    @property
+    def login_handler(self):
+        """Return the login handler for this application, if any."""
+        return self.settings.get('login_handler_class', None)
 
     @property
     def login_available(self):
@@ -107,7 +98,9 @@ class AuthenticatedHandler(web.RequestHandler):
         whether the user is already logged in or not.
 
         """
-        return bool(self.settings.get('password', ''))
+        if self.login_handler is None:
+            return False
+        return bool(self.login_handler.login_available(self.settings))
 
 
 class IPythonHandler(AuthenticatedHandler):
