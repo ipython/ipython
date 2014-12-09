@@ -6,6 +6,7 @@ define([
     'jquery',
     'base/js/utils',
 ], function(IPython, $, utils) {
+    "use strict";
     var Contents = function(options) {
         /**
          * Constructor
@@ -90,7 +91,7 @@ define([
             dataType : "json",
         };
         var url = this.api_url(path);
-        params = {};
+        var params = {};
         if (options.type) { params.type = options.type; }
         if (options.format) { params.format = options.format; }
         return utils.promising_ajax(url + '?' + $.param(params), settings);
