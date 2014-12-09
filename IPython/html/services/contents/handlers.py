@@ -62,7 +62,7 @@ class ContentsHandler(IPythonHandler):
         if type_ not in {None, 'directory', 'file', 'notebook'}:
             raise web.HTTPError(400, u'Type %r is invalid' % type_)
 
-        format = self.get_query_argument('format', default=None)#
+        format = self.get_query_argument('format', default=None)
         if format not in {None, 'text', 'base64'}:
             raise web.HTTPError(400, u'Format %r is invalid' % format)
 
