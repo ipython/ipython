@@ -55,7 +55,7 @@ class JSONWriter(NotebookWriter):
         if kwargs.pop('split_lines', True):
             nb = split_lines(nb)
         nb = strip_transient(nb)
-        return py3compat.str_to_unicode(json.dumps(nb, **kwargs), 'utf-8')
+        return py3compat.cast_unicode_py2(json.dumps(nb, **kwargs), 'utf-8')
 
 
 _reader = JSONReader()
