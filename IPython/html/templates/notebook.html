@@ -42,16 +42,9 @@ class="notebook_app"
     <span class="autosave_status"></span>
 </span>
 
-<div id="kernel_selector_widget" class="pull-right dropdown">
-  <!-- empty png in 26 bytes below-->
-  <img id="current_kernel_logo" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D" alt='current kernel logo'>
-  <button class="dropdown-toggle btn btn-sm navbar-btn" data-toggle="dropdown" type='button' id="current_kernel_spec">
-    <span class='kernel_name'>Kernel</span>
-    <span class="caret"></span> 
-  </button>
-  <ul id="kernel_selector" class="dropdown-menu">
-  </ul>
-</div>
+<span id="kernel_logo_widget">
+  <img id="current_kernel_logo"/>
+</span>
 
 {% endblock headercontainer %}
 
@@ -65,6 +58,7 @@ class="notebook_app"
               <span class="navbar-text">Menu</span>
             </button>
             <p id="kernel_indicator" class="navbar-text">
+              <span class="kernel_indicator_name">Kernel</span>
               <i id="kernel_indicator_icon"></i>
             </p>
             <p id="modal_indicator" class="navbar-text">
