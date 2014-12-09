@@ -15,20 +15,6 @@ body {
     .border-box-sizing();
 }
 
-span#notebook_name {
-    height: 1em;
-    line-height: 1em;
-    padding: 3px;
-    border: none;
-    font-size: 146.5%;
-    &:hover{
-        // ensure body is lighter on dark palette, 
-        // and vice versa
-        background-color:contrast(@body-bg, lighten(@body-bg,30%), darken(@body-bg,10%));
-    }
-    .corner-all;
-}
-
 div#notebook_panel {
     margin: 0px 0px 0px 0px;
     padding: 0px;

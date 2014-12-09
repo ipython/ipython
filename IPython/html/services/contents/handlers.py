@@ -47,6 +47,7 @@ class ContentsHandler(IPythonHandler):
             location = self.location_url(model['path'])
             self.set_header('Location', location)
         self.set_header('Last-Modified', model['last_modified'])
+        self.set_header('Content-Type', 'application/json')
         self.finish(json.dumps(model, default=date_default))
 
     @web.authenticated

@@ -29,7 +29,7 @@ define([
 
     SaveWidget.prototype.bind_events = function () {
         var that = this;
-        this.element.find('span#notebook_name').click(function () {
+        this.element.find('span.filename').click(function () {
             that.rename_notebook({notebook: that.notebook});
         });
         this.events.on('notebook_loaded.Notebook', function () {
@@ -130,7 +130,7 @@ define([
 
     SaveWidget.prototype.update_notebook_name = function () {
         var nbname = this.notebook.get_notebook_name();
-        this.element.find('span#notebook_name').text(nbname);
+        this.element.find('span.filename').text(nbname);
     };
 
 
@@ -152,11 +152,11 @@ define([
 
 
     SaveWidget.prototype.set_save_status = function (msg) {
-        this.element.find('span#autosave_status').text(msg);
+        this.element.find('span.autosave_status').text(msg);
     };
 
     SaveWidget.prototype._set_checkpoint_status = function (human_date, iso_date) {
-        var el = this.element.find('span#checkpoint_status');
+        var el = this.element.find('span.checkpoint_status');
         if(human_date){
             el.text("Last Checkpoint: "+human_date).attr('title',iso_date);
         } else {
@@ -223,7 +223,7 @@ define([
 
         // update regularly for the first 6hours and show
         // <x time> ago
-        if(tdelta < tdelta < 6*3600*1000){  
+        if(tdelta < 6*3600*1000){  
             recall(_next_timeago_update(tdelta));
             this._set_checkpoint_status(chkd.fromNow(), longdate);
         // otherwise update every hour and show

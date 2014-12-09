@@ -281,7 +281,7 @@ class FileContentsManager(ContentsManager):
                     model['content'] = bcontent.decode('utf8')
                 except UnicodeError as e:
                     if format == 'text':
-                        raise web.HTTPError(400, "%s is not UTF-8 encoded" % path)
+                        raise web.HTTPError(400, "%s is not UTF-8 encoded" % path, reason='bad format')
                 else:
                     model['format'] = 'text'
                     default_mime = 'text/plain'
@@ -348,14 +348,14 @@ class FileContentsManager(ContentsManager):
         if os.path.isdir(os_path):
             if type_ not in (None, 'directory'):
                 raise web.HTTPError(400,
-                                u'%s is a directory, not a %s' % (path, type_))
+                                u'%s is a directory, not a %s' % (path, type_), reason='bad type')
             model = self._dir_model(path, content=content)
         elif type_ == 'notebook' or (type_ is None and path.endswith('.ipynb')):
             model = self._notebook_model(path, content=content)
         else:
             if type_ == 'directory':
                 raise web.HTTPError(400,
-                                u'%s is not a directory')
+                                u'%s is not a directory', reason='bad type')
             model = self._file_model(path, content=content, format=format)
         return model
 

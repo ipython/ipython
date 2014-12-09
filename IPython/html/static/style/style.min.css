@@ -7752,9 +7752,6 @@ div#header {
   /* Initially hidden to prevent FLOUC */
   display: none;
   background-color: #ffffff;
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
   /* Display over codemirror */
   z-index: 100;
 }
@@ -8116,6 +8113,29 @@ ul#new-notebook-menu {
 }
 .kernel-menu-icon-current:before {
   content: "\f00c";
+}
+/*!
+*
+* IPython text editor webapp
+*
+*/
+.selected-keymap i.fa {
+  padding: 0px 5px;
+}
+.selected-keymap i.fa:before {
+  content: "\f00c";
+}
+#mode-menu {
+  overflow: auto;
+  max-height: 20em;
+}
+#texteditor-container {
+  border-bottom: 1px solid #ccc;
+}
+#filename {
+  font-size: 16pt;
+  display: table;
+  padding: 0px 5px;
 }
 /*!
 *
@@ -9421,17 +9441,6 @@ body {
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
 }
-span#notebook_name {
-  height: 1em;
-  line-height: 1em;
-  padding: 3px;
-  border: none;
-  font-size: 146.5%;
-  border-radius: 4px;
-}
-span#notebook_name:hover {
-  background-color: #e6e6e6;
-}
 div#notebook_panel {
   margin: 0px 0px 0px 0px;
   padding: 0px;
@@ -9681,7 +9690,6 @@ fieldset[disabled] #kernel_selector_widget > button.active {
   margin-top: 0px;
 }
 #menubar {
-  margin-top: 0px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -10159,33 +10167,38 @@ div#pager .ui-resizable-handle {
   /* Modern browsers */
   flex: 1;
 }
-span#save_widget {
+span.save_widget {
   margin-top: 6px;
 }
-span#checkpoint_status,
-span#autosave_status {
+span.save_widget span.filename {
+  height: 1em;
+  line-height: 1em;
+  padding: 3px;
+  border: none;
+  font-size: 146.5%;
+  border-radius: 4px;
+}
+span.save_widget span.filename:hover {
+  background-color: #e6e6e6;
+}
+span.checkpoint_status,
+span.autosave_status {
   font-size: small;
 }
 @media (max-width: 767px) {
-  span#save_widget {
+  span.save_widget {
     font-size: small;
   }
-  span#checkpoint_status,
-  span#autosave_status {
-    font-size: x-small;
-  }
-}
-@media (max-width: 767px) {
-  span#checkpoint_status,
-  span#autosave_status {
+  span.checkpoint_status,
+  span.autosave_status {
     display: none;
   }
 }
 @media (min-width: 768px) and (max-width: 979px) {
-  span#checkpoint_status {
+  span.checkpoint_status {
     display: none;
   }
-  span#autosave_status {
+  span.autosave_status {
     font-size: x-small;
   }
 }
