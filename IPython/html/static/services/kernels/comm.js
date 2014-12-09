@@ -106,9 +106,9 @@ define([
             console.error('Comm promise not found for comm id ' + content.comm_id);
             return;
         }
-
+        var that = this;
         this.comms[content.comm_id] = this.comms[content.comm_id].then(function(comm) {
-            this.unregister_comm(comm);
+            that.unregister_comm(comm);
             try {
                 comm.handle_close(msg);
             } catch (e) {
