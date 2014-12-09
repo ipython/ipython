@@ -182,7 +182,7 @@ define([
         var id = utils.uuid();
         model.views[id] = model.state_change;
         model.state_change.then(function(view) { 
-            view.on('remove', function() {
+            view.once('remove', function() {
                 delete view.model.views[id];
             }, this);
         });
