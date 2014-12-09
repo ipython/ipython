@@ -14,7 +14,6 @@ import abc
 import inspect
 import sys
 import traceback
-import types
 import warnings
 
 from IPython.external.decorator import decorator
@@ -24,7 +23,7 @@ from IPython.core.getipython import get_ipython
 from IPython.lib import pretty
 from IPython.utils.traitlets import (
     Bool, Dict, Integer, Unicode, CUnicode, ObjectName, List,
-    Instance,
+    ForwardDeclaredInstance,
 )
 from IPython.utils.py3compat import (
     unicode_to_str, with_metaclass, PY3, string_types, unicode_type,
@@ -90,9 +89,9 @@ class DisplayFormatter(Configurable):
             else:
                 formatter.enabled = False
     
-    self_formatter = Instance(__name__ +'.SelfDisplayingFormatter')
-    def _self_formatter_default(self):
-        return SelfDisplayingFormatter(parent=self)
+    ipython_display_formatter = ForwardDeclaredInstance('FormatterABC')
+    def _ipython_display_formatter_default(self):
+        return IPythonDisplayFormatter(parent=self)
     
     # A dict of formatter whose keys are format types (MIME types) and whose
     # values are subclasses of BaseFormatter.
@@ -164,7 +163,7 @@ class DisplayFormatter(Configurable):
         format_dict = {}
         md_dict = {}
         
-        if self.self_formatter(obj):
+        if self.ipython_display_formatter(obj):
             # object handled itself, don't proceed
             return {}, {}
         
@@ -840,7 +839,7 @@ class PDFFormatter(BaseFormatter):
 
     _return_type = (bytes, unicode_type)
 
-class SelfDisplayingFormatter(BaseFormatter):
+class IPythonDisplayFormatter(BaseFormatter):
     """A Formatter for objects that know how to display themselves.
     
     To define the callables that compute the representation of your
@@ -886,7 +885,7 @@ FormatterABC.register(JPEGFormatter)
 FormatterABC.register(LatexFormatter)
 FormatterABC.register(JSONFormatter)
 FormatterABC.register(JavascriptFormatter)
-FormatterABC.register(SelfDisplayingFormatter)
+FormatterABC.register(IPythonDisplayFormatter)
 
 
 def format_display_data(obj, include=None, exclude=None):
