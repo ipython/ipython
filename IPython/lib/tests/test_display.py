@@ -156,6 +156,22 @@ def test_error_on_file_to_FileLinks():
     tf1 = NamedTemporaryFile(dir=td)
     nt.assert_raises(ValueError,display.FileLinks,tf1.name)
 
+def test_recursive_FileLinks():
+    """FileLinks: Does not recurse when recursive=False
+    """
+    td = mkdtemp()
+    tf = NamedTemporaryFile(dir=td)
+    subtd = mkdtemp(dir=td)
+    subtf = NamedTemporaryFile(dir=subtd)
+    fl = display.FileLinks(td)
+    actual = str(fl)
+    actual = actual.split('\n')
+    nt.assert_equal(len(actual), 4, actual)
+    fl = display.FileLinks(td, recursive=False)
+    actual = str(fl)
+    actual = actual.split('\n')
+    nt.assert_equal(len(actual), 2, actual)
+
 @skipif_not_numpy
 def test_audio_from_file():
     path = pjoin(dirname(__file__), 'test.wav')
