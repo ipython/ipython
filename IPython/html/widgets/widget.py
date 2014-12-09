@@ -341,18 +341,25 @@ class Widget(LoggingConfigurable):
         """Called when a msg is received from the front-end"""
         data = msg['content']['data']
         method = data['method']
-        if not method in ['backbone', 'custom']:
-            self.log.error('Unknown front-end to back-end widget msg with method "%s"' % method)
 
         # Handle backbone sync methods CREATE, PATCH, and UPDATE all in one.
-        if method == 'backbone' and 'sync_data' in data:
-            sync_data = data['sync_data']
-            self.set_state(sync_data) # handles all methods
+        if method == 'backbone':
+            if 'sync_data' in data:
+                sync_data = data['sync_data']
+                self.set_state(sync_data) # handles all methods
 
-        # Handle a custom msg from the front-end
+        # Handle a state request.
+        elif method == 'request_state':
+            self.send_state()
+
+        # Handle a custom msg from the front-end.
         elif method == 'custom':
             if 'content' in data:
                 self._handle_custom_msg(data['content'])
+
+        # Catch remainder.
+        else:
+            self.log.error('Unknown front-end to back-end widget msg with method "%s"' % method)
 
     def _handle_custom_msg(self, content):
         """Called when a custom msg is received."""
@@ -368,7 +375,7 @@ class Widget(LoggingConfigurable):
         # Send the state after the user registered callbacks for trait changes
         # have all fired (allows for user to validate values).
         if self.comm is not None and name in self.keys:
-        # Make sure this isn't information that the front-end just sent us.
+            # Make sure this isn't information that the front-end just sent us.
             if self._should_send_property(name, new_value):
                 # Send new state to front-end
                 self.send_state(key=name)

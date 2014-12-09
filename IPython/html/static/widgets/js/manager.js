@@ -7,7 +7,8 @@ define([
     "jquery",
     "base/js/utils",
     "base/js/namespace",
-], function (_, Backbone, $, utils, IPython) {
+    "services/kernels/comm"
+], function (_, Backbone, $, utils, IPython, comm) {
     "use strict";
     //--------------------------------------------------------------------
     // WidgetManager class
@@ -22,10 +23,31 @@ define([
         this.keyboard_manager = notebook.keyboard_manager;
         this.notebook = notebook;
         this.comm_manager = comm_manager;
-        this._models = {}; /* Dictionary of model ids and model instances */
+        this.comm_target_name = 'ipython.widget';
+        this._models = {}; /* Dictionary of model ids and model instance promises */
 
         // Register with the comm manager.
-        this.comm_manager.register_target('ipython.widget', $.proxy(this._handle_comm_open, this));
+        this.comm_manager.register_target(this.comm_target_name, $.proxy(this._handle_comm_open, this));
+
+        // Load the initial state of the widget manager if a load callback was
+        // registered.
+        var that = this;
+        if (WidgetManager._load_callback) {
+            Promise.resolve(WidgetManager._load_callback.call(this)).then(function(state) {
+                that.set_state(state);
+            }).catch(utils.reject('Error loading widget manager state', true));
+        }
+
+        // Setup state saving code.
+        this.notebook.events.on('before_save.Notebook', function() {
+            var save_callback = WidgetManager._save_callback;
+            var options = WidgetManager._get_state_options;
+            if (save_callback) {
+                that.get_state(options).then(function(state) {
+                    save_callback.call(that, state);
+                }).catch(utils.reject('Could not call widget save state callback.', true));
+            }
+        });
     };
 
     //--------------------------------------------------------------------
@@ -34,15 +56,50 @@ define([
     WidgetManager._model_types = {}; /* Dictionary of model type names (target_name) and model types. */
     WidgetManager._view_types = {}; /* Dictionary of view names and view types. */
     WidgetManager._managers = []; /* List of widget managers */
+    WidgetManager._load_callback = null;
+    WidgetManager._save_callback = null;
 
     WidgetManager.register_widget_model = function (model_name, model_type) {
-        // Registers a widget model by name.
+        /** 
+         * Registers a widget model by name.
+         */
         WidgetManager._model_types[model_name] = model_type;
     };
 
     WidgetManager.register_widget_view = function (view_name, view_type) {
-        // Registers a widget view by name.
+        /** 
+         * Registers a widget view by name.
+         */
         WidgetManager._view_types[view_name] = view_type;
+    };
+
+    WidgetManager.set_state_callbacks = function (load_callback, save_callback, options) {
+        /**
+         * Registers callbacks for widget state persistence.
+         * 
+         * Parameters
+         * ----------
+         * load_callback: function()
+         *      function that is called when the widget manager state should be
+         *      loaded.  This function should return a promise for the widget
+         *      manager state.  An empty state is an empty dictionary `{}`.
+         * save_callback: function(state as dictionary)
+         *      function that is called when the notebook is saved or autosaved.
+         *      The current state of the widget manager is passed in as the first
+         *      argument.
+         */
+        WidgetManager._load_callback = load_callback;
+        WidgetManager._save_callback = save_callback;
+        WidgetManager._get_state_options = options;
+
+        // Use the load callback to immediately load widget states.
+        WidgetManager._managers.forEach(function(manager) {
+            if (load_callback) {
+                Promise.resolve(load_callback.call(manager)).then(function(state) {
+                    manager.set_state(state);
+                }).catch(utils.reject('Error loading widget manager state', true));
+            }
+        });
     };
 
     //--------------------------------------------------------------------
@@ -52,21 +109,31 @@ define([
         /**
          * Displays a view for a particular model.
          */
-        var that = this;
         var cell = this.get_msg_cell(msg.parent_header.msg_id);
         if (cell === null) {
-            return Promise.reject(new Error("Could not determine where the display" +
-                                            " message was from.  Widget will not be displayed"));
-        } else if (cell.widget_subarea) {
-            var dummy = $('<div />');
-            cell.widget_subarea.append(dummy);
-            return this.create_view(model, {cell: cell}).then(
-                function(view) {
-                    that._handle_display_view(view);
-                    dummy.replaceWith(view.$el);
-                    view.trigger('displayed');
-                    return view;
-                }).catch(utils.reject('Could not display view', true));
+            return Promise.reject(new Error("Could not determine where the display" + 
+                " message was from.  Widget will not be displayed"));
+        } else {
+            return this.display_view_in_cell(cell, model)
+                .catch(utils.reject('Could not display view', true)); 
+        }
+    };
+
+    WidgetManager.prototype.display_view_in_cell = function(cell, model) {
+        // Displays a view in a cell.
+        if (cell.display_widget_view) {
+            var that = this;
+            return cell.display_widget_view(this.create_view(model, {
+                cell: cell,
+                // Only set cell_index when view is displayed as directly.
+                cell_index: that.notebook.find_cell_index(cell),
+            })).then(function(view) {
+                that._handle_display_view(view);
+                view.trigger('displayed');
+                resolve(view);
+            }).catch(utils.reject('Could not create or display view', true)); 
+        } else {
+            return Promise.reject(new Error('Cell does not have a `display_widget_view` method'));
         }
     };
 
@@ -112,7 +179,13 @@ define([
                 return Promise.resolve(view.render()).then(function() {return view;});
             }).catch(utils.reject("Couldn't create a view for model id '" + String(model.id) + "'", true));
         });
-        model.views[utils.uuid()] = model.state_change;
+        var id = utils.uuid();
+        model.views[id] = model.state_change;
+        model.state_change.then(function(view) { 
+            view.once('remove', function() {
+                delete view.model.views[id];
+            }, this);
+        });
         return model.state_change;
     };
 
@@ -238,6 +311,8 @@ define([
                 widget_model.once('comm:close', function () {
                     delete that._models[model_id];
                 });
+                widget_model.name = options.model_name;
+                widget_model.module = options.model_module;
                 return widget_model;
 
             }, function(error) {
@@ -247,6 +322,139 @@ define([
             });
         this._models[model_id] = model_promise;
         return model_promise;
+    };
+
+    WidgetManager.prototype.get_state = function(options) {
+        /**
+         * Asynchronously get the state of the widget manager.
+         *
+         * This includes all of the widget models and the cells that they are
+         * displayed in.
+         *
+         * Parameters
+         * ----------
+         * options: dictionary
+         *  Dictionary of options with the following contents:
+         *      only_displayed: (optional) boolean=false
+         *          Only return models with one or more displayed views.
+         *      not_live: (optional) boolean=false
+         *          Include models that have comms with severed connections.
+         *
+         * Returns
+         * -------
+         * Promise for a state dictionary
+         */
+        var that = this;
+        return utils.resolve_promises_dict(this._models).then(function(models) {
+            var state = {};
+            for (var model_id in models) {
+                if (models.hasOwnProperty(model_id)) {
+                    var model = models[model_id];
+
+                    // If the model has one or more views defined for it,
+                    // consider it displayed.
+                    var displayed_flag = !(options && options.only_displayed) || Object.keys(model.views).length > 0;
+                    var live_flag = (options && options.not_live) || model.comm_live;
+                    if (displayed_flag && live_flag) {
+                        state[model_id] = {
+                            model_name: model.name,
+                            model_module: model.module,
+                            state: model.get_state(),
+                            views: [],
+                        };
+
+                        // Get the views that are displayed *now*.
+                        for (var id in model.views) {
+                            if (model.views.hasOwnProperty(id)) {
+                                var view = model.views[id];
+                                if (view.options.cell_index) {
+                                    state[model_id].views.push(view.options.cell_index);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return state;
+        }).catch(utils.reject('Could not get state of widget manager', true));
+    };
+    
+    WidgetManager.prototype.set_state = function(state) {
+        /**
+         * Set the notebook's state.
+         *
+         * Reconstructs all of the widget models and attempts to redisplay the
+         * widgets in the appropriate cells by cell index.
+         */
+        
+        // Get the kernel when it's available.
+        var that = this;
+        return this._get_connected_kernel().then(function(kernel) {
+            
+            // Recreate all the widget models for the given state and 
+            // display the views.
+            that.all_views = [];
+            var model_ids = Object.keys(state);
+            for (var i = 0; i < model_ids.length; i++) {
+                var model_id = model_ids[i];
+                
+                // Recreate a comm using the widget's model id (model_id == comm_id).
+                var new_comm = new comm.Comm(kernel.widget_manager.comm_target_name, model_id);
+                kernel.comm_manager.register_comm(new_comm);
+
+                // Create the model using the recreated comm.  When the model is
+                // created we don't know yet if the comm is valid so set_comm_live
+                // false.  Once we receive the first state push from the back-end
+                // we know the comm is alive.
+                var views = kernel.widget_manager.create_model({
+                    comm: new_comm, 
+                    model_name: state[model_id].model_name, 
+                    model_module: state[model_id].model_module})
+                .then(function(model) {
+
+                    model.set_comm_live(false);
+                    var view_promise = Promise.resolve().then(function() {
+                        return model.set_state(state[model.id].state);
+                    }).then(function() {
+                        model.request_state().then(function() {
+                            model.set_comm_live(true);
+                        });
+
+                        // Display the views of the model.
+                        var views = [];
+                        var model_views = state[model.id].views;
+                        for (var j=0; j<model_views.length; j++) {
+                            var cell_index = model_views[j];
+                            var cell = that.notebook.get_cell(cell_index);
+                            views.push(that.display_view_in_cell(cell, model));
+                        }
+                        return Promise.all(views);
+                    });
+                    return view_promise;
+                });
+                that.all_views.push(views);
+            }
+            return Promise.all(that.all_views);
+        }).catch(utils.reject('Could not set widget manager state.', true));  
+    };
+
+    WidgetManager.prototype._get_connected_kernel = function() {
+        /**
+         * Gets a promise for a connected kernel
+         */
+        var that = this;
+        return new Promise(function(resolve, reject) {
+            if (that.comm_manager && 
+                that.comm_manager.kernel && 
+                that.comm_manager.kernel.is_connected()) {
+
+                resolve(that.comm_manager.kernel);
+            } else {
+                that.notebook.events.on('kernel_connected.Kernel', function(event, data) {
+                    resolve(data.kernel);
+                });
+            }    
+        });
     };
 
     // Backwards compatibility.

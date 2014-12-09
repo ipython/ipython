@@ -31,6 +31,7 @@ define(["widgets/js/manager",
             this.state_lock = null;
             this.id = model_id;
             this.views = {};
+            this._resolve_received_state = {};
 
             if (comm !== undefined) {
                 // Remember comm associated with the model.
@@ -40,6 +41,11 @@ define(["widgets/js/manager",
                 // Hook comm messages up to model.
                 comm.on_close($.proxy(this._handle_comm_closed, this));
                 comm.on_msg($.proxy(this._handle_comm_msg, this));
+
+                // Assume the comm is alive.
+                this.set_comm_live(true);
+            } else {
+                this.set_comm_live(false);
             }
             return Backbone.Model.apply(this);
         },
@@ -55,11 +61,43 @@ define(["widgets/js/manager",
             }
         },
 
-        _handle_comm_closed: function (msg) {
-            /**
-             * Handle when a widget is closed.
+        request_state: function(callbacks) {
+            /** 
+             * Request a state push from the back-end.
              */
-            this.trigger('comm:close');
+            if (!this.comm) {
+                console.error("Could not request_state because comm doesn't exist!");
+                return;
+            }
+
+            var msg_id = this.comm.send({method: 'request_state'}, callbacks || this.widget_manager.callbacks());
+
+            // Promise that is resolved when a state is received
+            // from the back-end.
+            var that = this;
+            var received_state = new Promise(function(resolve) {
+                that._resolve_received_state[msg_id] = resolve;
+            });
+            return received_state;
+        },
+
+        set_comm_live: function(live) {
+            /** 
+             * Change the comm_live state of the model.
+             */
+            if (this.comm_live === undefined || this.comm_live != live) {
+                this.comm_live = live;
+                this.trigger(live ? 'comm:live' : 'comm:dead', {model: this});
+            }
+        },
+
+        close: function(comm_closed) {
+            /**
+             * Close model
+             */
+            if (this.comm && !comm_closed) {
+                this.comm.close();
+            }
             this.stopListening();
             this.trigger('destroy', this);
             delete this.comm.model; // Delete ref so GC will collect widget model.
@@ -73,6 +111,14 @@ define(["widgets/js/manager",
             });
         },
 
+        _handle_comm_closed: function (msg) {
+            /** 
+             * Handle when a widget is closed.
+             */
+            this.trigger('comm:close');
+            this.close(true);
+        },
+
         _handle_comm_msg: function (msg) {
             /**
              * Handle incoming comm msg.
@@ -81,15 +127,24 @@ define(["widgets/js/manager",
             var that = this;
             switch (method) {
                 case 'update':
-                    this.state_change = this.state_change.then(function() {
-                        return that.set_state(msg.content.data.state);
-                    }).catch(utils.reject("Couldn't process update msg for model id '" + String(that.id) + "'", true));
+                    this.state_change = this.state_change
+                        .then(function() {
+                            return that.set_state(msg.content.data.state);
+                        }).catch(utils.reject("Couldn't process update msg for model id '" + String(that.id) + "'", true))
+                        .then(function() {
+                            var parent_id = msg.parent_header.msg_id;
+                            if (that._resolve_received_state[parent_id] !== undefined) {
+                                that._resolve_received_state[parent_id].call();
+                                delete that._resolve_received_state[parent_id];
+                            }
+                        }).catch(utils.reject("Couldn't resolve state request promise", true));
                     break;
                 case 'custom':
                     this.trigger('msg:custom', msg.content.data.content);
                     break;
                 case 'display':
-                    this.widget_manager.display_view(msg, this);
+                    this.widget_manager.display_view(msg, this)
+                        .catch(utils.reject('Could not process display view msg', true));
                     break;
             }
         },
@@ -105,6 +160,17 @@ define(["widgets/js/manager",
                     that.state_lock = null;
                 }
             }).catch(utils.reject("Couldn't set model state", true));
+        },
+
+        get_state: function() {
+            // Get the serializable state of the model.
+            state = this.toJSON();
+            for (var key in state) {
+                if (state.hasOwnProperty(key)) {
+                    state[key] = this._pack_models(state[key]);
+                }
+            }
+            return state;
         },
 
         _handle_status: function (msg, callbacks) {
@@ -356,16 +422,6 @@ define(["widgets/js/manager",
              */
         },
 
-        show: function(){
-            /**
-             * Show the widget-area
-             */
-            if (this.options && this.options.cell &&
-                this.options.cell.widget_area !== undefined) {
-                this.options.cell.widget_area.show();
-            }
-        },
-
         send: function (content) {
             /**
              * Send a custom msg associated with this view.
@@ -387,6 +443,12 @@ define(["widgets/js/manager",
             } else {
                 this.on('displayed', callback, context);
             }
+        },
+
+        remove: function () {
+            // Raise a remove event when the view is removed.
+            WidgetView.__super__.remove.apply(this, arguments);
+            this.trigger('remove');
         }
     });
 
@@ -397,7 +459,6 @@ define(["widgets/js/manager",
              * Public constructor
              */
             DOMWidgetView.__super__.initialize.apply(this, [parameters]);
-            this.on('displayed', this.show, this);
             this.model.on('change:visible', this.update_visible, this);
             this.model.on('change:_css', this.update_css, this);
 

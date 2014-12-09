@@ -101,7 +101,7 @@ define([
 
         this.last_msg_id = null;
         this.completer = null;
-
+        this.widget_views = [];
 
         var config = utils.mergeopt(CodeCell, this.config);
         Cell.apply(this,[{
@@ -191,12 +191,19 @@ define([
             .addClass('widget-subarea')
             .appendTo(widget_area);
         this.widget_subarea = widget_subarea;
+        var that = this;
         var widget_clear_buton = $('<button />')
             .addClass('close')
             .html('&times;')
             .click(function() {
-                widget_area.slideUp('', function(){ widget_subarea.html(''); });
-                })
+                widget_area.slideUp('', function(){ 
+                    for (var i = 0; i < that.widget_views.length; i++) {
+                        that.widget_views[i].remove();
+                    }
+                    that.widget_views = [];
+                    widget_subarea.html(''); 
+                });
+            })
             .appendTo(widget_prompt);
 
         var output = $('<div></div>');
@@ -208,6 +215,25 @@ define([
             events: this.events, 
             keyboard_manager: this.keyboard_manager});
         this.completer = new completer.Completer(this, this.events);
+    };
+
+    /**
+    *  Display a widget view in the cell.
+    */
+    CodeCell.prototype.display_widget_view = function(view_promise) {
+
+        // Display a dummy element
+        var dummy = $('<div/>');
+        this.widget_subarea.append(dummy);
+
+        // Display the view.
+        var that = this;
+        return view_promise.then(function(view) {
+            that.widget_area.show();
+            dummy.replaceWith(view.$el);
+            that.widget_views.push(view);
+            return view;
+        });
     };
 
     /** @method bind_events */
@@ -322,6 +348,10 @@ define([
         this.active_output_area.clear_output();
         
         // Clear widget area
+        for (var i = 0; i < this.widget_views.length; i++) {
+            this.widget_views[i].remove();
+        }
+        this.widget_views = [];
         this.widget_subarea.html('');
         this.widget_subarea.height('');
         this.widget_area.height('');
