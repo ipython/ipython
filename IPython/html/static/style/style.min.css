@@ -9677,11 +9677,18 @@ select[multiple].celltoolbar select {
   float: right !important;
   float: right;
 }
-#kernel_logo_widget > img#current_kernel_logo {
+#kernel_logo_widget .current_kernel_logo {
+  display: none;
   margin-top: -1px;
   margin-bottom: -1px;
   width: 32px;
   height: 32px;
+}
+#kernel_logo_widget div.current_kernel_logo {
+  background-color: #dfdfdf;
+  font-size: 24px;
+  text-align: center;
+  text-decoration: bold;
 }
 #menubar {
   box-sizing: border-box;

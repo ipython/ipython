@@ -126,7 +126,8 @@ define([
         this.events.on('spec_changed.Kernel', function(event, data) {
             that.current_selection = data.name;
             $("#kernel_indicator").find('.kernel_indicator_name').text(data.display_name);
-            that.element.find("#current_kernel_logo").attr("src", that.notebook.base_url+"kernelspecs/"+data.name+"/logo-64x64.png");
+            that.element.find("img.current_kernel_logo").attr("src", that.notebook.base_url + "kernelspecs/" + data.name + "/logo-64x64.png");
+            that.element.find("div.current_kernel_logo").text(data.display_name.slice(0,1).toUpperCase());
         });
 
         this.events.on('kernel_created.Session', function(event, data) {
@@ -139,12 +140,15 @@ define([
             }
         });
         
-        var logo_img = this.element.find("#current_kernel_logo");
+        var logo_img = this.element.find("img.current_kernel_logo");
+        var logo_div = this.element.find("div.current_kernel_logo");
         logo_img.on("load", function() {
+            logo_div.hide();
             logo_img.show();
         });
         logo_img.on("error", function() {
             logo_img.hide();
+            logo_div.show();
         });
     };
 
