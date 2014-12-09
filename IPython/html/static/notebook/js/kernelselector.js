@@ -81,7 +81,7 @@ define([
                 .attr('href',css_url);
             },
             error:function(){
-                console.warn(new_mode_url+' does not provide custom URL, you might see a 404 error that shoudl not prevent '+
+                console.warn(new_mode_url+' does not provide custom URL, you might see a 404 error that should not prevent '+
                                      ' the Jupyter notebook from working :' ,css_url );
             }
         });
@@ -109,9 +109,9 @@ define([
                 if(new_mode && new_mode.onload){
                     new_mode.onload();
                 } else {
-                    console.warn("The current kernel seem to define a kernel.js file; though this file does"+
-                                 "not contain any asynchronous module definition. This is undefined behavior"+
-                                 "which is not recommeneded");
+                    console.warn("The current kernel defined a kernel.js file but does not contain"+
+                                 "any asynchronous module definition. This is undefined behavior"+
+                                 "which is not recommended");
                 }
             },
             function(err){
@@ -122,7 +122,7 @@ define([
     };
 
     KernelSelector.prototype.lock_switch = function() {
-        console.warn('switching kernel is not guarantied to work !');
+        console.warn('switching kernel is not guaranteed to work !');
     };
 
     KernelSelector.prototype.bind_events = function() {

@@ -1870,7 +1870,7 @@ define([
                 // technically not perfect, we should check that the kernelspec matches
                 this.kernel_selector.change_kernel(this.metadata.kernelspec.name);
             } else {
-                console.log('do not have handle on kernnel_selector');
+                console.log('do not have handle on kernel_selector');
             }
         }
         
