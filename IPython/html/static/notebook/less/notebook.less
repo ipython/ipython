@@ -91,3 +91,10 @@ p {
 .notebook_app #header {
     .box-shadow(@notebook-shadow);
 }
+
+/* Hide the header when printing */
+@media print {
+    #header, #header-spacer {
+        display: none !important;
+    }
+}

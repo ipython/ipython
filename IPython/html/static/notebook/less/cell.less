@@ -21,6 +21,13 @@ div.cell {
     outline: none;
 }
 
+/* Don't border the cells when printing */
+@media print {
+    div.cell {
+        border-color: transparent !important;
+    }
+}
+
 div.prompt {
     /* This needs to be wide enough for 3 digit prompt numbers: In[100]: */
     min-width: 15ex;
