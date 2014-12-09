@@ -268,7 +268,6 @@ class FileContentsManager(ContentsManager):
         model['type'] = 'file'
 
         os_path = self._get_os_path(path)
-        model['mimetype'] = mimetypes.guess_type(os_path)[0] or 'text/plain'
 
         if content:
             if not os.path.isfile(os_path):
@@ -285,10 +284,14 @@ class FileContentsManager(ContentsManager):
                         raise web.HTTPError(400, "%s is not UTF-8 encoded" % path)
                 else:
                     model['format'] = 'text'
+                    default_mime = 'text/plain'
 
             if model['content'] is None:
                 model['content'] = base64.encodestring(bcontent).decode('ascii')
                 model['format'] = 'base64'
+                default_mime = 'application/octet-stream'
+
+            model['mimetype'] = mimetypes.guess_type(os_path)[0] or default_mime
 
         return model
 
