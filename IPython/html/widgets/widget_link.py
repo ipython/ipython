@@ -1,10 +1,9 @@
 """Link and DirectionalLink classes.
 
-Represents a button in the frontend using a widget.  Allows user to listen for
-click events on the button and trigger backend code when the clicks are fired.
+Propagate changes between widgets on the javascript side
 """
 #-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
+# Copyright (c) 2014, the IPython Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -31,6 +30,10 @@ class Link(Widget):
         kwargs['widgets'] = widgets
         super(Link, self).__init__(**kwargs)
 
+    # for compatibility with traitlet links
+    def unlink(self):
+        self.close()
+
 
 def link(*args):
     return Link(widgets=args)
@@ -48,6 +51,10 @@ class DirectionalLink(Widget):
         kwargs['source'] = source
         kwargs['targets'] = targets
         super(DirectionalLink, self).__init__(**kwargs)
+
+    # for compatibility with traitlet links
+    def unlink(self):
+        self.close()
 
 
 def dlink(source, *targets):
