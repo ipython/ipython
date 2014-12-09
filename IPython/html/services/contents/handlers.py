@@ -34,16 +34,15 @@ def validate_model(model, expect_content):
     and 'format'.
     """
     required_keys = {
-        "name"
-        , "path"
-        , "type"
-        , "writable"
-        , "created"
-        # Note: This key is specified as just 'modified' in IPEP-27
-        , "last_modified"
-        , "mimetype"
-        , "content"
-        , "format"
+        "name",
+        "path",
+        "type",
+        "writable",
+        "created",
+        "last_modified",
+        "mimetype",
+        "content",
+        "format",
     }
     missing = required_keys - set(model.keys())
     if missing:
@@ -52,8 +51,10 @@ def validate_model(model, expect_content):
             u"Missing Model Keys: {missing}".format(missing=missing),
         )
 
-    # Note: Per IPEP-27, 'mimetype' should be present in this list.
     maybe_none_keys = ['content', 'format']
+    if model['type'] == 'file':
+        # mimetype should be populated only for file models
+        maybe_none_keys.append('mimetype')
     if expect_content:
         errors = [key for key in maybe_none_keys if model[key] is None]
         if errors:
@@ -61,9 +62,12 @@ def validate_model(model, expect_content):
                 500,
                 u"Keys unexpectedly None: {keys}".format(keys=errors),
             )
-
     else:
-        errors = [key for key in maybe_none_keys if model[key] is not None]
+        errors = {
+            key: model[key]
+            for key in maybe_none_keys
+            if model[key] is not None
+        }
         if errors:
             raise web.HTTPError(
                 500,
