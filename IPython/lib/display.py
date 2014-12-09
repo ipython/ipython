@@ -524,7 +524,7 @@ class FileLinks(FileLink):
         if self.recursive:
             walked_dir = list(walk(self.path))
         else:
-            walked_dir = [walk(self.path).next()]
+            walked_dir = [next(walk(self.path))]
         walked_dir.sort()
         for dirname, subdirs, fnames in walked_dir:
             result_lines += self.notebook_display_formatter(dirname, fnames, self.included_suffixes)
@@ -537,7 +537,7 @@ class FileLinks(FileLink):
         if self.recursive:
             walked_dir = list(walk(self.path))
         else:
-            walked_dir = [walk(self.path).next()]
+            walked_dir = [next(walk(self.path))]
         walked_dir.sort()
         for dirname, subdirs, fnames in walked_dir:
             result_lines += self.terminal_display_formatter(dirname, fnames, self.included_suffixes)
