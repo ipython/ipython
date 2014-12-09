@@ -27,6 +27,12 @@ def sort_key(model):
 
 
 def validate_model(model, expect_content):
+    """
+    Validate a model returned by a ContentsManager method.
+
+    If expect_content is True, then we expect non-null entries for 'content'
+    and 'format'.
+    """
     required_keys = {
         "name"
         , "path"
