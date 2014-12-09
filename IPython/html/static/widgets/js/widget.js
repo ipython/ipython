@@ -596,10 +596,9 @@ define(["widgets/js/manager",
 
     _.extend(ViewList.prototype, {
         initialize: function(create_view, remove_view, context) {
-            this.state_change = Promise.resolve();
             this._handler_context = context || this;
             this._models = [];
-            this.views = [];
+            this.views = []; // list of promises for views
             this._create_view = create_view;
             this._remove_view = remove_view || function(view) {view.remove();};
         },
@@ -608,42 +607,36 @@ define(["widgets/js/manager",
             /**
              * the create_view, remove_view, and context arguments override the defaults
              * specified when the list is created.
-             * returns a promise that resolves after this update is done
+             * after this function, the .views attribute is a list of promises for views
+             * if you want to perform some action on the list of views, do something like
+             * `Promise.all(myviewlist.views).then(function(views) {...});`
              */
             var remove = remove_view || this._remove_view;
             var create = create_view || this._create_view;
-            if (create === undefined || remove === undefined){
-                console.error("Must define a create a remove function");
-            }
             var context = context || this._handler_context;
-            var added_views = [];
-            var that = this;
-            this.state_change = this.state_change.then(function() {
-                var i;
-                 // first, skip past the beginning of the lists if they are identical
-                for (i = 0; i < new_models.length; i++) {
-                    if (i >= that._models.length || new_models[i] !== that._models[i]) {
-                        break;
-                    }
+            var i = 0;
+            // first, skip past the beginning of the lists if they are identical
+            for (; i < new_models.length; i++) {
+                if (i >= this._models.length || new_models[i] !== this._models[i]) {
+                    break;
                 }
-                var first_removed = i;
-                // Remove the non-matching items from the old list.
-                for (var j = first_removed; j < that._models.length; j++) {
-                    remove.call(context, that.views[j]);
-                }
-
-                // Add the rest of the new list items.
-                for (; i < new_models.length; i++) {
-                    added_views.push(create.call(context, new_models[i]));
-                }
-                // make a copy of the input array
-                that._models = new_models.slice();
-                return Promise.all(added_views).then(function(added) {
-                    Array.prototype.splice.apply(that.views, [first_removed, that.views.length].concat(added));
-                    return that.views;
+            }
+            
+            var first_removed = i;
+            // Remove the non-matching items from the old list.
+            var removed = this.views.splice(first_removed, this.views.length-first_removed);
+            for (var j = 0; j < removed.length; j++) {
+                removed[j].then(function(view) {
+                    remove.call(context, view)
                 });
-            });
-            return this.state_change;
+            }
+
+            // Add the rest of the new list items.
+            for (; i < new_models.length; i++) {
+                this.views.push(Promise.resolve(create.call(context, new_models[i])));
+            }
+            // make a copy of the input array
+            this._models = new_models.slice();
         },
 
         remove: function() {
@@ -653,14 +646,13 @@ define(["widgets/js/manager",
              * returns a promise that resolves after this removal is done
              */
             var that = this;
-            this.state_change = this.state_change.then(function() {
+            Promise.all(this.views).then(function(views) {
                 for (var i = 0; i < that.views.length; i++) {
-                    that._remove_view.call(that._handler_context, that.views[i]);
+                    that._remove_view.call(that._handler_context, views[i]);
                 }
-                that._models = [];
                 that.views = [];
+                that._models = [];
             });
-            return this.state_change;
         },
     });
 
