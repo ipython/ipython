@@ -10,7 +10,8 @@ import nose.tools as nt
 
 from IPython.config import Config
 from IPython.core.formatters import (
-    PlainTextFormatter, HTMLFormatter, PDFFormatter, _mod_name_key
+    PlainTextFormatter, HTMLFormatter, PDFFormatter, _mod_name_key,
+    DisplayFormatter,
 )
 from IPython.utils.io import capture_output
 
@@ -387,3 +388,33 @@ def test_pretty_max_seq_length():
     text = f(list(range(1024)))
     lines = text.splitlines()
     nt.assert_equal(len(lines), 1024)
+
+
+def test_ipython_display_formatter():
+    """Objects with _ipython_display_ defined bypass other formatters"""
+    f = get_ipython().display_formatter
+    catcher = []
+    class SelfDisplaying(object):
+        def _ipython_display_(self):
+            catcher.append(self)
+
+    class NotSelfDisplaying(object):
+        def __repr__(self):
+            return "NotSelfDisplaying"
+        
+        def _ipython_display_(self):
+            raise NotImplementedError
+    
+    yes = SelfDisplaying()
+    no = NotSelfDisplaying()
+    
+    d, md = f.format(no)
+    nt.assert_equal(d, {'text/plain': repr(no)})
+    nt.assert_equal(md, {})
+    nt.assert_equal(catcher, [])
+    
+    d, md = f.format(yes)
+    nt.assert_equal(d, {})
+    nt.assert_equal(md, {})
+    nt.assert_equal(catcher, [yes])
+
