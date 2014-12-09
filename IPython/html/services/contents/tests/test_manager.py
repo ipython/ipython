@@ -2,7 +2,6 @@
 """Tests for the notebook manager."""
 from __future__ import print_function
 
-import logging
 import os
 
 from tornado.web import HTTPError
@@ -17,7 +16,6 @@ from IPython.html.utils import url_path_join
 from IPython.testing import decorators as dec
 
 from ..filemanager import FileContentsManager
-from ..manager import ContentsManager
 
 
 class TestFileContentsManager(TestCase):
@@ -72,7 +70,7 @@ class TestFileContentsManager(TestCase):
 
 
 class TestContentsManager(TestCase):
-
+    
     def setUp(self):
         self._temp_dir = TemporaryDirectory()
         self.td = self._temp_dir.name
@@ -83,15 +81,25 @@ class TestContentsManager(TestCase):
     def tearDown(self):
         self._temp_dir.cleanup()
 
-    def make_dir(self, abs_path, rel_path):
+    def make_dir(self, api_path):
         """make subdirectory, rel_path is the relative path
         to that directory from the location where the server started"""
-        os_path = os.path.join(abs_path, rel_path)
+        os_path = self.contents_manager._get_os_path(api_path)
         try:
             os.makedirs(os_path)
         except OSError:
             print("Directory already exists: %r" % os_path)
-        return os_path
+    
+    def symlink(self, src, dst):
+        """Make a symlink to src from dst
+        
+        src and dst are api_paths
+        """
+        src_os_path = self.contents_manager._get_os_path(src)
+        dst_os_path = self.contents_manager._get_os_path(dst)
+        print(src_os_path, dst_os_path, os.path.isfile(src_os_path))
+        os.symlink(src_os_path, dst_os_path)
+        
 
     def add_code_cell(self, nb):
         output = nbformat.new_output("display_data", {'application/javascript': "alert('hi');"})
@@ -169,7 +177,7 @@ class TestContentsManager(TestCase):
 
         # Test in sub-directory
         sub_dir = '/foo/'
-        self.make_dir(cm.root_dir, 'foo')
+        self.make_dir('foo')
         model = cm.new_untitled(path=sub_dir, ext='.ipynb')
         model2 = cm.get(sub_dir + name)
         assert isinstance(model2, dict)
@@ -191,12 +199,12 @@ class TestContentsManager(TestCase):
     def test_bad_symlink(self):
         cm = self.contents_manager
         path = 'test bad symlink'
-        os_path = self.make_dir(cm.root_dir, path)
+        self.make_dir(path)
         
         file_model = cm.new_untitled(path=path, ext='.txt')
         
         # create a broken symlink
-        os.symlink("target", os.path.join(os_path, "bad symlink"))
+        self.symlink("target", '%s/%s' % (path, 'bad symlink'))
         model = cm.get(path)
         self.assertEqual(model['content'], [file_model])
     
@@ -206,12 +214,12 @@ class TestContentsManager(TestCase):
         parent = 'test good symlink'
         name = 'good symlink'
         path = '{0}/{1}'.format(parent, name)
-        os_path = self.make_dir(cm.root_dir, parent)
+        self.make_dir(parent)
         
         file_model = cm.new(path=parent + '/zfoo.txt')
         
         # create a good symlink
-        os.symlink(file_model['name'], os.path.join(os_path, name))
+        self.symlink(file_model['path'], path)
         symlink_model = cm.get(path, content=False)
         dir_model = cm.get(parent)
         self.assertEqual(
@@ -240,9 +248,8 @@ class TestContentsManager(TestCase):
         # Test in sub-directory
         # Create a directory and notebook in that directory
         sub_dir = '/foo/'
-        self.make_dir(cm.root_dir, 'foo')
+        self.make_dir('foo')
         model = cm.new_untitled(path=sub_dir, type='notebook')
-        name = model['name']
         path = model['path']
 
         # Change the name in the model for rename
@@ -279,7 +286,7 @@ class TestContentsManager(TestCase):
         # Test in sub-directory
         # Create a directory and notebook in that directory
         sub_dir = '/foo/'
-        self.make_dir(cm.root_dir, 'foo')
+        self.make_dir('foo')
         model = cm.new_untitled(path=sub_dir, type='notebook')
         name = model['name']
         path = model['path']
@@ -309,7 +316,7 @@ class TestContentsManager(TestCase):
         parent = u'å b'
         name = u'nb √.ipynb'
         path = u'{0}/{1}'.format(parent, name)
-        os.mkdir(os.path.join(cm.root_dir, parent))
+        self.make_dir(parent)
         orig = cm.new(path=path)
 
         # copy with unspecified name

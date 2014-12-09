@@ -12,7 +12,7 @@ pjoin = os.path.join
 
 import requests
 
-from IPython.html.utils import url_path_join, url_escape
+from IPython.html.utils import url_path_join, url_escape, to_os_path
 from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
 from IPython.nbformat import read, write, from_dict
 from IPython.nbformat.v4 import (
@@ -73,9 +73,6 @@ class API(object):
     def upload(self, path, body):
         return self._req('PUT', path, body)
 
-    def mkdir_untitled(self, path='/'):
-        return self._req('POST', path, json.dumps({'type': 'directory'}))
-
     def mkdir(self, path='/'):
         return self._req('PUT', path, json.dumps({'type': 'directory'}))
 
@@ -133,33 +130,62 @@ class APITest(NotebookTestBase):
     @staticmethod
     def _txt_for_name(name):
         return u'%s text file' % name
-
+    
+    def to_os_path(self, api_path):
+        return to_os_path(api_path, root=self.notebook_dir.name)
+    
+    def make_dir(self, api_path):
+        """Create a directory at api_path"""
+        os_path = self.to_os_path(api_path)
+        try:
+            os.makedirs(os_path)
+        except OSError:
+            print("Directory already exists: %r" % os_path)
+    
+    def make_txt(self, api_path, txt):
+        """Make a text file at a given api_path"""
+        os_path = self.to_os_path(api_path)
+        with io.open(os_path, 'w', encoding='utf-8') as f:
+            f.write(txt)
+    
+    def make_blob(self, api_path, blob):
+        """Make a binary file at a given api_path"""
+        os_path = self.to_os_path(api_path)
+        with io.open(os_path, 'wb') as f:
+            f.write(blob)
+    
+    def make_nb(self, api_path, nb):
+        """Make a notebook file at a given api_path"""
+        os_path = self.to_os_path(api_path)
+        
+        with io.open(os_path, 'w', encoding='utf-8') as f:
+            write(nb, f, version=4)
+    
+    def isfile(self, api_path):
+        return os.path.isfile(self.to_os_path(api_path))
+    
+    def isdir(self, api_path):
+        return os.path.isdir(self.to_os_path(api_path))
+    
     def setUp(self):
-        nbdir = self.notebook_dir.name
         self.blob = os.urandom(100)
         self.b64_blob = base64.encodestring(self.blob).decode('ascii')
 
         for d in (self.dirs + self.hidden_dirs):
-            d.replace('/', os.sep)
-            if not os.path.isdir(pjoin(nbdir, d)):
-                os.mkdir(pjoin(nbdir, d))
+            self.make_dir(d)
 
         for d, name in self.dirs_nbs:
-            d = d.replace('/', os.sep)
             # create a notebook
-            with io.open(pjoin(nbdir, d, '%s.ipynb' % name), 'w',
-                         encoding='utf-8') as f:
-                nb = new_notebook()
-                write(nb, f, version=4)
-
+            nb = new_notebook()
+            self.make_nb(u'{}/{}.ipynb'.format(d, name), nb)
+            
             # create a text file
-            with io.open(pjoin(nbdir, d, '%s.txt' % name), 'w',
-                         encoding='utf-8') as f:
-                f.write(self._txt_for_name(name))
-
+            txt = self._txt_for_name(name)
+            self.make_txt(u'{}/{}.txt'.format(d, name), txt)
+            
             # create a binary file
-            with io.open(pjoin(nbdir, d, '%s.blob' % name), 'wb') as f:
-                f.write(self._blob_for_name(name))
+            blob = self._blob_for_name(name)
+            self.make_blob(u'{}/{}.blob'.format(d, name), blob)
 
         self.api = API(self.base_url())
 
@@ -204,11 +230,8 @@ class APITest(NotebookTestBase):
         self.assertEqual(nbnames, expected)
 
     def test_list_dirs(self):
-        print(self.api.list().json())
         dirs = dirs_only(self.api.list().json())
         dir_names = {normalize('NFC', d['name']) for d in dirs}
-        print(dir_names)
-        print(self.top_level_dirs)
         self.assertEqual(dir_names, self.top_level_dirs)  # Excluding hidden dirs
 
     def test_list_nonexistant_dir(self):
@@ -283,11 +306,8 @@ class APITest(NotebookTestBase):
         self.assertEqual(rjson['name'], path.rsplit('/', 1)[-1])
         self.assertEqual(rjson['path'], path)
         self.assertEqual(rjson['type'], type)
-        isright = os.path.isdir if type == 'directory' else os.path.isfile
-        assert isright(pjoin(
-            self.notebook_dir.name,
-            path.replace('/', os.sep),
-        ))
+        isright = self.isdir if type == 'directory' else self.isfile
+        assert isright(path)
 
     def test_create_untitled(self):
         resp = self.api.create_untitled(path=u'å b')
@@ -451,7 +471,7 @@ class APITest(NotebookTestBase):
         self.assertEqual(resp.headers['Location'].split('/')[-1], 'z.ipynb')
         self.assertEqual(resp.json()['name'], 'z.ipynb')
         self.assertEqual(resp.json()['path'], 'foo/z.ipynb')
-        assert os.path.isfile(pjoin(self.notebook_dir.name, 'foo', 'z.ipynb'))
+        assert self.isfile('foo/z.ipynb')
 
         nbs = notebooks_only(self.api.list('foo').json())
         nbnames = set(n['name'] for n in nbs)
@@ -471,11 +491,6 @@ class APITest(NotebookTestBase):
         nbmodel= {'content': nb, 'type': 'notebook'}
         resp = self.api.save('foo/a.ipynb', body=json.dumps(nbmodel))
 
-        nbfile = pjoin(self.notebook_dir.name, 'foo', 'a.ipynb')
-        with io.open(nbfile, 'r', encoding='utf-8') as f:
-            newnb = read(f, as_version=4)
-        self.assertEqual(newnb.cells[0].source,
-                         u'Created by test ³')
         nbcontent = self.api.read('foo/a.ipynb').json()['content']
         newnb = from_dict(nbcontent)
         self.assertEqual(newnb.cells[0].source,

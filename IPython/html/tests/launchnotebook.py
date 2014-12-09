@@ -30,6 +30,7 @@ class NotebookTestBase(TestCase):
     """
 
     port = 12341
+    config = None
 
     @classmethod
     def wait_until_alive(cls):
@@ -65,6 +66,7 @@ class NotebookTestBase(TestCase):
             open_browser=False,
             ipython_dir=cls.ipython_dir.name,
             notebook_dir=cls.notebook_dir.name,
+            config=cls.config,
         )
         
         # clear log handlers and propagate to root for nose to capture it
