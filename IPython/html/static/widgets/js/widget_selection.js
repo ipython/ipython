@@ -152,6 +152,11 @@ define([
              */
             this.model.set('value_name', $(e.target).text(), {updated_view: this});
             this.touch();
+
+            // Manually hide the droplist.
+            e.stopPropagation();
+            e.preventDefault();
+            this.$buttongroup.removeClass('open');
         },
         
     });
