@@ -49,12 +49,13 @@ class JSONWriter(NotebookWriter):
         kwargs['indent'] = 1
         kwargs['sort_keys'] = True
         kwargs['separators'] = (',',': ')
+        kwargs.setdefault('ensure_ascii', False)
         # don't modify in-memory dict
         nb = copy.deepcopy(nb)
         if kwargs.pop('split_lines', True):
             nb = split_lines(nb)
         nb = strip_transient(nb)
-        return py3compat.str_to_unicode(json.dumps(nb, **kwargs), 'utf-8')
+        return py3compat.cast_unicode_py2(json.dumps(nb, **kwargs), 'utf-8')
 
 
 _reader = JSONReader()
