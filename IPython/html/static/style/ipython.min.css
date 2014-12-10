@@ -363,14 +363,20 @@ div.cell {
 }
 div.cell.selected {
   border-color: #ababab;
+  /* Don't border the cells when printing */
+}
+@media print {
+  div.cell.selected {
+    border-color: transparent;
+  }
 }
 div.cell.edit_mode {
   border-color: green;
+  /* Don't border the cells when printing */
 }
-/* Don't border the cells when printing */
 @media print {
-  div.cell {
-    border-color: transparent !important;
+  div.cell.edit_mode {
+    border-color: transparent;
   }
 }
 div.prompt {
@@ -463,7 +469,9 @@ div.unrecognized_cell .inner_cell a:hover {
     display: none;
   }
 }
-/* avoid page breaking on code cells when printing */
+div.code_cell {
+  /* avoid page breaking on code cells when printing */
+}
 @media print {
   div.code_cell {
     page-break-inside: avoid;
