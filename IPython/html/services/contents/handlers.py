@@ -25,6 +25,56 @@ def sort_key(model):
     }.get(model['type'], '9')
     return u'%s%s' % (type_key, iname)
 
+
+def validate_model(model, expect_content):
+    """
+    Validate a model returned by a ContentsManager method.
+
+    If expect_content is True, then we expect non-null entries for 'content'
+    and 'format'.
+    """
+    required_keys = {
+        "name",
+        "path",
+        "type",
+        "writable",
+        "created",
+        "last_modified",
+        "mimetype",
+        "content",
+        "format",
+    }
+    missing = required_keys - set(model.keys())
+    if missing:
+        raise web.HTTPError(
+            500,
+            u"Missing Model Keys: {missing}".format(missing=missing),
+        )
+
+    maybe_none_keys = ['content', 'format']
+    if model['type'] == 'file':
+        # mimetype should be populated only for file models
+        maybe_none_keys.append('mimetype')
+    if expect_content:
+        errors = [key for key in maybe_none_keys if model[key] is None]
+        if errors:
+            raise web.HTTPError(
+                500,
+                u"Keys unexpectedly None: {keys}".format(keys=errors),
+            )
+    else:
+        errors = {
+            key: model[key]
+            for key in maybe_none_keys
+            if model[key] is not None
+        }
+        if errors:
+            raise web.HTTPError(
+                500,
+                u"Keys unexpectedly not None: {keys}".format(keys=errors),
+            )
+
+
 class ContentsHandler(IPythonHandler):
 
     SUPPORTED_METHODS = (u'GET', u'PUT', u'PATCH', u'POST', u'DELETE')
@@ -72,6 +122,7 @@ class ContentsHandler(IPythonHandler):
             # group listing by type, then by name (case-insensitive)
             # FIXME: sorting should be done in the frontends
             model['content'].sort(key=sort_key)
+        validate_model(model, expect_content=True)
         self._finish_model(model, location=False)
 
     @web.authenticated
@@ -83,6 +134,7 @@ class ContentsHandler(IPythonHandler):
         if model is None:
             raise web.HTTPError(400, u'JSON body missing')
         model = cm.update(model, path)
+        validate_model(model, expect_content=False)
         self._finish_model(model)
 
     def _copy(self, copy_from, copy_to=None):
@@ -93,6 +145,7 @@ class ContentsHandler(IPythonHandler):
         ))
         model = self.contents_manager.copy(copy_from, copy_to)
         self.set_status(201)
+        validate_model(model, expect_content=False)
         self._finish_model(model)
 
     def _upload(self, model, path):
@@ -100,6 +153,7 @@ class ContentsHandler(IPythonHandler):
         self.log.info(u"Uploading file to %s", path)
         model = self.contents_manager.new(model, path)
         self.set_status(201)
+        validate_model(model, expect_content=False)
         self._finish_model(model)
         
     def _new_untitled(self, path, type='', ext=''):
@@ -107,12 +161,14 @@ class ContentsHandler(IPythonHandler):
         self.log.info(u"Creating new %s in %s", type or 'file', path)
         model = self.contents_manager.new_untitled(path=path, type=type, ext=ext)
         self.set_status(201)
+        validate_model(model, expect_content=False)
         self._finish_model(model)
 
     def _save(self, model, path):
         """Save an existing file."""
         self.log.info(u"Saving file at %s", path)
         model = self.contents_manager.save(model, path)
+        validate_model(model, expect_content=False)
         self._finish_model(model)
 
     @web.authenticated
