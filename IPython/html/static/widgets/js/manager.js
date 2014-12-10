@@ -347,6 +347,8 @@ define([
         var that = this;
         return utils.resolve_promises_dict(this._models).then(function(models) {
             var state = {};
+
+            var model_promises = [];
             for (var model_id in models) {
                 if (models.hasOwnProperty(model_id)) {
                     var model = models[model_id];
@@ -364,18 +366,20 @@ define([
                         };
 
                         // Get the views that are displayed *now*.
-                        for (var id in model.views) {
-                            if (model.views.hasOwnProperty(id)) {
-                                var view = model.views[id];
-                                if (view.options.cell_index) {
-                                    state[model_id].views.push(view.options.cell_index);
+                        model_promises.push(utils.resolve_promises_dict(model.views).then(function(model_views) {
+                            for (var id in model_views) {
+                                if (model_views.hasOwnProperty(id)) {
+                                    var view = model_views[id];
+                                    if (view.options.cell_index) {
+                                        state[model_id].views.push(view.options.cell_index);
+                                    }
                                 }
                             }
-                        }
+                        }));
                     }
                 }
             }
-            return state;
+            return Promise.all(model_promises).then(function() { return state; });
         }).catch(utils.reject('Could not get state of widget manager', true));
     };
     
