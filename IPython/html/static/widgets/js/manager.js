@@ -130,7 +130,7 @@ define([
             })).then(function(view) {
                 that._handle_display_view(view);
                 view.trigger('displayed');
-                resolve(view);
+                return view;
             }).catch(utils.reject('Could not create or display view', true)); 
         } else {
             return Promise.reject(new Error('Cell does not have a `display_widget_view` method'));
