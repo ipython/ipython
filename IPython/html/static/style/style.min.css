@@ -7768,9 +7768,19 @@ div#header .header-bar {
   height: 0px;
   border-bottom: 1px solid #e7e7e7;
 }
+@media print {
+  div#header {
+    display: none !important;
+  }
+}
 #header-spacer {
   width: 100%;
   visibility: hidden;
+}
+@media print {
+  #header-spacer {
+    display: none;
+  }
 }
 #ipython_notebook {
   padding-left: 0px;
@@ -9511,17 +9521,6 @@ p {
 .notebook_app #header {
   -webkit-box-shadow: 1px 4px 9px -6px rgba(0, 0, 0, 0.25);
   box-shadow: 1px 4px 9px -6px rgba(0, 0, 0, 0.25);
-}
-@media print {
-  .notebook_app #header {
-    display: none;
-  }
-}
-/* Hide the header when printing */
-@media print {
-  #header-spacer {
-    display: none;
-  }
 }
 /* CSS for the cell toolbar */
 .celltoolbar {
