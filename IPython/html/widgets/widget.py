@@ -428,7 +428,7 @@ class Widget(LoggingConfigurable):
 
 
 class DOMWidget(Widget):
-    visible = Bool(True, help="Whether the widget is visible.", sync=True)
+    visible = Bool(True, allow_none=True, help="Whether the widget is visible.  False collapses the empty space, while None preserves the empty space.", sync=True)
     _css = Tuple(sync=True, help="CSS property list: (selector, key, value)")
     _dom_classes = Tuple(sync=True, help="DOM classes applied to widget.$el.")
     

@@ -553,7 +553,14 @@ define(["widgets/js/manager",
             /**
              * Update visibility
              */
-            this.$el.toggle(value);
+            switch(value) {
+                case null: // python None
+                    this.$el.show().css('visibility', 'hidden'); break;
+                case false:
+                    this.$el.hide(); break;
+                case true:
+                    this.$el.show().css('visibility', ''); break;
+            }
          },
 
         update_css: function (model, css) {
