@@ -13,9 +13,8 @@ define([
      * @constructor
      * @param {Dom object} selector
      */
-    var ToolBar = function (selector, layout_manager) {
+    var ToolBar = function (selector) {
         this.selector = selector;
-        this.layout_manager = layout_manager;
         if (this.selector !== undefined) {
             this.element = $(selector);
             this.style();
@@ -88,9 +87,6 @@ define([
      */
     ToolBar.prototype.toggle = function () {
         this.element.toggle();
-        if (this.layout_manager !== undefined) {
-            this.layout_manager.do_resize();
-        }
     };
 
     // Backwards compatibility.
