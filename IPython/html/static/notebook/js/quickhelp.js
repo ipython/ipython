@@ -69,6 +69,8 @@ define([
     var mac_humanize_map = {
         // all these are unicode, will probably display badly on anything except macs.
         // these are the standard symbol that are used in MacOS native menus
+        // cf http://apple.stackexchange.com/questions/55727/
+        // for htmlentities and/or unicode value
         'cmd':'⌘',
         'shift':'⇧',
         'alt':'⌥',
@@ -78,7 +80,8 @@ define([
         'right':'→',
         'eject':'⏏',
         'tab':'⇥',
-        'capslock':'⇧',
+        'backtab':'⇤',
+        'capslock':'⇪',
         'esc':'⎋',
         'ctrl':'⌃',
         'enter':'↩',
@@ -88,7 +91,8 @@ define([
         'end':'↘',
         'altenter':'⌤',
         'space':'␣',
-        'backspace':'⇤',
+        'delete':'⌦',
+        'backspace':'⌫',
         'apple':'',
     };
 
@@ -109,7 +113,7 @@ define([
         'home':'Home',
         'end':'End',
         'space':'Space',
-        'backspace,':'Backaspace',
+        'backspace,':'Backspace',
         };
     
     var humanize_map;
