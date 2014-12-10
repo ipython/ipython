@@ -37,11 +37,19 @@ div#header {
         height: 0px;
         border-bottom: 1px solid @navbar-default-border;
     }
+
+    @media print {
+        display: none !important;
+    }
 }
 
 #header-spacer {
     width: 100%;
     visibility: hidden;
+    
+    @media print {
+        display: none;
+    }
 }
 
 #ipython_notebook {
