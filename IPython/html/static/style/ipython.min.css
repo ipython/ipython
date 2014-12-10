@@ -363,9 +363,21 @@ div.cell {
 }
 div.cell.selected {
   border-color: #ababab;
+  /* Don't border the cells when printing */
+}
+@media print {
+  div.cell.selected {
+    border-color: transparent;
+  }
 }
 div.cell.edit_mode {
   border-color: green;
+  /* Don't border the cells when printing */
+}
+@media print {
+  div.cell.edit_mode {
+    border-color: transparent;
+  }
 }
 div.prompt {
   /* This needs to be wide enough for 3 digit prompt numbers: In[100]: */
@@ -455,6 +467,14 @@ div.unrecognized_cell .inner_cell a:hover {
 @media (max-width: 480px) {
   div.unrecognized_cell > div.prompt {
     display: none;
+  }
+}
+div.code_cell {
+  /* avoid page breaking on code cells when printing */
+}
+@media print {
+  div.code_cell {
+    page-break-inside: avoid;
   }
 }
 /* any special styling for code cells that are currently running goes here */

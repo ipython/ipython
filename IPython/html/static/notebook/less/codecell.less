@@ -1,4 +1,8 @@
 div.code_cell {
+    /* avoid page breaking on code cells when printing */
+    @media print {
+        page-break-inside: avoid;
+    }
 }
 
 /* any special styling for code cells that are currently running goes here */
