@@ -102,6 +102,13 @@ define([
         });
     };
 
+    // Use local storage to persist widgets across page refresh by default.
+    WidgetManager.set_state_callbacks(function() {
+        return JSON.parse(localStorage.widgets || '{}');
+    }, function(state) {
+        localStorage.widgets = JSON.stringify(state);
+    });
+
     //--------------------------------------------------------------------
     // Instance level
     //--------------------------------------------------------------------
