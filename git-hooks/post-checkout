@@ -18,5 +18,5 @@ if [[
 ]]; then
   echo "rebuilding sourcemaps"
   cd IPython/html
-  fab css || echo "failed to compile css"
+  invoke css || echo "failed to compile css"
 fi
