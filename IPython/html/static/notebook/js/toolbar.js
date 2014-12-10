@@ -3,7 +3,7 @@
 
 define([
     'base/js/namespace',
-    'jquery',
+    'jquery'
 ], function(IPython, $) {
     "use strict";
 
@@ -92,12 +92,13 @@ define([
     // get rid of legacy code that handle things that are not actions.
     ToolBar.prototype.add_buttons_group = function (list, group_id) {
         // handle custom call of pseudoaction binding.
-        if(typeof(list) == 'string' && list.slice(0,1) == '<' && list.slice(-1) == '>'){
+        if(typeof(list) === 'string' && list.slice(0,1) === '<' && list.slice(-1) === '>'){
+            var _pseudo_action;
             try{
-                var _n = list.slice(1,-1)
-                var fun = this[_n]();
+                _pseudo_action = list.slice(1,-1);
+                this[_pseudo_action]();
             } catch (e) {
-                console.warn('ouch, calling ', _n, 'does not seem to work...:')
+                console.warn('ouch, calling ', _pseudo_action, 'does not seem to work...:');
             }
             return ;
         }
@@ -109,7 +110,7 @@ define([
         var el;
         for(var i=0; i < list.length; i++) {
 
-            // IIFE because Fucking javascript don't have loop scope so
+            // IIFE because javascript don't have loop scope so
             // action_name would otherwise be the same on all iteration
             // of the loop
             // TODO: Indent this thing once reviewed:

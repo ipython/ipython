@@ -65,59 +65,66 @@ define([
         { shortcut: cmd_ctrl + "Shift-z",   help:"redo"  },
         { shortcut: cmd_ctrl + "y",   help:"redo"  },
     ].concat( platform_specific );
+    
+    var mac_humanize_map = {
+        // all these are unicode, will probably display badly on anything except macs.
+        // these are the standard symbol that are used in MacOS native menus
+        'cmd':'⌘',
+        'shift':'⇧',
+        'alt':'⌥',
+        'up':'↑',
+        'down':'↓',
+        'left':'←',
+        'right':'→',
+        'eject':'⏏',
+        'tab':'⇥',
+        'capslock':'⇧',
+        'esc':'⎋',
+        'ctrl':'⌃',
+        'enter':'↩',
+        'pageup':'⇞',
+        'pagedown':'⇟',
+        'home':'↖',
+        'end':'↘',
+        'altenter':'⌤',
+        'space':'␣',
+        'backspace':'⇤',
+        'apple':'',
+    };
+
+    var default_humanize_map = {
+        'shift':'Shift',
+        'alt':'Alt',
+        'up':'Up',
+        'down':'Down',
+        'left':'Left',
+        'right':'Right',
+        'tab':'Tab',
+        'capslock':'Caps Lock',
+        'esc':'Esc',
+        'ctrl':'Ctrl',
+        'enter':'Enter',
+        'pageup':'Page Up',
+        'pagedown':'Page Down',
+        'home':'Home',
+        'end':'End',
+        'space':'Space',
+        'backspace,':'Backaspace',
+        };
+    
+    var humanize_map;
+
+    if (platform === 'MacOS'){
+        humanize_map = mac_humanize_map;
+    } else {
+        humanize_map = default_humanize_map;
+    }
 
     function humanize_key(key){
-        if (platform === 'MacOS'){
         if (key.length === 1){
             key = key.toUpperCase();
         }
-        var d= {
-            // all these are unicode, will probably display badly on anything except macs.
-            // these are the standard symbol that are used in MacOS native menus
-            'cmd':'⌘',
-            'shift':'⇧',
-            'alt':'⌥',
-            'up':'↑',
-            'down':'↓',
-            'left':'←',
-            'right':'→',
-            'eject':'⏏',
-            'tab':'⇥',
-            'capslock':'⇧',
-            'esc':'⎋',
-            'ctrl':'⌃',
-            'enter':'↩',
-            'pageup':'⇞',
-            'pagedown':'⇟',
-            'home':'↖',
-            'end':'↘',
-            'altenter':'⌤',
-            'space':'␣',
-            'backspace':'⇤',
-            'apple':'',
-            };
-        } else {
-        var d = {
-            'shift':'Shift',
-            'alt':'Alt',
-            'up':'Up',
-            'down':'Down',
-            'left':'Left',
-            'right':'Right',
-            'tab':'Tab',
-            'capslock':'Caps Lock',
-            'esc':'Esc',
-            'ctrl':'Ctrl',
-            'enter':'Enter',
-            'pageup':'Page Up',
-            'pagedown':'Page Down',
-            'home':'Home',
-            'end':'End',
-            'space':'Space',
-            'backspace,':'Backaspace',
-            };
-        }
-        return d[key.toLowerCase()]||key;
+        return humanize_map[key.toLowerCase()]||key;
     }
 
     function humanize_sequence(sequence){
