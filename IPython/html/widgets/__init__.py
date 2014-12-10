@@ -11,6 +11,7 @@ from .widget_selection import RadioButtons, ToggleButtons, Dropdown, Select
 from .widget_selectioncontainer import Tab, Accordion
 from .widget_string import HTML, Latex, Text, Textarea
 from .interaction import interact, interactive, fixed, interact_manual
+from .widget_link import Link, link, DirectionalLink, dlink
 
 # Deprecated classes
 from .widget_bool import CheckboxWidget, ToggleButtonWidget

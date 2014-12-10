@@ -3,6 +3,7 @@
 
 define([
     "widgets/js/manager",
+    "widgets/js/widget_link",
     "widgets/js/widget_bool",
     "widgets/js/widget_button",
     "widgets/js/widget_box",
@@ -13,10 +14,15 @@ define([
     "widgets/js/widget_selection",
     "widgets/js/widget_selectioncontainer",
     "widgets/js/widget_string",
-], function(widgetmanager) { 
+], function(widgetmanager, linkModels) {
+    for (var target_name in linkModels) {
+        if (linkModels.hasOwnProperty(target_name)) {
+            widgetmanager.WidgetManager.register_widget_model(target_name, linkModels[target_name]);
+        }
+    }
 
     // Register all of the loaded views with the widget manager.
-    for (var i = 1; i < arguments.length; i++) {
+    for (var i = 2; i < arguments.length; i++) {
         for (var target_name in arguments[i]) {
             if (arguments[i].hasOwnProperty(target_name)) {
                 widgetmanager.WidgetManager.register_widget_view(target_name, arguments[i][target_name]);
