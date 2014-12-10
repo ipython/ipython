@@ -21,7 +21,7 @@ define([
          *          events: $(Events) instance
          *          notebook: Notebook instance
          **/
-        toolbar.ToolBar.apply(this, [selector, undefined ,options] );
+        toolbar.ToolBar.apply(this, [selector, options] );
         this.events = options.events;
         this.notebook = options.notebook;
         this._make();

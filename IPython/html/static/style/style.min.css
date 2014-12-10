@@ -8358,7 +8358,7 @@ div.input {
 }
 /* input_area and input_prompt must match in top border and margin for alignment */
 div.input_prompt {
-  color: #000080;
+  color: navy;
   border-top: 1px solid transparent;
 }
 div.input_area > div.highlight {
@@ -8630,7 +8630,7 @@ div.out_prompt_overlay:hover {
   background: rgba(240, 240, 240, 0.5);
 }
 div.output_prompt {
-  color: #8b0000;
+  color: darkred;
 }
 /* This class is the outer container of all output sections. */
 div.output_area {
@@ -8703,7 +8703,7 @@ div.output_area pre {
   padding: 0;
   border: 0;
   vertical-align: baseline;
-  color: #000000;
+  color: black;
   background-color: transparent;
   border-radius: 0;
 }
@@ -8896,8 +8896,8 @@ div.output_unrecognized a:hover {
   margin-top: 1em;
 }
 .rendered_html hr {
-  color: #000000;
-  background-color: #000000;
+  color: black;
+  background-color: black;
 }
 .rendered_html pre {
   margin: 1em 2em;
@@ -8916,13 +8916,13 @@ div.output_unrecognized a:hover {
 .rendered_html table {
   margin-left: auto;
   margin-right: auto;
-  border: 1px solid #000000;
+  border: 1px solid black;
   border-collapse: collapse;
 }
 .rendered_html tr,
 .rendered_html th,
 .rendered_html td {
-  border: 1px solid #000000;
+  border: 1px solid black;
   border-collapse: collapse;
   margin: 1em 2em;
 }
@@ -10404,4 +10404,4 @@ span.autosave_status {
 #terminado-container {
   margin: 8px;
 }
-/*# sourceMappingURL=../style/style.min.css.map */
+/*# sourceMappingURL=style.min.css.map */
