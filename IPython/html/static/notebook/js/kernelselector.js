@@ -81,8 +81,7 @@ define([
                 .attr('href',css_url);
             },
             error:function(){
-                console.warn(new_mode_url+' does not provide custom URL, you might see a 404 error that should not prevent '+
-                                     ' the Jupyter notebook from working :' ,css_url );
+                console.info("No custom kernel.css at URL:", css_url)
             }
         });
 
@@ -109,19 +108,22 @@ define([
                 if(new_mode && new_mode.onload){
                     new_mode.onload();
                 } else {
-                    console.warn("The current kernel defined a kernel.js file but does not contain"+
-                                 "any asynchronous module definition. This is undefined behavior"+
+                    console.warn("The current kernel defined a kernel.js file but does not contain "+
+                                 "any asynchronous module definition. This is undefined behavior "+
                                  "which is not recommended");
                 }
             },
             function(err){
                 // if new mode does not have custom.js
-                console.warn('Any above 404 on '+new_mode_url+'.js is normal');
+                console.info("No custom kernel.css at URL:", new_mode_url)
             }
         );
     };
 
     KernelSelector.prototype.lock_switch = function() {
+        // should set a flag and display warning+reload if user want to
+        // re-change kernel. As UI discussion never finish
+        // making that a separate PR.
         console.warn('switching kernel is not guaranteed to work !');
     };
 
