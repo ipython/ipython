@@ -646,7 +646,7 @@ define(["widgets/js/manager",
              * returns a promise that resolves after this removal is done
              */
             var that = this;
-            Promise.all(this.views).then(function(views) {
+            return Promise.all(this.views).then(function(views) {
                 for (var i = 0; i < that.views.length; i++) {
                     that._remove_view.call(that._handler_context, views[i]);
                 }
