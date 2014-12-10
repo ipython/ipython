@@ -4,7 +4,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 from IPython.utils.py3compat import string_types, cast_unicode_py2
-
+import IPython.config
 
 def rejoin_lines(nb):
     """rejoin multiline text into strings
@@ -82,7 +82,7 @@ class NotebookReader(object):
         return self.reads(nbs, **kwargs)
 
 
-class NotebookWriter(object):
+class NotebookWriter(IPython.config.Configurable):
     """A class for writing notebooks."""
 
     def writes(self, nb, **kwargs):
