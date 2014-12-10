@@ -8,7 +8,7 @@ div#pager {
     bottom: 0px;
     width: 100%;
     max-height: 50%;
-    padding-top: 7px;
+    padding-top: 10px;
 
     /* Display over codemirror */
     z-index: 100;
@@ -25,7 +25,7 @@ div#pager {
 
     #pager-button-area {
         position: absolute;
-        top: 7px;
+        top: 10px;
         right: 20px; 
     }
 
@@ -44,8 +44,25 @@ div#pager {
 
     .ui-resizable-handle {
         top: 0px;
-        height: 7px;
-        background: @light_border_color;
-        border-bottom: 1px solid @border_color;
+        height: 10px;
+        background: @cell_background;
+        border-top: 1px solid @light_border_color;
+        border-bottom: 1px solid @light_border_color;
+
+        /* This injects handle bars (a short, wide = symbol) for 
+        the resize handle. */
+        &::after {
+            content: '';
+            
+            top: 2px;
+            left: 50%;
+            height: 3px;
+            width: 20px;
+            margin-left: -10px;
+            position: absolute;
+
+            border-bottom: 1px solid @light_border_color;
+            border-top: 1px solid @light_border_color;
+        }
     }
 }
