@@ -317,7 +317,7 @@ class FileContentsManager(ContentsManager):
             self.validate_notebook_model(model)
         return model
 
-    def get(self, path, content=True, type_=None, format=None):
+    def get(self, path, content=True, type=None, format=None):
         """ Takes a path for an entity and returns its model
 
         Parameters
@@ -326,7 +326,7 @@ class FileContentsManager(ContentsManager):
             the API path that describes the relative path for the target
         content : bool
             Whether to include the contents in the reply
-        type_ : str, optional
+        type : str, optional
             The requested type - 'file', 'notebook', or 'directory'.
             Will raise HTTPError 400 if the content doesn't match.
         format : str, optional
@@ -346,14 +346,14 @@ class FileContentsManager(ContentsManager):
 
         os_path = self._get_os_path(path)
         if os.path.isdir(os_path):
-            if type_ not in (None, 'directory'):
+            if type not in (None, 'directory'):
                 raise web.HTTPError(400,
-                                u'%s is a directory, not a %s' % (path, type_), reason='bad type')
+                                u'%s is a directory, not a %s' % (path, type), reason='bad type')
             model = self._dir_model(path, content=content)
-        elif type_ == 'notebook' or (type_ is None and path.endswith('.ipynb')):
+        elif type == 'notebook' or (type is None and path.endswith('.ipynb')):
             model = self._notebook_model(path, content=content)
         else:
-            if type_ == 'directory':
+            if type == 'directory':
                 raise web.HTTPError(400,
                                 u'%s is not a directory', reason='bad type')
             model = self._file_model(path, content=content, format=format)

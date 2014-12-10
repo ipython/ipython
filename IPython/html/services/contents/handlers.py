@@ -109,15 +109,15 @@ class ContentsHandler(IPythonHandler):
         of the files and directories it contains.
         """
         path = path or ''
-        type_ = self.get_query_argument('type', default=None)
-        if type_ not in {None, 'directory', 'file', 'notebook'}:
-            raise web.HTTPError(400, u'Type %r is invalid' % type_)
+        type = self.get_query_argument('type', default=None)
+        if type not in {None, 'directory', 'file', 'notebook'}:
+            raise web.HTTPError(400, u'Type %r is invalid' % type)
 
         format = self.get_query_argument('format', default=None)
         if format not in {None, 'text', 'base64'}:
             raise web.HTTPError(400, u'Format %r is invalid' % format)
 
-        model = self.contents_manager.get(path=path, type_=type_, format=format)
+        model = self.contents_manager.get(path=path, type=type, format=format)
         if model['type'] == 'directory':
             # group listing by type, then by name (case-insensitive)
             # FIXME: sorting should be done in the frontends

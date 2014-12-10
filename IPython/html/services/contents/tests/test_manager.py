@@ -158,13 +158,13 @@ class TestContentsManager(TestCase):
         self.assertEqual(model['name'], name)
         self.assertEqual(model['path'], path)
 
-        nb_as_file = cm.get(path, content=True, type_='file')
+        nb_as_file = cm.get(path, content=True, type='file')
         self.assertEqual(nb_as_file['path'], path)
         self.assertEqual(nb_as_file['type'], 'file')
         self.assertEqual(nb_as_file['format'], 'text')
         self.assertNotIsInstance(nb_as_file['content'], dict)
 
-        nb_as_bin_file = cm.get(path, content=True, type_='file', format='base64')
+        nb_as_bin_file = cm.get(path, content=True, type='file', format='base64')
         self.assertEqual(nb_as_bin_file['format'], 'base64')
 
         # Test in sub-directory
@@ -184,7 +184,7 @@ class TestContentsManager(TestCase):
         self.assertEqual(dirmodel['type'], 'directory')
 
         with self.assertRaises(HTTPError):
-            cm.get('foo', type_='file')
+            cm.get('foo', type='file')
 
     
     @dec.skip_win32

@@ -46,10 +46,10 @@ class API(object):
     def list(self, path='/'):
         return self._req('GET', path)
 
-    def read(self, path, type_=None, format=None):
+    def read(self, path, type=None, format=None):
         params = {}
-        if type_ is not None:
-            params['type'] = type_
+        if type is not None:
+            params['type'] = type
         if format is not None:
             params['format'] = format
         return self._req('GET', path, params=params)
@@ -250,7 +250,7 @@ class APITest(NotebookTestBase):
 
         # Specifying format=text should fail on a non-UTF-8 file
         with assert_http_error(400):
-            self.api.read('foo/bar/baz.blob', type_='file', format='text')
+            self.api.read('foo/bar/baz.blob', type='file', format='text')
 
     def test_get_binary_file_contents(self):
         for d, name in self.dirs_nbs:
@@ -270,10 +270,10 @@ class APITest(NotebookTestBase):
 
     def test_get_bad_type(self):
         with assert_http_error(400):
-            self.api.read(u'unicodé', type_='file')  # this is a directory
+            self.api.read(u'unicodé', type='file')  # this is a directory
 
         with assert_http_error(400):
-            self.api.read(u'unicodé/innonascii.ipynb', type_='directory')
+            self.api.read(u'unicodé/innonascii.ipynb', type='directory')
 
     def _check_created(self, resp, path, type='notebook'):
         self.assertEqual(resp.status_code, 201)
