@@ -65,9 +65,8 @@ define([
     };
     
     // add a cell type drop down to the maintoolbar.
-    // trigged when the pseudo action `<add_celltype_list>` is
+    // triggered when the pseudo action `<add_celltype_list>` is
     // encountered when building a toolbar.
-    // there supposed to be only one of these, but many should work in most cases;
     MainToolBar.prototype.add_celltype_list = function () {
         var that = this;
         var sel = $('<select/>')

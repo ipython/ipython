@@ -98,7 +98,7 @@ define([
                 _pseudo_action = list.slice(1,-1);
                 this[_pseudo_action]();
             } catch (e) {
-                console.warn('ouch, calling ', _pseudo_action, 'does not seem to work...:');
+                console.warn('ouch, calling ', _pseudo_action, 'does not seem to work...:', e);
             }
             return ;
         }

@@ -113,7 +113,7 @@ define([
         'home':'Home',
         'end':'End',
         'space':'Space',
-        'backspace,':'Backspace',
+        'backspace':'Backspace',
         };
     
     var humanize_map;
@@ -240,8 +240,6 @@ define([
         var shortcut = '';
         if(s.shortcut){
             shortcut = prettify(humanize_sequence(s.shortcut));
-        } else {
-            console.error('[debug] -  nothing for', s)
         }
         return $('<div>').addClass('quickhelp').
             append($('<span/>').addClass('shortcut_key').append($(shortcut))).
