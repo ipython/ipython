@@ -6,11 +6,12 @@ import sys
 import time
 import requests
 from contextlib import contextmanager
-from subprocess import Popen, STDOUT
+from threading import Thread, Event
 from unittest import TestCase
 
-import nose
+from tornado.ioloop import IOLoop
 
+from ..notebookapp import NotebookApp
 from IPython.utils.tempdir import TemporaryDirectory
 
 MAX_WAITTIME = 30   # seconds to wait for notebook server to start
@@ -50,35 +51,46 @@ class NotebookTestBase(TestCase):
     @classmethod
     def wait_until_dead(cls):
         """Wait for the server process to terminate after shutdown"""
-        for _ in range(int(MAX_WAITTIME/POLL_INTERVAL)):
-            if cls.notebook.poll() is not None:
-                return
-            time.sleep(POLL_INTERVAL)
-    
-        raise TimeoutError("Undead notebook server")
+        cls.notebook_thread.join(timeout=MAX_WAITTIME)
+        if cls.notebook_thread.is_alive():
+            raise TimeoutError("Undead notebook server")
 
     @classmethod
     def setup_class(cls):
         cls.ipython_dir = TemporaryDirectory()
         cls.notebook_dir = TemporaryDirectory()
-        notebook_args = [
-            sys.executable, '-c',
-            'from IPython.html.notebookapp import launch_new_instance; launch_new_instance()',
-            '--port=%d' % cls.port,
-            '--port-retries=0',  # Don't try any other ports
-            '--no-browser',
-            '--ipython-dir=%s' % cls.ipython_dir.name,
-            '--notebook-dir=%s' % cls.notebook_dir.name,
-        ]
-        cls.notebook = Popen(notebook_args,
-            stdout=nose.iptest_stdstreams_fileno(),
-            stderr=STDOUT,
+        app = cls.notebook = NotebookApp(
+            port=cls.port,
+            port_retries=0,
+            open_browser=False,
+            ipython_dir=cls.ipython_dir.name,
+            notebook_dir=cls.notebook_dir.name,
         )
+        
+        # clear log handlers and propagate to root for nose to capture it
+        # needs to be redone after initialize, which reconfigures logging
+        app.log.propagate = True
+        app.log.handlers = []
+        app.initialize(argv=[])
+        app.log.propagate = True
+        app.log.handlers = []
+        started = Event()
+        def start_thread():
+            loop = IOLoop.current()
+            loop.add_callback(started.set)
+            try:
+                app.start()
+            finally:
+                # set the event, so failure to start doesn't cause a hang
+                started.set()
+        cls.notebook_thread = Thread(target=start_thread)
+        cls.notebook_thread.start()
+        started.wait()
         cls.wait_until_alive()
 
     @classmethod
     def teardown_class(cls):
-        cls.notebook.terminate()
+        cls.notebook.stop()
         cls.wait_until_dead()
         cls.ipython_dir.cleanup()
         cls.notebook_dir.cleanup()

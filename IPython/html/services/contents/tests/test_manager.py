@@ -78,7 +78,6 @@ class TestContentsManager(TestCase):
         self.td = self._temp_dir.name
         self.contents_manager = FileContentsManager(
             root_dir=self.td,
-            log=logging.getLogger()
         )
 
     def tearDown(self):

@@ -229,9 +229,12 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
         
         # start the pinging
         if self.ping_interval > 0:
-            self.last_ping = ioloop.IOLoop.instance().time()  # Remember time of last ping
+            loop = ioloop.IOLoop.current()
+            self.last_ping = loop.time()  # Remember time of last ping
             self.last_pong = self.last_ping
-            self.ping_callback = ioloop.PeriodicCallback(self.send_ping, self.ping_interval)
+            self.ping_callback = ioloop.PeriodicCallback(
+                self.send_ping, self.ping_interval, io_loop=loop,
+            )
             self.ping_callback.start()
 
     def send_ping(self):
@@ -242,7 +245,7 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
         
         # check for timeout on pong.  Make sure that we really have sent a recent ping in
         # case the machine with both server and client has been suspended since the last ping.
-        now = ioloop.IOLoop.instance().time()
+        now = ioloop.IOLoop.current().time()
         since_last_pong = 1e3 * (now - self.last_pong)
         since_last_ping = 1e3 * (now - self.last_ping)
         if since_last_ping < 2*self.ping_interval and since_last_pong > self.ping_timeout:
@@ -254,4 +257,4 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
         self.last_ping = now
 
     def on_pong(self, data):
-        self.last_pong = ioloop.IOLoop.instance().time()
+        self.last_pong = ioloop.IOLoop.current().time()
