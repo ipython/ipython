@@ -24,7 +24,7 @@ class ResourcesDict(collections.defaultdict):
         return ''
 
 
-class Extension(TraitType):
+class FilenameExtension(TraitType):
     """A trait for filename extensions."""
 
     default_value = u''
@@ -52,7 +52,7 @@ class Exporter(LoggingConfigurable):
     accompanying resources dict.
     """
 
-    file_extension = Extension(
+    file_extension = FilenameExtension(
         '.txt', config=True,
         help="Extension of the file that should be written to disk"
         )

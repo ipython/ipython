@@ -8,4 +8,4 @@ from .notebook import NotebookExporter
 from .pdf import PDFExporter
 from .python import PythonExporter
 from .rst import RSTExporter
-from .exporter import Exporter, Extension
+from .exporter import Exporter, FilenameExtension
