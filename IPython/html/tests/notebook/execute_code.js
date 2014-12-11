@@ -66,8 +66,7 @@ casper.notebook_test(function () {
         IPython.notebook.select(0);
         cell.clear_output();
         cell.set_text('a=13; print(a)');
-        // 'run button' is the first of the forth group in default config.
-        $('#maintoolbar  .btn-group:nth(4) .btn:first').click();
+        $("button[data-jupyter-action='ipython.save-notebook']")[0].click()
     });
     
     this.wait_for_output(0);

@@ -22,11 +22,10 @@ define([
         }
     };
 
+    ToolBar.prototype._pseudo_actions={};
 
-   // thought, this might not be the best way as dict might not keep the right order.
-   // Might want to put the group name as second to make it optional
-   //
-   ToolBar.prototype.construct = function (config) {
+
+    ToolBar.prototype.construct = function (config) {
         for(var k in config){
             this.add_buttons_group(config[k][0],k[1]);
         }
@@ -96,7 +95,7 @@ define([
             var _pseudo_action;
             try{
                 _pseudo_action = list.slice(1,-1);
-                this[_pseudo_action]();
+                this._pseudo_actions[_pseudo_action].call(this);
             } catch (e) {
                 console.warn('ouch, calling ', _pseudo_action, 'does not seem to work...:', e);
             }
@@ -107,37 +106,37 @@ define([
         if( group_id !== undefined ) {
             btn_group.attr('id',group_id);
         }
-        var el;
         for(var i=0; i < list.length; i++) {
 
             // IIFE because javascript don't have loop scope so
             // action_name would otherwise be the same on all iteration
             // of the loop
-            // TODO: Indent this thing once reviewed:
-            (function(){
-            el = list[i];
-            var action_name;
-            var action;
-            if(typeof(el) === 'string'){
-                action = that.actions.get(el);
-                action_name = el;
+            (function(i,list){
+                var el = list[i];
+                var action_name;
+                var action;
+                if(typeof(el) === 'string'){
+                    action = that.actions.get(el);
+                    action_name = el;
 
-            }
-            var button  = $('<button/>')
-                .addClass('btn btn-default')
-                .attr("title", el.label||action.help)
-                .append(
-                    $("<i/>").addClass(el.icon||action.icon).addClass('fa')
-                );
-            var id = el.id;
-            if( id !== undefined )
-                button.attr('id',id);
-            var fun = el.callback|| function(){
-                that.actions.call(action_name);
-            };
-            button.click(fun);
-            btn_group.append(button);
-            })();
+                }
+                var button  = $('<button/>')
+                    .addClass('btn btn-default')
+                    .attr("title", el.label||action.help)
+                    .append(
+                        $("<i/>").addClass(el.icon||action.icon).addClass('fa')
+                    );
+                var id = el.id;
+                if( id !== undefined ){
+                    button.attr('id',id);
+                }
+                button.attr('data-jupyter-action', action_name);
+                var fun = el.callback|| function(){
+                    that.actions.call(action_name);
+                };
+                button.click(fun);
+                btn_group.append(button);
+            })(i,list);
             // END IIFE
         }
         $(this.selector).append(btn_group);

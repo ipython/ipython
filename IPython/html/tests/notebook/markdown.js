@@ -29,8 +29,7 @@ casper.notebook_test(function () {
         $('#cell_type').val('markdown').change();
         var cell = IPython.notebook.get_selected_cell();
         cell.set_text('*Baz*');
-        // 'run button' is the first of the forth group in default config.
-        $('#maintoolbar  .btn-group:nth(4) .btn:first').click();
+        $("button[data-jupyter-action='ipython.save-notebook']")[0].click();
         return cell.get_rendered();
     });
     this.test.assertEquals(output.trim(), '<p><em>Baz</em></p>', 'Markdown toolbar items work.');

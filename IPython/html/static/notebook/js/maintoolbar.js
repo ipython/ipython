@@ -64,7 +64,7 @@ define([
     // add a cell type drop down to the maintoolbar.
     // triggered when the pseudo action `<add_celltype_list>` is
     // encountered when building a toolbar.
-    MainToolBar.prototype.add_celltype_list = function () {
+    MainToolBar.prototype._pseudo_actions.add_celltype_list = function () {
         var that = this;
         var sel = $('<select/>')
             .attr('id','cell_type')
@@ -105,7 +105,7 @@ define([
 
     };
 
-    MainToolBar.prototype.add_celltoolbar_list = function () {
+    MainToolBar.prototype._pseudo_actions.add_celltoolbar_list = function () {
         var label = $('<span/>').addClass("navbar-text").text('Cell Toolbar:');
         var select = $('<select/>')
             .attr('id', 'ctb_select')
