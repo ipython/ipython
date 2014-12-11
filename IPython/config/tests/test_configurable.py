@@ -1,23 +1,8 @@
 # encoding: utf-8
-"""
-Tests for IPython.config.configurable
+"""Tests for IPython.config.configurable"""
 
-Authors:
-
-* Brian Granger
-* Fernando Perez (design help)
-"""
-
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from unittest import TestCase
 
@@ -32,10 +17,6 @@ from IPython.utils.traitlets import (
 
 from IPython.config.loader import Config
 from IPython.utils.py3compat import PY3
-
-#-----------------------------------------------------------------------------
-# Test cases
-#-----------------------------------------------------------------------------
 
 
 class MyConfigurable(Configurable):
@@ -372,4 +353,26 @@ class TestConfigContainers(TestCase):
         m.update_config(c2)
         self.assertEqual(m.a, 15)
     
+    def test_config_default(self):
+        class SomeSingleton(SingletonConfigurable):
+            pass
+
+        class DefaultConfigurable(Configurable):
+            a = Integer(config=True)
+            def _config_default(self):
+                if SomeSingleton.initialized():
+                    return SomeSingleton.instance().config
+                return Config()
+
+        c = Config()
+        c.DefaultConfigurable.a = 5
+
+        d1 = DefaultConfigurable()
+        self.assertEqual(d1.a, 0)
+        
+        single = SomeSingleton.instance(config=c)
+        
+        d2 = DefaultConfigurable()
+        self.assertIs(d2.config, single.config)
+        self.assertEqual(d2.a, 5)
 
