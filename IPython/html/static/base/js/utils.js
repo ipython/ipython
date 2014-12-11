@@ -5,9 +5,10 @@ define([
     'base/js/namespace',
     'jquery',
     'codemirror/lib/codemirror',
+    'moment',
     // silently upgrades CodeMirror
     'codemirror/mode/meta',
-], function(IPython, $, CodeMirror){
+], function(IPython, $, CodeMirror, moment){
     "use strict";
     
     IPython.load_extensions = function () {
@@ -824,7 +825,42 @@ define([
             return MathJax.Hub.Queue(["Typeset", MathJax.Hub, this]);
         });
     };
-
+    
+    var time = {};
+    time.milliseconds = {};
+    time.milliseconds.s = 1000;
+    time.milliseconds.m = 60 * time.milliseconds.s;
+    time.milliseconds.h = 60 * time.milliseconds.m;
+    time.milliseconds.d = 24 * time.milliseconds.h;
+    
+    time.thresholds = {
+        // moment.js thresholds in milliseconds
+        s: moment.relativeTimeThreshold('s') * time.milliseconds.s,
+        m: moment.relativeTimeThreshold('m') * time.milliseconds.m,
+        h: moment.relativeTimeThreshold('h') * time.milliseconds.h,
+        d: moment.relativeTimeThreshold('d') * time.milliseconds.d,
+    };
+    
+    time.timeout_from_dt = function (dt) {
+        /** compute a timeout based on dt
+        
+        input and output both in milliseconds
+        
+        use moment's relative time thresholds:
+        
+        - 10 seconds if in 'seconds ago' territory
+        - 1 minute if in 'minutes ago'
+        - 1 hour otherwise
+        */
+        if (dt < time.thresholds.s) {
+            return 10 * time.milliseconds.s;
+        } else if (dt < time.thresholds.m) {
+            return time.milliseconds.m;
+        } else {
+            return time.milliseconds.h;
+        }
+    };
+    
     var utils = {
         regex_split : regex_split,
         uuid : uuid,
@@ -860,6 +896,7 @@ define([
         resolve_promises_dict: resolve_promises_dict,
         reject: reject,
         typeset: typeset,
+        time: time,
     };
 
     // Backwards compatability.

@@ -141,39 +141,15 @@ define([
         var long_date = chkd.format('llll');
         var human_date;
         var tdelta = Math.ceil(new Date() - this._last_modified);
-        if (tdelta < 24 * H){
+        if (tdelta < utils.time.milliseconds.d){
             // less than 24 hours old, use relative date
             human_date = chkd.fromNow();
         } else {
-            // otherwise show calendar 
-            // otherwise update every hour and show
+            // otherwise show calendar
             // <Today | yesterday|...> at hh,mm,ss
             human_date = chkd.calendar();
         }
         el.text(human_date).attr('title', long_date);
-    };
-
-    
-    var S = 1000;
-    var M = 60*S;
-    var H = 60*M;
-    var thresholds = {
-        s: 45 * S,
-        m: 45 * M,
-        h: 22 * H
-    };
-    var _timeout_from_dt = function (ms) {
-        /** compute a timeout to update the last-modified timeout
-        
-        based on the delta in milliseconds
-        */
-        if (ms < thresholds.s) {
-            return 5 * S;
-        } else if (ms < thresholds.m) {
-            return M;
-        } else {
-            return 5 * M;
-        }
     };
     
     SaveWidget.prototype._schedule_render_last_modified = function () {
@@ -181,7 +157,6 @@ define([
         
         periodically updated, so short values like 'a few seconds ago' don't get stale.
         */
-        var that = this;
         if (!this._last_modified) {
             return;
         }
@@ -189,12 +164,10 @@ define([
             clearTimeout(this._last_modified_timeout);
         }
         var dt = Math.ceil(new Date() - this._last_modified);
-        if (dt < 24 * H) {
-            this._last_modified_timeout = setTimeout(
-                $.proxy(this._render_last_modified, this),
-                _timeout_from_dt(dt)
-            );
-        }
+        this._last_modified_timeout = setTimeout(
+            $.proxy(this._render_last_modified, this),
+            utils.time.timeout_from_dt(dt)
+        );
     };
 
     return {'SaveWidget': SaveWidget};
