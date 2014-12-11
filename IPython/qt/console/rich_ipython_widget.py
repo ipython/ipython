@@ -129,9 +129,7 @@ class RichIPythonWidget(IPythonWidget):
                 self._append_html(self.output_sep2, True)
             elif 'text/latex' in data:
                 self._pre_image_append(msg, prompt_number)
-                # latex_to_png takes care of handling $
-                latex = latex.strip('$')
-                png = latex_to_png(latex, wrap=True)
+                png = latex_to_png(data['text/latex'], wrap=False)
                 if png is not None:
                     self._append_png(png, True)
                     self._append_html(self.output_sep2, True)
