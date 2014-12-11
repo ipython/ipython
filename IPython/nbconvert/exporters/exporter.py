@@ -31,12 +31,11 @@ class FilenameExtension(TraitType):
     info_text = 'a filename extension, beginning with a dot'
 
     def validate(self, obj, value):
-        if isinstance(value, bytes):
-            try:
-                value = value.decode('ascii', 'strict')
-            except UnicodeDecodeError:
-                msg = "Could not decode {!r} for extension trait '{}'."
-                raise TraitError(msg.format(value, self.name))
+        try:
+            value = py3compat.cast_bytes_py2(value)
+        except UnicodeDecodeError:
+            msg = "Could not decode {!r} for extension trait '{}'."
+            raise TraitError(msg.format(value, self.name))
 
         if not value.startswith('.'):
             msg = "Extension trait '{}' does not begin with a dot: {!r}"
