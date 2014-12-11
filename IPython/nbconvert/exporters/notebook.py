@@ -18,7 +18,7 @@ class NotebookExporter(Exporter):
         """
     )
     def _file_extension_default(self):
-        return 'ipynb'
+        return '.ipynb'
 
     output_mimetype = 'application/json'
 
