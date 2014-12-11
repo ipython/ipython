@@ -28,7 +28,6 @@ class BlockingKernelClient(KernelClient):
         while True:
             try:
                 msg = self.iopub_channel.get_msg(block=True, timeout=0.2)
-                print(msg['msg_type'])
             except Empty:
                 break
 
