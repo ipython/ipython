@@ -170,7 +170,7 @@ def start_ipython():
     def nopage(strng, start=0, screen_lines=0, pager_cmd=None):
         print(strng)
     
-    page.orig_page = page.page
-    page.page = nopage
+    page.orig_page = page.pager_page
+    page.pager_page = nopage
 
     return _ip
