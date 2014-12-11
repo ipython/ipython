@@ -28,29 +28,6 @@ major_protocol_version = kernel_protocol_version_info[0]
 class InvalidPortNumber(Exception):
     pass
 
-
-def make_shell_socket(context, identity, address):
-    socket = context.socket(zmq.DEALER)
-    socket.linger = 1000
-    socket.identity = identity
-    socket.connect(address)
-    return socket
-
-def make_iopub_socket(context, identity, address):
-    socket = context.socket(zmq.SUB)
-    socket.linger = 1000
-    socket.subscribe = b''
-    socket.identity = identity
-    socket.connect(address)
-    return socket
-
-def make_stdin_socket(context, identity, address):
-    socket = context.socket(zmq.DEALER)
-    socket.linger = 1000
-    socket.identity = identity
-    socket.connect(address)
-    return socket
-
 class HBChannel(Thread):
     """The heartbeat channel which monitors the kernel heartbeat.
 

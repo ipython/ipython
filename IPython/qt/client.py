@@ -15,8 +15,7 @@ from IPython.external.qt import QtCore
 
 # Local imports
 from IPython.utils.traitlets import Type, Instance
-from IPython.kernel.channels import HBChannel,\
-    make_shell_socket, make_iopub_socket, make_stdin_socket
+from IPython.kernel.channels import HBChannel
 from IPython.kernel import KernelClient
 
 from .kernel_mixins import QtKernelClientMixin

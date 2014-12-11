@@ -14,9 +14,6 @@ from IPython.utils.traitlets import (
 )
 
 from .channelsabc import (ChannelABC, HBChannelABC)
-from .channels import (
-    make_shell_socket, make_stdin_socket, make_iopub_socket
-)
 from .clientabc import KernelClientABC
 from .connect import ConnectionFileMixin
 
@@ -144,7 +141,7 @@ class KernelClient(ConnectionFileMixin):
         if self._shell_channel is None:
             url = self._make_url('shell')
             self.log.debug("connecting shell channel to %s", url)
-            socket = make_shell_socket(self.context, self.session.bsession, url)
+            socket = self.connect_shell(identity=self.session.bsession)
             self._shell_channel = self.shell_channel_class(
                 socket, self.session, self.ioloop
             )
@@ -156,7 +153,7 @@ class KernelClient(ConnectionFileMixin):
         if self._iopub_channel is None:
             url = self._make_url('iopub')
             self.log.debug("connecting iopub channel to %s", url)
-            socket = make_iopub_socket(self.context, self.session.bsession, url)
+            socket = self.connect_iopub()
             self._iopub_channel = self.iopub_channel_class(
                 socket, self.session, self.ioloop
             )
@@ -168,7 +165,7 @@ class KernelClient(ConnectionFileMixin):
         if self._stdin_channel is None:
             url = self._make_url('stdin')
             self.log.debug("connecting stdin channel to %s", url)
-            socket = make_stdin_socket(self.context, self.session.bsession, url)
+            socket = self.connect_stdin(identity=self.session.bsession)
             self._stdin_channel = self.stdin_channel_class(
                 socket, self.session, self.ioloop
             )
