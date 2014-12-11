@@ -19,7 +19,7 @@ define([
             extensions.push("nbextensions/" + arguments[i]);
         }
         
-        require(extensions,
+        require({ paths : { nbextensions: '/nbextensions' }}, extensions,
             function () {
                 for (var i = 0; i < arguments.length; i++) {
                     var ext = arguments[i];
