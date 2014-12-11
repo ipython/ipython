@@ -609,3 +609,13 @@ def boolean_flag(name, configurable, set_help='', unset_help=''):
     unsetter = {cls : {trait : False}}
     return {name : (setter, set_help), 'no-'+name : (unsetter, unset_help)}
 
+
+def get_config():
+    """Get the config object for the global Application instance, if there is one
+    
+    otherwise return an empty config object
+    """
+    if Application.initialized():
+        return Application.instance().config
+    else:
+        return Config()
