@@ -30,9 +30,6 @@ define([
 
     MainToolBar.prototype = Object.create(toolbar.ToolBar.prototype);
 
-    // thought, this might not be the best way as dict might not keep the right order.
-    // Might want to put the group name as second to make it optional
-    //
     MainToolBar.prototype._make = function () {
         var grps = [
           [
