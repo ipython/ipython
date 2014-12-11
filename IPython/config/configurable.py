@@ -78,6 +78,9 @@ class Configurable(HasTraits):
             # making that a class attribute.
             # self.config = deepcopy(config)
             self.config = config
+        else:
+            # allow _config_default to return something
+            self._load_config(self.config)
         # This should go second so individual keyword arguments override
         # the values in config.
         super(Configurable, self).__init__(**kwargs)
