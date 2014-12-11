@@ -163,6 +163,21 @@ define([
      * @param {String} error_msg An error message
      */
     NotebookList.prototype.draw_notebook_list = function (list, error_msg) {
+        list.content.sort(function(a, b) {
+            if (a['type'] < b['type']) {
+                return -1;
+            }
+            if (a['type'] > b['type']) {
+                return 1;
+            }
+            if (a['name'] < b['name']) {
+                return -1;
+            }
+            if (a['name'] > b['name']) {
+                return 1;
+            }
+            return 0;
+        });
         var message = error_msg || 'Notebook list empty.';
         var item = null;
         var model = null;
