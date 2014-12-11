@@ -6,7 +6,6 @@
 import sys
 
 from IPython.external.qt import QtCore
-
 from IPython.utils.traitlets import HasTraits, Type
 from .util import MetaQObjectHasTraits, SuperQObject
 
@@ -49,7 +48,7 @@ class ChannelQObject(SuperQObject):
         """ Process any pending GUI events.
         """
         sys.stdout.flush()
-        sys.stderr.flush()           
+        sys.stderr.flush()
         QtCore.QCoreApplication.instance().processEvents()
 
 
@@ -77,7 +76,7 @@ class QtShellChannelMixin(ChannelQObject):
 
         # Emit signals for specialized message types.
         msg_type = msg['header']['msg_type']
-        
+
         signal = getattr(self, msg_type, None)
         if signal:
             signal.emit(msg)
