@@ -26,7 +26,7 @@ class MarkdownExporter(TemplateExporter):
     """
     
     def _file_extension_default(self):
-        return 'md'
+        return '.md'
 
     def _template_file_default(self):
         return 'markdown'
