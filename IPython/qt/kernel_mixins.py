@@ -66,7 +66,7 @@ class QtShellChannelMixin(ChannelQObject):
         # Emit signals for specialized message types.
         msg_type = msg['header']['msg_type']
         if msg_type == 'kernel_info_reply':
-            self._handle_kernel_info_reply(msg)
+            self.kernel_info_reply.emit(msg)
         
         signal = getattr(self, msg_type, None)
         if signal:
