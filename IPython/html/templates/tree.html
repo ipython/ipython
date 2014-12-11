@@ -19,132 +19,117 @@ data-terminals-available="{{terminals_available}}"
 
 {% block site %}
 
-<div id="ipython-main-app" class="container">
-
-<div id="tab_content" class="tabbable">
-    <ul id="tabs" class="nav nav-tabs">
+  <div id="ipython-main-app" class="container">
+    <div id="tab_content" class="tabbable">
+      <ul id="tabs" class="nav nav-tabs">
         <li class="active"><a href="#notebooks" data-toggle="tab">Notebooks</a></li>
         <li><a href="#running" data-toggle="tab">Running</a></li>
       {% if terminals_available %}
         <li><a href="#terminals" data-toggle="tab">Terminals</a></li>
       {% endif %}
         <li><a href="#clusters" data-toggle="tab">Clusters</a></li>
-    </ul>
-
-    <div class="tab-content">
-    <div id="notebooks" class="tab-pane active">
-        <div id="notebook_toolbar" class="row">
+      </ul>
+      <div class="tab-content">
+        <div id="notebooks" class="tab-pane active">
+          <div id="notebook_toolbar" class="row">
             <div class="col-sm-12 no-padding">
-                <form id='alternate_upload'  class='alternate_upload'>
-                    <span id="notebook_list_info">
-                        To import a notebook, drag the file onto the listing below or
-                        <span class="input-overlay">
-                          <input type="file" name="datafile" class="fileinput" multiple='multiple'>
-                          click here.
-                        </span>
-                    </span>
-                </form>
+              <form id='alternate_upload'  class='alternate_upload'>
+                <span id="notebook_list_info">
+                To import a notebook, drag the file onto the listing below or
+                <span class="input-overlay">
+                <input type="file" name="datafile" class="fileinput" multiple='multiple'>
+                click here.
+                </span>
+                </span>
+              </form>
               <div id="notebook_buttons" class="pull-right">
                 <div id="new-notebook-buttons" class="btn-group">
                   <button id="new_notebook" class="btn btn-default btn-xs">
-                    New Notebook
+                  New Notebook
                   </button>
                   <button class="dropdown-toggle btn btn-default btn-xs" data-toggle="dropdown">
-                    <span id="current-kernel">Loading...</span>
-                    <span class="caret"></span>
+                  <span id="current-kernel">Loading...</span>
+                  <span class="caret"></span>
                   </button>
                   <ul id="new-notebook-menu" class="dropdown-menu"></ul>
                 </div>
-
-                  
                 <button id="refresh_notebook_list" title="Refresh notebook list" class="btn btn-default btn-xs"><i class="fa fa-refresh"></i></button>
               </div>
             </div>
-        </div>
-
-        <div id="notebook_list">
-          <div id="notebook_list_header" class="row list_header">
+          </div>
+          <div id="notebook_list">
+            <div id="notebook_list_header" class="row list_header">
               <div id="project_name">
                 <ul class="breadcrumb">
-                    <li><a href="{{breadcrumbs[0][0]}}"><i class="fa fa-home"></i></a></li>
-                    {% for crumb in breadcrumbs[1:] %}
-                        <li><a href="{{crumb[0]}}">{{crumb[1]}}</a></li>
-                    {% endfor %}
+                  <li><a href="{{breadcrumbs[0][0]}}"><i class="fa fa-home"></i></a></li>
+                {% for crumb in breadcrumbs[1:] %}
+                  <li><a href="{{crumb[0]}}">{{crumb[1]}}</a></li>
+                {% endfor %}
                 </ul>
               </div>
+            </div>
           </div>
         </div>
-    </div>
-    
-    <div id="running" class="tab-pane">
-
-        <div id="running_toolbar" class="row">
+        <div id="running" class="tab-pane">
+          <div id="running_toolbar" class="row">
             <div class="col-sm-8 no-padding">
-                <span id="running_list_info">Currently running IPython notebooks</span>
+              <span id="running_list_info">Currently running IPython notebooks</span>
             </div>
             <div class="col-sm-4 no-padding tree-buttons">
-                <span id="running_buttons" class="pull-right">
-                    <button id="refresh_running_list" title="Refresh running list" class="btn btn-default btn-xs"><i class="fa fa-refresh"></i></button>
-                </span>
+              <span id="running_buttons" class="pull-right">
+              <button id="refresh_running_list" title="Refresh running list" class="btn btn-default btn-xs"><i class="fa fa-refresh"></i></button>
+              </span>
             </div>
+          </div>
+          <div id="running_list">
+            <div id="running_list_header" class="row list_header">
+              <div> There are no notebooks running. </div>
+            </div>
+          </div>
         </div>
-
-        <div id="running_list">
-            <div id="running_list_header" class="row list_header"> 
-                <div> There are no notebooks running. </div>
-            </div> 
-        </div>
-    </div>
-
-  {% if terminals_available %}
-    <div id="terminals" class="tab-pane">
-
-        <div id="terminal_toolbar" class="row">
+      {% if terminals_available %}
+        <div id="terminals" class="tab-pane">
+          <div id="terminal_toolbar" class="row">
             <div class="col-xs-8 no-padding">
-                <span id="terminal_list_info">Currently running terminals</span>
+              <span id="terminal_list_info">Currently running terminals</span>
             </div>
             <div class="col-xs-4 no-padding tree-buttons">
-                <span id="terminal_buttons" class="pull-right">
-                    <button id="new_terminal" title="New terminal" class="btn btn-default btn-xs">New Terminal</button>
-                    <button id="refresh_terminal_list" title="Refresh terminal list" class="btn btn-default btn-xs"><i class="fa fa-refresh"></i></button>
-                </span>
+              <span id="terminal_buttons" class="pull-right">
+              <button id="new_terminal" title="New terminal" class="btn btn-default btn-xs">New Terminal</button>
+              <button id="refresh_terminal_list" title="Refresh terminal list" class="btn btn-default btn-xs"><i class="fa fa-refresh"></i></button>
+              </span>
             </div>
-        </div>
-
-        <div id="terminal_list">
+          </div>
+          <div id="terminal_list">
             <div id="terminal_list_header" class="row list_header">
-                <div> There are no terminals running. </div>
+              <div> There are no terminals running. </div>
             </div>
+          </div>
         </div>
-    </div>
-  {% endif %}
-    
-    <div id="clusters" class="tab-pane">
-
-        <div id="cluster_toolbar" class="row">
+      {% endif %}
+        <div id="clusters" class="tab-pane">
+          <div id="cluster_toolbar" class="row">
             <div class="col-xs-8 no-padding">
-                <span id="cluster_list_info">IPython parallel computing clusters</span>
+              <span id="cluster_list_info">IPython parallel computing clusters</span>
             </div>
             <div class="col-xs-4 no-padding tree-buttons">
-                <span id="cluster_buttons" class="pull-right">
-                    <button id="refresh_cluster_list" title="Refresh cluster list" class="btn btn-default btn-xs"><i class="fa fa-refresh"></i></button>
-                </span>
+              <span id="cluster_buttons" class="pull-right">
+              <button id="refresh_cluster_list" title="Refresh cluster list" class="btn btn-default btn-xs"><i class="fa fa-refresh"></i></button>
+              </span>
             </div>
-        </div>
-
-        <div id="cluster_list">
+          </div>
+          <div id="cluster_list">
             <div id="cluster_list_header" class="row list_header">
-                <div class="profile_col col-xs-4">profile</div>
-                <div class="status_col col-xs-3">status</div>
-                <div class="engines_col col-xs-3" title="Enter the number of engines to start or empty for default"># of engines</div>
-                <div class="action_col col-xs-2">action</div>
+              <div class="profile_col col-xs-4">profile</div>
+              <div class="status_col col-xs-3">status</div>
+              <div class="engines_col col-xs-3" title="Enter the number of engines to start or empty for default"># of engines</div>
+              <div class="action_col col-xs-2">action</div>
             </div>
+          </div>
         </div>
-    </div>
-    </div>
-</div><!-- tab_content --> 
-
-</div><!-- ipython-main-app  -->
+      </div><!-- class:tab-content -->
+    </div><!-- id:tab_content --> 
+  </div><!-- ipython-main-app  -->
 
 {% endblock %}
 

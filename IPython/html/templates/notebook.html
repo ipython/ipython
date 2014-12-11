@@ -3,7 +3,7 @@
 {% block stylesheet %}
 
 {% if mathjax_url %}
-<script type="text/javascript" src="{{mathjax_url}}?config=TeX-AMS_HTML-full&delayStartupUntil=configured" charset="utf-8"></script>
+<script type="text/javascript" src="{{mathjax_url}}?config=TeX-AMS_HTML-full%26delayStartupUntil=configured" charset="utf-8"></script>
 {% endif %}
 <script type="text/javascript">
 // MathJax disabled, set as null to distingish from *missing* MathJax,
@@ -41,15 +41,16 @@ class="notebook_app"
     <span class="autosave_status"></span>
 </span>
 
-<span id="kernel_selector_widget" class="pull-right dropdown">
-  <img id="current_kernel_logo"/>
+<div id="kernel_selector_widget" class="pull-right dropdown">
+  <!-- empty png in 26 bytes below-->
+  <img id="current_kernel_logo" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D" alt='current kernel logo'>
   <button class="dropdown-toggle btn btn-sm navbar-btn" data-toggle="dropdown" type='button' id="current_kernel_spec">
     <span class='kernel_name'>Kernel</span>
     <span class="caret"></span> 
   </button>
   <ul id="kernel_selector" class="dropdown-menu">
   </ul>
-</span>
+</div>
 
 {% endblock headercontainer %}
 
