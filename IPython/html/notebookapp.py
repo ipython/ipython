@@ -711,7 +711,8 @@ class NotebookApp(BaseIPythonApplication):
         self.config.MappingKernelManager.root_dir = new
 
     server_extensions = List(Unicode(), config=True,
-        help="Python modules to load as notebook server extensions"
+        help=("Python modules to load as notebook server extensions. "
+              "This is an experimental API, and may change in future releases.")
     )
 
     def parse_command_line(self, argv=None):
@@ -926,6 +927,8 @@ class NotebookApp(BaseIPythonApplication):
 
         Import the module, then call the load_jupyter_server_extension function,
         if one exists.
+        
+        The extension API is experimental, and may change in future releases.
         """
         for modulename in self.server_extensions:
             try:
