@@ -35,7 +35,7 @@ class FilenameExtension(Unicode):
         value = super(FilenameExtension, self).validate(obj, value)
 
         # check that it starts with a dot
-        if not value.startswith('.'):
+        if value and not value.startswith('.'):
             msg = "FileExtension trait '{}' does not begin with a dot: {!r}"
             raise TraitError(msg.format(self.name, value))
 
