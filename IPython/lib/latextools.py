@@ -12,7 +12,7 @@ import shutil
 import subprocess
 
 from IPython.utils.process import find_cmd, FindCmdError
-from IPython.config.application import Application
+from IPython.config import get_config
 from IPython.config.configurable import SingletonConfigurable
 from IPython.utils.traitlets import List, Bool, Unicode
 from IPython.utils.py3compat import cast_unicode, cast_unicode_py2 as u
@@ -20,7 +20,9 @@ from IPython.utils.py3compat import cast_unicode, cast_unicode_py2 as u
 
 class LaTeXTool(SingletonConfigurable):
     """An object to store configuration of the LaTeX tool."""
-
+    def _config_default(self):
+        return get_config()
+    
     backends = List(
         Unicode, ["matplotlib", "dvipng"],
         help="Preferred backend to draw LaTeX math equations. "
@@ -93,11 +95,12 @@ def latex_to_png_mpl(s, wrap):
         from matplotlib import mathtext
     except ImportError:
         return None
-
+    
     # mpl mathtext doesn't support display math, force inline
     s = s.replace('$$', '$')
     if wrap:
         s = u'${0}$'.format(s)
+    
     mt = mathtext.MathTextParser('bitmap')
     f = BytesIO()
     mt.to_png(f, s, fontsize=12)

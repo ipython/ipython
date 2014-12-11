@@ -54,7 +54,6 @@ from IPython.core.prefilter import PrefilterManager
 from IPython.core.profiledir import ProfileDir
 from IPython.core.prompts import PromptManager
 from IPython.core.usage import default_banner
-from IPython.lib.latextools import LaTeXTool
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import PyColorize
 from IPython.utils import io
@@ -521,7 +520,6 @@ class InteractiveShell(SingletonConfigurable):
         self.init_display_pub()
         self.init_data_pub()
         self.init_displayhook()
-        self.init_latextool()
         self.init_magics()
         self.init_alias()
         self.init_logstart()
@@ -714,12 +712,6 @@ class InteractiveShell(SingletonConfigurable):
         # This is a context manager that installs/revmoes the displayhook at
         # the appropriate time.
         self.display_trap = DisplayTrap(hook=self.displayhook)
-
-    def init_latextool(self):
-        """Configure LaTeXTool."""
-        cfg = LaTeXTool.instance(parent=self)
-        if cfg not in self.configurables:
-            self.configurables.append(cfg)
 
     def init_virtualenv(self):
         """Add a virtualenv to sys.path so the user can import modules from it.
