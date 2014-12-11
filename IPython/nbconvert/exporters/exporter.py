@@ -32,7 +32,7 @@ class FilenameExtension(TraitType):
 
     def validate(self, obj, value):
         try:
-            value = py3compat.cast_bytes_py2(value)
+            value = py3compat.cast_unicode_py2(value)
         except UnicodeDecodeError:
             msg = "Could not decode {!r} for FileExtension trait '{}'."
             raise TraitError(msg.format(value, self.name))
