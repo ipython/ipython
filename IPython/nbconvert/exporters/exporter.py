@@ -34,11 +34,11 @@ class FilenameExtension(TraitType):
         try:
             value = py3compat.cast_bytes_py2(value)
         except UnicodeDecodeError:
-            msg = "Could not decode {!r} for extension trait '{}'."
+            msg = "Could not decode {!r} for FileExtension trait '{}'."
             raise TraitError(msg.format(value, self.name))
 
         if not value.startswith('.'):
-            msg = "Extension trait '{}' does not begin with a dot: {!r}"
+            msg = "FileExtension trait '{}' does not begin with a dot: {!r}"
             raise TraitError(msg.format(self.name, value))
 
         return value
