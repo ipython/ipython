@@ -14,7 +14,7 @@ import datetime
 from IPython.config.configurable import LoggingConfigurable
 from IPython.config import Config
 from IPython import nbformat
-from IPython.utils.traitlets import MetaHasTraits, TraitType, List, TraitError
+from IPython.utils.traitlets import MetaHasTraits, Unicode, List, TraitError
 from IPython.utils.importstring import import_item
 from IPython.utils import text, py3compat
 
@@ -24,19 +24,22 @@ class ResourcesDict(collections.defaultdict):
         return ''
 
 
-class FilenameExtension(TraitType):
+class FilenameExtension(Unicode):
     """A trait for filename extensions."""
 
     default_value = u''
     info_text = 'a filename extension, beginning with a dot'
 
     def validate(self, obj, value):
-        try:
-            value = py3compat.cast_unicode_py2(value)
-        except UnicodeDecodeError:
-            msg = "Could not decode {!r} for FileExtension trait '{}'."
-            raise TraitError(msg.format(value, self.name))
+        # cast to proper unicode
+        value = super(FilenameExtension, self).validate(obj, value)
 
+        # make sure the value is actually unicode
+        if not isinstance(value, py3compat.unicode_type):
+            msg = "FileExtension trait '{}' is not of type '{}'"
+            raise TraitError(msg.format(self.name, py3compat.unicode_type))
+
+        # check that it starts with a dot
         if not value.startswith('.'):
             msg = "FileExtension trait '{}' does not begin with a dot: {!r}"
             raise TraitError(msg.format(self.name, value))
