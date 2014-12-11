@@ -14,7 +14,7 @@ import datetime
 from IPython.config.configurable import LoggingConfigurable
 from IPython.config import Config
 from IPython import nbformat
-from IPython.utils.traitlets import MetaHasTraits, Unicode, List
+from IPython.utils.traitlets import MetaHasTraits, Unicode, List, TraitError
 from IPython.utils.importstring import import_item
 from IPython.utils import text, py3compat
 
@@ -24,6 +24,24 @@ class ResourcesDict(collections.defaultdict):
         return ''
 
 
+class FilenameExtension(Unicode):
+    """A trait for filename extensions."""
+
+    default_value = u''
+    info_text = 'a filename extension, beginning with a dot'
+
+    def validate(self, obj, value):
+        # cast to proper unicode
+        value = super(FilenameExtension, self).validate(obj, value)
+
+        # check that it starts with a dot
+        if value and not value.startswith('.'):
+            msg = "FileExtension trait '{}' does not begin with a dot: {!r}"
+            raise TraitError(msg.format(self.name, value))
+
+        return value
+
+
 class Exporter(LoggingConfigurable):
     """
     Class containing methods that sequentially run a list of preprocessors on a 
@@ -31,7 +49,7 @@ class Exporter(LoggingConfigurable):
     accompanying resources dict.
     """
 
-    file_extension = Unicode(
+    file_extension = FilenameExtension(
         '.txt', config=True,
         help="Extension of the file that should be written to disk"
         )
