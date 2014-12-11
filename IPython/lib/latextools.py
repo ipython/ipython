@@ -94,6 +94,8 @@ def latex_to_png_mpl(s, wrap):
     except ImportError:
         return None
 
+    # mpl mathtext doesn't support display math, force inline
+    s = s.replace('$$', '$')
     if wrap:
         s = u'${0}$'.format(s)
     mt = mathtext.MathTextParser('bitmap')
