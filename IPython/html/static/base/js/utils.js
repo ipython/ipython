@@ -61,7 +61,7 @@ define([
      * matched. Fixes browser bugs compared to the native
      * `String.prototype.split` and can be used reliably cross-browser.
      * @param {String} str String to split.
-     * @param {RegExp|String} separator Regex or string to use for separating
+     * @param {RegExp} separator Regex to use for separating
      *     the string.
      * @param {Number} [limit] Maximum number of items to include in the result
      *     array.
@@ -81,20 +81,15 @@ define([
      * // -> ['..', 'word', '1', ' ', 'word', '2', '..']
      */
     var regex_split = function (str, separator, limit) {
-        // If `separator` is not a regex, use `split`
-        if (Object.prototype.toString.call(separator) !== "[object RegExp]") {
-            return split.call(str, separator, limit);
-        }
         var output = [],
             flags = (separator.ignoreCase ? "i" : "") +
                     (separator.multiline  ? "m" : "") +
                     (separator.extended   ? "x" : "") + // Proposed for ES6
                     (separator.sticky     ? "y" : ""), // Firefox 3+
             lastLastIndex = 0,
-            // Make `global` and avoid `lastIndex` issues by working with a copy
-            separator = new RegExp(separator.source, flags + "g"),
             separator2, match, lastIndex, lastLength;
-        str += ""; // Type-convert
+        // Make `global` and avoid `lastIndex` issues by working with a copy
+        separator = new RegExp(separator.source, flags + "g");
 
         var compliantExecNpcg = typeof(/()??/.exec("")[1]) === "undefined";
         if (!compliantExecNpcg) {
@@ -111,7 +106,7 @@ define([
         limit = typeof(limit) === "undefined" ?
             -1 >>> 0 : // Math.pow(2, 32) - 1
             limit >>> 0; // ToUint32(limit)
-        while (match = separator.exec(str)) {
+        for (match = separator.exec(str); match; match = separator.exec(str)) {
             // `separator.lastIndex` is not reliable cross-browser
             lastIndex = match.index + match[0].length;
             if (lastIndex > lastLastIndex) {
@@ -226,7 +221,7 @@ define([
             var r,g,b;
             if (index_or_rgb == "5") {
                 // 256 color
-                var idx = parseInt(numbers.shift());
+                var idx = parseInt(numbers.shift(), 10);
                 if (idx < 16) {
                     // indexed ANSI
                     // ignore bright / non-bright distinction
@@ -310,10 +305,9 @@ define([
                 }
 
                 var span = "<span ";
-                for (var attr in attrs) {
-                    var value = attrs[attr];
+                Object.keys(attrs).map(function (attr) {
                     span = span + " " + attr + '="' + attrs[attr] + '"';
-                }
+                });
                 return span + ">";
             }
         });
@@ -324,11 +318,6 @@ define([
     // are set in the css file.
     function fixConsole(txt) {
         txt = xmlencode(txt);
-        var re = /\033\[([\dA-Fa-f;]*?)m/;
-        var opened = false;
-        var cmds = [];
-        var opener = "";
-        var closer = "";
 
         // Strip all ANSI codes that are not color related.  Matches
         // all ANSI codes that do not end with "m".
@@ -363,7 +352,7 @@ define([
          * A reasonably good way of converting between points and pixels.
          */
         var test = $('<div style="display: none; width: 10000pt; padding:0; border:0;"></div>');
-        $(body).append(test);
+        $('body').append(test);
         var pixel_per_point = test.width()/10000;
         test.remove();
         return Math.floor(points*pixel_per_point);
@@ -547,7 +536,7 @@ define([
     var get_url_param = function (name) {
         // get a URL parameter. I cannot believe we actually need this.
         // Based on http://stackoverflow.com/a/25359264/938949
-        var match = new RegExp('[\?&]' + name + '=([^&]*)').exec(window.location.search);
+        var match = new RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
         if (match){
             return decodeURIComponent(match[1] || '');
         }
@@ -753,35 +742,6 @@ define([
             return d;
         });
     };
-
-    var WrappedError = function(message, error){
-        /**
-         * Wrappable Error class
-         *
-         * The Error class doesn't actually act on `this`.  Instead it always
-         * returns a new instance of Error.  Here we capture that instance so we
-         * can apply it's properties to `this`.
-         */
-        var tmp = Error.apply(this, [message]);
-
-        // Copy the properties of the error over to this.
-        var properties = Object.getOwnPropertyNames(tmp);
-        for (var i = 0; i < properties.length; i++) {
-            this[properties[i]] = tmp[properties[i]];
-        }
-
-        // Keep a stack of the original error messages.
-        if (error instanceof WrappedError) {
-            this.error_stack = error.error_stack;
-        } else {
-            this.error_stack = [error];
-        }
-        this.error_stack.push(tmp);
-
-        return this;
-    };
-
-    WrappedError.prototype = Object.create(Error.prototype, {});
 
     var reject = function(message, log) {
         /**
