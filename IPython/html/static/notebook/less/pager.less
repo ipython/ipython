@@ -8,7 +8,7 @@ div#pager {
     bottom: 0px;
     width: 100%;
     max-height: 50%;
-    padding-top: 10px;
+    padding-top: 8px;
 
     /* Display over codemirror */
     z-index: 100;
@@ -25,7 +25,7 @@ div#pager {
 
     #pager-button-area {
         position: absolute;
-        top: 10px;
+        top: 8px;
         right: 20px; 
     }
 
@@ -44,7 +44,7 @@ div#pager {
 
     .ui-resizable-handle {
         top: 0px;
-        height: 10px;
+        height: 8px;
         background: @cell_background;
         border-top: 1px solid @light_border_color;
         border-bottom: 1px solid @light_border_color;
@@ -52,7 +52,7 @@ div#pager {
         /* Similar to the notebook header's shadow, but not
         exactly the same.  The settings had to be adjusted
         to get the shadow to show. */
-        .box-shadow(1px 4px 9px -4px rgba(0, 0, 0, 0.25));
+        .box-shadow(1px 4px 9px -3px rgba(0, 0, 0, 0.15));
 
         /* This injects handle bars (a short, wide = symbol) for 
         the resize handle. */
@@ -62,11 +62,10 @@ div#pager {
             top: 2px;
             left: 50%;
             height: 3px;
-            width: 20px;
-            margin-left: -10px;
+            width: 30px;
+            margin-left: -15px;
             position: absolute;
 
-            border-bottom: 1px solid @light_border_color;
             border-top: 1px solid @light_border_color;
         }
     }
