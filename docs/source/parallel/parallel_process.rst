@@ -288,7 +288,7 @@ to specify your own. Here is a sample PBS script template:
     #PBS -N ipython
     #PBS -j oe
     #PBS -l walltime=00:10:00
-    #PBS -l nodes={n/4}:ppn=4
+    #PBS -l nodes={n//4}:ppn=4
     #PBS -q {queue}
 
     cd $PBS_O_WORKDIR
@@ -304,7 +304,7 @@ There are a few important points about this template:
 
 2. Instead of putting in the actual number of engines, use the notation
    ``{n}`` to indicate the number of engines to be started. You can also use
-   expressions like ``{n/4}`` in the template to indicate the number of nodes.
+   expressions like ``{n//4}`` in the template to indicate the number of nodes.
    There will always be ``{n}`` and ``{profile_dir}`` variables passed to the formatter.
    These allow the batch system to know how many engines, and where the configuration
    files reside. The same is true for the batch queue, with the template variable
