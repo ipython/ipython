@@ -2,46 +2,59 @@
 
 Useful for test suites and blocking terminal interfaces.
 """
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013 The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING.txt, distributed as part of this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 try:
     from queue import Queue, Empty  # Py 3
 except ImportError:
     from Queue import Queue, Empty  # Py 2
 
-from IPython.kernel.channels import IOPubChannel, HBChannel, \
-    ShellChannel, StdInChannel
 
-#-----------------------------------------------------------------------------
-# Blocking kernel manager
-#-----------------------------------------------------------------------------
+class ZMQSocketChannel(object):
+    """A ZMQ socket in a simple blocking API"""
+    session = None
+    socket = None
+    stream = None
+    _exiting = False
+    proxy_methods = []
 
+    def __init__(self, socket, session, loop=None):
+        """Create a channel.
 
-class BlockingChannelMixin(object):
+        Parameters
+        ----------
+        socket : :class:`zmq.Socket`
+            The ZMQ socket to use.
+        session : :class:`session.Session`
+            The session to use.
+        loop
+            Unused here, for other implementations
+        """
+        super(ZMQSocketChannel, self).__init__()
 
-    def __init__(self, *args, **kwds):
-        super(BlockingChannelMixin, self).__init__(*args, **kwds)
-        self._in_queue = Queue()
+        self.socket = socket
+        self.session = session
 
-    def call_handlers(self, msg):
-        self._in_queue.put(msg)
+    def _recv(self, **kwargs):
+        msg = self.socket.recv_multipart(**kwargs)
+        ident,smsg = self.session.feed_identities(msg)
+        return self.session.deserialize(smsg)
 
     def get_msg(self, block=True, timeout=None):
         """ Gets a message if there is one that is ready. """
-        if timeout is None:
-            # Queue.get(timeout=None) has stupid uninteruptible
-            # behavior, so wait for a week instead
-            timeout = 604800
-        return self._in_queue.get(block, timeout)
+        if block:
+            if timeout is not None:
+                timeout *= 1000  # seconds to ms
+            ready = self.socket.poll(timeout)
+        else:
+            ready = self.socket.poll(timeout=0)
+
+        if ready:
+            return self._recv()
+        else:
+            raise Empty
 
     def get_msgs(self):
         """ Get all messages that are currently ready. """
@@ -55,31 +68,25 @@ class BlockingChannelMixin(object):
 
     def msg_ready(self):
         """ Is there a message that has been received? """
-        return not self._in_queue.empty()
+        return bool(self.socket.poll(timeout=0))
 
+    def close(self):
+        if self.socket is not None:
+            try:
+                self.socket.close(linger=0)
+            except Exception:
+                pass
+            self.socket = None
+    stop =  close
 
-class BlockingIOPubChannel(BlockingChannelMixin, IOPubChannel):
-    pass
+    def is_alive(self):
+        return (self.socket is not None)
 
+    def send(self, msg):
+        """Pass a message to the ZMQ socket to send
+        """
+        self.session.send(self.socket, msg)
 
-class BlockingShellChannel(BlockingChannelMixin, ShellChannel):
-    def call_handlers(self, msg):
-        if msg['msg_type'] == 'kernel_info_reply':
-            self._handle_kernel_info_reply(msg)
-        return super(BlockingShellChannel, self).call_handlers(msg)
-
-
-class BlockingStdInChannel(BlockingChannelMixin, StdInChannel):
-    pass
-
-
-class BlockingHBChannel(HBChannel):
-
-    # This kernel needs quicker monitoring, shorten to 1 sec.
-    # less than 0.5s is unreliable, and will get occasional
-    # false reports of missed beats.
-    time_to_dead = 1.
-
-    def call_handlers(self, since_last_heartbeat):
-        """ Pause beating on missed heartbeat. """
+    def start(self):
         pass
+

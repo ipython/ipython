@@ -420,17 +420,8 @@ def start_new_kernel(startup_timeout=60, kernel_name='python', **kwargs):
     km.start_kernel(**kwargs)
     kc = km.client()
     kc.start_channels()
+    kc.wait_for_ready()
 
-    kc.kernel_info()
-    kc.get_shell_msg(block=True, timeout=startup_timeout)
-
-    # Flush channels
-    for channel in (kc.shell_channel, kc.iopub_channel):
-        while True:
-            try:
-                channel.get_msg(block=True, timeout=0.1)
-            except Empty:
-                break
     return km, kc
 
 @contextmanager

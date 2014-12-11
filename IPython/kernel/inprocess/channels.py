@@ -3,10 +3,7 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from IPython.kernel.channelsabc import (
-    ShellChannelABC, IOPubChannelABC,
-    HBChannelABC, StdInChannelABC,
-)
+from IPython.kernel.channelsabc import HBChannelABC
 
 from .socket import DummySocket
 
@@ -22,10 +19,6 @@ class InProcessChannel(object):
         super(InProcessChannel, self).__init__()
         self.client = client
         self._is_alive = False
-
-    #--------------------------------------------------------------------------
-    # Channel interface
-    #--------------------------------------------------------------------------
 
     def is_alive(self):
         return self._is_alive
@@ -43,9 +36,9 @@ class InProcessChannel(object):
         """
         raise NotImplementedError('call_handlers must be defined in a subclass.')
 
-    #--------------------------------------------------------------------------
-    # InProcessChannel interface
-    #--------------------------------------------------------------------------
+    def flush(self, timeout=1.0):
+        pass
+
 
     def call_handlers_later(self, *args, **kwds):
         """ Call the message handlers later.
@@ -65,117 +58,31 @@ class InProcessChannel(object):
         raise NotImplementedError
 
 
-class InProcessShellChannel(InProcessChannel):
-    """See `IPython.kernel.channels.ShellChannel` for docstrings."""
 
-    # flag for whether execute requests should be allowed to call raw_input
-    allow_stdin = True
-    proxy_methods = [
-        'execute',
-        'complete',
-        'inspect',
-        'history',
-        'shutdown',
-        'kernel_info',
-    ]
+class InProcessHBChannel(object):
+    """A dummy heartbeat channel interface for in-process kernels.
 
-    #--------------------------------------------------------------------------
-    # ShellChannel interface
-    #--------------------------------------------------------------------------
-
-    def execute(self, code, silent=False, store_history=True,
-                user_expressions={}, allow_stdin=None):
-        if allow_stdin is None:
-            allow_stdin = self.allow_stdin
-        content = dict(code=code, silent=silent, store_history=store_history,
-                       user_expressions=user_expressions,
-                       allow_stdin=allow_stdin)
-        msg = self.client.session.msg('execute_request', content)
-        self._dispatch_to_kernel(msg)
-        return msg['header']['msg_id']
-
-    def complete(self, code, cursor_pos=None):
-        if cursor_pos is None:
-            cursor_pos = len(code)
-        content = dict(code=code, cursor_pos=cursor_pos)
-        msg = self.client.session.msg('complete_request', content)
-        self._dispatch_to_kernel(msg)
-        return msg['header']['msg_id']
-
-    def inspect(self, code, cursor_pos=None, detail_level=0):
-        if cursor_pos is None:
-            cursor_pos = len(code)
-        content = dict(code=code, cursor_pos=cursor_pos,
-            detail_level=detail_level,
-        )
-        msg = self.client.session.msg('inspect_request', content)
-        self._dispatch_to_kernel(msg)
-        return msg['header']['msg_id']
-
-    def history(self, raw=True, output=False, hist_access_type='range', **kwds):
-        content = dict(raw=raw, output=output,
-                       hist_access_type=hist_access_type, **kwds)
-        msg = self.client.session.msg('history_request', content)
-        self._dispatch_to_kernel(msg)
-        return msg['header']['msg_id']
-
-    def shutdown(self, restart=False):
-        # FIXME: What to do here?
-        raise NotImplementedError('Cannot shutdown in-process kernel')
-
-    def kernel_info(self):
-        """Request kernel info."""
-        msg = self.client.session.msg('kernel_info_request')
-        self._dispatch_to_kernel(msg)
-        return msg['header']['msg_id']
-
-    #--------------------------------------------------------------------------
-    # Protected interface
-    #--------------------------------------------------------------------------
-
-    def _dispatch_to_kernel(self, msg):
-        """ Send a message to the kernel and handle a reply.
-        """
-        kernel = self.client.kernel
-        if kernel is None:
-            raise RuntimeError('Cannot send request. No kernel exists.')
-
-        stream = DummySocket()
-        self.client.session.send(stream, msg)
-        msg_parts = stream.recv_multipart()
-        kernel.dispatch_shell(stream, msg_parts)
-
-        idents, reply_msg = self.client.session.recv(stream, copy=False)
-        self.call_handlers_later(reply_msg)
-
-
-class InProcessIOPubChannel(InProcessChannel):
-    """See `IPython.kernel.channels.IOPubChannel` for docstrings."""
-
-    def flush(self, timeout=1.0):
-        pass
-
-
-class InProcessStdInChannel(InProcessChannel):
-    """See `IPython.kernel.channels.StdInChannel` for docstrings."""
-
-    proxy_methods = ['input']
-
-    def input(self, string):
-        kernel = self.client.kernel
-        if kernel is None:
-            raise RuntimeError('Cannot send input reply. No kernel exists.')
-        kernel.raw_input_str = string
-
-
-class InProcessHBChannel(InProcessChannel):
-    """See `IPython.kernel.channels.HBChannel` for docstrings."""
+    Normally we use the heartbeat to check that the kernel process is alive.
+    When the kernel is in-process, that doesn't make sense, but clients still
+    expect this interface.
+    """
 
     time_to_dead = 3.0
 
-    def __init__(self, *args, **kwds):
-        super(InProcessHBChannel, self).__init__(*args, **kwds)
+    def __init__(self, client=None):
+        super(InProcessHBChannel, self).__init__()
+        self.client = client
+        self._is_alive = False
         self._pause = True
+
+    def is_alive(self):
+        return self._is_alive
+
+    def start(self):
+        self._is_alive = True
+
+    def stop(self):
+        self._is_alive = False
 
     def pause(self):
         self._pause = True
@@ -186,11 +93,5 @@ class InProcessHBChannel(InProcessChannel):
     def is_beating(self):
         return not self._pause
 
-#-----------------------------------------------------------------------------
-# ABC Registration
-#-----------------------------------------------------------------------------
 
-ShellChannelABC.register(InProcessShellChannel)
-IOPubChannelABC.register(InProcessIOPubChannel)
 HBChannelABC.register(InProcessHBChannel)
-StdInChannelABC.register(InProcessStdInChannel)

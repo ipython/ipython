@@ -82,6 +82,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     # The text to show when the kernel is (re)started.
     banner = Unicode(config=True)
     kernel_banner = Unicode()
+    # Whether to show the banner
+    _display_banner = Bool(False)
 
     # An option and corresponding signal for overriding the default kernel
     # interrupt behavior.
@@ -464,7 +466,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self.kernel_client.iopub_channel.flush()
 
         def callback(line):
-            self.kernel_client.stdin_channel.input(line)
+            self.kernel_client.input(line)
         if self._reading:
             self.log.debug("Got second input request, assuming first was interrupted.")
             self._reading = False

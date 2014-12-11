@@ -92,6 +92,7 @@ def setup_kernel(cmd):
     client = BlockingKernelClient(connection_file=connection_file)
     client.load_connection_file()
     client.start_channels()
+    client.wait_for_ready()
     
     try:
         yield client

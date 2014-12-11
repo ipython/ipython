@@ -12,16 +12,15 @@
 #-----------------------------------------------------------------------------
 
 # IPython imports
+from IPython.kernel.inprocess.socket import DummySocket
 from IPython.utils.traitlets import Type, Instance
 from IPython.kernel.clientabc import KernelClientABC
 from IPython.kernel.client import KernelClient
 
 # Local imports
 from .channels import (
-    InProcessShellChannel,
-    InProcessIOPubChannel,
+    InProcessChannel,
     InProcessHBChannel,
-    InProcessStdInChannel,
 
 )
 
@@ -40,9 +39,9 @@ class InProcessKernelClient(KernelClient):
     """
 
     # The classes to use for the various channels.
-    shell_channel_class = Type(InProcessShellChannel)
-    iopub_channel_class = Type(InProcessIOPubChannel)
-    stdin_channel_class = Type(InProcessStdInChannel)
+    shell_channel_class = Type(InProcessChannel)
+    iopub_channel_class = Type(InProcessChannel)
+    stdin_channel_class = Type(InProcessChannel)
     hb_channel_class = Type(InProcessHBChannel)
 
     kernel = Instance('IPython.kernel.inprocess.ipkernel.InProcessKernel')
@@ -78,6 +77,76 @@ class InProcessKernelClient(KernelClient):
         if self._hb_channel is None:
             self._hb_channel = self.hb_channel_class(self)
         return self._hb_channel
+
+    # Methods for sending specific messages
+    # -------------------------------------
+
+    def execute(self, code, silent=False, store_history=True,
+                user_expressions={}, allow_stdin=None):
+        if allow_stdin is None:
+            allow_stdin = self.allow_stdin
+        content = dict(code=code, silent=silent, store_history=store_history,
+                       user_expressions=user_expressions,
+                       allow_stdin=allow_stdin)
+        msg = self.session.msg('execute_request', content)
+        self._dispatch_to_kernel(msg)
+        return msg['header']['msg_id']
+
+    def complete(self, code, cursor_pos=None):
+        if cursor_pos is None:
+            cursor_pos = len(code)
+        content = dict(code=code, cursor_pos=cursor_pos)
+        msg = self.session.msg('complete_request', content)
+        self._dispatch_to_kernel(msg)
+        return msg['header']['msg_id']
+
+    def inspect(self, code, cursor_pos=None, detail_level=0):
+        if cursor_pos is None:
+            cursor_pos = len(code)
+        content = dict(code=code, cursor_pos=cursor_pos,
+            detail_level=detail_level,
+        )
+        msg = self.session.msg('inspect_request', content)
+        self._dispatch_to_kernel(msg)
+        return msg['header']['msg_id']
+
+    def history(self, raw=True, output=False, hist_access_type='range', **kwds):
+        content = dict(raw=raw, output=output,
+                       hist_access_type=hist_access_type, **kwds)
+        msg = self.session.msg('history_request', content)
+        self._dispatch_to_kernel(msg)
+        return msg['header']['msg_id']
+
+    def shutdown(self, restart=False):
+        # FIXME: What to do here?
+        raise NotImplementedError('Cannot shutdown in-process kernel')
+
+    def kernel_info(self):
+        """Request kernel info."""
+        msg = self.session.msg('kernel_info_request')
+        self._dispatch_to_kernel(msg)
+        return msg['header']['msg_id']
+
+    def input(self, string):
+        if self.kernel is None:
+            raise RuntimeError('Cannot send input reply. No kernel exists.')
+        self.kernel.raw_input_str = string
+
+
+    def _dispatch_to_kernel(self, msg):
+        """ Send a message to the kernel and handle a reply.
+        """
+        kernel = self.kernel
+        if kernel is None:
+            raise RuntimeError('Cannot send request. No kernel exists.')
+
+        stream = DummySocket()
+        self.session.send(stream, msg)
+        msg_parts = stream.recv_multipart()
+        kernel.dispatch_shell(stream, msg_parts)
+
+        idents, reply_msg = self.session.recv(stream, copy=False)
+        self.shell_channel.call_handlers_later(reply_msg)
 
 
 #-----------------------------------------------------------------------------

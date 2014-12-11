@@ -2,32 +2,38 @@
 
 Useful for test suites and blocking terminal interfaces.
 """
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013 The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING.txt, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+try:
+    from queue import Empty  # Python 3
+except ImportError:
+    from Queue import Empty  # Python 2
 
 from IPython.utils.traitlets import Type
+from IPython.kernel.channels import HBChannel
 from IPython.kernel.client import KernelClient
-from .channels import (
-    BlockingIOPubChannel, BlockingHBChannel,
-    BlockingShellChannel, BlockingStdInChannel
-)
-
-#-----------------------------------------------------------------------------
-# Blocking kernel manager
-#-----------------------------------------------------------------------------
+from .channels import ZMQSocketChannel
 
 class BlockingKernelClient(KernelClient):
+    def wait_for_ready(self):
+        # Wait for kernel info reply on shell channel
+        while True:
+            msg = self.shell_channel.get_msg(block=True)
+            if msg['msg_type'] == 'kernel_info_reply':
+                self._handle_kernel_info_reply(msg)
+                break
+
+        # Flush IOPub channel
+        while True:
+            try:
+                msg = self.iopub_channel.get_msg(block=True, timeout=0.2)
+                print(msg['msg_type'])
+            except Empty:
+                break
 
     # The classes to use for the various channels
-    shell_channel_class = Type(BlockingShellChannel)
-    iopub_channel_class = Type(BlockingIOPubChannel)
-    stdin_channel_class = Type(BlockingStdInChannel)
-    hb_channel_class = Type(BlockingHBChannel)
+    shell_channel_class = Type(ZMQSocketChannel)
+    iopub_channel_class = Type(ZMQSocketChannel)
+    stdin_channel_class = Type(ZMQSocketChannel)
+    hb_channel_class = Type(HBChannel)
