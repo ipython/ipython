@@ -34,11 +34,6 @@ class FilenameExtension(Unicode):
         # cast to proper unicode
         value = super(FilenameExtension, self).validate(obj, value)
 
-        # make sure the value is actually unicode
-        if not isinstance(value, py3compat.unicode_type):
-            msg = "FileExtension trait '{}' is not of type '{}'"
-            raise TraitError(msg.format(self.name, py3compat.unicode_type))
-
         # check that it starts with a dot
         if not value.startswith('.'):
             msg = "FileExtension trait '{}' does not begin with a dot: {!r}"
