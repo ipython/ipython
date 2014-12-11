@@ -11,6 +11,7 @@ define([
     var KernelSelector = function(selector, notebook) {
         this.selector = selector;
         this.notebook = notebook;
+        this.notebook.set_kernelselector(this);
         this.events = notebook.events;
         this.current_selection = null;
         this.kernelspecs = {};

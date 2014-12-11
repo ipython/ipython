@@ -113,7 +113,6 @@ require([
     notification_area.init_notification_widgets();
     var kernel_selector = new kernelselector.KernelSelector(
         '#kernel_selector_widget', notebook);
-    notebook.set_kernelselector(kernel_selector);
 
     $('body').append('<div id="fonttest"><pre><span id="test1">x</span>'+
                      '<span id="test2" style="font-weight: bold;">x</span>'+
