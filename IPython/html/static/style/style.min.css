@@ -8388,7 +8388,7 @@ div.input {
 }
 /* input_area and input_prompt must match in top border and margin for alignment */
 div.input_prompt {
-  color: navy;
+  color: #000080;
   border-top: 1px solid transparent;
 }
 div.input_area > div.highlight {
@@ -8660,7 +8660,7 @@ div.out_prompt_overlay:hover {
   background: rgba(240, 240, 240, 0.5);
 }
 div.output_prompt {
-  color: darkred;
+  color: #8b0000;
 }
 /* This class is the outer container of all output sections. */
 div.output_area {
@@ -8733,7 +8733,7 @@ div.output_area pre {
   padding: 0;
   border: 0;
   vertical-align: baseline;
-  color: black;
+  color: #000000;
   background-color: transparent;
   border-radius: 0;
 }
@@ -8926,8 +8926,8 @@ div.output_unrecognized a:hover {
   margin-top: 1em;
 }
 .rendered_html hr {
-  color: black;
-  background-color: black;
+  color: #000000;
+  background-color: #000000;
 }
 .rendered_html pre {
   margin: 1em 2em;
@@ -8946,13 +8946,13 @@ div.output_unrecognized a:hover {
 .rendered_html table {
   margin-left: auto;
   margin-right: auto;
-  border: 1px solid black;
+  border: 1px solid #000000;
   border-collapse: collapse;
 }
 .rendered_html tr,
 .rendered_html th,
 .rendered_html td {
-  border: 1px solid black;
+  border: 1px solid #000000;
   border-collapse: collapse;
   margin: 1em 2em;
 }
@@ -10130,7 +10130,7 @@ div#pager {
   bottom: 0px;
   width: 100%;
   max-height: 50%;
-  padding-top: 10px;
+  padding-top: 8px;
   /* Display over codemirror */
   z-index: 100;
   /* Hack which prevents jquery ui resizable from changing top. */
@@ -10144,7 +10144,7 @@ div#pager pre {
 }
 div#pager #pager-button-area {
   position: absolute;
-  top: 10px;
+  top: 8px;
   right: 20px;
 }
 div#pager #pager-contents {
@@ -10162,15 +10162,15 @@ div#pager #pager-contents #pager-container {
 }
 div#pager .ui-resizable-handle {
   top: 0px;
-  height: 10px;
+  height: 8px;
   background: #f7f7f7;
   border-top: 1px solid #cfcfcf;
   border-bottom: 1px solid #cfcfcf;
   /* Similar to the notebook header's shadow, but not
         exactly the same.  The settings had to be adjusted
         to get the shadow to show. */
-  -webkit-box-shadow: 1px 4px 9px -4px rgba(0, 0, 0, 0.25);
-  box-shadow: 1px 4px 9px -4px rgba(0, 0, 0, 0.25);
+  -webkit-box-shadow: 1px 4px 9px -3px rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 4px 9px -3px rgba(0, 0, 0, 0.15);
   /* This injects handle bars (a short, wide = symbol) for 
         the resize handle. */
 }
@@ -10179,10 +10179,9 @@ div#pager .ui-resizable-handle::after {
   top: 2px;
   left: 50%;
   height: 3px;
-  width: 20px;
-  margin-left: -10px;
+  width: 30px;
+  margin-left: -15px;
   position: absolute;
-  border-bottom: 1px solid #cfcfcf;
   border-top: 1px solid #cfcfcf;
 }
 .quickhelp {
@@ -10453,4 +10452,4 @@ span.autosave_status {
 #terminado-container {
   margin: 8px;
 }
-/*# sourceMappingURL=style.min.css.map */
+/*# sourceMappingURL=../style/style.min.css.map */
