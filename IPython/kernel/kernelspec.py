@@ -87,14 +87,20 @@ class KernelSpecManager(HasTraits):
     user_kernel_dir = Unicode()
     def _user_kernel_dir_default(self):
         return pjoin(self.ipython_dir, 'kernels')
+
+    @property
+    def env_kernel_dir(self):
+        return pjoin(sys.prefix, 'share', 'jupyter', 'kernels')
     
     kernel_dirs = List(
         help="List of kernel directories to search. Later ones take priority over earlier."    
     )    
     def _kernel_dirs_default(self):
-        return SYSTEM_KERNEL_DIRS + [
-            self.user_kernel_dir,
-        ]
+        dirs = SYSTEM_KERNEL_DIRS[:]
+        if self.env_kernel_dir not in dirs:
+            dirs.append(self.env_kernel_dir)
+        dirs.append(self.user_kernel_dir)
+        return dirs
 
     @property
     def _native_kernel_dict(self):
