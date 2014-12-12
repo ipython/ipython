@@ -25,6 +25,5 @@ from .widget_selectioncontainer import TabWidget, AccordionWidget
 from .widget_string import HTMLWidget, LatexWidget, TextWidget, TextareaWidget
 
 # Warn on import
-from IPython.utils.warn import warn
-warn("""The widget API is still considered experimental and 
-    may change by the next major release of IPython.""")
+from warnings import warn
+warn("""The widget API is still considered experimental and may change in the future.""", FutureWarning, stacklevel=2)
