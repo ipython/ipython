@@ -18,8 +18,8 @@ if os.name == 'nt':
     else:  # PROGRAMDATA is not defined by default on XP.
         SYSTEM_KERNEL_DIRS = []
 else:
-    SYSTEM_KERNEL_DIRS = ["/usr/share/ipython/kernels",
-                          "/usr/local/share/ipython/kernels",
+    SYSTEM_KERNEL_DIRS = ["/usr/share/jupyter/kernels",
+                          "/usr/local/share/jupyter/kernels",
                          ]
     
 NATIVE_KERNEL_NAME = 'python3' if PY3 else 'python2'
