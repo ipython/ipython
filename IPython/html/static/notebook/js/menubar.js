@@ -293,9 +293,6 @@ define([
         });
         
         // Kernel
-        this.element.find('#toggle_unsolicited').click(function() {
-            IPython.notebook.toggle_ignore_unsolicited_msgs();
-        });
         this.element.find('#int_kernel').click(function () {
             that.notebook.kernel.interrupt();
         });

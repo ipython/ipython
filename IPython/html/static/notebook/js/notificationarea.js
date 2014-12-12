@@ -279,11 +279,6 @@ define([
             nnw.warning(error.message || "Notebook copy failed");
         });
         
-        this.events.on('toggle_other_client_output.Notebook', function(evt, include_output) {
-            var msg = (include_output? "Showing": "Ignoring") + " output from other clients";
-            nnw.set_message(msg, 2000);
-        });
-
         // Checkpoint events
         this.events.on('checkpoint_created.Notebook', function (evt, data) {
             var msg = "Checkpoint created";
