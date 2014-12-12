@@ -162,12 +162,16 @@ define([
      *     directories.
      * @param {String} error_msg An error message
      */
+
+
+    var type_order = {'directory':0,'notebook':1,'file':2};
+
     NotebookList.prototype.draw_notebook_list = function (list, error_msg) {
         list.content.sort(function(a, b) {
-            if (a['type'] < b['type']) {
+            if (type_order[a['type']] < type_order[b['type']]) {
                 return -1;
             }
-            if (a['type'] > b['type']) {
+            if (type_order[a['type']] > type_order[b['type']]) {
                 return 1;
             }
             if (a['name'] < b['name']) {
