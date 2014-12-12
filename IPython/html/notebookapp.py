@@ -9,6 +9,7 @@ from __future__ import print_function
 import base64
 import datetime
 import errno
+import importlib
 import io
 import json
 import logging
@@ -709,6 +710,11 @@ class NotebookApp(BaseIPythonApplication):
         self.config.FileContentsManager.root_dir = new
         self.config.MappingKernelManager.root_dir = new
 
+    server_extensions = List(Unicode(), config=True,
+        help=("Python modules to load as notebook server extensions. "
+              "This is an experimental API, and may change in future releases.")
+    )
+
     def parse_command_line(self, argv=None):
         super(NotebookApp, self).parse_command_line(argv)
         
@@ -915,6 +921,24 @@ class NotebookApp(BaseIPythonApplication):
         elif status == 'unclean':
             self.log.warn("components submodule unclean, you may see 404s on static/components")
             self.log.warn("run `setup.py submodule` or `git submodule update` to update")
+
+    def init_server_extensions(self):
+        """Load any extensions specified by config.
+
+        Import the module, then call the load_jupyter_server_extension function,
+        if one exists.
+        
+        The extension API is experimental, and may change in future releases.
+        """
+        for modulename in self.server_extensions:
+            try:
+                mod = importlib.import_module(modulename)
+                func = getattr(mod, 'load_jupyter_server_extension', None)
+                if func is not None:
+                    func(self)
+            except Exception:
+                self.log.warn("Error loading server extension %s", modulename,
+                              exc_info=True)
     
     @catch_config_error
     def initialize(self, argv=None):
@@ -926,6 +950,7 @@ class NotebookApp(BaseIPythonApplication):
         self.init_webapp()
         self.init_terminals()
         self.init_signal()
+        self.init_server_extensions()
 
     def cleanup_kernels(self):
         """Shutdown all kernels.
