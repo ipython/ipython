@@ -5,6 +5,7 @@ SETLOCAL
 
 SET SPHINXOPTS=
 SET SPHINXBUILD=sphinx-build
+SET JSDOC=jsdoc
 SET PAPER=
 SET SRCDIR=source
 
@@ -42,6 +43,10 @@ FOR %%L IN (html pickle htmlhelp latex changes linkcheck) DO (
     )
 )
 
+IF "%1" == "jsapi" (
+    %JSDOC% -c jsdoc_config.json -d ./build/jsapi_html/
+)
+
 IF "%1" == "clean" (
     RD /s /q build dist %SRCDIR%\api\generated 2>NUL
     IF ERRORLEVEL 0 ECHO Build environment cleaned!
@@ -52,6 +57,7 @@ ECHO.
 ECHO Please use "make [target]" where [target] is one of:
 ECHO.
 ECHO    html      to make standalone HTML files
+ECHO    jsapi     to make standalone HTML files for the Javascript API
 ECHO    pickle    to make pickle files (usable by e.g. sphinx-web)
 ECHO    htmlhelp  to make HTML files and a HTML help project
 ECHO    latex     to make LaTeX files, you can set PAPER=a4 or PAPER=letter

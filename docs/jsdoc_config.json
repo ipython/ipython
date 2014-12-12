@@ -1,0 +1,21 @@
+{
+    "markdown": {
+        "parser": "gfm"
+    },
+    "plugins": [ 
+        "plugins/markdown" ,
+        "jsdoc_plugin.js"
+    ],
+    "source": {
+        "include": [
+            "../IPython/html/static/notebook/js/notebook.js"
+        ]
+    },
+    "tags": {
+        "allowUnknownTags": true
+    },
+    "templates": {
+        "cleverLinks": false,
+        "monospaceLinks": false
+    }
+}
