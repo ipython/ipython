@@ -66,7 +66,7 @@ casper.notebook_test(function () {
         IPython.notebook.select(0);
         cell.clear_output();
         cell.set_text('a=13; print(a)');
-        $('#run_b').click();
+        $("button[data-jupyter-action='ipython.run-select-next']")[0].click()
     });
     
     this.wait_for_output(0);

@@ -38,6 +38,14 @@ define([
         // for this particular combination
         this.element.addClass('notification_widget btn btn-xs navbar-btn');
     };
+   
+    /**
+     * hide the widget and empty the text
+     **/
+    NotificationWidget.prototype.hide = function () {
+        var that = this;
+        this.element.fadeOut(100, function(){that.inner.text('');});
+    };
 
     /**
      * Set the notification widget message to display for a certain

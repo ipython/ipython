@@ -29,7 +29,7 @@ casper.notebook_test(function () {
         $('#cell_type').val('markdown').change();
         var cell = IPython.notebook.get_selected_cell();
         cell.set_text('*Baz*');
-        $('#run_b').click();
+        $("button[data-jupyter-action='ipython.run-select-next']")[0].click();
         return cell.get_rendered();
     });
     this.test.assertEquals(output.trim(), '<p><em>Baz</em></p>', 'Markdown toolbar items work.');

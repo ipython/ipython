@@ -2,11 +2,12 @@
 // Distributed under the terms of the Modified BSD License.
 
 define([
+    'require',
     'base/js/namespace',
     'jquery',
-    'notebook/js/toolbar',
-    'notebook/js/celltoolbar',
-], function(IPython, $, toolbar, celltoolbar) {
+    './toolbar',
+    './celltoolbar'
+], function(require, IPython, $, toolbar, celltoolbar) {
     "use strict";
 
     var MainToolBar = function (selector, options) {
@@ -19,141 +20,97 @@ define([
          *      Dictionary of keyword arguments.
          *          events: $(Events) instance
          *          notebook: Notebook instance
-         */
-        toolbar.ToolBar.apply(this, arguments);
+         **/
+        toolbar.ToolBar.apply(this, [selector, options] );
         this.events = options.events;
         this.notebook = options.notebook;
-        this.construct();
-        this.add_celltype_list();
-        this.add_celltoolbar_list();
-        this.bind_events();
+        this._make();
+        Object.seal(this);
     };
 
     MainToolBar.prototype = Object.create(toolbar.ToolBar.prototype);
 
-    MainToolBar.prototype.construct = function () {
-        var that = this;
-        this.add_buttons_group([
-                {
-                    id : 'save_b',
-                    label : 'Save and Checkpoint',
-                    icon : 'fa-save',
-                    callback : function () {
-                        that.notebook.save_checkpoint();
-                        }
-                }
-            ]);
-
-        this.add_buttons_group([
-                {
-                    id : 'insert_below_b',
-                    label : 'Insert Cell Below',
-                    icon : 'fa-plus',
-                    callback : function () {
-                        that.notebook.insert_cell_below('code');
-                        that.notebook.select_next();
-                        that.notebook.focus_cell();
-                        }
-                }
-            ],'insert_above_below');
-
-        this.add_buttons_group([
-                {
-                    id : 'cut_b',
-                    label : 'Cut Cell',
-                    icon : 'fa-cut',
-                    callback : function () {
-                        that.notebook.cut_cell();
-                        }
-                },
-                {
-                    id : 'copy_b',
-                    label : 'Copy Cell',
-                    icon : 'fa-copy',
-                    callback : function () {
-                        that.notebook.copy_cell();
-                        }
-                },
-                {
-                    id : 'paste_b',
-                    label : 'Paste Cell Below',
-                    icon : 'fa-paste',
-                    callback : function () {
-                        that.notebook.paste_cell_below();
-                        }
-                }
-            ],'cut_copy_paste');
-
-        this.add_buttons_group([
-                {
-                    id : 'move_up_b',
-                    label : 'Move Cell Up',
-                    icon : 'fa-arrow-up',
-                    callback : function () {
-                        that.notebook.move_cell_up();
-                        }
-                },
-                {
-                    id : 'move_down_b',
-                    label : 'Move Cell Down',
-                    icon : 'fa-arrow-down',
-                    callback : function () {
-                        that.notebook.move_cell_down();
-                        }
-                }
-            ],'move_up_down');
-        
-
-        this.add_buttons_group([
-                {
-                    id : 'run_b',
-                    label : 'Run Cell',
-                    icon : 'fa-play',
-                    callback : function () {
-                        /**
-                         * emulate default shift-enter behavior
-                         */
-                        that.notebook.execute_cell_and_select_below();
-                    }
-                },
-                {
-                    id : 'interrupt_b',
-                    label : 'Interrupt',
-                    icon : 'fa-stop',
-                    callback : function () {
-                        that.notebook.kernel.interrupt();
-                        }
-                },
-                {
-                    id : 'repeat_b',
-                    label : 'Restart Kernel',
-                    icon : 'fa-repeat',
-                    callback : function () {
-                        that.notebook.restart_kernel();
-                        }
-                }
-            ],'run_int');
+    MainToolBar.prototype._make = function () {
+        var grps = [
+          [
+            ['ipython.save-notebook'],
+            'save-notbook'
+          ],
+          [
+            ['ipython.insert-cell-after'],
+            'insert_above_below'],
+          [
+            ['ipython.cut-selected-cell',
+             'ipython.copy-selected-cell',
+             'ipython.paste-cell-after'
+            ] ,
+            'cut_copy_paste'],
+          [
+            ['ipython.move-selected-cell-up',
+             'ipython.move-selected-cell-down'
+            ],
+            'move_up_down'],
+          [ ['ipython.run-select-next',
+             'ipython.interrupt-kernel',
+             'ipython.restart-kernel'
+            ],
+            'run_int'],
+         ['<add_celltype_list>'],
+         ['<add_celltoolbar_list>']
+        ];
+        this.construct(grps);
     };
     
-    MainToolBar.prototype.add_celltype_list = function () {
-        this.element
-            .append($('<select/>')
-                .attr('id','cell_type')
-                .addClass('form-control select-xs')
-                .append($('<option/>').attr('value','code').text('Code'))
-                .append($('<option/>').attr('value','markdown').text('Markdown'))
-                .append($('<option/>').attr('value','raw').text('Raw NBConvert'))
-                .append($('<option/>').attr('value','heading').text('Heading'))
-            );
+    // add a cell type drop down to the maintoolbar.
+    // triggered when the pseudo action `<add_celltype_list>` is
+    // encountered when building a toolbar.
+    MainToolBar.prototype._pseudo_actions.add_celltype_list = function () {
+        var that = this;
+        var sel = $('<select/>')
+            .attr('id','cell_type')
+            .addClass('form-control select-xs')
+            .append($('<option/>').attr('value','code').text('Code'))
+            .append($('<option/>').attr('value','markdown').text('Markdown'))
+            .append($('<option/>').attr('value','raw').text('Raw NBConvert'))
+            .append($('<option/>').attr('value','heading').text('Heading'));
+        this.events.on('selected_cell_type_changed.Notebook', function (event, data) {
+            if (data.cell_type === 'heading') {
+                sel.val('Markdown');
+            } else {
+                sel.val(data.cell_type);
+            }
+        });
+        sel.change(function () {
+            var cell_type = $(this).val();
+            switch (cell_type) {
+            case 'code':
+                that.notebook.to_code();
+                break;
+            case 'markdown':
+                that.notebook.to_markdown();
+                break;
+            case 'raw':
+                that.notebook.to_raw();
+                break;
+            case 'heading':
+                that.notebook._warn_heading();
+                that.notebook.to_heading();
+                sel.val('markdown');
+                break;
+            default:
+                console.log("unrecognized cell type:", cell_type);
+            }
+        });
+        return sel;
+
     };
 
-    MainToolBar.prototype.add_celltoolbar_list = function () {
+    MainToolBar.prototype._pseudo_actions.add_celltoolbar_list = function () {
         var label = $('<span/>').addClass("navbar-text").text('Cell Toolbar:');
         var select = $('<select/>')
             .attr('id', 'ctb_select')
             .addClass('form-control select-xs')
             .append($('<option/>').attr('value', '').text('None'));
-        this.element.append(label).append(select);
         var that = this;
         select.change(function() {
                 var val = $(this).val();
@@ -182,42 +139,13 @@ define([
             if (select.val() !== data.name)
                 select.val(data.name);
         });
+
+        var wrapper = $('<div/>').addClass('btn-group');
+        wrapper.append(label).append(select);
+        return wrapper;
     };
 
-    MainToolBar.prototype.bind_events = function () {
-        var that = this;
-        
-        this.element.find('#cell_type').change(function () {
-            var cell_type = $(this).val();
-            switch (cell_type) {
-            case 'code':
-                that.notebook.to_code();
-                break;
-            case 'markdown':
-                that.notebook.to_markdown();
-                break;
-            case 'raw':
-                that.notebook.to_raw();
-                break;
-            case 'heading':
-                that.notebook._warn_heading();
-                that.notebook.to_heading();
-                that.element.find('#cell_type').val("markdown");
-                break;
-            default:
-                console.log("unrecognized cell type:", cell_type);
-            }
-        });
-        this.events.on('selected_cell_type_changed.Notebook', function (event, data) {
-            if (data.cell_type === 'heading') {
-                that.element.find('#cell_type').val(data.cell_type+data.level);
-            } else {
-                that.element.find('#cell_type').val(data.cell_type);
-            }
-        });
-    };
-
-    // Backwards compatability.
+    // Backwards compatibility.
     IPython.MainToolBar = MainToolBar;
 
     return {'MainToolBar': MainToolBar};

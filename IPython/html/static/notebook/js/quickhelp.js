@@ -65,6 +65,86 @@ define([
         { shortcut: cmd_ctrl + "Shift-z",   help:"redo"  },
         { shortcut: cmd_ctrl + "y",   help:"redo"  },
     ].concat( platform_specific );
+    
+    var mac_humanize_map = {
+        // all these are unicode, will probably display badly on anything except macs.
+        // these are the standard symbol that are used in MacOS native menus
+        // cf http://apple.stackexchange.com/questions/55727/
+        // for htmlentities and/or unicode value
+        'cmd':'⌘',
+        'shift':'⇧',
+        'alt':'⌥',
+        'up':'↑',
+        'down':'↓',
+        'left':'←',
+        'right':'→',
+        'eject':'⏏',
+        'tab':'⇥',
+        'backtab':'⇤',
+        'capslock':'⇪',
+        'esc':'⎋',
+        'ctrl':'⌃',
+        'enter':'↩',
+        'pageup':'⇞',
+        'pagedown':'⇟',
+        'home':'↖',
+        'end':'↘',
+        'altenter':'⌤',
+        'space':'␣',
+        'delete':'⌦',
+        'backspace':'⌫',
+        'apple':'',
+    };
+
+    var default_humanize_map = {
+        'shift':'Shift',
+        'alt':'Alt',
+        'up':'Up',
+        'down':'Down',
+        'left':'Left',
+        'right':'Right',
+        'tab':'Tab',
+        'capslock':'Caps Lock',
+        'esc':'Esc',
+        'ctrl':'Ctrl',
+        'enter':'Enter',
+        'pageup':'Page Up',
+        'pagedown':'Page Down',
+        'home':'Home',
+        'end':'End',
+        'space':'Space',
+        'backspace':'Backspace',
+        };
+    
+    var humanize_map;
+
+    if (platform === 'MacOS'){
+        humanize_map = mac_humanize_map;
+    } else {
+        humanize_map = default_humanize_map;
+    }
+
+    function humanize_key(key){
+        if (key.length === 1){
+            key = key.toUpperCase();
+        }
+        return humanize_map[key.toLowerCase()]||key;
+    }
+
+    function humanize_sequence(sequence){
+        var joinchar = ',';
+        var hum = _.map(sequence.replace(/meta/g, 'cmd').split(','), humanize_shortcut).join(joinchar);
+        return hum;
+    }
+
+    function humanize_shortcut(shortcut){
+        var joinchar = '-';
+        if (platform === 'MacOS'){
+            joinchar = '';
+        }
+        var sh = _.map(shortcut.split('-'), humanize_key ).join(joinchar);
+        return sh;
+    }
 
 
     QuickHelp.prototype.show_keyboard_shortcuts = function () {
@@ -157,7 +237,10 @@ define([
 
     var build_one = function (s) {
         var help = s.help;
-        var shortcut = prettify(s.shortcut);
+        var shortcut = '';
+        if(s.shortcut){
+            shortcut = prettify(humanize_sequence(s.shortcut));
+        }
         return $('<div>').addClass('quickhelp').
             append($('<span/>').addClass('shortcut_key').append($(shortcut))).
             append($('<span/>').addClass('shortcut_descr').text(' : ' + help));
