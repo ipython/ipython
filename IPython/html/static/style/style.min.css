@@ -9684,12 +9684,6 @@ select[multiple].celltoolbar select {
   width: 32px;
   height: 32px;
 }
-#kernel_logo_widget div.current_kernel_logo {
-  background-color: #dfdfdf;
-  font-size: 24px;
-  text-align: center;
-  text-decoration: bold;
-}
 #menubar {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
