@@ -7797,10 +7797,7 @@ div#header .header-bar {
   font-weight: bold;
 }
 #ipython_notebook img {
-  font-family: Verdana, "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
   height: 24px;
-  text-decoration: none;
-  color: black;
 }
 #site {
   width: 100%;
