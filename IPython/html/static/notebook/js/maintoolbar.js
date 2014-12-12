@@ -6,7 +6,7 @@ define([
     'base/js/namespace',
     'jquery',
     './toolbar',
-    './celltoolbar',
+    './celltoolbar'
 ], function(require, IPython, $, toolbar, celltoolbar) {
     "use strict";
 
@@ -52,11 +52,11 @@ define([
             'move_up_down'],
           [ ['ipython.run-select-next',
              'ipython.interrupt-kernel',
-             'ipython.restart-kernel',
+             'ipython.restart-kernel'
             ],
             'run_int'],
          ['<add_celltype_list>'],
-         ['<add_celltoolbar_list>'],
+         ['<add_celltoolbar_list>']
         ];
         this.construct(grps);
     };
@@ -95,13 +95,13 @@ define([
             case 'heading':
                 that.notebook._warn_heading();
                 that.notebook.to_heading();
-                sel.val('markdown')
+                sel.val('markdown');
                 break;
             default:
                 console.log("unrecognized cell type:", cell_type);
             }
         });
-        this.element.append(sel);
+        return sel;
 
     };
 
@@ -111,7 +111,6 @@ define([
             .attr('id', 'ctb_select')
             .addClass('form-control select-xs')
             .append($('<option/>').attr('value', '').text('None'));
-        this.element.append(label).append(select);
         var that = this;
         select.change(function() {
                 var val = $(this).val();
@@ -140,6 +139,10 @@ define([
             if (select.val() !== data.name)
                 select.val(data.name);
         });
+
+        var wrapper = $('<div/>').addClass('btn-group');
+        wrapper.append(label).append(select);
+        return wrapper;
     };
 
     // Backwards compatibility.

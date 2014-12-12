@@ -95,7 +95,7 @@ define([
             var _pseudo_action;
             try{
                 _pseudo_action = list.slice(1,-1);
-                this._pseudo_actions[_pseudo_action].call(this);
+                this.element.append(this._pseudo_actions[_pseudo_action].call(this));
             } catch (e) {
                 console.warn('ouch, calling ', _pseudo_action, 'does not seem to work...:', e);
             }
