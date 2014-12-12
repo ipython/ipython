@@ -223,13 +223,12 @@ def test_list_tuple_3_float():
 def test_list_tuple_str():
     values = ['hello', 'there', 'guy']
     first = values[0]
-    dvalues = OrderedDict((v,v) for v in values)
     c = interactive(f, tup=tuple(values), lis=list(values))
     nt.assert_equal(len(c.children), 2)
     d = dict(
         cls=widgets.Dropdown,
         value=first,
-        values=dvalues
+        values=values
     )
     check_widgets(c, tup=d, lis=d)
 
@@ -292,7 +291,7 @@ def test_default_values():
         ),
         j=dict(
             cls=widgets.Dropdown,
-            values={'hi':'hi', 'there':'there'},
+            values=['hi', 'there'],
             value='there'
         ),
     )
@@ -315,7 +314,7 @@ def test_default_out_of_bounds():
         ),
         j=dict(
             cls=widgets.Dropdown,
-            values={'hi':'hi', 'there':'there'},
+            values=['hi', 'there'],
             value='hi',
         ),
     )

@@ -64,7 +64,7 @@ define([
                     this.$droplabel.text(selected_item_text);
                 }
                 
-                var items = this.model.get('value_names');
+                var items = this.model.get('_value_names');
                 var $replace_droplist = $('<ul />')
                     .addClass('dropdown-menu');
                 // Copy the style
@@ -188,7 +188,7 @@ define([
              */
             if (options === undefined || options.updated_view != this) {
                 // Add missing items to the DOM.
-                var items = this.model.get('value_names');
+                var items = this.model.get('_value_names');
                 var disabled = this.model.get('disabled');
                 var that = this;
                 _.each(items, function(item, index) {
@@ -305,7 +305,7 @@ define([
              */
             if (options === undefined || options.updated_view != this) {
                 // Add missing items to the DOM.
-                var items = this.model.get('value_names');
+                var items = this.model.get('_value_names');
                 var disabled = this.model.get('disabled');
                 var that = this;
                 var item_html;
@@ -442,7 +442,7 @@ define([
              */
             if (options === undefined || options.updated_view != this) {
                 // Add missing items to the DOM.
-                var items = this.model.get('value_names');
+                var items = this.model.get('_value_names');
                 var that = this;
                 _.each(items, function(item, index) {
                    var item_query = 'option[value_name="' + item + '"]';

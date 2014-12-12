@@ -18,7 +18,9 @@ from collections import OrderedDict
 from threading import Lock
 
 from .widget import DOMWidget, register
-from IPython.utils.traitlets import Unicode, List, Bool, Any, Dict, TraitError, CaselessStrEnum
+from IPython.utils.traitlets import (
+    Unicode, Bool, Any, Dict, TraitError, CaselessStrEnum, Tuple
+)
 from IPython.utils.py3compat import unicode_type
 from IPython.utils.warn import DeprecatedClass
 
@@ -33,68 +35,82 @@ class _Selection(DOMWidget):
     """
     
     value = Any(help="Selected value")
-    values = Dict(help="""Dictionary of {name: value} the user can select.
+    value_name = Unicode(help="The name of the selected value", sync=True)
+    values = Any(help="""List of (key, value) tuples or dict of values that the 
+        user can select.
     
-    The keys of this dictionary are the strings that will be displayed in the UI,
+    The keys of this list are the strings that will be displayed in the UI,
     representing the actual Python choices.
     
-    The keys of this dictionary are also available as value_names.
+    The keys of this list are also available as _value_names.
     """)
-    value_name = Unicode(help="The name of the selected value", sync=True)
-    value_names = List(Unicode, help="""Read-only list of names for each value.
-        
-        If values is specified as a list, this is the string representation of each element.
-        Otherwise, it is the keys of the values dictionary.
-        
-        These strings are used to display the choices in the front-end.""", sync=True)
+    
+    _values_dict = Dict()
+    _value_names = Tuple(sync=True)
+    _value_values = Tuple()
+
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
-    
-    
+        
     def __init__(self, *args, **kwargs):
         self.value_lock = Lock()
-        self._in_values_changed = False
+        self.values_lock = Lock()
+        self.on_trait_change(self._values_readonly_changed, ['_values_dict', '_value_names', '_value_values', '_values'])
         if 'values' in kwargs:
-            values = kwargs['values']
-            # convert list values to an dict of {str(v):v}
-            if isinstance(values, list):
-                # preserve list order with an OrderedDict
-                kwargs['values'] = OrderedDict((unicode_type(v), v) for v in values)
-            # python3.3 turned on hash randomization by default - this means that sometimes, randomly
-            # we try to set value before setting values, due to dictionary ordering.  To fix this, force
-            # the setting of self.values right now, before anything else runs
             self.values = kwargs.pop('values')
         DOMWidget.__init__(self, *args, **kwargs)
         self._value_in_values()
     
+    def _make_values(self, x):
+        # If x is a dict, convert it to list format.
+        if isinstance(x, (OrderedDict, dict)):
+            return [(k, v) for k, v in x.items()]
+        
+        # Make sure x is a list or tuple.
+        if not isinstance(x, (list, tuple)):
+            raise ValueError('x')
+        
+        # If x is an ordinary list, use the values as names.
+        for y in x:
+            if not isinstance(y, (list, tuple)) or len(y) < 2:
+                return [(i, i) for i in x]
+        
+        # Value is already in the correct format.
+        return x
+
     def _values_changed(self, name, old, new):
-        """Handles when the values dict has been changed.
+        """Handles when the values tuple has been changed.
 
         Setting values implies setting value names from the keys of the dict.
-        """
-        self._in_values_changed = True
-        try:
-            self.value_names = list(new.keys())
-        finally:
-            self._in_values_changed = False
-        self._value_in_values()
+        """        
+        if self.values_lock.acquire(False):
+            try:
+                self.values = new
 
+                values = self._make_values(new)
+                self._values_dict = {i[0]: i[1] for i in values}
+                self._value_names = [i[0] for i in values]
+                self._value_values = [i[1] for i in values]
+                self._value_in_values()
+            finally:
+                self.values_lock.release()
+        
     def _value_in_values(self):
         # ensure that the chosen value is one of the choices
-        if self.values:
-            if self.value not in self.values.values():
-                self.value = next(iter(self.values.values()))
+        if self._value_values:
+            if self.value not in self._value_values:
+                self.value = next(iter(self._value_values))
     
-    def _value_names_changed(self, name, old, new):
-        if not self._in_values_changed:
-            raise TraitError("value_names is a read-only proxy to values.keys(). Use the values dict instead.")
+    def _values_readonly_changed(self, name, old, new):
+        if not self.values_lock.locked():
+            raise TraitError("`.%s` is a read-only trait. Use the `.values` tuple instead." % name)
 
     def _value_changed(self, name, old, new):
         """Called when value has been changed"""
         if self.value_lock.acquire(False):
             try:
                 # Reverse dictionary lookup for the value name
-                for k,v in self.values.items():
+                for k,v in self._values_dict.items():
                     if new == v:
                         # set the selected value name
                         self.value_name = k
@@ -109,7 +125,7 @@ class _Selection(DOMWidget):
         """Called when the value name has been changed (typically by the frontend)."""
         if self.value_lock.acquire(False):
             try:
-                self.value = self.values[new]
+                self.value = self._values_dict[new]
             finally:
                 self.value_lock.release()
 
