@@ -7784,8 +7784,8 @@ div#header .header-bar {
 }
 #ipython_notebook {
   padding-left: 0px;
-  padding-top: 3px;
-  padding-bottom: 3px;
+  padding-top: 1px;
+  padding-bottom: 1px;
 }
 #noscript {
   width: auto;
@@ -7797,7 +7797,7 @@ div#header .header-bar {
   font-weight: bold;
 }
 #ipython_notebook img {
-  height: 24px;
+  height: 28px;
 }
 #site {
   width: 100%;
