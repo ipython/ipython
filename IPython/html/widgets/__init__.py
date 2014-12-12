@@ -26,4 +26,4 @@ from .widget_string import HTMLWidget, LatexWidget, TextWidget, TextareaWidget
 
 # Warn on import
 from warnings import warn
-warn("""The widget API is still considered experimental and may change in the future.""", FutureWarning, stacklevel=2)
+warn("IPython widgets are experimental and may change in the future.", FutureWarning, stacklevel=2)
