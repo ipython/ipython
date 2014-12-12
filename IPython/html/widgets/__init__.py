@@ -24,6 +24,9 @@ from .widget_selection import RadioButtonsWidget, ToggleButtonsWidget, DropdownW
 from .widget_selectioncontainer import TabWidget, AccordionWidget
 from .widget_string import HTMLWidget, LatexWidget, TextWidget, TextareaWidget
 
-# Warn on import
-from warnings import warn
-warn("IPython widgets are experimental and may change in the future.", FutureWarning, stacklevel=2)
+# we use warn_explicit so we have very brief messages without file or line numbers
+# the concern is that file or line numbers will confuse the interactive user
+from warnings import warn_explicit
+__warningregistry__ = {}
+warn_explicit("IPython widgets are experimental and may change in the future.",
+              FutureWarning, '', 0, registry=__warningregistry__)
