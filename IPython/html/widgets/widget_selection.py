@@ -42,12 +42,12 @@ class _Selection(DOMWidget):
     The keys of this list are the strings that will be displayed in the UI,
     representing the actual Python choices.
     
-    The keys of this list are also available as value_names.
+    The keys of this list are also available as _value_names.
     """)
     
-    values_dict = Dict()
-    value_names = Tuple(sync=True)
-    value_values = Tuple()
+    _values_dict = Dict()
+    _value_names = Tuple(sync=True)
+    _value_values = Tuple()
 
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
@@ -55,7 +55,7 @@ class _Selection(DOMWidget):
     def __init__(self, *args, **kwargs):
         self.value_lock = Lock()
         self.values_lock = Lock()
-        self.on_trait_change(self._values_readonly_changed, ['values_dict', 'value_names', 'value_values', '_values'])
+        self.on_trait_change(self._values_readonly_changed, ['_values_dict', '_value_names', '_value_values', '_values'])
         if 'values' in kwargs:
             self.values = kwargs.pop('values')
         DOMWidget.__init__(self, *args, **kwargs)
@@ -88,18 +88,18 @@ class _Selection(DOMWidget):
                 self.values = new
 
                 values = self._make_values(new)
-                self.values_dict = {i[0]: i[1] for i in values}
-                self.value_names = [i[0] for i in values]
-                self.value_values = [i[1] for i in values]
+                self._values_dict = {i[0]: i[1] for i in values}
+                self._value_names = [i[0] for i in values]
+                self._value_values = [i[1] for i in values]
                 self._value_in_values()
             finally:
                 self.values_lock.release()
         
     def _value_in_values(self):
         # ensure that the chosen value is one of the choices
-        if self.value_values:
-            if self.value not in self.value_values:
-                self.value = next(iter(self.value_values))
+        if self._value_values:
+            if self.value not in self._value_values:
+                self.value = next(iter(self._value_values))
     
     def _values_readonly_changed(self, name, old, new):
         if not self.values_lock.locked():
@@ -110,7 +110,7 @@ class _Selection(DOMWidget):
         if self.value_lock.acquire(False):
             try:
                 # Reverse dictionary lookup for the value name
-                for k,v in self.values_dict.items():
+                for k,v in self._values_dict.items():
                     if new == v:
                         # set the selected value name
                         self.value_name = k
@@ -125,7 +125,7 @@ class _Selection(DOMWidget):
         """Called when the value name has been changed (typically by the frontend)."""
         if self.value_lock.acquire(False):
             try:
-                self.value = self.values_dict[new]
+                self.value = self._values_dict[new]
             finally:
                 self.value_lock.release()
 
