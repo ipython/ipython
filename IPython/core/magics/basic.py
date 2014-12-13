@@ -64,7 +64,7 @@ class MagicsDisplay(object):
         return magic_dict
         
     def _repr_json_(self):
-        return json.dumps(self._jsonable())
+        return self._jsonable()
 
 
 @magics_class

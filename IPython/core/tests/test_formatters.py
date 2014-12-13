@@ -1,5 +1,6 @@
 """Tests for the Formatters."""
 
+import warnings
 from math import pi
 
 try:
@@ -8,10 +9,11 @@ except:
     numpy = None
 import nose.tools as nt
 
+from IPython import get_ipython
 from IPython.config import Config
 from IPython.core.formatters import (
     PlainTextFormatter, HTMLFormatter, PDFFormatter, _mod_name_key,
-    DisplayFormatter,
+    DisplayFormatter, JSONFormatter,
 )
 from IPython.utils.io import capture_output
 
@@ -418,3 +420,14 @@ def test_ipython_display_formatter():
     nt.assert_equal(md, {})
     nt.assert_equal(catcher, [yes])
 
+def test_json_as_string_deprecated():
+    class JSONString(object):
+        def _repr_json_(self):
+            return '{}'
+    
+    f = JSONFormatter()
+    with warnings.catch_warnings(record=True) as w:
+        d = f(JSONString())
+    nt.assert_equal(d, {})
+    nt.assert_equal(len(w), 1)
+    
