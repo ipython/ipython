@@ -7,13 +7,26 @@ define([
     'jquery',
     'notebook/js/cell',
     'base/js/security',
+    'services/config',
     'notebook/js/mathjaxutils',
     'notebook/js/celltoolbar',
     'components/marked/lib/marked',
     'codemirror/lib/codemirror',
     'codemirror/mode/gfm/gfm',
     'notebook/js/codemirror-ipythongfm'
-], function(IPython,utils , $, cell, security, mathjaxutils, celltoolbar, marked, CodeMirror, gfm, ipgfm) {
+], function(IPython,
+    utils,
+    $,
+    cell,
+    security,
+    configmod,
+    mathjaxutils,
+    celltoolbar,
+    marked,
+    CodeMirror,
+    gfm,
+    ipgfm
+    ) {
     "use strict";
     var Cell = cell.Cell;
 
@@ -204,14 +217,16 @@ define([
          *  options: dictionary
          *      Dictionary of keyword arguments.
          *          events: $(Events) instance 
-         *          config: dictionary
+         *          config: ConfigSection instance
          *          keyboard_manager: KeyboardManager instance 
          *          notebook: Notebook instance
          */
         options = options || {};
-        var config = utils.mergeopt(MarkdownCell, options.config);
+        var config = utils.mergeopt(MarkdownCell, {});
         TextCell.apply(this, [$.extend({}, options, {config: config})]);
 
+        this.class_config = new configmod.ConfigWithDefaults(options.config,
+                                            {}, 'MarkdownCell');
         this.cell_type = 'markdown';
     };
 
@@ -287,14 +302,16 @@ define([
          *  options: dictionary
          *      Dictionary of keyword arguments.
          *          events: $(Events) instance 
-         *          config: dictionary
+         *          config: ConfigSection instance
          *          keyboard_manager: KeyboardManager instance 
          *          notebook: Notebook instance
          */
         options = options || {};
-        var config = utils.mergeopt(RawCell, options.config);
+        var config = utils.mergeopt(RawCell, {});
         TextCell.apply(this, [$.extend({}, options, {config: config})]);
 
+        this.class_config = new configmod.ConfigWithDefaults(options.config,
+                                            RawCell.config_defaults, 'RawCell');
         this.cell_type = 'raw';
     };
 
@@ -302,6 +319,12 @@ define([
         placeholder : "Write raw LaTeX or other formats here, for use with nbconvert. " +
             "It will not be rendered in the notebook. " + 
             "When passing through nbconvert, a Raw Cell's content is added to the output unmodified."
+    };
+    
+    RawCell.config_defaults =  {
+        highlight_modes : {
+            'diff'         :{'reg':[/^diff/]}
+        },
     };
 
     RawCell.prototype = Object.create(TextCell.prototype);
@@ -323,7 +346,7 @@ define([
      * @method auto_highlight
      */
     RawCell.prototype.auto_highlight = function () {
-        this._auto_highlight(this.config.raw_cell_highlight);
+        this._auto_highlight(this.class_config.get_sync('highlight_modes'));
     };
 
     /** @method render **/

@@ -12,6 +12,7 @@ define([
     'notebook/js/cell',
     'notebook/js/textcell',
     'notebook/js/codecell',
+    'services/config',
     'services/sessions/session',
     'notebook/js/celltoolbar',
     'components/marked/lib/marked',
@@ -32,6 +33,7 @@ define([
     cellmod,
     textcell,
     codecell,
+    configmod,
     session, 
     celltoolbar,
     marked,
@@ -63,7 +65,9 @@ define([
      * @param {string}          options.notebook_name
      */
     var Notebook = function (selector, options) {
-        this.config = utils.mergeopt(Notebook, options.config);
+        this.config = options.config;
+        this.class_config = new configmod.ConfigWithDefaults(this.config, 
+                                        Notebook.options_default, 'Notebook');
         this.base_url = options.base_url;
         this.notebook_path = options.notebook_path;
         this.notebook_name = options.notebook_name;
@@ -74,7 +78,6 @@ define([
         this.tooltip = new tooltip.Tooltip(this.events);
         this.ws_url = options.ws_url;
         this._session_starting = false;
-        this.default_cell_type = this.config.default_cell_type || 'code';
 
         //  Create default scroll manager.
         this.scroll_manager = new scrollmanager.ScrollManager(this);
@@ -861,7 +864,7 @@ define([
         index = Math.min(index, ncells);
         index = Math.max(index, 0);
         var cell = null;
-        type = type || this.default_cell_type;
+        type = type || this.class_config.get_sync('default_cell_type');
         if (type === 'above') {
             if (index > 0) {
                 type = this.get_cell(index-1).cell_type;

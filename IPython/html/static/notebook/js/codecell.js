@@ -14,6 +14,7 @@ define([
     'jquery',
     'base/js/utils',
     'base/js/keyboard',
+    'services/config',
     'notebook/js/cell',
     'notebook/js/outputarea',
     'notebook/js/completer',
@@ -21,7 +22,19 @@ define([
     'codemirror/lib/codemirror',
     'codemirror/mode/python/python',
     'notebook/js/codemirror-ipython'
-], function(IPython, $, utils, keyboard, cell, outputarea, completer, celltoolbar, CodeMirror, cmpython, cmip) {
+], function(IPython,
+    $,
+    utils,
+    keyboard,
+    configmod,
+    cell,
+    outputarea,
+    completer,
+    celltoolbar,
+    CodeMirror,
+    cmpython,
+    cmip
+    ) {
     "use strict";
     
     var Cell = cell.Cell;
@@ -76,6 +89,8 @@ define([
         this.events = options.events;
         this.tooltip = options.tooltip;
         this.config = options.config;
+        this.class_config = new configmod.ConfigWithDefaults(this.config,
+                                        CodeCell.config_defaults, 'CodeCell');
 
         // create all attributed in constructor function
         // even if null for V8 VM optimisation
@@ -103,9 +118,8 @@ define([
         this.completer = null;
         this.widget_views = [];
 
-        var config = utils.mergeopt(CodeCell, this.config);
         Cell.apply(this,[{
-            config: config, 
+            config: $.extend({}, CodeCell.options_default), 
             keyboard_manager: options.keyboard_manager, 
             events: this.events}]);
 
@@ -129,6 +143,18 @@ define([
             theme: 'ipython',
             matchBrackets: true
         }
+    };
+
+    CodeCell.config_defaults = {
+        cell_magic_highlight : {
+            'magic_javascript'    :{'reg':[/^%%javascript/]},
+            'magic_perl'          :{'reg':[/^%%perl/]},
+            'magic_ruby'          :{'reg':[/^%%ruby/]},
+            'magic_python'        :{'reg':[/^%%python3?/]},
+            'magic_shell'         :{'reg':[/^%%bash/]},
+            'magic_r'             :{'reg':[/^%%R/]},
+            'magic_text/x-cython' :{'reg':[/^%%cython/]},
+        },
     };
 
     CodeCell.msg_cells = {};
@@ -156,7 +182,7 @@ define([
      * @method auto_highlight
      */
     CodeCell.prototype.auto_highlight = function () {
-        this._auto_highlight(this.config.cell_magic_highlight);
+        this._auto_highlight(this.class_config.get_sync('cell_magic_highlight'));
     };
 
     /** @method create_element */

@@ -19,7 +19,6 @@ require([
     'notebook/js/savewidget',
     'notebook/js/actions',
     'notebook/js/keyboardmanager',
-    'notebook/js/config',
     'notebook/js/kernelselector',
     'codemirror/lib/codemirror',
     'notebook/js/about',
@@ -43,7 +42,6 @@ require([
     savewidget,
     actions,
     keyboardmanager,
-    config,
     kernelselector,
     CodeMirror,
     about,
@@ -62,7 +60,6 @@ require([
         notebook_name : utils.get_body_data('notebookName')
     };
 
-    var user_config = $.extend({}, config.default_config);
     var page = new page.Page();
     var pager = new pager.Pager('div#pager', {
         events: events});
@@ -84,7 +81,7 @@ require([
         keyboard_manager: keyboard_manager,
         save_widget: save_widget,
         contents: contents,
-        config: user_config},
+        config: config_section},
         common_options));
     var login_widget = new loginwidget.LoginWidget('span#login_widget', common_options);
     var toolbar = new maintoolbar.MainToolBar('#maintoolbar-container', {
@@ -150,7 +147,6 @@ require([
     IPython.notification_area = notification_area;
     IPython.keyboard_manager = keyboard_manager;
     IPython.save_widget = save_widget;
-    IPython.config = user_config;
     IPython.tooltip = notebook.tooltip;
 
     events.trigger('app_initialized.NotebookApp');
