@@ -7784,8 +7784,8 @@ div#header .header-bar {
 }
 #ipython_notebook {
   padding-left: 0px;
-  padding-top: 3px;
-  padding-bottom: 3px;
+  padding-top: 1px;
+  padding-bottom: 1px;
 }
 #noscript {
   width: auto;
@@ -7797,10 +7797,7 @@ div#header .header-bar {
   font-weight: bold;
 }
 #ipython_notebook img {
-  font-family: Verdana, "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
-  height: 24px;
-  text-decoration: none;
-  color: black;
+  height: 28px;
 }
 #site {
   width: 100%;
