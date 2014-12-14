@@ -108,7 +108,9 @@ define([
     };
 
     TextCell.prototype.unrender = function () {
-        if (this.read_only) return;
+        if (this.read_only){ 
+            return;
+        }
         var cont = Cell.prototype.unrender.apply(this);
         if (cont) {
             var text_cell = this.element;

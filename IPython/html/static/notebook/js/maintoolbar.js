@@ -136,8 +136,9 @@ define([
         });
         // Update select value when a preset is activated.
         this.events.on('preset_activated.CellToolbar', function (event, data) {
-            if (select.val() !== data.name)
+            if (select.val() !== data.name){
                 select.val(data.name);
+            }
         });
 
         var wrapper = $('<div/>').addClass('btn-group');
