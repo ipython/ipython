@@ -199,7 +199,7 @@ class ExecuteResult(MimeBundle):
     execution_count = Integer()
 
 class HistoryReply(Reference):
-    history = List(Unicode)
+    history = List(List())
 
 
 references = {
@@ -412,23 +412,29 @@ def test_is_complete():
 def test_history_range():
     flush_channels()
     
-    msg_id = KC.history("range", True, True)
+    msg_id = KC.history(hist_access_type = 'range', raw = True, output = True, start = 1, stop = 2, session = 0)
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'history_reply', msg_id)
+    content = reply['content']
+    nt.assert_equal(len(content['history']), 1)
 
 def test_history_tail():
     flush_channels()
     
-    msg_id = KC.history("tail", True, True, n = 1)
+    msg_id = KC.history(hist_access_type = 'tail', raw = True, output = True, n = 1, session = 0)
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'history_reply', msg_id)
+    content = reply['content']
+    nt.assert_equal(len(content['history']), 1)
 
 def test_history_search():
     flush_channels()
     
-    msg_id = KC.history("search", True, True, n = 1, pattern = "*")
+    msg_id = KC.history(hist_access_type = 'search', raw = True, output = True, n = 1, pattern = '*', session = 0)
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'history_reply', msg_id)
+    content = reply['content']
+    nt.assert_equal(len(content['history']), 1)
 
 # IOPub channel
 
