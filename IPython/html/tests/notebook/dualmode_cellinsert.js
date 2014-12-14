@@ -33,7 +33,7 @@ casper.notebook_test(function () {
     });
     
     this.thenEvaluate(function() {
-        IPython.notebook.default_cell_type = 'selected';
+        IPython.notebook.class_config.set('default_cell_type', 'selected');
     });
     
     this.then(function () {
@@ -47,7 +47,7 @@ casper.notebook_test(function () {
     });
     
     this.thenEvaluate(function() {
-        IPython.notebook.default_cell_type = 'above';
+        IPython.notebook.class_config.set('default_cell_type', 'above');
     });
     
     this.then(function () {
@@ -61,7 +61,7 @@ casper.notebook_test(function () {
     });
     
     this.thenEvaluate(function() {
-        IPython.notebook.default_cell_type = 'below';
+        IPython.notebook.class_config.set('default_cell_type', 'below');
     });
     
     this.then(function () {

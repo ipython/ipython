@@ -48,7 +48,14 @@ function($, utils) {
         });
     };
     
+    /**
+     * Modify the config values stored. Update the local data immediately,
+     * send the change to the server, and use the updated data from the server
+     * when the reply comes.
+     */
     ConfigSection.prototype.update = function(newdata) {
+        $.extend(true, this.data, newdata);  // true -> recursive update
+        
         var that = this;
         return utils.promising_ajax(this.api_url(), {
             processData: false,
@@ -95,6 +102,24 @@ function($, utils) {
      */
     ConfigWithDefaults.prototype.get_sync = function(key) {
         return this._class_data()[key] || this.defaults[key];
+    };
+    
+    /**
+     * Set a config value. Send the update to the server, and change our
+     * local copy of the data immediately.
+     * Returns a promise which is fulfilled when the server replies to the
+     * change.
+     */
+     ConfigWithDefaults.prototype.set = function(key, value) {
+         var d = {};
+         d[key] = value;
+         if (this.classname) {
+            var d2 = {};
+            d2[this.classname] = d;
+            return this.section.update(d2);
+        } else {
+            return this.section.update(d);
+        }
     };
     
     return {ConfigSection: ConfigSection,
