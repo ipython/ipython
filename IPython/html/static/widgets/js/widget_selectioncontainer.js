@@ -34,7 +34,6 @@ define([
             this.model.on('change:_titles', function(model, value, options) {
                 this.update_titles(value);
             }, this);
-            var that = this;
             this.on('displayed', function() {
                 this.update_titles();
             }, this);
@@ -169,7 +168,6 @@ define([
              * Called when view is rendered.
              */
             var uuid = 'tabs'+utils.uuid();
-            var that = this;
             this.$tabs = $('<div />', {id: uuid})
                 .addClass('nav')
                 .addClass('nav-tabs')

@@ -23,7 +23,7 @@ var svg = "\"<svg width='1cm' height='1cm' viewBox='0 0 1000 500'><defs><style>r
 // represetnation, while the original in-memory cell retains its long mimetype
 // name, and that fromJSON also gets its long mimetype name
 function assert_has(short_name, json, result, result2) {
-    long_name = mime[short_name];
+    var long_name = mime[short_name];
     this.test.assertFalse(json[0].data.hasOwnProperty(short_name),
             "toJSON()   representation doesn't use " + short_name);
     this.test.assertTrue(json[0].data.hasOwnProperty(long_name),
@@ -40,7 +40,7 @@ function assert_has(short_name, json, result, result2) {
 // 'png', etc) are not used.
 function check_output_area(output_type, keys) {
     this.wait_for_output(0);
-    json = this.evaluate(function() {
+    var json = this.evaluate(function() {
         var json = IPython.notebook.get_cell(0).output_area.toJSON();
         // appended cell will initially be empty, let's add some output
         IPython.notebook.get_cell(1).output_area.fromJSON(json);

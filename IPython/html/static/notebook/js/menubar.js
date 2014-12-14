@@ -371,7 +371,6 @@ define([
          * Set the 'Download as foo' menu option for the relevant language.
          */
         var el = this.element.find('#download_script');
-        var that = this;
         
         // Set menu entry text to e.g. "Python (.py)"
         var langname = (langinfo.name || 'Script')

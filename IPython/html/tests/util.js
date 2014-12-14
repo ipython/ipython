@@ -560,7 +560,7 @@ casper.assert_colors_equal = function (hex_color, local_color, msg) {
 
     // If the local color is rgb, clean it up and replace 
     if (local_color.substr(0,3).toLowerCase() == 'rgb') {
-        components = local_color.substr(3).split(',');
+        var components = local_color.substr(3).split(',');
         local_color = '';
         for (var i = 0; i < components.length; i++) {
             var part = parseInt(components[i]).toString(16);

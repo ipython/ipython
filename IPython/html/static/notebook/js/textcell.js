@@ -112,7 +112,6 @@ define([
         var cont = Cell.prototype.unrender.apply(this);
         if (cont) {
             var text_cell = this.element;
-            var output = text_cell.find("div.text_cell_render");
             if (this.get_text() === this.placeholder) {
                 this.set_text('');
             }

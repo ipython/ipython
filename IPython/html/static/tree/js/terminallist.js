@@ -64,7 +64,6 @@ define([
     };
     
     TerminalList.prototype.load_terminals = function() {
-        var that = this;
         var url = utils.url_join_encode(this.base_url, 'api/terminals');
         $.ajax(url, {
             type: "GET",
@@ -78,7 +77,7 @@ define([
     TerminalList.prototype.terminals_loaded = function (data) {
         this.terminals = data;
         this.clear_list();
-        var item, path_name, term;
+        var item, term;
         for (var i=0; i < this.terminals.length; i++) {
             term = this.terminals[i];
             item = this.new_item(-1);

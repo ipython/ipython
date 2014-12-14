@@ -181,7 +181,6 @@ define([
         
         periodically updated, so short values like 'a few seconds ago' don't get stale.
         */
-        var that = this;
         if (!this._last_modified) {
             return;
         }

@@ -820,7 +820,7 @@ class Hub(SessionFactory):
 
     def mia_task_request(self, idents, msg):
         raise NotImplementedError
-        client_id = idents[0]
+        # client_id = idents[0]
         # content = dict(mia=self.mia,status='ok')
         # self.session.send('mia_reply', content=content, idents=client_id)
 
