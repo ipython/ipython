@@ -2,10 +2,7 @@
 language: python
 python:
     - 3.4
-    - 2.7
-    - 3.3
 env:
-    - GROUP=js
     - GROUP=
 before_install:
     # workaround for https://github.com/travis-ci/travis-cookbooks/issues/155
