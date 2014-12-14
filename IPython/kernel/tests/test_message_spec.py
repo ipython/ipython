@@ -198,6 +198,9 @@ class DisplayData(MimeBundle):
 class ExecuteResult(MimeBundle):
     execution_count = Integer()
 
+class HistoryReply(MimeBundle):
+    history = List(Unicode)
+
 
 references = {
     'execute_reply' : ExecuteReply(),
@@ -208,6 +211,7 @@ references = {
     'is_complete_reply': IsCompleteReply(),
     'execute_input' : ExecuteInput(),
     'execute_result' : ExecuteResult(),
+    'history_reply' : HistoryReply(),
     'error' : Error(),
     'stream' : Stream(),
     'display_data' : DisplayData(),
@@ -401,10 +405,17 @@ def test_single_payload():
 
 def test_is_complete():
     flush_channels()
-    
+    a
     msg_id = KC.is_complete("a = 1")
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'is_complete_reply', msg_id)
+
+def test_history():
+    flush_channels()
+    
+    msg_id = KC.history("range", True, True)
+    reply = KC.get_shell_msg(timeout=TIMEOUT)
+    validate_message(reply, 'history_reply', msg_id)
 
 # IOPub channel
 
