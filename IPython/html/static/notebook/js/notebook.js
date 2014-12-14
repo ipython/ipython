@@ -1800,7 +1800,7 @@ define([
             nbformat: this.nbformat,
             nbformat_minor: this.nbformat_minor
         };
-        if (trusted !=: this.trusted) {
+        if (trusted !== this.trusted) {
             this.trusted = trusted;
             this.events.trigger("trust_changed.Notebook", trusted);
         }
