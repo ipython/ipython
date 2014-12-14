@@ -198,7 +198,7 @@ class DisplayData(MimeBundle):
 class ExecuteResult(MimeBundle):
     execution_count = Integer()
 
-class HistoryReply(MimeBundle):
+class HistoryReply(Reference):
     history = List(Unicode)
 
 
@@ -405,15 +405,28 @@ def test_single_payload():
 
 def test_is_complete():
     flush_channels()
-    a
     msg_id = KC.is_complete("a = 1")
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'is_complete_reply', msg_id)
 
-def test_history():
+def test_history_range():
     flush_channels()
     
     msg_id = KC.history("range", True, True)
+    reply = KC.get_shell_msg(timeout=TIMEOUT)
+    validate_message(reply, 'history_reply', msg_id)
+
+def test_history_tail():
+    flush_channels()
+    
+    msg_id = KC.history("tail", True, True, n = 1)
+    reply = KC.get_shell_msg(timeout=TIMEOUT)
+    validate_message(reply, 'history_reply', msg_id)
+
+def test_history_search():
+    flush_channels()
+    
+    msg_id = KC.history("search", True, True, n = 1, pattern = "*")
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'history_reply', msg_id)
 
