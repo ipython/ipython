@@ -29,6 +29,7 @@ matrix:
 
 after_success:
     - cp /tmp/ipy_coverage.xml ./
+    - cp ipy_coverage.xml coverage.xml
     - cp /tmp/.coverage ./
     - coveralls
     - codecov
