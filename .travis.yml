@@ -18,6 +18,7 @@ before_install:
     - sudo apt-get install pandoc casperjs libzmq3-dev
     - git clone --quiet --depth 1 https://github.com/minrk/travis-wheels travis-wheels
     - 'if [[ $GROUP == js* ]]; then python -m IPython.external.mathjax; fi'
+    - sudo pip install codecov
 install:
     - pip install coveralls
     - pip install -f travis-wheels/wheelhouse file://$PWD#egg=ipython[all]
@@ -33,3 +34,4 @@ after_success:
     - cp /tmp/ipy_coverage.xml ./
     - cp /tmp/.coverage ./
     - coveralls
+    - codecov
