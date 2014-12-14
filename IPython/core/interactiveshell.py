@@ -231,8 +231,6 @@ class InteractiveShell(SingletonConfigurable):
         """
     )
     
-    banner = Unicode('')
-    
     banner1 = Unicode(default_banner, config=True,
         help="""The part of the banner to be printed before the profile"""
     )
