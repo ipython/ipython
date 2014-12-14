@@ -492,7 +492,7 @@ casper.is_cell_editor_focused = function(index) {
         } else {
             var cell = IPython.notebook.get_cell(i);
             if (cell) {
-                return cell.code_mirror.getInputField() == focused_textarea[0];
+                return cell.code_mirror.getInputField() === focused_textarea[0];
             }    
         }
         return false;
@@ -566,8 +566,8 @@ casper.assert_colors_equal = function (hex_color, local_color, msg) {
         var components = local_color.substr(3).split(',');
         local_color = '';
         for (var i = 0; i < components.length; i++) {
-            var part = parseInt(components[i],10).toString(16);
-            while (part.length < 2){ 
+            var part = parseInt(components[i]).toString(16);
+            while (part.length < 2){
                 part = '0' + part;
             }
             local_color += part;

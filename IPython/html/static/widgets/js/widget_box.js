@@ -302,7 +302,7 @@ define([
             
             $widget_modals.each(function (index, el){
                 var $el = $(el);
-                if (max_zindex == parseInt($el.css('z-index'))) {
+                if (max_zindex === parseInt($el.css('z-index'))) {
                     $el.css('z-index', max_zindex - 1);
                 }
             });

@@ -27,7 +27,7 @@ define([
     var Cell = cell.Cell;
 
     /* local util for codemirror */
-    var posEq = function(a, b) {return a.line == b.line && a.ch == b.ch;};
+    var posEq = function(a, b) {return a.line == b.line && a.ch === b.ch;};
 
     /**
      *
@@ -303,7 +303,7 @@ define([
                 event.codemirrorIgnore = true;
                 event.preventDefault();
                 return true;
-        } else if (event.keyCode === keycodes.tab && event.type == 'keydown') {
+        } else if (event.keyCode === keycodes.tab && event.type === 'keydown') {
             // Tab completion.
             this.tooltip.remove_and_cancel_tooltip();
 

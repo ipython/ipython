@@ -48,7 +48,7 @@ define([
             /**
              * Set a css attr of the widget view.
              */
-            if (name == 'color') {
+            if (name === 'color') {
                 this.$readout.css(name, value);
             } else if (name.substring(0, 4) == 'font') {
                 this.$readout.css(name, value);
