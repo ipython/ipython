@@ -5,9 +5,9 @@
 
 import os
 
-from IPython.config.manager import BaseConfigManager
+from IPython.config.manager import BaseJsonConfigManager
 
-class ConfigManager(BaseConfigManager):
+class ConfigManager(BaseJsonConfigManager):
     """Config Manager use for storin Javascript side config"""
 
     def _config_dir(self):

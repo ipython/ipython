@@ -34,7 +34,7 @@ def recursive_update(target, new):
             target[k] = v
 
 
-class BaseConfigManager(LoggingConfigurable):
+class BaseJsonConfigManager(LoggingConfigurable):
     """General config manager 
     
     Deals with persisting/storing config in a json file
