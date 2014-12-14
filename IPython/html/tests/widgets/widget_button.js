@@ -39,7 +39,8 @@ casper.notebook_test(function () {
     this.wait_for_output(button_index, 1);
 
     this.then(function () {
-        this.test.assertEquals(this.get_output_cell(button_index, 1).text, "WARNING: The widget API is still considered experimental and \n    may change by the next major release of IPython.\n",
+        var warning_text = this.get_output_cell(button_index, 1).text;
+        this.test.assertNotEquals(warning_text.indexOf('Warning'), -1,
             'Importing widgets show a warning');
         this.test.assertEquals(this.get_output_cell(button_index, 2).data['text/plain'], "'Clicked'",
             'Button click event fires.');
