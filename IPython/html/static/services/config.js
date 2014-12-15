@@ -48,7 +48,14 @@ function($, utils) {
         });
     };
     
+    /**
+     * Modify the config values stored. Update the local data immediately,
+     * send the change to the server, and use the updated data from the server
+     * when the reply comes.
+     */
     ConfigSection.prototype.update = function(newdata) {
+        $.extend(true, this.data, newdata);  // true -> recursive update
+        
         var that = this;
         return utils.promising_ajax(this.api_url(), {
             processData: false,
@@ -63,6 +70,60 @@ function($, utils) {
         });
     };
     
-    return {ConfigSection: ConfigSection};
+    
+    var ConfigWithDefaults = function(section, defaults, classname) {
+        this.section = section;
+        this.defaults = defaults;
+        this.classname = classname;
+    };
+    
+    ConfigWithDefaults.prototype._class_data = function() {
+        if (this.classname) {
+            return this.section.data[this.classname] || {};
+        } else {
+            return this.section.data
+        }
+    };
+    
+    /**
+     * Wait for config to have loaded, then get a value or the default.
+     * Returns a promise.
+     */
+    ConfigWithDefaults.prototype.get = function(key) {
+        var that = this;
+        return this.section.loaded.then(function() {
+            return this._class_data()[key] || this.defaults[key]
+        });
+    };
+    
+    /**
+     * Return a config value. If config is not yet loaded, return the default
+     * instead of waiting for it to load.
+     */
+    ConfigWithDefaults.prototype.get_sync = function(key) {
+        return this._class_data()[key] || this.defaults[key];
+    };
+    
+    /**
+     * Set a config value. Send the update to the server, and change our
+     * local copy of the data immediately.
+     * Returns a promise which is fulfilled when the server replies to the
+     * change.
+     */
+     ConfigWithDefaults.prototype.set = function(key, value) {
+         var d = {};
+         d[key] = value;
+         if (this.classname) {
+            var d2 = {};
+            d2[this.classname] = d;
+            return this.section.update(d2);
+        } else {
+            return this.section.update(d);
+        }
+    };
+    
+    return {ConfigSection: ConfigSection,
+            ConfigWithDefaults: ConfigWithDefaults,
+           };
 
 });
