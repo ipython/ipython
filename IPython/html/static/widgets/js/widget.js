@@ -47,6 +47,17 @@ define(["widgets/js/manager",
             } else {
                 this.set_comm_live(false);
             }
+
+            // Listen for the events that lead to the websocket being terminated.
+            var that = this;
+            var died = function() {
+                that.set_comm_live(false);
+            };
+            widget_manager.notebook.events.on('kernel_disconnected.Kernel', died);
+            widget_manager.notebook.events.on('kernel_killed.Kernel', died);
+            widget_manager.notebook.events.on('kernel_restarting.Kernel', died);
+            widget_manager.notebook.events.on('kernel_dead.Kernel', died);
+
             return Backbone.Model.apply(this);
         },
 
@@ -384,6 +395,13 @@ define(["widgets/js/manager",
              * Public constructor.
              */
             this.model.on('change',this.update,this);
+            this.model.on('comm:live', function() {
+                this.$el.removeClass('comm-dead');
+            }, this);
+            this.model.on('comm:dead', function() {
+                this.$el.addClass('comm-dead');
+            }, this);
+
             this.options = parameters.options;
             this.on('displayed', function() { 
                 this.is_displayed = true; 
