@@ -47,7 +47,7 @@ class HBChannel(Thread):
     _pause = None
     _beating = None
 
-    def __init__(self, context, session, address):
+    def __init__(self, context=None, session=None, address=None):
         """Create the heartbeat monitor thread.
 
         Parameters

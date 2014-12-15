@@ -95,7 +95,7 @@ class MagicHelper(QtGui.QDockWidget):
         self.search_line.textChanged[str].connect(
             self.search_changed
         )
-        self.search_list.itemDoubleClicked[QtGui.QListWidgetItem].connect(
+        self.search_list.itemDoubleClicked.connect(
             self.paste_requested
         )
         self.paste_button.clicked[bool].connect(
