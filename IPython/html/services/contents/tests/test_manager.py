@@ -191,18 +191,22 @@ class TestContentsManager(TestCase):
 
         # Create a sub-sub directory to test getting directory contents with a
         # subdir.
-        sub_sub_dir_path = 'foo/bar'
-        self.make_dir(sub_sub_dir_path)
+        self.make_dir('foo/bar')
 
         dirmodel = cm.get('foo')
         self.assertEqual(dirmodel['type'], 'directory')
         self.assertIsInstance(dirmodel['content'], list)
         self.assertEqual(len(dirmodel['content']), 2)
+        self.assertEqual(dirmodel['path'], 'foo')
+        self.assertEqual(dirmodel['name'], 'foo')
 
         # Directory contents should match the contents of each individual entry
         # when requested with content=False.
         model2_no_content = cm.get(sub_dir + name, content=False)
-        sub_sub_dir_no_content = cm.get(sub_sub_dir_path, content=False)
+        sub_sub_dir_no_content = cm.get('foo/bar', content=False)
+        self.assertEqual(sub_sub_dir_no_content['path'], 'foo/bar')
+        self.assertEqual(sub_sub_dir_no_content['name'], 'bar')
+
         for entry in dirmodel['content']:
             # Order isn't guaranteed by the spec, so this is a hacky way of
             # verifying that all entries are matched.
