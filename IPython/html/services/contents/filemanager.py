@@ -357,6 +357,7 @@ class FileContentsManager(ContentsManager):
             if model['content'] is None:
                 model['content'] = base64.encodestring(bcontent).decode('ascii')
                 model['format'] = 'base64'
+            if model['format'] == 'base64':
                 default_mime = 'application/octet-stream'
 
             model['mimetype'] = mimetypes.guess_type(os_path)[0] or default_mime
