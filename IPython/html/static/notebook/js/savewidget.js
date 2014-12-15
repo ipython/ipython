@@ -155,93 +155,58 @@ define([
         this.element.find('span.autosave_status').text(msg);
     };
 
-    SaveWidget.prototype._set_checkpoint_status = function (human_date, iso_date) {
-        var el = this.element.find('span.checkpoint_status');
-        if(human_date){
-            el.text("Last Checkpoint: "+human_date).attr('title',iso_date);
-        } else {
-            el.text('').attr('title', 'no-checkpoint');
-        }
-    };
-
-    // compute (roughly) the remaining time in millisecond until the next
-    // moment.js relative time update of the string, which by default 
-    // happend at 
-    //  (a few seconds ago) 
-    //  - 45sec, 
-    //  (a minute ago) 
-    //  - 90sec,
-    //      ( x minutes ago) 
-    //      - then every minutes until
-    //  - 45 min,
-    //      (an hour ago) 
-    //  - 1h45, 
-    //      (x hours ago )
-    //      - then every hours
-    //  - 22 hours ago
-    var _next_timeago_update = function(deltatime_ms){
-        var s = 1000; 
-        var m = 60*s;
-        var h = 60*m;
-
-        var mtt = moment.relativeTimeThreshold;
-
-        if(deltatime_ms < mtt.s*s){
-            return mtt.s*s-deltatime_ms;
-        } else if (deltatime_ms < (mtt.s*s+m)) {
-            return (mtt.s*s+m)-deltatime_ms;
-        } else if (deltatime_ms < mtt.m*m){
-            return m;
-        } else if (deltatime_ms < (mtt.m*m+h)){
-            return (mtt.m*m+h)-deltatime_ms;
-        } else  {
-            return h;
-        }
-    };
-
-    SaveWidget.prototype._regularly_update_checkpoint_date = function(){
-       if (!this._checkpoint_date) {
-            this._set_checkpoint_status(null);
-            console.log('no checkpoint done');
-            return;
-        }
-        var chkd = moment(this._checkpoint_date);
-        var longdate = chkd.format('llll');
-
-        var that = this;
-        var recall  = function(t){
-            /**
-             * recall slightly later (1s) as long timeout in js might be imprecise,
-             * and you want to be call **after** the change of formatting should happend.
-             */
-            return setTimeout(
-                $.proxy(that._regularly_update_checkpoint_date, that),
-                t + 1000
-            );
-        };
-        var tdelta = Math.ceil(new Date()-this._checkpoint_date);
-
-        // update regularly for the first 6hours and show
-        // <x time> ago
-        if(tdelta < 6*3600*1000){  
-            recall(_next_timeago_update(tdelta));
-            this._set_checkpoint_status(chkd.fromNow(), longdate);
-        // otherwise update every hour and show
-        // <Today | yesterday|...> at hh,mm,ss
-        } else  {
-            recall(1*3600*1000);
-            this._set_checkpoint_status(chkd.calendar(), longdate);
-        }
-    };
-
     SaveWidget.prototype._set_last_checkpoint = function (checkpoint) {
         if (checkpoint) {
             this._checkpoint_date = new Date(checkpoint.last_modified);
         } else {
             this._checkpoint_date = null;
         }
-        this._regularly_update_checkpoint_date();
+        this._render_checkpoint();
+    };
+    
+    SaveWidget.prototype._render_checkpoint = function () {
+        /** actually set the text in the element, from our _checkpoint value
+        
+        called directly, and periodically in timeouts.
+        */
+        this._schedule_render_checkpoint();
+        var el = this.element.find('span.checkpoint_status');
+        if (!this._checkpoint_date) {
+            el.text('').attr('title', 'no checkpoint');
+            return;
+        }
+        var chkd = moment(this._checkpoint_date);
+        var long_date = chkd.format('llll');
+        var human_date;
+        var tdelta = Math.ceil(new Date() - this._checkpoint_date);
+        if (tdelta < utils.time.milliseconds.d){
+            // less than 24 hours old, use relative date
+            human_date = chkd.fromNow();
+        } else {
+            // otherwise show calendar 
+            // <Today | yesterday|...> at hh,mm,ss
+            human_date = chkd.calendar();
+        }
+        el.text('Last Checkpoint: ' + human_date).attr('title', long_date);
+    };
 
+    
+    SaveWidget.prototype._schedule_render_checkpoint = function () {
+        /** schedule the next update to relative date
+        
+        periodically updated, so short values like 'a few seconds ago' don't get stale.
+        */
+        if (!this._checkpoint_date) {
+            return;
+        }
+        if ((this._checkpoint_timeout)) {
+            clearTimeout(this._checkpoint_timeout);
+        }
+        var dt = Math.ceil(new Date() - this._checkpoint_date);
+        this._checkpoint_timeout = setTimeout(
+            $.proxy(this._render_checkpoint, this),
+            utils.time.timeout_from_dt(dt)
+        );
     };
 
     SaveWidget.prototype.set_autosaved = function (dirty) {
