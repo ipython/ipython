@@ -105,7 +105,7 @@ Example
 Here's the Kernel spec ``kernel.json`` file for this::
 
     {"argv":["python","-m","echokernel", "-f", "{connection_file}"],
-     "display_name":"Echo",
+     "display_name":"Echo"
     }
 
 
