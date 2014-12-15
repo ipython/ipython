@@ -463,9 +463,9 @@ define(['require'
         var _data = data;
         data = {};
         data.handler = _data.handler;
-        data.help = data.help || '';
-        data.icon = data.icon || '';
-        data.help_index = data.help_index || '';
+        data.help = _data.help || '';
+        data.icon = _data.icon || '';
+        data.help_index = _data.help_index || '';
         return data;
     };
 
