@@ -308,6 +308,9 @@ class TestContentsManager(TestCase):
         # Delete the notebook
         cm.delete(path)
 
+        # Check that deleting a non-existent path raises an error.
+        self.assertRaises(HTTPError, cm.delete, path)
+
         # Check that a 'get' on the deleted notebook raises and error
         self.assertRaises(HTTPError, cm.get, path)
 
@@ -317,8 +320,8 @@ class TestContentsManager(TestCase):
         name = u'nb √.ipynb'
         path = u'{0}/{1}'.format(parent, name)
         self.make_dir(parent)
-        orig = cm.new(path=path)
 
+        orig = cm.new(path=path)
         # copy with unspecified name
         copy = cm.copy(path)
         self.assertEqual(copy['name'], orig['name'].replace('.ipynb', '-Copy1.ipynb'))
