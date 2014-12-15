@@ -18,15 +18,26 @@ from IPython.testing import decorators as dec
 from ..filemanager import FileContentsManager
 
 
+def _make_dir(contents_manager, api_path):
+    """
+    Make a directory.
+    """
+    os_path = contents_manager._get_os_path(api_path)
+    try:
+        os.makedirs(os_path)
+    except OSError:
+        print("Directory already exists: %r" % os_path)
+
+
 class TestFileContentsManager(TestCase):
 
-    def symlink(self, src, dst):
+    def symlink(self, contents_manager, src, dst):
         """Make a symlink to src from dst
         
         src and dst are api_paths
         """
-        src_os_path = self.contents_manager._get_os_path(src)
-        dst_os_path = self.contents_manager._get_os_path(dst)
+        src_os_path = contents_manager._get_os_path(src)
+        dst_os_path = contents_manager._get_os_path(dst)
         print(src_os_path, dst_os_path, os.path.isfile(src_os_path))
         os.symlink(src_os_path, dst_os_path)
 
@@ -80,35 +91,37 @@ class TestFileContentsManager(TestCase):
     
     @dec.skip_win32
     def test_bad_symlink(self):
-        cm = self.contents_manager
-        path = 'test bad symlink'
-        self.make_dir(path)
-        
-        file_model = cm.new_untitled(path=path, ext='.txt')
-        
-        # create a broken symlink
-        self.symlink("target", '%s/%s' % (path, 'bad symlink'))
-        model = cm.get(path)
-        self.assertEqual(model['content'], [file_model])
+        with TemporaryDirectory() as td:
+            cm = FileContentsManager(root_dir=td)
+            path = 'test bad symlink'
+            _make_dir(cm, path)
+
+            file_model = cm.new_untitled(path=path, ext='.txt')
+
+            # create a broken symlink
+            self.symlink(cm, "target", '%s/%s' % (path, 'bad symlink'))
+            model = cm.get(path)
+            self.assertEqual(model['content'], [file_model])
     
     @dec.skip_win32
     def test_good_symlink(self):
-        cm = self.contents_manager
-        parent = 'test good symlink'
-        name = 'good symlink'
-        path = '{0}/{1}'.format(parent, name)
-        self.make_dir(parent)
-        
-        file_model = cm.new(path=parent + '/zfoo.txt')
-        
-        # create a good symlink
-        self.symlink(file_model['path'], path)
-        symlink_model = cm.get(path, content=False)
-        dir_model = cm.get(parent)
-        self.assertEqual(
-            sorted(dir_model['content'], key=lambda x: x['name']),
-            [symlink_model, file_model],
-        )
+        with TemporaryDirectory() as td:
+            cm = FileContentsManager(root_dir=td)
+            parent = 'test good symlink'
+            name = 'good symlink'
+            path = '{0}/{1}'.format(parent, name)
+            _make_dir(cm, parent)
+
+            file_model = cm.new(path=parent + '/zfoo.txt')
+
+            # create a good symlink
+            self.symlink(cm, file_model['path'], path)
+            symlink_model = cm.get(path, content=False)
+            dir_model = cm.get(parent)
+            self.assertEqual(
+                sorted(dir_model['content'], key=lambda x: x['name']),
+                [symlink_model, file_model],
+            )
 
 
 class TestContentsManager(TestCase):
@@ -126,11 +139,7 @@ class TestContentsManager(TestCase):
     def make_dir(self, api_path):
         """make subdirectory, rel_path is the relative path
         to that directory from the location where the server started"""
-        os_path = self.contents_manager._get_os_path(api_path)
-        try:
-            os.makedirs(os_path)
-        except OSError:
-            print("Directory already exists: %r" % os_path)
+        _make_dir(self.contents_manager, api_path)
 
     def add_code_cell(self, nb):
         output = nbformat.new_output("display_data", {'application/javascript': "alert('hi');"})
