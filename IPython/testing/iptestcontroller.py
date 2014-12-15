@@ -636,7 +636,7 @@ def run_iptestall(options):
         print()
 
     if options.coverage:
-        from coverage import coverage
+        from coverage import coverage, CoverageException
         cov = coverage(data_file='.coverage')
         cov.combine()
         cov.save()
@@ -671,7 +671,10 @@ def run_iptestall(options):
 
         # Coverage XML report
         elif options.coverage == 'xml':
-            cov.xml_report(outfile='ipy_coverage.xml')
+            try:
+                cov.xml_report(outfile='ipy_coverage.xml')
+            except CoverageException:
+                pass
 
     if failed:
         # Ensure that our exit code indicates failure

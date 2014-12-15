@@ -2,10 +2,7 @@
 language: python
 python:
     - 3.4
-    - 2.7
-    - 3.3
 env:
-    - GROUP=js
     - GROUP=
 before_install:
     # workaround for https://github.com/travis-ci/travis-cookbooks/issues/155
@@ -18,12 +15,21 @@ before_install:
     - sudo apt-get install pandoc casperjs libzmq3-dev
     - git clone --quiet --depth 1 https://github.com/minrk/travis-wheels travis-wheels
     - 'if [[ $GROUP == js* ]]; then python -m IPython.external.mathjax; fi'
+    - sudo pip install codecov
 install:
+    - pip install coveralls
     - pip install -f travis-wheels/wheelhouse file://$PWD#egg=ipython[all]
 script:
-    - cd /tmp && iptest $GROUP
+    - cd /tmp && iptest $GROUP --coverage xml && cd -
 
 matrix:
     exclude:
         - python: 3.3
           env: GROUP=js
+
+after_success:
+    - cp /tmp/ipy_coverage.xml ./
+    - cp ipy_coverage.xml coverage.xml
+    - cp /tmp/.coverage ./
+    - coveralls
+    - codecov
