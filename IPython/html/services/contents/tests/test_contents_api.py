@@ -141,7 +141,7 @@ class APITest(NotebookTestBase):
             os.makedirs(os_path)
         except OSError:
             print("Directory already exists: %r" % os_path)
-    
+
     def make_txt(self, api_path, txt):
         """Make a text file at a given api_path"""
         os_path = self.to_os_path(api_path)
@@ -160,6 +160,16 @@ class APITest(NotebookTestBase):
         
         with io.open(os_path, 'w', encoding='utf-8') as f:
             write(nb, f, version=4)
+
+    def delete_dir(self, api_path):
+        """Delete a directory at api_path, removing any contents."""
+        os_path = self.to_os_path(api_path)
+        shutil.rmtree(os_path, ignore_errors=True)
+
+    def delete_file(self, api_path):
+        """Delete a file at the given path if it exists."""
+        if self.isfile(api_path):
+            os.unlink(self.to_os_path(api_path))
     
     def isfile(self, api_path):
         return os.path.isfile(self.to_os_path(api_path))
@@ -190,13 +200,9 @@ class APITest(NotebookTestBase):
         self.api = API(self.base_url())
 
     def tearDown(self):
-        nbdir = self.notebook_dir.name
-
         for dname in (list(self.top_level_dirs) + self.hidden_dirs):
-            shutil.rmtree(pjoin(nbdir, dname), ignore_errors=True)
-
-        if os.path.isfile(pjoin(nbdir, 'inroot.ipynb')):
-            os.unlink(pjoin(nbdir, 'inroot.ipynb'))
+            self.delete_dir(dname)
+        self.delete_file('inroot.ipynb')
 
     def test_list_notebooks(self):
         nbs = notebooks_only(self.api.list().json())
