@@ -134,15 +134,20 @@ def test_json():
     lis = [d]
     j = display.JSON(d)
     nt.assert_equal(j._repr_json_(), d)
+    
     with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
         j = display.JSON(json.dumps(d))
         nt.assert_equal(len(w), 1)
-    nt.assert_equal(j._repr_json_(), d)
+        nt.assert_equal(j._repr_json_(), d)
+    
     j = display.JSON(lis)
     nt.assert_equal(j._repr_json_(), lis)
+    
     with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
         j = display.JSON(json.dumps(lis))
         nt.assert_equal(len(w), 1)
-    nt.assert_equal(j._repr_json_(), lis)
+        nt.assert_equal(j._repr_json_(), lis)
     
     
