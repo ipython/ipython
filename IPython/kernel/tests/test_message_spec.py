@@ -198,6 +198,9 @@ class DisplayData(MimeBundle):
 class ExecuteResult(MimeBundle):
     execution_count = Integer()
 
+class HistoryReply(Reference):
+    history = List(List())
+
 
 references = {
     'execute_reply' : ExecuteReply(),
@@ -208,6 +211,7 @@ references = {
     'is_complete_reply': IsCompleteReply(),
     'execute_input' : ExecuteInput(),
     'execute_result' : ExecuteResult(),
+    'history_reply' : HistoryReply(),
     'error' : Error(),
     'stream' : Stream(),
     'display_data' : DisplayData(),
@@ -401,10 +405,46 @@ def test_single_payload():
 
 def test_is_complete():
     flush_channels()
-    
+
     msg_id = KC.is_complete("a = 1")
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'is_complete_reply', msg_id)
+
+def test_history_range():
+    flush_channels()
+    
+    msg_id_exec = KC.execute(code='x=1', store_history = True)
+    reply_exec = KC.get_shell_msg(timeout=TIMEOUT)
+    
+    msg_id = KC.history(hist_access_type = 'range', raw = True, output = True, start = 1, stop = 2, session = 0)
+    reply = KC.get_shell_msg(timeout=TIMEOUT)
+    validate_message(reply, 'history_reply', msg_id)
+    content = reply['content']
+    nt.assert_equal(len(content['history']), 1)
+
+def test_history_tail():
+    flush_channels()
+    
+    msg_id_exec = KC.execute(code='x=1', store_history = True)
+    reply_exec = KC.get_shell_msg(timeout=TIMEOUT)
+    
+    msg_id = KC.history(hist_access_type = 'tail', raw = True, output = True, n = 1, session = 0)
+    reply = KC.get_shell_msg(timeout=TIMEOUT)
+    validate_message(reply, 'history_reply', msg_id)
+    content = reply['content']
+    nt.assert_equal(len(content['history']), 1)
+
+def test_history_search():
+    flush_channels()
+    
+    msg_id_exec = KC.execute(code='x=1', store_history = True)
+    reply_exec = KC.get_shell_msg(timeout=TIMEOUT)
+    
+    msg_id = KC.history(hist_access_type = 'search', raw = True, output = True, n = 1, pattern = '*', session = 0)
+    reply = KC.get_shell_msg(timeout=TIMEOUT)
+    validate_message(reply, 'history_reply', msg_id)
+    content = reply['content']
+    nt.assert_equal(len(content['history']), 1)
 
 # IOPub channel
 
