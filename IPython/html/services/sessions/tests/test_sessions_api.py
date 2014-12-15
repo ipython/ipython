@@ -6,6 +6,7 @@ import os
 import json
 import requests
 import shutil
+import time
 
 pjoin = os.path.join
 
@@ -71,6 +72,14 @@ class SessionAPITest(NotebookTestBase):
     def tearDown(self):
         for session in self.sess_api.list().json():
             self.sess_api.delete(session['id'])
+        # This is necessary in some situations on Windows: without it, it
+        # fails to delete the directory because something is still using it. I
+        # think there is a brief period after the kernel terminates where
+        # Windows still treats its working directory as in use. On my Windows
+        # VM, 0.01s is not long enough, but 0.1s appears to work reliably.
+        # -- TK, 15 December 2014
+        time.sleep(0.1)
+
         shutil.rmtree(pjoin(self.notebook_dir.name, 'foo'),
                       ignore_errors=True)
 
