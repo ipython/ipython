@@ -26,6 +26,18 @@
         .box-flex2();
         .align-start();
     }
+
+    &.connection-problems .prompt:after {
+        content: '\f127';
+        font-family: 'FontAwesome';
+        color: @brand-danger;
+        padding: 4px;
+        position: relative;
+        border-radius: 2px;
+        font-size: 14px;
+        left: 0px;
+        top: 3px;
+    }
 }
 
 /* THE CLASSES BELOW CAN APPEAR ANYWHERE IN THE DOM (POSSIBLEY OUTSIDE OF

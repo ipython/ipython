@@ -395,11 +395,13 @@ define(["widgets/js/manager",
              * Public constructor.
              */
             this.model.on('change',this.update,this);
+
+            // Bubble the comm live events.
             this.model.on('comm:live', function() {
-                this.$el.removeClass('comm-dead');
+                this.trigger('comm:live', this);
             }, this);
             this.model.on('comm:dead', function() {
-                this.$el.addClass('comm-dead');
+                this.trigger('comm:dead', this);
             }, this);
 
             this.options = parameters.options;
