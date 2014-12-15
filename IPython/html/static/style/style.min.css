@@ -9125,6 +9125,17 @@ h6:hover .anchor-link {
   /* Modern browsers */
   align-items: flex-start;
 }
+.widget-area.connection-problems .prompt:after {
+  content: '\f127';
+  font-family: 'FontAwesome';
+  color: #d9534f;
+  padding: 4px;
+  position: relative;
+  border-radius: 2px;
+  font-size: 14px;
+  left: 0px;
+  top: 3px;
+}
 /* THE CLASSES BELOW CAN APPEAR ANYWHERE IN THE DOM (POSSIBLEY OUTSIDE OF
    THE WIDGET AREA). */
 .slide-track {
