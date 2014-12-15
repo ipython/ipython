@@ -83,21 +83,6 @@ from setupext import setupext
 isfile = os.path.isfile
 pjoin = os.path.join
 
-#-----------------------------------------------------------------------------
-# Function definitions
-#-----------------------------------------------------------------------------
-
-def cleanup():
-    """Clean up the junk left around by the build process"""
-    if "develop" not in sys.argv and "egg_info" not in sys.argv:
-        try:
-            shutil.rmtree('ipython.egg-info')
-        except:
-            try:
-                os.unlink('ipython.egg-info')
-            except:
-                pass
-
 #-------------------------------------------------------------------------------
 # Handle OS specific things
 #-------------------------------------------------------------------------------
@@ -343,7 +328,6 @@ setup_args.update(setuptools_extra_args)
 
 def main():
     setup(**setup_args)
-    cleanup()
 
 if __name__ == '__main__':
     main()
