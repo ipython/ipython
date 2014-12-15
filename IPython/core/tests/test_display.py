@@ -136,13 +136,13 @@ def test_json():
     nt.assert_equal(j._repr_json_(), d)
     with warnings.catch_warnings(record=True) as w:
         j = display.JSON(json.dumps(d))
-    assert len(w) == 1
+        nt.assert_equal(len(w), 1)
     nt.assert_equal(j._repr_json_(), d)
     j = display.JSON(lis)
     nt.assert_equal(j._repr_json_(), lis)
     with warnings.catch_warnings(record=True) as w:
         j = display.JSON(json.dumps(lis))
-    assert len(w) == 1
+        nt.assert_equal(len(w), 1)
     nt.assert_equal(j._repr_json_(), lis)
     
     
