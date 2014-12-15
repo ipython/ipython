@@ -1745,7 +1745,14 @@ define([
         // Trigger an event changing the kernel spec - this will set the default
         // codemirror mode
         if (this.metadata.kernelspec !== undefined) {
-            this.events.trigger('spec_changed.Kernel', this.metadata.kernelspec);
+            // TODO shoudl probably not trigger here, 
+            // should call the kernel selector, or custom.{js|css} not loaded.
+            if(this.kernel_selector){
+                // technically not perfect, we should check that the kernelspec matches
+                this.kernel_selector.change_kernel(this.metadata.kernelspec.name);
+            } else {
+                console.log('do not have handle on kernel_selector');
+            }
         }
         
         // Set the codemirror mode from language_info metadata
@@ -2186,6 +2193,10 @@ define([
         // now that we're fully loaded, it is safe to restore save functionality
         this._fully_loaded = true;
         this.events.trigger('notebook_loaded.Notebook');
+    };
+
+    Notebook.prototype.set_kernelselector = function(k_selector){
+        this.kernel_selector = k_selector;
     };
 
     /**
