@@ -347,6 +347,9 @@ class ContentsManager(LoggingConfigurable):
         from_path must be a full path to a file.
         """
         path = from_path.strip('/')
+        if to_path is not None:
+            to_path = to_path.strip('/')
+
         if '/' in path:
             from_dir, from_name = path.rsplit('/', 1)
         else:
