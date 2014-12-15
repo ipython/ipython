@@ -20,6 +20,16 @@ from ..filemanager import FileContentsManager
 
 class TestFileContentsManager(TestCase):
 
+    def symlink(self, src, dst):
+        """Make a symlink to src from dst
+        
+        src and dst are api_paths
+        """
+        src_os_path = self.contents_manager._get_os_path(src)
+        dst_os_path = self.contents_manager._get_os_path(dst)
+        print(src_os_path, dst_os_path, os.path.isfile(src_os_path))
+        os.symlink(src_os_path, dst_os_path)
+
     def test_root_dir(self):
         with TemporaryDirectory() as td:
             fm = FileContentsManager(root_dir=td)
@@ -67,6 +77,38 @@ class TestFileContentsManager(TestCase):
         self.assertNotEqual(cp_dir, cp_subdir)
         self.assertEqual(cp_dir, os.path.join(root, fm.checkpoint_dir, cp_name))
         self.assertEqual(cp_subdir, os.path.join(root, subd, fm.checkpoint_dir, cp_name))
+    
+    @dec.skip_win32
+    def test_bad_symlink(self):
+        cm = self.contents_manager
+        path = 'test bad symlink'
+        self.make_dir(path)
+        
+        file_model = cm.new_untitled(path=path, ext='.txt')
+        
+        # create a broken symlink
+        self.symlink("target", '%s/%s' % (path, 'bad symlink'))
+        model = cm.get(path)
+        self.assertEqual(model['content'], [file_model])
+    
+    @dec.skip_win32
+    def test_good_symlink(self):
+        cm = self.contents_manager
+        parent = 'test good symlink'
+        name = 'good symlink'
+        path = '{0}/{1}'.format(parent, name)
+        self.make_dir(parent)
+        
+        file_model = cm.new(path=parent + '/zfoo.txt')
+        
+        # create a good symlink
+        self.symlink(file_model['path'], path)
+        symlink_model = cm.get(path, content=False)
+        dir_model = cm.get(parent)
+        self.assertEqual(
+            sorted(dir_model['content'], key=lambda x: x['name']),
+            [symlink_model, file_model],
+        )
 
 
 class TestContentsManager(TestCase):
@@ -89,17 +131,6 @@ class TestContentsManager(TestCase):
             os.makedirs(os_path)
         except OSError:
             print("Directory already exists: %r" % os_path)
-    
-    def symlink(self, src, dst):
-        """Make a symlink to src from dst
-        
-        src and dst are api_paths
-        """
-        src_os_path = self.contents_manager._get_os_path(src)
-        dst_os_path = self.contents_manager._get_os_path(dst)
-        print(src_os_path, dst_os_path, os.path.isfile(src_os_path))
-        os.symlink(src_os_path, dst_os_path)
-        
 
     def add_code_cell(self, nb):
         output = nbformat.new_output("display_data", {'application/javascript': "alert('hi');"})
@@ -220,39 +251,6 @@ class TestContentsManager(TestCase):
         with self.assertRaises(HTTPError):
             cm.get('foo', type='file')
 
-    
-    @dec.skip_win32
-    def test_bad_symlink(self):
-        cm = self.contents_manager
-        path = 'test bad symlink'
-        self.make_dir(path)
-        
-        file_model = cm.new_untitled(path=path, ext='.txt')
-        
-        # create a broken symlink
-        self.symlink("target", '%s/%s' % (path, 'bad symlink'))
-        model = cm.get(path)
-        self.assertEqual(model['content'], [file_model])
-    
-    @dec.skip_win32
-    def test_good_symlink(self):
-        cm = self.contents_manager
-        parent = 'test good symlink'
-        name = 'good symlink'
-        path = '{0}/{1}'.format(parent, name)
-        self.make_dir(parent)
-        
-        file_model = cm.new(path=parent + '/zfoo.txt')
-        
-        # create a good symlink
-        self.symlink(file_model['path'], path)
-        symlink_model = cm.get(path, content=False)
-        dir_model = cm.get(parent)
-        self.assertEqual(
-            sorted(dir_model['content'], key=lambda x: x['name']),
-            [symlink_model, file_model],
-        )
-    
     def test_update(self):
         cm = self.contents_manager
         # Create a notebook
@@ -402,3 +400,4 @@ class TestContentsManager(TestCase):
         cm.mark_trusted_cells(nb, path)
         cm.check_and_sign(nb, path)
         assert cm.notary.check_signature(nb)
+
