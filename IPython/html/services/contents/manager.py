@@ -362,7 +362,7 @@ class ContentsManager(LoggingConfigurable):
         if model['type'] == 'directory':
             raise HTTPError(400, "Can't copy directories")
         
-        if not to_path:
+        if to_path is None:
             to_path = from_dir
         if self.dir_exists(to_path):
             name = copy_pat.sub(u'.', from_name)
