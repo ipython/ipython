@@ -16,9 +16,9 @@ class TestNotary(TestsBase):
     
     def setUp(self):
         self.notary = sign.NotebookNotary(
+            db_file=':memory:',
             secret=b'secret',
             profile_dir=get_ipython().profile_dir,
-            db_file=':memory:'
         )
         with self.fopen(u'test3.ipynb', u'r') as f:
             self.nb = read(f, as_version=4)

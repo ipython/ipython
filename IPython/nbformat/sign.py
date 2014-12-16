@@ -354,7 +354,7 @@ class NotebookNotary(LoggingConfigurable):
 trust_flags = {
     'reset' : (
         {'TrustNotebookApp' : { 'reset' : True}},
-        """Generate a new key for notebook signature.
+        """Delete the trusted notebook cache.
         All previously signed notebooks will become untrusted.
         """
     ),
@@ -383,7 +383,7 @@ class TrustNotebookApp(BaseIPythonApplication):
     flags = trust_flags
     
     reset = Bool(False, config=True,
-        help="""If True, generate a new key for notebook signature.
+        help="""If True, delete the trusted signature cache.
         After reset, all previously signed notebooks will become untrusted.
         """
     )
@@ -413,6 +413,9 @@ class TrustNotebookApp(BaseIPythonApplication):
     
     def start(self):
         if self.reset:
+            if os.path.exists(self.notary.db_file):
+                print("Removing trusted signature cache: %s" % self.notary.db_file)
+                os.remove(self.notary.db_file)
             self.generate_new_key()
             return
         if not self.extra_args:
