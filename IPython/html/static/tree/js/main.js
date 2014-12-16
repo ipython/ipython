@@ -140,8 +140,19 @@ require([
     });
     
     // set hash on tab click
-    $("#tabs").find("a").click(function() {
-        window.location.hash = $(this).attr("href");
+    $("#tabs").find("a").click(function(e) {
+        // Prevent the document from jumping when the active tab is changed to a 
+        // tab that has a lot of content.
+        e.preventDefault();
+
+        // Set the hash without causing the page to jump.
+        // http://stackoverflow.com/a/14690177/2824256
+        var hash = $(this).attr("href");
+        if(window.history.pushState) {
+            window.history.pushState(null, null, hash);
+        } else {
+            window.location.hash = hash;
+        }
     });
     
     // load tab if url hash
