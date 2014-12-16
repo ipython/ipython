@@ -3,8 +3,6 @@
   font-family: monospace;
   color: white;
   background: black;
-  border-radius: @border-radius-base;
-  .box-shadow(@global-shadow-dark);
   padding: @code_padding;
 
   &, dummy-screen {
@@ -19,5 +17,8 @@
 }
 
 #terminado-container {
-  padding-top: @page-header-padding;
+  margin-top: @page-header-padding;
+  background: black;
+  border-radius: @border-radius-base;
+  .box-shadow(@global-shadow-dark);
 }
