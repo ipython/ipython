@@ -289,7 +289,7 @@ class APITest(NotebookTestBase):
             self.assertEqual(model['format'], 'base64')
             self.assertEqual(model['type'], 'file')
             self.assertEqual(
-                base64.decodestring(model['content']),
+                base64.decodestring(model['content'].encode('ascii')),
                 self._blob_for_name(name),
             )
 
