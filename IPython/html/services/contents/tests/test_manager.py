@@ -233,7 +233,7 @@ class TestContentsManager(TestCase):
         self.assertDictContainsSubset(
             {
                 'content': u'',
-                'format': 'text',
+                'format': u'text',
                 'mimetype': u'text/plain',
                 'name': u'untitled.txt',
                 'path': u'foo/untitled.txt',
