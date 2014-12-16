@@ -102,14 +102,23 @@ class NotebookNotary(LoggingConfigurable):
             app.initialize(argv=[])
         return app.profile_dir
     
-    db_file = Unicode(config=True)
+    db_file = Unicode(config=True,
+        help="""The sqlite file in which to store notebook signatures.
+        By default, this will be in your IPython profile.
+        You can set it to ':memory:' to disable sqlite writing to the filesystem.
+        """)
     def _db_file_default(self):
         if self.profile_dir is None:
             return ':memory:'
         return os.path.join(self.profile_dir.security_dir, u'nbsignatures.db')
     
     # 64k entries ~ 12MB
-    db_size_limit = Integer(65535, config=True)
+    cache_size = Integer(65535, config=True,
+        help="""The number of notebook signatures to cache.
+        When the number of signatures exceeds this value,
+        the oldest 25% of signatures will be culled.
+        """
+    )
     db = Any()
     def _db_default(self):
         if sqlite3 is None:
@@ -252,6 +261,9 @@ class NotebookNotary(LoggingConfigurable):
             (datetime.utcnow(), self.algorithm, signature),
         )
         self.db.commit()
+        n, = self.db.execute("SELECT Count(*) FROM nbsignatures").fetchone()
+        if n > self.cache_size:
+            self.cull_db()
     
     def unsign(self, nb):
         """Ensure that a notebook is untrusted
@@ -268,10 +280,11 @@ class NotebookNotary(LoggingConfigurable):
         self.db.commit()
     
     def cull_db(self):
+        """Cull oldest 25% of the trusted signatures when the size limit is reached"""
         self.db.execute("""DELETE FROM nbsignatures WHERE id IN (
             SELECT id FROM nbsignatures ORDER BY last_seen DESC LIMIT -1 OFFSET ?
         );
-        """, (self.db_size_limit,))
+        """, (max(int(0.75 * self.cache_size), 1),))
     
     def mark_cells(self, nb, trusted):
         """Mark cells as trusted if the notebook's signature can be verified

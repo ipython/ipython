@@ -18,7 +18,7 @@ class TestNotary(TestsBase):
         self.notary = sign.NotebookNotary(
             secret=b'secret',
             profile_dir=get_ipython().profile_dir,
-            db_url=':memory:'
+            db_file=':memory:'
         )
         with self.fopen(u'test3.ipynb', u'r') as f:
             self.nb = read(f, as_version=4)
@@ -64,41 +64,32 @@ class TestNotary(TestsBase):
         # to ensure low resolution timestamps compare as expected
         dt = 2e-3
         nbs = [
-            copy.deepcopy(self.nb) for i in range(5)
+            copy.deepcopy(self.nb) for i in range(10)
         ]
-        for i, nb in enumerate(nbs):
+        for row in self.notary.db.execute("SELECT * FROM nbsignatures"):
+            print(row)
+        self.notary.cache_size = 8
+        for i, nb in enumerate(nbs[:8]):
             nb.metadata.dirty = i
             self.notary.sign(nb)
         
-        for i, nb in enumerate(nbs):
+        for i, nb in enumerate(nbs[:8]):
             time.sleep(dt)
             self.assertTrue(self.notary.check_signature(nb), 'nb %i is trusted' % i)
         
-        self.notary.db_size_limit = 2
-        self.notary.cull_db()
-        
-        # expect all but last two signatures to be culled
-        self.assertEqual(
-            [self.notary.check_signature(nb) for nb in nbs],
-            [False] * (len(nbs) - 2) + [True] * 2
-        )
-        
-        # sign them all again
-        for nb in nbs:
-            time.sleep(dt)
-            self.notary.sign(nb)
-        
-        # checking front two marks them as newest for next cull instead of oldest
-        time.sleep(dt)
-        self.notary.check_signature(nbs[0])
-        self.notary.check_signature(nbs[1])
-        self.notary.cull_db()
-        
-        self.assertEqual(
-            [self.notary.check_signature(nb) for nb in nbs],
-            [True] * 2 + [False] * (len(nbs) - 2)
-        )
-        
+        # signing the 9th triggers culling of first 3
+        # (75% of 8 = 6, 9 - 6 = 3 culled)
+        self.notary.sign(nbs[8])
+        self.assertFalse(self.notary.check_signature(nbs[0]))
+        self.assertFalse(self.notary.check_signature(nbs[1]))
+        self.assertFalse(self.notary.check_signature(nbs[2]))
+        self.assertTrue(self.notary.check_signature(nbs[3]))
+        # checking nb3 should keep it from being culled:
+        self.notary.sign(nbs[0])
+        self.notary.sign(nbs[1])
+        self.notary.sign(nbs[2])
+        self.assertTrue(self.notary.check_signature(nbs[3]))
+        self.assertFalse(self.notary.check_signature(nbs[4]))
     
     def test_check_signature(self):
         nb = self.nb
