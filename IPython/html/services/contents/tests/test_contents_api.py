@@ -119,8 +119,8 @@ class APITest(NotebookTestBase):
                ]
     hidden_dirs = ['.hidden', '__pycache__']
 
-    dirs = uniq_stable([py3compat.cast_unicode(d) for (d,n) in dirs_nbs])
-    del dirs[0]  # remove ''
+    # Don't include root dir.
+    dirs = uniq_stable([py3compat.cast_unicode(d) for (d,n) in dirs_nbs[1:]])
     top_level_dirs = {normalize('NFC', d.split('/')[0]) for d in dirs}
 
     @staticmethod
