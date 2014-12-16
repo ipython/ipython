@@ -24,7 +24,7 @@ label {
   -webkit-box-sizing: border-box;
 }
 .corner-all {
-  border-radius: 4px;
+  border-radius: 2px;
 }
 .no-padding {
   padding: 0px;
@@ -349,7 +349,7 @@ div.cell {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  border-radius: 4px;
+  border-radius: 2px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
@@ -420,7 +420,7 @@ div.inner_cell {
 /* input_area and input_prompt must match in top border and margin for alignment */
 div.input_area {
   border: 1px solid #cfcfcf;
-  border-radius: 4px;
+  border-radius: 2px;
   background: #f7f7f7;
   line-height: 1.21429em;
 }
@@ -449,7 +449,7 @@ div.unrecognized_cell {
   align-items: stretch;
 }
 div.unrecognized_cell .inner_cell {
-  border-radius: 4px;
+  border-radius: 2px;
   padding: 5px;
   font-weight: bold;
   color: red;
@@ -563,8 +563,8 @@ div.input_area > div.highlight > pre {
   padding: 0 8px 0 4px;
 }
 .CodeMirror-gutters {
-  border-bottom-left-radius: 4px;
-  border-top-left-radius: 4px;
+  border-bottom-left-radius: 2px;
+  border-top-left-radius: 2px;
 }
 .CodeMirror pre {
   /* In CM3 this went to 4px from 0 in CM2. We need the 0 value because of how we size */
@@ -750,7 +750,7 @@ div.output_scroll {
   /* FF needs this *and the wrapper* to specify full width, or it will shrinkwrap */
   width: 100%;
   overflow: auto;
-  border-radius: 4px;
+  border-radius: 2px;
   -webkit-box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.8);
   box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.8);
   display: block;
@@ -778,7 +778,7 @@ div.out_prompt_overlay {
   height: 100%;
   padding: 0px 0.4em;
   position: absolute;
-  border-radius: 4px;
+  border-radius: 2px;
 }
 div.out_prompt_overlay:hover {
   /* use inner shadow to get border that is computed the same on WebKit/FF */
@@ -1269,7 +1269,7 @@ h6:hover .anchor-link {
   /* Slider Track */
   border: 1px solid #CCCCCC;
   background: #FFFFFF;
-  border-radius: 4px;
+  border-radius: 2px;
   /* Round the corners of the slide track */
 }
 .widget-hslider {
@@ -1307,7 +1307,7 @@ h6:hover .anchor-link {
   /* Slider Track */
   border: 1px solid #CCCCCC;
   background: #FFFFFF;
-  border-radius: 4px;
+  border-radius: 2px;
   /* Round the corners of the slide track */
   /* Make the div a flex box (makes FF behave correctly). */
   /* Old browsers */
@@ -1374,7 +1374,7 @@ h6:hover .anchor-link {
   /* Slider Track */
   border: 1px solid #CCCCCC;
   background: #FFFFFF;
-  border-radius: 4px;
+  border-radius: 2px;
   /* Round the corners of the slide track */
   /* Make the div a flex box (makes FF behave correctly). */
   /* Old browsers */
