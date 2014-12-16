@@ -60,6 +60,8 @@ require([
         notebook_name : utils.get_body_data('notebookName')
     };
 
+    var config_section = new configmod.ConfigSection('notebook', common_options);
+    config_section.load();
     var page = new page.Page();
     var pager = new pager.Pager('div#pager', {
         events: events});
@@ -72,10 +74,8 @@ require([
         events: events, 
         keyboard_manager: keyboard_manager});
     var contents = new contents.Contents($.extend({
-        events: events},
+        events: events, config:config_section},
         common_options));
-    var config_section = new configmod.ConfigSection('notebook', common_options);
-    config_section.load();
     var notebook = new notebook.Notebook('div#notebook', $.extend({
         events: events,
         keyboard_manager: keyboard_manager,
