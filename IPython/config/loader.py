@@ -376,7 +376,7 @@ class FileConfigLoader(ConfigLoader):
         self.full_filename = filefind(self.filename, self.path)
 
 class JSONFileConfigLoader(FileConfigLoader):
-    """A Json file loader for config"""
+    """A JSON file loader for config"""
 
     def load_config(self):
         """Load the config from a file and return it as a Config object."""
