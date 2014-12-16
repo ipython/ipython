@@ -702,7 +702,7 @@ kbd {
   font-size: 90%;
   color: #ffffff;
   background-color: #333333;
-  border-radius: 3px;
+  border-radius: 2px;
   box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.25);
 }
 pre {
@@ -733,39 +733,39 @@ pre code {
 .container {
   margin-right: auto;
   margin-left: auto;
-  padding-left: 15px;
-  padding-right: 15px;
+  padding-left: 0px;
+  padding-right: 0px;
 }
 @media (min-width: 768px) {
   .container {
-    width: 750px;
+    width: 720px;
   }
 }
 @media (min-width: 992px) {
   .container {
-    width: 970px;
+    width: 940px;
   }
 }
 @media (min-width: 1200px) {
   .container {
-    width: 1170px;
+    width: 1140px;
   }
 }
 .container-fluid {
   margin-right: auto;
   margin-left: auto;
-  padding-left: 15px;
-  padding-right: 15px;
+  padding-left: 0px;
+  padding-right: 0px;
 }
 .row {
-  margin-left: -15px;
-  margin-right: -15px;
+  margin-left: 0px;
+  margin-right: 0px;
 }
 .col-xs-1, .col-sm-1, .col-md-1, .col-lg-1, .col-xs-2, .col-sm-2, .col-md-2, .col-lg-2, .col-xs-3, .col-sm-3, .col-md-3, .col-lg-3, .col-xs-4, .col-sm-4, .col-md-4, .col-lg-4, .col-xs-5, .col-sm-5, .col-md-5, .col-lg-5, .col-xs-6, .col-sm-6, .col-md-6, .col-lg-6, .col-xs-7, .col-sm-7, .col-md-7, .col-lg-7, .col-xs-8, .col-sm-8, .col-md-8, .col-lg-8, .col-xs-9, .col-sm-9, .col-md-9, .col-lg-9, .col-xs-10, .col-sm-10, .col-md-10, .col-lg-10, .col-xs-11, .col-sm-11, .col-md-11, .col-lg-11, .col-xs-12, .col-sm-12, .col-md-12, .col-lg-12 {
   position: relative;
   min-height: 1px;
-  padding-left: 15px;
-  padding-right: 15px;
+  padding-left: 0px;
+  padding-right: 0px;
 }
 .col-xs-1, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9, .col-xs-10, .col-xs-11, .col-xs-12 {
   float: left;
@@ -1795,7 +1795,7 @@ fieldset[disabled] .checkbox-inline {
   padding: 5px 10px;
   font-size: 12px;
   line-height: 1.5;
-  border-radius: 3px;
+  border-radius: 2px;
 }
 select.input-sm {
   height: 30px;
@@ -1972,8 +1972,8 @@ select[multiple].input-lg {
   min-height: 25px;
 }
 .form-horizontal .form-group {
-  margin-left: -15px;
-  margin-right: -15px;
+  margin-left: 0px;
+  margin-right: 0px;
 }
 .form-horizontal .form-control-static {
   padding-top: 7px;
@@ -1985,7 +1985,7 @@ select[multiple].input-lg {
 }
 .form-horizontal .has-feedback .form-control-feedback {
   top: 0;
-  right: 15px;
+  right: 0px;
 }
 .btn {
   display: inline-block;
@@ -2326,14 +2326,14 @@ fieldset[disabled] .btn-link:focus {
   padding: 5px 10px;
   font-size: 12px;
   line-height: 1.5;
-  border-radius: 3px;
+  border-radius: 2px;
 }
 .btn-xs,
 .btn-group-xs > .btn {
   padding: 1px 5px;
   font-size: 12px;
   line-height: 1.5;
-  border-radius: 3px;
+  border-radius: 2px;
 }
 .btn-block {
   display: block;
@@ -3335,7 +3335,7 @@ select[multiple].input-group-lg > .input-group-btn > .btn {
   padding: 5px 10px;
   font-size: 12px;
   line-height: 1.5;
-  border-radius: 3px;
+  border-radius: 2px;
 }
 select.input-group-sm > .form-control,
 select.input-group-sm > .input-group-addon,
@@ -3381,7 +3381,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 .input-group-addon.input-sm {
   padding: 5px 10px;
   font-size: 12px;
-  border-radius: 3px;
+  border-radius: 2px;
 }
 .input-group-addon.input-lg {
   padding: 10px 16px;
@@ -3653,8 +3653,8 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 .navbar-collapse {
   max-height: 340px;
   overflow-x: visible;
-  padding-right: 15px;
-  padding-left: 15px;
+  padding-right: 0px;
+  padding-left: 0px;
   border-top: 1px solid transparent;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
   -webkit-overflow-scrolling: touch;
@@ -3688,8 +3688,8 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 .container-fluid > .navbar-header,
 .container > .navbar-collapse,
 .container-fluid > .navbar-collapse {
-  margin-right: -15px;
-  margin-left: -15px;
+  margin-right: 0px;
+  margin-left: 0px;
 }
 @media (min-width: 540px) {
   .container > .navbar-header,
@@ -3733,7 +3733,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 }
 .navbar-brand {
   float: left;
-  padding: 6px 15px;
+  padding: 6px 0px;
   font-size: 17px;
   line-height: 18px;
   height: 30px;
@@ -3745,13 +3745,13 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 @media (min-width: 540px) {
   .navbar > .container .navbar-brand,
   .navbar > .container-fluid .navbar-brand {
-    margin-left: -15px;
+    margin-left: 0px;
   }
 }
 .navbar-toggle {
   position: relative;
   float: right;
-  margin-right: 15px;
+  margin-right: 0px;
   padding: 9px 10px;
   margin-top: -2px;
   margin-bottom: -2px;
@@ -3778,7 +3778,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
   }
 }
 .navbar-nav {
-  margin: 3px -15px;
+  margin: 3px 0px;
 }
 .navbar-nav > li > a {
   padding-top: 10px;
@@ -3820,7 +3820,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
     padding-bottom: 6px;
   }
   .navbar-nav.navbar-right:last-child {
-    margin-right: -15px;
+    margin-right: 0px;
   }
 }
 @media (min-width: 540px) {
@@ -3834,9 +3834,9 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
   }
 }
 .navbar-form {
-  margin-left: -15px;
-  margin-right: -15px;
-  padding: 10px 15px;
+  margin-left: 0px;
+  margin-right: 0px;
+  padding: 10px 0px;
   border-top: 1px solid transparent;
   border-bottom: 1px solid transparent;
   -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -3896,7 +3896,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
     box-shadow: none;
   }
   .navbar-form.navbar-right:last-child {
-    margin-right: -15px;
+    margin-right: 0px;
   }
 }
 .navbar-nav > li > .dropdown-menu {
@@ -3927,8 +3927,8 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 @media (min-width: 540px) {
   .navbar-text {
     float: left;
-    margin-left: 15px;
-    margin-right: 15px;
+    margin-left: 0px;
+    margin-right: 0px;
   }
   .navbar-text.navbar-right:last-child {
     margin-right: 0;
@@ -4209,13 +4209,13 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 }
 .pagination-sm > li:first-child > a,
 .pagination-sm > li:first-child > span {
-  border-bottom-left-radius: 3px;
-  border-top-left-radius: 3px;
+  border-bottom-left-radius: 2px;
+  border-top-left-radius: 2px;
 }
 .pagination-sm > li:last-child > a,
 .pagination-sm > li:last-child > span {
-  border-bottom-right-radius: 3px;
-  border-top-right-radius: 3px;
+  border-bottom-right-radius: 2px;
+  border-top-right-radius: 2px;
 }
 .pager {
   padding-left: 0;
@@ -5051,7 +5051,7 @@ a.list-group-item-danger.active:focus {
 }
 .well-sm {
   padding: 9px;
-  border-radius: 3px;
+  border-radius: 2px;
 }
 .close {
   float: right;
@@ -7756,7 +7756,6 @@ div#header {
   z-index: 100;
 }
 div#header #header-container {
-  padding-left: 30px;
   padding-bottom: 5px;
   padding-top: 5px;
   box-sizing: border-box;
@@ -8120,6 +8119,9 @@ ul#new-notebook-menu {
 }
 .kernel-menu-icon-current:before {
   content: "\f00c";
+}
+#tab_content {
+  padding-top: 20px;
 }
 /*!
 *
@@ -9458,9 +9460,6 @@ h6:hover .anchor-link {
 * IPython notebook webapp
 *
 */
-body {
-  background-color: #ffffff;
-}
 @media (max-width: 767px) {
   body.notebook_app {
     padding-left: 0px;
@@ -9473,11 +9472,14 @@ body {
   -webkit-box-sizing: border-box;
 }
 div#notebook_panel {
-  margin: 0px 0px 0px 0px;
+  margin: 0px;
   padding: 0px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
+  background-color: #eeeeee;
+  /* Make the page background atleast 100% the height of the view port */
+  min-height: 100vh;
 }
 div#notebook {
   font-size: 14px;
@@ -9485,21 +9487,23 @@ div#notebook {
   overflow-y: hidden;
   overflow-x: auto;
   width: 100%;
-  /* This spaces the cell away from the edge of the notebook area */
-  padding: 2em 0 2em 0;
+  /* This spaces the page away from the edge of the notebook area */
+  padding-top: 20px;
+  padding-bottom: 20px;
   margin: 0px;
   outline: none;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
-  background-color: #eeeeee;
 }
 @media not print {
   #notebook-container {
-    padding-right: 80px;
-    padding-top: 10px;
+    padding: 15px;
     border-color: #ffffff;
     background-color: #ffffff;
+    /* Make the page itself atleast 70% the height of the view port */
+    min-height: 70vh;
+    -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
     box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
   }
 }
@@ -9542,8 +9546,8 @@ p {
   margin-bottom: -1px;
 }
 .notebook_app #header {
-  -webkit-box-shadow: 1px 4px 9px -6px rgba(0, 0, 0, 0.25);
-  box-shadow: 1px 4px 9px -6px rgba(0, 0, 0, 0.25);
+  -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
+  box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
 }
 /* CSS for the cell toolbar */
 .celltoolbar {
@@ -9610,7 +9614,6 @@ p {
   background-color: #ffffff;
   background-image: none;
   border: 1px solid #cccccc;
-  border-radius: 2px;
   -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
   -webkit-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
@@ -9619,7 +9622,7 @@ p {
   padding: 5px 10px;
   font-size: 12px;
   line-height: 1.5;
-  border-radius: 3px;
+  border-radius: 2px;
   width: inherit;
   font-size: 87%;
   height: 22px;
@@ -10117,6 +10120,8 @@ div#pager {
   width: 100%;
   max-height: 50%;
   padding-top: 8px;
+  -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
+  box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
   /* Display over codemirror */
   z-index: 100;
   /* Hack which prevents jquery ui resizable from changing top. */
@@ -10152,11 +10157,6 @@ div#pager .ui-resizable-handle {
   background: #f7f7f7;
   border-top: 1px solid #cfcfcf;
   border-bottom: 1px solid #cfcfcf;
-  /* Similar to the notebook header's shadow, but not
-        exactly the same.  The settings had to be adjusted
-        to get the shadow to show. */
-  -webkit-box-shadow: 1px 4px 9px -3px rgba(0, 0, 0, 0.15);
-  box-shadow: 1px 4px 9px -3px rgba(0, 0, 0, 0.15);
   /* This injects handle bars (a short, wide = symbol) for 
         the resize handle. */
 }
@@ -10270,7 +10270,7 @@ span.autosave_status {
   margin-top: -8px;
   border: 0px;
   min-height: 27px;
-  margin-left: 32px;
+  margin-left: 0px;
   padding-top: 11px;
   padding-bottom: 3px;
 }
@@ -10429,7 +10429,8 @@ span.autosave_status {
   color: white;
   background: black;
   border-radius: 2px;
-  box-shadow: 0px 4px 11px 0px gray;
+  -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.4);
+  box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.4);
   padding: 0.4em;
 }
 .terminal,
