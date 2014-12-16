@@ -10,7 +10,10 @@ define([
 
     var Page = function () {
         this.bind_events();
-        this._resize_header();
+
+        // When the page is ready, resize the header.
+        var that = this;
+        $(function() { that._resize_header(); });
     };
 
     Page.prototype.bind_events = function () {

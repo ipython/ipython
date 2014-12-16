@@ -1,8 +1,3 @@
-
-body {
-    background-color:   @body-bg;
-}
-
 @media (max-width: 767px) {
     // remove bootstrap-responsive's body padding on small screens
     body.notebook_app {
@@ -16,9 +11,12 @@ body {
 }
 
 div#notebook_panel {
-    margin: 0px 0px 0px 0px;
+    margin: 0px;
     padding: 0px;
     .border-box-sizing();
+    background-color: @notebook_dark_background;
+    /* Make the page background atleast 100% the height of the view port */
+    min-height: 100vh;
 }
 div#notebook {
     font-size: @notebook_font_size;
@@ -26,22 +24,22 @@ div#notebook {
     overflow-y: hidden;
     overflow-x: auto;
     width: 100%;
-    /* This spaces the cell away from the edge of the notebook area */
-    padding: 2em 0 2em 0;
+    /* This spaces the page away from the edge of the notebook area */
+    padding-top: @page-header-padding;
+    padding-bottom: @page-header-padding;
     margin: 0px;
     outline: none;
     .border-box-sizing();
-
-    background-color : @notebook_dark_background;
 }
 
 #notebook-container{
     @media not print{
-        padding-right:80px;
-        padding-top:10px;
+        padding: 15px;
         border-color:  @body-bg;
         background-color :  @body-bg;
-        box-shadow: 0px 0px 12px 1px rgba(87,87,87,0.2);
+        /* Make the page itself atleast 70% the height of the view port */
+        min-height: 70vh;
+        .box-shadow(@global-shadow);
     }
 }
 
@@ -87,5 +85,5 @@ p {
 }
 
 .notebook_app #header {
-    .box-shadow(@notebook-shadow);
+    .box-shadow(@global-shadow);
 }
