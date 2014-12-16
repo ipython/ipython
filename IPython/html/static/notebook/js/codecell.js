@@ -117,6 +117,7 @@ define([
         this.last_msg_id = null;
         this.completer = null;
         this.widget_views = [];
+        this._widgets_live = true;
 
         Cell.apply(this,[{
             config: $.extend({}, CodeCell.options_default), 
@@ -224,7 +225,12 @@ define([
             .click(function() {
                 widget_area.slideUp('', function(){ 
                     for (var i = 0; i < that.widget_views.length; i++) {
-                        that.widget_views[i].remove();
+                        var view = that.widget_views[i];
+                        view.remove();
+
+                        // Remove widget live events.
+                        view.off('comm:live', that._widget_live);
+                        view.off('comm:dead', that._widget_dead);
                     }
                     that.widget_views = [];
                     widget_subarea.html(''); 
@@ -258,8 +264,47 @@ define([
             that.widget_area.show();
             dummy.replaceWith(view.$el);
             that.widget_views.push(view);
+
+            // Check the live state of the view's model.
+            if (view.model.comm_live) {
+                that._widget_live(view);
+            } else {
+                that._widget_dead(view);
+            }
+
+            // Listen to comm live events for the view.
+            view.on('comm:live', that._widget_live, that);
+            view.on('comm:dead', that._widget_dead, that);
             return view;
         });
+    };
+
+    /**
+     * Handles when a widget loses it's comm connection.
+     * @param  {WidgetView} view
+     */
+    CodeCell.prototype._widget_dead = function(view) {
+        if (this._widgets_live) {
+            this._widgets_live = false;
+            this.widget_area.addClass('connection-problems');
+        }
+
+    };
+
+    /**
+     * Handles when a widget is connected to a live comm.
+     * @param  {WidgetView} view
+     */
+    CodeCell.prototype._widget_live = function(view) {
+        if (!this._widgets_live) {
+            // Check that the other widgets are live too.  O(N) operation.
+            // Abort the function at the first dead widget found.
+            for (var i = 0; i < this.widget_views.length; i++) {
+                if (!this.widget_views[i].model.comm_live) return;
+            }
+            this._widgets_live = true;
+            this.widget_area.removeClass('connection-problems');
+        }
     };
 
     /** @method bind_events */
@@ -375,7 +420,12 @@ define([
         
         // Clear widget area
         for (var i = 0; i < this.widget_views.length; i++) {
-            this.widget_views[i].remove();
+            var view = this.widget_views[i];
+            view.remove();
+
+            // Remove widget live events.
+            view.off('comm:live', this._widget_live);
+            view.off('comm:dead', this._widget_dead);
         }
         this.widget_views = [];
         this.widget_subarea.html('');
