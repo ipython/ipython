@@ -9494,12 +9494,14 @@ div#notebook {
   -webkit-box-sizing: border-box;
   background-color: #eeeeee;
 }
-#notebook-container {
-  padding-right: 80px;
-  padding-top: 10px;
-  border-color: #ffffff;
-  background-color: #ffffff;
-  box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
+@media not print {
+  #notebook-container {
+    padding-right: 80px;
+    padding-top: 10px;
+    border-color: #ffffff;
+    background-color: #ffffff;
+    box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
+  }
 }
 div.ui-widget-content {
   border: 1px solid #ababab;
@@ -9572,6 +9574,11 @@ p {
   box-pack: end;
   /* Modern browsers */
   justify-content: flex-end;
+}
+@media print {
+  .celltoolbar {
+    display: none;
+  }
 }
 .ctb_hideshow {
   display: none;
