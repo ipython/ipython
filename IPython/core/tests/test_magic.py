@@ -8,6 +8,7 @@ from __future__ import absolute_import
 import io
 import os
 import sys
+import warnings
 from unittest import TestCase, skipIf
 
 try:
@@ -18,6 +19,7 @@ except ImportError:
 
 import nose.tools as nt
 
+from IPython import get_ipython
 from IPython.core import magic
 from IPython.core.error import UsageError
 from IPython.core.magic import (Magics, magics_class, line_magic,
@@ -980,3 +982,13 @@ def test_bookmark():
     with tt.AssertPrints('bmname'):
         ip.run_line_magic('bookmark', '-l')
     ip.run_line_magic('bookmark', '-d bmname')
+
+def test_ls_magic():
+    ip = get_ipython()
+    json_formatter = ip.display_formatter.formatters['application/json']
+    json_formatter.enabled = True
+    lsmagic = ip.magic('lsmagic')
+    with warnings.catch_warnings(record=True) as w:
+        j = json_formatter(lsmagic)
+    nt.assert_equal(sorted(j), ['cell', 'line'])
+    nt.assert_equal(w, []) # no warnings

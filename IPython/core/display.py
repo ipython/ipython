@@ -1,27 +1,16 @@
 # -*- coding: utf-8 -*-
-"""Top-level display functions for displaying object in different formats.
+"""Top-level display functions for displaying object in different formats."""
 
-Authors:
-
-* Brian Granger
-"""
-
-#-----------------------------------------------------------------------------
-#       Copyright (C) 2013 The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from __future__ import print_function
 
+import json
+import mimetypes
 import os
 import struct
-import mimetypes
+import warnings
 
 from IPython.core.formatters import _safe_get_formatter_method
 from IPython.utils.py3compat import (string_types, cast_bytes_py2, cast_unicode,
@@ -514,7 +503,29 @@ class SVG(DisplayObject):
         return self.data
 
 
-class JSON(TextDisplayObject):
+class JSON(DisplayObject):
+    """JSON expects a JSON-able dict or list
+    
+    not an already-serialized JSON string.
+    
+    Scalar types (None, number, string) are not allowed, only dict or list containers.
+    """
+    # wrap data in a property, which warns about passing already-serialized JSON
+    _data = None
+    def _check_data(self):
+        if self.data is not None and not isinstance(self.data, (dict, list)):
+            raise TypeError("%s expects JSONable dict or list, not %r" % (self.__class__.__name__, self.data))
+
+    @property
+    def data(self):
+        return self._data
+    
+    @data.setter
+    def data(self, data):
+        if isinstance(data, string_types):
+            warnings.warn("JSON expects JSONable dict or list, not JSON strings")
+            data = json.loads(data)
+        self._data = data
 
     def _repr_json_(self):
         return self.data

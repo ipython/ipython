@@ -1,11 +1,9 @@
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2011 The IPython Development Team.
-#
-#  Distributed under the terms of the BSD License.
-#
-#  The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
+import json
 import os
+import warnings
 
 import nose.tools as nt
 
@@ -130,3 +128,26 @@ def test_displayobject_repr():
     nt.assert_equal(repr(j), object.__repr__(j))
     j._show_mem_addr = False
     nt.assert_equal(repr(j), '<IPython.core.display.Javascript object>')
+
+def test_json():
+    d = {'a': 5}
+    lis = [d]
+    j = display.JSON(d)
+    nt.assert_equal(j._repr_json_(), d)
+    
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        j = display.JSON(json.dumps(d))
+        nt.assert_equal(len(w), 1)
+        nt.assert_equal(j._repr_json_(), d)
+    
+    j = display.JSON(lis)
+    nt.assert_equal(j._repr_json_(), lis)
+    
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        j = display.JSON(json.dumps(lis))
+        nt.assert_equal(len(w), 1)
+        nt.assert_equal(j._repr_json_(), lis)
+    
+    

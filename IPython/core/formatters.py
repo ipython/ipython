@@ -12,6 +12,7 @@ Inheritance diagram:
 
 import abc
 import inspect
+import json
 import sys
 import traceback
 import warnings
@@ -232,15 +233,7 @@ def warn_format_error(method, self, *args, **kwargs):
         else:
             traceback.print_exception(*exc_info)
         return None
-    if r is None or isinstance(r, self._return_type) or \
-        (isinstance(r, tuple) and r and isinstance(r[0], self._return_type)):
-        return r
-    else:
-        warnings.warn(
-            "%s formatter returned invalid type %s (expected %s) for object: %s" % \
-            (self.format_type, type(r), self._return_type, _safe_repr(args[0])),
-            FormatterWarning
-        )
+    return self._check_return(r, args[0])
 
 
 class FormatterABC(with_metaclass(abc.ABCMeta, object)):
@@ -259,7 +252,6 @@ class FormatterABC(with_metaclass(abc.ABCMeta, object)):
     enabled = True
     
     @abc.abstractmethod
-    @warn_format_error
     def __call__(self, obj):
         """Return a JSON'able representation of the object.
 
@@ -357,6 +349,21 @@ class BaseFormatter(Configurable):
             return False
         else:
             return True
+    
+    def _check_return(self, r, obj):
+        """Check that a return value is appropriate
+        
+        Return the value if so, None otherwise, warning if invalid.
+        """
+        if r is None or isinstance(r, self._return_type) or \
+            (isinstance(r, tuple) and r and isinstance(r[0], self._return_type)):
+            return r
+        else:
+            warnings.warn(
+                "%s formatter returned invalid type %s (expected %s) for object: %s" % \
+                (self.format_type, type(r), self._return_type, _safe_repr(obj)),
+                FormatterWarning
+            )
     
     def lookup(self, obj):
         """Look up the formatter for a given instance.
@@ -794,16 +801,41 @@ class LatexFormatter(BaseFormatter):
 class JSONFormatter(BaseFormatter):
     """A JSON string formatter.
 
-    To define the callables that compute the JSON string representation of
+    To define the callables that compute the JSONable representation of
     your objects, define a :meth:`_repr_json_` method or use the :meth:`for_type`
     or :meth:`for_type_by_name` methods to register functions that handle
     this.
 
-    The return value of this formatter should be a valid JSON string.
+    The return value of this formatter should be a JSONable list or dict.
+    JSON scalars (None, number, string) are not allowed, only dict or list containers.
     """
     format_type = Unicode('application/json')
+    _return_type = (list, dict)
 
     print_method = ObjectName('_repr_json_')
+    
+    def _check_return(self, r, obj):
+        """Check that a return value is appropriate
+        
+        Return the value if so, None otherwise, warning if invalid.
+        """
+        if r is None:
+            return
+        md = None
+        if isinstance(r, tuple):
+            # unpack data, metadata tuple for type checking on first element
+            r, md = r
+        
+        # handle deprecated JSON-as-string form from IPython < 3
+        if isinstance(r, string_types):
+            warnings.warn("JSON expects JSONable list/dict containers, not JSON strings",
+            FormatterWarning)
+            r = json.loads(r)
+        
+        if md is not None:
+            # put the tuple back together
+            r = (r, md)
+        return super(JSONFormatter, self)._check_return(r, obj)
 
 
 class JavascriptFormatter(BaseFormatter):
