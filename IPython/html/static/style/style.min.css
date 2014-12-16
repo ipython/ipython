@@ -10411,16 +10411,25 @@ span.autosave_status {
 .terminal {
   float: left;
   border: black solid 5px;
-  font-family: "DejaVu Sans Mono", "Liberation Mono", monospace;
+  font-family: monospace;
   font-size: 11px;
   color: white;
   background: black;
+  border-radius: 2px;
+  box-shadow: 0px 4px 11px 0px gray;
+  border: 0px;
+  padding: 0.4em;
+}
+.terminal,
+.terminal dummy-screen {
+  line-height: 1.21429em;
+  font-size: 14px;
 }
 .terminal-cursor {
   color: black;
   background: white;
 }
 #terminado-container {
-  margin: 8px;
+  padding-top: 20px;
 }
 /*# sourceMappingURL=style.min.css.map */
