@@ -10208,6 +10208,7 @@ span.save_widget span.filename {
   height: 1em;
   line-height: 1em;
   padding: 3px;
+  margin-left: 16px;
   border: none;
   font-size: 146.5%;
   border-radius: 2px;
@@ -10428,9 +10429,6 @@ span.autosave_status {
   font-family: monospace;
   color: white;
   background: black;
-  border-radius: 2px;
-  -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.4);
-  box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.4);
   padding: 0.4em;
 }
 .terminal,
@@ -10443,6 +10441,10 @@ span.autosave_status {
   background: white;
 }
 #terminado-container {
-  padding-top: 20px;
+  margin-top: 20px;
+  background: black;
+  border-radius: 2px;
+  -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.4);
+  box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.4);
 }
 /*# sourceMappingURL=style.min.css.map */
