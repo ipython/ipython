@@ -190,6 +190,22 @@ define([
         }
     };
 
+    /**
+     * unregister the selected preset, 
+     *
+     * return true if preset successfully unregistered
+     * false otherwise
+     *
+     **/
+    CellToolbar.unregister_preset = function(name){
+        if(CellToolbar._presets[name]){
+            delete CellToolbar._presets[name];
+            events.trigger('unregistered_preset.CellToolbar', {name: name});
+            return true
+        }
+        return false
+    }
+
 
     /**
      * List the names of the presets that are currently registered.
