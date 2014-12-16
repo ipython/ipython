@@ -773,7 +773,7 @@ define([
      * @param {integer} [index] - cell's numeric index
      * @return {Notebook} This notebook
      */
-    Notebook.prototype.unsafe_delete_cell = function (index) {
+    Notebook.prototype._unsafe_delete_cell = function (index) {
         var i = this.index_or_selected(index);
         var cell = this.get_cell(i);
 
@@ -1755,7 +1755,7 @@ define([
         var i;
         for (i=0; i<ncells; i++) {
             // Always delete cell 0 as they get renumbered as they are deleted.
-            this.unsafe_delete_cell(0);
+            this._unsafe_delete_cell(0);
         }
         // Save the metadata and name.
         this.metadata = content.metadata;
