@@ -19,10 +19,9 @@ except ImportError:
 from jinja2 import TemplateNotFound
 from tornado import web
 
-try:
-    from tornado.log import app_log
-except ImportError:
-    app_log = logging.getLogger()
+from tornado import gen
+from tornado.log import app_log
+
 
 import IPython
 from IPython.utils.sysinfo import get_sys_info
@@ -355,9 +354,10 @@ def json_errors(method):
        the error in a human readable form.
     """
     @functools.wraps(method)
+    @gen.coroutine
     def wrapper(self, *args, **kwargs):
         try:
-            result = method(self, *args, **kwargs)
+            result = yield gen.maybe_future(method(self, *args, **kwargs))
         except web.HTTPError as e:
             status = e.status_code
             message = e.log_message
