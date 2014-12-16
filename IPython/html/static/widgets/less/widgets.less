@@ -28,15 +28,12 @@
     }
 
     &.connection-problems .prompt:after {
-        content: '\f127';
+        content: @fa-var-chain-broken;
         font-family: 'FontAwesome';
         color: @brand-danger;
-        padding: 4px;
-        position: relative;
-        border-radius: 2px;
-        font-size: 14px;
-        left: 0px;
+        font-size: @notebook_font_size;
         top: 3px;
+        padding: 3px;
     }
 }
 
