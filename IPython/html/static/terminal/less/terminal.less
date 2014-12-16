@@ -1,10 +1,19 @@
 .terminal {
   float: left;
   border: black solid 5px;
-  font-family: "DejaVu Sans Mono", "Liberation Mono", monospace;
+  font-family: monospace;
   font-size: 11px;
   color: white;
   background: black;
+  border-radius: 2px;
+  box-shadow: 0px 4px 11px 0px gray;
+  border: 0px;
+  padding: @code_padding;
+
+  &, dummy-screen {
+    line-height: @code_line_height;
+    font-size: @notebook_font_size;
+  }
 }
 
 .terminal-cursor {
@@ -13,5 +22,5 @@
 }
 
 #terminado-container {
-    margin: 8px;
+  padding-top: 20px;
 }

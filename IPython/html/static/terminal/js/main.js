@@ -29,7 +29,7 @@ require([
     var header = $("#header")[0]
     function calculate_size() {
         height = window.innerHeight - header.offsetHeight;
-        width = window.innerWidth;
+        width = $('#terminado-container').width();
         var rows = Math.min(1000, Math.max(20, Math.floor(height/termRowHeight())-1));
         var cols = Math.min(1000, Math.max(40, Math.floor(width/termColWidth())-1));
         console.log("resize to :", rows , 'rows by ', cols, 'columns');
