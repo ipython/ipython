@@ -1,18 +1,27 @@
-"""Functions for signing notebooks"""
+"""Utilities for signing notebooks"""
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
 import base64
 from contextlib import contextmanager
+from datetime import datetime
 import hashlib
 from hmac import HMAC
 import io
 import os
 
+try:
+    import sqlite3
+except ImportError:
+    try:
+        from pysqlite2 import dbapi2 as sqlite3
+    except ImportError:
+        sqlite3 = None
+
 from IPython.utils.io import atomic_writing
-from IPython.utils.py3compat import string_types, unicode_type, cast_bytes
-from IPython.utils.traitlets import Instance, Bytes, Enum, Any, Unicode, Bool
+from IPython.utils.py3compat import unicode_type, cast_bytes
+from IPython.utils.traitlets import Instance, Bytes, Enum, Any, Unicode, Bool, Integer
 from IPython.config import LoggingConfigurable, MultipleInstanceError
 from IPython.core.application import BaseIPythonApplication, base_flags
 
@@ -93,6 +102,39 @@ class NotebookNotary(LoggingConfigurable):
             app.initialize(argv=[])
         return app.profile_dir
     
+    db_file = Unicode(config=True)
+    def _db_file_default(self):
+        if self.profile_dir is None:
+            return ':memory:'
+        return os.path.join(self.profile_dir.security_dir, u'nbsignatures.db')
+    
+    # 64k entries ~ 12MB
+    db_size_limit = Integer(65535, config=True)
+    db = Any()
+    def _db_default(self):
+        if sqlite3 is None:
+            self.log.warn("Missing SQLite3, all notebooks will be untrusted!")
+            return
+        kwargs = dict(detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+        db = sqlite3.connect(self.db_file, **kwargs)
+        self.init_db(db)
+        return db
+    
+    def init_db(self, db):
+        db.execute("""
+        CREATE TABLE IF NOT EXISTS nbsignatures
+        (
+            id integer PRIMARY KEY AUTOINCREMENT,
+            algorithm text,
+            signature text,
+            path text,
+            last_seen timestamp
+        )""")
+        db.execute("""
+        CREATE INDEX IF NOT EXISTS algosig ON nbsignatures(algorithm, signature)
+        """)
+        db.commit()
+    
     algorithm = Enum(algorithms, default_value='sha256', config=True,
         help="""The hashing algorithm used to sign notebooks."""
     )
@@ -168,28 +210,68 @@ class NotebookNotary(LoggingConfigurable):
         """
         if nb.nbformat < 3:
             return False
-        stored_signature = nb['metadata'].get('signature', None)
-        if not stored_signature \
-            or not isinstance(stored_signature, string_types) \
-            or ':' not in stored_signature:
+        if self.db is None:
             return False
-        stored_algo, sig = stored_signature.split(':', 1)
-        if self.algorithm != stored_algo:
+        signature = self.compute_signature(nb)
+        r = self.db.execute("""SELECT id FROM nbsignatures WHERE
+            algorithm = ? AND
+            signature = ?;
+            """, (self.algorithm, signature)).fetchone()
+        if r is None:
             return False
-        my_signature = self.compute_signature(nb)
-        return my_signature == sig
+        self.db.execute("""UPDATE nbsignatures SET last_seen = ? WHERE
+            algorithm = ? AND
+            signature = ?;
+            """,
+            (datetime.utcnow(), self.algorithm, signature),
+        )
+        self.db.commit()
+        return True
     
     def sign(self, nb):
-        """Sign a notebook, indicating that its output is trusted
+        """Sign a notebook, indicating that its output is trusted on this machine
         
-        stores 'algo:hmac-hexdigest' in notebook.metadata.signature
-        
-        e.g. 'sha256:deadbeef123...'
+        Stores hash algorithm and hmac digest in a local database of trusted notebooks.
         """
         if nb.nbformat < 3:
             return
         signature = self.compute_signature(nb)
-        nb['metadata']['signature'] = "%s:%s" % (self.algorithm, signature)
+        self.store_signature(signature, nb)
+
+    def store_signature(self, signature, nb):
+        if self.db is None:
+            return
+        self.db.execute("""INSERT OR IGNORE INTO nbsignatures
+            (algorithm, signature, last_seen) VALUES (?, ?, ?)""",
+            (self.algorithm, signature, datetime.utcnow())
+        )
+        self.db.execute("""UPDATE nbsignatures SET last_seen = ? WHERE
+            algorithm = ? AND
+            signature = ?;
+            """,
+            (datetime.utcnow(), self.algorithm, signature),
+        )
+        self.db.commit()
+    
+    def unsign(self, nb):
+        """Ensure that a notebook is untrusted
+        
+        by removing its signature from the trusted database, if present.
+        """
+        signature = self.compute_signature(nb)
+        self.db.execute("""DELETE FROM nbsignatures WHERE
+                algorithm = ? AND
+                signature = ?;
+            """,
+            (self.algorithm, signature)
+        )
+        self.db.commit()
+    
+    def cull_db(self):
+        self.db.execute("""DELETE FROM nbsignatures WHERE id IN (
+            SELECT id FROM nbsignatures ORDER BY last_seen DESC LIMIT -1 OFFSET ?
+        );
+        """, (self.db_size_limit,))
     
     def mark_cells(self, nb, trusted):
         """Mark cells as trusted if the notebook's signature can be verified
@@ -222,11 +304,9 @@ class NotebookNotary(LoggingConfigurable):
         
         # explicitly safe output
         if nbformat_version >= 4:
-            safe = {'text/plain', 'image/png', 'image/jpeg'}
             unsafe_output_types = ['execute_result', 'display_data']
             safe_keys = {"output_type", "execution_count", "metadata"}
         else: # v3
-            safe = {'text', 'png', 'jpeg'}
             unsafe_output_types = ['pyout', 'display_data']
             safe_keys = {"output_type", "prompt_number", "metadata"}
         

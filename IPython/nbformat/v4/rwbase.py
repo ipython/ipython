@@ -64,6 +64,7 @@ def strip_transient(nb):
     """
     nb.metadata.pop('orig_nbformat', None)
     nb.metadata.pop('orig_nbformat_minor', None)
+    nb.metadata.pop('signature', None)
     for cell in nb.cells:
         cell.metadata.pop('trusted', None)
     return nb
