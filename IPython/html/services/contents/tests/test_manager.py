@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import logging
 import os
+import time
 
 from tornado.web import HTTPError
 from unittest import TestCase
@@ -106,6 +107,7 @@ class TestContentsManager(TestCase):
 
         full_model = cm.get(path)
         nb = full_model['content']
+        nb['metadata']['counter'] = int(1e6 * time.time())
         self.add_code_cell(nb)
 
         cm.save(full_model, path)
