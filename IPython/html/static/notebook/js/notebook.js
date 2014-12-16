@@ -767,6 +767,27 @@ define([
     // Insertion, deletion.
 
     /**
+     * Delete a cell from the notebook without any precautions
+     * Needed to reload checkpoints and other things like that.
+     * 
+     * @param {integer} [index] - cell's numeric index
+     * @return {Notebook} This notebook
+     */
+    Notebook.prototype._unsafe_delete_cell = function (index) {
+        var i = this.index_or_selected(index);
+        var cell = this.get_cell(i);
+
+        $('#undelete_cell').addClass('disabled');
+        if (this.is_valid_cell_index(i)) {
+            var old_ncells = this.ncells();
+            var ce = this.get_cell_element(i);
+            ce.remove();
+            this.set_dirty(true);
+        }
+        return this;
+    };
+
+    /**
      * Delete a cell from the notebook.
      * 
      * @param {integer} [index] - cell's numeric index
@@ -1734,7 +1755,7 @@ define([
         var i;
         for (i=0; i<ncells; i++) {
             // Always delete cell 0 as they get renumbered as they are deleted.
-            this.delete_cell(0);
+            this._unsafe_delete_cell(0);
         }
         // Save the metadata and name.
         this.metadata = content.metadata;
