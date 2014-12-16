@@ -26,8 +26,8 @@ define([
 
 
     ToolBar.prototype.construct = function (config) {
-        for(var k in config){
-            this.add_buttons_group(config[k][0],k[1]);
+        for(var k=0; k<config.length; k++) {
+            this.add_buttons_group(config[k][0],config[k][1]);
         }
     };
 
@@ -54,7 +54,7 @@ define([
      *      ]
      *
      *  For backward compatibility this also support the
-     *  old methods of adding busson directly bound to callbacks:
+     *  old methods of adding a button directly bound to callbacks:
      *  @example
      *      # deprecate, do not use
      *      IPython.toolbar.add_buttons_group([
