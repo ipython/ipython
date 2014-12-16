@@ -288,8 +288,10 @@ class APITest(NotebookTestBase):
             self.assertIn('content', model)
             self.assertEqual(model['format'], 'base64')
             self.assertEqual(model['type'], 'file')
-            b64_data = base64.encodestring(self._blob_for_name(name)).decode('ascii')
-            self.assertEqual(model['content'], b64_data)
+            self.assertEqual(
+                base64.decodestring(model['content']),
+                self._blob_for_name(name),
+            )
 
         # Name that doesn't exist - should be a 404
         with assert_http_error(404):
