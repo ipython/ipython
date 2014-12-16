@@ -178,8 +178,6 @@ class APITest(NotebookTestBase):
         return os.path.isdir(self.to_os_path(api_path))
     
     def setUp(self):
-        self.blob = os.urandom(100)
-        self.b64_blob = base64.encodestring(self.blob).decode('ascii')
 
         for d in (self.dirs + self.hidden_dirs):
             self.make_dir(d)
