@@ -108,7 +108,7 @@ class _IntRange(_Int):
         if lower_given != upper_given:
             raise ValueError("Must specify both 'lower' and 'upper' for range widget")
         
-        super(_BoundedInt, self).__init__(*pargs, **kwargs)
+        super(_IntRange, self).__init__(*pargs, **kwargs)
         
         # ensure the traits match, preferring whichever (if any) was given in kwargs
         if value_given:
