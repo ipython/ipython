@@ -20,7 +20,7 @@ class KernelSpecResourceHandler(web.StaticFileHandler, IPythonHandler):
 
     @web.authenticated
     def head(self, kernel_name, path):
-        self.get(kernel_name, path, include_body=False)
+        return self.get(kernel_name, path, include_body=False)
 
 default_handlers = [
     (r"/kernelspecs/%s/(?P<path>.*)" % kernel_name_regex, KernelSpecResourceHandler),
