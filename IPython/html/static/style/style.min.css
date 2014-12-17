@@ -8179,7 +8179,7 @@ ul#new-notebook-menu {
 }
 @media not print {
   #texteditor-backdrop #texteditor-container {
-    padding: 15px;
+    padding: 0px;
     background-color: #ffffff;
     min-height: 70vh;
     -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
