@@ -7476,6 +7476,8 @@ pre {
 label {
   font-weight: normal;
 }
+/* Make the page background atleast 100% the height of the view port */
+/* Make the page itself atleast 70% the height of the view port */
 .border-box-sizing {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -7738,7 +7740,7 @@ div.traceback-wrapper {
  * Author: IPython Development Team
  */
 body {
-  background-color: white;
+  background-color: #ffffff;
   /* This makes sure that the body covers the entire window and needs to
        be in a different element than the display: box in wrapper below */
   position: absolute;
@@ -8138,13 +8140,51 @@ ul#new-notebook-menu {
   overflow: auto;
   max-height: 20em;
 }
-#texteditor-container {
-  border-bottom: 1px solid #ccc;
+#current-mode {
+  margin-right: 16px;
+}
+.edit_app #header {
+  -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
+  box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
+}
+.edit_app #menubar .navbar {
+  /* Use a negative 1 bottom margin, so the border overlaps the border of the
+    header */
+  margin-bottom: -1px;
 }
 #filename {
   font-size: 16pt;
   display: table;
   padding: 0px 5px;
+}
+#texteditor-backdrop {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+@media not print {
+  #texteditor-backdrop {
+    min-height: 100vh;
+    background-color: #eeeeee;
+  }
+}
+@media print {
+  #texteditor-backdrop #texteditor-container .CodeMirror-gutter {
+    background-color: #ffffff;
+  }
+}
+@media not print {
+  #texteditor-backdrop #texteditor-container .CodeMirror-gutter {
+    background-color: #ffffff;
+  }
+}
+@media not print {
+  #texteditor-backdrop #texteditor-container {
+    padding: 15px;
+    background-color: #ffffff;
+    min-height: 70vh;
+    -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
+    box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
+  }
 }
 /*!
 *
@@ -9477,9 +9517,12 @@ div#notebook_panel {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
-  background-color: #eeeeee;
-  /* Make the page background atleast 100% the height of the view port */
-  min-height: 100vh;
+}
+@media not print {
+  div#notebook_panel {
+    background-color: #eeeeee;
+    min-height: 100vh;
+  }
 }
 div#notebook {
   font-size: 14px;
@@ -9499,9 +9542,7 @@ div#notebook {
 @media not print {
   #notebook-container {
     padding: 15px;
-    border-color: #ffffff;
     background-color: #ffffff;
-    /* Make the page itself atleast 70% the height of the view port */
     min-height: 70vh;
     -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
     box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
