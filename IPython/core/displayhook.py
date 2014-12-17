@@ -30,6 +30,8 @@ class DisplayHook(Configurable):
     """
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    exec_result = Instance('IPython.core.interactiveshell.ExecutionResult',
+                           allow_none=True)
     cull_fraction = Float(0.2)
 
     def __init__(self, shell=None, cache_size=1000, **kwargs):
@@ -198,6 +200,10 @@ class DisplayHook(Configurable):
                 self.shell.push(to_main, interactive=False)
                 self.shell.user_ns['_oh'][self.prompt_count] = result
 
+    def fill_exec_result(self, result):
+        if self.exec_result is not None:
+            self.exec_result.result = result
+
     def log_output(self, format_dict):
         """Log the output."""
         if 'text/plain' not in format_dict:
@@ -225,6 +231,7 @@ class DisplayHook(Configurable):
             self.write_output_prompt()
             format_dict, md_dict = self.compute_format_data(result)
             self.update_user_ns(result)
+            self.fill_exec_result(result)
             if format_dict:
                 self.write_format_data(format_dict, md_dict)
                 self.log_output(format_dict)
