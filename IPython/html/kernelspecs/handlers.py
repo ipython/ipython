@@ -1,3 +1,4 @@
+import hashlib
 from tornado import web
 from ..base.handlers import IPythonHandler
 from ..services.kernelspecs.handlers import kernel_name_regex
@@ -21,6 +22,19 @@ class KernelSpecResourceHandler(web.StaticFileHandler, IPythonHandler):
     @web.authenticated
     def head(self, kernel_name, path):
         return self.get(kernel_name, path, include_body=False)
+
+    def compute_etag(self):
+        """Computes the etag header to be used for this request.
+
+        By default uses a hash of the content written so far.
+
+        May be overridden to provide custom etag implementations,
+        or may return None to disable tornado's default etag support.
+        """
+        hasher = hashlib.sha1()
+        for part in self._write_buffer:
+            hasher.update(part)
+        return '"%s"' % hasher.hexdigest()
 
 default_handlers = [
     (r"/kernelspecs/%s/(?P<path>.*)" % kernel_name_regex, KernelSpecResourceHandler),
