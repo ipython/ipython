@@ -12,3 +12,19 @@
   overflow: auto;
   max-height: 20em;
 }
+
+#current-mode {
+    margin-right: @padding-large-horizontal;
+}
+
+.edit_app {
+  #header {
+    .box-shadow(@global-shadow);
+  }
+
+  #menubar .navbar {
+    /* Use a negative 1 bottom margin, so the border overlaps the border of the
+    header */
+    margin-bottom: -1px;
+  }
+}

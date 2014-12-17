@@ -14,9 +14,10 @@ div#notebook_panel {
     margin: 0px;
     padding: 0px;
     .border-box-sizing();
-    background-color: @notebook_dark_background;
-    /* Make the page background atleast 100% the height of the view port */
-    min-height: 100vh;
+    @media not print {
+        background-color: @page-backdrop-color;
+        min-height: @page-backdrop-height;
+    }
 }
 div#notebook {
     font-size: @notebook_font_size;
@@ -34,11 +35,9 @@ div#notebook {
 
 #notebook-container{
     @media not print{
-        padding: 15px;
-        border-color:  @body-bg;
-        background-color :  @body-bg;
-        /* Make the page itself atleast 70% the height of the view port */
-        min-height: 70vh;
+        padding: @page-padding;
+        background-color :  @page-color;
+        min-height: @page-min-height;
         .box-shadow(@global-shadow);
     }
 }
