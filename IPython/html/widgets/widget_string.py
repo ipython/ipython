@@ -59,8 +59,8 @@ class Text(_String):
     """Single line textbox widget."""
     _view_name = Unicode('TextView', sync=True)
 
-    def __init__(self, *parg, **kwargs):
-        super(Text, self).__init__(*parg, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super(Text, self).__init__(*args, **kwargs)
         self._submission_callbacks = CallbackDispatcher()
         self.on_msg(self._handle_string_msg)
 
