@@ -40,11 +40,15 @@ Inheritance diagram:
 # Adapted from enthought.traits, Copyright (c) Enthought, Inc.,
 # also under the terms of the Modified BSD License.
 
+from __future__ import absolute_import
+
+import weakref
 import contextlib
 import inspect
 import re
 import sys
 import types
+from copy import copy
 from types import FunctionType
 try:
     from types import ClassType, InstanceType
@@ -152,7 +156,6 @@ class _SimpleTest:
     def __str__(self):
         return self.__repr__()
 
-
 def getmembers(object, predicate=None):
     """A safe version of inspect.getmembers that handles missing attributes.
 
@@ -171,6 +174,105 @@ def getmembers(object, predicate=None):
                 results.append((key, value))
     results.sort()
     return results
+
+def metadata_filter(traits, **metadata):
+    """Returns a filtered dictionary of trait names and objects
+
+    Parameters
+    ----------
+    traits : dict
+        dictionary with trait name keys and TraitType object values
+    **metadata : kwargs
+        The metadata kwargs allow functions to be passed which filter
+        traits based on metadata values. The functions should take a
+        single value as an argument and return a boolean. If any
+        function returns False, then the trait is not included in the
+        output.  This does not allow for any simple way of testing that
+        a metadata name exists and has any value because get_metadata
+        returns None if a metadata key doesn't exist."""
+    if len(metadata) == 0:
+        return traits
+    for meta_name, meta_eval in metadata.items():
+        if type(meta_eval) is not FunctionType:
+            metadata[meta_name] = _SimpleTest(meta_eval)
+    result = {}
+    for name, trait in traits.items():
+        for meta_name, meta_eval in metadata.items():
+            if not meta_eval(trait.get_metadata(meta_name)):
+                break
+        else:
+            result[name] = trait
+    return result
+
+def trait_init(type, entry, args=None, kw=None, **metadata):
+    """ 
+
+    Parameters
+    ----------
+    type : TraitType
+        A type inheriting from TraitType which will be assigned
+        to klass under the specified name.
+    entry : allowable for type
+        Specify the input for type. This is the default value if
+        type is not a ClassBasedTraitType, otherwise this should
+        be the class for type.
+    args : tuple
+        The arguments for type if type is class based.
+    kw : dict
+        The key word arguments for type if type is class based.
+    **metadata : kwargs
+        The metadata which will be fed into type.
+    """
+    # issubclass does not always work
+    # here so this was my solution
+    if TraitType in type.mro():
+        if ClassBasedTraitType in type.mro():
+            # type inherits from ClassBasedTraitType
+            if args is None:
+                args=()
+            if kw is None:
+                kw={}
+            instc = type(entry,args,kw,**metadata)
+        else:
+            # type is not class based
+            instc = type(entry,**metadata)
+        dv = instc._validate(instc,entry)
+        instc.default_value = dv
+        return instc
+    else:
+        raise TraitError('{0} must inherit from TraitType'.format(type))
+
+def install_trait(klass, name, trait):
+    """Instantiate a trait for klass that is linked to its instances
+    Parameters
+    ----------
+    klass : class
+        The class which will be assigned new traits.
+    name : string
+        The name of the class attribute.
+    trait : TraitType
+        A preinitialized TraitType instance
+    """
+    if issubclass(klass,HasTraits):
+        trait.this_class = klass
+        trait.name = name
+        for obj in klass.instances():
+            trait.set_default_value(obj)
+        setattr(klass, name, trait)
+    else:
+        raise TraitError('{0} must inherit from HasTraits'.format(klass))
+
+def discard_trait(klass, name):
+    """Remove the given trait from klass and all its instances"""
+    delattr(klass,name)
+    for obj in klass.instances():
+        if name in obj.trait_names():
+            delattr(obj, name)
+            del obj._trait_values[name]
+            if name in obj._trait_notifiers.keys():
+                del obj._trait_notifiers[name]
+            if hasattr(obj,'_'+name+'_changed'):
+                delattr(obj,'_'+name+'_changed')
 
 def _validate_link(*tuples):
     """Validate arguments for traitlet link functions"""
@@ -323,8 +425,7 @@ class TraitType(object):
     info_text = 'any value'
 
     def __init__(self, default_value=NoDefaultSpecified, allow_none=None, **metadata):
-        """Create a TraitType.
-        """
+        """Create a TraitType."""
         if default_value is not NoDefaultSpecified:
             self.default_value = default_value
         if allow_none is not None:
@@ -485,22 +586,18 @@ class TraitType(object):
     def set_metadata(self, key, value):
         getattr(self, '_metadata', {})[key] = value
 
-
 #-----------------------------------------------------------------------------
 # The HasTraits implementation
 #-----------------------------------------------------------------------------
 
-
 class MetaHasTraits(type):
     """A metaclass for HasTraits.
-
     This metaclass makes sure that any TraitType class attributes are
     instantiated and sets their name attribute.
     """
 
     def __new__(mcls, name, bases, classdict):
         """Create the HasTraits class.
-
         This instantiates all TraitTypes in the class dict and sets their
         :attr:`name` attribute.
         """
@@ -519,7 +616,6 @@ class MetaHasTraits(type):
 
     def __init__(cls, name, bases, classdict):
         """Finish initializing the HasTraits class.
-
         This sets the :attr:`this_class` attribute of each TraitType in the
         class dict to the newly created class ``cls``.
         """
@@ -529,6 +625,8 @@ class MetaHasTraits(type):
         super(MetaHasTraits, cls).__init__(name, bases, classdict)
 
 class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
+
+    _instances = set()
 
     def __new__(cls, *args, **kw):
         # This is needed because object.__new__ only accepts
@@ -563,6 +661,8 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
         # notifications.
         for key, value in iteritems(kw):
             setattr(self, key, value)
+        self.dynamic = TraitProxy(self)
+        type(self)._instances.add(weakref.ref(self))
 
     def _notify_trait(self, name, old_value, new_value):
 
@@ -607,7 +707,6 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
                 raise TraitError('a trait changed callback '
                                     'must be callable.')
 
-
     def _add_notifiers(self, handler, name):
         if name not in self._trait_notifiers:
             nlist = []
@@ -626,18 +725,17 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
                 pass
             else:
                 del nlist[index]
+                if len(nlist)==0:
+                    del self._trait_notifiers[name]
 
     def on_trait_change(self, handler, name=None, remove=False):
         """Setup a handler to be called when a trait changes.
-
         This is used to setup dynamic notifications of trait changes.
-
         Static handlers can be created by creating methods on a HasTraits
-        subclass with the naming convention '_[traitname]_changed'.  Thus,
+        subclass with the naming convention '_[traitname]_changed'. Thus,
         to create static handler for the trait 'a', create the method
         _a_changed(self, name, old, new) (fewer arguments can be used, see
         below).
-
         Parameters
         ----------
         handler : callable
@@ -662,9 +760,20 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
                 self._add_notifiers(handler, n)
 
     @classmethod
+    def instances(cls):
+        """Get a list of class instances"""
+        dead = set()
+        for ref in cls._instances:
+            obj = ref()
+            if (obj is not None) and isinstance(obj,cls):
+                yield obj
+            else:
+                dead.add(ref)
+        cls._instances -= dead
+
+    @classmethod
     def class_trait_names(cls, **metadata):
         """Get a list of all the names of this class' traits.
-
         This method is just like the :meth:`trait_names` method,
         but is unbound.
         """
@@ -674,12 +783,9 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
     def class_traits(cls, **metadata):
         """Get a `dict` of all the traits of this class.  The dictionary
         is keyed on the name and the values are the TraitType objects.
-
         This method is just like the :meth:`traits` method, but is unbound.
-
         The TraitTypes returned don't know anything about the values
         that the various HasTrait's instances are holding.
-
         The metadata kwargs allow functions to be passed in which
         filter traits based on metadata values.  The functions should
         take a single value as an argument and return a boolean.  If
@@ -710,46 +816,58 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
         return result
 
     def trait_names(self, **metadata):
+        """Get a list of all the dynamic and static trait names for self."""
+        s = self.static_names(**metadata)
+        d = self.dynamic_names(**metadata)
+        return s + d
+
+    def static_names(self, **metadata):
         """Get a list of all the names of this class' traits."""
-        return self.traits(**metadata).keys()
+        return self.statics(**metadata).keys()
+
+    def dynamic_names(self, **metadata):
+        """Get a list of all the names of this instance's dynamic traits."""
+        return self.dynamics(**metadata).keys()
 
     def traits(self, **metadata):
-        """Get a `dict` of all the traits of this class.  The dictionary
-        is keyed on the name and the values are the TraitType objects.
+        """Get a `dict` of all dynamic and static traits for self."""
+        traits = self.statics(**metadata)
+        traits.update(self.dynamics(**metadata))
+        return traits
 
-        The TraitTypes returned don't know anything about the values
-        that the various HasTrait's instances are holding.
-
-        The metadata kwargs allow functions to be passed in which
-        filter traits based on metadata values.  The functions should
-        take a single value as an argument and return a boolean.  If
-        any function returns False, then the trait is not included in
-        the output.  This does not allow for any simple way of
-        testing that a metadata name exists and has any
-        value because get_metadata returns None if a metadata key
-        doesn't exist.
+    def statics(self, **metadata):
+        """Get a `dict` of all the static traits of this class. The
+        dictionary is keyed on the names while the values are TraitType
+        objects. The TraitTypes returned don't know anything about the
+        values that the various HasTrait's instances are holding. The
+        metadata kwargs allow functions to be passed which filter traits
+        based on metadata values. The functions should take a single value
+        as an argument and return a boolean. If any function returns False,
+        then the trait is not included in the output.  This does not allow
+        for any simple way of testing that a metadata name exists and has
+        any value because get_metadata returns None if a metadata key
+        doesn't exist.g1.dynamic.slope
         """
         traits = dict([memb for memb in getmembers(self.__class__) if
                      isinstance(memb[1], TraitType)])
+        return metadata_filter(traits, **metadata)
 
-        if len(metadata) == 0:
-            return traits
+    def dynamics(self, **metadata):
+        """Get a `dict` of all the dynamic traits of self. The dictionary
+        is keyed on the name and the values are the TraitType objects. The
+        TraitTypes returned don't know anything about the values that self
+        is holding and are contained in a TraitProxy instance. The metadata
+        kwargs allow functions to be passed which filter traits based on
+        metadata values. The functions should take a single value as an
+        argument and return a boolean. If any function returns False, then
+        the trait is not included in the output. This does not allow for any
+        simple way of testing that a metadata name exists and has any value
+        because get_metadata returns None if a metadata key doesn't exist.
+        """
+        traits = self.dynamic._traits
+        return metadata_filter(traits, **metadata)
 
-        for meta_name, meta_eval in metadata.items():
-            if type(meta_eval) is not FunctionType:
-                metadata[meta_name] = _SimpleTest(meta_eval)
-
-        result = {}
-        for name, trait in traits.items():
-            for meta_name, meta_eval in metadata.items():
-                if not meta_eval(trait.get_metadata(meta_name)):
-                    break
-            else:
-                result[name] = trait
-
-        return result
-
-    def trait_metadata(self, traitname, key, default=None):
+    def static_metadata(self, traitname, key, default=None):
         """Get metadata values for trait by key."""
         try:
             trait = getattr(self.__class__, traitname)
@@ -758,6 +876,66 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
                                 (self.__class__.__name__, traitname))
         else:
             return trait.get_metadata(key, default)
+
+    def dynamic_metadata(self, traitname, key, default=None):
+        """Get metadata values for a dynamic trait by key."""
+        try:
+            trait = self.dynamic.get(name)
+        except AttributeError:
+            raise TraitError("Class %s does not have a dynamic trait named %s" %
+                                (self.__class__.__name__, traitname))
+        else:
+            return trait.get_metadata(key, default)
+
+class TraitProxy(object):
+
+    def __init__(self, author):
+        super(TraitProxy, self).__setattr__('_author', author)
+        super(TraitProxy, self).__setattr__('_traits', dict())
+
+    def __getattr__(self, name):
+        trait = self.get(name)
+        return trait.__get__(self._author)
+
+    def __setattr__(self, name, value):
+        trait = self.get(name)
+        trait.__set__(self._author,value)
+
+    def new(self, name, trait):
+        """create a new dynamic trait"""
+        trait.this_class = type(self._author)
+        trait.name = name
+        trait.instance_init(self._author)
+        self._traits[name] = trait
+
+    def cut(self, name):
+        """remove a dynamic trait and return it"""
+        obj = self._author
+        del obj._trait_values[name]
+        if name in obj._trait_notifiers.keys():
+            del obj._trait_notifiers[name]
+        if hasattr(obj,'_'+name+'_changed'):
+            delattr(obj,'_'+name+'_changed')
+        trait = self._traits[name]
+        del self._traits[name]
+        return trait
+        
+    def get(self, name):
+        """return a dynamic trait"""
+        try:
+            trait = self._traits[name]
+        except KeyError:
+            raise AttributeError("'{0}' object has no dynamic trait named "
+                                "'{1}'".format(self.__class__.__name__,name))
+        return trait
+    
+    def _setattr(self, name, value):
+        """bypasses `__setattr__` override to use default"""
+        if name in self._traits.keys():
+            klass = self._author.__class__.__name__
+            raise AttributeError("Cannot set an attribute to the name of a preexisting"
+                                 " dynamic trait in '{0}' objects.".formate(klass))
+        super(TraitProxy, self).__setattr__(name, value)
 
 #-----------------------------------------------------------------------------
 # Actual TraitTypes implementations/subclasses
@@ -835,7 +1013,7 @@ class Type(ClassBasedTraitType):
         if not (inspect.isclass(klass) or isinstance(klass, py3compat.string_types)):
             raise TraitError("A Type trait must specify a class.")
 
-        self.klass       = klass
+        self.klass = klass
 
         super(Type, self).__init__(default_value, allow_none=allow_none, **metadata)
 
@@ -913,7 +1091,7 @@ class Instance(ClassBasedTraitType):
         Parameters
         ----------
         klass : class, str
-            The class that forms the basis for the trait.  Class names
+            The class that forms the basis for the trait. Class names
             can also be specified as strings, like 'foo.bar.Bar'.
         args : tuple
             Positional arguments for generating the default value.
@@ -927,7 +1105,7 @@ class Instance(ClassBasedTraitType):
         If both ``args`` and ``kw`` are None, then the default value is None.
         If ``args`` is a tuple and ``kw`` is a dict, then the default is
         created as ``klass(*args, **kw)``.  If exactly one of ``args`` or ``kw`` is
-        None, the None is replaced by ``()`` or ``{}``, respectively.
+        None, then None is replaced by ``()`` or ``{}``, respectively.
         """
         if klass is None:
             klass = self.klass
