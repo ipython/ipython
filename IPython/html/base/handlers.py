@@ -375,7 +375,8 @@ def json_errors(method):
             reply = dict(message=message, reason=None, traceback=tb_text)
             self.finish(json.dumps(reply))
         else:
-            return result
+            # FIXME: can use regular return in generators in py3
+            raise gen.Return(result)
     return wrapper
 
 
