@@ -229,7 +229,6 @@ class KernelMagics(Magics):
         if not arg_s:
             raise UsageError('Missing filename.')
 
-        cont = open(arg_s).read()
         if arg_s.endswith('.py'):
             cont = self.shell.pycolorize(openpy.read_py_file(arg_s, skip_encoding_cookie=False))
         else:
