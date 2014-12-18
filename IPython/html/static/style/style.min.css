@@ -9672,55 +9672,15 @@ select[multiple].celltoolbar select {
 .completions select option.context {
   color: #3071a9;
 }
-#kernel_selector_widget {
+#kernel_logo_widget {
   margin-right: 1em;
+  float: right !important;
   float: right;
 }
-#kernel_selector_widget > button {
-  color: #333333;
-  background-color: #ffffff;
-  border-color: #cccccc;
-}
-#kernel_selector_widget > button:hover,
-#kernel_selector_widget > button:focus,
-#kernel_selector_widget > button:active,
-#kernel_selector_widget > button.active,
-.open .dropdown-toggle#kernel_selector_widget > button {
-  color: #333333;
-  background-color: #ebebeb;
-  border-color: #adadad;
-}
-#kernel_selector_widget > button:active,
-#kernel_selector_widget > button.active,
-.open .dropdown-toggle#kernel_selector_widget > button {
-  background-image: none;
-}
-#kernel_selector_widget > button.disabled,
-#kernel_selector_widget > button[disabled],
-fieldset[disabled] #kernel_selector_widget > button,
-#kernel_selector_widget > button.disabled:hover,
-#kernel_selector_widget > button[disabled]:hover,
-fieldset[disabled] #kernel_selector_widget > button:hover,
-#kernel_selector_widget > button.disabled:focus,
-#kernel_selector_widget > button[disabled]:focus,
-fieldset[disabled] #kernel_selector_widget > button:focus,
-#kernel_selector_widget > button.disabled:active,
-#kernel_selector_widget > button[disabled]:active,
-fieldset[disabled] #kernel_selector_widget > button:active,
-#kernel_selector_widget > button.disabled.active,
-#kernel_selector_widget > button[disabled].active,
-fieldset[disabled] #kernel_selector_widget > button.active {
-  background-color: #ffffff;
-  border-color: #cccccc;
-}
-#kernel_selector_widget > button .badge {
-  color: #ffffff;
-  background-color: #333333;
-}
-#kernel_selector_widget > button > span.caret {
-  margin-top: 0px;
-}
-#kernel_selector_widget > img#current_kernel_logo {
+#kernel_logo_widget .current_kernel_logo {
+  display: none;
+  margin-top: -1px;
+  margin-bottom: -1px;
   width: 32px;
   height: 32px;
 }
@@ -9816,6 +9776,12 @@ ul#help_menu li a i {
   width: 11px;
   z-index: 10;
   text-align: center;
+  width: auto;
+  border-left: 1px solid;
+}
+#kernel_indicator .kernel_indicator_name {
+  padding-left: 5px;
+  padding-right: 5px;
 }
 #modal_indicator {
   float: right !important;

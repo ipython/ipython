@@ -32,7 +32,6 @@ define([
     
     KernelSelector.prototype._got_kernelspecs = function(data) {
         this.kernelspecs = data.kernelspecs;
-        var menu = this.element.find("#kernel_selector");
         var change_kernel_submenu = $("#menu-change-kernel-submenu");
         var keys = Object.keys(data.kernelspecs).sort(function (a, b) {
             // sort by display_name
@@ -48,12 +47,6 @@ define([
         });
         for (var i = 0; i < keys.length; i++) {
             var ks = this.kernelspecs[keys[i]];
-            var ksentry = $("<li>").attr("id", "kernel-" +ks.name).append($('<a>')
-                .attr('href', '#')
-                .click($.proxy(this.change_kernel, this, ks.name))
-                .text(ks.display_name));
-            menu.append(ksentry);
-
             var ks_submenu_entry = $("<li>").attr("id", "kernel-submenu-"+ks.name).append($('<a>')
                 .attr('href', '#')
                 .click($.proxy(this.change_kernel, this, ks.name))
@@ -132,8 +125,8 @@ define([
         var that = this;
         this.events.on('spec_changed.Kernel', function(event, data) {
             that.current_selection = data.name;
-            that.element.find("#current_kernel_spec").find('.kernel_name').text(data.display_name);
-            that.element.find("#current_kernel_logo").attr("src", that.notebook.base_url+"kernelspecs/"+data.name+"/logo-64x64.png");
+            $("#kernel_indicator").find('.kernel_indicator_name').text(data.display_name);
+            that.element.find("img.current_kernel_logo").attr("src", that.notebook.base_url + "kernelspecs/" + data.name + "/logo-64x64.png");
         });
 
         this.events.on('kernel_created.Session', function(event, data) {
@@ -146,7 +139,7 @@ define([
             }
         });
         
-        var logo_img = this.element.find("#current_kernel_logo")
+        var logo_img = this.element.find("img.current_kernel_logo");
         logo_img.on("load", function() {
             logo_img.show();
         });
