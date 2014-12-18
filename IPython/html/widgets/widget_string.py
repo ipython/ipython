@@ -27,6 +27,10 @@ class _String(DOMWidget):
     description = Unicode(help="Description of the value this widget represents", sync=True)
     placeholder = Unicode("", help="Placeholder text to display when nothing has been typed", sync=True)
 
+    def __init__(self, value=None, **kwargs):
+        if value is not None:
+            kwargs['value'] = value
+        super(_String, self).__init__(**kwargs)
 
 @register('IPython.HTML')
 class HTML(_String):
@@ -55,8 +59,8 @@ class Text(_String):
     """Single line textbox widget."""
     _view_name = Unicode('TextView', sync=True)
 
-    def __init__(self, **kwargs):
-        super(Text, self).__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super(Text, self).__init__(*args, **kwargs)
         self._submission_callbacks = CallbackDispatcher()
         self.on_msg(self._handle_string_msg)
 
