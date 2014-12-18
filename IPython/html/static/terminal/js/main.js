@@ -6,6 +6,7 @@ require([
     'termjs',
     'base/js/utils',
     'base/js/page',
+    'services/config',
     'terminal/js/terminado',
     'custom/custom',
 ], function(
@@ -13,9 +14,14 @@ require([
     termjs,
     utils,
     page,
+    configmod,
     terminado
     ){
     page = new page.Page();
+
+    var common_config = new configmod.ConfigSection('common', common_options);
+    common_config.load();
+
     // Test size: 25x80
     var termRowHeight = function(){ return 1.00 * $("#dummy-screen")[0].offsetHeight / 25;};
         // 1.02 here arrived at by trial and error to make the spacing look right
@@ -42,6 +48,8 @@ require([
     var terminal = terminado.make_terminal($("#terminado-container")[0], size, ws_url);
     
     page.show_site();
+    
+    utils.load_extensions_from_config(common_config);
     
     window.onresize = function() { 
       var geom = calculate_size();

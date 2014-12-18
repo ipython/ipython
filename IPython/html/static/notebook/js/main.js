@@ -62,6 +62,8 @@ require([
 
     var config_section = new configmod.ConfigSection('notebook', common_options);
     config_section.load();
+    var common_config = new configmod.ConfigSection('common', common_options);
+    common_config.load();
     var page = new page.Page();
     var pager = new pager.Pager('div#pager', {
         events: events});
@@ -151,6 +153,7 @@ require([
 
     events.trigger('app_initialized.NotebookApp');
     utils.load_extensions_from_config(config_section);
+    utils.load_extensions_from_config(common_config);
     notebook.load_notebook(common_options.notebook_path);
 
 });
