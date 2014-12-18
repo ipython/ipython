@@ -150,13 +150,7 @@ require([
     IPython.tooltip = notebook.tooltip;
 
     events.trigger('app_initialized.NotebookApp');
-    config_section.loaded.then(function() {
-        if (config_section.data.load_extensions) {
-            var nbextension_paths = Object.getOwnPropertyNames(
-                                        config_section.data.load_extensions);
-            IPython.load_extensions.apply(this, nbextension_paths);
-        }
-    });
+    utils.load_extensions_from_config(config_section);
     notebook.load_notebook(common_options.notebook_path);
 
 });
