@@ -67,6 +67,8 @@ from .services.clusters.clustermanager import ClusterManager
 from .services.sessions.sessionmanager import SessionManager
 
 from .base.handlers import AuthenticatedFileHandler, FileFindHandler
+from .auth.login import LoginHandler
+from .auth.logout import LogoutHandler
 
 from IPython.config import Config
 from IPython.config.application import catch_config_error, boolean_flag
@@ -83,7 +85,7 @@ from IPython.utils import submodule
 from IPython.utils.process import check_pid
 from IPython.utils.traitlets import (
     Dict, Unicode, Integer, List, Bool, Bytes, Instance,
-    DottedObjectName, TraitError, Type,
+    TraitError, Type,
 )
 from IPython.utils import py3compat
 from IPython.utils.path import filefind, get_ipython_dir
@@ -660,13 +662,17 @@ class NotebookApp(BaseIPythonApplication):
         """
     )
 
-    login_handler = DottedObjectName('IPython.html.auth.login.LoginHandler',
+    login_handler = Type(
+        default_value=LoginHandler,
         config=True,
-        help='The login handler class to use.')
+        help='The login handler class to use.',
+    )
 
-    logout_handler = DottedObjectName('IPython.html.auth.logout.LogoutHandler',
+    logout_handler = Type(
+        default_value=LogoutHandler,
         config=True,
-        help='The logout handler class to use.')
+        help='The logout handler class to use.',
+    )
 
     trust_xheaders = Bool(False, config=True,
         help=("Whether to trust or not X-Scheme/X-Forwarded-Proto and X-Real-Ip/X-Forwarded-For headers"
@@ -777,8 +783,10 @@ class NotebookApp(BaseIPythonApplication):
             parent=self,
             log=self.log,
         )
-        self.login_handler_class = import_item(self.login_handler)
-        self.logout_handler_class = import_item(self.logout_handler)
+
+        # Maintaining this naming convention for backwards compatibility.
+        self.login_handler_class = self.login_handler
+        self.logout_handler_class = self.logout_handler
 
         self.config_manager = self.config_manager_class(
             parent=self,
