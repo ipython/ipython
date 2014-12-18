@@ -9735,7 +9735,6 @@ select[multiple].celltoolbar select {
   color: #3071a9;
 }
 #kernel_logo_widget {
-  margin-right: 1em;
   float: right !important;
   float: right;
 }
