@@ -67,7 +67,7 @@ from .services.sessions.sessionmanager import SessionManager
 
 from .auth.login import LoginHandler
 from .auth.logout import LogoutHandler
-from .base.handlers import FileFindHandler
+from .base.handlers import IPythonHandler, FileFindHandler
 
 from IPython.config import Config
 from IPython.config.application import catch_config_error, boolean_flag
@@ -663,12 +663,14 @@ class NotebookApp(BaseIPythonApplication):
 
     login_handler = Type(
         default_value=LoginHandler,
+        klass=object,
         config=True,
         help='The login handler class to use.',
     )
 
     logout_handler = Type(
         default_value=LogoutHandler,
+        klass=object,
         config=True,
         help='The logout handler class to use.',
     )
