@@ -136,6 +136,7 @@ define([
         this._iopub_handlers = {};
         this.register_iopub_handler('status', $.proxy(this._handle_status_message, this));
         this.register_iopub_handler('clear_output', $.proxy(this._handle_clear_output, this));
+        this.register_iopub_handler('execute_input', $.proxy(this._handle_input_message, this));
         
         for (var i=0; i < output_msg_types.length; i++) {
             this.register_iopub_handler(output_msg_types[i], $.proxy(this._handle_output_message, this));
@@ -998,11 +999,28 @@ define([
     Kernel.prototype._handle_output_message = function (msg) {
         var callbacks = this.get_callbacks_for_msg(msg.parent_header.msg_id);
         if (!callbacks || !callbacks.iopub) {
+            // The message came from another client. Let the UI decide what to
+            // do with it.
+            this.events.trigger('received_unsolicited_message.Kernel', msg);
             return;
         }
         var callback = callbacks.iopub.output;
         if (callback) {
             callback(msg);
+        }
+    };
+
+    /**
+     * Handle an input message (execute_input).
+     *
+     * @function _handle_input message
+     */
+    Kernel.prototype._handle_input_message = function (msg) {
+        var callbacks = this.get_callbacks_for_msg(msg.parent_header.msg_id);
+        if (!callbacks) {
+            // The message came from another client. Let the UI decide what to
+            // do with it.
+            this.events.trigger('received_unsolicited_message.Kernel', msg);
         }
     };
 
