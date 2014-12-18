@@ -71,8 +71,6 @@ class InteractiveShellTestCase(unittest.TestCase):
     def test_run_cell_multiline(self):
         """Multi-block, multi-line cells must execute correctly.
         """
-        print(ip.history_manager.input_hist_raw)
-        print(ip.history_manager.output_hist)
         src = '\n'.join(["x=1",
                          "y=2",
                          "if 1:",
@@ -82,8 +80,6 @@ class InteractiveShellTestCase(unittest.TestCase):
         self.assertEqual(ip.user_ns['x'], 2)
         self.assertEqual(ip.user_ns['y'], 3)
         self.assertEqual(res.success, True)
-        print(ip.history_manager.input_hist_raw)
-        print(ip.history_manager.output_hist)
         self.assertEqual(res.result, None)
 
     def test_multiline_string_cells(self):
