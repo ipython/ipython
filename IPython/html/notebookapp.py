@@ -21,7 +21,6 @@ import signal
 import socket
 import sys
 import threading
-import time
 import webbrowser
 
 
@@ -66,9 +65,9 @@ from .services.contents.filemanager import FileContentsManager
 from .services.clusters.clustermanager import ClusterManager
 from .services.sessions.sessionmanager import SessionManager
 
-from .base.handlers import AuthenticatedFileHandler, FileFindHandler
 from .auth.login import LoginHandler
 from .auth.logout import LogoutHandler
+from .base.handlers import FileFindHandler
 
 from IPython.config import Config
 from IPython.config.application import catch_config_error, boolean_flag
