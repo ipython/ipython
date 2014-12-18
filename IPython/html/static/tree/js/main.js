@@ -48,7 +48,7 @@ require([
     var cfg = new config.ConfigSection('tree', common_options);
     cfg.load();
     common_options.config = cfg;
-    var common_config = new configmod.ConfigSection('common', common_options);
+    var common_config = new config.ConfigSection('common', common_options);
     common_config.load();
     
     var session_list = new sesssionlist.SesssionList($.extend({
