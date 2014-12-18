@@ -32,7 +32,7 @@ require([
     contents = new contents.Contents({base_url: base_url});
     var config = new configmod.ConfigSection('edit', {base_url: base_url});
     config.load();
-    var common_config = new configmod.ConfigSection('common', common_options);
+    var common_config = new configmod.ConfigSection('common', {base_url: base_url});
     common_config.load();
     
     var editor = new editmod.Editor('#texteditor-container', {

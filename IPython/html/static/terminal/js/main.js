@@ -19,7 +19,8 @@ require([
     ){
     page = new page.Page();
 
-    var common_config = new configmod.ConfigSection('common', common_options);
+    var common_config = new configmod.ConfigSection('common', 
+                                    {base_url: utils.get_body_data('baseUrl')});
     common_config.load();
 
     // Test size: 25x80
