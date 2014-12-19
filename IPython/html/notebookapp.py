@@ -21,7 +21,6 @@ import signal
 import socket
 import sys
 import threading
-import time
 import webbrowser
 
 
@@ -60,12 +59,15 @@ from IPython.html import (
 from .base.handlers import Template404
 from .log import log_request
 from .services.kernels.kernelmanager import MappingKernelManager
+from .services.config import ConfigManager
 from .services.contents.manager import ContentsManager
 from .services.contents.filemanager import FileContentsManager
 from .services.clusters.clustermanager import ClusterManager
 from .services.sessions.sessionmanager import SessionManager
 
-from .base.handlers import AuthenticatedFileHandler, FileFindHandler
+from .auth.login import LoginHandler
+from .auth.logout import LogoutHandler
+from .base.handlers import IPythonHandler, FileFindHandler
 
 from IPython.config import Config
 from IPython.config.application import catch_config_error, boolean_flag
@@ -82,7 +84,7 @@ from IPython.utils import submodule
 from IPython.utils.process import check_pid
 from IPython.utils.traitlets import (
     Dict, Unicode, Integer, List, Bool, Bytes, Instance,
-    DottedObjectName, TraitError,
+    TraitError, Type,
 )
 from IPython.utils import py3compat
 from IPython.utils.path import filefind, get_ipython_dir
@@ -614,24 +616,30 @@ class NotebookApp(BaseIPythonApplication):
         else:
             self.log.info("Using MathJax: %s", new)
 
-    contents_manager_class = DottedObjectName('IPython.html.services.contents.filemanager.FileContentsManager',
+    contents_manager_class = Type(
+        default_value=FileContentsManager,
+        klass=ContentsManager,
         config=True,
         help='The notebook manager class to use.'
     )
-    kernel_manager_class = DottedObjectName('IPython.html.services.kernels.kernelmanager.MappingKernelManager',
+    kernel_manager_class = Type(
+        default_value=MappingKernelManager,
         config=True,
         help='The kernel manager class to use.'
     )
-    session_manager_class = DottedObjectName('IPython.html.services.sessions.sessionmanager.SessionManager',
+    session_manager_class = Type(
+        default_value=SessionManager,
         config=True,
         help='The session manager class to use.'
     )
-    cluster_manager_class = DottedObjectName('IPython.html.services.clusters.clustermanager.ClusterManager',
+    cluster_manager_class = Type(
+        default_value=ClusterManager,
         config=True,
         help='The cluster manager class to use.'
     )
 
-    config_manager_class = DottedObjectName('IPython.html.services.config.manager.ConfigManager',
+    config_manager_class = Type(
+        default_value=ConfigManager,
         config = True,
         help='The config manager class to use'
     )
@@ -641,23 +649,31 @@ class NotebookApp(BaseIPythonApplication):
     def _kernel_spec_manager_default(self):
         return KernelSpecManager(ipython_dir=self.ipython_dir)
 
-    kernel_spec_manager_class = DottedObjectName('IPython.kernel.kernelspec.KernelSpecManager',
-            config=True,
-            help="""
-            The kernel spec manager class to use. Should be a subclass
-            of `IPython.kernel.kernelspec.KernelSpecManager`.
-
-            The Api of KernelSpecManager is provisional and might change
-            without warning between this version of IPython and the next stable one.
-            """)
-
-    login_handler = DottedObjectName('IPython.html.auth.login.LoginHandler',
+    kernel_spec_manager_class = Type(
+        default_value=KernelSpecManager,
         config=True,
-        help='The login handler class to use.')
+        help="""
+        The kernel spec manager class to use. Should be a subclass
+        of `IPython.kernel.kernelspec.KernelSpecManager`.
 
-    logout_handler = DottedObjectName('IPython.html.auth.logout.LogoutHandler',
+        The Api of KernelSpecManager is provisional and might change
+        without warning between this version of IPython and the next stable one.
+        """
+    )
+
+    login_handler_class = Type(
+        default_value=LoginHandler,
+        klass=web.RequestHandler,
         config=True,
-        help='The logout handler class to use.')
+        help='The login handler class to use.',
+    )
+
+    logout_handler_class = Type(
+        default_value=LogoutHandler,
+        klass=web.RequestHandler,
+        config=True,
+        help='The logout handler class to use.',
+    )
 
     trust_xheaders = Bool(False, config=True,
         help=("Whether to trust or not X-Scheme/X-Forwarded-Proto and X-Real-Ip/X-Forwarded-For headers"
@@ -744,29 +760,36 @@ class NotebookApp(BaseIPythonApplication):
     def init_configurables(self):
         # force Session default to be secure
         default_secure(self.config)
-        kls = import_item(self.kernel_spec_manager_class)
-        self.kernel_spec_manager = kls(ipython_dir=self.ipython_dir)
 
-        kls = import_item(self.kernel_manager_class)
-        self.kernel_manager = kls(
-            parent=self, log=self.log, ipython_kernel_argv=self.ipython_kernel_argv,
-            connection_dir = self.profile_dir.security_dir,
+        self.kernel_spec_manager = self.kernel_spec_manager_class(
+            ipython_dir=self.ipython_dir,
         )
-        kls = import_item(self.contents_manager_class)
-        self.contents_manager = kls(parent=self, log=self.log)
-        kls = import_item(self.session_manager_class)
-        self.session_manager = kls(parent=self, log=self.log,
-                                   kernel_manager=self.kernel_manager,
-                                   contents_manager=self.contents_manager)
-        kls = import_item(self.cluster_manager_class)
-        self.cluster_manager = kls(parent=self, log=self.log)
-        self.cluster_manager.update_profiles()
-        self.login_handler_class = import_item(self.login_handler)
-        self.logout_handler_class = import_item(self.logout_handler)
+        self.kernel_manager = self.kernel_manager_class(
+            parent=self,
+            log=self.log,
+            ipython_kernel_argv=self.ipython_kernel_argv,
+            connection_dir=self.profile_dir.security_dir,
+        )
+        self.contents_manager = self.contents_manager_class(
+            parent=self,
+            log=self.log,
+        )
+        self.session_manager = self.session_manager_class(
+            parent=self,
+            log=self.log,
+            kernel_manager=self.kernel_manager,
+            contents_manager=self.contents_manager,
+        )
+        self.cluster_manager = self.cluster_manager_class(
+            parent=self,
+            log=self.log,
+        )
 
-        kls = import_item(self.config_manager_class)
-        self.config_manager = kls(parent=self, log=self.log,
-                                  profile_dir=self.profile_dir.location)
+        self.config_manager = self.config_manager_class(
+            parent=self,
+            log=self.log,
+            profile_dir=self.profile_dir.location,
+        )
 
     def init_logging(self):
         # This prevents double log messages because tornado use a root logger that
