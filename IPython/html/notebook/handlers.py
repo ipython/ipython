@@ -8,8 +8,7 @@ from tornado import web
 HTTPError = web.HTTPError
 
 from ..base.handlers import (
-    IPythonHandler, FilesRedirectHandler,
-    notebook_path_regex, path_regex,
+    IPythonHandler, FilesRedirectHandler, path_regex,
 )
 from ..utils import url_escape
 
@@ -23,9 +22,11 @@ class NotebookHandler(IPythonHandler):
         path = path.strip('/')
         cm = self.contents_manager
         
-        # a .ipynb filename was given
-        if not cm.file_exists(path):
-            raise web.HTTPError(404, u'Notebook does not exist: %s' % path)
+        # will raise 404 on not found
+        model = cm.get(path, content=False)
+        if model['type'] != 'notebook':
+            # not a notebook, redirect to files
+            return FilesRedirectHandler.get(self, path)
         name = url_escape(path.rsplit('/', 1)[-1])
         path = url_escape(path)
         self.write(self.render_template('notebook.html',
@@ -43,7 +44,6 @@ class NotebookHandler(IPythonHandler):
 
 
 default_handlers = [
-    (r"/notebooks%s" % notebook_path_regex, NotebookHandler),
-    (r"/notebooks%s" % path_regex, FilesRedirectHandler),
+    (r"/notebooks%s" % path_regex, NotebookHandler),
 ]
 
