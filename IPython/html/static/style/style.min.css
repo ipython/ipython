@@ -8665,6 +8665,28 @@ ul#new-menu {
 }
 #tab_content {
   padding-top: 20px;
+#running .panel-group .panel {
+  margin-top: 15px;
+}
+#running .panel-group .panel .panel-heading {
+  background-color: #eee;
+  /* @page-backdrop-color */
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 7px;
+  padding-right: 7px;
+}
+#running .panel-group .panel .panel-body {
+  padding: 0px;
+}
+#running .panel-group .panel .panel-body .list_container {
+  margin-top: 0px;
+  margin-bottom: 0px;
+  border: 0px;
+  border-radius: 0px;
+}
+#running .panel-group .panel .panel-body .list_container .list_item {
+  border-bottom: 1px solid #ddd;
 }
 /*!
 *
