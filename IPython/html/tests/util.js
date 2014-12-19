@@ -507,7 +507,7 @@ casper.is_only_cell_edit = function(index) {
     // Pass null as the index to check if all of the cells are in command mode.
     var cells_length = this.get_cells_length();
     for (var j = 0; j < cells_length; j++) {
-        if (j === i) {
+        if (j === index) {
             if (!this.cell_mode_is('edit')) {
                 return false;
             }
@@ -542,10 +542,10 @@ casper.is_only_cell_on = function(i, on_class, off_class) {
 
 casper.cell_mode_is = function(index, mode) {
     // Check if a cell is in a specific mode
-    return this.evaluate(function(i, c) {
+    return this.evaluate(function(i, m) {
         var cell = IPython.notebook.get_cell(i);
         if (cell) {
-            return cell.mode === mode;
+            return cell.mode === m;
         }
         return false;
     }, {i : index, m: mode});
