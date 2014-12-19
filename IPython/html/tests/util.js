@@ -505,7 +505,19 @@ casper.is_only_cell_selected = function(index) {
 casper.is_only_cell_edit = function(index) {
     // Check if a cell is the only cell in edit mode.
     // Pass null as the index to check if all of the cells are in command mode.
-    return this.is_only_cell_on(index, 'edit_mode', 'command_mode');
+    var cells_length = this.get_cells_length();
+    for (var j = 0; j < cells_length; j++) {
+        if (j === i) {
+            if (!this.cell_mode_is('edit')) {
+                return false;
+            }
+        } else {
+            if (this.cell_mode_is('edit')) {
+                return false;
+            }
+        }
+    }
+    return true;
 };
 
 casper.is_only_cell_on = function(i, on_class, off_class) {
@@ -526,6 +538,19 @@ casper.is_only_cell_on = function(i, on_class, off_class) {
     }
     return true;
 };
+
+
+casper.cell_mode_is = function(index, mode) {
+    // Check if a cell is in a specific mode
+    return this.evaluate(function(i, c) {
+        var cell = IPython.notebook.get_cell(i);
+        if (cell) {
+            return cell.mode === mode;
+        }
+        return false;
+    }, {i : index, m: mode});
+};
+
 
 casper.cell_has_class = function(index, classes) {
     // Check if a cell has a class.
