@@ -23,7 +23,14 @@ class NotebookHandler(IPythonHandler):
         cm = self.contents_manager
         
         # will raise 404 on not found
-        model = cm.get(path, content=False)
+        try:
+            model = cm.get(path, content=False)
+        except web.HTTPError as e:
+            if e.code == 404 and 'files' in path.split('/'):
+                # 404, but '/files/' in URL, let FilesRedirect take care of it
+                return FilesRedirectHandler.get(self, path)
+            else:
+                raise
         if model['type'] != 'notebook':
             # not a notebook, redirect to files
             return FilesRedirectHandler.get(self, path)
