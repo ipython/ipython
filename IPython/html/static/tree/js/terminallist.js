@@ -20,7 +20,7 @@ define([
          *          base_url: string
          */
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
-        this.element_name = options.element_name || 'terminal';
+        this.element_name = options.element_name || 'running';
         this.selector = selector;
         this.terminals = [];
         if (this.selector !== undefined) {

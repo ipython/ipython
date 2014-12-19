@@ -19,9 +19,6 @@ data-terminals-available="{{terminals_available}}"
       <ul id="tabs" class="nav nav-tabs">
         <li class="active"><a href="#notebooks" data-toggle="tab">Files</a></li>
         <li><a href="#running" data-toggle="tab">Running</a></li>
-      {% if terminals_available %}
-        <li><a href="#terminals" data-toggle="tab">Terminals</a></li>
-      {% endif %}
         <li><a href="#clusters" data-toggle="tab">Clusters</a></li>
       </ul>
       <div class="tab-content">
@@ -78,40 +75,32 @@ data-terminals-available="{{terminals_available}}"
         <div id="running" class="tab-pane">
           <div id="running_toolbar" class="row">
             <div class="col-sm-8 no-padding">
-              <span id="running_list_info">Currently running IPython notebooks</span>
+              <span id="running_list_info">Currently running Jupyter processes</span>
             </div>
             <div class="col-sm-4 no-padding tree-buttons">
               <span id="running_buttons" class="pull-right">
+              {% if terminals_available %}
+              <button id="new_terminal" title="New terminal" class="btn btn-default btn-xs">
+              New Terminal
+              </button>
+              {% endif %}
               <button id="refresh_running_list" title="Refresh running list" class="btn btn-default btn-xs"><i class="fa fa-refresh"></i></button>
               </span>
             </div>
           </div>
+          {% if terminals_available %}
+          <div id="terminal_list">
+            <div id="terminal_list_header" class="row list_header">
+              <div> There are no terminals running. </div>
+            </div>
+          </div>
+          {% endif %}
           <div id="running_list">
             <div id="running_list_header" class="row list_header">
               <div> There are no notebooks running. </div>
             </div>
           </div>
         </div>
-      {% if terminals_available %}
-        <div id="terminals" class="tab-pane">
-          <div id="terminal_toolbar" class="row">
-            <div class="col-xs-8 no-padding">
-              <span id="terminal_list_info">Currently running terminals</span>
-            </div>
-            <div class="col-xs-4 no-padding tree-buttons">
-              <span id="terminal_buttons" class="pull-right">
-              <button id="new_terminal" title="New terminal" class="btn btn-default btn-xs">New Terminal</button>
-              <button id="refresh_terminal_list" title="Refresh terminal list" class="btn btn-default btn-xs"><i class="fa fa-refresh"></i></button>
-              </span>
-            </div>
-          </div>
-          <div id="terminal_list">
-            <div id="terminal_list_header" class="row list_header">
-              <div> There are no terminals running. </div>
-            </div>
-          </div>
-        </div>
-      {% endif %}
         <div id="clusters" class="tab-pane">
           <div id="cluster_toolbar" class="row">
             <div class="col-xs-8 no-padding">
