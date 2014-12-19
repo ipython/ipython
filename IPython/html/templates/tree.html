@@ -88,18 +88,42 @@ data-terminals-available="{{terminals_available}}"
               </span>
             </div>
           </div>
-          {% if terminals_available %}
-          <div id="terminal_list">
-            <div id="terminal_list_header" class="row list_header">
-              <div> There are no terminals running. </div>
+          <div class="panel-group" id="accordion" >
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <a data-toggle="collapse" data-target="#collapseOne" href="#">
+                  Terminals
+                </a>
+              </div>
+              <div id="collapseOne" class=" collapse in">
+                <div class="panel-body">
+                  {% if terminals_available %}
+                    <div id="terminal_list">
+                      <div id="terminal_list_header" class="row list_header">
+                        <div> There are no terminals running. </div>
+                      </div>
+                    </div>
+                    {% endif %}
+                </div>
+              </div>
             </div>
-          </div>
-          {% endif %}
-          <div id="running_list">
-            <div id="running_list_header" class="row list_header">
-              <div> There are no notebooks running. </div>
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <a data-toggle="collapse" data-target="#collapseTwo" href="#">
+                  Notebooks
+                </a>
+              </div>
+              <div id="collapseTwo" class=" collapse in">
+                <div class="panel-body">
+                  <div id="running_list">
+                    <div id="running_list_header" class="row list_header">
+                      <div> There are no notebooks running. </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+          </div>   
         </div>
         <div id="clusters" class="tab-pane">
           <div id="cluster_toolbar" class="row">
