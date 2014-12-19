@@ -4,6 +4,8 @@
   color: white;
   background: black;
   padding: @code_padding;
+  border-radius: @border-radius-base;
+  .box-shadow(@global-shadow-dark);
 
   &, dummy-screen {
     line-height: 1em;
@@ -18,7 +20,4 @@
 
 #terminado-container {
   margin-top: @page-header-padding;
-  background: black;
-  border-radius: @border-radius-base;
-  .box-shadow(@global-shadow-dark);
 }

@@ -10473,6 +10473,9 @@ span.autosave_status {
   color: white;
   background: black;
   padding: 0.4em;
+  border-radius: 2px;
+  -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.4);
+  box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.4);
 }
 .terminal,
 .terminal dummy-screen {
@@ -10485,9 +10488,5 @@ span.autosave_status {
 }
 #terminado-container {
   margin-top: 20px;
-  background: black;
-  border-radius: 2px;
-  -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.4);
-  box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.4);
 }
 /*# sourceMappingURL=style.min.css.map */
