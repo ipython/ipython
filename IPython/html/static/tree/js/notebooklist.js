@@ -7,7 +7,8 @@ define([
     'base/js/utils',
     'base/js/dialog',
     'base/js/events',
-], function(IPython, $, utils, dialog, events) {
+    'base/js/keyboard',
+], function(IPython, $, utils, dialog, events, keyboard) {
     "use strict";
     
     var NotebookList = function (selector, options) {
@@ -54,7 +55,6 @@ define([
         this.element.addClass("list_container");
     };
 
-
     NotebookList.prototype.bind_events = function () {
         var that = this;
         $('#refresh_' + this.element_name + '_list').click(function () {
@@ -67,6 +67,25 @@ define([
             that.handleFilesUpload(event,'drop');
             return false;
         });
+
+        // Bind events for singleton controls.
+        if (!NotebookList._bound_singletons) {
+            NotebookList._bound_singletons = true;
+            $('#new-file').click(function(e) {
+                that._prompt_name('File').then(function(name) {
+                    that._create('file', name).then(function() {
+                        that.load_sessions();
+                    });
+                });
+            });
+            $('#new-folder').click(function(e) {
+                that._prompt_name('Folder').then(function(name) {
+                    that._create('directory', name).then(function() {
+                        that.load_sessions();
+                    });
+                });
+            });
+        }
     };
 
     NotebookList.prototype.handleFilesUpload =  function(event, dropOrForm) {
@@ -517,6 +536,90 @@ define([
         item.find(".item_buttons").empty()
             .append(upload_button)
             .append(cancel_button);
+    };
+
+    /**
+     * Prompt the user for a name.
+     * @param  {string} what - What you want a name for.
+     * @return {Promise} Promise that resolve with a string name
+     */
+    NotebookList.prototype._prompt_name = function(what) {
+        var that = this;
+        var dialog_body = $('<div/>').append(
+            $("<p/>").addClass("rename-message")
+                .text(what + ' name:')
+        ).append(
+            $("<br/>")
+        ).append(
+            $('<input/>').attr('type','text').attr('size','25').addClass('form-control')
+            .val('') // Default to empty
+        );
+
+        return new Promise(function(resolve, reject) {
+            var dialog_inst = dialog.modal({
+                title: "Rename Notebook",
+                body: dialog_body,
+                buttons: {
+                    "OK": {
+                        class: "btn-primary",
+                        click: function () {
+                            resolve(dialog_inst.find('input').val());
+                        }
+                    },
+                    "Cancel": {
+                        click: function () {
+                            reject();
+                        }
+                    }
+                }, open: function () {
+                    /**
+                     * Upon ENTER, click the OK button.
+                     */
+                    dialog_inst.find('input[type="text"]').keydown(function (event) {
+                        if (event.which === keyboard.keycodes.enter) {
+                            dialog_inst.find('.btn-primary').first().click();
+                            return false;
+                        }
+                    });
+                    dialog_inst.find('input[type="text"]').focus().select();
+                }
+            });
+        });     
+    };
+
+    /**
+     * Creates a `file` or `directory`
+     * @param  {string} type - "file" or "directory"
+     * @param  {string} name - name of the thing to create
+     * @return {Promise} success
+     */
+    NotebookList.prototype._create = function(type, name) {
+        var that = this;
+        return new Promise(function(resolve, reject) {
+            var settings = {
+                processData : false,
+                cache : false,
+                type : "PUT",
+                data: JSON.stringify({
+                    type: type,
+                    format: 'text',
+                    content: '',
+                }),
+                dataType: "json",
+                success: function () {
+                    resolve();
+                },
+                error: function() {
+                    reject();
+                    utils.log_ajax_error.apply(this, arguments);
+                },
+            };
+            var url = utils.url_join_encode(
+                that.base_url,
+                'api/contents/' + name
+            );
+            $.ajax(url, settings);
+        });
     };
 
 

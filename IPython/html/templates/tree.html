@@ -42,16 +42,22 @@ data-terminals-available="{{terminals_available}}"
                 </span>
                 </span>
               </form>
-              <div id="notebook_buttons" class="pull-right btn-toolbar">
-                <div id="new-notebook-buttons" class="btn-group">
-                  <button id="new_notebook" class="btn btn-default btn-xs">
-                  New Notebook
-                  </button>
+              <div class="pull-right">
+                <div id="new-buttons" class="btn-group">
                   <button class="dropdown-toggle btn btn-default btn-xs" data-toggle="dropdown">
-                  <span id="current-kernel">Loading...</span>
+                  <span>New</span>
                   <span class="caret"></span>
                   </button>
-                  <ul id="new-notebook-menu" class="dropdown-menu"></ul>
+                  <ul id="new-menu" class="dropdown-menu">
+                    <li role="presentation" class="dropdown-header" id="notebook-kernels">Notebooks</li>
+                    <li role="presentation" class="divider"></li>
+                    <li role="presentation" id="new-file">
+                      <a role="menuitem" tabindex="-1" href="#">File</a>
+                    </li>
+                    <li role="presentation" id="new-folder">
+                      <a role="menuitem" tabindex="-1" href="#">Folder</a>
+                    </li>
+                  </ul>
                 </div>
                 <div class="btn-group">
                     <button id="refresh_notebook_list" title="Refresh notebook list" class="btn btn-default btn-xs"><i class="fa fa-refresh"></i></button>
