@@ -661,16 +661,16 @@ class NotebookApp(BaseIPythonApplication):
         """
     )
 
-    login_handler = Type(
+    login_handler_class = Type(
         default_value=LoginHandler,
-        klass=object,
+        klass=web.RequestHandler,
         config=True,
         help='The login handler class to use.',
     )
 
-    logout_handler = Type(
+    logout_handler_class = Type(
         default_value=LogoutHandler,
-        klass=object,
+        klass=web.RequestHandler,
         config=True,
         help='The logout handler class to use.',
     )
@@ -784,10 +784,6 @@ class NotebookApp(BaseIPythonApplication):
             parent=self,
             log=self.log,
         )
-
-        # Maintaining this naming convention for backwards compatibility.
-        self.login_handler_class = self.login_handler
-        self.logout_handler_class = self.logout_handler
 
         self.config_manager = self.config_manager_class(
             parent=self,
