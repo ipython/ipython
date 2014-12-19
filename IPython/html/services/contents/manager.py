@@ -347,6 +347,9 @@ class ContentsManager(LoggingConfigurable):
         from_path must be a full path to a file.
         """
         path = from_path.strip('/')
+        if to_path is not None:
+            to_path = to_path.strip('/')
+
         if '/' in path:
             from_dir, from_name = path.rsplit('/', 1)
         else:
@@ -359,7 +362,7 @@ class ContentsManager(LoggingConfigurable):
         if model['type'] == 'directory':
             raise HTTPError(400, "Can't copy directories")
         
-        if not to_path:
+        if to_path is None:
             to_path = from_dir
         if self.dir_exists(to_path):
             name = copy_pat.sub(u'.', from_name)

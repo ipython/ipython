@@ -2,7 +2,6 @@
 """Tests for the notebook manager."""
 from __future__ import print_function
 
-import logging
 import os
 
 from tornado.web import HTTPError
@@ -17,10 +16,30 @@ from IPython.html.utils import url_path_join
 from IPython.testing import decorators as dec
 
 from ..filemanager import FileContentsManager
-from ..manager import ContentsManager
+
+
+def _make_dir(contents_manager, api_path):
+    """
+    Make a directory.
+    """
+    os_path = contents_manager._get_os_path(api_path)
+    try:
+        os.makedirs(os_path)
+    except OSError:
+        print("Directory already exists: %r" % os_path)
 
 
 class TestFileContentsManager(TestCase):
+
+    def symlink(self, contents_manager, src, dst):
+        """Make a symlink to src from dst
+        
+        src and dst are api_paths
+        """
+        src_os_path = contents_manager._get_os_path(src)
+        dst_os_path = contents_manager._get_os_path(dst)
+        print(src_os_path, dst_os_path, os.path.isfile(src_os_path))
+        os.symlink(src_os_path, dst_os_path)
 
     def test_root_dir(self):
         with TemporaryDirectory() as td:
@@ -69,10 +88,44 @@ class TestFileContentsManager(TestCase):
         self.assertNotEqual(cp_dir, cp_subdir)
         self.assertEqual(cp_dir, os.path.join(root, fm.checkpoint_dir, cp_name))
         self.assertEqual(cp_subdir, os.path.join(root, subd, fm.checkpoint_dir, cp_name))
+    
+    @dec.skip_win32
+    def test_bad_symlink(self):
+        with TemporaryDirectory() as td:
+            cm = FileContentsManager(root_dir=td)
+            path = 'test bad symlink'
+            _make_dir(cm, path)
+
+            file_model = cm.new_untitled(path=path, ext='.txt')
+
+            # create a broken symlink
+            self.symlink(cm, "target", '%s/%s' % (path, 'bad symlink'))
+            model = cm.get(path)
+            self.assertEqual(model['content'], [file_model])
+    
+    @dec.skip_win32
+    def test_good_symlink(self):
+        with TemporaryDirectory() as td:
+            cm = FileContentsManager(root_dir=td)
+            parent = 'test good symlink'
+            name = 'good symlink'
+            path = '{0}/{1}'.format(parent, name)
+            _make_dir(cm, parent)
+
+            file_model = cm.new(path=parent + '/zfoo.txt')
+
+            # create a good symlink
+            self.symlink(cm, file_model['path'], path)
+            symlink_model = cm.get(path, content=False)
+            dir_model = cm.get(parent)
+            self.assertEqual(
+                sorted(dir_model['content'], key=lambda x: x['name']),
+                [symlink_model, file_model],
+            )
 
 
 class TestContentsManager(TestCase):
-
+    
     def setUp(self):
         self._temp_dir = TemporaryDirectory()
         self.td = self._temp_dir.name
@@ -83,15 +136,12 @@ class TestContentsManager(TestCase):
     def tearDown(self):
         self._temp_dir.cleanup()
 
-    def make_dir(self, abs_path, rel_path):
-        """make subdirectory, rel_path is the relative path
-        to that directory from the location where the server started"""
-        os_path = os.path.join(abs_path, rel_path)
-        try:
-            os.makedirs(os_path)
-        except OSError:
-            print("Directory already exists: %r" % os_path)
-        return os_path
+    def make_dir(self, api_path):
+        """make a subdirectory at api_path
+        
+        override in subclasses if contents are not on the filesystem.
+        """
+        _make_dir(self.contents_manager, api_path)
 
     def add_code_cell(self, nb):
         output = nbformat.new_output("display_data", {'application/javascript': "alert('hi');"})
@@ -169,7 +219,7 @@ class TestContentsManager(TestCase):
 
         # Test in sub-directory
         sub_dir = '/foo/'
-        self.make_dir(cm.root_dir, 'foo')
+        self.make_dir('foo')
         model = cm.new_untitled(path=sub_dir, ext='.ipynb')
         model2 = cm.get(sub_dir + name)
         assert isinstance(model2, dict)
@@ -179,46 +229,59 @@ class TestContentsManager(TestCase):
         self.assertEqual(model2['name'], 'Untitled.ipynb')
         self.assertEqual(model2['path'], '{0}/{1}'.format(sub_dir.strip('/'), name))
 
+        # Test with a regular file.
+        file_model_path = cm.new_untitled(path=sub_dir, ext='.txt')['path']
+        file_model = cm.get(file_model_path)
+        self.assertDictContainsSubset(
+            {
+                'content': u'',
+                'format': u'text',
+                'mimetype': u'text/plain',
+                'name': u'untitled.txt',
+                'path': u'foo/untitled.txt',
+                'type': u'file',
+                'writable': True,
+            },
+            file_model,
+        )
+        self.assertIn('created', file_model)
+        self.assertIn('last_modified', file_model)
+
         # Test getting directory model
+
+        # Create a sub-sub directory to test getting directory contents with a
+        # subdir.
+        self.make_dir('foo/bar')
         dirmodel = cm.get('foo')
         self.assertEqual(dirmodel['type'], 'directory')
+        self.assertIsInstance(dirmodel['content'], list)
+        self.assertEqual(len(dirmodel['content']), 3)
+        self.assertEqual(dirmodel['path'], 'foo')
+        self.assertEqual(dirmodel['name'], 'foo')
+
+        # Directory contents should match the contents of each individual entry
+        # when requested with content=False.
+        model2_no_content = cm.get(sub_dir + name, content=False)
+        file_model_no_content = cm.get(u'foo/untitled.txt', content=False)
+        sub_sub_dir_no_content = cm.get('foo/bar', content=False)
+        self.assertEqual(sub_sub_dir_no_content['path'], 'foo/bar')
+        self.assertEqual(sub_sub_dir_no_content['name'], 'bar')
+
+        for entry in dirmodel['content']:
+            # Order isn't guaranteed by the spec, so this is a hacky way of
+            # verifying that all entries are matched.
+            if entry['path'] == sub_sub_dir_no_content['path']:
+                self.assertEqual(entry, sub_sub_dir_no_content)
+            elif entry['path'] == model2_no_content['path']:
+                self.assertEqual(entry, model2_no_content)
+            elif entry['path'] == file_model_no_content['path']:
+                self.assertEqual(entry, file_model_no_content)
+            else:
+                self.fail("Unexpected directory entry: %s" % entry())
 
         with self.assertRaises(HTTPError):
             cm.get('foo', type='file')
 
-    
-    @dec.skip_win32
-    def test_bad_symlink(self):
-        cm = self.contents_manager
-        path = 'test bad symlink'
-        os_path = self.make_dir(cm.root_dir, path)
-        
-        file_model = cm.new_untitled(path=path, ext='.txt')
-        
-        # create a broken symlink
-        os.symlink("target", os.path.join(os_path, "bad symlink"))
-        model = cm.get(path)
-        self.assertEqual(model['content'], [file_model])
-    
-    @dec.skip_win32
-    def test_good_symlink(self):
-        cm = self.contents_manager
-        parent = 'test good symlink'
-        name = 'good symlink'
-        path = '{0}/{1}'.format(parent, name)
-        os_path = self.make_dir(cm.root_dir, parent)
-        
-        file_model = cm.new(path=parent + '/zfoo.txt')
-        
-        # create a good symlink
-        os.symlink(file_model['name'], os.path.join(os_path, name))
-        symlink_model = cm.get(path, content=False)
-        dir_model = cm.get(parent)
-        self.assertEqual(
-            sorted(dir_model['content'], key=lambda x: x['name']),
-            [symlink_model, file_model],
-        )
-    
     def test_update(self):
         cm = self.contents_manager
         # Create a notebook
@@ -240,9 +303,8 @@ class TestContentsManager(TestCase):
         # Test in sub-directory
         # Create a directory and notebook in that directory
         sub_dir = '/foo/'
-        self.make_dir(cm.root_dir, 'foo')
+        self.make_dir('foo')
         model = cm.new_untitled(path=sub_dir, type='notebook')
-        name = model['name']
         path = model['path']
 
         # Change the name in the model for rename
@@ -279,7 +341,7 @@ class TestContentsManager(TestCase):
         # Test in sub-directory
         # Create a directory and notebook in that directory
         sub_dir = '/foo/'
-        self.make_dir(cm.root_dir, 'foo')
+        self.make_dir('foo')
         model = cm.new_untitled(path=sub_dir, type='notebook')
         name = model['name']
         path = model['path']
@@ -301,6 +363,9 @@ class TestContentsManager(TestCase):
         # Delete the notebook
         cm.delete(path)
 
+        # Check that deleting a non-existent path raises an error.
+        self.assertRaises(HTTPError, cm.delete, path)
+
         # Check that a 'get' on the deleted notebook raises and error
         self.assertRaises(HTTPError, cm.get, path)
 
@@ -309,9 +374,9 @@ class TestContentsManager(TestCase):
         parent = u'å b'
         name = u'nb √.ipynb'
         path = u'{0}/{1}'.format(parent, name)
-        os.mkdir(os.path.join(cm.root_dir, parent))
-        orig = cm.new(path=path)
+        self.make_dir(parent)
 
+        orig = cm.new(path=path)
         # copy with unspecified name
         copy = cm.copy(path)
         self.assertEqual(copy['name'], orig['name'].replace('.ipynb', '-Copy1.ipynb'))
@@ -366,3 +431,4 @@ class TestContentsManager(TestCase):
         cm.mark_trusted_cells(nb, path)
         cm.check_and_sign(nb, path)
         assert cm.notary.check_signature(nb)
+
