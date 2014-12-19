@@ -137,8 +137,10 @@ class TestContentsManager(TestCase):
         self._temp_dir.cleanup()
 
     def make_dir(self, api_path):
-        """make subdirectory, rel_path is the relative path
-        to that directory from the location where the server started"""
+        """make a subdirectory at api_path
+        
+        override in subclasses if contents are not on the filesystem.
+        """
         _make_dir(self.contents_manager, api_path)
 
     def add_code_cell(self, nb):
