@@ -101,6 +101,7 @@ define(['require'
         },
         'cut-selected-cell' : {
             icon: 'fa-cut',
+            help: 'Cut Cell',
             help_index : 'ee',
             handler : function (env) {
                 env.notebook.cut_cell();
@@ -108,6 +109,7 @@ define(['require'
         },
         'copy-selected-cell' : {
             icon: 'fa-copy',
+            help: 'Copy Cell',
             help_index : 'ef',
             handler : function (env) {
                 env.notebook.copy_cell();
@@ -115,6 +117,7 @@ define(['require'
         },
         'paste-cell-before' : {
             help_index : 'eg',
+            help : 'Paste Cell Above',
             handler : function (env) {
                 env.notebook.paste_cell_above();
             }

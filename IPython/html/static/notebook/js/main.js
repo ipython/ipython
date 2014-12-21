@@ -94,12 +94,14 @@ require([
         notebook: notebook});
     keyboard_manager.set_notebook(notebook);
     keyboard_manager.set_quickhelp(quick_help);
+    IPython.keyboard_manager = keyboard_manager;
     var menubar = new menubar.MenuBar('#menubar', $.extend({
         notebook: notebook, 
         contents: contents,
         events: events, 
         save_widget: save_widget, 
-        quick_help: quick_help}, 
+        quick_help: quick_help, 
+        actions: acts}, 
         common_options));
     var notification_area = new notificationarea.NotebookNotificationArea(
         '#notification_area', {
@@ -145,7 +147,6 @@ require([
     IPython.menubar = menubar;
     IPython.toolbar = toolbar;
     IPython.notification_area = notification_area;
-    IPython.keyboard_manager = keyboard_manager;
     IPython.save_widget = save_widget;
     IPython.tooltip = notebook.tooltip;
 
