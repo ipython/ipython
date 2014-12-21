@@ -3,6 +3,9 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import copy
+import time
+
 from .base import TestsBase
 
 from IPython.nbformat import read, sign
@@ -13,8 +16,9 @@ class TestNotary(TestsBase):
     
     def setUp(self):
         self.notary = sign.NotebookNotary(
+            db_file=':memory:',
             secret=b'secret',
-            profile_dir=get_ipython().profile_dir
+            profile_dir=get_ipython().profile_dir,
         )
         with self.fopen(u'test3.ipynb', u'r') as f:
             self.nb = read(f, as_version=4)
@@ -25,10 +29,7 @@ class TestNotary(TestsBase):
         last_sig = ''
         for algo in sign.algorithms:
             self.notary.algorithm = algo
-            self.notary.sign(self.nb)
-            sig = self.nb.metadata.signature
-            print(sig)
-            self.assertEqual(sig[:len(self.notary.algorithm)+1], '%s:' % self.notary.algorithm)
+            sig = self.notary.compute_signature(self.nb)
             self.assertNotEqual(last_sig, sig)
             last_sig = sig
     
@@ -46,9 +47,49 @@ class TestNotary(TestsBase):
         self.assertNotEqual(sig1, sig2)
     
     def test_sign(self):
+        self.assertFalse(self.notary.check_signature(self.nb))
         self.notary.sign(self.nb)
-        sig = self.nb.metadata.signature
-        self.assertEqual(sig[:len(self.notary.algorithm)+1], '%s:' % self.notary.algorithm)
+        self.assertTrue(self.notary.check_signature(self.nb))
+    
+    def test_unsign(self):
+        self.notary.sign(self.nb)
+        self.assertTrue(self.notary.check_signature(self.nb))
+        self.notary.unsign(self.nb)
+        self.assertFalse(self.notary.check_signature(self.nb))
+        self.notary.unsign(self.nb)
+        self.assertFalse(self.notary.check_signature(self.nb))
+    
+    def test_cull_db(self):
+        # this test has various sleeps of 2ms
+        # to ensure low resolution timestamps compare as expected
+        dt = 2e-3
+        nbs = [
+            copy.deepcopy(self.nb) for i in range(10)
+        ]
+        for row in self.notary.db.execute("SELECT * FROM nbsignatures"):
+            print(row)
+        self.notary.cache_size = 8
+        for i, nb in enumerate(nbs[:8]):
+            nb.metadata.dirty = i
+            self.notary.sign(nb)
+        
+        for i, nb in enumerate(nbs[:8]):
+            time.sleep(dt)
+            self.assertTrue(self.notary.check_signature(nb), 'nb %i is trusted' % i)
+        
+        # signing the 9th triggers culling of first 3
+        # (75% of 8 = 6, 9 - 6 = 3 culled)
+        self.notary.sign(nbs[8])
+        self.assertFalse(self.notary.check_signature(nbs[0]))
+        self.assertFalse(self.notary.check_signature(nbs[1]))
+        self.assertFalse(self.notary.check_signature(nbs[2]))
+        self.assertTrue(self.notary.check_signature(nbs[3]))
+        # checking nb3 should keep it from being culled:
+        self.notary.sign(nbs[0])
+        self.notary.sign(nbs[1])
+        self.notary.sign(nbs[2])
+        self.assertTrue(self.notary.check_signature(nbs[3]))
+        self.assertFalse(self.notary.check_signature(nbs[4]))
     
     def test_check_signature(self):
         nb = self.nb
