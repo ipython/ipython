@@ -247,7 +247,7 @@ define([
         
         this.events.on('spec_changed.Kernel', function(event, data) {
             that.metadata.kernelspec = 
-                {name: data.name, display_name: data.display_name};
+                {name: data.name, display_name: data.spec.display_name};
         });
 
         this.events.on('kernel_ready.Kernel', function(event, data) {
