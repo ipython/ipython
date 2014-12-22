@@ -92,46 +92,41 @@ define([
     //      - submenu : list of 2 element [submenu name, list of action] (ie this)
     //   the pseudo action depends on specific object, or can be <separator> in the menu
     MenuBar.prototype.addMenu = function(name, list, element, submenu){
-//        <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">File</a>
-        var theli = $('<li/>')
-                .addClass('dropdown')
-            if(submenu){
-                theli.addClass('dropdown-submenu')
-                }
-            theli.append(
-                $("<a/>").addClass('dropdown-toggle').attr('data-toggle',"dropdown").text(name)
-            )
+        var theli = $('<li/>').addClass('dropdown')
+        if(submenu){
+            theli.addClass('dropdown-submenu')
+            }
+        theli.append(
+            $("<a/>").addClass('dropdown-toggle').attr('data-toggle',"dropdown").text(name)
+        )
         var theul = $('<ul/>').addClass('dropdown-menu');
         theli.append(theul);
         for(var index in list){
-            // <li id="new_notebook"
-            //      title="Make a new notebook (Opens a new window)">
-            //              <a href="#">New</a></li>
             var item = list[index];
             var that = this;
             (function(item, that){
-            console.log(item, index);
-            var theotherli = $('<li/>');
-            theul.append(theotherli);
-            var action = that.actions.get(item);
-            if (action){
-                theotherli.append(
-                    $('<a/>').text(action.help).addClass('fruu')
-                    .append($('<i/>').addClass(action.icon+' fa').addClass('ico'))
-                    .append($('<pre/>').text(sfan(item)).addClass('shortcut'))
-                    .click(function(){
-                        that.actions.call(item)
-                    })
-                );
-            }else if(item == '<divider>'){
-                theul.append(theotherli.addClass('divider'));
-            } else if(typeof(item) === 'string'){
-                theotherli.append(
-                    $('<a/>').text(list[index]).addClass('fruu')
-                );
-            } else {
-                that.addMenu(item[0], item[1], theul, true)
-            }
+                console.log(item, index);
+                var theotherli = $('<li/>');
+                theul.append(theotherli);
+                var action = that.actions.get(item);
+                if (action){
+                    theotherli.append(
+                        $('<a/>').text(action.help).addClass('fruu')
+                        .append($('<i/>').addClass(action.icon+' fa').addClass('ico'))
+                        .append($('<pre/>').text(sfan(item)).addClass('shortcut'))
+                        .click(function(){
+                            that.actions.call(item)
+                        })
+                    );
+                }else if(item == '<divider>'){
+                    theul.append(theotherli.addClass('divider'));
+                } else if(typeof(item) === 'string'){
+                    theotherli.append(
+                        $('<a/>').text(list[index]).addClass('fruu')
+                    );
+                } else {
+                    that.addMenu(item[0], item[1], theul, true)
+                }
             })(item, that)
         };
       element.append(theli);
