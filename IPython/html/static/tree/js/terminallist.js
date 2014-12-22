@@ -100,7 +100,7 @@ define([
     
     TerminalList.prototype.add_shutdown_button = function(name, item) {
         var that = this;
-        var shutdown_button = $("<button/>").text("Shutdown").addClass("btn btn-xs btn-danger").
+        var shutdown_button = $("<button/>").text("Shutdown").addClass("btn btn-xs btn-warning").
             click(function (e) {
                 var settings = {
                     processData : false,
