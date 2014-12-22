@@ -2031,6 +2031,17 @@ define([
             }
         );
     };
+    
+    /**
+     * Ensure a filename has the right extension
+     * Returns the filename with the appropriate extension, appending if necessary.
+     */
+    Notebook.prototype.ensure_extension = function (name) {
+        if (!name.match(/\.ipynb$/)) {
+            name = name + ".ipynb";
+        }
+        return name;
+    };
 
     /**
      * Rename the notebook.
@@ -2038,9 +2049,7 @@ define([
      * @return {Promise} promise that resolves when the notebook is renamed.
      */
     Notebook.prototype.rename = function (new_name) {
-        if (!new_name.match(/\.ipynb$/)) {
-            new_name = new_name + ".ipynb";
-        }
+        new_name = this.ensure_extension(new_name);
 
         var that = this;
         var parent = utils.url_path_split(this.notebook_path)[0];
