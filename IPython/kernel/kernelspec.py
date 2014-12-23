@@ -24,6 +24,17 @@ else:
     
 NATIVE_KERNEL_NAME = 'python3' if PY3 else 'python2'
 
+def find_install_prefix():
+    if sys.platform=='darwin' and sys.prefix.startswith('/System/Library/Frameworks/'):
+        # System Python on OS X has some crazy sys.prefix that we shouldn't use
+        return '/usr/local'
+    elif sys.prefix == '/usr':
+        # Install to /usr/local in preference to /usr
+        # TODO: When building distro packages, /usr is OK
+        return '/usr/local'
+    else:
+        return sys.prefix
+
 def _pythonfirst(s):
     "Sort key function that will put strings starting with 'python' first."
     if s == NATIVE_KERNEL_NAME:
@@ -92,9 +103,12 @@ class KernelSpecManager(HasTraits):
         help="List of kernel directories to search. Later ones take priority over earlier."    
     )    
     def _kernel_dirs_default(self):
-        return SYSTEM_KERNEL_DIRS + [
-            self.user_kernel_dir,
-        ]
+        dirs = SYSTEM_KERNEL_DIRS[:]
+        prefix = find_install_prefix()
+        if prefix not in {'/usr', '/usr/local'}:
+            dirs.append(os.path.join(prefix, 'share', 'ipython', 'kernels'))
+        dirs.append(self.user_kernel_dir)
+        return dirs
 
     @property
     def _native_kernel_dict(self):
@@ -137,24 +151,24 @@ class KernelSpecManager(HasTraits):
             raise NoSuchKernel(kernel_name)
         return KernelSpec.from_resource_dir(resource_dir)
     
-    def _get_destination_dir(self, kernel_name, system=False):
-        if system:
-            if SYSTEM_KERNEL_DIRS:
-                return os.path.join(SYSTEM_KERNEL_DIRS[-1], kernel_name)
-            else:
-                raise EnvironmentError("No system kernel directory is available")
-        else:
+    def _get_destination_dir(self, kernel_name, user=False):
+        if user:
             return os.path.join(self.user_kernel_dir, kernel_name)
+        else:
+            return os.path.join(find_install_prefix(),
+                                'share', 'ipython', 'kernels', kernel_name)
 
-    def install_kernel_spec(self, source_dir, kernel_name=None, system=False,
+    def install_kernel_spec(self, source_dir, kernel_name=None, user=False,
                             replace=False):
         """Install a kernel spec by copying its directory.
         
         If ``kernel_name`` is not given, the basename of ``source_dir`` will
         be used.
         
-        If ``system`` is True, it will attempt to install into the systemwide
-        kernel registry. If the process does not have appropriate permissions,
+        If ``user`` is True, it will install into the user's kernel registry.
+        Otherwise, it will install into a systemwide location or a location
+        inside the active environment, using sys.prefix.
+        If the process does not have appropriate permissions,
         an :exc:`OSError` will be raised.
         
         If ``replace`` is True, this will replace an existing kernel of the same
@@ -165,25 +179,27 @@ class KernelSpecManager(HasTraits):
             kernel_name = os.path.basename(source_dir)
         kernel_name = kernel_name.lower()
         
-        destination = self._get_destination_dir(kernel_name, system=system)
+        destination = self._get_destination_dir(kernel_name, user=user)
 
         if replace and os.path.isdir(destination):
             shutil.rmtree(destination)
 
         shutil.copytree(source_dir, destination)
 
-    def install_native_kernel_spec(self, system=False):
+    def install_native_kernel_spec(self, user=False):
         """Install the native kernel spec to the filesystem
         
         This allows a Python 3 frontend to use a Python 2 kernel, or vice versa.
         The kernelspec will be written pointing to the Python executable on
         which this is run.
         
-        If ``system`` is True, it will attempt to install into the systemwide
-        kernel registry. If the process does not have appropriate permissions, 
+        If ``user`` is True, it will install into the user's kernel registry.
+        Otherwise, it will install into a systemwide location or a location
+        inside the active environment, using sys.prefix.
+        If the process does not have appropriate permissions, 
         an :exc:`OSError` will be raised.
         """
-        path = self._get_destination_dir(NATIVE_KERNEL_NAME, system=system)
+        path = self._get_destination_dir(NATIVE_KERNEL_NAME, user=user)
         os.makedirs(path, mode=0o755)
         with open(pjoin(path, 'kernel.json'), 'w') as f:
             json.dump(self._native_kernel_dict, f, indent=1)
@@ -203,13 +219,13 @@ def get_kernel_spec(kernel_name):
     """
     return KernelSpecManager().get_kernel_spec(kernel_name)
 
-def install_kernel_spec(source_dir, kernel_name=None, system=False, replace=False):
+def install_kernel_spec(source_dir, kernel_name=None, user=False, replace=False):
     return KernelSpecManager().install_kernel_spec(source_dir, kernel_name,
-                                                    system, replace)
+                                                    user, replace)
 
 install_kernel_spec.__doc__ = KernelSpecManager.install_kernel_spec.__doc__
 
-def install_native_kernel_spec(self, system=False):
-    return KernelSpecManager().install_native_kernel_spec(system=system)
+def install_native_kernel_spec(self, user=False):
+    return KernelSpecManager().install_native_kernel_spec(user=user)
 
 install_native_kernel_spec.__doc__ = KernelSpecManager.install_native_kernel_spec.__doc__
