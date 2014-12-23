@@ -7,7 +7,8 @@ define([
     'base/js/utils',
     'base/js/dialog',
     'base/js/events',
-], function(IPython, $, utils, dialog, events) {
+    'base/js/keyboard',
+], function(IPython, $, utils, dialog, events, keyboard) {
     "use strict";
     
     var NotebookList = function (selector, options) {
@@ -54,7 +55,6 @@ define([
         this.element.addClass("list_container");
     };
 
-
     NotebookList.prototype.bind_events = function () {
         var that = this;
         $('#refresh_' + this.element_name + '_list').click(function () {
@@ -67,6 +67,25 @@ define([
             that.handleFilesUpload(event,'drop');
             return false;
         });
+
+        // Bind events for singleton controls.
+        if (!NotebookList._bound_singletons) {
+            NotebookList._bound_singletons = true;
+            $('#new-file').click(function(e) {
+                var w = window.open();
+                that.contents.new_untitled(that.notebook_path || '', {type: 'file', ext: '.txt'}).then(function(data) {
+                    var url = utils.url_join_encode(
+                        that.base_url, 'edit', data.path
+                    );
+                    w.location = url;
+                });
+                that.load_sessions();
+            });
+            $('#new-folder').click(function(e) {
+                that.contents.new_untitled(that.notebook_path || '', {type: 'directory'});
+                that.load_sessions();
+            });
+        }
     };
 
     NotebookList.prototype.handleFilesUpload =  function(event, dropOrForm) {

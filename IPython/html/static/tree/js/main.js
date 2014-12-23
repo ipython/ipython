@@ -71,7 +71,7 @@ require([
 
     var login_widget = new loginwidget.LoginWidget('#login_widget', common_options);
 
-    var nnw = new newnotebook.NewNotebookWidget("#new-notebook-buttons",
+    var new_buttons = new newnotebook.NewNotebookWidget("#new-buttons",
         $.extend(
             {contents: contents},
             common_options
@@ -130,7 +130,7 @@ require([
     IPython.session_list = session_list;
     IPython.kernel_list = kernel_list;
     IPython.login_widget = login_widget;
-    IPython.new_notebook_widget = nnw;
+    IPython.new_notebook_widget = new_buttons;
 
     events.trigger('app_initialized.DashboardApp');
     
