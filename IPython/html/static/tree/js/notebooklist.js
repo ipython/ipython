@@ -72,7 +72,13 @@ define([
         if (!NotebookList._bound_singletons) {
             NotebookList._bound_singletons = true;
             $('#new-file').click(function(e) {
-                that.contents.new_untitled(that.notebook_path || '', {type: 'file', ext: '.txt'});
+                var w = window.open();
+                that.contents.new_untitled(that.notebook_path || '', {type: 'file', ext: '.txt'}).then(function(data) {
+                    var url = utils.url_join_encode(
+                        that.base_url, 'edit', data.path
+                    );
+                    w.location = url;
+                });
                 that.load_sessions();
             });
             $('#new-folder').click(function(e) {
