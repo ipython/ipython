@@ -8675,6 +8675,7 @@ ul#new-menu {
   padding-bottom: 4px;
   padding-left: 7px;
   padding-right: 7px;
+  line-height: 22px;
 }
 #running .panel-group .panel .panel-body {
   padding: 0px;
@@ -8687,6 +8688,9 @@ ul#new-menu {
 }
 #running .panel-group .panel .panel-body .list_container .list_item {
   border-bottom: 1px solid #ddd;
+}
+#running .panel-group .panel .panel-body .list_container .list_item:last-child {
+  border-bottom: 0px;
 }
 /*!
 *
