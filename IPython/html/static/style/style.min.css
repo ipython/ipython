@@ -10423,4 +10423,25 @@ span.autosave_status {
 #terminado-container {
   margin: 8px;
 }
+pre.shortcut {
+  margin: 0;
+  padding: 0;
+  float: right;
+  display: inline;
+  font-size: 90%;
+  border-radius: 4px;
+  padding-left: 4px;
+  padding-right: 4px;
+  white-space: nowrap;
+}
+.dropdown-menu > li > a.fruu {
+  padding-right: 10px;
+  padding-left: 10px;
+}
+i.ico {
+  float: left;
+  margin-right: 9px;
+  width: 10px;
+  margin-top: 2px;
+}
 /*# sourceMappingURL=style.min.css.map */

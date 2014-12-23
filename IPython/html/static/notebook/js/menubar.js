@@ -39,6 +39,101 @@ define([
         this.events = options.events;
         this.save_widget = options.save_widget;
         this.quick_help = options.quick_help;
+        this.actions = options.actions;
+        if(!options.noinit){
+            this.init()
+        }
+        Object.seal(this);
+        
+
+        this.addMenu("Edit",[
+                'ipython.cut-selected-cell',
+                'ipython.copy-selected-cell',
+                'ipython.paste-cell-before',
+                'ipython.paste-cell-after',
+                '<divider>',
+                'ipython.delete-cell',
+                '<divider>',
+                'azgg',
+                ['sef',[
+                    'hey',
+                    'ho',
+                    'hoho'
+                    ]
+                ],
+                ], $('#menus > div > div > ul'))
+        this.addMenu("Cell",[
+                ['Cell Type',[
+                    'ipython.change-selected-cell-to-code-cell',
+                    'ipython.change-selected-cell-to-markdown-cell',
+                    'ipython.change-selected-cell-to-raw-cell',
+                    'ho',
+                    'hoho'
+                    ]
+                ],
+                ], $('#menus > div > div > ul'))
+    }
+
+    MenuBar.prototype.fromDescription = function(desc){
+        
+
+    };
+
+
+    var sfan = function(an){
+        var obj= IPython.keyboard_manager.command_shortcuts._shortcuts;
+        for(var k in obj){
+            if(obj[k] === an) return k
+        }
+    }
+        
+    //  a menu is a list of:
+    //      - action or pseudo action : <string>
+    //      - submenu : list of 2 element [submenu name, list of action] (ie this)
+    //   the pseudo action depends on specific object, or can be <separator> in the menu
+    MenuBar.prototype.addMenu = function(name, list, element, submenu){
+        var theli = $('<li/>').addClass('dropdown')
+        if(submenu){
+            theli.addClass('dropdown-submenu')
+            }
+        theli.append(
+            $("<a/>").addClass('dropdown-toggle').attr('data-toggle',"dropdown").text(name)
+        )
+        var theul = $('<ul/>').addClass('dropdown-menu');
+        theli.append(theul);
+        for(var index in list){
+            var item = list[index];
+            var that = this;
+            (function(item, that){
+                console.log(item, index);
+                var theotherli = $('<li/>');
+                theul.append(theotherli);
+                var action = that.actions.get(item);
+                if (action){
+                    theotherli.append(
+                        $('<a/>').text(action.help).addClass('fruu')
+                        .append($('<i/>').addClass(action.icon+' fa').addClass('ico'))
+                        .append($('<pre/>').text(sfan(item)).addClass('shortcut'))
+                        .click(function(){
+                            that.actions.call(item)
+                        })
+                    );
+                }else if(item == '<divider>'){
+                    theul.append(theotherli.addClass('divider'));
+                } else if(typeof(item) === 'string'){
+                    theotherli.append(
+                        $('<a/>').text(list[index]).addClass('fruu')
+                    );
+                } else {
+                    that.addMenu(item[0], item[1], theul, true)
+                }
+            })(item, that)
+        };
+      element.append(theli);
+
+    }
+
+    MenuBar.prototype.init = function(){
 
         try {
             this.tour = new tour.Tour(this.notebook, this.events);
@@ -48,7 +143,7 @@ define([
         }
 
         if (this.selector !== undefined) {
-            this.element = $(selector);
+            this.element = $(this.selector);
             this.style();
             this.bind_events();
         }
