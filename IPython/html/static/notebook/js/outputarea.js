@@ -175,7 +175,7 @@ define([
      *
      **/
     OutputArea.prototype.scroll_if_long = function (lines) {
-        var n = lines | OutputArea.minimum_scroll_threshold;
+        var n = lines || OutputArea.minimum_scroll_threshold;
         if(n <= 0){
             return;
         }
