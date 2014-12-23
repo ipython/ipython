@@ -1,12 +1,12 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-define([
-    'base/js/namespace',
-    'jquery',
-    'base/js/utils',
-], function(IPython, $, utils) {
+define(function(require) {
     "use strict";
+
+    var $ = require('jquery');
+    var utils = require('base/js/utils');
+
     var Contents = function(options) {
         /**
          * Constructor
@@ -244,9 +244,6 @@ define([
     Contents.prototype.list_contents = function(path) {
         return this.get(path, {type: 'directory'});
     };
-
-
-    IPython.Contents = Contents;
 
     return {'Contents': Contents};
 });
