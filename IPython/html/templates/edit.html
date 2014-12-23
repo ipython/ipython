@@ -10,6 +10,7 @@
 
 {% block params %}
 
+class="edit_app"
 data-base-url="{{base_url}}"
 data-file-path="{{file_path}}"
 
@@ -75,12 +76,15 @@ data-file-path="{{file_path}}"
   </div>
 </div>
 
+<div class="lower-header-bar"></div>
+
 {% endblock %}
 
 {% block site %}
 
-
+<div id="texteditor-backdrop">
 <div id="texteditor-container" class="container"></div>
+</div>
 
 {% endblock %}
 

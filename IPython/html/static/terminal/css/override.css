@@ -2,6 +2,6 @@
 This is only required when different pages style the same element differently. This is just
 a hack to deal with our current css styles and no new styling should be added in this file.*/
 
-#ipython-main-app {
-    position: relative;
+body {
+    overflow: hidden;
 }

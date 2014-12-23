@@ -1,9 +1,34 @@
-#texteditor-container {
-    border-bottom: 1px solid #ccc;
-}
 
 #filename {
     font-size: 16pt;
     display: table;
     padding: 0px 5px;
+}
+
+#texteditor-backdrop {
+    padding-top: @page-header-padding;
+    padding-bottom: @page-header-padding;
+    
+    @media not print{
+        min-height: @page-backdrop-height;
+        background-color: @page-backdrop-color;
+    }
+
+    #texteditor-container {
+        .CodeMirror-gutter, .CodeMirror-gutters {
+            @media print {
+                background-color: @body-bg;
+            }
+            @media not print {
+                background-color: @page-color;
+            }
+        }
+
+        @media not print{
+            padding: 0px;
+            background-color :  @page-color;
+            min-height: @page-min-height;
+            .box-shadow(@global-shadow);
+        }
+    }
 }

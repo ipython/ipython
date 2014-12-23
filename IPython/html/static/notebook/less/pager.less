@@ -10,6 +10,8 @@ div#pager {
     max-height: 50%;
     padding-top: 8px;
 
+    .box-shadow(@global-shadow);
+
     /* Display over codemirror */
     z-index: 100;
 
@@ -48,11 +50,6 @@ div#pager {
         background: @cell_background;
         border-top: 1px solid @light_border_color;
         border-bottom: 1px solid @light_border_color;
-
-        /* Similar to the notebook header's shadow, but not
-        exactly the same.  The settings had to be adjusted
-        to get the shadow to show. */
-        .box-shadow(1px 4px 9px -3px rgba(0, 0, 0, 0.15));
 
         /* This injects handle bars (a short, wide = symbol) for 
         the resize handle. */
