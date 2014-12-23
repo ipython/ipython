@@ -64,8 +64,9 @@ class InteractiveShellTestCase(unittest.TestCase):
         """Just make sure we don't get a horrible error with a blank
         cell of input. Yes, I did overlook that."""
         old_xc = ip.execution_count
-        ip.run_cell('')
+        res = ip.run_cell('')
         self.assertEqual(ip.execution_count, old_xc)
+        self.assertEqual(res.execution_count, None)
 
     def test_run_cell_multiline(self):
         """Multi-block, multi-line cells must execute correctly.
@@ -75,24 +76,29 @@ class InteractiveShellTestCase(unittest.TestCase):
                          "if 1:",
                          "    x += 1",
                          "    y += 1",])
-        ip.run_cell(src)
+        res = ip.run_cell(src)
         self.assertEqual(ip.user_ns['x'], 2)
         self.assertEqual(ip.user_ns['y'], 3)
+        self.assertEqual(res.success, True)
+        self.assertEqual(res.result, None)
 
     def test_multiline_string_cells(self):
         "Code sprinkled with multiline strings should execute (GH-306)"
         ip.run_cell('tmp=0')
         self.assertEqual(ip.user_ns['tmp'], 0)
-        ip.run_cell('tmp=1;"""a\nb"""\n')
+        res = ip.run_cell('tmp=1;"""a\nb"""\n')
         self.assertEqual(ip.user_ns['tmp'], 1)
+        self.assertEqual(res.success, True)
+        self.assertEqual(res.result, "a\nb")
 
     def test_dont_cache_with_semicolon(self):
         "Ending a line with semicolon should not cache the returned object (GH-307)"
         oldlen = len(ip.user_ns['Out'])
         for cell in ['1;', '1;1;']:
-            ip.run_cell(cell, store_history=True)
+            res = ip.run_cell(cell, store_history=True)
             newlen = len(ip.user_ns['Out'])
             self.assertEqual(oldlen, newlen)
+            self.assertIsNone(res.result)
         i = 0
         #also test the default caching behavior
         for cell in ['1', '1;1']:
@@ -100,6 +106,10 @@ class InteractiveShellTestCase(unittest.TestCase):
             newlen = len(ip.user_ns['Out'])
             i += 1
             self.assertEqual(oldlen+i, newlen)
+
+    def test_syntax_error(self):
+        res = ip.run_cell("raise = 3")
+        self.assertIsInstance(res.error_before_exec, SyntaxError)
 
     def test_In_variable(self):
         "Verify that In variable grows with user input (GH-284)"
@@ -330,8 +340,9 @@ class InteractiveShellTestCase(unittest.TestCase):
         
         try:
             trap.hook = failing_hook
-            ip.run_cell("1", silent=True)
+            res = ip.run_cell("1", silent=True)
             self.assertFalse(d['called'])
+            self.assertIsNone(res.result)
             # double-check that non-silent exec did what we expected
             # silent to avoid
             ip.run_cell("1")
@@ -443,9 +454,11 @@ class InteractiveShellTestCase(unittest.TestCase):
         
         ip.set_custom_exc((ValueError,), my_handler)
         try:
-            ip.run_cell("raise ValueError('test')")
+            res = ip.run_cell("raise ValueError('test')")
             # Check that this was called, and only once.
             self.assertEqual(called, [ValueError])
+            # Check that the error is on the result object
+            self.assertIsInstance(res.error_in_exec, ValueError)
         finally:
             # Reset the custom exception hook
             ip.set_custom_exc((), None)
@@ -760,7 +773,9 @@ class TestAstTransformInputRejection(unittest.TestCase):
             ip.run_cell("'unsafe'")
 
         with expect_exception_tb, expect_no_cell_output:
-            ip.run_cell("'unsafe'")
+            res = ip.run_cell("'unsafe'")
+
+        self.assertIsInstance(res.error_before_exec, InputRejected)
 
 def test__IPYTHON__():
     # This shouldn't raise a NameError, that's all

@@ -192,9 +192,21 @@ class DummyMod(object):
     a namespace must be assigned to the module's __dict__."""
     pass
 
-#-----------------------------------------------------------------------------
-# Main IPython class
-#-----------------------------------------------------------------------------
+
+class ExecutionResult(object):
+    """The result of a call to :meth:`InteractiveShell.run_cell`
+
+    Stores information about what took place.
+    """
+    execution_count = None
+    error_before_exec = None
+    error_in_exec = None
+    result = None
+
+    @property
+    def success(self):
+        return (self.error_before_exec is None) and (self.error_in_exec is None)
+
 
 class InteractiveShell(SingletonConfigurable):
     """An enhanced, interactive shell for Python."""
@@ -2760,12 +2772,25 @@ class InteractiveShell(SingletonConfigurable):
           shell. It will both be affected by previous __future__ imports, and
           any __future__ imports in the code will affect the shell. If False,
           __future__ imports are not shared in either direction.
+
+        Returns
+        -------
+        result : :class:`ExecutionResult`
         """
+        result = ExecutionResult()
+
         if (not raw_cell) or raw_cell.isspace():
-            return
+            return result
         
         if silent:
             store_history = False
+
+        if store_history:
+            result.execution_count = self.execution_count
+
+        def error_before_exec(value):
+            result.error_before_exec = value
+            return result
 
         self.events.trigger('pre_execute')
         if not silent:
@@ -2806,7 +2831,7 @@ class InteractiveShell(SingletonConfigurable):
             self.showtraceback(preprocessing_exc_tuple)
             if store_history:
                 self.execution_count += 1
-            return
+            return error_before_exec(preprocessing_exc_tuple[2])
 
         # Our own compiler remembers the __future__ environment. If we want to
         # run code with a separate __future__ environment, use the default
@@ -2820,32 +2845,40 @@ class InteractiveShell(SingletonConfigurable):
                 # Compile to bytecode
                 try:
                     code_ast = compiler.ast_parse(cell, filename=cell_name)
-                except IndentationError:
+                except IndentationError as e:
                     self.showindentationerror()
                     if store_history:
                         self.execution_count += 1
-                    return None
+                    return error_before_exec(e)
                 except (OverflowError, SyntaxError, ValueError, TypeError,
-                        MemoryError):
+                        MemoryError) as e:
                     self.showsyntaxerror()
                     if store_history:
                         self.execution_count += 1
-                    return None
+                    return error_before_exec(e)
 
                 # Apply AST transformations
                 try:
                     code_ast = self.transform_ast(code_ast)
-                except InputRejected:
+                except InputRejected as e:
                     self.showtraceback()
                     if store_history:
                         self.execution_count += 1
-                    return None
+                    return error_before_exec(e)
+
+                # Give the displayhook a reference to our ExecutionResult so it
+                # can fill in the output value.
+                self.displayhook.exec_result = result
 
                 # Execute the user code
                 interactivity = "none" if silent else self.ast_node_interactivity
                 self.run_ast_nodes(code_ast.body, cell_name,
-                                   interactivity=interactivity, compiler=compiler)
-                
+                   interactivity=interactivity, compiler=compiler, result=result)
+
+                # Reset this so later displayed values do not modify the
+                # ExecutionResult
+                self.displayhook.exec_result = None
+
                 self.events.trigger('post_execute')
                 if not silent:
                     self.events.trigger('post_run_cell')
@@ -2856,6 +2889,8 @@ class InteractiveShell(SingletonConfigurable):
             self.history_manager.store_output(self.execution_count)
             # Each cell is a *single* input, regardless of how many lines it has
             self.execution_count += 1
+
+        return result
     
     def transform_ast(self, node):
         """Apply the AST transformations from self.ast_transformers
@@ -2890,7 +2925,7 @@ class InteractiveShell(SingletonConfigurable):
                 
 
     def run_ast_nodes(self, nodelist, cell_name, interactivity='last_expr',
-                        compiler=compile):
+                        compiler=compile, result=None):
         """Run a sequence of AST nodes. The execution mode depends on the
         interactivity parameter.
 
@@ -2910,6 +2945,13 @@ class InteractiveShell(SingletonConfigurable):
         compiler : callable
           A function with the same interface as the built-in compile(), to turn
           the AST nodes into code objects. Default is the built-in compile().
+        result : ExecutionResult, optional
+          An object to store exceptions that occur during execution.
+
+        Returns
+        -------
+        True if an exception occurred while running code, False if it finished
+        running.
         """
         if not nodelist:
             return
@@ -2935,13 +2977,13 @@ class InteractiveShell(SingletonConfigurable):
             for i, node in enumerate(to_run_exec):
                 mod = ast.Module([node])
                 code = compiler(mod, cell_name, "exec")
-                if self.run_code(code):
+                if self.run_code(code, result):
                     return True
 
             for i, node in enumerate(to_run_interactive):
                 mod = ast.Interactive([node])
                 code = compiler(mod, cell_name, "single")
-                if self.run_code(code):
+                if self.run_code(code, result):
                     return True
 
             # Flush softspace
@@ -2958,11 +3000,14 @@ class InteractiveShell(SingletonConfigurable):
             # We do only one try/except outside the loop to minimize the impact
             # on runtime, and also because if any node in the node list is
             # broken, we should stop execution completely.
+            if result:
+                result.error_before_exec = sys.exc_info()[1]
             self.showtraceback()
+            return True
 
         return False
 
-    def run_code(self, code_obj):
+    def run_code(self, code_obj, result=None):
         """Execute a code object.
 
         When an exception occurs, self.showtraceback() is called to display a
@@ -2972,6 +3017,8 @@ class InteractiveShell(SingletonConfigurable):
         ----------
         code_obj : code object
           A compiled code object, to be executed
+        result : ExecutionResult, optional
+          An object to store exceptions that occur during execution.
 
         Returns
         -------
@@ -2981,6 +3028,11 @@ class InteractiveShell(SingletonConfigurable):
         # Set our own excepthook in case the user code tries to call it
         # directly, so that the IPython crash handler doesn't get triggered
         old_excepthook, sys.excepthook = sys.excepthook, self.excepthook
+
+        # Convenience function to set result.error_in_exec
+        def set_result_exc(value=None):
+            if result is not None:
+                result.error_in_exec = value if (value is not None) else sys.exc_info()[1]
 
         # we save the original sys.excepthook in the instance, in case config
         # code (such as magics) needs access to it.
@@ -2994,13 +3046,16 @@ class InteractiveShell(SingletonConfigurable):
             finally:
                 # Reset our crash handler in place
                 sys.excepthook = old_excepthook
-        except SystemExit:
+        except SystemExit as e:
+            set_result_exc(e)
             self.showtraceback(exception_only=True)
             warn("To exit: use 'exit', 'quit', or Ctrl-D.", level=1)
         except self.custom_exceptions:
             etype, value, tb = sys.exc_info()
+            set_result_exc(value)
             self.CustomTB(etype, value, tb)
         except:
+            set_result_exc()
             self.showtraceback()
         else:
             outflag = 0
