@@ -7953,6 +7953,7 @@ span#login_widget > .button .badge,
 .alternate_upload .input-overlay {
   display: inline-block;
   font-weight: bold;
+  line-height: 1em;
 }
 /**
  * Primary styles
