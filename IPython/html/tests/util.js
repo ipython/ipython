@@ -283,7 +283,9 @@ casper.execute_cell = function(index, expect_failure){
     // Asynchronously executes a cell by index.
     // Returns the cell's index.
     
-    if (expect_failure === undefined) expect_failure = false;
+    if (expect_failure === undefined) {
+        expect_failure = false;
+    }
     var that = this;
     this.then(function(){
         that.evaluate(function (index) {
@@ -421,8 +423,9 @@ casper.click_cell_editor = function(index) {
     // region of codemirror that the user can focus.
     this.evaluate(function (i) {
         var cm = IPython.notebook.get_cell(i).code_mirror;
-        if (cm.options.readOnly != "nocursor" && (document.activeElement != cm.display.input))
+        if (cm.options.readOnly != "nocursor" && (document.activeElement != cm.display.input)){
             cm.display.input.focus();
+        }
     }, {i: index});
 };
 
@@ -489,7 +492,7 @@ casper.is_cell_editor_focused = function(index) {
         } else {
             var cell = IPython.notebook.get_cell(i);
             if (cell) {
-                return cell.code_mirror.getInputField() == focused_textarea[0];
+                return cell.code_mirror.getInputField() === focused_textarea[0];
             }    
         }
         return false;
@@ -560,11 +563,13 @@ casper.assert_colors_equal = function (hex_color, local_color, msg) {
 
     // If the local color is rgb, clean it up and replace 
     if (local_color.substr(0,3).toLowerCase() == 'rgb') {
-        components = local_color.substr(3).split(',');
+        var components = local_color.substr(3).split(',');
         local_color = '';
         for (var i = 0; i < components.length; i++) {
             var part = parseInt(components[i]).toString(16);
-            while (part.length < 2) part = '0' + part;
+            while (part.length < 2){
+                part = '0' + part;
+            }
             local_color += part;
         }
     }

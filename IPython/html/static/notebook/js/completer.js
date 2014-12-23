@@ -96,7 +96,9 @@ define([
          * call for a 'first' completion, that will set the editor and do some
          * special behavior like autopicking if only one completion available.
          */
-        if (this.editor.somethingSelected()|| this.editor.getSelections().length > 1) return;
+        if (this.editor.somethingSelected()|| this.editor.getSelections().length > 1) {
+            return;
+        }
         this.done = false;
         // use to get focus back on opera
         this.carry_on_completion(true);
@@ -214,7 +216,9 @@ define([
         this.raw_result = filtered_results;
 
         // if empty result return
-        if (!this.raw_result || !this.raw_result.length) return;
+        if (!this.raw_result || !this.raw_result.length) {
+            return;
+        }
 
         // When there is only one completion, use it directly.
         if (this.autopick && this.raw_result.length == 1) {
@@ -398,7 +402,9 @@ define([
         if (event.charCode === 0 ||
             code == keycodes.tab ||
             code == keycodes.enter
-        ) return;
+        ){
+            return;
+        }
         
         this.close();
         this.editor.focus();

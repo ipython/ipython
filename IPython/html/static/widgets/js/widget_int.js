@@ -48,16 +48,16 @@ define([
             /**
              * Set a css attr of the widget view.
              */
-            if (name == 'color') {
+            if (name === 'color') {
                 this.$readout.css(name, value);
-            } else if (name.substring(0, 4) == 'font') {
+            } else if (name.substring(0, 4) === 'font') {
                 this.$readout.css(name, value);
-            } else if (name.substring(0, 6) == 'border') {
+            } else if (name.substring(0, 6) === 'border') {
                 this.$slider.find('a').css(name, value);
                 this.$slider_container.css(name, value);
-            } else if (name == 'width' || name == 'height' || name == 'background') {
+            } else if (name === 'width' || name === 'height' || name === 'background') {
                 this.$slider_container.css(name, value);
-            } else if (name == 'padding' || name == 'margin') {
+            } else if (name === 'padding' || name === 'margin') {
                 this.$el.css(name, value);
             } else {
                 this.$slider.css(name, value);
@@ -71,7 +71,7 @@ define([
              * Called when the model is changed.  The model may have been 
              * changed by another view or by a state update from the back-end.
              */
-            if (options === undefined || options.updated_view != this) {
+            if (options === undefined || options.updated_view !== this) {
                 // JQuery slider option keys.  These keys happen to have a
                 // one-to-one mapping with the corrosponding keys of the model.
                 var jquery_slider_keys = ['step', 'disabled'];
@@ -87,8 +87,12 @@ define([
                 var max = this.model.get('max');
                 var min = this.model.get('min');
                 if (min <= max) {
-                    if (max !== undefined) this.$slider.slider('option', 'max', max);
-                    if (min !== undefined) this.$slider.slider('option', 'min', min);
+                    if (max !== undefined){
+                        this.$slider.slider('option', 'max', max);
+                    }
+                    if (min !== undefined){
+                        this.$slider.slider('option', 'min', min);
+                    }
                 }
 
                 var range_value = this.model.get("_range");
@@ -105,8 +109,8 @@ define([
                 // handle in the vertical slider is always 
                 // consistent.
                 var orientation = this.model.get('orientation');
-                var min = this.model.get('min');
-                var max = this.model.get('max');
+                min = this.model.get('min');
+                max = this.model.get('max');
                 if (this.model.get('_range')) {
                     this.$slider.slider('option', 'values', [min, min]);
                 } else {
@@ -179,7 +183,7 @@ define([
         }, 
 
         handleKeyDown: function(e) {
-            if (e.keyCode == keyboard.keycodes.enter) {
+            if (e.keyCode === keyboard.keycodes.enter) {
                 e.preventDefault();
                 this.handleTextChange();
             }
@@ -218,8 +222,8 @@ define([
                         values = [Math.max(Math.min(values[0], vmax), vmin),
                                   Math.max(Math.min(values[1], vmax), vmin)];
 
-                        if ((values[0] != this.model.get('value')[0]) ||
-                            (values[1] != this.model.get('value')[1])) {
+                        if ((values[0] !== this.model.get('value')[0]) ||
+                            (values[1] !== this.model.get('value')[1])) {
                             this.$readout.text(values.join('-'));
                             this.model.set('value', values, {updated_view: this});
                             this.touch();
@@ -238,7 +242,7 @@ define([
                 } else {
                     value = Math.max(Math.min(value, vmax), vmin);
 
-                    if (value != this.model.get('value')) {
+                    if (value !== this.model.get('value')) {
                         this.$readout.text(value);
                         this.model.set('value', value, {updated_view: this});
                         this.touch();
@@ -260,11 +264,12 @@ define([
              * Calling model.set will trigger all of the other views of the 
              * model to update.
              */
+            var actual_value;
             if (this.model.get("_range")) {
-                var actual_value = ui.values.map(this._validate_slide_value);
+                actual_value = ui.values.map(this._validate_slide_value);
                 this.$readout.text(actual_value.join("-"));
             } else {
-                var actual_value = this._validate_slide_value(ui.value);
+                actual_value = this._validate_slide_value(ui.value);
                 this.$readout.text(actual_value);
             }
             this.model.set('value', actual_value, {updated_view: this});
@@ -308,9 +313,9 @@ define([
              * Called when the model is changed.  The model may have been 
              * changed by another view or by a state update from the back-end.
              */
-            if (options === undefined || options.updated_view != this) {
+            if (options === undefined || options.updated_view !== this) {
                 var value = this.model.get('value');
-                if (this._parse_value(this.$textbox.val()) != value) {
+                if (this._parse_value(this.$textbox.val()) !== value) {
                     this.$textbox.val(value);
                 }
                 
@@ -335,7 +340,7 @@ define([
             /**
              * Set a css attr of the widget view.
              */
-            if (name == 'padding' || name == 'margin') {
+            if (name === 'padding' || name === 'margin') {
                 this.$el.css(name, value);
             } else {
                 this.$textbox.css(name, value);
@@ -380,7 +385,7 @@ define([
                 }
                 
                 // Apply the value if it has changed.
-                if (numericalValue != this.model.get('value')) {
+                if (numericalValue !== this.model.get('value')) {
             
                     // Calling model.set will trigger all of the other views of the 
                     // model to update.
@@ -467,14 +472,14 @@ define([
             /**
              * Set a css attr of the widget view.
              */
-            if (name.substring(0, 6) == 'border' || name == 'width' || 
-                name == 'height' || name == 'background' || name == 'margin' || 
-                name == 'padding') {
+            if (name.substring(0, 6) === 'border' || name === 'width' || 
+                name === 'height' || name === 'background' || name === 'margin' || 
+                name === 'padding') {
                 
                 this.$progress.css(name, value);
-            } else if (name == 'color') {                
+            } else if (name === 'color') {
                 this.$bar.css('background', value);
-            } else if (name == 'padding' || name == 'margin') {
+            } else if (name === 'padding' || name === 'margin') {
                 this.$el.css(name, value);
             } else {
                 this.$bar.css(name, value);

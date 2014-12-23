@@ -7,6 +7,7 @@ define([
     "base/js/utils",
     "bootstrap",
 ], function(widget, $, utils){
+    "use strict";
 
     var BoxView = widget.DOMWidgetView.extend({
         initialize: function(){
@@ -300,8 +301,8 @@ define([
             max_zindex = Math.max(max_zindex, 2000);
             
             $widget_modals.each(function (index, el){
-                $el = $(el);
-                if (max_zindex == parseInt($el.css('z-index'))) {
+                var $el = $(el);
+                if (max_zindex === parseInt($el.css('z-index'))) {
                     $el.css('z-index', max_zindex - 1);
                 }
             });

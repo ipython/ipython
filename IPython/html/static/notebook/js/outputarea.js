@@ -175,7 +175,7 @@ define([
      *
      **/
     OutputArea.prototype.scroll_if_long = function (lines) {
-        var n = lines | OutputArea.minimum_scroll_threshold;
+        var n = lines || OutputArea.minimum_scroll_threshold;
         if(n <= 0){
             return;
         }
@@ -386,7 +386,9 @@ define([
          * display a message when a javascript error occurs in display output
          */
         var msg = "Javascript error adding output!";
-        if ( element === undefined ) return;
+        if ( element === undefined ){ 
+            return;
+        }
         element
             .append($('<div/>').text(msg).addClass('js-error'))
             .append($('<div/>').text(err.toString()).addClass('js-error'))
@@ -704,9 +706,13 @@ define([
          * set width and height of an img element from metadata
          */
         var height = _get_metadata_key(md, 'height', mime);
-        if (height !== undefined) img.attr('height', height);
+        if (height !== undefined) {
+            img.attr('height', height);
+        }
         var width = _get_metadata_key(md, 'width', mime);
-        if (width !== undefined) img.attr('width', width);
+        if (width !== undefined) {
+            img.attr('width', width);
+        }
     };
     
     var append_png = function (png, md, element, handle_inserted) {

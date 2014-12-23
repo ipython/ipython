@@ -387,7 +387,8 @@ define(['require'
     // Will actually generate/register all the IPython actions
     var fun = function(){
         var final_actions = {};
-        for(var k in _action){
+        var k;
+        for(k in _action){
             // Js closure are function level not block level need to wrap in a IIFE
             // and append ipython to event name these things do intercept event so are wrapped
             // in a function that return false.
@@ -403,7 +404,7 @@ define(['require'
             })(k, handler);
         }
 
-        for(var k in custom_ignore){
+        for(k in custom_ignore){
             // Js closure are function level not block level need to wrap in a IIFE
             // same as above, but decide for themselves wether or not they intercept events.
             var handler = _prepare_handler(final_actions, k, custom_ignore);

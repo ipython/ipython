@@ -298,7 +298,7 @@ if 'setuptools' in sys.modules:
     if 'bdist_wininst' in sys.argv:
         if len(sys.argv) > 2 and \
                ('sdist' in sys.argv or 'bdist_rpm' in sys.argv):
-            print >> sys.stderr, "ERROR: bdist_wininst must be run alone. Exiting."
+            print("ERROR: bdist_wininst must be run alone. Exiting.", file=sys.stderr)
             sys.exit(1)
         setup_args['data_files'].append(
             ['Scripts', ('scripts/ipython.ico', 'scripts/ipython_nb.ico')])
