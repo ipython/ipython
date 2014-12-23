@@ -3029,11 +3029,6 @@ class InteractiveShell(SingletonConfigurable):
         # directly, so that the IPython crash handler doesn't get triggered
         old_excepthook, sys.excepthook = sys.excepthook, self.excepthook
 
-        # Convenience function to set result.error_in_exec
-        def set_result_exc(value=None):
-            if result is not None:
-                result.error_in_exec = value if (value is not None) else sys.exc_info()[1]
-
         # we save the original sys.excepthook in the instance, in case config
         # code (such as magics) needs access to it.
         self.sys_excepthook = old_excepthook
@@ -3047,15 +3042,18 @@ class InteractiveShell(SingletonConfigurable):
                 # Reset our crash handler in place
                 sys.excepthook = old_excepthook
         except SystemExit as e:
-            set_result_exc(e)
+            if result is not None:
+                result.error_in_exec = e
             self.showtraceback(exception_only=True)
             warn("To exit: use 'exit', 'quit', or Ctrl-D.", level=1)
         except self.custom_exceptions:
             etype, value, tb = sys.exc_info()
-            set_result_exc(value)
+            if result is not None:
+                result.error_in_exec = value
             self.CustomTB(etype, value, tb)
         except:
-            set_result_exc()
+            if result is not None:
+                result.error_in_exec = sys.exc_info()[1]
             self.showtraceback()
         else:
             outflag = 0
