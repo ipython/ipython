@@ -49,6 +49,11 @@ data-terminals-available="{{terminals_available}}"
                     <li role="presentation" id="new-folder">
                       <a role="menuitem" tabindex="-1" href="#">Folder</a>
                     </li>
+                    {% if terminals_available %}
+                    <li role="presentation" id="new-terminal">
+                      <a role="menuitem" tabindex="-1" href="#">Terminal</a>
+                    </li>
+                    {% endif %}
                     <li role="presentation" class="divider"></li>
                     <li role="presentation" class="dropdown-header" id="notebook-kernels">Notebooks</li>
                   </ul>
@@ -79,11 +84,6 @@ data-terminals-available="{{terminals_available}}"
             </div>
             <div class="col-sm-4 no-padding tree-buttons">
               <span id="running_buttons" class="pull-right">
-              {% if terminals_available %}
-              <button id="new_terminal" title="New terminal" class="btn btn-default btn-xs">
-              New Terminal
-              </button>
-              {% endif %}
               <button id="refresh_running_list" title="Refresh running list" class="btn btn-default btn-xs"><i class="fa fa-refresh"></i></button>
               </span>
             </div>

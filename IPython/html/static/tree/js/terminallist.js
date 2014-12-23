@@ -38,7 +38,7 @@ define([
         $('#refresh_' + this.element_name + '_list').click(function () {
             that.load_terminals();
         });
-        $('#new_terminal').click($.proxy(this.new_terminal, this));
+        $('#new-terminal').click($.proxy(this.new_terminal, this));
     };
 
     TerminalList.prototype.new_terminal = function () {
