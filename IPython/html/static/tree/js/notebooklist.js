@@ -227,7 +227,7 @@ define([
                 $("<span/>").addClass("item_name")
             )
         ).append(
-            $('<div/>').addClass("item_buttons btn-group pull-right")
+            $('<div/>').addClass("item_buttons  pull-right")
         ));
         
         if (index === -1) {

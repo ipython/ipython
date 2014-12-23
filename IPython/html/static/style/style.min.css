@@ -5613,7 +5613,9 @@ button.close {
 .panel-body:before,
 .panel-body:after,
 .modal-footer:before,
-.modal-footer:after {
+.modal-footer:after,
+.item_buttons:before,
+.item_buttons:after {
   content: " ";
   display: table;
 }
@@ -5630,7 +5632,8 @@ button.close {
 .navbar-collapse:after,
 .pager:after,
 .panel-body:after,
-.modal-footer:after {
+.modal-footer:after,
+.item_buttons:after {
   clear: both;
 }
 .center-block {
@@ -8029,9 +8032,19 @@ ul.breadcrumb span {
 }
 .item_buttons {
   line-height: 1em;
+  margin-left: -5px;
 }
 .item_buttons .btn {
   min-width: 13ex;
+}
+.item_buttons .btn-group,
+.item_buttons .input-group {
+  float: left;
+}
+.item_buttons > .btn,
+.item_buttons > .btn-group,
+.item_buttons > .input-group {
+  margin-left: 5px;
 }
 .toolbar_info {
   height: 24px;
