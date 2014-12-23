@@ -8677,6 +8677,10 @@ ul#new-menu {
   padding-right: 7px;
   line-height: 22px;
 }
+#running .panel-group .panel .panel-heading a:focus,
+#running .panel-group .panel .panel-heading a:hover {
+  text-decoration: none;
+}
 #running .panel-group .panel .panel-body {
   padding: 0px;
 }
