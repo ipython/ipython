@@ -34,7 +34,6 @@ define([
             this.model.on('change:_titles', function(model, value, options) {
                 this.update_titles(value);
             }, this);
-            var that = this;
             this.on('displayed', function() {
                 this.update_titles();
             }, this);
