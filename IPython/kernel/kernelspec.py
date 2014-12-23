@@ -18,7 +18,9 @@ if os.name == 'nt':
     else:  # PROGRAMDATA is not defined by default on XP.
         SYSTEM_KERNEL_DIRS = []
 else:
-    SYSTEM_KERNEL_DIRS = ["/usr/share/ipython/kernels",
+    SYSTEM_KERNEL_DIRS = [os.path.join(sys.prefix, "share/ipython/kernels"),
+                          os.path.join(sys.prefix, "local/share/ipython/kernels"),
+                          "/usr/share/ipython/kernels",
                           "/usr/local/share/ipython/kernels",
                          ]
     
