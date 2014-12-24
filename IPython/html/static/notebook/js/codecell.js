@@ -403,14 +403,18 @@ define([
      * Execute current code cell to the kernel
      * @method execute
      */
-    CodeCell.prototype.execute = function () {
+    CodeCell.prototype.execute = function (skip_exceptions) {
         if (!this.kernel || !this.kernel.is_connected()) {
             console.log("Can't execute, kernel is not connected.");
             return;
         }
 
         this.active_output_area.clear_output(false, true);
-        
+
+        if (skip_exceptions === undefined) {
+            skip_exceptions = false;
+        }
+
         // Clear widget area
         for (var i = 0; i < this.widget_views.length; i++) {
             var view = this.widget_views[i];
@@ -434,7 +438,8 @@ define([
         var callbacks = this.get_callbacks();
         
         var old_msg_id = this.last_msg_id;
-        this.last_msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true});
+        this.last_msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true,
+            skip_exceptions : skip_exceptions});
         if (old_msg_id) {
             delete CodeCell.msg_cells[old_msg_id];
         }

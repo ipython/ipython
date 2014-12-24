@@ -196,7 +196,7 @@ class KernelClient(ConnectionFileMixin):
 
     # Methods to send specific messages on channels
     def execute(self, code, silent=False, store_history=True,
-                user_expressions=None, allow_stdin=None):
+                user_expressions=None, allow_stdin=None, skip_exceptions=False):
         """Execute code in the kernel.
 
         Parameters
@@ -224,6 +224,9 @@ class KernelClient(ConnectionFileMixin):
             If raw_input is called from code executed from such a frontend, a
             StdinNotImplementedError will be raised.
 
+        skip_exceptions: bool, optional (default False)
+            Flag whether to abort the execution queue, if an exception is encountered.
+
         Returns
         -------
         The msg_id of the message sent.
@@ -243,7 +246,7 @@ class KernelClient(ConnectionFileMixin):
         # not in Session.
         content = dict(code=code, silent=silent, store_history=store_history,
                        user_expressions=user_expressions,
-                       allow_stdin=allow_stdin,
+                       allow_stdin=allow_stdin, skip_exceptions=skip_exceptions
                        )
         msg = self.session.msg('execute_request', content)
         self.shell_channel.send(msg)

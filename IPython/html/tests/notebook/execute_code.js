@@ -75,4 +75,39 @@ casper.notebook_test(function () {
         var result = this.get_output_cell(0);
         this.test.assertEquals(result.text, '13\n', 'cell execute (using "play" toolbar button)')
     });
+
+    // run code with skip_exception
+    this.thenEvaluate(function () {
+        var cell0 = IPython.notebook.get_cell(0);
+        cell0.set_text('raise IOError');
+        IPython.notebook.insert_cell_below('code',0);
+        var cell1 = IPython.notebook.get_cell(1);
+        cell1.set_text('a=14; print(a)');
+        cell0.execute(skip_exception=true);
+        cell1.execute();
+    });
+
+    this.wait_for_output(1);
+
+    this.then(function () {
+        var result = this.get_output_cell(1);
+        this.test.assertEquals(result.text, '14\n', 'cell execute, skip exceptions');
+    });
+
+    this.thenEvaluate(function () {
+        var cell0 = IPython.notebook.get_cell(0);
+        cell0.set_text('raise IOError');
+        IPython.notebook.insert_cell_below('code',0);
+        var cell1 = IPython.notebook.get_cell(1);
+        cell1.set_text('a=14; print(a)');
+        cell0.execute();
+        cell1.execute();
+    });
+
+    this.wait_for_output(1);
+
+    this.then(function () {
+        var result = this.get_output_cell(1);
+        this.test.assertNotEquals(result.text, '14\n', 'cell execute, skip exceptions');
+    });
 });

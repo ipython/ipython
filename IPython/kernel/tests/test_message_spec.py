@@ -303,6 +303,24 @@ def test_execute_inc():
     count_2 = reply['execution_count']
     nt.assert_equal(count_2, count+1)
 
+def test_execute_skip_exceptions():
+    """execute request should not abort execution queue with skip_exceptions"""
+    flush_channels()
+
+    KC.execute(code='raise IOError')
+    msg_id = KC.execute(code='print("Hallo")')
+    KC.get_shell_msg(timeout=TIMEOUT)
+    reply = KC.get_shell_msg(timeout=TIMEOUT)
+    nt.assert_equal(reply['content']['status'], 'aborted')
+
+    flush_channels()
+
+    KC.execute(code='raise IOError', skip_exceptions=True)
+    msg_id = KC.execute(code='print("Hallo")')
+    KC.get_shell_msg(timeout=TIMEOUT)
+    reply = KC.get_shell_msg(timeout=TIMEOUT)
+    nt.assert_equal(reply['content']['status'], 'ok')
+
 
 def test_user_expressions():
     flush_channels()
