@@ -134,10 +134,19 @@ define([
             var name = data.name;
             select.append($('<option/>').attr('value', name).text(name));
         });
+        this.events.on('unregistered_preset.CellToolbar', function (event, data) {
+            if (select.val() === data.name){
+                select.val('');
+                celltoolbar.CellToolbar.global_hide();
+                delete that.notebook.metadata.celltoolbar;
+            }
+            select.find("option[value='"+name+"']" ).remove();
+        });
         // Update select value when a preset is activated.
         this.events.on('preset_activated.CellToolbar', function (event, data) {
-            if (select.val() !== data.name)
+            if (select.val() !== data.name){
                 select.val(data.name);
+            }
         });
 
         var wrapper = $('<div/>').addClass('btn-group');
