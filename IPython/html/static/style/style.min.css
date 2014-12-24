@@ -8297,12 +8297,12 @@ div.cell.selected {
     border-color: transparent;
   }
 }
-div.cell.edit_mode {
+.edit_mode div.cell.selected {
   border-color: green;
   /* Don't border the cells when printing */
 }
 @media print {
-  div.cell.edit_mode {
+  .edit_mode div.cell.selected {
     border-color: transparent;
   }
 }
@@ -9867,7 +9867,7 @@ ul#help_menu li a i {
   z-index: 10;
   text-align: center;
 }
-.edit_mode_icon:before {
+.edit_mode .modal_indicator:before {
   display: inline-block;
   font: normal normal normal 14px/1 FontAwesome;
   font-size: inherit;
@@ -9876,13 +9876,13 @@ ul#help_menu li a i {
   -moz-osx-font-smoothing: grayscale;
   content: "\f040";
 }
-.edit_mode_icon:before.pull-left {
+.edit_mode .modal_indicator:before.pull-left {
   margin-right: .3em;
 }
-.edit_mode_icon:before.pull-right {
+.edit_mode .modal_indicator:before.pull-right {
   margin-left: .3em;
 }
-.command_mode_icon:before {
+.command_mode .modal_indicator:before {
   display: inline-block;
   font: normal normal normal 14px/1 FontAwesome;
   font-size: inherit;
@@ -9891,10 +9891,10 @@ ul#help_menu li a i {
   -moz-osx-font-smoothing: grayscale;
   content: ' ';
 }
-.command_mode_icon:before.pull-left {
+.command_mode .modal_indicator:before.pull-left {
   margin-right: .3em;
 }
-.command_mode_icon:before.pull-right {
+.command_mode .modal_indicator:before.pull-right {
   margin-left: .3em;
 }
 .kernel_idle_icon:before {

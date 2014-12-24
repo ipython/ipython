@@ -372,12 +372,12 @@ div.cell.selected {
     border-color: transparent;
   }
 }
-div.cell.edit_mode {
+.edit_mode div.cell.selected {
   border-color: green;
   /* Don't border the cells when printing */
 }
 @media print {
-  div.cell.edit_mode {
+  .edit_mode div.cell.selected {
     border-color: transparent;
   }
 }

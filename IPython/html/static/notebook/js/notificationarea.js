@@ -37,21 +37,27 @@ define([
         var that = this;
         var knw = this.new_notification_widget('kernel');
         var $kernel_ind_icon = $("#kernel_indicator_icon");
-        var $modal_ind_icon = $("#modal_indicator_icon");
+        var $modal_ind_icon = $("#modal_indicator");
+        var $body = $('body')
 
         // Command/Edit mode
         this.events.on('edit_mode.Notebook', function () {
             that.save_widget.update_document_title();
-            $modal_ind_icon.attr('class','edit_mode_icon').attr('title','Edit Mode');
+            $body.addClass('edit_mode');
+            $body.removeClass('command_mode');
+            $modal_ind_icon.attr('title','Edit Mode');
         });
 
         this.events.on('command_mode.Notebook', function () {
             that.save_widget.update_document_title();
-            $modal_ind_icon.attr('class','command_mode_icon').attr('title','Command Mode');
+            $body.removeClass('edit_mode');
+            $body.addClass('command_mode');
+            $modal_ind_icon.attr('title','Command Mode');
         });
 
         // Implicitly start off in Command mode, switching to Edit mode will trigger event
-        $modal_ind_icon.attr('class','command_mode_icon').attr('title','Command Mode');
+        $modal_ind_icon.addClass('modal_indicator').attr('title','Command Mode');
+        $body.addClass('command_mode')
 
         // Kernel events 
 

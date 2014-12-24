@@ -126,11 +126,6 @@ define([
         } else {
             this.element.addClass('unrendered');
         }
-        if (this.mode === 'edit') {
-            this.element.addClass('edit_mode');
-        } else {
-            this.element.addClass('command_mode');
-        }
     };
 
     /**
@@ -345,8 +340,6 @@ define([
      */
     Cell.prototype.command_mode = function () {
         if (this.mode !== 'command') {
-            this.element.addClass('command_mode');
-            this.element.removeClass('edit_mode');
             this.mode = 'command';
             return true;
         } else {
@@ -361,8 +354,6 @@ define([
      */
     Cell.prototype.edit_mode = function () {
         if (this.mode !== 'edit') {
-            this.element.addClass('edit_mode');
-            this.element.removeClass('command_mode');
             this.mode = 'edit';
             return true;
         } else {
