@@ -9766,7 +9766,7 @@ select[multiple].celltoolbar select {
 #menubar .navbar {
   border-top: 1px;
   border-radius: 0px 0px 2px 2px;
-  margin-bottom: 6px;
+  margin-bottom: -1px;
 }
 #menubar .navbar-toggle {
   float: left;
@@ -10296,7 +10296,7 @@ span.autosave_status {
 .toolbar {
   padding: 0px;
   margin-left: -5px;
-  margin-top: -5px;
+  margin-top: 2px;
   margin-bottom: 5px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
