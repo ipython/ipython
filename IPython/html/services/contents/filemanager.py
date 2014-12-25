@@ -512,19 +512,6 @@ class FileContentsManager(ContentsManager):
 
         return model
 
-    def update(self, model, path):
-        """Update the file's path
-
-        For use in PATCH requests, to enable renaming a file without
-        re-uploading its contents. Only used for renaming at the moment.
-        """
-        path = path.strip('/')
-        new_path = model.get('path', path).strip('/')
-        if path != new_path:
-            self.rename(path, new_path)
-        model = self.get(new_path, content=False)
-        return model
-
     def delete(self, path):
         """Delete file at path."""
         path = path.strip('/')
