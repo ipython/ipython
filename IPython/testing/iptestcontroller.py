@@ -673,8 +673,8 @@ def run_iptestall(options):
         elif options.coverage == 'xml':
             try:
                 cov.xml_report(outfile='ipy_coverage.xml')
-            except CoverageException:
-                pass
+            except CoverageException as e:
+                print('Generating coverage report failed. Are you running javascript tests only?')
 
     if failed:
         # Ensure that our exit code indicates failure
