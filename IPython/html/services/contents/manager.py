@@ -186,14 +186,6 @@ class ContentsManager(LoggingConfigurable):
         """
         raise NotImplementedError('must be implemented in a subclass')
 
-    def update(self, model, path):
-        """Update the file or directory and return the model with no content.
-
-        For use in PATCH requests, to enable renaming a file without
-        re-uploading its contents. Only used for renaming at the moment.
-        """
-        raise NotImplementedError('must be implemented in a subclass')
-
     def delete(self, path):
         """Delete file or directory by path."""
         raise NotImplementedError('must be implemented in a subclass')
@@ -219,6 +211,19 @@ class ContentsManager(LoggingConfigurable):
 
     # ContentsManager API part 2: methods that have useable default
     # implementations, but can be overridden in subclasses.
+
+    def update(self, model, path):
+        """Update the file's path
+
+        For use in PATCH requests, to enable renaming a file without
+        re-uploading its contents. Only used for renaming at the moment.
+        """
+        path = path.strip('/')
+        new_path = model.get('path', path).strip('/')
+        if path != new_path:
+            self.rename(path, new_path)
+        model = self.get(new_path, content=False)
+        return model
 
     def info_string(self):
         return "Serving contents"
