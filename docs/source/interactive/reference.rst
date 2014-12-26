@@ -146,8 +146,8 @@ use it:
     /home/fperez/ipython
 
 Line magics, if they return a value, can be assigned to a variable using the syntax
-``l = %sx ls`` (which returns the result of `ls` as a python list).  See :ref:`below <manual_capture>`
-for more information.
+``l = %sx ls`` (which in this particular case returns the result of `ls` as a python list).  
+See :ref:`below <manual_capture>` for more information.
 
 Type ``%magic`` for more information, including a list of all available magic
 functions at any time and their docstrings. You can also type
