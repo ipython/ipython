@@ -368,7 +368,7 @@ Manual capture of command output and magic output
 You can assign the result of a system command to a Python variable with the
 syntax ``myfiles = !ls``. Similarly, the result of a magic (as long as it returns
 a value) can be assigned to a variable.  For example, the syntax ``myfiles = %sx ls``
-is equivalent to the above system command example (the :magic:`sx` runs a shell command
+is equivalent to the above system command example (the :magic:`sx` magic runs a shell command
 and captures the output).  Each of these gets machine 
 readable output from stdout (e.g. without colours), and splits on newlines. To 
 explicitly get this sort of output without assigning to a variable, use two 
