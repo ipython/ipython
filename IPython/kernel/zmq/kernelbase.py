@@ -63,6 +63,9 @@ class Kernel(SingletonConfigurable):
     # This should be overridden by wrapper kernels that implement any real
     # language.
     language_info = {}
+    
+    # any links that should go in the help menu
+    help_links = List()
 
     # Private interface
     
@@ -457,6 +460,7 @@ class Kernel(SingletonConfigurable):
             'implementation_version': self.implementation_version,
             'language_info': self.language_info,
             'banner': self.banner,
+            'help_links': self.help_links,
         }
 
     def kernel_info_request(self, stream, ident, parent):

@@ -7,7 +7,7 @@ import traceback
 from IPython.core import release
 from IPython.utils.py3compat import builtin_mod, PY3
 from IPython.utils.tokenutil import token_at_cursor, line_at_cursor
-from IPython.utils.traitlets import Instance, Type, Any
+from IPython.utils.traitlets import Instance, Type, Any, List
 from IPython.utils.decorators import undoc
 
 from ..comm import CommManager
@@ -70,6 +70,37 @@ class IPythonKernel(KernelBase):
         comm_msg_types = [ 'comm_open', 'comm_msg', 'comm_close' ]
         for msg_type in comm_msg_types:
             self.shell_handlers[msg_type] = getattr(self.comm_manager, msg_type)
+    
+    help_links = List([
+        {
+            'text': "Python",
+            'url': "http://docs.python.org/%i.%i" % sys.version_info[:2],
+        },
+        {
+            'text': "IPython",
+            'url': "http://ipython.org/documentation.html",
+        },
+        {
+            'text': "NumPy",
+            'url': "http://docs.scipy.org/doc/numpy/reference/",
+        },
+        {
+            'text': "SciPy",
+            'url': "http://docs.scipy.org/doc/scipy/reference/",
+        },
+        {
+            'text': "Matplotlib",
+            'url': "http://matplotlib.org/contents.html",
+        },
+        {
+            'text': "SymPy",
+            'url': "http://docs.sympy.org/latest/index.html",
+        },
+        {
+            'text': "pandas",
+            'url': "http://pandas.pydata.org/pandas-docs/stable/",
+        },
+    ])
 
     # Kernel info fields
     implementation = 'ipython'
