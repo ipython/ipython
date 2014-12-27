@@ -366,7 +366,7 @@ define([
         index = Math.min(cells.length-1,index);
         index = Math.max(0             ,index);
         var scroll_value = cells[index].element.position().top-cells[0].element.position().top ;
-        this.element.animate({scrollTop:scroll_value}, time);
+        this.scroll_manager.element.animate({scrollTop:scroll_value}, time);
         return scroll_value;
     };
 
@@ -374,14 +374,14 @@ define([
      * Scroll to the bottom of the page.
      */
     Notebook.prototype.scroll_to_bottom = function () {
-        this.element.animate({scrollTop:this.element.get(0).scrollHeight}, 0);
+        this.scroll_manager.element.animate({scrollTop:this.element.get(0).scrollHeight}, 0);
     };
 
     /**
      * Scroll to the top of the page.
      */
     Notebook.prototype.scroll_to_top = function () {
-        this.element.animate({scrollTop:0}, 0);
+        this.scroll_manager.element.animate({scrollTop:0}, 0);
     };
 
     // Edit Notebook metadata
