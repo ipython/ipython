@@ -107,10 +107,10 @@ class KernelSpecManager(HasTraits):
         """Makes a kernel directory for the native kernel.
         
         The native kernel is the kernel using the same Python runtime as this
-        process. This will put its informatino in the user kernels directory.
+        process. This will put its information in the user kernels directory.
         """
         return {'argv': make_ipkernel_cmd(),
-                'display_name': 'IPython (Python %d)' % (3 if PY3 else 2),
+                'display_name': 'Python %i' % (3 if PY3 else 2),
                }
 
     @property
