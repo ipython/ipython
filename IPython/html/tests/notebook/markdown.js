@@ -2,6 +2,7 @@
 // Test that a Markdown cell is rendered to HTML.
 //
 casper.notebook_test(function () {
+    "use strict";
     // Test JavaScript models.
     var output = this.evaluate(function () {
         IPython.notebook.to_markdown();
@@ -56,7 +57,7 @@ casper.notebook_test(function () {
     for (var idx=0; idx < levels.length; idx++) {
         var level = levels[idx];
         level_text = set_level(level);
-        hashes = new Array(level + 1).join('#');
+        var hashes = new Array(level + 1).join('#');
         this.test.assertEquals(level_text, hashes + ' ' + text, 'markdown set_heading_level ' + level);
     }
 });

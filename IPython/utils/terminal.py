@@ -35,22 +35,17 @@ from . import py3compat
 ignore_termtitle = True
 
 
-def _term_clear():
-    pass
-
 
 if os.name == 'posix':
     def _term_clear():
         os.system('clear')
-
-
-if sys.platform == 'win32':
+elif sys.platform == 'win32':
     def _term_clear():
         os.system('cls')
+else:
+    def _term_clear():
+        pass
 
-
-def term_clear():
-    _term_clear()
 
 
 def toggle_set_term_title(val):
@@ -85,9 +80,7 @@ if os.name == 'posix':
     TERM = os.environ.get('TERM','')
     if TERM.startswith('xterm'):
         _set_term_title = _set_term_title_xterm
-
-
-if sys.platform == 'win32':
+elif sys.platform == 'win32':
     try:
         import ctypes
 
@@ -127,10 +120,6 @@ def freeze_term_title():
     ignore_termtitle = True
 
 
-def get_terminal_size(defaultx=80, defaulty=25):
-    return defaultx, defaulty
-
-
 if sys.platform == 'win32':
     def get_terminal_size(defaultx=80, defaulty=25):
         """Return size of current terminal console.
@@ -161,4 +150,7 @@ if sys.platform == 'win32':
             return (sizex, sizey)
         else:
             return (defaultx, defaulty)
+else:
+    def get_terminal_size(defaultx=80, defaulty=25):
+        return defaultx, defaulty
 

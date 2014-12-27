@@ -15,6 +15,7 @@ require([
     page,
     terminado
     ){
+    "use strict";
     page = new page.Page();
     // Test size: 25x80
     var termRowHeight = function(){ return 1.00 * $("#dummy-screen")[0].offsetHeight / 25;};
@@ -28,8 +29,8 @@ require([
     
     var header = $("#header")[0]
     function calculate_size() {
-        height = window.innerHeight - header.offsetHeight;
-        width = $('#terminado-container').width();
+        var height = window.innerHeight - header.offsetHeight;
+        var width = $('#terminado-container').width();
         var rows = Math.min(1000, Math.max(20, Math.floor(height/termRowHeight())-1));
         var cols = Math.min(1000, Math.max(40, Math.floor(width/termColWidth())-1));
         console.log("resize to :", rows , 'rows by ', cols, 'columns');
@@ -38,7 +39,7 @@ require([
     
     page.show_header();
     
-    size = calculate_size();
+    var size = calculate_size();
     var terminal = terminado.make_terminal($("#terminado-container")[0], size, ws_url);
     
     page.show_site();
