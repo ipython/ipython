@@ -250,9 +250,9 @@ define([
     var build_div = function (title, shortcuts) {
         var i, half, n;
         var div = $('<div/>').append($(title));
-        var sub_div = $('<div/>').addClass('hbox');
-        var col1 = $('<div/>').addClass('box-flex1');
-        var col2 = $('<div/>').addClass('box-flex1');
+        var sub_div = $('<div/>').addClass('container-fluid');
+        var col1 = $('<div/>').addClass('col-md-6');
+        var col2 = $('<div/>').addClass('col-md-6');
         n = shortcuts.length;
         half = ~~(n/2);  // Truncate :)
         for (i=0; i<half; i++) { col1.append( build_one(shortcuts[i]) ); }
