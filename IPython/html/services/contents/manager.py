@@ -147,8 +147,8 @@ class ContentsManager(LoggingConfigurable):
                 self.log.error("Pre-save hook failed on %s", path, exc_info=True)
 
     checkpoint_manager_class = Type(CheckpointManager, config=True)
-    checkpoint_manager = Instance(CheckpointManager)
-    checkpoint_manager_kwargs = Dict(allow_none=False)
+    checkpoint_manager = Instance(CheckpointManager, config=True)
+    checkpoint_manager_kwargs = Dict(allow_none=False, config=True)
 
     def _checkpoint_manager_default(self):
         return self.checkpoint_manager_class(**self.checkpoint_manager_kwargs)
