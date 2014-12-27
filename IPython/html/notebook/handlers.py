@@ -26,7 +26,7 @@ class NotebookHandler(IPythonHandler):
         try:
             model = cm.get(path, content=False)
         except web.HTTPError as e:
-            if e.code == 404 and 'files' in path.split('/'):
+            if e.status_code == 404 and 'files' in path.split('/'):
                 # 404, but '/files/' in URL, let FilesRedirect take care of it
                 return FilesRedirectHandler.get(self, path)
             else:
