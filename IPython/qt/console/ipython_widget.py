@@ -239,9 +239,7 @@ class IPythonWidget(FrontendWidget):
 
     
     def _handle_execute_result(self, msg):
-        """ Reimplemented for IPython-style "display hook".
-        """
-        self.log.debug("execute_result: %s", msg.get('content', ''))
+        """Reimplemented for IPython-style "display hook"."""
         if self.include_output(msg):
             self.flush_clearoutput()
             content = msg['content']
@@ -258,9 +256,7 @@ class IPythonWidget(FrontendWidget):
                 self._append_plain_text(text + self.output_sep2, True)
 
     def _handle_display_data(self, msg):
-        """ The base handler for the ``display_data`` message.
-        """
-        self.log.debug("display: %s", msg.get('content', ''))
+        """The base handler for the ``display_data`` message."""
         # For now, we don't display data from other frontends, but we
         # eventually will as this allows all frontends to monitor the display
         # data. But we need to figure out how to handle this in the GUI.
