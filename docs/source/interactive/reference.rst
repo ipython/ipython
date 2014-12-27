@@ -114,7 +114,7 @@ then just type ``cd mydir`` to go to directory 'mydir'::
       In [9]: cd mydir
       /home/fperez/mydir
 
-Note that cell magics *always* require an explicit ``%%`` prefix, automagic
+Cell magics *always* require an explicit ``%%`` prefix, automagic
 calling only works for line magics.
       
 The automagic system has the lowest possible precedence in name searches, so
@@ -210,7 +210,7 @@ information about your working environment:
       identifiers and %whos prints a table with some basic details about
       each identifier.
 
-Note that the dynamic object information functions (?/??, ``%pdoc``,
+The dynamic object information functions (?/??, ``%pdoc``,
 ``%pfile``, ``%pdef``, ``%psource``) work on object attributes, as well as
 directly on variables. For example, after doing ``import os``, you can use
 ``os.path.abspath??``.
@@ -373,7 +373,7 @@ and captures the output).  Each of these gets machine
 readable output from stdout (e.g. without colours), and splits on newlines. To 
 explicitly get this sort of output without assigning to a variable, use two 
 exclamation marks (``!!ls``) or the :magic:`sx` magic command without an assignment.
-(Note that ``!!`` commands cannot be assigned to a variable.)
+(However, ``!!`` commands cannot be assigned to a variable.)
 
 The captured list in this example has some convenience features. ``myfiles.n`` or ``myfiles.s``
 returns a string delimited by newlines or spaces, respectively. ``myfiles.p``
