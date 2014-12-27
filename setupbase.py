@@ -24,9 +24,10 @@ from distutils.command.build_scripts import build_scripts
 from distutils.command.install import install
 from distutils.command.install_scripts import install_scripts
 from distutils.cmd import Command
+from distutils.errors import DistutilsExecError
 from fnmatch import fnmatch
 from glob import glob
-from subprocess import check_call
+from subprocess import Popen, PIPE
 
 from setupext import install_data_ext
 
@@ -712,7 +713,15 @@ class CompileCSS(Command):
             cmd.append('--minify')
         if self.force:
             cmd.append('--force')
-        check_call(cmd, cwd=pjoin(repo_root, "IPython", "html"))
+        try:
+            p = Popen(cmd, cwd=pjoin(repo_root, "IPython", "html"), stderr=PIPE)
+        except OSError:
+            raise DistutilsExecError("invoke is required to rebuild css (pip install invoke)")
+        out, err = p.communicate()
+        if p.returncode:
+            if sys.version_info[0] >= 3:
+                err = err.decode('utf8', 'replace')
+            raise DistutilsExecError(err.strip())
 
 
 class JavascriptVersion(Command):
@@ -750,6 +759,7 @@ def css_js_prerelease(command, strict=True):
                 if strict:
                     raise
                 else:
-                    log.warn("Failed to build css sourcemaps: %s" % e)
+                    log.warn("rebuilding css and sourcemaps failed (not a problem)")
+                    log.warn(str(e))
             command.run(self)
     return DecoratedCommand
