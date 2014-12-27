@@ -129,7 +129,11 @@ class RichIPythonWidget(IPythonWidget):
                 self._append_html(self.output_sep2, True)
             elif 'text/latex' in data:
                 self._pre_image_append(msg, prompt_number)
-                png = latex_to_png(data['text/latex'], wrap=False)
+                try:
+                    png = latex_to_png(data['text/latex'], wrap=False)
+                except Exception:
+                    self.log.error("Failed to render latex: %r", data['text/latex'], exc_info=True)
+                    png = None
                 if png is not None:
                     self._append_png(png, True)
                     self._append_html(self.output_sep2, True)
