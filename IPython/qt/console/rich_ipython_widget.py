@@ -171,9 +171,7 @@ class RichIPythonWidget(IPythonWidget):
             png = latex_to_png(latex, wrap=False)
         except Exception as e:
             self.log.error("Failed to render latex: '%s'", latex, exc_info=True)
-            self._append_plain_text("Failed to render latex:\n%s\nError was: %s" % (
-                latex, e,
-            ), before_prompt)
+            self._append_plain_text("Failed to render latex: %s" % e, before_prompt)
         else:
             self._append_png(png, before_prompt, metadata)
 
