@@ -178,7 +178,14 @@ class link(object):
 
     Parameters
     ----------
-    obj : pairs of objects/attributes
+    args : pairs of objects/attributes
+    success (optional) : a callback run if the synchronization is successsful.
+    failure (optional) : a callback run if the synchronization raises a trait error.
+                         The `failure` callback takes the trait error as an argument.
+    
+    Notes
+    -----
+        If no failure callback is provided, trait errors are re-raised.
 
     Examples
     --------
@@ -187,19 +194,31 @@ class link(object):
     >>> obj1.value = 5 # updates other objects as well
     """
     updating = False
-    def __init__(self, *args):
+    def __init__(self, *args, **kwargs):
         if len(args) < 2:
             raise TypeError('At least two traitlets must be provided.')
 
         self.objects = {}
-
+        self.failure = kwargs.get('failure')
+        self.success = kwargs.get('success')
         initial = getattr(args[0][0], args[0][1])
-        for obj, attr in args:
-            setattr(obj, attr, initial)
 
-            callback = self._make_closure(obj, attr)
-            obj.on_trait_change(callback, attr)
-            self.objects[(obj, attr)] = callback
+        try:
+            for obj, attr in args:
+                setattr(obj, attr, initial)
+            if self.success is not None:
+                self.success()
+        except TraitError as e:
+            if self.failure is not None:
+                self.failure(e)
+            else:
+                self.unlink()
+                raise e
+        finally:
+            for obj, attr in args:
+                callback = self._make_closure(obj, attr)
+                obj.on_trait_change(callback, attr)
+                self.objects[(obj, attr)] = callback
 
     @contextlib.contextmanager
     def _busy_updating(self):
@@ -218,8 +237,16 @@ class link(object):
         if self.updating:
             return
         with self._busy_updating():
-            for obj, attr in self.objects.keys():
-                setattr(obj, attr, new)
+            try:
+                for obj, attr in self.objects.keys():
+                    setattr(obj, attr, new)
+                if self.success is not None:
+                    self.success()
+            except TraitError as e:
+                if self.failure is not None:
+                    self.failure(e)
+                else:
+                    raise e
 
     def unlink(self):
         for key, callback in self.objects.items():
@@ -234,6 +261,13 @@ class directional_link(object):
     ----------
     source : pair of object, name
     targets : pairs of objects/attributes
+    success (optional) : a callback run if the synchronization is successsful.
+    failure (optional) : a callback run if the synchronization raises a trait error.
+                         The `failure` callback takes the trait error as an argument.
+
+    Notes
+    -----
+        If no failure callback is provided, trait errors are re-raised.
 
     Examples
     --------
@@ -244,17 +278,26 @@ class directional_link(object):
     """
     updating = False
 
-    def __init__(self, source, *targets):
+    def __init__(self, source, *targets, **kwargs):
         self.source = source
         self.targets = targets
-
+        self.failure = kwargs.get('failure')
+        self.success = kwargs.get('success')
         # Update current value
         src_attr_value = getattr(source[0], source[1])
-        for obj, attr in targets:
-            setattr(obj, attr, src_attr_value)
-
-        # Wire
-        self.source[0].on_trait_change(self._update, self.source[1])
+        try:
+            for obj, attr in targets:
+                setattr(obj, attr, src_attr_value)
+            if self.success is not None:
+                self.success()
+        except TraitError as e:
+            if self.failure is not None:
+                self.failure(e)
+            else:
+                self.unlink()
+                raise e
+        finally:
+            self.source[0].on_trait_change(self._update, self.source[1])
 
     @contextlib.contextmanager
     def _busy_updating(self):
@@ -268,17 +311,25 @@ class directional_link(object):
         if self.updating:
             return
         with self._busy_updating():
-            for obj, attr in self.targets:
-                setattr(obj, attr, new)
+            try:
+                for obj, attr in self.targets:
+                    setattr(obj, attr, new)
+                if self.success is not None:
+                    self.success()
+            except TraitError as e:
+                if self.failure is not None:
+                    self.failure(e)
+                else:
+                    raise e
 
     def unlink(self):
         self.source[0].on_trait_change(self._update, self.source[1], remove=True)
         self.source = None
         self.targets = []
 
-def dlink(source, *targets):
+def dlink(source, *targets, **kwargs):
     """Shorter helper function returning a directional_link object"""
-    return directional_link(source, *targets)
+    return directional_link(source, *targets, **kwargs)
 
 #-----------------------------------------------------------------------------
 # Base TraitType for all traits
