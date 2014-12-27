@@ -153,20 +153,29 @@ class RichIPythonWidget(IPythonWidget):
             metadata = msg['content']['metadata']
             # Try to use the svg or html representations.
             # FIXME: Is this the right ordering of things to try?
+            self.log.debug("display: %s", msg.get('content', ''))
             if 'image/svg+xml' in data:
-                self.log.debug("display: %s", msg.get('content', ''))
                 svg = data['image/svg+xml']
                 self._append_svg(svg, True)
             elif 'image/png' in data:
-                self.log.debug("display: %s", msg.get('content', ''))
                 # PNG data is base64 encoded as it passes over the network
                 # in a JSON structure so we decode it.
                 png = decodestring(data['image/png'].encode('ascii'))
                 self._append_png(png, True, metadata=metadata.get('image/png', None))
             elif 'image/jpeg' in data and self._jpg_supported:
-                self.log.debug("display: %s", msg.get('content', ''))
                 jpg = decodestring(data['image/jpeg'].encode('ascii'))
                 self._append_jpg(jpg, True, metadata=metadata.get('image/jpeg', None))
+            elif 'text/latex' in data:
+                try:
+                    png = latex_to_png(data['text/latex'], wrap=False)
+                except Exception:
+                    self.log.error("Failed to render latex: %r", data['text/latex'], exc_info=True)
+                    png = None
+                if png is not None:
+                    self._append_png(png, True)
+                else:
+                    # Print plain text if png can't be generated
+                    return super(RichIPythonWidget, self)._handle_display_data(msg)
             else:
                 # Default back to the plain text representation.
                 return super(RichIPythonWidget, self)._handle_display_data(msg)
