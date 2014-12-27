@@ -84,11 +84,16 @@ class TestFileContentsManager(TestCase):
             root = td
             os.mkdir(os.path.join(td, subd))
             fm = FileContentsManager(root_dir=root)
-            cp_dir = fm.get_checkpoint_path('cp', 'test.ipynb')
-            cp_subdir = fm.get_checkpoint_path('cp', '/%s/test.ipynb' % subd)
+            cpm = fm.checkpoint_manager
+            cp_dir = cpm.get_checkpoint_path(
+                'cp', 'test.ipynb'
+            )
+            cp_subdir = cpm.get_checkpoint_path(
+                'cp', '/%s/test.ipynb' % subd
+            )
         self.assertNotEqual(cp_dir, cp_subdir)
-        self.assertEqual(cp_dir, os.path.join(root, fm.checkpoint_dir, cp_name))
-        self.assertEqual(cp_subdir, os.path.join(root, subd, fm.checkpoint_dir, cp_name))
+        self.assertEqual(cp_dir, os.path.join(root, cpm.checkpoint_dir, cp_name))
+        self.assertEqual(cp_subdir, os.path.join(root, subd, cpm.checkpoint_dir, cp_name))
     
     @dec.skip_win32
     def test_bad_symlink(self):

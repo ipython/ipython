@@ -15,10 +15,59 @@ from IPython.config.configurable import LoggingConfigurable
 from IPython.nbformat import sign, validate, ValidationError
 from IPython.nbformat.v4 import new_notebook
 from IPython.utils.importstring import import_item
-from IPython.utils.traitlets import Instance, Unicode, List, Any, TraitError
+from IPython.utils.traitlets import (
+    Any,
+    Dict,
+    Instance,
+    List,
+    TraitError,
+    Type,
+    Unicode,
+)
 from IPython.utils.py3compat import string_types
 
 copy_pat = re.compile(r'\-Copy\d*\.')
+
+
+class CheckpointManager(LoggingConfigurable):
+    """
+    Base class for managing checkpoints for a ContentsManager.
+    """
+
+    def create_checkpoint(self, path):
+        """Create a checkpoint of the current state of a file
+
+        Returns a checkpoint_id for the new checkpoint.
+        """
+        raise NotImplementedError("must be implemented in a subclass")
+
+    def rename_checkpoint(self, checkpoint_id, old_path, new_path):
+        """Rename a checkpoint from old_path to new_path."""
+        raise NotImplementedError("must be implemented in a subclass")
+
+    def delete_checkpoint(self, checkpoint_id, path):
+        """delete a checkpoint for a file"""
+        raise NotImplementedError("must be implemented in a subclass")
+
+    def restore_checkpoint(self, checkpoint_id, path):
+        """Restore a file from one of its checkpoints"""
+        raise NotImplementedError("must be implemented in a subclass")
+
+    def list_checkpoints(self, path):
+        """Return a list of checkpoints for a given file"""
+        raise NotImplementedError("must be implemented in a subclass")
+
+    def rename_all_checkpoints(self, old_path, new_path):
+        """Rename all checkpoints for old_path to new_path."""
+        old_checkpoints = self.list_checkpoints(old_path)
+        for cp in old_checkpoints:
+            self.rename_checkpoint(cp['id'], old_path, new_path)
+
+    def delete_all_checkpoints(self, path):
+        """Delete all checkpoints for the given path."""
+        for checkpoint in self.list_checkpoints(path):
+            self.delete_checkpoint(checkpoint['id'], path)
+
 
 class ContentsManager(LoggingConfigurable):
     """Base class for serving files and directories.
@@ -96,6 +145,19 @@ class ContentsManager(LoggingConfigurable):
                 self.pre_save_hook(model=model, path=path, contents_manager=self, **kwargs)
             except Exception:
                 self.log.error("Pre-save hook failed on %s", path, exc_info=True)
+
+    checkpoint_manager_class = Type(CheckpointManager, config=True)
+    checkpoint_manager = Instance(CheckpointManager)
+    checkpoint_manager_kwargs = Dict(allow_none=False)
+
+    def _checkpoint_manager_default(self):
+        return self.checkpoint_manager_class(**self.checkpoint_manager_kwargs)
+
+    def _checkpoint_manager_kwargs_default(self):
+        return dict(
+            parent=self,
+            log=self.log,
+        )
 
     # ContentsManager API part 1: methods that must be
     # implemented in subclasses.
@@ -186,31 +248,26 @@ class ContentsManager(LoggingConfigurable):
         """
         raise NotImplementedError('must be implemented in a subclass')
 
-    def delete(self, path):
+    def delete_file(self, path):
         """Delete file or directory by path."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def create_checkpoint(self, path):
-        """Create a checkpoint of the current state of a file
-
-        Returns a checkpoint_id for the new checkpoint.
-        """
-        raise NotImplementedError("must be implemented in a subclass")
-
-    def list_checkpoints(self, path):
-        """Return a list of checkpoints for a given file"""
-        return []
-
-    def restore_checkpoint(self, checkpoint_id, path):
-        """Restore a file from one of its checkpoints"""
-        raise NotImplementedError("must be implemented in a subclass")
-
-    def delete_checkpoint(self, checkpoint_id, path):
-        """delete a checkpoint for a file"""
-        raise NotImplementedError("must be implemented in a subclass")
+    def rename_file(self, old_path, new_path):
+        """Rename a file."""
+        raise NotImplementedError('must be implemented in a subclass')
 
     # ContentsManager API part 2: methods that have useable default
     # implementations, but can be overridden in subclasses.
+
+    def delete(self, path):
+        """Delete a file/directory and any associated checkpoints."""
+        self.delete_file(path)
+        self.checkpoint_manager.delete_all_checkpoints(path)
+
+    def rename(self, old_path, new_path):
+        """Rename a file and any checkpoints associated with that file."""
+        self.rename_file(old_path, new_path)
+        self.checkpoint_manager.rename_all_checkpoints(old_path, new_path)
 
     def update(self, model, path):
         """Update the file's path
@@ -431,3 +488,24 @@ class ContentsManager(LoggingConfigurable):
     def should_list(self, name):
         """Should this file/directory name be displayed in a listing?"""
         return not any(fnmatch(name, glob) for glob in self.hide_globs)
+
+    # Part 3: Checkpoints API
+    # By default, all methods are forwarded to our CheckpointManager instance.
+    def create_checkpoint(self, path):
+        return self.checkpoint_manager.create_checkpoint(path)
+
+    def rename_checkpoint(self, checkpoint_id, old_path, new_path):
+        return self.checkpoint_manager.rename_checkpoint(
+            checkpoint_id,
+            old_path,
+            new_path,
+        )
+
+    def list_checkpoints(self, path):
+        return self.checkpoint_manager.list_checkpoints(path)
+
+    def restore_checkpoint(self, checkpoint_id, path):
+        return self.checkpoint_manager.restore_checkpoint(checkpoint_id, path)
+
+    def delete_checkpoint(self, checkpoint_id, path):
+        return self.checkpoint_manager.delete_checkpoint(checkpoint_id, path)
