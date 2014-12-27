@@ -464,7 +464,13 @@ class TrailingSlashHandler(web.RequestHandler):
 
 class FilesRedirectHandler(IPythonHandler):
     """Handler for redirecting relative URLs to the /files/ handler"""
-    def get(self, path=''):
+    
+    @staticmethod
+    def redirect_to_files(self, path):
+        """make redirect logic a reusable static method
+        
+        so it can be called from other handlers.
+        """
         cm = self.contents_manager
         if cm.dir_exists(path):
             # it's a *directory*, redirect to /tree
@@ -488,6 +494,9 @@ class FilesRedirectHandler(IPythonHandler):
         url = url_escape(url)
         self.log.debug("Redirecting %s to %s", self.request.path, url)
         self.redirect(url)
+    
+    def get(self, path=''):
+        return self.redirect_to_files(self, path)
 
 
 #-----------------------------------------------------------------------------

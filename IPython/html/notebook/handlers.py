@@ -28,12 +28,12 @@ class NotebookHandler(IPythonHandler):
         except web.HTTPError as e:
             if e.status_code == 404 and 'files' in path.split('/'):
                 # 404, but '/files/' in URL, let FilesRedirect take care of it
-                return FilesRedirectHandler.get(self, path)
+                return FilesRedirectHandler.redirect_to_files(self, path)
             else:
                 raise
         if model['type'] != 'notebook':
             # not a notebook, redirect to files
-            return FilesRedirectHandler.get(self, path)
+            return FilesRedirectHandler.redirect_to_files(self, path)
         name = url_escape(path.rsplit('/', 1)[-1])
         path = url_escape(path)
         self.write(self.render_template('notebook.html',
