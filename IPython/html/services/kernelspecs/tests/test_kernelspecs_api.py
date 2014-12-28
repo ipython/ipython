@@ -99,17 +99,20 @@ class APITest(NotebookTestBase):
         self.assertGreaterEqual(len(specs), 2)
 
         def is_sample_kernelspec(s):
-            return s['name'] == 'sample' and s['display_name'] == 'Test kernel'
+            return s['name'] == 'sample' and s['spec']['display_name'] == 'Test kernel'
 
         def is_default_kernelspec(s):
-            return s['name'] == NATIVE_KERNEL_NAME and s['display_name'].startswith("IPython")
+            return s['name'] == NATIVE_KERNEL_NAME and s['spec']['display_name'].startswith("IPython")
 
         assert any(is_sample_kernelspec(s) for s in specs.values()), specs
         assert any(is_default_kernelspec(s) for s in specs.values()), specs
 
     def test_get_kernelspec(self):
-        spec = self.ks_api.kernel_spec_info('Sample').json()  # Case insensitive
-        self.assertEqual(spec['display_name'], 'Test kernel')
+        model = self.ks_api.kernel_spec_info('Sample').json()  # Case insensitive
+        self.assertEqual(model['name'].lower(), 'sample')
+        self.assertIsInstance(model['spec'], dict)
+        self.assertEqual(model['spec']['display_name'], 'Test kernel')
+        self.assertIsInstance(model['resources'], dict)
 
     def test_get_nonexistant_kernelspec(self):
         with assert_http_error(404):

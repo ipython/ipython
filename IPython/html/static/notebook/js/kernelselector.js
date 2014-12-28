@@ -35,8 +35,8 @@ define([
         var change_kernel_submenu = $("#menu-change-kernel-submenu");
         var keys = Object.keys(data.kernelspecs).sort(function (a, b) {
             // sort by display_name
-            var da = data.kernelspecs[a].display_name;
-            var db = data.kernelspecs[b].display_name;
+            var da = data.kernelspecs[a].spec.display_name;
+            var db = data.kernelspecs[b].spec.display_name;
             if (da === db) {
                 return 0;
             } else if (da > db) {
@@ -50,7 +50,7 @@ define([
             var ks_submenu_entry = $("<li>").attr("id", "kernel-submenu-"+ks.name).append($('<a>')
                 .attr('href', '#')
                 .click($.proxy(this.change_kernel, this, ks.name))
-                .text(ks.display_name));
+                .text(ks.spec.display_name));
             change_kernel_submenu.append(ks_submenu_entry);
         }
     };
@@ -59,25 +59,17 @@ define([
         /**
          * TODO, have a methods to set kernel spec directly ?
          **/
-        var that = this;
         if (kernel_name === this.current_selection) {
             return;
         }
         var ks = this.kernelspecs[kernel_name];
-        var new_mode_url = 'kernelspecs/'+ks.name+'/kernel';
-
-        var css_url = this.notebook.base_url+new_mode_url+'.css';
-        $.ajax({
-            type: 'HEAD',
-            url: css_url,
-            success: function(){
-                $('#kernel-css')
-                .attr('href',css_url);
-            },
-            error:function(){
-                console.info("No custom kernel.css at URL:", css_url)
-            }
-        });
+        
+        var css_url = ks.resources['kernel.css'];
+        if (css_url) {
+            $('#kernel-css').attr('href', css_url);
+        } else {
+            $('#kernel-css').attr('href', '');
+        }
 
         try {
             this.notebook.start_session(kernel_name);
@@ -92,26 +84,23 @@ define([
             return;
         }
         this.events.trigger('spec_changed.Kernel', ks);
-
-
-        // load new mode kernel.js if exist
-        require([new_mode_url],
-            // if new mode has custom.js
-            function(new_mode){
-                that.lock_switch();
-                if(new_mode && new_mode.onload){
-                    new_mode.onload();
-                } else {
-                    console.warn("The current kernel defined a kernel.js file but does not contain "+
-                                 "any asynchronous module definition. This is undefined behavior "+
-                                 "which is not recommended");
+        
+        if (ks.resources['kernel.js']) {
+            require([ks.resources['kernel.js']],
+                function (kernel_mod) {
+                    if (kernel_mod && kernel_mod.onload) {
+                        kernel_mod.onload();
+                    } else {
+                        console.warn("Kernel " + ks.name + " has a kernel.js file that does not contain "+
+                                     "any asynchronous module definition. This is undefined behavior "+
+                                     "and not recommended.");
+                    }
+                }, function (err) {
+                    console.warn("Failed to load kernel.js from ", ks.resources['kernel.js'], err);
                 }
-            },
-            function(err){
-                // if new mode does not have custom.js
-                console.info("No custom kernel.css at URL:", new_mode_url)
-            }
-        );
+            );
+        }
+
     };
 
     KernelSelector.prototype.lock_switch = function() {
@@ -123,10 +112,16 @@ define([
 
     KernelSelector.prototype.bind_events = function() {
         var that = this;
+        var logo_img = this.element.find("img.current_kernel_logo");
         this.events.on('spec_changed.Kernel', function(event, data) {
             that.current_selection = data.name;
-            $("#kernel_indicator").find('.kernel_indicator_name').text(data.display_name);
-            that.element.find("img.current_kernel_logo").attr("src", that.notebook.base_url + "kernelspecs/" + data.name + "/logo-64x64.png");
+            $("#kernel_indicator").find('.kernel_indicator_name').text(data.spec.display_name);
+            if (data.resources['logo-64x64']) {
+                logo_img.attr("src", data.resources['logo-64x64']);
+                logo_img.show();
+            } else {
+                logo_img.hide();
+            }
         });
 
         this.events.on('kernel_created.Session', function(event, data) {
@@ -139,7 +134,6 @@ define([
             }
         });
         
-        var logo_img = this.element.find("img.current_kernel_logo");
         logo_img.on("load", function() {
             logo_img.show();
         });
