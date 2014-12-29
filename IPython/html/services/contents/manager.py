@@ -11,6 +11,7 @@ import re
 
 from tornado.web import HTTPError
 
+from IPython import nbformat
 from IPython.config.configurable import LoggingConfigurable
 from IPython.nbformat import sign, validate, ValidationError
 from IPython.nbformat.v4 import new_notebook
@@ -34,23 +35,27 @@ class CheckpointManager(LoggingConfigurable):
     Base class for managing checkpoints for a ContentsManager.
     """
 
-    def create_checkpoint(self, path):
+    def create_checkpoint(self, nb, path):
         """Create a checkpoint of the current state of a file
 
         Returns a checkpoint_id for the new checkpoint.
         """
         raise NotImplementedError("must be implemented in a subclass")
 
+    def get_checkpoint_content(self, checkpoint_id, path):
+        """Get the content of a checkpoint.
+
+        Returns an unvalidated model with the same structure as
+        the return value of ContentsManager.get
+        """
+        raise NotImplementedError("must be implemented in a subclass")
+
     def rename_checkpoint(self, checkpoint_id, old_path, new_path):
-        """Rename a checkpoint from old_path to new_path."""
+        """Rename a single checkpoint from old_path to new_path."""
         raise NotImplementedError("must be implemented in a subclass")
 
     def delete_checkpoint(self, checkpoint_id, path):
         """delete a checkpoint for a file"""
-        raise NotImplementedError("must be implemented in a subclass")
-
-    def restore_checkpoint(self, checkpoint_id, path):
-        """Restore a file from one of its checkpoints"""
         raise NotImplementedError("must be implemented in a subclass")
 
     def list_checkpoints(self, path):
@@ -59,8 +64,7 @@ class CheckpointManager(LoggingConfigurable):
 
     def rename_all_checkpoints(self, old_path, new_path):
         """Rename all checkpoints for old_path to new_path."""
-        old_checkpoints = self.list_checkpoints(old_path)
-        for cp in old_checkpoints:
+        for cp in self.list_checkpoints(old_path):
             self.rename_checkpoint(cp['id'], old_path, new_path)
 
     def delete_all_checkpoints(self, path):
@@ -490,22 +494,34 @@ class ContentsManager(LoggingConfigurable):
         return not any(fnmatch(name, glob) for glob in self.hide_globs)
 
     # Part 3: Checkpoints API
-    # By default, all methods are forwarded to our CheckpointManager instance.
     def create_checkpoint(self, path):
-        return self.checkpoint_manager.create_checkpoint(path)
+        """Create a checkpoint."""
 
-    def rename_checkpoint(self, checkpoint_id, old_path, new_path):
-        return self.checkpoint_manager.rename_checkpoint(
-            checkpoint_id,
-            old_path,
-            new_path,
-        )
+        nb = nbformat.from_dict(self.get(path, content=True)['content'])
+        self.check_and_sign(nb, path)
+        return self.checkpoint_manager.create_checkpoint(nb, path)
 
     def list_checkpoints(self, path):
         return self.checkpoint_manager.list_checkpoints(path)
 
     def restore_checkpoint(self, checkpoint_id, path):
-        return self.checkpoint_manager.restore_checkpoint(checkpoint_id, path)
+        """
+        Restore a checkpoint.
+        """
+        nb = self.checkpoint_manager.get_checkpoint_content(
+            checkpoint_id,
+            path,
+        )
+
+        self.mark_trusted_cells(nb, path)
+
+        model = {
+            'content': nb,
+            'type': 'notebook',
+        }
+
+        self.validate_notebook_model(model)
+        return self.save(model, path)
 
     def delete_checkpoint(self, checkpoint_id, path):
         return self.checkpoint_manager.delete_checkpoint(checkpoint_id, path)
