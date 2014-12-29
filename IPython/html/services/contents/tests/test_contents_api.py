@@ -2,6 +2,7 @@
 """Test the contents webservice API."""
 
 import base64
+from contextlib import contextmanager
 import io
 import json
 import os
@@ -21,6 +22,7 @@ from IPython.nbformat.v4 import (
 from IPython.nbformat import v2
 from IPython.utils import py3compat
 from IPython.utils.data import uniq_stable
+from IPython.utils.tempdir import TemporaryDirectory
 
 
 def notebooks_only(dir_model):
@@ -502,7 +504,6 @@ class APITest(NotebookTestBase):
         self.assertEqual(newnb.cells[0].source,
                          u'Created by test ³')
 
-
     def test_checkpoints(self):
         resp = self.api.read('foo/a.ipynb')
         r = self.api.new_checkpoint('foo/a.ipynb')
@@ -540,3 +541,28 @@ class APITest(NotebookTestBase):
         self.assertEqual(r.status_code, 204)
         cps = self.api.get_checkpoints('foo/a.ipynb').json()
         self.assertEqual(cps, [])
+
+    @contextmanager
+    def patch_cp_root(self, dirname):
+        """
+        Temporarily patch the root dir of our checkpoint manager.
+        """
+        cpm = self.notebook.contents_manager.checkpoint_manager
+        old_dirname = cpm.root_dir
+        cpm.root_dir = dirname
+        try:
+            yield
+        finally:
+            cpm.root_dir = old_dirname
+
+    def test_checkpoints_separate_root(self):
+        """
+        Test that FileCheckpointManager functions correctly even when it's
+        using a different root dir from FileContentsManager.  This also keeps
+        the implementation honest for use with ContentsManagers that don't map
+        models to the filesystem
+        """
+
+        with TemporaryDirectory() as td:
+            with self.patch_cp_root(td):
+                self.test_checkpoints()
