@@ -42,8 +42,8 @@ define([
         this.kernelspecs = data.kernelspecs;
         var menu = this.element.find("#notebook-kernels");
         var keys = Object.keys(data.kernelspecs).sort(function (a, b) {
-            var da = data.kernelspecs[a].display_name;
-            var db = data.kernelspecs[b].display_name;
+            var da = data.kernelspecs[a].spec.display_name;
+            var db = data.kernelspecs[b].spec.display_name;
             if (da === db) {
                 return 0;
             } else if (da > db) {
@@ -60,8 +60,8 @@ define([
                     $('<a>')
                         .attr('href', '#')
                         .click($.proxy(this.new_notebook, this, ks.name))
-                        .text(ks.display_name)
-                        .attr('title', 'Create a new notebook with ' + ks.display_name)
+                        .text(ks.spec.display_name)
+                        .attr('title', 'Create a new notebook with ' + ks.spec.display_name)
                 );
             menu.after(li);
         }
