@@ -10483,7 +10483,18 @@ span.autosave_status {
   -ms-transform: rotate(45deg);
   -o-transform: rotate(45deg);
 }
-.terminal {
+body.terminal-app {
+  background: #eeeeee;
+}
+body.terminal-app #header {
+  background: #ffffff;
+  -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
+  box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
+}
+body.terminal-app #header .header-bar {
+  margin-bottom: -1px;
+}
+body.terminal-app .terminal {
   float: left;
   font-family: monospace;
   color: white;
@@ -10493,16 +10504,16 @@ span.autosave_status {
   -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.4);
   box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.4);
 }
-.terminal,
-.terminal dummy-screen {
+body.terminal-app .terminal,
+body.terminal-app .terminal dummy-screen {
   line-height: 1em;
   font-size: 14px;
 }
-.terminal-cursor {
+body.terminal-app .terminal-cursor {
   color: black;
   background: white;
 }
-#terminado-container {
+body.terminal-app #terminado-container {
   margin-top: 20px;
 }
 /*# sourceMappingURL=style.min.css.map */
