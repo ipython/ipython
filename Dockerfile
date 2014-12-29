@@ -57,8 +57,8 @@ RUN pip2 install file:///srv/ipython#egg=ipython[all]
 RUN pip3 install file:///srv/ipython#egg=ipython[all]
 
 # install kernels
-RUN python2 -m IPython kernelspec install-self --system
-RUN python3 -m IPython kernelspec install-self --system
+RUN python2 -m IPython kernelspec install-self
+RUN python3 -m IPython kernelspec install-self
 
 WORKDIR /tmp/
 
