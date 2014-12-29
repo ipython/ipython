@@ -52,7 +52,11 @@ define([
                 return -1;
             }
         });
-        for (var i = 0; i < keys.length; i++) {
+
+        // Create the kernel list in reverse order because
+        // the .after insertion causes each item to be added
+        // to the top of the list.
+        for (var i = keys.length - 1; i >= 0; i--) {
             var ks = this.kernelspecs[keys[i]];
             var li = $("<li>")
                 .attr("id", "kernel-" +ks.name)
