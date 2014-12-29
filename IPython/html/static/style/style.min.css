@@ -9223,7 +9223,7 @@ h6:hover .anchor-link {
   /* Fix the padding of the slide track so the ui-slider is sized 
     correctly. */
   padding-left: 8px;
-  padding-right: 5px;
+  padding-right: 2px;
   overflow: visible;
   /* Default size of the slider */
   width: 350px;
@@ -9255,8 +9255,8 @@ h6:hover .anchor-link {
 }
 .widget-hslider .ui-slider {
   /* Inner, invisible slide div */
-  border: 0px !important;
-  background: none !important;
+  border: 0px;
+  background: none;
   /* Old browsers */
   display: -webkit-box;
   -webkit-box-orient: horizontal;
@@ -9279,19 +9279,21 @@ h6:hover .anchor-link {
   flex: 1;
 }
 .widget-hslider .ui-slider .ui-slider-handle {
-  width: 14px !important;
-  height: 28px !important;
-  margin-top: -8px !important;
+  width: 12px;
+  height: 28px;
+  margin-top: -8px;
+  border-radius: 2px;
 }
 .widget-hslider .ui-slider .ui-slider-range {
-  height: 12px !important;
-  margin-top: -4px !important;
+  height: 12px;
+  margin-top: -4px;
+  background: #eeeeee;
 }
 .widget-vslider {
   /* Vertical jQuery Slider */
   /* Fix the padding of the slide track so the ui-slider is sized 
     correctly. */
-  padding-bottom: 8px;
+  padding-bottom: 5px;
   overflow: visible;
   /* Default size of the slider */
   width: 5px;
@@ -9322,8 +9324,8 @@ h6:hover .anchor-link {
 }
 .widget-vslider .ui-slider {
   /* Inner, invisible slide div */
-  border: 0px !important;
-  background: none !important;
+  border: 0px;
+  background: none;
   margin-left: -4px;
   margin-top: 5px;
   /* Old browsers */
@@ -9348,13 +9350,15 @@ h6:hover .anchor-link {
   flex: 1;
 }
 .widget-vslider .ui-slider .ui-slider-handle {
-  width: 28px !important;
-  height: 14px !important;
+  width: 28px;
+  height: 12px;
   margin-left: -9px;
+  border-radius: 2px;
 }
 .widget-vslider .ui-slider .ui-slider-range {
-  width: 12px !important;
-  margin-left: -1px !important;
+  width: 12px;
+  margin-left: -1px;
+  background: #eeeeee;
 }
 .widget-text {
   /* String Textbox - used for TextBoxView and TextAreaView */
@@ -9374,7 +9378,7 @@ h6:hover .anchor-link {
 .widget-progress {
   /* Progress Bar */
   margin-top: 6px;
-  width: 350px;
+  min-width: 350px;
 }
 .widget-progress .progress-bar {
   /* Disable progress bar animation */
