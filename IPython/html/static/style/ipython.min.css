@@ -1530,18 +1530,6 @@ h6:hover .anchor-link {
   text-align: center;
   vertical-align: text-top;
 }
-.widget-modal {
-  /* Box - ModalView */
-  overflow: hidden;
-  position: absolute !important;
-  top: 0px;
-  left: 0px;
-  margin-left: 0px !important;
-}
-.widget-modal-body {
-  /* Box - ModalView Body */
-  max-height: none !important;
-}
 .widget-box {
   /* Box */
   box-sizing: border-box;
@@ -1577,13 +1565,5 @@ h6:hover .anchor-link {
 }
 .widget-radio-box label {
   margin-top: 0px;
-}
-.docked-widget-modal {
-  /* Horizontal Label */
-  overflow: hidden;
-  position: relative !important;
-  top: 0px !important;
-  left: 0px !important;
-  margin-left: 0px !important;
 }
 /*# sourceMappingURL=ipython.min.css.map */
