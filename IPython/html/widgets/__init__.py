@@ -2,7 +2,7 @@ from .widget import Widget, DOMWidget, CallbackDispatcher, register
 
 from .widget_bool import Checkbox, ToggleButton
 from .widget_button import Button
-from .widget_box import Box, Popup, FlexBox, HBox, VBox
+from .widget_box import Box, FlexBox, HBox, VBox
 from .widget_float import FloatText, BoundedFloatText, FloatSlider, FloatProgress, FloatRangeSlider
 from .widget_image import Image
 from .widget_int import IntText, BoundedIntText, IntSlider, IntProgress, IntRangeSlider
@@ -16,7 +16,7 @@ from .widget_link import Link, link, DirectionalLink, dlink
 # Deprecated classes
 from .widget_bool import CheckboxWidget, ToggleButtonWidget
 from .widget_button import ButtonWidget
-from .widget_box import ContainerWidget, PopupWidget
+from .widget_box import ContainerWidget
 from .widget_float import FloatTextWidget, BoundedFloatTextWidget, FloatSliderWidget, FloatProgressWidget
 from .widget_image import ImageWidget
 from .widget_int import IntTextWidget, BoundedIntTextWidget, IntSliderWidget, IntProgressWidget

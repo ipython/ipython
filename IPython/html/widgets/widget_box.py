@@ -45,15 +45,6 @@ class Box(DOMWidget):
             child._handle_displayed()
 
 
-@register('IPython.Popup')
-class Popup(Box):
-    """Displays multiple widgets in an in page popup div."""
-    _view_name = Unicode('PopupView', sync=True)
-    
-    description = Unicode(sync=True)
-    button_text = Unicode(sync=True)
-
-
 @register('IPython.FlexBox')
 class FlexBox(Box):
     """Displays multiple widgets using the flexible box model."""
@@ -87,5 +78,3 @@ def HBox(*pargs, **kwargs):
 
 # Remove in IPython 4.0
 ContainerWidget = DeprecatedClass(Box, 'ContainerWidget')
-PopupWidget = DeprecatedClass(Popup, 'PopupWidget')
-
