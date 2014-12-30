@@ -542,11 +542,11 @@ define(["widgets/js/manager",
                 this.update_attr('border-style', this.model.get('border_style'));
                 this.update_attr('font-style', this.model.get('font_style'));
                 this.update_attr('font-weight', this.model.get('font_weight'));
-                this.update_attr('font-size', this.model.get('font_size'));
+                this.update_attr('font-size', this._default_px(this.model.get('font_size')));
                 this.update_attr('font-family', this.model.get('font_family'));
                 this.update_attr('padding', this.model.get('padding'));
-                this.update_attr('margin', this.model.get('margin'));
-                this.update_attr('border-radius', this.model.get('border_radius'));
+                this.update_attr('margin', this._default_px(this.model.get('margin')));
+                this.update_attr('border-radius', this._default_px(this.model.get('border_radius')));
 
                 this.update_css(this.model, this.model.get("_css"));
             }, this);
