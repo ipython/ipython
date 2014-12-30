@@ -121,7 +121,7 @@ For example, the kernel.json file for IPython looks like this::
     {
      "argv": ["python3", "-c", "from IPython.kernel.zmq.kernelapp import main; main()", 
               "-f", "{connection_file}"],
-     "display_name": "IPython (Python 3)", 
+     "display_name": "IPython (Python 3)"
     }
 
 To see the available kernel specs, run::
