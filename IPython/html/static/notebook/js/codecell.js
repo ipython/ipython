@@ -416,7 +416,7 @@ define([
             return;
         }
 
-        this.active_output_area.clear_output();
+        this.active_output_area.clear_output(false, true);
         
         // Clear widget area
         for (var i = 0; i < this.widget_views.length; i++) {
