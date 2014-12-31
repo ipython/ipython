@@ -10483,18 +10483,18 @@ span.autosave_status {
   -ms-transform: rotate(45deg);
   -o-transform: rotate(45deg);
 }
-body.terminal-app {
+.terminal-app {
   background: #eeeeee;
 }
-body.terminal-app #header {
+.terminal-app #header {
   background: #ffffff;
   -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
   box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
 }
-body.terminal-app #header .header-bar {
+.terminal-app #header .header-bar {
   margin-bottom: -1px;
 }
-body.terminal-app .terminal {
+.terminal-app .terminal {
   float: left;
   font-family: monospace;
   color: white;
@@ -10504,16 +10504,16 @@ body.terminal-app .terminal {
   -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.4);
   box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.4);
 }
-body.terminal-app .terminal,
-body.terminal-app .terminal dummy-screen {
+.terminal-app .terminal,
+.terminal-app .terminal dummy-screen {
   line-height: 1em;
   font-size: 14px;
 }
-body.terminal-app .terminal-cursor {
+.terminal-app .terminal-cursor {
   color: black;
   background: white;
 }
-body.terminal-app #terminado-container {
+.terminal-app #terminado-container {
   margin-top: 20px;
 }
 /*# sourceMappingURL=style.min.css.map */
