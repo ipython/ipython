@@ -328,7 +328,7 @@ local Python/IPython session:
     Note the import inside the function. This is a common model, to ensure
     that the appropriate modules are imported where the task is run. You can
     also manually import modules into the engine(s) namespace(s) via 
-    :meth:`view.execute('import numpy')`.
+    `view.execute('import numpy')`.
 
 Often, it is desirable to wait until a set of :class:`AsyncResult` objects
 are done. For this, there is a the method :meth:`wait`. This method takes a
