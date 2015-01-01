@@ -54,37 +54,32 @@ define([
             change_kernel_submenu.append(ks_submenu_entry);
         }
     };
-
-    KernelSelector.prototype.change_kernel = function(kernel_name) {
-        /**
-         * TODO, have a methods to set kernel spec directly ?
-         **/
-        if (kernel_name === this.current_selection) {
-            return;
-        }
-        var ks = this.kernelspecs[kernel_name];
+    
+    KernelSelector.prototype._spec_changed = function (event, ks) {
+        /** event handler for spec_changed */
         
+        // update selection
+        this.current_selection = ks.name;
+        
+        // load logo
+        var logo_img = this.element.find("img.current_kernel_logo");
+        $("#kernel_indicator").find('.kernel_indicator_name').text(ks.spec.display_name);
+        if (ks.resources['logo-64x64']) {
+            logo_img.attr("src", ks.resources['logo-64x64']);
+            logo_img.show();
+        } else {
+            logo_img.hide();
+        }
+        
+        // load kernel css
         var css_url = ks.resources['kernel.css'];
         if (css_url) {
             $('#kernel-css').attr('href', css_url);
         } else {
             $('#kernel-css').attr('href', '');
         }
-
-        try {
-            this.notebook.start_session(kernel_name);
-        } catch (e) {
-            if (e.name === 'SessionAlreadyStarting') {
-                console.log("Cannot change kernel while waiting for pending session start.");
-            } else {
-                // unhandled error
-                throw e;
-            }
-            // only trigger spec_changed if change was successful
-            return;
-        }
-        this.events.trigger('spec_changed.Kernel', ks);
         
+        // load kernel js
         if (ks.resources['kernel.js']) {
             require([ks.resources['kernel.js']],
                 function (kernel_mod) {
@@ -100,7 +95,31 @@ define([
                 }
             );
         }
+    };
 
+    KernelSelector.prototype.change_kernel = function (kernel_name) {
+        /**
+         * TODO, have a methods to set kernel spec directly ?
+         **/
+        if (kernel_name === this.current_selection) {
+            return;
+        }
+        var ks = this.kernelspecs[kernel_name];
+        
+        try {
+            this.notebook.start_session(kernel_name);
+        } catch (e) {
+            if (e.name === 'SessionAlreadyStarting') {
+                console.log("Cannot change kernel while waiting for pending session start.");
+            } else {
+                // unhandled error
+                throw e;
+            }
+            // only trigger spec_changed if change was successful
+            return;
+        }
+        console.log('spec', kernel_name, ks);
+        this.events.trigger('spec_changed.Kernel', ks);
     };
 
     KernelSelector.prototype.lock_switch = function() {
@@ -112,19 +131,9 @@ define([
 
     KernelSelector.prototype.bind_events = function() {
         var that = this;
-        var logo_img = this.element.find("img.current_kernel_logo");
-        this.events.on('spec_changed.Kernel', function(event, data) {
-            that.current_selection = data.name;
-            $("#kernel_indicator").find('.kernel_indicator_name').text(data.spec.display_name);
-            if (data.resources['logo-64x64']) {
-                logo_img.attr("src", data.resources['logo-64x64']);
-                logo_img.show();
-            } else {
-                logo_img.hide();
-            }
-        });
+        this.events.on('spec_changed.Kernel', $.proxy(this._spec_changed, this));
 
-        this.events.on('kernel_created.Session', function(event, data) {
+        this.events.on('kernel_created.Session', function (event, data) {
             if (data.kernel.name !== that.current_selection) {
                 // If we created a 'python' session, we only know if it's Python
                 // 3 or 2 on the server's reply, so we fire the event again to
@@ -134,6 +143,7 @@ define([
             }
         });
         
+        var logo_img = this.element.find("img.current_kernel_logo");
         logo_img.on("load", function() {
             logo_img.show();
         });
