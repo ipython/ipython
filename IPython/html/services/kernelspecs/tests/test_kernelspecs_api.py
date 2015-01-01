@@ -102,7 +102,7 @@ class APITest(NotebookTestBase):
             return s['name'] == 'sample' and s['spec']['display_name'] == 'Test kernel'
 
         def is_default_kernelspec(s):
-            return s['name'] == NATIVE_KERNEL_NAME and s['spec']['display_name'].startswith("IPython")
+            return s['name'] == NATIVE_KERNEL_NAME and s['spec']['display_name'].startswith("Python")
 
         assert any(is_sample_kernelspec(s) for s in specs.values()), specs
         assert any(is_default_kernelspec(s) for s in specs.values()), specs
