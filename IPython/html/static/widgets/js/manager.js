@@ -103,10 +103,20 @@ define([
     };
 
     // Use local storage to persist widgets across page refresh by default.
+    // LocalStorage is per domain, so we need to explicitly set the URL
+    // that the widgets are associated with so they don't show on other 
+    // pages hosted by the noteboook server.
+    var url = [window.location.protocol, '//', window.location.host, window.location.pathname].join('');
     WidgetManager.set_state_callbacks(function() {
-        return JSON.parse(localStorage.widgets || '{}');
+        if (localStorage.widgets && localStorage.widgets[url]) {
+            return JSON.parse(localStorage.widgets[url]);
+        }
+        return {};
     }, function(state) {
-        localStorage.widgets = JSON.stringify(state);
+        if (localStorage.widgets === undefined) {
+            localStorage.widgets = {};
+        }
+        localStorage.widgets[url] = JSON.stringify(state);
     });
 
     //--------------------------------------------------------------------
