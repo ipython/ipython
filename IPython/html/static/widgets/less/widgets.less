@@ -1,3 +1,6 @@
+@widget-width: 350px;
+@widget-width-short: 150px;
+
 .widget-area {
     /*
     LESS file that styles IPython notebook widgets and the area they sit in.
@@ -72,11 +75,11 @@
     /* Fix the padding of the slide track so the ui-slider is sized 
     correctly. */
     padding-left  : 8px;
-    padding-right : 5px;
+    padding-right : 2px;
     overflow      : visible;
 
     /* Default size of the slider */
-    width        : 350px; 
+    width        : @widget-width; 
     height       : 5px;
     max-height   : 5px;
     margin-top   : 13px;
@@ -90,21 +93,23 @@
 
     .ui-slider {
         /* Inner, invisible slide div */
-        border     : 0px !important;
-        background : none !important;
+        border     : 0px;
+        background : none;
         
         .hbox();
         .box-flex1();
 
         .ui-slider-handle {
-            width      : 14px !important;
-            height     : 28px !important;
-            margin-top : -8px !important;
+            width: 12px;
+            height: 28px;
+            margin-top: -8px;
+            border-radius: @border-radius-base;
         }
 
         .ui-slider-range {
-            height     : 12px !important;
-            margin-top : -4px !important;
+            height     : 12px;
+            margin-top : -4px;
+            background : @page-backdrop-color; 
         }
     }
 }
@@ -114,7 +119,7 @@
     
     /* Fix the padding of the slide track so the ui-slider is sized 
     correctly. */
-    padding-bottom : 8px;
+    padding-bottom : 5px;
     overflow       : visible; 
 
     /* Default size of the slider */
@@ -131,8 +136,8 @@
     
     .ui-slider {
         /* Inner, invisible slide div */
-        border      : 0px !important;
-        background  : none !important;
+        border      : 0px;
+        background  : none;
         margin-left : -4px;
         margin-top  : 5px;
         
@@ -140,40 +145,42 @@
         .box-flex1();
 
         .ui-slider-handle {
-            width       : 28px !important;
-            height      : 14px !important;
+            width       : 28px;
+            height      : 12px;
             margin-left : -9px;
+            border-radius: @border-radius-base;
         }
 
         .ui-slider-range {
-            width       : 12px !important;
-            margin-left : -1px !important;
+            width       : 12px;
+            margin-left : -1px;
+            background  : @page-backdrop-color; 
         }
     }
 }
 
 .widget-text {
     /* String Textbox - used for TextBoxView and TextAreaView */
-    width  : 350px;
+    width  : @widget-width;
     margin : 0px;
 }
 
 .widget-listbox {
     /* Listbox */
-    width         : 350px;
+    width         : @widget-width;
     margin-bottom : 0px;
 }
 
 .widget-numeric-text {
     /* Single Line Textbox - used for IntTextView and FloatTextView */
-    width : 150px;
+    width : @widget-width-short;
     margin : 0px;
 }
 
 .widget-progress {
     /* Progress Bar */
     margin-top: 6px;
-    width : 350px;
+    min-width : @widget-width;
 
     .progress-bar {
         /* Disable progress bar animation */
@@ -187,7 +194,8 @@
 
 .widget-combo-btn {
     /* ComboBox Main Button */
-    min-width : 125px;
+    /* Subtract 25px to account for the drop arrow button */
+    min-width : @widget-width-short - 25px; 
 }
 
 .widget_item .dropdown-menu li a {
