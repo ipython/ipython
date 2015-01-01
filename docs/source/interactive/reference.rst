@@ -114,7 +114,7 @@ then just type ``cd mydir`` to go to directory 'mydir'::
       In [9]: cd mydir
       /home/fperez/mydir
 
-Note that cell magics *always* require an explicit ``%%`` prefix, automagic
+Cell magics *always* require an explicit ``%%`` prefix, automagic
 calling only works for line magics.
       
 The automagic system has the lowest possible precedence in name searches, so
@@ -144,6 +144,10 @@ use it:
     In [6]: cd ipython
 
     /home/fperez/ipython
+
+Line magics, if they return a value, can be assigned to a variable using the syntax
+``l = %sx ls`` (which in this particular case returns the result of `ls` as a python list).  
+See :ref:`below <manual_capture>` for more information.
 
 Type ``%magic`` for more information, including a list of all available magic
 functions at any time and their docstrings. You can also type
@@ -206,7 +210,7 @@ information about your working environment:
       identifiers and %whos prints a table with some basic details about
       each identifier.
 
-Note that the dynamic object information functions (?/??, ``%pdoc``,
+The dynamic object information functions (?/??, ``%pdoc``,
 ``%pfile``, ``%pdef``, ``%psource``) work on object attributes, as well as
 directly on variables. For example, after doing ``import os``, you can use
 ``os.path.abspath??``.
@@ -356,16 +360,22 @@ Any input line beginning with a ! character is passed verbatim (minus
 the !, of course) to the underlying operating system. For example,
 typing ``!ls`` will run 'ls' in the current directory.
 
-Manual capture of command output
---------------------------------
+.. _manual_capture:
+
+Manual capture of command output and magic output
+-------------------------------------------------
 
 You can assign the result of a system command to a Python variable with the
-syntax ``myfiles = !ls``. This gets machine readable output from stdout 
-(e.g. without colours), and splits on newlines. To explicitly get this sort of
-output without assigning to a variable, use two exclamation marks (``!!ls``) or
-the :magic:`sx` magic command.
+syntax ``myfiles = !ls``. Similarly, the result of a magic (as long as it returns
+a value) can be assigned to a variable.  For example, the syntax ``myfiles = %sx ls``
+is equivalent to the above system command example (the :magic:`sx` magic runs a shell command
+and captures the output).  Each of these gets machine 
+readable output from stdout (e.g. without colours), and splits on newlines. To 
+explicitly get this sort of output without assigning to a variable, use two 
+exclamation marks (``!!ls``) or the :magic:`sx` magic command without an assignment.
+(However, ``!!`` commands cannot be assigned to a variable.)
 
-The captured list has some convenience features. ``myfiles.n`` or ``myfiles.s``
+The captured list in this example has some convenience features. ``myfiles.n`` or ``myfiles.s``
 returns a string delimited by newlines or spaces, respectively. ``myfiles.p``
 produces `path objects <http://pypi.python.org/pypi/path.py>`_ from the list items.
 See :ref:`string_lists` for details.
