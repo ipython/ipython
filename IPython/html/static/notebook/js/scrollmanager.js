@@ -8,6 +8,7 @@ define(['jquery'], function($){
          * Public constructor.
          */
         this.notebook = notebook;
+        this.element = $('body');
         options = options || {};
         this.animation_speed = options.animation_speed || 250; //ms
     };
@@ -30,7 +31,7 @@ define(['jquery'], function($){
         /**
          * Scroll to an element in the notebook.
          */
-        $('#notebook').animate({'scrollTop': $(selector).offset().top + $('#notebook').scrollTop() - $('#notebook').offset().top}, this.animation_speed);
+        this.element.animate({'scrollTop': $(selector).offset().top + this.element.scrollTop() - this.element.offset().top}, this.animation_speed);
     };
 
     ScrollManager.prototype.scroll_some = function(pages) {
@@ -42,7 +43,7 @@ define(['jquery'], function($){
          * pages: integer
          *  number of pages to scroll the document, may be positive or negative.
          */
-        $('#notebook').animate({'scrollTop': $('#notebook').scrollTop() + pages * $('#notebook').height()}, this.animation_speed);
+        this.element.animate({'scrollTop': this.element.scrollTop() + pages * this.element.height()}, this.animation_speed);
     };
 
     ScrollManager.prototype.get_first_visible_cell = function() {
@@ -59,15 +60,14 @@ define(['jquery'], function($){
         var first_cell_top = this.notebook.get_cell(0).element.offset().top;
         var last_cell_top = this.notebook.get_cell(cell_count-1).element.offset().top;
         var avg_cell_height = (last_cell_top - first_cell_top) / cell_count;
-        var notebook = $('#notebook');
-        var i = Math.ceil(notebook.scrollTop() / avg_cell_height);
+        var i = Math.ceil(this.element.scrollTop() / avg_cell_height);
         i = Math.min(Math.max(i , 0), cell_count - 1);
 
-        while (this.notebook.get_cell(i).element.offset().top - first_cell_top < notebook.scrollTop() && i < cell_count - 1) {
+        while (this.notebook.get_cell(i).element.offset().top - first_cell_top < this.element.scrollTop() && i < cell_count - 1) {
             i += 1;
         } 
 
-        while (this.notebook.get_cell(i).element.offset().top - first_cell_top > notebook.scrollTop() - 50 && i >= 0) {
+        while (this.notebook.get_cell(i).element.offset().top - first_cell_top > this.element.scrollTop() - 50 && i >= 0) {
             i -= 1;
         } 
         return Math.min(i + 1, cell_count - 1);
@@ -151,7 +151,7 @@ define(['jquery'], function($){
         options = options || {};
         this._level = options.heading_level || 1;
     };
-    HeadingScrollManager.prototype = Object.create(ScrollManager.prototype)
+    HeadingScrollManager.prototype = Object.create(ScrollManager.prototype);
 
     HeadingScrollManager.prototype.scroll = function (delta) {
         /**
@@ -174,8 +174,7 @@ define(['jquery'], function($){
 
         // Find the header the user is on or below.
         var first_cell_top = this.notebook.get_cell(0).element.offset().top;
-        var notebook = $('#notebook');
-        var current_scroll = notebook.scrollTop();
+        var current_scroll = this.element.scrollTop();
         var header_scroll = 0;
         i = -1;
         while (current_scroll >= header_scroll && i < headers.length) {
