@@ -850,7 +850,7 @@ define([
     };
 
 
-    OutputArea.prototype.clear_output = function(wait) {
+    OutputArea.prototype.clear_output = function(wait, ignore_que) {
         if (wait) {
 
             // If a clear is queued, clear before adding another to the queue.
@@ -863,7 +863,7 @@ define([
 
             // Fix the output div's height if the clear_output is waiting for
             // new output (it is being used in an animation).
-            if (this.clear_queued) {
+            if (!ignore_que && this.clear_queued) {
                 var height = this.element.height();
                 this.element.height(height);
                 this.clear_queued = false;
