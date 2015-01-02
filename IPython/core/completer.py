@@ -863,7 +863,8 @@ class IPCompleter(Completer):
                     return list(obj.keys())
                 except Exception:
                     return []
-            elif _safe_isinstance(obj, 'numpy', 'ndarray'):
+            elif _safe_isinstance(obj, 'numpy', 'ndarray') or\
+                 _safe_isinstance(obj, 'numpy', 'void'):
                 return obj.dtype.names or []
             return []
 
