@@ -34,15 +34,21 @@ class CheckpointManager(LoggingConfigurable):
     """
     Base class for managing checkpoints for a ContentsManager.
     """
-
-    def create_checkpoint(self, nb, path):
+    def create_file_checkpoint(self, content, format, path):
         """Create a checkpoint of the current state of a file
 
-        Returns a checkpoint_id for the new checkpoint.
+        Returns a checkpoint model for the new checkpoint.
         """
         raise NotImplementedError("must be implemented in a subclass")
 
-    def get_checkpoint_content(self, checkpoint_id, path):
+    def create_notebook_checkpoint(self, nb, path):
+        """Create a checkpoint of the current state of a file
+
+        Returns a checkpoint model for the new checkpoint.
+        """
+        raise NotImplementedError("must be implemented in a subclass")
+
+    def get_checkpoint(self, checkpoint_id, path, type):
         """Get the content of a checkpoint.
 
         Returns an unvalidated model with the same structure as
@@ -496,9 +502,19 @@ class ContentsManager(LoggingConfigurable):
     # Part 3: Checkpoints API
     def create_checkpoint(self, path):
         """Create a checkpoint."""
-
-        nb = nbformat.from_dict(self.get(path, content=True)['content'])
-        return self.checkpoint_manager.create_checkpoint(nb, path)
+        model = self.get(path, content=True)
+        type = model['type']
+        if type == 'notebook':
+            return self.checkpoint_manager.create_notebook_checkpoint(
+                model['content'],
+                path,
+            )
+        elif type == 'file':
+            return self.checkpoint_manager.create_file_checkpoint(
+                model['content'],
+                model['format'],
+                path,
+            )
 
     def list_checkpoints(self, path):
         return self.checkpoint_manager.list_checkpoints(path)
@@ -507,17 +523,18 @@ class ContentsManager(LoggingConfigurable):
         """
         Restore a checkpoint.
         """
-        nb = self.checkpoint_manager.get_checkpoint_content(
+        type = self.get(path, content=False)['type']
+        content, format = self.checkpoint_manager.get_checkpoint(
             checkpoint_id,
             path,
+            type,
         )
 
         model = {
-            'content': nb,
-            'type': 'notebook',
+            'type': type,
+            'content': content,
+            'format': format,
         }
-
-        self.validate_notebook_model(model)
         return self.save(model, path)
 
     def delete_checkpoint(self, checkpoint_id, path):

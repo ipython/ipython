@@ -85,10 +85,10 @@ class TestFileContentsManager(TestCase):
             os.mkdir(os.path.join(td, subd))
             fm = FileContentsManager(root_dir=root)
             cpm = fm.checkpoint_manager
-            cp_dir = cpm.get_checkpoint_path(
+            cp_dir = cpm.checkpoint_path(
                 'cp', 'test.ipynb'
             )
-            cp_subdir = cpm.get_checkpoint_path(
+            cp_subdir = cpm.checkpoint_path(
                 'cp', '/%s/test.ipynb' % subd
             )
         self.assertNotEqual(cp_dir, cp_subdir)

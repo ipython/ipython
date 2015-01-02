@@ -542,6 +542,49 @@ class APITest(NotebookTestBase):
         cps = self.api.get_checkpoints('foo/a.ipynb').json()
         self.assertEqual(cps, [])
 
+    def test_file_checkpoints(self):
+        """
+        Test checkpointing of non-notebook files.
+        """
+        filename = 'foo/a.txt'
+        resp = self.api.read(filename)
+        orig_content = json.loads(resp.text)['content']
+
+        # Create a checkpoint.
+        r = self.api.new_checkpoint(filename)
+        self.assertEqual(r.status_code, 201)
+        cp1 = r.json()
+        self.assertEqual(set(cp1), {'id', 'last_modified'})
+        self.assertEqual(r.headers['Location'].split('/')[-1], cp1['id'])
+
+        # Modify the file and save.
+        new_content = orig_content + '\nsecond line'
+        model = {
+            'content': new_content,
+            'type': 'file',
+            'format': 'text',
+        }
+        resp = self.api.save(filename, body=json.dumps(model))
+
+        # List checkpoints
+        cps = self.api.get_checkpoints(filename).json()
+        self.assertEqual(cps, [cp1])
+
+        content = self.api.read(filename).json()['content']
+        self.assertEqual(content, new_content)
+
+        # Restore cp1
+        r = self.api.restore_checkpoint(filename, cp1['id'])
+        self.assertEqual(r.status_code, 204)
+        restored_content = self.api.read(filename).json()['content']
+        self.assertEqual(restored_content, orig_content)
+
+        # Delete cp1
+        r = self.api.delete_checkpoint(filename, cp1['id'])
+        self.assertEqual(r.status_code, 204)
+        cps = self.api.get_checkpoints(filename).json()
+        self.assertEqual(cps, [])
+
     @contextmanager
     def patch_cp_root(self, dirname):
         """
@@ -561,8 +604,13 @@ class APITest(NotebookTestBase):
         using a different root dir from FileContentsManager.  This also keeps
         the implementation honest for use with ContentsManagers that don't map
         models to the filesystem
-        """
 
+        Override this method to a no-op when testing other managers.
+        """
         with TemporaryDirectory() as td:
             with self.patch_cp_root(td):
                 self.test_checkpoints()
+
+        with TemporaryDirectory() as td:
+            with self.patch_cp_root(td):
+                self.test_file_checkpoints()
