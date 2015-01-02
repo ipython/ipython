@@ -100,7 +100,9 @@ function($,
 
         // Find and load the highlighting mode,
         // first by mime-type, then by file extension
+
         var modeinfo;
+        // mimetype is unset on file rename
         if (model.mimetype) {
             modeinfo = CodeMirror.findModeByMIME(model.mimetype);
         }
