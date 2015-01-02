@@ -773,12 +773,12 @@ define([
          * element: Node, NodeList, or jQuery selection
          * text: option string
          */
-        if(!window.MathJax){
-            return;
-        }
         var $el = element.jquery ? element : $(element);
         if(arguments.length > 1){
             $el.text(text);
+        }
+        if(!window.MathJax){
+            return;
         }
         return $el.map(function(){
             // MathJax takes a DOM node: $.map makes `this` the context
