@@ -498,7 +498,6 @@ class ContentsManager(LoggingConfigurable):
         """Create a checkpoint."""
 
         nb = nbformat.from_dict(self.get(path, content=True)['content'])
-        self.check_and_sign(nb, path)
         return self.checkpoint_manager.create_checkpoint(nb, path)
 
     def list_checkpoints(self, path):
@@ -512,8 +511,6 @@ class ContentsManager(LoggingConfigurable):
             checkpoint_id,
             path,
         )
-
-        self.mark_trusted_cells(nb, path)
 
         model = {
             'content': nb,
