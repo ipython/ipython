@@ -29,10 +29,10 @@ define([
                 .attr('id', guid)
                 .addClass('panel-group');
             this.model.on('change:selected_index', function(model, value, options) {
-                this.update_selected_index(model.previous('selected_index'), value, options);
+                this.update_selected_index(options);
             }, this);
             this.model.on('change:_titles', function(model, value, options) {
-                this.update_titles(value);
+                this.update_titles(options);
             }, this);
             this.on('displayed', function() {
                 this.update_titles();
@@ -40,14 +40,23 @@ define([
             this.children_views.update(this.model.get('children'));
         },
 
-        update_titles: function(titles) {
+        /**
+         * Update the contents of this view
+         *
+         * Called when the model is changed.  The model may have been 
+         * changed by another view or by a state update from the back-end.
+         */
+        update: function(options) {
+            this.update_titles();
+            this.update_selected_index(options);
+            return TabView.__super__.update.apply(this);
+        },
+
+        update_titles: function() {
             /**
              * Set tab titles
              */
-            if (!titles) {
-                titles = this.model.get('_titles');
-            }
-
+            var titles = this.model.get('_titles');
             var that = this;
             _.each(titles, function(title, page_index) {
                 var accordian = that.containers[page_index];
@@ -60,12 +69,14 @@ define([
             });
         },
 
-        update_selected_index: function(old_index, new_index, options) {
+        update_selected_index: function(options) {
             /**
              * Only update the selection if the selection wasn't triggered
              * by the front-end.  It must be triggered by the back-end.
              */
             if (options === undefined || options.updated_view != this) {
+                var old_index = this.model.previous('selected_index');
+                var new_index = this.model.get('selected_index');
                 this.containers[old_index].find('.panel-collapse').collapse('hide');
                 if (0 <= new_index && new_index < this.containers.length) {
                     this.containers[new_index].find('.panel-collapse').collapse('show');
@@ -211,7 +222,6 @@ define([
             var tab = $('<li />')
                 .css('list-style-type', 'none')
                 .appendTo(this.$tabs);
-            
 
             var tab_text = $('<a />')
                 .attr('href', '#' + uuid)
@@ -235,6 +245,7 @@ define([
                 .append(dummy)
                 .appendTo(that.$tab_contents);
 
+            this.update();
             return this.create_child_view(model).then(function(view) {
                 dummy.replaceWith(view.$el);
                 view.parent_tab = tab;
@@ -243,6 +254,7 @@ define([
                 // Trigger the displayed event of the child view.
                 that.after_displayed(function() {
                     view.trigger('displayed');
+                    that.update();
                 });
                 return view;
             }).catch(utils.reject("Couldn't add child view to box", true));
@@ -255,23 +267,35 @@ define([
              * Called when the model is changed.  The model may have been 
              * changed by another view or by a state update from the back-end.
              */
-            if (options === undefined || options.updated_view != this) {
-                // Set tab titles
-                var titles = this.model.get('_titles');
-                var that = this;
-                _.each(titles, function(title, page_index) {
-                   var tab_text = that.containers[page_index];
-                    if (tab_text !== undefined) {
-                        tab_text.text(title);
-                    } 
-                });
+            this.update_titles();
+            this.update_selected_index(options);
+            return TabView.__super__.update.apply(this);
+        },
 
+        /**
+         * Updates the tab page titles.
+         */
+        update_titles: function() {
+            var titles = this.model.get('_titles');
+            var that = this;
+            _.each(titles, function(title, page_index) {
+               var tab_text = that.containers[page_index];
+                if (tab_text !== undefined) {
+                    tab_text.text(title);
+                } 
+            });
+        },
+
+        /**
+         * Updates the tab page titles.
+         */
+        update_selected_index: function(options) {
+            if (options === undefined || options.updated_view != this) {
                 var selected_index = this.model.get('selected_index');
                 if (0 <= selected_index && selected_index < this.containers.length) {
                     this.select_page(selected_index);
                 }
             }
-            return TabView.__super__.update.apply(this);
         },
 
         select_page: function(index) {
