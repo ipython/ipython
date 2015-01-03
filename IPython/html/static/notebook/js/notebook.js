@@ -347,7 +347,7 @@ define([
         if (value === undefined) {
             value = true;
         }
-        if (this.dirty == value) {
+        if (this.dirty === value) {
             return;
         }
         this.events.trigger('set_dirty.Notebook', {value: value});
@@ -1792,7 +1792,7 @@ define([
             cell_data = new_cells[i];
             new_cell = this.insert_cell_at_index(cell_data.cell_type, i);
             new_cell.fromJSON(cell_data);
-            if (new_cell.cell_type == 'code' && !new_cell.output_area.trusted) {
+            if (new_cell.cell_type === 'code' && !new_cell.output_area.trusted) {
                 trusted = false;
             }
         }
@@ -1818,7 +1818,7 @@ define([
         var trusted = true;
         for (var i=0; i<ncells; i++) {
             var cell = cells[i];
-            if (cell.cell_type == 'code' && !cell.output_area.trusted) {
+            if (cell.cell_type === 'code' && !cell.output_area.trusted) {
                 trusted = false;
             }
             cell_array[i] = cell.toJSON();
@@ -1829,7 +1829,7 @@ define([
             nbformat: this.nbformat,
             nbformat_minor: this.nbformat_minor
         };
-        if (trusted != this.trusted) {
+        if (trusted !== this.trusted) {
             this.trusted = trusted;
             this.events.trigger("trust_changed.Notebook", trusted);
         }
@@ -1957,7 +1957,7 @@ define([
             // round to 10 seconds, otherwise we will be setting a new interval too often
             interval = 10000 * Math.round(interval / 10000);
             // set new interval, if it's changed
-            if (interval != this.autosave_interval) {
+            if (interval !== this.autosave_interval) {
                 this.set_autosave_interval(interval);
             }
         }
@@ -1997,7 +1997,7 @@ define([
                         var cells = nb.get_cells();
                         for (var i = 0; i < cells.length; i++) {
                             var cell = cells[i];
-                            if (cell.cell_type == 'code') {
+                            if (cell.cell_type === 'code') {
                                 cell.output_area.trusted = true;
                             }
                         }
@@ -2264,7 +2264,7 @@ define([
         var found = false;
         for (var i = 0; i < this.checkpoints.length; i++) {
             var existing = this.checkpoints[i];
-            if (existing.id == checkpoint.id) {
+            if (existing.id === checkpoint.id) {
                 found = true;
                 this.checkpoints[i] = checkpoint;
                 break;

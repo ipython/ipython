@@ -8,6 +8,7 @@ define(["widgets/js/manager",
         "base/js/utils",
         "base/js/namespace",
 ], function(widgetmanager, _, Backbone, $, utils, IPython){
+    "use strict";
 
     var WidgetModel = Backbone.Model.extend({
         constructor: function (widget_manager, model_id, comm) {
@@ -175,7 +176,7 @@ define(["widgets/js/manager",
 
         get_state: function() {
             // Get the serializable state of the model.
-            state = this.toJSON();
+            var state = this.toJSON();
             for (var key in state) {
                 if (state.hasOwnProperty(key)) {
                     state[key] = this._pack_models(state[key]);
@@ -587,7 +588,6 @@ define(["widgets/js/manager",
             /**
              * Update the css styling of this view.
              */
-            var e = this.$el;
             if (css === undefined) {return;}
             for (var i = 0; i < css.length; i++) {
                 // Apply the css traits to all elements that match the selector.
@@ -705,7 +705,7 @@ define(["widgets/js/manager",
              */
             var remove = remove_view || this._remove_view;
             var create = create_view || this._create_view;
-            var context = context || this._handler_context;
+            context = context || this._handler_context;
             var i = 0;
             // first, skip past the beginning of the lists if they are identical
             for (; i < new_models.length; i++) {

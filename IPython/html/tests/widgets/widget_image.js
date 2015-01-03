@@ -1,6 +1,7 @@
 // Test image class
 casper.notebook_test(function () {
-    index = this.append_cell(
+    "use strict";
+    var index = this.append_cell(
         'from IPython.html import widgets\n' + 
         'from IPython.display import display, clear_output\n' +
         'print("Success")');

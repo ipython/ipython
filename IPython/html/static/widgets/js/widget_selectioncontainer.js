@@ -179,7 +179,6 @@ define([
              * Called when view is rendered.
              */
             var uuid = 'tabs'+utils.uuid();
-            var that = this;
             this.$tabs = $('<div />', {id: uuid})
                 .addClass('nav')
                 .addClass('nav-tabs')
