@@ -97,14 +97,19 @@ function($,
 
     Editor.prototype._set_mode_for_model = function (model) {
         /** Set the CodeMirror mode based on the file model */
-        
+
         // Find and load the highlighting mode,
         // first by mime-type, then by file extension
-        var modeinfo = CodeMirror.findModeByMIME(model.mimetype);
-        if (modeinfo.mode === "null") {
+
+        var modeinfo;
+        // mimetype is unset on file rename
+        if (model.mimetype) {
+            modeinfo = CodeMirror.findModeByMIME(model.mimetype);
+        }
+        if (!modeinfo || modeinfo.mode === "null") {
             // find by mime failed, use find by ext
             var ext_idx = model.name.lastIndexOf('.');
-            
+
             if (ext_idx > 0) {
                 // CodeMirror.findModeByExtension wants extension without '.'
                 modeinfo = CodeMirror.findModeByExtension(model.name.slice(ext_idx + 1));
@@ -114,7 +119,7 @@ function($,
             this.set_codemirror_mode(modeinfo);
         }
     };
-    
+
     Editor.prototype.set_codemirror_mode = function (modeinfo) {
         /** set the codemirror mode from a modeinfo struct */
         var that = this;
