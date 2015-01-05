@@ -7,9 +7,8 @@ div.cell {
     border-style: solid;
 
     &.selected {
-        border-color: @border_color;
-        background-color: lightgreen;
-        /* Don't border or background the cells when printing */
+        background-color: #efefef;
+        /* Don't show the background when printing */
         @media print {
             border-color: transparent;
             background-color: transparent;
@@ -17,10 +16,10 @@ div.cell {
     }
 
     .edit_mode &.selected {
-        border-color: green;
-        /* Don't border the cells when printing */
+        background-color: #ded;
+        /* Don't show the background when printing */
         @media print {
-            border-color: transparent;
+            background-color: transparent;
         }
     }
 
