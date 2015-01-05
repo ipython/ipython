@@ -14,7 +14,7 @@ from .launcher import make_ipkernel_cmd
 if os.name == 'nt':
     programdata = os.environ.get('PROGRAMDATA', None)
     if programdata:
-        SYSTEM_KERNEL_DIRS = [pjoin(programdata, 'ipython', 'kernels')]
+        SYSTEM_KERNEL_DIRS = [pjoin(programdata, 'jupyter', 'kernels')]
     else:  # PROGRAMDATA is not defined by default on XP.
         SYSTEM_KERNEL_DIRS = []
 else:
