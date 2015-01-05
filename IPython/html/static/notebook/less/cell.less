@@ -8,9 +8,11 @@ div.cell {
 
     &.selected {
         border-color: @border_color;
-        /* Don't border the cells when printing */
+        background-color: lightgreen;
+        /* Don't border or background the cells when printing */
         @media print {
             border-color: transparent;
+            background-color: transparent;
         }
     }
 
