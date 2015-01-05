@@ -8,6 +8,7 @@ from __future__ import print_function
 
 import os
 import shutil
+import sys
 import tarfile
 import zipfile
 from os.path import basename, join as pjoin
@@ -23,6 +24,34 @@ except ImportError:
 from IPython.utils.path import get_ipython_dir, ensure_dir_exists
 from IPython.utils.py3compat import string_types, cast_unicode_py2
 from IPython.utils.tempdir import TemporaryDirectory
+
+
+# Packagers: modify the next block if you store system-installed nbextensions elsewhere (unlikely)
+SYSTEM_NBEXTENSIONS_DIRS = []
+
+if os.name == 'nt':
+    programdata = os.environ.get('PROGRAMDATA', None)
+    if programdata: # PROGRAMDATA is not defined by default on XP.
+        SYSTEM_NBEXTENSIONS_DIRS = [pjoin(programdata, 'jupyter', 'nbextensions')]
+    prefixes = []
+else:
+    prefixes = ['/usr/local', '/usr']
+
+# add sys.prefix at the front
+if sys.prefix not in prefixes:
+    prefixes.insert(0, sys.prefix)
+
+for prefix in prefixes:
+    nbext = os.path.join(prefix, 'share', 'jupyter', 'nbextensions')
+    if nbext not in SYSTEM_NBEXTENSIONS_DIRS:
+        SYSTEM_NBEXTENSIONS_DIRS.append(nbext)
+
+if os.name == 'nt':
+    # PROGRAMDATA
+    SYSTEM_NBEXTENSIONS_INSTALL_DIR = SYSTEM_NBEXTENSIONS_DIRS[-1]
+else:
+    # /usr/local
+    SYSTEM_NBEXTENSIONS_INSTALL_DIR = SYSTEM_NBEXTENSIONS_DIRS[-2]
 
 
 def _should_copy(src, dest, verbose=1):
@@ -54,15 +83,17 @@ def _safe_is_tarfile(path):
         return False
 
 
-def check_nbextension(files, ipython_dir=None):
+def check_nbextension(files, nbextensions=None):
     """Check whether nbextension files have been installed
     
     files should be a list of relative paths within nbextensions.
     
     Returns True if all files are found, False if any are missing.
     """
-    ipython_dir = ipython_dir or get_ipython_dir()
-    nbext = pjoin(ipython_dir, u'nbextensions')
+    if nbextensions:
+        nbext = nbextensions
+    else:
+        nbext = pjoin(get_ipython_dir(), u'nbextensions')
     # make sure nbextensions dir exists
     if not os.path.exists(nbext):
         return False
@@ -74,7 +105,7 @@ def check_nbextension(files, ipython_dir=None):
     return all(os.path.exists(pjoin(nbext, f)) for f in files)
 
 
-def install_nbextension(files, overwrite=False, symlink=False, ipython_dir=None, verbose=1):
+def install_nbextension(files, overwrite=False, symlink=False, user=False, prefix=None, nbextensions=None, verbose=1):
     """Install a Javascript extension for the notebook
     
     Stages files and/or directories into IPYTHONDIR/nbextensions.
@@ -96,16 +127,29 @@ def install_nbextension(files, overwrite=False, symlink=False, ipython_dir=None,
         Not allowed with URLs or archives. Windows support for symlinks requires
         Vista or above, Python 3, and a permission bit which only admin users
         have by default, so don't rely on it.
-    ipython_dir : str [optional]
-        The path to an IPython directory, if the default value is not desired.
-        get_ipython_dir() is used by default.
+    user : bool [default: False]
+        Whether to install to the user's .ipython/nbextensions directory.
+        Otherwise do a system-wide install (e.g. /usr/local/share/jupyter/nbextensions).
+    prefix : str [optional]
+        Specify install prefix, if it should differ from default (e.g. /usr/local).
+        Will install to prefix/share/jupyter/nbextensions
+    nbextensions : str [optional]
+        Specify absolute path of nbextensions directory explicitly.
     verbose : int [default: 1]
         Set verbosity level. The default is 1, where file actions are printed.
         set verbose=2 for more output, or verbose=0 for silence.
     """
-    
-    ipython_dir = ipython_dir or get_ipython_dir()
-    nbext = pjoin(ipython_dir, u'nbextensions')
+    if sum(map(bool, [user, prefix, nbextensions])) > 1:
+        raise ValueError("Cannot specify more than one of user, prefix, or nbextensions.")
+    if user:
+        nbext = pjoin(get_ipython_dir(), u'nbextensions')
+    else:
+        if prefix:
+            nbext = pjoin(prefix, 'share', 'jupyter', 'nbextensions')
+        elif nbextensions:
+            nbext = nbextensions
+        else:
+            nbext = SYSTEM_NBEXTENSIONS_INSTALL_DIR
     # make sure nbextensions dir exists
     ensure_dir_exists(nbext)
     
@@ -126,7 +170,7 @@ def install_nbextension(files, overwrite=False, symlink=False, ipython_dir=None,
                     print("downloading %s to %s" % (path, local_path))
                 urlretrieve(path, local_path)
                 # now install from the local copy
-                install_nbextension(local_path, overwrite, symlink, ipython_dir, verbose)
+                install_nbextension(local_path, overwrite=overwrite, symlink=symlink, nbextensions=nbext, verbose=verbose)
             continue
         
         # handle archives
@@ -183,7 +227,7 @@ def install_nbextension(files, overwrite=False, symlink=False, ipython_dir=None,
 # install nbextension app
 #----------------------------------------------------------------------
 
-from IPython.utils.traitlets import Bool, Enum
+from IPython.utils.traitlets import Bool, Enum, Unicode, TraitError
 from IPython.core.application import BaseIPythonApplication
 
 flags = {
@@ -207,11 +251,18 @@ flags = {
             "symlink" : True,
         }}, "Create symlinks instead of copying files"
     ),
+    "user" : ({
+        "NBExtensionApp" : {
+            "user" : True,
+        }}, "Install to the user's IPython directory"
+    ),
 }
 flags['s'] = flags['symlink']
 
 aliases = {
-    "ipython-dir" : "NBExtensionApp.ipython_dir"
+    "ipython-dir" : "NBExtensionApp.ipython_dir",
+    "prefix" : "NBExtensionApp.prefix",
+    "nbextensions" : "NBExtensionApp.nbextensions",
 }
 
 class NBExtensionApp(BaseIPythonApplication):
@@ -238,25 +289,36 @@ class NBExtensionApp(BaseIPythonApplication):
     
     overwrite = Bool(False, config=True, help="Force overwrite of existing files")
     symlink = Bool(False, config=True, help="Create symlinks instead of copying files")
+    user = Bool(False, config=True, help="Whether to do a user install")
+    prefix = Unicode('', config=True, help="Installation prefix")
+    nbextensions = Unicode('', config=True, help="Full path to nbextensions (probably use prefix or user)")
     verbose = Enum((0,1,2), default_value=1, config=True,
         help="Verbosity level"
     )
+    
+    def check_install():
+        if sum(map(bool, [user, prefix, nbextensions])) > 1:
+            raise TraitError("Cannot specify more than one of user, prefix, or nbextensions.")
     
     def install_extensions(self):
         install_nbextension(self.extra_args,
             overwrite=self.overwrite,
             symlink=self.symlink,
             verbose=self.verbose,
-            ipython_dir=self.ipython_dir,
+            user=self.user,
+            prefix=self.prefix,
+            nbextensions=self.nbextensions,
         )
     
     def start(self):
         if not self.extra_args:
-            nbext = pjoin(self.ipython_dir, u'nbextensions')
-            print("Notebook extensions in %s:" % nbext)
-            for ext in os.listdir(nbext):
-                print(u"    %s" % ext)
+            for nbext in [pjoin(self.ipython_dir, u'nbextensions')] + SYSTEM_NBEXTENSIONS_DIRS:
+                if os.path.exists(nbext):
+                    print("Notebook extensions in %s:" % nbext)
+                    for ext in os.listdir(nbext):
+                        print(u"    %s" % ext)
         else:
+            self.check_install()
             self.install_extensions()
 
 
