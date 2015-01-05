@@ -10,7 +10,7 @@ casper.notebook_test(function () {
         });
         
         this.thenEvaluate(function (code) {
-            IPython.notebook.insert_cell_at_index(0, "code");
+            IPython.notebook.insert_cell_at_index("code", 0);
             var cell = IPython.notebook.get_cell(0);
             cell.set_text(code);
             cell.execute();
@@ -38,7 +38,7 @@ casper.notebook_test(function () {
     };
     
     this.thenEvaluate(function () {
-        IPython.notebook.insert_cell_at_index(0, "code");
+        IPython.notebook.insert_cell_at_index("code", 0);
         var cell = IPython.notebook.get_cell(0);
         cell.set_text([
             "from __future__ import print_function",
