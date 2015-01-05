@@ -16,7 +16,7 @@ b64_image_data = {
 casper.notebook_test(function () {
     this.test_img_shape = function(fmt, retina) {
         this.thenEvaluate(function (b64data, retina) {
-            IPython.notebook.insert_cell_at_index(0, "code");
+            IPython.notebook.insert_cell_at_index("code", 0);
             var cell = IPython.notebook.get_cell(0);
             cell.set_text([
                 "import base64",
