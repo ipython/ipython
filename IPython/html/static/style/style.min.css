@@ -7771,6 +7771,7 @@ div#header .header-bar {
   width: 100%;
   height: 0px;
   border-bottom: 1px solid #e7e7e7;
+  margin-bottom: -1px;
 }
 @media print {
   div#header {
@@ -9597,12 +9598,6 @@ p {
 .end_space {
   height: 200px;
 }
-.lower-header-bar {
-  width: 100%;
-  height: 0px;
-  border-bottom: 1px solid #e7e7e7;
-  margin-bottom: -1px;
-}
 .notebook_app #header {
   -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
   box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
@@ -9764,6 +9759,7 @@ select[multiple].celltoolbar select {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
+  margin-top: 1px;
 }
 #menubar .navbar {
   border-top: 1px;
@@ -10490,9 +10486,6 @@ span.autosave_status {
   background: #ffffff;
   -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
   box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
-}
-.terminal-app #header .header-bar {
-  margin-bottom: -1px;
 }
 .terminal-app .terminal {
   float: left;
