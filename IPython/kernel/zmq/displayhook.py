@@ -51,7 +51,10 @@ class ZMQShellDisplayHook(DisplayHook):
         self.parent_header = extract_header(parent)
 
     def start_displayhook(self):
-        self.msg = self.session.msg(u'execute_result', {}, parent=self.parent_header)
+        self.msg = self.session.msg(u'execute_result', {
+            'data': {},
+            'metadata': {},
+        }, parent=self.parent_header)
 
     def write_output_prompt(self):
         """Write the output prompt."""
