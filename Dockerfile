@@ -1,7 +1,7 @@
 # Installs IPython from the current branch
 # Another Docker container should build from this one to get services like the notebook
 
-FROM ubuntu:14.04
+FROM debian:jessie
 
 MAINTAINER IPython Project <ipython-dev@scipy.org>
 
