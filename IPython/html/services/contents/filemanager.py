@@ -252,7 +252,7 @@ class FileCheckpointManager(FileManagerMixin, CheckpointManager):
     def get_checkpoint(self, checkpoint_id, path, type):
         """Get the content of a checkpoint.
 
-        Returns a pair of (content, type).
+        Returns a model suitable for passing to ContentsManager.save.
         """
         path = path.strip('/')
         self.log.info("restoring %s from checkpoint %s", path, checkpoint_id)
@@ -260,9 +260,20 @@ class FileCheckpointManager(FileManagerMixin, CheckpointManager):
         if not os.path.isfile(os_checkpoint_path):
             self.no_such_checkpoint(path, checkpoint_id)
         if type == 'notebook':
-            return self._read_notebook(os_checkpoint_path, as_version=4), None
+            return {
+                'type': type,
+                'content': self._read_notebook(
+                    os_checkpoint_path,
+                    as_version=4,
+                ),
+            }
         else:
-            return self._read_file(os_checkpoint_path, format=None)
+            content, format = self._read_file(os_checkpoint_path, format=None)
+            return {
+                'type': type,
+                'content': content,
+                'format': format,
+            }
 
     def rename_checkpoint(self, checkpoint_id, old_path, new_path):
         """Rename a checkpoint from old_path to new_path."""

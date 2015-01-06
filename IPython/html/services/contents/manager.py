@@ -523,19 +523,14 @@ class ContentsManager(LoggingConfigurable):
         """
         Restore a checkpoint.
         """
-        type = self.get(path, content=False)['type']
-        content, format = self.checkpoint_manager.get_checkpoint(
-            checkpoint_id,
-            path,
-            type,
+        return self.save(
+            model=self.checkpoint_manager.get_checkpoint(
+                checkpoint_id,
+                path,
+                self.get(path, content=False)['type']
+            ),
+            path=path,
         )
-
-        model = {
-            'type': type,
-            'content': content,
-            'format': format,
-        }
-        return self.save(model, path)
 
     def delete_checkpoint(self, checkpoint_id, path):
         return self.checkpoint_manager.delete_checkpoint(checkpoint_id, path)
