@@ -30,21 +30,6 @@ from IPython.utils.py3compat import string_types
 copy_pat = re.compile(r'\-Copy\d*\.')
 
 
-def _separate_dirs_files(models):
-    """
-    Split an iterable of models into a list of file paths and a list of
-    directory paths.
-    """
-    dirs = []
-    files = []
-    for model in models:
-        if model['type'] == 'directory':
-            dirs.append(model['path'])
-        else:
-            files.append(model['path'])
-    return dirs, files
-
-
 class CheckpointManager(LoggingConfigurable):
     """
     Base class for managing checkpoints for a ContentsManager.
@@ -513,31 +498,6 @@ class ContentsManager(LoggingConfigurable):
     def should_list(self, name):
         """Should this file/directory name be displayed in a listing?"""
         return not any(fnmatch(name, glob) for glob in self.hide_globs)
-
-    def walk(self):
-        """
-        Like os.walk, but written in terms of the ContentsAPI.
-
-        Returns a generator of tuples of the form:
-        (directory name, [subdirectories], [files in directory])
-        """
-        return self._walk([''])
-
-    def _walk(self, dirs):
-        """
-        Recursive helper for walk.
-        """
-        for directory in dirs:
-            children = self.get(
-                directory,
-                content=True,
-                type='directory',
-            )['content']
-            dirs, files = map(sorted, _separate_dirs_files(children))
-            yield (directory, dirs, files)
-            if dirs:
-                for entry in self._walk(dirs):
-                    yield(entry)
 
     # Part 3: Checkpoints API
     def create_checkpoint(self, path):
