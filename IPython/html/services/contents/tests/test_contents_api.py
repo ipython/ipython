@@ -614,3 +614,82 @@ class APITest(NotebookTestBase):
         with TemporaryDirectory() as td:
             with self.patch_cp_root(td):
                 self.test_file_checkpoints()
+
+    def test_walk(self):
+        """
+        Test ContentsManager.walk.
+        """
+        results = list(self.notebook.contents_manager.walk())
+        expected = [
+            (
+                '',
+                [
+                    'Directory with spaces in',
+                    'foo',
+                    'ordering',
+                    u'unicodé',
+                    u'å b',
+                ],
+                ['inroot.blob', 'inroot.ipynb', 'inroot.txt'],
+            ),
+            (
+                'Directory with spaces in',
+                [],
+                ['inspace.blob', 'inspace.ipynb', 'inspace.txt'],
+            ),
+            (
+                'foo',
+                ['bar'],
+                [
+                    'a.blob', 'a.ipynb', 'a.txt',
+                    'b.blob', 'b.ipynb', 'b.txt',
+                    'name with spaces.blob',
+                    'name with spaces.ipynb',
+                    'name with spaces.txt',
+                    u'unicodé.blob', u'unicodé.ipynb', u'unicodé.txt'
+                ]
+            ),
+            (
+                'foo/bar',
+                [],
+                ['baz.blob', 'baz.ipynb', 'baz.txt'],
+            ),
+            (
+                'ordering',
+                [],
+                [
+                    'A.blob', 'A.ipynb', 'A.txt',
+                    'C.blob', 'C.ipynb', 'C.txt',
+                    'b.blob', 'b.ipynb', 'b.txt',
+                ],
+            ),
+            (
+                u'unicodé',
+                [],
+                ['innonascii.blob', 'innonascii.ipynb', 'innonascii.txt'],
+            ),
+            (
+                u'å b',
+                [],
+                [u'ç d.blob', u'ç d.ipynb', u'ç d.txt'],
+            ),
+        ]
+
+        for idx, (dname, subdirs, files) in enumerate(expected):
+            result_dname, result_subdirs, result_files = results[idx]
+            if dname == '':
+                sep = ''
+            else:
+                sep = '/'
+            self.assertEqual(
+                dname,
+                result_dname,
+            )
+            self.assertEqual(
+                [sep.join([dname, sub]) for sub in subdirs],
+                result_subdirs,
+            )
+            self.assertEqual(
+                [sep.join([dname, fname]) for fname in files],
+                result_files,
+            )
