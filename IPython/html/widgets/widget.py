@@ -472,7 +472,7 @@ class DOMWidget(Widget):
         'bolder', 
         'lighter',
         'initial', 
-        'inherit', ''] + [str(100 * (i+1)) for i in range(9)], 
+        'inherit', ''] + map(str, range(100,1000,100)),
         default_value='', sync=True)
     font_size = CUnicode(sync=True)
     font_family = Unicode(sync=True)
