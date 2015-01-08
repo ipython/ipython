@@ -4,12 +4,12 @@ python:
     - 3.4
     - 2.7
 env:
+    - GROUP=
     - GROUP=js/base
     - GROUP=js/notebook
     - GROUP=js/services
     - GROUP=js/tree
     - GROUP=js/widgets
-    - GROUP=
 before_install:
     # workaround for https://github.com/travis-ci/travis-cookbooks/issues/155
     - sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm
