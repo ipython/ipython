@@ -614,3 +614,25 @@ class APITest(NotebookTestBase):
         with TemporaryDirectory() as td:
             with self.patch_cp_root(td):
                 self.test_file_checkpoints()
+
+    @contextmanager
+    def patch_cm_backend(self):
+        """
+        Temporarily patch our ContentsManager to present a different backend.
+        """
+        mgr = self.notebook.contents_manager
+        old_backend = mgr.backend
+        mgr.backend = ""
+        try:
+            yield
+        finally:
+            mgr.backend = old_backend
+
+    def test_checkpoints_empty_backend(self):
+        with self.patch_cm_backend():
+            self.test_checkpoints()
+
+        with self.patch_cm_backend():
+            self.test_file_checkpoints()
+
+

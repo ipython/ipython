@@ -11,7 +11,6 @@ import re
 
 from tornado.web import HTTPError
 
-from IPython import nbformat
 from IPython.config.configurable import LoggingConfigurable
 from IPython.nbformat import sign, validate, ValidationError
 from IPython.nbformat.v4 import new_notebook
@@ -34,6 +33,28 @@ class CheckpointManager(LoggingConfigurable):
     """
     Base class for managing checkpoints for a ContentsManager.
     """
+
+    def create_checkpoint(self, contents_mgr, path):
+        model = contents_mgr.get(path, content=True)
+        type = model['type']
+        if type == 'notebook':
+            return self.create_notebook_checkpoint(
+                model['content'],
+                path,
+            )
+        elif type == 'file':
+            return self.create_file_checkpoint(
+                model['content'],
+                model['format'],
+                path,
+            )
+
+    def restore_checkpoint(self, contents_mgr, checkpoint_id, path):
+        """Restore a checkpoint."""
+        type = contents_mgr.get(path, content=False)['type']
+        model = self.get_checkpoint(checkpoint_id, path, type)
+        contents_mgr.save(model, path)
+
     def create_file_checkpoint(self, content, format, path):
         """Create a checkpoint of the current state of a file
 
@@ -159,6 +180,7 @@ class ContentsManager(LoggingConfigurable):
     checkpoint_manager_class = Type(CheckpointManager, config=True)
     checkpoint_manager = Instance(CheckpointManager, config=True)
     checkpoint_manager_kwargs = Dict(allow_none=False, config=True)
+    backend = Unicode(default_value="")
 
     def _checkpoint_manager_default(self):
         return self.checkpoint_manager_class(**self.checkpoint_manager_kwargs)
@@ -502,35 +524,16 @@ class ContentsManager(LoggingConfigurable):
     # Part 3: Checkpoints API
     def create_checkpoint(self, path):
         """Create a checkpoint."""
-        model = self.get(path, content=True)
-        type = model['type']
-        if type == 'notebook':
-            return self.checkpoint_manager.create_notebook_checkpoint(
-                model['content'],
-                path,
-            )
-        elif type == 'file':
-            return self.checkpoint_manager.create_file_checkpoint(
-                model['content'],
-                model['format'],
-                path,
-            )
-
-    def list_checkpoints(self, path):
-        return self.checkpoint_manager.list_checkpoints(path)
+        return self.checkpoint_manager.create_checkpoint(self, path)
 
     def restore_checkpoint(self, checkpoint_id, path):
         """
         Restore a checkpoint.
         """
-        return self.save(
-            model=self.checkpoint_manager.get_checkpoint(
-                checkpoint_id,
-                path,
-                self.get(path, content=False)['type']
-            ),
-            path=path,
-        )
+        self.checkpoint_manager.restore_checkpoint(self, checkpoint_id, path)
+
+    def list_checkpoints(self, path):
+        return self.checkpoint_manager.list_checkpoints(path)
 
     def delete_checkpoint(self, checkpoint_id, path):
         return self.checkpoint_manager.delete_checkpoint(checkpoint_id, path)

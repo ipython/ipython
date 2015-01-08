@@ -222,59 +222,48 @@ class FileCheckpointManager(FileManagerMixin, CheckpointManager):
         except AttributeError:
             return getcwd()
 
-    # public checkpoint API
-    def create_file_checkpoint(self, content, format, path):
-        """Create a checkpoint from the current content of a notebook."""
-        path = path.strip('/')
-        # only the one checkpoint ID:
-        checkpoint_id = u"checkpoint"
-        os_checkpoint_path = self.checkpoint_path(checkpoint_id, path)
-        self.log.debug("creating checkpoint for %s", path)
-        with self.perm_to_403():
-            self._save_file(os_checkpoint_path, content, format=format)
-
-        # return the checkpoint info
-        return self.checkpoint_model(checkpoint_id, os_checkpoint_path)
-
-    def create_notebook_checkpoint(self, nb, path):
-        """Create a checkpoint from the current content of a notebook."""
-        path = path.strip('/')
-        # only the one checkpoint ID:
-        checkpoint_id = u"checkpoint"
-        os_checkpoint_path = self.checkpoint_path(checkpoint_id, path)
-        self.log.debug("creating checkpoint for %s", path)
-        with self.perm_to_403():
-            self._save_notebook(os_checkpoint_path, nb)
-
-        # return the checkpoint info
-        return self.checkpoint_model(checkpoint_id, os_checkpoint_path)
-
-    def get_checkpoint(self, checkpoint_id, path, type):
-        """Get the content of a checkpoint.
-
-        Returns a model suitable for passing to ContentsManager.save.
+    # ContentsManager-dependent checkpoint API
+    def create_checkpoint(self, contents_mgr, path):
         """
-        path = path.strip('/')
-        self.log.info("restoring %s from checkpoint %s", path, checkpoint_id)
-        os_checkpoint_path = self.checkpoint_path(checkpoint_id, path)
-        if not os.path.isfile(os_checkpoint_path):
-            self.no_such_checkpoint(path, checkpoint_id)
-        if type == 'notebook':
-            return {
-                'type': type,
-                'content': self._read_notebook(
-                    os_checkpoint_path,
-                    as_version=4,
-                ),
-            }
-        else:
-            content, format = self._read_file(os_checkpoint_path, format=None)
-            return {
-                'type': type,
-                'content': content,
-                'format': format,
-            }
+        Create a checkpoint.
 
+        If contents_mgr is backed by the local filesystem, just copy the
+        appropriate file to the checkpoint directory.  Otherwise, ask the
+        ContentsManager for a model and write it ourselves.
+        """
+        if contents_mgr.backend == 'local_file':
+            # We know that the file is in the local filesystem, so just copy
+            # from the base location to our location.
+            checkpoint_id = u'checkpoint'
+            src_path = contents_mgr._get_os_path(path)
+            dest_path = self.checkpoint_path(checkpoint_id, path)
+            self._copy(src_path, dest_path)
+            return self.checkpoint_model(checkpoint_id, dest_path)
+        else:
+            return super(FileCheckpointManager, self).create_checkpoint(
+                contents_mgr, path,
+            )
+
+    def restore_checkpoint(self, contents_mgr, checkpoint_id, path):
+        """
+        Restore a checkpoint.
+
+        If contents_mgr is backed by the local filesystem, just copy the
+        appropriate file from the checkpoint directory.  Otherwise, load the
+        model and pass it to ContentsManager.save.
+        """
+        if contents_mgr.backend == 'local_file':
+            # We know that the file is in the local filesystem, so just copy
+            # from our base location to the location expected by content
+            src_path = self.checkpoint_path(checkpoint_id, path)
+            dest_path = contents_mgr._get_os_path(path)
+            self._copy(src_path, dest_path)
+        else:
+            super(FileCheckpointManager, self).restore_checkpoint(
+                contents_mgr, checkpoint_id, path
+            )
+
+    # ContentsManager-independent checkpoint API
     def rename_checkpoint(self, checkpoint_id, old_path, new_path):
         """Rename a checkpoint from old_path to new_path."""
         old_cp_path = self.checkpoint_path(checkpoint_id, old_path)
@@ -340,6 +329,64 @@ class FileCheckpointManager(FileManagerMixin, CheckpointManager):
             last_modified=last_modified,
         )
         return info
+
+    def create_file_checkpoint(self, content, format, path):
+        """Create a checkpoint from the current content of a notebook."""
+        path = path.strip('/')
+        # only the one checkpoint ID:
+        checkpoint_id = u"checkpoint"
+        os_checkpoint_path = self.checkpoint_path(checkpoint_id, path)
+        self.log.debug("creating checkpoint for %s", path)
+        with self.perm_to_403():
+            self._save_file(os_checkpoint_path, content, format=format)
+
+        # return the checkpoint info
+        return self.checkpoint_model(checkpoint_id, os_checkpoint_path)
+
+    def create_notebook_checkpoint(self, nb, path):
+        """Create a checkpoint from the current content of a notebook."""
+        path = path.strip('/')
+        # only the one checkpoint ID:
+        checkpoint_id = u"checkpoint"
+        os_checkpoint_path = self.checkpoint_path(checkpoint_id, path)
+        self.log.debug("creating checkpoint for %s", path)
+        with self.perm_to_403():
+            self._save_notebook(os_checkpoint_path, nb)
+
+        # return the checkpoint info
+        return self.checkpoint_model(checkpoint_id, os_checkpoint_path)
+
+    def get_checkpoint(self, checkpoint_id, path, type):
+        """Get the content of a checkpoint.
+
+        Returns a model suitable for passing to ContentsManager.save.
+        """
+        path = path.strip('/')
+        self.log.info("restoring %s from checkpoint %s", path, checkpoint_id)
+        os_checkpoint_path = self.checkpoint_path(checkpoint_id, path)
+        if not os.path.isfile(os_checkpoint_path):
+            self.no_such_checkpoint(path, checkpoint_id)
+
+        if type == 'notebook':
+            return {
+                'type': type,
+                'content': self._read_notebook(
+                    os_checkpoint_path,
+                    as_version=4,
+                ),
+            }
+        elif type == 'file':
+            content, format = self._read_file(os_checkpoint_path, format=None)
+            return {
+                'type': type,
+                'content': content,
+                'format': format,
+            }
+        else:
+            raise web.HTTPError(
+                500,
+                u'Unexpected type %s' % type
+            )
 
     # Error Handling
     def no_such_checkpoint(self, path, checkpoint_id):
@@ -420,6 +467,9 @@ class FileContentsManager(FileManagerMixin, ContentsManager):
 
     def _checkpoint_manager_class_default(self):
         return FileCheckpointManager
+
+    def _backend_default(self):
+        return 'local_file'
 
     def is_hidden(self, path):
         """Does the API style path correspond to a hidden directory or file?
@@ -681,10 +731,7 @@ class FileContentsManager(FileManagerMixin, ContentsManager):
                 self._save_notebook(os_path, nb)
                 # One checkpoint should always exist for notebooks.
                 if not self.checkpoint_manager.list_checkpoints(path):
-                    self.checkpoint_manager.create_notebook_checkpoint(
-                        nb,
-                        path,
-                    )
+                    self.create_checkpoint(path)
             elif model['type'] == 'file':
                 # Missing format will be handled internally by _save_file.
                 self._save_file(os_path, model['content'], model.get('format'))
