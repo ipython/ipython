@@ -5,7 +5,10 @@ python:
     - 2.7
     - 3.3
 env:
-    - GROUP=js
+    - GROUP=js/base
+    - GROUP=js/notebook
+    - GROUP=js/tree
+    - GROUP=js/widgets
     - GROUP=
 before_install:
     # workaround for https://github.com/travis-ci/travis-cookbooks/issues/155
@@ -27,7 +30,13 @@ script:
 matrix:
     exclude:
         - python: 3.3
-          env: GROUP=js
+          env: GROUP=js/base
+        - python: 3.3
+          env: GROUP=js/notebook
+        - python: 3.3
+          env: GROUP=js/tree
+        - python: 3.3
+          env: GROUP=js/widgets
 
 after_success:
     - cp /tmp/ipy_coverage.xml ./
