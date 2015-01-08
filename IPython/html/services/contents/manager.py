@@ -11,6 +11,7 @@ import re
 
 from tornado.web import HTTPError
 
+from .checkpoints import CheckpointManager
 from IPython.config.configurable import LoggingConfigurable
 from IPython.nbformat import sign, validate, ValidationError
 from IPython.nbformat.v4 import new_notebook
@@ -27,77 +28,6 @@ from IPython.utils.traitlets import (
 from IPython.utils.py3compat import string_types
 
 copy_pat = re.compile(r'\-Copy\d*\.')
-
-
-class CheckpointManager(LoggingConfigurable):
-    """
-    Base class for managing checkpoints for a ContentsManager.
-    """
-
-    def create_checkpoint(self, contents_mgr, path):
-        model = contents_mgr.get(path, content=True)
-        type = model['type']
-        if type == 'notebook':
-            return self.create_notebook_checkpoint(
-                model['content'],
-                path,
-            )
-        elif type == 'file':
-            return self.create_file_checkpoint(
-                model['content'],
-                model['format'],
-                path,
-            )
-
-    def restore_checkpoint(self, contents_mgr, checkpoint_id, path):
-        """Restore a checkpoint."""
-        type = contents_mgr.get(path, content=False)['type']
-        model = self.get_checkpoint(checkpoint_id, path, type)
-        contents_mgr.save(model, path)
-
-    def create_file_checkpoint(self, content, format, path):
-        """Create a checkpoint of the current state of a file
-
-        Returns a checkpoint model for the new checkpoint.
-        """
-        raise NotImplementedError("must be implemented in a subclass")
-
-    def create_notebook_checkpoint(self, nb, path):
-        """Create a checkpoint of the current state of a file
-
-        Returns a checkpoint model for the new checkpoint.
-        """
-        raise NotImplementedError("must be implemented in a subclass")
-
-    def get_checkpoint(self, checkpoint_id, path, type):
-        """Get the content of a checkpoint.
-
-        Returns an unvalidated model with the same structure as
-        the return value of ContentsManager.get
-        """
-        raise NotImplementedError("must be implemented in a subclass")
-
-    def rename_checkpoint(self, checkpoint_id, old_path, new_path):
-        """Rename a single checkpoint from old_path to new_path."""
-        raise NotImplementedError("must be implemented in a subclass")
-
-    def delete_checkpoint(self, checkpoint_id, path):
-        """delete a checkpoint for a file"""
-        raise NotImplementedError("must be implemented in a subclass")
-
-    def list_checkpoints(self, path):
-        """Return a list of checkpoints for a given file"""
-        raise NotImplementedError("must be implemented in a subclass")
-
-    def rename_all_checkpoints(self, old_path, new_path):
-        """Rename all checkpoints for old_path to new_path."""
-        for cp in self.list_checkpoints(old_path):
-            self.rename_checkpoint(cp['id'], old_path, new_path)
-
-    def delete_all_checkpoints(self, path):
-        """Delete all checkpoints for the given path."""
-        for checkpoint in self.list_checkpoints(path):
-            self.delete_checkpoint(checkpoint['id'], path)
 
 
 class ContentsManager(LoggingConfigurable):
@@ -180,7 +110,6 @@ class ContentsManager(LoggingConfigurable):
     checkpoint_manager_class = Type(CheckpointManager, config=True)
     checkpoint_manager = Instance(CheckpointManager, config=True)
     checkpoint_manager_kwargs = Dict(allow_none=False, config=True)
-    backend = Unicode(default_value="")
 
     def _checkpoint_manager_default(self):
         return self.checkpoint_manager_class(**self.checkpoint_manager_kwargs)

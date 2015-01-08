@@ -13,6 +13,9 @@ pjoin = os.path.join
 
 import requests
 
+from ..filecheckpoints import GenericFileCheckpointManager
+
+from IPython.config import Config
 from IPython.html.utils import url_path_join, url_escape, to_os_path
 from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
 from IPython.nbformat import read, write, from_dict
@@ -615,24 +618,12 @@ class APITest(NotebookTestBase):
             with self.patch_cp_root(td):
                 self.test_file_checkpoints()
 
-    @contextmanager
-    def patch_cm_backend(self):
-        """
-        Temporarily patch our ContentsManager to present a different backend.
-        """
-        mgr = self.notebook.contents_manager
-        old_backend = mgr.backend
-        mgr.backend = ""
-        try:
-            yield
-        finally:
-            mgr.backend = old_backend
 
-    def test_checkpoints_empty_backend(self):
-        with self.patch_cm_backend():
-            self.test_checkpoints()
+class GenericFileCheckpointsAPITest(APITest):
+    """
+    Run the tests from APITest with GenericFileCheckpointManager.
+    """
 
-        with self.patch_cm_backend():
-            self.test_file_checkpoints()
-
-
+    config = Config()
+    config.FileContentsManager.checkpoint_manager_class = \
+        GenericFileCheckpointManager
