@@ -7,6 +7,7 @@ python:
 env:
     - GROUP=js/base
     - GROUP=js/notebook
+    - GROUP=js/services
     - GROUP=js/tree
     - GROUP=js/widgets
     - GROUP=
