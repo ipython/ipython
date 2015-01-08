@@ -3,7 +3,6 @@ language: python
 python:
     - 3.4
     - 2.7
-    - 3.3
 env:
     - GROUP=js/base
     - GROUP=js/notebook
@@ -30,15 +29,9 @@ script:
     - cd /tmp && iptest $GROUP $COVERAGE && cd -
 
 matrix:
-    exclude:
+    include:
         - python: 3.3
-          env: GROUP=js/base
-        - python: 3.3
-          env: GROUP=js/notebook
-        - python: 3.3
-          env: GROUP=js/tree
-        - python: 3.3
-          env: GROUP=js/widgets
+          env: GROUP=
 
 after_success:
     - cp /tmp/ipy_coverage.xml ./
