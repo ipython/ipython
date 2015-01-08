@@ -5,6 +5,8 @@ Classes for managing Checkpoints.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from tornado.web import HTTPError
+
 from IPython.config.configurable import LoggingConfigurable
 
 
@@ -59,17 +61,18 @@ class GenericCheckpointsMixin(object):
     Provides a ContentsManager-agnostic implementation of `create_checkpoint`
     and `restore_checkpoint` in terms of the following operations:
 
-    create_file_checkpoint(self, content, format, path)
-    create_notebook_checkpoint(self, nb, path)
-    get_checkpoint(self, checkpoint_id, path, type)
+    - create_file_checkpoint(self, content, format, path)
+    - create_notebook_checkpoint(self, nb, path)
+    - get_file_checkpoint(self, checkpoint_id, path)
+    - get_notebook_checkpoint(self, checkpoint_id, path)
 
     To create a generic CheckpointManager, add this mixin to a class that
     implement the above three methods plus the remaining Checkpoints API
     methods:
 
-    delete_checkpoint(self, checkpoint_id, path)
-    list_checkpoints(self, path)
-    rename_checkpoint(self, checkpoint_id, old_path, new_path)
+    - delete_checkpoint(self, checkpoint_id, path)
+    - list_checkpoints(self, path)
+    - rename_checkpoint(self, checkpoint_id, old_path, new_path)
     """
 
     def create_checkpoint(self, contents_mgr, path):
@@ -86,11 +89,18 @@ class GenericCheckpointsMixin(object):
                 model['format'],
                 path,
             )
+        else:
+            raise HTTPError(500, u'Unexpected type %s' % type)
 
     def restore_checkpoint(self, contents_mgr, checkpoint_id, path):
         """Restore a checkpoint."""
         type = contents_mgr.get(path, content=False)['type']
-        model = self.get_checkpoint(checkpoint_id, path, type)
+        if type == 'notebook':
+            model = self.get_notebook_checkpoint(checkpoint_id, path)
+        elif type == 'file':
+            model = self.get_file_checkpoint(checkpoint_id, path)
+        else:
+            raise HTTPError(500, u'Unexpected type %s' % type)
         contents_mgr.save(model, path)
 
     # Required Methods

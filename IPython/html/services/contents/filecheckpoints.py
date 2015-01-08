@@ -167,31 +167,34 @@ class GenericFileCheckpoints(GenericCheckpointsMixin, FileCheckpoints):
         # return the checkpoint info
         return self.checkpoint_model(checkpoint_id, os_checkpoint_path)
 
-    def get_checkpoint(self, checkpoint_id, path, type):
-        """Get the content of a checkpoint.
+    def get_notebook_checkpoint(self, checkpoint_id, path):
 
-        Returns a model suitable for passing to ContentsManager.save.
-        """
         path = path.strip('/')
         self.log.info("restoring %s from checkpoint %s", path, checkpoint_id)
         os_checkpoint_path = self.checkpoint_path(checkpoint_id, path)
+
         if not os.path.isfile(os_checkpoint_path):
             self.no_such_checkpoint(path, checkpoint_id)
 
-        if type == 'notebook':
-            return {
-                'type': type,
-                'content': self._read_notebook(
-                    os_checkpoint_path,
-                    as_version=4,
-                ),
-            }
-        elif type == 'file':
-            content, format = self._read_file(os_checkpoint_path, format=None)
-            return {
-                'type': type,
-                'content': content,
-                'format': format,
-            }
-        else:
-            raise HTTPError(500, u'Unexpected type %s' % type)
+        return {
+            'type': 'notebook',
+            'content': self._read_notebook(
+                os_checkpoint_path,
+                as_version=4,
+            ),
+        }
+
+    def get_file_checkpoint(self, checkpoint_id, path):
+        path = path.strip('/')
+        self.log.info("restoring %s from checkpoint %s", path, checkpoint_id)
+        os_checkpoint_path = self.checkpoint_path(checkpoint_id, path)
+
+        if not os.path.isfile(os_checkpoint_path):
+            self.no_such_checkpoint(path, checkpoint_id)
+
+        content, format = self._read_file(os_checkpoint_path, format=None)
+        return {
+            'type': 'file',
+            'content': content,
+            'format': format,
+        }
