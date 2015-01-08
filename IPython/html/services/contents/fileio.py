@@ -30,7 +30,7 @@ class FileManagerMixin(object):
     Provides facilities for reading, writing, and copying both notebooks and
     generic files.
 
-    Shared by FileContentsManager and FileCheckpointManager.
+    Shared by FileContentsManager and FileCheckpoints.
 
     Note
     ----

@@ -1,5 +1,5 @@
 """
-File-based CheckpointManagers.
+File-based Checkpoints implementations.
 """
 import os
 import shutil
@@ -7,8 +7,8 @@ import shutil
 from tornado.web import HTTPError
 
 from .checkpoints import (
-    CheckpointManager,
-    GenericCheckpointMixin,
+    Checkpoints,
+    GenericCheckpointsMixin,
 )
 from .fileio import FileManagerMixin
 
@@ -18,12 +18,12 @@ from IPython.utils.py3compat import getcwd
 from IPython.utils.traitlets import Unicode
 
 
-class FileCheckpointManager(FileManagerMixin, CheckpointManager):
+class FileCheckpoints(FileManagerMixin, Checkpoints):
     """
-    A CheckpointManager that caches checkpoints for files in adjacent
+    A Checkpoints that caches checkpoints for files in adjacent
     directories.
 
-    Only works with FileContentsManager.  Use GenericFileCheckpointManager if
+    Only works with FileContentsManager.  Use GenericFileCheckpoints if
     you want file-based checkpoints with another ContentsManager.
     """
 
@@ -136,10 +136,9 @@ class FileCheckpointManager(FileManagerMixin, CheckpointManager):
         )
 
 
-class GenericFileCheckpointManager(GenericCheckpointMixin,
-                                   FileCheckpointManager):
+class GenericFileCheckpoints(GenericCheckpointsMixin, FileCheckpoints):
     """
-    Local filesystem CheckpointManager that works with any conforming
+    Local filesystem Checkpoints that works with any conforming
     ContentsManager.
     """
     def create_file_checkpoint(self, content, format, path):

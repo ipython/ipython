@@ -84,7 +84,7 @@ class TestFileContentsManager(TestCase):
             root = td
             os.mkdir(os.path.join(td, subd))
             fm = FileContentsManager(root_dir=root)
-            cpm = fm.checkpoint_manager
+            cpm = fm.checkpoints
             cp_dir = cpm.checkpoint_path(
                 'cp', 'test.ipynb'
             )

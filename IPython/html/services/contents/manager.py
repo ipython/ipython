@@ -11,7 +11,7 @@ import re
 
 from tornado.web import HTTPError
 
-from .checkpoints import CheckpointManager
+from .checkpoints import Checkpoints
 from IPython.config.configurable import LoggingConfigurable
 from IPython.nbformat import sign, validate, ValidationError
 from IPython.nbformat.v4 import new_notebook
@@ -107,14 +107,14 @@ class ContentsManager(LoggingConfigurable):
             except Exception:
                 self.log.error("Pre-save hook failed on %s", path, exc_info=True)
 
-    checkpoint_manager_class = Type(CheckpointManager, config=True)
-    checkpoint_manager = Instance(CheckpointManager, config=True)
-    checkpoint_manager_kwargs = Dict(allow_none=False, config=True)
+    checkpoints_class = Type(Checkpoints, config=True)
+    checkpoints = Instance(Checkpoints, config=True)
+    checkpoints_kwargs = Dict(allow_none=False, config=True)
 
-    def _checkpoint_manager_default(self):
-        return self.checkpoint_manager_class(**self.checkpoint_manager_kwargs)
+    def _checkpoints_default(self):
+        return self.checkpoints_class(**self.checkpoints_kwargs)
 
-    def _checkpoint_manager_kwargs_default(self):
+    def _checkpoints_kwargs_default(self):
         return dict(
             parent=self,
             log=self.log,
@@ -223,12 +223,12 @@ class ContentsManager(LoggingConfigurable):
     def delete(self, path):
         """Delete a file/directory and any associated checkpoints."""
         self.delete_file(path)
-        self.checkpoint_manager.delete_all_checkpoints(path)
+        self.checkpoints.delete_all_checkpoints(path)
 
     def rename(self, old_path, new_path):
         """Rename a file and any checkpoints associated with that file."""
         self.rename_file(old_path, new_path)
-        self.checkpoint_manager.rename_all_checkpoints(old_path, new_path)
+        self.checkpoints.rename_all_checkpoints(old_path, new_path)
 
     def update(self, model, path):
         """Update the file's path
@@ -453,16 +453,16 @@ class ContentsManager(LoggingConfigurable):
     # Part 3: Checkpoints API
     def create_checkpoint(self, path):
         """Create a checkpoint."""
-        return self.checkpoint_manager.create_checkpoint(self, path)
+        return self.checkpoints.create_checkpoint(self, path)
 
     def restore_checkpoint(self, checkpoint_id, path):
         """
         Restore a checkpoint.
         """
-        self.checkpoint_manager.restore_checkpoint(self, checkpoint_id, path)
+        self.checkpoints.restore_checkpoint(self, checkpoint_id, path)
 
     def list_checkpoints(self, path):
-        return self.checkpoint_manager.list_checkpoints(path)
+        return self.checkpoints.list_checkpoints(path)
 
     def delete_checkpoint(self, checkpoint_id, path):
-        return self.checkpoint_manager.delete_checkpoint(checkpoint_id, path)
+        return self.checkpoints.delete_checkpoint(checkpoint_id, path)

@@ -11,7 +11,7 @@ import mimetypes
 
 from tornado import web
 
-from .filecheckpoints import FileCheckpointManager
+from .filecheckpoints import FileCheckpoints
 from .fileio import FileManagerMixin
 from .manager import ContentsManager
 
@@ -121,8 +121,8 @@ class FileContentsManager(FileManagerMixin, ContentsManager):
         if not os.path.isdir(new):
             raise TraitError("%r is not a directory" % new)
 
-    def _checkpoint_manager_class_default(self):
-        return FileCheckpointManager
+    def _checkpoints_class_default(self):
+        return FileCheckpoints
 
     def is_hidden(self, path):
         """Does the API style path correspond to a hidden directory or file?
@@ -383,7 +383,7 @@ class FileContentsManager(FileManagerMixin, ContentsManager):
                 self.check_and_sign(nb, path)
                 self._save_notebook(os_path, nb)
                 # One checkpoint should always exist for notebooks.
-                if not self.checkpoint_manager.list_checkpoints(path):
+                if not self.checkpoints.list_checkpoints(path):
                     self.create_checkpoint(path)
             elif model['type'] == 'file':
                 # Missing format will be handled internally by _save_file.
@@ -421,7 +421,7 @@ class FileContentsManager(FileManagerMixin, ContentsManager):
             # Don't delete non-empty directories.
             # A directory containing only leftover checkpoints is
             # considered empty.
-            cp_dir = getattr(self.checkpoint_manager, 'checkpoint_dir', None)
+            cp_dir = getattr(self.checkpoints, 'checkpoint_dir', None)
             for entry in listing:
                 if entry != cp_dir:
                     raise web.HTTPError(400, u'Directory %s not empty' % os_path)

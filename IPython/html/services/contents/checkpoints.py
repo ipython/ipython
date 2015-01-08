@@ -8,7 +8,7 @@ Classes for managing Checkpoints.
 from IPython.config.configurable import LoggingConfigurable
 
 
-class CheckpointManager(LoggingConfigurable):
+class Checkpoints(LoggingConfigurable):
     """
     Base class for managing checkpoints for a ContentsManager.
 
@@ -51,20 +51,25 @@ class CheckpointManager(LoggingConfigurable):
             self.delete_checkpoint(checkpoint['id'], path)
 
 
-class GenericCheckpointMixin(object):
+class GenericCheckpointsMixin(object):
     """
-    Helper for creating CheckpointManagers that can be used with any
+    Helper for creating Checkpoints subclasses that can be used with any
     ContentsManager.
 
-    Provides an implementation of `create_checkpoint` and `restore_checkpoint`
-    in terms of the following operations:
+    Provides a ContentsManager-agnostic implementation of `create_checkpoint`
+    and `restore_checkpoint` in terms of the following operations:
 
     create_file_checkpoint(self, content, format, path)
     create_notebook_checkpoint(self, nb, path)
     get_checkpoint(self, checkpoint_id, path, type)
 
-    **Any** valid CheckpointManager implementation should also be valid when
-    this mixin is applied.
+    To create a generic CheckpointManager, add this mixin to a class that
+    implement the above three methods plus the remaining Checkpoints API
+    methods:
+
+    delete_checkpoint(self, checkpoint_id, path)
+    list_checkpoints(self, path)
+    rename_checkpoint(self, checkpoint_id, old_path, new_path)
     """
 
     def create_checkpoint(self, contents_mgr, path):

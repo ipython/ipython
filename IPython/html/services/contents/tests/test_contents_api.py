@@ -13,7 +13,7 @@ pjoin = os.path.join
 
 import requests
 
-from ..filecheckpoints import GenericFileCheckpointManager
+from ..filecheckpoints import GenericFileCheckpoints
 
 from IPython.config import Config
 from IPython.html.utils import url_path_join, url_escape, to_os_path
@@ -593,7 +593,7 @@ class APITest(NotebookTestBase):
         """
         Temporarily patch the root dir of our checkpoint manager.
         """
-        cpm = self.notebook.contents_manager.checkpoint_manager
+        cpm = self.notebook.contents_manager.checkpoints
         old_dirname = cpm.root_dir
         cpm.root_dir = dirname
         try:
@@ -603,7 +603,7 @@ class APITest(NotebookTestBase):
 
     def test_checkpoints_separate_root(self):
         """
-        Test that FileCheckpointManager functions correctly even when it's
+        Test that FileCheckpoints functions correctly even when it's
         using a different root dir from FileContentsManager.  This also keeps
         the implementation honest for use with ContentsManagers that don't map
         models to the filesystem
@@ -621,9 +621,16 @@ class APITest(NotebookTestBase):
 
 class GenericFileCheckpointsAPITest(APITest):
     """
-    Run the tests from APITest with GenericFileCheckpointManager.
+    Run the tests from APITest with GenericFileCheckpoints.
     """
-
     config = Config()
-    config.FileContentsManager.checkpoint_manager_class = \
-        GenericFileCheckpointManager
+    config.FileContentsManager.checkpoints_class = GenericFileCheckpoints
+
+    def test_config_did_something(self):
+
+        self.assertIsInstance(
+            self.notebook.contents_manager.checkpoints,
+            GenericFileCheckpoints,
+        )
+
+
