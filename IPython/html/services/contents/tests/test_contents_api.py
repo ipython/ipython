@@ -2,6 +2,7 @@
 """Test the contents webservice API."""
 
 import base64
+from contextlib import contextmanager
 import io
 import json
 import os
@@ -12,6 +13,9 @@ pjoin = os.path.join
 
 import requests
 
+from ..filecheckpoints import GenericFileCheckpoints
+
+from IPython.config import Config
 from IPython.html.utils import url_path_join, url_escape, to_os_path
 from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
 from IPython.nbformat import read, write, from_dict
@@ -21,6 +25,7 @@ from IPython.nbformat.v4 import (
 from IPython.nbformat import v2
 from IPython.utils import py3compat
 from IPython.utils.data import uniq_stable
+from IPython.utils.tempdir import TemporaryDirectory
 
 
 def notebooks_only(dir_model):
@@ -502,7 +507,6 @@ class APITest(NotebookTestBase):
         self.assertEqual(newnb.cells[0].source,
                          u'Created by test ³')
 
-
     def test_checkpoints(self):
         resp = self.api.read('foo/a.ipynb')
         r = self.api.new_checkpoint('foo/a.ipynb')
@@ -540,3 +544,93 @@ class APITest(NotebookTestBase):
         self.assertEqual(r.status_code, 204)
         cps = self.api.get_checkpoints('foo/a.ipynb').json()
         self.assertEqual(cps, [])
+
+    def test_file_checkpoints(self):
+        """
+        Test checkpointing of non-notebook files.
+        """
+        filename = 'foo/a.txt'
+        resp = self.api.read(filename)
+        orig_content = json.loads(resp.text)['content']
+
+        # Create a checkpoint.
+        r = self.api.new_checkpoint(filename)
+        self.assertEqual(r.status_code, 201)
+        cp1 = r.json()
+        self.assertEqual(set(cp1), {'id', 'last_modified'})
+        self.assertEqual(r.headers['Location'].split('/')[-1], cp1['id'])
+
+        # Modify the file and save.
+        new_content = orig_content + '\nsecond line'
+        model = {
+            'content': new_content,
+            'type': 'file',
+            'format': 'text',
+        }
+        resp = self.api.save(filename, body=json.dumps(model))
+
+        # List checkpoints
+        cps = self.api.get_checkpoints(filename).json()
+        self.assertEqual(cps, [cp1])
+
+        content = self.api.read(filename).json()['content']
+        self.assertEqual(content, new_content)
+
+        # Restore cp1
+        r = self.api.restore_checkpoint(filename, cp1['id'])
+        self.assertEqual(r.status_code, 204)
+        restored_content = self.api.read(filename).json()['content']
+        self.assertEqual(restored_content, orig_content)
+
+        # Delete cp1
+        r = self.api.delete_checkpoint(filename, cp1['id'])
+        self.assertEqual(r.status_code, 204)
+        cps = self.api.get_checkpoints(filename).json()
+        self.assertEqual(cps, [])
+
+    @contextmanager
+    def patch_cp_root(self, dirname):
+        """
+        Temporarily patch the root dir of our checkpoint manager.
+        """
+        cpm = self.notebook.contents_manager.checkpoints
+        old_dirname = cpm.root_dir
+        cpm.root_dir = dirname
+        try:
+            yield
+        finally:
+            cpm.root_dir = old_dirname
+
+    def test_checkpoints_separate_root(self):
+        """
+        Test that FileCheckpoints functions correctly even when it's
+        using a different root dir from FileContentsManager.  This also keeps
+        the implementation honest for use with ContentsManagers that don't map
+        models to the filesystem
+
+        Override this method to a no-op when testing other managers.
+        """
+        with TemporaryDirectory() as td:
+            with self.patch_cp_root(td):
+                self.test_checkpoints()
+
+        with TemporaryDirectory() as td:
+            with self.patch_cp_root(td):
+                self.test_file_checkpoints()
+
+
+class GenericFileCheckpointsAPITest(APITest):
+    """
+    Run the tests from APITest with GenericFileCheckpoints.
+    """
+    config = Config()
+    config.FileContentsManager.checkpoints_class = GenericFileCheckpoints
+
+    def test_config_did_something(self):
+
+        self.assertIsInstance(
+            self.notebook.contents_manager.checkpoints,
+            GenericFileCheckpoints,
+        )
+
+

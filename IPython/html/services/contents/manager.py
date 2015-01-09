@@ -11,14 +11,24 @@ import re
 
 from tornado.web import HTTPError
 
+from .checkpoints import Checkpoints
 from IPython.config.configurable import LoggingConfigurable
 from IPython.nbformat import sign, validate, ValidationError
 from IPython.nbformat.v4 import new_notebook
 from IPython.utils.importstring import import_item
-from IPython.utils.traitlets import Instance, Unicode, List, Any, TraitError
+from IPython.utils.traitlets import (
+    Any,
+    Dict,
+    Instance,
+    List,
+    TraitError,
+    Type,
+    Unicode,
+)
 from IPython.utils.py3compat import string_types
 
 copy_pat = re.compile(r'\-Copy\d*\.')
+
 
 class ContentsManager(LoggingConfigurable):
     """Base class for serving files and directories.
@@ -96,6 +106,19 @@ class ContentsManager(LoggingConfigurable):
                 self.pre_save_hook(model=model, path=path, contents_manager=self, **kwargs)
             except Exception:
                 self.log.error("Pre-save hook failed on %s", path, exc_info=True)
+
+    checkpoints_class = Type(Checkpoints, config=True)
+    checkpoints = Instance(Checkpoints, config=True)
+    checkpoints_kwargs = Dict(allow_none=False, config=True)
+
+    def _checkpoints_default(self):
+        return self.checkpoints_class(**self.checkpoints_kwargs)
+
+    def _checkpoints_kwargs_default(self):
+        return dict(
+            parent=self,
+            log=self.log,
+        )
 
     # ContentsManager API part 1: methods that must be
     # implemented in subclasses.
@@ -186,31 +209,26 @@ class ContentsManager(LoggingConfigurable):
         """
         raise NotImplementedError('must be implemented in a subclass')
 
-    def delete(self, path):
+    def delete_file(self, path):
         """Delete file or directory by path."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def create_checkpoint(self, path):
-        """Create a checkpoint of the current state of a file
-
-        Returns a checkpoint_id for the new checkpoint.
-        """
-        raise NotImplementedError("must be implemented in a subclass")
-
-    def list_checkpoints(self, path):
-        """Return a list of checkpoints for a given file"""
-        return []
-
-    def restore_checkpoint(self, checkpoint_id, path):
-        """Restore a file from one of its checkpoints"""
-        raise NotImplementedError("must be implemented in a subclass")
-
-    def delete_checkpoint(self, checkpoint_id, path):
-        """delete a checkpoint for a file"""
-        raise NotImplementedError("must be implemented in a subclass")
+    def rename_file(self, old_path, new_path):
+        """Rename a file."""
+        raise NotImplementedError('must be implemented in a subclass')
 
     # ContentsManager API part 2: methods that have useable default
     # implementations, but can be overridden in subclasses.
+
+    def delete(self, path):
+        """Delete a file/directory and any associated checkpoints."""
+        self.delete_file(path)
+        self.checkpoints.delete_all_checkpoints(path)
+
+    def rename(self, old_path, new_path):
+        """Rename a file and any checkpoints associated with that file."""
+        self.rename_file(old_path, new_path)
+        self.checkpoints.rename_all_checkpoints(old_path, new_path)
 
     def update(self, model, path):
         """Update the file's path
@@ -431,3 +449,20 @@ class ContentsManager(LoggingConfigurable):
     def should_list(self, name):
         """Should this file/directory name be displayed in a listing?"""
         return not any(fnmatch(name, glob) for glob in self.hide_globs)
+
+    # Part 3: Checkpoints API
+    def create_checkpoint(self, path):
+        """Create a checkpoint."""
+        return self.checkpoints.create_checkpoint(self, path)
+
+    def restore_checkpoint(self, checkpoint_id, path):
+        """
+        Restore a checkpoint.
+        """
+        self.checkpoints.restore_checkpoint(self, checkpoint_id, path)
+
+    def list_checkpoints(self, path):
+        return self.checkpoints.list_checkpoints(path)
+
+    def delete_checkpoint(self, checkpoint_id, path):
+        return self.checkpoints.delete_checkpoint(checkpoint_id, path)
