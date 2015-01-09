@@ -35,7 +35,6 @@ define([
         var change_kernel_submenu = $("#menu-change-kernel-submenu");
         var new_notebook_submenu = $("#menu-new-notebook-submenu");
         
-        // Create the change kernel submenu
         var keys = Object.keys(data.kernelspecs).sort(function (a, b) {
             // sort by display_name
             var da = data.kernelspecs[a].spec.display_name;
@@ -48,6 +47,8 @@ define([
                 return -1;
             }
         });
+
+        // Create the Kernel > Change kernel submenu
         for (var i = 0; i < keys.length; i++) {
             var ks = this.kernelspecs[keys[i]];
             var ks_submenu_entry = $("<li>").attr("id", "kernel-submenu-"+ks.name).append($('<a>')
@@ -57,32 +58,7 @@ define([
             change_kernel_submenu.append(ks_submenu_entry);
         }
         
-        // Create the new notebook submenu
-        /** This code is supposed to put the current kernel at the top of the submenu
-         *  but at the time _got_kernelspecs gets called, this.notebook.kernel is null
-         *
-         * var current_kernel_name = this.notebook.kernel.name
-         * var keys = Object.keys(data.kernelspecs).sort(function (a, b) {
-         *   // sort by display_name, putting the current kernel on top
-         *   var da = data.kernelspecs[a].spec.display_name;
-         *   var db = data.kernelspecs[b].spec.display_name;
-         *   if (da === db) {
-         *       return 0;
-         *   } else if (db == current_kernel_name || da > db) {
-         *       return 1;
-         *   } else {
-         *       return -1;
-         *   }
-         * });
-         */
-
-        /** Uncomment to add header the the new notebook submenu
-         *
-         * new_notebook_submenu.append($("<li>").attr("id","notebook-kernels")
-         *                                    .attr("class","dropdown-header")
-         *                                    .attr("role","presentation")
-         *                                    .text("Notebook"))
-         */
+        // Create the File > New Notebook submenu
         for (var i = 0; i < keys.length; i++) {
             var ks = this.kernelspecs[keys[i]];
             var ks_submenu_entry = $("<li>").attr("id", "new-notebook-submenu-"+ks.name).append($('<a>')
@@ -98,6 +74,13 @@ define([
         
         // update selection
         this.current_selection = ks.name;
+        
+        // put the current kernel at the top of File > New Notebook
+        var cur_kernel_entry = $("#new-notebook-submenu-" + ks.name);
+        if (cur_kernel_entry.length) {
+            cur_kernel_entry.parent().prepend($("<li>").attr("class","divider"))
+                                     .prepend(cur_kernel_entry);
+        };
         
         // load logo
         var logo_img = this.element.find("img.current_kernel_logo");
