@@ -33,6 +33,9 @@ define([
     KernelSelector.prototype._got_kernelspecs = function(data) {
         this.kernelspecs = data.kernelspecs;
         var change_kernel_submenu = $("#menu-change-kernel-submenu");
+        var new_notebook_submenu = $("#menu-new-notebook-submenu");
+        
+        // Create the change kernel submenu
         var keys = Object.keys(data.kernelspecs).sort(function (a, b) {
             // sort by display_name
             var da = data.kernelspecs[a].spec.display_name;
@@ -52,6 +55,41 @@ define([
                 .click($.proxy(this.change_kernel, this, ks.name))
                 .text(ks.spec.display_name));
             change_kernel_submenu.append(ks_submenu_entry);
+        }
+        
+        // Create the new notebook submenu
+        /** This code is supposed to put the current kernel at the top of the submenu
+         *  but at the time _got_kernelspecs gets called, this.notebook.kernel is null
+         *
+         * var current_kernel_name = this.notebook.kernel.name
+         * var keys = Object.keys(data.kernelspecs).sort(function (a, b) {
+         *   // sort by display_name, putting the current kernel on top
+         *   var da = data.kernelspecs[a].spec.display_name;
+         *   var db = data.kernelspecs[b].spec.display_name;
+         *   if (da === db) {
+         *       return 0;
+         *   } else if (db == current_kernel_name || da > db) {
+         *       return 1;
+         *   } else {
+         *       return -1;
+         *   }
+         * });
+         */
+
+        /** Uncomment to add header the the new notebook submenu
+         *
+         * new_notebook_submenu.append($("<li>").attr("id","notebook-kernels")
+         *                                    .attr("class","dropdown-header")
+         *                                    .attr("role","presentation")
+         *                                    .text("Notebook"))
+         */
+        for (var i = 0; i < keys.length; i++) {
+            var ks = this.kernelspecs[keys[i]];
+            var ks_submenu_entry = $("<li>").attr("id", "new-notebook-submenu-"+ks.name).append($('<a>')
+                .attr('href', '#')
+                .click($.proxy(this.new_notebook, this, ks.name))
+                .text(ks.spec.display_name));
+            new_notebook_submenu.append(ks_submenu_entry);
         }
     };
     
@@ -120,6 +158,32 @@ define([
         }
         console.log('spec', kernel_name, ks);
         this.events.trigger('spec_changed.Kernel', ks);
+    };
+
+    KernelSelector.prototype.new_notebook = function (kernel_name) {
+        
+        var w = window.open();
+        // Create a new notebook in the same path as the current
+        // notebook's path.
+        var that = this;
+        var parent = utils.url_path_split(that.notebook.notebook_path)[0];
+        that.notebook.contents.new_untitled(parent, {type: "notebook"}).then(
+            function (data) {
+                var url = utils.url_join_encode(
+                    that.notebook.base_url, 'notebooks', data.path
+                );
+                url += "?kernel_name=" + kernel_name;
+                w.location = url;
+            },
+            function(error) {
+                w.close();
+                dialog.modal({
+                    title : 'Creating Notebook Failed',
+                    body : "The error was: " + error.message,
+                    buttons : {'OK' : {'class' : 'btn-primary'}}
+                });
+            }
+        );
     };
 
     KernelSelector.prototype.lock_switch = function() {

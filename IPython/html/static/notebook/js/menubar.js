@@ -98,7 +98,13 @@ define([
          *  File
          */
         var that = this;
-        this.element.find('#new_notebook').click(function () {
+        /*var new_buttons = new newnotebook.NewNotebookWidget("#new-buttons",
+            $.extend(
+                {contents: contents},
+                common_options
+            )
+        );*/
+        /*this.element.find('#new_notebook').click(function () {
             var w = window.open();
             // Create a new notebook in the same path as the current
             // notebook's path.
@@ -120,7 +126,7 @@ define([
                         });
                     }
                 );
-        });
+        });*/
         this.element.find('#open_notebook').click(function () {
             var parent = utils.url_path_split(that.notebook.notebook_path)[0];
             window.open(utils.url_join_encode(that.base_url, 'tree', parent));
