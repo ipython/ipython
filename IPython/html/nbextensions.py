@@ -37,14 +37,14 @@ if os.name == 'nt':
         SYSTEM_NBEXTENSIONS_DIRS = [pjoin(programdata, 'jupyter', 'nbextensions')]
     prefixes = []
 else:
-    prefixes = ['/usr/local', '/usr']
+    prefixes = [os.path.sep + pjoin('usr', 'local'), os.path.sep + 'usr']
 
 # add sys.prefix at the front
 if sys.prefix not in prefixes:
     prefixes.insert(0, sys.prefix)
 
 for prefix in prefixes:
-    nbext = os.path.join(prefix, 'share', 'jupyter', 'nbextensions')
+    nbext = pjoin(prefix, 'share', 'jupyter', 'nbextensions')
     if nbext not in SYSTEM_NBEXTENSIONS_DIRS:
         SYSTEM_NBEXTENSIONS_DIRS.append(nbext)
 
