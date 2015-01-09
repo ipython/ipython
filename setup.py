@@ -214,9 +214,8 @@ class UploadWindowsInstallers(upload):
 
 setup_args['cmdclass'] = {
     'build_py': css_js_prerelease(
-            check_package_data_first(git_prebuild('IPython')),
-        strict=False),
-    'sdist' : css_js_prerelease(git_prebuild('IPython', sdist), strict=False),
+            check_package_data_first(git_prebuild('IPython'))),
+    'sdist' : css_js_prerelease(git_prebuild('IPython', sdist)),
     'upload_wininst' : UploadWindowsInstallers,
     'submodule' : UpdateSubmodules,
     'css' : CompileCSS,
@@ -284,7 +283,7 @@ if 'setuptools' in sys.modules:
     # setup.py develop should check for submodules
     from setuptools.command.develop import develop
     setup_args['cmdclass']['develop'] = require_submodules(develop)
-    setup_args['cmdclass']['bdist_wheel'] = css_js_prerelease(get_bdist_wheel(), strict=False)
+    setup_args['cmdclass']['bdist_wheel'] = css_js_prerelease(get_bdist_wheel())
     
     setuptools_extra_args['zip_safe'] = False
     setuptools_extra_args['entry_points'] = {'console_scripts':find_entry_points()}
