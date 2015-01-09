@@ -105,9 +105,11 @@ define([
             var parent = utils.url_path_split(that.notebook.notebook_path)[0];
             that.contents.new_untitled(parent, {type: "notebook"}).then(
                     function (data) {
-                        w.location = utils.url_join_encode(
-                                that.base_url, 'notebooks', data.path
-                            );
+                        var url = utils.url_join_encode(
+                            that.base_url, 'notebooks', data.path
+                        );
+                        url += "?kernel_name=" + that.notebook.kernel.name;
+                        w.location = url;
                     },
                     function(error) {
                         w.close();
