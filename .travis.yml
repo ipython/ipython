@@ -23,8 +23,7 @@ before_install:
     - 'if [[ $GROUP == js* ]]; then python -m IPython.external.mathjax; fi'
     - 'if [[ $GROUP != js* ]]; then COVERAGE="--coverage xml"; fi'
 install:
-    - pip install coveralls
-    - pip install -f travis-wheels/wheelhouse file://$PWD#egg=ipython[all]
+    - pip install -f travis-wheels/wheelhouse file://$PWD#egg=ipython[all] coveralls
 script:
     - cd /tmp && iptest $GROUP $COVERAGE && cd -
 
