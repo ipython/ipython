@@ -138,7 +138,7 @@ class ZMQStreamHandler(WebSocketHandler):
         """meaningless for websockets"""
         pass
 
-    def _reserialize_reply(self, msg_list):
+    def _reserialize_reply(self, msg_list, channel=None):
         """Reserialize a reply message using JSON.
 
         This takes the msg list from the ZMQ socket, deserializes it using
@@ -148,6 +148,8 @@ class ZMQStreamHandler(WebSocketHandler):
         """
         idents, msg_list = self.session.feed_identities(msg_list)
         msg = self.session.deserialize(msg_list)
+        if channel:
+            msg['channel'] = channel
         if msg['buffers']:
             buf = serialize_binary_message(msg)
             return buf
@@ -155,12 +157,13 @@ class ZMQStreamHandler(WebSocketHandler):
             smsg = json.dumps(msg, default=date_default)
             return cast_unicode(smsg)
 
-    def _on_zmq_reply(self, msg_list):
+    def _on_zmq_reply(self, stream, msg_list):
         # Sometimes this gets triggered when the on_close method is scheduled in the
         # eventloop but hasn't been called.
-        if self.stream.closed(): return
+        if stream.closed(): return
+        channel = getattr(stream, 'channel', None)
         try:
-            msg = self._reserialize_reply(msg_list)
+            msg = self._reserialize_reply(msg_list, channel=channel)
         except Exception:
             self.log.critical("Malformed message: %r" % msg_list, exc_info=True)
         else:
