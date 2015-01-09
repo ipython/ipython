@@ -8,12 +8,12 @@
 {{super()}}
 {% endblock %}
 
-{% block params %}
+{% block bodyclasses %}edit_app {{super()}}{% endblock %}
 
-class="edit_app"
+{% block params %}
 data-base-url="{{base_url}}"
 data-file-path="{{file_path}}"
-
+{{super()}}
 {% endblock %}
 
 {% block headercontainer %}

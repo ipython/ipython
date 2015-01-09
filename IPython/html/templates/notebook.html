@@ -21,6 +21,8 @@ window.mathjax_url = "{{mathjax_url}}";
 
 {% endblock %}
 
+{% block bodyclasses %}notebook_app {{super()}}{% endblock %}
+
 {% block params %}
 
 data-project="{{project}}"
@@ -28,7 +30,6 @@ data-base-url="{{base_url}}"
 data-ws-url="{{ws_url}}"
 data-notebook-name="{{notebook_name}}"
 data-notebook-path="{{notebook_path}}"
-class="notebook_app"
 
 {% endblock %}
 
