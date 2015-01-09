@@ -25,6 +25,8 @@ from IPython.utils.path import get_ipython_dir, ensure_dir_exists
 from IPython.utils.py3compat import string_types, cast_unicode_py2
 from IPython.utils.tempdir import TemporaryDirectory
 
+class ArgumentConflict(ValueError):
+    pass
 
 # Packagers: modify the next block if you store system-installed nbextensions elsewhere (unlikely)
 SYSTEM_NBEXTENSIONS_DIRS = []
@@ -140,7 +142,7 @@ def install_nbextension(files, overwrite=False, symlink=False, user=False, prefi
         set verbose=2 for more output, or verbose=0 for silence.
     """
     if sum(map(bool, [user, prefix, nbextensions_dir])) > 1:
-        raise ValueError("Cannot specify more than one of user, prefix, or nbextensions_dir.")
+        raise ArgumentConflict("Cannot specify more than one of user, prefix, or nbextensions_dir.")
     if user:
         nbext = pjoin(get_ipython_dir(), u'nbextensions')
     else:
@@ -296,10 +298,6 @@ class NBExtensionApp(BaseIPythonApplication):
         help="Verbosity level"
     )
     
-    def check_install():
-        if sum(map(bool, [user, prefix, nbextensions_dir])) > 1:
-            raise TraitError("Cannot specify more than one of user, prefix, or nbextensions_dir.")
-    
     def install_extensions(self):
         install_nbextension(self.extra_args,
             overwrite=self.overwrite,
@@ -318,8 +316,11 @@ class NBExtensionApp(BaseIPythonApplication):
                     for ext in os.listdir(nbext):
                         print(u"    %s" % ext)
         else:
-            self.check_install()
-            self.install_extensions()
+            try:
+                self.install_extensions()
+            except ArgumentConflict as e:
+                print(str(e), file=sys.stderr)
+                self.exit(1)
 
 
 if __name__ == '__main__':
