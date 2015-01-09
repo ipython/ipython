@@ -50,6 +50,10 @@ sh('mv ipython-*.tgz %s' % ipbackupdir)
 # Build release files
 sh('./build_release %s' % ipdir)
 
+if 'upload' not in sys.argv:
+    print("`./release upload` to register and release")
+    sys.exit(0)
+
 # Register with the Python Package Index (PyPI)
 print( 'Registering with PyPI...')
 cd(ipdir)
