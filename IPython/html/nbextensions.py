@@ -83,15 +83,15 @@ def _safe_is_tarfile(path):
         return False
 
 
-def check_nbextension(files, nbextensions=None):
+def check_nbextension(files, nbextensions_dir=None):
     """Check whether nbextension files have been installed
     
     files should be a list of relative paths within nbextensions.
     
     Returns True if all files are found, False if any are missing.
     """
-    if nbextensions:
-        nbext = nbextensions
+    if nbextensions_dir:
+        nbext = nbextensions_dir
     else:
         nbext = pjoin(get_ipython_dir(), u'nbextensions')
     # make sure nbextensions dir exists
@@ -105,10 +105,10 @@ def check_nbextension(files, nbextensions=None):
     return all(os.path.exists(pjoin(nbext, f)) for f in files)
 
 
-def install_nbextension(files, overwrite=False, symlink=False, user=False, prefix=None, nbextensions=None, verbose=1):
+def install_nbextension(files, overwrite=False, symlink=False, user=False, prefix=None, nbextensions_dir=None, verbose=1):
     """Install a Javascript extension for the notebook
     
-    Stages files and/or directories into IPYTHONDIR/nbextensions.
+    Stages files and/or directories into the nbextensions directory.
     By default, this compares modification time, and only stages files that need updating.
     If `overwrite` is specified, matching files are purged before proceeding.
     
@@ -133,21 +133,21 @@ def install_nbextension(files, overwrite=False, symlink=False, user=False, prefi
     prefix : str [optional]
         Specify install prefix, if it should differ from default (e.g. /usr/local).
         Will install to prefix/share/jupyter/nbextensions
-    nbextensions : str [optional]
+    nbextensions_dir : str [optional]
         Specify absolute path of nbextensions directory explicitly.
     verbose : int [default: 1]
         Set verbosity level. The default is 1, where file actions are printed.
         set verbose=2 for more output, or verbose=0 for silence.
     """
-    if sum(map(bool, [user, prefix, nbextensions])) > 1:
-        raise ValueError("Cannot specify more than one of user, prefix, or nbextensions.")
+    if sum(map(bool, [user, prefix, nbextensions_dir])) > 1:
+        raise ValueError("Cannot specify more than one of user, prefix, or nbextensions_dir.")
     if user:
         nbext = pjoin(get_ipython_dir(), u'nbextensions')
     else:
         if prefix:
             nbext = pjoin(prefix, 'share', 'jupyter', 'nbextensions')
-        elif nbextensions:
-            nbext = nbextensions
+        elif nbextensions_dir:
+            nbext = nbextensions_dir
         else:
             nbext = SYSTEM_NBEXTENSIONS_INSTALL_DIR
     # make sure nbextensions dir exists
@@ -170,7 +170,7 @@ def install_nbextension(files, overwrite=False, symlink=False, user=False, prefi
                     print("downloading %s to %s" % (path, local_path))
                 urlretrieve(path, local_path)
                 # now install from the local copy
-                install_nbextension(local_path, overwrite=overwrite, symlink=symlink, nbextensions=nbext, verbose=verbose)
+                install_nbextension(local_path, overwrite=overwrite, symlink=symlink, nbextensions_dir=nbext, verbose=verbose)
             continue
         
         # handle archives
@@ -262,7 +262,7 @@ flags['s'] = flags['symlink']
 aliases = {
     "ipython-dir" : "NBExtensionApp.ipython_dir",
     "prefix" : "NBExtensionApp.prefix",
-    "nbextensions" : "NBExtensionApp.nbextensions",
+    "nbextensions" : "NBExtensionApp.nbextensions_dir",
 }
 
 class NBExtensionApp(BaseIPythonApplication):
@@ -291,14 +291,14 @@ class NBExtensionApp(BaseIPythonApplication):
     symlink = Bool(False, config=True, help="Create symlinks instead of copying files")
     user = Bool(False, config=True, help="Whether to do a user install")
     prefix = Unicode('', config=True, help="Installation prefix")
-    nbextensions = Unicode('', config=True, help="Full path to nbextensions (probably use prefix or user)")
+    nbextensions_dir = Unicode('', config=True, help="Full path to nbextensions dir (probably use prefix or user)")
     verbose = Enum((0,1,2), default_value=1, config=True,
         help="Verbosity level"
     )
     
     def check_install():
-        if sum(map(bool, [user, prefix, nbextensions])) > 1:
-            raise TraitError("Cannot specify more than one of user, prefix, or nbextensions.")
+        if sum(map(bool, [user, prefix, nbextensions_dir])) > 1:
+            raise TraitError("Cannot specify more than one of user, prefix, or nbextensions_dir.")
     
     def install_extensions(self):
         install_nbextension(self.extra_args,
@@ -307,7 +307,7 @@ class NBExtensionApp(BaseIPythonApplication):
             verbose=self.verbose,
             user=self.user,
             prefix=self.prefix,
-            nbextensions=self.nbextensions,
+            nbextensions_dir=self.nbextensions_dir,
         )
     
     def start(self):
