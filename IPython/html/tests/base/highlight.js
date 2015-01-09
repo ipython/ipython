@@ -3,8 +3,8 @@ casper.notebook_test(function () {
         if(data.error_expected){
             that.test.assertEquals(
                 data.error,
-                data.expected,
-                "!highlight: " + data.provided + " errors " + data.expected
+                true,
+                "!highlight: " + data.provided + " errors"
             );
         }else{
             that.test.assertEquals(
@@ -44,9 +44,9 @@ casper.notebook_test(function () {
                     window.callPhantom({
                         provided: from,
                         expected: expected,
-                        error: error,
+                        error: true,
                         error_expected: error_expected
-                    }); 
+                    });
                 });
             }, {
                 from: from,
