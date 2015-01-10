@@ -1,3 +1,16 @@
+.. image:: https://img.shields.io/coveralls/ipython/ipython.svg 
+    :target: https://coveralls.io/r/ipython/ipython?branch=master
+
+.. image:: https://img.shields.io/pypi/dm/IPython.svg           
+    :target: https://pypi.python.org/pypi/ipython
+
+.. image:: https://img.shields.io/pypi/v/IPython.svg            
+    :target: https://pypi.python.org/pypi/ipython
+
+.. image:: https://img.shields.io/travis/ipython/ipython.svg    
+    :target: https://travis-ci.org/ipython/ipython
+
+
 ===========================================
  IPython: Productive Interactive Computing
 ===========================================
