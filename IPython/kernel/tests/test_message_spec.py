@@ -17,6 +17,7 @@ from IPython.utils.traitlets import (
     HasTraits, TraitError, Bool, Unicode, Dict, Integer, List, Enum,
 )
 from IPython.utils.py3compat import string_types, iteritems
+
 from IPython.testing.messagespec import *
 
 from .utils import TIMEOUT, start_global_kernel, flush_channels, execute
