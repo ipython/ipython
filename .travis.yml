@@ -3,7 +3,11 @@ language: python
 python:
     - 3.4
     - 2.7
+sudo: false
 env:
+  global:
+    - PATH=$TRAVIS_BUILD_DIR/pandoc:$PATH
+  matrix:
     - GROUP=
     - GROUP=js/base
     - GROUP=js/notebook
@@ -11,19 +15,15 @@ env:
     - GROUP=js/tree
     - GROUP=js/widgets
 before_install:
-    # workaround for https://github.com/travis-ci/travis-cookbooks/issues/155
-    - sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm
-    # Pierre Carrier's PPA for PhantomJS and CasperJS
-    - sudo add-apt-repository -y ppa:pcarrier/ppa
-    # Needed to get recent version of pandoc in ubntu 12.04
-    - sudo add-apt-repository -y ppa:marutter/c2d4u
-    - sudo apt-get update
-    - sudo apt-get install pandoc casperjs libzmq3-dev
+    - 'if [[ $GROUP != js* ]]; then wget https://7de4dfdec62155b49b44-d726a73613a1989d29b147f20996e7c1.ssl.cf2.rackcdn.com/pandoc-1.12.3-linux-debian-x86_64.zip && unzip pandoc-1.12.3-linux-debian-x86_64.zip; fi'
+    - 'if [[ $GROUP == js* ]]; then wget https://7de4dfdec62155b49b44-d726a73613a1989d29b147f20996e7c1.ssl.cf2.rackcdn.com/mathjax.zip; fi'
+    - 'if [[ $GROUP == js* ]]; then npm install -g casperjs; fi'
     - git clone --quiet --depth 1 https://github.com/minrk/travis-wheels travis-wheels
-    - 'if [[ $GROUP == js* ]]; then python -m IPython.external.mathjax; fi'
     - 'if [[ $GROUP != js* ]]; then COVERAGE="--coverage xml"; fi'
 install:
     - pip install -f travis-wheels/wheelhouse file://$PWD#egg=ipython[all] coveralls
+before_script:
+    - 'if [[ $GROUP == js* ]]; then python -m IPython.external.mathjax mathjax.zip; fi'
 script:
     - cd /tmp && iptest $GROUP $COVERAGE && cd -
 
