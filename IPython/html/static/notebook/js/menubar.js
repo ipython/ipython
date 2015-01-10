@@ -98,27 +98,7 @@ define([
          *  File
          */
         var that = this;
-        this.element.find('#new_notebook').click(function () {
-            var w = window.open();
-            // Create a new notebook in the same path as the current
-            // notebook's path.
-            var parent = utils.url_path_split(that.notebook.notebook_path)[0];
-            that.contents.new_untitled(parent, {type: "notebook"}).then(
-                    function (data) {
-                        w.location = utils.url_join_encode(
-                                that.base_url, 'notebooks', data.path
-                            );
-                    },
-                    function(error) {
-                        w.close();
-                        dialog.modal({
-                            title : 'Creating Notebook Failed',
-                            body : "The error was: " + error.message,
-                            buttons : {'OK' : {'class' : 'btn-primary'}}
-                        });
-                    }
-                );
-        });
+        
         this.element.find('#open_notebook').click(function () {
             var parent = utils.url_path_split(that.notebook.notebook_path)[0];
             window.open(utils.url_join_encode(that.base_url, 'tree', parent));

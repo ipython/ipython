@@ -68,9 +68,10 @@ data-notebook-path="{{notebook_path}}"
               <ul class="nav navbar-nav">
                 <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">File</a>
                     <ul id="file_menu" class="dropdown-menu">
-                        <li id="new_notebook"
-                            title="Make a new notebook (Opens a new window)">
-                            <a href="#">New</a></li>
+                        <li id="new_notebook" class="dropdown-submenu">
+                            <a href="#">New Notebook</a>
+                            <ul class="dropdown-menu" id="menu-new-notebook-submenu"></ul>
+                        </li>
                         <li id="open_notebook"
                             title="Opens a new window with the Dashboard view">
                             <a href="#">Open...</a></li>
