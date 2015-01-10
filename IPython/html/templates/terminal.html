@@ -2,6 +2,8 @@
 
 {% block title %}{{page_title}}{% endblock %}
 
+{% block bodyclasses %}terminal-app {{super()}}{% endblock %}
+
 {% block params %}
 
 data-base-url="{{base_url}}"

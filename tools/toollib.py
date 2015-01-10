@@ -59,3 +59,10 @@ def compile_tree():
         msg = '*** ERROR: Some Python files in tree do NOT compile! ***\n'
         msg += 'See messages above for the actual file that produced it.\n'
         raise SystemExit(msg)
+
+try:
+    execfile
+except NameError:
+    def execfile(fname, globs, locs=None):
+        locs = locs or globs
+        exec(compile(open(fname).read(), fname, "exec"), globs, locs)

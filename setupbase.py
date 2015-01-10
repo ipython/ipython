@@ -746,7 +746,7 @@ class JavascriptVersion(Command):
                 f.write(line)
 
 
-def css_js_prerelease(command, strict=True):
+def css_js_prerelease(command):
     """decorator for building js/minified css prior to a release"""
     class DecoratedCommand(command):
         def run(self):
@@ -756,10 +756,7 @@ def css_js_prerelease(command, strict=True):
             try:
                 self.distribution.run_command('css')
             except Exception as e:
-                if strict:
-                    raise
-                else:
-                    log.warn("rebuilding css and sourcemaps failed (not a problem)")
-                    log.warn(str(e))
+                log.warn("rebuilding css and sourcemaps failed (not a problem)")
+                log.warn(str(e))
             command.run(self)
     return DecoratedCommand

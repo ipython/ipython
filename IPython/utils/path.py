@@ -27,10 +27,6 @@ from IPython.utils import py3compat
 
 fs_encoding = sys.getfilesystemencoding()
 
-def _get_long_path_name(path):
-    """Dummy no-op."""
-    return path
-
 def _writable_dir(path):
     """Whether `path` is a directory, to which the user has write access."""
     return os.path.isdir(path) and os.access(path, os.W_OK)
@@ -61,6 +57,11 @@ if sys.platform == 'win32':
             return path
         else:
             return buf.value
+else:
+    def _get_long_path_name(path):
+        """Dummy no-op."""
+        return path
+
 
 
 def get_long_path_name(path):

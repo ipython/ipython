@@ -1,8 +1,7 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-define(['require'
-], function(require) {
+define(function(require){
     "use strict";
     
     var ActionHandler = function (env) {
@@ -36,7 +35,7 @@ define(['require'
      *  but is considered undefined behavior.
      *
      **/
-    var _action = {
+    var _actions = {
         'run-select-next': {
             icon: 'fa-play',
             help    : 'run cell, select below',
@@ -387,31 +386,36 @@ define(['require'
     // Will actually generate/register all the IPython actions
     var fun = function(){
         var final_actions = {};
-        for(var k in _action){
-            // Js closure are function level not block level need to wrap in a IIFE
-            // and append ipython to event name these things do intercept event so are wrapped
-            // in a function that return false.
-            var handler = _prepare_handler(final_actions, k, _action);
-            (function(key, handler){
-                final_actions['ipython.'+key].handler = function(env, event){
-                    handler(env);
-                    if(event){
-                        event.preventDefault();
-                    }
-                    return false;
-                };
-            })(k, handler);
+        var k;
+        for(k in _actions){
+            if(_actions.hasOwnProperty(k)){
+                // Js closure are function level not block level need to wrap in a IIFE
+                // and append ipython to event name these things do intercept event so are wrapped
+                // in a function that return false.
+                var handler = _prepare_handler(final_actions, k, _actions);
+                (function(key, handler){
+                    final_actions['ipython.'+key].handler = function(env, event){
+                        handler(env);
+                        if(event){
+                            event.preventDefault();
+                        }
+                        return false;
+                    };
+                })(k, handler);
+            }
         }
 
-        for(var k in custom_ignore){
+        for(k in custom_ignore){
             // Js closure are function level not block level need to wrap in a IIFE
             // same as above, but decide for themselves wether or not they intercept events.
-            var handler = _prepare_handler(final_actions, k, custom_ignore);
-            (function(key, handler){
-                final_actions['ipython.'+key].handler = function(env, event){
-                    return handler(env, event);
-                };
-            })(k, handler);
+            if(custom_ignore.hasOwnProperty(k)){
+                var handler = _prepare_handler(final_actions, k, custom_ignore);
+                (function(key, handler){
+                    final_actions['ipython.'+key].handler = function(env, event){
+                        return handler(env, event);
+                    };
+                })(k, handler);
+            }
         }
 
         return final_actions;

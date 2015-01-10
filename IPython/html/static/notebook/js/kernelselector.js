@@ -33,6 +33,8 @@ define([
     KernelSelector.prototype._got_kernelspecs = function(data) {
         this.kernelspecs = data.kernelspecs;
         var change_kernel_submenu = $("#menu-change-kernel-submenu");
+        var new_notebook_submenu = $("#menu-new-notebook-submenu");
+        
         var keys = Object.keys(data.kernelspecs).sort(function (a, b) {
             // sort by display_name
             var da = data.kernelspecs[a].spec.display_name;
@@ -45,6 +47,8 @@ define([
                 return -1;
             }
         });
+
+        // Create the Kernel > Change kernel submenu
         for (var i = 0; i < keys.length; i++) {
             var ks = this.kernelspecs[keys[i]];
             var ks_submenu_entry = $("<li>").attr("id", "kernel-submenu-"+ks.name).append($('<a>')
@@ -53,6 +57,16 @@ define([
                 .text(ks.spec.display_name));
             change_kernel_submenu.append(ks_submenu_entry);
         }
+        
+        // Create the File > New Notebook submenu
+        for (var i = 0; i < keys.length; i++) {
+            var ks = this.kernelspecs[keys[i]];
+            var ks_submenu_entry = $("<li>").attr("id", "new-notebook-submenu-"+ks.name).append($('<a>')
+                .attr('href', '#')
+                .click($.proxy(this.new_notebook, this, ks.name))
+                .text(ks.spec.display_name));
+            new_notebook_submenu.append(ks_submenu_entry);
+        }
     };
     
     KernelSelector.prototype._spec_changed = function (event, ks) {
@@ -60,6 +74,13 @@ define([
         
         // update selection
         this.current_selection = ks.name;
+        
+        // put the current kernel at the top of File > New Notebook
+        var cur_kernel_entry = $("#new-notebook-submenu-" + ks.name);
+        if (cur_kernel_entry.length) {
+            cur_kernel_entry.parent().prepend($("<li>").attr("class","divider"))
+                                     .prepend(cur_kernel_entry);
+        };
         
         // load logo
         var logo_img = this.element.find("img.current_kernel_logo");
@@ -120,6 +141,32 @@ define([
         }
         console.log('spec', kernel_name, ks);
         this.events.trigger('spec_changed.Kernel', ks);
+    };
+
+    KernelSelector.prototype.new_notebook = function (kernel_name) {
+        
+        var w = window.open();
+        // Create a new notebook in the same path as the current
+        // notebook's path.
+        var that = this;
+        var parent = utils.url_path_split(that.notebook.notebook_path)[0];
+        that.notebook.contents.new_untitled(parent, {type: "notebook"}).then(
+            function (data) {
+                var url = utils.url_join_encode(
+                    that.notebook.base_url, 'notebooks', data.path
+                );
+                url += "?kernel_name=" + kernel_name;
+                w.location = url;
+            },
+            function(error) {
+                w.close();
+                dialog.modal({
+                    title : 'Creating Notebook Failed',
+                    body : "The error was: " + error.message,
+                    buttons : {'OK' : {'class' : 'btn-primary'}}
+                });
+            }
+        );
     };
 
     KernelSelector.prototype.lock_switch = function() {

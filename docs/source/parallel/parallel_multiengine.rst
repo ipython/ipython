@@ -509,7 +509,10 @@ Any imports made inside the block will also be performed on the view's engines.
 sync_imports also takes a `local` boolean flag that defaults to True, which specifies
 whether the local imports should also be performed.  However, support for `local=False`
 has not been implemented, so only packages that can be imported locally will work
-this way.
+this way. Note that the usual renaming of the import handle in the same line like in
+`import matplotlib.pyplot as plt' does not work on the remote engine, the `as plt` is 
+ignored remotely, while it executes locally. One could rename the remote handle with
+`%px plt = pyplot` though after the import.
 
 You can also specify imports via the ``@require`` decorator.  This is a decorator
 designed for use in Dependencies, but can be used to handle remote imports as well.

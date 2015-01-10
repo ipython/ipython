@@ -107,16 +107,14 @@ define([
     // that the widgets are associated with so they don't show on other 
     // pages hosted by the noteboook server.
     var url = [window.location.protocol, '//', window.location.host, window.location.pathname].join('');
+    var key = 'widgets:' + url;
     WidgetManager.set_state_callbacks(function() {
-        if (localStorage.widgets && localStorage.widgets[url]) {
-            return JSON.parse(localStorage.widgets[url]);
+        if (localStorage[key]) {
+            return JSON.parse(localStorage[key]);
         }
         return {};
     }, function(state) {
-        if (localStorage.widgets === undefined) {
-            localStorage.widgets = {};
-        }
-        localStorage.widgets[url] = JSON.stringify(state);
+        localStorage[key] = JSON.stringify(state);
     });
 
     //--------------------------------------------------------------------

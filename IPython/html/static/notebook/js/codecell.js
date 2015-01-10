@@ -40,7 +40,7 @@ define([
     var Cell = cell.Cell;
 
     /* local util for codemirror */
-    var posEq = function(a, b) {return a.line == b.line && a.ch == b.ch;};
+    var posEq = function(a, b) {return a.line === b.line && a.ch === b.ch;};
 
     /**
      *
@@ -332,7 +332,7 @@ define([
         // whatever key is pressed, first, cancel the tooltip request before
         // they are sent, and remove tooltip if any, except for tab again
         var tooltip_closed = null;
-        if (event.type === 'keydown' && event.which != keycodes.tab ) {
+        if (event.type === 'keydown' && event.which !== keycodes.tab ) {
             tooltip_closed = this.tooltip.remove_and_cancel_tooltip();
         }
 
@@ -366,7 +366,7 @@ define([
                 if (editor.somethingSelected() || editor.getSelections().length !== 1){
                     var anchor = editor.getCursor("anchor");
                     var head = editor.getCursor("head");
-                    if( anchor.line != head.line){
+                    if( anchor.line !== head.line){
                         return false;
                     }
                 }
@@ -374,7 +374,7 @@ define([
                 event.codemirrorIgnore = true;
                 event.preventDefault();
                 return true;
-        } else if (event.keyCode === keycodes.tab && event.type == 'keydown') {
+        } else if (event.keyCode === keycodes.tab && event.type === 'keydown') {
             // Tab completion.
             this.tooltip.remove_and_cancel_tooltip();
 

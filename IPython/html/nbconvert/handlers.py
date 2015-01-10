@@ -11,7 +11,7 @@ from tornado import web
 
 from ..base.handlers import (
     IPythonHandler, FilesRedirectHandler,
-    notebook_path_regex, path_regex,
+    path_regex,
 )
 from IPython.nbformat import from_dict
 
@@ -83,6 +83,8 @@ class NbconvertFileHandler(IPythonHandler):
         path = path.strip('/')
         model = self.contents_manager.get(path=path)
         name = model['name']
+        if model['type'] != 'notebook':
+            raise web.HTTPError(400, "Not a notebook: %s" % path)
 
         self.set_header('Last-Modified', model['last_modified'])
         
@@ -142,8 +144,8 @@ _format_regex = r"(?P<format>\w+)"
 
 
 default_handlers = [
-    (r"/nbconvert/%s%s" % (_format_regex, notebook_path_regex),
-         NbconvertFileHandler),
     (r"/nbconvert/%s" % _format_regex, NbconvertPostHandler),
+    (r"/nbconvert/%s%s" % (_format_regex, path_regex),
+         NbconvertFileHandler),
     (r"/nbconvert/html%s" % path_regex, FilesRedirectHandler),
 ]

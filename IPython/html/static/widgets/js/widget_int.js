@@ -260,11 +260,12 @@ define([
              * Calling model.set will trigger all of the other views of the 
              * model to update.
              */
+            var actual_value;
             if (this.model.get("_range")) {
-                var actual_value = ui.values.map(this._validate_slide_value);
+                actual_value = ui.values.map(this._validate_slide_value);
                 this.$readout.text(actual_value.join("-"));
             } else {
-                var actual_value = this._validate_slide_value(ui.value);
+                actual_value = this._validate_slide_value(ui.value);
                 this.$readout.text(actual_value);
             }
             this.model.set('value', actual_value, {updated_view: this});

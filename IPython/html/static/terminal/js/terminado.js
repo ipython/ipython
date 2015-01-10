@@ -1,4 +1,5 @@
 define ([], function() {
+    "use strict";
     function make_terminal(element, size, ws_url) {
         var ws = new WebSocket(ws_url);
         var term = new Terminal({
@@ -21,7 +22,7 @@ define ([], function() {
             term.open(element);
             
             ws.onmessage = function(event) {
-                json_msg = JSON.parse(event.data);
+                var json_msg = JSON.parse(event.data);
                 switch(json_msg[0]) {
                     case "stdout":
                         term.write(json_msg[1]);

@@ -214,8 +214,7 @@ class UploadWindowsInstallers(upload):
 
 setup_args['cmdclass'] = {
     'build_py': css_js_prerelease(
-            check_package_data_first(git_prebuild('IPython')),
-        strict=False),
+            check_package_data_first(git_prebuild('IPython'))),
     'sdist' : css_js_prerelease(git_prebuild('IPython', sdist)),
     'upload_wininst' : UploadWindowsInstallers,
     'submodule' : UpdateSubmodules,
@@ -298,7 +297,7 @@ if 'setuptools' in sys.modules:
     if 'bdist_wininst' in sys.argv:
         if len(sys.argv) > 2 and \
                ('sdist' in sys.argv or 'bdist_rpm' in sys.argv):
-            print >> sys.stderr, "ERROR: bdist_wininst must be run alone. Exiting."
+            print("ERROR: bdist_wininst must be run alone. Exiting.", file=sys.stderr)
             sys.exit(1)
         setup_args['data_files'].append(
             ['Scripts', ('scripts/ipython.ico', 'scripts/ipython_nb.ico')])

@@ -7,6 +7,7 @@ define([
     "base/js/utils",
     "bootstrap",
 ], function(widget, $, utils){
+    "use strict";
 
     var BoxView = widget.DOMWidgetView.extend({
         initialize: function(){

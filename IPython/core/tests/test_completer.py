@@ -668,6 +668,20 @@ def test_struct_array_key_completion():
     _, matches = complete(line_buffer="d['")
     nt.assert_in("hello", matches)
     nt.assert_in("world", matches)
+    # complete on the numpy struct itself
+    dt = numpy.dtype([('my_head', [('my_dt', '>u4'), ('my_df', '>u4')]),
+                      ('my_data', '>f4', 5)])
+    x = numpy.zeros(2, dtype=dt)
+    ip.user_ns['d'] = x[1]
+    _, matches = complete(line_buffer="d['")
+    nt.assert_in("my_head", matches)
+    nt.assert_in("my_data", matches)
+    # complete on a nested level
+    with greedy_completion():
+        ip.user_ns['d'] = numpy.zeros(2, dtype=dt)
+        _, matches = complete(line_buffer="d[1]['my_head']['")
+        nt.assert_true(any(["my_dt" in m for m in matches]))
+        nt.assert_true(any(["my_df" in m for m in matches]))
 
 
 @dec.skip_without('pandas')

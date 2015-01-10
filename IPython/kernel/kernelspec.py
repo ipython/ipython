@@ -14,7 +14,7 @@ from .launcher import make_ipkernel_cmd
 if os.name == 'nt':
     programdata = os.environ.get('PROGRAMDATA', None)
     if programdata:
-        SYSTEM_KERNEL_DIRS = [pjoin(programdata, 'ipython', 'kernels')]
+        SYSTEM_KERNEL_DIRS = [pjoin(programdata, 'jupyter', 'kernels')]
     else:  # PROGRAMDATA is not defined by default on XP.
         SYSTEM_KERNEL_DIRS = []
 else:
@@ -160,7 +160,7 @@ class KernelSpecManager(HasTraits):
         If ``kernel_name`` is not given, the basename of ``source_dir`` will
         be used.
         
-        If ``system`` is True, it will attempt to install into the systemwide
+        If ``user`` is False, it will attempt to install into the systemwide
         kernel registry. If the process does not have appropriate permissions,
         an :exc:`OSError` will be raised.
         
@@ -186,7 +186,7 @@ class KernelSpecManager(HasTraits):
         The kernelspec will be written pointing to the Python executable on
         which this is run.
         
-        If ``system`` is True, it will attempt to install into the systemwide
+        If ``user`` is False, it will attempt to install into the systemwide
         kernel registry. If the process does not have appropriate permissions, 
         an :exc:`OSError` will be raised.
         """

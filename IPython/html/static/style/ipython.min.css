@@ -6,6 +6,7 @@
 .modal.fade .modal-dialog {
   -webkit-transform: translate(0, 0);
   -ms-transform: translate(0, 0);
+  -o-transform: translate(0, 0);
   transform: translate(0, 0);
 }
 code {
@@ -1465,6 +1466,7 @@ h6:hover .anchor-link {
 }
 .widget-combo-btn {
   /* ComboBox Main Button */
+  /* Subtract 25px to account for the drop arrow button */
   min-width: 125px;
 }
 .widget_item .dropdown-menu li a {

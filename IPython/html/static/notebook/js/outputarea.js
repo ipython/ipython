@@ -243,11 +243,17 @@ define([
         'text/plain'
     ];
 
-    OutputArea.prototype.validate_mimebundle = function (json) {
-        /**
-         * scrub invalid outputs
-         */
-        var data = json.data;
+    OutputArea.prototype.validate_mimebundle = function (bundle) {
+        /** scrub invalid outputs */
+        if (typeof bundle.data !== 'object') {
+            console.warn("mimebundle missing data", bundle);
+            bundle.data = {};
+        }
+        if (typeof bundle.metadata !== 'object') {
+            console.warn("mimebundle missing metadata", bundle);
+            bundle.metadata = {};
+        }
+        var data = bundle.data;
         $.map(OutputArea.output_types, function(key){
             if (key !== 'application/json' &&
                 data[key] !== undefined &&
@@ -257,7 +263,7 @@ define([
                 delete data[key];
             }
         });
-        return json;
+        return bundle;
     };
     
     OutputArea.prototype.append_output = function (json) {
