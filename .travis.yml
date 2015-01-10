@@ -3,13 +3,13 @@ language: python
 python:
     - 3.4
     - 2.7
-    - 3.3
 env:
+    - GROUP=
     - GROUP=js/base
     - GROUP=js/notebook
+    - GROUP=js/services
     - GROUP=js/tree
     - GROUP=js/widgets
-    - GROUP=
 before_install:
     # workaround for https://github.com/travis-ci/travis-cookbooks/issues/155
     - sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm
@@ -21,22 +21,16 @@ before_install:
     - sudo apt-get install pandoc casperjs libzmq3-dev
     - git clone --quiet --depth 1 https://github.com/minrk/travis-wheels travis-wheels
     - 'if [[ $GROUP == js* ]]; then python -m IPython.external.mathjax; fi'
+    - 'if [[ $GROUP != js* ]]; then COVERAGE="--coverage xml"; fi'
 install:
-    - pip install coveralls
-    - pip install -f travis-wheels/wheelhouse file://$PWD#egg=ipython[all]
+    - pip install -f travis-wheels/wheelhouse file://$PWD#egg=ipython[all] coveralls
 script:
-    - cd /tmp && iptest $GROUP --coverage xml && cd -
+    - cd /tmp && iptest $GROUP $COVERAGE && cd -
 
 matrix:
-    exclude:
+    include:
         - python: 3.3
-          env: GROUP=js/base
-        - python: 3.3
-          env: GROUP=js/notebook
-        - python: 3.3
-          env: GROUP=js/tree
-        - python: 3.3
-          env: GROUP=js/widgets
+          env: GROUP=
 
 after_success:
     - cp /tmp/ipy_coverage.xml ./
