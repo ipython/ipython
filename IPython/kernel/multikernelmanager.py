@@ -112,6 +112,14 @@ class MultiKernelManager(LoggingConfigurable):
         km.start_kernel(**kwargs)
         self._kernels[kernel_id] = km
         return kernel_id
+    
+    def kernel_model(self, kernel_id):
+        """Return a dictionary of kernel information described in the
+        JSON standard model."""
+        self._check_kernel_id(kernel_id)
+        model = {"id":kernel_id,
+                 "name": self._kernels[kernel_id].kernel_name}
+        return model
 
     @kernel_method
     def shutdown_kernel(self, kernel_id, now=False, restart=False):
