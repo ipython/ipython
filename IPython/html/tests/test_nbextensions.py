@@ -1,15 +1,8 @@
 # coding: utf-8
 """Test installation of notebook extensions"""
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2014 The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import glob
 import os
@@ -27,9 +20,6 @@ from IPython.utils.tempdir import TemporaryDirectory
 from IPython.html import nbextensions
 from IPython.html.nbextensions import install_nbextension, check_nbextension
 
-#-----------------------------------------------------------------------------
-# Test functions
-#-----------------------------------------------------------------------------
 
 def touch(file, mtime=None):
     """ensure a file exists, and set its modification time
@@ -42,7 +32,6 @@ def touch(file, mtime=None):
         atime = os.stat(file).st_atime
         os.utime(file, (atime, mtime))
     return os.stat(file).st_mtime
-
 
 class TestInstallNBExtension(TestCase):
     
@@ -69,12 +58,15 @@ class TestInstallNBExtension(TestCase):
         self.ipdir = self.tempdir()
         self.save_get_ipython_dir = nbextensions.get_ipython_dir
         nbextensions.get_ipython_dir = lambda : self.ipdir
+        self.save_system_dir = nbextensions.SYSTEM_NBEXTENSIONS_INSTALL_DIR
+        nbextensions.SYSTEM_NBEXTENSIONS_INSTALL_DIR = self.system_nbext = self.tempdir()
     
     def tearDown(self):
+        nbextensions.get_ipython_dir = self.save_get_ipython_dir
+        nbextensions.SYSTEM_NBEXTENSIONS_INSTALL_DIR = self.save_system_dir
         for td in self.tempdirs:
             td.cleanup()
-        nbextensions.get_ipython_dir = self.save_get_ipython_dir
-    
+
     def assert_dir_exists(self, path):
         if not os.path.exists(path):
             do_exist = os.listdir(os.path.dirname(path))
@@ -84,21 +76,29 @@ class TestInstallNBExtension(TestCase):
         if os.path.exists(path):
             self.fail(u"%s should not exist" % path)
     
-    def assert_installed(self, relative_path, ipdir=None):
+    def assert_installed(self, relative_path, user=False):
+        if user:
+            nbext = pjoin(self.ipdir, u'nbextensions')
+        else:
+            nbext = self.system_nbext
         self.assert_dir_exists(
-            pjoin(ipdir or self.ipdir, u'nbextensions', relative_path)
+            pjoin(nbext, relative_path)
         )
     
-    def assert_not_installed(self, relative_path, ipdir=None):
+    def assert_not_installed(self, relative_path, user=False):
+        if user:
+            nbext = pjoin(self.ipdir, u'nbextensions')
+        else:
+            nbext = self.system_nbext
         self.assert_not_dir_exists(
-            pjoin(ipdir or self.ipdir, u'nbextensions', relative_path)
+            pjoin(nbext, relative_path)
         )
     
     def test_create_ipython_dir(self):
         """install_nbextension when ipython_dir doesn't exist"""
         with TemporaryDirectory() as td:
-            ipdir = pjoin(td, u'ipython')
-            install_nbextension(self.src, ipython_dir=ipdir)
+            self.ipdir = ipdir = pjoin(td, u'ipython')
+            install_nbextension(self.src, user=True)
             self.assert_dir_exists(ipdir)
             for file in self.files:
                 self.assert_installed(
@@ -106,12 +106,22 @@ class TestInstallNBExtension(TestCase):
                     ipdir
                 )
     
-    def test_create_nbextensions(self):
-        with TemporaryDirectory() as ipdir:
-            install_nbextension(self.src, ipython_dir=ipdir)
+    def test_create_nbextensions_user(self):
+        with TemporaryDirectory() as td:
+            self.ipdir = ipdir = pjoin(td, u'ipython')
+            install_nbextension(self.src, user=True)
             self.assert_installed(
                 pjoin(basename(self.src), u'ƒile'),
-                ipdir
+                user=True
+            )
+    
+    def test_create_nbextensions_system(self):
+        with TemporaryDirectory() as td:
+            nbextensions.SYSTEM_NBEXTENSIONS_INSTALL_DIR = self.system_nbext = pjoin(td, u'nbextensions')
+            install_nbextension(self.src, user=False)
+            self.assert_installed(
+                pjoin(basename(self.src), u'ƒile'),
+                user=False
             )
     
     def test_single_file(self):
@@ -136,7 +146,7 @@ class TestInstallNBExtension(TestCase):
             with open(src, 'w') as f:
                 f.write('first')
             mtime = touch(src)
-            dest = pjoin(self.ipdir, u'nbextensions', fname)
+            dest = pjoin(self.system_nbext, fname)
             install_nbextension(src)
             with open(src, 'w') as f:
                 f.write('overwrite')
@@ -147,7 +157,6 @@ class TestInstallNBExtension(TestCase):
     
     def test_overwrite_dir(self):
         with TemporaryDirectory() as src:
-            # src = py3compat.cast_unicode_py2(src)
             base = basename(src)
             fname = u'ƒ.js'
             touch(pjoin(src, fname))
@@ -169,7 +178,7 @@ class TestInstallNBExtension(TestCase):
             mtime = touch(src)
             install_nbextension(src)
             self.assert_installed(fname)
-            dest = pjoin(self.ipdir, u'nbextensions', fname)
+            dest = pjoin(self.system_nbext, fname)
             old_mtime = os.stat(dest).st_mtime
             with open(src, 'w') as f:
                 f.write('overwrite')
@@ -185,7 +194,7 @@ class TestInstallNBExtension(TestCase):
             mtime = touch(src)
             install_nbextension(src)
             self.assert_installed(fname)
-            dest = pjoin(self.ipdir, u'nbextensions', fname)
+            dest = pjoin(self.system_nbext, fname)
             old_mtime = os.stat(dest).st_mtime
             
             mtime = touch(src, mtime - 100)
@@ -239,11 +248,12 @@ class TestInstallNBExtension(TestCase):
             f = u'ƒ.js'
             src = pjoin(d, f)
             touch(src)
-            install_nbextension(src)
+            install_nbextension(src, user=True)
         
-        assert check_nbextension(f, self.ipdir)
-        assert check_nbextension([f], self.ipdir)
-        assert not check_nbextension([f, pjoin('dne', f)], self.ipdir)
+        nbext = pjoin(self.ipdir, u'nbextensions')
+        assert check_nbextension(f, nbext)
+        assert check_nbextension([f], nbext)
+        assert not check_nbextension([f, pjoin('dne', f)], nbext)
     
     @dec.skip_win32
     def test_install_symlink(self):
@@ -252,7 +262,7 @@ class TestInstallNBExtension(TestCase):
             src = pjoin(d, f)
             touch(src)
             install_nbextension(src, symlink=True)
-        dest = pjoin(self.ipdir, u'nbextensions', f)
+        dest = pjoin(self.system_nbext, f)
         assert os.path.islink(dest)
         link = os.readlink(dest)
         self.assertEqual(link, src)

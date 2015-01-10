@@ -90,6 +90,7 @@ from IPython.utils import py3compat
 from IPython.utils.path import filefind, get_ipython_dir
 from IPython.utils.sysinfo import get_sys_info
 
+from .nbextensions import SYSTEM_NBEXTENSIONS_DIRS
 from .utils import url_path_join
 
 #-----------------------------------------------------------------------------
@@ -566,11 +567,14 @@ class NotebookApp(BaseIPythonApplication):
         """return extra paths + the default locations"""
         return self.extra_template_paths + DEFAULT_TEMPLATE_PATH_LIST
 
-    nbextensions_path = List(Unicode, config=True,
-        help="""paths for Javascript extensions. By default, this is just IPYTHONDIR/nbextensions"""
+    extra_nbextensions_path = List(Unicode, config=True,
+        help="""extra paths to look for Javascript notebook extensions"""
     )
-    def _nbextensions_path_default(self):
-        return [os.path.join(get_ipython_dir(), 'nbextensions')]
+    
+    @property
+    def nbextensions_path(self):
+        """The path to look for Javascript notebook extensions"""
+        return self.extra_nbextensions_path + [os.path.join(get_ipython_dir(), 'nbextensions')] + SYSTEM_NBEXTENSIONS_DIRS
 
     websocket_url = Unicode("", config=True,
         help="""The base URL for websockets,
