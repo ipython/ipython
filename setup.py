@@ -214,8 +214,7 @@ class UploadWindowsInstallers(upload):
 
 setup_args['cmdclass'] = {
     'build_py': css_js_prerelease(
-            check_package_data_first(git_prebuild('IPython')),
-        strict=False),
+            check_package_data_first(git_prebuild('IPython'))),
     'sdist' : css_js_prerelease(git_prebuild('IPython', sdist)),
     'upload_wininst' : UploadWindowsInstallers,
     'submodule' : UpdateSubmodules,

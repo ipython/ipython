@@ -22,9 +22,11 @@ if not os.path.exists(ipbackupdir):
 cd(ipdir)
 
 # Load release info
-execfile(pjoin('IPython','core','release.py'))
+execfile(pjoin('IPython','core','release.py'), globals())
 # ensure js version is in sync
 sh('./setup.py jsversion')
+# build minified css and sourcemaps
+sh('./setup.py css -x -f')
 
 # Build site addresses for file uploads
 release_site = '%s/release/%s' % (archive, version)
@@ -47,6 +49,10 @@ sh('mv ipython-*.tgz %s' % ipbackupdir)
 
 # Build release files
 sh('./build_release %s' % ipdir)
+
+if 'upload' not in sys.argv:
+    print("`./release upload` to register and release")
+    sys.exit(0)
 
 # Register with the Python Package Index (PyPI)
 print( 'Registering with PyPI...')
