@@ -1,6 +1,6 @@
 @media (max-width: 767px) {
     // remove bootstrap-responsive's body padding on small screens
-    body.notebook_app {
+    .notebook_app {
         padding-left: 0px;
         padding-right: 0px;
     }
@@ -14,12 +14,9 @@ div#notebook_panel {
     margin: 0px;
     padding: 0px;
     .border-box-sizing();
-    @media not print {
-        background-color: @page-backdrop-color;
-        min-height: @page-backdrop-height;
-    }
 }
-div#notebook {
+
+#notebook {
     font-size: @notebook_font_size;
     line-height: @notebook_line_height;
     overflow-y: hidden;
@@ -27,7 +24,6 @@ div#notebook {
     width: 100%;
     /* This spaces the page away from the edge of the notebook area */
     padding-top: @page-header-padding;
-    padding-bottom: @page-header-padding;
     margin: 0px;
     outline: none;
     .border-box-sizing();
@@ -73,9 +69,15 @@ p {
 }
 
 .end_space {
-    height: 200px;
+    min-height: 100px;
 }
 
 .notebook_app #header {
     .box-shadow(@global-shadow);
+}
+
+.notebook_app{
+    @media not print {
+        background-color: @page-backdrop-color;
+    }
 }
