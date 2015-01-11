@@ -126,6 +126,7 @@ define([
             return;
         }
         var ks = this.kernelspecs[kernel_name];
+        if (ks === undefined) return;        
         
         try {
             this.notebook.start_session(kernel_name);
