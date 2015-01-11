@@ -21,7 +21,7 @@ span.checkpoint_status, span.autosave_status {
     font-size: small;
 }
 
-@media (max-width: 767px) {
+@media (max-width: @screen-xs-max) {
     span.save_widget {
         font-size: small;
     }
@@ -30,7 +30,7 @@ span.checkpoint_status, span.autosave_status {
     }
 }
 
-@media (min-width: 768px) and (max-width: 979px) {
+@media (min-width: @screen-sm-min) and (max-width: @screen-sm-max) {
     span.checkpoint_status {
         display: none;
     }
@@ -38,5 +38,6 @@ span.checkpoint_status, span.autosave_status {
         font-size: x-small;
     }
 }
+
 
 

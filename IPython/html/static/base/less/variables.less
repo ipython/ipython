@@ -8,7 +8,8 @@
 @breadcrumb-color: darken(@border_color, 30%);
 @blockquote-font-size: inherit;
 @modal-inner-padding: 15px;
-@grid-float-breakpoint: 540px;
+@grid-float-breakpoint: 541px;
+@screen-xs: 540px;
 @logo_height: 28px;
 @border-radius-small: 1px;
 @border-radius-base: 2px;
@@ -51,3 +52,8 @@ label {
 @page-backdrop-color: #EEE;
 @page-color: @body-bg;
 @page-padding: 15px;
+
+// preven container size to jump from 768px to 720px
+// when window width go from 768 to 769+
+@container-sm : @screen-sm-min;
+

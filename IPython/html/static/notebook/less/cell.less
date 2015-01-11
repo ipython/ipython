@@ -41,7 +41,7 @@ div.prompt {
     line-height: @code_line_height;
 }
 
-@media (max-width: 480px) {
+@media (max-width: @screen-xs-min) {
     // prompts are in the main column on small screens,
     // so text should be left-aligned
     div.prompt {
@@ -94,7 +94,7 @@ div.unrecognized_cell {
         }
     }
 }
-@media (max-width: 480px) {
+@media (max-width: @screen-xs-min) {
     // remove prompt indentation on small screens
     div.unrecognized_cell > div.prompt {
         display: none;
