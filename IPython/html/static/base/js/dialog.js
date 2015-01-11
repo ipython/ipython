@@ -87,6 +87,8 @@ define([
         if (options.keyboard_manager) {
             options.keyboard_manager.disable();
         }
+
+        options.backdrop = options.backdrop || 'static';
         
         return modal.modal(options);
     };
