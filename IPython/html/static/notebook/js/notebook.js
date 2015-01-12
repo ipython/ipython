@@ -2077,11 +2077,16 @@ define([
      * @param {string} notebook_path - A notebook to load
      */
     Notebook.prototype.load_notebook = function (notebook_path) {
+        var that = this;
         this.notebook_path = notebook_path;
         this.notebook_name = utils.url_path_split(this.notebook_path)[1];
         this.events.trigger('notebook_loading.Notebook');
         this.contents.get(notebook_path, {type: 'notebook'}).then(
-            $.proxy(this.load_notebook_success, this),
+            function (data) {
+                that.kernel_selector.loaded.then(
+                    that.load_notebook_success(data)
+                );
+            },
             $.proxy(this.load_notebook_error, this)
         );
     };

@@ -9,6 +9,7 @@ define([
     "use strict";
     
     var KernelSelector = function(selector, notebook) {
+        var that = this;
         this.selector = selector;
         this.notebook = notebook;
         this.notebook.set_kernelselector(this);
@@ -22,6 +23,11 @@ define([
         this.bind_events();
         // Make the object globally available for user convenience & inspection
         IPython.kernelselector = this;
+        this._finish_load = null;
+        this.loaded = new Promise(function(resolve, reject) {
+            that._finish_load = resolve;
+        });
+        
         Object.seal(this);
     };
     
@@ -67,6 +73,8 @@ define([
                 .text(ks.spec.display_name));
             new_notebook_submenu.append(ks_submenu_entry);
         }
+        // trigger loaded promise
+        this._finish_load();
     };
     
     KernelSelector.prototype._spec_changed = function (event, ks) {
