@@ -137,14 +137,13 @@ define([
 
     KernelSelector.prototype._set_kernel = function (kernel_name) {
         /** Actually set the kernel (kernelspecs have been loaded) */
-        console.log("_set_kernel", kernel_name, this.current_selection);
         if (kernel_name === this.current_selection) {
             // only trigger event if value changed
             return;
         }
         var ks = this.kernelspecs[kernel_name];
         if (this.notebook._session_starting) {
-            console.log("Cannot change kernel while waiting for pending session start.");
+            console.error("Cannot change kernel while waiting for pending session start.");
             return;
         }
         this.current_selection = kernel_name;
