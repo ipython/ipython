@@ -126,28 +126,27 @@ define([
         }
     };
 
-    KernelSelector.prototype.change_kernel = function (kernel_name) {
-        /**
-         * TODO, have a methods to set kernel spec directly ?
-         **/
+    KernelSelector.prototype.set_kernel = function (kernel_name) {
+        /** set the kernel by name, ensuring kernelspecs have been loaded, first */
+        var that = this;
+        return this.loaded.then(function () {
+            that._set_kernel(kernel_name);
+        });
+    };
+
+    KernelSelector.prototype._set_kernel = function (kernel_name) {
+        /** Actually set the kernel (kernelspecs have been loaded) */
+        console.log("_set_kernel", kernel_name, this.current_selection);
         if (kernel_name === this.current_selection) {
+            // only trigger event if value changed
             return;
         }
         var ks = this.kernelspecs[kernel_name];
-        
-        try {
-            this.notebook.start_session(kernel_name);
-        } catch (e) {
-            if (e.name === 'SessionAlreadyStarting') {
-                console.log("Cannot change kernel while waiting for pending session start.");
-            } else {
-                // unhandled error
-                throw e;
-            }
-            // only trigger spec_changed if change was successful
+        if (this.notebook._session_starting) {
+            console.log("Cannot change kernel while waiting for pending session start.");
             return;
         }
-        console.log('spec', kernel_name, ks);
+        this.current_selection = kernel_name;
         this.events.trigger('spec_changed.Kernel', ks);
     };
 
@@ -189,13 +188,7 @@ define([
         this.events.on('spec_changed.Kernel', $.proxy(this._spec_changed, this));
 
         this.events.on('kernel_created.Session', function (event, data) {
-            if (data.kernel.name !== that.current_selection) {
-                // If we created a 'python' session, we only know if it's Python
-                // 3 or 2 on the server's reply, so we fire the event again to
-                // set things up.
-                var ks = that.kernelspecs[data.kernel.name];
-                that.events.trigger('spec_changed.Kernel', ks);
-            }
+            that.set_kernel(data.kernel.name);
         });
         
         var logo_img = this.element.find("img.current_kernel_logo");
