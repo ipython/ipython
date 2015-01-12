@@ -53,21 +53,22 @@ define([
                 return -1;
             }
         });
-
+        
+        var i, ks, ks_submenu_entry;
         // Create the Kernel > Change kernel submenu
-        for (var i = 0; i < keys.length; i++) {
-            var ks = this.kernelspecs[keys[i]];
-            var ks_submenu_entry = $("<li>").attr("id", "kernel-submenu-"+ks.name).append($('<a>')
+        for (i = 0; i < keys.length; i++) {
+            ks = this.kernelspecs[keys[i]];
+            ks_submenu_entry = $("<li>").attr("id", "kernel-submenu-"+ks.name).append($('<a>')
                 .attr('href', '#')
-                .click($.proxy(this.change_kernel, this, ks.name))
+                .click($.proxy(this.set_kernel, this, ks.name))
                 .text(ks.spec.display_name));
             change_kernel_submenu.append(ks_submenu_entry);
         }
         
         // Create the File > New Notebook submenu
-        for (var i = 0; i < keys.length; i++) {
-            var ks = this.kernelspecs[keys[i]];
-            var ks_submenu_entry = $("<li>").attr("id", "new-notebook-submenu-"+ks.name).append($('<a>')
+        for (i = 0; i < keys.length; i++) {
+            ks = this.kernelspecs[keys[i]];
+            ks_submenu_entry = $("<li>").attr("id", "new-notebook-submenu-"+ks.name).append($('<a>')
                 .attr('href', '#')
                 .click($.proxy(this.new_notebook, this, ks.name))
                 .text(ks.spec.display_name));
@@ -88,7 +89,7 @@ define([
         if (cur_kernel_entry.length) {
             cur_kernel_entry.parent().prepend($("<li>").attr("class","divider"))
                                      .prepend(cur_kernel_entry);
-        };
+        }
         
         // load logo
         var logo_img = this.element.find("img.current_kernel_logo");
