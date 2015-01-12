@@ -431,8 +431,11 @@ def prepare_controllers(options):
     not to run."""
     testgroups = options.testgroups
     if testgroups:
-        js_testgroups = [g for g in testgroups if g.startswith(js_prefix)]
-        py_testgroups = [g for g in testgroups if g not in js_testgroups]
+        if 'js' in testgroups:
+            js_testgroups = all_js_groups()
+        else:
+            js_testgroups = [g for g in testgroups if g.startswith(js_prefix)]
+        py_testgroups = [g for g in testgroups if not g.startswith('js')]
     else:
         py_testgroups = py_test_group_names
         if not options.all:
