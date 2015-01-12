@@ -43,7 +43,7 @@ def test_latex_to_png_dvipng_runs():
         nt.assert_equals(filename, "breqn.sty")
         return None
 
-    for (s, wrap) in [("$$x^2$$", False), ("x^2", True)]:
+    for (s, wrap) in [(u"$$x^2$$", False), (u"x^2", True)]:
         yield (latextools.latex_to_png_dvipng, s, wrap)
 
         with monkeypatch(latextools, "kpsewhich", mock_kpsewhich):
