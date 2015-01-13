@@ -25,6 +25,7 @@ define([
         this.events = options.events;
         this.notebook = options.notebook;
         this._make();
+        this.notebook.keyboard_manager.register_events(this.element);
         Object.seal(this);
     };
 
