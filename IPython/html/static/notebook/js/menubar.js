@@ -207,7 +207,8 @@ define([
         
         // View
         this.element.find('#toggle_header').click(function () {
-            $('div#header-container').toggle();
+            $('#header-container').toggle();
+            $('.header-bar').toggle();
             that._size_header();
         });
         this.element.find('#toggle_toolbar').click(function () {
