@@ -131,10 +131,10 @@ unknown type  {{ cell.type }}
 <img src="data:image/png;base64,{{ output.data['image/png'] }}"
 {%- endif %}
 {%- if 'width' in output.metadata.get('image/png', {}) %}
-width={{output.metadata['png']['width']}}
+width={{output.metadata['image/png']['width']}}
 {%- endif %}
 {%- if 'height' in output.metadata.get('image/png', {}) %}
-height={{output.metadata['png']['height']}}
+height={{output.metadata['image/png']['height']}}
 {%- endif %}
 >
 </div>
