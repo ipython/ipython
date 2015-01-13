@@ -248,6 +248,10 @@ define([
         this.events.on('spec_changed.Kernel', function(event, data) {
             that.metadata.kernelspec = 
                 {name: data.name, display_name: data.spec.display_name};
+            // start session if the current session isn't already correct
+            if (!(this.session && this.session.kernel && this.session.kernel.name === data.name)) {
+                that.start_session(data.name);
+            }
         });
 
         this.events.on('kernel_ready.Kernel', function(event, data) {
@@ -1763,19 +1767,6 @@ define([
         this.notebook_path = data.path;
         var trusted = true;
         
-        // Trigger an event changing the kernel spec - this will set the default
-        // codemirror mode
-        if (this.metadata.kernelspec !== undefined) {
-            // TODO shoudl probably not trigger here, 
-            // should call the kernel selector, or custom.{js|css} not loaded.
-            if(this.kernel_selector){
-                // technically not perfect, we should check that the kernelspec matches
-                this.kernel_selector.change_kernel(this.metadata.kernelspec.name);
-            } else {
-                console.log('do not have handle on kernel_selector');
-            }
-        }
-        
         // Set the codemirror mode from language_info metadata
         if (this.metadata.language_info !== undefined) {
             var langinfo = this.metadata.language_info;
@@ -2077,6 +2068,7 @@ define([
      * @param {string} notebook_path - A notebook to load
      */
     Notebook.prototype.load_notebook = function (notebook_path) {
+        var that = this;
         this.notebook_path = notebook_path;
         this.notebook_name = utils.url_path_split(this.notebook_path)[1];
         this.events.trigger('notebook_loading.Notebook');
@@ -2192,8 +2184,6 @@ define([
             this.nbformat_minor = nbmodel.nbformat_minor;
         }
         
-        // Create the session after the notebook is completely loaded to prevent
-        // code execution upon loading, which is a security risk.
         if (this.session === null) {
             var kernel_name;
             if (this.metadata.kernelspec) {
@@ -2202,7 +2192,14 @@ define([
             } else {
                 kernel_name = utils.get_url_param('kernel_name');
             }
-            this.start_session(kernel_name);
+            if (kernel_name) {
+                // setting kernel_name here triggers start_session
+                this.kernel_selector.set_kernel(kernel_name);
+            } else {
+                // start a new session with the server's default kernel
+                // spec_changed events will fire after kernel is loaded
+                this.start_session();
+            }
         }
         // load our checkpoint list
         this.list_checkpoints();

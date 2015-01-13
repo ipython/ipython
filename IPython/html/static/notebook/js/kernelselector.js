@@ -9,6 +9,7 @@ define([
     "use strict";
     
     var KernelSelector = function(selector, notebook) {
+        var that = this;
         this.selector = selector;
         this.notebook = notebook;
         this.notebook.set_kernelselector(this);
@@ -22,6 +23,11 @@ define([
         this.bind_events();
         // Make the object globally available for user convenience & inspection
         IPython.kernelselector = this;
+        this._finish_load = null;
+        this.loaded = new Promise(function(resolve, reject) {
+            that._finish_load = resolve;
+        });
+        
         Object.seal(this);
     };
     
@@ -47,26 +53,29 @@ define([
                 return -1;
             }
         });
-
+        
+        var i, ks, ks_submenu_entry;
         // Create the Kernel > Change kernel submenu
-        for (var i = 0; i < keys.length; i++) {
-            var ks = this.kernelspecs[keys[i]];
-            var ks_submenu_entry = $("<li>").attr("id", "kernel-submenu-"+ks.name).append($('<a>')
+        for (i = 0; i < keys.length; i++) {
+            ks = this.kernelspecs[keys[i]];
+            ks_submenu_entry = $("<li>").attr("id", "kernel-submenu-"+ks.name).append($('<a>')
                 .attr('href', '#')
-                .click($.proxy(this.change_kernel, this, ks.name))
+                .click($.proxy(this.set_kernel, this, ks.name))
                 .text(ks.spec.display_name));
             change_kernel_submenu.append(ks_submenu_entry);
         }
         
         // Create the File > New Notebook submenu
-        for (var i = 0; i < keys.length; i++) {
-            var ks = this.kernelspecs[keys[i]];
-            var ks_submenu_entry = $("<li>").attr("id", "new-notebook-submenu-"+ks.name).append($('<a>')
+        for (i = 0; i < keys.length; i++) {
+            ks = this.kernelspecs[keys[i]];
+            ks_submenu_entry = $("<li>").attr("id", "new-notebook-submenu-"+ks.name).append($('<a>')
                 .attr('href', '#')
                 .click($.proxy(this.new_notebook, this, ks.name))
                 .text(ks.spec.display_name));
             new_notebook_submenu.append(ks_submenu_entry);
         }
+        // trigger loaded promise
+        this._finish_load();
     };
     
     KernelSelector.prototype._spec_changed = function (event, ks) {
@@ -80,7 +89,7 @@ define([
         if (cur_kernel_entry.length) {
             cur_kernel_entry.parent().prepend($("<li>").attr("class","divider"))
                                      .prepend(cur_kernel_entry);
-        };
+        }
         
         // load logo
         var logo_img = this.element.find("img.current_kernel_logo");
@@ -118,28 +127,26 @@ define([
         }
     };
 
-    KernelSelector.prototype.change_kernel = function (kernel_name) {
-        /**
-         * TODO, have a methods to set kernel spec directly ?
-         **/
+    KernelSelector.prototype.set_kernel = function (kernel_name) {
+        /** set the kernel by name, ensuring kernelspecs have been loaded, first */
+        var that = this;
+        return this.loaded.then(function () {
+            that._set_kernel(kernel_name);
+        });
+    };
+
+    KernelSelector.prototype._set_kernel = function (kernel_name) {
+        /** Actually set the kernel (kernelspecs have been loaded) */
         if (kernel_name === this.current_selection) {
+            // only trigger event if value changed
             return;
         }
         var ks = this.kernelspecs[kernel_name];
-        
-        try {
-            this.notebook.start_session(kernel_name);
-        } catch (e) {
-            if (e.name === 'SessionAlreadyStarting') {
-                console.log("Cannot change kernel while waiting for pending session start.");
-            } else {
-                // unhandled error
-                throw e;
-            }
-            // only trigger spec_changed if change was successful
+        if (this.notebook._session_starting) {
+            console.error("Cannot change kernel while waiting for pending session start.");
             return;
         }
-        console.log('spec', kernel_name, ks);
+        this.current_selection = kernel_name;
         this.events.trigger('spec_changed.Kernel', ks);
     };
 
@@ -181,13 +188,7 @@ define([
         this.events.on('spec_changed.Kernel', $.proxy(this._spec_changed, this));
 
         this.events.on('kernel_created.Session', function (event, data) {
-            if (data.kernel.name !== that.current_selection) {
-                // If we created a 'python' session, we only know if it's Python
-                // 3 or 2 on the server's reply, so we fire the event again to
-                // set things up.
-                var ks = that.kernelspecs[data.kernel.name];
-                that.events.trigger('spec_changed.Kernel', ks);
-            }
+            that.set_kernel(data.kernel.name);
         });
         
         var logo_img = this.element.find("img.current_kernel_logo");
