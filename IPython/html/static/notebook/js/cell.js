@@ -516,7 +516,15 @@ define([
         this.user_highlight = mode;
         this.auto_highlight();
     };
-
+    
+    /**
+     * Trigger autodetection of highlight scheme for current cell
+     * @method auto_highlight
+     */
+    Cell.prototype.auto_highlight = function () {
+        this._auto_highlight(this.class_config.get_sync('highlight_modes'));
+    };
+    
     /**
      * Try to autodetect cell highlight mode, or use selected mode
      * @methods _auto_highlight
@@ -655,7 +663,7 @@ define([
         var cell = this;
         
         this.element.find('.inner_cell').find("a").click(function () {
-            cell.events.trigger('unrecognized_cell.Cell', {cell: cell})
+            cell.events.trigger('unrecognized_cell.Cell', {cell: cell});
         });
     };
 

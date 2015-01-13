@@ -340,14 +340,6 @@ define([
         this.code_mirror.on('focus', function() { that.unrender(); });
     };
 
-    /**
-     * Trigger autodetection of highlight scheme for current cell
-     * @method auto_highlight
-     */
-    RawCell.prototype.auto_highlight = function () {
-        this._auto_highlight(this.class_config.get_sync('highlight_modes'));
-    };
-
     /** @method render **/
     RawCell.prototype.render = function () {
         var cont = TextCell.prototype.render.apply(this);
@@ -356,6 +348,7 @@ define([
             if (text === "") { text = this.placeholder; }
             this.set_text(text);
             this.element.removeClass('rendered');
+            this.auto_highlight();
         }
         return cont;
     };
