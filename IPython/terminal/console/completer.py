@@ -43,7 +43,16 @@ class ZMQCompleter(IPCompleter):
         
         msg = self.client.shell_channel.get_msg(timeout=self.timeout)
         if msg['parent_header']['msg_id'] == msg_id:
-            return msg["content"]["matches"]
+            content = msg["content"]
+            matches = content["matches"]
+            if content["cursor_start"] > 0:
+                matches = [line[:content["cursor_start"]] + m
+                           for m in matches]
+            if content["cursor_end"] < cursor_pos:
+                extra = line[content["cursor_end"]: cursor_pos]
+                matches = [m + extra for m in matches]
+
+            return matches
         return []
     
     def rlcomplete(self, text, state):
