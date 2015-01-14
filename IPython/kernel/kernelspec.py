@@ -36,6 +36,7 @@ def _pythonfirst(s):
 class KernelSpec(HasTraits):
     argv = List()
     display_name = Unicode()
+    project_name = Unicode()
     env = Dict()
     resource_dir = Unicode()
     
@@ -54,6 +55,7 @@ class KernelSpec(HasTraits):
         d = dict(argv=self.argv,
                  env=self.env,
                  display_name=self.display_name,
+                 project_name=self.project_name,
                 )
 
         return d
@@ -109,8 +111,10 @@ class KernelSpecManager(HasTraits):
         The native kernel is the kernel using the same Python runtime as this
         process. This will put its information in the user kernels directory.
         """
-        return {'argv': make_ipkernel_cmd(),
+        return {
+                'argv': make_ipkernel_cmd(),
                 'display_name': 'Python %i' % (3 if PY3 else 2),
+                'project_name': 'ipython',
                }
 
     @property

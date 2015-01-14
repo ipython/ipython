@@ -246,8 +246,11 @@ define([
         });
         
         this.events.on('spec_changed.Kernel', function(event, data) {
-            that.metadata.kernelspec = 
-                {name: data.name, display_name: data.spec.display_name};
+            that.metadata.kernelspec = {
+                name: data.name,
+                display_name: data.spec.display_name,
+                project_name: data.spec.project_name,
+            };
             // start session if the current session isn't already correct
             if (!(this.session && this.session.kernel && this.session.kernel.name === data.name)) {
                 that.start_session(data.name);
