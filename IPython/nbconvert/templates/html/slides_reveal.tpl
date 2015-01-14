@@ -58,9 +58,6 @@
 <link rel="stylesheet" href="{{resources.reveal.url_prefix}}/css/reveal.css">
 <link rel="stylesheet" href="{{resources.reveal.url_prefix}}/css/theme/simple.css" id="theme">
 
-<!-- For syntax highlighting -->
-<link rel="stylesheet" href="{{resources.reveal.url_prefix}}/lib/css/zenburn.css">
-
 <!-- If the query includes 'print-pdf', include the PDF print sheet -->
 <script>
 if( window.location.search.match( /print-pdf/gi ) ) {
