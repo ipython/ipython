@@ -192,7 +192,7 @@ define([
                 var disabled = this.model.get('disabled');
                 var that = this;
                 _.each(items, function(item, index) {
-                    var item_query = ' :input[value="' + item + '"]';
+                    var item_query = ' :input[data-value="' + encodeURIComponent(item) + '"]';
                     if (that.$el.find(item_query).length === 0) {
                         var $label = $('<label />')
                             .addClass('radio')
@@ -203,6 +203,7 @@ define([
                             .attr('type', 'radio')
                             .addClass(that.model)
                             .val(item)
+                            .attr('data-value', encodeURIComponent(item))
                             .prependTo($label)
                             .on('click', $.proxy(that.handle_click, that));
                     }
@@ -310,12 +311,12 @@ define([
                 var that = this;
                 var item_html;
                 _.each(items, function(item, index) {
-                    if (item.trim().length == 0) {
+                    if (item.trim().length === 0) {
                         item_html = "&nbsp;";
                     } else {
                         item_html = utils.escape_html(item);
                     }
-                    var item_query = '[data-value="' + item + '"]';
+                    var item_query = '[data-value="' + encodeURIComponent(item) + '"]';
                     var $item_element = that.$buttongroup.find(item_query);
                     if (!$item_element.length) {
                         $item_element = $('<button/>')
@@ -323,7 +324,8 @@ define([
                             .addClass('btn btn-default')
                             .html(item_html)
                             .appendTo(that.$buttongroup)
-                            .attr('data-value', item)
+                            .attr('data-value', encodeURIComponent(item))
+                            .attr('value', item)
                             .on('click', $.proxy(that.handle_click, that));
                         that.update_style_traits($item_element);
                     }
@@ -337,7 +339,7 @@ define([
                 
                 // Remove items that no longer exist.
                 this.$buttongroup.find('button').each(function(i, obj) {
-                    var value = $(obj).data('value');
+                    var value = $(obj).attr('value');
                     var found = false;
                     _.each(items, function(item, index) {
                         if (item == value) {
@@ -409,7 +411,7 @@ define([
              * Calling model.set will trigger all of the other views of the 
              * model to update.
              */
-            this.model.set('value_name', $(e.target).data('value'), {updated_view: this});
+            this.model.set('value_name', $(e.target).attr('value'), {updated_view: this});
             this.touch();
         },    
     });
@@ -445,10 +447,11 @@ define([
                 var items = this.model.get('_value_names');
                 var that = this;
                 _.each(items, function(item, index) {
-                   var item_query = 'option[value_name="' + item + '"]';
+                   var item_query = 'option[data-value="' + encodeURIComponent(item) + '"]';
                     if (that.$listbox.find(item_query).length === 0) {
                         $('<option />')
                             .text(item)
+                            .attr('data-value', encodeURIComponent(item))
                             .attr('value_name', item)
                             .appendTo(that.$listbox)
                             .on('click', $.proxy(that.handle_click, that));
