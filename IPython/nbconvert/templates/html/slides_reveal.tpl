@@ -99,6 +99,9 @@ html {
   font-size: 80%;
   box-shadow: 0px 0px 0px rgba(0, 0, 0, 0);
 }
+.reveal pre code {
+  padding: 0px;
+}
 .reveal section img {
   border: 0px solid black;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0);
