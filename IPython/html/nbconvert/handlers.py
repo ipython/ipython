@@ -6,7 +6,6 @@
 import io
 import os
 import zipfile
-import collections
 
 from tornado import web
 
