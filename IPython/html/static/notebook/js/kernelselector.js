@@ -92,9 +92,28 @@ define([
         
         // put the current kernel at the top of File > New Notebook
         var cur_kernel_entry = $("#new-notebook-submenu-" + ks.name);
-        if (cur_kernel_entry.length) {
-            cur_kernel_entry.parent().prepend($("<li>").attr("class","divider"))
-                                     .prepend(cur_kernel_entry);
+        var parent = cur_kernel_entry.parent();
+        // do something only if there is more than one kernel
+        if (parent.children().length > 1) {
+            // first, sort back the submenu
+            parent.append(
+                parent.children("li[class!='divider']").sort(
+                    function (a,b) {
+                        var da = $("a",a).text();
+                        var db = $("a",b).text();
+                        if (da === db) {
+                            return 0;
+                        } else if (da > db) {
+                            return 1;
+                        } else {
+                            return -1;
+                        }}));
+            // then, if there is no divider yet, add one
+            if (!parent.children("li[class='divider']").length) {
+                parent.prepend($("<li>").attr("class","divider"));
+            } 
+            // finally, put the current kernel at the top
+            parent.prepend(cur_kernel_entry);
         }
         
         // load logo
