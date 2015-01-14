@@ -366,6 +366,23 @@ def test_decorator_kwarg():
     )
 
 @nt.with_setup(clear_display)
+def test_interact_instancemethod():
+    class Foo(object):
+        def show(self, x):
+            print(x)
+
+    f = Foo()
+    
+    with tt.monkeypatch(interaction, 'display', record_display):
+        g = interact(f.show, x=(1,10))
+    nt.assert_equal(len(displayed), 1)
+    w = displayed[0].children[0]
+    check_widget(w,
+        cls=widgets.IntSlider,
+        value=5,
+    )
+
+@nt.with_setup(clear_display)
 def test_decorator_no_call():
     with tt.monkeypatch(interaction, 'display', record_display):
         @interact
