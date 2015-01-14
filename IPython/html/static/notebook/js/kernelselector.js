@@ -60,7 +60,10 @@ define([
             ks = this.kernelspecs[keys[i]];
             ks_submenu_entry = $("<li>").attr("id", "kernel-submenu-"+ks.name).append($('<a>')
                 .attr('href', '#')
-                .click($.proxy(this.set_kernel, this, ks.name))
+                .click(function(){
+                        $.proxy(this.set_kernel, this, ks.name)
+                        event.preventDefault();
+                    })
                 .text(ks.spec.display_name));
             change_kernel_submenu.append(ks_submenu_entry);
         }
@@ -70,7 +73,10 @@ define([
             ks = this.kernelspecs[keys[i]];
             ks_submenu_entry = $("<li>").attr("id", "new-notebook-submenu-"+ks.name).append($('<a>')
                 .attr('href', '#')
-                .click($.proxy(this.new_notebook, this, ks.name))
+                .click(function(){
+                        $.proxy(this.new_notebook, this, ks.name)
+                        event.preventDefault();
+                    })
                 .text(ks.spec.display_name));
             new_notebook_submenu.append(ks_submenu_entry);
         }
