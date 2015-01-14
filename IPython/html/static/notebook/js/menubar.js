@@ -169,11 +169,13 @@ define([
         this.events.on('trust_changed.Notebook', function (event, trusted) {
             if (trusted) {
                 that.element.find('#trust_notebook')
-                    .addClass("disabled")
+                    .addClass("disabled").off('click')
                     .find("a").text("Trusted Notebook");
             } else {
                 that.element.find('#trust_notebook')
-                    .removeClass("disabled")
+                    .removeClass("disabled").on('click', function () {
+                        that.notebook.trust_notebook();
+                    })
                     .find("a").text("Trust Notebook");
             }
             if(event)event.preventDefault();
