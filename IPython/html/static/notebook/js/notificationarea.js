@@ -148,8 +148,8 @@ define([
 
         this.events.on('kernel_killed.Kernel kernel_killed.Session', function () {
             that.save_widget.update_document_title();
-            knw.danger("Dead kernel");
-            $kernel_ind_icon.attr('class','kernel_dead_icon').attr('title','Kernel Dead');
+            knw.warning("No kernel");
+            $kernel_ind_icon.attr('class','kernel_busy_icon').attr('title','Kernel is not running');
         });
 
         this.events.on('kernel_dead.Kernel', function () {
