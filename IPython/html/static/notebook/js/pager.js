@@ -21,7 +21,7 @@ define([
         this.events = options.events;
         this.pager_element = $(pager_selector);
         this.pager_button_area = $('#pager-button-area');
-        this._default_end_space = 200;
+        this._default_end_space = 100;
         this.pager_element.resizable({handles: 'n', resize: $.proxy(this._resize, this)});
         this.expanded = false;
         this.create_button_area();

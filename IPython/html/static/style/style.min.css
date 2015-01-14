@@ -8720,7 +8720,7 @@ ul#new-menu {
   #texteditor-backdrop #texteditor-container {
     padding: 0px;
     background-color: #ffffff;
-    min-height: 70vh;
+    min-height: 0;
     -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
     box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
   }
@@ -10026,7 +10026,7 @@ h6:hover .anchor-link {
 *
 */
 @media (max-width: 767px) {
-  body.notebook_app {
+  .notebook_app {
     padding-left: 0px;
     padding-right: 0px;
   }
@@ -10043,13 +10043,7 @@ div#notebook_panel {
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
 }
-@media not print {
-  div#notebook_panel {
-    background-color: #eeeeee;
-    min-height: 100vh;
-  }
-}
-div#notebook {
+#notebook {
   font-size: 14px;
   line-height: 20px;
   overflow-y: hidden;
@@ -10057,7 +10051,6 @@ div#notebook {
   width: 100%;
   /* This spaces the page away from the edge of the notebook area */
   padding-top: 20px;
-  padding-bottom: 20px;
   margin: 0px;
   outline: none;
   box-sizing: border-box;
@@ -10068,7 +10061,7 @@ div#notebook {
   #notebook-container {
     padding: 15px;
     background-color: #ffffff;
-    min-height: 70vh;
+    min-height: 0;
     -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
     box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
   }
@@ -10103,11 +10096,16 @@ p {
   margin-bottom: 0;
 }
 .end_space {
-  height: 200px;
+  min-height: 100px;
 }
 .notebook_app #header {
   -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
   box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
+}
+@media not print {
+  .notebook_app {
+    background-color: #eeeeee;
+  }
 }
 /* CSS for the cell toolbar */
 .celltoolbar {

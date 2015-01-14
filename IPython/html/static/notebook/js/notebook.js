@@ -195,7 +195,7 @@ define([
             that.insert_cell_below('code',ncells-1);
         });
         this.element.append(this.container);
-        this.container.append(end_space);
+        this.container.after(end_space);
     };
 
     /**
@@ -959,7 +959,7 @@ define([
 
         if (ncells === 0) {
             // special case append if empty
-            this.element.find('div.end_space').before(element);
+            this.container.append(element);
         } else if ( ncells === index ) {
             // special case append it the end, but not empty
             this.get_cell_element(index-1).after(element);
