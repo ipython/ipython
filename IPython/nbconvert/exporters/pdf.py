@@ -6,10 +6,10 @@
 import subprocess
 import os
 import sys
-import shutil
 
 from IPython.utils.traitlets import Integer, List, Bool, Instance
 from IPython.utils.tempdir import TemporaryWorkingDirectory
+from IPython.utils.path import shutil
 from .latex import LatexExporter
 
 
@@ -40,8 +40,8 @@ class PDFExporter(LatexExporter):
 
     def valid_on_path(self, command):
         """Ensure the given command exists in the OS PATH."""
-        if  (shutil.which(command)==None) :
-            raise FileNotFoundError("NBConvert requires this command to be on the System PATH: "+str(command))
+        if shutil.which(command) is None:
+            raise FileNotFoundError("NBConvert requires this command to be on the System PATH: " + str(command))
 
     def run_command(self, command_list, filename, count, log_function):
         """Run command_list count times.
