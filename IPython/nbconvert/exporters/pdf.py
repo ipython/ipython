@@ -6,8 +6,8 @@
 import subprocess
 import os
 import sys
-import shutil
 
+from IPython.utils.process import find_cmd
 from IPython.utils.traitlets import Integer, List, Bool, Instance
 from IPython.utils.tempdir import TemporaryWorkingDirectory
 from .latex import LatexExporter
@@ -38,11 +38,6 @@ class PDFExporter(LatexExporter):
     
     writer = Instance("IPython.nbconvert.writers.FilesWriter", args=())
 
-    def valid_on_path(self, command):
-        """Ensure the given command exists in the OS PATH."""
-        if  (shutil.which(command)==None) :
-            raise FileNotFoundError("NBConvert requires this command to be on the System PATH: "+str(command))
-
     def run_command(self, command_list, filename, count, log_function):
         """Run command_list count times.
         
@@ -72,7 +67,8 @@ class PDFExporter(LatexExporter):
             # could be different (cp437 in case of dos console)
             command = [c.encode('cp1252') for c in command]        
 
-        self.valid_on_path(command_list[0])
+        # This will throw a clearer error if the command is not found
+        find_cmd(command_list[0])
         
         times = 'time' if count == 1 else 'times'
         self.log.info("Running %s %i %s: %s", command_list[0], count, times, command)
