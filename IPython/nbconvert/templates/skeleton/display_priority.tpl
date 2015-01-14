@@ -17,6 +17,9 @@
         {%- elif type == 'text/html' -%}
             {%- block data_html -%}
             {%- endblock -%}
+        {%- elif type == 'text/markdown' -%}
+            {%- block data_markdown -%}
+            {%- endblock -%}
         {%- elif type == 'image/jpeg' -%}
             {%- block data_jpg -%}
             {%- endblock -%}

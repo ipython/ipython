@@ -123,6 +123,12 @@ unknown type  {{ cell.type }}
 </div>
 {%- endblock data_html %}
 
+{% block data_markdown scoped -%}
+<div class="output_markdown rendered_html output_subarea {{extra_class}}">
+{{ output.data['text/markdown'] | markdown2html }}
+</div>
+{%- endblock data_markdown %}
+
 {% block data_png scoped %}
 <div class="output_png output_subarea {{extra_class}}">
 {%- if 'image/png' in output.metadata.get('filenames', {}) %}
