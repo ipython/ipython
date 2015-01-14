@@ -58,9 +58,6 @@
 <link rel="stylesheet" href="{{resources.reveal.url_prefix}}/css/reveal.css">
 <link rel="stylesheet" href="{{resources.reveal.url_prefix}}/css/theme/simple.css" id="theme">
 
-<!-- For syntax highlighting -->
-<link rel="stylesheet" href="{{resources.reveal.url_prefix}}/lib/css/zenburn.css">
-
 <!-- If the query includes 'print-pdf', include the PDF print sheet -->
 <script>
 if( window.location.search.match( /print-pdf/gi ) ) {
@@ -101,6 +98,9 @@ html {
   font-family: monospace, sans-serif;
   font-size: 80%;
   box-shadow: 0px 0px 0px rgba(0, 0, 0, 0);
+}
+.reveal pre code {
+  padding: 0px;
 }
 .reveal section img {
   border: 0px solid black;
