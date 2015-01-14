@@ -37,6 +37,8 @@ from IPython.utils import coloransi, io, py3compat
 from IPython.core.excolors import exception_colors
 from IPython.testing.skipdoctest import skip_doctest
 
+from IPython.utils import deprecate
+
 # See if we can use pydb.
 has_pydb = False
 prompt = 'ipdb> '
@@ -73,7 +75,8 @@ def BdbQuit_excepthook(et, ev, tb, excepthook=None):
         excepthook(et, ev, tb)
     else:
         # Backwards compatibility. Raise deprecation warning?
-        BdbQuit_excepthook.excepthook_ori(et,ev,tb)
+        with deprecate.with_deprecate((4,0,0)):
+            BdbQuit_excepthook.excepthook_ori(et,ev,tb)
 
 def BdbQuit_IPython_excepthook(self,et,ev,tb,tb_offset=None):
     print('Exiting Debugger.')
