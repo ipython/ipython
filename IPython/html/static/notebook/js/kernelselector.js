@@ -25,6 +25,7 @@ define([
         // Make the object globally available for user convenience & inspection
         IPython.kernelselector = this;
         this._finish_load = null;
+        this._loaded = false;
         this.loaded = new Promise(function(resolve, reject) {
             that._finish_load = resolve;
         });
@@ -83,6 +84,7 @@ define([
 
         });
         // trigger loaded promise
+        this._loaded = true;
         this._finish_load();
     };
     
@@ -154,27 +156,85 @@ define([
         }
     };
 
-    KernelSelector.prototype.set_kernel = function (kernel_name) {
-        /** set the kernel by name, ensuring kernelspecs have been loaded, first */
+    KernelSelector.prototype.set_kernel = function (selected) {
+        /** set the kernel by name, ensuring kernelspecs have been loaded, first 
+        
+        kernel can be just a kernel name, or a notebook kernelspec metadata
+        (name, project_name, display_name).
+        */
         var that = this;
-        return this.loaded.then(function () {
-            that._set_kernel(kernel_name);
-        });
+        if (typeof selected === 'string') {
+            selected = {
+                name: selected
+            };
+        }
+        if (this._loaded) {
+            this._set_kernel(selected);
+        } else {
+            return this.loaded.then(function () {
+                that._set_kernel(selected);
+            });
+        }
     };
 
-    KernelSelector.prototype._set_kernel = function (kernel_name) {
+    KernelSelector.prototype._set_kernel = function (selected) {
         /** Actually set the kernel (kernelspecs have been loaded) */
-        if (kernel_name === this.current_selection) {
+        if (selected.name === this.current_selection) {
             // only trigger event if value changed
             return;
         }
-        var ks = this.kernelspecs[kernel_name];
+        var ks = this.kernelspecs[selected.name];
+        if (ks === undefined) {
+            if (selected.project_name && selected.project_name.length > 0) {
+                $.map(this.kernelspecs, function (k) {
+                    if (k.spec.project_name === selected.project_name) {
+                        ks = k;
+                    }
+                });
+            }
+            // if still undefined, trigger failure event
+            if (ks === undefined) {
+                this.events.trigger("spec_not_found.Kernel", selected);
+                return;
+            }
+        }
         if (this.notebook._session_starting) {
             console.error("Cannot change kernel while waiting for pending session start.");
             return;
         }
-        this.current_selection = kernel_name;
+        this.current_selection = ks.name;
         this.events.trigger('spec_changed.Kernel', ks);
+    };
+    
+    KernelSelector.prototype._spec_not_found = function (event, data) {
+        var that = this;
+        var select = $("<select>").addClass('form-control');
+        console.warn("Kernelspec not found:", data);
+        $.map(this.kernelspecs, function (ks) {
+            select.append(
+                $('<option/>').attr('value', ks.name).text(ks.spec.display_name)
+            );
+        });
+        
+        var body = $("<form>").addClass("form-inline").append(
+            $("<span>").text(
+                "I couldn't find a kernel matching " + (data.display_name || data.name) + "." +
+                " Please select a kernel:"
+            )
+        ).append(select);
+        
+        dialog.modal({
+            title : 'Kernel not found',
+            body : body,
+            buttons : {
+                OK : {
+                    class : 'btn-primary',
+                    click : function () {
+                        that.set_kernel(select.val());
+                    }
+                }
+            }
+        });
     };
 
     KernelSelector.prototype.new_notebook = function (kernel_name) {
@@ -213,7 +273,7 @@ define([
     KernelSelector.prototype.bind_events = function() {
         var that = this;
         this.events.on('spec_changed.Kernel', $.proxy(this._spec_changed, this));
-
+        this.events.on('spec_not_found.Kernel', $.proxy(this._spec_not_found, this));
         this.events.on('kernel_created.Session', function (event, data) {
             that.set_kernel(data.kernel.name);
         });
