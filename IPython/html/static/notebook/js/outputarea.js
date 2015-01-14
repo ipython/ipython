@@ -465,6 +465,10 @@ define([
 
     OutputArea.prototype.append_stream = function (json) {
         var text = json.text;
+        if (typeof text !== 'string') {
+            console.error("Stream output is invalid (missing text)", json);
+            return false;
+        }
         var subclass = "output_"+json.name;
         if (this.outputs.length > 0){
             // have at least one output to consider
