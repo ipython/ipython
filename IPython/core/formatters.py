@@ -218,8 +218,8 @@ class FormatterWarning(UserWarning):
     """Warning class for errors in formatters"""
 
 @decorator
-def warn_format_error(method, self, *args, **kwargs):
-    """decorator for warning on failed format call"""
+def catch_format_error(method, self, *args, **kwargs):
+    """show traceback on failed format call"""
     try:
         r = method(self, *args, **kwargs)
     except NotImplementedError:
@@ -322,7 +322,7 @@ class BaseFormatter(Configurable):
     # Map (modulename, classname) pairs to the format functions.
     deferred_printers = Dict(config=True)
     
-    @warn_format_error
+    @catch_format_error
     def __call__(self, obj):
         """Compute the format for an object."""
         if self.enabled:
@@ -675,7 +675,7 @@ class PlainTextFormatter(BaseFormatter):
 
     #### FormatterABC interface ####
 
-    @warn_format_error
+    @catch_format_error
     def __call__(self, obj):
         """Compute the pretty representation of the object."""
         if not self.pprint:
@@ -887,7 +887,7 @@ class IPythonDisplayFormatter(BaseFormatter):
     _return_type = (type(None), bool)
     
 
-    @warn_format_error
+    @catch_format_error
     def __call__(self, obj):
         """Compute the format for an object."""
         if self.enabled:
