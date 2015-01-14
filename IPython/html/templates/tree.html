@@ -3,11 +3,6 @@
 {% block title %}{{page_title}}{% endblock %}
 
 
-{% block stylesheet %}
-{{super()}}
-<link rel="stylesheet" href="{{ static_url("tree/css/override.css") }}" type="text/css" />
-{% endblock %}
-
 {% block params %}
 
 data-base-url="{{base_url}}"
