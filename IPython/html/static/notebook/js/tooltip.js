@@ -40,6 +40,7 @@ define([
         var expandlink = $('<a/>').attr('href', "#").addClass("ui-corner-all") //rounded corner
         .attr('role', "button").attr('id', 'expanbutton').attr('title', 'Grow the tooltip vertically (press shift-tab twice)').click(function () {
             that.expand();
+            event.preventDefault();
         }).append(
         $('<span/>').text('Expand').addClass('ui-icon').addClass('ui-icon-plus'));
 
@@ -49,6 +50,7 @@ define([
         morelink.append(morespan);
         morelink.click(function () {
             that.showInPager(that._old_cell);
+            event.preventDefault();
         });
 
         // close the tooltip
@@ -57,6 +59,7 @@ define([
         closelink.append(closespan);
         closelink.click(function () {
             that.remove_and_cancel_tooltip(true);
+            event.preventDefault();
         });
 
         this._clocklink = $('<a/>').attr('href', "#");
@@ -69,6 +72,7 @@ define([
         this._clocklink.append(clockspan);
         this._clocklink.click(function () {
             that.cancel_stick();
+            event.preventDefault();
         });
 
 
