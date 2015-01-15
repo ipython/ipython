@@ -2,6 +2,7 @@ define ([], function() {
     "use strict";
     function make_terminal(element, size, ws_url) {
         var ws = new WebSocket(ws_url);
+        Terminal.brokenBold = true;
         var term = new Terminal({
           cols: size.cols,
           rows: size.rows,
