@@ -17,7 +17,7 @@ body {
     overflow: visible;
 }
 
-div#header {
+#header {
     /* Initially hidden to prevent FLOUC */
     display: none;
     background-color: @body-bg;
@@ -55,7 +55,12 @@ div#header {
     padding-left: 0px;
     padding-top: (@navbar-height - @logo_height) / 2;
     padding-bottom: (@navbar-height - @logo_height) / 2;
+    @media (max-width: @screen-sm-max){
+        margin-left: 10px;
+    }
 }
+
+
 
 #noscript {
      width: auto;
@@ -115,7 +120,7 @@ span#login_widget > .button,
     }
 }
 
-@media (min-width: 768px) {
+@media (min-width: @screen-sm-min) {
     .modal .modal-dialog {
         width: 700px;
     }
