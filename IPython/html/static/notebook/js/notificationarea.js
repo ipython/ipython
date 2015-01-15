@@ -230,7 +230,7 @@ define([
             knw.danger(short, undefined, showMsg);
         });
 
-        this.events.on('kernel_starting.Kernel', function () {
+        this.events.on('kernel_starting.Kernel kernel_created.Session', function () {
             window.document.title='(Starting) '+window.document.title;
             $kernel_ind_icon.attr('class','kernel_busy_icon').attr('title','Kernel Busy');
             knw.set_message("Kernel starting, please wait...");
