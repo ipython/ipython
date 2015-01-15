@@ -8283,9 +8283,8 @@ div#header #header-container {
 }
 div#header .header-bar {
   width: 100%;
-  height: 0px;
-  border-bottom: 1px solid #e7e7e7;
-  margin-bottom: -1px;
+  height: 1px;
+  background: #e7e7e7;
 }
 @media print {
   div#header {
@@ -10265,7 +10264,6 @@ select[multiple].celltoolbar select {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
-  margin-top: 1px;
 }
 #menubar .navbar {
   border-top: 1px;
