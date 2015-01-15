@@ -147,7 +147,7 @@ define([
     };
 
     CodeCell.config_defaults = {
-        cell_magic_highlight : {
+        highlight_modes : {
             'magic_javascript'    :{'reg':[/^%%javascript/]},
             'magic_perl'          :{'reg':[/^%%perl/]},
             'magic_ruby'          :{'reg':[/^%%ruby/]},
@@ -179,13 +179,6 @@ define([
         }
     };
 
-    /**
-     * @method auto_highlight
-     */
-    CodeCell.prototype.auto_highlight = function () {
-        this._auto_highlight(this.class_config.get_sync('cell_magic_highlight'));
-    };
-
     /** @method create_element */
     CodeCell.prototype.create_element = function () {
         Cell.prototype.create_element.apply(this, arguments);
@@ -202,7 +195,7 @@ define([
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
         this.code_mirror = new CodeMirror(input_area.get(0), this.cm_config);
-        this.code_mirror.on('keydown', $.proxy(this.handle_keyevent,this))
+        this.code_mirror.on('keydown', $.proxy(this.handle_keyevent,this));
         $(this.code_mirror.getInputField()).attr("spellcheck", "false");
         inner_cell.append(input_area);
         input.append(prompt).append(inner_cell);
