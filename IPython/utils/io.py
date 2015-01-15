@@ -267,17 +267,18 @@ def atomic_writing(path, text=True, encoding='utf-8', **kwargs):
         path = os.path.join(os.path.dirname(path), os.readlink(path))
 
     dirname, basename = os.path.split(path)
-    handle, tmp_path = tempfile.mkstemp(prefix=basename, dir=dirname)
+    tmp_dir = tempfile.mkdtemp(prefix=basename, dir=dirname)
+    tmp_path = os.path.join(tmp_dir, basename)
     if text:
-        fileobj = io.open(handle, 'w', encoding=encoding, **kwargs)
+        fileobj = io.open(tmp_path, 'w', encoding=encoding, **kwargs)
     else:
-        fileobj = io.open(handle, 'wb', **kwargs)
+        fileobj = io.open(tmp_path, 'wb', **kwargs)
 
     try:
         yield fileobj
     except:
         fileobj.close()
-        os.remove(tmp_path)
+        shutil.rmtree(tmp_dir)
         raise
 
     # Flush to disk
@@ -299,6 +300,7 @@ def atomic_writing(path, text=True, encoding='utf-8', **kwargs):
         os.remove(path)
 
     os.rename(tmp_path, path)
+    shutil.rmtree(tmp_dir)
 
 
 def raw_print(*args, **kw):
