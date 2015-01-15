@@ -2,10 +2,11 @@
 // Distributed under the terms of the Modified BSD License.
 
 define([
-    'base/js/namespace',
     'jquery',
+    'base/js/namespace',
+    'base/js/dialog',
     'base/js/utils',
-], function(IPython, $, utils) {
+], function($, IPython, dialog, utils) {
     "use strict";
     
     var KernelSelector = function(selector, notebook) {
@@ -37,6 +38,7 @@ define([
     };
     
     KernelSelector.prototype._got_kernelspecs = function(data) {
+        var that = this;
         this.kernelspecs = data.kernelspecs;
         var change_kernel_submenu = $("#menu-change-kernel-submenu");
         var new_notebook_submenu = $("#menu-new-notebook-submenu");
@@ -54,32 +56,34 @@ define([
             }
         });
         
-        var i, ks, ks_submenu_entry;
-        // Create the Kernel > Change kernel submenu
-        for (i = 0; i < keys.length; i++) {
-            ks = this.kernelspecs[keys[i]];
-            ks_submenu_entry = $("<li>").attr("id", "kernel-submenu-"+ks.name).append($('<a>')
-                .attr('href', '#')
-                .click(function(){
-                        $.proxy(this.set_kernel, this, ks.name)
-                        event.preventDefault();
-                    })
-                .text(ks.spec.display_name));
-            change_kernel_submenu.append(ks_submenu_entry);
-        }
-        
-        // Create the File > New Notebook submenu
-        for (i = 0; i < keys.length; i++) {
-            ks = this.kernelspecs[keys[i]];
-            ks_submenu_entry = $("<li>").attr("id", "new-notebook-submenu-"+ks.name).append($('<a>')
-                .attr('href', '#')
-                .click(function(){
-                        $.proxy(this.new_notebook, this, ks.name)
-                        event.preventDefault();
-                    })
-                .text(ks.spec.display_name));
-            new_notebook_submenu.append(ks_submenu_entry);
-        }
+        keys.map(function (key) {
+            // Create the Kernel > Change kernel submenu
+            var ks = data.kernelspecs[key];
+            change_kernel_submenu.append(
+                $("<li>").attr("id", "kernel-submenu-"+ks.name).append(
+                    $('<a>')
+                        .attr('href', '#')
+                        .click( function () {
+                            that.set_kernel(ks.name);
+                            event.preventDefault();
+                        })
+                        .text(ks.spec.display_name)
+                )
+            );
+            // Create the File > New Notebook submenu
+            new_notebook_submenu.append(
+                $("<li>").attr("id", "new-notebook-submenu-"+ks.name).append(
+                    $('<a>')
+                        .attr('href', '#')
+                        .click( function () {
+                            that.new_notebook(ks.name);
+                            event.preventDefault();
+                        })
+                        .text(ks.spec.display_name)
+                )
+            );
+
+        });
         // trigger loaded promise
         this._finish_load();
     };
