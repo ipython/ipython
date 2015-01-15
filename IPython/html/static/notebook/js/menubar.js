@@ -103,10 +103,6 @@ define([
         this.element.find('#open_notebook').click(function () {
             var parent = utils.url_path_split(that.notebook.notebook_path)[0];
             window.open(utils.url_join_encode(that.base_url, 'tree', parent));
-            // all if(event) are here to let test pass
-            // as evnet might not be devined when clicking with
-            // casper.js
-            if(event)event.preventDefault();
         });
         this.element.find('#copy_notebook').click(function () {
             that.notebook.copy_notebook();
@@ -121,42 +117,34 @@ define([
             
             var url = utils.url_join_encode(base_url, 'files', notebook_path);
             window.open(url + '?download=1');
-            if(event)event.preventDefault();
         });
         
         this.element.find('#print_preview').click(function () {
             that._nbconvert('html', false);
-            if(event)event.preventDefault();
         });
 
         this.element.find('#download_html').click(function () {
             that._nbconvert('html', true);
-            if(event)event.preventDefault();
         });
 
         this.element.find('#download_rst').click(function () {
             that._nbconvert('rst', true);
-            if(event)event.preventDefault();
         });
 
         this.element.find('#download_pdf').click(function () {
             that._nbconvert('pdf', true);
-            if(event)event.preventDefault();
         });
 
         this.element.find('#download_script').click(function () {
             that._nbconvert('script', true);
-            if(event)event.preventDefault();
         });
 
         this.element.find('#rename_notebook').click(function () {
             that.save_widget.rename_notebook({notebook: that.notebook});
-            if(event)event.preventDefault();
         });
 
         this.element.find('#save_checkpoint').click(function () {
             that.notebook.save_checkpoint();
-            if(event)event.preventDefault();
         });
 
         this.element.find('#restore_checkpoint').click(function () {
@@ -164,7 +152,6 @@ define([
 
         this.element.find('#trust_notebook').click(function () {
             that.notebook.trust_notebook();
-            if(event)event.preventDefault();
         });
         this.events.on('trust_changed.Notebook', function (event, trusted) {
             if (trusted) {
@@ -178,7 +165,6 @@ define([
                     })
                     .find("a").text("Trust Notebook");
             }
-            if(event)event.preventDefault();
         });
 
         this.element.find('#kill_and_exit').click(function () {
@@ -191,51 +177,40 @@ define([
             };
             // finish with close on success or failure
             that.notebook.session.delete(close_window, close_window);
-            if(event)event.preventDefault();
         });
 
         // Edit
         this.element.find('#cut_cell').click(function () {
             that.notebook.cut_cell();
-            if(event)event.preventDefault();
         });
         this.element.find('#copy_cell').click(function () {
             that.notebook.copy_cell();
-            if(event)event.preventDefault();
         });
         this.element.find('#delete_cell').click(function () {
             that.notebook.delete_cell();
-            if(event)event.preventDefault();
         });
         this.element.find('#undelete_cell').click(function () {
             that.notebook.undelete_cell();
-            if(event)event.preventDefault();
         });
         this.element.find('#split_cell').click(function () {
             that.notebook.split_cell();
-            if(event)event.preventDefault();
         });
         this.element.find('#merge_cell_above').click(function () {
             that.notebook.merge_cell_above();
-            if(event)event.preventDefault();
         });
         this.element.find('#merge_cell_below').click(function () {
             that.notebook.merge_cell_below();
-            if(event)event.preventDefault();
         });
         this.element.find('#move_cell_up').click(function () {
             that.notebook.move_cell_up();
-            if(event)event.preventDefault();
         });
         this.element.find('#move_cell_down').click(function () {
             that.notebook.move_cell_down();
-            if(event)event.preventDefault();
         });
         this.element.find('#edit_nb_metadata').click(function () {
             that.notebook.edit_metadata({
                 notebook: that.notebook,
                 keyboard_manager: that.notebook.keyboard_manager});
-            if(event)event.preventDefault();
         });
         
         // View
@@ -243,138 +218,110 @@ define([
             $('#header-container').toggle();
             $('.header-bar').toggle();
             that._size_header();
-            if(event)event.preventDefault();
         });
         this.element.find('#toggle_toolbar').click(function () {
             $('div#maintoolbar').toggle();
             that._size_header();
-            if(event)event.preventDefault();
         });
         // Insert
         this.element.find('#insert_cell_above').click(function () {
             that.notebook.insert_cell_above('code');
             that.notebook.select_prev();
-            if(event)event.preventDefault();
         });
         this.element.find('#insert_cell_below').click(function () {
             that.notebook.insert_cell_below('code');
             that.notebook.select_next();
-            if(event)event.preventDefault();
         });
         // Cell
         this.element.find('#run_cell').click(function () {
             that.notebook.execute_cell();
-            if(event)event.preventDefault();
         });
         this.element.find('#run_cell_select_below').click(function () {
             that.notebook.execute_cell_and_select_below();
-            if(event)event.preventDefault();
         });
         this.element.find('#run_cell_insert_below').click(function () {
             that.notebook.execute_cell_and_insert_below();
-            if(event)event.preventDefault();
         });
         this.element.find('#run_all_cells').click(function () {
             that.notebook.execute_all_cells();
-            if(event)event.preventDefault();
         });
         this.element.find('#run_all_cells_above').click(function () {
             that.notebook.execute_cells_above();
-            if(event)event.preventDefault();
         });
         this.element.find('#run_all_cells_below').click(function () {
             that.notebook.execute_cells_below();
-            if(event)event.preventDefault();
         });
         this.element.find('#to_code').click(function () {
             that.notebook.to_code();
-            if(event)event.preventDefault();
         });
         this.element.find('#to_markdown').click(function () {
             that.notebook.to_markdown();
-            if(event)event.preventDefault();
         });
         this.element.find('#to_raw').click(function () {
             that.notebook.to_raw();
-            if(event)event.preventDefault();
         });
         
         this.element.find('#toggle_current_output').click(function () {
             that.notebook.toggle_output();
-            if(event)event.preventDefault();
         });
         this.element.find('#toggle_current_output_scroll').click(function () {
             that.notebook.toggle_output_scroll();
-            if(event)event.preventDefault();
         });
         this.element.find('#clear_current_output').click(function () {
             that.notebook.clear_output();
-            if(event)event.preventDefault();
         });
         
         this.element.find('#toggle_all_output').click(function () {
             that.notebook.toggle_all_output();
-            if(event)event.preventDefault();
         });
         this.element.find('#toggle_all_output_scroll').click(function () {
             that.notebook.toggle_all_output_scroll();
-            if(event)event.preventDefault();
         });
         this.element.find('#clear_all_output').click(function () {
             that.notebook.clear_all_output();
-            if(event)event.preventDefault();
         });
         
         // Kernel
         this.element.find('#int_kernel').click(function () {
             that.notebook.kernel.interrupt();
-            if(event)event.preventDefault();
         });
         this.element.find('#restart_kernel').click(function () {
             that.notebook.restart_kernel();
-            if(event)event.preventDefault();
         });
         this.element.find('#reconnect_kernel').click(function () {
             that.notebook.kernel.reconnect();
-            if(event)event.preventDefault();
         });
         // Help
         if (this.tour) {
             this.element.find('#notebook_tour').click(function () {
                 that.tour.start();
-                if(event)event.preventDefault();
             });
         } else {
             this.element.find('#notebook_tour').addClass("disabled");
         }
         this.element.find('#keyboard_shortcuts').click(function () {
             that.quick_help.show_keyboard_shortcuts();
-            if(event)event.preventDefault();
         });
         
         this.update_restore_checkpoint(null);
         
         this.events.on('checkpoints_listed.Notebook', function (event, data) {
             that.update_restore_checkpoint(that.notebook.checkpoints);
-            if(event)event.preventDefault();
         });
         
         this.events.on('checkpoint_created.Notebook', function (event, data) {
             that.update_restore_checkpoint(that.notebook.checkpoints);
-            if(event)event.preventDefault();
         });
         
         this.events.on('notebook_loaded.Notebook', function() {
             var langinfo = that.notebook.metadata.language_info || {};
             that.update_nbconvert_script(langinfo);
-            if(event)event.preventDefault();
         });
         
         this.events.on('kernel_ready.Kernel', function(event, data) {
             var langinfo = data.kernel.info_reply.language_info || {};
             that.update_nbconvert_script(langinfo);
             that.add_kernel_help_links(data.kernel.info_reply.help_links || []);
-            if(event)event.preventDefault();
         });
     };
 
@@ -403,7 +350,6 @@ define([
                     .text(moment(d).format("LLLL"))
                     .click(function () {
                         that.notebook.restore_checkpoint_dialog(checkpoint);
-                        if(event)event.preventDefault();
                     })
                 )
             );
