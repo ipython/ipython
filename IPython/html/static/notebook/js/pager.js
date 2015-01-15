@@ -57,8 +57,13 @@ define([
         this.pager_element.bind('collapse_pager', function (event, extrap) {
             // Animate hiding of the pager.
             var time = (extrap && extrap.duration) ? extrap.duration : 'fast';
-            that.pager_element.hide(time, function() {
-                $('.end_space').css('height', that._default_end_space);
+            that.pager_element.animate({
+                height: 'toggle'
+            }, {
+                duration: time,
+                done: function() {
+                    $('.end_space').css('height', that._default_end_space);
+                }
             });
         });
 
