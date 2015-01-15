@@ -1,16 +1,7 @@
 """Interact with functions using widgets."""
 
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
+# Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 from __future__ import print_function
 
@@ -29,10 +20,6 @@ from IPython.utils.py3compat import string_types, unicode_type
 from IPython.utils.traitlets import HasTraits, Any, Unicode
 
 empty = Parameter.empty
-
-#-----------------------------------------------------------------------------
-# Classes and Functions
-#-----------------------------------------------------------------------------
 
 
 def _matches(o, pattern):
@@ -251,7 +238,13 @@ def interact(__interact_f=None, **kwargs):
         #        ...
         f = __interact_f
         w = interactive(f, **kwargs)
-        f.widget = w
+        try:
+            f.widget = w
+        except AttributeError:
+            # some things (instancemethods) can't have attributes attached,
+            # so wrap in a lambda
+            f = lambda *args, **kwargs: __interact_f(*args, **kwargs)
+            f.widget = w
         display(w)
         return f
     else:
@@ -260,10 +253,7 @@ def interact(__interact_f=None, **kwargs):
         # def f(*args, **kwargs):
         #     ...
         def dec(f):
-            w = interactive(f, **kwargs)
-            f.widget = w
-            display(w)
-            return f
+            return interact(f, **kwargs)
         return dec
 
 def interact_manual(__interact_f=None, **kwargs):
