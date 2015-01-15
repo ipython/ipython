@@ -75,3 +75,12 @@ class TestHTMLExporter(ExportersTestsBase):
 
         assert re.findall(in_regex, output) == ins
         assert re.findall(out_regex, output) == outs
+
+    @onlyif_any_cmd_exists('nodejs', 'node', 'pandoc')
+    def test_png_metadata(self):
+        """
+        Does HTMLExporter with the 'basic' template treat pngs with width/height metadata correctly?
+        """
+        (output, resources) = HTMLExporter(template_file='basic').from_filename(
+            self._get_notebook(nb_name="pngmetadata.ipynb"))
+        assert len(output) > 0
