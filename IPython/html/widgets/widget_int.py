@@ -186,6 +186,7 @@ class _BoundedIntRange(_IntRange):
 
 @register('IPython.IntRangeSlider')
 class IntRangeSlider(_BoundedIntRange):
+    """Slider widget that represents a pair of ints between a minimum and maximum value."""
     _view_name = Unicode('IntSliderView', sync=True)
     orientation = CaselessStrEnum(values=['horizontal', 'vertical'], 
         default_value='horizontal', allow_none=False, 
