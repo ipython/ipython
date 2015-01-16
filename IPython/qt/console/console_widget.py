@@ -1863,6 +1863,10 @@ class ConsoleWidget(MetaQObjectHasTraits('NewBase', (LoggingConfigurable, QtGui.
         """
         lines = text.splitlines(True)
         if lines:
+            if lines[-1].endswith('\n'):
+                # If the text ends with a newline, add a blank line so a new
+                # continuation prompt is produced.
+                lines.append('')
             cursor.beginEditBlock()
             cursor.insertText(lines[0])
             for line in lines[1:]:
