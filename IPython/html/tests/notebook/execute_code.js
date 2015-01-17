@@ -83,7 +83,7 @@ casper.notebook_test(function () {
         IPython.notebook.insert_cell_below('code',0);
         var cell1 = IPython.notebook.get_cell(1);
         cell1.set_text('a=14; print(a)');
-        cell0.execute(skip_exception=true);
+        cell0.execute(false);
         cell1.execute();
     });
 
@@ -91,7 +91,7 @@ casper.notebook_test(function () {
 
     this.then(function () {
         var result = this.get_output_cell(1);
-        this.test.assertEquals(result.text, '14\n', 'cell execute, skip exceptions');
+        this.test.assertEquals(result.text, '14\n', "cell execute, don't stop on error");
     });
 
     this.thenEvaluate(function () {
@@ -108,6 +108,6 @@ casper.notebook_test(function () {
 
     this.then(function () {
         var result = this.get_output_cell(1);
-        this.test.assertNotEquals(result.text, '14\n', 'cell execute, skip exceptions');
+        this.test.assertNotEquals(result.text, '14\n', 'cell execute, stop on error');
     });
 });

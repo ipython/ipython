@@ -403,7 +403,7 @@ define([
      * Execute current code cell to the kernel
      * @method execute
      */
-    CodeCell.prototype.execute = function (skip_exceptions) {
+    CodeCell.prototype.execute = function (stop_on_error) {
         if (!this.kernel || !this.kernel.is_connected()) {
             console.log("Can't execute, kernel is not connected.");
             return;
@@ -411,8 +411,8 @@ define([
 
         this.active_output_area.clear_output(false, true);
 
-        if (skip_exceptions === undefined) {
-            skip_exceptions = false;
+        if (stop_on_error === undefined) {
+            stop_on_error = true;
         }
 
         // Clear widget area
@@ -439,7 +439,7 @@ define([
         
         var old_msg_id = this.last_msg_id;
         this.last_msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true,
-            skip_exceptions : skip_exceptions});
+            stop_on_error : stop_on_error});
         if (old_msg_id) {
             delete CodeCell.msg_cells[old_msg_id];
         }

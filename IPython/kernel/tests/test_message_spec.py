@@ -303,20 +303,20 @@ def test_execute_inc():
     count_2 = reply['execution_count']
     nt.assert_equal(count_2, count+1)
 
-def test_execute_skip_exceptions():
-    """execute request should not abort execution queue with skip_exceptions"""
+def test_execute_stop_on_error():
+    """execute request should not abort execution queue with stop_on_error False"""
     flush_channels()
 
     KC.execute(code='raise IOError')
-    msg_id = KC.execute(code='print("Hallo")')
+    msg_id = KC.execute(code='print("Hello")')
     KC.get_shell_msg(timeout=TIMEOUT)
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     nt.assert_equal(reply['content']['status'], 'aborted')
 
     flush_channels()
 
-    KC.execute(code='raise IOError', skip_exceptions=True)
-    msg_id = KC.execute(code='print("Hallo")')
+    KC.execute(code='raise IOError', stop_on_error=False)
+    msg_id = KC.execute(code='print("Hello")')
     KC.get_shell_msg(timeout=TIMEOUT)
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     nt.assert_equal(reply['content']['status'], 'ok')

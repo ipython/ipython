@@ -284,7 +284,7 @@ Message type: ``execute_request``::
 
     # A boolean flag, which, if True, does not abort the execution queue, if an exception is encountered.
     # This allows the queued execution of multiple execute_requests, even if they generate exceptions.
-    'skip_exceptions' : True,
+    'stop_on_error' : False,
     }
 
 .. versionchanged:: 5.0

@@ -348,10 +348,7 @@ class Kernel(SingletonConfigurable):
             self.log.error("%s", parent)
             return
         
-        if u'skip_exceptions' in content and content[u'skip_exceptions'] is True:
-            skip_exceptions = True
-        else:
-            skip_exceptions = False
+        stop_on_error = content.get('stop_on_error', True)
 
         md = self._make_metadata(parent['metadata'])
         
@@ -387,7 +384,7 @@ class Kernel(SingletonConfigurable):
         
         self.log.debug("%s", reply_msg)
 
-        if not silent and reply_msg['content']['status'] == u'error' and not skip_exceptions:
+        if not silent and reply_msg['content']['status'] == u'error' and stop_on_error:
             self._abort_queues()
 
     def do_execute(self, code, silent, store_history=True,
