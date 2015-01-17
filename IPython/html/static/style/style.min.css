@@ -8648,6 +8648,9 @@ input.engine_num_input {
 .file_icon:before.pull-right {
   margin-left: .3em;
 }
+#new-buttons {
+  padding-top: 2px;
+}
 ul#new-menu {
   left: auto;
   right: 0;
