@@ -876,7 +876,8 @@ class NotebookApp(BaseIPythonApplication):
             initialize(self.web_app)
             self.web_app.settings['terminals_available'] = True
         except ImportError as e:
-            self.log.info("Terminals not available (error was %s)", e)
+            log = self.log.debug if sys.platform == 'win32' else self.log.warn
+            log("Terminals not available (error was %s)", e)
 
     def init_signal(self):
         if not sys.platform.startswith('win'):
