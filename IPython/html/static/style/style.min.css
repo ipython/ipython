@@ -8648,7 +8648,7 @@ input.engine_num_input {
 .file_icon:before.pull-right {
   margin-left: .3em;
 }
-#new-buttons {
+#notebook_toolbar .pull-right {
   padding-top: 2px;
 }
 ul#new-menu {
