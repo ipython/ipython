@@ -82,8 +82,10 @@ define([
                 that.load_sessions();
             });
             $('#new-folder').click(function(e) {
-                that.contents.new_untitled(that.notebook_path || '', {type: 'directory'});
-                that.load_sessions();
+                that.contents.new_untitled(that.notebook_path || '', {type: 'directory'})
+                .then(function(){
+                    that.load_list();
+                });
             });
         }
     };
