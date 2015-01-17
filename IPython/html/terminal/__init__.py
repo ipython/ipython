@@ -1,4 +1,11 @@
 import os
+
+import terminado
+from IPython.utils.version import check_version
+
+if not check_version(terminado.__version__, '0.3.3'):
+    raise ImportError("terminado >= 0.3.3 required, found %s" % terminado.__version__)
+
 from terminado import NamedTermManager
 from tornado.log import app_log
 from IPython.html.utils import url_path_join as ujoin
