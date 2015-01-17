@@ -8521,11 +8521,11 @@ ul.breadcrumb span {
 .list_container {
   margin-top: 4px;
   margin-bottom: 20px;
-  border: 1px solid #ababab;
+  border: 1px solid #dddddd;
   border-radius: 2px;
 }
 .list_container > div {
-  border-bottom: 1px solid #ababab;
+  border-bottom: 1px solid #dddddd;
 }
 .list_container > div:hover .list-item {
   background-color: red;
@@ -8667,7 +8667,8 @@ ul#new-menu {
   padding-top: 20px;
 }
 #running .panel-group .panel {
-  margin-top: 15px;
+  margin-top: 3px;
+  margin-bottom: 1em;
 }
 #running .panel-group .panel .panel-heading {
   background-color: #eeeeee;
