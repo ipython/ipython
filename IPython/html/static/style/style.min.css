@@ -8534,7 +8534,7 @@ ul.breadcrumb span {
   border: none;
 }
 .list_item:hover .list_item {
-  background-color: #ddd;
+  background-color: #dddddd;
 }
 .list_item a {
   text-decoration: none;
@@ -8691,7 +8691,7 @@ ul#new-menu {
   border-radius: 0px;
 }
 #running .panel-group .panel .panel-body .list_container .list_item {
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #dddddd;
 }
 #running .panel-group .panel .panel-body .list_container .list_item:last-child {
   border-bottom: 0px;
