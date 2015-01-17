@@ -1,12 +1,12 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-define([
-    'base/js/namespace',
-    'jquery',
-    'codemirror/lib/codemirror',
-], function(IPython, $, CodeMirror) {
+define(function(require) {
     "use strict";
+
+    var CodeMirror = require('codemirror/lib/codemirror');
+    var IPython = require('base/js/namespace');
+    var $ = require('jquery');
     
     var modal = function (options) {
 
@@ -20,6 +20,9 @@ define([
         var dialog_content = $("<div/>")
             .addClass("modal-content")
             .appendTo(dialog);
+        if(typeof(options.body) === 'string'){
+            options.body = $("<p/>").text(options.body)
+        }
         dialog_content.append(
             $("<div/>")
                 .addClass("modal-header")
@@ -32,7 +35,7 @@ define([
                 ).append(
                     $("<h4/>")
                         .addClass('modal-title')
-                        .text(options.title || "")
+                        .text(options.title || "No Title")
                 )
         ).append(
             $("<div/>").addClass("modal-body").append(
