@@ -104,10 +104,12 @@ casper.notebook_test(function () {
         cell1.execute();
     });
 
-    this.wait_for_output(1);
+    this.wait_for_output(0);
 
     this.then(function () {
-        var result = this.get_output_cell(1);
-        this.test.assertNotEquals(result.text, '14\n', 'cell execute, stop on error');
+        var outputs = this.evaluate(function() {
+            return IPython.notebook.get_cell(1).output_area.outputs;
+        })
+        this.test.assertEquals(outputs.length, 0, 'cell execute, stop on error (default)');
     });
 });
