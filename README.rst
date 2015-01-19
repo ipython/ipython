@@ -24,6 +24,8 @@ distribution the ``docs/source`` directory contains the plaintext version of
 these manuals.  If you have Sphinx installed, you can build them by typing
 ``cd docs; make html`` for local browsing.
 
+This is a silly test of GitHub's new web UI for creating a pull request. Ha, so cool!
+
 
 Dependencies and supported Python versions
 ==========================================
