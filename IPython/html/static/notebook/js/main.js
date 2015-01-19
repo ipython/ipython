@@ -62,6 +62,8 @@ require([
 
     var config_section = new configmod.ConfigSection('notebook', common_options);
     config_section.load();
+    var common_config = new configmod.ConfigSection('common', common_options);
+    common_config.load();
     var page = new page.Page();
     var pager = new pager.Pager('div#pager', {
         events: events});
@@ -150,13 +152,8 @@ require([
     IPython.tooltip = notebook.tooltip;
 
     events.trigger('app_initialized.NotebookApp');
-    config_section.loaded.then(function() {
-        if (config_section.data.load_extensions) {
-            var nbextension_paths = Object.getOwnPropertyNames(
-                                        config_section.data.load_extensions);
-            IPython.load_extensions.apply(this, nbextension_paths);
-        }
-    });
+    utils.load_extensions_from_config(config_section);
+    utils.load_extensions_from_config(common_config);
     notebook.load_notebook(common_options.notebook_path);
 
 });
