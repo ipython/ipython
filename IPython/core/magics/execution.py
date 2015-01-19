@@ -1,25 +1,19 @@
 # -*- coding: utf-8 -*-
-"""Implementation of execution-related magic functions.
-"""
+"""Implementation of execution-related magic functions."""
+
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from __future__ import print_function
-#-----------------------------------------------------------------------------
-#  Copyright (c) 2012 The IPython Development Team.
-#
-#  Distributed under the terms of the Modified BSD License.
-#
-#  The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
-# Stdlib
 import ast
 import bdb
+import gc
+import itertools
 import os
 import sys
 import time
+import timeit
 from pdb import Restart
 
 # cProfile was added in Python2.5
@@ -33,7 +27,6 @@ except ImportError:
     except ImportError:
         profile = pstats = None
 
-# Our own packages
 from IPython.core import debugger, oinspect
 from IPython.core import magic_arguments
 from IPython.core import page
@@ -113,6 +106,34 @@ class TimeitTemplateFiller(ast.NodeTransformer):
         if getattr(getattr(node.body[0], 'value', None), 'id', None) == 'stmt':
             node.body = self.ast_stmt.body
         return node
+
+
+class Timer(timeit.Timer):
+    """Timer class that explicitly uses self.inner
+    
+    which is an undocumented implementation detail of CPython,
+    not shared by PyPy.
+    """
+    # Timer.timeit copied from CPython 3.4.2
+    def timeit(self, number=timeit.default_number):
+        """Time 'number' executions of the main statement.
+
+        To be precise, this executes the setup statement once, and
+        then returns the time it takes to execute the main statement
+        a number of times, as a float measured in seconds.  The
+        argument is the number of times through the loop, defaulting
+        to one million.  The main statement, the setup statement and
+        the timer function to be used are passed to the constructor.
+        """
+        it = itertools.repeat(None, number)
+        gcold = gc.isenabled()
+        gc.disable()
+        try:
+            timing = self.inner(it, self.timer)
+        finally:
+            if gcold:
+                gc.enable()
+        return timing
 
 
 @magics_class
@@ -945,8 +966,6 @@ python-profiler package from non-free.""")
         does not matter as long as results from timeit.py are not mixed with
         those from %timeit."""
 
-        import timeit
-
         opts, stmt = self.parse_options(line,'n:r:tcp:qo',
                                         posix=False, strict=False)
         if stmt == "" and cell is None:
@@ -963,7 +982,7 @@ python-profiler package from non-free.""")
         if hasattr(opts, "c"):
             timefunc = clock
 
-        timer = timeit.Timer(timer=timefunc)
+        timer = Timer(timer=timefunc)
         # this code has tight coupling to the inner workings of timeit.Timer,
         # but is there a better way to achieve that the code stmt has access
         # to the shell namespace?
