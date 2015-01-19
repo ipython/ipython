@@ -220,6 +220,8 @@ def find_connection_file(filename, profile=None):
         # accept any substring match
         pat = '*%s*' % filename
     matches = glob.glob( os.path.join(security_dir, pat) )
+    # exclude notebook_cookie_secret
+    matches = [m for m in matches if not m.endswith('notebook_cookie_secret')]
     if not matches:
         raise IOError("Could not find %r in %r" % (filename, security_dir))
     elif len(matches) == 1:
