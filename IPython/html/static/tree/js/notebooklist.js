@@ -290,22 +290,19 @@ define([
                     path
                 )
             );
+
+        var can_duplicate = (model.type != 'directory');
+        var can_rename = (model.type == 'directory');
+        var can_delete = (model.type != 'notebook' || this.sessions[path] === undefined);
+        if (!can_delete) {
+            this.add_shutdown_button(item, this.sessions[path]);
+        }
+        this.add_actions_button(item, can_delete, can_duplicate, can_rename);
+
         // directory nav doesn't open new tabs
         // files, notebooks do
         if (model.type !== "directory") {
             link.attr('target','_blank');
-        }
-        if (model.type !== 'directory') {
-            this.add_duplicate_button(item);
-        }
-        if (model.type == 'file') {
-            this.add_delete_button(item);
-        } else if (model.type == 'notebook') {
-            if (this.sessions[path] === undefined){
-                this.add_delete_button(item);
-            } else {
-                this.add_shutdown_button(item, this.sessions[path]);
-            }
         }
     };
 
@@ -357,68 +354,163 @@ define([
         item.find(".item_buttons").append(shutdown_button);
     };
 
-    NotebookList.prototype.add_duplicate_button = function (item) {
-        var notebooklist = this;
-        var duplicate_button = $("<button/>").text("Duplicate").addClass("btn btn-default btn-xs").
-            click(function (e) {
-                // $(this) is the button that was clicked.
-                var that = $(this);
-                var name = item.data('name');
-                var path = item.data('path');
-                var message = 'Are you sure you want to duplicate ' + name + '?';
-                var copy_from = {copy_from : path};
-                IPython.dialog.modal({
-                    title : "Duplicate " + name,
-                    body : message,
-                    buttons : {
-                        Duplicate : {
-                            class: "btn-primary",
-                            click: function() {
-                                notebooklist.contents.copy(path, notebooklist.notebook_path).then(function () {
-                                    notebooklist.load_list();
-                                });
-                            }
-                        },
-                        Cancel : {}
-                    }
-                });
-                return false;
-            });
-        item.find(".item_buttons").append(duplicate_button);
+    NotebookList.prototype.add_actions_button = function (item, can_delete, can_duplicate, can_rename) {
+        var group = $("<div/>")
+            .addClass('btn-group')
+            .css('float', 'none')
+            .appendTo(item.find(".item_buttons"));
+
+        var actions_button = $("<button/>")
+            .html("Actions <span class='caret'></span>")
+            .addClass("btn btn-default btn-xs dropdown-toggle")
+            .attr('data-toggle', 'dropdown')
+            .attr('aria-expanded', 'false')
+            .appendTo(group);
+
+        var actions_list = $('<ul/>')
+            .addClass('dropdown-menu')
+            .attr('role', 'menu')
+            .appendTo(group);
+
+        var create_action = function(label, callback) {
+            var item = $('<li/>')
+                .click(callback)
+                .appendTo(actions_list);
+
+            var link = $('<a/>')
+                .attr('href', '#')
+                .html(label)
+                .appendTo(item);
+        };
+
+        if (can_delete) create_action('Delete', this.make_delete_callback(item));
+        if (can_duplicate) create_action('Duplicate', this.make_duplicate_callback(item));
+        if (can_rename) create_action('Rename', this.make_rename_callback(item));
     };
 
-    NotebookList.prototype.add_delete_button = function (item) {
+    NotebookList.prototype.make_rename_callback = function (item) {
         var notebooklist = this;
-        var delete_button = $("<button/>").text("Delete").addClass("btn btn-default btn-xs").
-            click(function (e) {
-                // $(this) is the button that was clicked.
-                var that = $(this);
-                // We use the filename from the parent list_item element's
-                // data because the outer scope's values change as we iterate through the loop.
-                var parent_item = that.parents('div.list_item');
-                var name = parent_item.data('name');
-                var path = parent_item.data('path');
-                var message = 'Are you sure you want to permanently delete the file: ' + name + '?';
-                dialog.modal({
-                    title : "Delete file",
-                    body : message,
-                    buttons : {
-                        Delete : {
-                            class: "btn-danger",
-                            click: function() {
-                                notebooklist.contents.delete(path).then(
-                                    function() {
-                                        notebooklist.notebook_deleted(path);
+        return function (e) {
+            // $(this) is the button that was clicked.
+            var that = $(this);
+            // We use the filename from the parent list_item element's
+            // data because the outer scope's values change as we iterate through the loop.
+            var parent_item = that.parents('div.list_item');
+            var name = parent_item.data('name');
+            var path = parent_item.data('path');
+            var input = $('<input/>').attr('type','text').attr('size','25').addClass('form-control')
+                .val(path);
+            var dialog_body = $('<div/>').append(
+                $("<p/>").addClass("rename-message")
+                    .text('Enter a new directory name:')
+            ).append(
+                $("<br/>")
+            ).append(input);
+            var d = dialog.modal({
+                title : "Rename directory",
+                body : dialog_body,
+                buttons : {
+                    OK : {
+                        class: "btn-primary",
+                        click: function() {
+                            notebooklist.contents.rename(path, input.val()).then(function() {
+                                notebooklist.load_list();
+                            }).catch(function(e) { 
+                                dialog.modal({
+                                    title : "Error",
+                                    body : $('<div/>')
+                                        .text("An error occurred while renaming \"" + path + "\" to \"" + input.val() + "\".")
+                                        .append($('<div/>').addClass('alert alert-danger').text(String(e))),
+                                    buttons : {
+                                        OK : {}
                                     }
-                                );
-                            }
-                        },
-                        Cancel : {}
-                    }
-                });
-                return false;
+                                });
+                            });
+                        }
+                    },
+                    Cancel : {}
+                },
+                open : function () {
+                    // Upon ENTER, click the OK button.
+                    input.keydown(function (event) {
+                        if (event.which === keyboard.keycodes.enter) {
+                            d.find('.btn-primary').first().click();
+                            return false;
+                        }
+                    });
+                    input.focus().select();
+                }
             });
-        item.find(".item_buttons").append(delete_button);
+            return false;
+        };
+    };
+
+    NotebookList.prototype.make_delete_callback = function (item) {
+        var notebooklist = this;
+        return function (e) {
+            // $(this) is the button that was clicked.
+            var that = $(this);
+            // We use the filename from the parent list_item element's
+            // data because the outer scope's values change as we iterate through the loop.
+            var parent_item = that.parents('div.list_item');
+            var name = parent_item.data('name');
+            var path = parent_item.data('path');
+            var message = 'Are you sure you want to permanently delete: ' + name + '?';
+            dialog.modal({
+                title : "Delete",
+                body : message,
+                buttons : {
+                    Delete : {
+                        class: "btn-danger",
+                        click: function() {
+                            notebooklist.contents.delete(path).then(function() {
+                                    notebooklist.notebook_deleted(path);
+                            }).catch(function(e) { 
+                                dialog.modal({
+                                    title : "Error",
+                                    body : $('<div/>')
+                                        .text("An error occurred while deleting \"" + path + "\".")
+                                        .append($('<div/>').addClass('alert alert-danger').text(String(e))),
+                                    buttons : {
+                                        OK : {}
+                                    }
+                                });
+                            });
+                        }
+                    },
+                    Cancel : {}
+                }
+            });
+            return false;
+        };
+    };
+
+    NotebookList.prototype.make_duplicate_callback = function (item) {
+        var notebooklist = this;
+        return function (e) {
+            // $(this) is the button that was clicked.
+            var that = $(this);
+            var name = item.data('name');
+            var path = item.data('path');
+            var message = 'Are you sure you want to duplicate ' + name + '?';
+            var copy_from = {copy_from : path};
+            IPython.dialog.modal({
+                title : "Duplicate " + name,
+                body : message,
+                buttons : {
+                    Duplicate : {
+                        class: "btn-primary",
+                        click: function() {
+                            notebooklist.contents.copy(path, notebooklist.notebook_path).then(function () {
+                                notebooklist.load_list();
+                            });
+                        }
+                    },
+                    Cancel : {}
+                }
+            });
+            return false;
+        }
     };
 
     NotebookList.prototype.notebook_deleted = function(path) {
