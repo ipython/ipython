@@ -159,7 +159,7 @@ def get_connection_file(app=None):
     return filefind(app.connection_file, ['.', app.profile_dir.security_dir])
 
 
-def find_connection_file(filename, profile=None):
+def find_connection_file(filename='kernel-*.json', profile=None):
     """find a connection file, and return its absolute path.
     
     The current working directory and the profile's security
