@@ -11,7 +11,7 @@ define([
 ], function(IPython, $, CodeMirror, moment){
     "use strict";
     
-    IPython.load_extensions = function () {
+    var load_extensions = function () {
         // load one or more IPython notebook extensions with requirejs
         
         var extensions = [];
@@ -38,6 +38,8 @@ define([
             }
         );
     };
+    
+    IPython.load_extensions = load_extensions;
 
     /**
      * Wait for a config section to load, and then load the extensions specified
@@ -48,7 +50,7 @@ define([
             if (section.data.load_extensions) {
                 var nbextension_paths = Object.getOwnPropertyNames(
                                             section.data.load_extensions);
-                IPython.load_extensions.apply(this, nbextension_paths);
+                load_extensions.apply(this, nbextension_paths);
             }
         });
     }
@@ -836,6 +838,7 @@ define([
     };
     
     var utils = {
+        load_extensions: load_extensions,
         load_extensions_from_config: load_extensions_from_config,
         regex_split : regex_split,
         uuid : uuid,
