@@ -29,13 +29,18 @@ class ZMQCompleter(IPCompleter):
         self.shell = shell
         self.client =  client
         self.matches = []
-        
+        # don't do any splitting client-side,
+        # rely on the kernel for that
+        self.splitter.delims = '\r\n'
+        if self.readline:
+            self.readline.set_completer_delims('\r\n')
+    
     def complete_request(self, text):
         line = readline.get_line_buffer()
         cursor_pos = readline.get_endidx()
         
         # send completion request to kernel
-        # Give the kernel up to 0.5s to respond
+        # Give the kernel up to 5s to respond
         msg_id = self.client.complete(
             code=line,
             cursor_pos=cursor_pos,
@@ -43,7 +48,8 @@ class ZMQCompleter(IPCompleter):
         
         msg = self.client.shell_channel.get_msg(timeout=self.timeout)
         if msg['parent_header']['msg_id'] == msg_id:
-            return msg["content"]["matches"]
+            cursor_start = msg['content']['cursor_start']
+            return [ line[:cursor_start] + m for m in msg['content']['matches'] ]
         return []
     
     def rlcomplete(self, text, state):
