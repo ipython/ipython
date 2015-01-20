@@ -28,9 +28,9 @@ class TreeHandler(IPythonHandler):
                 comps.pop(0)
         page_title = url_path_join(*comps)
         if page_title:
-            return page_title+'/'
+            return 'Dashboard: %s/' % page_title
         else:
-            return 'Home'
+            return 'Dashboard: Home'
 
     @web.authenticated
     def get(self, path=''):
