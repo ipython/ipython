@@ -121,6 +121,58 @@ Other new features
   or :file:`/usr/local/etc/ipython` on Unix systems,
   or :file:`{%PROGRAMDATA%}\\ipython` on Windows.
 
+* Added support for configurable user-supplied `Jinja
+  <http://jinja.pocoo.org/>`_ HTML templates for the notebook.  Paths to
+  directories containing template files can be specified via
+  ``NotebookApp.extra_template_paths``.  User-supplied template directories
+  searched first by the notebook, making it possible to replace existing
+  templates with your own files.
+
+  For example, to replace the notebook's built-in ``error.html`` with your own,
+  create a directory like ``/home/my_templates`` and put your override template
+  at ``/home/my_templates/error.html``.  To start the notebook with your custom
+  error page enabled, you would run::
+
+      ipython notebook '--extra_template_paths=["/home/my_templates/"]'
+
+  It's also possible to override a template while also `inheriting
+  <http://jinja.pocoo.org/docs/dev/templates/#template-inheritance>`_ from that
+  template, by prepending ``templates/`` to the ``{% extends %}`` target of
+  your child template.  This is useful when you only want to override a
+  specific block of a template.  For example, to add additional CSS to the
+  built-in ``error.html``, you might create an override that looks like::
+
+    {% extends "templates/error.html" %}
+
+    {% block stylesheet %}
+    {{super()}}
+    <style type="text/css">
+      /* My Awesome CSS */
+    </style>
+    {% endblock %}
+
+* Added a widget persistence API.  This allows you to persist your notebooks interactive widgets.
+  Two levels of control are provided:
+  1. Higher level- ``WidgetManager.set_state_callbacks`` allows you to register callbacks for loading and saving widget state.  The callbacks you register are automatically called when necessary.
+  2. Lower level- the ``WidgetManager`` Javascript class now has ``get_state`` and ``set_state`` methods that allow you to get and set the state of the widget runtime.
+
+  Example code for persisting your widget state to session data::
+
+    %%javascript
+    require(['widgets/js/manager'], function(manager) {
+        manager.WidgetManager.set_state_callbacks(function() { // Load
+            return JSON.parse(sessionStorage.widgets_state || '{}');
+        }, function(state) { // Save
+            sessionStorage.widgets_state = JSON.stringify(state);
+        });
+    });
+
+* Enhanced support for :magic:`env` magic.  As before, :magic:`env` with no
+  arguments displays all environment variables and values.  Additionally,
+  :magic:`env` can be used to get or set individual environment variables. To
+  display an individual value, use the `%env var` syntax. To set a value, use
+  `env var val` or `env var=val`. Python value expansion using `$` works as usual.
+
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.
 
 
@@ -177,6 +229,10 @@ Backwards incompatible changes
 * The ContainerWidget was renamed to Box and no longer defaults as a flexible
   box in the web browser.  A new FlexBox widget was added, which allows you to
   use the flexible box model.
+
+* The notebook now uses a single websocket at `/kernels/<kernel-id>/channels` instead of separate
+  `/kernels/<kernel-id>/{shell|iopub|stdin}` channels. Messages on each channel are identified by a
+  `channel` key in the message dict, for both send and recv.
 
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. INCOMPAT INSERTION POINT.
 
