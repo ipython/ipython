@@ -249,7 +249,7 @@ define([
             that.metadata.kernelspec = {
                 name: data.name,
                 display_name: data.spec.display_name,
-                project_name: data.spec.project_name,
+                language_name: data.spec.language_name,
             };
             // start session if the current session isn't already correct
             if (!(this.session && this.session.kernel && this.session.kernel.name === data.name)) {

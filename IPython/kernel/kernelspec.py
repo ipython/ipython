@@ -36,7 +36,7 @@ def _pythonfirst(s):
 class KernelSpec(HasTraits):
     argv = List()
     display_name = Unicode()
-    project_name = Unicode()
+    language_name = Unicode()
     env = Dict()
     resource_dir = Unicode()
     
@@ -55,7 +55,7 @@ class KernelSpec(HasTraits):
         d = dict(argv=self.argv,
                  env=self.env,
                  display_name=self.display_name,
-                 project_name=self.project_name,
+                 language_name=self.language_name,
                 )
 
         return d
@@ -114,7 +114,7 @@ class KernelSpecManager(HasTraits):
         return {
                 'argv': make_ipkernel_cmd(),
                 'display_name': 'Python %i' % (3 if PY3 else 2),
-                'project_name': 'ipython',
+                'language_name': 'python',
                }
 
     @property

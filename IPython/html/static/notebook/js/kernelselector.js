@@ -26,7 +26,7 @@ define([
         IPython.kernelselector = this;
         this._finish_load = null;
         this._loaded = false;
-        this.loaded = new Promise(function(resolve, reject) {
+        this.loaded = new Promise(function(resolve) {
             that._finish_load = resolve;
         });
         
@@ -38,16 +38,12 @@ define([
         utils.promising_ajax(url).then($.proxy(this._got_kernelspecs, this));
     };
     
-    KernelSelector.prototype._got_kernelspecs = function(data) {
-        var that = this;
-        this.kernelspecs = data.kernelspecs;
-        var change_kernel_submenu = $("#menu-change-kernel-submenu");
-        var new_notebook_submenu = $("#menu-new-notebook-submenu");
-        
-        var keys = Object.keys(data.kernelspecs).sort(function (a, b) {
+    var _sorted_names = function(kernelspecs) {
+        // sort kernel names
+        return Object.keys(kernelspecs).sort(function (a, b) {
             // sort by display_name
-            var da = data.kernelspecs[a].spec.display_name;
-            var db = data.kernelspecs[b].spec.display_name;
+            var da = kernelspecs[a].spec.display_name;
+            var db = kernelspecs[b].spec.display_name;
             if (da === db) {
                 return 0;
             } else if (da > db) {
@@ -56,6 +52,14 @@ define([
                 return -1;
             }
         });
+    };
+    
+    KernelSelector.prototype._got_kernelspecs = function(data) {
+        var that = this;
+        this.kernelspecs = data.kernelspecs;
+        var change_kernel_submenu = $("#menu-change-kernel-submenu");
+        var new_notebook_submenu = $("#menu-new-notebook-submenu");
+        var keys = _sorted_names(data.kernelspecs);
         
         keys.map(function (key) {
             // Create the Kernel > Change kernel submenu
@@ -160,7 +164,7 @@ define([
         /** set the kernel by name, ensuring kernelspecs have been loaded, first 
         
         kernel can be just a kernel name, or a notebook kernelspec metadata
-        (name, project_name, display_name).
+        (name, language_name, display_name).
         */
         var that = this;
         if (typeof selected === 'string') {
@@ -183,18 +187,28 @@ define([
             // only trigger event if value changed
             return;
         }
-        var ks = this.kernelspecs[selected.name];
+        var kernelspecs = this.kernelspecs;
+        var ks = kernelspecs[selected.name];
         if (ks === undefined) {
-            if (selected.project_name && selected.project_name.length > 0) {
-                $.map(this.kernelspecs, function (k) {
-                    if (k.spec.project_name === selected.project_name) {
-                        ks = k;
+            var available = _sorted_names(kernelspecs);
+            var matches = [];
+            if (selected.language_name && selected.language_name.length > 0) {
+                $.map(available, function (name) {
+                    if (kernelspecs[name].spec.language_name.toLowerCase() === selected.language_name.toLowerCase()) {
+                        matches.push(name);
                     }
                 });
             }
+            if (matches.length === 1) {
+                ks = kernelspecs[matches[0]];
+            }
             // if still undefined, trigger failure event
             if (ks === undefined) {
-                this.events.trigger("spec_not_found.Kernel", selected);
+                this.events.trigger("spec_not_found.Kernel", {
+                    selected: selected,
+                    matches: matches,
+                    available: available,
+                });
                 return;
             }
         }
@@ -210,15 +224,22 @@ define([
         var that = this;
         var select = $("<select>").addClass('form-control');
         console.warn("Kernelspec not found:", data);
-        $.map(this.kernelspecs, function (ks) {
+        var names;
+        if (data.matches.length > 1) {
+            names = data.matches;
+        } else {
+            names = data.available;
+        }
+        $.map(names, function (name) {
+            var ks = that.kernelspecs[name];
             select.append(
-                $('<option/>').attr('value', ks.name).text(ks.spec.display_name)
+                $('<option/>').attr('value', ks.name).text(ks.spec.display_name || ks.name)
             );
         });
         
         var body = $("<form>").addClass("form-inline").append(
             $("<span>").text(
-                "I couldn't find a kernel matching " + (data.display_name || data.name) + "." +
+                "I couldn't find a kernel matching " + (data.selected.display_name || data.name) + "." +
                 " Please select a kernel:"
             )
         ).append(select);
