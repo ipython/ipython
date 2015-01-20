@@ -40,13 +40,11 @@ define([
             }, {
                 element: $("#menus").parent(),
                 placement: 'bottom',
-                backdrop: true,
                 title: "Notebook Menubar",
                 content: "The menubar has menus for actions on the notebook, its cells, and the kernel it communicates with."
             }, {
                 element: "#maintoolbar",
                 placement: 'bottom',
-                backdrop: true,
                 title: "Notebook Toolbar",
                 content: "The toolbar has buttons for the most common actions. Hover your mouse over each button for more information."
             }, {
@@ -88,13 +86,13 @@ define([
                 onHide: function(tour) { $('#help_menu').parent().children('a').click(); },
                 content: "You can click here to get a list of all of the keyboard shortcuts."
             }, {
-                element: "#kernel_indicator",
+                element: "#kernel_indicator_icon",
                 title: "Kernel Indicator",
                 placement: 'bottom',
                 onShow: function(tour) { events.trigger('kernel_idle.Kernel');},
                 content: "This is the Kernel indicator. It looks like this when the Kernel is idle."
             }, {
-                element: "#kernel_indicator",
+                element: "#kernel_indicator_icon",
                 title: "Kernel Indicator",
                 placement: 'bottom',
                 onShow: function(tour) { events.trigger('kernel_busy.Kernel'); },
@@ -120,12 +118,9 @@ define([
         ];
 
         this.tour = new Tour({
-            //orphan: true,
             storage: false, // start tour from beginning every time
-            //element: $("#ipython_notebook"),
             debug: true,
             reflex: true, // click on element to continue tour
-            //backdrop: true, // show dark behind popover
             animation: false,
             duration: this.step_duration,
             onStart: function() { console.log('tour started'); },
