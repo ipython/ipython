@@ -155,6 +155,7 @@ def _widgets_from_abbreviations(seq):
         widget = _widget_from_abbrev(abbrev, default)
         if not widget.description:
             widget.description = name
+        widget._kwarg = name
         result.append(widget)
     return result
 
@@ -194,7 +195,7 @@ def interactive(__interact_f, **kwargs):
         container.kwargs = {}
         for widget in kwargs_widgets:
             value = widget.value
-            container.kwargs[widget.description] = value
+            container.kwargs[widget._kwarg] = value
         if co:
             clear_output(wait=True)
         if manual:
