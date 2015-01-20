@@ -44,8 +44,26 @@ define([
         },
         
         _handle_route_msg: function(content) {
-            var cell = this.options.cell;
-            if (content && cell) {
+            if (content) {
+    //     return {
+    //         shell : {
+    //             reply : $.proxy(this._handle_execute_reply, this),
+    //             payload : {
+    //                 set_next_input : $.proxy(this._handle_set_next_input, this),
+    //                 page : $.proxy(this._open_with_pager, this)
+    //             }
+    //         },
+    //         iopub : {
+    //             output : function() { 
+    //                 that.output_area.handle_output.apply(that.output_area, arguments);
+    //             }, 
+    //             clear_output : function() { 
+    //                 that.output_area.handle_clear_output.apply(that.output_area, arguments);
+    //             }, 
+    //         },
+    //         input : $.proxy(this._handle_input_request, this)
+    //     };
+    // };
                 if (content.method == 'push') {
                     cell.push_output_area(this.output_area);
                 } else if (content.method == 'pop') {
