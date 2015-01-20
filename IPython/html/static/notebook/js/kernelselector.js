@@ -164,7 +164,7 @@ define([
         /** set the kernel by name, ensuring kernelspecs have been loaded, first 
         
         kernel can be just a kernel name, or a notebook kernelspec metadata
-        (name, language_name, display_name).
+        (name, language, display_name).
         */
         var that = this;
         if (typeof selected === 'string') {
@@ -192,9 +192,9 @@ define([
         if (ks === undefined) {
             var available = _sorted_names(kernelspecs);
             var matches = [];
-            if (selected.language_name && selected.language_name.length > 0) {
+            if (selected.language && selected.language.length > 0) {
                 $.map(available, function (name) {
-                    if (kernelspecs[name].spec.language_name.toLowerCase() === selected.language_name.toLowerCase()) {
+                    if (kernelspecs[name].spec.language.toLowerCase() === selected.language.toLowerCase()) {
                         matches.push(name);
                     }
                 });
