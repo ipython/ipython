@@ -11,7 +11,7 @@ except ImportError:
 
 from IPython.config import Configurable
 from IPython.core.completer import IPCompleter
-from IPython.utils.py3compat import str_to_unicode, cast_bytes, unicode_to_str
+from IPython.utils.py3compat import str_to_unicode, unicode_to_str, cast_bytes, cast_unicode
 from IPython.utils.traitlets import Float
 import IPython.utils.rlineimpl as readline
 
@@ -42,12 +42,8 @@ class ZMQCompleter(IPCompleter):
         
         # get_endidx is a byte offset
         # account for multi-byte characters to get correct cursor_pos
-        cursor_pos = byte_cursor_pos
-        i = 0
-        while i < cursor_pos:
-            bytelen = len(cast_bytes(line[i]))
-            cursor_pos -= (bytelen-1)
-            i += 1
+        bytes_before_cursor = cast_bytes(line)[:byte_cursor_pos]
+        cursor_pos = len(cast_unicode(bytes_before_cursor))
         
         # send completion request to kernel
         # Give the kernel up to 5s to respond
