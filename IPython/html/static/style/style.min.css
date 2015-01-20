@@ -8285,6 +8285,7 @@ body {
   width: 100%;
   height: 1px;
   background: #e7e7e7;
+  margin-bottom: -1px;
 }
 @media print {
   #header {
@@ -8510,7 +8511,7 @@ ul.breadcrumb span {
   vertical-align: middle;
 }
 .list_toolbar .tree-buttons {
-  padding-top: 2px;
+  padding-top: 1px;
 }
 .list_toolbar [class*="span"] {
   min-height: 24px;
@@ -8521,11 +8522,11 @@ ul.breadcrumb span {
 .list_container {
   margin-top: 4px;
   margin-bottom: 20px;
-  border: 1px solid #ababab;
+  border: 1px solid #dddddd;
   border-radius: 2px;
 }
 .list_container > div {
-  border-bottom: 1px solid #ababab;
+  border-bottom: 1px solid #dddddd;
 }
 .list_container > div:hover .list-item {
   background-color: red;
@@ -8534,7 +8535,7 @@ ul.breadcrumb span {
   border: none;
 }
 .list_item:hover .list_item {
-  background-color: #ddd;
+  background-color: #dddddd;
 }
 .list_item a {
   text-decoration: none;
@@ -8648,6 +8649,10 @@ input.engine_num_input {
 .file_icon:before.pull-right {
   margin-left: .3em;
 }
+#notebook_toolbar .pull-right {
+  padding-top: 0px;
+  margin-right: -1px;
+}
 ul#new-menu {
   left: auto;
   right: 0;
@@ -8665,6 +8670,37 @@ ul#new-menu {
 }
 #tab_content {
   padding-top: 20px;
+}
+#running .panel-group .panel {
+  margin-top: 3px;
+  margin-bottom: 1em;
+}
+#running .panel-group .panel .panel-heading {
+  background-color: #eeeeee;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 7px;
+  padding-right: 7px;
+  line-height: 22px;
+}
+#running .panel-group .panel .panel-heading a:focus,
+#running .panel-group .panel .panel-heading a:hover {
+  text-decoration: none;
+}
+#running .panel-group .panel .panel-body {
+  padding: 0px;
+}
+#running .panel-group .panel .panel-body .list_container {
+  margin-top: 0px;
+  margin-bottom: 0px;
+  border: 0px;
+  border-radius: 0px;
+}
+#running .panel-group .panel .panel-body .list_container .list_item {
+  border-bottom: 1px solid #dddddd;
+}
+#running .panel-group .panel .panel-body .list_container .list_item:last-child {
+  border-bottom: 0px;
 }
 /*!
 *
@@ -10269,6 +10305,7 @@ select[multiple].celltoolbar select {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
+  margin-top: 1px;
 }
 #menubar .navbar {
   border-top: 1px;

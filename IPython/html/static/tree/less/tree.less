@@ -41,7 +41,7 @@ ul.breadcrumb {
     vertical-align: middle;
 
     .tree-buttons {
-        padding-top: 2px;
+        padding-top: 1px;
     }
 }
 
@@ -56,12 +56,12 @@ ul.breadcrumb {
 .list_container {
   margin-top: @dashboard_tb_pad;
   margin-bottom: 5*@dashboard_tb_pad;
-  border: 1px solid @border_color;
+  border: 1px solid @table-border-color;
   border-radius: @border-radius-base;
 }
 
 .list_container > div {
-  border-bottom: 1px solid @border_color;
+  border-bottom: 1px solid @table-border-color;
   &:hover .list-item{
     background-color: red;
   };
@@ -73,7 +73,7 @@ ul.breadcrumb {
 
 .list_item {
   &:hover .list_item {
-    background-color: #ddd;
+    background-color: @table-border-color;
   };
   a {text-decoration: none;}
 }
@@ -156,6 +156,11 @@ input.engine_num_input {
     .icon(@fa-var-file-o)
 }
 
+#notebook_toolbar .pull-right {
+    padding-top: 0px;
+    margin-right: -1px;
+}
+
 ul#new-menu {
     // align right instead of left
     left: auto;
@@ -178,4 +183,45 @@ ul#new-menu {
 
 #tab_content {
     padding-top: @page-header-padding;
+}
+
+#running {
+    .panel-group{
+        .panel {
+            margin-top: 3px;
+            margin-bottom: 1em;
+
+            .panel-heading {
+                background-color: @page-backdrop-color;
+                padding-top: @dashboard_tb_pad;
+                padding-bottom: @dashboard_tb_pad;
+                padding-left: @dashboard_lr_pad;
+                padding-right: @dashboard_lr_pad;
+                line-height: @btn_mini_height;
+                
+                a:focus, a:hover {
+                    text-decoration: none;
+                }
+            }
+
+            .panel-body {
+                padding: 0px;
+
+                .list_container {
+                    margin-top: 0px;
+                    margin-bottom: 0px;
+                    border: 0px;
+                    border-radius: 0px;
+
+                    .list_item {
+                        border-bottom: 1px solid @table-border-color;
+
+                        &:last-child {
+                            border-bottom: 0px;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

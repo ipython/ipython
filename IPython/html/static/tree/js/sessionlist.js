@@ -21,6 +21,36 @@ define([
         this.events = options.events;
         this.sessions = {};
         this.base_url = options.base_url || utils.get_body_data("baseUrl");
+
+        // Add collapse arrows.
+        $('#running .panel-group .panel .panel-heading a').each(function(index, el) {
+            var $link = $(el);
+            var $icon = $('<i />')
+                .addClass('fa fa-caret-down');
+            $link.append($icon);
+            $link.down = true;
+            $link.click(function () {
+                if ($link.down) {
+                    $link.down = false;
+                    // jQeury doesn't know how to animate rotations.  Abuse
+                    // jQueries animate function by using an unused css attribute
+                    // to do the animation (borderSpacing).
+                    $icon.animate({ borderSpacing: 90 }, {
+                        step: function(now,fx) {
+                            $icon.css('transform','rotate(-' + now + 'deg)'); 
+                        }
+                    }, 250);
+                } else {
+                    $link.down = true;
+                    // See comment above.
+                    $icon.animate({ borderSpacing: 0 }, {
+                        step: function(now,fx) {
+                            $icon.css('transform','rotate(-' + now + 'deg)'); 
+                        }
+                    }, 250);
+                }
+            });
+        });
     };
     
     SesssionList.prototype.load_sessions = function(){
