@@ -10157,9 +10157,13 @@ p {
   display: block;
 }
 .ctb_global_show .ctb_show + .input_area,
-.ctb_global_show .ctb_show + div.text_cell_input {
+.ctb_global_show .ctb_show + div.text_cell_input,
+.ctb_global_show .ctb_show ~ div.text_cell_render {
   border-top-right-radius: 0px;
   border-top-left-radius: 0px;
+}
+.ctb_global_show .ctb_show ~ div.text_cell_render {
+  border: 1px solid #cfcfcf;
 }
 .celltoolbar {
   font-size: 87%;
