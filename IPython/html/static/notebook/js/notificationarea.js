@@ -187,6 +187,10 @@ define([
 
             showMsg();
         });
+        
+        this.events.on("no_kernel.Kernel", function (evt, data) {
+            $("#kernel_indicator").find('.kernel_indicator_name').text("No Kernel");
+        });
 
         this.events.on('kernel_dead.Session', function (evt, info) {
             var full = info.xhr.responseJSON.message;

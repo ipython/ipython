@@ -248,6 +248,12 @@ define([
             title : 'Kernel not found',
             body : body,
             buttons : {
+                'No appropriate kernel' : {
+                    class : 'btn-danger',
+                    click : function () {
+                        that.events.trigger('no_kernel.Kernel');
+                    }
+                },
                 OK : {
                     class : 'btn-primary',
                     click : function () {
