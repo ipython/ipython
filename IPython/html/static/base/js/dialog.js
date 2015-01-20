@@ -1,13 +1,42 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-define([
-    'base/js/namespace',
-    'jquery',
-    'codemirror/lib/codemirror',
-], function(IPython, $, CodeMirror) {
+define(function(require) {
     "use strict";
+
+    var CodeMirror = require('codemirror/lib/codemirror');
+    var IPython = require('base/js/namespace');
+    var $ = require('jquery');
     
+    /**
+     * A wrapper around bootstrap modal for easier use
+     * Pass it an option dictionary with the following properties:
+     *
+     *    - body : <string> or <DOM node>, main content of the dialog
+     *            if pass a <string> it will be wrapped in a p tag and
+     *            html element escaped, unless you specify sanitize=false
+     *            option.
+     *    - title : Dialog title, default to empty string.
+     *    - buttons : dict of btn_options who keys are button label.
+     *            see btn_options below for description
+     *    - open : callback to trigger on dialog open.
+     *    - destroy:
+     *    - notebook : notebook instance
+     *    - keyboard_manager: keyboard manager instance.
+     *
+     *  Unlike bootstrap modals, the backdrop options is set by default 
+     *  to 'static'.
+     *
+     *  The rest of the options are passed as is to bootstrap modals. 
+     *
+     *  btn_options: dict with the following property:
+     *  
+     *    - click : callback to trigger on click
+     *    - class : css classes to add to button.
+     *
+     *
+     *
+     **/
     var modal = function (options) {
 
         var modal = $("<div/>")
@@ -20,6 +49,9 @@ define([
         var dialog_content = $("<div/>")
             .addClass("modal-content")
             .appendTo(dialog);
+        if(typeof(options.body) === 'string' && options.sanitize !== false){
+            options.body = $("<p/>").text(options.body)
+        }
         dialog_content.append(
             $("<div/>")
                 .addClass("modal-header")
