@@ -9552,7 +9552,7 @@ div.output_unrecognized a:hover {
   margin-top: 1em;
 }
 .rendered_html p {
-  text-align: justify;
+  text-align: left;
 }
 .rendered_html * + p {
   margin-top: 1em;
