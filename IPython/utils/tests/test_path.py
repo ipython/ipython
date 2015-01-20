@@ -676,3 +676,12 @@ class TestLinkOrCopy(object):
         dst = self.dst("target")
         path.link_or_copy(self.src, dst)
         self.assert_content_equal(self.src, dst)
+
+    def test_link_twice(self):
+        # Linking the same file twice shouldn't leave duplicates around.
+        # See https://github.com/ipython/ipython/issues/6450
+        dst = self.dst('target')
+        path.link_or_copy(self.src, dst)
+        path.link_or_copy(self.src, dst)
+        self.assert_inode_equal(self.src, dst)
+        nt.assert_equal(sorted(os.listdir(self.tempdir.name)), ['src', 'target'])
