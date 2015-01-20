@@ -489,13 +489,20 @@ def test_default_description():
     )
 
 def test_custom_description():
-    c = interactive(f, b=widgets.Text(value='text', description='foo'))
+    d = {}
+    def record_kwargs(**kwargs):
+        d.clear()
+        d.update(kwargs)
+    
+    c = interactive(record_kwargs, b=widgets.Text(value='text', description='foo'))
     w = c.children[0]
     check_widget(w,
         cls=widgets.Text,
         value='text',
         description='foo',
     )
+    w.value = 'different text'
+    nt.assert_equal(d, {'b': 'different text'})
 
 def test_interact_manual_button():
     c = interactive(f, __manual=True)
