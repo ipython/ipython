@@ -8285,6 +8285,7 @@ body {
   width: 100%;
   height: 1px;
   background: #e7e7e7;
+  margin-bottom: -1px;
 }
 @media print {
   #header {
@@ -8510,7 +8511,7 @@ ul.breadcrumb span {
   vertical-align: middle;
 }
 .list_toolbar .tree-buttons {
-  padding-top: 2px;
+  padding-top: 1px;
 }
 .list_toolbar [class*="span"] {
   min-height: 24px;
@@ -8649,7 +8650,7 @@ input.engine_num_input {
   margin-left: .3em;
 }
 #notebook_toolbar .pull-right {
-  padding-top: 2px;
+  padding-top: 0px;
 }
 ul#new-menu {
   left: auto;
@@ -10303,6 +10304,7 @@ select[multiple].celltoolbar select {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
+  margin-top: 1px;
 }
 #menubar .navbar {
   border-top: 1px;
