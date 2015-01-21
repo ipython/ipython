@@ -332,6 +332,7 @@ define([
         var selected = [];
         var has_running_notebook = false;
         var has_directory = false;
+        var that = this;
         $('.list_item :checked').each(function(index, item) {
             var parent = $(item).parent().parent();
             selected.push({
