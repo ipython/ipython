@@ -52,7 +52,6 @@ class Output(DOMWidget):
                 self.send(msg)
             else:
                 send(stream, msg_or_type, *args, **kwargs)
-                return
 
         session.send = send_hook
 
