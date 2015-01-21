@@ -2,6 +2,7 @@
 // Distributed under the terms of the Modified BSD License.
 
 require([
+    'jquery',
     'base/js/namespace',
     'base/js/utils',
     'base/js/page',
@@ -14,6 +15,7 @@ require([
     'edit/js/notificationarea',
     'custom/custom',
 ], function(
+    $,
     IPython,
     utils,
     page,
@@ -75,4 +77,14 @@ require([
         }
     };
 
+    // Make sure the codemirror editor is sized appropriatley.
+    var _handle_resize = function() {
+        var header = $('#header');
+        var padding = header.outerHeight(true) - header.innerHeight();
+        $('div.CodeMirror').height(window.innerHeight - header.height() - 2*padding);
+    };
+    window.onresize = _handle_resize;
+
+    // On document ready, resize codemirror.
+    $(_handle_resize);
 });
