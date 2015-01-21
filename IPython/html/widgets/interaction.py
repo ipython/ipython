@@ -160,7 +160,23 @@ def _widgets_from_abbreviations(seq):
     return result
 
 def interactive(__interact_f, **kwargs):
-    """Build a group of widgets to interact with a function."""
+    """
+    Builds a group of interactive widgets tied to a function and places the
+    group into a Box container.
+
+    Returns
+    -------
+    container : a Box instance containing multiple widgets
+
+    Parameters
+    ----------
+    __interact_f : function
+        The function to which the interactive widgets are tied. The **kwargs
+        should match the function signature.
+    **kwargs : various, optional
+        An interactive widget is created for each keyword argument that is a
+        valid widget abbreviation.
+    """
     f = __interact_f
     co = kwargs.pop('clear_output', True)
     manual = kwargs.pop('__manual', False)
@@ -215,7 +231,7 @@ def interactive(__interact_f, **kwargs):
     # Wire up the widgets
     # If we are doing manual running, the callback is only triggered by the button
     # Otherwise, it is triggered for every trait change received
-    # On-demand running also suppresses running the fucntion with the initial parameters
+    # On-demand running also suppresses running the function with the initial parameters
     if manual:
         manual_button.on_click(call_f)
     else:
@@ -230,12 +246,12 @@ def interact(__interact_f=None, **kwargs):
     """
     Displays interactive widgets which are tied to a function.
     Expects the first argument to be a function. Parameters to this function are
-    passed in as keyword arguments (**kwargs). Can be used as a decorator (see
-    examples).
+    widget abbreviations passed in as keyword arguments (**kwargs). Can be used
+    as a decorator (see examples).
 
     Returns
     -------
-    __interact_f with interactive widget attached to it.
+    f : __interact_f with interactive widget attached to it.
 
     Parameters
     ----------
@@ -243,8 +259,8 @@ def interact(__interact_f=None, **kwargs):
         The function to which the interactive widgets are tied. The **kwargs
         should match the function signature. Passed to :func:`interactive()`
     **kwargs : various, optional
-        An interactive widget will be created for each keyword argument. Passed
-        to :func:`interactive()`
+        An interactive widget is created for each keyword argument that is a
+        valid widget abbreviation. Passed to :func:`interactive()`
 
     Examples
     --------
