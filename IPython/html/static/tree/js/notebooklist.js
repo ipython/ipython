@@ -301,9 +301,10 @@ define([
             .addClass("item_buttons  pull-right")
             .appendTo(item);
 
-        $('<i/>')
-            .addClass('fa fa-power-off running-indicator')
-            .css('visible', 'hidden')
+        $('<div/>')
+            .addClass('running-indicator')
+            .text('Running')
+            .css('visibility', 'hidden')
             .appendTo(buttons);
         
         if (index === -1) {
@@ -394,7 +395,7 @@ define([
             );
 
         var running = (model.type == 'notebook' && this.sessions[path] !== undefined);
-        item.find(".item_buttons i.running-indicator").css('visibility', running ? '' : 'hidden');
+        item.find(".item_buttons .running-indicator").css('visibility', running ? '' : 'hidden');
 
         // directory nav doesn't open new tabs
         // files, notebooks do
