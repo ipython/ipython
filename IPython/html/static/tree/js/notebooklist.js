@@ -264,6 +264,7 @@ define([
         if (selectable !== undefined) {
             checkbox = $('<input/>')
                 .attr('type', 'checkbox')
+                .attr('title', 'Click here to rename, delete, etc.')
                 .appendTo(item);
         }
 
