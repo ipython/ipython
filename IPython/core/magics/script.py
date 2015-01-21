@@ -104,7 +104,6 @@ class ScriptMagics(Magics):
         if os.name == 'nt':
             defaults.extend([
                 'cmd',
-                'powershell',
             ])
         
         return defaults
