@@ -256,7 +256,11 @@ define([
 
         this.events.on('kernel_ready.Kernel', function(event, data) {
             var kinfo = data.kernel.info_reply;
-            var langinfo = kinfo.language_info || {};
+            if (!kinfo.language_info) {
+                delete that.metadata.language_info;
+                return;
+            }
+            var langinfo = kinfo.language_info;
             that.metadata.language_info = langinfo;
             // Mode 'null' should be plain, unhighlighted text.
             var cm_mode = langinfo.codemirror_mode || langinfo.name || 'null';
