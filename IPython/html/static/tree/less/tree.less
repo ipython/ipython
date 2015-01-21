@@ -45,6 +45,10 @@ ul.breadcrumb {
     }
 }
 
+.dynamic-buttons {
+    display: inline-block;
+}
+
 .list_toolbar [class*="span"] {
     min-height: @btn_small_height;
 }
@@ -88,6 +92,10 @@ ul.breadcrumb {
     padding-left: @dashboard_lr_pad;
     padding-right: @dashboard_lr_pad;
     line-height: @btn_mini_height;
+
+    input {
+        margin-right: @dashboard_lr_pad;
+    }
 }
 
 .item_name {
@@ -102,11 +110,15 @@ ul.breadcrumb {
 }
 
 .item_buttons {
+    padding-top: @dashboard_tb_pad;
     line-height: 1em;
+    .btn-toolbar();
     .btn {
         min-width: 13ex;
     }
-    .btn-toolbar();
+    .running-indicator {
+        color: @brand-success;
+    }
 }
 
 .toolbar_info {
@@ -224,4 +236,20 @@ ul#new-menu {
             }
         }
     }
+}
+
+.delete-button {
+    display: none;
+}
+
+.duplicate-button {
+    display: none;
+}
+
+.rename-button {
+    display: none;
+}
+
+.shutdown-button {
+    display: none;
 }
