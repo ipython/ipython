@@ -227,12 +227,65 @@ def interactive(__interact_f, **kwargs):
     return container
 
 def interact(__interact_f=None, **kwargs):
-    """interact(f, **kwargs)
+    """
+    Displays interactive widgets which are tied to a function.
+    Expects the first argument to be a function. Parameters to this function are
+    passed in as keyword arguments (**kwargs). Can be used as a decorator (see
+    examples).
 
-    Interact with a function using widgets."""
+    Returns
+    -------
+    __interact_f with interactive widget attached to it.
+
+    Parameters
+    ----------
+    __interact_f : function
+        The function to which the interactive widgets are tied. The **kwargs
+        should match the function signature. Passed to :func:`interactive()`
+    **kwargs : various, optional
+        An interactive widget will be created for each keyword argument. Passed
+        to :func:`interactive()`
+
+    Examples
+    --------
+    Renders an interactive text field that shows the greeting with the passed in
+    text.
+
+    1. Invocation of interact as a function
+       def greeting(text="World"):
+           print "Hello {}".format(text)
+       interact(greeting, text="IPython Widgets")
+        
+    2. Invocation of interact as a decorator
+       @interact
+       def greeting(text="World"):
+           print "Hello {}".format(text)
+        
+    3. Invocation of interact as a decorator with named parameters
+       @interact(text="IPython Widgets")
+       def greeting(text="World"):
+           print "Hello {}".format(text)
+        
+    Renders an interactive slider widget and prints square of number.
+
+    1. Invocation of interact as a function
+       def square(num=1):
+           print "{} squared is {}".format(num, num*num)
+       interact(square, num=5)
+
+    2. Invocation of interact as a decorator
+       @interact
+       def square(num=2):
+           print "{} squared is {}".format(num, num*num)
+        
+    3. Invocation of interact as a decorator with named parameters
+       @interact(num=5)
+       def square(num=2):
+           print "{} squared is {}".format(num, num*num)
+    """
     # positional arg support in: https://gist.github.com/8851331
     if __interact_f is not None:
-        # This branch handles the cases:
+        # This branch handles the cases 1 and 2
         # 1. interact(f, **kwargs)
         # 2. @interact
         #    def f(*args, **kwargs):
@@ -249,7 +302,7 @@ def interact(__interact_f=None, **kwargs):
         display(w)
         return f
     else:
-        # This branch handles the case:
+        # This branch handles the case 3
         # @interact(a=30, b=40)
         # def f(*args, **kwargs):
         #     ...
