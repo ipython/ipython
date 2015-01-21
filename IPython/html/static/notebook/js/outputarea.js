@@ -188,7 +188,7 @@ define([
 
     OutputArea.prototype.toggle_scroll = function () {
         if (this.scroll_state == 'auto') {
-            this.scroll_state = false;
+            this.scroll_state = !this.scrolled;
         } else {
             this.scroll_state = !this.scroll_state;
         }
