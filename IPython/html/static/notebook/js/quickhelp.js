@@ -185,26 +185,27 @@ define([
                     '<div class="quickhelp">'+
                     '<span class="shortcut_key">'+
                     '<code>'+
-                    '<strong>⇥</strong>'+
+                    '<strong>⌘</strong>'+
                     '</code>'+
                     '</span>'+
-                    '<span class="shortcut_descr"> = Tab forward</span>'+
+                    '<span class="shortcut_descr"> = Command</span>'+
                     '</div>'+
                     '</div>'+
                     '<div class="col-md-4">'+
-                    '</div>'+
-                    '⇤	Tab back'+
-                    '⇪	Capslock'+
-                    '⇧	Shift'+
-                    '⌃	Control'+	
-                    '⌥	Option'+
-                    '	Apple symbol'+ 
-                    '⌘	Command'+
-                    '␣	Space'+
-                    '↩	Return'+	
-                    '⌫	Delete back'+
-                    '⌦	Delete forward'+
-                    '<div class="col-md-4">col3</div>'
+                    'others here'+
+                    '</div>'
+                    //'⌃	Control'+	
+                    //'⌥	Option'+
+                    //'⇧	Shift'+
+                    //'↩	Return'+	
+                    //'␣	Space'+
+                    //'⇥	Tab forward'+
+                    //'⇤	Tab back'+
+                    //'⇪	Capslock'+
+                    //'	Apple symbol'+ 
+                    //'⌫	Delete back'+
+                    //'⌦	Delete forward'+
+                    //'<div class="col-md-4">col3</div>'
             );
         }
         element.append(doc);
