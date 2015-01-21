@@ -180,8 +180,19 @@ define([
         );
         if (platform === 'MacOS') {
             doc.append(
-                    'Keys'+
-                    '⇥	Tab forward'+	
+                    '<h4>Modifier keys</h4>'+
+                    '<div class="col-md-4">'+
+                    '<div class="quickhelp">'+
+                    '<span class="shortcut_key">'+
+                    '<code>'+
+                    '<strong>⇥</strong>'+
+                    '</code>'+
+                    '</span>'+
+                    '<span class="shortcut_descr"> = Tab forward</span>'+
+                    '</div>'+
+                    '</div>'+
+                    '<div class="col-md-4">'+
+                    '</div>'+
                     '⇤	Tab back'+
                     '⇪	Capslock'+
                     '⇧	Shift'+
@@ -192,7 +203,8 @@ define([
                     '␣	Space'+
                     '↩	Return'+	
                     '⌫	Delete back'+
-                    '⌦	Delete forward'
+                    '⌦	Delete forward'+
+                    '<div class="col-md-4">col3</div>'
             );
         }
         element.append(doc);
