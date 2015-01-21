@@ -82,7 +82,7 @@ define([
         'tab':'⇥',
         'backtab':'⇤',
         'capslock':'⇪',
-        'esc':'⎋',
+        'esc':'esc',
         'ctrl':'⌃',
         'enter':'↩',
         'pageup':'⇞',
@@ -178,6 +178,23 @@ define([
             'border. <b>Command mode</b> binds the keyboard to notebook level actions '+
             'and is indicated by a grey cell border.'
         );
+        if (platform === 'MacOS') {
+            doc.append(
+                    'Keys'+
+                    '⇥	Tab forward'+	
+                    '⇤	Tab back'+
+                    '⇪	Capslock'+
+                    '⇧	Shift'+
+                    '⌃	Control'+	
+                    '⌥	Option'+
+                    '	Apple symbol'+ 
+                    '⌘	Command'+
+                    '␣	Space'+
+                    '↩	Return'+	
+                    '⌫	Delete back'+
+                    '⌦	Delete forward'
+            );
+        }
         element.append(doc);
 
         // Command mode
