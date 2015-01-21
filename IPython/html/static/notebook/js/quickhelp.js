@@ -206,7 +206,7 @@ define([
                     //'⌫	Delete back'+
                     //'⌦	Delete forward'+
                     //'<div class="col-md-4">col3</div>'
-            );
+                    );
         }
         element.append(doc);
 
@@ -232,6 +232,21 @@ define([
         
         this.events.on('rebuild.QuickHelp', function() { that.force_rebuild = true;});
     };
+
+    QuickHelp.prototype.build_key_names = function () {
+       var key_names_mac =  [{ key:"⌘", name:"Command" },
+                    { key:"⌃", name:"Control" },
+                    { key:"⌥", name:"Option" },
+                    { key:"⇧", name:"Shift" },
+                    { key:"↩", name:"Return" },
+                    { key:"␣", name:"Space" },
+                    { key:"⇥", name:"Tab forward" },
+                    { key:"⇤", name:"Tab back" }];
+        return $('<div>').addClass('quickhelp').
+            append($('<span/>').addClass('shortcut_key').append($(key))).
+            append($('<span/>').addClass('shortcut_descr').text(' = ' + name));
+    };
+
 
     QuickHelp.prototype.build_command_help = function () {
         var command_shortcuts = this.keyboard_manager.command_shortcuts.help();
