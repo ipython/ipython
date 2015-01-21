@@ -8519,6 +8519,9 @@ ul.breadcrumb span {
 .list_toolbar .tree-buttons {
   padding-top: 1px;
 }
+.dynamic-buttons {
+  display: inline-block;
+}
 .list_toolbar [class*="span"] {
   min-height: 24px;
 }
@@ -8557,6 +8560,10 @@ ul.breadcrumb span {
   padding-right: 7px;
   line-height: 22px;
 }
+.list_header > div input,
+.list_item > div input {
+  margin-right: 7px;
+}
 .item_name {
   line-height: 22px;
   height: 24px;
@@ -8567,11 +8574,9 @@ ul.breadcrumb span {
   margin-right: 7px;
 }
 .item_buttons {
+  padding-top: 4px;
   line-height: 1em;
   margin-left: -5px;
-}
-.item_buttons .btn {
-  min-width: 13ex;
 }
 .item_buttons .btn-group,
 .item_buttons .input-group {
@@ -8581,6 +8586,12 @@ ul.breadcrumb span {
 .item_buttons > .btn-group,
 .item_buttons > .input-group {
   margin-left: 5px;
+}
+.item_buttons .btn {
+  min-width: 13ex;
+}
+.item_buttons .running-indicator {
+  color: #5cb85c;
 }
 .toolbar_info {
   height: 24px;
@@ -8707,6 +8718,18 @@ ul#new-menu {
 }
 #running .panel-group .panel .panel-body .list_container .list_item:last-child {
   border-bottom: 0px;
+}
+.delete-button {
+  display: none;
+}
+.duplicate-button {
+  display: none;
+}
+.rename-button {
+  display: none;
+}
+.shutdown-button {
+  display: none;
 }
 /*!
 *
