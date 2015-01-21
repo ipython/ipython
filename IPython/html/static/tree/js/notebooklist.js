@@ -518,6 +518,11 @@ define([
                 Delete : {
                     class: "btn-danger",
                     click: function() {
+                        // Shutdown any/all selected notebooks before deleting 
+                        // the files.
+                        that.shutdown_selected();
+
+                        // Delete selected.
                         that.selected.forEach(function(item) {
                             that.contents.delete(item.path).then(function() {
                                     that.notebook_deleted(item.path);
