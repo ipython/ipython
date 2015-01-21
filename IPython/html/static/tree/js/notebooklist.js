@@ -329,7 +329,7 @@ define([
 
     NotebookList.prototype._selection_changed = function() {
         var selected = [];
-        var has_notebook = false;
+        var has_running_notebook = false;
         var has_directory = false;
         $('.list_item :checked').each(function(index, item) {
             var parent = $(item).parent().parent();
@@ -339,7 +339,8 @@ define([
                 type: parent.data('type')
             });
 
-            has_notebook = has_notebook || parent.data('type') == 'notebook';
+            has_running_notebook = has_running_notebook || 
+                (parent.data('type') == 'notebook' && that.sessions[parent.data('path')] !== undefined);
             has_directory = has_directory || parent.data('type') == 'directory';
         });
         this.selected = selected;
@@ -352,7 +353,7 @@ define([
         }
 
         // Shutdown is only visible when one or more notebooks are visible.
-        if (has_notebook) {
+        if (has_running_notebook) {
             $('.shutdown-button').css('display', 'inline-block');
         } else {
             $('.shutdown-button').css('display', 'none');
