@@ -160,7 +160,23 @@ def _widgets_from_abbreviations(seq):
     return result
 
 def interactive(__interact_f, **kwargs):
-    """Build a group of widgets to interact with a function."""
+    """
+    Builds a group of interactive widgets tied to a function and places the
+    group into a Box container.
+
+    Returns
+    -------
+    container : a Box instance containing multiple widgets
+
+    Parameters
+    ----------
+    __interact_f : function
+        The function to which the interactive widgets are tied. The **kwargs
+        should match the function signature.
+    **kwargs : various, optional
+        An interactive widget is created for each keyword argument that is a
+        valid widget abbreviation.
+    """
     f = __interact_f
     co = kwargs.pop('clear_output', True)
     manual = kwargs.pop('__manual', False)
@@ -215,7 +231,7 @@ def interactive(__interact_f, **kwargs):
     # Wire up the widgets
     # If we are doing manual running, the callback is only triggered by the button
     # Otherwise, it is triggered for every trait change received
-    # On-demand running also suppresses running the fucntion with the initial parameters
+    # On-demand running also suppresses running the function with the initial parameters
     if manual:
         manual_button.on_click(call_f)
     else:
@@ -227,12 +243,65 @@ def interactive(__interact_f, **kwargs):
     return container
 
 def interact(__interact_f=None, **kwargs):
-    """interact(f, **kwargs)
+    """
+    Displays interactive widgets which are tied to a function.
+    Expects the first argument to be a function. Parameters to this function are
+    widget abbreviations passed in as keyword arguments (**kwargs). Can be used
+    as a decorator (see examples).
 
-    Interact with a function using widgets."""
+    Returns
+    -------
+    f : __interact_f with interactive widget attached to it.
+
+    Parameters
+    ----------
+    __interact_f : function
+        The function to which the interactive widgets are tied. The **kwargs
+        should match the function signature. Passed to :func:`interactive()`
+    **kwargs : various, optional
+        An interactive widget is created for each keyword argument that is a
+        valid widget abbreviation. Passed to :func:`interactive()`
+
+    Examples
+    --------
+    Renders an interactive text field that shows the greeting with the passed in
+    text.
+
+    1. Invocation of interact as a function
+       def greeting(text="World"):
+           print "Hello {}".format(text)
+       interact(greeting, text="IPython Widgets")
+        
+    2. Invocation of interact as a decorator
+       @interact
+       def greeting(text="World"):
+           print "Hello {}".format(text)
+        
+    3. Invocation of interact as a decorator with named parameters
+       @interact(text="IPython Widgets")
+       def greeting(text="World"):
+           print "Hello {}".format(text)
+        
+    Renders an interactive slider widget and prints square of number.
+
+    1. Invocation of interact as a function
+       def square(num=1):
+           print "{} squared is {}".format(num, num*num)
+       interact(square, num=5)
+
+    2. Invocation of interact as a decorator
+       @interact
+       def square(num=2):
+           print "{} squared is {}".format(num, num*num)
+        
+    3. Invocation of interact as a decorator with named parameters
+       @interact(num=5)
+       def square(num=2):
+           print "{} squared is {}".format(num, num*num)
+    """
     # positional arg support in: https://gist.github.com/8851331
     if __interact_f is not None:
-        # This branch handles the cases:
+        # This branch handles the cases 1 and 2
         # 1. interact(f, **kwargs)
         # 2. @interact
         #    def f(*args, **kwargs):
@@ -249,7 +318,7 @@ def interact(__interact_f=None, **kwargs):
         display(w)
         return f
     else:
-        # This branch handles the case:
+        # This branch handles the case 3
         # @interact(a=30, b=40)
         # def f(*args, **kwargs):
         #     ...
