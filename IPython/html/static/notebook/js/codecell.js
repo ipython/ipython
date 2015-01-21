@@ -110,6 +110,7 @@ define([
 
         // Attributes we want to override in this subclass.
         this.cell_type = "code";
+        var that  = this;
         this.element.focusout(
             function() { that.auto_highlight(); }
         );

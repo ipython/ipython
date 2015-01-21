@@ -38,13 +38,30 @@ class Output(DOMWidget):
             clear_output(*pargs, **kwargs)
 
     def __enter__(self):
+        """Called upon entering output widget context manager."""
         self._flush()
-        self.send({'method': 'push'})
+        kernel = get_ipython().kernel
+        session = kernel.session
+        send = session.send
+        self._original_send = send
+        self._session = session
+
+        def send_hook(stream, msg_or_type, *args, **kwargs):            
+            if stream is kernel.iopub_socket and msg_or_type in ['clear_output', 'stream', 'display_data']:
+                msg = {'type': msg_or_type, 'args': args, 'kwargs': kwargs}
+                self.send(msg)
+            else:
+                send(stream, msg_or_type, *args, **kwargs)
+                return
+
+        session.send = send_hook
 
     def __exit__(self, exception_type, exception_value, traceback):
+        """Called upon exiting output widget context manager."""
         self._flush()
-        self.send({'method': 'pop'})
+        self._session.send = self._original_send
 
     def _flush(self):
+        """Flush stdout and stderr buffers."""
         sys.stdout.flush()
         sys.stderr.flush()

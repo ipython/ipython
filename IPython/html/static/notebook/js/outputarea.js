@@ -212,11 +212,9 @@ define([
             json.name = content.name;
         } else if (msg_type === "display_data") {
             json.data = content.data;
-            json.output_type = msg_type;
             json.metadata = content.metadata;
         } else if (msg_type === "execute_result") {
             json.data = content.data;
-            json.output_type = msg_type;
             json.metadata = content.metadata;
             json.execution_count = content.execution_count;
         } else if (msg_type === "error") {

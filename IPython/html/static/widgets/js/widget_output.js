@@ -9,18 +9,18 @@ define([
     'use strict';
 
     var OutputView = widget.DOMWidgetView.extend({
+        /**
+         * Public constructor
+         */
         initialize: function (parameters) {
-            /**
-             * Public constructor
-             */
             OutputView.__super__.initialize.apply(this, [parameters]);
             this.model.on('msg:custom', this._handle_route_msg, this);
         },
 
+        /**
+         * Called when view is rendered.
+         */
         render: function(){
-            /**
-             * Called when view is rendered.
-             */
             this.output_area = new outputarea.OutputArea({
                 selector: this.$el, 
                 prompt_area: false, 
@@ -43,32 +43,33 @@ define([
             this.output_area.element.html(this.model.get('contents'));
         },
         
+        /**
+         * Handles re-routed iopub messages.
+         */
         _handle_route_msg: function(content) {
             if (content) {
-    //     return {
-    //         shell : {
-    //             reply : $.proxy(this._handle_execute_reply, this),
-    //             payload : {
-    //                 set_next_input : $.proxy(this._handle_set_next_input, this),
-    //                 page : $.proxy(this._open_with_pager, this)
-    //             }
-    //         },
-    //         iopub : {
-    //             output : function() { 
-    //                 that.output_area.handle_output.apply(that.output_area, arguments);
-    //             }, 
-    //             clear_output : function() { 
-    //                 that.output_area.handle_clear_output.apply(that.output_area, arguments);
-    //             }, 
-    //         },
-    //         input : $.proxy(this._handle_input_request, this)
-    //     };
-    // };
-                if (content.method == 'push') {
-                    cell.push_output_area(this.output_area);
-                } else if (content.method == 'pop') {
-                    cell.pop_output_area(this.output_area);
+                var msg_type = content.type;
+                var json = {
+                    output_type: msg_type
+                };
+
+                var data = content.args[0];
+                if (msg_type=='clear_output') {
+                    this.output_area.clear_output(data.wait || false);
+                    return;
+                } else if (msg_type === "stream") {
+                    data = content.kwargs.content;
+                    json.text = data.text;
+                    json.name = data.name;
+                } else if (msg_type === "display_data") {
+                    json.data = data.data;
+                    json.metadata = data.metadata;
+                } else {
+                    console.log("unhandled output message", msg);
+                    return;
                 }
+
+                this.output_area.append_output(json);    
             }
         },
     });
