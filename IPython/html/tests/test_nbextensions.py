@@ -103,7 +103,7 @@ class TestInstallNBExtension(TestCase):
             for file in self.files:
                 self.assert_installed(
                     pjoin(basename(self.src), file),
-                    ipdir
+                    user=bool(ipdir)
                 )
     
     def test_create_nbextensions_user(self):
