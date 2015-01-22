@@ -106,12 +106,24 @@ def _get_nbext_dir(nbextensions_dir=None, user=False, prefix=None):
     return nbext
 
 
-def check_nbextension(files, nbextensions_dir=None, user=False, prefix=None):
+def check_nbextension(files, user=False, prefix=None, nbextensions_dir=None):
     """Check whether nbextension files have been installed
     
-    files should be a list of relative paths within nbextensions.
-    
     Returns True if all files are found, False if any are missing.
+
+    Parameters
+    ----------
+
+    files : list(paths)
+        a list of relative paths within nbextensions.
+    user : bool [default: False]
+        Whether to check the user's .ipython/nbextensions directory.
+        Otherwise check a system-wide install (e.g. /usr/local/share/jupyter/nbextensions).
+    prefix : str [optional]
+        Specify install prefix, if it should differ from default (e.g. /usr/local).
+        Will check prefix/share/jupyter/nbextensions
+    nbextensions_dir : str [optional]
+        Specify absolute path of nbextensions directory explicitly.
     """
     nbext = _get_nbext_dir(nbextensions_dir, user, prefix)
     # make sure nbextensions dir exists
