@@ -1168,11 +1168,20 @@ define([
         var that = this;
         if (!this.paste_enabled) {
             $('#paste_cell_replace').removeClass('disabled')
-                .on('click', function () {that.paste_cell_replace();});
+                .on('click', function () {
+                    that.paste_cell_replace();
+                    if(event)event.preventDefault();
+                });
             $('#paste_cell_above').removeClass('disabled')
-                .on('click', function () {that.paste_cell_above();});
+                .on('click', function () {
+                    that.paste_cell_above();
+                    if(event)event.preventDefault();
+                });
             $('#paste_cell_below').removeClass('disabled')
-                .on('click', function () {that.paste_cell_below();});
+                .on('click', function () {
+                    that.paste_cell_below();
+                    if(event)event.preventDefault();
+                });
             this.paste_enabled = true;
         }
     };

@@ -8,6 +8,7 @@ require([
 ], function ($, dialog, _, IPython) {
     'use strict';
     $('#notebook_about').click(function () {
+        if(event)event.preventDefault();
         // use underscore template to auto html escape
         var text = 'You are using IPython notebook.<br/><br/>';
         text = text + 'The version of the notebook server is ';
