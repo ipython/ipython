@@ -232,8 +232,8 @@ def install_nbextension(files, overwrite=False, symlink=False, user=False, prefi
                 for file in files:
                     src = pjoin(parent, file)
                     # print("%r, %r" % (dest_dir, file))
-                    dest = pjoin(dest_dir, file)
-                    _maybe_copy(src, dest, verbose)
+                    dest_file = pjoin(dest_dir, file)
+                    _maybe_copy(src, dest_file, verbose)
         else:
             src = path
             _maybe_copy(src, dest, verbose)
