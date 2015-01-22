@@ -93,5 +93,5 @@ require([
     window.onresize = _handle_resize;
 
     // On document ready, resize codemirror.
-    $(_handle_resize);
+    $(document).ready(_handle_resize);
 });
