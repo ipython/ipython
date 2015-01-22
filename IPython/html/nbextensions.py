@@ -11,6 +11,7 @@ import shutil
 import sys
 import tarfile
 import zipfile
+import uuid
 from os.path import basename, join as pjoin
 
 # Deferred imports
@@ -117,10 +118,11 @@ def install_nbextension(files, overwrite=False, symlink=False, user=False, prefi
     Parameters
     ----------
     
-    files : list(paths or URLs)
+    files : list(paths or URLs) or dict(install_name: path or URL)
         One or more paths or URLs to existing files directories to install.
-        These will be installed with their base name, so '/path/to/foo'
-        will install to 'nbextensions/foo'.
+        If given as a list, these will be installed with their base name, so '/path/to/foo'
+        will install to 'nbextensions/foo'.  If given as a dict, such as {'bar': '/path/to/foo'},
+        then '/path/to/foo' will install to 'nbextensions/bar'.
         Archives (zip or tarballs) will be extracted into the nbextensions directory.
     overwrite : bool [default: False]
         If True, always install the files, regardless of what may already be installed.
@@ -158,8 +160,20 @@ def install_nbextension(files, overwrite=False, symlink=False, user=False, prefi
     if isinstance(files, string_types):
         # one file given, turn it into a list
         files = [files]
+    if isinstance(files, (list,tuple)):
+        # list given, turn into dict
+        _files = {}
+        for path in map(cast_unicode_py2, files):
+            if path.startswith(('https://', 'http://')):
+                destination = urlparse(path).path.split('/')[-1]
+            elif path.endswith('.zip') or _safe_is_tarfile(path):
+                destination = str(uuid.uuid4()) # ignored for archives
+            else:
+                destination = basename(path)
+            _files[destination] = path
+        files = _files
     
-    for path in map(cast_unicode_py2, files):
+    for dest_basename,path in (map(cast_unicode_py2, item) for item in files.items()):
         
         if path.startswith(('https://', 'http://')):
             if symlink:
@@ -172,7 +186,7 @@ def install_nbextension(files, overwrite=False, symlink=False, user=False, prefi
                     print("downloading %s to %s" % (path, local_path))
                 urlretrieve(path, local_path)
                 # now install from the local copy
-                install_nbextension(local_path, overwrite=overwrite, symlink=symlink, nbextensions_dir=nbext, verbose=verbose)
+                install_nbextension({dest_basename: local_path}, overwrite=overwrite, symlink=symlink, nbextensions_dir=nbext, verbose=verbose)
             continue
         
         # handle archives
@@ -191,7 +205,7 @@ def install_nbextension(files, overwrite=False, symlink=False, user=False, prefi
             archive.close()
             continue
         
-        dest = pjoin(nbext, basename(path))
+        dest = pjoin(nbext, dest_basename)
         if overwrite and os.path.exists(dest):
             if verbose >= 1:
                 print("removing %s" % dest)
@@ -209,9 +223,8 @@ def install_nbextension(files, overwrite=False, symlink=False, user=False, prefi
             continue
 
         if os.path.isdir(path):
-            strip_prefix_len = len(path) - len(basename(path))
             for parent, dirs, files in os.walk(path):
-                dest_dir = pjoin(nbext, parent[strip_prefix_len:])
+                dest_dir = pjoin(dest, parent[len(path):])
                 if not os.path.exists(dest_dir):
                     if verbose >= 2:
                         print("making directory %s" % dest_dir)
