@@ -80,8 +80,15 @@ require([
     // Make sure the codemirror editor is sized appropriatley.
     var _handle_resize = function() {
         var header = $('#header');
-        var padding = header.outerHeight(true) - header.innerHeight();
-        $('div.CodeMirror').height(window.innerHeight - header.height() - 2*padding);
+
+        // The header doesn't have a margin or padding above it.  Calculate
+        // the lower margin&padding by subtracting the innerHeight from the
+        // outerHeight.
+        var header_margin_bottom = header.outerHeight(true) - header.innerHeight();
+
+        // When scaling CodeMirror, subtract the header lower margin from the
+        // height twice.  Once for top padding and once for bottom padding.
+        $('div.CodeMirror').height(window.innerHeight - header.height() - 2*header_margin_bottom);
     };
     window.onresize = _handle_resize;
 
