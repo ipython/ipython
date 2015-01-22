@@ -2,6 +2,7 @@
 // Distributed under the terms of the Modified BSD License.
 
 require([
+    'jquery',
     'base/js/namespace',
     'base/js/utils',
     'base/js/page',
@@ -14,6 +15,7 @@ require([
     'edit/js/notificationarea',
     'custom/custom',
 ], function(
+    $,
     IPython,
     utils,
     page,
@@ -75,4 +77,21 @@ require([
         }
     };
 
+    // Make sure the codemirror editor is sized appropriatley.
+    var _handle_resize = function() {
+        var header = $('#header');
+
+        // The header doesn't have a margin or padding above it.  Calculate
+        // the lower margin&padding by subtracting the innerHeight from the
+        // outerHeight.
+        var header_margin_bottom = header.outerHeight(true) - header.innerHeight();
+
+        // When scaling CodeMirror, subtract the header lower margin from the
+        // height twice.  Once for top padding and once for bottom padding.
+        $('div.CodeMirror').height(window.innerHeight - header.height() - 2*header_margin_bottom);
+    };
+    window.onresize = _handle_resize;
+
+    // On document ready, resize codemirror.
+    $(document).ready(_handle_resize);
 });
