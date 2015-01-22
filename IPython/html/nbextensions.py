@@ -61,7 +61,9 @@ def _should_copy(src, dest, verbose=1):
     """should a file be copied?"""
     if not os.path.exists(dest):
         return True
-    if os.stat(dest).st_mtime < os.stat(src).st_mtime:
+    if os.stat(src).st_mtime - os.stat(dest).st_mtime > 1e-6:
+        # we add a fudge factor to work around a bug in python 2.x
+        # that was fixed in python 3.x: http://bugs.python.org/issue12904
         if verbose >= 2:
             print("%s is out of date" % dest)
         return True
