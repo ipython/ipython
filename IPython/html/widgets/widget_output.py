@@ -11,6 +11,7 @@ import sys
 from IPython.utils.traitlets import Unicode, List
 from IPython.display import clear_output
 from IPython.testing.skipdoctest import skip_doctest
+from IPython.kernel.zmq.session import Message
 
 @skip_doctest
 class Output(DOMWidget):
@@ -50,9 +51,9 @@ class Output(DOMWidget):
              buffers=None, track=False, header=None, metadata=None): 
 
             # Handle both prebuild messages and unbuilt messages.
-            if isinstance(msg_or_type, dict):
+            if isinstance(msg_or_type, (Message, dict)):
                 msg_type = msg_or_type['msg_type']
-                msg = msg_or_type
+                msg = dict(msg_or_type)
             else:
                 msg_type = msg_or_type
                 msg = session.msg(msg_type, content=content, parent=parent, 
