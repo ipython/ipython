@@ -46,30 +46,14 @@ define([
         /**
          * Handles re-routed iopub messages.
          */
-        _handle_route_msg: function(content) {
-            if (content) {
-                var msg_type = content.type;
-                var json = {
-                    output_type: msg_type
-                };
-
-                var data = content.args[0];
+        _handle_route_msg: function(msg) {
+            if (msg) {
+                var msg_type = msg.msg_type;
                 if (msg_type=='clear_output') {
-                    this.output_area.clear_output(data.wait || false);
-                    return;
-                } else if (msg_type === "stream") {
-                    data = content.kwargs.content;
-                    json.text = data.text;
-                    json.name = data.name;
-                } else if (msg_type === "display_data") {
-                    json.data = data.data;
-                    json.metadata = data.metadata;
+                    this.output_area.handle_clear_output(msg);
                 } else {
-                    console.log("unhandled output message", msg);
-                    return;
+                    this.output_area.handle_output(msg);
                 }
-
-                this.output_area.append_output(json);    
             }
         },
     });

@@ -46,12 +46,24 @@ class Output(DOMWidget):
         self._original_send = send
         self._session = session
 
-        def send_hook(stream, msg_or_type, *args, **kwargs):            
-            if stream is kernel.iopub_socket and msg_or_type in ['clear_output', 'stream', 'display_data']:
-                msg = {'type': msg_or_type, 'args': args, 'kwargs': kwargs}
-                self.send(msg)
+        def send_hook(stream, msg_or_type, content=None, parent=None, ident=None,
+             buffers=None, track=False, header=None, metadata=None): 
+
+            # Handle both prebuild messages and unbuilt messages.
+            if isinstance(msg_or_type, dict):
+                msg_type = msg_or_type['msg_type']
+                msg = msg_or_type
             else:
-                send(stream, msg_or_type, *args, **kwargs)
+                msg_type = msg_or_type
+                msg = session.msg(msg_type, content=content, parent=parent, 
+                    header=header, metadata=metadata)
+
+            # If this is a message type that we want to forward, forward it.
+            if stream is kernel.iopub_socket and msg_type in ['clear_output', 'stream', 'display_data']:
+                self.send(msg)
+            else: 
+                send(stream, msg_or_type, content=content, parent=parent, ident=ident,
+                    buffers=buffers, track=track, header=header, metadata=metadata)
 
         session.send = send_hook
 
