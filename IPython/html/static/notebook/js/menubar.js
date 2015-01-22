@@ -62,7 +62,6 @@ define([
                 // re-select it upon selection.
                 var i = that.notebook.get_selected_index();
                 that.notebook.select(i);
-                event.preventDefault();
             }
         );
     };
