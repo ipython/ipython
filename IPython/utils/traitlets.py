@@ -172,13 +172,24 @@ def getmembers(object, predicate=None):
     results.sort()
     return results
 
+def _validate_link(*tuples):
+    """Validate arguments for traitlet link functions"""
+    for t in tuples:
+        if not len(t) == 2:
+            raise TypeError("Each linked traitlet must be specified as (HasTraits, 'trait_name'), not %r" % t)
+        obj, trait_name = t
+        if not isinstance(obj, HasTraits):
+            raise TypeError("Each object must be HasTraits, not %r" % type(obj))
+        if not trait_name in obj.traits():
+            raise TypeError("%r has no trait %r" % (obj, trait_name))
+
 @skip_doctest
 class link(object):
     """Link traits from different objects together so they remain in sync.
 
     Parameters
     ----------
-    obj : pairs of objects/attributes
+    *args : pairs of objects/attributes
 
     Examples
     --------
@@ -190,6 +201,7 @@ class link(object):
     def __init__(self, *args):
         if len(args) < 2:
             raise TypeError('At least two traitlets must be provided.')
+        _validate_link(*args)
 
         self.objects = {}
 
@@ -245,6 +257,9 @@ class directional_link(object):
     updating = False
 
     def __init__(self, source, *targets):
+        if len(targets) < 1:
+            raise TypeError('At least two traitlets must be provided.')
+        _validate_link(source, *targets)
         self.source = source
         self.targets = targets
 
@@ -276,9 +291,7 @@ class directional_link(object):
         self.source = None
         self.targets = []
 
-def dlink(source, *targets):
-    """Shorter helper function returning a directional_link object"""
-    return directional_link(source, *targets)
+dlink = directional_link
 
 #-----------------------------------------------------------------------------
 # Base TraitType for all traits
