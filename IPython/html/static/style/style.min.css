@@ -8265,21 +8265,25 @@ body {
   right: 0px;
   top: 0px;
   bottom: 0px;
-  /* Old browsers */
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-box-align: stretch;
-  display: -moz-box;
-  -moz-box-orient: vertical;
-  -moz-box-align: stretch;
-  display: box;
-  box-orient: vertical;
-  box-align: stretch;
-  /* Modern browsers */
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
   overflow: visible;
+}
+@media not print {
+  body {
+    /* Old browsers */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-box-align: stretch;
+    display: -moz-box;
+    -moz-box-orient: vertical;
+    -moz-box-align: stretch;
+    display: box;
+    box-orient: vertical;
+    box-align: stretch;
+    /* Modern browsers */
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 #header {
   /* Initially hidden to prevent FLOUC */
@@ -8343,9 +8347,13 @@ body {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
-  flex: 1;
   overflow: auto;
-  height: 0px;
+}
+@media not print {
+  #site {
+    flex: 1;
+    height: 0px;
+  }
 }
 /* Smaller buttons */
 .ui-button .ui-button-text {
