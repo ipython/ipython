@@ -65,6 +65,7 @@ define([
                         .attr('href', '#')
                         .click( function () {
                             that.set_kernel(ks.name);
+                            event.preventDefault();
                         })
                         .text(ks.spec.display_name)
                 )
@@ -76,6 +77,7 @@ define([
                         .attr('href', '#')
                         .click( function () {
                             that.new_notebook(ks.name);
+                            event.preventDefault();
                         })
                         .text(ks.spec.display_name)
                 )
