@@ -287,7 +287,7 @@ class TestInstallNBExtension(TestCase):
         with TemporaryDirectory() as d:
             f = u'ƒ.js'
             src = pjoin(d, f)
-            dest_f = 'ƒile.js'
+            dest_f = u'ƒile.js'
             touch(src)
             install_nbextension({dest_f: src})
         self.assert_installed(dest_f)
