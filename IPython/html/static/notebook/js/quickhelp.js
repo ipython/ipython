@@ -180,20 +180,15 @@ define([
         );
         if (platform === 'MacOS') {
             doc.append(
-                    '<h4>Modifier keys</h4>'+
-                    '<div class="col-md-4">'+
-                    '<div class="quickhelp">'+
-                    '<span class="shortcut_key">'+
-                    '<code>'+
-                    '<strong>⌘</strong>'+
-                    '</code>'+
-                    '</span>'+
-                    '<span class="shortcut_descr"> = Command</span>'+
-                    '</div>'+
-                    '</div>'+
-                    '<div class="col-md-4">'+
-                    'others here'+
-                    '</div>'
+                    //'<div class="quickhelp">'+
+                    //'<span class="shortcut_key">'+
+                    //'<code>'+
+                    //'<strong>⌘</strong>'+
+                    //'</code>'+
+                    //'</span>'+
+                    //'<span class="shortcut_descr"> = Command</span>'+
+                    //'</div>'+
+                    //'</div>'+
                     //'⌃	Control'+	
                     //'⌥	Option'+
                     //'⇧	Shift'+
@@ -206,6 +201,13 @@ define([
                     //'⌫	Delete back'+
                     //'⌦	Delete forward'+
                     //'<div class="col-md-4">col3</div>'
+                    );
+            var key_div = this.build_key_names();
+            doc.append(key_div);
+            doc.append(
+                    '<div class="col-md-4">'+
+                    'others here?'+
+                    '</div>'
                     );
         }
         element.append(doc);
@@ -235,16 +237,29 @@ define([
 
     QuickHelp.prototype.build_key_names = function () {
        var key_names_mac =  [{ key:"⌘", name:"Command" },
-                    { key:"⌃", name:"Control" },
-                    { key:"⌥", name:"Option" },
-                    { key:"⇧", name:"Shift" },
-                    { key:"↩", name:"Return" },
-                    { key:"␣", name:"Space" },
-                    { key:"⇥", name:"Tab forward" },
-                    { key:"⇤", name:"Tab back" }];
-        return $('<div>').addClass('quickhelp').
-            append($('<span/>').addClass('shortcut_key').append($(key))).
-            append($('<span/>').addClass('shortcut_descr').text(' = ' + name));
+                    { shortcut:"⌃", help:"Control" },
+                    { shortcut:"⌥", help:"Option" },
+                    { shortcut:"⇧", help:"Shift" },
+                    { shortcut:"↩", help:"Return" },
+                    { shortcut:"␣", help:"Space" },
+                    { shortcut:"⇥", help:"Tab forward" },
+                    { shortcut:"⇤", help:"Tab back" }];
+        var i, half, n;
+        var div = $('<div/>').append('Modifier keys');
+        var sub_div = $('<div/>').addClass('container-fluid');
+        var col1 = $('<div/>').addClass('col-md-6');
+        var col2 = $('<div/>').addClass('col-md-6');
+        n = key_names_mac.length;
+        half = ~~(n/2);  // Truncate :)
+        for (i=0; i<half; i++) { col1.append( 
+                build_one(key_names_mac[i]) 
+                ); }
+        for (i=half; i<n; i++) { col2.append( 
+                build_one(key_names_mac[i]) 
+                ); }
+        sub_div.append(col1).append(col2);
+        div.append(sub_div);
+        return div;
     };
 
 
