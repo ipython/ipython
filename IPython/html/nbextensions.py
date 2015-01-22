@@ -223,6 +223,7 @@ def install_nbextension(files, overwrite=False, symlink=False, user=False, prefi
             continue
 
         if os.path.isdir(path):
+            path = pjoin(os.path.abspath(path), '') # end in path separator
             for parent, dirs, files in os.walk(path):
                 dest_dir = pjoin(dest, parent[len(path):])
                 if not os.path.exists(dest_dir):
