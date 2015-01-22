@@ -179,36 +179,8 @@ define([
             'and is indicated by a grey cell border.'
         );
         if (platform === 'MacOS') {
-            doc.append(
-                    //'<div class="quickhelp">'+
-                    //'<span class="shortcut_key">'+
-                    //'<code>'+
-                    //'<strong>⌘</strong>'+
-                    //'</code>'+
-                    //'</span>'+
-                    //'<span class="shortcut_descr"> = Command</span>'+
-                    //'</div>'+
-                    //'</div>'+
-                    //'⌃	Control'+	
-                    //'⌥	Option'+
-                    //'⇧	Shift'+
-                    //'↩	Return'+	
-                    //'␣	Space'+
-                    //'⇥	Tab forward'+
-                    //'⇤	Tab back'+
-                    //'⇪	Capslock'+
-                    //'	Apple symbol'+ 
-                    //'⌫	Delete back'+
-                    //'⌦	Delete forward'+
-                    //'<div class="col-md-4">col3</div>'
-                    );
             var key_div = this.build_key_names();
             doc.append(key_div);
-            doc.append(
-                    '<div class="col-md-4">'+
-                    'others here?'+
-                    '</div>'
-                    );
         }
         element.append(doc);
 
@@ -236,7 +208,7 @@ define([
     };
 
     QuickHelp.prototype.build_key_names = function () {
-       var key_names_mac =  [{ key:"⌘", name:"Command" },
+       var key_names_mac =  [{ shortcut:"⌘", help:"Command" },
                     { shortcut:"⌃", help:"Control" },
                     { shortcut:"⌥", help:"Option" },
                     { shortcut:"⇧", help:"Shift" },
@@ -245,12 +217,12 @@ define([
                     { shortcut:"⇥", help:"Tab forward" },
                     { shortcut:"⇤", help:"Tab back" }];
         var i, half, n;
-        var div = $('<div/>').append('Modifier keys');
+        var div = $('<div/>').append('MacOS modifier keys:');
         var sub_div = $('<div/>').addClass('container-fluid');
         var col1 = $('<div/>').addClass('col-md-6');
         var col2 = $('<div/>').addClass('col-md-6');
         n = key_names_mac.length;
-        half = ~~(n/2);  // Truncate :)
+        half = ~~(n/2);  
         for (i=0; i<half; i++) { col1.append( 
                 build_one(key_names_mac[i]) 
                 ); }
