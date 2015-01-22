@@ -63,8 +63,7 @@ class Output(DOMWidget):
             if stream is kernel.iopub_socket and msg_type in ['clear_output', 'stream', 'display_data']:
                 self.send(msg)
             else: 
-                send(stream, msg_or_type, content=content, parent=parent, ident=ident,
-                    buffers=buffers, track=track, header=header, metadata=metadata)
+                send(stream, msg, ident=ident, buffers=buffers, track=track)
 
         session.send = send_hook
 
