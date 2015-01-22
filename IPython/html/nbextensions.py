@@ -90,17 +90,30 @@ def _safe_is_tarfile(path):
         return False
 
 
-def check_nbextension(files, nbextensions_dir=None):
+def _get_nbext_dir(nbextensions_dir=None, user=False, prefix=None):
+    """Return the nbextension directory specified"""
+    if sum(map(bool, [user, prefix, nbextensions_dir])) > 1:
+        raise ArgumentConflict("Cannot specify more than one of user, prefix, or nbextensions_dir.")
+    if user:
+        nbext = pjoin(get_ipython_dir(), u'nbextensions')
+    else:
+        if prefix:
+            nbext = pjoin(prefix, 'share', 'jupyter', 'nbextensions')
+        elif nbextensions_dir:
+            nbext = nbextensions_dir
+        else:
+            nbext = SYSTEM_NBEXTENSIONS_INSTALL_DIR
+    return nbext
+
+
+def check_nbextension(files, nbextensions_dir=None, user=False, prefix=None):
     """Check whether nbextension files have been installed
     
     files should be a list of relative paths within nbextensions.
     
     Returns True if all files are found, False if any are missing.
     """
-    if nbextensions_dir:
-        nbext = nbextensions_dir
-    else:
-        nbext = pjoin(get_ipython_dir(), u'nbextensions')
+    nbext = _get_nbext_dir(nbextensions_dir, user, prefix)
     # make sure nbextensions dir exists
     if not os.path.exists(nbext):
         return False
@@ -147,17 +160,7 @@ def install_nbextension(files, overwrite=False, symlink=False, user=False, prefi
         Set verbosity level. The default is 1, where file actions are printed.
         set verbose=2 for more output, or verbose=0 for silence.
     """
-    if sum(map(bool, [user, prefix, nbextensions_dir])) > 1:
-        raise ArgumentConflict("Cannot specify more than one of user, prefix, or nbextensions_dir.")
-    if user:
-        nbext = pjoin(get_ipython_dir(), u'nbextensions')
-    else:
-        if prefix:
-            nbext = pjoin(prefix, 'share', 'jupyter', 'nbextensions')
-        elif nbextensions_dir:
-            nbext = nbextensions_dir
-        else:
-            nbext = SYSTEM_NBEXTENSIONS_INSTALL_DIR
+    nbext = _get_nbext_dir(nbextensions_dir, user, prefix)
     # make sure nbextensions dir exists
     ensure_dir_exists(nbext)
     
