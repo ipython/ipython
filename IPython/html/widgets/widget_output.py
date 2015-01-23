@@ -34,6 +34,10 @@ class Output(DOMWidget):
             print('prints to output widget')"""
     _view_name = Unicode('OutputView', sync=True)
 
+    def __init__(self, *args, **kwargs):
+        super(Output, self).__init__(*args, **kwargs)
+        self._ip = get_ipython()
+
     def clear_output(self, *pargs, **kwargs):
         with self:
             clear_output(*pargs, **kwargs)
@@ -41,7 +45,7 @@ class Output(DOMWidget):
     def __enter__(self):
         """Called upon entering output widget context manager."""
         self._flush()
-        kernel = get_ipython().kernel
+        kernel = self._ip.kernel
         session = kernel.session
         send = session.send
         self._original_send = send
