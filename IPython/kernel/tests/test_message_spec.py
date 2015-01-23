@@ -306,8 +306,14 @@ def test_execute_inc():
 def test_execute_stop_on_error():
     """execute request should not abort execution queue with stop_on_error False"""
     flush_channels()
-
-    KC.execute(code='raise IOError')
+    
+    fail = '\n'.join([
+        # sleep to ensure subsequent message is waiting in the queue to be aborted
+        'import time',
+        'time.sleep(0.5)',
+        'raise ValueError',
+    ])
+    KC.execute(code=fail)
     msg_id = KC.execute(code='print("Hello")')
     KC.get_shell_msg(timeout=TIMEOUT)
     reply = KC.get_shell_msg(timeout=TIMEOUT)
@@ -315,7 +321,7 @@ def test_execute_stop_on_error():
 
     flush_channels()
 
-    KC.execute(code='raise IOError', stop_on_error=False)
+    KC.execute(code=fail, stop_on_error=False)
     msg_id = KC.execute(code='print("Hello")')
     KC.get_shell_msg(timeout=TIMEOUT)
     reply = KC.get_shell_msg(timeout=TIMEOUT)
