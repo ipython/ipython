@@ -10320,7 +10320,7 @@ select[multiple].celltoolbar select {
 #menubar .navbar {
   border-top: 1px;
   border-radius: 0px 0px 2px 2px;
-  margin-bottom: -1px;
+  margin-bottom: 0px;
 }
 #menubar .navbar-toggle {
   float: left;
