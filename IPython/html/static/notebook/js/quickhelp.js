@@ -214,8 +214,7 @@ define([
                     { shortcut:"⇧", help:"Shift" },
                     { shortcut:"↩", help:"Return" },
                     { shortcut:"␣", help:"Space" },
-                    { shortcut:"⇥", help:"Tab forward" },
-                    { shortcut:"⇤", help:"Tab back" }];
+                    { shortcut:"⇥", help:"Tab" }];
         var i, half, n;
         var div = $('<div/>').append('MacOS modifier keys:');
         var sub_div = $('<div/>').addClass('container-fluid');
