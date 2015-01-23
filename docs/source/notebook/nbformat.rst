@@ -150,13 +150,13 @@ stream output
     {
       "output_type" : "stream",
       "name" : "stdout", # or stderr
-      "data" : ["multiline stream text"],
+      "text" : ["multiline stream text"],
     }
 
 .. versionchanged:: nbformat 4.0
 
-    The keys ``stream`` and ``text`` were changed to ``name`` and ``data`` to match
-    the stream message specification.
+    The keys ``stream`` key was changed to ``name`` to match
+    the stream message.
 
 
 display_data
