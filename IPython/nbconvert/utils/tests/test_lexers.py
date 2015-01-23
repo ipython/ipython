@@ -33,3 +33,21 @@ class TestLexers(TestsBase):
             (Token.Text, '\n'),
         ]
         self.assertEqual(tokens, list(self.lexer.get_tokens(fragment)))
+
+        fragment_2 = 'x = ' + fragment
+        tokens_2 = [
+            (Token.Name, 'x'),
+            (Token.Text, ' '),
+            (Token.Operator, '='),
+            (Token.Text, ' '),
+        ] + tokens
+        self.assertEqual(tokens_2, list(self.lexer.get_tokens(fragment_2)))
+        fragment_2 = 'x, = ' + fragment
+        tokens_2 = [
+            (Token.Name, 'x'),
+            (Token.Punctuation, ','),
+            (Token.Text, ' '),
+            (Token.Operator, '='),
+            (Token.Text, ' '),
+        ] + tokens
+        self.assertEqual(tokens_2, list(self.lexer.get_tokens(fragment_2)))
