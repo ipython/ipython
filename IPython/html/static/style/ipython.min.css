@@ -359,7 +359,7 @@ div.cell {
   border-width: thin;
   border-style: solid;
   width: 100%;
-  padding: 5px 5px 5px 0px;
+  padding: 5px;
   /* This acts as a spacer between cells, that is outside the border */
   margin: 0px;
   outline: none;
@@ -382,9 +382,9 @@ div.cell.selected {
     border-color: transparent;
   }
 }
-div.prompt {
+.prompt {
   /* This needs to be wide enough for 3 digit prompt numbers: In[100]: */
-  min-width: 15ex;
+  min-width: 14ex;
   /* This padding is tuned to match the padding on the CodeMirror editor. */
   padding: 0.4em;
   margin: 0px;
@@ -394,7 +394,7 @@ div.prompt {
   line-height: 1.21429em;
 }
 @media (max-width: 540px) {
-  div.prompt {
+  .prompt {
     text-align: left;
   }
 }
@@ -1114,7 +1114,6 @@ div.output_unrecognized a:hover {
   margin-top: 1em;
 }
 div.text_cell {
-  padding: 5px 5px 5px 0px;
   /* Old browsers */
   display: -webkit-box;
   -webkit-box-orient: horizontal;
