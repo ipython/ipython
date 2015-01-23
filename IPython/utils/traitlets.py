@@ -1069,7 +1069,9 @@ class Union(TraitType):
     def validate(self, obj, value):
         for trait_type in self.trait_types:
             try:
-                return trait_type._validate(obj, value)
+                v = trait_type._validate(obj, value)
+                self._metadata = trait_type._metadata
+                return v
             except TraitError:
                 continue
         self.error(obj, value)
