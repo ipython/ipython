@@ -42,6 +42,7 @@ class TestLexers(TestsBase):
             (Token.Text, ' '),
         ] + tokens
         self.assertEqual(tokens_2, list(self.lexer.get_tokens(fragment_2)))
+
         fragment_2 = 'x, = ' + fragment
         tokens_2 = [
             (Token.Name, 'x'),
@@ -50,4 +51,29 @@ class TestLexers(TestsBase):
             (Token.Operator, '='),
             (Token.Text, ' '),
         ] + tokens
+        self.assertEqual(tokens_2, list(self.lexer.get_tokens(fragment_2)))
+
+        fragment_2 = 'x, = %sx ' + fragment[1:]
+        tokens_2 = [
+            (Token.Name, 'x'),
+            (Token.Punctuation, ','),
+            (Token.Text, ' '),
+            (Token.Operator, '='),
+            (Token.Text, ' '),
+            (Token.Operator, '%'),
+            (Token.Keyword, 'sx'),
+            (Token.Text, ' '),
+        ] + tokens[1:]
+        self.assertEqual(tokens_2, list(self.lexer.get_tokens(fragment_2)))
+
+        fragment_2 = 'f = %R function () {}\n'
+        tokens_2 = [
+            (Token.Name, 'f'),
+            (Token.Text, ' '),
+            (Token.Operator, '='),
+            (Token.Text, ' '),
+            (Token.Operator, '%'),
+            (Token.Keyword, 'R'),
+            (Token.Text, ' function () {}\n'),
+        ]
         self.assertEqual(tokens_2, list(self.lexer.get_tokens(fragment_2)))

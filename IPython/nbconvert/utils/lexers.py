@@ -49,9 +49,9 @@ from IPython.testing.skipdoctest import skip_doctest
 line_re = re.compile('.*?\n')
 
 ipython_tokens = [
-  (r'(\%+)(\w+)\s+(\.*)(\n)', bygroups(Operator, Keyword,
+  (r'(%)(sx|sc|system)(.*)(\n)', bygroups(Operator, Keyword,
                                        using(BashLexer), Text)),
-  (r'(\%+)(\w+)\b', bygroups(Operator, Keyword)),
+  (r'(%)(\w+)(.*\n)', bygroups(Operator, Keyword, Text)),
   (r'^(!)(.+)(\n)', bygroups(Operator, using(BashLexer), Text)),
   (r'^(.+)(=)(\s*)(!)(.+)(\n)', bygroups(
       # With the limited syntax allowed on the l.h.s. of a shell capture,
