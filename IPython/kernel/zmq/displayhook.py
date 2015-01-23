@@ -68,6 +68,7 @@ class ZMQShellDisplayHook(DisplayHook):
         """Finish up all displayhook activities."""
         sys.stdout.flush()
         sys.stderr.flush()
-        self.session.send(self.pub_socket, self.msg, ident=self.topic)
+        if self.msg['content']['data']:
+            self.session.send(self.pub_socket, self.msg, ident=self.topic)
         self.msg = None
 
