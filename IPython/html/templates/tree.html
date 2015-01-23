@@ -53,6 +53,10 @@ data-terminals-available="{{terminals_available}}"
                     <li role="presentation" id="new-terminal">
                       <a role="menuitem" tabindex="-1" href="#">Terminal</a>
                     </li>
+                    {% else %}
+                    <li role="presentation" id="new-terminal-disabled" class="disabled">
+                      <a role="menuitem" tabindex="-1" href="#">Terminals Unavailable</a>
+                    </li>
                     {% endif %}
                     <li role="presentation" class="divider"></li>
                     <li role="presentation" class="dropdown-header" id="notebook-kernels">Notebooks</li>
@@ -97,13 +101,15 @@ data-terminals-available="{{terminals_available}}"
               </div>
               <div id="collapseOne" class=" collapse in">
                 <div class="panel-body">
-                  {% if terminals_available %}
-                    <div id="terminal_list">
-                      <div id="terminal_list_header" class="row list_header">
-                        <div> There are no terminals running. </div>
-                      </div>
-                    </div>
+                  <div id="terminal_list">
+                    <div id="terminal_list_header" class="row list_header">
+                    {% if terminals_available %}
+                      <div> There are no terminals running. </div>
+                    {% else %}
+                      <div> Terminals are unavailable. </div>
                     {% endif %}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
