@@ -193,7 +193,7 @@ define([
             var available = _sorted_names(kernelspecs);
             var matches = [];
             if (selected.language && selected.language.length > 0) {
-                $.map(available, function (name) {
+                available.map(function (name) {
                     if (kernelspecs[name].spec.language.toLowerCase() === selected.language.toLowerCase()) {
                         matches.push(name);
                     }
@@ -230,7 +230,7 @@ define([
         } else {
             names = data.available;
         }
-        $.map(names, function (name) {
+        names.map(function (name) {
             var ks = that.kernelspecs[name];
             select.append(
                 $('<option/>').attr('value', ks.name).text(ks.spec.display_name || ks.name)
