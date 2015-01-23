@@ -90,7 +90,7 @@ require([
         // height twice.  Once for top padding and once for bottom padding.
         $('div.CodeMirror').height(window.innerHeight - header.height() - 2*header_margin_bottom);
     };
-    window.onresize = _handle_resize;
+    $(window).resize(_handle_resize);
 
     // On document ready, resize codemirror.
     $(document).ready(_handle_resize);

@@ -14,9 +14,6 @@ body {
     right: 0px;
     top: 0px;
     bottom: 0px;
-    @media not print {
-      .vbox();
-    }
     overflow: visible;
 }
 
@@ -85,10 +82,6 @@ body {
     display: none;
     .border-box-sizing();
     overflow: auto;
-    @media not print {
-      flex: 1;
-      height: 0px; // triggers overflow, but overridded by flex
-    }
 }
 
 /* Smaller buttons */

@@ -10,14 +10,20 @@ define([
 
     var Page = function () {
         this.bind_events();
-
-        // When the page is ready, resize the header.
-        var that = this;
-        $(function() { that._resize_header(); });
     };
 
     Page.prototype.bind_events = function () {
-        events.on('resize-header.Page', $.proxy(this._resize_header, this));
+        // resize site on:
+        // - window resize
+        // - header change
+        // - page load
+        var _handle_resize = $.proxy(this._resize_site, this);
+        
+        $(window).resize(_handle_resize);
+
+        // On document ready, resize codemirror.
+        $(document).ready(_handle_resize);
+        events.on('resize-header.Page', _handle_resize);
     };
 
     Page.prototype.show = function () {
@@ -44,12 +50,13 @@ define([
          * Main scripts should call this method after styling everything.
          * TODO: selector are hardcoded, pass as constructor argument
          */
-        $('div#site').css('display','block');
+        $('div#site').css('display', 'block');
+        this._resize_site();
     };
 
-    Page.prototype._resize_header = function() {
-        // Update the header's size.
-        $('#header-spacer').height($('#header').height());
+    Page.prototype._resize_site = function() {
+        // Update the site's size.
+        $('div#site').height(window.innerHeight - $('#header').height());
     };
 
     // Register self in the global namespace for convenience.
