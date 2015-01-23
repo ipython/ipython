@@ -78,6 +78,12 @@ body {
 }
 
 #site {
+    // avoid repaints on size with translateZ(0)
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    -o-transform: translateZ(0);
+    transform: translateZ(0);
     width: 100%;
     display: none;
     .border-box-sizing();
