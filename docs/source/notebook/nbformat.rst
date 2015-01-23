@@ -291,6 +291,22 @@ regardless of format.
       "source" : ["some nbformat mime-type data"]
     }
 
+Backwared-compatible changes
+============================
+
+The notebook format is an evolving format. When backward-compatible changes are made,
+the notebook format minor version is incremented. When backward-incompatible changes are made,
+the major version is incremented.
+
+As of nbformat 4.x, backward-compatible changes include:
+
+- new fields in any cell or output or metadata
+- new cell types
+- new output types
+
+New cell or output types will not be rendered in versions that do not recognize them,
+but they will be preserved.
+
 Metadata
 ========
 
