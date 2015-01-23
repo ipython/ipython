@@ -431,6 +431,15 @@ define([
 
     NotebookList.prototype.shutdown_selected = function() {
         var that = this;
+        this.selected.forEach(function(item) {
+            if (item.type == 'notebook') {
+                that.shutdown_notebook(item.path);
+            }
+        });
+    };
+
+    NotebookList.prototype.shutdown_notebook = function(path) {
+        var that = this;
         var settings = {
             processData : false,
             cache : false,
@@ -442,20 +451,16 @@ define([
             error : utils.log_ajax_error,
         };
 
-        this.selected.forEach(function(item) {
-            if (item.type == 'notebook') {
-                var session = that.sessions[item.path];
-                if (session) {
-                    var url = utils.url_join_encode(
-                        that.base_url,
-                        'api/sessions',
-                        session
-                    );
-                    $.ajax(url, settings);
-                }
-            }
-        });
-    };
+        var session = this.sessions[path];
+        if (session) {
+            var url = utils.url_join_encode(
+                this.base_url,
+                'api/sessions',
+                session
+            );
+            $.ajax(url, settings);
+        }
+    }
 
     NotebookList.prototype.rename_selected = function() {
         if (this.selected.length != 1) return;
