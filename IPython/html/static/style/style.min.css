@@ -10162,6 +10162,7 @@ p {
 }
 .end_space {
   min-height: 100px;
+  transition: height .2s ease;
 }
 .notebook_app #header {
   -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
