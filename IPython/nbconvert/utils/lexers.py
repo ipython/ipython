@@ -53,11 +53,8 @@ ipython_tokens = [
   (r'(%)(sx|sc|system)(.*)(\n)', bygroups(Operator, Keyword,
                                        using(BashLexer), Text)),
   (r'(%)(\w+)(.*\n)', bygroups(Operator, Keyword, Text)),
-  (r'^(!)(.+)(\n)', bygroups(Operator, using(BashLexer), Text)),
-  (r'^(.+)(=)(\s*)(!)(.+)(\n)', bygroups(
-      # With the limited syntax allowed on the l.h.s. of a shell capture,
-      # we don't need to differentiate between Python 2 and 3.
-      using(Python3Lexer), Operator, Text, Operator, using(BashLexer), Text)),
+  (r'^(!!)(.+)(\n)', bygroups(Operator, using(BashLexer), Text)),
+  (r'(!)(.+)(\n)', bygroups(Operator, using(BashLexer), Text)),
 ]
 
 def build_ipy_lexer(python3):
