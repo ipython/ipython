@@ -14,9 +14,6 @@ body {
     right: 0px;
     top: 0px;
     bottom: 0px;
-    @media not print {
-      .vbox();
-    }
     overflow: visible;
 }
 
@@ -81,14 +78,16 @@ body {
 }
 
 #site {
+    // avoid repaints on size with translateZ(0)
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    -o-transform: translateZ(0);
+    transform: translateZ(0);
     width: 100%;
     display: none;
     .border-box-sizing();
     overflow: auto;
-    @media not print {
-      flex: 1;
-      height: 0px; // triggers overflow, but overridded by flex
-    }
 }
 
 /* Smaller buttons */

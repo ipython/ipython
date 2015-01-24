@@ -8267,24 +8267,6 @@ body {
   bottom: 0px;
   overflow: visible;
 }
-@media not print {
-  body {
-    /* Old browsers */
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-box-align: stretch;
-    display: -moz-box;
-    -moz-box-orient: vertical;
-    -moz-box-align: stretch;
-    display: box;
-    box-orient: vertical;
-    box-align: stretch;
-    /* Modern browsers */
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
 #header {
   /* Initially hidden to prevent FLOUC */
   display: none;
@@ -8342,18 +8324,17 @@ body {
   height: 28px;
 }
 #site {
+  -webkit-transform: translateZ(0);
+  -moz-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  -o-transform: translateZ(0);
+  transform: translateZ(0);
   width: 100%;
   display: none;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   overflow: auto;
-}
-@media not print {
-  #site {
-    flex: 1;
-    height: 0px;
-  }
 }
 /* Smaller buttons */
 .ui-button .ui-button-text {
@@ -10340,7 +10321,7 @@ select[multiple].celltoolbar select {
 #menubar .navbar {
   border-top: 1px;
   border-radius: 0px 0px 2px 2px;
-  margin-bottom: -1px;
+  margin-bottom: 0px;
 }
 #menubar .navbar-toggle {
   float: left;
