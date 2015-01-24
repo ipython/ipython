@@ -23,15 +23,15 @@ div.cell {
     }
 
     width: 100%;
-    padding: 5px 5px 5px 0px;
+    padding: 5px;
     /* This acts as a spacer between cells, that is outside the border */
     margin: 0px;
     outline: none;
 }
 
-div.prompt {
+.prompt {
     /* This needs to be wide enough for 3 digit prompt numbers: In[100]: */
-    min-width: 15ex;
+    min-width: 14ex;
     /* This padding is tuned to match the padding on the CodeMirror editor. */
     padding: @code_padding;
     margin: 0px;
@@ -44,7 +44,7 @@ div.prompt {
 @media (max-width: @screen-xs-min) {
     // prompts are in the main column on small screens,
     // so text should be left-aligned
-    div.prompt {
+    .prompt {
         text-align: left;
     }
 }
