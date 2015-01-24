@@ -40,6 +40,14 @@ class TestLexers(TestsBase):
         ] + tokens[1:]
         self.assertEqual(tokens_2, list(self.lexer.get_tokens(fragment_2)))
 
+        fragment_2 = '\t %%!\n' + fragment[1:]
+        tokens_2 = [
+            (Token.Text, '\t '),
+            (Token.Operator, '%%!'),
+            (Token.Text, '\n'),
+        ] + tokens[1:]
+        self.assertEqual(tokens_2, list(self.lexer.get_tokens(fragment_2)))
+
         fragment_2 = 'x = ' + fragment
         tokens_2 = [
             (Token.Name, 'x'),

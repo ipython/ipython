@@ -50,6 +50,7 @@ line_re = re.compile('.*?\n')
 
 ipython_tokens = [
   (r"(?s)(\s*)(%%)(\w+)(.*)", bygroups(Text, Operator, Keyword, Text)),
+  (r'(?s)(^\s*)(%%!)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(BashLexer))),
   (r"(%%?)(\w+)(\?\??)$",  bygroups(Operator, Keyword, Operator)),
   (r"\b(\?\??)(\s*)$",  bygroups(Operator, Text)),
   (r'(%)(sx|sc|system)(.*)(\n)', bygroups(Operator, Keyword,
