@@ -8,7 +8,7 @@ define(['jquery'], function($){
          * Public constructor.
          */
         this.notebook = notebook;
-        this.element = $('body');
+        this.element = $('#site');
         options = options || {};
         this.animation_speed = options.animation_speed || 250; //ms
     };
