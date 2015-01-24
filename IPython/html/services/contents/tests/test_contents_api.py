@@ -51,12 +51,14 @@ class API(object):
     def list(self, path='/'):
         return self._req('GET', path)
 
-    def read(self, path, type=None, format=None):
+    def read(self, path, type=None, format=None, content=None):
         params = {}
         if type is not None:
             params['type'] = type
         if format is not None:
             params['format'] = format
+        if content == False:
+            params['content'] = '0'
         return self._req('GET', path, params=params)
 
     def create_untitled(self, path='/', ext='.ipynb'):
@@ -243,6 +245,14 @@ class APITest(NotebookTestBase):
         dir_names = {normalize('NFC', d['name']) for d in dirs}
         self.assertEqual(dir_names, self.top_level_dirs)  # Excluding hidden dirs
 
+    def test_get_dir_no_content(self):
+        for d in self.dirs:
+            model = self.api.read(d, content=False).json()
+            self.assertEqual(model['path'], d)
+            self.assertEqual(model['type'], 'directory')
+            self.assertIn('content', model)
+            self.assertEqual(model['content'], None)
+
     def test_list_nonexistant_dir(self):
         with assert_http_error(404):
             self.api.list('nonexistant')
@@ -256,9 +266,18 @@ class APITest(NotebookTestBase):
             self.assertEqual(nb['type'], 'notebook')
             self.assertIn('content', nb)
             self.assertEqual(nb['format'], 'json')
-            self.assertIn('content', nb)
             self.assertIn('metadata', nb['content'])
             self.assertIsInstance(nb['content']['metadata'], dict)
+
+    def test_get_nb_no_content(self):
+        for d, name in self.dirs_nbs:
+            path = url_path_join(d, name + '.ipynb')
+            nb = self.api.read(path, content=False).json()
+            self.assertEqual(nb['name'], u'%s.ipynb' % name)
+            self.assertEqual(nb['path'], path)
+            self.assertEqual(nb['type'], 'notebook')
+            self.assertIn('content', nb)
+            self.assertEqual(nb['content'], None)
 
     def test_get_contents_no_such_file(self):
         # Name that doesn't exist - should be a 404
