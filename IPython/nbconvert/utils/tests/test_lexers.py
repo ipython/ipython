@@ -92,3 +92,12 @@ class TestLexers(TestsBase):
             (Token.Text, '\n$foo\n'),
         ]
         self.assertEqual(tokens_2, list(self.lexer.get_tokens(fragment_2)))
+
+        fragment_2 = '%system?\n'
+        tokens_2 = [
+            (Token.Operator, '%'),
+            (Token.Keyword, 'system'),
+            (Token.Operator, '?'),
+            (Token.Text, '\n'),
+        ]
+        self.assertEqual(tokens_2, list(self.lexer.get_tokens(fragment_2)))
