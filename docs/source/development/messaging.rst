@@ -1041,6 +1041,14 @@ Message type: ``status``::
     Busy and idle messages should be sent before/after handling every message,
     not just execution.
 
+.. note::
+
+    Extra status messages are added between the notebook webserver and websocket clients
+    that are not sent by the kernel. These are:
+    
+    - restarting (kernel has died, but will be automatically restarted)
+    - dead (kernel has died, restarting has failed)
+
 Clear output
 ------------
 
