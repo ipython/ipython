@@ -78,6 +78,7 @@ define([
         this.tooltip = new tooltip.Tooltip(this.events);
         this.ws_url = options.ws_url;
         this._session_starting = false;
+        this.last_modified = null;
 
         //  Create default scroll manager.
         this.scroll_manager = new scrollmanager.ScrollManager(this);
@@ -1865,7 +1866,10 @@ define([
      * Save this notebook on the server. This becomes a notebook instance's
      * .save_notebook method *after* the entire notebook has been loaded.
      */
-    Notebook.prototype.save_notebook = function () {
+    Notebook.prototype.save_notebook = function (check_last_modified) {
+        if (check_last_modified === undefined) {
+            check_last_modified = true;
+        }
         if (!this._fully_loaded) {
             this.events.trigger('notebook_save_failed.Notebook',
                 new Error("Load failed, save is disabled")
@@ -1891,12 +1895,46 @@ define([
         var start =  new Date().getTime();
 
         var that = this;
-        return this.contents.save(this.notebook_path, model).then(
-                $.proxy(this.save_notebook_success, this, start),
+        var _save = function () {
+            return that.contents.save(that.notebook_path, model).then(
+                $.proxy(that.save_notebook_success, that, start),
                 function (error) {
                     that.events.trigger('notebook_save_failed.Notebook', error);
                 }
             );
+        };
+
+        if (check_last_modified) {
+            return this.contents.get(this.notebook_path, {content: false}).then(
+                function (data) {
+                    var last_modified = new Date(data.last_modified);
+                    if (last_modified > that.last_modified) {
+                        dialog.modal({
+                            notebook: that,
+                            keyboard_manager: that.keyboard_manager,
+                            title: "Notebook changed",
+                            body: "Notebook has changed since we opened it. Overwrite the changed file?",
+                            buttons: {
+                                Cancel: {},
+                                Overwrite: {
+                                    class: 'btn-danger',
+                                    click: function () {
+                                        _save();
+                                    }
+                                },
+                            }
+                        });
+                    } else {
+                        return _save();
+                    }
+                }, function (error) {
+                    // maybe it has been deleted or renamed? Go ahead and save.
+                    return _save();
+                }
+            );
+        } else {
+            return _save();
+        }
     };
     
     /**
@@ -1907,6 +1945,7 @@ define([
      */
     Notebook.prototype.save_notebook_success = function (start, data) {
         this.set_dirty(false);
+        this.last_modified = new Date(data.last_modified);
         if (data.message) {
             // save succeeded, but validation failed.
             var body = $("<div>");
@@ -2150,6 +2189,7 @@ define([
         this.set_dirty(false);
         this.scroll_to_top();
         this.writable = data.writable || false;
+        this.last_modified = new Date(data.last_modified);
         var nbmodel = data.content;
         var orig_nbformat = nbmodel.metadata.orig_nbformat;
         var orig_nbformat_minor = nbmodel.metadata.orig_nbformat_minor;
