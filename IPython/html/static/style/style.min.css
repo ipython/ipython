@@ -8870,6 +8870,66 @@ ul#new-menu {
     header */
   margin-bottom: -1px;
 }
+.dirty-indicator {
+  display: inline-block;
+  font: normal normal normal 14px/1 FontAwesome;
+  font-size: inherit;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  width: 20px;
+}
+.dirty-indicator.pull-left {
+  margin-right: .3em;
+}
+.dirty-indicator.pull-right {
+  margin-left: .3em;
+}
+.dirty-indicator-dirty {
+  display: inline-block;
+  font: normal normal normal 14px/1 FontAwesome;
+  font-size: inherit;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  width: 20px;
+}
+.dirty-indicator-dirty.pull-left {
+  margin-right: .3em;
+}
+.dirty-indicator-dirty.pull-right {
+  margin-left: .3em;
+}
+.dirty-indicator-clean {
+  display: inline-block;
+  font: normal normal normal 14px/1 FontAwesome;
+  font-size: inherit;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  width: 20px;
+}
+.dirty-indicator-clean.pull-left {
+  margin-right: .3em;
+}
+.dirty-indicator-clean.pull-right {
+  margin-left: .3em;
+}
+.dirty-indicator-clean:before {
+  display: inline-block;
+  font: normal normal normal 14px/1 FontAwesome;
+  font-size: inherit;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  content: "\f00c";
+}
+.dirty-indicator-clean:before.pull-left {
+  margin-right: .3em;
+}
+.dirty-indicator-clean:before.pull-right {
+  margin-left: .3em;
+}
 #filename {
   font-size: 16pt;
   display: table;
