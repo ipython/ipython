@@ -150,13 +150,13 @@ stream output
     {
       "output_type" : "stream",
       "name" : "stdout", # or stderr
-      "data" : ["multiline stream text"],
+      "text" : ["multiline stream text"],
     }
 
 .. versionchanged:: nbformat 4.0
 
-    The keys ``stream`` and ``text`` were changed to ``name`` and ``data`` to match
-    the stream message specification.
+    The keys ``stream`` key was changed to ``name`` to match
+    the stream message.
 
 
 display_data
@@ -290,6 +290,22 @@ regardless of format.
       },
       "source" : ["some nbformat mime-type data"]
     }
+
+Backward-compatible changes
+===========================
+
+The notebook format is an evolving format. When backward-compatible changes are made,
+the notebook format minor version is incremented. When backward-incompatible changes are made,
+the major version is incremented.
+
+As of nbformat 4.x, backward-compatible changes include:
+
+- new fields in any dictionary (notebook, cell, output, metadata, etc.)
+- new cell types
+- new output types
+
+New cell or output types will not be rendered in versions that do not recognize them,
+but they will be preserved.
 
 Metadata
 ========
