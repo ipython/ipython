@@ -287,7 +287,6 @@ define([
                 .hide();
             this.$buttongroup = $('<div />')
                 .addClass('btn-group')
-                .attr('data-toggle', 'buttons-radio')
                 .appendTo(this.$el);
 
             this.model.on('change:button_style', function(model, value) {
