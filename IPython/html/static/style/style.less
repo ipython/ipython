@@ -31,3 +31,200 @@
 
 // terminal
 @import "../terminal/less/terminal.less";
+
+@-webkit-keyframes spinner {
+  0% {
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+
+  100% {
+    -webkit-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -ms-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+@-moz-keyframes spinner {
+  0% {
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+
+  100% {
+    -webkit-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -ms-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+@-o-keyframes spinner {
+  0% {
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+
+  100% {
+    -webkit-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -ms-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spinner {
+  0% {
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+
+  100% {
+    -webkit-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -ms-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+
+.running .inner_cell::after {
+    width: 1em;
+    height: 1em;
+    margin-top: 2em;
+    margin-bottom: 2em;
+}
+
+
+
+@-webkit-keyframes blink {
+    @cin : orange;
+    @cout : lightblue;
+    0%   { box-shadow: 10px 00px 0px rgba(0,0,0,0),
+                       20px 00px 0px @cin,
+                       30px 00px 0px @cout,
+                       40px 00px 0px @cout,
+                       50px 00px 0px @cout,
+                       60px 00px 0px @cout
+                       ;}
+    
+    30%{ box-shadow:   20px 00px 0px @cin,
+                       30px 00px 0px @cin,
+                       40px 00px 0px @cout,
+                       50px 00px 0px @cout,
+                       60px 00px 0px @cout,
+                       70px 00px 0px rgba(0,0,0,0)
+                       ;} 
+                       
+    35%{ box-shadow:   20px 00px 0px @cin,
+                       30px 05px 0px @cin,
+                       40px 00px 0px @cout,
+                       50px 00px 0px @cout,
+                       60px 00px 0px @cout,
+                       70px 00px 0px rgba(0,0,0,0)
+                       ;} 
+                       
+    70%{ box-shadow:   20px 00px 0px @cin,
+                       30px 05px 0px @cin,
+                       40px 00px 0px @cout,
+                       50px 00px 0px @cout,
+                       60px 00px 0px @cout,
+                       70px 00px 0px rgba(0,0,0,0)
+                       ;} 
+                       
+    100%{ box-shadow:  20px 00px 0px @cin,
+                       30px 00px 0px @cout,
+                       40px 00px 0px @cout,
+                       50px 00px 0px @cout,
+                       60px 00px 0px @cout,
+                       70px 00px 0px rgba(0,0,0,0)
+                       ;}  
+}
+
+.blink {
+  transform: translateZ(0);
+  content: ' ';
+  display:block;
+  -webkit-animation: blink 0.9s linear infinite;
+  animation: blink .3s linear infinite;
+}
+
+.spinner {
+  @spintime : 4500ms;
+  @spincolor: rgba(0, 0, 51, 0.3);
+  @spincolor: red; 
+  @ddist: 1.1em;
+  @hdist: 1.5em;
+  @ddist: 0.55em;
+  @hdist: 0.75em;
+  -webkit-animation: spinner @spintime infinite linear;
+  -moz-animation: spinner @spintime infinite linear;
+  -ms-animation: spinner @spintime infinite linear;
+  -o-animation: spinner @spintime infinite linear;
+  animation: spinner @spintime infinite linear;
+  -webkit-border-radius: 0.5em;
+  -moz-border-radius: 0.5em;
+  -ms-border-radius: 0.5em;
+  -o-border-radius: 0.5em;
+  border-radius: 0.5em;
+  -webkit-box-shadow: @spincolor @hdist 0 0 0, @spincolor @ddist @ddist 0 0, @spincolor 0 @hdist 0 0, @spincolor -@ddist @ddist 0 0, @spincolor -@hdist 0 0 0, @spincolor -@ddist -@ddist 0 0, @spincolor 0 -@hdist 0 0, @spincolor @ddist -@ddist 0 0;
+  -moz-box-shadow:    @spincolor @hdist 0 0 0, @spincolor @ddist @ddist 0 0, @spincolor 0 @hdist 0 0, @spincolor -@ddist @ddist 0 0, @spincolor -@hdist 0 0 0, @spincolor -@ddist -@ddist 0 0, @spincolor 0 -@hdist 0 0, @spincolor @ddist -@ddist 0 0;
+  box-shadow:         @spincolor @hdist 0 0 0, @spincolor @ddist @ddist 0 0, @spincolor 0 @hdist 0 0, @spincolor -@ddist @ddist 0 0, @spincolor -@hdist 0 0 0, @spincolor -@ddist -@ddist 0 0, @spincolor 0 -@hdist 0 0, @spincolor @ddist -@ddist 0 0;
+  display: inline-block;
+  font-size: 10px;
+  width: 0;
+  height: 0;
+  margin: 0em;
+  overflow: hidden;
+  text-indent: 100%;
+}
+
+.running .inner_cell::after {
+  /*.spinner();
+  margin-left:45%;
+  transition: all 0.5s ease;
+  content:'';*/
+}
+
+.input_prompt{
+  transition: all 0.3s ease;
+}
+
+.running .input_prompt{
+    color:rgba(0,0,0,0);
+}
+
+
+
+.input_prompt::before{
+  display:inline-block;
+  height:7px;
+  width:7px;
+  position: relative;
+  left: 10px;
+  top: 1px;
+  content:' ';
+  opacity:0;
+}
+
+.running .input_prompt::before{
+  .blink();
+  opacity:1;
+}
