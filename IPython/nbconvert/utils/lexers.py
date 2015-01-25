@@ -87,7 +87,7 @@ def build_ipy_lexer(python3):
     tokens = PyLexer.tokens.copy()
     tokens['root'] = ipython_tokens + tokens['root']
 
-    attrs = {'name': name, 'aliases': aliases,
+    attrs = {'name': name, 'aliases': aliases, 'filenames': [],
              '__doc__': doc, 'tokens': tokens}
 
     return type(name, (PyLexer,), attrs)

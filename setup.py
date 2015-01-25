@@ -286,7 +286,14 @@ if 'setuptools' in sys.modules:
     setup_args['cmdclass']['bdist_wheel'] = css_js_prerelease(get_bdist_wheel())
     
     setuptools_extra_args['zip_safe'] = False
-    setuptools_extra_args['entry_points'] = {'console_scripts':find_entry_points()}
+    setuptools_extra_args['entry_points'] = {
+        'console_scripts': find_entry_points(),
+        'pygments.lexers': [
+            'ipythonconsole = IPython.nbconvert.utils.lexers:IPythonConsoleLexer',
+            'ipython = IPython.nbconvert.utils.lexers:IPythonLexer',
+            'ipython3 = IPython.nbconvert.utils.lexers:IPython3Lexer',
+        ],
+    }
     setup_args['extras_require'] = extras_require
     requires = setup_args['install_requires'] = install_requires
 
