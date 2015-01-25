@@ -159,7 +159,7 @@
                             "description": "Whether the cell is collapsed/expanded.",
                             "type": "boolean"
                         },
-                        "autoscroll": {
+                        "scrolled": {
                             "description": "Whether the cell's output is scrolled, unscrolled, or autoscrolled.",
                             "enum": [true, false, "auto"]
                         },
