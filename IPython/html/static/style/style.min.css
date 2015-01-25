@@ -8723,9 +8723,6 @@ ul#new-menu {
   overflow: auto;
   max-height: 20em;
 }
-#current-mode {
-  margin-right: 16px;
-}
 .edit_app #header {
   -webkit-box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
   box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
@@ -8739,6 +8736,10 @@ ul#new-menu {
   font-size: 16pt;
   display: table;
   padding: 0px 5px;
+}
+#current-mode {
+  padding-left: 5px;
+  padding-right: 5px;
 }
 #texteditor-backdrop {
   padding-top: 20px;
@@ -10392,12 +10393,16 @@ ul#help_menu li a i {
   z-index: 10;
 }
 .indicator_area {
+  float: right !important;
+  float: right;
   color: #777777;
   margin-left: 5px;
   margin-right: 5px;
   width: 11px;
   z-index: 10;
   text-align: center;
+  width: auto;
+  border-left: 1px solid;
 }
 #kernel_indicator {
   float: right !important;
@@ -10424,6 +10429,8 @@ ul#help_menu li a i {
   width: 11px;
   z-index: 10;
   text-align: center;
+  width: auto;
+  border-left: 1px solid;
 }
 .edit_mode .modal_indicator:before {
   display: inline-block;

@@ -64,6 +64,7 @@ require([
         '#notification_area', {
         events: events,
     });
+    editor.notification_area = notification_area;
     notification_area.init_notification_widgets();
 
     utils.load_extensions_from_config(config);
