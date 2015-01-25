@@ -109,3 +109,23 @@ class TestLexers(TestsBase):
             (Token.Text, '\n'),
         ]
         self.assertEqual(tokens_2, list(self.lexer.get_tokens(fragment_2)))
+
+        fragment_2 = 'x != y\n'
+        tokens_2 = [
+            (Token.Name, 'x'),
+            (Token.Text, ' '),
+            (Token.Operator, '!='),
+            (Token.Text, ' '),
+            (Token.Name, 'y'),
+            (Token.Text, '\n'),
+        ]
+        self.assertEqual(tokens_2, list(self.lexer.get_tokens(fragment_2)))
+
+        fragment_2 = ' ?math.sin\n'
+        tokens_2 = [
+            (Token.Text, ' '),
+            (Token.Operator, '?'),
+            (Token.Text, 'math.sin'),
+            (Token.Text, '\n'),
+        ]
+        self.assertEqual(tokens_2, list(self.lexer.get_tokens(fragment_2)))
