@@ -9071,10 +9071,6 @@ div.input_area > div.highlight > pre {
   border: 0;
   border-radius: 0;
 }
-.CodeMirror-vscrollbar,
-.CodeMirror-hscrollbar {
-  display: none !important;
-}
 /*
 
 Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiacs.Org>
