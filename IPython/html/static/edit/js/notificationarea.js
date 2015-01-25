@@ -19,9 +19,6 @@ define([
         var that = this;
         var savew = this.new_notification_widget('save');
         
-        this.events.on("file_saving.Editor", function() {
-            savew.set_message("Saving File...");
-        });
         this.events.on("file_saved.Editor", function() {
             savew.set_message("File saved", 2000);
         });
