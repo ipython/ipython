@@ -78,18 +78,22 @@ function($,
                 that.save_enabled = true;
                 that.generation = cm.changeGeneration();
                 that.events.trigger("file_loaded.Editor", model);
-            },
+            }).catch(
             function(error) {
                 that.events.trigger("file_load_failed.Editor", error);
-                if (error.xhr.responseJSON.reason === 'bad format') {
+                if (((error.xhr||{}).responseJSON||{}).reason === 'bad format') {
                     window.location = utils.url_path_join(
                         that.base_url,
                         'files',
                         that.file_path
                     );
+                } else {
+                    console.warn('Error while loading: the error was:')
+                    console.warn(error)
                 }
                 cm.setValue("Error! " + error.message +
-                                "\nSaving disabled.");
+                                "\nSaving disabled.\nSee Console for more details.");
+                cm.setOption('readOnly','nocursor')
                 that.save_enabled = false;
             }
         );
