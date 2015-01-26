@@ -38,13 +38,28 @@ class _BoundedFloat(_Float):
     def __init__(self, *pargs, **kwargs):
         """Constructor"""
         super(_BoundedFloat, self).__init__(*pargs, **kwargs)
-        self._validate('value', None, self.value)
-        self.on_trait_change(self._validate, ['value', 'min', 'max'])
+        self._value_changed('value', None, self.value)
+        self._min_changed('min', None, self.min)
+        self._max_changed('max', None, self.max)
 
-    def _validate(self, name, old, new):
-        """Validate value, max, min."""
+    def _value_changed(self, name, old, new):
+        """Validate value."""
         if self.min > new or new > self.max:
             self.value = min(max(new, self.min), self.max)
+
+    def _max_changed(self, name, old, new):
+        """Make sure the min is always <= the max."""
+        if new < self.min:
+            raise ValueError("setting max < min")
+        if new < self.value:
+            self.value = new
+
+    def _min_changed(self, name, old, new):
+        """Make sure the max is always >= the min."""
+        if new > self.max:
+            raise ValueError("setting min > max")
+        if new > self.value:
+            self.value = new
 
 
 @register('IPython.FloatText')
