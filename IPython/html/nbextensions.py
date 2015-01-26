@@ -77,10 +77,7 @@ def _maybe_copy(src, dest, verbose=1):
     if _should_copy(src, dest, verbose):
         if verbose >= 1:
             print("copying %s -> %s" % (src, dest))
-        try:
-            shutil.copy2(src, dest)
-        except IOError as e:
-            print(str(e), file=sys.stderr)
+        shutil.copy2(src, dest)
 
 def _safe_is_tarfile(path):
     """safe version of is_tarfile, return False on IOError"""
