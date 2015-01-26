@@ -8401,6 +8401,7 @@ body {
   display: none;
   background-color: #ffffff;
   /* Display over codemirror */
+  position: relative;
   z-index: 100;
 }
 #header #header-container {
