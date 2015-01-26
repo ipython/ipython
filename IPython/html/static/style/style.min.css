@@ -9491,7 +9491,7 @@ div.output_area pre {
 /* This class is for the output subarea inside the output_area and after
    the prompt div. */
 div.output_subarea {
-  padding: 0.4em 0.4em 0em 0.4em;
+  padding: 0.4em;
   /* Old browsers */
   -webkit-box-flex: 1;
   -moz-box-flex: 1;
