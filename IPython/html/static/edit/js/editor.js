@@ -162,6 +162,7 @@ function($,
         var that = this;
         // record change generation for isClean
         this.generation = this.codemirror.changeGeneration();
+        that.events.trigger("file_saving.Editor");
         return this.contents.save(this.file_path, model).then(function(data) {
             that.events.trigger("file_saved.Editor", data);
         });

@@ -17,10 +17,10 @@ define([
      */
     EditorNotificationArea.prototype.init_notification_widgets = function () {
         var that = this;
-        var enw = this.new_notification_widget('editor');
+        var savew = this.new_notification_widget('save');
         
-        this.events.on("save_succeeded.TextEditor", function() {
-            enw.set_message("File saved", 2000);
+        this.events.on("file_saved.Editor", function() {
+            savew.set_message("File saved", 2000);
         });
     };
     
