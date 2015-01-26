@@ -14,7 +14,7 @@ Using different kernels
 -----------------------
 
 .. image:: ../_images/kernel_selector_screenshot.png
-   :alt: Screenshot of notebook kernel selection dropdown menu
+   :alt: Screenshot of 'new' dropdown showing different kernels
    :align: center
 
 You can now choose a kernel for a notebook within the user interface, rather
