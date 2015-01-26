@@ -405,20 +405,26 @@ define([
         this.widget_subarea.height('');
         this.widget_area.height('');
         this.widget_area.hide();
-
-        this.set_input_prompt('*');
-        this.element.addClass("running");
-        if (this.last_msg_id) {
-            this.kernel.clear_callbacks_for_msg(this.last_msg_id);
-        }
-        var callbacks = this.get_callbacks();
         
         var old_msg_id = this.last_msg_id;
+
+        if (old_msg_id) {
+            this.kernel.clear_callbacks_for_msg(old_msg_id);
+            if (old_msg_id) {
+                delete CodeCell.msg_cells[old_msg_id];
+            }
+        }
+        if (this.get_text().trim().length === 0) {
+            // nothing to do
+            this.set_input_prompt(null);
+            return;
+        }
+        this.set_input_prompt('*');
+        this.element.addClass("running");
+        var callbacks = this.get_callbacks();
+        
         this.last_msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true,
             stop_on_error : stop_on_error});
-        if (old_msg_id) {
-            delete CodeCell.msg_cells[old_msg_id];
-        }
         CodeCell.msg_cells[this.last_msg_id] = this;
         this.render();
         this.events.trigger('execute.CodeCell', {cell: this});
