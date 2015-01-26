@@ -8583,6 +8583,12 @@ span#login_widget > .button .badge,
     width: 700px;
   }
 }
+@media (min-width: 768px) {
+  select.form-control {
+    margin-left: 12px;
+    margin-right: 12px;
+  }
+}
 /*!
 *
 * IPython auth
