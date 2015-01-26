@@ -333,6 +333,7 @@ define([
         var selected = [];
         var has_running_notebook = false;
         var has_directory = false;
+        var has_file = false;
         var that = this;
         $('.list_item :checked').each(function(index, item) {
             var parent = $(item).parent().parent();
@@ -344,6 +345,7 @@ define([
 
             has_running_notebook = has_running_notebook || 
                 (parent.data('type') == 'notebook' && that.sessions[parent.data('path')] !== undefined);
+            has_file = has_file || parent.data('type') == 'file';
             has_directory = has_directory || parent.data('type') == 'directory';
         });
         this.selected = selected;
@@ -356,7 +358,7 @@ define([
         }
 
         // Shutdown is only visible when one or more notebooks are visible.
-        if (has_running_notebook) {
+        if (has_running_notebook && !(has_file || has_directory)) {
             $('.shutdown-button').css('display', 'inline-block');
         } else {
             $('.shutdown-button').css('display', 'none');
