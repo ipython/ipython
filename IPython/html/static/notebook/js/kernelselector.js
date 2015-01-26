@@ -201,6 +201,12 @@ define([
             }
             if (matches.length === 1) {
                 ks = kernelspecs[matches[0]];
+                console.log("No exact match found for " + selected.name +
+                    ", using only kernel that matches language=" + selected.language, ks);
+                this.events.trigger("spec_match_found.Kernel", {
+                    selected: selected,
+                    found: ks,
+                });
             }
             // if still undefined, trigger failure event
             if (ks === undefined) {
