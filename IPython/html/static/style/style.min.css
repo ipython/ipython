@@ -10530,7 +10530,6 @@ ul#help_menu li a i {
   z-index: 10;
   text-align: center;
   width: auto;
-  border-left: 1px solid;
 }
 #kernel_indicator {
   float: right !important;
@@ -10558,7 +10557,6 @@ ul#help_menu li a i {
   z-index: 10;
   text-align: center;
   width: auto;
-  border-left: 1px solid;
 }
 .edit_mode .modal_indicator:before {
   display: inline-block;
