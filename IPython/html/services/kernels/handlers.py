@@ -214,6 +214,10 @@ class ZMQChannelsHandler(AuthenticatedZMQStreamHandler):
                 stream.on_recv_stream(self._on_zmq_reply)
 
     def on_message(self, msg):
+        if not self.channels:
+            # already closed, ignore the message
+            self.log.debug("Received message on closed websocket %r", msg)
+            return
         if isinstance(msg, bytes):
             msg = deserialize_binary_message(msg)
         else:
@@ -222,6 +226,9 @@ class ZMQChannelsHandler(AuthenticatedZMQStreamHandler):
         if channel is None:
             self.log.warn("No channel specified, assuming shell: %s", msg)
             channel = 'shell'
+        if channel not in self.channels:
+            self.log.warn("No such channel: %r", channel)
+            return
         stream = self.channels[channel]
         self.session.send(stream, msg)
 
