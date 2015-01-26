@@ -11,6 +11,7 @@ import shutil
 import sys
 import tarfile
 import zipfile
+import uuid
 from os.path import basename, join as pjoin
 
 # Deferred imports
@@ -60,7 +61,9 @@ def _should_copy(src, dest, verbose=1):
     """should a file be copied?"""
     if not os.path.exists(dest):
         return True
-    if os.stat(dest).st_mtime < os.stat(src).st_mtime:
+    if os.stat(src).st_mtime - os.stat(dest).st_mtime > 1e-6:
+        # we add a fudge factor to work around a bug in python 2.x
+        # that was fixed in python 3.x: http://bugs.python.org/issue12904
         if verbose >= 2:
             print("%s is out of date" % dest)
         return True
@@ -76,7 +79,6 @@ def _maybe_copy(src, dest, verbose=1):
             print("copying %s -> %s" % (src, dest))
         shutil.copy2(src, dest)
 
-
 def _safe_is_tarfile(path):
     """safe version of is_tarfile, return False on IOError"""
     try:
@@ -85,17 +87,42 @@ def _safe_is_tarfile(path):
         return False
 
 
-def check_nbextension(files, nbextensions_dir=None):
+def _get_nbext_dir(nbextensions_dir=None, user=False, prefix=None):
+    """Return the nbextension directory specified"""
+    if sum(map(bool, [user, prefix, nbextensions_dir])) > 1:
+        raise ArgumentConflict("Cannot specify more than one of user, prefix, or nbextensions_dir.")
+    if user:
+        nbext = pjoin(get_ipython_dir(), u'nbextensions')
+    else:
+        if prefix:
+            nbext = pjoin(prefix, 'share', 'jupyter', 'nbextensions')
+        elif nbextensions_dir:
+            nbext = nbextensions_dir
+        else:
+            nbext = SYSTEM_NBEXTENSIONS_INSTALL_DIR
+    return nbext
+
+
+def check_nbextension(files, user=False, prefix=None, nbextensions_dir=None):
     """Check whether nbextension files have been installed
     
-    files should be a list of relative paths within nbextensions.
-    
     Returns True if all files are found, False if any are missing.
+
+    Parameters
+    ----------
+
+    files : list(paths)
+        a list of relative paths within nbextensions.
+    user : bool [default: False]
+        Whether to check the user's .ipython/nbextensions directory.
+        Otherwise check a system-wide install (e.g. /usr/local/share/jupyter/nbextensions).
+    prefix : str [optional]
+        Specify install prefix, if it should differ from default (e.g. /usr/local).
+        Will check prefix/share/jupyter/nbextensions
+    nbextensions_dir : str [optional]
+        Specify absolute path of nbextensions directory explicitly.
     """
-    if nbextensions_dir:
-        nbext = nbextensions_dir
-    else:
-        nbext = pjoin(get_ipython_dir(), u'nbextensions')
+    nbext = _get_nbext_dir(nbextensions_dir, user, prefix)
     # make sure nbextensions dir exists
     if not os.path.exists(nbext):
         return False
@@ -117,10 +144,11 @@ def install_nbextension(files, overwrite=False, symlink=False, user=False, prefi
     Parameters
     ----------
     
-    files : list(paths or URLs)
+    files : list(paths or URLs) or dict(install_name: path or URL)
         One or more paths or URLs to existing files directories to install.
-        These will be installed with their base name, so '/path/to/foo'
-        will install to 'nbextensions/foo'.
+        If given as a list, these will be installed with their base name, so '/path/to/foo'
+        will install to 'nbextensions/foo'.  If given as a dict, such as {'bar': '/path/to/foo'},
+        then '/path/to/foo' will install to 'nbextensions/bar'.
         Archives (zip or tarballs) will be extracted into the nbextensions directory.
     overwrite : bool [default: False]
         If True, always install the files, regardless of what may already be installed.
@@ -141,25 +169,27 @@ def install_nbextension(files, overwrite=False, symlink=False, user=False, prefi
         Set verbosity level. The default is 1, where file actions are printed.
         set verbose=2 for more output, or verbose=0 for silence.
     """
-    if sum(map(bool, [user, prefix, nbextensions_dir])) > 1:
-        raise ArgumentConflict("Cannot specify more than one of user, prefix, or nbextensions_dir.")
-    if user:
-        nbext = pjoin(get_ipython_dir(), u'nbextensions')
-    else:
-        if prefix:
-            nbext = pjoin(prefix, 'share', 'jupyter', 'nbextensions')
-        elif nbextensions_dir:
-            nbext = nbextensions_dir
-        else:
-            nbext = SYSTEM_NBEXTENSIONS_INSTALL_DIR
+    nbext = _get_nbext_dir(nbextensions_dir, user, prefix)
     # make sure nbextensions dir exists
     ensure_dir_exists(nbext)
     
     if isinstance(files, string_types):
         # one file given, turn it into a list
         files = [files]
+    if isinstance(files, (list,tuple)):
+        # list given, turn into dict
+        _files = {}
+        for path in map(cast_unicode_py2, files):
+            if path.startswith(('https://', 'http://')):
+                destination = urlparse(path).path.split('/')[-1]
+            elif path.endswith('.zip') or _safe_is_tarfile(path):
+                destination = str(uuid.uuid4()) # ignored for archives
+            else:
+                destination = basename(path)
+            _files[destination] = path
+        files = _files
     
-    for path in map(cast_unicode_py2, files):
+    for dest_basename,path in (map(cast_unicode_py2, item) for item in files.items()):
         
         if path.startswith(('https://', 'http://')):
             if symlink:
@@ -172,7 +202,7 @@ def install_nbextension(files, overwrite=False, symlink=False, user=False, prefi
                     print("downloading %s to %s" % (path, local_path))
                 urlretrieve(path, local_path)
                 # now install from the local copy
-                install_nbextension(local_path, overwrite=overwrite, symlink=symlink, nbextensions_dir=nbext, verbose=verbose)
+                install_nbextension({dest_basename: local_path}, overwrite=overwrite, symlink=symlink, nbextensions_dir=nbext, verbose=verbose)
             continue
         
         # handle archives
@@ -191,7 +221,7 @@ def install_nbextension(files, overwrite=False, symlink=False, user=False, prefi
             archive.close()
             continue
         
-        dest = pjoin(nbext, basename(path))
+        dest = pjoin(nbext, dest_basename)
         if overwrite and os.path.exists(dest):
             if verbose >= 1:
                 print("removing %s" % dest)
@@ -209,9 +239,9 @@ def install_nbextension(files, overwrite=False, symlink=False, user=False, prefi
             continue
 
         if os.path.isdir(path):
-            strip_prefix_len = len(path) - len(basename(path))
+            path = pjoin(os.path.abspath(path), '') # end in path separator
             for parent, dirs, files in os.walk(path):
-                dest_dir = pjoin(nbext, parent[strip_prefix_len:])
+                dest_dir = pjoin(dest, parent[len(path):])
                 if not os.path.exists(dest_dir):
                     if verbose >= 2:
                         print("making directory %s" % dest_dir)
@@ -219,8 +249,8 @@ def install_nbextension(files, overwrite=False, symlink=False, user=False, prefi
                 for file in files:
                     src = pjoin(parent, file)
                     # print("%r, %r" % (dest_dir, file))
-                    dest = pjoin(dest_dir, file)
-                    _maybe_copy(src, dest, verbose)
+                    dest_file = pjoin(dest_dir, file)
+                    _maybe_copy(src, dest_file, verbose)
         else:
             src = path
             _maybe_copy(src, dest, verbose)

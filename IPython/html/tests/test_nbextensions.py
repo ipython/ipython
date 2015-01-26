@@ -103,7 +103,7 @@ class TestInstallNBExtension(TestCase):
             for file in self.files:
                 self.assert_installed(
                     pjoin(basename(self.src), file),
-                    ipdir
+                    user=bool(ipdir)
                 )
     
     def test_create_nbextensions_user(self):
@@ -133,6 +133,8 @@ class TestInstallNBExtension(TestCase):
         d = u'∂ir'
         install_nbextension(pjoin(self.src, d))
         self.assert_installed(self.files[-1])
+        install_nbextension({'test': pjoin(self.src, d)})
+        self.assert_installed(pjoin('test', u'∂ir2', u'ƒile2'))
     
     def test_install_nbextension(self):
         install_nbextension(glob.glob(pjoin(self.src, '*')))
@@ -240,6 +242,8 @@ class TestInstallNBExtension(TestCase):
             self.assert_installed("foo.js")
             install_nbextension("https://example.com/path/to/another/bar.js")
             self.assert_installed("bar.js")
+            install_nbextension({'foobar.js': "https://example.com/path/to/another/bar.js"})
+            self.assert_installed("foobar.js")
         finally:
             nbextensions.urlretrieve = save_urlretrieve
     
@@ -250,10 +254,9 @@ class TestInstallNBExtension(TestCase):
             touch(src)
             install_nbextension(src, user=True)
         
-        nbext = pjoin(self.ipdir, u'nbextensions')
-        assert check_nbextension(f, nbext)
-        assert check_nbextension([f], nbext)
-        assert not check_nbextension([f, pjoin('dne', f)], nbext)
+        assert check_nbextension(f, user=True)
+        assert check_nbextension([f], user=True)
+        assert not check_nbextension([f, pjoin('dne', f)], user=True)
     
     @dec.skip_win32
     def test_install_symlink(self):
@@ -280,3 +283,11 @@ class TestInstallNBExtension(TestCase):
             with self.assertRaises(ValueError):
                 install_nbextension(zsrc, symlink=True)
 
+    def test_install_different_name(self):
+        with TemporaryDirectory() as d:
+            f = u'ƒ.js'
+            src = pjoin(d, f)
+            dest_f = u'ƒile.js'
+            touch(src)
+            install_nbextension({dest_f: src})
+        self.assert_installed(dest_f)
