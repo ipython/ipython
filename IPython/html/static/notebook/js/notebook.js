@@ -2245,6 +2245,8 @@ define([
             "v" + this.nbformat + " or earlier. See the server log for details.";
         } else {
             msg = error.message;
+            console.warn('Error stack trace while loading notebook was:');
+            console.warn(error.stack);
         }
         dialog.modal({
             notebook: this,
