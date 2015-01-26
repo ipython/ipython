@@ -79,16 +79,11 @@ require([
 
     // Make sure the codemirror editor is sized appropriatley.
     var _handle_resize = function() {
-        var header = $('#header');
+        var backdrop = $("#texteditor-backdrop");
 
-        // The header doesn't have a margin or padding above it.  Calculate
-        // the lower margin&padding by subtracting the innerHeight from the
-        // outerHeight.
-        var header_margin_bottom = header.outerHeight(true) - header.innerHeight();
-
-        // When scaling CodeMirror, subtract the header lower margin from the
-        // height twice.  Once for top padding and once for bottom padding.
-        $('div.CodeMirror').height(window.innerHeight - header.height() - 2*header_margin_bottom);
+        // account for padding on the backdrop wrapper
+        var padding = backdrop.outerHeight(true) - backdrop.height();
+        $('div.CodeMirror').height($("#site").height() - padding);
     };
     $(window).resize(_handle_resize);
 
