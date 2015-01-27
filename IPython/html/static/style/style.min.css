@@ -10903,7 +10903,7 @@ div#pager {
   /* Display over codemirror */
   z-index: 100;
   /* Hack which prevents jquery ui resizable from changing top. */
-  top: inherit !important;
+  top: auto !important;
 }
 div#pager pre {
   line-height: 1.21429em;
