@@ -597,12 +597,13 @@ define([
         /**
          * Remove the deleted notebook.
          */
+        var that = this;
         $( ":data(path)" ).each(function() {
             var element = $(this);
-            if (element.data("path") == path) {
+            if (element.data("path") === path) {
                 element.remove();
                 events.trigger('notebook_deleted.NotebookList');
-                this._selection_changed();
+                that._selection_changed();
             }
         });
     };
