@@ -65,7 +65,7 @@ define([
         this._clocklink = $('<a/>').attr('href', "#");
         this._clocklink.attr('role', "button");
         this._clocklink.addClass('ui-button');
-        this._clocklink.attr('title', 'Tootip is not dismissed while typing for 10 seconds');
+        this._clocklink.attr('title', 'Tooltip is not dismissed while typing for 10 seconds');
         var clockspan = $('<span/>').text('Close');
         clockspan.addClass('ui-icon');
         clockspan.addClass('ui-icon-clock');
@@ -273,33 +273,38 @@ define([
         this.name = content.name;
 
         // do some math to have the tooltip arrow on more or less on left or right
-        // width of the editor
-        var w = $(this.code_mirror.getScrollerElement()).width();
-        // ofset of the editor
-        var o = $(this.code_mirror.getScrollerElement()).offset();
+        // position of the editor
+        var cm_pos = $(this.code_mirror.getWrapperElement()).position();
 
-        // whatever anchor/head order but arrow at mid x selection
-        var anchor = this.code_mirror.cursorCoords(false);
-        var head  = this.code_mirror.cursorCoords(true);
-        var xinit = (head.left+anchor.left)/2;
-        var xinter = o.left + (xinit - o.left) / w * (w - 450);
-        var posarrowleft = xinit - xinter;
+        // anchor and head positions are local within CodeMirror element
+        var anchor = this.code_mirror.cursorCoords(false, 'local');
+        var head = this.code_mirror.cursorCoords(true, 'local');
+        // locate the target at the center of anchor, head
+        var center_left = (head.left + anchor.left) / 2;
+        // locate the left edge of the tooltip, at most 450 px left of the arrow
+        var edge_left = Math.max(center_left - 450, 0);
+        // locate the arrow at the cursor. A 24 px offset seems necessary.
+        var arrow_left = center_left - edge_left - 24;
+        
+        // locate left, top within container element
+        var left = (cm_pos.left + edge_left) + 'px';
+        var top = (cm_pos.top + head.bottom + 10) + 'px';
 
         if (this._hidden === false) {
             this.tooltip.animate({
-                'left': xinter - 30 + 'px',
-                'top': (head.bottom + 10) + 'px'
+                left: left,
+                top: top
             });
         } else {
             this.tooltip.css({
-                'left': xinter - 30 + 'px'
+                left: left
             });
             this.tooltip.css({
-                'top': (head.bottom + 10) + 'px'
+                top: top
             });
         }
         this.arrow.animate({
-            'left': posarrowleft + 'px'
+            'left': arrow_left + 'px'
         });
         
         this._hidden = false;

@@ -287,12 +287,17 @@ data-notebook-path="{{notebook_path}}"
 
 {% block site %}
 
-
 <div id="ipython-main-app">
     <div id="notebook_panel">
         <div id="notebook"></div>
     </div>
 </div>
+
+<div id='tooltip' class='ipython_tooltip' style='display:none'></div>
+
+{% endblock %}
+
+{% block after_site %}
 
 <div id="pager">
     <div id="pager-contents">
@@ -301,11 +306,7 @@ data-notebook-path="{{notebook_path}}"
     <div id='pager-button-area'></div>
 </div>
 
-<div id='tooltip' class='ipython_tooltip' style='display:none'></div>
-
-
 {% endblock %}
-
 
 {% block script %}
 {{super()}}
