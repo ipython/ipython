@@ -100,7 +100,8 @@ class SanitizeHTML(Preprocessor):
         runs `sanitize_html_tags` over 'text/html'.
         """
         for output in outputs:
-            if output['output_type'] != 'display_data':
+            # These are always ascii, so nothing to escape.
+            if output['output_type'] in ('stream', 'error'):
                 continue
             data = output.data
             to_remove = []
