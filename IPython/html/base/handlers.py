@@ -138,6 +138,10 @@ class IPythonHandler(AuthenticatedHandler):
         return self.settings.get('base_url', '/')
 
     @property
+    def default_url(self):
+        return self.settings.get('default_url', '/')
+
+    @property
     def ws_url(self):
         return self.settings.get('websocket_url', '')
 
@@ -238,6 +242,7 @@ class IPythonHandler(AuthenticatedHandler):
     def template_namespace(self):
         return dict(
             base_url=self.base_url,
+            default_url=self.default_url,
             ws_url=self.ws_url,
             logged_in=self.logged_in,
             login_available=self.login_available,
