@@ -284,18 +284,21 @@ define([
         var xinit = (head.left+anchor.left)/2;
         var xinter = o.left + (xinit - o.left) / w * (w - 450);
         var posarrowleft = xinit - xinter;
+        
+        var left = xinter - 30 + 'px';
+        var top = (head.bottom + 10 - $("#header").height()) + 'px';
 
         if (this._hidden === false) {
             this.tooltip.animate({
-                'left': xinter - 30 + 'px',
-                'top': (head.bottom + 10) + 'px'
+                left: left,
+                top: top
             });
         } else {
             this.tooltip.css({
-                'left': xinter - 30 + 'px'
+                left: left
             });
             this.tooltip.css({
-                'top': (head.bottom + 10) + 'px'
+                top: top
             });
         }
         this.arrow.animate({
