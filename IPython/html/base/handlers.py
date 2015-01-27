@@ -139,7 +139,7 @@ class IPythonHandler(AuthenticatedHandler):
 
     @property
     def default_url(self):
-        return self.settings.get('default_url', '/')
+        return self.settings.get('default_url', '')
 
     @property
     def ws_url(self):
