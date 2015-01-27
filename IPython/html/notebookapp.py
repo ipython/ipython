@@ -243,7 +243,7 @@ class NotebookWebApplication(web.Application):
         # set the URL that will be redirected from `/`
         handlers.append(
             (r'/?', web.RedirectHandler, {
-                'url' : url_path_join(settings['base_url'], settings['default_url']),
+                'url' : settings['default_url'],
                 'permanent': False, # want 302, not 301
             })
         )
@@ -816,6 +816,9 @@ class NotebookApp(BaseIPythonApplication):
         if self.allow_origin_pat:
             self.tornado_settings['allow_origin_pat'] = re.compile(self.allow_origin_pat)
         self.tornado_settings['allow_credentials'] = self.allow_credentials
+        # ensure default_url starts with base_url
+        if not self.default_url.startswith(self.base_url):
+            self.default_url = url_path_join(self.base_url, self.default_url)
         
         self.web_app = NotebookWebApplication(
             self, self.kernel_manager, self.contents_manager,
