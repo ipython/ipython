@@ -241,7 +241,7 @@ def install_nbextension(path, overwrite=False, symlink=False, user=False, prefix
                     _maybe_copy(src, dest_file, verbose)
         else:
             src = path
-            _maybe_copy(src, dest, verbose)
+            _maybe_copy(src, full_dest, verbose)
 
 #----------------------------------------------------------------------
 # install nbextension app
