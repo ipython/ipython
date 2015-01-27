@@ -89,6 +89,10 @@ body {
     display: none;
     .border-box-sizing();
     overflow: auto;
+    @media print {
+      // force auto-height on print (overrides manual resizing in live view)
+      height: auto !important;
+    }
 }
 
 /* Smaller buttons */
