@@ -37,6 +37,12 @@ data-terminals-available="{{terminals_available}}"
             </div>
             <div class="col-sm-4 no-padding tree-buttons">
               <div class="pull-right">
+                <div class="dynamic-buttons">
+                    <button title="Duplicate selected" class="duplicate-button btn btn-default btn-xs">Duplicate</button>
+                    <button title="Rename selected" class="rename-button btn btn-default btn-xs">Rename</button>
+                    <button title="Shutdown selected notebook(s)" class="shutdown-button btn btn-default btn-xs btn-warning">Shutdown</button>
+                    <button title="Deleted selected" class="delete-button btn btn-default btn-xs btn-danger"><i class="fa fa-trash"></i></button>
+                </div>
                 <div id="new-buttons" class="btn-group">
                   <button class="dropdown-toggle btn btn-default btn-xs" data-toggle="dropdown">
                   <span>New</span>

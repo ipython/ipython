@@ -87,6 +87,11 @@ define([
                     that.load_list();
                 });
             });
+
+            $('.rename-button').click($.proxy(this.rename_selected, this));
+            $('.shutdown-button').click($.proxy(this.shutdown_selected, this));
+            $('.duplicate-button').click($.proxy(this.duplicate_selected, this));
+            $('.delete-button').click($.proxy(this.delete_selected, this));
         }
     };
 
@@ -111,7 +116,7 @@ define([
                 // read non-notebook files as binary
                 reader.readAsArrayBuffer(f);
             }
-            var item = that.new_item(0);
+            var item = that.new_item(0, true);
             item.addClass('new-file');
             that.add_name_input(f.name, item, file_ext == '.ipynb' ? 'notebook' : 'file');
             // Store the list item in the reader so we can use it later
@@ -218,7 +223,7 @@ define([
         var path = this.notebook_path;
         var offset = n_uploads;
         if (path !== '') {
-            item = this.new_item(offset);
+            item = this.new_item(offset, false);
             model = {
                 type: 'directory',
                 name: '..',
@@ -229,34 +234,86 @@ define([
         }
         for (var i=0; i<len; i++) {
             model = list.content[i];
-            item = this.new_item(i+offset);
+            item = this.new_item(i+offset, true);
             this.add_link(model, item);
         }
         // Trigger an event when we've finished drawing the notebook list.
         events.trigger('draw_notebook_list.NotebookList');
+        this._selection_changed();
     };
 
 
-    NotebookList.prototype.new_item = function (index) {
-        var item = $('<div/>').addClass("list_item").addClass("row");
-        // item.addClass('list_item ui-widget ui-widget-content ui-helper-clearfix');
-        // item.css('border-top-style','none');
-        item.append($("<div/>").addClass("col-md-12").append(
-            $('<i/>').addClass('item_icon')
-        ).append(
-            $("<a/>").addClass("item_link").append(
-                $("<span/>").addClass("item_name")
-            )
-        ).append(
-            $('<div/>').addClass("item_buttons  pull-right")
-        ));
+    /**
+     * Creates a new item.
+     * @param  {integer} index
+     * @param  {boolean} [selectable] - tristate, undefined: don't draw checkbox,
+     *                                  false: don't draw checkbox but pad
+     *                                  where it should be, true: draw checkbox.
+     * @return {JQuery} row
+     */
+    NotebookList.prototype.new_item = function (index, selectable) {
+        var row = $('<div/>')
+            .addClass("list_item")
+            .addClass("row");
+
+        var item = $("<div/>")
+            .addClass("col-md-12")
+            .appendTo(row);
+
+        var checkbox;
+        if (selectable !== undefined) {
+            checkbox = $('<input/>')
+                .attr('type', 'checkbox')
+                .attr('title', 'Click here to rename, delete, etc.')
+                .appendTo(item);
+        }
+
+        $('<i/>')
+            .addClass('item_icon')
+            .appendTo(item);
+
+        var link = $("<a/>")
+            .addClass("item_link")
+            .appendTo(item);
+
+        $("<span/>")
+            .addClass("item_name")
+            .appendTo(link);
+        
+        if (selectable === false) {
+            checkbox.css('visibility', 'hidden');
+        } else if (selectable === true) {
+            var that = this;
+            link.click(function(e) {
+                e.stopPropagation();
+            });
+            checkbox.click(function(e) {
+                e.stopPropagation();
+                that._selection_changed();
+            });
+            row.click(function(e) {
+                e.stopPropagation();
+                checkbox.prop('checked', !checkbox.prop('checked'));
+                that._selection_changed();
+            });
+        }
+
+        var buttons = $('<div/>')
+            .addClass("item_buttons  pull-right")
+            .appendTo(item);
+
+        $('<div/>')
+            .addClass('running-indicator')
+            .text('Running')
+            .css('visibility', 'hidden')
+            .appendTo(buttons);
         
         if (index === -1) {
-            this.element.append(item);
+            this.element.append(row);
         } else {
-            this.element.children().eq(index).after(item);
+            this.element.children().eq(index).after(row);
         }
-        return item;
+        return row;
     };
 
 
@@ -272,12 +329,62 @@ define([
         file: 'edit',
     };
 
+    NotebookList.prototype._selection_changed = function() {
+        var selected = [];
+        var has_running_notebook = false;
+        var has_directory = false;
+        var has_file = false;
+        var that = this;
+        $('.list_item :checked').each(function(index, item) {
+            var parent = $(item).parent().parent();
+            selected.push({
+                name: parent.data('name'), 
+                path: parent.data('path'), 
+                type: parent.data('type')
+            });
+
+            has_running_notebook = has_running_notebook || 
+                (parent.data('type') == 'notebook' && that.sessions[parent.data('path')] !== undefined);
+            has_file = has_file || parent.data('type') == 'file';
+            has_directory = has_directory || parent.data('type') == 'directory';
+        });
+        this.selected = selected;
+
+        // Rename is only visible when one item is selected.
+        if (selected.length==1) {
+            $('.rename-button').css('display', 'inline-block');
+        } else {
+            $('.rename-button').css('display', 'none');
+        }
+
+        // Shutdown is only visible when one or more notebooks are visible.
+        if (has_running_notebook && !(has_file || has_directory)) {
+            $('.shutdown-button').css('display', 'inline-block');
+        } else {
+            $('.shutdown-button').css('display', 'none');
+        }
+
+        // Duplicate isn't visible if a directory is selected.
+        if (selected.length > 0 && !has_directory) {
+            $('.duplicate-button').css('display', 'inline-block');
+        } else {
+            $('.duplicate-button').css('display', 'none');
+        }
+
+        // Delete is visible if one or more items are selected.
+        if (selected.length > 0) {
+            $('.delete-button').css('display', 'inline-block');
+        } else {
+            $('.delete-button').css('display', 'none');
+        }
+    };
 
     NotebookList.prototype.add_link = function (model, item) {
         var path = model.path,
             name = model.name;
         item.data('name', name);
         item.data('path', path);
+        item.data('type', model.type);
         item.find(".item_name").text(name);
         var icon = NotebookList.icons[model.type];
         var uri_prefix = NotebookList.uri_prefixes[model.type];
@@ -290,22 +397,14 @@ define([
                     path
                 )
             );
+
+        var running = (model.type == 'notebook' && this.sessions[path] !== undefined);
+        item.find(".item_buttons .running-indicator").css('visibility', running ? '' : 'hidden');
+
         // directory nav doesn't open new tabs
         // files, notebooks do
         if (model.type !== "directory") {
             link.attr('target','_blank');
-        }
-        if (model.type !== 'directory') {
-            this.add_duplicate_button(item);
-        }
-        if (model.type == 'file') {
-            this.add_delete_button(item);
-        } else if (model.type == 'notebook') {
-            if (this.sessions[path] === undefined){
-                this.add_delete_button(item);
-            } else {
-                this.add_shutdown_button(item, this.sessions[path]);
-            }
         }
     };
 
@@ -332,104 +431,179 @@ define([
     };
 
 
-    NotebookList.prototype.add_shutdown_button = function (item, session) {
+    NotebookList.prototype.shutdown_selected = function() {
         var that = this;
-        var shutdown_button = $("<button/>").text("Shutdown").addClass("btn btn-xs btn-warning").
-            click(function (e) {
-                var settings = {
-                    processData : false,
-                    cache : false,
-                    type : "DELETE",
-                    dataType : "json",
-                    success : function () {
-                        that.load_sessions();
-                    },
-                    error : utils.log_ajax_error,
-                };
-                var url = utils.url_join_encode(
-                    that.base_url,
-                    'api/sessions',
-                    session
-                );
-                $.ajax(url, settings);
-                return false;
-            });
-        item.find(".item_buttons").append(shutdown_button);
+        this.selected.forEach(function(item) {
+            if (item.type == 'notebook') {
+                that.shutdown_notebook(item.path);
+            }
+        });
     };
 
-    NotebookList.prototype.add_duplicate_button = function (item) {
-        var notebooklist = this;
-        var duplicate_button = $("<button/>").text("Duplicate").addClass("btn btn-default btn-xs").
-            click(function (e) {
-                // $(this) is the button that was clicked.
-                var that = $(this);
-                var name = item.data('name');
-                var path = item.data('path');
-                var message = 'Are you sure you want to duplicate ' + name + '?';
-                var copy_from = {copy_from : path};
-                IPython.dialog.modal({
-                    title : "Duplicate " + name,
-                    body : message,
-                    buttons : {
-                        Duplicate : {
-                            class: "btn-primary",
-                            click: function() {
-                                notebooklist.contents.copy(path, notebooklist.notebook_path).then(function () {
-                                    notebooklist.load_list();
-                                });
-                            }
-                        },
-                        Cancel : {}
+    NotebookList.prototype.shutdown_notebook = function(path) {
+        var that = this;
+        var settings = {
+            processData : false,
+            cache : false,
+            type : "DELETE",
+            dataType : "json",
+            success : function () {
+                that.load_sessions();
+            },
+            error : utils.log_ajax_error,
+        };
+
+        var session = this.sessions[path];
+        if (session) {
+            var url = utils.url_join_encode(
+                this.base_url,
+                'api/sessions',
+                session
+            );
+            $.ajax(url, settings);
+        }
+    }
+
+    NotebookList.prototype.rename_selected = function() {
+        if (this.selected.length != 1) return;
+
+        var that = this;
+        var path = this.selected[0].path;
+        var input = $('<input/>').attr('type','text').attr('size','25').addClass('form-control')
+            .val(path);
+        var dialog_body = $('<div/>').append(
+            $("<p/>").addClass("rename-message")
+                .text('Enter a new directory name:')
+        ).append(
+            $("<br/>")
+        ).append(input);
+        var d = dialog.modal({
+            title : "Rename directory",
+            body : dialog_body,
+            buttons : {
+                OK : {
+                    class: "btn-primary",
+                    click: function() {
+                        that.contents.rename(path, input.val()).then(function() {
+                            that.load_list();
+                        }).catch(function(e) { 
+                            dialog.modal({
+                                title : "Error",
+                                body : $('<div/>')
+                                    .text("An error occurred while renaming \"" + path + "\" to \"" + input.val() + "\".")
+                                    .append($('<div/>').addClass('alert alert-danger').text(String(e))),
+                                buttons : {
+                                    OK : {}
+                                }
+                            });
+                        });
+                    }
+                },
+                Cancel : {}
+            },
+            open : function () {
+                // Upon ENTER, click the OK button.
+                input.keydown(function (event) {
+                    if (event.which === keyboard.keycodes.enter) {
+                        d.find('.btn-primary').first().click();
+                        return false;
                     }
                 });
-                return false;
-            });
-        item.find(".item_buttons").append(duplicate_button);
+                input.focus().select();
+            }
+        });
     };
 
-    NotebookList.prototype.add_delete_button = function (item) {
-        var notebooklist = this;
-        var delete_button = $("<button/>").text("Delete").addClass("btn btn-default btn-xs").
-            click(function (e) {
-                // $(this) is the button that was clicked.
-                var that = $(this);
-                // We use the filename from the parent list_item element's
-                // data because the outer scope's values change as we iterate through the loop.
-                var parent_item = that.parents('div.list_item');
-                var name = parent_item.data('name');
-                var path = parent_item.data('path');
-                var message = 'Are you sure you want to permanently delete the file: ' + name + '?';
-                dialog.modal({
-                    title : "Delete file",
-                    body : message,
-                    buttons : {
-                        Delete : {
-                            class: "btn-danger",
-                            click: function() {
-                                notebooklist.contents.delete(path).then(
-                                    function() {
-                                        notebooklist.notebook_deleted(path);
+    NotebookList.prototype.delete_selected = function() {
+        var message;
+        if (this.selected.length == 1) {
+            message = 'Are you sure you want to permanently delete: ' + this.selected[0].name + '?';
+        } else {
+            message = 'Are you sure you want to permanently delete the ' + this.selected.length + ' files/folders selected?';
+        }
+        var that = this;
+        dialog.modal({
+            title : "Delete",
+            body : message,
+            buttons : {
+                Delete : {
+                    class: "btn-danger",
+                    click: function() {
+                        // Shutdown any/all selected notebooks before deleting 
+                        // the files.
+                        that.shutdown_selected();
+
+                        // Delete selected.
+                        that.selected.forEach(function(item) {
+                            that.contents.delete(item.path).then(function() {
+                                    that.notebook_deleted(item.path);
+                            }).catch(function(e) { 
+                                dialog.modal({
+                                    title : "Error",
+                                    body : $('<div/>')
+                                        .text("An error occurred while deleting \"" + item.path + "\".")
+                                        .append($('<div/>').addClass('alert alert-danger').text(String(e))),
+                                    buttons : {
+                                        OK : {}
                                     }
-                                );
-                            }
-                        },
-                        Cancel : {}
+                                });
+                            });
+                        });
                     }
-                });
-                return false;
-            });
-        item.find(".item_buttons").append(delete_button);
+                },
+                Cancel : {}
+            }
+        });
+    };
+
+    NotebookList.prototype.duplicate_selected = function() {
+        var message;
+        if (this.selected.length == 1) {
+            message = 'Are you sure you want to duplicate: ' + this.selected[0].name + '?';
+        } else {
+            message = 'Are you sure you want to duplicate the ' + this.selected.length + ' files selected?';
+        }
+        var that = this;
+        dialog.modal({
+            title : "Delete",
+            body : message,
+            buttons : {
+                Duplicate : {
+                    class: "btn-primary",
+                    click: function() {
+                        that.selected.forEach(function(item) {
+                            that.contents.copy(item.path, that.notebook_path).then(function () {
+                                that.load_list();
+                            }).catch(function(e) { 
+                                dialog.modal({
+                                    title : "Error",
+                                    body : $('<div/>')
+                                        .text("An error occurred while copying \"" + item.path + "\".")
+                                        .append($('<div/>').addClass('alert alert-danger').text(String(e))),
+                                    buttons : {
+                                        OK : {}
+                                    }
+                                });
+                            });
+                        });
+                    }
+                },
+                Cancel : {}
+            }
+        });
     };
 
     NotebookList.prototype.notebook_deleted = function(path) {
         /**
          * Remove the deleted notebook.
          */
+        var that = this;
         $( ":data(path)" ).each(function() {
             var element = $(this);
-            if (element.data("path") == path) {
+            if (element.data("path") === path) {
                 element.remove();
                 events.trigger('notebook_deleted.NotebookList');
+                that._selection_changed();
             }
         });
     };
