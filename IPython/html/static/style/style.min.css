@@ -8466,6 +8466,11 @@ body {
   -webkit-box-sizing: border-box;
   overflow: auto;
 }
+@media print {
+  #site {
+    height: auto !important;
+  }
+}
 /* Smaller buttons */
 .ui-button .ui-button-text {
   padding: 0.2em 0.8em;
