@@ -226,8 +226,11 @@ define(function (require) {
         });
         
         this.events.on('spec_changed.Kernel', function(event, data) {
-            that.metadata.kernelspec = 
-                {name: data.name, display_name: data.spec.display_name};
+            that.metadata.kernelspec = {
+                name: data.name,
+                display_name: data.spec.display_name,
+                language: data.spec.language,
+            };
             // start session if the current session isn't already correct
             if (!(this.session && this.session.kernel && this.session.kernel.name === data.name)) {
                 that.start_session(data.name);
@@ -2208,18 +2211,14 @@ define(function (require) {
         }
         
         if (this.session === null) {
-            var kernel_name;
-            if (this.metadata.kernelspec) {
-                var kernelspec = this.metadata.kernelspec || {};
-                kernel_name = kernelspec.name;
-            } else {
-                kernel_name = utils.get_url_param('kernel_name');
-            }
+            var kernel_name = utils.get_url_param('kernel_name');
             if (kernel_name) {
-                // setting kernel_name here triggers start_session
                 this.kernel_selector.set_kernel(kernel_name);
+            } else if (this.metadata.kernelspec) {
+                this.kernel_selector.set_kernel(this.metadata.kernelspec);
             } else {
-                // start a new session with the server's default kernel
+                // setting kernel via set_kernel above triggers start_session,
+                // otherwise start a new session with the server's default kernel
                 // spec_changed events will fire after kernel is loaded
                 this.start_session();
             }

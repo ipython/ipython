@@ -14,7 +14,7 @@ define([
         this.save_widget = options.save_widget;
         this.notebook = options.notebook;
         this.keyboard_manager = options.keyboard_manager;
-    }
+    };
     
     NotebookNotificationArea.prototype = Object.create(NotificationArea.prototype);
     
@@ -38,7 +38,7 @@ define([
         var knw = this.new_notification_widget('kernel');
         var $kernel_ind_icon = $("#kernel_indicator_icon");
         var $modal_ind_icon = $("#modal_indicator");
-        var $body = $('body')
+        var $body = $('body');
 
         // Command/Edit mode
         this.events.on('edit_mode.Notebook', function () {
@@ -57,9 +57,9 @@ define([
 
         // Implicitly start off in Command mode, switching to Edit mode will trigger event
         $modal_ind_icon.addClass('modal_indicator').attr('title','Command Mode');
-        $body.addClass('command_mode')
+        $body.addClass('command_mode');
 
-        // Kernel events 
+        // Kernel events
 
         // this can be either kernel_created.Kernel or kernel_created.Session
         this.events.on('kernel_created.Kernel kernel_created.Session', function () {
@@ -105,7 +105,7 @@ define([
                         }
                     }
                 });
-            };
+            }
 
             that.save_widget.update_document_title();
             knw.danger("Dead kernel");
@@ -187,6 +187,10 @@ define([
 
             showMsg();
         });
+        
+        this.events.on("no_kernel.Kernel", function (evt, data) {
+            $("#kernel_indicator").find('.kernel_indicator_name').text("No Kernel");
+        });
 
         this.events.on('kernel_dead.Session', function (evt, info) {
             var full = info.xhr.responseJSON.message;
@@ -251,6 +255,13 @@ define([
             window.document.title='(Busy) '+window.document.title;
             $kernel_ind_icon.attr('class','kernel_busy_icon').attr('title','Kernel Busy');
         });
+
+        this.events.on('spec_match_found.Kernel', function (evt, data) {
+            that.widget('kernelspec').info("Using kernel: " + data.found.spec.display_name, 3000, undefined, {
+                title: "Only candidate for language: " + data.selected.language + " was " + data.found.spec.display_name
+            });
+        });
+
         
         // Start the kernel indicator in the busy state, and send a kernel_info request.
         // When the kernel_info reply arrives, the kernel is idle.

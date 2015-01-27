@@ -25,7 +25,8 @@ define([
         // Make the object globally available for user convenience & inspection
         IPython.kernelselector = this;
         this._finish_load = null;
-        this.loaded = new Promise(function(resolve, reject) {
+        this._loaded = false;
+        this.loaded = new Promise(function(resolve) {
             that._finish_load = resolve;
         });
         
@@ -37,16 +38,12 @@ define([
         utils.promising_ajax(url).then($.proxy(this._got_kernelspecs, this));
     };
     
-    KernelSelector.prototype._got_kernelspecs = function(data) {
-        var that = this;
-        this.kernelspecs = data.kernelspecs;
-        var change_kernel_submenu = $("#menu-change-kernel-submenu");
-        var new_notebook_submenu = $("#menu-new-notebook-submenu");
-        
-        var keys = Object.keys(data.kernelspecs).sort(function (a, b) {
+    var _sorted_names = function(kernelspecs) {
+        // sort kernel names
+        return Object.keys(kernelspecs).sort(function (a, b) {
             // sort by display_name
-            var da = data.kernelspecs[a].spec.display_name;
-            var db = data.kernelspecs[b].spec.display_name;
+            var da = kernelspecs[a].spec.display_name;
+            var db = kernelspecs[b].spec.display_name;
             if (da === db) {
                 return 0;
             } else if (da > db) {
@@ -55,6 +52,14 @@ define([
                 return -1;
             }
         });
+    };
+    
+    KernelSelector.prototype._got_kernelspecs = function(data) {
+        var that = this;
+        this.kernelspecs = data.kernelspecs;
+        var change_kernel_submenu = $("#menu-change-kernel-submenu");
+        var new_notebook_submenu = $("#menu-new-notebook-submenu");
+        var keys = _sorted_names(data.kernelspecs);
         
         keys.map(function (key) {
             // Create the Kernel > Change kernel submenu
@@ -83,6 +88,7 @@ define([
 
         });
         // trigger loaded promise
+        this._loaded = true;
         this._finish_load();
     };
     
@@ -154,27 +160,114 @@ define([
         }
     };
 
-    KernelSelector.prototype.set_kernel = function (kernel_name) {
-        /** set the kernel by name, ensuring kernelspecs have been loaded, first */
+    KernelSelector.prototype.set_kernel = function (selected) {
+        /** set the kernel by name, ensuring kernelspecs have been loaded, first 
+        
+        kernel can be just a kernel name, or a notebook kernelspec metadata
+        (name, language, display_name).
+        */
         var that = this;
-        return this.loaded.then(function () {
-            that._set_kernel(kernel_name);
-        });
+        if (typeof selected === 'string') {
+            selected = {
+                name: selected
+            };
+        }
+        if (this._loaded) {
+            this._set_kernel(selected);
+        } else {
+            return this.loaded.then(function () {
+                that._set_kernel(selected);
+            });
+        }
     };
 
-    KernelSelector.prototype._set_kernel = function (kernel_name) {
+    KernelSelector.prototype._set_kernel = function (selected) {
         /** Actually set the kernel (kernelspecs have been loaded) */
-        if (kernel_name === this.current_selection) {
+        if (selected.name === this.current_selection) {
             // only trigger event if value changed
             return;
         }
-        var ks = this.kernelspecs[kernel_name];
+        var kernelspecs = this.kernelspecs;
+        var ks = kernelspecs[selected.name];
+        if (ks === undefined) {
+            var available = _sorted_names(kernelspecs);
+            var matches = [];
+            if (selected.language && selected.language.length > 0) {
+                available.map(function (name) {
+                    if (kernelspecs[name].spec.language.toLowerCase() === selected.language.toLowerCase()) {
+                        matches.push(name);
+                    }
+                });
+            }
+            if (matches.length === 1) {
+                ks = kernelspecs[matches[0]];
+                console.log("No exact match found for " + selected.name +
+                    ", using only kernel that matches language=" + selected.language, ks);
+                this.events.trigger("spec_match_found.Kernel", {
+                    selected: selected,
+                    found: ks,
+                });
+            }
+            // if still undefined, trigger failure event
+            if (ks === undefined) {
+                this.events.trigger("spec_not_found.Kernel", {
+                    selected: selected,
+                    matches: matches,
+                    available: available,
+                });
+                return;
+            }
+        }
         if (this.notebook._session_starting) {
             console.error("Cannot change kernel while waiting for pending session start.");
             return;
         }
-        this.current_selection = kernel_name;
+        this.current_selection = ks.name;
         this.events.trigger('spec_changed.Kernel', ks);
+    };
+    
+    KernelSelector.prototype._spec_not_found = function (event, data) {
+        var that = this;
+        var select = $("<select>").addClass('form-control');
+        console.warn("Kernelspec not found:", data);
+        var names;
+        if (data.matches.length > 1) {
+            names = data.matches;
+        } else {
+            names = data.available;
+        }
+        names.map(function (name) {
+            var ks = that.kernelspecs[name];
+            select.append(
+                $('<option/>').attr('value', ks.name).text(ks.spec.display_name || ks.name)
+            );
+        });
+        
+        var body = $("<form>").addClass("form-inline").append(
+            $("<span>").text(
+                "I couldn't find a kernel matching " + (data.selected.display_name || data.name) + "." +
+                " Please select a kernel:"
+            )
+        ).append(select);
+        
+        dialog.modal({
+            title : 'Kernel not found',
+            body : body,
+            buttons : {
+                'Continue without kernel' : {
+                    class : 'btn-danger',
+                    click : function () {
+                        that.events.trigger('no_kernel.Kernel');
+                    }
+                },
+                OK : {
+                    class : 'btn-primary',
+                    click : function () {
+                        that.set_kernel(select.val());
+                    }
+                }
+            }
+        });
     };
 
     KernelSelector.prototype.new_notebook = function (kernel_name) {
@@ -213,7 +306,7 @@ define([
     KernelSelector.prototype.bind_events = function() {
         var that = this;
         this.events.on('spec_changed.Kernel', $.proxy(this._spec_changed, this));
-
+        this.events.on('spec_not_found.Kernel', $.proxy(this._spec_not_found, this));
         this.events.on('kernel_created.Session', function (event, data) {
             that.set_kernel(data.kernel.name);
         });
