@@ -13,6 +13,7 @@ define(function (require) {
     var cellmod = require('notebook/js/cell');
     var textcell = require('notebook/js/textcell');
     var codecell = require('notebook/js/codecell');
+    var moment = require('moment');
     var configmod = require('services/config');
     var session = require('services/sessions/session');
     var celltoolbar = require('notebook/js/celltoolbar');
@@ -2341,7 +2342,8 @@ define(function (require) {
             $('<p/>').addClass("p-space").text("The checkpoint was last updated at:")
         ).append(
             $('<p/>').addClass("p-space").text(
-                Date(checkpoint.last_modified)
+                moment(checkpoint.last_modified).format('LLLL') +
+                ' ('+moment(checkpoint.last_modified).fromNow()+')'// Long form:  Tuesday, January 27, 2015 12:15 PM
             ).css("text-align", "center")
         );
         
