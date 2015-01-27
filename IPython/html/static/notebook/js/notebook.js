@@ -4,50 +4,29 @@
 /**
  * @module notebook
  */
-define([
-    'base/js/namespace',
-    'jquery',
-    'base/js/utils',
-    'base/js/dialog',
-    'notebook/js/cell',
-    'notebook/js/textcell',
-    'notebook/js/codecell',
-    'services/config',
-    'services/sessions/session',
-    'notebook/js/celltoolbar',
-    'components/marked/lib/marked',
-    'codemirror/lib/codemirror',
-    'codemirror/addon/runmode/runmode',
-    'notebook/js/mathjaxutils',
-    'base/js/keyboard',
-    'notebook/js/tooltip',
-    'notebook/js/celltoolbarpresets/default',
-    'notebook/js/celltoolbarpresets/rawcell',
-    'notebook/js/celltoolbarpresets/slideshow',
-    'notebook/js/scrollmanager'
-], function (
-    IPython, 
-    $,
-    utils,
-    dialog,
-    cellmod,
-    textcell,
-    codecell,
-    configmod,
-    session, 
-    celltoolbar,
-    marked,
-    CodeMirror,
-    runMode,
-    mathjaxutils,
-    keyboard,
-    tooltip,
-    default_celltoolbar,
-    rawcell_celltoolbar,
-    slideshow_celltoolbar,
-    scrollmanager
-    ) {
+define(function (require) {
     "use strict";
+    var IPython = require('base/js/namespace');
+    var $ = require('jquery');
+    var utils = require('base/js/utils');
+    var dialog = require('base/js/dialog');
+    var cellmod = require('notebook/js/cell');
+    var textcell = require('notebook/js/textcell');
+    var codecell = require('notebook/js/codecell');
+    var moment = require('moment');
+    var configmod = require('services/config');
+    var session = require('services/sessions/session');
+    var celltoolbar = require('notebook/js/celltoolbar');
+    var marked = require('components/marked/lib/marked');
+    var CodeMirror = require('codemirror/lib/codemirror');
+    var runMode = require('codemirror/addon/runmode/runmode');
+    var mathjaxutils = require('notebook/js/mathjaxutils');
+    var keyboard = require('base/js/keyboard');
+    var tooltip = require('notebook/js/tooltip');
+    var default_celltoolbar = require('notebook/js/celltoolbarpresets/default');
+    var rawcell_celltoolbar = require('notebook/js/celltoolbarpresets/rawcell');
+    var slideshow_celltoolbar = require('notebook/js/celltoolbarpresets/slideshow');
+    var scrollmanager = require('notebook/js/scrollmanager');
 
     /**
      * Contains and manages cells.
@@ -2403,7 +2382,8 @@ define([
             $('<p/>').addClass("p-space").text("The checkpoint was last updated at:")
         ).append(
             $('<p/>').addClass("p-space").text(
-                Date(checkpoint.last_modified)
+                moment(checkpoint.last_modified).format('LLLL') +
+                ' ('+moment(checkpoint.last_modified).fromNow()+')'// Long form:  Tuesday, January 27, 2015 12:15 PM
             ).css("text-align", "center")
         );
         
