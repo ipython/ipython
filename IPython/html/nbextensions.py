@@ -134,7 +134,7 @@ def check_nbextension(files, user=False, prefix=None, nbextensions_dir=None):
     return all(os.path.exists(pjoin(nbext, f)) for f in files)
 
 
-def install_nbextension(files, overwrite=False, symlink=False, user=False, prefix=None, nbextensions_dir=None, verbose=1):
+def install_nbextension(path, overwrite=False, symlink=False, user=False, prefix=None, nbextensions_dir=None, destination=None, verbose=1):
     """Install a Javascript extension for the notebook
     
     Stages files and/or directories into the nbextensions directory.
@@ -144,11 +144,9 @@ def install_nbextension(files, overwrite=False, symlink=False, user=False, prefi
     Parameters
     ----------
     
-    files : list(paths or URLs) or dict(install_name: path or URL)
-        One or more paths or URLs to existing files directories to install.
-        If given as a list, these will be installed with their base name, so '/path/to/foo'
-        will install to 'nbextensions/foo'.  If given as a dict, such as {'bar': '/path/to/foo'},
-        then '/path/to/foo' will install to 'nbextensions/bar'.
+    path : path to file, directory, zip or tarball archive, or URL to install
+        By default, the file will be installed with its base name, so '/path/to/foo'
+        will install to 'nbextensions/foo'. See the destination argument below to change this.
         Archives (zip or tarballs) will be extracted into the nbextensions directory.
     overwrite : bool [default: False]
         If True, always install the files, regardless of what may already be installed.
@@ -165,6 +163,10 @@ def install_nbextension(files, overwrite=False, symlink=False, user=False, prefi
         Will install to prefix/share/jupyter/nbextensions
     nbextensions_dir : str [optional]
         Specify absolute path of nbextensions directory explicitly.
+    destination : str [optional]
+        name the nbextension is installed to.  For example, if destination is 'foo', then
+        the source file will be installed to 'nbextensions/foo', regardless of the source name.
+        This cannot be specified if an archive is given as the source.
     verbose : int [default: 1]
         Set verbosity level. The default is 1, where file actions are printed.
         set verbose=2 for more output, or verbose=0 for silence.
@@ -173,75 +175,61 @@ def install_nbextension(files, overwrite=False, symlink=False, user=False, prefi
     # make sure nbextensions dir exists
     ensure_dir_exists(nbext)
     
-    if isinstance(files, string_types):
-        # one file given, turn it into a list
-        files = [files]
-    if isinstance(files, (list,tuple)):
-        # list given, turn into dict
-        _files = {}
-        for path in map(cast_unicode_py2, files):
-            if path.startswith(('https://', 'http://')):
-                destination = urlparse(path).path.split('/')[-1]
-            elif path.endswith('.zip') or _safe_is_tarfile(path):
-                destination = str(uuid.uuid4()) # ignored for archives
-            else:
-                destination = basename(path)
-            _files[destination] = path
-        files = _files
+    if isinstance(path, (list, tuple)):
+        raise TypeError("path must be a string pointing to a single extension to install; call this function multiple times to install multiple extensions")
     
-    for dest_basename,path in (map(cast_unicode_py2, item) for item in files.items()):
-        
-        if path.startswith(('https://', 'http://')):
-            if symlink:
-                raise ValueError("Cannot symlink from URLs")
-            # Given a URL, download it
-            with TemporaryDirectory() as td:
-                filename = urlparse(path).path.split('/')[-1]
-                local_path = os.path.join(td, filename)
-                if verbose >= 1:
-                    print("downloading %s to %s" % (path, local_path))
-                urlretrieve(path, local_path)
-                # now install from the local copy
-                install_nbextension({dest_basename: local_path}, overwrite=overwrite, symlink=symlink, nbextensions_dir=nbext, verbose=verbose)
-            continue
-        
-        # handle archives
-        archive = None
+    path = cast_unicode_py2(path)
+
+    if path.startswith(('https://', 'http://')):
+        if symlink:
+            raise ValueError("Cannot symlink from URLs")
+        # Given a URL, download it
+        with TemporaryDirectory() as td:
+            filename = urlparse(path).path.split('/')[-1]
+            local_path = os.path.join(td, filename)
+            if verbose >= 1:
+                print("downloading %s to %s" % (path, local_path))
+            urlretrieve(path, local_path)
+            # now install from the local copy
+            install_nbextension(local_path, overwrite=overwrite, symlink=symlink, nbextensions_dir=nbext, destination=destination, verbose=verbose)
+    elif path.endswith('.zip') or _safe_is_tarfile(path):
+        if symlink:
+            raise ValueError("Cannot symlink from archives")
+        if destination:
+            raise ValueError("Cannot give destination for archives")
+        if verbose >= 1:
+            print("extracting %s to %s" % (path, nbext))
+
         if path.endswith('.zip'):
             archive = zipfile.ZipFile(path)
         elif _safe_is_tarfile(path):
             archive = tarfile.open(path)
-        
-        if archive:
-            if symlink:
-                raise ValueError("Cannot symlink from archives")
+        else:
+            raise ValueError("Could not extract archive")
+        archive.extractall(nbext)
+        archive.close()
+    else:
+        if not destination:
+            destination = basename(path)
+        full_dest = pjoin(nbext, destination)
+        if overwrite and os.path.exists(full_dest):
             if verbose >= 1:
-                print("extracting %s to %s" % (path, nbext))
-            archive.extractall(nbext)
-            archive.close()
-            continue
-        
-        dest = pjoin(nbext, dest_basename)
-        if overwrite and os.path.exists(dest):
-            if verbose >= 1:
-                print("removing %s" % dest)
-            if os.path.isdir(dest) and not os.path.islink(dest):
-                shutil.rmtree(dest)
+                print("removing %s" % full_dest)
+            if os.path.isdir(full_dest) and not os.path.islink(full_dest):
+                shutil.rmtree(full_dest)
             else:
-                os.remove(dest)
-        
+                os.remove(full_dest)
+
         if symlink:
             path = os.path.abspath(path)
-            if not os.path.exists(dest):
+            if not os.path.exists(full_dest):
                 if verbose >= 1:
-                    print("symlink %s -> %s" % (dest, path))
-                os.symlink(path, dest)
-            continue
-
-        if os.path.isdir(path):
+                    print("symlink %s -> %s" % (full_dest, path))
+                os.symlink(path, full_dest)
+        elif os.path.isdir(path):
             path = pjoin(os.path.abspath(path), '') # end in path separator
             for parent, dirs, files in os.walk(path):
-                dest_dir = pjoin(dest, parent[len(path):])
+                dest_dir = pjoin(full_dest, parent[len(path):])
                 if not os.path.exists(dest_dir):
                     if verbose >= 2:
                         print("making directory %s" % dest_dir)
@@ -281,7 +269,7 @@ flags = {
     "symlink" : ({
         "NBExtensionApp" : {
             "symlink" : True,
-        }}, "Create symlinks instead of copying files"
+        }}, "Create symlink instead of copying files"
     ),
     "user" : ({
         "NBExtensionApp" : {
@@ -295,6 +283,7 @@ aliases = {
     "ipython-dir" : "NBExtensionApp.ipython_dir",
     "prefix" : "NBExtensionApp.prefix",
     "nbextensions" : "NBExtensionApp.nbextensions_dir",
+    "destination" : "NBExtensionApp.destination",
 }
 
 class NBExtensionApp(BaseIPythonApplication):
@@ -304,9 +293,9 @@ class NBExtensionApp(BaseIPythonApplication):
     
     Usage
     
-        ipython install-nbextension file [more files, folders, archives or urls]
+        ipython install-nbextension [file, folder, archive, or url]
     
-    This copies files and/or folders into the IPython nbextensions directory.
+    This copies a file and/or a folder into the IPython nbextensions directory.
     If a URL is given, it will be downloaded.
     If an archive is given, it will be extracted into nbextensions.
     If the requested files are already up to date, no action is taken
@@ -314,7 +303,7 @@ class NBExtensionApp(BaseIPythonApplication):
     """
     
     examples = """
-    ipython install-nbextension /path/to/d3.js /path/to/myextension
+    ipython install-nbextension /path/to/myextension
     """
     aliases = aliases
     flags = flags
@@ -324,6 +313,7 @@ class NBExtensionApp(BaseIPythonApplication):
     user = Bool(False, config=True, help="Whether to do a user install")
     prefix = Unicode('', config=True, help="Installation prefix")
     nbextensions_dir = Unicode('', config=True, help="Full path to nbextensions dir (probably use prefix or user)")
+    destination = Unicode('', config=True, help="Destination for the copy or symlink")
     verbose = Enum((0,1,2), default_value=1, config=True,
         help="Verbosity level"
     )
@@ -335,6 +325,7 @@ class NBExtensionApp(BaseIPythonApplication):
             verbose=self.verbose,
             user=self.user,
             prefix=self.prefix,
+            destination=self.destination,
             nbextensions_dir=self.nbextensions_dir,
         )
     
