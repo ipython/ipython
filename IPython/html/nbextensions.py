@@ -293,9 +293,9 @@ class NBExtensionApp(BaseIPythonApplication):
     
     Usage
     
-        ipython install-nbextension [file, folder, archive, or url]
+        ipython install-nbextension path/url
     
-    This copies a file and/or a folder into the IPython nbextensions directory.
+    This copies a file or a folder into the IPython nbextensions directory.
     If a URL is given, it will be downloaded.
     If an archive is given, it will be extracted into nbextensions.
     If the requested files are already up to date, no action is taken
