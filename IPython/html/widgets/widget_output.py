@@ -36,6 +36,7 @@ class Output(DOMWidget):
 
     def __init__(self, *args, **kwargs):
         super(Output, self).__init__(*args, **kwargs)
+        from IPython import get_ipython
         self._ip = get_ipython()
 
     def clear_output(self, *pargs, **kwargs):
