@@ -293,7 +293,7 @@ define([
         // directory nav doesn't open new tabs
         // files, notebooks do
         if (model.type !== "directory") {
-            link.attr('target','_blank');
+            link.attr('target',IPython._target||'_blank');
         }
         if (model.type !== 'directory') {
             this.add_duplicate_button(item);

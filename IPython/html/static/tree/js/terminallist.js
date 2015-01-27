@@ -93,7 +93,7 @@ define([
         item.find(".item_icon").addClass("fa fa-terminal");
         var link = item.find("a.item_link")
             .attr('href', utils.url_join_encode(this.base_url, "terminals", name));
-        link.attr('target', '_blank');
+        link.attr('target', IPython._target||'_blank');
         this.add_shutdown_button(name, item);
     };
     
