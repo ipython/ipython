@@ -209,6 +209,7 @@ def install_nbextension(path, overwrite=False, symlink=False, user=False, prefix
     else:
         if not destination:
             destination = basename(path)
+        destination = cast_unicode_py2(destination)
         full_dest = pjoin(nbext, destination)
         if overwrite and os.path.exists(full_dest):
             if verbose >= 1:
