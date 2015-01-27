@@ -21,7 +21,7 @@ from IPython.utils.warn import DeprecatedClass
 # Classes
 #-----------------------------------------------------------------------------
 class _Float(DOMWidget):
-    value = CFloat(0.0, help="Float value", sync=True) 
+    value = CFloat(0.0, help="Float value", sync=True)
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
 
@@ -38,13 +38,31 @@ class _BoundedFloat(_Float):
     def __init__(self, *pargs, **kwargs):
         """Constructor"""
         super(_BoundedFloat, self).__init__(*pargs, **kwargs)
-        self._validate('value', None, self.value)
-        self.on_trait_change(self._validate, ['value', 'min', 'max'])
+        self._handle_value_changed('value', None, self.value)
+        self._handle_max_changed('max', None, self.max)
+        self._handle_min_changed('min', None, self.min)
+        self.on_trait_change(self._handle_value_changed, 'value')
+        self.on_trait_change(self._handle_max_changed, 'max')
+        self.on_trait_change(self._handle_min_changed, 'min')
 
-    def _validate(self, name, old, new):
-        """Validate value, max, min."""
+    def _handle_value_changed(self, name, old, new):
+        """Validate value."""
         if self.min > new or new > self.max:
             self.value = min(max(new, self.min), self.max)
+
+    def _handle_max_changed(self, name, old, new):
+        """Make sure the min is always <= the max."""
+        if new < self.min:
+            raise ValueError("setting max < min")
+        if new < self.value:
+            self.value = new
+
+    def _handle_min_changed(self, name, old, new):
+        """Make sure the max is always >= the min."""
+        if new > self.max:
+            raise ValueError("setting min > max")
+        if new > self.value:
+            self.value = new
 
 
 @register('IPython.FloatText')
