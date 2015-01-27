@@ -448,7 +448,7 @@ class TraitType(object):
         if value is None and self.allow_none:
             return value
         if 'validate' in self._metadata:
-            return self._metadata['validate'](obj, value, self)
+            value = self._metadata['validate'](obj, value, self)
         if hasattr(self, 'validate'):
             return self.validate(obj, value)
         elif hasattr(self, 'is_valid_for'):
