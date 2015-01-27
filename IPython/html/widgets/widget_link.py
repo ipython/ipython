@@ -52,7 +52,7 @@ class Link(Widget):
 
 
 @skip_doctest
-def link(*args):
+def jslink(*args):
     """Link traits from different widgets together on the frontend so they remain in sync.
 
     Parameters
@@ -93,7 +93,7 @@ class DirectionalLink(Widget):
         self.close()
 
 @skip_doctest
-def directional_link(source, *targets):
+def jsdlink(source, *targets):
     """Link the trait of a source widget with traits of target widgets in the frontend.
 
     Parameters
@@ -109,4 +109,3 @@ def directional_link(source, *targets):
     """
     return DirectionalLink(source=source, targets=targets)
 
-dlink = directional_link

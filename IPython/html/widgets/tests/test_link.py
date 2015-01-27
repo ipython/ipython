@@ -3,37 +3,37 @@
 
 import nose.tools as nt
 
-from .. import link, dlink, ToggleButton
+from .. import jslink, jsdlink, ToggleButton
 from .test_interaction import setup, teardown
 
-def test_link_args():
+def test_jslink_args():
     with nt.assert_raises(TypeError):
-        link()
+        jslink()
     w1 = ToggleButton()
     with nt.assert_raises(TypeError):
-        link((w1, 'value'))
+        jslink((w1, 'value'))
     
     w2 = ToggleButton()
-    link((w1, 'value'), (w2, 'value'))
+    jslink((w1, 'value'), (w2, 'value'))
 
     with nt.assert_raises(TypeError):
-        link((w1, 'value'), (w2, 'nosuchtrait'))
+        jslink((w1, 'value'), (w2, 'nosuchtrait'))
 
     with nt.assert_raises(TypeError):
-        link((w1, 'value'), (w2, 'traits'))
+        jslink((w1, 'value'), (w2, 'traits'))
 
-def test_dlink_args():
+def test_jsdlink_args():
     with nt.assert_raises(TypeError):
-        dlink()
+        jsdlink()
     w1 = ToggleButton()
     with nt.assert_raises(TypeError):
-        dlink((w1, 'value'))
+        jsdlink((w1, 'value'))
     
     w2 = ToggleButton()
-    dlink((w1, 'value'), (w2, 'value'))
+    jsdlink((w1, 'value'), (w2, 'value'))
 
     with nt.assert_raises(TypeError):
-        dlink((w1, 'value'), (w2, 'nosuchtrait'))
+        jsdlink((w1, 'value'), (w2, 'nosuchtrait'))
 
     with nt.assert_raises(TypeError):
-        dlink((w1, 'value'), (w2, 'traits'))
+        jsdlink((w1, 'value'), (w2, 'traits'))
