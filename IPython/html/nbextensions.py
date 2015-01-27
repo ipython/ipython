@@ -204,8 +204,6 @@ def install_nbextension(path, overwrite=False, symlink=False, user=False, prefix
             archive = zipfile.ZipFile(path)
         elif _safe_is_tarfile(path):
             archive = tarfile.open(path)
-        else:
-            raise ValueError("Could not extract archive")
         archive.extractall(nbext)
         archive.close()
     else:
