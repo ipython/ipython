@@ -319,7 +319,9 @@ class NBExtensionApp(BaseIPythonApplication):
     )
     
     def install_extensions(self):
-        install_nbextension(self.extra_args,
+        if len(self.extra_args)>1:
+            raise ValueError("only one nbextension allowed at a time.  Call multiple times to install multiple extensions.")
+        install_nbextension(self.extra_args[0],
             overwrite=self.overwrite,
             symlink=self.symlink,
             verbose=self.verbose,
