@@ -519,7 +519,7 @@ define([
         if (this.selected.length == 1) {
             message = 'Are you sure you want to permanently delete: ' + this.selected[0].name + '?';
         } else {
-            message = 'Are you sure you want to permanently delete the ' + this.selected.length + ' files selected?';
+            message = 'Are you sure you want to permanently delete the ' + this.selected.length + ' files/folders selected?';
         }
         var that = this;
         dialog.modal({
