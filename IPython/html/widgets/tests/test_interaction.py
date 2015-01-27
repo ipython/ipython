@@ -80,7 +80,8 @@ def check_widgets(container, **to_check):
     # build a widget dictionary, so it matches
     widgets = {}
     for w in container.children:
-        widgets[w.description] = w
+        if hasattr(w, 'description'):
+            widgets[w.description] = w
     
     for key, d in to_check.items():
         nt.assert_in(key, widgets)
@@ -138,7 +139,7 @@ def test_single_value_float():
 def test_single_value_int():
     for a in (1, 5, -3):
         c = interactive(f, a=a)
-        nt.assert_equal(len(c.children), 1)
+        nt.assert_equal(len(c.children), 2)
         w = c.children[0]
         check_widget(w,
             cls=widgets.IntSlider,
@@ -157,7 +158,7 @@ def test_list_tuple_2_int():
         c = interactive(f, tup=(1,-1))
     for min, max in [ (0,1), (1,10), (1,2), (-5,5), (-20,-19) ]:
         c = interactive(f, tup=(min, max), lis=[min, max])
-        nt.assert_equal(len(c.children), 2)
+        nt.assert_equal(len(c.children), 3)
         d = dict(
             cls=widgets.IntSlider,
             min=min,
@@ -174,7 +175,7 @@ def test_list_tuple_3_int():
         c = interactive(f, tup=(1,2,-1))
     for min, max, step in [ (0,2,1), (1,10,2), (1,100,2), (-5,5,4), (-100,-20,4) ]:
         c = interactive(f, tup=(min, max, step), lis=[min, max, step])
-        nt.assert_equal(len(c.children), 2)
+        nt.assert_equal(len(c.children), 3)
         d = dict(
             cls=widgets.IntSlider,
             min=min,
@@ -191,7 +192,7 @@ def test_list_tuple_2_float():
         c = interactive(f, tup=(0.5,-0.5))
     for min, max in [ (0.5, 1.5), (1.1,10.2), (1,2.2), (-5.,5), (-20,-19.) ]:
         c = interactive(f, tup=(min, max), lis=[min, max])
-        nt.assert_equal(len(c.children), 2)
+        nt.assert_equal(len(c.children), 3)
         d = dict(
             cls=widgets.FloatSlider,
             min=min,
@@ -210,7 +211,7 @@ def test_list_tuple_3_float():
         c = interactive(f, tup=(1,2.,-1.))
     for min, max, step in [ (0.,2,1), (1,10.,2), (1,100,2.), (-5.,5.,4), (-100,-20.,4.) ]:
         c = interactive(f, tup=(min, max, step), lis=[min, max, step])
-        nt.assert_equal(len(c.children), 2)
+        nt.assert_equal(len(c.children), 3)
         d = dict(
             cls=widgets.FloatSlider,
             min=min,
@@ -224,7 +225,7 @@ def test_list_tuple_str():
     values = ['hello', 'there', 'guy']
     first = values[0]
     c = interactive(f, tup=tuple(values), lis=list(values))
-    nt.assert_equal(len(c.children), 2)
+    nt.assert_equal(len(c.children), 3)
     d = dict(
         cls=widgets.Dropdown,
         value=first,
@@ -471,7 +472,7 @@ def test_call_decorated_kwargs_on_trait_change():
 
 def test_fixed():
     c = interactive(f, a=widgets.fixed(5), b='text')
-    nt.assert_equal(len(c.children), 1)
+    nt.assert_equal(len(c.children), 2)
     w = c.children[0]
     check_widget(w,
         cls=widgets.Text,
