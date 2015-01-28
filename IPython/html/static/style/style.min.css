@@ -8794,6 +8794,23 @@ input.engine_num_input {
 .notebook_icon:before.pull-right {
   margin-left: .3em;
 }
+.running_notebook_icon:before {
+  display: inline-block;
+  font: normal normal normal 14px/1 FontAwesome;
+  font-size: inherit;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transform: translate(0, 0);
+  content: "\f02d";
+  color: #5cb85c;
+}
+.running_notebook_icon:before.pull-left {
+  margin-right: .3em;
+}
+.running_notebook_icon:before.pull-right {
+  margin-left: .3em;
+}
 .file_icon:before {
   display: inline-block;
   font: normal normal normal 14px/1 FontAwesome;
