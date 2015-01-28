@@ -8705,6 +8705,9 @@ ul.breadcrumb span {
 .list_item > div input {
   margin-right: 7px;
 }
+.new-file input[type=checkbox] {
+  visibility: hidden;
+}
 .item_name {
   line-height: 22px;
   height: 24px;
