@@ -78,6 +78,19 @@ define([
                         that.base_url, 'edit', data.path
                     );
                     w.location = url;
+                }).catch(function (e) {
+                    w.close();
+                    dialog.modal({
+                        title: 'Creating File Failed',
+                        body: $('<div/>')
+                            .text("An error occurred while creating a new file.")
+                            .append($('<div/>')
+                                .addClass('alert alert-danger')
+                                .text(e.message || e)),
+                        buttons: {
+                            OK: {'class': 'btn-primary'}
+                        }
+                    });
                 });
                 that.load_sessions();
             });
@@ -85,7 +98,20 @@ define([
                 that.contents.new_untitled(that.notebook_path || '', {type: 'directory'})
                 .then(function(){
                     that.load_list();
+                }).catch(function (e) {
+                    dialog.modal({
+                        title: 'Creating Folder Failed',
+                        body: $('<div/>')
+                            .text("An error occurred while creating a new folder.")
+                            .append($('<div/>')
+                                .addClass('alert alert-danger')
+                                .text(e.message || e)),
+                        buttons: {
+                            OK: {'class': 'btn-primary'}
+                        }
+                    });
                 });
+                that.load_sessions();
             });
 
             $('.rename-button').click($.proxy(this.rename_selected, this));
@@ -462,7 +488,7 @@ define([
             );
             $.ajax(url, settings);
         }
-    }
+    };
 
     NotebookList.prototype.rename_selected = function() {
         if (this.selected.length != 1) return;
@@ -488,12 +514,14 @@ define([
                             that.load_list();
                         }).catch(function(e) { 
                             dialog.modal({
-                                title : "Error",
-                                body : $('<div/>')
+                                title: "Rename Failed",
+                                body: $('<div/>')
                                     .text("An error occurred while renaming \"" + path + "\" to \"" + input.val() + "\".")
-                                    .append($('<div/>').addClass('alert alert-danger').text(String(e))),
-                                buttons : {
-                                    OK : {}
+                                    .append($('<div/>')
+                                        .addClass('alert alert-danger')
+                                        .text(e.message || e)),
+                                buttons: {
+                                    OK: {'class': 'btn-primary'}
                                 }
                             });
                         });
@@ -539,12 +567,14 @@ define([
                                     that.notebook_deleted(item.path);
                             }).catch(function(e) { 
                                 dialog.modal({
-                                    title : "Error",
-                                    body : $('<div/>')
+                                    title: "Delete Failed",
+                                    body: $('<div/>')
                                         .text("An error occurred while deleting \"" + item.path + "\".")
-                                        .append($('<div/>').addClass('alert alert-danger').text(String(e))),
-                                    buttons : {
-                                        OK : {}
+                                        .append($('<div/>')
+                                            .addClass('alert alert-danger')
+                                            .text(e.message || e)),
+                                    buttons: {
+                                        OK: {'class': 'btn-primary'}
                                     }
                                 });
                             });
@@ -576,12 +606,14 @@ define([
                                 that.load_list();
                             }).catch(function(e) { 
                                 dialog.modal({
-                                    title : "Error",
-                                    body : $('<div/>')
-                                        .text("An error occurred while copying \"" + item.path + "\".")
-                                        .append($('<div/>').addClass('alert alert-danger').text(String(e))),
-                                    buttons : {
-                                        OK : {}
+                                    title: "Delete Failed",
+                                    body: $('<div/>')
+                                        .text("An error occurred while deleting \"" + item.path + "\".")
+                                        .append($('<div/>')
+                                            .addClass('alert alert-danger')
+                                            .text(e.message || e)),
+                                    buttons: {
+                                        OK: {'class': 'btn-primary'}
                                     }
                                 });
                             });

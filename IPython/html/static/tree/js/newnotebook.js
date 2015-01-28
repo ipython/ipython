@@ -85,16 +85,20 @@ define([
                     url += "?kernel_name=" + kernel_name;
                 }
                 w.location = url;
-            },
-            function (error) {
-                w.close();
-                dialog.modal({
-                    title : 'Creating Notebook Failed',
-                    body : "The error was: " + error.message,
-                    buttons : {'OK' : {'class' : 'btn-primary'}}
-                });
-            }
-        );
+        }).catch(function (e) {
+            w.close();
+            dialog.modal({
+                title : 'Creating Notebook Failed',
+                body : $('<div/>')
+                    .text("An error occurred while creating a new notebook.")
+                    .append($('<div/>')
+                        .addClass('alert alert-danger')
+                        .text(e.message || e)),
+                buttons: {
+                    OK: {'class' : 'btn-primary'}
+                }
+            });
+        });
     };
     
     return {'NewNotebookWidget': NewNotebookWidget};
