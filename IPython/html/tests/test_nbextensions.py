@@ -280,6 +280,22 @@ class TestInstallNBExtension(TestCase):
         self.assertEqual(link, src)
     
     @dec.skip_win32
+    def test_overwrite_broken_symlink(self):
+        with TemporaryDirectory() as d:
+            f = u'ƒ.js'
+            f2 = u'ƒ2.js'
+            src = pjoin(d, f)
+            src2 = pjoin(d, f2)
+            touch(src)
+            install_nbextension(src, symlink=True)
+            os.rename(src, src2)
+            install_nbextension(src2, symlink=True, overwrite=True, destination=f)
+        dest = pjoin(self.system_nbext, f)
+        assert os.path.islink(dest)
+        link = os.readlink(dest)
+        self.assertEqual(link, src2)
+
+    @dec.skip_win32
     def test_install_symlink_destination(self):
         with TemporaryDirectory() as d:
             f = u'ƒ.js'
