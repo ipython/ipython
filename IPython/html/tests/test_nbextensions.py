@@ -133,13 +133,21 @@ class TestInstallNBExtension(TestCase):
         d = u'∂ir'
         install_nbextension(pjoin(self.src, d))
         self.assert_installed(self.files[-1])
-        install_nbextension({'test': pjoin(self.src, d)})
-        self.assert_installed(pjoin('test', u'∂ir2', u'ƒile2'))
+    
+
+    def test_destination_file(self):
+        file = self.files[0]
+        install_nbextension(pjoin(self.src, file), destination = u'ƒiledest')
+        self.assert_installed(u'ƒiledest')
+
+    def test_destination_dir(self):
+        d = u'∂ir'
+        install_nbextension(pjoin(self.src, d), destination = u'ƒiledest2')
+        self.assert_installed(pjoin(u'ƒiledest2', u'∂ir2', u'ƒile2'))
     
     def test_install_nbextension(self):
-        install_nbextension(glob.glob(pjoin(self.src, '*')))
-        for file in self.files:
-            self.assert_installed(file)
+        with self.assertRaises(TypeError):
+            install_nbextension(glob.glob(pjoin(self.src, '*')))
     
     def test_overwrite_file(self):
         with TemporaryDirectory() as d:
@@ -242,7 +250,8 @@ class TestInstallNBExtension(TestCase):
             self.assert_installed("foo.js")
             install_nbextension("https://example.com/path/to/another/bar.js")
             self.assert_installed("bar.js")
-            install_nbextension({'foobar.js': "https://example.com/path/to/another/bar.js"})
+            install_nbextension("https://example.com/path/to/another/bar.js", 
+                                destination = 'foobar.js')
             self.assert_installed("foobar.js")
         finally:
             nbextensions.urlretrieve = save_urlretrieve
@@ -270,6 +279,19 @@ class TestInstallNBExtension(TestCase):
         link = os.readlink(dest)
         self.assertEqual(link, src)
     
+    @dec.skip_win32
+    def test_install_symlink_destination(self):
+        with TemporaryDirectory() as d:
+            f = u'ƒ.js'
+            flink = u'ƒlink.js'
+            src = pjoin(d, f)
+            touch(src)
+            install_nbextension(src, symlink=True, destination=flink)
+        dest = pjoin(self.system_nbext, flink)
+        assert os.path.islink(dest)
+        link = os.readlink(dest)
+        self.assertEqual(link, src)
+
     def test_install_symlink_bad(self):
         with self.assertRaises(ValueError):
             install_nbextension("http://example.com/foo.js", symlink=True)
@@ -283,11 +305,12 @@ class TestInstallNBExtension(TestCase):
             with self.assertRaises(ValueError):
                 install_nbextension(zsrc, symlink=True)
 
-    def test_install_different_name(self):
+    def test_install_destination_bad(self):
         with TemporaryDirectory() as d:
-            f = u'ƒ.js'
-            src = pjoin(d, f)
-            dest_f = u'ƒile.js'
-            touch(src)
-            install_nbextension({dest_f: src})
-        self.assert_installed(dest_f)
+            zf = u'ƒ.zip'
+            zsrc = pjoin(d, zf)
+            with zipfile.ZipFile(zsrc, 'w') as z:
+                z.writestr("a.js", b"b();")
+        
+            with self.assertRaises(ValueError):
+                install_nbextension(zsrc, destination='foo')
