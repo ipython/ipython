@@ -394,9 +394,11 @@ define([
                     .attr('target', '_blank')
                     .attr('title', 'Opens in a new window')
                     .attr('href', link.url)
-                    .text(link.text)
                     .append($("<i>")
                         .addClass("fa fa-external-link menu-icon pull-right")
+                    )
+                    .append($("<span>")
+                        .text(link.text)
                     )
                 )
             );
