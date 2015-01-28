@@ -337,16 +337,18 @@ define([
         var that = this;
         $('.list_item :checked').each(function(index, item) {
             var parent = $(item).parent().parent();
-            selected.push({
-                name: parent.data('name'), 
-                path: parent.data('path'), 
-                type: parent.data('type')
-            });
+            if (parent.find('.upload_button').length === 0) {
+                selected.push({
+                    name: parent.data('name'), 
+                    path: parent.data('path'), 
+                    type: parent.data('type')
+                });
 
-            has_running_notebook = has_running_notebook || 
-                (parent.data('type') == 'notebook' && that.sessions[parent.data('path')] !== undefined);
-            has_file = has_file || parent.data('type') == 'file';
-            has_directory = has_directory || parent.data('type') == 'directory';
+                has_running_notebook = has_running_notebook || 
+                    (parent.data('type') == 'notebook' && that.sessions[parent.data('path')] !== undefined);
+                has_file = has_file || parent.data('type') == 'file';
+                has_directory = has_directory || parent.data('type') == 'directory';    
+            }
         });
         this.selected = selected;
 
@@ -672,7 +674,6 @@ define([
                 var on_success = function () {
                     item.removeClass('new-file');
                     that.add_link(model, item);
-                    that.add_delete_button(item);
                     that.session_list.load_sessions();
                 };
                 
