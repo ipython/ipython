@@ -447,20 +447,11 @@ class TraitType(object):
     def _validate(self, obj, value):
         if value is None and self.allow_none:
             return value
+        if hasattr(self, 'validate'):
+            value = self.validate(obj, value)
         if 'validate' in self._metadata:
             value = self._metadata['validate'](obj, value, self)
-        if hasattr(self, 'validate'):
-            return self.validate(obj, value)
-        elif hasattr(self, 'is_valid_for'):
-            valid = self.is_valid_for(value)
-            if valid:
-                return value
-            else:
-                raise TraitError('invalid value for type: %r' % value)
-        elif hasattr(self, 'value_for'):
-            return self.value_for(value)
-        else:
-            return value
+        return value
 
     def __or__(self, other):
         if isinstance(other, Union):

@@ -89,28 +89,6 @@ class TestTraitType(TestCase):
             tt = MyIntTT('bad default')
         self.assertRaises(TraitError, B)
 
-    def test_is_valid_for(self):
-        class MyTT(TraitType):
-            def is_valid_for(self, value):
-                return True
-        class A(HasTraits):
-            tt = MyTT
-
-        a = A()
-        a.tt = 10
-        self.assertEqual(a.tt, 10)
-
-    def test_value_for(self):
-        class MyTT(TraitType):
-            def value_for(self, value):
-                return 20
-        class A(HasTraits):
-            tt = MyTT
-
-        a = A()
-        a.tt = 10
-        self.assertEqual(a.tt, 20)
-
     def test_info(self):
         class A(HasTraits):
             tt = TraitType
