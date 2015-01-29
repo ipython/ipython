@@ -12,6 +12,7 @@
 @btn_small_height: 24px;
 @btn_mini_height: 22px;
 @dark_dashboard_color: @breadcrumb-color;
+@list_stripe_color: lighten(@page-backdrop-color,3%);
 
 ul#tabs {
     margin-bottom: @dashboard_tb_pad;
@@ -55,6 +56,7 @@ ul.breadcrumb {
 
 .list_header {
     font-weight: bold;
+    background-color: @page-backdrop-color
 }
 
 .list_container {
@@ -80,6 +82,9 @@ ul.breadcrumb {
     background-color: @table-border-color;
   };
   a {text-decoration: none;}
+  &:nth-child(odd) {
+    background-color: @list_stripe_color;
+  }
 }
 
 .action_col {
