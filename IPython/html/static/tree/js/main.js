@@ -82,26 +82,39 @@ require([
 
     var interval_id=0;
     // auto refresh every xx secondes, no need to be fast,
-    //  update is done at least when page get focus
-    var time_refresh = 60; // in sec
+    //  update is done most of the time when page get focus
+    IPython.tree_time_refresh = 60; // in sec
 
-    var enable_autorefresh = function(){
-        /**
-         *refresh immediately , then start interval
-         */
+    // limit refresh on focus at 1/10sec, otherwise this
+    // can cause too frequent refresh on switching through windows or tabs.
+    IPython.min_delta_refresh = 10; // in sec
+
+    var _last_refresh = null;
+
+    var _refresh_list = function(){
+        _last_refresh = new Date();
         session_list.load_sessions();
         cluster_list.load_list();
         if (terminal_list) {
             terminal_list.load_terminals();
         }
+    }
+
+    var enable_autorefresh = function(){
+        /**
+         *refresh immediately , then start interval
+         */
+        var now = new Date()
+
+        if (now - _last_refresh < IPython.min_delta_refresh*1000){
+            console.log("Reenabling autorefresh too close to last tree refresh, not refreshing immediately again.")
+        } else {
+            _refresh_list();
+        }
         if (!interval_id){
-            interval_id = setInterval(function(){
-                session_list.load_sessions();
-                cluster_list.load_list();
-                if (terminal_list) {
-                    terminal_list.load_terminals();
-                }
-            }, time_refresh*1000);
+            interval_id = setInterval(_refresh_list,
+                    IPython.tree_time_refresh*1000
+            );
         }
     };
 
