@@ -8691,8 +8691,8 @@ ul.breadcrumb span {
 .list_item a {
   text-decoration: none;
 }
-.list_item:nth-child(odd) {
-  background-color: #f6f6f6;
+.list_item:hover {
+  background-color: #fafafa;
 }
 .action_col {
   text-align: right;
