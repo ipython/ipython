@@ -1187,6 +1187,25 @@ class TestLink(TestCase):
         a.value = 4
         self.assertEqual(''.join(callback_count), 'ab')
         del callback_count[:]
+    
+    def test_validate_args(self):
+        class A(HasTraits):
+            value = Int()
+        class B(HasTraits):
+            count = Int()
+        a = A(value=9)
+        b = B(count=8)
+        b.value = 5
+        
+        with self.assertRaises(TypeError):
+            link((a, 'value'))
+        with self.assertRaises(TypeError):
+            link((a, 'value', 'count'), (b, 'count'))
+        with self.assertRaises(TypeError):
+            link((a, 'value'), (b, 'value'))
+        with self.assertRaises(TypeError):
+            link((a, 'traits'), (b, 'count'))
+
 
 class TestDirectionalLink(TestCase):
     def test_connect_same(self):
@@ -1252,6 +1271,25 @@ class TestDirectionalLink(TestCase):
         # Change one of the values to make sure they don't stay in sync.
         a.value = 5
         self.assertNotEqual(a.value, b.value)
+
+    def test_validate_args(self):
+        class A(HasTraits):
+            value = Int()
+        class B(HasTraits):
+            count = Int()
+        a = A(value=9)
+        b = B(count=8)
+        b.value = 5
+        
+        with self.assertRaises(TypeError):
+            directional_link((a, 'value'))
+        with self.assertRaises(TypeError):
+            directional_link((a, 'value', 'count'), (b, 'count'))
+        with self.assertRaises(TypeError):
+            directional_link((a, 'value'), (b, 'value'))
+        with self.assertRaises(TypeError):
+            directional_link((a, 'traits'), (b, 'count'))
+
 
 class Pickleable(HasTraits):
     i = Int()
