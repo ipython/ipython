@@ -25,12 +25,16 @@ function($,
     var Editor = function(selector, options) {
         var that = this;
         this.selector = selector;
+        this.clean = false;
         this.contents = options.contents;
         this.events = options.events;
         this.base_url = options.base_url;
         this.file_path = options.file_path;
         this.config = options.config;
         this.codemirror = new CodeMirror($(this.selector)[0]);
+        this.codemirror.on('changes', function(cm, changes){
+            that._clean_state();
+        });
         this.generation = -1;
         
         // It appears we have to set commands on the CodeMirror class, not the
@@ -49,7 +53,11 @@ function($,
             );
             that._set_codemirror_options(cmopts);
             that.events.trigger('config_changed.Editor', {config: that.config});
+            that._clean_state();
         });
+        this.clean_sel = $('<div/>');
+        $('.last_modified').before(this.clean_sel);
+        this.clean_sel.addClass('dirty-indicator-dirty');
     };
     
     // default CodeMirror options
@@ -78,6 +86,7 @@ function($,
                 that.save_enabled = true;
                 that.generation = cm.changeGeneration();
                 that.events.trigger("file_loaded.Editor", model);
+                that._clean_state();
             }).catch(
             function(error) {
                 that.events.trigger("file_load_failed.Editor", error);
@@ -147,6 +156,7 @@ function($,
                 that.file_path = model.path;
                 that.events.trigger('file_renamed.Editor', model);
                 that._set_mode_for_model(model);
+                that._clean_state();
             }
         );
     };
@@ -169,9 +179,26 @@ function($,
         that.events.trigger("file_saving.Editor");
         return this.contents.save(this.file_path, model).then(function(data) {
             that.events.trigger("file_saved.Editor", data);
+            that._clean_state();
         });
     };
-    
+
+    Editor.prototype._clean_state = function(){
+        var clean = this.codemirror.isClean(this.generation);
+        if (clean === this.clean){
+            return
+        } else {
+            this.clean = clean;
+        }
+        if(clean){
+            this.events.trigger("save_status_clean.Editor");
+            this.clean_sel.attr('class','dirty-indicator-clean').attr('title','No changes to save');
+        } else {
+            this.events.trigger("save_status_dirty.Editor");
+            this.clean_sel.attr('class','dirty-indicator-dirty').attr('title','Unsaved changes');
+        }
+    };
+
     Editor.prototype._set_codemirror_options = function (options) {
         // update codemirror options from a dict
         var codemirror = this.codemirror;
@@ -181,6 +208,7 @@ function($,
             }
             codemirror.setOption(opt, value);
         });
+        var that = this;
     };
     
     Editor.prototype.update_codemirror_options = function (options) {

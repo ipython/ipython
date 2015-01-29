@@ -1,3 +1,17 @@
+.dirty-indicator{
+    .fa();
+    width:20px;
+}
+.dirty-indicator-dirty{
+    .dirty-indicator();
+}
+
+.dirty-indicator-clean{
+    .dirty-indicator();
+    &:before{
+        .icon(@fa-var-check);
+    }
+}
 
 #filename {
     font-size: 16pt;
