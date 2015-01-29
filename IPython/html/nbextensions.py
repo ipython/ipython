@@ -211,7 +211,7 @@ def install_nbextension(path, overwrite=False, symlink=False, user=False, prefix
             destination = basename(path)
         destination = cast_unicode_py2(destination)
         full_dest = pjoin(nbext, destination)
-        if overwrite and os.path.exists(full_dest):
+        if overwrite and os.path.lexists(full_dest):
             if verbose >= 1:
                 print("removing %s" % full_dest)
             if os.path.isdir(full_dest) and not os.path.islink(full_dest):
