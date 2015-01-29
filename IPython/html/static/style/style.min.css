@@ -8668,6 +8668,7 @@ ul.breadcrumb span {
 }
 .list_header {
   font-weight: bold;
+  background-color: #eeeeee;
 }
 .list_container {
   margin-top: 4px;
@@ -8689,6 +8690,9 @@ ul.breadcrumb span {
 }
 .list_item a {
   text-decoration: none;
+}
+.list_item:nth-child(odd) {
+  background-color: #f6f6f6;
 }
 .action_col {
   text-align: right;
