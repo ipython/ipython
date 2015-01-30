@@ -1,7 +1,183 @@
 .. _issues_list_200:
 
-Issues closed in the 2.0 development cycle
+Issues closed in the 2.x development cycle
 ==========================================
+
+Issues closed in 2.4.0
+----------------------
+
+GitHub stats for 2014/11/01 - 2015/01/30
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+The following 7 authors contributed 35 commits.
+
+* Benjamin Ragan-Kelley
+* Carlos Cordoba
+* Damon Allen
+* Jessica B. Hamrick
+* Mateusz Paprocki
+* Peter Würtz
+* Thomas Kluyver
+
+We closed 10 issues and merged 6 pull requests;
+this is the full list (generated with the script 
+:file:`tools/github_stats.py`):
+
+Pull Requests (10):
+
+* :ghpull:`7106`: Changed the display order of rich output in the live notebook.
+* :ghpull:`6878`: Update pygments monkeypatch for compatibility with Pygments 2.0
+* :ghpull:`6778`: backport nbformat v4 to 2.x
+* :ghpull:`6761`: object_info_reply field is oname, not name
+* :ghpull:`6653`: Fix IPython.utils.ansispan() to ignore stray [0m
+* :ghpull:`6706`: Correctly display prompt numbers that are 'None'
+* :ghpull:`6634`: don't use contains in SelectWidget item_query
+* :ghpull:`6593`: note how to start the qtconsole
+* :ghpull:`6281`: more minor fixes to release scripts
+* :ghpull:`5458`: Add support for PyQt5.
+
+Issues (6):
+
+* :ghissue:`7272`: qtconsole problems with pygments
+* :ghissue:`7049`: Cause TypeError: 'NoneType' object is not callable in qtconsole 
+* :ghissue:`6877`: Qt console doesn't work with pygments 2.0rc1
+* :ghissue:`6689`: Problem with string containing two or more question marks
+* :ghissue:`6702`: Cell numbering after ``ClearOutput`` preprocessor
+* :ghissue:`6633`: selectwidget doesn't display 1 as a selection choice when passed in as a member of values list
+
+
+Issues closed in 2.3.1
+----------------------
+
+Just one bugfix: fixed bad CRCRLF line-endings in notebooks on Windows
+
+Pull Requests (1):
+
+* :ghpull:`6911`: don't use text mode in mkstemp
+
+Issues (1):
+
+* :ghissue:`6599`: Notebook.ipynb CR+LF turned into CR+CR+LF
+
+
+Issues closed in 2.3.0
+----------------------
+
+GitHub stats for 2014/08/06 - 2014/10/01
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+The following 6 authors contributed 31 commits.
+
+* Benjamin Ragan-Kelley
+* David Hirschfeld
+* Eric Firing
+* Jessica B. Hamrick
+* Matthias Bussonnier
+* Thomas Kluyver
+
+We closed 16 issues and merged 9 pull requests;
+this is the full list (generated with the script 
+:file:`tools/github_stats.py`):
+
+Pull Requests (16):
+
+* :ghpull:`6587`: support ``%matplotlib qt5`` and ``%matplotlib nbagg``
+* :ghpull:`6583`: Windows symlink test fixes
+* :ghpull:`6585`: fixes :ghissue:`6473`
+* :ghpull:`6581`: Properly mock winreg functions for test
+* :ghpull:`6556`: Use some more informative asserts in inprocess kernel tests
+* :ghpull:`6514`: Fix for copying metadata flags
+* :ghpull:`6453`: Copy file metadata in atomic save
+* :ghpull:`6480`: only compare host:port in Websocket.check_origin
+* :ghpull:`6483`: Trim anchor link in heading cells, fixes :ghissue:`6324`
+* :ghpull:`6410`: Fix relative import in appnope
+* :ghpull:`6395`: update mathjax CDN url in nbconvert template
+* :ghpull:`6269`: Implement atomic save
+* :ghpull:`6374`: Rename ``abort_queues`` --> ``_abort_queues``
+* :ghpull:`6321`: Use appnope in qt and wx gui support from the terminal; closes :ghissue:`6189`
+* :ghpull:`6318`: use write_error instead of get_error_html
+* :ghpull:`6303`: Fix error message when failing to load a notebook
+
+Issues (9):
+
+* :ghissue:`6057`: ``%matplotlib`` + qt5
+* :ghissue:`6518`: Test failure in atomic save on Windows
+* :ghissue:`6473`: Switching between "Raw Cell Format" and "Edit Metadata" does not work
+* :ghissue:`6405`: Creating a notebook should respect directory permissions; saving should respect prior permissions
+* :ghissue:`6324`: Anchors in Heading don't work.
+* :ghissue:`6409`: No module named '_dummy'
+* :ghissue:`6392`: Mathjax library link broken
+* :ghissue:`6329`: IPython Notebook Server URL now requires "tree" at the end of the URL? (version 2.2)
+* :ghissue:`6189`: ipython console freezes for increasing no of seconds in %pylab mode
+
+Issues closed in 2.2.0
+----------------------
+
+GitHub stats for 2014/05/21 - 2014/08/06 (tag: rel-2.1.0)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+The following 13 authors contributed 36 commits.
+
+* Adam Hodgen
+* Benjamin Ragan-Kelley
+* Björn Grüning
+* Dara Adib
+* Eric Galloway
+* Jonathan Frederic
+* Kyle Kelley
+* Matthias Bussonnier
+* Paul Ivanov
+* Shayne Hodge
+* Steven Anton
+* Thomas Kluyver
+* Zahari
+
+We closed 23 issues and merged 11 pull requests;
+this is the full list (generated with the script 
+:file:`tools/github_stats.py`):
+
+Pull Requests (23):
+
+* :ghpull:`6279`: minor updates to release scripts
+* :ghpull:`6273`: Upgrade default mathjax version.
+* :ghpull:`6249`: always use HTTPS getting mathjax from CDN
+* :ghpull:`6114`: update hmac signature comparison
+* :ghpull:`6195`: Close handle on new temporary files before returning filename
+* :ghpull:`6143`: pin tornado to < 4 on travis js tests
+* :ghpull:`6134`: remove rackcdn https workaround for mathjax cdn
+* :ghpull:`6120`: Only allow iframe embedding on same origin.
+* :ghpull:`6117`: Remove / from route of TreeRedirectHandler.
+* :ghpull:`6105`: only set allow_origin_pat if defined
+* :ghpull:`6102`: Add newline if missing to end of script magic cell
+* :ghpull:`6077`: allow unicode keys in dicts in json_clean
+* :ghpull:`6061`: make CORS configurable
+* :ghpull:`6081`: don’t modify dict keys while iterating through them
+* :ghpull:`5803`: unify visual line handling
+* :ghpull:`6005`: Changed right arrow key movement function to mirror left arrow key
+* :ghpull:`6029`: add pickleutil.PICKLE_PROTOCOL
+* :ghpull:`6003`: Set kernel_id before checking websocket
+* :ghpull:`5994`: Fix ssh tunnel for Python3
+* :ghpull:`5973`: Do not create checkpoint_dir relative to current dir
+* :ghpull:`5933`: fix qt_loader import hook signature
+* :ghpull:`5944`: Markdown rendering bug fix.
+* :ghpull:`5917`: use shutil.move instead of os.rename
+
+Issues (11):
+
+* :ghissue:`6246`: Include MathJax by default or access the CDN over a secure connection
+* :ghissue:`5525`: Websocket origin check fails when used with Apache WS proxy
+* :ghissue:`5901`: 2 test failures in Python 3.4 in parallel group
+* :ghissue:`5926`: QT console: text selection cannot be made from left to right with keyboard
+* :ghissue:`5998`: use_dill does not work in Python 3.4
+* :ghissue:`5964`: Traceback on Qt console exit
+* :ghissue:`5787`: Error in Notebook-Generated latex (nbconvert)
+* :ghissue:`5950`: qtconsole truncates help
+* :ghissue:`5943`: 2.x: notebook fails to load when using HTML comments
+* :ghissue:`5932`: Qt ImportDenier Does Not Adhere to PEP302
+* :ghissue:`5898`: OSError when moving configuration file
 
 Issues closed in 2.1.0
 ----------------------
