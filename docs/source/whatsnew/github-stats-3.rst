@@ -3,20 +3,20 @@
 Issues closed in the 3.x development cycle
 ==========================================
 
-Issues closed in 3.0b1
+Issues closed in 3.0
 ----------------------
 
 GitHub stats for 2014/04/09 - 2015/01/30
 
 These lists are automatically generated, and may be incomplete or contain duplicates.
 
-We closed 868 issues and merged 421 pull requests.
-The full list can be seen `on GitHub <https://github.com/ipython/ipython/milestone/3.0>`
+We closed 422 issues and merged 869 pull requests.
+The full list can be found `on GitHub <https://github.com/ipython/ipython/milestone/3.0>`
 
-The following 157 authors contributed 5697 commits.
+The following 152 authors contributed 5697 commits.
 
 * Adam Hodgen
-* ajholyoake
+* A. J. Holyoake
 * Amin Bandali
 * Andreas Amann
 * Andrew Dawes
@@ -43,12 +43,12 @@ The following 157 authors contributed 5697 commits.
 * Dale Jung
 * Damián Avila
 * Damon Allen
-* damontallen
 * Daniel B. Vasquez
 * Daniel Wehner
 * Dav Clark
 * David Hirschfeld
 * David Neto
+* Daniel Rocco
 * dexterdev
 * Dimitry Kloper
 * dongweiming
@@ -73,7 +73,7 @@ The following 157 authors contributed 5697 commits.
 * James Goppert
 * James Porter
 * Jason Goad
-* jason gors
+* Jason Gors
 * Jason Grout
 * Jason Newton
 * JC
@@ -99,7 +99,6 @@ The following 157 authors contributed 5697 commits.
 * K.-Michael Aye
 * Kalibri
 * Kester Tong
-* KesterTong
 * Kyle Kelley
 * Kyle Rawlins
 * LaptopOfJohn
@@ -120,7 +119,6 @@ The following 157 authors contributed 5697 commits.
 * Nathaniel J. Smith
 * ncornette
 * Nicholas Bollweg
-* Nicholas Bollweg (Nick)
 * Nick White
 * Nikolay Koldunov
 * Nile Geisinger
@@ -145,8 +143,7 @@ The following 157 authors contributed 5697 commits.
 * rgbkrk
 * Richard Everson
 * Scott Sanderson
-* Silvia
-* silviav12
+* Silvia Vinyes
 * Simon Guillot
 * Spencer Nelson
 * Stefan Zimmermann
@@ -163,7 +160,6 @@ The following 157 authors contributed 5697 commits.
 * Thomas Spura
 * Tobias Oberstein
 * Torsten Bittner
-* U-Jon-PC\Jon
 * unknown
 * v923z
 * vaibhavsagar
