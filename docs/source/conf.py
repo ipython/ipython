@@ -207,10 +207,10 @@ latex_font_size = '11pt'
 
 latex_documents = [
     ('index', 'ipython.tex', 'IPython Documentation',
-     ur"""The IPython Development Team""", 'manual', True),
+     u"""The IPython Development Team""", 'manual', True),
     ('parallel/winhpc_index', 'winhpc_whitepaper.tex',
      'Using IPython on Windows HPC Server 2008',
-     ur"Brian E. Granger", 'manual', True)
+     u"Brian E. Granger", 'manual', True)
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

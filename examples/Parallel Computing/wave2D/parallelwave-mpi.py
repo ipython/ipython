@@ -111,7 +111,7 @@ if __name__ == '__main__':
     assert partition[0]*partition[1] == num_procs, "can't map partition %s to %i engines"%(partition, num_procs)
 
     view = rc[:]
-    print "Running %s system on %s processes until %f"%(grid, partition, tstop)
+    print("Running %s system on %s processes until %f" % (grid, partition, tstop))
 
     # functions defining initial/boundary/source conditions
     def I(x,y):
@@ -170,7 +170,7 @@ if __name__ == '__main__':
         else:
             norm = -1
         t1 = time.time()
-        print 'scalar inner-version, Wtime=%g, norm=%g'%(t1-t0, norm)
+        print('scalar inner-version, Wtime=%g, norm=%g' % (t1-t0, norm))
 
     impl['inner'] = 'vectorized'
     # setup new solvers
@@ -188,7 +188,7 @@ if __name__ == '__main__':
     else:
         norm = -1
     t1 = time.time()
-    print 'vector inner-version, Wtime=%g, norm=%g'%(t1-t0, norm)
+    print('vector inner-version, Wtime=%g, norm=%g' % (t1-t0, norm))
 
     # if ns.save is True, then u_hist stores the history of u as a list
     # If the partion scheme is Nx1, then u can be reconstructed via 'gather':
