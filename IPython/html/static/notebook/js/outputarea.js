@@ -908,9 +908,10 @@ define([
             this.append_output(outputs[i]);
         }
         if (metadata.collapsed !== undefined) {
-            this.collapsed = metadata.collapsed;
             if (metadata.collapsed) {
                 this.collapse();
+            } else {
+                this.expand();
             }
         }
         if (metadata.scrolled !== undefined) {
