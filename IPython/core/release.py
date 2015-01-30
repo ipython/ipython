@@ -22,7 +22,7 @@ name = 'ipython'
 _version_major = 2
 _version_minor = 4
 _version_patch = 0
-_version_extra = 'maint'
+_version_extra = ''
 # _version_extra = 'rc1'
 #_version_extra = ''  # Uncomment this for full releases
 
