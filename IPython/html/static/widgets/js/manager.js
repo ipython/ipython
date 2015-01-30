@@ -233,37 +233,49 @@ define([
 
     WidgetManager.prototype.callbacks = function (view) {
         /**
-         * callback handlers specific a view
+         * callback handlers dispatch to all views associated with a model
          */
-        var callbacks = {};
-        if (view && view.options.cell) {
-
-            // Try to get output handlers
-            var cell = view.options.cell;
-            var handle_output = null;
-            var handle_clear_output = null;
-            if (cell.output_area) {
-                handle_output = $.proxy(cell.output_area.handle_output, cell.output_area);
-                handle_clear_output = $.proxy(cell.output_area.handle_clear_output, cell.output_area);
-            }
-
-            // Create callback dictionary using what is known
-            var that = this;
-            callbacks = {
-                iopub : {
-                    output : handle_output,
-                    clear_output : handle_clear_output,
-
-                    // Special function only registered by widget messages.
-                    // Allows us to get the cell for a message so we know
-                    // where to add widgets if the code requires it.
-                    get_cell : function () {
-                        return cell;
-                    },
-                },
-            };
+        if (!view) {
+            return {};
         }
-        return callbacks;
+        var handle_output = function () {
+            var args = arguments;
+            _.each(view.model.views, function (promise) {
+                promise.then(function (v) {
+                    if (!(v.options.cell && v.options.cell.output_area)) {
+                        return;
+                    }
+                    var output_area = v.options.cell.output_area;
+                    output_area.handle_output.apply(output_area, args);
+                });
+            });
+        };
+        var handle_clear_output = function () {
+            var args = arguments;
+            _.each(view.model.views, function (promise) {
+                promise.then(function (v) {
+                    if (!(v.options.cell && v.options.cell.output_area)) {
+                        return;
+                    }
+                    var output_area = v.options.cell.output_area;
+                    output_area.handle_clear_output.apply(output_area, args);
+                });
+            });
+        };
+
+        return {
+            iopub : {
+                output : handle_output,
+                clear_output : handle_clear_output,
+
+                // Special function only registered by widget messages.
+                // Allows us to get the cell for a message so we know
+                // where to add widgets if the code requires it.
+                get_cell : function () {
+                    return view.options.cell;
+                },
+            },
+        };
     };
 
     WidgetManager.prototype.get_model = function (model_id) {
