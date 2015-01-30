@@ -3,8 +3,30 @@
 ============
 
 
-Release 3.0b1
-=============
+Release 3.0
+===========
+
+Feburary, 2014
+
+This is a really big release. Over 150 contributors, and almost 6000 commits in under a year.
+Support for languages other than Python is greatly improved,
+notebook UI has been significantly redesigned,
+and a lot of improvement has happened in the experimental interactive widgets.
+The message protocol and document format have both been updated,
+while maintaining better compatibility with previous versions than prior updates.
+
+3.x will be the last monolithic release of IPython,
+as the next release cycle will see the growing project split into its Python-specific and language-agnostic components.
+Language-agnostic projects (notebook, qtconsole, etc.) will move under the umbrella of the new Project Jupyter name,
+while Python-specific projects (interactive Python shell, Python kernel, IPython.parallel)
+will remain under IPython, and be split into a few smaller packages.
+To reflect this, IPython is in a bit of a transition state.
+The logo on the notebook is now the Jupyter logo.
+When installing kernels system-wide, they go in a `jupyter` directory.
+We are going to do our best to ease this transition for users and developers.
+
+Big changes are ahead.
+
 
 Using different kernels
 -----------------------
