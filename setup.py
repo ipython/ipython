@@ -258,6 +258,9 @@ extras_require = dict(
     nbconvert = ['pygments', 'jinja2', 'mistune>=0.3.1']
 )
 
+if not sys.platform.startswith('win'):
+    extras_require['notebook'].append('terminado>=0.3.3')
+
 if sys.version_info < (3, 3):
     extras_require['test'].append('mock')
 
