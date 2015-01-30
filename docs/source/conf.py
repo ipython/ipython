@@ -32,7 +32,7 @@ sys.path.insert(0, os.path.abspath('../sphinxext'))
 
 # We load the ipython release info into a dict by explicit execution
 iprelease = {}
-execfile('../../IPython/core/release.py',iprelease)
+exec(compile(open('../../IPython/core/release.py').read(), '../../IPython/core/release.py', 'exec'),iprelease)
 
 # General configuration
 # ---------------------
