@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """Update the What's New doc (development version)
 
 This collects the snippets from whatsnew/pr/, moves their content into
