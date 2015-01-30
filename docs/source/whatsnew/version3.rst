@@ -6,7 +6,7 @@
 Release 3.0
 ===========
 
-Feburary, 2014
+Coming Feburary, 2015
 
 This is a really big release. Over 150 contributors, and almost 6000 commits in a bit under a year.
 Support for languages other than Python is greatly improved,
