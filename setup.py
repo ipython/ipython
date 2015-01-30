@@ -264,11 +264,6 @@ if sys.version_info < (3, 3):
 extras_require['notebook'].extend(extras_require['nbformat'])
 extras_require['nbconvert'].extend(extras_require['nbformat'])
 
-everything = set()
-for deps in extras_require.values():
-    everything.update(deps)
-extras_require['all'] = everything
-
 install_requires = []
 
 # add readline
@@ -278,6 +273,10 @@ if sys.platform == 'darwin':
 elif sys.platform.startswith('win'):
     extras_require['terminal'].append('pyreadline>=2.0')
 
+everything = set()
+for deps in extras_require.values():
+    everything.update(deps)
+extras_require['all'] = everything
 
 if 'setuptools' in sys.modules:
     # setup.py develop should check for submodules
