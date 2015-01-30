@@ -3,6 +3,49 @@
 Issues closed in the 2.x development cycle
 ==========================================
 
+Issues closed in 2.4.0
+----------------------
+
+GitHub stats for 2014/11/01 - 2015/01/30
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+The following 7 authors contributed 35 commits.
+
+* Benjamin Ragan-Kelley
+* Carlos Cordoba
+* Damon Allen
+* Jessica B. Hamrick
+* Mateusz Paprocki
+* Peter Würtz
+* Thomas Kluyver
+
+We closed 10 issues and merged 6 pull requests;
+this is the full list (generated with the script 
+:file:`tools/github_stats.py`):
+
+Pull Requests (10):
+
+* :ghpull:`7106`: Changed the display order of rich output in the live notebook.
+* :ghpull:`6878`: Update pygments monkeypatch for compatibility with Pygments 2.0
+* :ghpull:`6778`: backport nbformat v4 to 2.x
+* :ghpull:`6761`: object_info_reply field is oname, not name
+* :ghpull:`6653`: Fix IPython.utils.ansispan() to ignore stray [0m
+* :ghpull:`6706`: Correctly display prompt numbers that are 'None'
+* :ghpull:`6634`: don't use contains in SelectWidget item_query
+* :ghpull:`6593`: note how to start the qtconsole
+* :ghpull:`6281`: more minor fixes to release scripts
+* :ghpull:`5458`: Add support for PyQt5.
+
+Issues (6):
+
+* :ghissue:`7272`: qtconsole problems with pygments
+* :ghissue:`7049`: Cause TypeError: 'NoneType' object is not callable in qtconsole 
+* :ghissue:`6877`: Qt console doesn't work with pygments 2.0rc1
+* :ghissue:`6689`: Problem with string containing two or more question marks
+* :ghissue:`6702`: Cell numbering after ``ClearOutput`` preprocessor
+* :ghissue:`6633`: selectwidget doesn't display 1 as a selection choice when passed in as a member of values list
+
 
 Issues closed in 2.3.1
 ----------------------
@@ -17,10 +60,11 @@ Issues (1):
 
 * :ghissue:`6599`: Notebook.ipynb CR+LF turned into CR+CR+LF
 
+
 Issues closed in 2.3.0
 ----------------------
 
-GitHub stats for 2014/08/06 - 2014/10/01 (tag: rel-2.2.0)
+GitHub stats for 2014/08/06 - 2014/10/01
 
 These lists are automatically generated, and may be incomplete or contain duplicates.
 

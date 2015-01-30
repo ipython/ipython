@@ -2,6 +2,19 @@
  2.x Series
 ============
 
+Release 2.4
+===========
+
+January, 2014
+
+- backport read support for nbformat v4 from IPython 3
+- support for PyQt5
+- support for Pygments 2.0
+
+For more information on what fixes have been backported to 2.4,
+see our :ref:`detailed release info <issues_list_200>`.
+
+
 Release 2.3.1
 =============
 
