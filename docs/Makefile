@@ -40,7 +40,7 @@ clean_api:
 
 clean: clean_api
 	-rm -rf build/* dist/*
-	-cd $(SRCDIR)/config/options; cat generated | xargs -r rm -f
+	-cd $(SRCDIR)/config/options; test -f generated && cat generated | xargs rm -f
 	-rm -rf $(SRCDIR)/config/options/generated
 	-rm -f $(SRCDIR)/interactive/magics-generated.txt
 
