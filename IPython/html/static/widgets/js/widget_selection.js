@@ -431,7 +431,8 @@ define([
             this.$listbox = $('<select />')
                 .addClass('widget-listbox form-control')
                 .attr('size', 6)
-                .appendTo(this.$el);
+                .appendTo(this.$el)
+                .on('change', $.proxy(this.handle_change, this));
             this.update();
         },
         
@@ -453,8 +454,7 @@ define([
                             .text(item)
                             .attr('data-value', encodeURIComponent(item))
                             .attr('selected_label', item)
-                            .appendTo(that.$listbox)
-                            .on('click', $.proxy(that.handle_click, that));
+                            .appendTo(that.$listbox);
                     } 
                 });
 
@@ -503,37 +503,50 @@ define([
             }
         },
 
-        handle_click: function (e) {
+        handle_change: function (e) {
             /**
-             * Handle when a value is clicked.
+             * Handle when a new value is selected.
              *
              * Calling model.set will trigger all of the other views of the 
              * model to update.
              */
-            this.model.set('selected_label', $(e.target).text(), {updated_view: this});
+            this.model.set('selected_label', this.$listbox.val(), {updated_view: this});
             this.touch();
         },
     });
+
+
     var SelectMultipleView = SelectView.extend({
         render: function(){
+            /**
+             * Called when view is rendered.
+             */
             SelectMultipleView.__super__.render.apply(this);
             this.$el.removeClass('widget-select')
               .addClass('widget-select-multiple');
             this.$listbox.attr('multiple', true)
-              .on('input', $.proxy(this.handle_click, this));
+              .on('change', $.proxy(this.handle_change, this));
             return this;
         },
 
         update: function(){
+            /**
+             * Update the contents of this view
+             *
+             * Called when the model is changed.  The model may have been 
+             * changed by another view or by a state update from the back-end.
+             */
             SelectMultipleView.__super__.update.apply(this, arguments);
             this.$listbox.val(this.model.get('selected_labels'));
         },
 
-        handle_click: function (e) {
-            // Handle when a value is clicked.
-
-            // Calling model.set will trigger all of the other views of the
-            // model to update.
+        handle_change: function (e) {
+            /**
+             * Handle when a new value is selected.
+             *
+             * Calling model.set will trigger all of the other views of the 
+             * model to update.
+             */
             this.model.set('selected_labels',
                 (this.$listbox.val() || []).slice(),
                 {updated_view: this});
@@ -541,6 +554,7 @@ define([
         },
     });
     
+
     return {
         'DropdownView': DropdownView,
         'RadioButtonsView': RadioButtonsView,
