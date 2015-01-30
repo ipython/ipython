@@ -92,9 +92,9 @@ locations:
 +--------+--------------------------------------+-----------------------------------+
 |        | Unix                                 | Windows                           |
 +========+======================================+===================================+
-| System | ``/usr/share/ipython/kernels``       | ``%PROGRAMDATA%\ipython\kernels`` |
+| System | ``/usr/share/jupyter/kernels``       | ``%PROGRAMDATA%\jupyter\kernels`` |
 |        |                                      |                                   |
-|        | ``/usr/local/share/ipython/kernels`` |                                   |
+|        | ``/usr/local/share/jupyter/kernels`` |                                   |
 +--------+--------------------------------------+-----------------------------------+
 | User   |                     ``~/.ipython/kernels``                               |
 +--------+--------------------------------------+-----------------------------------+
@@ -124,9 +124,9 @@ JSON serialised dictionary containing the following keys and values:
 For example, the kernel.json file for IPython looks like this::
 
     {
-     "argv": ["python3", "-c", "from IPython.kernel.zmq.kernelapp import main; main()", 
+     "argv": ["python3", "-m", "IPython.kernel",
               "-f", "{connection_file}"],
-     "display_name": "IPython (Python 3)",
+     "display_name": "Python 3",
      "language": "python"
     }
 
