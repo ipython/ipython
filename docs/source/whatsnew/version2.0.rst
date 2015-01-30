@@ -5,7 +5,7 @@
 Release 2.4
 ===========
 
-January, 2014
+January, 2015
 
 - backport read support for nbformat v4 from IPython 3
 - support for PyQt5
