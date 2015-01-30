@@ -118,7 +118,7 @@ def test_single_value_dict():
         check_widget(w,
             cls=widgets.Dropdown,
             description='d',
-            values=d,
+            options=d,
             value=next(iter(d.values())),
         )
 
@@ -229,7 +229,7 @@ def test_list_tuple_str():
     d = dict(
         cls=widgets.Dropdown,
         value=first,
-        values=values
+        options=values
     )
     check_widgets(c, tup=d, lis=d)
 
@@ -287,12 +287,12 @@ def test_default_values():
         ),
         h=dict(
             cls=widgets.Dropdown,
-            values={'a': 1, 'b': 2},
+            options={'a': 1, 'b': 2},
             value=2
         ),
         j=dict(
             cls=widgets.Dropdown,
-            values=['hi', 'there'],
+            options=['hi', 'there'],
             value='there'
         ),
     )
@@ -310,12 +310,12 @@ def test_default_out_of_bounds():
         ),
         h=dict(
             cls=widgets.Dropdown,
-            values={'a': 1},
+            options={'a': 1},
             value=1,
         ),
         j=dict(
             cls=widgets.Dropdown,
-            values=['hi', 'there'],
+            options=['hi', 'there'],
             value='hi',
         ),
     )
@@ -634,3 +634,59 @@ def test_float_range_logic():
         frsw(lower=5)
     with nt.assert_raises(ValueError):
         frsw(upper=5)
+
+
+def test_multiple_selection():
+    smw = widgets.SelectMultiple
+
+    # degenerate multiple select
+    w = smw()
+    check_widget(w, value=tuple(), options=None, selected_labels=tuple())
+
+    # don't accept random other value when no options
+    with nt.assert_raises(KeyError):
+        w.value = (2,)
+    check_widget(w, value=tuple(), selected_labels=tuple())
+
+    # basic multiple select
+    w = smw(options=[(1, 1)], value=[1])
+    check_widget(w, cls=smw, value=(1,), options=[(1, 1)])
+
+    # don't accept random other value
+    with nt.assert_raises(KeyError):
+        w.value = w.value + (2,)
+    check_widget(w, value=(1,), selected_labels=(1,))
+
+    # change options
+    w.options = w.options + [(2, 2)]
+    check_widget(w, options=[(1, 1), (2,2)])
+
+    # change value
+    w.value = w.value + (2,)
+    check_widget(w, value=(1, 2), selected_labels=(1, 2))
+
+    # change value name
+    w.selected_labels = (1,)
+    check_widget(w, value=(1,))
+
+    # don't accept random other names when no options
+    with nt.assert_raises(KeyError):
+        w.selected_labels = (3,)
+    check_widget(w, value=(1,))
+
+    # don't accept selected_label (from superclass)
+    with nt.assert_raises(AttributeError):
+        w.selected_label = 3
+
+    # don't return selected_label (from superclass)
+    with nt.assert_raises(AttributeError):
+        print(w.selected_label)
+
+    # dict style
+    w.options = {1: 1}
+    check_widget(w, options={1: 1})
+
+    # updating
+    with nt.assert_raises(KeyError):
+        w.value = (2,)
+    check_widget(w, options={1: 1})
