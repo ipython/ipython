@@ -422,11 +422,16 @@ define([
     NotebookList.prototype.add_link = function (model, item) {
         var path = model.path,
             name = model.name;
+        var running = (model.type == 'notebook' && this.sessions[path] !== undefined);
+        
         item.data('name', name);
         item.data('path', path);
         item.data('type', model.type);
         item.find(".item_name").text(name);
         var icon = NotebookList.icons[model.type];
+        if (running) {
+            icon = 'running_' + icon;
+        }
         var uri_prefix = NotebookList.uri_prefixes[model.type];
         item.find(".item_icon").addClass(icon).addClass('icon-fixed-width');
         var link = item.find("a.item_link")
@@ -438,7 +443,6 @@ define([
                 )
             );
 
-        var running = (model.type == 'notebook' && this.sessions[path] !== undefined);
         item.find(".item_buttons .running-indicator").css('visibility', running ? '' : 'hidden');
 
         // directory nav doesn't open new tabs

@@ -8668,6 +8668,7 @@ ul.breadcrumb span {
 }
 .list_header {
   font-weight: bold;
+  background-color: #eeeeee;
 }
 .list_container {
   margin-top: 4px;
@@ -8689,6 +8690,9 @@ ul.breadcrumb span {
 }
 .list_item a {
   text-decoration: none;
+}
+.list_item:hover {
+  background-color: #fafafa;
 }
 .action_col {
   text-align: right;
@@ -8795,6 +8799,23 @@ input.engine_num_input {
   margin-right: .3em;
 }
 .notebook_icon:before.pull-right {
+  margin-left: .3em;
+}
+.running_notebook_icon:before {
+  display: inline-block;
+  font: normal normal normal 14px/1 FontAwesome;
+  font-size: inherit;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transform: translate(0, 0);
+  content: "\f02d";
+  color: #5cb85c;
+}
+.running_notebook_icon:before.pull-left {
+  margin-right: .3em;
+}
+.running_notebook_icon:before.pull-right {
   margin-left: .3em;
 }
 .file_icon:before {
