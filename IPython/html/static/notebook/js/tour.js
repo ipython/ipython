@@ -112,7 +112,7 @@ define([
                 title: "Notification Area",
                 content: "Messages in response to user actions (Save, Interrupt, etc) appear here."
             }, {
-                title: "Fin.",
+                title: "End of Tour",
                 placement: 'bottom',
                 orphan: true,
                 content: "This concludes the IPython Notebook User Interface Tour. Happy hacking!"
