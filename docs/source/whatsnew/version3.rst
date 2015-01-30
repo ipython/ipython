@@ -169,11 +169,23 @@ Other new features
   display an individual value, use the `%env var` syntax. To set a value, use
   `env var val` or `env var=val`. Python value expansion using `$` works as usual.
 
-.. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.
-
 
 Backwards incompatible changes
 ------------------------------
+
+* The :ref:`message protocol <messaging>` has been updated from version 4 to version 5.
+  Adapters are included, so IPython frontends can still talk to kernels that
+  implement protocol version 4.
+
+* The :ref:`notebook format <nbformat>` has been updated from version 3 to version 4.
+  Read-only support for v4 notebooks has been backported to IPython 2.4.
+  Notable changes:
+  
+  * heading cells are removed in favor or markdown headings
+  * notebook outputs and output messages are more consistent with each other
+  * use :func:`IPython.nbformat.read` and :func:`~IPython.nbformat.write`
+    to read and write notebook files
+    instead of the deprecated :mod:`IPython.nbformat.current` APIs.
 
 * :func:`IPython.core.oinspect.getsource` call specification has changed:
 
@@ -195,7 +207,7 @@ Backwards incompatible changes
   - Set `#header` div `margin-bottom: 0px;`
   - Set `#menus` to `float: left;`
   - Set `#maintoolbar .navbar-text` to `float: none;`
-  - Added no-padding convienence class.
+  - Added no-padding convenience class.
   - Set border of #maintoolbar to 0px
 
 * Accessing the `container` DOM object when displaying javascript has been
