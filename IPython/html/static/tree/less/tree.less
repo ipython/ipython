@@ -12,7 +12,6 @@
 @btn_small_height: 24px;
 @btn_mini_height: 22px;
 @dark_dashboard_color: @breadcrumb-color;
-@list_stripe_color: lighten(@page-backdrop-color,3%);
 
 ul#tabs {
     margin-bottom: @dashboard_tb_pad;
@@ -83,7 +82,7 @@ ul.breadcrumb {
   };
   a {text-decoration: none;}
   &:hover {
-    background-color: darken(white,2%);
+    background-color: @page-backdrop-color;
   }
 }
 
