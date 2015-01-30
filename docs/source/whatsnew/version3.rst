@@ -8,12 +8,14 @@ Release 3.0
 
 Feburary, 2014
 
-This is a really big release. Over 150 contributors, and almost 6000 commits in under a year.
+This is a really big release. Over 150 contributors, and almost 6000 commits in a bit under a year.
 Support for languages other than Python is greatly improved,
 notebook UI has been significantly redesigned,
 and a lot of improvement has happened in the experimental interactive widgets.
 The message protocol and document format have both been updated,
 while maintaining better compatibility with previous versions than prior updates.
+The notebook webapp now enables editing of any text file, and even
+a web-based terminal (on Unix platforms).
 
 3.x will be the last monolithic release of IPython,
 as the next release cycle will see the growing project split into its Python-specific and language-agnostic components.
@@ -130,6 +132,8 @@ Other new features
 * The Notebook application now offers integrated terminals on Unix platforms,
   intended for when it is used on a remote server. To enable these, install
   the ``terminado`` Python package.
+
+* The Notebook application can now edit any plain text files, via a full-page CodeMirror instance.
 
 * Setting the default highlighting language for nbconvert with the config option
   ``NbConvertBase.default_language`` is deprecated. Nbconvert now respects
