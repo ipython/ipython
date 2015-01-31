@@ -218,7 +218,8 @@ define([
                 return;
             }
         }
-        if (this.notebook._session_starting) {
+        if (this.notebook._session_starting &&
+            this.notebook.session.kernel.name !== ks.name) {
             console.error("Cannot change kernel while waiting for pending session start.");
             return;
         }

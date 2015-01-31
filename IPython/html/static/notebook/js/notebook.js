@@ -232,7 +232,7 @@ define(function (require) {
                 language: data.spec.language,
             };
             // start session if the current session isn't already correct
-            if (!(this.session && this.session.kernel && this.session.kernel.name === data.name)) {
+            if (!(that.session && that.session.kernel && that.session.kernel.name === data.name)) {
                 that.start_session(data.name);
             }
         });
