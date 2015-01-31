@@ -348,6 +348,8 @@ class Kernel(SingletonConfigurable):
             self.log.error("%s", parent)
             return
         
+        stop_on_error = content.get('stop_on_error', True)
+
         md = self._make_metadata(parent['metadata'])
         
         # Re-broadcast our input for the benefit of listening clients, and
@@ -382,11 +384,11 @@ class Kernel(SingletonConfigurable):
         
         self.log.debug("%s", reply_msg)
 
-        if not silent and reply_msg['content']['status'] == u'error':
+        if not silent and reply_msg['content']['status'] == u'error' and stop_on_error:
             self._abort_queues()
 
     def do_execute(self, code, silent, store_history=True,
-                   user_experssions=None, allow_stdin=False):
+                   user_expressions=None, allow_stdin=False):
         """Execute user code. Must be overridden by subclasses.
         """
         raise NotImplementedError

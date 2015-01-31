@@ -9,6 +9,7 @@ import unittest
 from IPython.kernel.inprocess.blocking import BlockingInProcessKernelClient
 from IPython.kernel.inprocess.manager import InProcessKernelManager
 from IPython.kernel.inprocess.ipkernel import InProcessKernel
+from IPython.kernel.tests.utils import assemble_output
 from IPython.testing.decorators import skipif_not_matplotlib
 from IPython.utils.io import capture_output
 from IPython.utils import py3compat
@@ -33,8 +34,8 @@ class InProcessKernelTestCase(unittest.TestCase):
         """Does %pylab work in the in-process kernel?"""
         kc = self.kc
         kc.execute('%pylab')
-        msg = get_stream_message(kc)
-        self.assertIn('matplotlib', msg['content']['text'])
+        out, err = assemble_output(kc.iopub_channel)
+        self.assertIn('matplotlib', out)
 
     def test_raw_input(self):
         """ Does the in-process kernel handle raw_input correctly?
@@ -63,21 +64,6 @@ class InProcessKernelTestCase(unittest.TestCase):
         kc = BlockingInProcessKernelClient(kernel=kernel)
         kernel.frontends.append(kc)
         kc.execute('print("bar")')
-        msg = get_stream_message(kc)
-        self.assertEqual(msg['content']['text'], 'bar\n')
+        out, err = assemble_output(kc.iopub_channel)
+        self.assertEqual(out, 'bar\n')
 
-#-----------------------------------------------------------------------------
-# Utility functions
-#-----------------------------------------------------------------------------
-
-def get_stream_message(kernel_client, timeout=5):
-    """ Gets a single stream message synchronously from the sub channel.
-    """
-    while True:
-        msg = kernel_client.get_iopub_msg(timeout=timeout)
-        if msg['header']['msg_type'] == 'stream':
-            return msg
-
-
-if __name__ == '__main__':
-    unittest.main()

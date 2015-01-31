@@ -91,7 +91,6 @@ Extensions bundled with IPython
    :maxdepth: 1
 
    autoreload
-   cythonmagic
    storemagic
    sympyprinting
 
@@ -100,5 +99,5 @@ Extensions bundled with IPython
 * ``rmagic`` is now part of `rpy2 <http://rpy.sourceforge.net/>`_. Use
   ``%load_ext rpy2.ipython`` to load it, and see :mod:`rpy2.ipython.rmagic` for
   details of how to use it.
-* ``cythonmagic``used to be bundled, but is now part of `cython <https://github.com/cython/cython/>`_
+* ``cythonmagic`` used to be bundled, but is now part of `cython <https://github.com/cython/cython/>`_
   Use ``%load_ext Cython`` to load it.

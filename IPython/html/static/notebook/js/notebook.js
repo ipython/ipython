@@ -4,50 +4,29 @@
 /**
  * @module notebook
  */
-define([
-    'base/js/namespace',
-    'jquery',
-    'base/js/utils',
-    'base/js/dialog',
-    'notebook/js/cell',
-    'notebook/js/textcell',
-    'notebook/js/codecell',
-    'services/config',
-    'services/sessions/session',
-    'notebook/js/celltoolbar',
-    'components/marked/lib/marked',
-    'codemirror/lib/codemirror',
-    'codemirror/addon/runmode/runmode',
-    'notebook/js/mathjaxutils',
-    'base/js/keyboard',
-    'notebook/js/tooltip',
-    'notebook/js/celltoolbarpresets/default',
-    'notebook/js/celltoolbarpresets/rawcell',
-    'notebook/js/celltoolbarpresets/slideshow',
-    'notebook/js/scrollmanager'
-], function (
-    IPython, 
-    $,
-    utils,
-    dialog,
-    cellmod,
-    textcell,
-    codecell,
-    configmod,
-    session, 
-    celltoolbar,
-    marked,
-    CodeMirror,
-    runMode,
-    mathjaxutils,
-    keyboard,
-    tooltip,
-    default_celltoolbar,
-    rawcell_celltoolbar,
-    slideshow_celltoolbar,
-    scrollmanager
-    ) {
+define(function (require) {
     "use strict";
+    var IPython = require('base/js/namespace');
+    var $ = require('jquery');
+    var utils = require('base/js/utils');
+    var dialog = require('base/js/dialog');
+    var cellmod = require('notebook/js/cell');
+    var textcell = require('notebook/js/textcell');
+    var codecell = require('notebook/js/codecell');
+    var moment = require('moment');
+    var configmod = require('services/config');
+    var session = require('services/sessions/session');
+    var celltoolbar = require('notebook/js/celltoolbar');
+    var marked = require('components/marked/lib/marked');
+    var CodeMirror = require('codemirror/lib/codemirror');
+    var runMode = require('codemirror/addon/runmode/runmode');
+    var mathjaxutils = require('notebook/js/mathjaxutils');
+    var keyboard = require('base/js/keyboard');
+    var tooltip = require('notebook/js/tooltip');
+    var default_celltoolbar = require('notebook/js/celltoolbarpresets/default');
+    var rawcell_celltoolbar = require('notebook/js/celltoolbarpresets/rawcell');
+    var slideshow_celltoolbar = require('notebook/js/celltoolbarpresets/slideshow');
+    var scrollmanager = require('notebook/js/scrollmanager');
 
     /**
      * Contains and manages cells.
@@ -78,6 +57,7 @@ define([
         this.tooltip = new tooltip.Tooltip(this.events);
         this.ws_url = options.ws_url;
         this._session_starting = false;
+        this.last_modified = null;
 
         //  Create default scroll manager.
         this.scroll_manager = new scrollmanager.ScrollManager(this);
@@ -195,7 +175,7 @@ define([
             that.insert_cell_below('code',ncells-1);
         });
         this.element.append(this.container);
-        this.container.append(end_space);
+        this.container.after(end_space);
     };
 
     /**
@@ -246,13 +226,24 @@ define([
         });
         
         this.events.on('spec_changed.Kernel', function(event, data) {
-            that.metadata.kernelspec = 
-                {name: data.name, display_name: data.spec.display_name};
+            that.metadata.kernelspec = {
+                name: data.name,
+                display_name: data.spec.display_name,
+                language: data.spec.language,
+            };
+            // start session if the current session isn't already correct
+            if (!(this.session && this.session.kernel && this.session.kernel.name === data.name)) {
+                that.start_session(data.name);
+            }
         });
 
         this.events.on('kernel_ready.Kernel', function(event, data) {
             var kinfo = data.kernel.info_reply;
-            var langinfo = kinfo.language_info || {};
+            if (!kinfo.language_info) {
+                delete that.metadata.language_info;
+                return;
+            }
+            var langinfo = kinfo.language_info;
             that.metadata.language_info = langinfo;
             // Mode 'null' should be plain, unhighlighted text.
             var cm_mode = langinfo.codemirror_mode || langinfo.name || 'null';
@@ -955,7 +946,7 @@ define([
 
         if (ncells === 0) {
             // special case append if empty
-            this.element.find('div.end_space').before(element);
+            this.container.append(element);
         } else if ( ncells === index ) {
             // special case append it the end, but not empty
             this.get_cell_element(index-1).after(element);
@@ -1763,19 +1754,6 @@ define([
         this.notebook_path = data.path;
         var trusted = true;
         
-        // Trigger an event changing the kernel spec - this will set the default
-        // codemirror mode
-        if (this.metadata.kernelspec !== undefined) {
-            // TODO shoudl probably not trigger here, 
-            // should call the kernel selector, or custom.{js|css} not loaded.
-            if(this.kernel_selector){
-                // technically not perfect, we should check that the kernelspec matches
-                this.kernel_selector.change_kernel(this.metadata.kernelspec.name);
-            } else {
-                console.log('do not have handle on kernel_selector');
-            }
-        }
-        
         // Set the codemirror mode from language_info metadata
         if (this.metadata.language_info !== undefined) {
             var langinfo = this.metadata.language_info;
@@ -1870,7 +1848,10 @@ define([
      * Save this notebook on the server. This becomes a notebook instance's
      * .save_notebook method *after* the entire notebook has been loaded.
      */
-    Notebook.prototype.save_notebook = function () {
+    Notebook.prototype.save_notebook = function (check_last_modified) {
+        if (check_last_modified === undefined) {
+            check_last_modified = true;
+        }
         if (!this._fully_loaded) {
             this.events.trigger('notebook_save_failed.Notebook',
                 new Error("Load failed, save is disabled")
@@ -1896,12 +1877,46 @@ define([
         var start =  new Date().getTime();
 
         var that = this;
-        return this.contents.save(this.notebook_path, model).then(
-                $.proxy(this.save_notebook_success, this, start),
+        var _save = function () {
+            return that.contents.save(that.notebook_path, model).then(
+                $.proxy(that.save_notebook_success, that, start),
                 function (error) {
                     that.events.trigger('notebook_save_failed.Notebook', error);
                 }
             );
+        };
+
+        if (check_last_modified) {
+            return this.contents.get(this.notebook_path, {content: false}).then(
+                function (data) {
+                    var last_modified = new Date(data.last_modified);
+                    if (last_modified > that.last_modified) {
+                        dialog.modal({
+                            notebook: that,
+                            keyboard_manager: that.keyboard_manager,
+                            title: "Notebook changed",
+                            body: "Notebook has changed since we opened it. Overwrite the changed file?",
+                            buttons: {
+                                Cancel: {},
+                                Overwrite: {
+                                    class: 'btn-danger',
+                                    click: function () {
+                                        _save();
+                                    }
+                                },
+                            }
+                        });
+                    } else {
+                        return _save();
+                    }
+                }, function (error) {
+                    // maybe it has been deleted or renamed? Go ahead and save.
+                    return _save();
+                }
+            );
+        } else {
+            return _save();
+        }
     };
     
     /**
@@ -1912,6 +1927,7 @@ define([
      */
     Notebook.prototype.save_notebook_success = function (start, data) {
         this.set_dirty(false);
+        this.last_modified = new Date(data.last_modified);
         if (data.message) {
             // save succeeded, but validation failed.
             var body = $("<div>");
@@ -2077,6 +2093,7 @@ define([
      * @param {string} notebook_path - A notebook to load
      */
     Notebook.prototype.load_notebook = function (notebook_path) {
+        var that = this;
         this.notebook_path = notebook_path;
         this.notebook_name = utils.url_path_split(this.notebook_path)[1];
         this.events.trigger('notebook_loading.Notebook');
@@ -2154,6 +2171,7 @@ define([
         this.set_dirty(false);
         this.scroll_to_top();
         this.writable = data.writable || false;
+        this.last_modified = new Date(data.last_modified);
         var nbmodel = data.content;
         var orig_nbformat = nbmodel.metadata.orig_nbformat;
         var orig_nbformat_minor = nbmodel.metadata.orig_nbformat_minor;
@@ -2192,17 +2210,18 @@ define([
             this.nbformat_minor = nbmodel.nbformat_minor;
         }
         
-        // Create the session after the notebook is completely loaded to prevent
-        // code execution upon loading, which is a security risk.
         if (this.session === null) {
-            var kernel_name;
-            if (this.metadata.kernelspec) {
-                var kernelspec = this.metadata.kernelspec || {};
-                kernel_name = kernelspec.name;
+            var kernel_name = utils.get_url_param('kernel_name');
+            if (kernel_name) {
+                this.kernel_selector.set_kernel(kernel_name);
+            } else if (this.metadata.kernelspec) {
+                this.kernel_selector.set_kernel(this.metadata.kernelspec);
             } else {
-                kernel_name = utils.get_url_param('kernel_name');
+                // setting kernel via set_kernel above triggers start_session,
+                // otherwise start a new session with the server's default kernel
+                // spec_changed events will fire after kernel is loaded
+                this.start_session();
             }
-            this.start_session(kernel_name);
         }
         // load our checkpoint list
         this.list_checkpoints();
@@ -2244,6 +2263,8 @@ define([
             "v" + this.nbformat + " or earlier. See the server log for details.";
         } else {
             msg = error.message;
+            console.warn('Error stack trace while loading notebook was:');
+            console.warn(error.stack);
         }
         dialog.modal({
             notebook: this,
@@ -2360,7 +2381,8 @@ define([
             $('<p/>').addClass("p-space").text("The checkpoint was last updated at:")
         ).append(
             $('<p/>').addClass("p-space").text(
-                Date(checkpoint.last_modified)
+                moment(checkpoint.last_modified).format('LLLL') +
+                ' ('+moment(checkpoint.last_modified).fromNow()+')'// Long form:  Tuesday, January 27, 2015 12:15 PM
             ).css("text-align", "center")
         );
         

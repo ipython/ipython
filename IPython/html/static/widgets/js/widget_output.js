@@ -9,18 +9,18 @@ define([
     'use strict';
 
     var OutputView = widget.DOMWidgetView.extend({
+        /**
+         * Public constructor
+         */
         initialize: function (parameters) {
-            /**
-             * Public constructor
-             */
             OutputView.__super__.initialize.apply(this, [parameters]);
             this.model.on('msg:custom', this._handle_route_msg, this);
         },
 
+        /**
+         * Called when view is rendered.
+         */
         render: function(){
-            /**
-             * Called when view is rendered.
-             */
             this.output_area = new outputarea.OutputArea({
                 selector: this.$el, 
                 prompt_area: false, 
@@ -43,13 +43,16 @@ define([
             this.output_area.element.html(this.model.get('contents'));
         },
         
-        _handle_route_msg: function(content) {
-            var cell = this.options.cell;
-            if (content && cell) {
-                if (content.method == 'push') {
-                    cell.push_output_area(this.output_area);
-                } else if (content.method == 'pop') {
-                    cell.pop_output_area(this.output_area);
+        /**
+         * Handles re-routed iopub messages.
+         */
+        _handle_route_msg: function(msg) {
+            if (msg) {
+                var msg_type = msg.msg_type;
+                if (msg_type=='clear_output') {
+                    this.output_area.handle_clear_output(msg);
+                } else {
+                    this.output_area.handle_output(msg);
                 }
             }
         },

@@ -85,6 +85,7 @@ define([
      */
     TextCell.prototype.create_element = function () {
         Cell.prototype.create_element.apply(this, arguments);
+        var that = this;
 
         var cell = $("<div>").addClass('cell text_cell');
         cell.attr('tabindex','2');
@@ -98,6 +99,13 @@ define([
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
         this.code_mirror = new CodeMirror(input_area.get(0), this.cm_config);
+        // In case of bugs that put the keyboard manager into an inconsistent state,
+        // ensure KM is enabled when CodeMirror is focused:
+        this.code_mirror.on('focus', function () {
+            if (that.keyboard_manager) {
+                that.keyboard_manager.enable();
+            }
+        });
         this.code_mirror.on('keydown', $.proxy(this.handle_keyevent,this))
         // The tabindex=-1 makes this div focusable.
         var render_area = $('<div/>').addClass('text_cell_render rendered_html')
@@ -340,14 +348,6 @@ define([
         this.code_mirror.on('focus', function() { that.unrender(); });
     };
 
-    /**
-     * Trigger autodetection of highlight scheme for current cell
-     * @method auto_highlight
-     */
-    RawCell.prototype.auto_highlight = function () {
-        this._auto_highlight(this.class_config.get_sync('highlight_modes'));
-    };
-
     /** @method render **/
     RawCell.prototype.render = function () {
         var cont = TextCell.prototype.render.apply(this);
@@ -356,6 +356,7 @@ define([
             if (text === "") { text = this.placeholder; }
             this.set_text(text);
             this.element.removeClass('rendered');
+            this.auto_highlight();
         }
         return cont;
     };

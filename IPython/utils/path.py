@@ -554,6 +554,12 @@ def link_or_copy(src, dst):
 
     link_errno = link(src, dst)
     if link_errno == errno.EEXIST:
+        if os.stat(src).st_ino == os.stat(dst).st_ino:
+            # dst is already a hard link to the correct file, so we don't need
+            # to do anything else. If we try to link and rename the file
+            # anyway, we get duplicate files - see http://bugs.python.org/issue21876
+            return
+
         new_dst = dst + "-temp-%04X" %(random.randint(1, 16**4), )
         try:
             link_or_copy(src, new_dst)

@@ -102,7 +102,10 @@ define(function(require){
             icon: 'fa-cut',
             help_index : 'ee',
             handler : function (env) {
+                var index = env.notebook.get_selected_index();
                 env.notebook.cut_cell();
+                env.notebook.select(index);
+                env.notebook.focus_cell();
             }
         },
         'copy-selected-cell' : {
@@ -110,6 +113,7 @@ define(function(require){
             help_index : 'ef',
             handler : function (env) {
                 env.notebook.copy_cell();
+                env.notebook.focus_cell();
             }
         },
         'paste-cell-before' : {
@@ -257,6 +261,7 @@ define(function(require){
             help_index : 'ha',
             handler : function (env) {
                 env.notebook.kernel.interrupt();
+                env.notebook.focus_cell();
             }
         },
         'restart-kernel':{
@@ -264,6 +269,7 @@ define(function(require){
             help_index : 'hb',
             handler : function (env) {
                 env.notebook.restart_kernel();
+                env.notebook.focus_cell();
             }
         },
         'undo-last-cell-deletion' : {

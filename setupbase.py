@@ -740,10 +740,14 @@ class JavascriptVersion(Command):
         with open(nsfile) as f:
             lines = f.readlines()
         with open(nsfile, 'w') as f:
+            found = False
             for line in lines:
-                if line.startswith("IPython.version"):
-                    line = 'IPython.version = "{0}";\n'.format(version)
+                if line.strip().startswith("IPython.version"):
+                    line = '    IPython.version = "{0}";\n'.format(version)
+                    found = True
                 f.write(line)
+            if not found:
+                raise RuntimeError("Didn't find IPython.version line in %s" % nsfile)
 
 
 def css_js_prerelease(command):

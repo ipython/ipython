@@ -39,10 +39,7 @@ def get_ipdir():
     """Get IPython directory from command line, or assume it's the one above."""
 
     # Initialize arguments and check location
-    try:
-        ipdir = sys.argv[1]
-    except IndexError:
-        ipdir = pjoin(os.path.dirname(__file__), os.pardir)
+    ipdir = pjoin(os.path.dirname(__file__), os.pardir)
 
     ipdir = os.path.abspath(ipdir)
 

@@ -172,62 +172,12 @@ used in your :file:`.emacs` file to enable the server:
 Thanks to the work of Alexander Schmolck and Prabhu Ramachandran,
 currently (X)Emacs and IPython get along very well in other ways.
 
-.. note::
-
-    You will need to use a recent enough version of :file:`python-mode.el`,
-    along with the file :file:`ipython.el`. You can check that the version you
-    have of :file:`python-mode.el` is new enough by either looking at the
-    revision number in the file itself, or asking for it in (X)Emacs via ``M-x
-    py-version``. Versions 4.68 and newer contain the necessary fixes for
-    proper IPython support.
-
-The file :file:`ipython.el` is included with the IPython distribution, in the
-directory :file:`docs/emacs`. Once you put these files in your Emacs path, all
-you need in your :file:`.emacs` file is:
+With (X)EMacs >= 24, You can enable IPython in python-mode with:
 
 .. code-block:: common-lisp
 
-    (require 'ipython)
-
-This should give you full support for executing code snippets via
-IPython, opening IPython as your Python shell via ``C-c !``, etc.
-
-You can customize the arguments passed to the IPython instance at startup by
-setting the ``py-python-command-args`` variable.  For example, to start always
-with ``matplotlib`` integration and hardcoded light-background colors, you can use:
-
-.. code-block:: common-lisp
-
-    (setq py-python-command-args '("--matplotlib" "--colors" "LightBG"))
-
-If you happen to get garbage instead of colored prompts as described in
-the previous section, you may need to set also in your :file:`.emacs` file:
-
-.. code-block:: common-lisp
-
-    (setq ansi-color-for-comint-mode t)
-
-Notes on emacs support:
-
-.. This looks hopelessly out of date - can someone update it?
-
-* There is one caveat you should be aware of: you must start the IPython shell
-  before attempting to execute any code regions via ``C-c |``. Simply type
-  ``C-c !`` to start IPython before passing any code regions to the
-  interpreter, and you shouldn't experience any problems. This is due to a bug
-  in Python itself, which has been fixed for Python 2.3, but exists as of
-  Python 2.2.2 (reported as SF bug [ 737947 ]).
-
-* The (X)Emacs support is maintained by Alexander Schmolck, so all
-  comments/requests should be directed to him through the IPython mailing
-  lists.
-
-* This code is still somewhat experimental so it's a bit rough around the
-  edges (although in practice, it works quite well).
-
-* Be aware that if you customized ``py-python-command`` previously, this value
-  will override what :file:`ipython.el` does (because loading the customization
-  variables comes later).
+    (require 'python)
+    (setq python-shell-interpreter "ipython")
 
 .. _`(X)Emacs`: http://www.gnu.org/software/emacs/
 .. _TextMate: http://macromates.com/

@@ -1,3 +1,17 @@
+.dirty-indicator{
+    .fa();
+    width:20px;
+}
+.dirty-indicator-dirty{
+    .dirty-indicator();
+}
+
+.dirty-indicator-clean{
+    .dirty-indicator();
+    &:before{
+        .icon(@fa-var-check);
+    }
+}
 
 #filename {
     font-size: 16pt;
@@ -5,12 +19,16 @@
     padding: 0px 5px;
 }
 
+#current-mode{
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
 #texteditor-backdrop {
     padding-top: @page-header-padding;
     padding-bottom: @page-header-padding;
     
     @media not print{
-        min-height: @page-backdrop-height;
         background-color: @page-backdrop-color;
     }
 
@@ -27,7 +45,6 @@
         @media not print{
             padding: 0px;
             background-color :  @page-color;
-            min-height: @page-min-height;
             .box-shadow(@global-shadow);
         }
     }

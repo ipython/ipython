@@ -141,25 +141,31 @@ define([
         this.element.find('#rename_notebook').click(function () {
             that.save_widget.rename_notebook({notebook: that.notebook});
         });
+
         this.element.find('#save_checkpoint').click(function () {
             that.notebook.save_checkpoint();
         });
+
         this.element.find('#restore_checkpoint').click(function () {
         });
+
         this.element.find('#trust_notebook').click(function () {
             that.notebook.trust_notebook();
         });
         this.events.on('trust_changed.Notebook', function (event, trusted) {
             if (trusted) {
                 that.element.find('#trust_notebook')
-                    .addClass("disabled")
+                    .addClass("disabled").off('click')
                     .find("a").text("Trusted Notebook");
             } else {
                 that.element.find('#trust_notebook')
-                    .removeClass("disabled")
+                    .removeClass("disabled").on('click', function () {
+                        that.notebook.trust_notebook();
+                    })
                     .find("a").text("Trust Notebook");
             }
         });
+
         this.element.find('#kill_and_exit').click(function () {
             var close_window = function () {
                 /**
@@ -171,6 +177,7 @@ define([
             // finish with close on success or failure
             that.notebook.session.delete(close_window, close_window);
         });
+
         // Edit
         this.element.find('#cut_cell').click(function () {
             that.notebook.cut_cell();
@@ -207,7 +214,8 @@ define([
         
         // View
         this.element.find('#toggle_header').click(function () {
-            $('div#header-container').toggle();
+            $('#header-container').toggle();
+            $('.header-bar').toggle();
             that._size_header();
         });
         this.element.find('#toggle_toolbar').click(function () {
@@ -386,9 +394,11 @@ define([
                     .attr('target', '_blank')
                     .attr('title', 'Opens in a new window')
                     .attr('href', link.url)
-                    .text(link.text)
                     .append($("<i>")
                         .addClass("fa fa-external-link menu-icon pull-right")
+                    )
+                    .append($("<span>")
+                        .text(link.text)
                     )
                 )
             );

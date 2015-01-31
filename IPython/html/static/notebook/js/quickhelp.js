@@ -82,7 +82,7 @@ define([
         'tab':'⇥',
         'backtab':'⇤',
         'capslock':'⇪',
-        'esc':'⎋',
+        'esc':'esc',
         'ctrl':'⌃',
         'enter':'↩',
         'pageup':'⇞',
@@ -178,6 +178,10 @@ define([
             'border. <b>Command mode</b> binds the keyboard to notebook level actions '+
             'and is indicated by a grey cell border.'
         );
+        if (platform === 'MacOS') {
+            var key_div = this.build_key_names();
+            doc.append(key_div);
+        }
         element.append(doc);
 
         // Command mode
@@ -202,6 +206,33 @@ define([
         
         this.events.on('rebuild.QuickHelp', function() { that.force_rebuild = true;});
     };
+
+    QuickHelp.prototype.build_key_names = function () {
+       var key_names_mac =  [{ shortcut:"⌘", help:"Command" },
+                    { shortcut:"⌃", help:"Control" },
+                    { shortcut:"⌥", help:"Option" },
+                    { shortcut:"⇧", help:"Shift" },
+                    { shortcut:"↩", help:"Return" },
+                    { shortcut:"␣", help:"Space" },
+                    { shortcut:"⇥", help:"Tab" }];
+        var i, half, n;
+        var div = $('<div/>').append('MacOS modifier keys:');
+        var sub_div = $('<div/>').addClass('container-fluid');
+        var col1 = $('<div/>').addClass('col-md-6');
+        var col2 = $('<div/>').addClass('col-md-6');
+        n = key_names_mac.length;
+        half = ~~(n/2);  
+        for (i=0; i<half; i++) { col1.append( 
+                build_one(key_names_mac[i]) 
+                ); }
+        for (i=half; i<n; i++) { col2.append( 
+                build_one(key_names_mac[i]) 
+                ); }
+        sub_div.append(col1).append(col2);
+        div.append(sub_div);
+        return div;
+    };
+
 
     QuickHelp.prototype.build_command_help = function () {
         var command_shortcuts = this.keyboard_manager.command_shortcuts.help();

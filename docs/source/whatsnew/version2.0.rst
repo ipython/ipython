@@ -1,7 +1,50 @@
 ============
- 2.0 Series
+ 2.x Series
 ============
 
+Release 2.4
+===========
+
+January, 2015
+
+- backport read support for nbformat v4 from IPython 3
+- support for PyQt5
+- support for Pygments 2.0
+
+For more information on what fixes have been backported to 2.4,
+see our :ref:`detailed release info <issues_list_200>`.
+
+
+Release 2.3.1
+=============
+
+November, 2014
+
+- Fix CRCRLF line-ending bug in notebooks on Windows
+
+For more information on what fixes have been backported to 2.3.1,
+see our :ref:`detailed release info <issues_list_200>`.
+
+Release 2.3.0
+=============
+
+October, 2014
+
+- improve qt5 support
+- prevent notebook data loss with atomic writes
+
+For more information on what fixes have been backported to 2.3,
+see our :ref:`detailed release info <issues_list_200>`.
+
+Release 2.2.0
+=============
+
+August, 2014
+
+- Add CORS configuration
+
+For more information on what fixes have been backported to 2.2,
+see our :ref:`detailed release info <issues_list_200>`.
 
 Release 2.1.0
 =============

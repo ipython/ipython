@@ -48,6 +48,8 @@ require([
     var cfg = new config.ConfigSection('tree', common_options);
     cfg.load();
     common_options.config = cfg;
+    var common_config = new config.ConfigSection('common', common_options);
+    common_config.load();
     
     var session_list = new sesssionlist.SesssionList($.extend({
         events: events}, 
@@ -133,6 +135,8 @@ require([
     IPython.new_notebook_widget = new_buttons;
 
     events.trigger('app_initialized.DashboardApp');
+    utils.load_extensions_from_config(cfg);
+    utils.load_extensions_from_config(common_config);
     
     // bound the upload method to the on change of the file select list
     $("#alternate_upload").change(function (event){

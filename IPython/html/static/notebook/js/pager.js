@@ -21,7 +21,7 @@ define([
         this.events = options.events;
         this.pager_element = $(pager_selector);
         this.pager_button_area = $('#pager-button-area');
-        this._default_end_space = 200;
+        this._default_end_space = 100;
         this.pager_element.resizable({handles: 'n', resize: $.proxy(this._resize, this)});
         this.expanded = false;
         this.create_button_area();
@@ -57,8 +57,13 @@ define([
         this.pager_element.bind('collapse_pager', function (event, extrap) {
             // Animate hiding of the pager.
             var time = (extrap && extrap.duration) ? extrap.duration : 'fast';
-            that.pager_element.hide(time, function() {
-                $('.end_space').css('height', that._default_end_space);
+            that.pager_element.animate({
+                height: 'toggle'
+            }, {
+                duration: time,
+                done: function() {
+                    $('.end_space').css('height', that._default_end_space);
+                }
             });
         });
 

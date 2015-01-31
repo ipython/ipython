@@ -186,7 +186,7 @@ def upgrade_output(output):
     elif output['output_type'] == 'pyerr':
         output['output_type'] = 'error'
     elif output['output_type'] == 'stream':
-        output['name'] = output.pop('stream')
+        output['name'] = output.pop('stream', 'stdout')
     return output
 
 def downgrade_output(output):

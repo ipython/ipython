@@ -49,10 +49,16 @@ from IPython.testing.skipdoctest import skip_doctest
 line_re = re.compile('.*?\n')
 
 ipython_tokens = [
-  (r'(\%+)(\w+)\s+(\.*)(\n)', bygroups(Operator, Keyword,
+  (r"(?s)(\s*)(%%)(\w+)(.*)", bygroups(Text, Operator, Keyword, Text)),
+  (r'(?s)(^\s*)(%%!)([^\n]*\n)(.*)', bygroups(Text, Operator, Text, using(BashLexer))),
+  (r"(%%?)(\w+)(\?\??)$",  bygroups(Operator, Keyword, Operator)),
+  (r"\b(\?\??)(\s*)$",  bygroups(Operator, Text)),
+  (r'(%)(sx|sc|system)(.*)(\n)', bygroups(Operator, Keyword,
                                        using(BashLexer), Text)),
-  (r'(\%+)(\w+)\b', bygroups(Operator, Keyword)),
-  (r'^(!)(.+)(\n)', bygroups(Operator, using(BashLexer), Text)),
+  (r'(%)(\w+)(.*\n)', bygroups(Operator, Keyword, Text)),
+  (r'^(!!)(.+)(\n)', bygroups(Operator, using(BashLexer), Text)),
+  (r'(!)(?!=)(.+)(\n)', bygroups(Operator, using(BashLexer), Text)),
+  (r'^(\s*)(\?\??)(\s*%{0,2}[\w\.\*]*)', bygroups(Text, Operator, Text)),
 ]
 
 def build_ipy_lexer(python3):
@@ -87,7 +93,7 @@ def build_ipy_lexer(python3):
     tokens = PyLexer.tokens.copy()
     tokens['root'] = ipython_tokens + tokens['root']
 
-    attrs = {'name': name, 'aliases': aliases,
+    attrs = {'name': name, 'aliases': aliases, 'filenames': [],
              '__doc__': doc, 'tokens': tokens}
 
     return type(name, (PyLexer,), attrs)

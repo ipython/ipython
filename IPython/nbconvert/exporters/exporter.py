@@ -241,7 +241,9 @@ class Exporter(LoggingConfigurable):
         #Make sure the metadata extension exists in resources
         if 'metadata' in resources:
             if not isinstance(resources['metadata'], ResourcesDict):
-                resources['metadata'] = ResourcesDict(resources['metadata'])
+                new_metadata = ResourcesDict()
+                new_metadata.update(resources['metadata'])
+                resources['metadata'] = new_metadata
         else:
             resources['metadata'] = ResourcesDict()
             if not resources['metadata']['name']:

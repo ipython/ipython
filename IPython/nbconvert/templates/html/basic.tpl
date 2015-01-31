@@ -123,6 +123,12 @@ unknown type  {{ cell.type }}
 </div>
 {%- endblock data_html %}
 
+{% block data_markdown scoped -%}
+<div class="output_markdown rendered_html output_subarea {{extra_class}}">
+{{ output.data['text/markdown'] | markdown2html }}
+</div>
+{%- endblock data_markdown %}
+
 {% block data_png scoped %}
 <div class="output_png output_subarea {{extra_class}}">
 {%- if 'image/png' in output.metadata.get('filenames', {}) %}
@@ -131,10 +137,10 @@ unknown type  {{ cell.type }}
 <img src="data:image/png;base64,{{ output.data['image/png'] }}"
 {%- endif %}
 {%- if 'width' in output.metadata.get('image/png', {}) %}
-width={{output.metadata['png']['width']}}
+width={{output.metadata['image/png']['width']}}
 {%- endif %}
 {%- if 'height' in output.metadata.get('image/png', {}) %}
-height={{output.metadata['png']['height']}}
+height={{output.metadata['image/png']['height']}}
 {%- endif %}
 >
 </div>

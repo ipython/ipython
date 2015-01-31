@@ -7,7 +7,7 @@ casper.notebook_test(function () {
     this.execute_cell_then(index);
 
     var combo_selector = '.widget-area .widget-subarea .widget-hbox .btn-group .widget-combo-btn';
-    var multibtn_selector = '.widget-area .widget-subarea .widget-hbox .btn-group[data-toggle="buttons-radio"]';
+    var multibtn_selector = '.widget-area .widget-subarea .widget-hbox.widget-toggle-buttons .btn-group';
     var radio_selector = '.widget-area .widget-subarea .widget-hbox .widget-radio-box';
     var list_selector = '.widget-area .widget-subarea .widget-hbox .widget-listbox';
 

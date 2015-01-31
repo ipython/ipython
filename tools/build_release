@@ -12,7 +12,7 @@ ipdir = get_ipdir()
 cd(ipdir)
 
 # Load release info
-execfile(pjoin('IPython', 'core', 'release.py'))
+execfile(pjoin('IPython', 'core', 'release.py'), globals())
 
 # Check that everything compiles
 compile_tree()

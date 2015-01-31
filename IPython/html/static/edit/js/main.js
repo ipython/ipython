@@ -2,6 +2,7 @@
 // Distributed under the terms of the Modified BSD License.
 
 require([
+    'jquery',
     'base/js/namespace',
     'base/js/utils',
     'base/js/page',
@@ -14,6 +15,7 @@ require([
     'edit/js/notificationarea',
     'custom/custom',
 ], function(
+    $,
     IPython,
     utils,
     page,
@@ -32,6 +34,8 @@ require([
     contents = new contents.Contents({base_url: base_url});
     var config = new configmod.ConfigSection('edit', {base_url: base_url});
     config.load();
+    var common_config = new configmod.ConfigSection('common', {base_url: base_url});
+    common_config.load();
     
     var editor = new editmod.Editor('#texteditor-container', {
         base_url: base_url,
@@ -60,15 +64,11 @@ require([
         '#notification_area', {
         events: events,
     });
+    editor.notification_area = notification_area;
     notification_area.init_notification_widgets();
 
-    config.loaded.then(function() {
-        if (config.data.load_extensions) {
-            var nbextension_paths = Object.getOwnPropertyNames(
-                                        config.data.load_extensions);
-            IPython.load_extensions.apply(this, nbextension_paths);
-        }
-    });
+    utils.load_extensions_from_config(config);
+    utils.load_extensions_from_config(common_config);
     editor.load();
     page.show();
 
@@ -78,4 +78,16 @@ require([
         }
     };
 
+    // Make sure the codemirror editor is sized appropriatley.
+    var _handle_resize = function() {
+        var backdrop = $("#texteditor-backdrop");
+
+        // account for padding on the backdrop wrapper
+        var padding = backdrop.outerHeight(true) - backdrop.height();
+        $('div.CodeMirror').height($("#site").height() - padding);
+    };
+    $(window).resize(_handle_resize);
+
+    // On document ready, resize codemirror.
+    $(document).ready(_handle_resize);
 });

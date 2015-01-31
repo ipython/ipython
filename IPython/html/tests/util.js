@@ -13,6 +13,7 @@ casper.open_new_notebook = function () {
     var baseUrl = this.get_notebook_server();
     this.start(baseUrl);
     this.waitFor(this.page_loaded);
+    this.waitForSelector('#kernel-python2 a, #kernel-python3 a');
     this.thenClick('#kernel-python2 a, #kernel-python3 a');
     
     this.waitForPopup('');

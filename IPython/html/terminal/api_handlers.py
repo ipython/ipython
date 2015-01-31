@@ -1,5 +1,5 @@
 import json
-from tornado import web
+from tornado import web, gen
 from ..base.handlers import IPythonHandler, json_errors
 from ..utils import url_path_join
 
@@ -33,11 +33,11 @@ class TerminalHandler(IPythonHandler):
 
     @web.authenticated
     @json_errors
+    @gen.coroutine
     def delete(self, name):
         tm = self.terminal_manager
         if name in tm.terminals:
-            tm.kill(name)
-            # XXX: Should this wait for terminal to finish before returning?
+            yield tm.terminate(name, force=True)
             self.set_status(204)
             self.finish()
         else:

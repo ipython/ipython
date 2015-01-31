@@ -103,6 +103,7 @@ def get_pull_request(project, num, auth=False):
         header = make_auth_header()
     else:
         header = None
+    print("fetching %s" % url, file=sys.stderr)
     response = requests.get(url, headers=header)
     response.raise_for_status()
     return json.loads(response.text, object_hook=Obj)

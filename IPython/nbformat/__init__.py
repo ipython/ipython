@@ -158,4 +158,6 @@ def write(nb, fp, version=NO_CONVERT, **kwargs):
     s = writes(nb, version, **kwargs)
     if isinstance(s, bytes):
         s = s.decode('utf8')
-    return fp.write(s)
+    fp.write(s)
+    if not s.endswith(u'\n'):
+        fp.write(u'\n')

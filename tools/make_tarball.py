@@ -2,12 +2,12 @@
 """Simple script to create a tarball with proper git info.
 """
 
-import commands
+import subprocess
 import os
 
 from toollib import cd, sh
 
-tag = commands.getoutput('git describe --tags')
+tag = subprocess.getoutput('git describe --tags')
 base_name = 'ipython-%s' % tag
 tar_name = '%s.tgz' % base_name
 
@@ -16,7 +16,6 @@ tar_name = '%s.tgz' % base_name
 # to the top of the tree.  There are long threads (since 2007) on the git list
 # about this and it still doesn't work in a sensible way...
 
-start_dir = os.getcwdu()
 cd('..')
 git_tpl = 'git archive --format=tar --prefix={0}/ HEAD | gzip > {1}'
 sh(git_tpl.format(base_name, tar_name))

@@ -25,6 +25,7 @@ define([
         this.events = options.events;
         this.notebook = options.notebook;
         this._make();
+        this.notebook.keyboard_manager.register_events(this.element);
         Object.seal(this);
     };
 
@@ -100,6 +101,7 @@ define([
             default:
                 console.log("unrecognized cell type:", cell_type);
             }
+            that.notebook.focus_cell();
         });
         return sel;
 
@@ -122,6 +124,7 @@ define([
                     celltoolbar.CellToolbar.activate_preset(val, that.events);
                     that.notebook.metadata.celltoolbar = val;
                 }
+                that.notebook.focus_cell();
             });
         // Setup the currently registered presets.
         var presets = celltoolbar.CellToolbar.list_presets();

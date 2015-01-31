@@ -17,6 +17,7 @@ define([
         this.events = options.events;
         this.editor = options.editor;
         this._last_modified = undefined;
+        this._filename = undefined;
         this.keyboard_manager = options.keyboard_manager;
         if (this.selector !== undefined) {
             this.element = $(selector);
@@ -29,6 +30,12 @@ define([
         var that = this;
         this.element.find('span.filename').click(function () {
             that.rename();
+        });
+        this.events.on('save_status_clean.Editor', function (evt) {
+            that.update_document_title();
+        });
+        this.events.on('save_status_dirty.Editor', function (evt) {
+            that.update_document_title(undefined, true);
         });
         this.events.on('file_loaded.Editor', function (evt, model) {
             that.update_filename(model.name);
@@ -104,8 +111,11 @@ define([
         this.element.find('span.filename').text(filename);
     };
 
-    SaveWidget.prototype.update_document_title = function (filename) {
-        document.title = filename;
+    SaveWidget.prototype.update_document_title = function (filename, dirty) {
+        if(filename){
+            this._filename = filename;
+        }
+        document.title = (dirty?'*':'')+this._filename;
     };
 
     SaveWidget.prototype.update_address_bar = function (path) {

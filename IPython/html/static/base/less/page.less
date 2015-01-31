@@ -17,12 +17,13 @@ body {
     overflow: visible;
 }
 
-div#header {
+#header {
     /* Initially hidden to prevent FLOUC */
     display: none;
     background-color: @body-bg;
 
     /* Display over codemirror */
+    position: relative;
     z-index: 100;
 
     #header-container {
@@ -33,8 +34,8 @@ div#header {
 
     .header-bar {
         width: 100%;
-        height: 0px;
-        border-bottom: 1px solid @navbar-default-border;
+        height: 1px;
+        background: @navbar-default-border;
         margin-bottom: -1px;
     }
 
@@ -56,7 +57,12 @@ div#header {
     padding-left: 0px;
     padding-top: (@navbar-height - @logo_height) / 2;
     padding-bottom: (@navbar-height - @logo_height) / 2;
+    @media (max-width: @screen-sm-max){
+        margin-left: 10px;
+    }
 }
+
+
 
 #noscript {
      width: auto;
@@ -76,6 +82,11 @@ div#header {
     width: 100%;
     display: none;
     .border-box-sizing();
+    overflow: auto;
+    @media print {
+      // force auto-height on print (overrides manual resizing in live view)
+      height: auto !important;
+    }
 }
 
 /* Smaller buttons */
@@ -116,7 +127,7 @@ span#login_widget > .button,
     }
 }
 
-@media (min-width: 768px) {
+@media (min-width: @screen-sm-min) {
     .modal .modal-dialog {
         width: 700px;
     }
@@ -126,4 +137,11 @@ span#login_widget > .button,
 .icon(@ico){
     .fa();
     content: @ico;
+}
+
+@media (min-width: @screen-sm-min) {
+    select.form-control {
+        margin-left: @padding-base-horizontal;
+        margin-right: @padding-base-horizontal;
+    }
 }

@@ -281,6 +281,10 @@ Message type: ``execute_request``::
     # If raw_input is called from code executed from such a frontend,
     # a StdinNotImplementedError will be raised.
     'allow_stdin' : True,
+
+    # A boolean flag, which, if True, does not abort the execution queue, if an exception is encountered.
+    # This allows the queued execution of multiple execute_requests, even if they generate exceptions.
+    'stop_on_error' : False,
     }
 
 .. versionchanged:: 5.0
@@ -1036,6 +1040,14 @@ Message type: ``status``::
 
     Busy and idle messages should be sent before/after handling every message,
     not just execution.
+
+.. note::
+
+    Extra status messages are added between the notebook webserver and websocket clients
+    that are not sent by the kernel. These are:
+    
+    - restarting (kernel has died, but will be automatically restarted)
+    - dead (kernel has died, restarting has failed)
 
 Clear output
 ------------

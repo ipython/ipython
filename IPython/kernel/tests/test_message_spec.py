@@ -94,6 +94,30 @@ def test_execute_inc():
     count_2 = reply['execution_count']
     nt.assert_equal(count_2, count+1)
 
+def test_execute_stop_on_error():
+    """execute request should not abort execution queue with stop_on_error False"""
+    flush_channels()
+    
+    fail = '\n'.join([
+        # sleep to ensure subsequent message is waiting in the queue to be aborted
+        'import time',
+        'time.sleep(0.5)',
+        'raise ValueError',
+    ])
+    KC.execute(code=fail)
+    msg_id = KC.execute(code='print("Hello")')
+    KC.get_shell_msg(timeout=TIMEOUT)
+    reply = KC.get_shell_msg(timeout=TIMEOUT)
+    nt.assert_equal(reply['content']['status'], 'aborted')
+
+    flush_channels()
+
+    KC.execute(code=fail, stop_on_error=False)
+    msg_id = KC.execute(code='print("Hello")')
+    KC.get_shell_msg(timeout=TIMEOUT)
+    reply = KC.get_shell_msg(timeout=TIMEOUT)
+    nt.assert_equal(reply['content']['status'], 'ok')
+
 
 def test_user_expressions():
     flush_channels()

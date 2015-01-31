@@ -16,6 +16,7 @@ from ..base.handlers import (
 from IPython.nbformat import from_dict
 
 from IPython.utils.py3compat import cast_bytes
+from IPython.utils import text
 
 def find_resource_files(output_files_dir):
     files = []
@@ -87,9 +88,18 @@ class NbconvertFileHandler(IPythonHandler):
             raise web.HTTPError(400, "Not a notebook: %s" % path)
 
         self.set_header('Last-Modified', model['last_modified'])
-        
+
         try:
-            output, resources = exporter.from_notebook_node(model['content'])
+            output, resources = exporter.from_notebook_node(
+                model['content'],
+                resources={
+                    "metadata": {
+                        "name": name[:name.rfind('.')],
+                        "modified_date": (model['last_modified']
+                            .strftime(text.date_format))
+                    }
+                }
+            )
         except Exception as e:
             raise web.HTTPError(500, "nbconvert failed: %s" % e)
 

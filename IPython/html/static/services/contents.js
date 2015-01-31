@@ -72,13 +72,12 @@ define(function(require) {
     /**
      * Get a file.
      *
-     * Calls success with file JSON model, or error with error.
-     *
      * @method get
      * @param {String} path
      * @param {Object} options
      *    type : 'notebook', 'file', or 'directory'
      *    format: 'text' or 'base64'; only relevant for type: 'file'
+     *    content: true or false; // whether to include the content
      */
     Contents.prototype.get = function (path, options) {
         /**
@@ -94,6 +93,7 @@ define(function(require) {
         var params = {};
         if (options.type) { params.type = options.type; }
         if (options.format) { params.format = options.format; }
+        if (options.content === false) { params.content = '0'; }
         return utils.promising_ajax(url + '?' + $.param(params), settings);
     };
 

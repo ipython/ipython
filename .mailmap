@@ -1,3 +1,4 @@
+A. J. Holyoake <a.j.holyoake@gmail.com> ajholyoake <a.j.holyoake@gmail.com>
 Aaron Culich <aculich@gmail.com> Aaron Culich <aculich@eecs.berkeley.edu>
 Aron Ahmadia <aron@ahmadia.net> ahmadia <aron@ahmadia.net>
 Benjamin Ragan-Kelley <benjaminrk@gmail.com> <minrk@Mercury.local>
@@ -16,6 +17,7 @@ Christoph Gohlke <cgohlke@uci.edu> cgohlke <cgohlke@uci.edu>
 Cyrille Rossant <cyrille.rossant@gmail.com> rossant <rossant@github>
 Damián Avila <damianavila82@yahoo.com.ar> damianavila <damianavila82@yahoo.com.ar>
 Damián Avila <damianavila82@yahoo.com.ar> damianavila <damianavila@gmail.com>
+Damon Allen <damontallen@gmail.com> damontallen <damontallen@gmail.com>
 Darren Dale <dsdale24@gmail.com> darren.dale <>
 Darren Dale <dsdale24@gmail.com> Darren Dale <>
 Dav Clark <davclark@berkeley.edu> Dav Clark <>
@@ -54,6 +56,8 @@ Jakob Gager <jakob.gager@gmail.com> jakobgager <gager@ilsb.tuwien.ac.at>
 Jakob Gager <jakob.gager@gmail.com> jakobgager <jakobgager@hotmail.com>
 Jason Grout <jgrout6@bloomberg.net> <jason.grout@drake.edu>
 Jason Grout <jgrout6@bloomberg.net> <jason-github@creativetrax.com>
+Jason Gors <jason.gors.work@gmail.com> jason gors <jason.gors.work@gmail.com>
+Jason Gors <jason.gors.work@gmail.com> jgors <jason.gors.work@gmail.com>
 Jens Hedegaard Nielsen <jenshnielsen@gmail.com> Jens Hedegaard Nielsen <jhn@jhn-Znote.(none)>
 Jens Hedegaard Nielsen <jenshnielsen@gmail.com> Jens H Nielsen <jenshnielsen@gmail.com>
 Jens Hedegaard Nielsen <jenshnielsen@gmail.com> Jens H. Nielsen <jenshnielsen@gmail.com>
@@ -62,6 +66,7 @@ Jonathan Frederic <jdfreder@calpoly.edu> Jonathan Frederic <jonathan@LifebookMin
 Jonathan Frederic <jdfreder@calpoly.edu> Jonathan Frederic <jon.freder@gmail.com>
 Jonathan Frederic <jdfreder@calpoly.edu> Jonathan Frederic <xh3xx.goose@gmail.com>
 Jonathan Frederic <jdfreder@calpoly.edu> jon <jon.freder@gmail.com>
+Jonathan Frederic <jdfreder@calpoly.edu> U-Jon-PC\Jon <Jon@Jon-PC.(none)>
 Jonathan March <jmarch@enthought.com> Jonathan March <JDM@MarchRay.net>
 Jonathan March <jmarch@enthought.com> jdmarch <JDM@marchRay.net>
 Jörgen Stenarson <jorgen.stenarson@kroywen.se> Jörgen Stenarson <jorgen.stenarson@bostream.nu>
@@ -71,7 +76,11 @@ Jörgen Stenarson <jorgen.stenarson@kroywen.se> jstenar <jorgen.stenarson@bostre
 Jörgen Stenarson <jorgen.stenarson@kroywen.se> jstenar <>
 Jörgen Stenarson <jorgen.stenarson@kroywen.se> JÃ¶rgen Stenarson <jorgen.stenarson@kroywen.se>
 Juergen Hasch <python@elbonia.de> juhasch <python@elbonia.de>
+Juergen Hasch <python@elbonia.de> juhasch <hasch@VMBOX.fritz.box>
+Julia Evans <julia@jvns.ca> Julia Evans <julia@stripe.com>
+Kester Tong <kestert@google.com> KesterTong <kestert@google.com>
 Kyle Kelley <rgbkrk@gmail.com> Kyle Kelley <kyle.kelley@rackspace.com>
+Kyle Kelley <rgbkrk@gmail.com> rgbkrk <rgbkrk@gmail.com>
 Laurent Dufréchou <laurent.dufrechou@gmail.com> <laurent.dufrechou@gmail.com>
 Laurent Dufréchou <laurent.dufrechou@gmail.com> <laurent@Pep>
 Laurent Dufréchou <laurent.dufrechou@gmail.com> laurent dufrechou <>
@@ -87,7 +96,9 @@ Matthias Bussonnier <bussonniermatthias@gmail.com> Bussonnier Matthias <bussonni
 Matthias Bussonnier <bussonniermatthias@gmail.com> Matthias BUSSONNIER <bussonniermatthias@umr168-curn-1-24x-6561.curie.fr>
 Matthias Bussonnier <bussonniermatthias@gmail.com> Matthias Bussonnier <carreau@Aspire.(none)>
 Michael Droettboom <mdboom@gmail.com> Michael Droettboom <mdroe@stsci.edu>
+Nicholas Bollweg <nick.bollweg@gmail.com> Nicholas Bollweg (Nick) <nick.bollweg@gmail.com>
 Nicolas Rougier <Nicolas.Rougier@inria.fr> <Nicolas.rougier@inria.fr>
+Nikolay Koldunov <koldunovn@gmail.com> Nikolay Koldunov <nikolay.koldunov@zmaw.de>
 Omar Andrés Zapata Mesa <andresete.chaos@gmail.com> Omar Andres Zapata Mesa <andresete.chaos@gmail.com>
 Omar Andrés Zapata Mesa <andresete.chaos@gmail.com> Omar Andres Zapata Mesa <omazapa@tuxhome>
 Pankaj Pandey <pankaj86@gmail.com> Pankaj Pandey <pankaj@enthought.com>
@@ -95,6 +106,7 @@ Pascal Schetelat <pascal.schetelat@gmail.com> pascal-schetelat <pascal.schetelat
 Paul Ivanov <pi@berkeley.edu> Paul Ivanov <pivanov314@gmail.com>
 Pauli Virtanen <pauli.virtanen@iki.fi> Pauli Virtanen <>
 Pauli Virtanen <pauli.virtanen@iki.fi> Pauli Virtanen <pav@iki.fi>
+Pierre Gerold <pierre.gerold@laposte.net> Pierre Gerold <gerold@crans.org>
 Pietro Berkes <pberkes@enthought.com> Pietro Berkes <pietro.berkes@googlemail.com>
 Piti Ongmongkolkul <piti118@gmail.com> piti118 <piti118@gmail.com>
 Prabhu Ramachandran <prabhu@enthought.com> Prabhu Ramachandran <>
@@ -106,12 +118,15 @@ Robert Kern <robert.kern@gmail.com> Robert Kern <>
 Robert Marchman <bo.marchman@gmail.com> Robert Marchman <robert.l.marchman@dartmouth.edu>
 Satrajit Ghosh <satra@mit.edu> Satrajit Ghosh <satra@ba5.mit.edu>
 Satrajit Ghosh <satra@mit.edu> Satrajit Ghosh <satrajit.ghosh@gmail.com>
+Scott Sanderson <scoutoss@gmail.com> Scott Sanderson <ssanderson@quantopian.com>
 smithj1 <smithj1@LMC-022896.local> smithj1 <smithj1@LMC-022896.swisscom.com>
 smithj1 <smithj1@LMC-022896.local> smithj1 <smithj1@lmc-022896.local>
 Steven Johnson <steven.johnson@drake.edu> stevenJohnson <steven.johnson@drake.edu>
 Steven Silvester <steven.silvester@ieee.org> blink1073 <steven.silvester@ieee.org>
 S. Weber <s8weber@c4.usr.sh> s8weber <s8weber@c5.usr.sh>
 Stefan van der Walt <stefan@sun.ac.za> Stefan van der Walt <bzr@mentat.za.net>
+Silvia Vinyes <silvia.vinyes@gmail.com> Silvia <silvia@silvia-U44SG.(none)>
+Silvia Vinyes <silvia.vinyes@gmail.com> silviav12 <silvia.vinyes@gmail.com>
 Sylvain Corlay <scorlay@bloomberg.net> <sylvain.corlay@gmail.com>
 Sylvain Corlay <scorlay@bloomberg.net> sylvain.corlay <sylvain.corlay@gmail.com>
 Ted Drain <ted.drain@gmail.com> TD22057 <ted.drain@gmail.com>

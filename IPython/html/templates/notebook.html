@@ -38,7 +38,7 @@ data-notebook-path="{{notebook_path}}"
 
 
 <span id="save_widget" class="pull-left save_widget">
-    <span class="filename"></span>
+    <span id="notebook_name" class="filename"></span>
     <span class="checkpoint_status"></span>
     <span class="autosave_status"></span>
 </span>
@@ -58,7 +58,7 @@ data-notebook-path="{{notebook_path}}"
               <i class="fa fa-bars"></i>
               <span class="navbar-text">Menu</span>
             </button>
-            <p id="kernel_indicator" class="navbar-text">
+            <p id="kernel_indicator" class="navbar-text indicator_area">
               <span class="kernel_indicator_name">Kernel</span>
               <i id="kernel_indicator_icon"></i>
             </p>
@@ -248,8 +248,8 @@ data-notebook-path="{{notebook_path}}"
                         {% set
                             sections = (
                                 (
-                                    ("http://nbviewer.ipython.org/github/ipython/ipython/blob/2.x/examples/Index.ipynb", "Notebook Help", True),
-                                    ("http://help.github.com/articles/github-flavored-markdown","Markdown",True),
+                                    ("http://nbviewer.ipython.org/github/ipython/ipython/blob/3.x/examples/Notebook/Index.ipynb", "Notebook Help", True),
+                                    ("https://help.github.com/articles/markdown-basics/","Markdown",True),
                                 ),
                             )
                         %}
@@ -287,12 +287,17 @@ data-notebook-path="{{notebook_path}}"
 
 {% block site %}
 
-
 <div id="ipython-main-app">
     <div id="notebook_panel">
         <div id="notebook"></div>
     </div>
 </div>
+
+<div id='tooltip' class='ipython_tooltip' style='display:none'></div>
+
+{% endblock %}
+
+{% block after_site %}
 
 <div id="pager">
     <div id="pager-contents">
@@ -301,11 +306,7 @@ data-notebook-path="{{notebook_path}}"
     <div id='pager-button-area'></div>
 </div>
 
-<div id='tooltip' class='ipython_tooltip' style='display:none'></div>
-
-
 {% endblock %}
-
 
 {% block script %}
 {{super()}}

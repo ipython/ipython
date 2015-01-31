@@ -41,7 +41,7 @@ RUN apt-get update && apt-get install -y -q \
     npm
 
 # In order to build from source, need less
-RUN npm install -g less@1.7.5
+RUN npm install -g 'less@<3.0'
 
 RUN pip install invoke
 

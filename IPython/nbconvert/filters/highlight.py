@@ -113,7 +113,7 @@ def _pygments_highlight(source, output_formatter, language='ipython', metadata=N
 
     # If the cell uses a magic extension language,
     # use the magic language instead.
-    if language == 'ipython' \
+    if language.startswith('ipython') \
         and metadata \
         and 'magics_language' in metadata:
 

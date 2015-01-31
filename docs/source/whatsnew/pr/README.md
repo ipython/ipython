@@ -16,3 +16,5 @@ have a filename starting with `incompat-`, such as
 `incompat-switching-to-perl.rst`.  Our "What's new" files always have two
 sections,  and this prefix scheme will make sure that the backwards incompatible
 changes get routed to their proper section.
+
+To merge these files into :file:`whatsnew/development.rst`, run the script :file:`tools/update_whatsnew.py`.

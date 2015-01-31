@@ -1,1 +1,0 @@
-* Enhanced support for `env` magic.  As before, `env` with no arguments displays all environment variables and values.  Additionally, `env` can be used to get or set individual environment variables.  To display an individual value, use the `env var` syntax.  To set a value, use `env var val` or `env var=val`.  Python value expansion using `$` works as usual.

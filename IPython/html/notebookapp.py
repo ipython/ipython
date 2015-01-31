@@ -90,6 +90,7 @@ from IPython.utils import py3compat
 from IPython.utils.path import filefind, get_ipython_dir
 from IPython.utils.sysinfo import get_sys_info
 
+from .nbextensions import SYSTEM_NBEXTENSIONS_DIRS
 from .utils import url_path_join
 
 #-----------------------------------------------------------------------------
@@ -242,7 +243,7 @@ class NotebookWebApplication(web.Application):
         # set the URL that will be redirected from `/`
         handlers.append(
             (r'/?', web.RedirectHandler, {
-                'url' : url_path_join(settings['base_url'], settings['default_url']),
+                'url' : settings['default_url'],
                 'permanent': False, # want 302, not 301
             })
         )
@@ -566,11 +567,14 @@ class NotebookApp(BaseIPythonApplication):
         """return extra paths + the default locations"""
         return self.extra_template_paths + DEFAULT_TEMPLATE_PATH_LIST
 
-    nbextensions_path = List(Unicode, config=True,
-        help="""paths for Javascript extensions. By default, this is just IPYTHONDIR/nbextensions"""
+    extra_nbextensions_path = List(Unicode, config=True,
+        help="""extra paths to look for Javascript notebook extensions"""
     )
-    def _nbextensions_path_default(self):
-        return [os.path.join(get_ipython_dir(), 'nbextensions')]
+    
+    @property
+    def nbextensions_path(self):
+        """The path to look for Javascript notebook extensions"""
+        return self.extra_nbextensions_path + [os.path.join(get_ipython_dir(), 'nbextensions')] + SYSTEM_NBEXTENSIONS_DIRS
 
     websocket_url = Unicode("", config=True,
         help="""The base URL for websockets,
@@ -812,6 +816,9 @@ class NotebookApp(BaseIPythonApplication):
         if self.allow_origin_pat:
             self.tornado_settings['allow_origin_pat'] = re.compile(self.allow_origin_pat)
         self.tornado_settings['allow_credentials'] = self.allow_credentials
+        # ensure default_url starts with base_url
+        if not self.default_url.startswith(self.base_url):
+            self.default_url = url_path_join(self.base_url, self.default_url)
         
         self.web_app = NotebookWebApplication(
             self, self.kernel_manager, self.contents_manager,
@@ -872,7 +879,8 @@ class NotebookApp(BaseIPythonApplication):
             initialize(self.web_app)
             self.web_app.settings['terminals_available'] = True
         except ImportError as e:
-            self.log.info("Terminals not available (error was %s)", e)
+            log = self.log.debug if sys.platform == 'win32' else self.log.warn
+            log("Terminals not available (error was %s)", e)
 
     def init_signal(self):
         if not sys.platform.startswith('win'):
