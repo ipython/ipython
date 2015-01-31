@@ -3,9 +3,10 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import atexit
+import json
 
 try:
     from queue import Empty  # Py 3
@@ -95,136 +96,30 @@ def stop_global_kernel():
 
 # Shell channel
 
-def test_execute(test_code):
+def check_execute(test_code):
     flush_channels()
     
     msg_id = KC.execute(code=test_code)
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'execute_reply', msg_id)
+    return reply
 
-
-def test_execute_silent(test_code):
-    flush_channels()
-    msg_id, reply = execute(code=test_code, silent=True)
-    
-    # flush status=idle
-    status = KC.iopub_channel.get_msg(timeout=TIMEOUT)
-    validate_message(status, 'status', msg_id)
-    nt.assert_equal(status['content']['execution_state'], 'idle')
-
-    nt.assert_raises(Empty, KC.iopub_channel.get_msg, timeout=0.1)
-    count = reply['execution_count']
-    
-    msg_id, reply = execute(code=test_code, silent=True)
-    
-    # flush status=idle
-    status = KC.iopub_channel.get_msg(timeout=TIMEOUT)
-    validate_message(status, 'status', msg_id)
-    nt.assert_equal(status['content']['execution_state'], 'idle')
-    
-    nt.assert_raises(Empty, KC.iopub_channel.get_msg, timeout=0.1)
-    count_2 = reply['execution_count']
-    nt.assert_equal(count_2, count)
-
-
-def test_execute_error(test_code, error_name = None):
-    flush_channels()
-    
-    msg_id, reply = execute(code=test_code)
-    nt.assert_equal(reply['status'], 'error')
-    if error_name:
-        nt.assert_equal(reply['ename'], error_name)
-    
-    error = KC.iopub_channel.get_msg(timeout=TIMEOUT)
-    validate_message(error, 'error', msg_id)
-
-
-def test_execute_inc(test_code):
-    """execute request should increment execution_count"""
-    flush_channels()
-
-    msg_id, reply = execute(code=test_code)
-    count = reply['execution_count']
-    
-    flush_channels()
-    
-    msg_id, reply = execute(code=test_code)
-    count_2 = reply['execution_count']
-    nt.assert_equal(count_2, count+1)
-
-
-def test_user_expressions(test_code,user_expression,user_expression_result):
+def check_user_expressions(test_code,user_expression,user_expression_result):
     flush_channels()
 
     msg_id, reply = execute(code=test_code, user_expressions=dict(foo=user_expression))
     user_expressions = reply['user_expressions']
-    nt.assert_equal(user_expressions, {u'foo': {
-        u'status': u'ok',
-        u'data': {u'text/plain': user_expression_result},
-        u'metadata': {},
-    }})
+    return user_expressions
 
-
-def test_user_expressions_fail(test_code, user_expression, user_expression_error = None):
-    flush_channels()
-
-    msg_id, reply = execute(code=test_code, user_expressions=dict(foo=user_expression))
-    user_expressions = reply['user_expressions']
-    foo = user_expressions['foo']
-    nt.assert_equal(foo['status'], 'error')
-    if user_expression_error:
-        nt.assert_equal(foo['ename'], user_expression_error)
-
-
-def test_oinfo(inspect_object):
+def check_oinfo(inspect_object):
     flush_channels()
 
     msg_id = KC.inspect(inspect_object)
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'inspect_reply', msg_id)
+    return reply
 
-
-def test_oinfo_found(test_code,inspect_object):
-    flush_channels()
-
-    msg_id, reply = execute(code=test_code)
-    
-    msg_id = KC.inspect(inpect_object)
-    reply = KC.get_shell_msg(timeout=TIMEOUT)
-    validate_message(reply, 'inspect_reply', msg_id)
-    content = reply['content']
-    assert content['found']
-    text = content['data']['text/plain']
-    nt.assert_in('Type:', text)
-    nt.assert_in('Docstring:', text)
-
-
-def test_oinfo_detail(test_code, inspect_object, inspect_position):
-    flush_channels()
-
-    msg_id, reply = execute(code=test_code)
-    
-    msg_id = KC.inspect(inspect_object, cursor_pos=inspect_position, detail_level=1)
-    reply = KC.get_shell_msg(timeout=TIMEOUT)
-    validate_message(reply, 'inspect_reply', msg_id)
-    content = reply['content']
-    assert content['found']
-    text = content['data']['text/plain']
-    nt.assert_in('Definition:', text)
-    nt.assert_in('Source:', text)
-
-
-def test_oinfo_not_found(inspect_object):
-    flush_channels()
-
-    msg_id = KC.inspect(inspect_object)
-    reply = KC.get_shell_msg(timeout=TIMEOUT)
-    validate_message(reply, 'inspect_reply', msg_id)
-    content = reply['content']
-    nt.assert_false(content['found'])
-
-
-def test_complete(test_code, complete_string, complete_results):
+def check_complete(test_code, complete_string, complete_results):
     flush_channels()
 
     msg_id, reply = execute(code=test_code)
@@ -232,34 +127,32 @@ def test_complete(test_code, complete_string, complete_results):
     msg_id = KC.complete(complete_string, 2)
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'complete_reply', msg_id)
-    matches = reply['content']['matches']
-    for name in complete_results:
-        nt.assert_in(name, matches)
+    return reply
 
-
-def test_kernel_info_request():
+def check_kernel_info():
     flush_channels()
 
     msg_id = KC.kernel_info()
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'kernel_info_reply', msg_id)
+    return reply
 
 
-def test_single_payload(test_code):
+def check_single_payload(test_code):
     flush_channels()
     msg_id, reply = execute(code=test_code)
     payload = reply['payload']
-    next_input_pls = [pl for pl in payload if pl["source"] == "set_next_input"]
-    nt.assert_equal(len(next_input_pls), 1)
+    return payload
 
-def test_is_complete(test_code):
+def check_is_complete(test_code):
     flush_channels()
 
     msg_id = KC.is_complete(test_code)
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'is_complete_reply', msg_id)
+    return reply
 
-def test_history_range(test_code):
+def check_history_range(test_code):
     flush_channels()
     
     msg_id_exec = KC.execute(code=test_code, store_history = True)
@@ -269,9 +162,9 @@ def test_history_range(test_code):
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'history_reply', msg_id)
     content = reply['content']
-    nt.assert_equal(len(content['history']), 1)
+    return content
 
-def test_history_tail(test_code):
+def check_history_tail(test_code):
     flush_channels()
     
     msg_id_exec = KC.execute(code=test_code, store_history = True)
@@ -281,9 +174,9 @@ def test_history_tail(test_code):
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'history_reply', msg_id)
     content = reply['content']
-    nt.assert_equal(len(content['history']), 1)
+    return content
 
-def test_history_search(test_code):
+def check_history_search(test_code):
     flush_channels()
     
     msg_id_exec = KC.execute(code=test_code, store_history = True)
@@ -293,12 +186,12 @@ def test_history_search(test_code):
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'history_reply', msg_id)
     content = reply['content']
-    nt.assert_equal(len(content['history']), 1)
+    return content
 
 # IOPub channel
 
 
-def test_stream(test_code, result):
+def check_stream(test_code):
     flush_channels()
 
     msg_id, reply = execute(test_code)
@@ -306,10 +199,10 @@ def test_stream(test_code, result):
     stdout = KC.iopub_channel.get_msg(timeout=TIMEOUT)
     validate_message(stdout, 'stream', msg_id)
     content = stdout['content']
-    nt.assert_equal(content['text'], result)
+    return content
 
 
-def test_display_data(test_code, result):
+def check_display_data(test_code):
     flush_channels()
 
     msg_id, reply = execute(test_code)
@@ -317,5 +210,36 @@ def test_display_data(test_code, result):
     display = KC.iopub_channel.get_msg(timeout=TIMEOUT)
     validate_message(display, 'display_data', parent=msg_id)
     data = display['content']['data']
-    nt.assert_equal(data['text/plain'], result)
+    return data
 
+#mapping of checks
+checks = {
+    'execute' : check_execute,
+    'user_expressions' : check_user_expressions,
+    'oinfo' : check_oinfo,
+    'complete' : check_complete,
+    'kernel_info' : check_kernel_info,
+    'single_payload' : check_single_payload,
+    'is_complete' : check_is_complete,
+    'history_range' : check_history_range,
+    'history_tail' : check_history_tail,
+    'history_search' : check_history_search,
+    'stream' : check_stream,
+    'display_data' : check_display_data
+}
+
+def run_test(message, data):
+    f = checks[message]
+    return f(data['test_code'])
+ 
+def run_defined_tests(kernel, test_file):
+    global KC,KM
+    if KC is None:
+        start_global_kernel(kernel)
+    
+    with open(test_file,'r') as test_script:
+        tests = json.loads(test_script.read())
+        for key in tests.keys():
+            data = tests[key]
+            print("Running test for %s with data %s"%(key,data))
+            print(run_test(key,data))
