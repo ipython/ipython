@@ -454,6 +454,7 @@ define([
                             .text(item)
                             .attr('data-value', encodeURIComponent(item))
                             .attr('selected_label', item)
+                            .on("click", $.proxy(that.handle_click, that))
                             .appendTo(that.$listbox);
                     } 
                 });
@@ -501,6 +502,13 @@ define([
             } else {
                 this.$listbox.css(name, value);
             }
+        },
+
+        handle_click: function (e) {
+            /**
+             * Handle when a new value is clicked.
+             */
+            this.$listbox.val($(e.target).val()).change();
         },
 
         handle_change: function (e) {
