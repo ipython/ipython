@@ -133,9 +133,7 @@ def check_oinfo(inspect_object):
 def check_complete(test_code):
     flush_channels()
 
-    msg_id, reply = execute(code=test_code)
-
-    msg_id = KC.complete(complete_string, 2)
+    msg_id = KC.complete(test_code, 2)
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'complete_reply', msg_id)
     return reply
@@ -146,7 +144,9 @@ def check_kernel_info():
 
     msg_id = KC.kernel_info()
     reply = KC.get_shell_msg(timeout=TIMEOUT)
-    validate_message(reply, 'kernel_info_reply', msg_id)
+    # Do not validate because kernel info versions will be different
+    # for each kernel - leave it to developer to check the result
+    #validate_message(reply, 'kernel_info_reply', msg_id)
     return reply
 
 
@@ -165,6 +165,10 @@ def check_is_complete(test_code):
     validate_message(reply, 'is_complete_reply', msg_id)
     return reply
 
+
+# The below 3 history tests are run for the last one command and
+# with a .* pattern so that we only check the test code. This is 
+# enough to validate all the parts of the message spec
 
 def check_history_range(test_code):
     flush_channels()
@@ -201,7 +205,7 @@ def check_history_search(test_code):
     reply_exec = KC.get_shell_msg(timeout=TIMEOUT)
 
     msg_id = KC.history(
-        hist_access_type='search', raw=True, output=True, n=1, pattern='*', session=0)
+        hist_access_type='search', raw=True, output=True, n=1, pattern='.*', session=0)
     reply = KC.get_shell_msg(timeout=TIMEOUT)
     validate_message(reply, 'history_reply', msg_id)
     content = reply['content']
@@ -231,7 +235,11 @@ def check_display_data(test_code):
     data = display['content']['data']
     return data
 
-# mapping of checks
+# Mapping of message types, check methods and the parameters needed.
+# The test runner will validate the number of parameters based on 
+# the params list and not run any check which does not have all the
+# parameters. This keeps the design flexibale to add more message
+# types easily
 checks = {
     'execute': {"f": check_execute, "params": ["test_code"]},
     'user_expressions': {"f": check_user_expressions, "params": ["test_code", "user_expression"]},
@@ -248,6 +256,7 @@ checks = {
 }
 
 
+#takes one message type, gets the params and runs the check
 def run_test(message, data):
     test_info = checks[message]
     f = test_info["f"]
@@ -262,7 +271,7 @@ def run_test(message, data):
         args = [data[param] for param in params]
     return f(*args)
 
-
+#load the json script and run through the tests
 def run_defined_tests(kernel, test_file):
     global KC, KM
     if KC is None:
@@ -281,6 +290,7 @@ if __name__=='__main__':
     if args.__len__() < 2:
         print('Usage: python kerneltest.py <kernel name> <test script file>')
         print('Test script format : \n{\n\t<message type>:{\n\t\tparam_1_name:param_1_value,.....\n\t}\n}')
+        print('\nSupported message types \n%s'%(checks.keys()))
     else:
         print("Using kernel %s and test script %s\n\n"%(args[0],args[1]))
         run_defined_tests(args[0],args[1])
