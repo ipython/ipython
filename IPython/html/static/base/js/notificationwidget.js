@@ -99,19 +99,22 @@ define([
             }, timeout);
         }
 
-        // bind the click callback if it is given
-        if (click_callback !== undefined) {
-            this.element.click(function () {
-                if (click_callback() !== false) {
-                    that.element.fadeOut(100, function () {that.inner.text('');});
-                }
-                that.element.unbind('click');
-                if (that.timeout !== null) {
-                    clearTimeout(that.timeout);
-                    that.timeout = null;
-                }
-            });
+        // if no click callback assume we will just dismiss the notification
+        if (click_callback === undefined) {
+            click_callback = function(){return true};
         }
+        // on click, remove widget if click callback say so
+        // and unbind click event.
+        this.element.click(function () {
+            if (click_callback() !== false) {
+                that.element.fadeOut(100, function () {that.inner.text('');});
+                that.element.unbind('click');
+            }
+            if (that.timeout !== null) {
+                clearTimeout(that.timeout);
+                that.timeout = null;
+            }
+        });
     };
 
     /**
