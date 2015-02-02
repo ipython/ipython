@@ -8925,6 +8925,7 @@ ul#new-menu {
   text-rendering: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transform: translate(0, 0);
   width: 20px;
 }
 .dirty-indicator.pull-left {
@@ -8940,6 +8941,7 @@ ul#new-menu {
   text-rendering: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transform: translate(0, 0);
   width: 20px;
 }
 .dirty-indicator-dirty.pull-left {
@@ -8955,6 +8957,7 @@ ul#new-menu {
   text-rendering: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transform: translate(0, 0);
   width: 20px;
 }
 .dirty-indicator-clean.pull-left {
@@ -8970,6 +8973,7 @@ ul#new-menu {
   text-rendering: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transform: translate(0, 0);
   content: "\f00c";
 }
 .dirty-indicator-clean:before.pull-left {
@@ -10671,7 +10675,7 @@ ul#help_menu li a i {
   text-align: center;
   width: auto;
 }
-.edit_mode .modal_indicator:before {
+.modal_indicator:before {
   display: inline-block;
   font: normal normal normal 14px/1 FontAwesome;
   font-size: inherit;
@@ -10681,27 +10685,17 @@ ul#help_menu li a i {
   transform: translate(0, 0);
   content: "\f040";
 }
-.edit_mode .modal_indicator:before.pull-left {
+.modal_indicator:before.pull-left {
   margin-right: .3em;
 }
-.edit_mode .modal_indicator:before.pull-right {
+.modal_indicator:before.pull-right {
   margin-left: .3em;
+}
+.edit_mode .modal_indicator:before {
+  visibility: inherit;
 }
 .command_mode .modal_indicator:before {
-  display: inline-block;
-  font: normal normal normal 14px/1 FontAwesome;
-  font-size: inherit;
-  text-rendering: auto;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  transform: translate(0, 0);
-  content: ' ';
-}
-.command_mode .modal_indicator:before.pull-left {
-  margin-right: .3em;
-}
-.command_mode .modal_indicator:before.pull-right {
-  margin-left: .3em;
+  visibility: hidden;
 }
 .kernel_idle_icon:before {
   display: inline-block;
