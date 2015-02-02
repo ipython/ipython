@@ -138,7 +138,9 @@ define([
         if (this.collapsed) {
             this.collapse_button.hide();
             this.element.show();
-            this.prompt_overlay.show();
+            if (this.prompt_area) {
+                this.prompt_overlay.show();
+            }
             this.collapsed = false;
             this.scroll_if_long();
         }
