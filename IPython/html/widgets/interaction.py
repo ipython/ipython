@@ -59,7 +59,7 @@ def _widget_abbrev_single_value(o):
     if isinstance(o, string_types):
         return Text(value=unicode_type(o))
     elif isinstance(o, dict):
-        return Dropdown(values=o)
+        return Dropdown(options=o)
     elif isinstance(o, bool):
         return Checkbox(value=o)
     elif isinstance(o, float):
@@ -76,7 +76,7 @@ def _widget_abbrev(o):
     float_or_int = (float, int)
     if isinstance(o, (list, tuple)):
         if o and all(isinstance(x, string_types) for x in o):
-            return Dropdown(values=[unicode_type(k) for k in o])
+            return Dropdown(options=[unicode_type(k) for k in o])
         elif _matches(o, (float_or_int, float_or_int)):
             min, max, value = _get_min_max_value(o[0], o[1])
             if all(isinstance(_, int) for _ in o):

@@ -30,38 +30,38 @@ from IPython.utils.warn import DeprecatedClass
 class _Selection(DOMWidget):
     """Base class for Selection widgets
     
-    ``values`` can be specified as a list or dict. If given as a list,
+    ``options`` can be specified as a list or dict. If given as a list,
     it will be transformed to a dict of the form ``{str(value):value}``.
     """
     
     value = Any(help="Selected value")
-    value_name = Unicode(help="The name of the selected value", sync=True)
-    values = Any(help="""List of (key, value) tuples or dict of values that the 
+    selected_label = Unicode(help="The label of the selected value", sync=True)
+    options = Any(help="""List of (key, value) tuples or dict of values that the
         user can select.
     
     The keys of this list are the strings that will be displayed in the UI,
     representing the actual Python choices.
     
-    The keys of this list are also available as _value_names.
+    The keys of this list are also available as _options_labels.
     """)
     
-    _values_dict = Dict()
-    _value_names = Tuple(sync=True)
-    _value_values = Tuple()
+    _options_dict = Dict()
+    _options_labels = Tuple(sync=True)
+    _options_values = Tuple()
 
     disabled = Bool(False, help="Enable or disable user changes", sync=True)
     description = Unicode(help="Description of the value this widget represents", sync=True)
         
     def __init__(self, *args, **kwargs):
         self.value_lock = Lock()
-        self.values_lock = Lock()
-        self.on_trait_change(self._values_readonly_changed, ['_values_dict', '_value_names', '_value_values', '_values'])
-        if 'values' in kwargs:
-            self.values = kwargs.pop('values')
+        self.options_lock = Lock()
+        self.on_trait_change(self._options_readonly_changed, ['_options_dict', '_options_labels', '_options_values', '_options'])
+        if 'options' in kwargs:
+            self.options = kwargs.pop('options')
         DOMWidget.__init__(self, *args, **kwargs)
-        self._value_in_values()
+        self._value_in_options()
     
-    def _make_values(self, x):
+    def _make_options(self, x):
         # If x is a dict, convert it to list format.
         if isinstance(x, (OrderedDict, dict)):
             return [(k, v) for k, v in x.items()]
@@ -70,7 +70,7 @@ class _Selection(DOMWidget):
         if not isinstance(x, (list, tuple)):
             raise ValueError('x')
         
-        # If x is an ordinary list, use the values as names.
+        # If x is an ordinary list, use the option values as names.
         for y in x:
             if not isinstance(y, (list, tuple)) or len(y) < 2:
                 return [(i, i) for i in x]
@@ -78,42 +78,42 @@ class _Selection(DOMWidget):
         # Value is already in the correct format.
         return x
 
-    def _values_changed(self, name, old, new):
-        """Handles when the values tuple has been changed.
+    def _options_changed(self, name, old, new):
+        """Handles when the options tuple has been changed.
 
-        Setting values implies setting value names from the keys of the dict.
-        """        
-        if self.values_lock.acquire(False):
+        Setting options implies setting option labels from the keys of the dict.
+        """
+        if self.options_lock.acquire(False):
             try:
-                self.values = new
+                self.options = new
 
-                values = self._make_values(new)
-                self._values_dict = {i[0]: i[1] for i in values}
-                self._value_names = [i[0] for i in values]
-                self._value_values = [i[1] for i in values]
-                self._value_in_values()
+                options = self._make_options(new)
+                self._options_dict = {i[0]: i[1] for i in options}
+                self._options_labels = [i[0] for i in options]
+                self._options_values = [i[1] for i in options]
+                self._value_in_options()
             finally:
-                self.values_lock.release()
+                self.options_lock.release()
         
-    def _value_in_values(self):
+    def _value_in_options(self):
         # ensure that the chosen value is one of the choices
-        if self._value_values:
-            if self.value not in self._value_values:
-                self.value = next(iter(self._value_values))
     
-    def _values_readonly_changed(self, name, old, new):
-        if not self.values_lock.locked():
-            raise TraitError("`.%s` is a read-only trait. Use the `.values` tuple instead." % name)
+        if self._options_values:
+            if self.value not in self._options_values:
+                self.value = next(iter(self._options_values))
 
+    def _options_readonly_changed(self, name, old, new):
+        if not self.options_lock.locked():
+            raise TraitError("`.%s` is a read-only trait. Use the `.options` tuple instead." % name)
     def _value_changed(self, name, old, new):
         """Called when value has been changed"""
         if self.value_lock.acquire(False):
             try:
                 # Reverse dictionary lookup for the value name
-                for k,v in self._values_dict.items():
+                for k, v in self._options_dict.items():
                     if new == v:
                         # set the selected value name
-                        self.value_name = k
+                        self.selected_label = k
                         return
                 # undo the change, and raise KeyError
                 self.value = old
@@ -121,11 +121,68 @@ class _Selection(DOMWidget):
             finally:
                 self.value_lock.release()
 
-    def _value_name_changed(self, name, old, new):
+    def _selected_label_changed(self, name, old, new):
         """Called when the value name has been changed (typically by the frontend)."""
         if self.value_lock.acquire(False):
             try:
-                self.value = self._values_dict[new]
+                self.value = self._options_dict[new]
+            finally:
+                self.value_lock.release()
+
+
+class _MultipleSelection(_Selection):
+    """Base class for MultipleSelection widgets.
+
+    As with ``_Selection``, ``options`` can be specified as a list or dict. If
+    given as a list, it will be transformed to a dict of the form
+    ``{str(value): value}``.
+
+    Despite their names, ``value`` (and ``selected_label``) will be tuples, even
+    if only a single option is selected.
+    """
+
+    value = Tuple(help="Selected values")
+    selected_labels = Tuple(help="The labels of the selected options",
+                            sync=True)
+
+    @property
+    def selected_label(self):
+        raise AttributeError(
+            "Does not support selected_label, use selected_labels")
+
+    def _value_in_options(self):
+        # ensure that the chosen value is one of the choices
+        if self.options:
+            old_value = self.value or []
+            new_value = []
+            for value in old_value:
+                if value in self._options_dict.values():
+                    new_value.append(value)
+            if new_value:
+                self.value = new_value
+            else:
+                self.value = [next(iter(self._options_dict.values()))]
+
+    def _value_changed(self, name, old, new):
+        """Called when value has been changed"""
+        if self.value_lock.acquire(False):
+            try:
+                self.selected_labels = [
+                    self._options_labels[self._options_values.index(v)]
+                    for v in new
+                ]
+            except:
+                self.value = old
+                raise KeyError(new)
+            finally:
+                self.value_lock.release()
+
+    def _selected_labels_changed(self, name, old, new):
+        """Called when the selected label has been changed (typically by the
+        frontend)."""
+        if self.value_lock.acquire(False):
+            try:
+                self.value = [self._options_dict[name] for name in new]
             finally:
                 self.value_lock.release()
 
@@ -163,6 +220,15 @@ class RadioButtons(_Selection):
 class Select(_Selection):
     """Listbox that only allows one item to be selected at any given time."""
     _view_name = Unicode('SelectView', sync=True)
+
+
+@register('IPython.SelectMultiple')
+class SelectMultiple(_MultipleSelection):
+    """Listbox that allows many items to be selected at any given time.
+    Despite their names, inherited from ``_Selection``, the currently chosen
+    option values, ``value``, or their labels, ``selected_labels`` must both be
+    updated with a list-like object."""
+    _view_name = Unicode('SelectMultipleView', sync=True)
 
 
 # Remove in IPython 4.0

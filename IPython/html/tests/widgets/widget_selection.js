@@ -43,11 +43,11 @@ casper.notebook_test(function () {
 
 //values=["' + selection_values + '"[i] for i in range(4)]
     selection_index = this.append_cell(
-        'values=["' + selection_values + '"[i] for i in range(4)]\n' +
-        'selection = [widgets.Dropdown(values=values),\n' +
-        '    widgets.ToggleButtons(values=values),\n' +
-        '    widgets.RadioButtons(values=values),\n' +
-        '    widgets.Select(values=values)]\n' +
+        'options=["' + selection_values + '"[i] for i in range(4)]\n' +
+        'selection = [widgets.Dropdown(options=options),\n' +
+        '    widgets.ToggleButtons(options=options),\n' +
+        '    widgets.RadioButtons(options=options),\n' +
+        '    widgets.Select(options=options)]\n' +
         '[display(selection[i]) for i in range(4)]\n' +
         'for widget in selection:\n' +
         '    def handle_change(name,old,new):\n' +
@@ -136,9 +136,9 @@ casper.notebook_test(function () {
     index = this.append_cell(
         'from copy import copy\n' +
         'for widget in selection:\n' +
-        '    d = copy(widget.values)\n' +
+        '    d = copy(widget.options)\n' +
         '    d.append("z")\n' +
-        '    widget.values = d\n' +
+        '    widget.options = d\n' +
         'selection[0].value = "z"');
     this.execute_cell_then(index, function(index){
 
