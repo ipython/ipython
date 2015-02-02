@@ -219,6 +219,9 @@ define([
     var type_order = {'directory':0,'notebook':1,'file':2};
 
     NotebookList.prototype.draw_notebook_list = function (list, error_msg) {
+        // Remember what was selected before the refresh.
+        var selected_before = this.selected;
+
         list.content.sort(function(a, b) {
             if (type_order[a['type']] < type_order[b['type']]) {
                 return -1;
@@ -265,7 +268,20 @@ define([
         }
         // Trigger an event when we've finished drawing the notebook list.
         events.trigger('draw_notebook_list.NotebookList');
-        this._selection_changed();
+
+        // Reselect the items that were selected before.  Notify listeners
+        // that the selected items may have changed.  O(n^2) operation.
+        selected_before.forEach(function(item) {
+            var list_items = $('.list_item');
+            for (var i=0; i<list_items.length; i++) {
+                var $list_item = $(list_items[i]);
+                if ($list_item.data('path') == item.path) {
+                    $list_item.find('input[type=checkbox]').prop('checked', true);
+                    break;
+                }
+            }
+        });
+        this._selection_changed();  
     };
 
 
