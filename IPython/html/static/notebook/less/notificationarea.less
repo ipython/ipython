@@ -30,12 +30,16 @@
     .indicator_area();
 }
 
-.edit_mode .modal_indicator:before {
+.modal_indicator:before {
     .icon(@fa-var-pencil)
 }
 
+.edit_mode .modal_indicator:before {
+    visibility: inherit;
+}
+
 .command_mode .modal_indicator:before {
-    .icon(' ');
+    visibility: hidden;
 }
 
 .kernel_idle_icon:before {
