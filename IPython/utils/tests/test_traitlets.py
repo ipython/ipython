@@ -1088,6 +1088,13 @@ def test_dict_assignment():
     nt.assert_equal(d, c.value)
     nt.assert_true(c.value is d)
 
+def test_dict_default_value():
+    """Check that the `{}` default value of the Dict traitlet constructor is
+    actually copied."""
+
+    d1, d2 = Dict(), Dict()
+    nt.assert_false(d1.get_default_value() is d2.get_default_value())
+
 class TestLink(TestCase):
     def test_connect_same(self):
         """Verify two traitlets of the same type can be linked together using link."""
