@@ -272,7 +272,7 @@ define([
 
     KernelSelector.prototype.new_notebook = function (kernel_name) {
         
-        var w = window.open();
+        var w = window.open(undefined, IPython._target);
         // Create a new notebook in the same path as the current
         // notebook's path.
         var that = this;
