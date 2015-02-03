@@ -14,6 +14,9 @@
 @dark_dashboard_color: @breadcrumb-color;
 @list_stripe_color: lighten(@page-backdrop-color,3%);
 
+// The left padding of the selector button's contents.
+@dashboard-selectorbtn-lpad: 7px;
+
 ul#tabs {
     margin-bottom: @dashboard_tb_pad;
 }
@@ -100,6 +103,11 @@ ul.breadcrumb {
 
     input {
         margin-right: @dashboard_lr_pad;
+        margin-left: @dashboard_lr_pad + @dashboard-selectorbtn-lpad;
+    }
+
+    .item_link {
+        margin-left: 14px;
     }
 }
 
@@ -152,12 +160,23 @@ input.engine_num_input {
     color: blue;
 }
 
-#project_name > .breadcrumb {
-    padding: 0px;
-    margin-bottom: 0px;
-    background-color: transparent;
-    font-weight: bold;
-   
+#project_name {
+    display: inline-block;
+
+    > .breadcrumb {
+        padding: 0px;
+        margin-bottom: 0px;
+        background-color: transparent;
+        font-weight: bold;
+    }
+}
+
+#tree-selector {
+    display: inline-block;
+    
+    input[type=checkbox] {
+        margin-left: @dashboard_lr_pad;
+    }
 }
 
 .tab-content .row {
