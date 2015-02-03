@@ -126,8 +126,7 @@ define([
             $('#tree-selector .select-running-notebooks').click($.proxy(this.select_running_notebooks, this));
             $('#tree-selector .select-files').click($.proxy(this.select_files, this));
             $('#tree-selector .select-directories').click($.proxy(this.select_directories, this));
-            $('#tree-selector .select-inverse').click($.proxy(this.select_inverse, this));
-            $('#tree-selector .unselect-all').click($.proxy(this.unselect_all, this));
+            $('#tree-selector .deselect-all').click($.proxy(this.deselect_all, this));
         }
     };
 
@@ -379,7 +378,7 @@ define([
      * Select all of the notebooks in the tree.
      */
     NotebookList.prototype.select_notebooks = function() {
-        this.unselect_all();
+        this.deselect_all();
         $('.list_item').each(function(index, item) {
             if ($(item).data('type') === 'notebook') {
                 $(item).find('input[type=checkbox]').prop('checked', true);
@@ -392,7 +391,7 @@ define([
      * Select all of the running notebooks in the tree.
      */
     NotebookList.prototype.select_running_notebooks = function() {
-        this.unselect_all();
+        this.deselect_all();
         var that = this;
         $('.list_item').each(function(index, item) {
             if ($(item).data('type') === 'notebook' && that.sessions[$(item).data('path')] !== undefined) {
@@ -406,7 +405,7 @@ define([
      * Select all of the files in the tree.
      */
     NotebookList.prototype.select_files = function() {
-        this.unselect_all();
+        this.deselect_all();
         $('.list_item').each(function(index, item) {
             if ($(item).data('type') === 'file') {
                 $(item).find('input[type=checkbox]').prop('checked', true);
@@ -419,7 +418,7 @@ define([
      * Select all of the directories in the tree.
      */
     NotebookList.prototype.select_directories = function() {
-        this.unselect_all();
+        this.deselect_all();
         $('.list_item').each(function(index, item) {
             if ($(item).data('type') === 'directory') {
                 $(item).find('input[type=checkbox]').prop('checked', true);
@@ -429,19 +428,9 @@ define([
     };
 
     /**
-     * Select the inverse of the current selection.
-     */
-    NotebookList.prototype.select_inverse = function() {
-        $('.list_item input[type=checkbox]').each(function(index, item) {
-            $(item).prop('checked', !$(item).prop('checked'));
-        });
-        this._selection_changed();
-    };
-
-    /**
      * Unselect everything selected in the tree.
      */
-    NotebookList.prototype.unselect_all = function() {
+    NotebookList.prototype.deselect_all = function() {
         $('.list_item input[type=checkbox]').each(function(index, item) {
             $(item).prop('checked', false);
         });
