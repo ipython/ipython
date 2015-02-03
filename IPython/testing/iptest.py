@@ -388,7 +388,7 @@ class StreamCapturer(Thread):
             return
 
         self.stop.set()
-        os.write(self.writefd, b'wake up')  # Ensure we're not locked in a read()
+        os.write(self.writefd, b'\0')  # Ensure we're not locked in a read()
         self.join()
 
 class SubprocessStreamCapturePlugin(Plugin):
