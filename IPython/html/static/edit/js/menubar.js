@@ -74,6 +74,11 @@ define([
         this.element.find('#rename-file').click(function () {
             that.save_widget.rename();
         });
+        this.element.find('#download-file').click(function () {
+            window.open(utils.url_join_encode(
+                that.base_url, 'files', that.editor.file_path
+            ) + '?download=1');
+        });
         
         // Edit
         this.element.find('#menu-find').click(function () {
