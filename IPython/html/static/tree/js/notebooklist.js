@@ -517,10 +517,24 @@ define([
         // If all of the items are selected, show the selector as checked.  If
         // some of the items are selected, show it as checked.  Otherwise,
         // uncheck it.
+        var total = 0;
+        $('.list_item input[type=checkbox]').each(function(index, item) {
+            var parent = $(item).parent().parent();
+            // If the item doesn't have an upload button and it's not the 
+            // breadcrumbs, it can be selected.  Breadcrumbs path == ''.
+            if (parent.find('.upload_button').length === 0 && parent.data('path') !== '') {
+                total++;
+            }
+        });
         if (checked === 0) {
+            $('#tree-selector input[type=checkbox]')[0].indeterminate = false;
             $('#tree-selector input[type=checkbox]').prop('checked', false);
-        } else {
+        } else if (checked === total) {
+            $('#tree-selector input[type=checkbox]')[0].indeterminate = false;
             $('#tree-selector input[type=checkbox]').prop('checked', true);
+        } else {
+            $('#tree-selector input[type=checkbox]').prop('checked', false);
+            $('#tree-selector input[type=checkbox]')[0].indeterminate = true;
         }
     };
 
