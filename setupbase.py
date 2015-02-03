@@ -670,9 +670,11 @@ def get_bdist_wheel():
                     if found:
                         lis.pop(idx)
                 
-                for pkg in ("gnureadline", "pyreadline", "mock"):
+                for pkg in ("gnureadline", "pyreadline", "mock", "terminado"):
                     _remove_startswith(requires, pkg)
                 requires.append("gnureadline; sys.platform == 'darwin' and platform.python_implementation == 'CPython'")
+                requires.append("terminado (>=0.3.3); extra == 'notebook' and sys.platform != 'win32'")
+                requires.append("terminado (>=0.3.3); extra == 'all' and sys.platform != 'win32'")
                 requires.append("pyreadline (>=2.0); extra == 'terminal' and sys.platform == 'win32' and platform.python_implementation == 'CPython'")
                 requires.append("pyreadline (>=2.0); extra == 'all' and sys.platform == 'win32' and platform.python_implementation == 'CPython'")
                 requires.append("mock; extra == 'test' and python_version < '3.3'")
