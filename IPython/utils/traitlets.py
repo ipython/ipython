@@ -1635,14 +1635,14 @@ class Tuple(Container):
 class Dict(Instance):
     """An instance of a Python dict."""
 
-    def __init__(self, default_value=None, allow_none=True, **metadata):
+    def __init__(self, default_value={}, allow_none=True, **metadata):
         """Create a dict trait type from a dict.
 
         The default value is created by doing ``dict(default_value)``,
         which creates a copy of the ``default_value``.
         """
         if default_value is None:
-            args = ((),)
+            args = None
         elif isinstance(default_value, dict):
             args = (default_value,)
         elif isinstance(default_value, SequenceTypes):
@@ -1657,15 +1657,15 @@ class Dict(Instance):
 class EventfulDict(Instance):
     """An instance of an EventfulDict."""
 
-    def __init__(self, default_value=None, allow_none=True, **metadata):
+    def __init__(self, default_value={}, allow_none=True, **metadata):
         """Create a EventfulDict trait type from a dict.
 
-        The default value is created by doing 
-        ``eventful.EvenfulDict(default_value)``, which creates a copy of the 
+        The default value is created by doing
+        ``eventful.EvenfulDict(default_value)``, which creates a copy of the
         ``default_value``.
         """
         if default_value is None:
-            args = ((),)
+            args = None
         elif isinstance(default_value, dict):
             args = (default_value,)
         elif isinstance(default_value, SequenceTypes):
