@@ -5,5 +5,6 @@ var IPython = IPython || {};
 define([], function(){
     "use strict";
     IPython.version = "3.0.0-dev";
+    IPython._target = '_blank';
     return IPython;
 });
