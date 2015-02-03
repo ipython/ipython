@@ -8,7 +8,8 @@ pjoin = os.path.join
 
 from IPython.utils.path import get_ipython_dir
 from IPython.utils.py3compat import PY3
-from IPython.utils.traitlets import HasTraits, List, Unicode, Dict, Any
+from IPython.utils.traitlets import HasTraits, List, Unicode, Dict, Any, Set
+from IPython.config import Configurable
 from .launcher import make_ipkernel_cmd
 
 if os.name == 'nt':
@@ -81,7 +82,7 @@ class NoSuchKernel(KeyError):
     def __init__(self, name):
         self.name = name
 
-class KernelSpecManager(HasTraits):
+class KernelSpecManager(Configurable):
     ipython_dir = Unicode()
     def _ipython_dir_default(self):
         return get_ipython_dir()
@@ -94,9 +95,15 @@ class KernelSpecManager(HasTraits):
     def env_kernel_dir(self):
         return pjoin(sys.prefix, 'share', 'jupyter', 'kernels')
     
+    whitelist = Set(config=True,
+        help="""Whitelist of allowed kernel names.
+        
+        By default, all installed kernels are allowed.
+        """
+    )
     kernel_dirs = List(
         help="List of kernel directories to search. Later ones take priority over earlier."    
-    )    
+    )
     def _kernel_dirs_default(self):
         dirs = SYSTEM_KERNEL_DIRS[:]
         if self.env_kernel_dir not in dirs:
@@ -128,6 +135,9 @@ class KernelSpecManager(HasTraits):
             d.update(_list_kernels_in(kernel_dir))
 
         d[NATIVE_KERNEL_NAME] = self._native_kernel_resource_dir
+        if self.whitelist:
+            # filter if there's a whitelist
+            d = {name:spec for name,spec in d.items() if name in self.whitelist}
         return d
         # TODO: Caching?
 
@@ -136,7 +146,8 @@ class KernelSpecManager(HasTraits):
         
         Raises :exc:`NoSuchKernel` if the given kernel name is not found.
         """
-        if kernel_name in {'python', NATIVE_KERNEL_NAME}:
+        if kernel_name in {'python', NATIVE_KERNEL_NAME} and \
+            (not self.whitelist or kernel_name in self.whitelist):
             return KernelSpec(resource_dir=self._native_kernel_resource_dir,
                               **self._native_kernel_dict)
 
