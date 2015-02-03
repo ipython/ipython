@@ -163,9 +163,9 @@ casper.notebook_test(function () {
         'kill/start',
         [
             'kernel_killed.Kernel',
+            'kernel_starting.Kernel',
             'kernel_created.Kernel',
             'kernel_connected.Kernel',
-            'kernel_starting.Kernel',
             'kernel_ready.Kernel'
         ],
         function () {
@@ -205,7 +205,6 @@ casper.notebook_test(function () {
             'kernel_restarting.Kernel',
             'kernel_created.Kernel',
             'kernel_connected.Kernel',
-            'kernel_starting.Kernel',
             'kernel_ready.Kernel'
         ],
         function () {

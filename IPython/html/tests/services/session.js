@@ -100,7 +100,6 @@ casper.notebook_test(function () {
         [
             'kernel_created.Session',
             'kernel_connected.Kernel',
-            'kernel_starting.Kernel',
             'kernel_ready.Kernel'
         ],
         function () {
@@ -129,7 +128,6 @@ casper.notebook_test(function () {
             'kernel_killed.Session',
             'kernel_created.Session',
             'kernel_connected.Kernel',
-            'kernel_starting.Kernel',
             'kernel_ready.Kernel'
         ],
         function () {

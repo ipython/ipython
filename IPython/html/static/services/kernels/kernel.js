@@ -180,6 +180,7 @@ define([
             url = url + "?" + qs;
         }
 
+        this.events.trigger('kernel_starting.Kernel', {kernel: this});
         var that = this;
         var on_success = function (data, status, xhr) {
             that.events.trigger('kernel_created.Kernel', {kernel: that});
@@ -402,7 +403,6 @@ define([
          * @function _kernel_connected
          */
         this.events.trigger('kernel_connected.Kernel', {kernel: this});
-        this.events.trigger('kernel_starting.Kernel', {kernel: this});
         // get kernel info so we know what state the kernel is in
         var that = this;
         this.kernel_info(function (reply) {
