@@ -66,7 +66,7 @@ def get_pasted_lines(sentinel, l_input=py3compat.input, quiet=False):
         prompt = ""
     while True:
         try:
-            l = l_input(prompt)
+            l = py3compat.str_to_unicode(l_input(prompt))
             if l == sentinel:
                 return
             else:
@@ -181,7 +181,7 @@ class TerminalMagics(Magics):
 
         quiet = ('q' in opts)
 
-        sentinel = opts.get('s', '--')
+        sentinel = opts.get('s', u'--')
         block = '\n'.join(get_pasted_lines(sentinel, quiet=quiet))
         self.store_or_execute(block, name)
 
