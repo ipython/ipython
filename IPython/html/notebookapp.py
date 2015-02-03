@@ -345,6 +345,7 @@ class NotebookApp(BaseIPythonApplication):
     classes = [
         KernelManager, ProfileDir, Session, MappingKernelManager,
         ContentsManager, FileContentsManager, NotebookNotary,
+        KernelSpecManager,
     ]
     flags = Dict(flags)
     aliases = Dict(aliases)
@@ -650,9 +651,6 @@ class NotebookApp(BaseIPythonApplication):
 
     kernel_spec_manager = Instance(KernelSpecManager)
 
-    def _kernel_spec_manager_default(self):
-        return KernelSpecManager(ipython_dir=self.ipython_dir)
-
     kernel_spec_manager_class = Type(
         default_value=KernelSpecManager,
         config=True,
@@ -766,6 +764,7 @@ class NotebookApp(BaseIPythonApplication):
         default_secure(self.config)
 
         self.kernel_spec_manager = self.kernel_spec_manager_class(
+            parent=self,
             ipython_dir=self.ipython_dir,
         )
         self.kernel_manager = self.kernel_manager_class(

@@ -22,7 +22,7 @@ class ListKernelSpecs(BaseIPythonApplication):
     flags = {'debug': base_flags['debug'],}
 
     def _kernel_spec_manager_default(self):
-        return KernelSpecManager(ipython_dir=self.ipython_dir)
+        return KernelSpecManager(parent=self, ipython_dir=self.ipython_dir)
 
     def start(self):
         print("Available kernels:")
