@@ -258,16 +258,14 @@ extras_require = dict(
     nbconvert = ['pygments', 'jinja2', 'mistune>=0.3.1']
 )
 
+if not sys.platform.startswith('win'):
+    extras_require['notebook'].append('terminado>=0.3.3')
+
 if sys.version_info < (3, 3):
     extras_require['test'].append('mock')
 
 extras_require['notebook'].extend(extras_require['nbformat'])
 extras_require['nbconvert'].extend(extras_require['nbformat'])
-
-everything = set()
-for deps in extras_require.values():
-    everything.update(deps)
-extras_require['all'] = everything
 
 install_requires = []
 
@@ -278,6 +276,10 @@ if sys.platform == 'darwin':
 elif sys.platform.startswith('win'):
     extras_require['terminal'].append('pyreadline>=2.0')
 
+everything = set()
+for deps in extras_require.values():
+    everything.update(deps)
+extras_require['all'] = everything
 
 if 'setuptools' in sys.modules:
     # setup.py develop should check for submodules
