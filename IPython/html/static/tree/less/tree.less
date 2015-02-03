@@ -104,10 +104,16 @@ ul.breadcrumb {
     input {
         margin-right: @dashboard_lr_pad;
         margin-left: @dashboard_lr_pad + @dashboard-selectorbtn-lpad;
+        vertical-align: baseline;
+        line-height: @btn_mini_height;
+        position: relative;
+        top: -1px;
     }
 
     .item_link {
-        margin-left: 14px;
+        margin-left: -1px;
+        vertical-align: baseline;
+        line-height: @btn_mini_height;
     }
 }
 
@@ -124,6 +130,9 @@ ul.breadcrumb {
     font-size: 14px; 
     color: @dark_dashboard_color;
     margin-right: @dashboard_lr_pad;
+    margin-left: @dashboard_lr_pad;
+    line-height: @btn_mini_height;
+    vertical-align: baseline;
 }
 
 .item_buttons {
@@ -162,6 +171,8 @@ input.engine_num_input {
 
 #project_name {
     display: inline-block;
+    padding-left: @dashboard_lr_pad;
+    margin-left: -2px;
 
     > .breadcrumb {
         padding: 0px;
@@ -173,9 +184,11 @@ input.engine_num_input {
 
 #tree-selector {
     display: inline-block;
-    
+    padding-right: 0px;
+
     input[type=checkbox] {
         margin-left: @dashboard_lr_pad;
+        vertical-align: baseline;
     }
 }
 
@@ -185,21 +198,28 @@ input.engine_num_input {
 }
 
 .folder_icon:before {
-    .icon(@fa-var-folder-o)
+    .icon(@fa-var-folder-o);
 }
 
 .notebook_icon:before {
-    .icon(@fa-var-book)
+    .icon(@fa-var-book);
+    position: relative;
+    top: -1px;
 }
 
 .running_notebook_icon:before {
     .icon(@fa-var-book);
-    color: @brand-success
+    position: relative;
+    top: -1px;
+
+    color: @brand-success;
 }
 
 
 .file_icon:before {
-    .icon(@fa-var-file-o)
+    .icon(@fa-var-file-o);
+    position: relative;
+    top: -2px;
 }
 
 #notebook_toolbar .pull-right {
