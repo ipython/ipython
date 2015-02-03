@@ -55,6 +55,7 @@ class _Selection(DOMWidget):
     def __init__(self, *args, **kwargs):
         self.value_lock = Lock()
         self.options_lock = Lock()
+        self.equals = kwargs.pop('equals', lambda x, y: x == y)
         self.on_trait_change(self._options_readonly_changed, ['_options_dict', '_options_labels', '_options_values', '_options'])
         if 'options' in kwargs:
             self.options = kwargs.pop('options')
@@ -105,13 +106,14 @@ class _Selection(DOMWidget):
     def _options_readonly_changed(self, name, old, new):
         if not self.options_lock.locked():
             raise TraitError("`.%s` is a read-only trait. Use the `.options` tuple instead." % name)
+
     def _value_changed(self, name, old, new):
         """Called when value has been changed"""
         if self.value_lock.acquire(False):
             try:
                 # Reverse dictionary lookup for the value name
                 for k, v in self._options_dict.items():
-                    if new == v:
+                    if self.equals(new, v):
                         # set the selected value name
                         self.selected_label = k
                         return
