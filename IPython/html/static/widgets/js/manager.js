@@ -381,16 +381,18 @@ define([
                         };
 
                         // Get the views that are displayed *now*.
-                        model_promises.push(utils.resolve_promises_dict(model.views).then(function(model_views) {
-                            for (var id in model_views) {
-                                if (model_views.hasOwnProperty(id)) {
-                                    var view = model_views[id];
-                                    if (view.options.cell_index) {
-                                        state[model_id].views.push(view.options.cell_index);
+                        (function(local_state) {
+                            model_promises.push(utils.resolve_promises_dict(model.views).then(function(model_views) {
+                                for (var id in model_views) {
+                                    if (model_views.hasOwnProperty(id)) {
+                                        var view = model_views[id];
+                                        if (view.options.cell_index) {
+                                            local_state.views.push(view.options.cell_index);
+                                        }
                                     }
                                 }
-                            }
-                        }));
+                            }));
+                        })(state[model_id]);
                     }
                 }
             }
