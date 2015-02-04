@@ -449,8 +449,8 @@ class TraitType(object):
             return value
         if hasattr(self, 'validate'):
             value = self.validate(obj, value)
-        if 'validate' in self._metadata:
-            value = self._metadata['validate'](obj, value, self)
+        if hasattr(obj, '_%s_validate' % self.name):
+            value = getattr(obj, '_%s_validate' % self.name)(value, self)
         return value
 
     def __or__(self, other):
