@@ -10358,6 +10358,7 @@ h6:hover .anchor-link {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
+  height: 100%;
 }
 div#notebook_panel {
   margin: 0px;
@@ -10365,6 +10366,7 @@ div#notebook_panel {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
+  height: 100%;
 }
 #notebook {
   font-size: 14px;
@@ -10379,6 +10381,7 @@ div#notebook_panel {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
+  min-height: 100%;
 }
 @media not print {
   #notebook-container {
