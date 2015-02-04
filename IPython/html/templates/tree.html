@@ -76,19 +76,41 @@ data-terminals-available="{{terminals_available}}"
           </div>
           <div id="notebook_list">
             <div id="notebook_list_header" class="row list_header">
-              <div class="dropdown" id='tree-selector'>
+              <div class="btn-group dropdown" id='tree-selector'>
+                <button type="button" class="btn btn-default btn-xs"><input type="checkbox" class="tree-selector" id="select-all"></input></button>
                 <button class="btn btn-default btn-xs dropdown-toggle" type="button" id="tree-selector-btn" data-toggle="dropdown" aria-expanded="true">
-                  <input type='checkbox'></input>
                   <span class="caret"></span>
+                  <span class="sr-only">Toggle Dropdown</span>
                 </button>
-                <ul class="dropdown-menu" role="menu" aria-labelledby="tree-selector-btn">
-                  <li role="presentation" class="select-all"><a role="menuitem" tabindex="-1" href="#">Select all</a></li>
-                  <li role="presentation" class="select-notebooks"><a role="menuitem" tabindex="-1" href="#">Select notebooks</a></li>
-                  <li role="presentation" class="select-running-notebooks"><a role="menuitem" tabindex="-1" href="#">Select running notebooks</a></li>
-                  <li role="presentation" class="select-files"><a role="menuitem" tabindex="-1" href="#">Select files</a></li>
-                  <li role="presentation" class="select-directories"><a role="menuitem" tabindex="-1" href="#">Select directories</a></li>
-                  <li role="presentation" class="divider"></li>
-                  <li role="presentation" class="deselect-all"><a role="menuitem" tabindex="-1" href="#">Deselect all</a></li>
+                <ul id="tree-selector-menu" class="dropdown-menu" role="menu" aria-labelledby="tree-selector-btn">
+                  <li role="presentation">
+                    <input type="checkbox" class="tree-selector" id="select-folders"></input>
+                    <label for="select-folders">
+                      <i class="item_icon folder_icon icon-fixed-width"></i>
+                      Folders
+                    </label>
+                  </li>
+                  <li role="presentation">
+                    <input type="checkbox" class="tree-selector" id="select-notebooks"></input>
+                    <label for="select-notebooks">
+                      <i class="item_icon notebook_icon icon-fixed-width"></i>
+                      All Notebooks
+                    </label>
+                  </li>
+                  <li role="presentation">
+                    <input type="checkbox" class="tree-selector" id="select-running-notebooks"></input>
+                    <label for="select-running-notebooks">
+                      <i class="item_icon running_notebook_icon icon-fixed-width"></i>
+                      Running
+                    </label>
+                  </li>
+                  <li role="presentation">
+                    <input type="checkbox" class="tree-selector" id="select-files"></input>
+                    <label for="select-files">
+                      <i class="item_icon file_icon icon-fixed-width"></i>
+                      Files
+                    </label>
+                  </li>
                 </ul>
               </div>
               <div id="project_name">
