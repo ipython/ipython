@@ -499,12 +499,17 @@ define([
             if (selected_nums[i] === 0) {
                 $('#'+checkbox_ids[i])[0].indeterminate = false;
                 $('#'+checkbox_ids[i]).prop('checked', false);
-            } else if (selected_nums[i] === total_nums[i]) {
-                $('#'+checkbox_ids[i])[0].indeterminate = false;
-                $('#'+checkbox_ids[i]).prop('checked', true);
+                $('#badge-'+checkbox_ids[i]).text('');
             } else {
-                $('#'+checkbox_ids[i]).prop('checked', false);
-                $('#'+checkbox_ids[i])[0].indeterminate = true;
+                // Update badge
+                $('#badge-'+checkbox_ids[i]).text(selected_nums[i]);
+                if (selected_nums[i] === total_nums[i]) {
+                    $('#'+checkbox_ids[i])[0].indeterminate = false;
+                    $('#'+checkbox_ids[i]).prop('checked', true);
+                } else {
+                    $('#'+checkbox_ids[i]).prop('checked', false);
+                    $('#'+checkbox_ids[i])[0].indeterminate = true;
+                }
             }
         }
     };
