@@ -8703,6 +8703,17 @@ ul.breadcrumb span {
 .list_header > div input,
 .list_item > div input {
   margin-right: 7px;
+  margin-left: 14px;
+  vertical-align: baseline;
+  line-height: 22px;
+  position: relative;
+  top: -1px;
+}
+.list_header > div .item_link,
+.list_item > div .item_link {
+  margin-left: -1px;
+  vertical-align: baseline;
+  line-height: 22px;
 }
 .new-file input[type=checkbox] {
   visibility: hidden;
@@ -8715,6 +8726,9 @@ ul.breadcrumb span {
   font-size: 14px;
   color: #5e5e5e;
   margin-right: 7px;
+  margin-left: 7px;
+  line-height: 22px;
+  vertical-align: baseline;
 }
 .item_buttons {
   padding-top: 4px;
@@ -8754,11 +8768,24 @@ input.engine_num_input {
 .highlight_text {
   color: blue;
 }
+#project_name {
+  display: inline-block;
+  padding-left: 7px;
+  margin-left: -2px;
+}
 #project_name > .breadcrumb {
   padding: 0px;
   margin-bottom: 0px;
   background-color: transparent;
   font-weight: bold;
+}
+#tree-selector {
+  display: inline-block;
+  padding-right: 0px;
+}
+#tree-selector input[type=checkbox] {
+  margin-left: 7px;
+  vertical-align: baseline;
 }
 .tab-content .row {
   margin-left: 0px;
@@ -8789,6 +8816,8 @@ input.engine_num_input {
   -moz-osx-font-smoothing: grayscale;
   transform: translate(0, 0);
   content: "\f02d";
+  position: relative;
+  top: -1px;
 }
 .notebook_icon:before.pull-left {
   margin-right: .3em;
@@ -8805,6 +8834,8 @@ input.engine_num_input {
   -moz-osx-font-smoothing: grayscale;
   transform: translate(0, 0);
   content: "\f02d";
+  position: relative;
+  top: -1px;
   color: #5cb85c;
 }
 .running_notebook_icon:before.pull-left {
@@ -8822,6 +8853,8 @@ input.engine_num_input {
   -moz-osx-font-smoothing: grayscale;
   transform: translate(0, 0);
   content: "\f016";
+  position: relative;
+  top: -2px;
 }
 .file_icon:before.pull-left {
   margin-right: .3em;

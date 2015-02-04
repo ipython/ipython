@@ -114,10 +114,19 @@ define([
                 that.load_sessions();
             });
 
+            // Bind events for action buttons.
             $('.rename-button').click($.proxy(this.rename_selected, this));
             $('.shutdown-button').click($.proxy(this.shutdown_selected, this));
             $('.duplicate-button').click($.proxy(this.duplicate_selected, this));
             $('.delete-button').click($.proxy(this.delete_selected, this));
+
+            // Bind events for selection menu buttons.
+            $('#tree-selector .select-all').click($.proxy(this.select_all, this));
+            $('#tree-selector .select-notebooks').click($.proxy(this.select_notebooks, this));
+            $('#tree-selector .select-running-notebooks').click($.proxy(this.select_running_notebooks, this));
+            $('#tree-selector .select-files').click($.proxy(this.select_files, this));
+            $('#tree-selector .select-directories').click($.proxy(this.select_directories, this));
+            $('#tree-selector .deselect-all').click($.proxy(this.deselect_all, this));
         }
     };
 
@@ -372,10 +381,83 @@ define([
     };
 
     /**
+     * Select all of the items in the tree.
+     */
+    NotebookList.prototype.select_all = function() {
+        $('.list_item input[type=checkbox]').each(function(index, item) {
+            $(item).prop('checked', true);
+        });
+        this._selection_changed();
+    };
+
+    /**
+     * Select all of the notebooks in the tree.
+     */
+    NotebookList.prototype.select_notebooks = function() {
+        this.deselect_all();
+        $('.list_item').each(function(index, item) {
+            if ($(item).data('type') === 'notebook') {
+                $(item).find('input[type=checkbox]').prop('checked', true);
+            }
+        });
+        this._selection_changed();
+    };
+
+    /**
+     * Select all of the running notebooks in the tree.
+     */
+    NotebookList.prototype.select_running_notebooks = function() {
+        this.deselect_all();
+        var that = this;
+        $('.list_item').each(function(index, item) {
+            if ($(item).data('type') === 'notebook' && that.sessions[$(item).data('path')] !== undefined) {
+                $(item).find('input[type=checkbox]').prop('checked', true);
+            }
+        });
+        this._selection_changed();
+    };
+
+    /**
+     * Select all of the files in the tree.
+     */
+    NotebookList.prototype.select_files = function() {
+        this.deselect_all();
+        $('.list_item').each(function(index, item) {
+            if ($(item).data('type') === 'file') {
+                $(item).find('input[type=checkbox]').prop('checked', true);
+            }
+        });
+        this._selection_changed();
+    };
+
+    /**
+     * Select all of the directories in the tree.
+     */
+    NotebookList.prototype.select_directories = function() {
+        this.deselect_all();
+        $('.list_item').each(function(index, item) {
+            if ($(item).data('type') === 'directory') {
+                $(item).find('input[type=checkbox]').prop('checked', true);
+            }
+        });
+        this._selection_changed();
+    };
+
+    /**
+     * Unselect everything selected in the tree.
+     */
+    NotebookList.prototype.deselect_all = function() {
+        $('.list_item input[type=checkbox]').each(function(index, item) {
+            $(item).prop('checked', false);
+        });
+        this._selection_changed();
+    };
+
+
+    /**
      * Handles when any row selector checkbox is toggled.
      */
     NotebookList.prototype._selection_changed = function() {
-
         // Use a JQuery selector to find each row with a checked checkbox.  If
         // we decide to add more checkboxes in the future, this code will need
         // to be changed to distinguish which checkbox is the row selector.
@@ -384,11 +466,14 @@ define([
         var has_directory = false;
         var has_file = false;
         var that = this;
+        var checked = 0;
         $('.list_item :checked').each(function(index, item) {
             var parent = $(item).parent().parent();
 
-            // If the item doesn't have an upload button, it can be selected.
-            if (parent.find('.upload_button').length === 0) {
+            // If the item doesn't have an upload button and it's not the 
+            // breadcrumbs, it can be selected.  Breadcrumbs path == ''.
+            if (parent.find('.upload_button').length === 0 && parent.data('path') !== '') {
+                checked++;
                 selected.push({
                     name: parent.data('name'), 
                     path: parent.data('path'), 
@@ -432,6 +517,29 @@ define([
             $('.delete-button').css('display', 'inline-block');
         } else {
             $('.delete-button').css('display', 'none');
+        }
+
+        // If all of the items are selected, show the selector as checked.  If
+        // some of the items are selected, show it as checked.  Otherwise,
+        // uncheck it.
+        var total = 0;
+        $('.list_item input[type=checkbox]').each(function(index, item) {
+            var parent = $(item).parent().parent();
+            // If the item doesn't have an upload button and it's not the 
+            // breadcrumbs, it can be selected.  Breadcrumbs path == ''.
+            if (parent.find('.upload_button').length === 0 && parent.data('path') !== '') {
+                total++;
+            }
+        });
+        if (checked === 0) {
+            $('#tree-selector input[type=checkbox]')[0].indeterminate = false;
+            $('#tree-selector input[type=checkbox]').prop('checked', false);
+        } else if (checked === total) {
+            $('#tree-selector input[type=checkbox]')[0].indeterminate = false;
+            $('#tree-selector input[type=checkbox]').prop('checked', true);
+        } else {
+            $('#tree-selector input[type=checkbox]').prop('checked', false);
+            $('#tree-selector input[type=checkbox]')[0].indeterminate = true;
         }
     };
 
