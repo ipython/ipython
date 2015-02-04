@@ -44,6 +44,7 @@ define([
             this.session_list.events.on('sessions_loaded.Dashboard', 
                 function(e, d) { that.sessions_loaded(d); });
         }
+        this.selected = [];
     };
 
     NotebookList.prototype.style = function () {
