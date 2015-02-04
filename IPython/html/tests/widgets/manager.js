@@ -42,4 +42,53 @@ casper.notebook_test(function () {
         var slider_id = this.evaluate(function() { return window.slider_id; });
         this.test.assertEquals(output, slider_id, "Widget created from the front-end.");
     });
+
+    // Widget persistence tests.
+    index = this.append_cell(
+        'from IPython.html.widgets import HTML\n' + 
+        'from IPython.display import display\n' + 
+        'display(HTML(value="<div id=\'hello\'></div>"))');
+    this.execute_cell_then(index, function() {});
+
+    index = this.append_cell(
+        'display(HTML(value="<div id=\'world\'></div>"))');
+    this.execute_cell_then(index, function() {});
+
+    var that = this;
+    this.then(function() {
+        // Wait for the widgets to be shown.
+        that.waitForSelector('#hello', function() {
+            that.waitForSelector('#world', function() {
+                that.test.assertExists('#hello', 'Hello HTML widget constructed.');
+                that.test.assertExists('#world', 'World HTML widget constructed.');
+
+                // Save the notebook.
+                that.evaluate(function() {
+                    IPython.notebook.save_notebook(false).then(function() {
+                        window.was_saved = true;
+                    });
+                });
+                that.waitFor(function check() {
+                    return that.evaluate(function() {
+                        return window.was_saved;
+                    });
+                }, function then() {
+
+                    // Reload the page
+                    that.reload(function() {
+
+                        // Wait for the elements to show up again.
+                        that.waitForSelector('#hello', function() {
+                            that.waitForSelector('#world', function() {
+                                that.test.assertExists('#hello', 'Hello HTML widget persisted.');
+                                that.test.assertExists('#world', 'World HTML widget persisted.');
+                            });
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    
 });
