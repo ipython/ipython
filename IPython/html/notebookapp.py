@@ -24,9 +24,9 @@ import threading
 import webbrowser
 
 
-# check for pyzmq 2.1.11
+# check for pyzmq
 from IPython.utils.zmqrelated import check_for_zmq
-check_for_zmq('2.1.11', 'IPython.html')
+check_for_zmq('13', 'IPython.html')
 
 from jinja2 import Environment, FileSystemLoader
 
