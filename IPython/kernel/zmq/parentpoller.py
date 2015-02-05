@@ -1,10 +1,13 @@
-# Standard library imports.
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 try:
     import ctypes
 except:
     ctypes = None
 import os
 import platform
+import signal
 import time
 try:
     from _thread import interrupt_main  # Py 3
@@ -129,7 +132,10 @@ class ParentPollerWindows(Thread):
                 handle = handles[result - WAIT_OBJECT_0]
 
                 if handle == self.interrupt_handle:
-                    interrupt_main()
+                    # check if signal handler is callable
+                    # to avoid 'int not callable' error (Python issue #23395)
+                    if callable(signal.getsignal(signal.SIGINT)):
+                        interrupt_main()
 
                 elif handle == self.parent_handle:
                     os._exit(1)
