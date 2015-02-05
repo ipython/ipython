@@ -76,15 +76,11 @@ addflag('pprint', 'PlainTextFormatter.pprint',
     "Disable auto pretty printing of results."
 )
 addflag('color-info', 'InteractiveShell.color_info',
-    """IPython can display information about objects via a set of func-
-    tions, and optionally can use colors for this, syntax highlighting
-    source code and various other elements.  However, because this
-    information is passed through a pager (like 'less') and many pagers get
-    confused with color codes, this option is off by default.  You can test
-    it and turn it on permanently in your ipython_config.py file if it
-    works for you.  Test it and turn it on permanently if it works with
-    your system.  The magic function %%color_info allows you to toggle this
-    interactively for testing.""",
+    """IPython can display information about objects via a set of functions,
+    and optionally can use colors for this, syntax highlighting
+    source code and various other elements. This is on by default, but can cause
+    problems with some pagers. If you see such problems, you can disable the
+    colours.""",
     "Disable using colors for info related things."
 )
 addflag('deep-reload', 'InteractiveShell.deep_reload',
