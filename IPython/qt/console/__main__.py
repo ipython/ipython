@@ -1,3 +1,3 @@
 if __name__ == '__main__':
-    from IPython.qt.console import qtconsoleapp as app
-    app.launch_new_instance()
+    from IPython.qt.console.qtconsoleapp import main
+    main()
