@@ -21,7 +21,22 @@ define([
 ], function(IPython, $, utils, CodeMirror, cm_match, cm_closeb, cm_comment) {
     // TODO: remove IPython dependency here 
     "use strict";
-
+    
+    var overlayHack = CodeMirror.scrollbarModel.native.prototype.overlayHack;
+    
+    CodeMirror.scrollbarModel.native.prototype.overlayHack = function () {
+        overlayHack.apply(this, arguments);
+        // Reverse `min-height: 18px` scrollbar hack on OS X
+        // which causes a dead area, making it impossible to click on the last line
+        // when there is horizontal scrolling to do and the "show scrollbar only when scrolling" behavior
+        // is enabled.
+        // This, in turn, has the undesirable behavior of never showing the horizontal scrollbar,
+        // even when it should, which is less problematic, at least.
+        if (/Mac/.test(navigator.platform)) {
+            this.horiz.style.minHeight = "";
+        }
+    };
+    
     var Cell = function (options) {
         /* Constructor
          *
