@@ -184,12 +184,24 @@ input.engine_num_input {
 
 #tree-selector {
     display: inline-block;
-    padding-right: 0px;
+    padding-right: 5px;
+}
 
-    input[type=checkbox] {
-        margin-left: @dashboard_lr_pad;
-        vertical-align: baseline;
-    }
+#select-all {
+    margin-top:-1px;
+    margin-left: @dashboard_lr_pad;
+    vertical-align: baseline;
+}
+
+#tree-selector-menu {
+        width: 200px;
+        .menuitem label{
+            margin-bottom: 0px;
+        }
+        input[type=checkbox] {
+            margin-left: 0px;
+            vertical-align: baseline;
+        }
 }
 
 .tab-content .row {

@@ -78,42 +78,50 @@ data-terminals-available="{{terminals_available}}"
             <div id="notebook_list_header" class="row list_header">
               <div class="btn-group dropdown" id='tree-selector'>
                 <button type="button" class="btn btn-default btn-xs"><input type="checkbox" class="tree-selector" id="select-all"></input></button>
-                <button class="btn btn-default btn-xs dropdown-toggle" type="button" id="tree-selector-btn" data-toggle="dropdown" aria-expanded="true">
+                <button class="btn btn-default btn-xs dropdown-toggle" type="button" id="tree-selector-btn" aria-expanded="true">
                   <span class="caret"></span>
                   <span class="sr-only">Toggle Dropdown</span>
                 </button>
                 <ul id="tree-selector-menu" class="dropdown-menu" role="menu" aria-labelledby="tree-selector-btn">
                   <li role="presentation">
-                    <input type="checkbox" class="tree-selector" id="select-folders"></input>
-                    <label for="select-folders">
-                      <i class="item_icon folder_icon icon-fixed-width"></i>
-                      Folders
-                      <span class="badge" id="badge-select-folders"></span>
-                    </label>
+                    <a role="menuitem">
+                      <input type="checkbox" class="tree-selector" id="select-folders"></input>
+                      <label for="select-folders">
+                        <i class="folder_icon icon-fixed-width"></i>
+                        Folders
+                      </label>
+                      <span class="badge pull-right" id="badge-select-folders"></span>
+                    </a>
                   </li>
                   <li role="presentation">
-                    <input type="checkbox" class="tree-selector" id="select-notebooks"></input>
-                    <label for="select-notebooks">
-                      <i class="item_icon notebook_icon icon-fixed-width"></i>
-                      All Notebooks
-                      <span class="badge" id="badge-select-notebooks"></span>
-                    </label>
+                    <a role="menuitem">
+                      <input type="checkbox" class="tree-selector" id="select-notebooks"></input>
+                      <label for="select-notebooks">
+                        <i class="notebook_icon icon-fixed-width"></i>
+                        All Notebooks
+                      </label>
+                      <span class="badge pull-right" id="badge-select-notebooks"></span>
+                    </a>
                   </li>
                   <li role="presentation">
-                    <input type="checkbox" class="tree-selector" id="select-running-notebooks"></input>
-                    <label for="select-running-notebooks">
-                      <i class="item_icon running_notebook_icon icon-fixed-width"></i>
-                      Running
-                      <span class="badge" id="badge-select-running-notebooks"></span>
-                    </label>
+                    <a role="menuitem">
+                      <input type="checkbox" class="tree-selector" id="select-running-notebooks"></input>
+                      <label for="select-running-notebooks">
+                        <i class="running_notebook_icon icon-fixed-width"></i>
+                        Running
+                      </label>
+                      <span class="badge pull-right" id="badge-select-running-notebooks"></span>
+                    </a>
                   </li>
                   <li role="presentation">
-                    <input type="checkbox" class="tree-selector" id="select-files"></input>
-                    <label for="select-files">
-                      <i class="item_icon file_icon icon-fixed-width"></i>
-                      Files
-                      <span class="badge" id="badge-select-files"></span>
-                    </label>
+                    <a role="menuitem">
+                      <input type="checkbox" class="tree-selector" id="select-files"></input>
+                      <label for="select-files">
+                        <i class="file_icon icon-fixed-width"></i>
+                        Files  
+                      </label>
+                      <span class="badge pull-right" id="badge-select-files"></span>
+                    </a>
                   </li>
                 </ul>
               </div>
