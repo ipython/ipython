@@ -7,7 +7,7 @@ div.cell {
     border-style: solid;
 
     &.selected {
-        background-color: #efefef;
+        border-color: @border_color;
         /* Don't show the background when printing */
         @media print {
             border-color: transparent;
@@ -17,6 +17,7 @@ div.cell {
 
     .edit_mode &.selected {
         background-color: #ded;
+        border-color: #ded;
         /* Don't show the background when printing */
         @media print {
             background-color: transparent;
