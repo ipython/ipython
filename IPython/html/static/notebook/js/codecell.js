@@ -339,6 +339,12 @@ define([
                         return false;
                     }
                 }
+                var pre_cursor = editor.getRange({line:cur.line,ch:0},cur);
+                if (pre_cursor.trim() === "") {
+                    // Don't show tooltip if the part of the line before the cursor
+                    // is empty.  In this case, let CodeMirror handle indentation.
+                    return false;
+                } 
                 this.tooltip.request(that);
                 event.codemirrorIgnore = true;
                 event.preventDefault();
