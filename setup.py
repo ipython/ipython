@@ -246,15 +246,16 @@ setuptools_extra_args = {}
 
 # setuptools requirements
 
+pyzmq = 'pyzmq>=13'
+
 extras_require = dict(
-    parallel = ['pyzmq>=2.1.11'],
-    qtconsole = ['pyzmq>=2.1.11', 'pygments'],
-    zmq = ['pyzmq>=2.1.11'],
+    parallel = [pyzmq],
+    qtconsole = [pyzmq, 'pygments'],
     doc = ['Sphinx>=1.1', 'numpydoc'],
     test = ['nose>=0.10.1', 'requests'],
     terminal = [],
     nbformat = ['jsonschema>=2.0'],
-    notebook = ['tornado>=4.0', 'pyzmq>=2.1.11', 'jinja2', 'pygments', 'mistune>=0.5'],
+    notebook = ['tornado>=4.0', pyzmq, 'jinja2', 'pygments', 'mistune>=0.5'],
     nbconvert = ['pygments', 'jinja2', 'mistune>=0.3.1']
 )
 
