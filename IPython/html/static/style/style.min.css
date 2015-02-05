@@ -8781,10 +8781,21 @@ input.engine_num_input {
 }
 #tree-selector {
   display: inline-block;
-  padding-right: 0px;
+  padding-right: 5px;
 }
-#tree-selector input[type=checkbox] {
+#select-all {
+  margin-top: -1px;
   margin-left: 7px;
+  vertical-align: baseline;
+}
+#tree-selector-menu {
+  width: 200px;
+}
+#tree-selector-menu .menuitem label {
+  margin-bottom: 0px;
+}
+#tree-selector-menu input[type=checkbox] {
+  margin-left: 0px;
   vertical-align: baseline;
 }
 .tab-content .row {
