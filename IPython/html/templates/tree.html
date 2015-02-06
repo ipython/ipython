@@ -77,7 +77,10 @@ data-terminals-available="{{terminals_available}}"
           <div id="notebook_list">
             <div id="notebook_list_header" class="row list_header">
               <div class="btn-group dropdown" id='tree-selector'>
-                <button type="button" class="btn btn-default btn-xs"><input type="checkbox" class="tree-selector" id="select-all"></input></button>
+                <button type="button" class="btn btn-default btn-xs">
+                  <span class="badge pull-right" id="badge-select-all"></span>
+                  <input type="checkbox" class="tree-selector" id="select-all"></input>
+                </button>
                 <button class="btn btn-default btn-xs dropdown-toggle" type="button" id="tree-selector-btn" aria-expanded="true">
                   <span class="caret"></span>
                   <span class="sr-only">Toggle Dropdown</span>
