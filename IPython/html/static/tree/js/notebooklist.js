@@ -123,7 +123,15 @@ define([
 
             // Bind events for selection checkboxes.
             $('.tree-selector').change(function(){that.select($(this).attr('id'),$(this).is(':checked'))});
-            
+            $('#button-select-all').click(function(e) {
+                // toggle checkbox if the click doesn't come from the checkbox already
+                if (!$(e.target).is('input[type=checkbox]')) {
+                    var checkbox = $('#select-all');
+                    checkbox.prop('checked', !checkbox.prop('checked'));
+                    that.select('select-all',checkbox.prop('checked'));
+                }
+            });
+
             // Make the dropdown sticky
             // Dirty solution by stopping click propagation
             // $('#tree-selector-menu').click(function(event){event.stopPropagation();})
@@ -132,7 +140,8 @@ define([
                 $(this).parent().toggleClass('open');
             });
             $('body').on('click', function (e) {
-                if (!$('#tree-selector-btn').is(e.target) && $('#tree-selector-btn').has(e.target).length === 0 && $('.open').has(e.target).length === 0) {
+                // Close the menu if a click happens outside of the menu list (and of the tree-selector-btn)
+                if (!$('#tree-selector-btn').is(e.target) && $('#tree-selector-btn').has(e.target).length === 0 && $('#tree-selector-menu').has(e.target).length === 0) {
                     $('#tree-selector-btn').parent().removeClass('open');
                 }
             });
@@ -520,8 +529,13 @@ define([
                     $('#'+checkbox_ids[i]).parent().parent().removeClass('disabled');
                 }
             }
-            // Update badge
-            $('#badge-'+checkbox_ids[i]).text(selected_nums[i]===0 ? '' : selected_nums[i]);
+            // Update counters
+            // Turn empty counter into a '&nbsp;' on the main checkbox for correct button height.
+            var empty_counter = i===0 ? '&nbsp;' : '';
+            $('#counter-'+checkbox_ids[i]).html(selected_nums[i]===0 ? empty_counter : selected_nums[i]);
+            // Alternative : display selected/total
+            // $('#counter-'+checkbox_ids[i]).html(selected_nums[i]===0 ? empty_counter : selected_nums[i] + '/' + total_nums[i]);
+            
             // Update each checkbox status
             if (selected_nums[i] === 0) {
                 $('#'+checkbox_ids[i])[0].indeterminate = false;
