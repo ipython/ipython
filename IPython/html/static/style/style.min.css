@@ -8780,23 +8780,20 @@ input.engine_num_input {
   font-weight: bold;
 }
 #tree-selector {
-  display: inline-block;
-  padding-right: 5px;
+  padding-right: 0px;
+}
+#button-select-all {
+  min-width: 50px;
 }
 #select-all {
-  margin-top: -1px;
   margin-left: 7px;
-  vertical-align: baseline;
+  margin-right: 2px;
 }
 #tree-selector-menu {
   width: 200px;
 }
-#tree-selector-menu .menuitem label {
-  margin-bottom: 0px;
-}
 #tree-selector-menu input[type=checkbox] {
   margin-left: 0px;
-  vertical-align: baseline;
 }
 .tab-content .row {
   margin-left: 0px;
