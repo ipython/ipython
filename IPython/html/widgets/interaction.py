@@ -14,7 +14,7 @@ from inspect import getcallargs
 from IPython.core.getipython import get_ipython
 from IPython.html.widgets import (Widget, Text,
     FloatSlider, IntSlider, Checkbox, Dropdown,
-    Box, Button, DOMWidget, Output)
+    Box, Button, DOMWidget)
 from IPython.display import display, clear_output
 from IPython.utils.py3compat import string_types, unicode_type
 from IPython.utils.traitlets import HasTraits, Any, Unicode
@@ -204,34 +204,29 @@ def interactive(__interact_f, **kwargs):
     if manual:
         manual_button = Button(description="Run %s" % f.__name__)
         c.append(manual_button)
-
-    # Use an output widget to capture the output of interact.
-    output = Output()
-    c.append(output)
     container.children = c
 
     # Build the callback
     def call_f(name=None, old=None, new=None):
-        with output:
-            container.kwargs = {}
-            for widget in kwargs_widgets:
-                value = widget.value
-                container.kwargs[widget._kwarg] = value
-            if co:
-                clear_output(wait=True)
+        container.kwargs = {}
+        for widget in kwargs_widgets:
+            value = widget.value
+            container.kwargs[widget._kwarg] = value
+        if co:
+            clear_output(wait=True)
+        if manual:
+            manual_button.disabled = True
+        try:
+            container.result = f(**container.kwargs)
+        except Exception as e:
+            ip = get_ipython()
+            if ip is None:
+                container.log.warn("Exception in interact callback: %s", e, exc_info=True)
+            else:
+                ip.showtraceback()
+        finally:
             if manual:
-                manual_button.disabled = True
-            try:
-                container.result = f(**container.kwargs)
-            except Exception as e:
-                ip = get_ipython()
-                if ip is None:
-                    container.log.warn("Exception in interact callback: %s", e, exc_info=True)
-                else:
-                    ip.showtraceback()
-            finally:
-                if manual:
-                    manual_button.disabled = False
+                manual_button.disabled = False
 
     # Wire up the widgets
     # If we are doing manual running, the callback is only triggered by the button
