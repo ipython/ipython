@@ -998,8 +998,8 @@ class TestInstanceList(TraitTestBase):
         self.assertIs(self.obj.traits()['value']._trait.klass, Foo)
 
     _default_value = []
-    _good_values = [[Foo(), Foo(), None], None]
-    _bad_values = [['1', 2,], '1', [Foo]]
+    _good_values = [[Foo(), Foo(), None], []]
+    _bad_values = [['1', 2,], '1', [Foo], None]
 
 class UnionListTrait(HasTraits):
 
@@ -1475,14 +1475,14 @@ class TestForwardDeclaredInstanceList(TraitTestBase):
         [ForwardDeclaredBar(), ForwardDeclaredBarSub(), None],
         [None],
         [],
-        None,
     ]
     _bad_values = [
         ForwardDeclaredBar(),
         [ForwardDeclaredBar(), 3],
         '1',
         # Note that this is the type, not an instance.
-        [ForwardDeclaredBar]
+        [ForwardDeclaredBar],
+        None,
     ]
 
 class TestForwardDeclaredTypeList(TraitTestBase):
@@ -1498,14 +1498,14 @@ class TestForwardDeclaredTypeList(TraitTestBase):
         [ForwardDeclaredBar, ForwardDeclaredBarSub, None],
         [],
         [None],
-        None,
     ]
     _bad_values = [
         ForwardDeclaredBar,
         [ForwardDeclaredBar, 3],
         '1',
         # Note that this is an instance, not the type.
-        [ForwardDeclaredBar()]
+        [ForwardDeclaredBar()],
+        None,
     ]
 ###
 # End Forward Declaration Tests
