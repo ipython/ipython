@@ -396,33 +396,34 @@ class JSController(TestController):
         self.server_port = info['port']
 
     def cleanup(self):
-        try:
-            self.server.terminate()
-        except OSError:
-            # already dead
-            pass
-        # wait 10s for the server to shutdown
-        try:
-            popen_wait(self.server, NOTEBOOK_SHUTDOWN_TIMEOUT)
-        except TimeoutExpired:
-            # server didn't terminate, kill it
+        if hasattr(self, 'server'):
             try:
-                print("Failed to terminate notebook server, killing it.",
-                    file=sys.stderr
-                )
-                self.server.kill()
+                self.server.terminate()
             except OSError:
                 # already dead
                 pass
-        # wait another 10s
-        try:
-            popen_wait(self.server, NOTEBOOK_SHUTDOWN_TIMEOUT)
-        except TimeoutExpired:
-            print("Notebook server still running (%s)" % self.server_info_file,
-                file=sys.stderr
-            )
-            
-        self.stream_capturer.halt()
+            # wait 10s for the server to shutdown
+            try:
+                popen_wait(self.server, NOTEBOOK_SHUTDOWN_TIMEOUT)
+            except TimeoutExpired:
+                # server didn't terminate, kill it
+                try:
+                    print("Failed to terminate notebook server, killing it.",
+                        file=sys.stderr
+                    )
+                    self.server.kill()
+                except OSError:
+                    # already dead
+                    pass
+            # wait another 10s
+            try:
+                popen_wait(self.server, NOTEBOOK_SHUTDOWN_TIMEOUT)
+            except TimeoutExpired:
+                print("Notebook server still running (%s)" % self.server_info_file,
+                    file=sys.stderr
+                )
+              
+            self.stream_capturer.halt()
         TestController.cleanup(self)
 
 
