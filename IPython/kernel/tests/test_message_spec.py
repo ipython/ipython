@@ -106,7 +106,7 @@ class MimeBundle(Reference):
 
 class ExecuteReply(Reference):
     execution_count = Integer()
-    status = Enum((u'ok', u'error'))
+    status = Enum((u'ok', u'error'), allow_none=True)
     
     def check(self, d):
         Reference.check(self, d)
@@ -139,7 +139,7 @@ class ArgSpec(Reference):
 
 
 class Status(Reference):
-    execution_state = Enum((u'busy', u'idle', u'starting'))
+    execution_state = Enum((u'busy', u'idle', u'starting'), allow_none=True)
 
 
 class CompleteReply(Reference):
@@ -165,7 +165,7 @@ class KernelInfoReply(Reference):
 
 
 class IsCompleteReply(Reference):
-    status = Enum((u'complete', u'incomplete', u'invalid', u'unknown'))
+    status = Enum((u'complete', u'incomplete', u'invalid', u'unknown'), allow_none=True)
     
     def check(self, d):
         Reference.check(self, d)
@@ -187,7 +187,7 @@ Error = ExecuteReplyError
 
 
 class Stream(Reference):
-    name = Enum((u'stdout', u'stderr'))
+    name = Enum((u'stdout', u'stderr'), allow_none=True)
     text = Unicode()
 
 

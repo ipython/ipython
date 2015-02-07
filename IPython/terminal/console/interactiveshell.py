@@ -50,7 +50,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
     )
 
     image_handler = Enum(('PIL', 'stream', 'tempfile', 'callable'),
-                         config=True, help=
+                         config=True, allow_none=True, help=
         """
         Handler for image type output.  This is useful, for example,
         when connecting to the kernel in which pylab inline backend is
