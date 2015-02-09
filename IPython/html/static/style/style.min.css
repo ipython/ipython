@@ -10725,6 +10725,7 @@ ul#help_menu li a i {
   margin-bottom: 0px;
   margin-left: 0px;
   margin-right: 0px;
+  display: none;
 }
 .modal_indicator:before {
   width: 1.28571429em;
