@@ -336,16 +336,11 @@ define([
             checkbox.css('visibility', 'hidden');
         } else if (selectable === true) {
             var that = this;
-            link.click(function(e) {
-                e.stopPropagation();
-            });
-            checkbox.click(function(e) {
-                e.stopPropagation();
-                that._selection_changed();
-            });
             row.click(function(e) {
-                e.stopPropagation();
-                checkbox.prop('checked', !checkbox.prop('checked'));
+                // toggle checkbox only if the click doesn't come from the checkbox or the link
+                if (!$(e.target).is('span[class=item_name]') && !$(e.target).is('input[type=checkbox]')) {
+                    checkbox.prop('checked', !checkbox.prop('checked'));
+                }
                 that._selection_changed();
             });
         }
