@@ -9643,6 +9643,7 @@ div.output_area pre {
 /* This class is for the output subarea inside the output_area and after
    the prompt div. */
 div.output_subarea {
+  overflow-x: auto;
   padding: 0.4em;
   /* Old browsers */
   -webkit-box-flex: 1;
