@@ -9668,6 +9668,11 @@ div.output_stderr {
 div.output_latex {
   text-align: left;
 }
+div.output_png div.ui-wrapper,
+div.output_svg div.ui-wrapper,
+div.output_jpeg div.ui-wrapper {
+  max-width: 100%;
+}
 /* Empty output_javascript divs should have no height */
 div.output_javascript:empty {
   padding: 0;
