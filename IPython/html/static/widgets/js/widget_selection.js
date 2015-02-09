@@ -324,7 +324,7 @@ define(["widgets/js/widget"], function(WidgetManager){
                 var items = this.model.get('value_names');
                 var that = this;
                 _.each(items, function(item, index) {
-                   var item_query = ' :contains("' + item + '")';
+                   var item_query = 'option[value_name="' + item + '"]';
                     if (that.$listbox.find(item_query).length === 0) {
                         $('<option />')
                             .text(item)
