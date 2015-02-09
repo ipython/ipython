@@ -92,6 +92,8 @@ div.output_area pre {
 /* This class is for the output subarea inside the output_area and after
    the prompt div. */
 div.output_subarea {
+    // Don't let contents overflow page area.
+    overflow-x: auto;
     padding: @code_padding;
     .box-flex1();
 }
