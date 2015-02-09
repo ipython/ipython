@@ -38,7 +38,17 @@ define([
         var knw = this.new_notification_widget('kernel');
         var $kernel_ind_icon = $("#kernel_indicator_icon");
         var $modal_ind_icon = $("#modal_indicator");
+        var $readonly_ind_icon = $('#readonly-indicator');
         var $body = $('body');
+
+        // Listen for the notebook loaded event.  Set readonly indicator.
+        this.events.on('notebook_loaded.Notebook', function() {
+            if (that.notebook.writable) {
+                $readonly_ind_icon.hide();
+            } else {
+                $readonly_ind_icon.show();
+            }
+        });
 
         // Command/Edit mode
         this.events.on('edit_mode.Notebook', function () {
