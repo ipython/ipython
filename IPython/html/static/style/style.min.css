@@ -10711,6 +10711,21 @@ ul#help_menu li a i {
   text-align: center;
   width: auto;
 }
+#readonly-indicator {
+  float: right !important;
+  float: right;
+  color: #777777;
+  margin-left: 5px;
+  margin-right: 5px;
+  width: 11px;
+  z-index: 10;
+  text-align: center;
+  width: auto;
+  margin-top: 2px;
+  margin-bottom: 0px;
+  margin-left: 0px;
+  margin-right: 0px;
+}
 .modal_indicator:before {
   width: 1.28571429em;
   text-align: center;
