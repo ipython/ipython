@@ -7,8 +7,13 @@ Release 2.4
 
 January, 2014
 
+.. note::
+
+    Some of the patches marked for 2.4 were left out of 2.4.0.
+    Please use 2.4.1.
+
 - backport read support for nbformat v4 from IPython 3
-- support for PyQt5
+- support for PyQt5 in the kernel (not QtConsole)
 - support for Pygments 2.0
 
 For more information on what fixes have been backported to 2.4,

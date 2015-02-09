@@ -3,10 +3,15 @@
 Issues closed in the 2.x development cycle
 ==========================================
 
-Issues closed in 2.4.0
+Issues closed in 2.4.1
 ----------------------
 
 GitHub stats for 2014/11/01 - 2015/01/30
+
+.. note::
+
+    IPython 2.4.0 was released without a few of the backports listed below.
+    2.4.1 has the correct patches intended for 2.4.0.
 
 These lists are automatically generated, and may be incomplete or contain duplicates.
 
