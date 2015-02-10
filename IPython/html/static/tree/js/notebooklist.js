@@ -128,6 +128,9 @@ define([
             $('#tree-selector .select-files').click($.proxy(this.select_files, this));
             $('#tree-selector .select-directories').click($.proxy(this.select_directories, this));
             $('#tree-selector .deselect-all').click($.proxy(this.deselect_all, this));
+
+            // Bind events for view toggles
+            $("#toggle-view").change($.proxy(this.update_view, this));
         }
     };
 
@@ -537,6 +540,22 @@ define([
             $('#tree-selector input[type=checkbox]').prop('checked', false);
             $('#tree-selector input[type=checkbox]')[0].indeterminate = true;
         }
+    };
+
+    NotebookList.prototype.update_view = function () {
+        $('#notebook_list .list_item').each(function(index, item) {
+            var row_div = $(item);
+            // Exclude the breadcrumbs (Breadcrumbs path == '')
+            if (row_div.data('path') !== '') {
+                var display = $("#toggle-view-"+row_div.data('type')).is(":checked");
+                row_div.css('display', display ? '' : 'none');
+                if (!display) {
+                    console.log($(item));
+                    $(item).find('input[type=checkbox]').prop('checked',false);
+                }
+            }
+        });
+        this._selection_changed();
     };
 
     NotebookList.prototype.add_link = function (model, item) {

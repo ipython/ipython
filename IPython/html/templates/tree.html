@@ -25,6 +25,11 @@ data-terminals-available="{{terminals_available}}"
         <div id="notebooks" class="tab-pane active">
           <div id="notebook_toolbar" class="row">
             <div class="col-sm-8 no-padding">
+              <div id="toggle-view" class="btn-group" data-toggle="buttons">
+                <label class="btn btn-default btn-xs active"><input id="toggle-view-directory" type="checkbox" autocomplete="off" checked><i class="folder_icon icon-fixed-width"></i></label>
+                <label class="btn btn-default btn-xs active"><input id="toggle-view-notebook" type="checkbox" autocomplete="off" checked><i class="notebook_icon icon-fixed-width"></i></label>
+                <label class="btn btn-default btn-xs active"><input id="toggle-view-file" type="checkbox" autocomplete="off" checked><i class="file_icon icon-fixed-width"></i></label>
+              </div>
               <form id='alternate_upload'  class='alternate_upload'>
                 <span id="notebook_list_info">
                 To import a notebook, drag the file onto the listing below or
