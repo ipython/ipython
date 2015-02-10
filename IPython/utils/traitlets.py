@@ -822,7 +822,7 @@ class Type(ClassBasedTraitType):
             may be specified in a string like: 'foo.bar.MyClass'.
             The string is resolved into real class, when the parent
             :class:`HasTraits` class is instantiated.
-        allow_none : boolean
+        allow_none : bool [ default True ]
             Indicates whether None is allowed as an assignable value. Even if
             ``False``, the default value may be ``None``.
         """
@@ -919,7 +919,7 @@ class Instance(ClassBasedTraitType):
             Positional arguments for generating the default value.
         kw : dict
             Keyword arguments for generating the default value.
-        allow_none : bool
+        allow_none : bool [default True]
             Indicates whether None is allowed as a value.
 
         Notes
@@ -1404,7 +1404,7 @@ class Container(Instance):
             The default value for the Trait.  Must be list/tuple/set, and
             will be cast to the container type.
 
-        allow_none : Bool [ default True ]
+        allow_none : bool [ default False ]
             Whether to allow the value to be None
 
         **metadata : any
@@ -1505,7 +1505,7 @@ class List(Container):
         maxlen : Int [ default sys.maxsize ]
             The maximum length of the input list
 
-        allow_none : Bool [ default True ]
+        allow_none : bool [ default False ]
             Whether to allow the value to be None
 
         **metadata : any
@@ -1580,7 +1580,7 @@ class Tuple(Container):
             will be cast to a tuple. If `traits` are specified, the
             `default_value` must conform to the shape and type they specify.
 
-        allow_none : Bool [ default True ]
+        allow_none : bool [ default False ]
             Whether to allow the value to be None
 
         **metadata : any
