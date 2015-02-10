@@ -74,7 +74,7 @@ define([
 
     KeyboardManager.prototype.get_default_edit_shortcuts = function() {
         return {
-            'esc'                 : 'ipython.go-to-command-mode',
+            'esc'                 : 'ipython.close-tooltip-or-go-to-command-mode',
             'ctrl-m'              : 'ipython.go-to-command-mode',
             'up'                  : 'ipython.move-cursor-up-or-previous-cell',
             'down'                : 'ipython.move-cursor-down-or-next-cell',

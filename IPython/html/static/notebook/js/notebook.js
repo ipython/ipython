@@ -672,6 +672,19 @@ define(function (require) {
     };
 
     /**
+     * Make the notebook enter command mode if the tooltip is not open.
+     */
+    Notebook.prototype.close_tooltip_or_command_mode = function () {
+        var cell = this.get_cell(this.get_edit_index());
+        if (!$('#tooltip').is(':visible') && cell && this.mode !== 'command') {
+            // We don't call cell.command_mode, but rather call cell.focus_cell()
+            // which will blur and CM editor and trigger the call to
+            // handle_command_mode.
+            cell.focus_cell();
+        }
+    };
+
+    /**
      * Handle when a cell fires it's edit_mode event.
      *
      * @param {Cell} [cell] Cell to enter edit mode on.
