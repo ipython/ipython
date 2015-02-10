@@ -183,7 +183,9 @@ define([
             // interpret end=null as current position,
             // and negative start relative to that
             end = utils.to_absolute_cursor_pos(this.editor, cur);
-            if (start < 0) {
+            if (start === null) {
+                start = end;
+            } else if (start < 0) {
                 start = end + start;
             }
         }

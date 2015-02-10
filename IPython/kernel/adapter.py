@@ -262,12 +262,17 @@ class V4toV5(Adapter):
     
     def complete_reply(self, msg):
         # complete_reply needs more context than we have to get cursor_start and end.
-        # use special value of `-1` to indicate to frontend that it should be at
-        # the current cursor position.
+        # use special end=null to indicate current cursor position and negative offset
+        # for start relative to the cursor.
+        # start=None indicates that start == end (accounts for no -0).
         content = msg['content']
         new_content = msg['content'] = {'status' : 'ok'}
         new_content['matches'] = content['matches']
-        new_content['cursor_start'] = -len(content['matched_text'])
+        if content['matched_text']:
+            new_content['cursor_start'] = -len(content['matched_text'])
+        else:
+            # no -0, use None to indicate that start == end
+            new_content['cursor_start'] = None
         new_content['cursor_end'] = None
         new_content['metadata'] = {}
         return msg
