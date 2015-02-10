@@ -89,8 +89,6 @@ define([
             'shift-v' : 'ipython.paste-cell-before',
             'shift-m' : 'ipython.merge-selected-cell-with-cell-after',
             'shift-o' : 'ipython.toggle-output-scrolling-selected-cell',
-            'ctrl-j' : 'ipython.move-selected-cell-down',
-            'ctrl-k' : 'ipython.move-selected-cell-up',
             'enter' : 'ipython.enter-edit-mode',
             'space' : 'ipython.scroll-down',
             'down' : 'ipython.select-next-cell',
