@@ -160,7 +160,7 @@ def install_nbextension(path, overwrite=False, symlink=False, user=False, prefix
         Otherwise do a system-wide install (e.g. /usr/local/share/jupyter/nbextensions).
     prefix : str [optional]
         Specify install prefix, if it should differ from default (e.g. /usr/local).
-        Will install to prefix/share/jupyter/nbextensions
+        Will install to ``<prefix>/share/jupyter/nbextensions``
     nbextensions_dir : str [optional]
         Specify absolute path of nbextensions directory explicitly.
     destination : str [optional]
