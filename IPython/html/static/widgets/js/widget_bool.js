@@ -129,10 +129,11 @@ define([
 
                 var description = this.model.get('description');
                 this.$el.attr("title", this.model.get("tooltip"));
-                if (description.trim().length === 0) {
+                this.$el.text(description);
+                var icon = this.model.get("icon");
+                $('<i class="fa"></i>').prependTo(this.$el).addClass(icon);
+                if (description.trim().length === 0 && icon.trim().length ===0) {
                     this.$el.html("&nbsp;"); // Preserve button height
-                } else {
-                    this.$el.text(description);
                 }
             }
             return ToggleButtonView.__super__.update.apply(this);

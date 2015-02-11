@@ -32,12 +32,12 @@ define([
              */
             var description = this.model.get('description');
             this.$el.attr("title", this.model.get("tooltip"));
-            if (description.length === 0) {
+            this.$el.text(description);
+            var icon = this.model.get("icon");
+            $('<i class="fa"></i>').prependTo(this.$el).addClass(icon);
+            if (description.trim().length === 0 && icon.trim().length ===0) {
                 this.$el.html("&nbsp;"); // Preserve button height
-            } else {
-                this.$el.text(description);
             }
-            
             if (this.model.get('disabled')) {
                 this.$el.attr('disabled','disabled');
             } else {
