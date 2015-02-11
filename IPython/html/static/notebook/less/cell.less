@@ -54,6 +54,14 @@ div.inner_cell {
     .box-flex1();
 }
 
+@-moz-document url-prefix() {
+    div.inner_cell {
+        // hack around FF bug causing cell to expand when lines are long
+        // instead of scrolling
+        overflow-x: hidden;
+    }
+}
+
 /* input_area and input_prompt must match in top border and margin for alignment */
 div.input_area {
     border: 1px solid @light_border_color;
