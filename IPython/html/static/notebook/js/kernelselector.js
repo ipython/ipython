@@ -169,8 +169,7 @@ define([
         var that = this;
         if (typeof selected === 'string') {
             selected = {
-                name: selected,
-                language: selected
+                name: selected
             };
         }
         if (this._loaded) {

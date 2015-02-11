@@ -2219,10 +2219,13 @@ define(function (require) {
             } else if (this.metadata.language) {
                 // compat with IJulia, IHaskell, and other early kernels
                 // adopters that where seting a language metadata.
-                this.kernel_selector.set_kernel(this.metadata.language);
+                this.kernel_selector.set_kernel({
+                    name: "(No name)",
+                    language: this.metadata.language
+                  });
                 // this shoudl be stored in kspec now, delete it.
                 // remove once we do not support notebook v3 anymore.
-                del this.metadata.language;
+                delete this.metadata.language;
             } else {
                 // setting kernel via set_kernel above triggers start_session,
                 // otherwise start a new session with the server's default kernel
