@@ -65,6 +65,13 @@ define(function(require){
                 env.notebook.command_mode();
             }
         },
+        'close-tooltip-or-go-to-command-mode': {
+            help    : 'command mode',
+            help_index : 'aa',
+            handler : function (env) {
+                env.notebook.close_tooltip_or_command_mode();
+            }
+        },
         'split-cell-at-cursor': {
             help    : 'split cell',
             help_index : 'ea',
