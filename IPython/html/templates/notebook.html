@@ -62,6 +62,12 @@ data-notebook-path="{{notebook_path}}"
               <span class="kernel_indicator_name">Kernel</span>
               <i id="kernel_indicator_icon"></i>
             </p>
+            <i id="readonly-indicator" class="navbar-text" title='This notebook is read-only'>
+                <span class="fa-stack">
+                    <i class="fa fa-save fa-stack-1x"></i>
+                    <i class="fa fa-ban fa-stack-2x text-danger"></i>
+                </span>
+            </i>
             <i id="modal_indicator" class="navbar-text"></i>
             <span id="notification_area"></span>
             <div class="navbar-collapse collapse">
