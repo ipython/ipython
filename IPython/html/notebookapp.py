@@ -1061,6 +1061,11 @@ class NotebookApp(BaseIPythonApplication):
                 threading.Thread(target=b).start()
         
         self.io_loop = ioloop.IOLoop.current()
+        if sys.platform.startswith('win'):
+            # add no-op to wake every 5s
+            # to handle signals that may be ignored by the inner loop
+            pc = ioloop.PeriodicCallback(lambda : None, 5000)
+            pc.start()
         try:
             self.io_loop.start()
         except KeyboardInterrupt:
