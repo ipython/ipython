@@ -139,7 +139,13 @@ class InteractiveShellApp(Configurable):
     extra_extension = Unicode('', config=True,
         help="dotted module name of an IPython extension to load."
     )
-    
+
+    reraise_ipython_extension_failures = Bool(
+        False,
+        config=True,
+        help="If True, exit on failure to load any extensions.",
+    )
+
     # Extensions that are always loaded (not configurable)
     default_extensions = List(Unicode, [u'storemagic'], config=False)
     
@@ -259,6 +265,8 @@ class InteractiveShellApp(Configurable):
                     self.log.info("Loading IPython extension: %s" % ext)
                     self.shell.extension_manager.load_extension(ext)
                 except:
+                    if self.exit_on_extension_load_failure:
+                        raise
                     msg = ("Error in loading extension: {ext}\n"
                            "Check your config files in {location}".format(
                                ext=ext,
@@ -266,6 +274,8 @@ class InteractiveShellApp(Configurable):
                            ))
                     self.log.warn(msg, exc_info=True)
         except:
+            if self.exit_on_extension_load_failure:
+                raise
             self.log.warn("Unknown error in loading extensions:", exc_info=True)
 
     def init_code(self):
