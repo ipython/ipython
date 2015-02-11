@@ -2209,13 +2209,20 @@ define(function (require) {
         } else if (this.nbformat_minor < nbmodel.nbformat_minor) {
             this.nbformat_minor = nbmodel.nbformat_minor;
         }
-        
+
         if (this.session === null) {
             var kernel_name = utils.get_url_param('kernel_name');
             if (kernel_name) {
                 this.kernel_selector.set_kernel(kernel_name);
             } else if (this.metadata.kernelspec) {
                 this.kernel_selector.set_kernel(this.metadata.kernelspec);
+            } else if (this.metadata.language) {
+                // compat with IJulia, IHaskell, and other early kernels
+                // adopters that where seting a language metadata.
+                this.kernel_selector.set_kernel(this.metadata.language);
+                // this shoudl be stored in kspec now, delete it.
+                // remove once we do not support notebook v3 anymore.
+                del this.metadata.language;
             } else {
                 // setting kernel via set_kernel above triggers start_session,
                 // otherwise start a new session with the server's default kernel
