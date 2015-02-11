@@ -8789,11 +8789,8 @@ input.engine_num_input {
   margin-left: 7px;
   margin-right: 2px;
 }
-#tree-selector-menu {
-  width: 200px;
-}
-#tree-selector-menu input[type=checkbox] {
-  margin-left: 0px;
+.menu_icon {
+  margin-right: 2px;
 }
 .tab-content .row {
   margin-left: 0px;

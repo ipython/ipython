@@ -76,55 +76,19 @@ data-terminals-available="{{terminals_available}}"
           </div>
           <div id="notebook_list">
             <div id="notebook_list_header" class="row list_header">
-              <div class="btn-group dropdown" id='tree-selector'>
+              <div class="btn-group dropdown" id="tree-selector">
                 <button type="button" class="btn btn-default btn-xs" id="button-select-all">
-                  <input type="checkbox" class="tree-selector pull-left" id="select-all"><span id="counter-select-all">&nbsp;</span></input>
+                  <input type="checkbox" class="pull-left tree-selector" id="select-all"><span id="counter-select-all">&nbsp;</span></input>
                 </button>
-                <button class="btn btn-default btn-xs dropdown-toggle" type="button" id="tree-selector-btn" aria-expanded="true">
+                <button class="btn btn-default btn-xs dropdown-toggle" type="button" id="tree-selector-btn" data-toggle="dropdown" aria-expanded="true">
                   <span class="caret"></span>
                   <span class="sr-only">Toggle Dropdown</span>
                 </button>
-                <ul id="tree-selector-menu" class="dropdown-menu" role="menu" aria-labelledby="tree-selector-btn">
-                  <li role="presentation">
-                    <a role="menuitem">
-                      <span class="badge pull-right" id="counter-select-folders"></span>
-                      <input type="checkbox" class="tree-selector" id="select-folders"></input>
-                      <label for="select-folders">
-                        <i class="folder_icon icon-fixed-width"></i>
-                        Folders
-                      </label>
-                    </a>
-                  </li>
-                  <li role="presentation">
-                    <a role="menuitem">
-                      <span class="badge pull-right" id="counter-select-notebooks"></span>
-                      <input type="checkbox" class="tree-selector" id="select-notebooks"></input>
-                      <label for="select-notebooks">
-                        <i class="notebook_icon icon-fixed-width"></i>
-                        All Notebooks
-                      </label>
-                    </a>
-                  </li>
-                  <li role="presentation">
-                    <a role="menuitem">
-                      <span class="badge pull-right" id="counter-select-running-notebooks"></span>
-                      <input type="checkbox" class="tree-selector" id="select-running-notebooks"></input>
-                      <label for="select-running-notebooks">
-                        <i class="running_notebook_icon icon-fixed-width"></i>
-                        Running
-                      </label>
-                    </a>
-                  </li>
-                  <li role="presentation">
-                    <a role="menuitem">
-                      <span class="badge pull-right" id="counter-select-files"></span>
-                      <input type="checkbox" class="tree-selector" id="select-files"></input>
-                      <label for="select-files">
-                        <i class="file_icon icon-fixed-width"></i>
-                        Files  
-                      </label>
-                    </a>
-                  </li>
+                <ul id='selector-menu' class="dropdown-menu" role="menu" aria-labelledby="tree-selector-btn">
+                  <li role="presentation"><a id="select-folders" role="menuitem" tabindex="-1" href="#"><i class="menu_icon folder_icon icon-fixed-width"></i> Folders</a></li>
+                  <li role="presentation"><a id="select-notebooks" role="menuitem" tabindex="-1" href="#"><i class="menu_icon notebook_icon icon-fixed-width"></i> All Notebooks</a></li>
+                  <li role="presentation"><a id="select-running-notebooks" role="menuitem" tabindex="-1" href="#"><i class="menu_icon running_notebook_icon icon-fixed-width"></i> Running</a></li>
+                  <li role="presentation"><a id="select-files" role="menuitem" tabindex="-1" href="#"><i class="menu_icon file_icon icon-fixed-width"></i> Files</a></li>
                 </ul>
               </div>
               <div id="project_name">

@@ -121,7 +121,8 @@ define([
             $('.duplicate-button').click($.proxy(this.duplicate_selected, this));
             $('.delete-button').click($.proxy(this.delete_selected, this));
 
-            // Bind events for selection checkboxes.
+            // Bind events for selection menu buttons.
+            $('#selector-menu').click(function(event){that.select($(event.target).attr('id'),true)});
             $('.tree-selector').change(function(){that.select($(this).attr('id'),$(this).is(':checked'))});
             $('#button-select-all').click(function(e) {
                 // toggle checkbox if the click doesn't come from the checkbox already
@@ -131,24 +132,10 @@ define([
                     that.select('select-all',checkbox.prop('checked'));
                 }
             });
-
-            // Make the dropdown sticky
-            // Dirty solution by stopping click propagation
-            // $('#tree-selector-menu').click(function(event){event.stopPropagation();})
-            // Cleaner solution by reimplementing the open-close dynamics (and removing data-toggle="dropdown" in html)
-            $('#tree-selector-btn').on('click', function(event) {
-                $(this).parent().toggleClass('open');
-            });
-            $('body').on('click', function (e) {
-                // Close the menu if a click happens outside of the menu list (and of the tree-selector-btn)
-                if (!$('#tree-selector-btn').is(e.target) && $('#tree-selector-btn').has(e.target).length === 0 && $('#tree-selector-menu').has(e.target).length === 0) {
-                    $('#tree-selector-btn').parent().removeClass('open');
-                }
-            });
         }
     };
 
-    NotebookList.prototype.handleFilesUpload = function(event, dropOrForm) {
+    NotebookList.prototype.handleFilesUpload =  function(event, dropOrForm) {
         var that = this;
         var files;
         if(dropOrForm =='drop'){
@@ -308,7 +295,7 @@ define([
                 }
             }
         });
-        this._selection_changed();
+        this._selection_changed();  
     };
 
 
@@ -400,18 +387,18 @@ define([
 
     /**
      * Select all items in the tree of specified type.
-     * checkbox_id : string among "select-all, "select-folders", "select-notebooks", "select-running-notebooks", "select-files"
+     * selection_type : string among "select-all, "select-folders", "select-notebooks", "select-running-notebooks", "select-files"
      * state : boolean, true to select and false to deselect
      */
-    NotebookList.prototype.select = function(checkbox_id,state) {
+    NotebookList.prototype.select = function(selection_type,state) {
         var that = this;
         $('.list_item').each(function(index, item) {
-            // For each item, determine if the state should be set, depending on the checkbox_id that triggered select
-            var set_state = (checkbox_id === "select-all");
-            set_state = set_state || (checkbox_id === "select-folders" && $(item).data('type') === 'directory');
-            set_state = set_state || (checkbox_id === "select-notebooks" && $(item).data('type') === 'notebook');
-            set_state = set_state || (checkbox_id === "select-running-notebooks" && $(item).data('type') === 'notebook' && that.sessions[$(item).data('path')] !== undefined);
-            set_state = set_state || (checkbox_id === "select-files" && $(item).data('type') === 'file');
+            // For each item, determine if the state should be set, depending on the selection_type that triggered select
+            var set_state = (selection_type === "select-all");
+            set_state = set_state || (selection_type === "select-folders" && $(item).data('type') === 'directory');
+            set_state = set_state || (selection_type === "select-notebooks" && $(item).data('type') === 'notebook');
+            set_state = set_state || (selection_type === "select-running-notebooks" && $(item).data('type') === 'notebook' && that.sessions[$(item).data('path')] !== undefined);
+            set_state = set_state || (selection_type === "select-files" && $(item).data('type') === 'file');
             if (set_state) {
                 $(item).find('input[type=checkbox]').prop('checked', state);
             }
@@ -424,61 +411,37 @@ define([
      * Handles when any row selector checkbox is toggled.
      */
     NotebookList.prototype._selection_changed = function() {
-        // Use a JQuery selector to find each row with a checkbox.  If
+        // Use a JQuery selector to find each row with a checked checkbox.  If
         // we decide to add more checkboxes in the future, this code will need
         // to be changed to distinguish which checkbox is the row selector.
         var selected = [];
-        var num_sel_notebook = 0;
-        var num_sel_running_notebook = 0;
-        var num_sel_directory = 0;
-        var num_sel_file = 0;
-        var num_notebook = 0;
-        var num_running_notebook = 0;
-        var num_directory = 0;
-        var num_file = 0;
+        var has_running_notebook = false;
+        var has_directory = false;
+        var has_file = false;
         var that = this;
-        
-        $('.list_item input[type=checkbox]').each(function(index, item) {
+        var checked = 0;
+        $('.list_item :checked').each(function(index, item) {
             var parent = $(item).parent().parent();
+
             // If the item doesn't have an upload button, isn't the 
             // breadcrumbs and isn't the parent folder '..', then it can be selected.  
             // Breadcrumbs path == ''.
-            if (parent.find('.upload_button').length === 0 && parent.data('path') !=='' && parent.data('path') !== utils.url_path_split(that.notebook_path)[0]) {
-                if (parent.data('type') == 'notebook') {
-                    num_notebook++;
-                    if (that.sessions[parent.data('path')] !== undefined) {
-                        num_running_notebook++;
-                    }
-                } else if (parent.data('type') == 'file') {
-                    num_file++;
-                } else if (parent.data('type') == 'directory') {
-                    num_directory++;
-                }
-                if ($(item).is(':checked')) {
-                    selected.push({
+            if (parent.find('.upload_button').length === 0 && parent.data('path') !== '' && parent.data('path') !== utils.url_path_split(that.notebook_path)[0]) {
+                checked++;
+                selected.push({
                     name: parent.data('name'), 
                     path: parent.data('path'), 
                     type: parent.data('type')
-                    });
-                    if (parent.data('type') == 'notebook') {
-                        num_sel_notebook++;
-                        if (that.sessions[parent.data('path')] !== undefined) {
-                            num_sel_running_notebook++;
-                        }
-                    } else if (parent.data('type') == 'file') {
-                        num_sel_file++;
-                    } else if (parent.data('type') == 'directory') {
-                        num_sel_directory++;
-                    }   
-                }
+                });
+
+                // Set flags according to what is selected.  Flags are later
+                // used to decide which action buttons are visible.
+                has_running_notebook = has_running_notebook || 
+                    (parent.data('type') == 'notebook' && that.sessions[parent.data('path')] !== undefined);
+                has_file = has_file || parent.data('type') == 'file';
+                has_directory = has_directory || parent.data('type') == 'directory';    
             }
         });
-        
-        // Set flags according to what is selected.  Flags are later
-        // used to decide which action buttons are visible.        
-        var has_running_notebook = num_sel_running_notebook > 0;
-        var has_directory = num_sel_directory > 0;
-        var has_file = num_sel_file > 0;
         this.selected = selected;
 
         // Rename is only visible when one item is selected.
@@ -511,45 +474,29 @@ define([
         }
 
         // If all of the items are selected, show the selector as checked.  If
-        // some of the items are selected, show it as indeterminate.  Otherwise,
+        // some of the items are selected, show it as checked.  Otherwise,
         // uncheck it.
-        var checkbox_ids = ['select-all','select-folders','select-notebooks','select-running-notebooks','select-files'];
-        var total_nums = [num_file+num_directory+num_notebook, num_directory, num_notebook, num_running_notebook, num_file];
-        var selected_nums = [num_sel_file+num_sel_directory+num_sel_notebook, num_sel_directory, num_sel_notebook, num_sel_running_notebook, num_sel_file];
-        
-        // Disable the main checkbox if the list is empty
-        $('#'+checkbox_ids[0]).parent().prop('disabled',total_nums[0] === 0);
-        for (var i=0; i < 5; i++) {
-            if (i>0) {
-                // Disable each menu item if there is nothing to select
-                $('#'+checkbox_ids[i]).prop('disabled',total_nums[i] === 0);
-                if (total_nums[i] === 0) {
-                    $('#'+checkbox_ids[i]).parent().parent().addClass('disabled');
-                } else {
-                    $('#'+checkbox_ids[i]).parent().parent().removeClass('disabled');
-                }
+        var total = 0;
+        $('.list_item input[type=checkbox]').each(function(index, item) {
+            var parent = $(item).parent().parent();
+            // If the item doesn't have an upload button and it's not the 
+            // breadcrumbs, it can be selected.  Breadcrumbs path == ''.
+            if (parent.find('.upload_button').length === 0 && parent.data('path') !== '' && parent.data('path') !== utils.url_path_split(that.notebook_path)[0]) {
+                total++;
             }
-            // Update counters
-            // Turn empty counter into a '&nbsp;' on the main checkbox for correct button height.
-            var empty_counter = i===0 ? '&nbsp;' : '';
-            $('#counter-'+checkbox_ids[i]).html(selected_nums[i]===0 ? empty_counter : selected_nums[i]);
-            // Alternative : display selected/total
-            // $('#counter-'+checkbox_ids[i]).html(selected_nums[i]===0 ? empty_counter : selected_nums[i] + '/' + total_nums[i]);
-            
-            // Update each checkbox status
-            if (selected_nums[i] === 0) {
-                $('#'+checkbox_ids[i])[0].indeterminate = false;
-                $('#'+checkbox_ids[i]).prop('checked', false);
-            } else {
-                if (selected_nums[i] === total_nums[i]) {
-                    $('#'+checkbox_ids[i])[0].indeterminate = false;
-                    $('#'+checkbox_ids[i]).prop('checked', true);
-                } else {
-                    $('#'+checkbox_ids[i]).prop('checked', false);
-                    $('#'+checkbox_ids[i])[0].indeterminate = true;
-                }
-            }
+        });
+        if (checked === 0) {
+            $('#tree-selector input[type=checkbox]')[0].indeterminate = false;
+            $('#tree-selector input[type=checkbox]').prop('checked', false);
+        } else if (checked === total) {
+            $('#tree-selector input[type=checkbox]')[0].indeterminate = false;
+            $('#tree-selector input[type=checkbox]').prop('checked', true);
+        } else {
+            $('#tree-selector input[type=checkbox]').prop('checked', false);
+            $('#tree-selector input[type=checkbox]')[0].indeterminate = true;
         }
+        // Update total counter
+        $('#counter-select-all').html(checked===0 ? '&nbsp;' : checked);
     };
 
     NotebookList.prototype.add_link = function (model, item) {
