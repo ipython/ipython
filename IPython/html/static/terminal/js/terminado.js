@@ -6,7 +6,7 @@ define ([], function() {
         var term = new Terminal({
           cols: size.cols,
           rows: size.rows,
-          screenKeys: true,
+          screenKeys: false,
           useStyle: false
         });
         ws.onopen = function(event) {
