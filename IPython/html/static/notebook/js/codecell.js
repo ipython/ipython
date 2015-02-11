@@ -329,6 +329,7 @@ define([
             // If we closed the tooltip, don't let CM or the global handlers
             // handle this event.
             event.codemirrorIgnore = true;
+            event._ipkmIgnore = true;
             event.preventDefault();
             return true;
         } else if (event.keyCode === keycodes.tab && event.type === 'keydown' && event.shiftKey) {
