@@ -76,7 +76,7 @@ define([
             notebook_path
         ) + "?download=" + download.toString();
         
-        var w = window.open();
+        var w = window.open(undefined, IPython._target);
         if (this.notebook.dirty) {
             this.notebook.save_notebook().then(function() {
                 w.location = url;
@@ -101,7 +101,7 @@ define([
         
         this.element.find('#open_notebook').click(function () {
             var parent = utils.url_path_split(that.notebook.notebook_path)[0];
-            window.open(utils.url_join_encode(that.base_url, 'tree', parent));
+            window.open(utils.url_join_encode(that.base_url, 'tree', parent), IPython._target);
         });
         this.element.find('#copy_notebook').click(function () {
             that.notebook.copy_notebook();

@@ -73,7 +73,7 @@ define([
         if (!NotebookList._bound_singletons) {
             NotebookList._bound_singletons = true;
             $('#new-file').click(function(e) {
-                var w = window.open();
+                var w = window.open(undefined, IPython._target);
                 that.contents.new_untitled(that.notebook_path || '', {type: 'file', ext: '.txt'}).then(function(data) {
                     var url = utils.url_join_encode(
                         that.base_url, 'edit', data.path
@@ -568,7 +568,7 @@ define([
         // directory nav doesn't open new tabs
         // files, notebooks do
         if (model.type !== "directory") {
-            link.attr('target','_blank');
+            link.attr('target',IPython._target);
         }
     };
 

@@ -2033,7 +2033,7 @@ define(function (require) {
     Notebook.prototype.copy_notebook = function () {
         var that = this;
         var base_url = this.base_url;
-        var w = window.open();
+        var w = window.open(undefined, IPython._target);
         var parent = utils.url_path_split(this.notebook_path)[0];
         this.contents.copy(this.notebook_path, parent).then(
             function (data) {

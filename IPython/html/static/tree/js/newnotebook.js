@@ -75,7 +75,7 @@ define([
         /** create and open a new notebook */
         var that = this;
         kernel_name = kernel_name || this.default_kernel;
-        var w = window.open();
+        var w = window.open(undefined, IPython._target);
         this.contents.new_untitled(that.notebook_path, {type: "notebook"}).then(
             function (data) {
                 var url = utils.url_join_encode(

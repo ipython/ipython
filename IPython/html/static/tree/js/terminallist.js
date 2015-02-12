@@ -42,7 +42,7 @@ define([
     };
 
     TerminalList.prototype.new_terminal = function () {
-        var w = window.open();
+        var w = window.open(undefined, IPython._target);
         var base_url = this.base_url;
         var settings = {
             type : "POST",
@@ -93,7 +93,7 @@ define([
         item.find(".item_icon").addClass("fa fa-terminal");
         var link = item.find("a.item_link")
             .attr('href', utils.url_join_encode(this.base_url, "terminals", name));
-        link.attr('target', '_blank');
+        link.attr('target', IPython._target||'_blank');
         this.add_shutdown_button(name, item);
     };
     
