@@ -483,7 +483,10 @@ define([
          * we should never have any encoded URLs anywhere else in code
          * until we are building an actual request
          */
-        return decodeURIComponent($('body').data(key));
+        var val = $('body').data(key);
+        if (!val)
+            return val;
+        return decodeURIComponent(val);
     };
     
     var to_absolute_cursor_pos = function (cm, cursor) {
