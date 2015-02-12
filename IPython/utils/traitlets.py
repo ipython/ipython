@@ -1461,8 +1461,8 @@ class Container(Instance):
     def instance_init(self, obj):
         if isinstance(self._trait, TraitType):
             self._trait.this_class = self.this_class
-        if hasattr(self._trait, 'instance_init'):
-            self._trait.instance_init(obj)
+        if hasattr(self._trait, '_resolve_classes'):
+            self._trait._resolve_classes()
         super(Container, self).instance_init(obj)
 
 
@@ -1630,6 +1630,14 @@ class Tuple(Container):
             else:
                 validated.append(v)
         return tuple(validated)
+
+    def instance_init(self, obj):
+        for trait in self._traits:
+            if isinstance(trait, TraitType):
+                trait.this_class = self.this_class
+            if hasattr(trait, '_resolve_classes'):
+                trait._resolve_classes()
+        super(Container, self).instance_init(obj)
 
 
 class Dict(Instance):

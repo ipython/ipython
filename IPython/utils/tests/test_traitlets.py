@@ -972,6 +972,19 @@ class TestList(TraitTestBase):
 class Foo(object):
     pass
 
+class NoneInstanceListTrait(HasTraits):
+    
+    value = List(Instance(Foo, allow_none=False))
+
+class TestNoneInstanceList(TraitTestBase):
+
+    obj = NoneInstanceListTrait()
+
+    _default_value = []
+    _good_values = [[Foo(), Foo()], []]
+    _bad_values = [[None], [Foo(), None]]
+
+
 class InstanceListTrait(HasTraits):
 
     value = List(Instance(__name__+'.Foo'))
