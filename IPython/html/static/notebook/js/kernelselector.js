@@ -246,7 +246,7 @@ define([
         
         var body = $("<form>").addClass("form-inline").append(
             $("<span>").text(
-                "I couldn't find a kernel matching " + (data.selected.display_name || data.name) + "." +
+                "I couldn't find a kernel matching " + (data.selected.display_name || data.selected.name) + "." +
                 " Please select a kernel:"
             )
         ).append(select);
