@@ -10525,8 +10525,9 @@ p {
   line-height: 1.5;
   border-radius: 1px;
   width: inherit;
-  font-size: 87%;
+  font-size: inherit;
   height: 22px;
+  padding: 0px;
   display: inline-block;
 }
 .celltoolbar select:focus {

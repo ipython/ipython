@@ -50,9 +50,12 @@
 .celltoolbar select {
     .form-control();
     .input-sm();
+    // undo some of the sizing caused by the above mixins
     width: inherit;
-    font-size: 87%;
+    font-size: inherit;
     height: 22px;
+    padding: 0px;
+    
     display: inline-block;
 
 }
