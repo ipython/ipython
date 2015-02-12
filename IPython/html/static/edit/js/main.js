@@ -27,15 +27,19 @@ require([
     savewidget,
     notificationarea
     ){
+    "use strict";
     page = new page.Page();
 
     var base_url = utils.get_body_data('baseUrl');
     var file_path = utils.get_body_data('filePath');
-    contents = new contents.Contents({base_url: base_url});
     var config = new configmod.ConfigSection('edit', {base_url: base_url});
     config.load();
     var common_config = new configmod.ConfigSection('common', {base_url: base_url});
     common_config.load();
+    contents = new contents.Contents({
+        base_url: base_url,
+        common_config: common_config
+    });
     
     var editor = new editmod.Editor('#texteditor-container', {
         base_url: base_url,
