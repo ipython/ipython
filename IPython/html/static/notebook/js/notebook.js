@@ -2223,7 +2223,7 @@ define(function (require) {
                     name: "(No name)",
                     language: this.metadata.language
                   });
-                // this shoudl be stored in kspec now, delete it.
+                // this should be stored in kspec now, delete it.
                 // remove once we do not support notebook v3 anymore.
                 delete this.metadata.language;
             } else {
