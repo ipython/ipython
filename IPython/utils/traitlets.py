@@ -1631,6 +1631,14 @@ class Tuple(Container):
                 validated.append(v)
         return tuple(validated)
 
+    def instance_init(self, obj):
+        for trait in self._traits:
+            if isinstance(trait, TraitType):
+                trait.this_class = self.this_class
+            if hasattr(trait, '_resolve_classes'):
+                trait._resolve_classes()
+        super(Container, self).instance_init(obj)
+
 
 class Dict(Instance):
     """An instance of a Python dict."""
