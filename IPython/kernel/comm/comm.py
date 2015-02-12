@@ -3,7 +3,10 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import threading
 import uuid
+
+from zmq.eventloop.ioloop import IOLoop
 
 from IPython.config import LoggingConfigurable
 from IPython.kernel.zmq.kernelbase import Kernel
@@ -13,7 +16,7 @@ from IPython.utils.traitlets import Instance, Unicode, Bytes, Bool, Dict, Any
 
 
 class Comm(LoggingConfigurable):
-    
+    """Class for communicating between a Frontend and a Kernel"""
     # If this is instantiated by a non-IPython kernel, shell will be None
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC',
                      allow_none=True)
@@ -63,6 +66,10 @@ class Comm(LoggingConfigurable):
     
     def _publish_msg(self, msg_type, data=None, metadata=None, buffers=None, **keys):
         """Helper for sending a comm message on IOPub"""
+        if threading.current_thread().name != 'MainThread' and IOLoop.initialized():
+            # make sure we never send on a zmq socket outside the main IOLoop thread
+            IOLoop.instance().add_callback(lambda : self._publish_msg(msg_type, data, metadata, buffers, **keys))
+            return
         data = {} if data is None else data
         metadata = {} if metadata is None else metadata
         content = json_clean(dict(data=data, comm_id=self.comm_id, **keys))
