@@ -1716,6 +1716,13 @@ class Dict(Instance):
                 validated[key] = v
         return self.klass(validated)
 
+    def instance_init(self, obj):
+        if isinstance(self._trait, TraitType):
+            self._trait.this_class = self.this_class
+        if hasattr(self._trait, '_resolve_classes'):
+            self._trait._resolve_classes(obj)
+        super(Dict, self).instance_init(obj)
+
 
 class EventfulDict(Instance):
     """An instance of an EventfulDict."""
