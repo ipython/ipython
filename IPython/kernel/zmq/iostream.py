@@ -116,6 +116,10 @@ class OutStream(object):
     def close(self):
         self.pub_socket = None
 
+    @property
+    def closed(self):
+        return self.pub_socket is None
+
     def _flush_from_subprocesses(self):
         """flush possible pub data from subprocesses into my buffer"""
         if not self._pipe_flag or not self._is_master_process():
