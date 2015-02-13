@@ -6,17 +6,18 @@ Issues closed in the 3.x development cycle
 Issues closed in 3.0
 ----------------------
 
-GitHub stats for 2014/04/09 - 2015/01/30
+GitHub stats for 2014/04/02 - 2015/02/13 (since 2.0)
 
 These lists are automatically generated, and may be incomplete or contain duplicates.
 
-We closed 422 issues and merged 869 pull requests.
-The full list can be found `on GitHub <https://github.com/ipython/ipython/milestone/3.0>`
+We closed 462 issues and merged 923 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/milestone/3.0>`
 
-The following 152 authors contributed 5697 commits.
+The following 155 authors contributed 5951 commits.
 
-* Adam Hodgen
 * A. J. Holyoake
+* Adam Hodgen
+* Adrian Price-Whelan
 * Amin Bandali
 * Andreas Amann
 * Andrew Dawes
@@ -35,6 +36,7 @@ The following 152 authors contributed 5697 commits.
 * Brian E. Granger
 * bsvh
 * Carlos Cordoba
+* Cedric GESTES
 * cel
 * chebee7i
 * Christoph Gohlke
@@ -44,11 +46,11 @@ The following 152 authors contributed 5697 commits.
 * Damián Avila
 * Damon Allen
 * Daniel B. Vasquez
+* Daniel Rocco
 * Daniel Wehner
 * Dav Clark
 * David Hirschfeld
 * David Neto
-* Daniel Rocco
 * dexterdev
 * Dimitry Kloper
 * dongweiming
@@ -66,24 +68,26 @@ The following 152 authors contributed 5697 commits.
 * George Titsworth
 * Gordon Ball
 * gporras
+* Grzegorz Rożniecki
 * Helen ST
 * immerrr
 * Ingolf Becker
 * Jakob Gager
 * James Goppert
 * James Porter
+* Jan Schulz
 * Jason Goad
 * Jason Gors
 * Jason Grout
 * Jason Newton
 * JC
+* jdavidheiser
 * Jean-Christophe Jaskula
 * Jeff Hemmelgarn
 * Jeffrey Bush
 * Jeroen Demeyer
 * Jessica B. Hamrick
 * Jessica Frazelle
-* jgors
 * jhemmelg
 * Jim Garrison
 * Joel Nothman
@@ -140,7 +144,6 @@ The following 152 authors contributed 5697 commits.
 * Reggie Pierce
 * Remi Rampin
 * Renaud Richardet
-* rgbkrk
 * Richard Everson
 * Scott Sanderson
 * Silvia Vinyes
