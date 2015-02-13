@@ -22,6 +22,7 @@ backends = {'tk': 'TkAgg',
             'qt5': 'Qt5Agg',
             'osx': 'MacOSX',
             'nbagg': 'nbAgg',
+            'notebook': 'nbAgg',
             'inline' : 'module://IPython.kernel.zmq.pylab.backend_inline'}
 
 # We also need a reverse backends2guis mapping that will properly choose which

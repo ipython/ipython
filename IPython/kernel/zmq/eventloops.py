@@ -40,6 +40,7 @@ def _notify_stream_qt(kernel, stream):
 loop_map = {
     'inline': None,
     'nbagg': None,
+    'notebook': None,
     None : None,
 }
 
