@@ -1577,4 +1577,7 @@ h6:hover .anchor-link {
 .widget-radio-box label {
   margin-top: 0px;
 }
+.widget-radio {
+  margin-left: 20px;
+}
 /*# sourceMappingURL=ipython.min.css.map */
