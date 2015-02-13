@@ -4,7 +4,7 @@
 var IPython = IPython || {};
 define([], function(){
     "use strict";
-    IPython.version = "3.0.0-dev";
+    IPython.version = "3.0.0-rc1";
     IPython._target = '_blank';
     return IPython;
 });
