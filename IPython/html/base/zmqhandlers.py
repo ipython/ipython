@@ -106,12 +106,11 @@ class ZMQStreamHandler(WebSocketHandler):
                 # we can close the connection more gracefully.
                 self.stream.close()
 
-
+    
     def check_origin(self, origin):
         """Check Origin == Host or Access-Control-Allow-Origin.
         
         Tornado >= 4 calls this method automatically, raising 403 if it returns False.
-        We call it explicitly in `open` on Tornado < 4.
         """
         if self.allow_origin == '*':
             return True
@@ -173,7 +172,10 @@ class ZMQStreamHandler(WebSocketHandler):
     def _on_zmq_reply(self, stream, msg_list):
         # Sometimes this gets triggered when the on_close method is scheduled in the
         # eventloop but hasn't been called.
-        if stream.closed(): return
+        if self.stream.closed() or stream.closed():
+            self.log.warn("zmq message arrived on closed channel")
+            self.close()
+            return
         channel = getattr(stream, 'channel', None)
         try:
             msg = self._reserialize_reply(msg_list, channel=channel)
