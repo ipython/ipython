@@ -360,39 +360,24 @@ class TraitType(object):
         pass
 
     def static_init(self, obj):
-        # We didn't find one. Do static initialization.
         value = self.get_default_value()
         value = self._validate(obj, value)
         obj._trait_values[self.name] = value
         return value
 
-    def instance_init(self, obj):
-        """This is called by :meth:`HasTraits.__new__` to finish init'ing.
+    def set_default_value(self, obj):
+        """Set the default value on a per instance basis.
 
-        Some stages of initialization must be delayed until the parent
-        :class:`HasTraits` instance has been created.  This method is
-        called in :meth:`HasTraits.__new__` after the instance has been
-        created.
-
-        This method trigger the creation and validation of default values
-        and also things like the resolution of str given class names in
-        :class:`Type` and :class`Instance`.
-
+        This method is called by :meth:`HasTraits.__new__` to create and
+        validate the default value.  The creation and validation of
+        default values must be delayed until the parent :class:`HasTraits`
+        class has been instantiated.
+       
         Parameters
         ----------
         obj : :class:`HasTraits` instance
             The parent :class:`HasTraits` instance that has just been
             created.
-        """
-        self.set_default_value(obj)
-
-    def set_default_value(self, obj):
-        """Set the default value on a per instance basis.
-
-        This method is called by :meth:`instance_init` to create and
-        validate the default value.  The creation and validation of
-        default values must be delayed until the parent :class:`HasTraits`
-        class has been instantiated.
         """
         # Check for a deferred initializer defined in the same class as the
         # trait declaration or above.
@@ -402,6 +387,7 @@ class TraitType(object):
             if meth_name in cls.__dict__:
                 break
         else:
+            # We didn't find one. Do static initialization.
             self.static_init(obj)
             return
         # Complete the dynamic initialization.
@@ -566,7 +552,7 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
                 if isinstance(value, TraitType):
                     value.decorate(inst)
                     if key not in kw:
-                        value.instance_init(inst)
+                        value.set_default_value(inst)
 
         return inst
 
