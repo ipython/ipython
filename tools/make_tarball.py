@@ -7,7 +7,7 @@ import os
 
 from toollib import cd, sh
 
-tag = subprocess.getoutput('git describe --tags')
+tag = subprocess.check_output('git describe --tags', shell=True).decode('utf8', 'replace').strip()
 base_name = 'ipython-%s' % tag
 tar_name = '%s.tgz' % base_name
 
