@@ -356,6 +356,9 @@ class TraitType(object):
         """Create a new instance of the default value."""
         return self.default_value
 
+    def decorate(self, obj):
+        pass
+
     def instance_init(self, obj):
         """This is called by :meth:`HasTraits.__new__` to finish init'ing.
 
@@ -559,7 +562,9 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
                 pass
             else:
                 if isinstance(value, TraitType):
-                    value.instance_init(inst)
+                    value.decorate(inst)
+                    if key not in kw:
+                        value.instance_init(inst)
 
         return inst
 
@@ -872,9 +877,9 @@ class Type(ClassBasedTraitType):
             return result + ' or None'
         return result
 
-    def instance_init(self, obj):
+    def decorate(self, obj):
         self._resolve_classes()
-        super(Type, self).instance_init(obj)
+        super(Type, self).decorate(obj)
 
     def _resolve_classes(self):
         if isinstance(self.klass, py3compat.string_types):
@@ -981,9 +986,9 @@ class Instance(ClassBasedTraitType):
 
         return result
 
-    def instance_init(self, obj):
+    def decorate(self, obj):
         self._resolve_classes()
-        super(Instance, self).instance_init(obj)
+        super(Instance, self).decorate(obj)
 
     def _resolve_classes(self):
         if isinstance(self.klass, py3compat.string_types):
@@ -1078,16 +1083,13 @@ class Union(TraitType):
         self.default_value = self.trait_types[0].get_default_value()
         super(Union, self).__init__(**metadata)
 
-    def _resolve_classes(self):
+    def decorate(self, obj):
         for trait_type in self.trait_types:
             trait_type.name = self.name
             trait_type.this_class = self.this_class
             if hasattr(trait_type, '_resolve_classes'):
                 trait_type._resolve_classes()
-
-    def instance_init(self, obj):
-        self._resolve_classes()
-        super(Union, self).instance_init(obj)
+        super(Union, self).decorate(obj)
 
     def validate(self, obj, value):
         for trait_type in self.trait_types:
@@ -1468,12 +1470,12 @@ class Container(Instance):
                 validated.append(v)
         return self.klass(validated)
 
-    def instance_init(self, obj):
+    def decorate(self, obj):
         if isinstance(self._trait, TraitType):
             self._trait.this_class = self.this_class
         if hasattr(self._trait, '_resolve_classes'):
             self._trait._resolve_classes()
-        super(Container, self).instance_init(obj)
+        super(Container, self).decorate(obj)
 
 
 class List(Container):
@@ -1639,13 +1641,13 @@ class Tuple(Container):
                 validated.append(v)
         return tuple(validated)
 
-    def instance_init(self, obj):
+    def decorate(self, obj):
         for trait in self._traits:
             if isinstance(trait, TraitType):
                 trait.this_class = self.this_class
             if hasattr(trait, '_resolve_classes'):
                 trait._resolve_classes()
-        super(Container, self).instance_init(obj)
+        super(Container, self).decorate(obj)
 
 
 class Dict(Instance):
