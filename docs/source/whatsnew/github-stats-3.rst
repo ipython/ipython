@@ -15,7 +15,7 @@ The full list can be seen `on GitHub <https://github.com/ipython/ipython/milesto
 
 The following 155 authors contributed 5951 commits.
 
-* A. J. Holyoake
+* A.J. Holyoake
 * Adam Hodgen
 * Adrian Price-Whelan
 * Amin Bandali
