@@ -50,13 +50,14 @@ require([
     common_options.config = cfg;
     var common_config = new config.ConfigSection('common', common_options);
     common_config.load();
-    
+
     var session_list = new sesssionlist.SesssionList($.extend({
-        events: events}, 
-        common_options));
-    var contents = new contents_service.Contents($.extend({
         events: events},
         common_options));
+    var contents = new contents_service.Contents({
+        base_url: common_options.base_url,
+        common_config: common_config
+    });
     var notebook_list = new notebooklist.NotebookList('#notebook_list', $.extend({
         contents: contents,
         session_list:  session_list}, 
@@ -98,16 +99,16 @@ require([
         if (terminal_list) {
             terminal_list.load_terminals();
         }
-    }
+    };
 
     var enable_autorefresh = function(){
         /**
          *refresh immediately , then start interval
          */
-        var now = new Date()
+        var now = new Date();
 
         if (now - _last_refresh < IPython.min_delta_refresh*1000){
-            console.log("Reenabling autorefresh too close to last tree refresh, not refreshing immediately again.")
+            console.log("Reenabling autorefresh too close to last tree refresh, not refreshing immediately again.");
         } else {
             _refresh_list();
         }

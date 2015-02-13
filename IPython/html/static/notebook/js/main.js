@@ -75,9 +75,10 @@ require([
     var save_widget = new savewidget.SaveWidget('span#save_widget', {
         events: events, 
         keyboard_manager: keyboard_manager});
-    var contents = new contents.Contents($.extend({
-        events: events, config:config_section},
-        common_options));
+    var contents = new contents.Contents({
+          base_url: common_options.base_url,
+          common_config: common_config
+        });
     var notebook = new notebook.Notebook('div#notebook', $.extend({
         events: events,
         keyboard_manager: keyboard_manager,
