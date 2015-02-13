@@ -359,6 +359,13 @@ class TraitType(object):
     def decorate(self, obj):
         pass
 
+    def static_init(self, obj):
+        # We didn't find one. Do static initialization.
+        value = self.get_default_value()
+        value = self._validate(obj, value)
+        obj._trait_values[self.name] = value
+        return value
+
     def instance_init(self, obj):
         """This is called by :meth:`HasTraits.__new__` to finish init'ing.
 
@@ -395,10 +402,7 @@ class TraitType(object):
             if meth_name in cls.__dict__:
                 break
         else:
-            # We didn't find one. Do static initialization.
-            dv = self.get_default_value()
-            newdv = self._validate(obj, dv)
-            obj._trait_values[self.name] = newdv
+            self.static_init(obj)
             return
         # Complete the dynamic initialization.
         obj._trait_dyn_inits[self.name] = meth_name
@@ -426,9 +430,7 @@ class TraitType(object):
                     obj._trait_values[self.name] = value
                     return value
                 else:
-                    raise TraitError('Unexpected error in TraitType: '
-                        'both default value and dynamic initializer are '
-                        'absent.')
+                    return self.static_init(obj)
             except Exception:
                 # HasTraits should call set_default_value to populate
                 # this.  So this should never be reached.
