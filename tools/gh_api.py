@@ -162,6 +162,7 @@ def get_issues_list(project, auth=False, **params):
     return pages
 
 def get_milestones(project, auth=False, **params):
+    params.setdefault('state', 'all')
     url = "https://api.github.com/repos/{project}/milestones".format(project=project)
     if auth:
         headers = make_auth_header()
