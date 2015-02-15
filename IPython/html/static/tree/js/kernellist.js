@@ -49,7 +49,7 @@ define([
                 type: 'notebook',
             }, item);
         }
-        $('#running_list_header').toggle($.isEmptyObject(d));
+        $('#running_list_placeholder').toggle($.isEmptyObject(d));
     };
 
     KernelList.prototype.add_link = function (model, item) {
