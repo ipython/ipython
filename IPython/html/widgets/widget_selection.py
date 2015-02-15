@@ -201,6 +201,7 @@ class ToggleButtons(_Selection):
     button can be toggled at any point in time.""" 
     _view_name = Unicode('ToggleButtonsView', sync=True)
     tooltips = List(Unicode(), sync=True)
+    icons = List(Unicode(), sync=True)
 
     button_style = CaselessStrEnum(
         values=['primary', 'success', 'info', 'warning', 'danger', ''], 

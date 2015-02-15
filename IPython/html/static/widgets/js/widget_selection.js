@@ -307,17 +307,21 @@ define([
             if (options === undefined || options.updated_view != this) {
                 // Add missing items to the DOM.
                 var items = this.model.get('_options_labels');
+                var icons = this.model.get('icons');
+                var previous_icons = this.model.previous('icons') || [];
                 var disabled = this.model.get('disabled');
                 var that = this;
                 var item_html;
                 _.each(items, function(item, index) {
-                    if (item.trim().length === 0) {
+                    if (item.trim().length === 0 && (!icons[index] ||
+                        icons[index].trim().length === 0)) {
                         item_html = "&nbsp;";
                     } else {
                         item_html = utils.escape_html(item);
                     }
                     var item_query = '[data-value="' + encodeURIComponent(item) + '"]';
                     var $item_element = that.$buttongroup.find(item_query);
+                    var $icon_element = $item_element.find('.fa');
                     if (!$item_element.length) {
                         $item_element = $('<button/>')
                             .attr('type', 'button')
@@ -329,6 +333,7 @@ define([
                             .attr('value', item)
                             .on('click', $.proxy(that.handle_click, that));
                         that.update_style_traits($item_element);
+                        $icon_element = $('<i class="fa"></i>').prependTo($item_element);
                     }
                     if (that.model.get('selected_label') == item) {
                         $item_element.addClass('active');
@@ -336,7 +341,10 @@ define([
                         $item_element.removeClass('active');
                     }
                     $item_element.prop('disabled', disabled);
-                    $item_element.attr('title', that.model.get('tooltips')[index]); 
+                    $item_element.attr('title', that.model.get('tooltips')[index]);
+                    $icon_element
+                        .removeClass(previous_icons[index])
+                        .addClass(icons[index]);
                 });
                 
                 // Remove items that no longer exist.
