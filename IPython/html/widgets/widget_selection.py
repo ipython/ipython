@@ -19,7 +19,7 @@ from threading import Lock
 
 from .widget import DOMWidget, register
 from IPython.utils.traitlets import (
-    Unicode, Bool, Any, Dict, TraitError, CaselessStrEnum, Tuple
+    Unicode, Bool, Any, Dict, TraitError, CaselessStrEnum, Tuple, List
 )
 from IPython.utils.py3compat import unicode_type
 from IPython.utils.warn import DeprecatedClass
@@ -32,6 +32,12 @@ class _Selection(DOMWidget):
     
     ``options`` can be specified as a list or dict. If given as a list,
     it will be transformed to a dict of the form ``{str(value):value}``.
+
+    When programmatically setting the value, a reverse lookup is performed
+    among the options to set the value of ``selected_label`` accordingly. The
+    reverse lookup uses the equality operator by default, but an other
+    predicate may be provided via the ``equals`` argument. For example, when
+    dealing with numpy arrays, one may set equals=np.array_equal.
     """
     
     value = Any(help="Selected value")
@@ -194,6 +200,7 @@ class ToggleButtons(_Selection):
     """Group of toggle buttons that represent an enumeration.  Only one toggle
     button can be toggled at any point in time.""" 
     _view_name = Unicode('ToggleButtonsView', sync=True)
+    tooltips = List(Unicode(), sync=True)
 
     button_style = CaselessStrEnum(
         values=['primary', 'success', 'info', 'warning', 'danger', ''], 

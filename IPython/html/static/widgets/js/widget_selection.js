@@ -325,6 +325,7 @@ define([
                             .html(item_html)
                             .appendTo(that.$buttongroup)
                             .attr('data-value', encodeURIComponent(item))
+                            .attr('data-toggle', 'tooltip')
                             .attr('value', item)
                             .on('click', $.proxy(that.handle_click, that));
                         that.update_style_traits($item_element);
@@ -334,7 +335,8 @@ define([
                     } else {
                         $item_element.removeClass('active');
                     }
-                    $item_element.prop('disabled', disabled); 
+                    $item_element.prop('disabled', disabled);
+                    $item_element.attr('title', that.model.get('tooltips')[index]); 
                 });
                 
                 // Remove items that no longer exist.
