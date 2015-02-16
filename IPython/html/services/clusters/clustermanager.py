@@ -11,6 +11,7 @@ from IPython.core.profileapp import list_profiles_in
 from IPython.core.profiledir import ProfileDir
 from IPython.utils import py3compat
 from IPython.utils.path import get_ipython_dir
+from IPython.parallel.apps.launcher import BatchSystemLauncher
 
 
 class ClusterManager(LoggingConfigurable):
@@ -63,11 +64,18 @@ class ClusterManager(LoggingConfigurable):
                 pd = self.get_profile_dir(profile, path)
                 if profile not in self.profiles:
                     self.log.debug("Adding cluster profile '%s'", profile)
+                    cl, esl, default_n = self.build_launchers(pd)
                     self.profiles[profile] = {
                         'profile': profile,
                         'profile_dir': pd,
-                        'status': 'stopped'
+                        'status': 'stopped',
+                        'batch': isinstance(esl, BatchSystemLauncher)
                     }
+                else:
+                    #update status of running profiles
+                    data = self.profiles[profile]
+                    if 'engine_set_launcher' in data:
+                        data['status'] = data['engine_set_launcher'].status(data['profile'], data['n'])
         for profile in stale:
             # remove profiles that no longer exist
             self.log.debug("Profile '%s' no longer exists", profile)
@@ -91,18 +99,22 @@ class ClusterManager(LoggingConfigurable):
         result['profile'] = profile
         result['profile_dir'] = data['profile_dir']
         result['status'] = data['status']
+        result['batch'] = data['batch']
         if 'n' in data:
             result['n'] = data['n']
         return result
 
-    def start_cluster(self, profile, n=None):
+    def start_cluster(self, profile, args):
         """Start a cluster for a given profile."""
         self.check_profile(profile)
         data = self.profiles[profile]
         if data['status'] == 'running':
             raise web.HTTPError(409, u'cluster already running')
         cl, esl, default_n = self.build_launchers(data['profile_dir'])
-        n = n if n is not None else default_n
+        n = int(args['n']) if args['n'] is not None else default_n
+        args['n'] = n
+        if data['batch']:
+            esl.set_options(args)
         def clean_data():
             data.pop('controller_launcher',None)
             data.pop('engine_set_launcher',None)
@@ -132,7 +144,7 @@ class ClusterManager(LoggingConfigurable):
         data['controller_launcher'] = cl
         data['engine_set_launcher'] = esl
         data['n'] = n
-        data['status'] = 'running'
+        data['status'] = 'starting'
         return self.profile_info(profile)
 
     def stop_cluster(self, profile):
@@ -153,7 +165,8 @@ class ClusterManager(LoggingConfigurable):
         result = {
             'profile': data['profile'],
             'profile_dir': data['profile_dir'],
-            'status': 'stopped'
+            'status': 'stopped',
+            'batch': data['batch']
         }
         return result
 

@@ -35,10 +35,14 @@ class ClusterActionHandler(IPythonHandler):
         cm = self.cluster_manager
         if action == 'start':
             n = self.get_argument('n', default=None)
-            if not n:
-                data = cm.start_cluster(profile)
-            else:
-                data = cm.start_cluster(profile, int(n))
+            time = self.get_argument('time', default=None)
+            mem = self.get_argument('mem', default=None)
+            args = {'n':n,'time':time,'mem':mem}
+            for arg in args:
+                val = args[arg]
+                if val is not None and len(val) == 0:
+                    args[arg] = None
+            data = cm.start_cluster(profile, args)
         if action == 'stop':
             data = cm.stop_cluster(profile)
         self.finish(json.dumps(data))
