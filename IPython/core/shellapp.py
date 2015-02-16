@@ -143,7 +143,7 @@ class InteractiveShellApp(Configurable):
     reraise_ipython_extension_failures = Bool(
         False,
         config=True,
-        help="If True, exit on failure to load any extensions.",
+        help="Reraise exceptions encountered loading IPython extensions?",
     )
 
     # Extensions that are always loaded (not configurable)
@@ -265,7 +265,7 @@ class InteractiveShellApp(Configurable):
                     self.log.info("Loading IPython extension: %s" % ext)
                     self.shell.extension_manager.load_extension(ext)
                 except:
-                    if self.exit_on_extension_load_failure:
+                    if self.reraise_ipython_extension_failures:
                         raise
                     msg = ("Error in loading extension: {ext}\n"
                            "Check your config files in {location}".format(
@@ -274,7 +274,7 @@ class InteractiveShellApp(Configurable):
                            ))
                     self.log.warn(msg, exc_info=True)
         except:
-            if self.exit_on_extension_load_failure:
+            if self.reraise_ipython_extension_failures:
                 raise
             self.log.warn("Unknown error in loading extensions:", exc_info=True)
 

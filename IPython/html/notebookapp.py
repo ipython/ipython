@@ -751,6 +751,12 @@ class NotebookApp(BaseIPythonApplication):
               "This is an experimental API, and may change in future releases.")
     )
 
+    reraise_server_extension_failures = Bool(
+        False,
+        config=True,
+        help="Reraise exceptions encountered loading server extensions?",
+    )
+
     def parse_command_line(self, argv=None):
         super(NotebookApp, self).parse_command_line(argv)
         
@@ -984,6 +990,8 @@ class NotebookApp(BaseIPythonApplication):
                 if func is not None:
                     func(self)
             except Exception:
+                if self.reraise_server_extension_failures:
+                    raise
                 self.log.warn("Error loading server extension %s", modulename,
                               exc_info=True)
     
