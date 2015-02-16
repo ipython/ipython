@@ -11,6 +11,7 @@ import mimetypes
 
 from tornado import web
 
+from .gitcheckpoints import GitCheckpoints
 from .filecheckpoints import FileCheckpoints
 from .fileio import FileManagerMixin
 from .manager import ContentsManager
@@ -24,6 +25,7 @@ from IPython.html.utils import (
     is_hidden,
     to_api_path,
 )
+import subprocess
 
 _script_exporter = None
 
@@ -121,8 +123,19 @@ class FileContentsManager(FileManagerMixin, ContentsManager):
         if not os.path.isdir(new):
             raise TraitError("%r is not a directory" % new)
 
+    _checkpoints_class = None
+    
     def _checkpoints_class_default(self):
-        return FileCheckpoints
+        if self._checkpoints_class:
+            return self._checkpoints_class
+        else:
+            try:
+                subprocess.check_output(['git', '--version'], stderr=subprocess.STDOUT)
+                self._checkpoints_class = GitCheckpoints
+            except:
+                #fall back to file based checkpoints
+                self._checkpoints_class = FileCheckpoints
+        return self._checkpoints_class
 
     def is_hidden(self, path):
         """Does the API style path correspond to a hidden directory or file?
@@ -382,9 +395,6 @@ class FileContentsManager(FileManagerMixin, ContentsManager):
                 nb = nbformat.from_dict(model['content'])
                 self.check_and_sign(nb, path)
                 self._save_notebook(os_path, nb)
-                # One checkpoint should always exist for notebooks.
-                if not self.checkpoints.list_checkpoints(path):
-                    self.create_checkpoint(path)
             elif model['type'] == 'file':
                 # Missing format will be handled internally by _save_file.
                 self._save_file(os_path, model['content'], model.get('format'))

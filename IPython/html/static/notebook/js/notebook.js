@@ -2076,6 +2076,7 @@ define(function (require) {
                 that.notebook_path = json.path;
                 that.session.rename_notebook(json.path);
                 that.events.trigger('notebook_renamed.Notebook', json);
+                that.list_checkpoints();
             }
         );
     };
@@ -2302,18 +2303,20 @@ define(function (require) {
      */
     Notebook.prototype.add_checkpoint = function (checkpoint) {
         var found = false;
-        for (var i = 0; i < this.checkpoints.length; i++) {
-            var existing = this.checkpoints[i];
-            if (existing.id === checkpoint.id) {
-                found = true;
-                this.checkpoints[i] = checkpoint;
-                break;
+        if (checkpoint != null){
+            for (var i = 0; i < this.checkpoints.length; i++) {
+                var existing = this.checkpoints[i];
+                if (existing.id === checkpoint.id) {
+                    found = true;
+                    this.checkpoints[i] = checkpoint;
+                    break;
+                }
             }
+            if (!found) {
+                this.checkpoints.unshift(checkpoint);
+            }
+            this.last_checkpoint = this.checkpoints[this.checkpoints.length - 1];
         }
-        if (!found) {
-            this.checkpoints.push(checkpoint);
-        }
-        this.last_checkpoint = this.checkpoints[this.checkpoints.length - 1];
     };
     
     /**
@@ -2363,8 +2366,10 @@ define(function (require) {
      * @param {object} data - JSON representation of a checkpoint
      */
     Notebook.prototype.create_checkpoint_success = function (data) {
-        this.add_checkpoint(data);
-        this.events.trigger('checkpoint_created.Notebook', data);
+        if (data != null) {
+            this.add_checkpoint(data);
+            this.events.trigger('checkpoint_created.Notebook', data);
+        }
     };
 
     /**

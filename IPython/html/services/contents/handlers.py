@@ -278,12 +278,16 @@ class CheckpointsHandler(IPythonHandler):
         """post creates a new checkpoint"""
         cm = self.contents_manager
         checkpoint = yield gen.maybe_future(cm.create_checkpoint(path))
-        data = json.dumps(checkpoint, default=date_default)
-        location = url_path_join(self.base_url, 'api/contents',
-            path, 'checkpoints', checkpoint['id'])
-        self.set_header('Location', url_escape(location))
-        self.set_status(201)
-        self.finish(data)
+        if checkpoint:
+            data = json.dumps(checkpoint, default=date_default)
+            location = url_path_join(self.base_url, 'api/contents',
+                path, 'checkpoints', checkpoint['id'])
+            self.set_header('Location', url_escape(location))
+            self.set_status(201)
+            self.finish(data)
+        else:
+            self.set_status(204)
+            self.finish()
 
 
 class ModifyCheckpointsHandler(IPythonHandler):
