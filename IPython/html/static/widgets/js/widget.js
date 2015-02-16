@@ -155,8 +155,9 @@ define(["widgets/js/manager",
                     this.trigger('msg:custom', msg.content.data.content);
                     break;
                 case 'display':
-                    this.widget_manager.display_view(msg, this)
-                        .catch(utils.reject('Could not process display view msg', true));
+                    this.state_change = this.state_change.then(function() {
+                        that.widget_manager.display_view(msg, that);
+                    }).catch(utils.reject('Could not process display view msg', true));
                     break;
             }
         },
