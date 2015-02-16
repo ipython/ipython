@@ -842,8 +842,11 @@ class Session(Configurable):
             message['content'] = self.unpack(msg_list[4])
         else:
             message['content'] = msg_list[4]
-
-        message['buffers'] = msg_list[5:]
+        buffers = [memoryview(b) for b in msg_list[5:]]
+        if buffers and buffers[0].shape is None:
+            # force copy to workaround pyzmq #646
+            buffers = [memoryview(b.bytes) for b in msg_list[5:]]
+        message['buffers'] = buffers
         # adapt to the current version
         return adapt(message)
     
