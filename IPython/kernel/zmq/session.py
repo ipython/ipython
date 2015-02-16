@@ -806,18 +806,19 @@ class Session(Configurable):
             Whether to unpack the content dict (True), or leave it packed
             (False).
         copy : bool (True)
-            Whether to return the bytes (True), or the non-copying Message
-            object in each place (False).
+            Whether msg_list contains bytes (True) or the non-copying Message
+            objects in each place (False).
 
         Returns
         -------
         msg : dict
             The nested message dict with top-level keys [header, parent_header,
-            content, buffers].
+            content, buffers].  The buffers are returned as memoryviews.
         """
         minlen = 5
         message = {}
         if not copy:
+            # pyzmq didn't copy the first parts of the message, so we'll do it
             for i in range(minlen):
                 msg_list[i] = msg_list[i].bytes
         if self.auth is not None:
