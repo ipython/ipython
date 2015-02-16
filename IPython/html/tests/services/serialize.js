@@ -51,7 +51,9 @@ casper.notebook_test(function () {
     this.then(function () {
         var index = this.append_cell([
             "buffers = [b'\\xFF\\x00', b'\\x00\\x01\\x02']",
-            "comm.send(data='hi', buffers=buffers)"
+            "comm.send(data='message 0', buffers=buffers)",
+            "comm.send(data='message 1')",
+            "comm.send(data='message 2', buffers=buffers)",
         ].join('\n'), 'code');
         this.execute_cell(index);
     });
@@ -59,7 +61,7 @@ casper.notebook_test(function () {
     // wait for capture
     this.waitFor(function () {
         return this.evaluate(function () {
-            return IPython._msgs.length > 0;
+            return IPython._msgs.length >= 3;
         });
     });
     
@@ -68,14 +70,22 @@ casper.notebook_test(function () {
         var msgs = this.evaluate(function () {
             return IPython._msgs;
         });
-        this.test.assertEquals(msgs.length, 1, "Captured comm message");
-        var buffers = msgs[0].buffers;
-        this.test.assertEquals(buffers.length, 2, "comm message has buffers");
+        this.test.assertEquals(msgs.length, 3, "Captured three comm messages");
+
+
+
+        // check the messages came in the right order
+        this.test.assertEquals(msgs[0].content.data, "message 0", "message 0 processed first");
+        this.test.assertEquals(msgs[0].buffers.length, 2, "comm message 0 has two buffers");
+        this.test.assertEquals(msgs[1].content.data, "message 1", "message 1 processed second");
+        this.test.assertEquals(msgs[1].buffers.length, 0, "comm message 1 has no buffers");
+        this.test.assertEquals(msgs[2].content.data, "message 2", "message 2 processed third");
+        this.test.assertEquals(msgs[2].buffers.length, 2, "comm message 2 has two buffers");
         
         // extract attributes to test in evaluate,
         // because the raw DataViews can't be passed across
-        var buf_info = function (index) {
-            var buf = IPython._msgs[0].buffers[index];
+        var buf_info = function (message, index) {
+            var buf = IPython._msgs[message].buffers[index];
             var data = {};
             data.byteLength = buf.byteLength;
             data.bytes = [];
@@ -85,12 +95,16 @@ casper.notebook_test(function () {
             return data;
         };
         
-        buf0 = this.evaluate(buf_info, 0);
-        buf1 = this.evaluate(buf_info, 1);
-        this.test.assertEquals(buf0.byteLength, 2, 'buf[0] has correct size');
-        this.test.assertEquals(buf0.bytes, [255, 0], 'buf[0] has correct bytes');
-        this.test.assertEquals(buf1.byteLength, 3, 'buf[1] has correct size');
-        this.test.assertEquals(buf1.bytes, [0, 1, 2], 'buf[1] has correct bytes');
+        var msgs_with_buffers = [0, 2];
+        for (var i = 0; i < msgs_with_buffers.length; i++) {
+            msg_index = msgs_with_buffers[i];
+            buf0 = this.evaluate(buf_info, msg_index, 0);
+            buf1 = this.evaluate(buf_info, msg_index, 1);
+            this.test.assertEquals(buf0.byteLength, 2, 'buf[0] has correct size in message '+msg_index);
+            this.test.assertEquals(buf0.bytes, [255, 0], 'buf[0] has correct bytes in message '+msg_index);
+            this.test.assertEquals(buf1.byteLength, 3, 'buf[1] has correct size in message '+msg_index);
+            this.test.assertEquals(buf1.bytes, [0, 1, 2], 'buf[1] has correct bytes in message '+msg_index);
+        }
     });
     
     // validate captured buffers Python-side
