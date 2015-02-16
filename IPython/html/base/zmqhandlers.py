@@ -43,6 +43,8 @@ def serialize_binary_message(msg):
     # don't modify msg or buffer list in-place
     msg = msg.copy()
     buffers = list(msg.pop('buffers'))
+    # for python 2, copy the buffer memoryviews to byte strings
+    buffers = [x.tobytes() for x in buffers]
     bmsg = json.dumps(msg, default=date_default).encode('utf8')
     buffers.insert(0, bmsg)
     nbufs = len(buffers)
