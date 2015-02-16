@@ -2236,6 +2236,9 @@ define(function (require) {
         // load our checkpoint list
         this.list_checkpoints();
         
+        // load our git log list
+        this.load_git_log();
+        
         // load toolbar state
         if (this.metadata.celltoolbar) {
             celltoolbar.CellToolbar.global_show();
@@ -2460,6 +2463,44 @@ define(function (require) {
         this.events.trigger('checkpoint_deleted.Notebook');
         this.load_notebook(this.notebook_path);
     };
+    
+    /**
+     * Get the git log for this notebook.
+     */
+    Notebook.prototype.load_git_log = function () {
+        var that = this;
+        this.contents.load_git_log(this.notebook_path).then(
+            $.proxy(this.load_git_log_success, this),
+            function(error) {
+                that.events.trigger('log_git_log_failed.Notebook', error);
+            }
+        );
+    };
+    
+    /**
+     * Success callback for got log.
+     * 
+     * @param {object} data - JSON representation of the commit list
+     */
+    Notebook.prototype.load_git_log_success = function (data) {
+        this.events.trigger('git_log_listed.Notebook', [data]);
+    };
+    
+    /**
+     * Compare the current notebook against a commit
+     * 
+     * @param {string} commit ID
+     */
+    Notebook.prototype.nbdiff = function (commit) {
+        if (this.dirty) {
+            var that = this;
+            this.save_notebook().then(function() {
+                that.contents.nbdiff(that.notebook_path, commit);
+            });
+        } else {
+            this.contents.nbdiff(this.notebook_path, commit);
+        }
+    }
 
 
     // For backwards compatability.
