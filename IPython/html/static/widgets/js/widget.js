@@ -32,6 +32,7 @@ define(["widgets/js/manager",
             this.state_lock = null;
             this.id = model_id;
             this.views = {};
+            this.serializers = {};
             this._resolve_received_state = {};
 
             if (comm !== undefined) {
@@ -62,13 +63,13 @@ define(["widgets/js/manager",
             return Backbone.Model.apply(this);
         },
 
-        send: function (content, callbacks) {
+        send: function (content, callbacks, buffers) {
             /**
              * Send a custom msg over the comm.
              */
             if (this.comm !== undefined) {
                 var data = {method: 'custom', content: content};
-                this.comm.send(data, callbacks);
+                this.comm.send(data, callbacks, {}, buffers);
                 this.pending_msgs++;
             }
         },
@@ -136,12 +137,37 @@ define(["widgets/js/manager",
              * Handle incoming comm msg.
              */
             var method = msg.content.data.method;
+            
             var that = this;
             switch (method) {
                 case 'update':
                     this.state_change = this.state_change
                         .then(function() {
-                            return that.set_state(msg.content.data.state);
+                            var state = msg.content.data.state || {};
+                            var buffer_keys = msg.content.data.buffers || [];
+                            var buffers = msg.buffers || [];
+                            var metadata = msg.content.data.metadata || {};
+                            var i,k;
+                            for (var i=0; i<buffer_keys.length; i++) {
+                                k = buffer_keys[i];
+                                state[k] = buffers[i];
+                            }
+
+                            // for any metadata specifying a deserializer, set the
+                            // state to a promise that resolves to the deserialized version
+                            // also, store the serialization function for the attribute
+                            var keys = Object.keys(metadata);
+                            for (var i=0; i<keys.length; i++) {
+                                k = keys[i];
+                                if (metadata[k] && metadata[k].serialization) {
+                                    that.serializers[k] = utils.load_class.apply(that,
+                                                                                 metadata[k].serialization);
+                                    state[k] = that.deserialize(that.serializers[k], state[k]);
+                                }
+                            }
+                            return utils.resolve_promises_dict(state);
+                        }).then(function(state) {
+                            return that.set_state(state);
                         }).catch(utils.reject("Couldn't process update msg for model id '" + String(that.id) + "'", true))
                         .then(function() {
                             var parent_id = msg.parent_header.msg_id;
@@ -152,7 +178,7 @@ define(["widgets/js/manager",
                         }).catch(utils.reject("Couldn't resolve state request promise", true));
                     break;
                 case 'custom':
-                    this.trigger('msg:custom', msg.content.data.content);
+                    this.trigger('msg:custom', msg.content.data.content, msg.buffers);
                     break;
                 case 'display':
                     this.state_change = this.state_change.then(function() {
@@ -162,30 +188,39 @@ define(["widgets/js/manager",
             }
         },
 
+        deserialize: function(serializer, value) {
+            // given a serializer dict and a value,
+            // return a promise for the deserialized value
+            var that = this;
+            return serializer.then(function(s) {
+                if (s.deserialize) {
+                    return s.deserialize(value, that);
+                } else {
+                    return value;
+                }
+            });
+        },
+
         set_state: function (state) {
             var that = this;
             // Handle when a widget is updated via the python side.
-            return this._unpack_models(state).then(function(state) {
+            return new Promise(function(resolve, reject) {
                 that.state_lock = state;
                 try {
                     WidgetModel.__super__.set.call(that, state);
                 } finally {
                     that.state_lock = null;
                 }
+                resolve();
             }).catch(utils.reject("Couldn't set model state", true));
         },
 
         get_state: function() {
             // Get the serializable state of the model.
-            var state = this.toJSON();
-            for (var key in state) {
-                if (state.hasOwnProperty(key)) {
-                    state[key] = this._pack_models(state[key]);
-                }
-            }
-            return state;
+            // Equivalent to Backbone.Model.toJSON()
+            return _.clone(this.attributes);
         },
-
+        
         _handle_status: function (msg, callbacks) {
             /**
              * Handle status msgs.
@@ -243,6 +278,19 @@ define(["widgets/js/manager",
              * Handle sync to the back-end.  Called when a model.save() is called.
              *
              * Make sure a comm exists.
+
+             * Parameters
+             * ----------
+             * method : create, update, patch, delete, read
+             *   create/update always send the full attribute set
+             *   patch - only send attributes listed in options.attrs, and if we are queuing
+             *     up messages, combine with previous messages that have not been sent yet
+             * model : the model we are syncing
+             *   will normally be the same as `this`
+             * options : dict
+             *   the `attrs` key, if it exists, gives an {attr: value} dict that should be synced,
+             *   otherwise, sync all attributes
+             * 
              */
             var error = options.error || function() {
                 console.error('Backbone sync error:', arguments);
@@ -252,8 +300,11 @@ define(["widgets/js/manager",
                 return false;
             }
 
-            // Delete any key value pairs that the back-end already knows about.
-            var attrs = (method === 'patch') ? options.attrs : model.toJSON(options);
+            var attrs = (method === 'patch') ? options.attrs : model.get_state(options);
+
+            // the state_lock lists attributes that are currently be changed right now from a kernel message
+            // we don't want to send these non-changes back to the kernel, so we delete them out of attrs
+            // (but we only delete them if the value hasn't changed from the value stored in the state_lock
             if (this.state_lock !== null) {
                 var keys = Object.keys(this.state_lock);
                 for (var i=0; i<keys.length; i++) {
@@ -263,9 +314,7 @@ define(["widgets/js/manager",
                     }
                 }
             }
-
-            // Only sync if there are attributes to send to the back-end.
-            attrs = this._pack_models(attrs);
+            
             if (_.size(attrs) > 0) {
 
                 // If this message was sent via backbone itself, it will not
@@ -297,15 +346,71 @@ define(["widgets/js/manager",
                 } else {
                     // We haven't exceeded the throttle, send the message like 
                     // normal.
-                    var data = {method: 'backbone', sync_data: attrs};
-                    this.comm.send(data, callbacks);
-                    this.pending_msgs++;
+                    this.send_sync_message(attrs, callbacks);
                 }
             }
             // Since the comm is a one-way communication, assume the message 
             // arrived.  Don't call success since we don't have a model back from the server
             // this means we miss out on the 'sync' event.
             this._buffered_state_diff = {};
+        },
+
+
+        send_sync_message: function(attrs, callbacks) {
+            // prepare and send a comm message syncing attrs
+            var that = this;
+            // first, build a state dictionary with key=the attribute and the value
+            // being the value or the promise of the serialized value
+            var state_promise_dict = {};
+            var keys = Object.keys(attrs);
+            for (var i=0; i<keys.length; i++) {
+                // bind k and v locally; needed since we have an inner async function using v
+                (function(k,v) {
+                    if (that.serializers[k]) {
+                        state_promise_dict[k] = that.serializers[k].then(function(f) {
+                            if (f.serialize) {
+                                return f.serialize(v, that);
+                            } else {
+                                return v;
+                            }
+                        })
+                    } else {
+                        state_promise_dict[k] = v;
+                    }
+                })(keys[i], attrs[keys[i]])
+            }
+            utils.resolve_promises_dict(state_promise_dict).then(function(state) {
+                // get binary values, then send
+                var keys = Object.keys(state);
+                var buffers = [];
+                var buffer_keys = [];
+                for (var i=0; i<keys.length; i++) {
+                    var key = keys[i];
+                    var value = state[key];
+                    if (value.buffer instanceof ArrayBuffer
+                        || value instanceof ArrayBuffer) {
+                        buffers.push(value);
+                        buffer_keys.push(key);
+                        delete state[key];
+                    }
+                }
+                that.comm.send({method: 'backbone', sync_data: state, buffer_keys: buffer_keys}, callbacks, {}, buffers);
+                that.pending_msgs++;
+            })
+        },
+        
+        serialize: function(model, attrs) {
+            // Serialize the attributes into a sync message
+            var keys = Object.keys(attrs);            
+            var key, value;
+            var buffers, metadata, buffer_keys, serialize;
+            for (var i=0; i<keys.length; i++) {
+                key = keys[i];
+                serialize = model.serializers[key];
+                if (serialize && serialize.serialize) {
+                    attrs[key] = serialize.serialize(attrs[key]);
+                }
+            }
         },
 
         save_changes: function(callbacks) {
@@ -315,61 +420,6 @@ define(["widgets/js/manager",
              * This invokes a Backbone.Sync.
              */
             this.save(this._buffered_state_diff, {patch: true, callbacks: callbacks});
-        },
-
-        _pack_models: function(value) {
-            /**
-             * Replace models with model ids recursively.
-             */
-            var that = this;
-            var packed;
-            if (value instanceof Backbone.Model) {
-                return "IPY_MODEL_" + value.id;
-
-            } else if ($.isArray(value)) {
-                packed = [];
-                _.each(value, function(sub_value, key) {
-                    packed.push(that._pack_models(sub_value));
-                });
-                return packed;
-            } else if (value instanceof Date || value instanceof String) {
-                return value;
-            } else if (value instanceof Object) {
-                packed = {};
-                _.each(value, function(sub_value, key) {
-                    packed[key] = that._pack_models(sub_value);
-                });
-                return packed;
-
-            } else {
-                return value;
-            }
-        },
-
-        _unpack_models: function(value) {
-            /**
-             * Replace model ids with models recursively.
-             */
-            var that = this;
-            var unpacked;
-            if ($.isArray(value)) {
-                unpacked = [];
-                _.each(value, function(sub_value, key) {
-                    unpacked.push(that._unpack_models(sub_value));
-                });
-                return Promise.all(unpacked);
-            } else if (value instanceof Object) {
-                unpacked = {};
-                _.each(value, function(sub_value, key) {
-                    unpacked[key] = that._unpack_models(sub_value);
-                });
-                return utils.resolve_promises_dict(unpacked);
-            } else if (typeof value === 'string' && value.slice(0,10) === "IPY_MODEL_") {
-                // get_model returns a promise already
-                return this.widget_manager.get_model(value.slice(10, value.length));
-            } else {
-                return Promise.resolve(value);
-            }
         },
 
         on_some_change: function(keys, callback, context) {
@@ -386,7 +436,7 @@ define(["widgets/js/manager",
                 }
             }, this);
 
-       },
+        },
     });
     widgetmanager.WidgetManager.register_widget_model('WidgetModel', WidgetModel);
 
@@ -444,11 +494,11 @@ define(["widgets/js/manager",
              */
         },
 
-        send: function (content) {
+        send: function (content, buffers) {
             /**
              * Send a custom msg associated with this view.
              */
-            this.model.send(content, this.callbacks());
+            this.model.send(content, this.callbacks(), buffers);
         },
 
         touch: function () {
