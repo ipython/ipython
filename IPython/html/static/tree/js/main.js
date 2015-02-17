@@ -152,11 +152,11 @@ require([
     utils.load_extensions_from_config(cfg);
     utils.load_extensions_from_config(common_config);
     
-    // bound the upload method to the on change of the file select list
-    $("#alternate_upload").change(function (event){
-        notebook_list.handleFilesUpload(event,'form');
+    // bound the upload method to the on change of the file input
+    $("#upload-button :file").change(function (event){
+        notebook_list.handleFilesUpload(event,'button');
     });
-    
+
     // set hash on tab click
     $("#tabs").find("a").click(function(e) {
         // Prevent the document from jumping when the active tab is changed to a 

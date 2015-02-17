@@ -131,13 +131,12 @@ define([
         }
     };
 
-    NotebookList.prototype.handleFilesUpload =  function(event, dropOrForm) {
+    NotebookList.prototype.handleFilesUpload =  function(event, source) {
         var that = this;
         var files;
-        if(dropOrForm =='drop'){
+        if(source =='drop'){
             files = event.originalEvent.dataTransfer.files;
-        } else 
-        {
+        } else {
             files = event.originalEvent.target.files;
         }
         for (var i = 0; i < files.length; i++) {
