@@ -8603,27 +8603,25 @@ span#login_widget > .button .badge,
 * IPython tree view
 *
 */
-/* We need an invisible input field on top of the sentense*/
-/* "Drag file onto the list ..." */
-.alternate_upload {
-  background-color: none;
-  display: inline;
+/* We need an invisible input field on top of fake Upload button */
+.btn-file {
+  position: relative;
+  overflow: hidden;
 }
-.alternate_upload.form {
-  padding: 0;
-  margin: 0;
-}
-.alternate_upload input.fileinput {
-  display: inline;
+.btn-file input[type=file] {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 100%;
+  min-height: 100%;
+  font-size: 100px;
+  text-align: right;
+  filter: alpha(opacity=0);
   opacity: 0;
-  z-index: 2;
-  width: 12ex;
-  margin-right: -12ex;
-}
-.alternate_upload .input-overlay {
-  display: inline-block;
-  font-weight: bold;
-  line-height: 1em;
+  outline: none;
+  background: white;
+  cursor: inherit;
+  display: block;
 }
 /**
  * Primary styles
@@ -8865,10 +8863,6 @@ input.engine_num_input {
 #notebook_toolbar .pull-right {
   padding-top: 0px;
   margin-right: -1px;
-}
-ul#new-menu {
-  left: auto;
-  right: 0;
 }
 .kernel-menu-icon {
   padding-right: 12px;
