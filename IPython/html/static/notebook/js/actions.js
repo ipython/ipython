@@ -79,6 +79,7 @@ define(function(require){
             }
         },
         'select-previous-cell' : {
+            help: 'select cell above',
             help_index : 'da',
             handler : function (env) {
                 var index = env.notebook.get_selected_index();
@@ -89,6 +90,7 @@ define(function(require){
             }
         },
         'select-next-cell' : {
+            help: 'select cell below',
             help_index : 'db',
             handler : function (env) {
                 var index = env.notebook.get_selected_index();
