@@ -38,8 +38,8 @@ define([
             { shortcut: "Cmd-Down",   help:"go to cell end"  },
             { shortcut: "Alt-Left",   help:"go one word left"  },
             { shortcut: "Alt-Right",  help:"go one word right"  },
-            { shortcut: "Alt-Backspace",      help:"delete word to the left"  },
-            { shortcut: "Alt-Delete",         help:"delete word to the right"  },
+            { shortcut: "Alt-Backspace",      help:"delete word before"  },
+            { shortcut: "Alt-Delete",         help:"delete word after"  },
         ];
     } else {
         // PC specific
