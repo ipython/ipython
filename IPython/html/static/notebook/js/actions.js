@@ -255,6 +255,7 @@ define(function(require){
             }
         },
         'delete-cell': {
+            help: 'delete selected cell',
             help_index : 'ej',
             handler : function (env) {
                 env.notebook.delete_cell();
