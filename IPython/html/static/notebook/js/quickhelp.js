@@ -50,8 +50,8 @@ define([
             { shortcut: "Ctrl-Down",  help:"go to cell end"  },
             { shortcut: "Ctrl-Left",  help:"go one word left"  },
             { shortcut: "Ctrl-Right", help:"go one word right"  },
-            { shortcut: "Ctrl-Backspace", help:"delete word to the left"  },
-            { shortcut: "Ctrl-Delete",    help:"delete word to the right"  },
+            { shortcut: "Ctrl-Backspace", help:"delete word before"  },
+            { shortcut: "Ctrl-Delete",    help:"delete word after"  },
         ];
     }
 
