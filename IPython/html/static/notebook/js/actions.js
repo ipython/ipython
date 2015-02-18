@@ -117,12 +117,14 @@ define(function(require){
             }
         },
         'paste-cell-before' : {
+            help: 'paste cell above',
             help_index : 'eg',
             handler : function (env) {
                 env.notebook.paste_cell_above();
             }
         },
         'paste-cell-after' : {
+            help: 'paste cell below',
             icon: 'fa-paste',
             help_index : 'eh',
             handler : function (env) {
@@ -130,6 +132,7 @@ define(function(require){
             }
         },
         'insert-cell-before' : {
+            help: 'insert cell above',
             help_index : 'ec',
             handler : function (env) {
                 env.notebook.insert_cell_above();
@@ -138,6 +141,7 @@ define(function(require){
             }
         },
         'insert-cell-after' : {
+            help: 'insert cell below',
             icon : 'fa-plus',
             help_index : 'ed',
             handler : function (env) {
