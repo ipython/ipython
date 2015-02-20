@@ -290,7 +290,7 @@ define([
              * Called when view is rendered.
              */
             this.$el
-                .addClass('widget-hbox widget-text');
+                .addClass('widget-hbox widget-numeric-text');
             this.$label = $('<div />')
                 .appendTo(this.$el)
                 .addClass('widget-label')
