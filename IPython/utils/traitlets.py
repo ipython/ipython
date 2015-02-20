@@ -356,7 +356,7 @@ class TraitType(object):
         """Create a new instance of the default value."""
         return self.default_value
 
-    def decorate(self, obj):
+    def decorate(self):
         pass
 
     def static_init(self, obj):
@@ -550,7 +550,7 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
                 pass
             else:
                 if isinstance(value, TraitType):
-                    value.decorate(inst)
+                    value.decorate()
                     if key not in kw:
                         value.set_default_value(inst)
 
@@ -845,7 +845,7 @@ class Type(ClassBasedTraitType):
                 value = self._resolve_string(value)
             except ImportError:
                 raise TraitError("The '%s' trait of %s instance must be a type, but "
-                                "%r could not be imported" % (self.name, obj, value))
+                                 "%r could not be imported" % (self.name, obj, value))
         try:
             if issubclass(value, self.klass):
                 return value
@@ -865,9 +865,9 @@ class Type(ClassBasedTraitType):
             return result + ' or None'
         return result
 
-    def decorate(self, obj):
+    def decorate(self):
         self._resolve_classes()
-        super(Type, self).decorate(obj)
+        super(Type, self).decorate()
 
     def _resolve_classes(self):
         if isinstance(self.klass, py3compat.string_types):
@@ -974,9 +974,9 @@ class Instance(ClassBasedTraitType):
 
         return result
 
-    def decorate(self, obj):
+    def decorate(self):
         self._resolve_classes()
-        super(Instance, self).decorate(obj)
+        super(Instance, self).decorate()
 
     def _resolve_classes(self):
         if isinstance(self.klass, py3compat.string_types):
@@ -1071,13 +1071,12 @@ class Union(TraitType):
         self.default_value = self.trait_types[0].get_default_value()
         super(Union, self).__init__(**metadata)
 
-    def decorate(self, obj):
+    def decorate(self):
         for trait_type in self.trait_types:
             trait_type.name = self.name
             trait_type.this_class = self.this_class
-            if hasattr(trait_type, '_resolve_classes'):
-                trait_type._resolve_classes()
-        super(Union, self).decorate(obj)
+            trait_type.decorate()
+        super(Union, self).decorate()
 
     def validate(self, obj, value):
         for trait_type in self.trait_types:
@@ -1458,12 +1457,11 @@ class Container(Instance):
                 validated.append(v)
         return self.klass(validated)
 
-    def decorate(self, obj):
+    def decorate(self):
         if isinstance(self._trait, TraitType):
             self._trait.this_class = self.this_class
-        if hasattr(self._trait, '_resolve_classes'):
-            self._trait._resolve_classes()
-        super(Container, self).decorate(obj)
+            self._trait.decorate()
+        super(Container, self).decorate()
 
 
 class List(Container):
@@ -1525,20 +1523,18 @@ class List(Container):
             self.length_error(obj, value)
 
         return super(List, self).validate_elements(obj, value)
-    
+
     def validate(self, obj, value):
         value = super(List, self).validate(obj, value)
-
         value = self.validate_elements(obj, value)
-
         return value
-        
 
 
 class Set(List):
     """An instance of a Python set."""
     klass = set
     _cast_types = (tuple, list)
+
 
 class Tuple(Container):
     """An instance of a Python tuple."""
@@ -1629,13 +1625,12 @@ class Tuple(Container):
                 validated.append(v)
         return tuple(validated)
 
-    def decorate(self, obj):
+    def decorate(self):
         for trait in self._traits:
             if isinstance(trait, TraitType):
                 trait.this_class = self.this_class
-            if hasattr(trait, '_resolve_classes'):
-                trait._resolve_classes()
-        super(Container, self).decorate(obj)
+                trait.decorate()
+        super(Container, self).decorate()
 
 
 class Dict(Instance):
