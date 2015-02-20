@@ -1001,6 +1001,19 @@ class TestInstanceList(TraitTestBase):
     _good_values = [[Foo(), Foo(), None], None]
     _bad_values = [['1', 2,], '1', [Foo]]
 
+class UnionListTrait(HasTraits):
+
+    value = List(Int() | Bool())
+
+class TestUnionListTrait(HasTraits):
+
+    obj = UnionListTrait()
+
+    _default_value = []
+    _good_values = [[True, 1], [False, True]]
+    _bad_values = [[1, 'True'], False]
+
+
 class LenListTrait(HasTraits):
 
     value = List(Int, [0], minlen=1, maxlen=2)

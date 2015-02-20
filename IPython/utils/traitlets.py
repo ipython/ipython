@@ -1071,12 +1071,15 @@ class Union(TraitType):
         self.default_value = self.trait_types[0].get_default_value()
         super(Union, self).__init__(**metadata)
 
-    def instance_init(self, obj):
+    def _resolve_classes(self):
         for trait_type in self.trait_types:
             trait_type.name = self.name
             trait_type.this_class = self.this_class
             if hasattr(trait_type, '_resolve_classes'):
                 trait_type._resolve_classes()
+
+    def instance_init(self, obj):
+        self._resolve_classes()
         super(Union, self).instance_init(obj)
 
     def validate(self, obj, value):
