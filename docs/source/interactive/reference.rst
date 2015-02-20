@@ -871,14 +871,14 @@ PyQt and PySide
 
 When you use ``--gui=qt`` or ``--matplotlib=qt``, IPython can work with either
 PyQt4 or PySide.  There are three options for configuration here, because
-PyQt4 has two APIs for QString and QVariant - v1, which is the default on
+PyQt4 has two APIs for QString and QVariant: v1, which is the default on
 Python 2, and the more natural v2, which is the only API supported by PySide.
 v2 is also the default for PyQt4 on Python 3.  IPython's code for the QtConsole
 uses v2, but you can still use any interface in your code, since the
 Qt frontend is in a different process.
 
 The default will be to import PyQt4 without configuration of the APIs, thus
-matching what most applications would expect. It will fall back of PySide if
+matching what most applications would expect. It will fall back to PySide if
 PyQt4 is unavailable.
 
 If specified, IPython will respect the environment variable ``QT_API`` used
