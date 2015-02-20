@@ -84,8 +84,7 @@ class IntSlider(_BoundedInt):
     """Slider widget that represents a int bounded by a minimum and maximum value."""
     _view_name = Unicode('IntSliderView', sync=True)
     orientation = CaselessStrEnum(values=['horizontal', 'vertical'], 
-        default_value='horizontal', allow_none=False, 
-        help="Vertical or horizontal.", sync=True)
+        default_value='horizontal', help="Vertical or horizontal.", sync=True)
     _range = Bool(False, help="Display a range selector", sync=True)
     readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
     slider_color = Unicode(sync=True)
@@ -196,8 +195,7 @@ class IntRangeSlider(_BoundedIntRange):
     """Slider widget that represents a pair of ints between a minimum and maximum value."""
     _view_name = Unicode('IntSliderView', sync=True)
     orientation = CaselessStrEnum(values=['horizontal', 'vertical'], 
-        default_value='horizontal', allow_none=False, 
-        help="Vertical or horizontal.", sync=True)
+        default_value='horizontal', help="Vertical or horizontal.", sync=True)
     _range = Bool(True, help="Display a range selector", sync=True)
     readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
     slider_color = Unicode(sync=True)

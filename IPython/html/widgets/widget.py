@@ -140,7 +140,7 @@ class Widget(LoggingConfigurable):
     
     _property_lock = Tuple((None, None))
     _send_state_lock = Int(0)
-    _states_to_send = Set(allow_none=False)
+    _states_to_send = Set()
     _display_callbacks = Instance(CallbackDispatcher, ())
     _msg_callbacks = Instance(CallbackDispatcher, ())
     

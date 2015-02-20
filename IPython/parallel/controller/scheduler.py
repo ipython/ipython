@@ -171,8 +171,8 @@ class TaskScheduler(SessionFactory):
         """
     )
     scheme_name = Enum(('leastload', 'pure', 'lru', 'plainrandom', 'weighted', 'twobin'),
-        'leastload', config=True, allow_none=False,
-        help="""select the task scheduler scheme  [default: Python LRU]
+        'leastload', config=True,
+help="""select the task scheduler scheme  [default: Python LRU]
         Options are: 'pure', 'lru', 'plainrandom', 'weighted', 'twobin','leastload'"""
     )
     def _scheme_name_changed(self, old, new):

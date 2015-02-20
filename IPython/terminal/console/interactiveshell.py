@@ -99,7 +99,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
 
     mime_preference = List(
         default_value=['image/png', 'image/jpeg', 'image/svg+xml'],
-        config=True, allow_none=False, help=
+        config=True, help=
         """
         Preferred object representation MIME type in order.  First
         matched MIME type will be used.

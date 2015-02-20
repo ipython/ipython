@@ -130,8 +130,7 @@ class FloatSlider(_BoundedFloat):
     """
     _view_name = Unicode('FloatSliderView', sync=True)
     orientation = CaselessStrEnum(values=['horizontal', 'vertical'], 
-        default_value='horizontal', 
-        help="Vertical or horizontal.", allow_none=False, sync=True)
+        default_value='horizontal', help="Vertical or horizontal.", sync=True)
     _range = Bool(False, help="Display a range selector", sync=True)
     readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
     slider_color = Unicode(sync=True)
@@ -285,8 +284,7 @@ class FloatRangeSlider(_BoundedFloatRange):
     """
     _view_name = Unicode('FloatSliderView', sync=True)
     orientation = CaselessStrEnum(values=['horizontal', 'vertical'], 
-        default_value='horizontal', allow_none=False, 
-        help="Vertical or horizontal.", sync=True)
+        default_value='horizontal', help="Vertical or horizontal.", sync=True)
     _range = Bool(True, help="Display a range selector", sync=True)
     readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
     slider_color = Unicode(sync=True)

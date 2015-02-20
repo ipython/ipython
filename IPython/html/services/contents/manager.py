@@ -109,7 +109,7 @@ class ContentsManager(LoggingConfigurable):
 
     checkpoints_class = Type(Checkpoints, config=True)
     checkpoints = Instance(Checkpoints, config=True)
-    checkpoints_kwargs = Dict(allow_none=False, config=True)
+    checkpoints_kwargs = Dict(config=True)
 
     def _checkpoints_default(self):
         return self.checkpoints_class(**self.checkpoints_kwargs)
