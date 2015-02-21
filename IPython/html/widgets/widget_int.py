@@ -14,7 +14,7 @@ Represents an unbounded int using a widget.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget, register
-from IPython.utils.traitlets import Unicode, CInt, Bool, CaselessStrEnum, Tuple
+from IPython.utils.traitlets import Unicode, CInt, Bool, CaselessStrEnum, Tuple, Color
 from IPython.utils.warn import DeprecatedClass
 
 #-----------------------------------------------------------------------------
@@ -87,7 +87,7 @@ class IntSlider(_BoundedInt):
         default_value='horizontal', help="Vertical or horizontal.", sync=True)
     _range = Bool(False, help="Display a range selector", sync=True)
     readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
-    slider_color = Unicode(sync=True)
+    slider_color = Color(None, allow_none=True, sync=True)
 
 
 @register('IPython.IntProgress')
@@ -198,7 +198,7 @@ class IntRangeSlider(_BoundedIntRange):
         default_value='horizontal', help="Vertical or horizontal.", sync=True)
     _range = Bool(True, help="Display a range selector", sync=True)
     readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
-    slider_color = Unicode(sync=True)
+    slider_color = Color(None, allow_none=True, sync=True)
 
 # Remove in IPython 4.0
 IntTextWidget = DeprecatedClass(IntText, 'IntTextWidget')

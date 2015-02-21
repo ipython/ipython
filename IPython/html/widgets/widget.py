@@ -20,7 +20,7 @@ from IPython.kernel.comm import Comm
 from IPython.config import LoggingConfigurable
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import Unicode, Dict, Instance, Bool, List, \
-    CaselessStrEnum, Tuple, CUnicode, Int, Set
+    CaselessStrEnum, Tuple, CUnicode, Int, Set, Color
 from IPython.utils.py3compat import string_types
 
 #-----------------------------------------------------------------------------
@@ -438,9 +438,9 @@ class DOMWidget(Widget):
     padding = CUnicode(sync=True)
     margin = CUnicode(sync=True)
 
-    color = Unicode(sync=True)
-    background_color = Unicode(sync=True)
-    border_color = Unicode(sync=True)
+    color = Color(None, allow_none=True, sync=True)
+    background_color = Color(None, allow_none=True, sync=True)
+    border_color = Color(None, allow_none=True, sync=True)
 
     border_width = CUnicode(sync=True)
     border_radius = CUnicode(sync=True)
