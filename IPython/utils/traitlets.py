@@ -1288,19 +1288,14 @@ class CUnicode(Unicode):
             self.error(obj, value)
 
 
-class ObjectName(TraitType):
-    """A string holding a valid object name in this version of Python.
-
-    This does not check that the name exists in any scope."""
-    info_text = "a valid object identifier in Python"
+class _CoercedString(TraitType):
 
     if py3compat.PY3:
         # Python 3:
-        coerce_str = staticmethod(lambda _,s: s)
-
+        _coerce_str = staticmethod(lambda _,s: s)
     else:
         # Python 2:
-        def coerce_str(self, obj, value):
+        def _coerce_str(self, obj, value):
             "In Python 2, coerce ascii-only unicode to str"
             if isinstance(value, unicode):
                 try:
@@ -1309,19 +1304,45 @@ class ObjectName(TraitType):
                     self.error(obj, value)
             return value
 
+
+class ObjectName(_CoercedString):
+    """A string holding a valid object name in this version of Python.
+
+    This does not check that the name exists in any scope."""
+
+    info_text = "a valid object identifier in Python"
+
     def validate(self, obj, value):
-        value = self.coerce_str(obj, value)
+        value = self._coerce_str(obj, value)
 
         if isinstance(value, string_types) and py3compat.isidentifier(value):
             return value
         self.error(obj, value)
 
+
 class DottedObjectName(ObjectName):
     """A string holding a valid dotted object name in Python, such as A.b3._c"""
+
     def validate(self, obj, value):
-        value = self.coerce_str(obj, value)
+        value = self._coerce_str(obj, value)
 
         if isinstance(value, string_types) and py3compat.isidentifier(value, dotted=True):
+            return value
+        self.error(obj, value)
+
+
+_color_names = ['aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure', 'beige', 'bisque', 'black', 'blanchedalmond', 'blue', 'blueviolet', 'brown', 'burlywood', 'cadetblue', 'chartreuse', 'chocolate', 'coral', 'cornflowerblue', 'cornsilk', 'crimson', 'cyan', 'darkblue', 'darkcyan', 'darkgoldenrod', 'darkgray', 'darkgreen', 'darkkhaki', 'darkmagenta', 'darkolivegreen', 'darkorange', 'darkorchid', 'darkred', 'darksalmon', 'darkseagreen', 'darkslateblue', 'darkslategray', 'darkturquoise', 'darkviolet', 'deeppink', 'deepskyblue', 'dimgray', 'dodgerblue', 'firebrick', 'floralwhite', 'forestgreen', 'fuchsia', 'gainsboro', 'ghostwhite', 'gold', 'goldenrod', 'gray', 'green', 'greenyellow', 'honeydew', 'hotpink', 'indianred ', 'indigo ', 'ivory', 'khaki', 'lavender', 'lavenderblush', 'lawngreen', 'lemonchiffon', 'lightblue', 'lightcoral', 'lightcyan', 'lightgoldenrodyellow', 'lightgray', 'lightgreen', 'lightpink', 'lightsalmon', 'lightseagreen', 'lightskyblue', 'lightslategray', 'lightsteelblue', 'lightyellow', 'lime', 'limegreen', 'linen', 'magenta', 'maroon', 'mediumaquamarine', 'mediumblue', 'mediumorchid', 'mediumpurple', 'mediumseagreen', 'mediumslateblue', 'mediumspringgreen', 'mediumturquoise', 'mediumvioletred', 'midnightblue', 'mintcream', 'mistyrose', 'moccasin', 'navajowhite', 'navy', 'oldlace', 'olive', 'olivedrab', 'orange', 'orangered', 'orchid', 'palegoldenrod', 'palegreen', 'paleturquoise', 'palevioletred', 'papayawhip', 'peachpuff', 'peru', 'pink', 'plum', 'powderblue', 'purple', 'rebeccapurple', 'red', 'rosybrown', 'royalblue', 'saddlebrown', 'salmon', 'sandybrown', 'seagreen', 'seashell', 'sienna', 'silver', 'skyblue', 'slateblue', 'slategray', 'snow', 'springgreen', 'steelblue', 'tan', 'teal', 'thistle', 'tomato', 'turquoise', 'violet', 'wheat', 'white', 'whitesmoke', 'yellow', 'yellowgreen'] 
+_color_re = re.compile(r'#[a-fA-F0-9]{3}(?:[a-fA-F0-9]{3})?$')
+
+
+class Color(_CoercedString):
+    """A string holding a valid HTML color such as 'blue', '#060482', '#A80'"""
+ 
+    info_text = 'a valid HTML color'
+
+    def validate(self, obj, value):
+        value = self._coerce_str(obj, value)
+        if value.lower() in _color_names or _color_re.match(value):
             return value
         self.error(obj, value)
 

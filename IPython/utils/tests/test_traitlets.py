@@ -17,7 +17,7 @@ from nose import SkipTest
 
 from IPython.utils.traitlets import (
     HasTraits, MetaHasTraits, TraitType, Any, Bool, CBytes, Dict, Enum,
-    Int, Long, Integer, Float, Complex, Bytes, Unicode, TraitError,
+    Int, Long, Integer, Float, Complex, Bytes, Unicode, Color, TraitError,
     Union, Undefined, Type, This, Instance, TCPAddress, List, Tuple,
     ObjectName, DottedObjectName, CRegExp, link, directional_link,
     EventfulList, EventfulDict, ForwardDeclaredType, ForwardDeclaredInstance,
@@ -918,8 +918,17 @@ class TestDottedObjectName(TraitTestBase):
         _good_values.append(u"t.þ")
 
 
-class TCPAddressTrait(HasTraits):
+class ColorTrait(HasTraits):
+    value = Color("black")
 
+class TestColor(TraitTestBase):
+    obj = ColorTrait()
+
+    _good_values = ["blue", "#AA0", "#FFFFFF"]
+    _bad_values = ["vanilla", "blues"]
+
+
+class TCPAddressTrait(HasTraits):
     value = TCPAddress()
 
 class TestTCPAddress(TraitTestBase):
@@ -978,6 +987,19 @@ class TestInstanceList(TraitTestBase):
     _default_value = []
     _good_values = [[Foo(), Foo(), None], []]
     _bad_values = [['1', 2,], '1', [Foo], None]
+
+class UnionListTrait(HasTraits):
+
+    value = List(Int() | Bool())
+
+class TestUnionListTrait(HasTraits):
+
+    obj = UnionListTrait()
+
+    _default_value = []
+    _good_values = [[True, 1], [False, True]]
+    _bad_values = [[1, 'True'], False]
+
 
 class LenListTrait(HasTraits):
 
