@@ -8665,6 +8665,13 @@ ul.breadcrumb span {
   font-weight: bold;
   background-color: #eeeeee;
 }
+.list_placeholder {
+  font-weight: bold;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 7px;
+  padding-right: 7px;
+}
 .list_container {
   margin-top: 4px;
   margin-bottom: 20px;
