@@ -284,8 +284,7 @@ def run_defined_tests(kernel, test_file):
             print("Running test for %s with data %s\n" % (key, data))
             result = run_test(key, data)
             print("Test returned - %s\n" % (result,))
-
-if __name__=='__main__':
+def main():
     args = sys.argv[1:]
     if args.__len__() < 2:
         print('Usage: python kerneltest.py <kernel name> <test script file>')
@@ -294,3 +293,6 @@ if __name__=='__main__':
     else:
         print("Using kernel %s and test script %s\n\n"%(args[0],args[1]))
         run_defined_tests(args[0],args[1])
+
+if __name__=='__main__':
+    main()
