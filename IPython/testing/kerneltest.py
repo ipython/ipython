@@ -18,7 +18,7 @@ import nose.tools as nt
 
 from IPython.kernel import manager
 
-from IPython.testing.messagespec import *
+from IPython.testing.messagespec_common import *
 
 #-------------------------------------------------------------------------
 # Globals
@@ -29,6 +29,7 @@ TIMEOUT = 15
 
 KM = None
 KC = None
+validate_message = None
 
 #-------------------------------------------------------------------------
 # Code to setup the kernel for testing
@@ -272,8 +273,13 @@ def run_test(message, data):
     return f(*args)
 
 #load the json script and run through the tests
-def run_defined_tests(kernel, test_file):
-    global KC, KM
+def run_defined_tests(kernel, test_file,spec_version):
+
+    global KC, KM, validate_message
+    
+    #get the validator and import the spec
+    validate_message = get_message_spec_validator(spec_version)
+    
     if KC is None:
         start_global_kernel(kernel)
 
@@ -284,15 +290,23 @@ def run_defined_tests(kernel, test_file):
             print("Running test for %s with data %s\n" % (key, data))
             result = run_test(key, data)
             print("Test returned - %s\n" % (result,))
+
 def main():
+    
     args = sys.argv[1:]
     if args.__len__() < 2:
-        print('Usage: python kerneltest.py <kernel name> <test script file>')
-        print('Test script format : \n{\n\t<message type>:{\n\t\tparam_1_name:param_1_value,.....\n\t}\n}')
+        print('Usage: python kerneltest.py <kernel name> <test script file> <optional message spec version>')
+        print('\nIf no messsage spec version is specified then vresion 5 is assumed.')
+        print('\nTest script format : \n{\n\t<message type>:{\n\t\tparam_1_name:param_1_value,.....\n\t}\n}')
         print('\nSupported message types \n%s'%(checks.keys()))
     else:
-        print("Using kernel %s and test script %s\n\n"%(args[0],args[1]))
-        run_defined_tests(args[0],args[1])
+        if(args.__len__() == 3):
+            spec_version = args[2]
+        else:
+            spec_version = 5
+        
+        print("Using kernel %s and test script %s. Message spec version %s\n\n"%(args[0],args[1],spec_version))
+        run_defined_tests(args[0],args[1],spec_version)
 
 if __name__=='__main__':
     main()
