@@ -52,6 +52,10 @@ def _post_save_script(model, os_path, contents_manager, **kwargs):
         f.write(script)
 
 
+def _file_extension(os_path):
+    return op.splitext(os_path)[1]
+
+
 class FileContentsManager(FileManagerMixin, ContentsManager):
 
     root_dir = Unicode(config=True)
@@ -311,6 +315,24 @@ class FileContentsManager(FileManagerMixin, ContentsManager):
             model['format'] = 'json'
             self.validate_notebook_model(model)
         return model
+        
+    def _read_notebook(self, os_path, as_version=4):
+        """Read a notebook from an os path."""
+        with self.open(os_path, 'r', encoding='utf-8') as f:
+            try:
+
+                # NEW
+                file_ext = _file_extension(os_path)
+                if file_ext == '.ipynb':
+                    return nbformat.read(f, as_version=as_version)
+                elif file_ext == '.md':
+                    return markdown_to_nb(f.read())
+
+            except Exception as e:
+                raise HTTPError(
+                    400,
+                    u"Unreadable Notebook: %s %r" % (os_path, e),
+                )
 
     def get(self, path, content=True, type=None, format=None):
         """ Takes a path for an entity and returns its model
@@ -381,9 +403,17 @@ class FileContentsManager(FileManagerMixin, ContentsManager):
         self.log.debug("Saving %s", os_path)
         try:
             if model['type'] == 'notebook':
-                nb = nbformat.from_dict(model['content'])
-                self.check_and_sign(nb, path)
-                self._save_notebook(os_path, nb)
+                
+                # NEW
+                file_ext = _file_extension(os_path)
+                if file_ext == '.ipynb':
+                    nb = nbformat.from_dict(model['content'])
+                    self.check_and_sign(nb, path)
+                    self._save_notebook(os_path, nb)
+                elif file_ext == '.md':
+                    md = nb_to_markdown(model['content'])
+                    self._save_file(os_path, md, 'text')
+                
                 # One checkpoint should always exist for notebooks.
                 if not self.checkpoints.list_checkpoints(path):
                     self.create_checkpoint(path)
