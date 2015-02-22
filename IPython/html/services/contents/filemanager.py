@@ -55,6 +55,8 @@ def _post_save_script(model, os_path, contents_manager, **kwargs):
 class FileContentsManager(FileManagerMixin, ContentsManager):
 
     root_dir = Unicode(config=True)
+    
+    _nb_file_extensions = ['.ipynb']
 
     def _root_dir_default(self):
         try:
@@ -343,7 +345,7 @@ class FileContentsManager(FileManagerMixin, ContentsManager):
                 raise web.HTTPError(400,
                                 u'%s is a directory, not a %s' % (path, type), reason='bad type')
             model = self._dir_model(path, content=content)
-        elif type == 'notebook' or (type is None and path.endswith('.ipynb')):
+        elif type == 'notebook' or (type is None and path.endswith(self._nb_file_extensions)):
             model = self._notebook_model(path, content=content)
         else:
             if type == 'directory':
