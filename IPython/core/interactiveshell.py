@@ -1831,6 +1831,12 @@ class InteractiveShell(SingletonConfigurable):
                 self.showsyntaxerror(filename)
             elif etype is UsageError:
                 self.show_usage_error(value)
+            elif issubclass(etype, RuntimeError) and 'recursion' in str(value):
+                stb = ['A recursion depth exception was raised. '
+                       'Use %tb to see the full traceback.\n']
+                stb.extend(self.InteractiveTB.get_exception_only(etype,
+                                                                 value))
+                self._showtraceback(etype, value, stb)
             else:
                 if exception_only:
                     stb = ['An exception has occurred, use %tb to see '
