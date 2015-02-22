@@ -8,6 +8,7 @@ from __future__ import absolute_import, print_function
 import atexit
 import json
 import sys
+from importlib import import_module
 
 try:
     from queue import Empty  # Py 3
@@ -290,6 +291,25 @@ def run_defined_tests(kernel, test_file,spec_version):
             print("Running test for %s with data %s\n" % (key, data))
             result = run_test(key, data)
             print("Test returned - %s\n" % (result,))
+
+# method to get the correct message spec version for the test
+def get_message_spec_validator(spec_version):
+    
+    """
+    
+    For now there is only one version of the message specification that can be tested.
+    As more versions are added this will be expanded to import the correct version to 
+    be used for the kernel tests.
+    
+    The choice will be made based on spec_version
+    
+    Every version of message spec should implement a validation method that takes 3
+    parameters message, message type and a parent. The message type and parent are
+    optional for validation.
+    
+    """
+    spec_module = import_module('IPython.testing.messagespec')
+    return spec_module.validate_message
 
 def main():
     
