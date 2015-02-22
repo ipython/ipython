@@ -48,7 +48,7 @@ from IPython.utils.localinterfaces import localhost, public_ips
 from IPython.utils.traitlets import Instance, Unicode, Bool, List, Dict, TraitError
 
 from IPython.kernel.zmq.session import (
-    Session, session_aliases, session_flags, default_secure
+    Session, session_aliases, session_flags,
 )
 
 from IPython.parallel.controller.heartmonitor import HeartMonitor
@@ -314,8 +314,6 @@ class IPControllerApp(BaseParallelApplication):
                 # no need to wite back the same file
                 self.write_connection_files = False
                 
-        # switch Session.key default to secure
-        default_secure(self.config)
         self.log.debug("Config changed")
         self.log.debug(repr(self.config))
         

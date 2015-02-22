@@ -77,7 +77,7 @@ from IPython.core.application import (
 from IPython.core.profiledir import ProfileDir
 from IPython.kernel import KernelManager
 from IPython.kernel.kernelspec import KernelSpecManager
-from IPython.kernel.zmq.session import default_secure, Session
+from IPython.kernel.zmq.session import Session
 from IPython.nbformat.sign import NotebookNotary
 from IPython.utils.importstring import import_item
 from IPython.utils import submodule
@@ -764,9 +764,6 @@ class NotebookApp(BaseIPythonApplication):
         self.ipython_kernel_argv = ["--profile-dir", self.profile_dir.location]
 
     def init_configurables(self):
-        # force Session default to be secure
-        default_secure(self.config)
-
         self.kernel_spec_manager = self.kernel_spec_manager_class(
             parent=self,
             ipython_dir=self.ipython_dir,
