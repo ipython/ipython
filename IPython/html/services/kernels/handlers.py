@@ -179,6 +179,8 @@ class ZMQChannelsHandler(AuthenticatedZMQStreamHandler):
         # then request kernel info, waiting up to a certain time before giving up.
         # We don't want to wait forever, because browsers don't take it well when
         # servers never respond to websocket connection requests.
+        kernel = self.kernel_manager.get_kernel(self.kernel_id)
+        self.session.key = kernel.session.key
         future = self.request_kernel_info()
         
         def give_up():
