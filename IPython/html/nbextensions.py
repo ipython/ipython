@@ -257,9 +257,9 @@ def make_cmdclass(path, enable=None):
     Usage
     -----
     setup(
-        name='cite2c',
+        name='flightwidgets',
         ...
-        cmdclass=make_cmdclass('cite2c', 'cite2c/main'),
+        cmdclass=make_cmdclass('flightwidgets', 'flightwidgets/init'),
     )
     """
 
