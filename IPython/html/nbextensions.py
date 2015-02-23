@@ -242,6 +242,60 @@ def install_nbextension(path, overwrite=False, symlink=False, user=False, prefix
             src = path
             _maybe_copy(src, full_dest, verbose)
 
+
+def make_cmdclass(path, enable=None):
+    """Build nbextension cmdclass dict for the setuptools.setup method.
+
+    Parameters
+    ----------
+    path: str
+        Directory relative to the setup file that the nbextension code lives in.
+    enable: [str=None]
+        Extension to "enable".  Enabling an extension causes it to be loaded
+        automatically by the IPython notebook.
+
+    Usage
+    -----
+    setup(
+        name='cite2c',
+        ...
+        cmdclass=make_cmdclass('cite2c', 'cite2c/main'),
+    )
+    """
+
+    from setuptools.command.install import install
+    from setuptools.command.develop import develop
+    from os.path import dirname, abspath, join
+
+    from .services.config import ConfigManager
+
+    def run_nbextension_install(develop):
+        install_nbextension(join(dirname(abspath(__file__)), path), symlink=develop)
+        if enable is not None:
+            print("Enabling the extension ...")
+            cm = ConfigManager()
+            cm.update('notebook', {"load_extensions": {enable: True}})
+
+    class InstallCommand(install):
+        def run(self):
+            print("Installing Python module...")
+            install.run(self)
+            print("Installing nbextension ...")
+            run_nbextension_install(False)
+
+    class DevelopCommand(develop):
+        def run(self):
+            print("Installing Python module...")
+            develop.run(self)
+            print("Installing nbextension ...")
+            run_nbextension_install(True)
+    
+    return {
+        'install': InstallCommand,
+        'develop': DevelopCommand,
+    }
+
+
 #----------------------------------------------------------------------
 # install nbextension app
 #----------------------------------------------------------------------
