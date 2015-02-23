@@ -243,11 +243,13 @@ def install_nbextension(path, overwrite=False, symlink=False, user=False, prefix
             _maybe_copy(src, full_dest, verbose)
 
 
-def make_cmdclass(path, enable=None):
+def make_cmdclass(setupfile, path, enable=None):
     """Build nbextension cmdclass dict for the setuptools.setup method.
 
     Parameters
     ----------
+    setupfile: str
+        Path to the setup file.
     path: str
         Directory relative to the setup file that the nbextension code lives in.
     enable: [str=None]
@@ -259,7 +261,7 @@ def make_cmdclass(path, enable=None):
     setup(
         name='flightwidgets',
         ...
-        cmdclass=make_cmdclass('flightwidgets', 'flightwidgets/init'),
+        cmdclass=make_cmdclass(__file__, 'flightwidgets', 'flightwidgets/init'),
     )
     """
 
@@ -270,7 +272,7 @@ def make_cmdclass(path, enable=None):
     from .services.config import ConfigManager
 
     def run_nbextension_install(develop):
-        install_nbextension(join(dirname(abspath(__file__)), path), symlink=develop)
+        install_nbextension(join(dirname(abspath(setupfile)), path), symlink=develop)
         if enable is not None:
             print("Enabling the extension ...")
             cm = ConfigManager()
