@@ -25,7 +25,7 @@ class InProcessKernelTestCase(unittest.TestCase):
     def setUp(self):
         self.km = InProcessKernelManager()
         self.km.start_kernel()
-        self.kc = BlockingInProcessKernelClient(kernel=self.km.kernel)
+        self.kc = self.km.client()
         self.kc.start_channels()
         self.kc.wait_for_ready()
 
@@ -61,7 +61,7 @@ class InProcessKernelTestCase(unittest.TestCase):
             kernel.shell.run_cell('print("foo")')
         self.assertEqual(io.stdout, 'foo\n')
 
-        kc = BlockingInProcessKernelClient(kernel=kernel)
+        kc = BlockingInProcessKernelClient(kernel=kernel, session=kernel.session)
         kernel.frontends.append(kc)
         kc.execute('print("bar")')
         out, err = assemble_output(kc.iopub_channel)

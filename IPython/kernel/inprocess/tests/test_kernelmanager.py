@@ -24,7 +24,7 @@ class InProcessKernelManagerTestCase(unittest.TestCase):
         self.assert_(km.has_kernel)
         self.assert_(km.kernel is not None)
 
-        kc = BlockingInProcessKernelClient(kernel=km.kernel)
+        kc = km.client()
         self.assert_(not kc.channels_running)
 
         kc.start_channels()
@@ -49,7 +49,7 @@ class InProcessKernelManagerTestCase(unittest.TestCase):
         """
         km = InProcessKernelManager()
         km.start_kernel()
-        kc = BlockingInProcessKernelClient(kernel=km.kernel)
+        kc = km.client()
         kc.start_channels()
         kc.wait_for_ready()
         kc.execute('foo = 1')
@@ -60,7 +60,7 @@ class InProcessKernelManagerTestCase(unittest.TestCase):
         """
         km = InProcessKernelManager()
         km.start_kernel()
-        kc = BlockingInProcessKernelClient(kernel=km.kernel)
+        kc = km.client()
         kc.start_channels()
         kc.wait_for_ready()
         km.kernel.shell.push({'my_bar': 0, 'my_baz': 1})
@@ -75,7 +75,7 @@ class InProcessKernelManagerTestCase(unittest.TestCase):
         """
         km = InProcessKernelManager()
         km.start_kernel()
-        kc = BlockingInProcessKernelClient(kernel=km.kernel)
+        kc = km.client()
         kc.start_channels()
         kc.wait_for_ready()
         km.kernel.shell.user_ns['foo'] = 1
@@ -92,7 +92,7 @@ class InProcessKernelManagerTestCase(unittest.TestCase):
         """
         km = InProcessKernelManager()
         km.start_kernel()
-        kc = BlockingInProcessKernelClient(kernel=km.kernel)
+        kc = km.client()
         kc.start_channels()
         kc.wait_for_ready()
         kc.execute('%who')
