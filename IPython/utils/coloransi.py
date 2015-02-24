@@ -123,6 +123,9 @@ class ColorScheme:
             name = self.name
         return ColorScheme(name, self.colors.dict())
 
+    def __repr__(self):
+        return '<ColorScheme:' + self.name +'>'
+
 class ColorSchemeTable(dict):
     """General class to handle tables of color schemes.
 

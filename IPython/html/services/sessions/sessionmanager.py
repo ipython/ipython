@@ -22,6 +22,7 @@ class SessionManager(LoggingConfigurable):
     _cursor = None
     _connection = None
     _columns = {'session_id', 'path', 'kernel_id'}
+
     
     @property
     def cursor(self):

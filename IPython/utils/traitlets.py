@@ -67,7 +67,11 @@ SequenceTypes = (list, tuple, set, frozenset)
 #-----------------------------------------------------------------------------
 
 
-class NoDefaultSpecified ( object ): pass
+class NoDefaultSpecified ( object ):
+    def __repr__(self):
+        return '<'+self.__module__ + "." + self.__class__.__name__+'>'
+
+
 NoDefaultSpecified = NoDefaultSpecified()
 
 

@@ -40,7 +40,11 @@ class NBFormatError(ValueError):
     pass
 
 # no-conversion singleton
-NO_CONVERT = object()
+
+class _NO_CONVERT(object):
+    def __repr__(self):
+        return '<'+self.__module__ + "." + self.__class__.__name__+'>'
+NO_CONVERT = _NO_CONVERT()
 
 def reads(s, as_version, **kwargs):
     """Read a notebook from a string and return the NotebookNode object as the given version.
