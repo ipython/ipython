@@ -61,7 +61,7 @@ class FileManagerMixin(object):
         """context manager for turning permission errors into 403."""
         try:
             yield
-        except OSError as e:
+        except (OSError, IOError) as e:
             if e.errno in {errno.EPERM, errno.EACCES}:
                 # make 403 error message without root prefix
                 # this may not work perfectly on unicode paths on Python 2,
