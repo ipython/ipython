@@ -8,7 +8,7 @@ import os
 from IPython.config.manager import BaseJSONConfigManager
 
 class ConfigManager(BaseJSONConfigManager):
-    """Config Manager use for storin Javascript side config"""
+    """Config Manager used for storing notebook frontend config"""
 
     def _config_dir(self):
         return os.path.join(self.profile_dir, 'nbconfig')

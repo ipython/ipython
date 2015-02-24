@@ -86,7 +86,7 @@ class BaseJSONConfigManager(LoggingConfigurable):
         else:
             f = open(filename, 'wb')
         with f:
-            json.dump(data, f)
+            json.dump(data, f, indent=2)
 
     def update(self, section_name, new_data):
         """Modify the config section by recursively updating it with new_data.
