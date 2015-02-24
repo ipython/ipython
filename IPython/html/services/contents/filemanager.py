@@ -348,7 +348,7 @@ class FileContentsManager(FileManagerMixin, ContentsManager):
         else:
             if type == 'directory':
                 raise web.HTTPError(400,
-                                u'%s is not a directory', reason='bad type')
+                                u'%s is not a directory' % path, reason='bad type')
             model = self._file_model(path, content=content, format=format)
         return model
 
