@@ -5,6 +5,7 @@ from __future__ import print_function
 import os
 import time
 
+from nose import SkipTest
 from tornado.web import HTTPError
 from unittest import TestCase
 from tempfile import NamedTemporaryFile
@@ -128,6 +129,25 @@ class TestFileContentsManager(TestCase):
                 sorted(dir_model['content'], key=lambda x: x['name']),
                 [symlink_model, file_model],
             )
+    
+    def test_403(self):
+        if hasattr(os, 'getuid'):
+            if os.getuid() == 0:
+                raise SkipTest("Can't test permissions as root")
+        
+        with TemporaryDirectory() as td:
+            cm = FileContentsManager(root_dir=td)
+            model = cm.new_untitled(type='file')
+            os_path = cm._get_os_path(model['path'])
+        
+            os.chmod(os_path, 0o400)
+            try:
+                with cm.open(os_path, 'w') as f:
+                    f.write(u"don't care")
+            except HTTPError as e:
+                self.assertEqual(e.status_code, 403)
+            else:
+                self.fail("Should have raised HTTPError(403)")
 
 
 class TestContentsManager(TestCase):
