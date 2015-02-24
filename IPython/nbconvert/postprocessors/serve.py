@@ -1,16 +1,9 @@
 """PostProcessor for serving reveal.js HTML slideshows."""
-from __future__ import print_function
-#-----------------------------------------------------------------------------
-#Copyright (c) 2013, the IPython Development Team.
-#
-#Distributed under the terms of the Modified BSD License.
-#
-#The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
+from __future__ import print_function
 
 import os
 import webbrowser
@@ -22,9 +15,6 @@ from IPython.utils.traitlets import Bool, Unicode, Int
 
 from .base import PostProcessorBase
 
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
 
 class ProxyHandler(web.RequestHandler):
     """handler the proxies requests from a local prefix to a CDN"""
@@ -37,11 +27,14 @@ class ProxyHandler(web.RequestHandler):
     
     def finish_get(self, response):
         """finish the request"""
-        # copy potentially relevant headers
+        # rethrow errors
+        response.rethrow()
+        
         for header in ["Content-Type", "Cache-Control", "Date", "Last-Modified", "Expires"]:
             if header in response.headers:
                 self.set_header(header, response.headers[header])
         self.finish(response.body)
+
 
 class ServePostProcessor(PostProcessorBase):
     """Post processor designed to serve files
