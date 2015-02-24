@@ -27,13 +27,8 @@ from IPython.utils.traitlets import (
     ForwardDeclaredInstance,
 )
 from IPython.utils.py3compat import (
-    unicode_to_str, with_metaclass, PY3, string_types, unicode_type,
+    with_metaclass, string_types, unicode_type,
 )
-
-if PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
 
 
 #-----------------------------------------------------------------------------
@@ -681,13 +676,13 @@ class PlainTextFormatter(BaseFormatter):
         if not self.pprint:
             return repr(obj)
         else:
-            # This uses use StringIO, as cStringIO doesn't handle unicode.
-            stream = StringIO()
-            # self.newline.encode() is a quick fix for issue gh-597. We need to
-            # ensure that stream does not get a mix of unicode and bytestrings,
-            # or it will cause trouble.
+            # handle str and unicode on Python 2
+            # io.StringIO only accepts unicode,
+            # cStringIO doesn't handle unicode on py2,
+            # StringIO allows str, unicode but only ascii str
+            stream = pretty.CUnicodeIO()
             printer = pretty.RepresentationPrinter(stream, self.verbose,
-                self.max_width, unicode_to_str(self.newline),
+                self.max_width, self.newline,
                 max_seq_length=self.max_seq_length,
                 singleton_pprinters=self.singleton_printers,
                 type_pprinters=self.type_printers,
