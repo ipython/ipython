@@ -87,13 +87,13 @@ class FileContentsManager(FileManagerMixin, ContentsManager):
         This can be used to process the file on disk,
         such as converting the notebook to a script or HTML via nbconvert.
 
-        It will be called as (all arguments passed by keyword):
+        It will be called as (all arguments passed by keyword)::
 
             hook(os_path=os_path, model=model, contents_manager=instance)
 
-        path: the filesystem path to the file just written
-        model: the model representing the file
-        contents_manager: this ContentsManager instance
+        - path: the filesystem path to the file just written
+        - model: the model representing the file
+        - contents_manager: this ContentsManager instance
         """
     )
     def _post_save_hook_changed(self, name, old, new):
