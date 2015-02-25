@@ -123,7 +123,7 @@ on which it depends:
        ...:    deps = [ results[n] for n in G.predecessors(node) ]
        ...:    # submit and store AsyncResult object
        ...:    with view.temp_flags(after=deps, block=False):
-       ...:         results[node] = view.apply_with_flags(jobs[node])
+       ...:         results[node] = view.apply(jobs[node])
 
 
 Now that we have submitted all the jobs, we can wait for the results:
