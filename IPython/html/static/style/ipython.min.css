@@ -1195,8 +1195,8 @@ h6:hover .anchor-link {
   font-size: 100%;
   font-style: italic;
 }
-.widget-interact div,
-.widget-interact input {
+.widget-interact > div,
+.widget-interact > input {
   padding: 2.5px;
 }
 .widget-area {
