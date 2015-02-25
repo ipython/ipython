@@ -6,6 +6,7 @@ from tornado import web
 
 from ..sessionmanager import SessionManager
 from IPython.html.services.kernels.kernelmanager import MappingKernelManager
+from IPython.html.services.contents.manager import ContentsManager
 
 class DummyKernel(object):
     def __init__(self, kernel_name='python'):
@@ -28,10 +29,17 @@ class DummyMKM(MappingKernelManager):
     def shutdown_kernel(self, kernel_id, now=False):
         del self._kernels[kernel_id]
 
+
 class TestSessionManager(TestCase):
     
+    def setUp(self):
+        self.sm = SessionManager(
+            kernel_manager=DummyMKM(),
+            contents_manager=ContentsManager(),
+        )
+
     def test_get_session(self):
-        sm = SessionManager(kernel_manager=DummyMKM())
+        sm = self.sm
         session_id = sm.create_session(path='/path/to/test.ipynb',
                                        kernel_name='bar')['id']
         model = sm.get_session(session_id=session_id)
@@ -42,13 +50,13 @@ class TestSessionManager(TestCase):
 
     def test_bad_get_session(self):
         # Should raise error if a bad key is passed to the database.
-        sm = SessionManager(kernel_manager=DummyMKM())
+        sm = self.sm
         session_id = sm.create_session(path='/path/to/test.ipynb',
                                        kernel_name='foo')['id']
         self.assertRaises(TypeError, sm.get_session, bad_id=session_id) # Bad keyword
 
     def test_get_session_dead_kernel(self):
-        sm = SessionManager(kernel_manager=DummyMKM())
+        sm = self.sm
         session = sm.create_session(path='/path/to/1/test1.ipynb', kernel_name='python')
         # kill the kernel
         sm.kernel_manager.shutdown_kernel(session['kernel']['id'])
@@ -59,7 +67,7 @@ class TestSessionManager(TestCase):
         self.assertEqual(listed, [])
 
     def test_list_sessions(self):
-        sm = SessionManager(kernel_manager=DummyMKM())
+        sm = self.sm
         sessions = [
             sm.create_session(path='/path/to/1/test1.ipynb', kernel_name='python'),
             sm.create_session(path='/path/to/2/test2.ipynb', kernel_name='python'),
@@ -84,7 +92,7 @@ class TestSessionManager(TestCase):
         self.assertEqual(sessions, expected)
 
     def test_list_sessions_dead_kernel(self):
-        sm = SessionManager(kernel_manager=DummyMKM())
+        sm = self.sm
         sessions = [
             sm.create_session(path='/path/to/1/test1.ipynb', kernel_name='python'),
             sm.create_session(path='/path/to/2/test2.ipynb', kernel_name='python'),
@@ -107,7 +115,7 @@ class TestSessionManager(TestCase):
         self.assertEqual(listed, expected)
 
     def test_update_session(self):
-        sm = SessionManager(kernel_manager=DummyMKM())
+        sm = self.sm
         session_id = sm.create_session(path='/path/to/test.ipynb',
                                        kernel_name='julia')['id']
         sm.update_session(session_id, path='/path/to/new_name.ipynb')
@@ -119,13 +127,13 @@ class TestSessionManager(TestCase):
     
     def test_bad_update_session(self):
         # try to update a session with a bad keyword ~ raise error
-        sm = SessionManager(kernel_manager=DummyMKM())
+        sm = self.sm
         session_id = sm.create_session(path='/path/to/test.ipynb',
                                        kernel_name='ir')['id']
         self.assertRaises(TypeError, sm.update_session, session_id=session_id, bad_kw='test.ipynb') # Bad keyword
 
     def test_delete_session(self):
-        sm = SessionManager(kernel_manager=DummyMKM())
+        sm = self.sm
         sessions = [
             sm.create_session(path='/path/to/1/test1.ipynb', kernel_name='python'),
             sm.create_session(path='/path/to/2/test2.ipynb', kernel_name='python'),
@@ -147,7 +155,7 @@ class TestSessionManager(TestCase):
 
     def test_bad_delete_session(self):
         # try to delete a session that doesn't exist ~ raise error
-        sm = SessionManager(kernel_manager=DummyMKM())
+        sm = self.sm
         sm.create_session(path='/path/to/test.ipynb', kernel_name='python')
         self.assertRaises(TypeError, sm.delete_session, bad_kwarg='23424') # Bad keyword
         self.assertRaises(web.HTTPError, sm.delete_session, session_id='23424') # nonexistant
