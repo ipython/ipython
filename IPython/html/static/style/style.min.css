@@ -9978,6 +9978,10 @@ h6:hover .anchor-link {
   font-size: 100%;
   font-style: italic;
 }
+.widget-interact div,
+.widget-interact input {
+  padding: 2.5px;
+}
 .widget-area {
   /*
     LESS file that styles IPython notebook widgets and the area they sit in.
