@@ -181,7 +181,7 @@ def interactive(__interact_f, **kwargs):
     co = kwargs.pop('clear_output', True)
     manual = kwargs.pop('__manual', False)
     kwargs_widgets = []
-    container = Box()
+    container = Box(_dom_classes=['widget-interact'])
     container.result = None
     container.args = []
     container.kwargs = dict()
