@@ -68,9 +68,7 @@ style short name, such as ``\alpha``. Press tab, and it will turn into α.
 
 Widget migration guide
 ----------------------
-The widget framework has a lot of backwards incompatible changes.  For information about migrating widget notebooks and custom widgets to 3.0 refere to the `widget migration guide`_.
-
-.. _widget migration guide: ./version3_widget_migration.rst
+The widget framework has a lot of backwards incompatible changes.  For information about migrating widget notebooks and custom widgets to 3.0 refere to the :doc:`widget migration guide<version3_widget_migration>`.
 
 Other new features
 ------------------
