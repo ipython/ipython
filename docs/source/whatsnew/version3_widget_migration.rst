@@ -1,3 +1,6 @@
+Migrating Widgets to IPython 3
+==============================
+
 Upgrading Notebooks
 -------------------
 
