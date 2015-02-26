@@ -40,9 +40,6 @@ Inheritance diagram:
 # Adapted from enthought.traits, Copyright (c) Enthought, Inc.,
 # also under the terms of the Modified BSD License.
 
-from __future__ import absolute_import
-
-import weakref
 import contextlib
 import inspect
 import re
@@ -155,6 +152,7 @@ class _SimpleTest:
         return "<SimpleTest(%r)" % self.value
     def __str__(self):
         return self.__repr__()
+
 
 def getmembers(object, predicate=None):
     """A safe version of inspect.getmembers that handles missing attributes.
@@ -554,18 +552,22 @@ class TraitType(object):
     def set_metadata(self, key, value):
         getattr(self, '_metadata', {})[key] = value
 
+
 #-----------------------------------------------------------------------------
 # The HasTraits implementation
 #-----------------------------------------------------------------------------
 
+
 class MetaHasTraits(type):
     """A metaclass for HasTraits.
+
     This metaclass makes sure that any TraitType class attributes are
     instantiated and sets their name attribute.
     """
 
     def __new__(mcls, name, bases, classdict):
         """Create the HasTraits class.
+
         This instantiates all TraitTypes in the class dict and sets their
         :attr:`name` attribute.
         """
@@ -584,6 +586,7 @@ class MetaHasTraits(type):
 
     def __init__(cls, name, bases, classdict):
         """Finish initializing the HasTraits class.
+
         This sets the :attr:`this_class` attribute of each TraitType in the
         class dict to the newly created class ``cls``.
         """
@@ -693,6 +696,7 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
                 raise TraitError('a trait changed callback '
                                     'must be callable.')
 
+
     def _add_notifiers(self, handler, name):
         if name not in self._trait_notifiers:
             nlist = []
@@ -716,7 +720,9 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
 
     def on_trait_change(self, handler, name=None, remove=False):
         """Setup a handler to be called when a trait changes.
+
         This is used to setup dynamic notifications of trait changes.
+
         Static handlers can be created by creating methods on a HasTraits
         subclass with the naming convention '_[traitname]_changed'. Thus,
         to create static handler for the trait 'a', create the method
@@ -760,6 +766,7 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
     @classmethod
     def class_trait_names(cls, **metadata):
         """Get a list of all the names of this class' traits.
+
         This method is just like the :meth:`trait_names` method,
         but is unbound.
         """
@@ -767,19 +774,21 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
 
     @classmethod
     def class_traits(cls, **metadata):
-        """Get a `dict` of all the traits of this class.  The dictionary
+        """Get a `dict` of all the traits of this class. The dictionary
         is keyed on the name and the values are the TraitType objects.
+
         This method is just like the :meth:`traits` method, but is unbound.
+
         The TraitTypes returned don't know anything about the values
         that the various HasTrait's instances are holding.
+
         The metadata kwargs allow functions to be passed in which
-        filter traits based on metadata values.  The functions should
+        filter traits based on metadata values. The functions should
         take a single value as an argument and return a boolean.  If
         any function returns False, then the trait is not included in
-        the output.  This does not allow for any simple way of
-        testing that a metadata name exists and has any
-        value because get_metadata returns None if a metadata key
-        doesn't exist.
+        the output. This does not allow for any simple way of testing
+        that a metadata name exists and has any value because get_metadata
+        returns None if a metadata key doesn't exist.
         """
         traits = dict([memb for memb in getmembers(cls) if
                      isinstance(memb[1], TraitType)])
@@ -826,74 +835,71 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
 
     def trait_names(self, **metadata):
         """Get a list of all the dynamic and static trait names for self."""
-        s = self.static_names(**metadata)
-        d = self.dynamic_names(**metadata)
+        s = self._static_names(**metadata)
+        d = self._dynamic_names(**metadata)
         return s + d
 
-    def static_names(self, **metadata):
+    def _static_names(self, **metadata):
         """Get a list of all the names of this class' traits."""
-        return self.statics(**metadata).keys()
+        return self._statics(**metadata).keys()
 
-    def dynamic_names(self, **metadata):
+    def _dynamic_names(self, **metadata):
         """Get a list of all the names of this instance's dynamic traits."""
-        return self.dynamics(**metadata).keys()
+        return self._dynamics(**metadata).keys()
 
     def traits(self, **metadata):
-        """Get a `dict` of all dynamic and static traits for self.
+        """Get a `dict` of all the static and dynamic traits for this
+        class, and instance respectively. The dictionary is keyed on
+        the names while the values are TraitType objects.
+
+        The TraitTypes returned don't know anything about the values
+        that the various HasTrait's instances are holding.
+        
+        The metadata kwargs allow functions to be passed in which
+        filter traits based on metadata values.  The functions should
+        take a single value as an argument and return a boolean. If
+        any function returns False, then the trait is not included in
+        the output.  This does not allow for any simple way of testing
+        that a metadata name exists and has any value because
+        get_metadata returns None if a metadata key doesn't exist.
+        """
+        traits = self._statics(**metadata)
+        traits.update(self._dynamics(**metadata))
+        return traits
+
+    def _statics(self, **metadata):
+        """Get a `dict` of all the static traits for this class. The
+        dictionary is keyed on the names while the values are TraitType
+        objects. The metadata kwargs allow functions to be passed in
+        which filter traits based on metadata values.
+
 
         Notes
         -----
-        See self.statics() for more info
-        """
-        traits = self.statics(**metadata)
-        traits.update(self.dynamics(**metadata))
-        return traits
-
-    def statics(self, **metadata):
-        """Get a `dict` of all the static traits of this class. The
-        dictionary is keyed on the names while the values are TraitType
-        objects. The TraitTypes returned don't know anything about the
-        values that the various HasTrait's instances are holding. The
-        metadata kwargs allow functions to be passed which filter traits
-        based on metadata values. The functions should take a single value
-        as an argument and return a boolean. If any function returns False,
-        then the trait is not included in the output. This does not allow
-        for any simple way of testing that a metadata name exists and has
-        any value because get_metadata returns None if a metadata key
-        doesn't exist.g1.dynamic.slope
+        See self.traits() for more info
         """
         traits = dict([memb for memb in getmembers(self.__class__) if
                      isinstance(memb[1], TraitType)])
         return metadata_filter(traits, **metadata)
 
-    def dynamics(self, **metadata):
+    def _dynamics(self, **metadata):
         """Get a `dict` of all the dynamic traits for self. The dictionary
-        is keyed on the name and the values are the TraitType objects. The
+        is keyed on the names and the values are the TraitType objects. The
         metadata kwargs allow functions to be passed which filter traits
         based on metadata values.
 
         Notes
         -----
-        See self.statics() for more info
+        See self.traits() for more info
         """
         return metadata_filter(self._dynamic_traits, **metadata)
 
-    def static_metadata(self, traitname, key, default=None):
+    def trait_metadata(self, traitname, key, default=None):
         """Get metadata values for trait by key."""
         try:
-            trait = getattr(self.__class__, traitname)
+            trait = self.traits()[traitname]
         except AttributeError:
             raise TraitError("Class %s does not have a trait named %s" %
-                                (self.__class__.__name__, traitname))
-        else:
-            return trait.get_metadata(key, default)
-
-    def dynamic_metadata(self, traitname, key, default=None):
-        """Get metadata values for a dynamic trait by key."""
-        try:
-            trait = self._dynamic_traits[name]
-        except KeyError:
-            raise TraitError("Class %s does not have a dynamic trait named %s" %
                                 (self.__class__.__name__, traitname))
         else:
             return trait.get_metadata(key, default)
