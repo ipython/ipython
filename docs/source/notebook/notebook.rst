@@ -80,7 +80,7 @@ nbviewer.
 
 .. seealso::
 
-    :ref:`Details on the notebook JSON file format <notebook_format>` 
+    :ref:`Details on the notebook JSON file format <nbformat>` 
    
 
 Starting the notebook server
@@ -477,6 +477,6 @@ script back into a notebook will preserve this structure.
    format.
 
 .. seealso::
-    :ref:`notebook_format`
+    :ref:`nbformat`
 
 .. include:: ../links.txt
