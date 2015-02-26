@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from IPython.utils.text import indent, wrap_paragraphs
+from IPython.utils.text import indent, dedent
 
 from IPython.terminal.ipapp import TerminalIPythonApp
 from IPython.kernel.zmq.kernelapp import IPKernelApp
@@ -34,13 +34,12 @@ def document_config_options(classes):
                     dvr = dvr[:61]+'...'
                 # Double up backslashes, so they get to the rendered docs
                 dvr = dvr.replace('\\n', '\\\\n')
-                lines.append('    Default: ' + dvr)
+                lines.append('    Default: `%s`' % dvr)
                 lines.append('')
 
             help = trait.get_metadata('help')
             if help is not None:
-                help = '\n\n'.join(wrap_paragraphs(help, 76))
-                lines.append(indent(help, 4))
+                lines.append(indent(dedent(help), 4))
             else:
                 lines.append('    No description')
 
@@ -72,8 +71,7 @@ if __name__ == '__main__':
     write_doc('kernel', 'IPython kernel options', kernel_classes,
         preamble="These options can be used in :file:`ipython_kernel_config.py`",
     )
-    nbclasses = set(NotebookApp().classes) - set(kernel_classes)
-    write_doc('notebook', 'IPython notebook options', nbclasses,
+    write_doc('notebook', 'IPython notebook options', NotebookApp().classes,
         preamble="To configure the IPython kernel, see :doc:`kernel`."
     )
 
@@ -83,8 +81,7 @@ if __name__ == '__main__':
         print("WARNING: Could not import qtconsoleapp. Config options for the "
               "Qt Console will not be documented.")
     else:
-        qtclasses = set(IPythonQtConsoleApp().classes) - set(kernel_classes)
-        write_doc('qtconsole', 'IPython Qt console options', qtclasses,
+        write_doc('qtconsole', 'IPython Qt console options', IPythonQtConsoleApp().classes,
         preamble="To configure the IPython kernel, see :doc:`kernel`."
     )
 

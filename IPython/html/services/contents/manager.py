@@ -81,14 +81,14 @@ class ContentsManager(LoggingConfigurable):
         such as removing notebook outputs or other side effects that
         should not be saved.
 
-        It will be called as (all arguments passed by keyword):
+        It will be called as (all arguments passed by keyword)::
 
             hook(path=path, model=model, contents_manager=self)
 
-        model: the model to be saved. Includes file contents.
-               modifying this dict will affect the file that is stored.
-        path: the API path of the save destination
-        contents_manager: this ContentsManager instance
+        - model: the model to be saved. Includes file contents.
+          Modifying this dict will affect the file that is stored.
+        - path: the API path of the save destination
+        - contents_manager: this ContentsManager instance
         """
     )
     def _pre_save_hook_changed(self, name, old, new):

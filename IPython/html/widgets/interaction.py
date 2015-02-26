@@ -171,7 +171,7 @@ def interactive(__interact_f, **kwargs):
     Parameters
     ----------
     __interact_f : function
-        The function to which the interactive widgets are tied. The **kwargs
+        The function to which the interactive widgets are tied. The `**kwargs`
         should match the function signature.
     **kwargs : various, optional
         An interactive widget is created for each keyword argument that is a
@@ -246,7 +246,7 @@ def interact(__interact_f=None, **kwargs):
     """
     Displays interactive widgets which are tied to a function.
     Expects the first argument to be a function. Parameters to this function are
-    widget abbreviations passed in as keyword arguments (**kwargs). Can be used
+    widget abbreviations passed in as keyword arguments (`**kwargs`). Can be used
     as a decorator (see examples).
 
     Returns
@@ -256,7 +256,7 @@ def interact(__interact_f=None, **kwargs):
     Parameters
     ----------
     __interact_f : function
-        The function to which the interactive widgets are tied. The **kwargs
+        The function to which the interactive widgets are tied. The `**kwargs`
         should match the function signature. Passed to :func:`interactive()`
     **kwargs : various, optional
         An interactive widget is created for each keyword argument that is a
@@ -264,37 +264,37 @@ def interact(__interact_f=None, **kwargs):
 
     Examples
     --------
-    Renders an interactive text field that shows the greeting with the passed in
-    text.
+    Render an interactive text field that shows the greeting with the passed in
+    text::
 
-    1. Invocation of interact as a function
+       # 1. Using interact as a function
        def greeting(text="World"):
            print "Hello {}".format(text)
        interact(greeting, text="IPython Widgets")
         
-    2. Invocation of interact as a decorator
+       # 2. Using interact as a decorator
        @interact
        def greeting(text="World"):
            print "Hello {}".format(text)
         
-    3. Invocation of interact as a decorator with named parameters
+       # 3. Using interact as a decorator with named parameters
        @interact(text="IPython Widgets")
        def greeting(text="World"):
            print "Hello {}".format(text)
         
-    Renders an interactive slider widget and prints square of number.
+    Render an interactive slider widget and prints square of number::
 
-    1. Invocation of interact as a function
+       # 1. Using interact as a function
        def square(num=1):
            print "{} squared is {}".format(num, num*num)
        interact(square, num=5)
 
-    2. Invocation of interact as a decorator
+       # 2. Using interact as a decorator
        @interact
        def square(num=2):
            print "{} squared is {}".format(num, num*num)
         
-    3. Invocation of interact as a decorator with named parameters
+       # 3. Using interact as a decorator with named parameters
        @interact(num=5)
        def square(num=2):
            print "{} squared is {}".format(num, num*num)
