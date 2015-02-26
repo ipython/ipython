@@ -10,7 +10,7 @@ try:
 except ImportError:
     from Queue import Empty  # Py 2
 
-from IPython.utils.traitlets import List, Unicode, Bool
+from IPython.utils.traitlets import List, Unicode
 
 from IPython.nbformat.v4 import output_from_msg
 from .base import Preprocessor
@@ -25,7 +25,7 @@ class ExecutePreprocessor(Preprocessor):
     timeout = Integer(30, config=True,
         help="The time to wait (in seconds) for output from executions."
     )
-
+    
     extra_arguments = List(Unicode)
 
     def preprocess(self, nb, resources):
