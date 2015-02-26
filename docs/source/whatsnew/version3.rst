@@ -219,7 +219,7 @@ Backwards incompatible changes
 
   You can downgrade a notebook to v3 via ``nbconvert``::
   
-      ipython nbconvert --to notebook --nbformat 3 [notebook]
+      ipython nbconvert --to notebook --nbformat 3 <notebook>
   
   which will create :file:`notebook.v3.ipynb`, a copy of the notebook in v3 format.
 
