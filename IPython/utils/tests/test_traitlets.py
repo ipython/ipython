@@ -16,7 +16,7 @@ import nose.tools as nt
 from nose import SkipTest
 
 from IPython.utils.traitlets import (
-    HasTraits, MetaHasTraits, TraitType, Any, Bool, CBytes, Dict,
+    HasTraits, MetaHasTraits, TraitType, Any, Bool, CBytes, Dict, Enum,
     Int, Long, Integer, Float, Complex, Bytes, Unicode, TraitError,
     Union, Undefined, Type, This, Instance, TCPAddress, List, Tuple,
     ObjectName, DottedObjectName, CRegExp, link, directional_link,
@@ -979,19 +979,6 @@ class TestInstanceList(TraitTestBase):
     _good_values = [[Foo(), Foo(), None], None]
     _bad_values = [['1', 2,], '1', [Foo]]
 
-class UnionListTrait(HasTraits):
-
-    value = List(Int() | Bool())
-
-class TestUnionListTrait(HasTraits):
-
-    obj = UnionListTrait()
-
-    _default_value = []
-    _good_values = [[True, 1], [False, True]]
-    _bad_values = [[1, 'True'], False]
-
-
 class LenListTrait(HasTraits):
 
     value = List(Int, [0], minlen=1, maxlen=2)
@@ -1099,7 +1086,36 @@ def test_dict_default_value():
     d1, d2 = Dict(), Dict()
     nt.assert_false(d1.get_default_value() is d2.get_default_value())
 
+
+class TestValidationHook(TestCase):
+
+    def test_parity_trait(self):
+        """Verify that the early validation hook is effective"""
+
+        class Parity(HasTraits):
+
+            value = Int(0)
+            parity = Enum(['odd', 'even'], default_value='even', allow_none=False)
+
+            def _value_validate(self, value, trait):
+                if self.parity == 'even' and value % 2:
+                    raise TraitError('Expected an even number')
+                if self.parity == 'odd' and (value % 2 == 0):
+                    raise TraitError('Expected an odd number')
+                return value
+        
+        u = Parity()
+        u.parity = 'odd'
+        u.value = 1  # OK
+        with self.assertRaises(TraitError):
+            u.value = 2  # Trait Error
+
+        u.parity = 'even'
+        u.value = 2  # OK
+
+
 class TestLink(TestCase):
+
     def test_connect_same(self):
         """Verify two traitlets of the same type can be linked together using link."""
 
@@ -1198,25 +1214,6 @@ class TestLink(TestCase):
         a.value = 4
         self.assertEqual(''.join(callback_count), 'ab')
         del callback_count[:]
-    
-    def test_validate_args(self):
-        class A(HasTraits):
-            value = Int()
-        class B(HasTraits):
-            count = Int()
-        a = A(value=9)
-        b = B(count=8)
-        b.value = 5
-        
-        with self.assertRaises(TypeError):
-            link((a, 'value'))
-        with self.assertRaises(TypeError):
-            link((a, 'value', 'count'), (b, 'count'))
-        with self.assertRaises(TypeError):
-            link((a, 'value'), (b, 'value'))
-        with self.assertRaises(TypeError):
-            link((a, 'traits'), (b, 'count'))
-
 
 class TestDirectionalLink(TestCase):
     def test_connect_same(self):
@@ -1282,25 +1279,6 @@ class TestDirectionalLink(TestCase):
         # Change one of the values to make sure they don't stay in sync.
         a.value = 5
         self.assertNotEqual(a.value, b.value)
-
-    def test_validate_args(self):
-        class A(HasTraits):
-            value = Int()
-        class B(HasTraits):
-            count = Int()
-        a = A(value=9)
-        b = B(count=8)
-        b.value = 5
-        
-        with self.assertRaises(TypeError):
-            directional_link((a, 'value'))
-        with self.assertRaises(TypeError):
-            directional_link((a, 'value', 'count'), (b, 'count'))
-        with self.assertRaises(TypeError):
-            directional_link((a, 'value'), (b, 'value'))
-        with self.assertRaises(TypeError):
-            directional_link((a, 'traits'), (b, 'count'))
-
 
 class Pickleable(HasTraits):
     i = Int()
