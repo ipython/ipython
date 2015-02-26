@@ -45,7 +45,6 @@ import inspect
 import re
 import sys
 import types
-from copy import copy
 from types import FunctionType
 try:
     from types import ClassType, InstanceType
