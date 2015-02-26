@@ -71,8 +71,7 @@ See below for details of how to make sure you have a working :mod:`readline`.
 Installation using pip
 ----------------------
 
-If you have :mod:`pip`, the easiest way of getting IPython is
-to simply use :command:`pip`:
+If you have :mod:`pip`, the easiest way of getting IPython is:
 
 .. code-block:: bash
 
@@ -97,15 +96,6 @@ grab the latest stable build of IPython from `here
 If you are installing to a location (like ``/usr/local``) that requires higher
 permissions, you may need to run the last command with :command:`sudo`.
 
-Windows
--------
-
-As mentioned above, terminal IPython requires the PyReadline library to properly support coloring and keyboard
-management (features that the default windows console doesn't have).  So on
-Windows, the installation procedure is:
-
-1. Install `pip <http://pypi.python.org/pypi/pip>`_, if you don't have it already.
-2. Install IPython: ``pip install ipython``.
 
 
 Installing the development version
@@ -203,8 +193,8 @@ installed):
     Other Python distributions on OS X (such as Anaconda, fink, MacPorts)
     already have proper readline so you likely don't have to do this step.
 
-When IPython is installed with :mod:`pip`, (e.g. using the
-``pip`` command), the correct readline should be installed if you specify the `terminal`
+When IPython is installed with :mod:`pip`,
+the correct readline should be installed if you specify the `terminal`
 optional dependencies:
 
 .. code-block:: bash
@@ -299,7 +289,7 @@ or manual:
 
 .. code-block:: bash
 
-    pip install pyzmq jinja2 tornado mistune jsonschema pygments terminado_
+    pip install pyzmq jinja2 tornado mistune jsonschema pygments terminado
 
 The IPython notebook is a notebook-style web interface to IPython and can be
 started with the command ``ipython notebook``.
@@ -327,8 +317,8 @@ For unusual needs, IPython can tell you what directory it wants to find MathJax 
 
     python -m IPython.external.mathjax -d /some/other/mathjax
 
-By default Mathjax will be installed in your ipython directory, but you
-can make system wide install, please refer to the documentation and helper function 
+By default MathJax will be installed in your ipython directory, but you
+can install MathJax system-wide.  Please refer to the documentation
 of :mod:`IPython.external.mathjax`
 
 Browser Compatibility
@@ -351,14 +341,7 @@ The following browsers are unsupported:
 * Internet Explorer < 10
 * Internet Explorer ≥ 10 (same as Opera)
 
-The following specific combinations are known **NOT** to work:
-
-* Safari, IPython 0.12, tornado ≥ 2.2.0
-* Safari with HTTPS connection to notebook and an untrusted certificate (websockets will fail)
-* The `diigo Chrome extension <http://help.diigo.com/tools/chrome-extension>`_ seems to interfere with scrolling
-
-There are some early reports that the Notebook works on Internet Explorer 10, but we
-expect there will be some CSS issues related to the flexible box model.
+Using Safari with HTTPS and an untrusted certificate is known to not work (websockets will fail).
 
 
 Dependencies for nbconvert (converting notebooks to various formats)
