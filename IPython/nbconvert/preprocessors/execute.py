@@ -26,11 +26,6 @@ class ExecutePreprocessor(Preprocessor):
         help="The time to wait (in seconds) for output from executions."
     )
 
-    allow_stdin = Bool(
-        False, config=True, 
-        help="Whether stdin should be enabled when executing cells"
-    )
-    
     extra_arguments = List(Unicode)
 
     def preprocess(self, nb, resources):
@@ -41,7 +36,7 @@ class ExecutePreprocessor(Preprocessor):
                         extra_arguments=self.extra_arguments,
                         stderr=open(os.devnull, 'w')) as kc:
             self.kc = kc
-            self.kc.allow_stdin = self.allow_stdin
+            self.kc.allow_stdin = False
             nb, resources = super(ExecutePreprocessor, self).preprocess(nb, resources)
         return nb, resources
 
