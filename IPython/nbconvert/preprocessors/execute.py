@@ -10,7 +10,7 @@ try:
 except ImportError:
     from Queue import Empty  # Py 2
 
-from IPython.utils.traitlets import List, Unicode
+from IPython.utils.traitlets import List, Unicode, Bool
 
 from IPython.nbformat.v4 import output_from_msg
 from .base import Preprocessor
@@ -25,6 +25,11 @@ class ExecutePreprocessor(Preprocessor):
     timeout = Integer(30, config=True,
         help="The time to wait (in seconds) for output from executions."
     )
+
+    allow_stdin = Bool(
+        False, config=True, 
+        help="Whether stdin should be enabled when executing cells"
+    )
     
     extra_arguments = List(Unicode)
 
@@ -36,6 +41,7 @@ class ExecutePreprocessor(Preprocessor):
                         extra_arguments=self.extra_arguments,
                         stderr=open(os.devnull, 'w')) as kc:
             self.kc = kc
+            self.kc.allow_stdin = self.allow_stdin
             nb, resources = super(ExecutePreprocessor, self).preprocess(nb, resources)
         return nb, resources
 
