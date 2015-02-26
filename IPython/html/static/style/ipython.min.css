@@ -1477,6 +1477,12 @@ h6:hover .anchor-link {
 .widget_item .dropdown-menu li a {
   color: inherit;
 }
+.widget-valid {
+  margin-top: 9px;
+  margin-bottom: 10px;
+  margin-left: 3px;
+  margin-right: 3px;
+}
 .widget-hbox {
   /* Horizontal widgets */
   /* Old browsers */

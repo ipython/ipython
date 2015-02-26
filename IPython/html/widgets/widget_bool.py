@@ -60,16 +60,28 @@ class ToggleButton(_Bool):
        icon: str
            font-awesome icon name
 """
-    
     _view_name = Unicode('ToggleButtonView', sync=True)
     tooltip = Unicode(help="Tooltip caption of the toggle button.", sync=True)
     icon = Unicode('', help= "Font-awesome icon.", sync=True)
 
     button_style = CaselessStrEnum(
-        values=['primary', 'success', 'info', 'warning', 'danger', ''], 
+        values=['primary', 'success', 'info', 'warning', 'danger', ''],
         default_value='', allow_none=True, sync=True, help="""Use a
         predefined styling for the button.""")
 
+
+@register('IPython.Valid')
+class Valid(_Bool):
+
+    """Displays a boolean `value` in the form of a green check (True / valid)
+    or a red cross (False / invalid).
+
+    Parameters
+    ----------
+    value: {True,False}
+        value of the Valid widget
+"""
+    _view_name = Unicode('ValidView', sync=True)
 
 # Remove in IPython 4.0
 CheckboxWidget = DeprecatedClass(Checkbox, 'CheckboxWidget')
