@@ -55,7 +55,7 @@ class ExecutePreprocessor(Preprocessor):
         return cell, resources
 
     def run_cell(self, cell):
-        msg_id = self.kc.execute(cell.source)
+        msg_id = self.kc.execute(cell.source, allow_stdin=False)
         self.log.debug("Executing cell:\n%s", cell.source)
         # wait for finish, with timeout
         while True:
