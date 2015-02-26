@@ -11,12 +11,18 @@ import io
 import os
 import re
 
+try:
+    from queue import Empty  # Py 3
+except ImportError:
+    from Queue import Empty  # Py 2
+
 from IPython import nbformat
 
 from .base import PreprocessorTestsBase
 from ..execute import ExecutePreprocessor
 
 from IPython.nbconvert.filters import strip_ansi
+from nose.tools import assert_raises
 
 addr_pat = re.compile(r'0x[0-9a-f]{7,9}')
 
@@ -135,3 +141,9 @@ class TestExecute(PreprocessorTestsBase):
         self.assertEqual(output['output_type'], 'error')
         self.assertEqual(output['ename'], 'StdinNotImplementedError')
         self.assertEqual(output['evalue'], 'raw_input was called, but this frontend does not support input requests.')
+
+    def test_timeout(self):
+        """Check that an error is raised when a computation times out"""
+        current_dir = os.path.dirname(__file__)
+        filename = os.path.join(current_dir, 'files', 'Interrupt.ipynb')
+        assert_raises(Empty, self.run_notebook, filename, dict(timeout=1))
