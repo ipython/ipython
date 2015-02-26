@@ -217,6 +217,12 @@ Backwards incompatible changes
     to read and write notebook files
     instead of the deprecated :mod:`IPython.nbformat.current` APIs.
 
+  You can downgrade a notebook to v3 via ``nbconvert``::
+  
+      ipython nbconvert --to notebook --nbformat 3 [notebook]
+  
+  which will create :file:`notebook.v3.ipynb`, a copy of the notebook in v3 format.
+
 * :func:`IPython.core.oinspect.getsource` call specification has changed:
 
   * `oname` keyword argument has been added for property source formatting
