@@ -23,6 +23,7 @@ development work they do here in a user friendly format.
    development
    version3
    github-stats-3
+   version3_widget_migration
    version2.0
    github-stats-2.0
    version1.0
