@@ -196,123 +196,124 @@ Comm and Widget PR Index
 ------------------------
 
 Here is a chronological list of PRs affecting the widget and comm frameworks for IPython 3.0. Note that later PRs may revert changes
-  made in earlier PRs:
- - Add placeholder attribute to text widgets
+made in earlier PRs:
+
+- Add placeholder attribute to text widgets
   `#5652 <https://github.com/ipython/ipython/pull/5652>`__
- - Add latex support in widget labels,
+- Add latex support in widget labels,
   `#5937 <https://github.com/ipython/ipython/pull/5937>`__
- - Allow widgets to display more than once within container widgets.
+- Allow widgets to display more than once within container widgets.
   `#5963 <https://github.com/ipython/ipython/pull/5963>`__
- - use require.js,
+- use require.js,
   `#5980 <https://github.com/ipython/ipython/pull/5980>`__
- - Range widgets
+- Range widgets
   `#6050 <https://github.com/ipython/ipython/pull/6050>`__
- - Interact on\_demand option
+- Interact on\_demand option
   `#6051 <https://github.com/ipython/ipython/pull/6051>`__
- - Allow text input on slider widgets
+- Allow text input on slider widgets
   `#6106 <https://github.com/ipython/ipython/pull/6106>`__
- - support binary buffers in comm messages
+- support binary buffers in comm messages
   `#6110 <https://github.com/ipython/ipython/pull/6110>`__
- - Embrace the flexible box model in the widgets
+- Embrace the flexible box model in the widgets
   `#6125 <https://github.com/ipython/ipython/pull/6125>`__
- - Widget trait serialization
+- Widget trait serialization
   `#6128 <https://github.com/ipython/ipython/pull/6128>`__
- - Make Container widgets take children as the first positional
+- Make Container widgets take children as the first positional
   argument `#6153 <https://github.com/ipython/ipython/pull/6153>`__
- - once-displayed
+- once-displayed
   `#6168 <https://github.com/ipython/ipython/pull/6168>`__
- - Validate slider value, when limits change
+- Validate slider value, when limits change
   `#6171 <https://github.com/ipython/ipython/pull/6171>`__
- - Unregistering comms in Comm Manager
+- Unregistering comms in Comm Manager
   `#6216 <https://github.com/ipython/ipython/pull/6216>`__
- - Add EventfulList and EventfulDict trait types.
+- Add EventfulList and EventfulDict trait types.
   `#6228 <https://github.com/ipython/ipython/pull/6228>`__
- - Remove add/remove\_class and set/get\_css.
+- Remove add/remove\_class and set/get\_css.
   `#6235 <https://github.com/ipython/ipython/pull/6235>`__
- - avoid unregistering widget model twice
+- avoid unregistering widget model twice
   `#6250 <https://github.com/ipython/ipython/pull/6250>`__
- - Widget property lock should compare json states, not python states
+- Widget property lock should compare json states, not python states
   `#6332 <https://github.com/ipython/ipython/pull/6332>`__
- - Strip the IPY\_MODEL\_ prefix from widget IDs before referencing
+- Strip the IPY\_MODEL\_ prefix from widget IDs before referencing
   them. `#6377 <https://github.com/ipython/ipython/pull/6377>`__
- - "event" is not defined error in Firefox
+- "event" is not defined error in Firefox
   `#6437 <https://github.com/ipython/ipython/pull/6437>`__
- - Javascript link
+- Javascript link
   `#6454 <https://github.com/ipython/ipython/pull/6454>`__
- - Bulk update of widget attributes
+- Bulk update of widget attributes
   `#6463 <https://github.com/ipython/ipython/pull/6463>`__
- - Creating a widget registry on the Python side.
+- Creating a widget registry on the Python side.
   `#6493 <https://github.com/ipython/ipython/pull/6493>`__
- - Allow widget views to be loaded from require modules
+- Allow widget views to be loaded from require modules
   `#6494 <https://github.com/ipython/ipython/pull/6494>`__
- - Fix Issue #6530
+- Fix Issue #6530
   `#6532 <https://github.com/ipython/ipython/pull/6532>`__
- - Make comm manager (mostly) independent of InteractiveShell
+- Make comm manager (mostly) independent of InteractiveShell
   `#6540 <https://github.com/ipython/ipython/pull/6540>`__
- - Add semantic classes to top-level containers for single widgets
+- Add semantic classes to top-level containers for single widgets
   `#6609 <https://github.com/ipython/ipython/pull/6609>`__
- - Selection Widgets: forcing 'value' to be in 'values'
+- Selection Widgets: forcing 'value' to be in 'values'
   `#6617 <https://github.com/ipython/ipython/pull/6617>`__
- - Allow widgets to be constructed from Javascript
+- Allow widgets to be constructed from Javascript
   `#6664 <https://github.com/ipython/ipython/pull/6664>`__
- - Output widget
+- Output widget
   `#6670 <https://github.com/ipython/ipython/pull/6670>`__
- - Minor change in widgets.less to fix alignment issue
+- Minor change in widgets.less to fix alignment issue
   `#6681 <https://github.com/ipython/ipython/pull/6681>`__
- - Make Selection widgets respect values order.
+- Make Selection widgets respect values order.
   `#6747 <https://github.com/ipython/ipython/pull/6747>`__
- - Widget persistence API
+- Widget persistence API
   `#6789 <https://github.com/ipython/ipython/pull/6789>`__
- - Add promises to the widget framework.
+- Add promises to the widget framework.
   `#6818 <https://github.com/ipython/ipython/pull/6818>`__
- - SelectMultiple widget
+- SelectMultiple widget
   `#6890 <https://github.com/ipython/ipython/pull/6890>`__
- - Tooltip on toggle button
+- Tooltip on toggle button
   `#6923 <https://github.com/ipython/ipython/pull/6923>`__
- - Allow empty text box \*while typing\* for numeric widgets
+- Allow empty text box \*while typing\* for numeric widgets
   `#6943 <https://github.com/ipython/ipython/pull/6943>`__
- - Ignore failure of widget MathJax typesetting
+- Ignore failure of widget MathJax typesetting
   `#6948 <https://github.com/ipython/ipython/pull/6948>`__
- - Refactor the do\_diff and manual child view lists into a separate
+- Refactor the do\_diff and manual child view lists into a separate
   ViewList object
   `#6990 <https://github.com/ipython/ipython/pull/6990>`__
- - Add warning to widget namespace import.
+- Add warning to widget namespace import.
   `#7107 <https://github.com/ipython/ipython/pull/7107>`__
- - lazy load widgets
+- lazy load widgets
   `#7120 <https://github.com/ipython/ipython/pull/7120>`__
- - Fix padding of widgets.
+- Fix padding of widgets.
   `#7139 <https://github.com/ipython/ipython/pull/7139>`__
- - Persist widgets across page refresh
+- Persist widgets across page refresh
   `#7163 <https://github.com/ipython/ipython/pull/7163>`__
- - Make the widget experimental error a real python warning
+- Make the widget experimental error a real python warning
   `#7200 <https://github.com/ipython/ipython/pull/7200>`__
- - Make the widget error message shorter and more understandable.
+- Make the widget error message shorter and more understandable.
   `#7201 <https://github.com/ipython/ipython/pull/7201>`__
- - Make the widget warning brief and easy to filter
+- Make the widget warning brief and easy to filter
   `#7204 <https://github.com/ipython/ipython/pull/7204>`__
- - Add visual cue for widgets with dead comms
+- Add visual cue for widgets with dead comms
   `#7227 <https://github.com/ipython/ipython/pull/7227>`__
- - Widget values as positional arguments
+- Widget values as positional arguments
   `#7260 <https://github.com/ipython/ipython/pull/7260>`__
- - Remove the popup widget
+- Remove the popup widget
   `#7341 <https://github.com/ipython/ipython/pull/7341>`__
- - document and validate link, dlink
+- document and validate link, dlink
   `#7468 <https://github.com/ipython/ipython/pull/7468>`__
- - Document interact 5637
+- Document interact 5637
   `#7525 <https://github.com/ipython/ipython/pull/7525>`__
- - Update some broken examples of using widgets
+- Update some broken examples of using widgets
   `#7547 <https://github.com/ipython/ipython/pull/7547>`__
- - Use Output widget with Interact
+- Use Output widget with Interact
   `#7554 <https://github.com/ipython/ipython/pull/7554>`__
- - don't send empty execute\_result messages
+- don't send empty execute\_result messages
   `#7560 <https://github.com/ipython/ipython/pull/7560>`__
- - Validation on the python side
+- Validation on the python side
   `#7602 <https://github.com/ipython/ipython/pull/7602>`__
- - only show prompt overlay if there's a prompt
+- only show prompt overlay if there's a prompt
   `#7661 <https://github.com/ipython/ipython/pull/7661>`__
- - Allow predictate to be used for comparison in selection widgets
+- Allow predictate to be used for comparison in selection widgets
   `#7674 <https://github.com/ipython/ipython/pull/7674>`__
- - Fix widget view persistence.
+- Fix widget view persistence.
   `#7680 <https://github.com/ipython/ipython/pull/7680>`__
- - Revert "Use Output widget with Interact"
+- Revert "Use Output widget with Interact"
   `#7703 <https://github.com/ipython/ipython/pull/7703>`__
