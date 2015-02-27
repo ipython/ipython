@@ -507,11 +507,12 @@ define([
         /**
          * turn absolute cursor postion into CodeMirror col, ch cursor
          */
-        var i, line;
+        var i, line, next_line;
         var offset = 0;
-        for (i = 0, line=cm.getLine(i); line !== undefined; i++, line=cm.getLine(i)) {
-            if (offset + line.length < cursor_pos) {
-                offset += line.length + 1;
+        for (i = 0, next_line=cm.getLine(i); next_line !== undefined; i++, next_line=cm.getLine(i)) {
+            line = next_line;
+            if (offset + next_line.length < cursor_pos) {
+                offset += next_line.length + 1;
             } else {
                 return {
                     line : i,
@@ -521,8 +522,8 @@ define([
         }
         // reached end, return endpoint
         return {
-            ch : line.length - 1,
             line : i - 1,
+            ch : line.length - 1,
         };
     };
     
