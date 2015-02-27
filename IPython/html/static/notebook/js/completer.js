@@ -203,12 +203,14 @@ define([
         // append the introspection result, in order, at at the beginning of
         // the table and compute the replacement range from current cursor
         // positon and matched_text length.
+        var from = utils.from_absolute_cursor_pos(this.editor, start);
+        var to = utils.from_absolute_cursor_pos(this.editor, end);
         for (i = matches.length - 1; i >= 0; --i) {
             filtered_results.unshift({
                 str: matches[i],
                 type: "introspection",
-                from: utils.from_absolute_cursor_pos(this.editor, start),
-                to: utils.from_absolute_cursor_pos(this.editor, end)
+                from: from,
+                to: to
             });
         }
 
