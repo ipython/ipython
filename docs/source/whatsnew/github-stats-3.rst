@@ -10,12 +10,13 @@ GitHub stats for 2014/04/02 - 2015/02/13 (since 2.0)
 
 These lists are automatically generated, and may be incomplete or contain duplicates.
 
-We closed 462 issues and merged 923 pull requests.
+We closed 469 issues and merged 925 pull requests.
 The full list can be seen `on GitHub <https://github.com/ipython/ipython/milestones/3.0>`_.
 
-The following 155 authors contributed 5951 commits.
+The following 155 authors contributed 5975 commits.
 
 * A.J. Holyoake
+* abalkin
 * Adam Hodgen
 * Adrian Price-Whelan
 * Amin Bandali
@@ -80,7 +81,6 @@ The following 155 authors contributed 5951 commits.
 * Jason Gors
 * Jason Grout
 * Jason Newton
-* JC
 * jdavidheiser
 * Jean-Christophe Jaskula
 * Jeff Hemmelgarn
@@ -105,10 +105,10 @@ The following 155 authors contributed 5951 commits.
 * Kester Tong
 * Kyle Kelley
 * Kyle Rawlins
-* LaptopOfJohn
 * Lev Abalkin
 * Manuel Riel
 * Martin Bergtholdt
+* Martin Spacek
 * Mateusz Paprocki
 * Mathieu
 * Matthias Bussonnier
