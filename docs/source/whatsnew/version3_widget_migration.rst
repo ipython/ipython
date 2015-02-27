@@ -114,12 +114,12 @@ Asynchronous
 
 In the IPython 2.x series the only way to register custom widget views
 and models was to use the registry in the widget manager. Unfortunately,
-using this method made packing custom widgets difficult. The widget
+using this method made distributing and running custom widgets difficult. The widget
 maintainer had to either use the rich display framework to push the
 widget's Javascript to the notebook or instruct the users to install the
 Javascript by hand in a custom profile. With the first method, the
 maintainer would have to be careful about when the Javascript was pushed
-to the font-end. If the Javascript was pushed on Python widget
+to the front-end. If the Javascript was pushed on Python widget
 ``import``, the widgets wouldn't work after page refresh. This is
 because refreshing the page does not restart the kernel, and the Python
 ``import`` statement only runs once in a given kernel instance (unless
