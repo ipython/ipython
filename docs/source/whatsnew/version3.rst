@@ -6,7 +6,7 @@
 Release 3.0
 ===========
 
-Coming February, 2015
+Released February 27, 2015
 
 This is a really big release. Over 150 contributors, and almost 6000 commits in a bit under a year.
 Support for languages other than Python is greatly improved,
@@ -68,7 +68,9 @@ style short name, such as ``\alpha``. Press tab, and it will turn into α.
 
 Widget migration guide
 ----------------------
-The widget framework has a lot of backwards incompatible changes.  For information about migrating widget notebooks and custom widgets to 3.0 refer to the :doc:`widget migration guide<version3_widget_migration>`.
+The widget framework has a lot of backwards incompatible changes.
+For information about migrating widget notebooks and custom widgets to 3.0 refer
+to the :doc:`widget migration guide<version3_widget_migration>`.
 
 Other new features
 ------------------
