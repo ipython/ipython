@@ -3,4 +3,5 @@
 from IPython.display import FileLinks, display
 dirs =!ls -d */
 for d in dirs:
-    display(FileLinks(d))
+    if d != '__pycache__/':
+        display(FileLinks(d))
