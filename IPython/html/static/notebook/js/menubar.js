@@ -126,6 +126,10 @@ define([
             that._nbconvert('html', true);
         });
 
+        this.element.find('#download_markdown').click(function () {
+            that._nbconvert('markdown', true);
+        });
+
         this.element.find('#download_rst').click(function () {
             that._nbconvert('rst', true);
         });
