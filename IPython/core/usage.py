@@ -47,7 +47,7 @@ Usage
     is a separate configuration directory for each profile. The default profile
     directory will be located in $IPYTHONDIR/profile_default. IPYTHONDIR
     defaults to to `$HOME/.ipython`.  For Windows users, $HOME resolves to
-    C:\\Documents and Settings\\YourUserName in most instances.
+    C:\\Users\\YourUserName in most instances.
 
     To initialize a profile with the default configuration file, do::
 
