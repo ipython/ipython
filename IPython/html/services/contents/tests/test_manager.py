@@ -148,6 +148,9 @@ class TestFileContentsManager(TestCase):
                 self.assertEqual(e.status_code, 403)
             else:
                 self.fail("Should have raised HTTPError(403)")
+            finally:
+                # Restore write permission so it can be deleted on Windows
+                os.chmod(os_path, 0o600)
 
 
 class TestContentsManager(TestCase):
