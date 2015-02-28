@@ -48,13 +48,28 @@ def test_multiline():
     start = cell.index(expected) + 1
     for i in range(start, start + len(expected)):
         expect_token(expected, cell, i)
-    expected = 'there'
+    expected = 'hello'
     start = cell.index(expected) + 1
     for i in range(start, start + len(expected)):
         expect_token(expected, cell, i)
 
+def test_nested_call():
+    cell = "foo(bar(a=5), b=10)"
+    expected = 'foo'
+    start = cell.index('bar') + 1
+    for i in range(start, start + 3):
+        expect_token(expected, cell, i)
+    expected = 'bar'
+    start = cell.index('a=')
+    for i in range(start, start + 3):
+        expect_token(expected, cell, i)
+    expected = 'foo'
+    start = cell.index(')') + 1
+    for i in range(start, len(cell)-1):
+        expect_token(expected, cell, i)
+
 def test_attrs():
-    cell = "foo(a=obj.attr.subattr)"
+    cell = "a = obj.attr.subattr"
     expected = 'obj'
     idx = cell.find('obj') + 1
     for i in range(idx, idx + 3):
