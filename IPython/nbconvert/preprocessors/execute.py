@@ -36,6 +36,7 @@ class ExecutePreprocessor(Preprocessor):
                         extra_arguments=self.extra_arguments,
                         stderr=open(os.devnull, 'w')) as kc:
             self.kc = kc
+            self.kc.allow_stdin = False
             nb, resources = super(ExecutePreprocessor, self).preprocess(nb, resources)
         return nb, resources
 

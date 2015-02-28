@@ -89,4 +89,18 @@ class TestExecute(PreprocessorTestsBase):
                     del cell['execution_count']
                 cell['outputs'] = []
             output_nb, _ = preprocessor(cleaned_input_nb, res)
-            self.assert_notebooks_equal(output_nb, input_nb)
+
+            if os.path.basename(filename) == "Disable Stdin.ipynb":
+                # We need to special-case this particular notebook, because the
+                # traceback contains machine-specific stuff like where IPython
+                # is installed. It is sufficient here to just check that an error
+                # was thrown, and that it was a StdinNotImplementedError
+                self.assertEqual(len(output_nb['cells']), 1)
+                self.assertEqual(len(output_nb['cells'][0]['outputs']), 1)
+                output = output_nb['cells'][0]['outputs'][0]
+                self.assertEqual(output['output_type'], 'error')
+                self.assertEqual(output['ename'], 'StdinNotImplementedError')
+                self.assertEqual(output['evalue'], 'raw_input was called, but this frontend does not support input requests.')
+
+            else:
+                self.assert_notebooks_equal(output_nb, input_nb)
