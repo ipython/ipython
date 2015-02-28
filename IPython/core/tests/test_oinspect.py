@@ -28,6 +28,7 @@ from IPython.core.magic import (Magics, magics_class, line_magic,
                                 register_line_cell_magic)
 from IPython.external.decorator import decorator
 from IPython.testing.decorators import skipif
+from IPython.utils.path import compress_user
 from IPython.utils import py3compat
 
 
@@ -241,7 +242,7 @@ def test_info():
         fname = fname[:-1]
     # case-insensitive comparison needed on some filesystems
     # e.g. Windows:
-    nt.assert_equal(i['file'].lower(), fname.lower())
+    nt.assert_equal(i['file'].lower(), compress_user(fname.lower()))
     nt.assert_equal(i['definition'], None)
     nt.assert_equal(i['docstring'], Call.__doc__)
     nt.assert_equal(i['source'], None)
