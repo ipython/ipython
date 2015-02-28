@@ -170,9 +170,9 @@ class BaseIPythonApplication(Application):
         try:
             directory = py3compat.getcwd()
         except:
-            # raise exception
+            # exit if cwd doesn't exist
             self.log.error("Current working directory doesn't exist.")
-            raise
+            self.exit(1)
 
     #-------------------------------------------------------------------------
     # Various stages of Application creation
