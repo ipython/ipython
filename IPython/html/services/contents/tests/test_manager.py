@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import os
+import sys
 import time
 
 from nose import SkipTest
@@ -134,6 +135,8 @@ class TestFileContentsManager(TestCase):
         if hasattr(os, 'getuid'):
             if os.getuid() == 0:
                 raise SkipTest("Can't test permissions as root")
+        if sys.platform.startswith('win'):
+            raise SkipTest("Can't test permissions on Windows")
         
         with TemporaryDirectory() as td:
             cm = FileContentsManager(root_dir=td)
