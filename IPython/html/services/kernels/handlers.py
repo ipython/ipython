@@ -160,7 +160,7 @@ class ZMQChannelsHandler(AuthenticatedZMQStreamHandler):
         protocol_version = info.get('protocol_version', kernel_protocol_version)
         if protocol_version != kernel_protocol_version:
             self.session.adapt_version = int(protocol_version.split('.')[0])
-            self.log.info("Kernel %s speaks protocol %s", self.kernel_id, protocol_version)
+            self.log.info("Adapting to protocol v%s for kernel %s", protocol_version, self.kernel_id)
         if not self._kernel_info_future.done():
             self._kernel_info_future.set_result(info)
     
