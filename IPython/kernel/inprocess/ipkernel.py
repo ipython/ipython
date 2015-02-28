@@ -124,7 +124,7 @@ class InProcessKernel(IPythonKernel):
 
     def _session_default(self):
         from IPython.kernel.zmq.session import Session
-        return Session(parent=self)
+        return Session(parent=self, key=b'')
 
     def _shell_class_default(self):
         return InProcessInteractiveShell
