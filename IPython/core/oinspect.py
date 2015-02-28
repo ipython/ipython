@@ -36,6 +36,7 @@ from IPython.utils import io
 from IPython.utils import openpy
 from IPython.utils import py3compat
 from IPython.utils.dir2 import safe_hasattr
+from IPython.utils.path import compress_user
 from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace
 from IPython.utils.coloransi import TermColors, ColorScheme, ColorSchemeTable
@@ -741,7 +742,7 @@ class Inspector:
                 binary_file = True
             elif fname.endswith('<string>'):
                 fname = 'Dynamically generated function. No source code available.'
-            out['file'] = fname
+            out['file'] = compress_user(fname)
 
         # Original source code for a callable, class or property.
         if detail_level:
