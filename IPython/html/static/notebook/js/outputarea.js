@@ -484,6 +484,7 @@ define([
                 last.text = utils.fixCarriageReturn(last.text + json.text);
                 var pre = this.element.find('div.'+subclass).last().find('pre');
                 var html = utils.fixConsole(last.text);
+                html = utils.autoLinkUrls(html);
                 // The only user content injected with this HTML call is
                 // escaped by the fixConsole() method.
                 pre.html(html);
