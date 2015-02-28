@@ -110,7 +110,7 @@ casper.notebook_test(function () {
     // validate captured buffers Python-side
     this.then(function () {
         var index = this.append_cell([
-            "assert len(msgs) == 1, len(msgs)",
+            "assert len(msgs) == 3, len(msgs)",
             "bufs = msgs[0]['buffers']",
             "assert len(bufs) == len(buffers), bufs",
             "assert bufs[0].bytes == buffers[0], bufs[0].bytes",
@@ -121,7 +121,7 @@ casper.notebook_test(function () {
         this.wait_for_output(index);
         this.then(function () {
             var out = this.get_output_cell(index);
-            this.test.assertEquals(out['text/plain'], '1', "Python received buffers");
+            this.test.assertEquals(out.data['text/plain'], '1', "Python received buffers");
         });
     });
 });
