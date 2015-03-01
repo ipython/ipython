@@ -67,9 +67,13 @@ nbconvert_flags.update({
         {'NbConvertApp' : {'writer_class' : "StdoutWriter"}},
         "Write notebook output to stdout instead of files."
         ),
-    'no-output-suffix' : (
-        {'NbConvertApp' : {'use_output_suffix' : False}},
-        "Do not apply a suffix to filenames when converting to notebook format."
+    'inplace' : (
+        {
+            'NbConvertApp' : {'use_output_suffix' : False},
+            'FilesWriter': {'build_directory': ''}
+        },
+        """Run nbconvert in place, overwriting the existing notebook (only 
+        relevant when converting to notebook format)"""
         )
 })
 
@@ -254,6 +258,8 @@ class NbConvertApp(BaseIPythonApplication):
         """
         self._writer_class_changed(None, self.writer_class, self.writer_class)
         self.writer = self.writer_factory(parent=self)
+        if hasattr(self.writer, 'build_directory') and self.writer.build_directory != '':
+            self.use_output_suffix = False
 
     def init_postprocessor(self):
         """

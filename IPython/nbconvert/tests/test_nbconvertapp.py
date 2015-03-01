@@ -220,7 +220,7 @@ class TestNbConvertApp(TestsBase):
             self.call('nbconvert empty.ipynb --to notebook')
             assert os.path.isfile('empty.nbconvert.ipynb')
 
-    def test_no_output_suffix(self):
+    def test_different_build_dir(self):
         """
         Verify that the output suffix is not applied
         """
@@ -229,6 +229,15 @@ class TestNbConvertApp(TestsBase):
             os.mkdir('output')
             self.call(
                 'nbconvert empty.ipynb --to notebook '
-                '--FilesWriter.build_directory=output '
-                '--no-output-suffix')
+                '--FilesWriter.build_directory=output')
             assert os.path.isfile('output/empty.ipynb')
+
+    def test_inplace(self):
+        """
+        Verify that the notebook is converted in place
+        """
+        with self.create_temp_cwd():
+            self.create_empty_notebook('empty.ipynb')
+            self.call('nbconvert empty.ipynb --to notebook --inplace')
+            assert os.path.isfile('empty.ipynb')
+            assert not os.path.isfile('empty.nbconvert.ipynb')
