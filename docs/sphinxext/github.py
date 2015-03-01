@@ -20,6 +20,7 @@ Authors
 from docutils import nodes, utils
 from docutils.parsers.rst.roles import set_classes
 
+
 def make_link_node(rawtext, app, type, slug, options):
     """Create a link to a github resource.
 
@@ -48,6 +49,7 @@ def make_link_node(rawtext, app, type, slug, options):
                            **options)
     return node
 
+
 def ghissue_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
     """Link to a GitHub issue.
 
@@ -75,7 +77,7 @@ def ghissue_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
         prb = inliner.problematic(rawtext, rawtext, msg)
         return [prb], [msg]
     app = inliner.document.settings.env.app
-    #app.info('issue %r' % text)
+    # app.info('issue %r' % text)
     if 'pull' in name.lower():
         category = 'pull'
     elif 'issue' in name.lower():
@@ -88,6 +90,7 @@ def ghissue_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
         return [prb], [msg]
     node = make_link_node(rawtext, app, category, str(issue_num), options)
     return [node], []
+
 
 def ghuser_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
     """Link to a GitHub user.
@@ -105,7 +108,7 @@ def ghuser_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
     :param content: The directive content for customization.
     """
     app = inliner.document.settings.env.app
-    #app.info('user link %r' % text)
+    # app.info('user link %r' % text)
     ref = 'https://www.github.com/' + text
     node = nodes.reference(rawtext, text, refuri=ref, **options)
     return [node], []
@@ -126,7 +129,7 @@ def ghcommit_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
     :param content: The directive content for customization.
     """
     app = inliner.document.settings.env.app
-    #app.info('user link %r' % text)
+    # app.info('user link %r' % text)
     try:
         base = app.config.github_project_url
         if not base:
@@ -143,7 +146,7 @@ def ghcommit_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
 
 def setup(app):
     """Install the plugin.
-    
+
     :param app: Sphinx application context.
     """
     app.info('Initializing GitHub plugin')

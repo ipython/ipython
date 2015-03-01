@@ -33,6 +33,7 @@ html_dir = 'build/html'
 pdf_dir = 'build/latex'
 pages_repo = 'git@github.com:ipython/ipython-doc.git'
 
+
 #-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
@@ -69,7 +70,7 @@ def sh3(cmd):
 
 def init_repo(path):
     """clone the gh-pages repo if we haven't already."""
-    sh("git clone %s %s"%(pages_repo, path))
+    sh("git clone %s %s" % (pages_repo, path))
     here = os.getcwdu()
     cd(path)
     sh('git checkout gh-pages')
@@ -84,7 +85,7 @@ if __name__ == '__main__':
         tag = sys.argv[1]
     except IndexError:
         tag = "dev"
-    
+
     startdir = os.getcwdu()
     if not os.path.exists(pages_dir):
         # init the repo
@@ -102,7 +103,7 @@ if __name__ == '__main__':
     # sh('make html')
     if tag != 'dev':
         # only build pdf for non-dev targets
-        #sh2('make pdf')
+        # sh2('make pdf')
         pass
 
     # This is pretty unforgiving: we unconditionally nuke the destination
@@ -110,7 +111,7 @@ if __name__ == '__main__':
     shutil.rmtree(dest, ignore_errors=True)
     shutil.copytree(html_dir, dest)
     if tag != 'dev':
-        #shutil.copy(pjoin(pdf_dir, 'ipython.pdf'), pjoin(dest, 'ipython.pdf'))
+        # shutil.copy(pjoin(pdf_dir, 'ipython.pdf'), pjoin(dest, 'ipython.pdf'))
         pass
 
     try:

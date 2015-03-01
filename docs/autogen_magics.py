@@ -6,12 +6,14 @@ from IPython.utils.text import dedent, indent
 shell = InteractiveShell.instance()
 magics = shell.magics_manager.magics
 
+
 def _strip_underline(line):
     chars = set(line.strip())
     if len(chars) == 1 and ('-' in chars or '=' in chars):
         return ""
     else:
         return line
+
 
 def format_docstring(func):
     docstring = (func.__doc__ or "Undocumented").rstrip()
@@ -22,13 +24,15 @@ def format_docstring(func):
     return "\n".join(lines)
 
 output = [
-"Line magics",
-"===========",
-"",
+    "Line magics",
+    "===========",
+    "",
 ]
 
+
 # Case insensitive sort by name
-def sortkey(s): return s[0].lower()
+def sortkey(s):
+    return s[0].lower()
 
 for name, func in sorted(magics['line'].items(), key=sortkey):
     if isinstance(func, Alias) or isinstance(func, MagicAlias):
@@ -41,9 +45,9 @@ for name, func in sorted(magics['line'].items(), key=sortkey):
                    ""])
 
 output.extend([
-"Cell magics",
-"===========",
-"",
+    "Cell magics",
+    "===========",
+    "",
 ])
 
 for name, func in sorted(magics['cell'].items(), key=sortkey):

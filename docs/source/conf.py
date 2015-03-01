@@ -15,7 +15,8 @@
 # All configuration values have a default value; values that are commented out
 # serve to show the default value.
 
-import sys, os
+import sys
+import os
 
 ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
 
@@ -24,7 +25,7 @@ if ON_RTD:
     # see
     # http://read-the-docs.readthedocs.org/en/latest/faq.html
     tags.add('rtd')
-    
+
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
@@ -89,7 +90,7 @@ copyright = 'The IPython Development Team'
 github_project_url = "https://github.com/ipython/ipython"
 
 # numpydoc config
-numpydoc_show_class_members = False # Otherwise Sphinx emits thousands of warnings
+numpydoc_show_class_members = False  # Otherwise Sphinx emits thousands of warnings
 numpydoc_class_members_toctree = False
 
 # The default replacements for |version| and |release|, also used in various
@@ -103,12 +104,12 @@ version = iprelease['version'].split('-', 1)[0]
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
-#today = ''
+# today = ''
 # Else, today_fmt is used as the format for a strftime call.
 today_fmt = '%B %d, %Y'
 
 # List of documents that shouldn't be included in the build.
-#unused_docs = []
+# unused_docs = []
 
 # Exclude these glob-style patterns when looking for source files. They are
 # relative to the source/ directory.
@@ -116,15 +117,15 @@ exclude_patterns = ['whatsnew/pr']
 
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
-#add_function_parentheses = True
+# add_function_parentheses = True
 
 # If true, the current module name will be prepended to all description
 # unit titles (such as .. function::).
-#add_module_names = True
+# add_module_names = True
 
 # If true, sectionauthor and moduleauthor directives will be shown in the
 # output. They are ignored by default.
-#show_authors = False
+# show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
@@ -142,11 +143,11 @@ html_style = 'default.css'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-#html_title = None
+# html_title = None
 
 # The name of an image file (within the static path) to place at the top of
 # the sidebar.
-#html_logo = None
+# html_logo = None
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -159,10 +160,10 @@ html_last_updated_fmt = '%b %d, %Y'
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
-#html_use_smartypants = True
+# html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-#html_sidebars = {}
+# html_sidebars = {}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
@@ -174,24 +175,26 @@ html_additional_pages = {
 }
 
 # If false, no module index is generated.
-#html_use_modindex = True
+# html_use_modindex = True
 
 # If true, the reST sources are included in the HTML build as _sources/<name>.
-#html_copy_source = True
+# html_copy_source = True
 
 # If true, an OpenSearch description file will be output, and all pages will
 # contain a <link> tag referring to it.  The value of this option must be the
 # base URL from which the finished HTML is served.
-#html_use_opensearch = ''
+# html_use_opensearch = ''
 
 # If nonempty, this is the file name suffix for HTML files (e.g. ".xhtml").
-#html_file_suffix = ''
+# html_file_suffix = ''
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'ipythondoc'
 
-intersphinx_mapping = {'python': ('http://docs.python.org/2/', None),
-                       'rpy2': ('http://rpy.sourceforge.net/rpy2/doc-2.4/html/', None)}
+intersphinx_mapping = {
+    'python': ('http://docs.python.org/2/', None),
+    'rpy2': ('http://rpy.sourceforge.net/rpy2/doc-2.4/html/', None)
+}
 
 # Options for LaTeX output
 # ------------------------
@@ -215,17 +218,17 @@ latex_documents = [
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
-#latex_logo = None
+# latex_logo = None
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
-#latex_use_parts = False
+# latex_use_parts = False
 
 # Additional stuff for the LaTeX preamble.
-#latex_preamble = ''
+# latex_preamble = ''
 
 # Documents to append as an appendix to all manuals.
-#latex_appendices = []
+# slatex_appendices = []
 
 # If false, no module index is generated.
 latex_use_modindex = True

@@ -5,6 +5,7 @@ from sphinx.roles import XRefRole
 
 name_re = re.compile(r"[\w_]+")
 
+
 def parse_magic(env, sig, signode):
     m = name_re.match(sig)
     if not m:
@@ -12,6 +13,7 @@ def parse_magic(env, sig, signode):
     name = "%" + sig
     signode += addnodes.desc_name(name, name)
     return m.group(0)
+
 
 class LineMagicRole(XRefRole):
     """Cross reference role displayed with a % prefix"""
@@ -23,6 +25,7 @@ class LineMagicRole(XRefRole):
         target = target.lstrip("%")
         return title, target
 
+
 def parse_cell_magic(env, sig, signode):
     m = name_re.match(sig)
     if not m:
@@ -31,9 +34,11 @@ def parse_cell_magic(env, sig, signode):
     signode += addnodes.desc_name(name, name)
     return m.group(0)
 
+
 class CellMagicRole(LineMagicRole):
     """Cross reference role displayed with a %% prefix"""
     prefix = "%%"
+
 
 def setup(app):
     app.add_object_type('magic', 'magic', 'pair: %s; magic command', parse_magic)

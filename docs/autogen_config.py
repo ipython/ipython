@@ -6,6 +6,7 @@ from IPython.terminal.ipapp import TerminalIPythonApp
 from IPython.kernel.zmq.kernelapp import IPKernelApp
 from IPython.html.notebookapp import NotebookApp
 
+
 def document_config_options(classes):
     lines = []
     for cls in classes:
@@ -28,10 +29,10 @@ def document_config_options(classes):
                 dv = trait.get_default_value()
                 dvr = repr(dv)
             except Exception:
-                dvr = dv = None # ignore defaults we can't construct
+                dvr = dv = None  # ignore defaults we can't construct
             if (dv is not None) and (dvr is not None):
                 if len(dvr) > 64:
-                    dvr = dvr[:61]+'...'
+                    dvr = dvr[:61] + '...'
                 # Double up backslashes, so they get to the rendered docs
                 dvr = dvr.replace('\\n', '\\\\n')
                 lines.append('    Default: `%s`' % dvr)
@@ -47,6 +48,7 @@ def document_config_options(classes):
     return '\n'.join(lines)
 
 kernel_classes = IPKernelApp().classes
+
 
 def write_doc(name, title, classes, preamble=None):
     configdoc = document_config_options(classes)
@@ -68,10 +70,12 @@ if __name__ == '__main__':
         pass
 
     write_doc('terminal', 'Terminal IPython options', TerminalIPythonApp().classes)
-    write_doc('kernel', 'IPython kernel options', kernel_classes,
+    write_doc(
+        'kernel', 'IPython kernel options', kernel_classes,
         preamble="These options can be used in :file:`ipython_kernel_config.py`",
     )
-    write_doc('notebook', 'IPython notebook options', NotebookApp().classes,
+    write_doc(
+        'notebook', 'IPython notebook options', NotebookApp().classes,
         preamble="To configure the IPython kernel, see :doc:`kernel`."
     )
 
@@ -81,7 +85,7 @@ if __name__ == '__main__':
         print("WARNING: Could not import qtconsoleapp. Config options for the "
               "Qt Console will not be documented.")
     else:
-        write_doc('qtconsole', 'IPython Qt console options', IPythonQtConsoleApp().classes,
-        preamble="To configure the IPython kernel, see :doc:`kernel`."
-    )
-
+        write_doc(
+            'qtconsole', 'IPython Qt console options', IPythonQtConsoleApp().classes,
+            preamble="To configure the IPython kernel, see :doc:`kernel`."
+        )
