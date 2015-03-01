@@ -25,6 +25,12 @@ class FilesWriter(WriterBase):
                               help="""Directory to write output to.  Leave blank
                               to output to the current directory""")
 
+    relpath = Unicode(
+        "", config=True, 
+        help="""When copying files that the notebook depends on, copy them in
+        relation to this path, such that the destination filename will be
+        os.path.relpath(filename, relpath).""")
+
 
     # Make sure that the output directory exists.
     def _build_directory_changed(self, name, old, new):
@@ -81,8 +87,14 @@ class FilesWriter(WriterBase):
                     # Copy files that match search pattern
                     for matching_filename in glob.glob(filename):
 
+                        # compute the relative path for the filename
+                        if self.relpath:
+                            dest_filename = os.path.relpath(matching_filename, self.relpath)
+                        else:
+                            dest_filename = matching_filename
+
                         # Make sure folder exists.
-                        dest = os.path.join(self.build_directory, matching_filename)
+                        dest = os.path.join(self.build_directory, dest_filename)
                         path = os.path.dirname(dest)
                         self._makedir(path)
 
