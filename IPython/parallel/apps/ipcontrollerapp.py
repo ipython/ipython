@@ -357,6 +357,9 @@ class IPControllerApp(BaseParallelApplication):
         self.factory.hub.engine_state_file = os.path.join(self.profile_dir.log_dir, fname)
         if self.restore_engines:
             self.factory.hub._load_engine_state()
+        # load key into config so other sessions in this process (TaskScheduler)
+        # have the same value
+        self.config.Session.key = self.factory.session.key
 
     def init_schedulers(self):
         children = self.children
