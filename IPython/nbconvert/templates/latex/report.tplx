@@ -20,3 +20,7 @@
 ((* block docclass *))
 \documentclass{report}
 ((* endblock docclass *))
+
+((* block markdowncell scoped *))
+((( cell.source | citation2latex | strip_files_prefix | markdown2latex(extra_args=["--chapters"]) )))
+((* endblock markdowncell *))
