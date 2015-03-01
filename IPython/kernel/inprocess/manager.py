@@ -1,23 +1,13 @@
 """A kernel manager for in-process kernels."""
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from IPython.utils.traitlets import Instance, DottedObjectName
 from IPython.kernel.managerabc import KernelManagerABC
 from IPython.kernel.manager import KernelManager
+from IPython.kernel.zmq.session import Session
 
-#-----------------------------------------------------------------------------
-# Main kernel manager class
-#-----------------------------------------------------------------------------
 
 class InProcessKernelManager(KernelManager):
     """A manager for an in-process kernel.
@@ -33,14 +23,18 @@ class InProcessKernelManager(KernelManager):
     kernel = Instance('IPython.kernel.inprocess.ipkernel.InProcessKernel')
     # the client class for KM.client() shortcut
     client_class = DottedObjectName('IPython.kernel.inprocess.BlockingInProcessKernelClient')
-
+    
+    def _session_default(self):
+        # don't sign in-process messages
+        return Session(key=b'', parent=self)
+    
     #--------------------------------------------------------------------------
     # Kernel management methods
     #--------------------------------------------------------------------------
 
     def start_kernel(self, **kwds):
         from IPython.kernel.inprocess.ipkernel import InProcessKernel
-        self.kernel = InProcessKernel()
+        self.kernel = InProcessKernel(parent=self, session=self.session)
 
     def shutdown_kernel(self):
         self._kill_kernel()

@@ -30,7 +30,7 @@ from IPython.kernel.zmq.kernelapp import (
     IPKernelApp
 )
 from IPython.kernel.zmq.pylab.config import InlineBackend
-from IPython.kernel.zmq.session import Session, default_secure
+from IPython.kernel.zmq.session import Session
 from IPython.kernel.zmq.zmqshell import ZMQInteractiveShell
 from IPython.kernel.connect import ConnectionFileMixin
 
@@ -338,7 +338,6 @@ class IPythonConsoleApp(ConnectionFileMixin):
                IPythonConsoleApp.initialize(self,argv)
         """
         self.init_connection_file()
-        default_secure(self.config)
         self.init_ssh()
         self.init_kernel_manager()
         self.init_kernel_client()

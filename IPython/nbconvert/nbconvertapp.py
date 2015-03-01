@@ -18,7 +18,7 @@ from IPython.core.application import BaseIPythonApplication, base_aliases, base_
 from IPython.core.profiledir import ProfileDir
 from IPython.config import catch_config_error, Configurable
 from IPython.utils.traitlets import (
-    Unicode, List, Instance, DottedObjectName, Type, CaselessStrEnum,
+    Unicode, List, Instance, DottedObjectName, Type, CaselessStrEnum, Bool,
 )
 from IPython.utils.importstring import import_item
 
@@ -66,6 +66,14 @@ nbconvert_flags.update({
     'stdout' : (
         {'NbConvertApp' : {'writer_class' : "StdoutWriter"}},
         "Write notebook output to stdout instead of files."
+        ),
+    'inplace' : (
+        {
+            'NbConvertApp' : {'use_output_suffix' : False},
+            'FilesWriter': {'build_directory': ''}
+        },
+        """Run nbconvert in place, overwriting the existing notebook (only 
+        relevant when converting to notebook format)"""
         )
 })
 
@@ -99,6 +107,13 @@ class NbConvertApp(BaseIPythonApplication):
     output_base = Unicode('', config=True, help='''overwrite base name use for output files.
             can only be used when converting one notebook at a time.
             ''')
+
+    use_output_suffix = Bool(
+        True, 
+        config=True,
+        help="""Whether to apply a suffix prior to the extension (only relevant
+            when converting to notebook format). The suffix is determined by
+            the exporter, and is usually '.nbconvert'.""")
 
     examples = Unicode(u"""
         The simplest way to use nbconvert is
@@ -243,6 +258,8 @@ class NbConvertApp(BaseIPythonApplication):
         """
         self._writer_class_changed(None, self.writer_class, self.writer_class)
         self.writer = self.writer_factory(parent=self)
+        if hasattr(self.writer, 'build_directory') and self.writer.build_directory != '':
+            self.use_output_suffix = False
 
     def init_postprocessor(self):
         """
@@ -303,7 +320,7 @@ class NbConvertApp(BaseIPythonApplication):
                       exc_info=True)
                 self.exit(1)
             else:
-                if 'output_suffix' in resources and not self.output_base:
+                if self.use_output_suffix and 'output_suffix' in resources and not self.output_base:
                     notebook_name += resources['output_suffix']
                 write_results = self.writer.write(output, resources, notebook_name=notebook_name)
 

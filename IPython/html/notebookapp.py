@@ -77,7 +77,7 @@ from IPython.core.application import (
 from IPython.core.profiledir import ProfileDir
 from IPython.kernel import KernelManager
 from IPython.kernel.kernelspec import KernelSpecManager
-from IPython.kernel.zmq.session import default_secure, Session
+from IPython.kernel.zmq.session import Session
 from IPython.nbformat.sign import NotebookNotary
 from IPython.utils.importstring import import_item
 from IPython.utils import submodule
@@ -505,7 +505,11 @@ class NotebookApp(BaseIPythonApplication):
     tornado_settings = Dict(config=True,
             help="Supply overrides for the tornado.web.Application that the "
                  "IPython notebook uses.")
-
+    
+    ssl_options = Dict(config=True,
+            help="""Supply SSL options for the tornado HTTPServer.
+            See the tornado docs for details.""")
+    
     jinja_environment_options = Dict(config=True, 
             help="Supply extra arguments that will be passed to Jinja environment.")
     
@@ -760,9 +764,6 @@ class NotebookApp(BaseIPythonApplication):
         self.ipython_kernel_argv = ["--profile-dir", self.profile_dir.location]
 
     def init_configurables(self):
-        # force Session default to be secure
-        default_secure(self.config)
-
         self.kernel_spec_manager = self.kernel_spec_manager_class(
             parent=self,
             ipython_dir=self.ipython_dir,
@@ -826,11 +827,13 @@ class NotebookApp(BaseIPythonApplication):
             self.log, self.base_url, self.default_url, self.tornado_settings,
             self.jinja_environment_options
         )
+        ssl_options = self.ssl_options
         if self.certfile:
-            ssl_options = dict(certfile=self.certfile)
-            if self.keyfile:
-                ssl_options['keyfile'] = self.keyfile
-        else:
+            ssl_options['certfile'] = self.certfile
+        if self.keyfile:
+            ssl_options['keyfile'] = self.keyfile
+        if not ssl_options:
+            # None indicates no SSL config
             ssl_options = None
         self.login_handler_class.validate_security(self, ssl_options=ssl_options)
         self.http_server = httpserver.HTTPServer(self.web_app, ssl_options=ssl_options,

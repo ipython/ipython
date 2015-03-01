@@ -160,7 +160,7 @@ class ZMQChannelsHandler(AuthenticatedZMQStreamHandler):
         protocol_version = info.get('protocol_version', kernel_protocol_version)
         if protocol_version != kernel_protocol_version:
             self.session.adapt_version = int(protocol_version.split('.')[0])
-            self.log.info("Kernel %s speaks protocol %s", self.kernel_id, protocol_version)
+            self.log.info("Adapting to protocol v%s for kernel %s", protocol_version, self.kernel_id)
         if not self._kernel_info_future.done():
             self._kernel_info_future.set_result(info)
     
@@ -179,6 +179,8 @@ class ZMQChannelsHandler(AuthenticatedZMQStreamHandler):
         # then request kernel info, waiting up to a certain time before giving up.
         # We don't want to wait forever, because browsers don't take it well when
         # servers never respond to websocket connection requests.
+        kernel = self.kernel_manager.get_kernel(self.kernel_id)
+        self.session.key = kernel.session.key
         future = self.request_kernel_info()
         
         def give_up():

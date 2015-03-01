@@ -36,7 +36,7 @@ from .heartbeat import Heartbeat
 from .ipkernel import IPythonKernel
 from .parentpoller import ParentPollerUnix, ParentPollerWindows
 from .session import (
-    Session, session_flags, session_aliases, default_secure,
+    Session, session_flags, session_aliases,
 )
 from .zmqshell import ZMQInteractiveShell
 
@@ -342,7 +342,6 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
     @catch_config_error
     def initialize(self, argv=None):
         super(IPKernelApp, self).initialize(argv)
-        default_secure(self.config)
         self.init_blackhole()
         self.init_connection_file()
         self.init_poller()

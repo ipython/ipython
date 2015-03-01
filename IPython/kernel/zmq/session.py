@@ -122,7 +122,7 @@ def default_secure(cfg):
     If Session.key/keyfile have not been set, set Session.key to
     a new random UUID.
     """
-    
+    warnings.warn("default_secure is deprecated", DeprecationWarning)
     if 'Session' in cfg:
         if 'key' in cfg.Session or 'keyfile' in cfg.Session:
             return
@@ -315,8 +315,11 @@ class Session(Configurable):
 
     # message signature related traits:
     
-    key = CBytes(b'', config=True,
-        help="""execution key, for extra authentication.""")
+    key = CBytes(config=True,
+        help="""execution key, for signing messages.""")
+    def _key_default(self):
+        return str_to_bytes(str(uuid.uuid4()))
+    
     def _key_changed(self):
         self._new_auth()
     
@@ -433,6 +436,7 @@ class Session(Configurable):
         # ensure self._session_default() if necessary, so bsession is defined:
         self.session
         self.pid = os.getpid()
+        self._new_auth()
 
     @property
     def msg_id(self):
