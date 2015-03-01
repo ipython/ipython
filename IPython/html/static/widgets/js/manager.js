@@ -33,7 +33,9 @@ define([
         // registered.
         var that = this;
         if (WidgetManager._load_callback) {
-            Promise.resolve(WidgetManager._load_callback.call(this)).then(function(state) {
+            Promise.resolve().then(function () {
+                return WidgetManager._load_callback.call(that);
+            }).then(function(state) {
                 that.set_state(state);
             }).catch(utils.reject('Error loading widget manager state', true));
         }
@@ -95,7 +97,9 @@ define([
         // Use the load callback to immediately load widget states.
         WidgetManager._managers.forEach(function(manager) {
             if (load_callback) {
-                Promise.resolve(load_callback.call(manager)).then(function(state) {
+                Promise.resolve().then(function () {
+                    return load_callback.call(manager);
+                }).then(function(state) {
                     manager.set_state(state);
                 }).catch(utils.reject('Error loading widget manager state', true));
             }
