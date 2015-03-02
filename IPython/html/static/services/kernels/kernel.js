@@ -41,6 +41,7 @@ define([
         this.username = "username";
         this.session_id = utils.uuid();
         this._msg_callbacks = {};
+        this._msg_queue = Promise.resolve();
         this.info_reply = {}; // kernel_info_reply stored here after starting
 
         if (typeof(WebSocket) !== 'undefined') {
@@ -854,7 +855,10 @@ define([
     };
     
     Kernel.prototype._handle_ws_message = function (e) {
-        serialize.deserialize(e.data, $.proxy(this._finish_ws_message, this));
+        this._msg_queue = this._msg_queue.then(function() {
+            return serialize.deserialize(e.data);
+        }).then($.proxy(this._finish_ws_message, this))
+        .catch(utils.reject("Couldn't process kernel message", true));
     };
 
     Kernel.prototype._finish_ws_message = function (msg) {
