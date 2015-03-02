@@ -127,25 +127,36 @@ define([
             },
             mode: 'ipython',
             theme: 'ipython',
-            matchBrackets: true
-        }
-    };
-
-    CodeCell.config_defaults = {
+            matchBrackets: true,
+            autoCloseBrackets: true
+        },
         highlight_modes : {
-            'magic_javascript'    :{'reg':[/^%%javascript/]},
-            'magic_perl'          :{'reg':[/^%%perl/]},
-            'magic_ruby'          :{'reg':[/^%%ruby/]},
-            'magic_python'        :{'reg':[/^%%python3?/]},
-            'magic_shell'         :{'reg':[/^%%bash/]},
-            'magic_r'             :{'reg':[/^%%R/]},
-            'magic_text/x-cython' :{'reg':[/^%%cython/]},
+            'magic_javascript'    :{'reg':['^%%javascript']},
+            'magic_perl'          :{'reg':['^%%perl']},
+            'magic_ruby'          :{'reg':['^%%ruby']},
+            'magic_python'        :{'reg':['^%%python3?']},
+            'magic_shell'         :{'reg':['^%%bash']},
+            'magic_r'             :{'reg':['^%%R']},
+            'magic_text/x-cython' :{'reg':['^%%cython']},
         },
     };
+
+    CodeCell.config_defaults = CodeCell.options_default;
 
     CodeCell.msg_cells = {};
 
     CodeCell.prototype = Object.create(Cell.prototype);
+    
+    /**
+     * @private
+     * Update the current state of the config file in the profile with current config. 
+     **/
+    CodeCell.prototype._fill_config_with_current = function(){
+        var keys = ['cm_config','highlight_modes'];
+        for(var i in keys){
+            this.class_config.set(keys[i], this.class_config.get_sync(keys[i]));
+        }
+    }
 
     /** @method create_element */
     CodeCell.prototype.create_element = function () {
@@ -163,7 +174,7 @@ define([
             notebook: this.notebook});
         inner_cell.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
-        this.code_mirror = new CodeMirror(input_area.get(0), this.cm_config);
+        this.code_mirror = new CodeMirror(input_area.get(0), this.class_config.get_sync('cm_config'));
         // In case of bugs that put the keyboard manager into an inconsistent state,
         // ensure KM is enabled when CodeMirror is focused:
         this.code_mirror.on('focus', function () {

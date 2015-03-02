@@ -567,7 +567,14 @@ define([
             // only one key every time but regexp can't be keys...
             for(var i=0; i<regs.length; i++) {
                 // here we handle non magic_modes
-                if(first_line.match(regs[i]) !== null) {
+                // on 3.0 and below, things were regex.
+                // but shodl be string for config. 
+                // get rid of direct re handeling later. 
+                var re = regs[i];
+                if(typeof(re) === 'string'){
+                    re = new RegExp(re) 
+                }
+                if(first_line.match(re) !== null) {
                     if(current_mode == mode){
                         return;
                     }
