@@ -418,7 +418,8 @@ class NotebookApp(BaseIPythonApplication):
         s = socket.socket()
         try:
             s.bind(('localhost', 0))
-        except socket.error:
+        except socket.error as e:
+            self.log.warn("Cannot bind to localhost, using 127.0.0.1 as default ip\n%s", e)
             return '127.0.0.1'
         else:
             s.close()
