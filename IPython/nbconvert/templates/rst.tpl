@@ -12,7 +12,7 @@
 .. code:: python
 
 {{ cell.source | indent}}
-{%- endif -%}
+{% endif -%}
 {% endblock input %}
 
 {% block error %}
@@ -70,6 +70,12 @@
 {% block markdowncell scoped %}
 {{ cell.source | markdown2rst }}
 {% endblock markdowncell %}
+
+{%- block rawcell scoped -%}
+{%- if cell.metadata.get('raw_mimetype', '').lower() in resources.get('raw_mimetypes', ['']) %}
+{{cell.source}}
+{% endif -%}
+{%- endblock rawcell -%}
 
 {% block headingcell scoped %}
 {{ ("#" * cell.level + cell.source) | replace('\n', ' ') | markdown2rst }}
