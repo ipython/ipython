@@ -410,6 +410,20 @@ class NotebookApp(BaseIPythonApplication):
     ip = Unicode('localhost', config=True,
         help="The IP address the notebook server will listen on."
     )
+    def _ip_default(self):
+        """Return localhost if available, 127.0.0.1 otherwise.
+        
+        On some (horribly broken) systems, localhost cannot be bound.
+        """
+        s = socket.socket()
+        try:
+            s.bind(('localhost', 0))
+        except socket.error as e:
+            self.log.warn("Cannot bind to localhost, using 127.0.0.1 as default ip\n%s", e)
+            return '127.0.0.1'
+        else:
+            s.close()
+            return 'localhost'
 
     def _ip_changed(self, name, old, new):
         if new == u'*': self.ip = u''
