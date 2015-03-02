@@ -81,6 +81,7 @@ class Valid(_Bool):
     value: {True,False}
         value of the Valid widget
 """
+    readout = Unicode(help="Message displayed when the value is False", sync=True)
     _view_name = Unicode('ValidView', sync=True)
 
 # Remove in IPython 4.0

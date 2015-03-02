@@ -155,8 +155,8 @@ define([
             /**
              * Called when view is rendered.
              */
-            this.$el.addClass("fa widget-valid");
-            this.model.on("change:value", this.update, this);
+            this.$el.addClass("widget-valid");
+            this.model.on("change", this.update, this);
             this.update();
         },
         update: function() {
@@ -166,17 +166,21 @@ define([
              * Called when the model is changed.  The model may have been
              * changed by another view or by a state update from the back-end.
              */
+            var icon, color, readout;
             if (this.model.get("value")) {
-                this.$el.removeClass("fa-close").addClass("fa-check");
-                this.after_displayed(function() {
-                    this.$el.css("color", "green");
-                }, this);
+                icon = "fa-check";
+                color = "green";
+                readout = "";
             } else {
-                this.$el.removeClass("fa-check").addClass("fa-close");
-                this.after_displayed(function() {
-                    this.$el.css("color", "red");
-                }, this);
-            }
+                icon = "fa-close";
+                color = "red";
+                readout = this.model.get("readout");
+            } 
+            this.$el.text(readout);
+            $('<i class="fa"></i>').prependTo(this.$el).addClass(icon);
+            this.after_displayed(function() {
+                this.$el.css("color", color);
+            }, this);
         }
     });
 
