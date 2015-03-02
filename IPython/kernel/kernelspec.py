@@ -187,6 +187,10 @@ class KernelSpecManager(Configurable):
             kernel_name = os.path.basename(source_dir)
         kernel_name = kernel_name.lower()
         
+        if 'VIRTUAL_ENV' in os.environ:
+            # In a virtualenv. maybe does not have appropriate permissions
+            # access to SYSTEM_KERNEL_DIRS
+            user=True
         destination = self._get_destination_dir(kernel_name, user=user)
 
         if replace and os.path.isdir(destination):
