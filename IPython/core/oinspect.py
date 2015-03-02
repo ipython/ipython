@@ -620,7 +620,7 @@ class Inspector:
 
             add_fields([("Class docstring", "class_docstring"),
                         ("Init docstring", "init_docstring"),
-                        ("Call def", "call_def"),
+                        ("Call signature", "call_def"),
                         ("Call docstring", "call_docstring")])
         
         if displayfields:
