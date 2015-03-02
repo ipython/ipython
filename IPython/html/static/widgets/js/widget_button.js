@@ -27,21 +27,19 @@ define([
             /**
              * Update the contents of this view
              *
-             * Called when the model is changed.  The model may have been 
+             * Called when the model is changed. The model may have been 
              * changed by another view or by a state update from the back-end.
              */
-            var description = this.model.get('description');
+            this.$el.prop("disabled", this.model.get("disabled"));
             this.$el.attr("title", this.model.get("tooltip"));
-            this.$el.text(description);
+
+            var description = this.model.get("description");
             var icon = this.model.get("icon");
-            $('<i class="fa"></i>').prependTo(this.$el).addClass(icon);
             if (description.trim().length === 0 && icon.trim().length ===0) {
                 this.$el.html("&nbsp;"); // Preserve button height
-            }
-            if (this.model.get('disabled')) {
-                this.$el.attr('disabled','disabled');
             } else {
-                this.$el.removeAttr('disabled');
+                this.$el.text(description);
+                $('<i class="fa"></i>').prependTo(this.$el).addClass(icon);
             }
 
             return ButtonView.__super__.update.apply(this);
