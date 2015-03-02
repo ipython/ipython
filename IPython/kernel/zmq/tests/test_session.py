@@ -91,7 +91,7 @@ class TestSession(SessionTestCase):
         
         content = msg['content']
         header = msg['header']
-        header['date'] = datetime.now()
+        header['msg_id'] = self.session.msg_id
         parent = msg['parent_header']
         metadata = msg['metadata']
         msg_type = header['msg_type']
@@ -100,7 +100,7 @@ class TestSession(SessionTestCase):
         ident, msg_list = self.session.feed_identities(B.recv_multipart())
         new_msg = self.session.deserialize(msg_list)
         self.assertEqual(ident[0], b'foo')
-        self.assertEqual(new_msg['msg_id'],msg['msg_id'])
+        self.assertEqual(new_msg['msg_id'],header['msg_id'])
         self.assertEqual(new_msg['msg_type'],msg['msg_type'])
         self.assertEqual(new_msg['header'],msg['header'])
         self.assertEqual(new_msg['content'],msg['content'])
@@ -108,12 +108,12 @@ class TestSession(SessionTestCase):
         self.assertEqual(new_msg['parent_header'],msg['parent_header'])
         self.assertEqual(new_msg['buffers'],[b'bar'])
         
-        header['date'] = datetime.now()
+        header['msg_id'] = self.session.msg_id
         
         self.session.send(A, msg, ident=b'foo', buffers=[b'bar'])
         ident, new_msg = self.session.recv(B)
         self.assertEqual(ident[0], b'foo')
-        self.assertEqual(new_msg['msg_id'],msg['msg_id'])
+        self.assertEqual(new_msg['msg_id'],header['msg_id'])
         self.assertEqual(new_msg['msg_type'],msg['msg_type'])
         self.assertEqual(new_msg['header'],msg['header'])
         self.assertEqual(new_msg['content'],msg['content'])
