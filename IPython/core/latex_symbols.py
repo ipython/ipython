@@ -1294,4 +1294,5 @@ latex_symbols = {
     "\\mttseven" : "𝟽",
     "\\mtteight" : "𝟾",
     "\\mttnine" : "𝟿",
+    "\\snowman" : "☃",
 }
