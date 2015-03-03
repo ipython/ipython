@@ -244,6 +244,29 @@ define(function(require) {
     Contents.prototype.list_contents = function(path) {
         return this.get(path, {type: 'directory'});
     };
+    
+    Contents.prototype.load_git_log = function(path) {
+        var url = this.api_url(path, 'gitlog');
+        var settings = {
+            type : "GET",
+            cache: false,
+            dataType: "json",
+        };
+        return utils.promising_ajax(url, settings);
+    };
+    
+    /**
+     * Compare the two notebooks
+     */
+    Contents.prototype.nbdiff = function (path, path2) {
+        var url;
+        if (path2){
+            url = this.api_url(path, 'nbdiff', path2);
+        } else {
+            url = this.api_url(path, 'nbdiff');
+        }
+        window.open(url, '_blank');
+    };
 
     return {'Contents': Contents};
 });

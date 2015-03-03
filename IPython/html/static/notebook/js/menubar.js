@@ -316,6 +316,12 @@ define([
             that.update_restore_checkpoint(that.notebook.checkpoints);
         });
         
+        this.update_git_compare(null);
+        
+        this.events.on('git_log_listed.Notebook', function(event, data){
+            that.update_git_compare(data);
+        });
+        
         this.events.on('notebook_loaded.Notebook', function() {
             var langinfo = that.notebook.metadata.language_info || {};
             that.update_nbconvert_script(langinfo);
@@ -353,6 +359,37 @@ define([
                     .text(moment(d).format("LLLL"))
                     .click(function () {
                         that.notebook.restore_checkpoint_dialog(checkpoint);
+                    })
+                )
+            );
+        });
+    };
+    
+    MenuBar.prototype.update_git_compare = function(gitlog) {
+        var ul = this.element.find("#git_compare").find("ul");
+        ul.empty();
+        if (!gitlog || gitlog.length === 0) {
+            ul.append(
+                $("<li/>")
+                .addClass("disabled")
+                .append(
+                    $("<a/>")
+                    .text("Not in Git")
+                )
+            );
+            return;
+        }
+        
+        var that = this;
+        gitlog.map(function (commit) {
+            var d = new Date(commit.last_modified);
+            ul.append(
+                $("<li/>").append(
+                    $("<a/>")
+                    .attr("href", "#")
+                    .text(moment(d).format("LLLL"))
+                    .click(function () {
+                        that.notebook.nbdiff(commit.id);
                     })
                 )
             );

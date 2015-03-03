@@ -117,6 +117,7 @@ define([
 
             // Bind events for action buttons.
             $('.rename-button').click($.proxy(this.rename_selected, this));
+            $('.diff-button').click($.proxy(this.diff_selected, this));
             $('.shutdown-button').click($.proxy(this.shutdown_selected, this));
             $('.duplicate-button').click($.proxy(this.duplicate_selected, this));
             $('.delete-button').click($.proxy(this.delete_selected, this));
@@ -492,6 +493,13 @@ define([
         } else {
             $('.rename-button').css('display', 'none');
         }
+        
+        // Diff is only visible when two notebooks are selected.
+        if (selected.length==2 && !(has_file || has_directory)) {
+            $('.diff-button').css('display', 'inline-block');
+        } else {
+            $('.diff-button').css('display', 'none');
+        }
 
         // Shutdown is only visible when one or more notebooks running notebooks
         // are selected and no non-notebook items are selected.
@@ -678,6 +686,11 @@ define([
                 input.focus().select();
             }
         });
+    };
+    
+    NotebookList.prototype.diff_selected = function() {
+        if (this.selected.length != 2) return;
+        this.contents.nbdiff(this.selected[0].path, this.selected[1].path);
     };
 
     NotebookList.prototype.delete_selected = function() {
