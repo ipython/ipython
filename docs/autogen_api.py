@@ -39,6 +39,8 @@ if __name__ == '__main__':
                                         r'\.frontend$',
                                         # Deprecated:
                                         r'\.core\.magics\.deprecated',
+                                        # Backwards compat import for lib.lexers
+                                        r'\.nbconvert\.utils\.lexers',
                                         # We document this manually.
                                         r'\.utils\.py3compat',
                                         # These are exposed by nbformat
