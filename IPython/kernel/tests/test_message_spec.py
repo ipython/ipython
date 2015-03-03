@@ -384,7 +384,7 @@ def test_oinfo_detail():
     content = reply['content']
     assert content['found']
     text = content['data']['text/plain']
-    nt.assert_in('Definition:', text)
+    nt.assert_in('Signature:', text)
     nt.assert_in('Source:', text)
 
 
