@@ -29,7 +29,9 @@ class FilesWriter(WriterBase):
         "", config=True, 
         help="""When copying files that the notebook depends on, copy them in
         relation to this path, such that the destination filename will be
-        os.path.relpath(filename, relpath).""")
+        os.path.relpath(filename, relpath). If FilesWriter is operating on a
+        notebook that already exists elsewhere on disk, then the default will be
+        the directory containing that notebook.""")
 
 
     # Make sure that the output directory exists.
@@ -65,6 +67,12 @@ class FilesWriter(WriterBase):
             # Pull the extension and subdir from the resources dict.
             output_extension = resources.get('output_extension', None)
 
+            # Get the relative path for copying files
+            if self.relpath == '':
+                relpath = resources.get('metadata', {}).get('path', '')
+            else:
+                relpath = self.relpath
+
             # Write all of the extracted resources to the destination directory.
             # NOTE: WE WRITE EVERYTHING AS-IF IT'S BINARY.  THE EXTRACT FIG
             # PREPROCESSOR SHOULD HANDLE UNIX/WINDOWS LINE ENDINGS...
@@ -88,8 +96,8 @@ class FilesWriter(WriterBase):
                     for matching_filename in glob.glob(filename):
 
                         # compute the relative path for the filename
-                        if self.relpath:
-                            dest_filename = os.path.relpath(matching_filename, self.relpath)
+                        if relpath != '':
+                            dest_filename = os.path.relpath(matching_filename, relpath)
                         else:
                             dest_filename = matching_filename
 

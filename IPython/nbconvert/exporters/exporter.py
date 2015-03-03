@@ -142,9 +142,10 @@ class Exporter(LoggingConfigurable):
             resources = ResourcesDict()
         if not 'metadata' in resources or resources['metadata'] == '':
             resources['metadata'] = ResourcesDict()
-        basename = os.path.basename(filename)
+        path, basename = os.path.split(filename)
         notebook_name = basename[:basename.rfind('.')]
         resources['metadata']['name'] = notebook_name
+        resources['metadata']['path'] = path
 
         modified_date = datetime.datetime.fromtimestamp(os.path.getmtime(filename))
         resources['metadata']['modified_date'] = modified_date.strftime(text.date_format)
