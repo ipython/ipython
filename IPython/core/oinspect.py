@@ -607,7 +607,7 @@ class Inspector:
 
             add_fields([("Length", "length"),
                         ("File", "file"),
-                        ("Definition", "definition"),
+                        ("Signature", "definition"),
                        ])
 
             # Source or docstring, depending on detail level and whether
