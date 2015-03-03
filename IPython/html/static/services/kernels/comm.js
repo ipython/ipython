@@ -15,6 +15,7 @@ define([
     var CommManager = function (kernel) {
         this.comms = {};
         this.targets = {};
+        this.msg_queue = Promise.resolve();
         if (kernel !== undefined) {
             this.init_kernel(kernel);
         }
@@ -26,10 +27,10 @@ define([
          */
         this.kernel = kernel;
         var msg_types = ['comm_open', 'comm_msg', 'comm_close'];
-        for (var i = 0; i < msg_types.length; i++) {
-            var msg_type = msg_types[i];
-            kernel.register_iopub_handler(msg_type, $.proxy(this[msg_type], this));
-        }
+        var that = this;
+        kernel.register_iopub_handler('comm_open', function(msg) {that.process_message('comm_open', msg)});
+        kernel.register_iopub_handler('comm_msg', function(msg) {that.process_message('comm_msg', msg)});
+        kernel.register_iopub_handler('comm_close', function(msg) {that.process_message('comm_close', msg)});
     };
     
     CommManager.prototype.new_comm = function (target_name, data, callbacks, metadata) {
@@ -75,6 +76,11 @@ define([
     
     // comm message handlers
     
+    CommManager.prototype.process_message = function(msg_type, msg) {
+        var that = this;
+        this.msg_queue = this.msg_queue.then(function() {return that[msg_type](msg);})
+    };
+
     CommManager.prototype.comm_open = function (msg) {
         var content = msg.content;
         var that = this;
@@ -117,6 +123,7 @@ define([
             // don't return a comm, so that further .then() functions
             // get an undefined comm input
         });
+        return this.comms[content.comm_id];
     };
     
     CommManager.prototype.comm_msg = function(msg) {
@@ -134,6 +141,7 @@ define([
             }
             return comm;
         });
+        return this.comms[content.comm_id];
     };
     
     //-----------------------------------------------------------------------
