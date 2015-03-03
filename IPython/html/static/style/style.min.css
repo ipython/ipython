@@ -8621,10 +8621,8 @@ span#login_widget > .button .badge,
   width: 12ex;
   margin-right: -12ex;
 }
-.alternate_upload .input-overlay {
-  display: inline-block;
-  font-weight: bold;
-  line-height: 1em;
+.alternate_upload .btn-upload {
+  height: 22px;
 }
 /**
  * Primary styles
@@ -8657,6 +8655,7 @@ ul.breadcrumb span {
   padding-top: 1px;
 }
 .dynamic-buttons {
+  padding-top: 3px;
   display: inline-block;
 }
 .list_toolbar [class*="span"] {
