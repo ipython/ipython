@@ -292,9 +292,9 @@ if 'setuptools' in sys.modules:
     setuptools_extra_args['entry_points'] = {
         'console_scripts': find_entry_points(),
         'pygments.lexers': [
-            'ipythonconsole = IPython.nbconvert.utils.lexers:IPythonConsoleLexer',
-            'ipython = IPython.nbconvert.utils.lexers:IPythonLexer',
-            'ipython3 = IPython.nbconvert.utils.lexers:IPython3Lexer',
+            'ipythonconsole = IPython.lib.lexers:IPythonConsoleLexer',
+            'ipython = IPython.lib.lexers:IPythonLexer',
+            'ipython3 = IPython.lib.lexers:IPython3Lexer',
         ],
     }
     setup_args['extras_require'] = extras_require
