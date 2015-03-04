@@ -493,6 +493,13 @@ define([
         }
         // Update total counter
         $('#counter-select-all').html(checked===0 ? '&nbsp;' : checked);
+
+        // If at aleast on item is selected, hide the selection instructions.
+        if (checked > 0) {
+            $('.dynamic-instructions').hide();
+        } else {
+            $('.dynamic-instructions').show();
+        }
     };
 
     NotebookList.prototype.add_link = function (model, item) {
