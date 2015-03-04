@@ -28,6 +28,7 @@ from IPython.core.magic import (Magics, magics_class, line_magic,
                                 register_line_cell_magic)
 from IPython.external.decorator import decorator
 from IPython.testing.decorators import skipif
+from IPython.utils.path import compress_user
 from IPython.utils import py3compat
 
 
@@ -46,7 +47,7 @@ ip = get_ipython()
 # defined, if any code is inserted above, the following line will need to be
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
-THIS_LINE_NUMBER = 49  # Put here the actual number of this line
+THIS_LINE_NUMBER = 50  # Put here the actual number of this line
 def test_find_source_lines():
     nt.assert_equal(oinspect.find_source_lines(test_find_source_lines), 
                     THIS_LINE_NUMBER+1)
@@ -241,7 +242,7 @@ def test_info():
         fname = fname[:-1]
     # case-insensitive comparison needed on some filesystems
     # e.g. Windows:
-    nt.assert_equal(i['file'].lower(), fname.lower())
+    nt.assert_equal(i['file'].lower(), compress_user(fname.lower()))
     nt.assert_equal(i['definition'], None)
     nt.assert_equal(i['docstring'], Call.__doc__)
     nt.assert_equal(i['source'], None)
