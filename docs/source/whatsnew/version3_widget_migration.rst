@@ -38,6 +38,8 @@ Upgrading Notebooks
    own custom widget, (B) use CSS and the ``_dom_classes`` trait to set
    ``_dom_classes``, or (C) use the ``_css`` dictionary to set CSS
    styling like ``set_css`` and ``get_css``.
+7. For selection widgets, such as ``Dropdown``, the ``values`` argument
+   has been renamed to ``options``.
 
 Upgrading Custom Widgets
 ------------------------
