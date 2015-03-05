@@ -29,7 +29,9 @@ class ExecutePreprocessor(Preprocessor):
     extra_arguments = List(Unicode)
 
     def preprocess(self, nb, resources):
-        path = resources.get('metadata', {}).get('path', None)
+        path = resources.get('metadata', {}).get('path', '')
+        if path == '':
+            path = None
 
         from IPython.kernel import run_kernel
         kernel_name = nb.metadata.get('kernelspec', {}).get('name', 'python')
