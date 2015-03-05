@@ -59,8 +59,7 @@ The currently supported export formats are:
 
 * ``--to pdf``
 
-  Generates a PDF via latex. Replaces ``--to latex --post PDF``, which is deprecated.
-  Supports the same templates as ``--to latex``.
+  Generates a PDF via latex. Supports the same templates as ``--to latex``.
 
 * ``--to slides``
 
