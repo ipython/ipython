@@ -29,12 +29,17 @@ class ExecutePreprocessor(Preprocessor):
     extra_arguments = List(Unicode)
 
     def preprocess(self, nb, resources):
+        path = resources.get('metadata', {}).get('path', '')
+        if path == '':
+            path = None
+
         from IPython.kernel import run_kernel
         kernel_name = nb.metadata.get('kernelspec', {}).get('name', 'python')
         self.log.info("Executing notebook with kernel: %s" % kernel_name)
         with run_kernel(kernel_name=kernel_name,
                         extra_arguments=self.extra_arguments,
-                        stderr=open(os.devnull, 'w')) as kc:
+                        stderr=open(os.devnull, 'w'),
+                        cwd=path) as kc:
             self.kc = kc
             self.kc.allow_stdin = False
             nb, resources = super(ExecutePreprocessor, self).preprocess(nb, resources)
