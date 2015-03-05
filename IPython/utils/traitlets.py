@@ -51,6 +51,7 @@ try:
     ClassTypes = (ClassType, type)
 except:
     ClassTypes = (type,)
+from warnings import warn
 
 from .importstring import import_item
 from IPython.utils import py3compat
@@ -329,6 +330,13 @@ class TraitType(object):
             self.default_value = default_value
         if allow_none is not None:
             self.allow_none = allow_none
+
+        if 'default' in metadata:
+            # Warn the user that they probably meant default_value.
+            warn(
+                "Parameter 'default' passed to TraitType. "
+                "Did you mean 'default_value'?"
+            )
 
         if len(metadata) > 0:
             if len(self.metadata) > 0:
