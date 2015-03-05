@@ -381,6 +381,7 @@ define(function(require){
                 if(event){
                     event.preventDefault();
                 }
+                env.notebook.focus_cell();
                 return false;
             }
         },
