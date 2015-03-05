@@ -122,14 +122,14 @@ define([
             $('.delete-button').click($.proxy(this.delete_selected, this));
 
             // Bind events for selection menu buttons.
-            $('#selector-menu').click(function(event){that.select($(event.target).attr('id'),true)});
-            $('.tree-selector').change(function(){that.select($(this).attr('id'),$(this).is(':checked'))});
+            $('#selector-menu').click(function(event){that.select($(event.target).attr('id'))});
+            $('#select-all').change(function(){that.select($(this).is(':checked') ? 'select-all' : 'select-none')});
             $('#button-select-all').click(function(e) {
                 // toggle checkbox if the click doesn't come from the checkbox already
                 if (!$(e.target).is('input[type=checkbox]')) {
                     var checkbox = $('#select-all');
                     checkbox.prop('checked', !checkbox.prop('checked'));
-                    that.select('select-all',checkbox.prop('checked'));
+                    that.select(checkbox.prop('checked') ? 'select-all' : 'select-none');
                 }
             });
         }
@@ -387,21 +387,20 @@ define([
 
     /**
      * Select all items in the tree of specified type.
-     * selection_type : string among "select-all, "select-folders", "select-notebooks", "select-running-notebooks", "select-files"
-     * state : boolean, true to select and false to deselect
+     * selection_type : string among "select-all", "select-folders", "select-notebooks", "select-running-notebooks", "select-files"
+     *                  any other string (like "select-none") deselects all items
      */
-    NotebookList.prototype.select = function(selection_type,state) {
+    NotebookList.prototype.select = function(selection_type) {
         var that = this;
         $('.list_item').each(function(index, item) {
-            // For each item, determine if the state should be set, depending on the selection_type that triggered select
-            var set_state = (selection_type === "select-all");
-            set_state = set_state || (selection_type === "select-folders" && $(item).data('type') === 'directory');
-            set_state = set_state || (selection_type === "select-notebooks" && $(item).data('type') === 'notebook');
-            set_state = set_state || (selection_type === "select-running-notebooks" && $(item).data('type') === 'notebook' && that.sessions[$(item).data('path')] !== undefined);
-            set_state = set_state || (selection_type === "select-files" && $(item).data('type') === 'file');
-            if (set_state) {
-                $(item).find('input[type=checkbox]').prop('checked', state);
-            }
+            var item_type = $(item).data('type');
+            var state = false;
+            state = state || (selection_type === "select-all");
+            state = state || (selection_type === "select-folders" && item_type === 'directory');
+            state = state || (selection_type === "select-notebooks" && item_type === 'notebook');
+            state = state || (selection_type === "select-running-notebooks" && item_type === 'notebook' && that.sessions[$(item).data('path')] !== undefined);
+            state = state || (selection_type === "select-files" && item_type === 'file');
+            $(item).find('input[type=checkbox]').prop('checked', state);
         });
         this._selection_changed();
     };
