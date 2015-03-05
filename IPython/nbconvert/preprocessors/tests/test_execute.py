@@ -105,3 +105,20 @@ class TestExecute(PreprocessorTestsBase):
 
             else:
                 self.assert_notebooks_equal(output_nb, input_nb)
+
+    def test_empty_path(self):
+        """Can the kernel be started when the path is empty?"""
+        current_dir = os.path.dirname(__file__)
+        filename = os.path.join(current_dir, 'files', 'HelloWorld.ipynb')
+        with io.open(filename) as f:
+            input_nb = nbformat.read(f, 4)
+        res = self.build_resources()
+        res['metadata']['path'] = ''
+        preprocessor = self.build_preprocessor()
+        cleaned_input_nb = copy.deepcopy(input_nb)
+        for cell in cleaned_input_nb.cells:
+            if 'execution_count' in cell:
+                del cell['execution_count']
+            cell['outputs'] = []
+        output_nb, _ = preprocessor(cleaned_input_nb, res)
+        self.assert_notebooks_equal(output_nb, input_nb)
