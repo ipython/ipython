@@ -79,9 +79,10 @@ class TestExecute(PreprocessorTestsBase):
         current_dir = os.path.dirname(__file__)
         input_files = glob.glob(os.path.join(current_dir, 'files', '*.ipynb'))
         for filename in input_files:
-            with io.open(os.path.join(current_dir, 'files', filename)) as f:
+            with io.open(filename) as f:
                 input_nb = nbformat.read(f, 4)
             res = self.build_resources()
+            res['metadata']['path'] = os.path.dirname(filename)
             preprocessor = self.build_preprocessor()
             cleaned_input_nb = copy.deepcopy(input_nb)
             for cell in cleaned_input_nb.cells:
