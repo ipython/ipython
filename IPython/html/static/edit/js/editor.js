@@ -77,7 +77,6 @@ function($,
         var cm = this.codemirror;
         return this.contents.get(this.file_path, {type: 'file', format: 'text'})
             .then(function(model) {
-                console.warn('editor get model', model)
                 cm.setValue(model.content);
 
                 // Setting the file's initial value creates a history entry,
@@ -89,13 +88,9 @@ function($,
                 that.events.trigger("file_loaded.Editor", model);
                 that._clean_state();
                 if(model.event_string){
-                    console.warn('string set, try to bing realtime')
                     var string = model.event_string;
                     string.addEventListener(gapi.drive.realtime.EventType.TEXT_INSERTED, function(evts){
-                        //console.log(evts)
-                        //console.warn(string.toString())
                         if(evts.isLocal){
-                            console.info('discarding local event')
                             return
                         }
                         var str = evts.text;
@@ -108,13 +103,14 @@ function($,
                         cm.getDoc().replaceRange(str, from, to);
                     });
                     string.addEventListener(gapi.drive.realtime.EventType.TEXT_DELETED, function(evts){
-                        var ev = evts[0];
+                        if(evts.isLocal){
+                            return
+                        }
                         cm.setValue(string.toString())
                     });
 
                 cm.on('beforeChange', function(cm, change){
                     window.cm = cm;
-                    //console.warn('origin',change, change.origin);
                     if(cm.getDoc().getValue().length < 2000 && change.origin == '+input' ){
                         var index = utils.to_absolute_cursor_pos(cm, change.from)
 
@@ -126,6 +122,14 @@ function($,
                         }
                         console.log('propagating local change', index, text, change.from, change.to, change)
                         string.insertString(index, text)
+                    } else if (change.origin == '+delete' && cm.getDoc().getValue().length> 0){
+                        var startIndex = utils.to_absolute_cursor_pos(cm, change.from)
+                        var endIndex = utils.to_absolute_cursor_pos(cm, change.to)
+                        string.removeRange(startIndex, endIndex);
+                        console.log('propagating local removel change', index, text, change.from, change.to, change)
+                    } else {
+
+                        console.warn('unknown changes', change.origin, change)
                     }
                     
                 })
