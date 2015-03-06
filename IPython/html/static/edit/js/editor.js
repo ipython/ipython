@@ -77,6 +77,7 @@ function($,
         var cm = this.codemirror;
         return this.contents.get(this.file_path, {type: 'file', format: 'text'})
             .then(function(model) {
+                console.warn('editor get model', model)
                 cm.setValue(model.content);
 
                 // Setting the file's initial value creates a history entry,
@@ -87,6 +88,49 @@ function($,
                 that.generation = cm.changeGeneration();
                 that.events.trigger("file_loaded.Editor", model);
                 that._clean_state();
+                if(model.event_string){
+                    console.warn('string set, try to bing realtime')
+                    var string = model.event_string;
+                    string.addEventListener(gapi.drive.realtime.EventType.TEXT_INSERTED, function(evts){
+                        //console.log(evts)
+                        //console.warn(string.toString())
+                        if(evts.isLocal){
+                            console.info('discarding local event')
+                            return
+                        }
+                        var str = evts.text;
+                        var from = utils.from_absolute_cursor_pos(cm, evts.index)
+                        var to = from;
+                        if(cm.getDoc().getValue().length > 2000){
+                            return
+                        }
+    
+                        cm.getDoc().replaceRange(str, from, to);
+                    });
+                    string.addEventListener(gapi.drive.realtime.EventType.TEXT_DELETED, function(evts){
+                        var ev = evts[0];
+                        cm.setValue(string.toString())
+                    });
+
+                cm.on('beforeChange', function(cm, change){
+                    window.cm = cm;
+                    //console.warn('origin',change, change.origin);
+                    if(cm.getDoc().getValue().length < 2000 && change.origin == '+input' ){
+                        var index = utils.to_absolute_cursor_pos(cm, change.from)
+
+                        // handle insertion of new lines. 
+                        // 
+                        var text = change.text[0];
+                        if(change.text.length == 2){
+                            text = '\n'
+                        }
+                        console.log('propagating local change', index, text, change.from, change.to, change)
+                        string.insertString(index, text)
+                    }
+                    
+                })
+
+                }
             }).catch(
             function(error) {
                 that.events.trigger("file_load_failed.Editor", error);
