@@ -76,19 +76,19 @@ data-terminals-available="{{terminals_available}}"
           </div>
           <div id="notebook_list">
             <div id="notebook_list_header" class="row list_header">
-              <div class="dropdown" id='tree-selector'>
-                <button class="btn btn-default btn-xs dropdown-toggle" type="button" id="tree-selector-btn" data-toggle="dropdown" aria-expanded="true">
-                  <input type='checkbox'></input>
-                  <span class="caret"></span>
+              <div class="btn-group dropdown" id="tree-selector">
+                <button title="Select All / None" type="button" class="btn btn-default btn-xs" id="button-select-all">
+                  <input type="checkbox" class="pull-left tree-selector" id="select-all"><span id="counter-select-all">&nbsp;</span></input>
                 </button>
-                <ul class="dropdown-menu" role="menu" aria-labelledby="tree-selector-btn">
-                  <li role="presentation" class="select-all"><a role="menuitem" tabindex="-1" href="#">Select all</a></li>
-                  <li role="presentation" class="select-notebooks"><a role="menuitem" tabindex="-1" href="#">Select notebooks</a></li>
-                  <li role="presentation" class="select-running-notebooks"><a role="menuitem" tabindex="-1" href="#">Select running notebooks</a></li>
-                  <li role="presentation" class="select-files"><a role="menuitem" tabindex="-1" href="#">Select files</a></li>
-                  <li role="presentation" class="select-directories"><a role="menuitem" tabindex="-1" href="#">Select directories</a></li>
-                  <li role="presentation" class="divider"></li>
-                  <li role="presentation" class="deselect-all"><a role="menuitem" tabindex="-1" href="#">Deselect all</a></li>
+                <button title="Select..." class="btn btn-default btn-xs dropdown-toggle" type="button" id="tree-selector-btn" data-toggle="dropdown" aria-expanded="true">
+                  <span class="caret"></span>
+                  <span class="sr-only">Toggle Dropdown</span>
+                </button>
+                <ul id='selector-menu' class="dropdown-menu" role="menu" aria-labelledby="tree-selector-btn">
+                  <li role="presentation"><a id="select-folders" role="menuitem" tabindex="-1" href="#" title="Select All Folders"><i class="menu_icon folder_icon icon-fixed-width"></i> Folders</a></li>
+                  <li role="presentation"><a id="select-notebooks" role="menuitem" tabindex="-1" href="#" title="Select All Notebooks"><i class="menu_icon notebook_icon icon-fixed-width"></i> All Notebooks</a></li>
+                  <li role="presentation"><a id="select-running-notebooks" role="menuitem" tabindex="-1" href="#" title="Select Running Notebooks"><i class="menu_icon running_notebook_icon icon-fixed-width"></i> Running</a></li>
+                  <li role="presentation"><a id="select-files" role="menuitem" tabindex="-1" href="#" title="Select All Files"><i class="menu_icon file_icon icon-fixed-width"></i> Files</a></li>
                 </ul>
               </div>
               <div id="project_name">

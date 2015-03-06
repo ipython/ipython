@@ -12,7 +12,6 @@
 @btn_small_height: 24px;
 @btn_mini_height: 22px;
 @dark_dashboard_color: @breadcrumb-color;
-@list_stripe_color: lighten(@page-backdrop-color,3%);
 
 // The left padding of the selector button's contents.
 @dashboard-selectorbtn-lpad: 7px;
@@ -191,13 +190,20 @@ input.engine_num_input {
 }
 
 #tree-selector {
-    display: inline-block;
     padding-right: 0px;
+}
 
-    input[type=checkbox] {
-        margin-left: @dashboard_lr_pad;
-        vertical-align: baseline;
-    }
+#button-select-all {
+    min-width: 50px;
+}
+
+#select-all {
+    margin-left: @dashboard_lr_pad;
+    margin-right: 2px;
+}
+
+.menu_icon {
+    margin-right: 2px;
 }
 
 .tab-content .row {

@@ -8787,12 +8787,17 @@ input.engine_num_input {
   font-weight: bold;
 }
 #tree-selector {
-  display: inline-block;
   padding-right: 0px;
 }
-#tree-selector input[type=checkbox] {
+#button-select-all {
+  min-width: 50px;
+}
+#select-all {
   margin-left: 7px;
-  vertical-align: baseline;
+  margin-right: 2px;
+}
+.menu_icon {
+  margin-right: 2px;
 }
 .tab-content .row {
   margin-left: 0px;
