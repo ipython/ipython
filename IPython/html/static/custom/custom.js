@@ -7,17 +7,17 @@
  * This will always be an empty file in IPython
  *
  * User could add any javascript in the `profile/static/custom/custom.js` file
- * (and should create it if it does not exist).
  * It will be executed by the ipython notebook at load time.
  *
  * Same thing with `profile/static/custom/custom.css` to inject custom css into the notebook.
  *
- * Classes and functions are available at load time and may be accessed plainly:
  *
- *     IPython.Cell.options_default.cm_config.extraKeys['Home'] = 'goLineLeft';
- *     IPython.Cell.options_default.cm_config.extraKeys['End'] = 'goLineRight';
+ * The object available at load time depend on the version of IPython in use.
+ * there is no guaranties of API stability.
  *
- * Instances are created later however and must be accessed using events:
+ * The example below explain the principle, and might not be valid.
+ *
+ * Instances are created after the loading of this file and might need to be accessed using events:
  *     define([
  *        'base/js/namespace',
  *        'base/js/events'
