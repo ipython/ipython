@@ -373,10 +373,11 @@ class FileContentsManager(FileManagerMixin, ContentsManager):
         if 'content' not in model and model['type'] != 'directory':
             raise web.HTTPError(400, u'No file content provided')
 
-        self.run_pre_save_hook(model=model, path=path)
-
         os_path = self._get_os_path(path)
         self.log.debug("Saving %s", os_path)
+
+        self.run_pre_save_hook(model=model, path=path)
+
         try:
             if model['type'] == 'notebook':
                 nb = nbformat.from_dict(model['content'])
