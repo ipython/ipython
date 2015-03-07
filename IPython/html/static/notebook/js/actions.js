@@ -6,7 +6,6 @@ define(function(require){
     
     var ActionHandler = function (env) {
         this.env = env || {};
-        Object.seal(this);
     };
 
     /**
