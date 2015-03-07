@@ -54,7 +54,7 @@ class PickleShareDB(collections.MutableMapping):
         """ Return a db object that will manage the specied directory"""
         self.root = Path(root).expanduser().abspath()
         if not self.root.isdir():
-            self.root.makedirs()
+            self.root.makedirs_p()
         # cache has { 'key' : (obj, orig_mod_time) }
         self.cache = {}
 
