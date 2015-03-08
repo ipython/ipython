@@ -5,6 +5,32 @@
         padding-right: 0px;
     }
 }
+/* Sticky header effect. Includes media queries to keep 
+   margin between #site and #header when resizing. 
+ */
+
+.header_notebook {
+    position: fixed;
+    width: 100%;
+}
+
+.site_notebook {
+    margin-top: 9em;
+}
+
+@media screen and (-webkit-min-device-pixel-ratio:0) and (max-width: 636px) {
+      .site_notebook {
+          margin-top: 11em;
+        }
+}
+
+@media (max-width: 633px) {
+    @-moz-document url-prefix() {
+        .site_notebook {
+            margin-top: 11em;
+        }
+    }
+}
 
 #ipython-main-app {
     .border-box-sizing();

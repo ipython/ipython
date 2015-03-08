@@ -17,13 +17,13 @@ define([
         // - window resize
         // - header change
         // - page load
-        var _handle_resize = $.proxy(this._resize_site, this);
+        //var _handle_resize = $.proxy(this._resize_site, this);
         
-        $(window).resize(_handle_resize);
+        //$(window).resize(_handle_resize);
 
         // On document ready, resize codemirror.
-        $(document).ready(_handle_resize);
-        events.on('resize-header.Page', _handle_resize);
+        //$(document).ready(_handle_resize);
+        //events.on('resize-header.Page', _handle_resize);
     };
 
     Page.prototype.show = function () {
@@ -51,13 +51,13 @@ define([
          * TODO: selector are hardcoded, pass as constructor argument
          */
         $('div#site').css('display', 'block');
-        this._resize_site();
+        //this._resize_site();
     };
 
-    Page.prototype._resize_site = function() {
+    //Page.prototype._resize_site = function() {
         // Update the site's size.
-        $('div#site').height(window.innerHeight - $('#header').height());
-    };
+        //$('div#site').height(window.innerHeight - $('#header').height());
+    //};
 
     // Register self in the global namespace for convenience.
     IPython.Page = Page;

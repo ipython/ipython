@@ -8401,7 +8401,6 @@ body {
   display: none;
   background-color: #ffffff;
   /* Display over codemirror */
-  position: relative;
   z-index: 100;
 }
 #header #header-container {
@@ -8630,6 +8629,13 @@ span#login_widget > .button .badge,
  *
  * Author: IPython Development Team
  */
+.header_tree {
+  position: relative;
+  width: 100%;
+}
+.site_tree {
+  position: relative;
+}
 ul#tabs {
   margin-bottom: 4px;
 }
@@ -10374,6 +10380,28 @@ h6:hover .anchor-link {
   .notebook_app {
     padding-left: 0px;
     padding-right: 0px;
+  }
+}
+/* Sticky header effect. Includes media queries to keep 
+   margin between #site and #header when resizing. 
+ */
+.header_notebook {
+  position: fixed;
+  width: 100%;
+}
+.site_notebook {
+  margin-top: 9em;
+}
+@media screen and (-webkit-min-device-pixel-ratio: 0) and (max-width: 636px) {
+  .site_notebook {
+    margin-top: 11em;
+  }
+}
+@media (max-width: 633px) {
+  @-moz-document url-prefix() {
+    .site_notebook {
+      margin-top: 11em;
+    }
   }
 }
 #ipython-main-app {
