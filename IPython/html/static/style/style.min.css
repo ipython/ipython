@@ -8463,6 +8463,7 @@ body {
 @media print {
   #site {
     height: auto !important;
+    margin-top: 0em;
   }
 }
 /* Smaller buttons */
