@@ -10,6 +10,7 @@ define([
 
     var Page = function () {
         this.bind_events();
+        this.show_anchor_link();
     };
 
     Page.prototype.bind_events = function () {
@@ -20,7 +21,7 @@ define([
         //var _handle_resize = $.proxy(this._resize_site, this);
         
         //$(window).resize(_handle_resize);
-
+        
         // On document ready, resize codemirror.
         //$(document).ready(_handle_resize);
         //events.on('resize-header.Page', _handle_resize);
@@ -53,6 +54,45 @@ define([
         $('div#site').css('display', 'block');
         //this._resize_site();
     };
+    
+
+    Page.prototype.show_anchor_link = function() {
+        /**
+         * Scrolling to an anchor with a fixed header.
+         * scroll_if_anchor is taken almost verbatim from http://jsfiddle.net/ianclark001/aShQL/.
+         * Push state is not strictly necessary.
+         */
+        function scroll_if_anchor(href) {
+            var href = typeof(href) == "string" ? href : $(this).attr("href");
+            
+            var fromTop = $("#header").height();
+            
+            // If our Href points to a valid, non-empty anchor, and is on the same page (e.g. #foo)
+            // Legacy jQuery and IE7 may have issues: http://stackoverflow.com/q/1593174
+            if(href.indexOf("#") == 0) {
+                var $target = $(href);
+                
+                // Older browser without pushState might flicker here, as they momentarily
+                // jump to the wrong position (IE < 10)
+                if($target.length) {
+                    $('html, body').animate({ scrollTop: $target.offset().top - fromTop - 30});
+                    if(history && "pushState" in history) {
+                        history.pushState({}, document.title, window.location.pathname + href);
+                        return false;
+                    }
+                }
+            }
+        }
+
+        // When our page loads, check to see if it contains and anchor
+
+        $(window).on('hashchange', function() {
+            scroll_if_anchor(window.location.hash); 
+        });
+        // Intercept all anchor clicks
+        $("body").on("click", "a", scroll_if_anchor);
+
+    }
 
     //Page.prototype._resize_site = function() {
         // Update the site's size.
