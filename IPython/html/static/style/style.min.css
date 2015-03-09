@@ -8401,7 +8401,7 @@ body {
   display: none;
   background-color: #ffffff;
   /* Display over codemirror */
-  z-index: 100;
+  z-index: 1001;
 }
 #header #header-container {
   padding-bottom: 5px;
