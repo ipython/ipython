@@ -589,7 +589,6 @@ define([
         var item_path = this.selected[0].path;
         var item_name = this.selected[0].name;
         var item_type = this.selected[0].type;
-        console.log(this.selected[0]);
         var input = $('<input/>').attr('type','text').attr('size','25').addClass('form-control')
             .val(item_name);
         var dialog_body = $('<div/>').append(
