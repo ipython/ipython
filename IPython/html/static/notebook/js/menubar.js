@@ -104,6 +104,9 @@ define([
             window.open(utils.url_join_encode(that.base_url, 'tree', parent), IPython._target);
         });
         this.element.find('#copy_notebook').click(function () {
+            if (that.notebook.dirty) {
+                that.notebook.save_notebook({async : false});
+            }
             that.notebook.copy_notebook();
             return false;
         });
