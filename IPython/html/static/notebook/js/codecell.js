@@ -147,17 +147,6 @@ define([
 
     CodeCell.prototype = Object.create(Cell.prototype);
     
-    /**
-     * @private
-     * Update the current state of the config file in the profile with current config. 
-     **/
-    CodeCell.prototype._fill_config_with_current = function(){
-        var keys = ['cm_config','highlight_modes'];
-        for(var i in keys){
-            this.class_config.set(keys[i], this.class_config.get_sync(keys[i]));
-        }
-    }
-
     /** @method create_element */
     CodeCell.prototype.create_element = function () {
         Cell.prototype.create_element.apply(this, arguments);
