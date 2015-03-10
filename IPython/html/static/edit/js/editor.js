@@ -118,7 +118,7 @@ function($,
                         // 
                         var text = change.text[0];
                         if(change.text.length == 2){
-                            text = '\n'
+                            text = change.text.join('\n');
                         }
                         console.log('propagating local change', index, text, change.from, change.to, change)
                         string.insertString(index, text)
