@@ -106,7 +106,11 @@ function($,
                         if(evts.isLocal){
                             return
                         }
-                        cm.setValue(string.toString())
+                        console.log(evts)
+                        var from = utils.from_absolute_cursor_pos(cm, evts.index);
+                        var to   = utils.from_absolute_cursor_pos(cm, evts.index+evts.text.length);
+                        cm.getDoc().replaceRange(str, from, to);
+                        //cm.setValue(string.toString())
                     });
 
                 cm.on('beforeChange', function(cm, change){
@@ -120,16 +124,16 @@ function($,
                         if(change.text.length == 2){
                             text = change.text.join('\n');
                         }
-                        console.log('propagating local change', index, text, change.from, change.to, change)
+                        // console.log('propagating local change', index, text, change.from, change.to, change)
                         string.insertString(index, text)
                     } else if (change.origin == '+delete' && cm.getDoc().getValue().length> 0){
                         var startIndex = utils.to_absolute_cursor_pos(cm, change.from)
                         var endIndex = utils.to_absolute_cursor_pos(cm, change.to)
                         string.removeRange(startIndex, endIndex);
-                        console.log('propagating local removel change', index, text, change.from, change.to, change)
+                        // console.log('propagating local removel change', index, text, change.from, change.to, change)
                     } else {
 
-                        console.warn('unknown changes', change.origin, change)
+                        // console.warn('unknown changes', change.origin, change)
                     }
                     
                 })
