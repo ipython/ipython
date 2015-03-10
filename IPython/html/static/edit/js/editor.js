@@ -109,7 +109,7 @@ function($,
                         console.log(evts)
                         var from = utils.from_absolute_cursor_pos(cm, evts.index);
                         var to   = utils.from_absolute_cursor_pos(cm, evts.index+evts.text.length);
-                        cm.getDoc().replaceRange(str, from, to);
+                        cm.getDoc().replaceRange('', from, to);
                         //cm.setValue(string.toString())
                     });
 
