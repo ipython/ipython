@@ -280,9 +280,11 @@ class DictDB(BaseDB):
         return sorted(msg_ids, key=lambda m: self._records[m]['submitted'])
 
 
-NODATA = KeyError("NoDB backend doesn't store any data. "
-"Start the Controller with a DB backend to enable resubmission / result persistence."
-)
+class NoData(KeyError):
+    """Special KeyError to raise when requesting data from NoDB"""
+    def __str__(self):
+        return "NoDB backend doesn't store any data. "
+        "Start the Controller with a DB backend to enable resubmission / result persistence."
 
 
 class NoDB(BaseDB):
@@ -298,7 +300,7 @@ class NoDB(BaseDB):
         pass
     
     def get_record(self, msg_id):
-        raise NODATA
+        raise NoData()
     
     def update_record(self, msg_id, record):
         pass
@@ -310,8 +312,8 @@ class NoDB(BaseDB):
         pass
     
     def find_records(self, check, keys=None):
-        raise NODATA
+        raise NoData()
     
     def get_history(self):
-        raise NODATA
+        raise NoData()
 
