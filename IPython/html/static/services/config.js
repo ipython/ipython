@@ -1,13 +1,22 @@
 // Copyright (c) IPython Development Team.
 // Distributed under the terms of the Modified BSD License.
-"use strict";
 
-import * as $ from 'jquery';
-import * as utils from 'base/js/utils';
+/// <reference path="./jquery.d.ts" />
+/// <reference path="./promise.d.ts" />
+import $ = require("jquery");
+import utils = require('../base/js/utils');
 
-export class ConfigSection {
+export class ConfigSection {   
+    public section_name;
+    public base_url;
+    public data;
+    public loaded;
+
+    private _one_load_finished;
+    private _finish_firstload;
+
     constructor(section_name, options) {
-        super.constructor();
+        super();
         this.section_name = section_name;
         this.base_url = options.base_url;
         this.data = {};
@@ -68,8 +77,12 @@ export class ConfigSection {
 };
 
 export class ConfigWithDefaults {
+    public section;
+    public defaults;
+    public classname;
+
     constructor(section, defaults, classname) {
-        super.constructor();
+        super();
         this.section = section;
         this.defaults = defaults;
         this.classname = classname;
