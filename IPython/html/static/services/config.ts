@@ -4,7 +4,8 @@
 /// <reference path="./jquery.d.ts" />
 /// <reference path="./promise.d.ts" />
 import $ = require("jquery");
-import utils = require('../base/js/utils');
+var utils;
+// import utils = require('../base/js/utils');
 
 export class ConfigSection {   
     public section_name;
@@ -16,7 +17,6 @@ export class ConfigSection {
     private _finish_firstload;
 
     constructor(section_name, options) {
-        super();
         this.section_name = section_name;
         this.base_url = options.base_url;
         this.data = {};
@@ -82,7 +82,6 @@ export class ConfigWithDefaults {
     public classname;
 
     constructor(section, defaults, classname) {
-        super();
         this.section = section;
         this.defaults = defaults;
         this.classname = classname;
