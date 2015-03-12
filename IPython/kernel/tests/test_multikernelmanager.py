@@ -62,6 +62,15 @@ class TestKernelManager(TestCase):
         km = self._get_tcp_km()
         self._run_lifecycle(km)
     
+    def test_shutdown_all(self):
+        km = self._get_tcp_km()
+        kid = km.start_kernel(stdout=PIPE, stderr=PIPE)
+        self.assertIn(kid, km)
+        km.shutdown_all()
+        self.assertNotIn(kid, km)
+        # shutdown again is okay, because we have no kernels
+        km.shutdown_all()
+    
     def test_tcp_cinfo(self):
         km = self._get_tcp_km()
         self._run_cinfo(km, 'tcp', localhost())

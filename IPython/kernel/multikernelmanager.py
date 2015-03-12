@@ -161,6 +161,7 @@ class MultiKernelManager(LoggingConfigurable):
         for kid in kids:
             self.finish_shutdown(kid)
             self.cleanup(kid)
+            self.remove_kernel(kid)
 
     @kernel_method
     def interrupt_kernel(self, kernel_id):
