@@ -111,12 +111,9 @@ import re
 import datetime
 from collections import deque
 
-from IPython.utils.py3compat import PY3
+from IPython.utils.py3compat import PY3, cast_unicode
 
-if PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
+from io import StringIO
 
 
 __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
@@ -137,11 +134,20 @@ def _safe_getattr(obj, attr, default=None):
     except Exception:
         return default
 
+if PY3:
+    CUnicodeIO = StringIO
+else:
+    class CUnicodeIO(StringIO):
+        """StringIO that casts str to unicode on Python 2"""
+        def write(self, text):
+            return super(CUnicodeIO, self).write(cast_unicode(text))
+
+
 def pretty(obj, verbose=False, max_width=79, newline='\n', max_seq_length=MAX_SEQ_LENGTH):
     """
     Pretty print the object's representation.
     """
-    stream = StringIO()
+    stream = CUnicodeIO()
     printer = RepresentationPrinter(stream, verbose, max_width, newline, max_seq_length)
     printer.pretty(obj)
     printer.flush()
