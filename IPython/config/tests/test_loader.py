@@ -33,7 +33,7 @@ c = get_config()
 c.a=10
 c.b=20
 c.Foo.Bar.value=10
-c.Foo.Bam.value=list(range(10))  # list() is just so it's the same on Python 3
+c.Foo.Bam.value=list(range(10))
 c.D.C.value='hi there'
 """
 
@@ -188,14 +188,23 @@ class TestArgParseCL(TestCase):
 class TestKeyValueCL(TestCase):
     klass = KeyValueConfigLoader
 
+    def test_eval(self):
+        cl = self.klass(log=log)
+        config = cl.load_config('--Class.str_trait=all --Class.int_trait=5 --Class.list_trait=["hello",5]'.split())
+        self.assertEqual(config.Class.str_trait, 'all')
+        self.assertEqual(config.Class.int_trait, 5)
+        self.assertEqual(config.Class.list_trait, ["hello", 5])
+
     def test_basic(self):
         cl = self.klass(log=log)
-        argv = ['--'+s.strip('c.') for s in pyfile.split('\n')[2:-1]]
+        argv = [ '--' + s[2:] for s in pyfile.split('\n') if s.startswith('c.') ]
+        print(argv)
         config = cl.load_config(argv)
         self.assertEqual(config.a, 10)
         self.assertEqual(config.b, 20)
         self.assertEqual(config.Foo.Bar.value, 10)
-        self.assertEqual(config.Foo.Bam.value, list(range(10)))
+        # non-literal expressions are not evaluated
+        self.assertEqual(config.Foo.Bam.value, 'list(range(10))')
         self.assertEqual(config.D.C.value, 'hi there')
     
     def test_expanduser(self):
