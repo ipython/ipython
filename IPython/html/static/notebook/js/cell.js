@@ -375,6 +375,12 @@ define([
             return false;
         }
     };
+
+    Cell.prototype.ensure_focused = function() {
+        if(this.element !== document.activeElement && !this.code_mirror.hasFocus()){
+            this.focus_cell();
+        }
+    }
     
     /**
      * Focus the cell in the DOM sense
