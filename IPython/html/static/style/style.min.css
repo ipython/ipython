@@ -8714,7 +8714,7 @@ ul.breadcrumb span {
   vertical-align: baseline;
   line-height: 22px;
   position: relative;
-  top: -1px;
+  top: 1px;
 }
 .list_header > div .item_link,
 .list_item > div .item_link {
@@ -8738,7 +8738,6 @@ ul.breadcrumb span {
   vertical-align: baseline;
 }
 .item_buttons {
-  padding-top: 4px;
   line-height: 1em;
   margin-left: -5px;
 }
@@ -8755,6 +8754,7 @@ ul.breadcrumb span {
   min-width: 13ex;
 }
 .item_buttons .running-indicator {
+  padding-top: 4px;
   color: #5cb85c;
 }
 .toolbar_info {

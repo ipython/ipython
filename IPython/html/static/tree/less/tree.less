@@ -114,7 +114,7 @@ ul.breadcrumb {
         vertical-align: baseline;
         line-height: @btn_mini_height;
         position: relative;
-        top: -1px;
+        top: 1px;
     }
 
     .item_link {
@@ -143,13 +143,13 @@ ul.breadcrumb {
 }
 
 .item_buttons {
-    padding-top: @dashboard_tb_pad;
     line-height: 1em;
     .btn-toolbar();
     .btn {
         min-width: 13ex;
     }
     .running-indicator {
+        padding-top: @dashboard_tb_pad;
         color: @brand-success;
     }
 }
