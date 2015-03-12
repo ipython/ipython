@@ -557,6 +557,15 @@ define([
             SelectMultipleView.__super__.update.apply(this, arguments);
             this.$listbox.val(this.model.get('selected_labels'));
         },
+        
+        handle_click: function(){
+            /**
+             * Overload click from select
+             *
+             * Apparently it's needed from there for testing purposes,
+             * but breaks behavior of this.
+             */
+        },
 
         handle_change: function (e) {
             /**
