@@ -56,7 +56,7 @@ define([
 
     Page.prototype._resize_site = function() {
         // Update the site's size.
-        $('div#site').height(window.innerHeight - $('#header').height());
+        $('div#site').height($(window).height() - $('#header').height());
     };
 
     // Register self in the global namespace for convenience.

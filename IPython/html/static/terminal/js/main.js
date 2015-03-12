@@ -36,7 +36,7 @@ require([
     
     var header = $("#header")[0]
     function calculate_size() {
-        var height = window.innerHeight - header.offsetHeight;
+        var height = $(window).height() - header.offsetHeight;
         var width = $('#terminado-container').width();
         var rows = Math.min(1000, Math.max(20, Math.floor(height/termRowHeight())-1));
         var cols = Math.min(1000, Math.max(40, Math.floor(width/termColWidth())-1));
@@ -57,7 +57,7 @@ require([
       var geom = calculate_size();
       terminal.term.resize(geom.cols, geom.rows);
       terminal.socket.send(JSON.stringify(["set_size", geom.rows, geom.cols,
-                                    window.innerHeight, window.innerWidth]));
+                                    $(window).height(), $(window).width()]));
     };
 
 });
