@@ -625,7 +625,7 @@ class NotebookExportMagicTests(TestCase):
     def test_notebook_export_json(self):
         _ip = get_ipython()
         _ip.history_manager.reset()   # Clear any existing history.
-        cmds = [u"a=1", u"def b():\n  return a**2", u"print(a, b())"]
+        cmds = [u"a=1", u"def b():\n  return a**2", u"print('noël, été', b())"]
         for i, cmd in enumerate(cmds, start=1):
             _ip.history_manager.store_inputs(i, cmd)
         with TemporaryDirectory() as td:
