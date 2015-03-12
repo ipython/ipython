@@ -61,6 +61,7 @@ define([
          * Scrolling to an anchor with a fixed header.
          * scroll_if_anchor is taken almost verbatim from http://jsfiddle.net/ianclark001/aShQL/.
          * Push state is not strictly necessary.
+         * Note: Loading a URL with a fragment identifier works as expected. However, clicking on the address bar and pressing Enter again (without changing the fragment identifier) doesn't scroll correctly in Firefox. Firefox only follows the local links without reloading the document.
          */
         function scroll_if_anchor(href) {
             var href = typeof(href) == "string" ? href : $(this).attr("href");
