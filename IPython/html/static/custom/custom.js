@@ -18,7 +18,7 @@
  *     IPython.Cell.options_default.cm_config.extraKeys['End'] = 'goLineRight';
  *
  * Instances are created later however and must be accessed using events:
- *     require([
+ *     define([
  *        'base/js/namespace',
  *        'base/js/events'
  *     ], function(IPython, events) {
@@ -32,7 +32,7 @@
  * Create a custom button in toolbar that execute `%qtconsole` in kernel
  * and hence open a qtconsole attached to the same kernel as the current notebook
  *
- *    require([
+ *    define([
  *        'base/js/namespace',
  *        'base/js/events'
  *    ], function(IPython, events) {
@@ -55,7 +55,7 @@
  * At the completion of the dashboard loading, load an unofficial javascript extension
  * that is installed in profile/static/custom/
  *
- *    require([
+ *    define([
  *        'base/js/events'
  *    ], function(events) {
  *        events.on('app_initialized.DashboardApp', function(){
