@@ -601,6 +601,8 @@ Defaulting color scheme to 'NoColor'"""
         if args.export:
             cells = []
             hist = list(self.shell.history_manager.get_range())
+            if(len(hist)<=1):
+                raise ValueError('History is empty, cannot export')
             for session, execution_count, input in hist[:-1]:
                 cells.append(v4.new_code_cell(
                     execution_count=execution_count,
