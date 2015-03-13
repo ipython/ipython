@@ -695,6 +695,16 @@ define(function (require) {
             cell.focus_editor();
         }
     };
+    
+    /**
+     * Ensure either cell, or codemirror is focused. Is none 
+     * is focused, focus the cell.
+     */
+    Notebook.prototype.ensure_focused = function(){
+        var cell = this.get_selected_cell();
+        if (cell === null) {return;}  // No cell is selected
+        cell.ensure_focused();
+    }
 
     /**
      * Focus the currently selected cell.

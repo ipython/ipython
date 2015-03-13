@@ -131,9 +131,7 @@ class MagicHelper(QtGui.QDockWidget):
         self.search_class.clear()
         self.search_list.clear()
                 
-        self.data = json.loads(
-            data['data'].get('application/json', {})
-        )
+        self.data = data['data'].get('application/json', {})
         
         self.search_class.addItem('All Magics', 'any')
         classes = set()

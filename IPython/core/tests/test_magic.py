@@ -623,9 +623,13 @@ def test_extension():
 @skipIf(dec.module_not_available('IPython.nbformat'), 'nbformat not importable')
 class NotebookExportMagicTests(TestCase):
     def test_notebook_export_json(self):
+        _ip = get_ipython()
+        _ip.history_manager.reset()   # Clear any existing history.
+        cmds = [u"a=1", u"def b():\n  return a**2", u"print('noël, été', b())"]
+        for i, cmd in enumerate(cmds, start=1):
+            _ip.history_manager.store_inputs(i, cmd)
         with TemporaryDirectory() as td:
             outfile = os.path.join(td, "nb.ipynb")
-            _ip.ex(py3compat.u_format(u"u = {u}'héllo'"))
             _ip.magic("notebook -e %s" % outfile)
 
 

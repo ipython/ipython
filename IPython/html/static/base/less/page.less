@@ -120,9 +120,11 @@ span#login_widget > .button,
 // class for stretching dialogs to fill the screen
 .modal_stretch .modal-dialog {
     .vbox();
-    min-height: 80%;
+    min-height: 80vh;
     .modal-body {
-        max-height: none;
+        // ~"foo" is to avoid less turning this into a weird value
+        max-height: calc(~"100vh - 200px");
+        overflow: auto;
         flex: 1;
     }
 }

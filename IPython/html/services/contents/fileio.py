@@ -96,8 +96,16 @@ class FileManagerMixin(object):
         -------
         path : string
             Native, absolute OS path to for a file.
+
+        Raises
+        ------
+        404: if path is outside root
         """
-        return to_os_path(path, self.root_dir)
+        root = os.path.abspath(self.root_dir)
+        os_path = to_os_path(path, root)
+        if not (os.path.abspath(os_path) + os.path.sep).startswith(root):
+            raise HTTPError(404, "%s is outside root contents directory" % path)
+        return os_path
 
     def _read_notebook(self, os_path, as_version=4):
         """Read a notebook from an os path."""

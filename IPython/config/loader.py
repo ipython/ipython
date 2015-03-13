@@ -11,6 +11,7 @@ import os
 import re
 import sys
 import json
+from ast import literal_eval
 
 from IPython.utils.path import filefind, get_ipython_dir
 from IPython.utils import py3compat
@@ -232,13 +233,26 @@ class Config(dict):
     
     def copy(self):
         return type(self)(dict.copy(self))
+        # copy nested config objects
+        for k, v in self.items():
+            if isinstance(v, Config):
+                new_config[k] = v.copy()
+        return new_config
 
     def __copy__(self):
         return self.copy()
 
     def __deepcopy__(self, memo):
-        import copy
-        return type(self)(copy.deepcopy(list(self.items())))
+        new_config = type(self)()
+        for key, value in self.items():
+            if isinstance(value, (Config, LazyConfigValue)):
+                # deep copy config objects
+                value = copy.deepcopy(value, memo)
+            elif type(value) in {dict, list, set, tuple}:
+                # shallow copy plain container traits
+                value = copy.copy(value)
+            new_config[key] = value
+        return new_config
     
     def __getitem__(self, key):
         try:
@@ -487,7 +501,7 @@ class CommandLineConfigLoader(ConfigLoader):
         """execute self.config.<lhs> = <rhs>
         
         * expands ~ with expanduser
-        * tries to assign with raw eval, otherwise assigns with just the string,
+        * tries to assign with literal_eval, otherwise assigns with just the string,
           allowing `--C.a=foobar` and `--C.a="foobar"` to be equivalent.  *Not*
           equivalent are `--C.a=4` and `--C.a='4'`.
         """
@@ -496,8 +510,8 @@ class CommandLineConfigLoader(ConfigLoader):
             # Try to see if regular Python syntax will work. This
             # won't handle strings as the quote marks are removed
             # by the system shell.
-            value = eval(rhs)
-        except (NameError, SyntaxError):
+            value = literal_eval(rhs)
+        except (NameError, SyntaxError, ValueError):
             # This case happens if the rhs is a string.
             value = rhs
 
