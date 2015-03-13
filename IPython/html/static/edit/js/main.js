@@ -83,15 +83,15 @@ require([
     };
 
     // Make sure the codemirror editor is sized appropriatley.
-    var _handle_resize = function() {
-        var backdrop = $("#texteditor-backdrop");
+    //var _handle_resize = function() {
+        //var backdrop = $("#texteditor-backdrop");
 
         // account for padding on the backdrop wrapper
-        var padding = backdrop.outerHeight(true) - backdrop.height();
-        $('div.CodeMirror').height($("#site").height() - padding);
-    };
-    $(window).resize(_handle_resize);
+        //var padding = backdrop.outerHeight(true) - backdrop.height();
+        //$('div.CodeMirror').height($("#site").height() - padding);
+    //};
+    //$(window).resize(_handle_resize);
 
     // On document ready, resize codemirror.
-    $(document).ready(_handle_resize);
+    //$(document).ready(_handle_resize);
 });

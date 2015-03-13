@@ -8970,6 +8970,12 @@ ul#new-menu {
     header */
   margin-bottom: -1px;
 }
+.header_edit {
+  height: 10.6%;
+}
+.site_edit {
+  height: 89.4%;
+}
 .dirty-indicator {
   display: inline-block;
   font: normal normal normal 14px/1 FontAwesome;
@@ -9046,11 +9052,18 @@ ul#new-menu {
 #texteditor-backdrop {
   padding-top: 20px;
   padding-bottom: 20px;
+  height: 100%;
 }
 @media not print {
   #texteditor-backdrop {
     background-color: #eeeeee;
   }
+}
+#texteditor-backdrop #texteditor-container {
+  height: inherit;
+}
+#texteditor-backdrop #texteditor-container .CodeMirror {
+  height: inherit;
 }
 @media print {
   #texteditor-backdrop #texteditor-container .CodeMirror-gutter,

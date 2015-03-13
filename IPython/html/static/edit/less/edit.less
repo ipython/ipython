@@ -1,3 +1,11 @@
+.header_edit {
+    height: 10.6%;
+}
+
+.site_edit {
+    height: 89.4%;
+}
+
 .dirty-indicator{
     .fa();
     width:20px;
@@ -27,12 +35,17 @@
 #texteditor-backdrop {
     padding-top: @page-header-padding;
     padding-bottom: @page-header-padding;
-    
+    height: 100%;
+
     @media not print{
         background-color: @page-backdrop-color;
     }
 
     #texteditor-container {
+        height: inherit;
+        .CodeMirror {
+            height: inherit;
+        }
         .CodeMirror-gutter, .CodeMirror-gutters {
             @media print {
                 background-color: @body-bg;
