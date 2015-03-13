@@ -64,27 +64,31 @@ define([
          * Note: Loading a URL with a fragment identifier works as expected. However, clicking on the address bar and pressing Enter again (without changing the fragment identifier) doesn't scroll correctly in Firefox. Firefox only follows the local links without reloading the document.
          */
         function scroll_if_anchor(href) {
-            var href = typeof(href) == "string" ? href : $(this).attr("href");
-            
-            var fromTop = $("#header").height();
-            
-            // If our Href points to a valid, non-empty anchor, and is on the same page (e.g. #foo)
-            // Legacy jQuery and IE7 may have issues: http://stackoverflow.com/q/1593174
-            if(href.indexOf("#") == 0) {
-                var $target = $(href);
+            // Run only in /notebooks/
+            var pathname = window.location.pathname;
+            if (pathname.indexOf("/notebooks/") == 0) {
+
+                var href = typeof(href) == "string" ? href : $(this).attr("href");
+               
+                var fromTop = $("#header").height();
                 
-                // Older browser without pushState might flicker here, as they momentarily
-                // jump to the wrong position (IE < 10)
-                if($target.length) {
-                    $('html, body').animate({ scrollTop: $target.offset().top - fromTop - 30});
-                    if(history && "pushState" in history) {
-                        history.pushState({}, document.title, window.location.pathname + href);
-                        return false;
+                // If our Href points to a valid, non-empty anchor, and is on the same page (e.g. #foo)
+                // Legacy jQuery and IE7 may have issues: http://stackoverflow.com/q/1593174
+                if(href.indexOf("#") == 0) {
+                    var $target = $(href);
+                    
+                    // Older browser without pushState might flicker here, as they momentarily
+                    // jump to the wrong position (IE < 10)
+                    if($target.length) {
+                        $('html, body').animate({ scrollTop: $target.offset().top - fromTop - 30});
+                        if(history && "pushState" in history) {
+                            history.pushState({}, document.title, window.location.pathname + href);
+                            return false;
+                        }
                     }
                 }
             }
         }
-
         // When our page loads, check to see if it contains and anchor
 
         $(window).on('hashchange', function() {
