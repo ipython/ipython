@@ -327,11 +327,15 @@ except AttributeError:
     original_reload = imp.reload    # Python 3
 
 # Replacement for reload()
-def reload(module, exclude=['sys', 'os.path', builtin_mod_name, '__main__']):
+def reload(module, exclude=['sys', 'os.path', builtin_mod_name, '__main__',
+                            'tokenize']):
     """Recursively reload all modules used in the given module.  Optionally
     takes a list of modules to exclude from reloading.  The default exclude
     list contains sys, __main__, and __builtin__, to prevent, e.g., resetting
     display, exception, and io hooks.
+
+    Python 3.4.3 broke reloading tokenize. This should be fixed in 3.4.4, but
+    for now, avoid reloading it. http://bugs.python.org/issue23615
     """
     global found_now
     for i in exclude:
