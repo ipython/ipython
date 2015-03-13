@@ -4,6 +4,8 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import copy
+import logging
 import os
 import pickle
 import sys
@@ -319,11 +321,15 @@ class TestConfig(TestCase):
         c1.Foo.bam = 30
         c1.a = 'asdf'
         c1.b = range(10)
-        import copy
+        c1.Test.logger = logging.Logger('test')
+        c1.Test.get_logger = logging.getLogger('test')
         c2 = copy.deepcopy(c1)
         self.assertEqual(c1, c2)
         self.assertTrue(c1 is not c2)
         self.assertTrue(c1.Foo is not c2.Foo)
+        self.assertTrue(c1.Test is not c2.Test)
+        self.assertTrue(c1.Test.logger is c2.Test.logger)
+        self.assertTrue(c1.Test.get_logger is c2.Test.get_logger)
 
     def test_builtin(self):
         c1 = Config()

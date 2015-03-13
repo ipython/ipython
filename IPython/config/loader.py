@@ -233,13 +233,26 @@ class Config(dict):
     
     def copy(self):
         return type(self)(dict.copy(self))
+        # copy nested config objects
+        for k, v in self.items():
+            if isinstance(v, Config):
+                new_config[k] = v.copy()
+        return new_config
 
     def __copy__(self):
         return self.copy()
 
     def __deepcopy__(self, memo):
-        import copy
-        return type(self)(copy.deepcopy(list(self.items())))
+        new_config = type(self)()
+        for key, value in self.items():
+            if isinstance(value, (Config, LazyConfigValue)):
+                # deep copy config objects
+                value = copy.deepcopy(value, memo)
+            elif type(value) in {dict, list, set, tuple}:
+                # shallow copy plain container traits
+                value = copy.copy(value)
+            new_config[key] = value
+        return new_config
     
     def __getitem__(self, key):
         try:
