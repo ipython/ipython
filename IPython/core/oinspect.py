@@ -571,8 +571,12 @@ class Inspector:
             add_fields([('Repr', "string_form")])
 
         elif info['ismagic']:
-            add_fields([("Docstring", "docstring"),
-                        ("File", "file")
+            if detail_level > 0 and info['source'] is not None:
+                add_fields([("Source", "source")])
+            else:
+                add_fields([("Docstring", "docstring")])
+
+            add_fields([("File", "file"),
                        ])
 
         elif info['isclass'] or is_simple_callable(obj):
