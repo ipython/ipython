@@ -8572,10 +8572,11 @@ span#login_widget > .button .badge,
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  min-height: 80%;
+  min-height: 80vh;
 }
 .modal_stretch .modal-dialog .modal-body {
-  max-height: none;
+  max-height: calc(100vh - 200px);
+  overflow: auto;
   flex: 1;
 }
 @media (min-width: 768px) {
