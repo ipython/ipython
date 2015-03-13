@@ -8970,11 +8970,8 @@ ul#new-menu {
     header */
   margin-bottom: -1px;
 }
-.header_edit {
-  height: 10.6%;
-}
 .site_edit {
-  height: 89.4%;
+  height: 88.5%;
 }
 .dirty-indicator {
   display: inline-block;
