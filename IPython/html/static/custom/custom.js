@@ -6,7 +6,7 @@
  * mainly to be overridden in profile/static/custom/custom.js
  * This will always be an empty file in IPython
  *
- * User could add any javascript in the `profile/static/custom/custom.js` file
+ * User could add any javascript in the `profile/static/custom/custom.js` file.
  * It will be executed by the ipython notebook at load time.
  *
  * Same thing with `profile/static/custom/custom.css` to inject custom css into the notebook.
