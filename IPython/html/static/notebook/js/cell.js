@@ -29,7 +29,7 @@ define([
         // Reverse `min-height: 18px` scrollbar hack on OS X
         // which causes a dead area, making it impossible to click on the last line
         // when there is horizontal scrolling to do and the "show scrollbar only when scrolling" behavior
-        // is enabled.
+        // is enabled.c
         // This, in turn, has the undesirable behavior of never showing the horizontal scrollbar,
         // even when it should, which is less problematic, at least.
         if (/Mac/.test(navigator.platform)) {
@@ -76,11 +76,11 @@ define([
         // load this from metadata later ?
         this.user_highlight = 'auto';
 
-        var class_conf_value = {};
+        var _local_cm_config = {};
         if(this.class_config){
-            class_conf_value = this.class_config.get_sync('cm_config');
+            _local_cm_config = this.class_config.get_sync('cm_config');
         }
-        this.cm_config = utils.mergeopt({}, config.cm_config, class_conf_value);
+        this.cm_config = utils.mergeopt({}, config.cm_config, _local_cm_config);
         this.cell_id = utils.uuid();
         this._options = config;
 
