@@ -74,10 +74,10 @@ class LoginHandler(IPythonHandler):
         if not app.ip:
             warning = "WARNING: The notebook server is listening on all IP addresses"
             if ssl_options is None:
-                app.log.critical(warning + " and not using encryption. This "
+                app.log.warning(warning + " and not using encryption. This "
                     "is not recommended.")
             if not app.password:
-                app.log.critical(warning + " and not using authentication. "
+                app.log.warning(warning + " and not using authentication. "
                     "This is highly insecure and not recommended.")
 
     @classmethod
