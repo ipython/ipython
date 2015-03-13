@@ -56,7 +56,6 @@ define([
         // superclass default overwrite our default
         
         this.placeholder = config.placeholder || '';
-        this.read_only = config.cm_config.readOnly;
         this.selected = false;
         this.rendered = false;
         this.mode = 'command';
@@ -76,7 +75,12 @@ define([
 
         // load this from metadata later ?
         this.user_highlight = 'auto';
-        this.cm_config = config.cm_config;
+
+        var class_conf_value = {};
+        if(this.class_config){
+            class_conf_value = this.class_config.get_sync('cm_config');
+        }
+        this.cm_config = utils.mergeopt({}, config.cm_config, class_conf_value);
         this.cell_id = utils.uuid();
         this._options = config;
 
