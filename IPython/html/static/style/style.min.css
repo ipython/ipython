@@ -8715,7 +8715,7 @@ ul.breadcrumb span {
   vertical-align: baseline;
   line-height: 22px;
   position: relative;
-  top: 1px;
+  top: -1px;
 }
 .list_header > div .item_link,
 .list_item > div .item_link {
