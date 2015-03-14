@@ -122,14 +122,25 @@ define([
             $('.delete-button').click($.proxy(this.delete_selected, this));
 
             // Bind events for selection menu buttons.
-            $('#selector-menu').click(function(event){that.select($(event.target).attr('id'))});
-            $('#select-all').change(function(){that.select($(this).is(':checked') ? 'select-all' : 'select-none')});
-            $('#button-select-all').click(function(e) {
+            $('#selector-menu').click(function (event) {
+                that.select($(event.target).attr('id'));
+            });
+            var select_all = $('#select-all');
+            select_all.change(function () {
+                if (!select_all.prop('checked') || select_all.data('indeterminate')) {
+                    that.select('select-none');
+                } else {
+                    that.select('select-all');
+                }
+            });
+            $('#button-select-all').click(function (e) {
                 // toggle checkbox if the click doesn't come from the checkbox already
                 if (!$(e.target).is('input[type=checkbox]')) {
-                    var checkbox = $('#select-all');
-                    checkbox.prop('checked', !checkbox.prop('checked'));
-                    that.select(checkbox.prop('checked') ? 'select-all' : 'select-none');
+                    if (select_all.prop('checked') || select_all.data('indeterminate')) {
+                        that.select('select-none');
+                    } else {
+                        that.select('select-all');
+                    }
                 }
             });
         }
@@ -479,15 +490,20 @@ define([
                 total++;
             }
         });
+        
+        var select_all = $("#select-all");
         if (checked === 0) {
-            $('#tree-selector input[type=checkbox]')[0].indeterminate = false;
-            $('#tree-selector input[type=checkbox]').prop('checked', false);
+            select_all.prop('checked', false);
+            select_all.prop('indeterminate', false);
+            select_all.data('indeterminate', false);
         } else if (checked === total) {
-            $('#tree-selector input[type=checkbox]')[0].indeterminate = false;
-            $('#tree-selector input[type=checkbox]').prop('checked', true);
+            select_all.prop('checked', true);
+            select_all.prop('indeterminate', false);
+            select_all.data('indeterminate', false);
         } else {
-            $('#tree-selector input[type=checkbox]').prop('checked', false);
-            $('#tree-selector input[type=checkbox]')[0].indeterminate = true;
+            select_all.prop('checked', false);
+            select_all.prop('indeterminate', true);
+            select_all.data('indeterminate', true);
         }
         // Update total counter
         $('#counter-select-all').html(checked===0 ? '&nbsp;' : checked);
