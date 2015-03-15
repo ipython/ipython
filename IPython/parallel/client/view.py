@@ -855,7 +855,7 @@ class LoadBalancedView(View):
 
     or targets can be specified, to restrict the potential destinations:
 
-    >>> v = client.client.load_balanced_view([1,3])
+    >>> v = client.load_balanced_view([1,3])
 
     which would restrict loadbalancing to between engines 1 and 3.
 
