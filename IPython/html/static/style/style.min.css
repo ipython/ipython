@@ -9617,6 +9617,15 @@ div.output_area .rendered_html img {
   margin-left: 0;
   margin-right: 0;
 }
+div.output_area img,
+div.output_area svg {
+  max-width: 100%;
+  height: auto;
+}
+div.output_area img.unconfined,
+div.output_area svg.unconfined {
+  max-width: none;
+}
 /* This is needed to protect the pre formating from global settings such
    as that of bootstrap */
 .output {
@@ -9907,6 +9916,15 @@ div.output_unrecognized a:hover {
 }
 .rendered_html * + img {
   margin-top: 1em;
+}
+.rendered_html img,
+.rendered_html svg {
+  max-width: 100%;
+  height: auto;
+}
+.rendered_html img.unconfined,
+.rendered_html svg.unconfined {
+  max-width: none;
 }
 div.text_cell {
   /* Old browsers */

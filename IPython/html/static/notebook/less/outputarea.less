@@ -66,6 +66,14 @@ div.output_area {
             margin-right: 0;
         }
     }
+    
+    img, svg {
+        max-width: 100%;
+        height: auto;
+        &.unconfined {
+            max-width: none;
+        }
+    }
 }
 
 /* This is needed to protect the pre formating from global settings such

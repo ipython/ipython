@@ -82,5 +82,12 @@
         margin-right: auto;
     }
     * + img {margin-top: 1em;}
-
+    
+    img, svg {
+        max-width: 100%;
+        height: auto;
+        &.unconfined {
+            max-width: none;
+        }
+    }
 }
