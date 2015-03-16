@@ -26,6 +26,7 @@ define([
         this.expanded = false;
         this.create_button_area();
         this.bind_events();
+        this.custom_scroll();
     };
 
     Pager.prototype.create_button_area = function(){
@@ -162,6 +163,22 @@ define([
         $('.end_space').css('height', Math.max(this.pager_element.height(), this._default_end_space));
     };
 
+    Pager.prototype.custom_scroll = function() {
+        /**
+         * Prevents scrolling event propagation to parent elements.
+         * Source: http://stackoverflow.com/a/7600806
+         * Probably better: http://stackoverflow.com/a/20520619
+         * (only set values to scrollTop when pager reaches top or bottom).
+         */
+        var that = this.pager_element;
+        var container = that.find("#pager-contents")[0];
+        that.bind( 'mousewheel DOMMouseScroll', function (e) {
+            var e0 = e.originalEvent,
+            delta = e0.wheelDelta || -e0.detail;
+            container.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+            e.preventDefault();
+        });
+    }
     // Backwards compatability.
     IPython.Pager = Pager;
 
