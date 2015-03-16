@@ -890,6 +890,7 @@ div.output_subarea {
   box-flex: 1;
   /* Modern browsers */
   flex: 1;
+  max-width: 100%;
 }
 /* The rest of the output_* classes are for special styling of the different
    output types */
