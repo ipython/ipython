@@ -374,7 +374,8 @@ define(function(require){
                 if(event){
                     event.preventDefault();
                 }
-                return env.notebook.scroll_to_bottom();
+                var cell = env.notebook.get_selected_index();
+                return env.notebook.scroll_to_cell(cell);
             }
         },
         'save-notebook':{
