@@ -368,6 +368,15 @@ define(function(require){
                 return env.notebook.scroll_manager.scroll(-1);
             },
         },
+        'recenter-top-bottom': {
+            help: "Move the current cell to the center, top or bottom",
+            handler: function (env, event) {
+                if(event){
+                    event.preventDefault();
+                }
+                return env.notebook.scroll_to_bottom();
+            }
+        },
         'save-notebook':{
             help: "Save and Checkpoint",
             help_index : 'fb',
