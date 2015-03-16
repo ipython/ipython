@@ -46,57 +46,6 @@ casper.notebook_test(function () {
     this.execute_cell_then(index);
 
     this.then(function () {
-
-        // Functions that can be used to test the packing and unpacking APIs
-        var that = this;
-        var test_pack = function (input) {
-            var output = that.evaluate(function(input) {
-                var model = new IPython.WidgetModel(IPython.notebook.kernel.widget_manager, undefined);
-                var results = model._pack_models(input);
-                return results;
-            }, {input: input});
-            that.test.assert(recursive_compare(input, output), 
-                JSON.stringify(input) + ' passed through Model._pack_model unchanged');
-        };
-        var test_unpack = function (input) {
-            that.thenEvaluate(function(input) {
-                window.results = undefined;
-                var model = new IPython.WidgetModel(IPython.notebook.kernel.widget_manager, undefined);
-                model._unpack_models(input).then(function(results) { 
-                    window.results = results; 
-                });    
-            }, {input: input});
-            
-            that.waitFor(function check() {
-                return that.evaluate(function() { 
-                    return window.results; 
-                }); 
-            });
-            
-            that.then(function() {
-                var results = that.evaluate(function() { 
-                    return window.results; 
-                });
-                that.test.assert(recursive_compare(input, results), 
-                    JSON.stringify(input) + ' passed through Model._unpack_model unchanged');
-            });
-        };
-        var test_packing = function(input) {
-            test_pack(input);
-            test_unpack(input);
-        };
-        
-        test_packing({0: 'hi', 1: 'bye'});
-        test_packing(['hi', 'bye']);
-        test_packing(['hi', 5]);
-        test_packing(['hi', '5']);
-        test_packing([1.0, 0]);
-        test_packing([1.0, false]);
-        test_packing([1, false]);
-        test_packing([1, false, {a: 'hi'}]);
-        test_packing([1, false, ['hi']]);
-        test_packing([String('hi'), Date("Thu Nov 13 2014 13:46:21 GMT-0500")])
-
         // Test multi-set, single touch code.  First create a custom widget.
         this.thenEvaluate(function() {
             var MultiSetView = IPython.DOMWidgetView.extend({
