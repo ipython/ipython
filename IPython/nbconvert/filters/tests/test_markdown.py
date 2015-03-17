@@ -122,10 +122,20 @@ class TestMarkdown(TestsBase):
                 ]
         for case in cases:
             self.assertIn(case, markdown2html(case))
+    
+    def test_markdown2html_math_mixed(self):
+        """ensure markdown between inline and inline-block math"""
+        case = """The entries of $C$ are given by the exact formula:
+$$
+C_{ik} = \sum_{j=1}^n A_{ij} B_{jk}
+$$
+but there are many ways to _implement_ this computation.   $\approx 2mnp$ flops"""
+        self._try_markdown(markdown2html, case,
+                           case.replace("_implement_", "<em>implement</em>"))
 
     def test_markdown2html_math_paragraph(self):
         """these should all parse without modification"""
-        patterns = [
+        cases = [
             # https://github.com/ipython/ipython/issues/6724
             """Water that is stored in $t$, $s_t$, must equal the storage content of the previous stage,
 $s_{t-1}$, plus a stochastic inflow, $I_t$, minus what is being released in $t$, $r_t$.
@@ -151,8 +161,8 @@ b}_{i}^{r}(t)=(1-t)\,{\bf b}_{i}^{r-1}(t)+t\,{\bf b}_{i+1}^{r-1}(t),\:
 i.e. the $i^{th}$"""
         ]
 
-        for pattern in patterns:
-            self.assertIn(pattern, markdown2html(pattern))
+        for case in cases:
+            self.assertIn(case, markdown2html(case))
 
     @dec.onlyif_cmds_exist('pandoc')
     def test_markdown2rst(self):
