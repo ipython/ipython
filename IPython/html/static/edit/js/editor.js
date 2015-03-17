@@ -22,6 +22,22 @@ function($,
 ) {
     "use strict";
 
+    var __console = window.console;
+
+    var _console = function(namespace){
+        return {
+            log: function(){
+                var ns = '['+namespace+'][log]';
+                var args = Array.prototype.slice.call(arguments);
+                args.unshift(ns);
+                //__console.log(args)
+                __console.log.apply(__console, args);
+            }
+        }
+    };
+
+    var console = _console('editor.js');
+
     var Editor = function(selector, options) {
         var that = this;
         this.counter = 0;
@@ -85,7 +101,7 @@ function($,
                 return
             }
     
-            cm.getDoc().replaceRange(str, from, to);
+            cm.getDoc().replaceRange(str, from, to, '+remote_sync');
         }
     };
 
@@ -97,7 +113,7 @@ function($,
             }
             var from = utils.from_absolute_cursor_pos(cm, evts.index);
             var to   = utils.from_absolute_cursor_pos(cm, evts.index+evts.text.length);
-            cm.getDoc().replaceRange('', from, to);
+            cm.getDoc().replaceRange('', from, to, '+remote_sync');
         }
     };
     
@@ -159,7 +175,7 @@ function($,
                     that.counter = that.counter -1; 
                     if(that.counter < 0){
                         that.counter = 5;
-                        console.log('resync...');
+                        console.log('resync...','again');
                         that.sync();
                     }
                     window.cm = cm;
@@ -177,6 +193,8 @@ function($,
                         var startIndex = utils.to_absolute_cursor_pos(cm, change.from)
                         var endIndex = utils.to_absolute_cursor_pos(cm, change.to)
                         string.removeRange(startIndex, endIndex);
+                    }else if (change.origin == '+remote_sync'){
+                        console.log('got remote sync event in cm')
                     } else {
                         console.warn('unknown changes', change.origin, change)
                     }
