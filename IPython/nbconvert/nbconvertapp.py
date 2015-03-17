@@ -277,61 +277,128 @@ class NbConvertApp(BaseIPythonApplication):
         super(NbConvertApp, self).start()
         self.convert_notebooks()
 
+    def init_single_notebook_resources(self, notebook_filename):
+        """Step 1: Initialize resources
+
+        This intializes the resources dictionary for a single notebook. This
+        method should return the resources dictionary, and MUST include the
+        following keys:
+
+            - profile_dir: the location of the profile directory
+            - unique_key: the notebook name
+            - output_files_dir: a directory where output files (not including
+              the notebook itself) should be saved
+
+        """
+
+        # Get a unique key for the notebook and set it in the resources object.
+        basename = os.path.basename(notebook_filename)
+        notebook_name = basename[:basename.rfind('.')]
+        if self.output_base:
+            # strip duplicate extension from output_base, to avoid Basname.ext.ext
+            if getattr(self.exporter, 'file_extension', False):
+                base, ext = os.path.splitext(self.output_base)
+                if ext == self.exporter.file_extension:
+                    self.output_base = base
+            notebook_name = self.output_base
+
+        self.log.debug("Notebook name is '%s'", notebook_name)
+
+        # first initialize the resources we want to use
+        resources = {}
+        resources['profile_dir'] = self.profile_dir.location
+        resources['unique_key'] = notebook_name
+        resources['output_files_dir'] = '%s_files' % notebook_name
+
+        return resources
+
+    def export_single_notebook(self, notebook_filename, resources):
+        """Step 2: Export the notebook
+
+        Exports the notebook to a particular format according to the specified
+        exporter. This function returns the output and (possibly modified)
+        resources from the exporter.
+
+        """
+        try:
+            output, resources = self.exporter.from_filename(notebook_filename, resources=resources)
+        except ConversionException:
+            self.log.error("Error while converting '%s'", notebook_filename, exc_info=True)
+            self.exit(1)
+
+        return output, resources
+
+    def write_single_notebook(self, output, resources):
+        """Step 3: Write the notebook to file
+
+        This writes output from the exporter to file using the specified writer.
+        It returns the results from the writer.
+
+        """
+        if 'unique_key' not in resources:
+            raise KeyError("unique_key MUST be specified in the resources, but it is not")
+
+        notebook_name = resources['unique_key']
+        if self.use_output_suffix and not self.output_base:
+            notebook_name += resources.get('output_suffix', '')
+
+        write_results = self.writer.write(
+            output, resources, notebook_name=notebook_name)
+        return write_results
+
+    def postprocess_single_notebook(self, write_results):
+        """Step 4: Postprocess the notebook
+
+        This postprocesses the notebook after it has been written, taking as an
+        argument the results of writing the notebook to file. This only actually
+        does anything if a postprocessor has actually been specified.
+
+        """
+        # Post-process if post processor has been defined.
+        if hasattr(self, 'postprocessor') and self.postprocessor:
+            self.postprocessor(write_results)
+
+    def convert_single_notebook(self, notebook_filename):
+        """Convert a single notebook. Performs the following steps:
+
+            1. Initialize notebook resources
+            2. Export the notebook to a particular format
+            3. Write the exported notebook to file
+            4. (Maybe) postprocess the written file
+
+        """
+        self.log.info("Converting notebook %s to %s", notebook_filename, self.export_format)
+        resources = self.init_single_notebook_resources(notebook_filename)
+        output, resources = self.export_single_notebook(notebook_filename, resources)
+        write_results = self.write_single_notebook(output, resources)
+        self.postprocess_single_notebook(write_results)
+
     def convert_notebooks(self):
         """
         Convert the notebooks in the self.notebook traitlet
         """
-        # Export each notebook
-        conversion_success = 0
-
+        # check that the output base isn't specified if there is more than
+        # one notebook to convert
         if self.output_base != '' and len(self.notebooks) > 1:
             self.log.error(
-            """UsageError: --output flag or `NbConvertApp.output_base` config option
-            cannot be used when converting multiple notebooks.
-            """)
+                """
+                UsageError: --output flag or `NbConvertApp.output_base` config option
+                cannot be used when converting multiple notebooks.
+                """
+            )
             self.exit(1)
         
-        exporter = exporter_map[self.export_format](config=self.config)
+        # initialize the exporter
+        self.exporter = exporter_map[self.export_format](config=self.config)
 
-        for notebook_filename in self.notebooks:
-            self.log.info("Converting notebook %s to %s", notebook_filename, self.export_format)
-
-            # Get a unique key for the notebook and set it in the resources object.
-            basename = os.path.basename(notebook_filename)
-            notebook_name = basename[:basename.rfind('.')]
-            if self.output_base:
-                # strip duplicate extension from output_base, to avoid Basname.ext.ext
-                if getattr(exporter, 'file_extension', False):
-                    base, ext = os.path.splitext(self.output_base)
-                    if ext == exporter.file_extension:
-                        self.output_base = base
-                notebook_name = self.output_base
-            resources = {}
-            resources['profile_dir'] = self.profile_dir.location
-            resources['unique_key'] = notebook_name
-            resources['output_files_dir'] = '%s_files' % notebook_name
-
-            # Try to export
-            try:
-                output, resources = exporter.from_filename(notebook_filename, resources=resources)
-            except ConversionException as e:
-                self.log.error("Error while converting '%s'", notebook_filename,
-                      exc_info=True)
-                self.exit(1)
-            else:
-                if self.use_output_suffix and 'output_suffix' in resources and not self.output_base:
-                    notebook_name += resources['output_suffix']
-                write_results = self.writer.write(output, resources, notebook_name=notebook_name)
-
-                #Post-process if post processor has been defined.
-                if hasattr(self, 'postprocessor') and self.postprocessor:
-                    self.postprocessor(write_results)
-                conversion_success += 1
-
-        # If nothing was converted successfully, help the user.
-        if conversion_success == 0:
+        # no notebooks to convert!
+        if len(self.notebooks) == 0:
             self.print_help()
             sys.exit(-1)
+
+        # convert each notebook
+        for notebook_filename in self.notebooks:
+            self.convert_single_notebook(notebook_filename)
             
 #-----------------------------------------------------------------------------
 # Main entry point
