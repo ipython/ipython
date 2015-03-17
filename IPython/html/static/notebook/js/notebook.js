@@ -361,6 +361,29 @@ define(function (require) {
     };
 
     /**
+     * Scroll the middle of the page to a given cell.
+     *
+     * @param {integer}  index - An index of the cell to view
+     * @param {integer}  time - Animation time in milliseconds
+     * @return {integer} Pixel offset from the top of the container
+     */
+    Notebook.prototype.scroll_middle_to_cell = function (index, time) {
+        var cells = this.get_cells();
+        time = time || 0;
+        index = Math.min(cells.length-1,index);
+        index = Math.max(0             ,index);
+        // var scroll_value = cells[index].element.position().top-cells[0].element.position().top ;
+        var sme = this.scroll_manager.element;
+        var h = sme.height();
+        var st = sme.scrollTop();
+        var t = sme.offset().top;
+        var ct = cells[index].element.offset().top;
+        var scroll_value =  st + ct - (t + h/2);
+        this.scroll_manager.element.animate({scrollTop:scroll_value}, time);
+        return scroll_value;
+    };
+
+    /**
      * Scroll to the bottom of the page.
      */
     Notebook.prototype.scroll_to_bottom = function () {
