@@ -124,11 +124,35 @@ class TestMarkdown(TestsBase):
             self.assertIn(case, markdown2html(case))
 
     def test_markdown2html_math_paragraph(self):
-        # https://github.com/ipython/ipython/issues/6724
-        a = """Water that is stored in $t$, $s_t$, must equal the storage content of the previous stage,
+        """these should all parse without modification"""
+        patterns = [
+            # https://github.com/ipython/ipython/issues/6724
+            """Water that is stored in $t$, $s_t$, must equal the storage content of the previous stage,
 $s_{t-1}$, plus a stochastic inflow, $I_t$, minus what is being released in $t$, $r_t$.
-With $s_0$ defined as the initial storage content in $t=1$, we have"""
-        self.assertIn(a, markdown2html(a))
+With $s_0$ defined as the initial storage content in $t=1$, we have""",
+            # https://github.com/jupyter/nbviewer/issues/420
+            """$C_{ik}$
+$$
+C_{ik} = \sum_{j=1}
+$$
+$C_{ik}$""",
+            """$m$
+$$
+C = \begin{pmatrix}
+          0 & 0 & 0 & \cdots & 0 & 0 & -c_0 \\
+          0 & 0 & 0 & \cdots & 0 & 1 & -c_{m-1}
+    \end{pmatrix}
+$$
+$x^m$""",
+            """$r=\overline{1,n}$
+$$ {\bf
+b}_{i}^{r}(t)=(1-t)\,{\bf b}_{i}^{r-1}(t)+t\,{\bf b}_{i+1}^{r-1}(t),\:
+ i=\overline{0,n-r}, $$
+i.e. the $i^{th}$"""
+        ]
+
+        for pattern in patterns:
+            self.assertIn(pattern, markdown2html(pattern))
 
     @dec.onlyif_cmds_exist('pandoc')
     def test_markdown2rst(self):
