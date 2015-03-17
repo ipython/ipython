@@ -23,7 +23,7 @@ from IPython.utils.decorators import undoc
 
 @undoc
 class MathBlockGrammar(mistune.BlockGrammar):
-    block_math = re.compile("^\$\$(.*?)\$\$", re.DOTALL)
+    block_math = re.compile("^\$\$([^\$]*?)\$\$", re.DOTALL)
     latex_environment = re.compile(r"^\\begin\{([a-z]*\*?)\}(.*?)\\end\{\1\}",
                                                 re.DOTALL)
 
@@ -52,7 +52,7 @@ class MathBlockLexer(mistune.BlockLexer):
 
 @undoc
 class MathInlineGrammar(mistune.InlineGrammar):
-    math = re.compile("^\$(.+?)\$")
+    math = re.compile("^\$([^\$]+?)\$")
     text = re.compile(r'^[\s\S]+?(?=[\\<!\[_*`~$]|https?://| {2,}\n|$)')
 
 @undoc
