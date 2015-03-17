@@ -190,7 +190,7 @@ class TemplateExporter(Exporter):
             except Exception as e:
                 self.log.warn("Unexpected exception loading template: %s", try_name, exc_info=True)
             else:
-                self.log.info("Loaded template %s", try_name)
+                self.log.debug("Loaded template %s", try_name)
                 break
 
     def from_notebook_node(self, nb, resources=None, **kw):
