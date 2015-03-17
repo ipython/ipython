@@ -294,7 +294,7 @@ class BaseIPythonApplication(Application):
                     self.log.fatal("Profile %r not found."%self.profile)
                     self.exit(1)
             else:
-                self.log.info("Using existing profile dir: %r"%p.location)
+                self.log.debug("Using existing profile dir: %r"%p.location)
         else:
             location = self.config.ProfileDir.location
             # location is fully specified
@@ -309,7 +309,7 @@ class BaseIPythonApplication(Application):
                         self.log.fatal("Could not create profile directory: %r"%location)
                         self.exit(1)
                     else:
-                        self.log.info("Creating new profile dir: %r"%location)
+                        self.log.debug("Creating new profile dir: %r"%location)
                 else:
                     self.log.fatal("Profile directory %r not found."%location)
                     self.exit(1)
