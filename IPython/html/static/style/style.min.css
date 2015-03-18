@@ -9536,6 +9536,7 @@ div.output_wrapper {
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  z-index: 1;
 }
 /* class for the output area when it should be height-limited */
 div.output_scroll {
