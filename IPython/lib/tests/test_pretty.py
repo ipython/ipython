@@ -238,7 +238,7 @@ def test_metaclass_repr():
 
 
 def test_unicode_repr():
-    u = u"üniço∂é"
+    u = u"üniçodé"
     ustr = unicode_to_str(u)
     
     class C(object):
