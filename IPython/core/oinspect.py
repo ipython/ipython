@@ -133,7 +133,12 @@ def getdoc(obj):
 
     It also attempts to call a getdoc() method on the given object.  This
     allows objects which provide their docstrings via non-standard mechanisms
-    (like Pyro proxies) to still be inspected by ipython's ? system."""
+    (like Pyro proxies) to still be inspected by ipython's ? system.  It also
+    special-cases Mathworks' MatlabEngine."""
+
+    if (type(obj).__module__ == "matlab.engine.matlabengine" and
+        type(obj).__name__ == "MatlabFunc"):
+        return inspect.cleandoc(obj._engine().help(obj._name))
     # Allow objects to offer customized documentation via a getdoc method:
     try:
         ds = obj.getdoc()
@@ -143,16 +148,10 @@ def getdoc(obj):
         # if we get extra info, we add it to the normal docstring.
         if isinstance(ds, string_types):
             return inspect.cleandoc(ds)
-    
-    try:
-        docstr = inspect.getdoc(obj)
-        encoding = get_encoding(obj)
-        return py3compat.cast_unicode(docstr, encoding=encoding)
-    except Exception:
-        # Harden against an inspect failure, which can occur with
-        # SWIG-wrapped extensions.
-        raise
-        return None
+
+    docstr = inspect.getdoc(obj)
+    encoding = get_encoding(obj)
+    return py3compat.cast_unicode(docstr, encoding=encoding)
 
 
 def getsource(obj, oname=''):
