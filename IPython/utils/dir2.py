@@ -12,6 +12,9 @@
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+import glob
+import os
+
 from .py3compat import string_types
 
 #-----------------------------------------------------------------------------
@@ -49,7 +52,7 @@ def dir2(obj):
 
     Extended version of the Python builtin dir(), which does a few extra
     checks, and supports common objects with unusual internals that confuse
-    dir(), such as Traits and PyCrust.
+    dir(), such as Traits, PyCrust and Mathworks' MatlabEngine.
 
     This version is guaranteed to return only a list of true strings, whereas
     dir() returns anything that objects inject into themselves, even if they
@@ -71,16 +74,23 @@ def dir2(obj):
         words |= set(get_class_members(obj.__class__))
 
 
-    # for objects with Enthought's traits, add trait_names() list
-    # for PyCrust-style, add _getAttributeNames() magic method list
-    for attr in ('trait_names', '_getAttributeNames'):
-        try:
-            func = getattr(obj, attr)
-            if callable(func):
-                words |= set(func())
-        except:
-            # TypeError: obj is class not instance
-            pass
+    # Specific support for Mathworks' MatlabEngine
+    if (type(obj).__module__ == "matlab.engine.matlabengine" and
+        type(obj).__name__ == "MatlabEngine"):
+        words |= set(os.path.basename(fname)[:-2]
+                     for path in obj.path().split(":")
+                     for fname in glob.glob(os.path.join(path, "*.m")))
+    else:
+        # for objects with Enthought's traits, add trait_names() list
+        # for PyCrust-style, add _getAttributeNames() magic method list
+        for attr in ('trait_names', '_getAttributeNames'):
+            try:
+                func = getattr(obj, attr)
+                if callable(func):
+                    words |= set(func())
+            except:
+                # TypeError: obj is class not instance
+                pass
 
     # filter out non-string attributes which may be stuffed by dir() calls
     # and poor coding in third-party modules
