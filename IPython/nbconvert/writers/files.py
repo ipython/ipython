@@ -79,7 +79,7 @@ class FilesWriter(WriterBase):
 
             items = resources.get('outputs', {}).items()
             if items:
-                self.log.info("Support files will be in %s", os.path.join(resources['output_files_dir'], ''))
+                self.log.info("Support files will be in %s", os.path.join(resources.get('output_files_dir',''), ''))
             for filename, data in items:
 
                 # Determine where to write the file to
