@@ -107,7 +107,7 @@ div.output_subarea {
     padding: @code_padding;
     .box-flex1();
     // appears to be needed for max-width in children to mean anything on Firefox:
-    max-width: 100%;
+    max-width: calc(~"100% - 14ex");
 }
 
 /* The rest of the output_* classes are for special styling of the different
