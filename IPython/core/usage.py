@@ -306,7 +306,14 @@ exec _i81        : Execute input history line #81 again
 _, __, ___       : previous, next previous, next next previous output
 _dh              : Directory history
 _oh              : Output history
-%hist            : Command history. '%hist -g foo' search history for 'foo'
+%hist            : Command history of current session.
+%hist -g foo     : Search command history of (almost) all sessions for 'foo'.
+%hist -g         : Command history of (almost) all sessions.
+%hist 1/2-8      : Command history containing lines 2-8 of session 1.
+%hist 1/ ~2/     : Command history of session 1 and 2 sessions before current.
+%hist ~8/1-~6/5  : Command history from line 1 of 8 sessions ago to
+                   line 5 of 6 sessions ago.
+%edit 0/         : Open editor to execute code with history of current session.
 
 Autocall:
 
