@@ -76,7 +76,11 @@ class FilesWriter(WriterBase):
             # Write all of the extracted resources to the destination directory.
             # NOTE: WE WRITE EVERYTHING AS-IF IT'S BINARY.  THE EXTRACT FIG
             # PREPROCESSOR SHOULD HANDLE UNIX/WINDOWS LINE ENDINGS...
-            for filename, data in resources.get('outputs', {}).items():
+
+            items = resources.get('outputs', {}).items()
+            if items:
+                self.log.info("Support files will be in %s", os.path.join(resources.get('output_files_dir',''), ''))
+            for filename, data in items:
 
                 # Determine where to write the file to
                 dest = os.path.join(self.build_directory, filename)
