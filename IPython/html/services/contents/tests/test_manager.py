@@ -16,7 +16,6 @@ from IPython.nbformat import v4 as nbformat
 
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.traitlets import TraitError
-from IPython.html.utils import url_path_join
 from IPython.testing import decorators as dec
 
 from ..filemanager import FileContentsManager
