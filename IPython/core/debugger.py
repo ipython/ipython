@@ -302,6 +302,8 @@ class Pdb(OldPdb):
         if hasattr(self, 'old_all_completions'):
             self.shell.Completer.all_completions=self.old_all_completions
 
+        # Pdb sets readline delimiters, so set them back to our own
+        self.shell.readline.set_completer_delims(self.shell.readline_delims)
 
         return OldPdb.do_quit(self, arg)
 
