@@ -5,6 +5,7 @@
 
 from .base import ExportersTestsBase
 from ..html import HTMLExporter
+from IPython.nbformat import v4
 import re
 
 
@@ -66,3 +67,19 @@ class TestHTMLExporter(ExportersTestsBase):
         (output, resources) = HTMLExporter(template_file='basic').from_filename(
             self._get_notebook(nb_name="pngmetadata.ipynb"))
         assert len(output) > 0
+
+    def test_javascript_output(self):
+        nb = v4.new_notebook(
+            cells=[
+                v4.new_code_cell(
+                    outputs=[v4.new_output(
+                        output_type='display_data',
+                        data={
+                            'application/javascript': "javascript_output();"
+                        }
+                    )]
+                )
+            ]
+        )
+        (output, resources) = HTMLExporter(template_file='basic').from_notebook_node(nb)
+        self.assertIn('javascript_output', output)
