@@ -1,25 +1,12 @@
 """Tests for HTMLExporter"""
 
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
+# Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 from .base import ExportersTestsBase
 from ..html import HTMLExporter
-from IPython.testing.decorators import onlyif_any_cmd_exists
 import re
 
-#-----------------------------------------------------------------------------
-# Class
-#-----------------------------------------------------------------------------
 
 class TestHTMLExporter(ExportersTestsBase):
     """Tests for HTMLExporter"""
@@ -34,7 +21,6 @@ class TestHTMLExporter(ExportersTestsBase):
         HTMLExporter()
 
 
-    @onlyif_any_cmd_exists('nodejs', 'node', 'pandoc')
     def test_export(self):
         """
         Can a HTMLExporter export something?
@@ -43,7 +29,6 @@ class TestHTMLExporter(ExportersTestsBase):
         assert len(output) > 0
 
 
-    @onlyif_any_cmd_exists('nodejs', 'node', 'pandoc')
     def test_export_basic(self):
         """
         Can a HTMLExporter export using the 'basic' template?
@@ -52,7 +37,6 @@ class TestHTMLExporter(ExportersTestsBase):
         assert len(output) > 0
 
 
-    @onlyif_any_cmd_exists('nodejs', 'node', 'pandoc')
     def test_export_full(self):
         """
         Can a HTMLExporter export using the 'full' template?
@@ -60,7 +44,6 @@ class TestHTMLExporter(ExportersTestsBase):
         (output, resources) = HTMLExporter(template_file='full').from_filename(self._get_notebook())
         assert len(output) > 0
 
-    @onlyif_any_cmd_exists('nodejs', 'node', 'pandoc')
     def test_prompt_number(self):
         """
         Does HTMLExporter properly format input and output prompts?
@@ -76,7 +59,6 @@ class TestHTMLExporter(ExportersTestsBase):
         assert re.findall(in_regex, output) == ins
         assert re.findall(out_regex, output) == outs
 
-    @onlyif_any_cmd_exists('nodejs', 'node', 'pandoc')
     def test_png_metadata(self):
         """
         Does HTMLExporter with the 'basic' template treat pngs with width/height metadata correctly?
