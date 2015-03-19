@@ -687,7 +687,7 @@ define([
         }
         var that = this;
         dialog.modal({
-            title : "Delete",
+            title : "Duplicate",
             body : message,
             buttons : {
                 Duplicate : {
@@ -698,9 +698,9 @@ define([
                                 that.load_list();
                             }).catch(function(e) { 
                                 dialog.modal({
-                                    title: "Delete Failed",
+                                    title: "Duplicate Failed",
                                     body: $('<div/>')
-                                        .text("An error occurred while deleting \"" + item.path + "\".")
+                                        .text("An error occurred while duplicating \"" + item.path + "\".")
                                         .append($('<div/>')
                                             .addClass('alert alert-danger')
                                             .text(e.message || e)),
