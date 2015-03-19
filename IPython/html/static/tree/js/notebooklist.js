@@ -92,6 +92,7 @@ define([
                             OK: {'class': 'btn-primary'}
                         }
                     });
+                    console.warn('Error durring New file creation', e);
                 });
                 that.load_sessions();
             });
@@ -111,6 +112,7 @@ define([
                             OK: {'class': 'btn-primary'}
                         }
                     });
+                    console.warn('Error durring New directory creation', e);
                 });
                 that.load_sessions();
             });
@@ -616,6 +618,7 @@ define([
                                     OK: {'class': 'btn-primary'}
                                 }
                             });
+                            console.warn('Error durring renaming :', e);
                         });
                     }
                 },
@@ -669,6 +672,7 @@ define([
                                         OK: {'class': 'btn-primary'}
                                     }
                                 });
+                                console.warn('Error durring content deletion:', e);
                             });
                         });
                     }
@@ -708,6 +712,7 @@ define([
                                         OK: {'class': 'btn-primary'}
                                     }
                                 });
+                                console.warn('Error durring content duplication', e);
                             });
                         });
                     }
@@ -782,6 +787,7 @@ define([
                                 }
                             }}
                         });
+                        console.warn('Error durring notebook uploading', e);
                         return false;
                     }
                     content_type = 'application/json';
