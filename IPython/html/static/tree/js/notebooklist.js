@@ -440,8 +440,8 @@ define([
         });
         this.selected = selected;
 
-        // Rename is only visible when one item is selected.
-        if (selected.length==1) {
+        // Rename is only visible when one item is selected, and it is not a running notebook
+        if (selected.length==1 && !has_running_notebook) {
             $('.rename-button').css('display', 'inline-block');
         } else {
             $('.rename-button').css('display', 'none');
@@ -588,29 +588,31 @@ define([
         if (this.selected.length != 1) return;
 
         var that = this;
-        var path = this.selected[0].path;
+        var item_path = this.selected[0].path;
+        var item_name = this.selected[0].name;
+        var item_type = this.selected[0].type;
         var input = $('<input/>').attr('type','text').attr('size','25').addClass('form-control')
-            .val(path);
+            .val(item_name);
         var dialog_body = $('<div/>').append(
             $("<p/>").addClass("rename-message")
-                .text('Enter a new directory name:')
+                .text('Enter a new '+ item_type + ' name:')
         ).append(
             $("<br/>")
         ).append(input);
         var d = dialog.modal({
-            title : "Rename directory",
+            title : "Rename "+ item_type,
             body : dialog_body,
             buttons : {
                 OK : {
                     class: "btn-primary",
                     click: function() {
-                        that.contents.rename(path, input.val()).then(function() {
+                        that.contents.rename(item_path, utils.url_path_join(that.notebook_path, input.val())).then(function() {
                             that.load_list();
                         }).catch(function(e) { 
                             dialog.modal({
                                 title: "Rename Failed",
                                 body: $('<div/>')
-                                    .text("An error occurred while renaming \"" + path + "\" to \"" + input.val() + "\".")
+                                    .text("An error occurred while renaming \"" + item_name + "\" to \"" + input.val() + "\".")
                                     .append($('<div/>')
                                         .addClass('alert alert-danger')
                                         .text(e.message || e)),
