@@ -320,7 +320,8 @@ class InteractiveShell(SingletonConfigurable):
     
     logstart = CBool(False, config=True, help=
         """
-        Start logging to the default log file.
+        Start logging to the default log file in overwrite mode.
+        Use `logappend` to specify a log file to **append** logs to.
         """
     )
     logfile = Unicode('', config=True, help=
@@ -331,6 +332,7 @@ class InteractiveShell(SingletonConfigurable):
     logappend = Unicode('', config=True, help=
         """
         Start logging to the given file in append mode.
+        Use `logfile` to specify a log file to **overwrite** logs to.
         """
     )
     object_info_string_level = Enum((0,1,2), default_value=0,
