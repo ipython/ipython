@@ -1079,6 +1079,19 @@ def test_dict_assignment():
     nt.assert_equal(d, c.value)
     nt.assert_true(c.value is d)
 
+class ValidatedDictTrait(HasTraits):
+
+    value = Dict(Unicode())
+
+class TestInstanceDict(TraitTestBase):
+
+    obj = ValidatedDictTrait()
+
+    _default_value = {}
+    _good_values = [{'0': 'foo'}, {'1': 'bar'}]
+    _bad_values = [{'0': 0}, {'1': 1}]
+
+
 def test_dict_default_value():
     """Check that the `{}` default value of the Dict traitlet constructor is
     actually copied."""
