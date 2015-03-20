@@ -269,7 +269,7 @@ extras_require['nbconvert'].extend(extras_require['nbformat'])
 
 install_requires = [
     'decorator',
-    'path.py', # required by pickleshare, remove when pickleshare is added here
+    'pickleshare',
     'simplegeneric>0.8',
 ]
 
