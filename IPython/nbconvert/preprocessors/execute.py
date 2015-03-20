@@ -4,13 +4,14 @@
 # Distributed under the terms of the Modified BSD License.
 
 import os
+from textwrap import dedent
 
 try:
     from queue import Empty  # Py 3
 except ImportError:
     from Queue import Empty  # Py 2
 
-from IPython.utils.traitlets import List, Unicode
+from IPython.utils.traitlets import List, Unicode, Bool
 
 from IPython.nbformat.v4 import output_from_msg
 from .base import Preprocessor
@@ -25,6 +26,17 @@ class ExecutePreprocessor(Preprocessor):
     timeout = Integer(30, config=True,
         help="The time to wait (in seconds) for output from executions."
     )
+
+    interrupt_on_timeout = Bool(
+        False, config=True,
+        help=dedent(
+            """
+            If execution of a cell times out, interrupt the kernel and 
+            continue executing other cells rather than throwing an error and 
+            stopping.
+            """
+        )
+    )
     
     extra_arguments = List(Unicode)
 
@@ -33,16 +45,22 @@ class ExecutePreprocessor(Preprocessor):
         if path == '':
             path = None
 
-        from IPython.kernel import run_kernel
+        from IPython.kernel.manager import start_new_kernel
         kernel_name = nb.metadata.get('kernelspec', {}).get('name', 'python')
         self.log.info("Executing notebook with kernel: %s" % kernel_name)
-        with run_kernel(kernel_name=kernel_name,
-                        extra_arguments=self.extra_arguments,
-                        stderr=open(os.devnull, 'w'),
-                        cwd=path) as kc:
-            self.kc = kc
-            self.kc.allow_stdin = False
+        self.km, self.kc = start_new_kernel(
+            kernel_name=kernel_name,
+            extra_arguments=self.extra_arguments,
+            stderr=open(os.devnull, 'w'),
+            cwd=path)
+        self.kc.allow_stdin = False
+
+        try:
             nb, resources = super(ExecutePreprocessor, self).preprocess(nb, resources)
+        finally:
+            self.kc.stop_channels()
+            self.km.shutdown_kernel(now=True)
+
         return nb, resources
 
     def preprocess_cell(self, cell, resources, cell_index):
@@ -69,7 +87,13 @@ class ExecutePreprocessor(Preprocessor):
                 msg = self.kc.shell_channel.get_msg(timeout=self.timeout)
             except Empty:
                 self.log.error("Timeout waiting for execute reply")
-                raise
+                if self.interrupt_on_timeout:
+                    self.log.error("Interrupting kernel")
+                    self.km.interrupt_kernel()
+                    break
+                else:
+                    raise
+
             if msg['parent_header'].get('msg_id') == msg_id:
                 break
             else:
