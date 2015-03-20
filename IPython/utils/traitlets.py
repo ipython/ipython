@@ -448,17 +448,10 @@ class TraitType(object):
         if value is None and self.allow_none:
             return value
         if hasattr(self, 'validate'):
-            return self.validate(obj, value)
-        elif hasattr(self, 'is_valid_for'):
-            valid = self.is_valid_for(value)
-            if valid:
-                return value
-            else:
-                raise TraitError('invalid value for type: %r' % value)
-        elif hasattr(self, 'value_for'):
-            return self.value_for(value)
-        else:
-            return value
+            value = self.validate(obj, value)
+        if hasattr(obj, '_%s_validate' % self.name):
+            value = getattr(obj, '_%s_validate' % self.name)(value, self)
+        return value
 
     def __or__(self, other):
         if isinstance(other, Union):
@@ -1054,7 +1047,8 @@ class Union(TraitType):
         """Construct a Union  trait.
 
         This trait allows values that are allowed by at least one of the
-        specified trait types.
+        specified trait types. A Union traitlet cannot have metadata on
+        its own, besides the metadata of the listed types.
 
         Parameters
         ----------
