@@ -50,7 +50,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
     )
 
     image_handler = Enum(('PIL', 'stream', 'tempfile', 'callable'),
-                         config=True, help=
+                         config=True, allow_none=True, help=
         """
         Handler for image type output.  This is useful, for example,
         when connecting to the kernel in which pylab inline backend is
@@ -99,7 +99,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
 
     mime_preference = List(
         default_value=['image/png', 'image/jpeg', 'image/svg+xml'],
-        config=True, allow_none=False, help=
+        config=True, help=
         """
         Preferred object representation MIME type in order.  First
         matched MIME type will be used.

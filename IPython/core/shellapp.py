@@ -173,15 +173,15 @@ class InteractiveShellApp(Configurable):
     module_to_run = Unicode('', config=True,
         help="Run the module as a script."
     )
-    gui = CaselessStrEnum(gui_keys, config=True,
+    gui = CaselessStrEnum(gui_keys, config=True, allow_none=True,
         help="Enable GUI event loop integration with any of {0}.".format(gui_keys)
     )
-    matplotlib = CaselessStrEnum(backend_keys,
+    matplotlib = CaselessStrEnum(backend_keys, allow_none=True,
         config=True,
         help="""Configure matplotlib for interactive use with
         the default matplotlib backend."""
     )
-    pylab = CaselessStrEnum(backend_keys,
+    pylab = CaselessStrEnum(backend_keys, allow_none=True,
         config=True,
         help="""Pre-load matplotlib and numpy for interactive use,
         selecting a particular matplotlib backend and loop integration.

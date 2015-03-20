@@ -815,7 +815,7 @@ class Type(ClassBasedTraitType):
             may be specified in a string like: 'foo.bar.MyClass'.
             The string is resolved into real class, when the parent
             :class:`HasTraits` class is instantiated.
-        allow_none : boolean
+        allow_none : bool [ default True ]
             Indicates whether None is allowed as an assignable value. Even if
             ``False``, the default value may be ``None``.
         """
@@ -912,7 +912,7 @@ class Instance(ClassBasedTraitType):
             Positional arguments for generating the default value.
         kw : dict
             Keyword arguments for generating the default value.
-        allow_none : bool
+        allow_none : bool [default True]
             Indicates whether None is allowed as a value.
 
         Notes
@@ -1334,9 +1334,9 @@ class CBool(Bool):
 class Enum(TraitType):
     """An enum that whose value must be in a given sequence."""
 
-    def __init__(self, values, default_value=None, allow_none=True, **metadata):
+    def __init__(self, values, default_value=None, **metadata):
         self.values = values
-        super(Enum, self).__init__(default_value, allow_none=allow_none, **metadata)
+        super(Enum, self).__init__(default_value, **metadata)
 
     def validate(self, obj, value):
         if value in self.values:
@@ -1372,7 +1372,7 @@ class Container(Instance):
     _valid_defaults = SequenceTypes
     _trait = None
 
-    def __init__(self, trait=None, default_value=None, allow_none=True,
+    def __init__(self, trait=None, default_value=None, allow_none=False,
                 **metadata):
         """Create a container trait type from a list, set, or tuple.
 
@@ -1398,7 +1398,7 @@ class Container(Instance):
             The default value for the Trait.  Must be list/tuple/set, and
             will be cast to the container type.
 
-        allow_none : Bool [ default True ]
+        allow_none : bool [ default False ]
             Whether to allow the value to be None
 
         **metadata : any
@@ -1468,8 +1468,7 @@ class List(Container):
     klass = list
     _cast_types = (tuple,)
 
-    def __init__(self, trait=None, default_value=None, minlen=0, maxlen=sys.maxsize,
-                allow_none=True, **metadata):
+    def __init__(self, trait=None, default_value=None, minlen=0, maxlen=sys.maxsize, **metadata):
         """Create a List trait type from a list, set, or tuple.
 
         The default value is created by doing ``List(default_value)``,
@@ -1500,7 +1499,7 @@ class List(Container):
         maxlen : Int [ default sys.maxsize ]
             The maximum length of the input list
 
-        allow_none : Bool [ default True ]
+        allow_none : bool [ default False ]
             Whether to allow the value to be None
 
         **metadata : any
@@ -1510,7 +1509,7 @@ class List(Container):
         self._minlen = minlen
         self._maxlen = maxlen
         super(List, self).__init__(trait=trait, default_value=default_value,
-                                allow_none=allow_none, **metadata)
+                                **metadata)
 
     def length_error(self, obj, value):
         e = "The '%s' trait of %s instance must be of length %i <= L <= %i, but a value of %s was specified." \
@@ -1544,7 +1543,7 @@ class Tuple(Container):
     _cast_types = (list,)
 
     def __init__(self, *traits, **metadata):
-        """Tuple(*traits, default_value=None, allow_none=True, **medatata)
+        """Tuple(*traits, default_value=None, **medatata)
 
         Create a tuple from a list, set, or tuple.
 
@@ -1575,7 +1574,7 @@ class Tuple(Container):
             will be cast to a tuple. If `traits` are specified, the
             `default_value` must conform to the shape and type they specify.
 
-        allow_none : Bool [ default True ]
+        allow_none : bool [ default False ]
             Whether to allow the value to be None
 
         **metadata : any
@@ -1606,8 +1605,7 @@ class Tuple(Container):
         if self._traits and default_value is None:
             # don't allow default to be an empty container if length is specified
             args = None
-        super(Container,self).__init__(klass=self.klass, args=args,
-                                  allow_none=allow_none, **metadata)
+        super(Container,self).__init__(klass=self.klass, args=args, **metadata)
 
     def validate_elements(self, obj, value):
         if not self._traits:
@@ -1640,7 +1638,7 @@ class Tuple(Container):
 class Dict(Instance):
     """An instance of a Python dict."""
 
-    def __init__(self, default_value={}, allow_none=True, **metadata):
+    def __init__(self, default_value={}, allow_none=False, **metadata):
         """Create a dict trait type from a dict.
 
         The default value is created by doing ``dict(default_value)``,
@@ -1662,7 +1660,7 @@ class Dict(Instance):
 class EventfulDict(Instance):
     """An instance of an EventfulDict."""
 
-    def __init__(self, default_value={}, allow_none=True, **metadata):
+    def __init__(self, default_value={}, allow_none=False, **metadata):
         """Create a EventfulDict trait type from a dict.
 
         The default value is created by doing
@@ -1685,7 +1683,7 @@ class EventfulDict(Instance):
 class EventfulList(Instance):
     """An instance of an EventfulList."""
 
-    def __init__(self, default_value=None, allow_none=True, **metadata):
+    def __init__(self, default_value=None, allow_none=False, **metadata):
         """Create a EventfulList trait type from a dict.
 
         The default value is created by doing 
