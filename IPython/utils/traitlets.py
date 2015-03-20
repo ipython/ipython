@@ -457,8 +457,13 @@ class TraitType(object):
             return value
         if hasattr(self, 'validate'):
             value = self.validate(obj, value)
-        if hasattr(obj, '_%s_validate' % self.name):
-            value = getattr(obj, '_%s_validate' % self.name)(value, self)
+        try:
+            obj_validate = getattr(obj, '_%s_validate' % self.name)
+        except (AttributeError, RuntimeError):
+            # Qt mixins raise RuntimeError on missing attrs accessed before __init__
+            pass
+        else:
+            value = obj_validate(value, self)
         return value
 
     def __or__(self, other):
