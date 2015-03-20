@@ -356,10 +356,26 @@ class TraitType(object):
         """Create a new instance of the default value."""
         return self.default_value
 
-    def decorate(self):
+    def instance_init(self):
+        """Part of the initialization which may depends on the underlying
+        HasTraits instance.
+
+        It is typically overloaded for specific trait types.
+
+        This method is called by :meth:`HasTraits.__new__` and in the
+        :meth:`TraitType.instance_init` method of trait types holding
+        other trait types.
+        """
         pass
 
-    def static_init(self, obj):
+    def init_default_value(self, obj):
+        """Instantiate the default value for the trait type.
+
+        This method is called by :meth:`TraitType.set_default_value` in the
+        case a default value is provided at construction time or later when
+        accessing the trait value for the first time in
+        :meth:`HasTraits.__get__`.
+        """
         value = self.get_default_value()
         value = self._validate(obj, value)
         obj._trait_values[self.name] = value
@@ -368,11 +384,10 @@ class TraitType(object):
     def set_default_value(self, obj):
         """Set the default value on a per instance basis.
 
-        This method is called by :meth:`HasTraits.__new__` to create and
-        validate the default value.  The creation and validation of
+        This method is called by :meth:`HasTraits.__new__` to instantiate and
+        validate the default value. The creation and validation of
         default values must be delayed until the parent :class:`HasTraits`
         class has been instantiated.
-       
         Parameters
         ----------
         obj : :class:`HasTraits` instance
@@ -388,11 +403,11 @@ class TraitType(object):
                 break
         else:
             # We didn't find one. Do static initialization.
-            self.static_init(obj)
+            self.init_default_value(obj)
             return
         # Complete the dynamic initialization.
         obj._trait_dyn_inits[self.name] = meth_name
-    
+
     def __get__(self, obj, cls=None):
         """Get the value of the trait by self.name for the instance.
 
@@ -416,12 +431,12 @@ class TraitType(object):
                     obj._trait_values[self.name] = value
                     return value
                 else:
-                    return self.static_init(obj)
+                    return self.init_default_value(obj)
             except Exception:
                 # HasTraits should call set_default_value to populate
                 # this.  So this should never be reached.
                 raise TraitError('Unexpected error in TraitType: '
-                                    'default value not set properly')
+                                 'default value not set properly')
             else:
                 return value
 
@@ -550,7 +565,7 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
                 pass
             else:
                 if isinstance(value, TraitType):
-                    value.decorate()
+                    value.instance_init()
                     if key not in kw:
                         value.set_default_value(inst)
 
@@ -865,9 +880,9 @@ class Type(ClassBasedTraitType):
             return result + ' or None'
         return result
 
-    def decorate(self):
+    def instance_init(self):
         self._resolve_classes()
-        super(Type, self).decorate()
+        super(Type, self).instance_init()
 
     def _resolve_classes(self):
         if isinstance(self.klass, py3compat.string_types):
@@ -974,9 +989,9 @@ class Instance(ClassBasedTraitType):
 
         return result
 
-    def decorate(self):
+    def instance_init(self):
         self._resolve_classes()
-        super(Instance, self).decorate()
+        super(Instance, self).instance_init()
 
     def _resolve_classes(self):
         if isinstance(self.klass, py3compat.string_types):
@@ -1071,12 +1086,12 @@ class Union(TraitType):
         self.default_value = self.trait_types[0].get_default_value()
         super(Union, self).__init__(**metadata)
 
-    def decorate(self):
+    def instance_init(self):
         for trait_type in self.trait_types:
             trait_type.name = self.name
             trait_type.this_class = self.this_class
-            trait_type.decorate()
-        super(Union, self).decorate()
+            trait_type.instance_init()
+        super(Union, self).instance_init()
 
     def validate(self, obj, value):
         for trait_type in self.trait_types:
@@ -1457,11 +1472,11 @@ class Container(Instance):
                 validated.append(v)
         return self.klass(validated)
 
-    def decorate(self):
+    def instance_init(self):
         if isinstance(self._trait, TraitType):
             self._trait.this_class = self.this_class
-            self._trait.decorate()
-        super(Container, self).decorate()
+            self._trait.instance_init()
+        super(Container, self).instance_init()
 
 
 class List(Container):
@@ -1616,7 +1631,7 @@ class Tuple(Container):
             raise TraitError(e)
 
         validated = []
-        for t,v in zip(self._traits, value):
+        for t, v in zip(self._traits, value):
             try:
                 v = t._validate(obj, v)
             except TraitError:
@@ -1625,12 +1640,12 @@ class Tuple(Container):
                 validated.append(v)
         return tuple(validated)
 
-    def decorate(self):
+    def instance_init(self):
         for trait in self._traits:
             if isinstance(trait, TraitType):
                 trait.this_class = self.this_class
-                trait.decorate()
-        super(Container, self).decorate()
+                trait.instance_init()
+        super(Container, self).instance_init()
 
 
 class Dict(Instance):
@@ -1706,12 +1721,11 @@ class Dict(Instance):
                 validated[key] = v
         return self.klass(validated)
 
-    def instance_init(self, obj):
+    def instance_init(self):
         if isinstance(self._trait, TraitType):
             self._trait.this_class = self.this_class
-        if hasattr(self._trait, '_resolve_classes'):
-            self._trait._resolve_classes(obj)
-        super(Dict, self).instance_init(obj)
+            self._trait.instance_init()
+        super(Dict, self).instance_init()
 
 
 class EventfulDict(Instance):
