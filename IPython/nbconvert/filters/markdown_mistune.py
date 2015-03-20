@@ -23,7 +23,7 @@ from IPython.utils.decorators import undoc
 
 @undoc
 class MathBlockGrammar(mistune.BlockGrammar):
-    block_math = re.compile("^\$\$(.*?)\$\$", re.DOTALL)
+    block_math = re.compile(r"^\$\$(.*?)\$\$", re.DOTALL)
     latex_environment = re.compile(r"^\\begin\{([a-z]*\*?)\}(.*?)\\end\{\1\}",
                                                 re.DOTALL)
 
@@ -52,12 +52,13 @@ class MathBlockLexer(mistune.BlockLexer):
 
 @undoc
 class MathInlineGrammar(mistune.InlineGrammar):
-    math = re.compile("^\$(.+?)\$")
+    math = re.compile(r"^\$(.+?)\$")
+    block_math = re.compile(r"^\$\$(.+?)\$\$", re.DOTALL)
     text = re.compile(r'^[\s\S]+?(?=[\\<!\[_*`~$]|https?://| {2,}\n|$)')
 
 @undoc
 class MathInlineLexer(mistune.InlineLexer):
-    default_rules = ['math'] + mistune.InlineLexer.default_rules
+    default_rules = ['math', 'block_math'] + mistune.InlineLexer.default_rules
 
     def __init__(self, renderer, rules=None, **kwargs):
         if rules is None:
@@ -66,6 +67,9 @@ class MathInlineLexer(mistune.InlineLexer):
 
     def output_math(self, m):
         return self.renderer.inline_math(m.group(1))
+
+    def output_block_math(self, m):
+        return self.renderer.block_math(m.group(1))
 
 @undoc
 class MarkdownWithMath(mistune.Markdown):
