@@ -16,7 +16,6 @@ from IPython.nbformat import v4 as nbformat
 
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.traitlets import TraitError
-from IPython.html.utils import url_path_join
 from IPython.testing import decorators as dec
 
 from ..filemanager import FileContentsManager
@@ -34,6 +33,16 @@ def _make_dir(contents_manager, api_path):
 
 
 class TestFileContentsManager(TestCase):
+
+    @contextmanager
+    def assertRaisesHTTPError(self, status, msg=None):
+        msg = msg or "Should have raised HTTPError(%i)" % status
+        try:
+            yield
+        except HTTPError as e:
+            self.assertEqual(e.status_code, status)
+        else:
+            self.fail(msg)
 
     def symlink(self, contents_manager, src, dst):
         """Make a symlink to src from dst
@@ -153,6 +162,30 @@ class TestFileContentsManager(TestCase):
             else:
                 self.fail("Should have raised HTTPError(403)")
 
+    def test_escape_root(self):
+        with TemporaryDirectory() as td:
+            cm = FileContentsManager(root_dir=td)
+            # make foo, bar next to root
+            with open(os.path.join(cm.root_dir, '..', 'foo'), 'w') as f:
+                f.write('foo')
+            with open(os.path.join(cm.root_dir, '..', 'bar'), 'w') as f:
+                f.write('bar')
+
+            with self.assertRaisesHTTPError(404):
+                cm.get('..')
+            with self.assertRaisesHTTPError(404):
+                cm.get('foo/../../../bar')
+            with self.assertRaisesHTTPError(404):
+                cm.delete('../foo')
+            with self.assertRaisesHTTPError(404):
+                cm.rename('../foo', '../bar')
+            with self.assertRaisesHTTPError(404):
+                cm.save(model={
+                    'type': 'file',
+                    'content': u'',
+                    'format': 'text',
+                }, path='../foo')
+
 
 class TestContentsManager(TestCase):
     
@@ -165,16 +198,6 @@ class TestContentsManager(TestCase):
 
     def tearDown(self):
         self._temp_dir.cleanup()
-    
-    @contextmanager
-    def assertRaisesHTTPError(self, status, msg=None):
-        msg = msg or "Should have raised HTTPError(%i)" % status
-        try:
-            yield
-        except HTTPError as e:
-            self.assertEqual(e.status_code, status)
-        else:
-            self.fail(msg)
     
     def make_dir(self, api_path):
         """make a subdirectory at api_path
@@ -472,29 +495,3 @@ class TestContentsManager(TestCase):
         cm.mark_trusted_cells(nb, path)
         cm.check_and_sign(nb, path)
         assert cm.notary.check_signature(nb)
-    
-    def test_escape_root(self):
-        cm = self.contents_manager
-        # make foo, bar next to root
-        with open(os.path.join(cm.root_dir, '..', 'foo'), 'w') as f:
-            f.write('foo')
-        with open(os.path.join(cm.root_dir, '..', 'bar'), 'w') as f:
-            f.write('bar')
-        
-        with self.assertRaisesHTTPError(404):
-            cm.get('..')
-        with self.assertRaisesHTTPError(404):
-            cm.get('foo/../../../bar')
-        with self.assertRaisesHTTPError(404):
-            cm.delete('../foo')
-        with self.assertRaisesHTTPError(404):
-            cm.rename('../foo', '../bar')
-        with self.assertRaisesHTTPError(404):
-            cm.save(model={
-                'type': 'file',
-                'content': u'',
-                'format': 'text',
-            }, path='../foo')
-        
-        
-
