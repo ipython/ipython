@@ -146,4 +146,6 @@ class TestExecute(PreprocessorTestsBase):
         """Check that an error is raised when a computation times out"""
         current_dir = os.path.dirname(__file__)
         filename = os.path.join(current_dir, 'files', 'Interrupt.ipynb')
-        assert_raises(Empty, self.run_notebook, filename, dict(timeout=1))
+        res = self.build_resources()
+        res['metadata']['path'] = os.path.dirname(filename)
+        assert_raises(Empty, self.run_notebook, filename, dict(timeout=1), res)
