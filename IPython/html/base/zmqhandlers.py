@@ -8,6 +8,7 @@ import os
 import json
 import struct
 import warnings
+import sys
 
 try:
     from urllib.parse import urlparse # Py 3
@@ -43,6 +44,8 @@ def serialize_binary_message(msg):
     # don't modify msg or buffer list in-place
     msg = msg.copy()
     buffers = list(msg.pop('buffers'))
+    if sys.version_info < (3, 4):
+        buffers = [x.tobytes() for x in buffers]
     bmsg = json.dumps(msg, default=date_default).encode('utf8')
     buffers.insert(0, bmsg)
     nbufs = len(buffers)
