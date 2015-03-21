@@ -356,33 +356,43 @@ class TraitType(object):
         """Create a new instance of the default value."""
         return self.default_value
 
-    def instance_init(self, obj):
-        """This is called by :meth:`HasTraits.__new__` to finish init'ing.
+    def instance_init(self):
+        """Part of the initialization which may depends on the underlying
+        HasTraits instance.
 
-        Some stages of initialization must be delayed until the parent
-        :class:`HasTraits` instance has been created.  This method is
-        called in :meth:`HasTraits.__new__` after the instance has been
-        created.
+        It is typically overloaded for specific trait types.
 
-        This method trigger the creation and validation of default values
-        and also things like the resolution of str given class names in
-        :class:`Type` and :class`Instance`.
+        This method is called by :meth:`HasTraits.__new__` and in the
+        :meth:`TraitType.instance_init` method of trait types holding
+        other trait types.
+        """
+        pass
 
+    def init_default_value(self, obj):
+        """Instantiate the default value for the trait type.
+
+        This method is called by :meth:`TraitType.set_default_value` in the
+        case a default value is provided at construction time or later when
+        accessing the trait value for the first time in
+        :meth:`HasTraits.__get__`.
+        """
+        value = self.get_default_value()
+        value = self._validate(obj, value)
+        obj._trait_values[self.name] = value
+        return value
+
+    def set_default_value(self, obj):
+        """Set the default value on a per instance basis.
+
+        This method is called by :meth:`HasTraits.__new__` to instantiate and
+        validate the default value. The creation and validation of
+        default values must be delayed until the parent :class:`HasTraits`
+        class has been instantiated.
         Parameters
         ----------
         obj : :class:`HasTraits` instance
             The parent :class:`HasTraits` instance that has just been
             created.
-        """
-        self.set_default_value(obj)
-
-    def set_default_value(self, obj):
-        """Set the default value on a per instance basis.
-
-        This method is called by :meth:`instance_init` to create and
-        validate the default value.  The creation and validation of
-        default values must be delayed until the parent :class:`HasTraits`
-        class has been instantiated.
         """
         # Check for a deferred initializer defined in the same class as the
         # trait declaration or above.
@@ -393,13 +403,11 @@ class TraitType(object):
                 break
         else:
             # We didn't find one. Do static initialization.
-            dv = self.get_default_value()
-            newdv = self._validate(obj, dv)
-            obj._trait_values[self.name] = newdv
+            self.init_default_value(obj)
             return
         # Complete the dynamic initialization.
         obj._trait_dyn_inits[self.name] = meth_name
-    
+
     def __get__(self, obj, cls=None):
         """Get the value of the trait by self.name for the instance.
 
@@ -423,14 +431,12 @@ class TraitType(object):
                     obj._trait_values[self.name] = value
                     return value
                 else:
-                    raise TraitError('Unexpected error in TraitType: '
-                        'both default value and dynamic initializer are '
-                        'absent.')
+                    return self.init_default_value(obj)
             except Exception:
                 # HasTraits should call set_default_value to populate
                 # this.  So this should never be reached.
                 raise TraitError('Unexpected error in TraitType: '
-                                    'default value not set properly')
+                                 'default value not set properly')
             else:
                 return value
 
@@ -559,7 +565,9 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
                 pass
             else:
                 if isinstance(value, TraitType):
-                    value.instance_init(inst)
+                    value.instance_init()
+                    if key not in kw:
+                        value.set_default_value(inst)
 
         return inst
 
@@ -852,7 +860,7 @@ class Type(ClassBasedTraitType):
                 value = self._resolve_string(value)
             except ImportError:
                 raise TraitError("The '%s' trait of %s instance must be a type, but "
-                                "%r could not be imported" % (self.name, obj, value))
+                                 "%r could not be imported" % (self.name, obj, value))
         try:
             if issubclass(value, self.klass):
                 return value
@@ -872,9 +880,9 @@ class Type(ClassBasedTraitType):
             return result + ' or None'
         return result
 
-    def instance_init(self, obj):
+    def instance_init(self):
         self._resolve_classes()
-        super(Type, self).instance_init(obj)
+        super(Type, self).instance_init()
 
     def _resolve_classes(self):
         if isinstance(self.klass, py3compat.string_types):
@@ -981,9 +989,9 @@ class Instance(ClassBasedTraitType):
 
         return result
 
-    def instance_init(self, obj):
+    def instance_init(self):
         self._resolve_classes()
-        super(Instance, self).instance_init(obj)
+        super(Instance, self).instance_init()
 
     def _resolve_classes(self):
         if isinstance(self.klass, py3compat.string_types):
@@ -1078,16 +1086,12 @@ class Union(TraitType):
         self.default_value = self.trait_types[0].get_default_value()
         super(Union, self).__init__(**metadata)
 
-    def _resolve_classes(self):
+    def instance_init(self):
         for trait_type in self.trait_types:
             trait_type.name = self.name
             trait_type.this_class = self.this_class
-            if hasattr(trait_type, '_resolve_classes'):
-                trait_type._resolve_classes()
-
-    def instance_init(self, obj):
-        self._resolve_classes()
-        super(Union, self).instance_init(obj)
+            trait_type.instance_init()
+        super(Union, self).instance_init()
 
     def validate(self, obj, value):
         for trait_type in self.trait_types:
@@ -1468,12 +1472,11 @@ class Container(Instance):
                 validated.append(v)
         return self.klass(validated)
 
-    def instance_init(self, obj):
+    def instance_init(self):
         if isinstance(self._trait, TraitType):
             self._trait.this_class = self.this_class
-        if hasattr(self._trait, '_resolve_classes'):
-            self._trait._resolve_classes()
-        super(Container, self).instance_init(obj)
+            self._trait.instance_init()
+        super(Container, self).instance_init()
 
 
 class List(Container):
@@ -1535,20 +1538,18 @@ class List(Container):
             self.length_error(obj, value)
 
         return super(List, self).validate_elements(obj, value)
-    
+
     def validate(self, obj, value):
         value = super(List, self).validate(obj, value)
-
         value = self.validate_elements(obj, value)
-
         return value
-        
 
 
 class Set(List):
     """An instance of a Python set."""
     klass = set
     _cast_types = (tuple, list)
+
 
 class Tuple(Container):
     """An instance of a Python tuple."""
@@ -1630,7 +1631,7 @@ class Tuple(Container):
             raise TraitError(e)
 
         validated = []
-        for t,v in zip(self._traits, value):
+        for t, v in zip(self._traits, value):
             try:
                 v = t._validate(obj, v)
             except TraitError:
@@ -1639,13 +1640,12 @@ class Tuple(Container):
                 validated.append(v)
         return tuple(validated)
 
-    def instance_init(self, obj):
+    def instance_init(self):
         for trait in self._traits:
             if isinstance(trait, TraitType):
                 trait.this_class = self.this_class
-            if hasattr(trait, '_resolve_classes'):
-                trait._resolve_classes()
-        super(Container, self).instance_init(obj)
+                trait.instance_init()
+        super(Container, self).instance_init()
 
 
 class Dict(Instance):
@@ -1721,12 +1721,11 @@ class Dict(Instance):
                 validated[key] = v
         return self.klass(validated)
 
-    def instance_init(self, obj):
+    def instance_init(self):
         if isinstance(self._trait, TraitType):
             self._trait.this_class = self.this_class
-        if hasattr(self._trait, '_resolve_classes'):
-            self._trait._resolve_classes(obj)
-        super(Dict, self).instance_init(obj)
+            self._trait.instance_init()
+        super(Dict, self).instance_init()
 
 
 class EventfulDict(Instance):
