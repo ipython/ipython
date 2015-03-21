@@ -52,10 +52,7 @@ class InProcessKernel(IPythonKernel):
     stdin_socket = Instance(DummySocket, ())
 
     def __init__(self, **traits):
-        # When an InteractiveShell is instantiated by our base class, it binds
-        # the current values of sys.stdout and sys.stderr.
-        with self._redirected_io():
-            super(InProcessKernel, self).__init__(**traits)
+        super(InProcessKernel, self).__init__(**traits)
 
         self.iopub_socket.on_trait_change(self._io_dispatch, 'message_sent')
         self.shell.kernel = self
