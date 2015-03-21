@@ -1288,14 +1288,19 @@ class CUnicode(Unicode):
             self.error(obj, value)
 
 
-class _CoercedString(TraitType):
+class ObjectName(TraitType):
+    """A string holding a valid object name in this version of Python.
+
+    This does not check that the name exists in any scope."""
+    info_text = "a valid object identifier in Python"
 
     if py3compat.PY3:
         # Python 3:
-        _coerce_str = staticmethod(lambda _,s: s)
+        coerce_str = staticmethod(lambda _,s: s)
+
     else:
         # Python 2:
-        def _coerce_str(self, obj, value):
+        def coerce_str(self, obj, value):
             "In Python 2, coerce ascii-only unicode to str"
             if isinstance(value, unicode):
                 try:
@@ -1304,27 +1309,17 @@ class _CoercedString(TraitType):
                     self.error(obj, value)
             return value
 
-
-class ObjectName(_CoercedString):
-    """A string holding a valid object name in this version of Python.
-
-    This does not check that the name exists in any scope."""
-
-    info_text = "a valid object identifier in Python"
-
     def validate(self, obj, value):
-        value = self._coerce_str(obj, value)
+        value = self.coerce_str(obj, value)
 
         if isinstance(value, string_types) and py3compat.isidentifier(value):
             return value
         self.error(obj, value)
 
-
 class DottedObjectName(ObjectName):
     """A string holding a valid dotted object name in Python, such as A.b3._c"""
-
     def validate(self, obj, value):
-        value = self._coerce_str(obj, value)
+        value = self.coerce_str(obj, value)
 
         if isinstance(value, string_types) and py3compat.isidentifier(value, dotted=True):
             return value

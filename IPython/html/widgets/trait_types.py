@@ -17,13 +17,12 @@ _color_names = ['aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure', 'bei
 _color_re = re.compile(r'#[a-fA-F0-9]{3}(?:[a-fA-F0-9]{3})?$')
 
 
-class Color(traitlets._CoercedString):
+class Color(traitlets.Unicode):
     """A string holding a valid HTML color such as 'blue', '#060482', '#A80'"""
  
     info_text = 'a valid HTML color'
 
     def validate(self, obj, value):
-        value = self._coerce_str(obj, value)
         if value.lower() in _color_names or _color_re.match(value):
             return value
         self.error(obj, value)
