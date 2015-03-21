@@ -508,6 +508,38 @@ class APITest(NotebookTestBase):
         self.assertIn('z.ipynb', nbnames)
         self.assertNotIn('a.ipynb', nbnames)
 
+    def test_checkpoints_follow_file(self):
+
+        # Read initial file state
+        orig = self.api.read('foo/a.ipynb')
+
+        # Create a checkpoint of initial state
+        r = self.api.new_checkpoint('foo/a.ipynb')
+        cp1 = r.json()
+
+        # Modify file and save
+        nbcontent = json.loads(orig.text)['content']
+        nb = from_dict(nbcontent)
+        hcell = new_markdown_cell('Created by test')
+        nb.cells.append(hcell)
+        nbmodel = {'content': nb, 'type': 'notebook'}
+        self.api.save('foo/a.ipynb', body=json.dumps(nbmodel))
+
+        # Rename the file.
+        self.api.rename('foo/a.ipynb', 'foo/z.ipynb')
+
+        # Looking for checkpoints in the old location should yield no results.
+        self.assertEqual(self.api.get_checkpoints('foo/a.ipynb').json(), [])
+
+        # Looking for checkpoints in the new location should work.
+        cps = self.api.get_checkpoints('foo/z.ipynb').json()
+        self.assertEqual(cps, [cp1])
+
+        # Delete the file.  The checkpoint should be deleted as well.
+        self.api.delete('foo/z.ipynb')
+        cps = self.api.get_checkpoints('foo/z.ipynb').json()
+        self.assertEqual(cps, [])
+
     def test_rename_existing(self):
         with assert_http_error(409):
             self.api.rename('foo/a.ipynb', 'foo/b.ipynb')
@@ -518,7 +550,7 @@ class APITest(NotebookTestBase):
         nb = from_dict(nbcontent)
         nb.cells.append(new_markdown_cell(u'Created by test ³'))
 
-        nbmodel= {'content': nb, 'type': 'notebook'}
+        nbmodel = {'content': nb, 'type': 'notebook'}
         resp = self.api.save('foo/a.ipynb', body=json.dumps(nbmodel))
 
         nbcontent = self.api.read('foo/a.ipynb').json()['content']
