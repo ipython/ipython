@@ -508,7 +508,7 @@ class APITest(NotebookTestBase):
         self.assertIn('z.ipynb', nbnames)
         self.assertNotIn('a.ipynb', nbnames)
 
-    def test_rename_preserves_checkpoints(self):
+    def test_checkpoints_follow_file(self):
 
         # Read initial file state
         orig = self.api.read('foo/a.ipynb')
@@ -533,8 +533,12 @@ class APITest(NotebookTestBase):
 
         # Looking for checkpoints in the new location should work.
         cps = self.api.get_checkpoints('foo/z.ipynb').json()
-        self.assertEqual(len(cps), 1)
-        self.assertEqual(cps[0], cp1)
+        self.assertEqual(cps, [cp1])
+
+        # Delete the file.  The checkpoint should be deleted as well.
+        self.api.delete('foo/z.ipynb')
+        cps = self.api.get_checkpoints('foo/z.ipynb').json()
+        self.assertEqual(cps, [])
 
     def test_rename_existing(self):
         with assert_http_error(409):
