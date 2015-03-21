@@ -17,7 +17,7 @@ from nose import SkipTest
 
 from IPython.utils.traitlets import (
     HasTraits, MetaHasTraits, TraitType, Any, Bool, CBytes, Dict, Enum,
-    Int, Long, Integer, Float, Complex, Bytes, Unicode, Color, TraitError,
+    Int, Long, Integer, Float, Complex, Bytes, Unicode, TraitError,
     Union, Undefined, Type, This, Instance, TCPAddress, List, Tuple,
     ObjectName, DottedObjectName, CRegExp, link, directional_link,
     EventfulList, EventfulDict, ForwardDeclaredType, ForwardDeclaredInstance,
@@ -916,16 +916,6 @@ class TestDottedObjectName(TraitTestBase):
         _bad_values.append(u"t.þ")
     else:
         _good_values.append(u"t.þ")
-
-
-class ColorTrait(HasTraits):
-    value = Color("black")
-
-class TestColor(TraitTestBase):
-    obj = ColorTrait()
-
-    _good_values = ["blue", "#AA0", "#FFFFFF"]
-    _bad_values = ["vanilla", "blues"]
 
 
 class TCPAddressTrait(HasTraits):

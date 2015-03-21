@@ -14,7 +14,8 @@ Represents an unbounded int using a widget.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget, register
-from IPython.utils.traitlets import Unicode, CInt, Bool, CaselessStrEnum, Tuple, Color
+from .trait_types import Color
+from IPython.utils.traitlets import Unicode, CInt, Bool, CaselessStrEnum, Tuple
 from IPython.utils.warn import DeprecatedClass
 
 #-----------------------------------------------------------------------------

@@ -20,8 +20,9 @@ from IPython.kernel.comm import Comm
 from IPython.config import LoggingConfigurable
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import Unicode, Dict, Instance, Bool, List, \
-    CaselessStrEnum, Tuple, CUnicode, Int, Set, Color
+    CaselessStrEnum, Tuple, CUnicode, Int, Set
 from IPython.utils.py3compat import string_types
+from .trait_types import Color
 
 #-----------------------------------------------------------------------------
 # Classes

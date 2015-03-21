@@ -1,5 +1,7 @@
 from .widget import Widget, DOMWidget, CallbackDispatcher, register
 
+from .trait_types import Color
+
 from .widget_bool import Checkbox, ToggleButton
 from .widget_button import Button
 from .widget_box import Box, FlexBox, HBox, VBox
