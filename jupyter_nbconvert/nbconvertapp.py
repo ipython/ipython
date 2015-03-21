@@ -161,14 +161,14 @@ class NbConvertApp(BaseIPythonApplication):
     # Writer specific variables
     writer = Instance('jupyter_nbconvert.writers.base.WriterBase',  
                       help="""Instance of the writer class used to write the 
-                      results of the conversion.""")
+                      results of the conversion.""", allow_none=True)
     writer_class = DottedObjectName('FilesWriter', config=True, 
                                     help="""Writer class used to write the 
                                     results of the conversion""")
     writer_aliases = {'fileswriter': 'jupyter_nbconvert.writers.files.FilesWriter',
                       'debugwriter': 'jupyter_nbconvert.writers.debug.DebugWriter',
                       'stdoutwriter': 'jupyter_nbconvert.writers.stdout.StdoutWriter'}
-    writer_factory = Type()
+    writer_factory = Type(allow_none=True)
 
     def _writer_class_changed(self, name, old, new):
         if new.lower() in self.writer_aliases:
@@ -178,13 +178,13 @@ class NbConvertApp(BaseIPythonApplication):
     # Post-processor specific variables
     postprocessor = Instance('jupyter_nbconvert.postprocessors.base.PostProcessorBase',  
                       help="""Instance of the PostProcessor class used to write the 
-                      results of the conversion.""")
+                      results of the conversion.""", allow_none=True)
 
     postprocessor_class = DottedOrNone(config=True, 
                                     help="""PostProcessor class used to write the 
                                     results of the conversion""")
     postprocessor_aliases = {'serve': 'jupyter_nbconvert.postprocessors.serve.ServePostProcessor'}
-    postprocessor_factory = Type()
+    postprocessor_factory = Type(allow_none=True)
 
     def _postprocessor_class_changed(self, name, old, new):
         if new.lower() in self.postprocessor_aliases:

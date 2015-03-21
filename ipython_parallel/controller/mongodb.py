@@ -45,7 +45,7 @@ class MongoDB(BaseDB):
         in tasks from previous sessions being available via Clients' db_query and
         get_result methods.""")
 
-    _connection = Instance(Connection) # pymongo connection
+    _connection = Instance(Connection, allow_none=True) # pymongo connection
     
     def __init__(self, **kwargs):
         super(MongoDB, self).__init__(**kwargs)

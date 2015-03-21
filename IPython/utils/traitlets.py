@@ -852,7 +852,8 @@ class ClassBasedTraitType(TraitType):
 class Type(ClassBasedTraitType):
     """A trait whose value must be a subclass of a specified class."""
 
-    def __init__ (self, default_value=None, klass=None, allow_none=True, **metadata ):
+    def __init__ (self, default_value=None, klass=None, allow_none=False,
+                  **metadata):
         """Construct a Type trait
 
         A Type trait specifies that its values must be subclasses of
@@ -952,8 +953,8 @@ class Instance(ClassBasedTraitType):
 
     klass = None
 
-    def __init__(self, klass=None, args=None, kw=None,
-                 allow_none=True, **metadata ):
+    def __init__(self, klass=None, args=None, kw=None, allow_none=False,
+                 **metadata ):
         """Construct an Instance trait.
 
         This trait allows values that are instances of a particular
@@ -1656,7 +1657,7 @@ class Tuple(Container):
         if self._traits and default_value is None:
             # don't allow default to be an empty container if length is specified
             args = None
-        super(Container,self).__init__(klass=self.klass, args=args, **metadata)
+        super(Container,self).__init__(klass=self.klass, args=args, allow_none=allow_none, **metadata)
 
     def validate_elements(self, obj, value):
         if not self._traits:

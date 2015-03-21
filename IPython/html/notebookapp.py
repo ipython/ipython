@@ -665,7 +665,7 @@ class NotebookApp(BaseIPythonApplication):
         help='The config manager class to use'
     )
 
-    kernel_spec_manager = Instance(KernelSpecManager)
+    kernel_spec_manager = Instance(KernelSpecManager, allow_none=True)
 
     kernel_spec_manager_class = Type(
         default_value=KernelSpecManager,

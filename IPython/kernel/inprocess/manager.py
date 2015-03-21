@@ -20,7 +20,8 @@ class InProcessKernelManager(KernelManager):
     """
 
     # The kernel process with which the KernelManager is communicating.
-    kernel = Instance('IPython.kernel.inprocess.ipkernel.InProcessKernel')
+    kernel = Instance('IPython.kernel.inprocess.ipkernel.InProcessKernel',
+                      allow_none=True)
     # the client class for KM.client() shortcut
     client_class = DottedObjectName('IPython.kernel.inprocess.BlockingInProcessKernelClient')
     

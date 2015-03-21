@@ -123,7 +123,7 @@ class BaseParallelApplication(BaseIPythonApplication):
     def _config_files_default(self):
         return ['ipcontroller_config.py', 'ipengine_config.py', 'ipcluster_config.py']
     
-    loop = Instance('zmq.eventloop.ioloop.IOLoop')
+    loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=True)
     def _loop_default(self):
         from zmq.eventloop.ioloop import IOLoop
         return IOLoop.instance()

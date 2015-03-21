@@ -180,17 +180,17 @@ help="""select the task scheduler scheme  [default: Python LRU]
         self.scheme = globals()[new]
 
     # input arguments:
-    scheme = Instance(FunctionType) # function for determining the destination
+    scheme = Instance(FunctionType, allow_none=True) # function for determining the destination
     def _scheme_default(self):
         return leastload
-    client_stream = Instance(zmqstream.ZMQStream) # client-facing stream
-    engine_stream = Instance(zmqstream.ZMQStream) # engine-facing stream
-    notifier_stream = Instance(zmqstream.ZMQStream) # hub-facing sub stream
-    mon_stream = Instance(zmqstream.ZMQStream) # hub-facing pub stream
-    query_stream = Instance(zmqstream.ZMQStream) # hub-facing DEALER stream
+    client_stream = Instance(zmqstream.ZMQStream, allow_none=True) # client-facing stream
+    engine_stream = Instance(zmqstream.ZMQStream, allow_none=True) # engine-facing stream
+    notifier_stream = Instance(zmqstream.ZMQStream, allow_none=True) # hub-facing sub stream
+    mon_stream = Instance(zmqstream.ZMQStream, allow_none=True) # hub-facing pub stream
+    query_stream = Instance(zmqstream.ZMQStream, allow_none=True) # hub-facing DEALER stream
 
     # internals:
-    queue = Instance(deque) # sorted list of Jobs
+    queue = Instance(deque, allow_none=True) # sorted list of Jobs
     def _queue_default(self):
         return deque()
     queue_map = Dict() # dict by msg_id of Jobs (for O(1) access to the Queue)

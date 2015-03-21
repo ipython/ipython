@@ -174,7 +174,7 @@ class IPEngineApp(BaseParallelApplication):
         logging to a central location.""")
     
     # an IPKernelApp instance, used to setup listening for shell frontends
-    kernel_app = Instance(IPKernelApp)
+    kernel_app = Instance(IPKernelApp, allow_none=True)
 
     aliases = Dict(aliases)
     flags = Dict(flags)

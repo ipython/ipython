@@ -36,7 +36,8 @@ HideBuiltin = __HideBuiltin()
 
 class BuiltinTrap(Configurable):
 
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC',
+                     allow_none=True)
 
     def __init__(self, shell=None):
         super(BuiltinTrap, self).__init__(shell=shell, config=None)

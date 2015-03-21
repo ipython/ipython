@@ -445,7 +445,7 @@ class TestType(TestCase):
 
         class B(object): pass
         class A(HasTraits):
-            klass = Type
+            klass = Type(allow_none=True)
 
         a = A()
         self.assertEqual(a.klass, None)
@@ -472,7 +472,7 @@ class TestType(TestCase):
         class B(object): pass
         class C(B): pass
         class A(HasTraits):
-            klass = Type(B, allow_none=False)
+            klass = Type(B)
 
         a = A()
         self.assertEqual(a.klass, B)
@@ -501,7 +501,7 @@ class TestType(TestCase):
         self.assertRaises(ImportError, A)
 
         class C(HasTraits):
-            klass = Type(None, B, allow_none=False)
+            klass = Type(None, B)
 
         self.assertRaises(TraitError, C)
 
@@ -534,7 +534,7 @@ class TestInstance(TestCase):
         class Bah(object): pass
 
         class A(HasTraits):
-            inst = Instance(Foo)
+            inst = Instance(Foo, allow_none=True)
 
         a = A()
         self.assertTrue(a.inst is None)
@@ -555,7 +555,7 @@ class TestInstance(TestCase):
             klass = Foo
 
         class A(HasTraits):
-            inst = FooInstance()
+            inst = FooInstance(allow_none=True)
 
         a = A()
         self.assertTrue(a.inst is None)
@@ -596,7 +596,7 @@ class TestInstance(TestCase):
         self.assertEqual(b.inst.d, 20)
 
         class C(HasTraits):
-            inst = Instance(Foo)
+            inst = Instance(Foo, allow_none=True)
         c = C()
         self.assertTrue(c.inst is None)
 
@@ -604,7 +604,7 @@ class TestInstance(TestCase):
         class Foo(object): pass
 
         class A(HasTraits):
-            inst = Instance(Foo, allow_none=False)
+            inst = Instance(Foo)
 
         self.assertRaises(TraitError, A)
 
@@ -951,7 +951,7 @@ class Foo(object):
 
 class NoneInstanceListTrait(HasTraits):
     
-    value = List(Instance(Foo, allow_none=False))
+    value = List(Instance(Foo))
 
 class TestNoneInstanceList(TraitTestBase):
 
@@ -975,7 +975,7 @@ class TestInstanceList(TraitTestBase):
         self.assertIs(self.obj.traits()['value']._trait.klass, Foo)
 
     _default_value = []
-    _good_values = [[Foo(), Foo(), None], []]
+    _good_values = [[Foo(), Foo()], []]
     _bad_values = [['1', 2,], '1', [Foo], None]
 
 class UnionListTrait(HasTraits):
@@ -1120,7 +1120,7 @@ class TestValidationHook(TestCase):
         class Parity(HasTraits):
 
             value = Int(0)
-            parity = Enum(['odd', 'even'], default_value='even', allow_none=False)
+            parity = Enum(['odd', 'even'], default_value='even')
 
             def _value_validate(self, value, trait):
                 if self.parity == 'even' and value % 2:
@@ -1469,11 +1469,11 @@ class TestEventful(TestCase):
 ###
 class ForwardDeclaredInstanceTrait(HasTraits):
 
-    value = ForwardDeclaredInstance('ForwardDeclaredBar')
+    value = ForwardDeclaredInstance('ForwardDeclaredBar', allow_none=True)
 
 class ForwardDeclaredTypeTrait(HasTraits):
 
-    value = ForwardDeclaredType('ForwardDeclaredBar')
+    value = ForwardDeclaredType('ForwardDeclaredBar', allow_none=True)
 
 class ForwardDeclaredInstanceListTrait(HasTraits):
 
@@ -1525,16 +1525,16 @@ class TestForwardDeclaredInstanceList(TraitTestBase):
 
     _default_value = []
     _good_values = [
-        [ForwardDeclaredBar(), ForwardDeclaredBarSub(), None],
-        [None],
+        [ForwardDeclaredBar(), ForwardDeclaredBarSub()],
         [],
     ]
     _bad_values = [
         ForwardDeclaredBar(),
-        [ForwardDeclaredBar(), 3],
+        [ForwardDeclaredBar(), 3, None],
         '1',
         # Note that this is the type, not an instance.
         [ForwardDeclaredBar],
+        [None],
         None,
     ]
 
@@ -1548,9 +1548,8 @@ class TestForwardDeclaredTypeList(TraitTestBase):
 
     _default_value = []
     _good_values = [
-        [ForwardDeclaredBar, ForwardDeclaredBarSub, None],
+        [ForwardDeclaredBar, ForwardDeclaredBarSub],
         [],
-        [None],
     ]
     _bad_values = [
         ForwardDeclaredBar,
@@ -1558,6 +1557,7 @@ class TestForwardDeclaredTypeList(TraitTestBase):
         '1',
         # Note that this is an instance, not the type.
         [ForwardDeclaredBar()],
+        [None],
         None,
     ]
 ###

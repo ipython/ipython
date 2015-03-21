@@ -114,6 +114,7 @@ class InlineBackend(InlineBackendConfig):
         be explicit.
         """)
     
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC',
+                     allow_none=True)
 
 

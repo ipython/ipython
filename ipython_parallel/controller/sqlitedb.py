@@ -99,7 +99,7 @@ class SQLiteDB(BaseDB):
         get_result methods.""")
 
     if sqlite3 is not None:
-        _db = Instance('sqlite3.Connection')
+        _db = Instance('sqlite3.Connection', allow_none=True)
     else:
         _db = None
     # the ordered list of column names

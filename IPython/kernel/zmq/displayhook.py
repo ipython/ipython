@@ -42,8 +42,8 @@ class ZMQShellDisplayHook(DisplayHook):
     representations of the object."""
     topic=None
 
-    session = Instance(Session)
-    pub_socket = Instance(SocketABC)
+    session = Instance(Session, allow_none=True)
+    pub_socket = Instance(SocketABC, allow_none=True)
     parent_header = Dict({})
 
     def set_parent(self, parent):

@@ -22,7 +22,8 @@ def lazy_import_handle_comm_opened(*args, **kwargs):
 
 
 class IPythonKernel(KernelBase):
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC',
+                     allow_none=True)
     shell_class = Type(ZMQInteractiveShell)
 
     user_module = Any()

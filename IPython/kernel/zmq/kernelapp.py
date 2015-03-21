@@ -108,7 +108,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
     """)
     kernel = Any()
     poller = Any() # don't restrict this even though current pollers are all Threads
-    heartbeat = Instance(Heartbeat)
+    heartbeat = Instance(Heartbeat, allow_none=True)
     ports = Dict()
     
     # connection info:

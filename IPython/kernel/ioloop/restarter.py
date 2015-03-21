@@ -32,7 +32,7 @@ from IPython.utils.traitlets import (
 class IOLoopKernelRestarter(KernelRestarter):
     """Monitor and autorestart a kernel."""
 
-    loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=False)
+    loop = Instance('zmq.eventloop.ioloop.IOLoop')
     def _loop_default(self):
         return ioloop.IOLoop.instance()
 

@@ -295,13 +295,13 @@ class InteractiveShell(SingletonConfigurable):
     disable_failing_post_execute = CBool(False, config=True,
         help="Don't call post-execute functions that have failed in the past."
     )
-    display_formatter = Instance(DisplayFormatter)
-    displayhook_class = Type(DisplayHook)
-    display_pub_class = Type(DisplayPublisher)
+    display_formatter = Instance(DisplayFormatter, allow_none=True)
+    displayhook_class = Type(DisplayHook, allow_none=True)
+    display_pub_class = Type(DisplayPublisher, allow_none=True)
     data_pub_class = None
 
     exit_now = CBool(False)
-    exiter = Instance(ExitAutocall)
+    exiter = Instance(ExitAutocall, allow_none=True)
     def _exiter_default(self):
         return ExitAutocall(self)
     # Monotonically increasing execution counter
@@ -435,16 +435,16 @@ class InteractiveShell(SingletonConfigurable):
                             default_value='Context', config=True)
 
     # Subcomponents of InteractiveShell
-    alias_manager = Instance('IPython.core.alias.AliasManager')
-    prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager')
-    builtin_trap = Instance('IPython.core.builtin_trap.BuiltinTrap')
-    display_trap = Instance('IPython.core.display_trap.DisplayTrap')
-    extension_manager = Instance('IPython.core.extensions.ExtensionManager')
-    payload_manager = Instance('IPython.core.payload.PayloadManager')
-    history_manager = Instance('IPython.core.history.HistoryAccessorBase')
-    magics_manager = Instance('IPython.core.magic.MagicsManager')
+    alias_manager = Instance('IPython.core.alias.AliasManager', allow_none=True)
+    prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager', allow_none=True)
+    builtin_trap = Instance('IPython.core.builtin_trap.BuiltinTrap', allow_none=True)
+    display_trap = Instance('IPython.core.display_trap.DisplayTrap', allow_none=True)
+    extension_manager = Instance('IPython.core.extensions.ExtensionManager', allow_none=True)
+    payload_manager = Instance('IPython.core.payload.PayloadManager', allow_none=True)
+    history_manager = Instance('IPython.core.history.HistoryAccessorBase', allow_none=True)
+    magics_manager = Instance('IPython.core.magic.MagicsManager', allow_none=True)
 
-    profile_dir = Instance('IPython.core.application.ProfileDir')
+    profile_dir = Instance('IPython.core.application.ProfileDir', allow_none=True)
     @property
     def profile(self):
         if self.profile_dir is not None:
@@ -453,7 +453,7 @@ class InteractiveShell(SingletonConfigurable):
 
 
     # Private interface
-    _post_execute = Instance(dict)
+    _post_execute = Instance(dict, allow_none=True)
 
     # Tracks any GUI loop loaded for pylab
     pylab_gui_select = None

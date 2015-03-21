@@ -145,7 +145,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     _ExecutionRequest = namedtuple('_ExecutionRequest', ['id', 'kind'])
     _input_splitter_class = InputSplitter
     _local_kernel = False
-    _highlighter = Instance(FrontendHighlighter)
+    _highlighter = Instance(FrontendHighlighter, allow_none=True)
 
     #---------------------------------------------------------------------------
     # 'object' interface

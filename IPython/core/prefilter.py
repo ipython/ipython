@@ -130,7 +130,7 @@ class PrefilterManager(Configurable):
     """
 
     multi_line_specials = CBool(True, config=True)
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
 
     def __init__(self, shell=None, **kwargs):
         super(PrefilterManager, self).__init__(shell=shell, **kwargs)
@@ -362,8 +362,8 @@ class PrefilterTransformer(Configurable):
     priority = Integer(100, config=True)
     # Transformers don't currently use shell or prefilter_manager, but as we
     # move away from checkers and handlers, they will need them.
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
-    prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
+    prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager', allow_none=True)
     enabled = Bool(True, config=True)
 
     def __init__(self, shell=None, prefilter_manager=None, **kwargs):
@@ -390,8 +390,8 @@ class PrefilterChecker(Configurable):
     """Inspect an input line and return a handler for that line."""
 
     priority = Integer(100, config=True)
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
-    prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
+    prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager', allow_none=True)
     enabled = Bool(True, config=True)
 
     def __init__(self, shell=None, prefilter_manager=None, **kwargs):
@@ -540,8 +540,8 @@ class PrefilterHandler(Configurable):
 
     handler_name = Unicode('normal')
     esc_strings = List([])
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
-    prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
+    prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager', allow_none=True)
 
     def __init__(self, shell=None, prefilter_manager=None, **kwargs):
         super(PrefilterHandler, self).__init__(
