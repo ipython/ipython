@@ -176,6 +176,12 @@ data-terminals-available="{{terminals_available}}"
         </div>
       </div><!-- class:tab-content -->
     </div><!-- id:tab_content --> 
+    <div id="cluster_options_dialog" style="display:none">
+      <div class="dialog_field"><label>Profile:</label><div id="cluster_options_profile"></div></div>
+      <div class="dialog_field"><label># of Engines:</label><input id="cluster_options_engines" type="number" min="1" /></div>
+      <div class="dialog_field"><label>Walltime:</label><input id="cluster_options_walltime" placeholder="hh:mm:ss" pattern="^[0-9]+(:[0-5][0-9]){2}$" /></div>
+      <div class="dialog_field"><label>Memory per engine (GB):</label><input id="cluster_options_mem" type="number" min="1" /></div>
+    </div>
   </div><!-- ipython-main-app  -->
 
 {% endblock %}

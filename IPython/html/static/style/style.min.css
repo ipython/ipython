@@ -8896,6 +8896,18 @@ ul#new-menu {
 #tab_content {
   padding-top: 20px;
 }
+.dialog_field{
+  width:100%;
+  margin-bottom:15px;
+}
+.dialog_field > label{
+  width:40%
+}
+.dialog_field > div,
+.dialog_field > input{
+  float:right;
+  width:45%
+}
 #running .panel-group .panel {
   margin-top: 3px;
   margin-bottom: 1em;

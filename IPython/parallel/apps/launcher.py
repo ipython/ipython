@@ -51,6 +51,8 @@ from IPython.utils.path import get_home_dir, ensure_dir_exists
 from IPython.utils.process import find_cmd, FindCmdError
 from IPython.utils.py3compat import iteritems, itervalues
 
+from IPython.parallel import Client
+
 from .win32support import forward_read_events
 
 from .winhpcjob import IPControllerTask, IPEngineTask, IPControllerJob, IPEngineSetJob
@@ -211,6 +213,30 @@ class ClusterAppMixin(HasTraits):
     @property
     def cluster_args(self):
         return ['--profile-dir', self.profile_dir, '--cluster-id', self.cluster_id]
+        
+    def get_client(self, profile):
+        if hasattr(self, 'client'):
+            return self.client
+        else:
+            try:
+                client = Client(profile=profile, timeout=2)
+                self.client = client
+                def close_client(d):
+                    self.client.close()
+                self.on_stop(close_client)
+                return client
+            except:
+                pass
+                
+    def status(self, profile, n=1):
+        c = self.get_client(profile)
+        if c is None:
+            return 'error'
+        else:
+            if len(c.ids) >= int(n):
+                return 'running'
+            else:
+                return 'engines starting'
 
 class ControllerMixin(ClusterAppMixin):
     controller_cmd = List(ipcontroller_cmd_argv, config=True,
@@ -1008,12 +1034,18 @@ class BatchSystemLauncher(BaseLauncher):
     use {n} fot the number of instances. Subclasses can add additional variables
     to the template dict.
     """
+    
+    STATUS_QUEUED = "queued"
+    STATUS_RUNNING = "running"
+    STATUS_COMPLETED = "completed"
 
     # Subclasses must fill these in.  See PBSEngineSet
     submit_command = List([''], config=True,
         help="The name of the command line program used to submit jobs.")
     delete_command = List([''], config=True,
         help="The name of the command line program used to delete jobs.")
+    info_command = List([''], config=True,
+        help="The name of the command line program used to get job info.")
     job_id_regexp = CRegExp('', config=True,
         help="""A regular expression used to get the job id from the output of the
         submit_command.""")
@@ -1067,6 +1099,7 @@ class BatchSystemLauncher(BaseLauncher):
             work_dir=work_dir, config=config, **kwargs
         )
         self.batch_file = os.path.join(self.work_dir, self.batch_file_name)
+        self.submit_args = {}
 
     def parse_job_id(self, output):
         """Take the output of the submit command and return the job id."""
@@ -1115,6 +1148,11 @@ class BatchSystemLauncher(BaseLauncher):
             self.log.debug("adding job array settings to batch script")
             firstline, rest = self.batch_template.split('\n',1)
             self.batch_template = u'\n'.join([firstline, self.job_array_template, rest])
+    
+    def get_submit_args(self):
+        # converts the submit_args dict into a list in the format that the submit cmd expects
+        # override in subclasses
+        return []
 
     def start(self, n):
         """Start n copies of the process using a batch system."""
@@ -1122,7 +1160,7 @@ class BatchSystemLauncher(BaseLauncher):
         # Here we save profile_dir in the context so they
         # can be used in the batch script template as {profile_dir}
         self.write_batch_script(n)
-        output = check_output(self.args, env=os.environ)
+        output = check_output(self.submit_command + self.get_submit_args() + [self.batch_file], env=os.environ)
         output = output.decode(DEFAULT_ENCODING, 'replace')
 
         job_id = self.parse_job_id(output)
@@ -1142,6 +1180,48 @@ class BatchSystemLauncher(BaseLauncher):
         output = output.decode(DEFAULT_ENCODING, 'replace')
         self.notify_stop(dict(job_id=self.job_id, output=output)) # Pass the output of the kill cmd
         return output
+        
+    def info(self):
+        # uses the info_command to retrieve details about the job
+        if hasattr(self, 'job_id'):
+            try:
+                p = Popen(self.info_command+[self.job_id], env=os.environ,
+                    stdout=PIPE, stderr=PIPE)
+                out, err = p.communicate()
+                output = out + err
+                output = output.decode(DEFAULT_ENCODING, 'replace')
+            except:
+                self.log.exception("Problem with command: %s" %
+                    (self.info_command + [self.job_id]))
+                output = ''
+        else:
+            output = "Batch job not submitted"
+        return output
+        
+    def get_info(self, key):
+        # uses the info function to extract the value of a given key
+        # override in subclasses
+        pass
+        
+    def status(self):
+        # uses the get_info function to extract the status of the job
+        # override in subclasses
+        pass
+        
+    def set_options(self, opts):
+        if opts['time'] is not None:
+            self.set_walltime(opts['time'])
+        if opts['mem'] is not None:
+            self.set_mem(opts['mem'])
+        
+    def set_walltime(self, time): # set the submit arg for walltime
+        pass
+        
+    def set_mem(self, mem): # set the submit arg for mem
+        pass
+        
+    def set_nodes(self, nodes): # set the submit arg for nodes
+        pass
 
 
 class PBSLauncher(BatchSystemLauncher):
@@ -1151,6 +1231,8 @@ class PBSLauncher(BatchSystemLauncher):
         help="The PBS submit command ['qsub']")
     delete_command = List(['qdel'], config=True,
         help="The PBS delete command ['qsub']")
+    info_command = List(['qstat', '-f'], config=True,
+        help="The PBS info command ['qstat']")
     job_id_regexp = CRegExp(r'\d+', config=True,
         help="Regular expresion for identifying the job ID [r'\d+']")
 
@@ -1159,6 +1241,65 @@ class PBSLauncher(BatchSystemLauncher):
     job_array_template = Unicode('#PBS -t 1-{n}')
     queue_regexp = CRegExp('#PBS\W+-q\W+\$?\w+')
     queue_template = Unicode('#PBS -q {queue}')
+    
+    def __init__(self, *args, **kwargs):
+        self.submit_args_resource = {}
+        super().__init__(*args, **kwargs)
+    
+    def get_submit_args(self):
+        argList = []
+        if len(self.submit_args_resource) > 0:
+            resourceStr = ''
+            for res in self.submit_args_resource:
+                if len(resourceStr) > 0:
+                    resourceStr += ','
+                resourceStr += res + '=' + self.submit_args_resource[res]
+            self.submit_args['l'] = resourceStr
+        for arg in self.submit_args:
+            argList.append("-" + arg)
+            if len(self.submit_args[arg]) > 0:
+                argList.append(self.submit_args[arg])
+        return argList
+    
+    def get_info(self, key):
+        info = self.info().splitlines()
+        for i in range(len(info)):
+            line = info[i]
+            if (key == line.split("=")[0].strip()):
+                field = line.split("=")[1].strip()
+                i2 = i + 1
+                while (i2 < len(info) and info[i2].startswith('\t')):
+                    line = info[i2]
+                    field += line.strip(' \t')
+                    i2 = i2 + 1
+                return field
+                    
+    def status(self):
+        status = self.get_info("job_state")
+        if status is None:
+            return "Error"
+        if status == "Q":
+            return self.STATUS_QUEUED
+        if status == "R":
+            return self.STATUS_RUNNING
+        if status == "C":
+            return self.STATUS_COMPLETED
+        return status
+        
+    def set_options(self, opts):
+        if opts['time'] is not None:
+            self.set_walltime(opts['time'])
+        if opts['mem'] is not None:
+            self.set_mem(opts['mem'], opts['n'])
+        
+    def set_walltime(self, time):
+        self.submit_args_resource['walltime'] = time
+        
+    def set_mem(self, mem, n):
+        self.submit_args_resource['vmem'] = str(int(mem)*int(n)) + 'GB'
+        
+    def set_nodes(self, nodes):
+        self.submit_args_resource['nodes'] = nodes
 
 
 class PBSControllerLauncher(PBSLauncher, BatchClusterAppMixin):
@@ -1186,6 +1327,99 @@ class PBSEngineSetLauncher(PBSLauncher, BatchClusterAppMixin):
 #PBS -N ipengine
 %s --profile-dir="{profile_dir}" --cluster-id="{cluster_id}"
 """%(' '.join(map(pipes.quote,ipengine_cmd_argv))))
+
+    def status(self, profile=None, n=1):
+        status = super(PBSEngineSetLauncher, self).status()
+        if status == self.STATUS_RUNNING and profile is not None:
+            status = ClusterAppMixin.status(self, profile, n)
+        return status
+
+
+class SLURMLauncher(BatchSystemLauncher):
+    """A BatchSystemLauncher subclass for SLURM"""
+    submit_command = List(['sbatch'], config=True,
+        help="The SLURM submit command ['sbatch']")
+    # Send SIGKILL instead of term, otherwise the job is "CANCELLED", not
+    # "FINISHED"
+    delete_command = List(['scancel', '--signal=KILL'], config=True,
+        help="The SLURM delete command ['scancel']")
+    info_command = List(['scontrol', 'show', 'job'], config=True,
+        help="The SLURM info command ['scontrol']")
+    job_id_regexp = CRegExp(r'\d+', config=True,
+        help="A regular expression used to get the job id from the output of 'sbatch'")
+    batch_file = Unicode(u'', config=True,
+        help="The string that is the batch script template itself.")
+    queue_regexp = CRegExp('#SBATCH\W+-p\W+\w')
+    queue_template = Unicode('#SBATCH -p {queue}')
+    
+    def get_submit_args(self):
+        argList = []
+        for arg in self.submit_args:
+            argList.append("--" + arg + "=" + self.submit_args[arg])
+        return argList
+    
+    def get_info(self, key):
+        info = self.info().splitlines()
+        for line in info:
+            for field in line.split(" "):
+                if (key == field.split("=")[0].strip()):
+                    field = field.split("=")[1].strip()
+                    return field
+                    
+    def status(self):
+        status = self.get_info("JobState")
+        if status is None:
+            return "Error"
+        if status == "PENDING":
+            return self.STATUS_QUEUED
+        if status == "RUNNING":
+            return self.STATUS_RUNNING
+        if status == "COMPLETED":
+            return self.STATUS_COMPLETED
+        return status
+        
+    def set_walltime(self, time):
+        self.submit_args['time'] = time
+        
+    def set_mem(self, mem):
+        self.submit_args['mem-per-cpu'] = mem + 'GB'
+        
+    def set_nodes(self, nodes):
+        self.submit_args['nodes'] = nodes
+    
+
+class SLURMControllerLauncher(SLURMLauncher, BatchClusterAppMixin):
+    """Launch a controller using SLURM."""
+
+    batch_file_name = Unicode(u'SLURM_controller', config=True,
+        help="batch file name for the controller job.")
+    default_template= Unicode("""#!/bin/sh
+#SBATCH --export=ALL
+#SBATCH --job-name ipcontroller
+%s --log-to-file --profile-dir="{profile_dir}" --cluster-id="{cluster_id}"
+"""%(' '.join(map(pipes.quote, ipcontroller_cmd_argv))))
+
+    def start(self):
+        """Start the controller by profile or profile_dir."""
+        return super(SLURMControllerLauncher, self).start(1)
+
+        
+class SLURMEngineSetLauncher(SLURMLauncher, BatchClusterAppMixin):
+    """Custom launcher handling heterogeneous clusters on SLURM"""
+    batch_file_name = Unicode(u'SLURM_engines', config=True,
+        help="batch file name for the engine(s) job.")
+    default_template = Unicode("""#!/bin/sh
+#SBATCH --job-name=ipengine
+#SBATCH --export=ALL
+
+%s --profile-dir={profile_dir}
+"""%(' '.join(map(pipes.quote,ipengine_cmd_argv))))
+
+    def status(self, profile=None, n=1):
+        status = super(SLURMEngineSetLauncher, self).status()
+        if status == self.STATUS_RUNNING and profile is not None:
+            status = ClusterAppMixin.status(self, profile, n)
+        return status
 
 
 #SGE is very similar to PBS
@@ -1429,6 +1663,11 @@ pbs_launchers = [
     PBSControllerLauncher,
     PBSEngineSetLauncher,
 ]
+slurm_launchers = [
+    SLURMLauncher,
+    SLURMControllerLauncher,
+    SLURMEngineSetLauncher,
+]
 sge_launchers = [
     SGELauncher,
     SGEControllerLauncher,
@@ -1445,4 +1684,4 @@ htcondor_launchers = [
     HTCondorEngineSetLauncher,
 ]
 all_launchers = local_launchers + mpi_launchers + ssh_launchers + winhpc_launchers\
-                + pbs_launchers + sge_launchers + lsf_launchers + htcondor_launchers
+                + pbs_launchers + slurm_launchers + sge_launchers + lsf_launchers + htcondor_launchers
