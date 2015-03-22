@@ -159,7 +159,7 @@ class Application(SingletonConfigurable):
         help="The date format used by logging formatters for %(asctime)s"
     )
     def _log_datefmt_changed(self, name, old, new):
-        self._log_format_changed()
+        self._log_format_changed('log_format', self.log_format, self.log_format)
     
     log_format = Unicode("[%(name)s]%(highlevel)s %(message)s", config=True,
         help="The Logging format template",
