@@ -919,7 +919,6 @@ class TestDottedObjectName(TraitTestBase):
 
 
 class TCPAddressTrait(HasTraits):
-
     value = TCPAddress()
 
 class TestTCPAddress(TraitTestBase):
@@ -978,6 +977,19 @@ class TestInstanceList(TraitTestBase):
     _default_value = []
     _good_values = [[Foo(), Foo(), None], []]
     _bad_values = [['1', 2,], '1', [Foo], None]
+
+class UnionListTrait(HasTraits):
+
+    value = List(Int() | Bool())
+
+class TestUnionListTrait(HasTraits):
+
+    obj = UnionListTrait()
+
+    _default_value = []
+    _good_values = [[True, 1], [False, True]]
+    _bad_values = [[1, 'True'], False]
+
 
 class LenListTrait(HasTraits):
 

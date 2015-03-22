@@ -14,6 +14,7 @@ Represents an unbounded float using a widget.
 # Imports
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget, register
+from .trait_types import Color
 from IPython.utils.traitlets import Unicode, CFloat, Bool, CaselessStrEnum, Tuple
 from IPython.utils.warn import DeprecatedClass
 
@@ -133,7 +134,7 @@ class FloatSlider(_BoundedFloat):
         default_value='horizontal', help="Vertical or horizontal.", sync=True)
     _range = Bool(False, help="Display a range selector", sync=True)
     readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
-    slider_color = Unicode(sync=True)
+    slider_color = Color(None, allow_none=True, sync=True)
 
 
 @register('IPython.FloatProgress')
@@ -287,7 +288,7 @@ class FloatRangeSlider(_BoundedFloatRange):
         default_value='horizontal', help="Vertical or horizontal.", sync=True)
     _range = Bool(True, help="Display a range selector", sync=True)
     readout = Bool(True, help="Display the current value of the slider next to it.", sync=True)
-    slider_color = Unicode(sync=True)
+    slider_color = Color(None, allow_none=True, sync=True)
 
 # Remove in IPython 4.0
 FloatTextWidget = DeprecatedClass(FloatText, 'FloatTextWidget')
