@@ -1330,6 +1330,50 @@ def test_pickle_hastraits():
         nt.assert_equal(c2.i, c.i)
         nt.assert_equal(c2.j, c.j)
 
+
+class OrderTraits(HasTraits):
+    notified = Dict()
+    
+    a = Unicode()
+    b = Unicode()
+    c = Unicode()
+    d = Unicode()
+    e = Unicode()
+    f = Unicode()
+    g = Unicode()
+    h = Unicode()
+    i = Unicode()
+    j = Unicode()
+    k = Unicode()
+    l = Unicode()
+    
+    def _notify(self, name, old, new):
+        """check the value of all traits when each trait change is triggered
+        
+        This verifies that the values are not sensitive
+        to dict ordering when loaded from kwargs
+        """
+        # check the value of the other traits
+        # when a given trait change notification fires
+        self.notified[name] = {
+            c: getattr(self, c) for c in 'abcdefghijkl'
+        }
+    
+    def __init__(self, **kwargs):
+        self.on_trait_change(self._notify)
+        super(OrderTraits, self).__init__(**kwargs)
+
+def test_notification_order():
+    d = {c:c for c in 'abcdefghijkl'}
+    obj = OrderTraits()
+    nt.assert_equal(obj.notified, {})
+    obj = OrderTraits(**d)
+    notifications = {
+        c: d for c in 'abcdefghijkl'
+    }
+    nt.assert_equal(obj.notified, notifications)
+
+
 class TestEventful(TestCase):
 
     def test_list(self):

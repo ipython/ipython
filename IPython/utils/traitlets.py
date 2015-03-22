@@ -575,8 +575,31 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
         # Allow trait values to be set using keyword arguments.
         # We need to use setattr for this to trigger validation and
         # notifications.
-        for key, value in iteritems(kw):
-            setattr(self, key, value)
+        
+        with self.delay_trait_notifications():
+            for key, value in iteritems(kw):
+                setattr(self, key, value)
+    
+    @contextlib.contextmanager
+    def delay_trait_notifications(self):
+        """Context manager for bundling trait change notifications
+        
+        Use this when doing multiple trait assignments (init, config),
+        to avoid race conditions in trait notifiers requesting other trait values.
+        All trait notifications will fire after all values have been assigned.
+        """
+        _notify_trait = self._notify_trait
+        notifications = []
+        self._notify_trait = lambda *a: notifications.append(a)
+        
+        try:
+            yield
+        finally:
+            self._notify_trait = _notify_trait
+        
+        # trigger delayed notifications
+        for args in notifications:
+            self._notify_trait(*args)
 
     def _notify_trait(self, name, old_value, new_value):
 
