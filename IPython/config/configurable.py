@@ -138,17 +138,20 @@ class Configurable(HasTraits):
             section_names = self.section_names()
         
         my_config = self._find_my_config(cfg)
-        for name, config_value in iteritems(my_config):
-            if name in traits:
-                if isinstance(config_value, LazyConfigValue):
-                    # ConfigValue is a wrapper for using append / update on containers
-                    # without having to copy the 
-                    initial = getattr(self, name)
-                    config_value = config_value.get_value(initial)
-                # We have to do a deepcopy here if we don't deepcopy the entire
-                # config object. If we don't, a mutable config_value will be
-                # shared by all instances, effectively making it a class attribute.
-                setattr(self, name, deepcopy(config_value))
+        
+        # hold trait notifications until after all config has been loaded
+        with self.delay_trait_notifications():
+            for name, config_value in iteritems(my_config):
+                if name in traits:
+                    if isinstance(config_value, LazyConfigValue):
+                        # ConfigValue is a wrapper for using append / update on containers
+                        # without having to copy the initial value
+                        initial = getattr(self, name)
+                        config_value = config_value.get_value(initial)
+                    # We have to do a deepcopy here if we don't deepcopy the entire
+                    # config object. If we don't, a mutable config_value will be
+                    # shared by all instances, effectively making it a class attribute.
+                    setattr(self, name, deepcopy(config_value))
 
     def _config_changed(self, name, old, new):
         """Update all the class traits having ``config=True`` as metadata.
