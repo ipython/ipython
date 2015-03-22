@@ -69,6 +69,11 @@ class Configurable(HasTraits):
             self.parent = parent
         
         config = kwargs.pop('config', None)
+        
+        # load kwarg traits, other than config
+        super(Configurable, self).__init__(**kwargs)
+        
+        # load config
         if config is not None:
             # We used to deepcopy, but for now we are trying to just save
             # by reference.  This *could* have side effects as all components
@@ -81,9 +86,12 @@ class Configurable(HasTraits):
         else:
             # allow _config_default to return something
             self._load_config(self.config)
-        # This should go second so individual keyword arguments override
-        # the values in config.
-        super(Configurable, self).__init__(**kwargs)
+        
+        # Ensure explicit kwargs are applied after loading config.
+        # This is usually redundant, but ensures config doesn't override
+        # explicitly assigned values.
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
     #-------------------------------------------------------------------------
     # Static trait notifiations
