@@ -1,10 +1,6 @@
 """A Task logger that presents our DB interface,
 but exists entirely in memory and implemented with dicts.
 
-Authors:
-
-* Min RK
-
 
 TaskRecords are dicts of the form::
 
@@ -36,14 +32,17 @@ DictDB supports a subset of mongodb operators::
 
     $lt,$gt,$lte,$gte,$ne,$in,$nin,$all,$mod,$exists
 """
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
 
-from copy import deepcopy as copy
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
+import copy
+from copy import deepcopy
+
+# Python can't copy memoryviews, but creating another memoryview works for us
+copy._deepcopy_dispatch[memoryview] = lambda x, memo: memoryview(x)
+
+
 from datetime import datetime
 
 from IPython.config.configurable import LoggingConfigurable
@@ -146,7 +145,7 @@ class DictDB(BaseDB):
 
         for rec in itervalues(self._records):
             if self._match_one(rec, tests):
-                matches.append(copy(rec))
+                matches.append(deepcopy(rec))
         return matches
 
     def _extract_subdict(self, rec, keys):
@@ -155,7 +154,7 @@ class DictDB(BaseDB):
         d['msg_id'] = rec['msg_id']
         for key in keys:
             d[key] = rec[key]
-        return copy(d)
+        return deepcopy(d)
     
     # methods for monitoring size / culling history
     
@@ -225,7 +224,7 @@ class DictDB(BaseDB):
             raise KeyError("Record %r has been culled for size" % msg_id)
         if not msg_id in self._records:
             raise KeyError("No such msg_id %r"%(msg_id))
-        return copy(self._records[msg_id])
+        return deepcopy(self._records[msg_id])
 
     def update_record(self, msg_id, rec):
         """Update the data in an existing record."""

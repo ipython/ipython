@@ -114,8 +114,6 @@ class BaseLauncher(LoggingConfigurable):
         super(BaseLauncher, self).__init__(work_dir=work_dir, config=config, **kwargs)
         self.state = 'before' # can be before, running, after
         self.stop_callbacks = []
-        self.start_data = None
-        self.stop_data = None
 
     @property
     def args(self):
@@ -368,7 +366,6 @@ class LocalEngineSetLauncher(LocalEngineLauncher):
         super(LocalEngineSetLauncher, self).__init__(
             work_dir=work_dir, config=config, **kwargs
         )
-        self.stop_data = {}
 
     def start(self, n):
         """Start n engines by profile or profile_dir."""
