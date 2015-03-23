@@ -75,15 +75,17 @@ define([
         msg = _.clone(msg);
         var offsets = [];
         var buffers = [];
-        msg.buffers.map(function (buf) {
-            buffers.push(buf);
-        });
+        var i;
+        for (i = 0; i < msg.buffers.length; i++) {
+            // msg.buffers elements could be either views or ArrayBuffers
+            // buffers elements are ArrayBuffers
+            buffers.push(msg.buffers[i].buffer || msg.buffers[i])
+        }
         delete msg.buffers;
         var json_utf8 = (new TextEncoder('utf8')).encode(JSON.stringify(msg));
         buffers.unshift(json_utf8);
         var nbufs = buffers.length;
         offsets.push(4 * (nbufs + 1));
-        var i;
         for (i = 0; i + 1 < buffers.length; i++) {
             offsets.push(offsets[offsets.length-1] + buffers[i].byteLength);
         }
@@ -100,7 +102,7 @@ define([
         }
         // write all the buffers at their respective offsets
         for (i = 0; i < buffers.length; i++) {
-            msg_buf.set(new Uint8Array(buffers[i].buffer), offsets[i]);
+            msg_buf.set(new Uint8Array(buffers[i]), offsets[i]);
         }
         
         // return raw ArrayBuffer
