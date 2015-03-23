@@ -276,7 +276,6 @@ define(function(require){
             help_index : 'hb',
             handler : function (env) {
                 env.notebook.restart_kernel();
-                env.notebook.focus_cell();
             }
         },
         'undo-last-cell-deletion' : {
