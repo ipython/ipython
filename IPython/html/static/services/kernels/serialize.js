@@ -79,7 +79,8 @@ define([
         for (i = 0; i < msg.buffers.length; i++) {
             // msg.buffers elements could be either views or ArrayBuffers
             // buffers elements are ArrayBuffers
-            buffers.push(msg.buffers[i].buffer || msg.buffers[i])
+            var b = msg.buffers[i];
+            buffers.push(b.buffer instanceof ArrayBuffer ? b.buffer : b);
         }
         delete msg.buffers;
         var json_utf8 = (new TextEncoder('utf8')).encode(JSON.stringify(msg));
