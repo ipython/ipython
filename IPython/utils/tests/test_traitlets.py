@@ -1331,6 +1331,34 @@ def test_pickle_hastraits():
         nt.assert_equal(c2.j, c.j)
 
 
+def test_hold_trait_notifications():
+    changes = []
+    class Test(HasTraits):
+        a = Integer(0)
+        def _a_changed(self, name, old, new):
+            changes.append((old, new))
+    
+    t = Test()
+    with t.hold_trait_notifications():
+        with t.hold_trait_notifications():
+            t.a = 1
+            nt.assert_equal(t.a, 1)
+            nt.assert_equal(changes, [])
+        t.a = 2
+        nt.assert_equal(t.a, 2)
+        with t.hold_trait_notifications():
+            t.a = 3
+            nt.assert_equal(t.a, 3)
+            nt.assert_equal(changes, [])
+            t.a = 4
+            nt.assert_equal(t.a, 4)
+            nt.assert_equal(changes, [])
+        t.a = 4
+        nt.assert_equal(t.a, 4)
+        nt.assert_equal(changes, [])
+    nt.assert_equal(changes, [(0,1), (1,2), (2,3), (3,4)])
+
+
 class OrderTraits(HasTraits):
     notified = Dict()
     
