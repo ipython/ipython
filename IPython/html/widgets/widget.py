@@ -427,6 +427,13 @@ class Widget(LoggingConfigurable):
         """Sends a message to the model in the front-end."""
         self.comm.send(msg)
 
+    def add_trait(self, traitname, trait):
+        """Dynamically add a trait attribute to the Widget."""
+        super(Widget, self).add_trait(traitname, trait)
+        if trait.get_metadata('sync'):
+             self.keys.append(traitname)
+             self.send_state(traitname) 
+
 
 class DOMWidget(Widget):
     visible = Bool(True, allow_none=True, help="Whether the widget is visible.  False collapses the empty space, while None preserves the empty space.", sync=True)
