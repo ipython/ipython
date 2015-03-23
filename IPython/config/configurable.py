@@ -140,7 +140,7 @@ class Configurable(HasTraits):
         my_config = self._find_my_config(cfg)
         
         # hold trait notifications until after all config has been loaded
-        with self.delay_trait_notifications():
+        with self.hold_trait_notifications():
             for name, config_value in iteritems(my_config):
                 if name in traits:
                     if isinstance(config_value, LazyConfigValue):

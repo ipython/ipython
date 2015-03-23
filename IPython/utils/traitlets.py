@@ -576,12 +576,12 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
         # We need to use setattr for this to trigger validation and
         # notifications.
         
-        with self.delay_trait_notifications():
+        with self.hold_trait_notifications():
             for key, value in iteritems(kw):
                 setattr(self, key, value)
     
     @contextlib.contextmanager
-    def delay_trait_notifications(self):
+    def hold_trait_notifications(self):
         """Context manager for bundling trait change notifications
         
         Use this when doing multiple trait assignments (init, config),
