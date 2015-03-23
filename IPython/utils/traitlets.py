@@ -53,6 +53,7 @@ except:
     ClassTypes = (type,)
 from warnings import warn
 
+from .getargspec import getargspec
 from .importstring import import_item
 from IPython.utils import py3compat
 from IPython.utils import eventful
@@ -293,6 +294,7 @@ class directional_link(object):
         self.targets = []
 
 dlink = directional_link
+
 
 #-----------------------------------------------------------------------------
 # Base TraitType for all traits
@@ -625,7 +627,8 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
         for c in callables:
             # Traits catches and logs errors here.  I allow them to raise
             if callable(c):
-                argspec = inspect.getargspec(c)
+                argspec = getargspec(c)
+
                 nargs = len(argspec[0])
                 # Bound methods have an additional 'self' argument
                 # I don't know how to treat unbound methods, but they
