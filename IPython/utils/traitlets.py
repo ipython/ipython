@@ -1606,7 +1606,7 @@ class Tuple(Container):
         ----------
 
         *traits : TraitTypes [ optional ]
-            the tsype for restricting the contents of the Tuple.  If unspecified,
+            the types for restricting the contents of the Tuple.  If unspecified,
             types are not checked. If specified, then each positional argument
             corresponds to an element of the tuple.  Tuples defined with traits
             are of fixed length.
