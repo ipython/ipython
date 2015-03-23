@@ -596,7 +596,12 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
             yield
         finally:
             self._notify_trait = _notify_trait
-        
+            if isinstance(_notify_trait, types.MethodType):
+                # FIXME: remove when support is bumped to 3.4.
+                # when original method is restored,
+                # remove the redundant value from __dict__
+                # (only used to preserve pickleability on Python < 3.4)
+                self.__dict__.pop('_notify_trait', None)
         # trigger delayed notifications
         for args in notifications:
             self._notify_trait(*args)
