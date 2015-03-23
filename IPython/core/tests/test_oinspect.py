@@ -243,7 +243,7 @@ def test_info():
         fname = fname[:-1]
     # case-insensitive comparison needed on some filesystems
     # e.g. Windows:
-    nt.assert_equal(i['file'].lower(), compress_user(fname.lower()))
+    nt.assert_equal(i['file'].lower(), compress_user(fname).lower())
     nt.assert_equal(i['definition'], None)
     nt.assert_equal(i['docstring'], Call.__doc__)
     nt.assert_equal(i['source'], None)
