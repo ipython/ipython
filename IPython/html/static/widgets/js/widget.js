@@ -347,6 +347,7 @@ define(["widgets/js/manager",
                     // We haven't exceeded the throttle, send the message like 
                     // normal.
                     this.send_sync_message(attrs, callbacks);
+                    this.pending_msgs++;
                 }
             }
             // Since the comm is a one-way communication, assume the message 
@@ -395,8 +396,11 @@ define(["widgets/js/manager",
                     }
                 }
                 that.comm.send({method: 'backbone', sync_data: state, buffer_keys: buffer_keys}, callbacks, {}, buffers);
-                that.pending_msgs++;
-            })
+            }).catch(utils.reject("Couldn't send widget sync message"), true)
+                .catch(function(error) {
+                    that.pending_msgs--;
+                    return error;
+                });
         },
         
         serialize: function(model, attrs) {
