@@ -118,6 +118,9 @@ class Application(SingletonConfigurable):
     option_description = Unicode(option_description)
     keyvalue_description = Unicode(keyvalue_description)
     subcommand_description = Unicode(subcommand_description)
+    
+    python_config_loader_class = PyFileConfigLoader
+    json_config_loader_class = JSONFileConfigLoader
 
     # The usage and example string that goes at the end of the help string.
     examples = Unicode()
@@ -507,8 +510,8 @@ class Application(SingletonConfigurable):
             path = [path]
         for path in path[::-1]:
             # path list is in descending priority order, so load files backwards:
-            pyloader = PyFileConfigLoader(basefilename+'.py', path=path, log=log)
-            jsonloader = JSONFileConfigLoader(basefilename+'.json', path=path, log=log)
+            pyloader = cls.python_config_loader_class(basefilename+'.py', path=path, log=log)
+            jsonloader = cls.json_config_loader_class(basefilename+'.json', path=path, log=log)
             config = None
             for loader in [pyloader, jsonloader]:
                 try:
