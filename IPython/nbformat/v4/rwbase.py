@@ -31,6 +31,10 @@ def rejoin_lines(nb):
                         output.text = ''.join(output.text)
     return nb
 
+_non_text_split_mimes = {
+    'application/javascript',
+    'image/svg+xml',
+}
 
 def split_lines(nb):
     """split likely multiline text into lists of strings
@@ -49,7 +53,9 @@ def split_lines(nb):
             for output in cell.outputs:
                 if output.output_type in {'execute_result', 'display_data'}:
                     for key, value in output.data.items():
-                        if key != 'application/json' and isinstance(value, string_types):
+                        if isinstance(value, string_types) and (
+                            key.startswith('text/') or key in _non_text_split_mimes
+                        ):
                             output.data[key] = value.splitlines(True)
                 elif output.output_type == 'stream':
                     if isinstance(output.text, string_types):
