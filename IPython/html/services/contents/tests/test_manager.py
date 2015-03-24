@@ -279,7 +279,10 @@ class TestContentsManager(TestCase):
         new_path = 'renamed.ipynb'
         cm.rename(path, new_path)
         renamed = cm.get(new_path)
-        self.assertEqual(renamed['last_modified'], saved['last_modified'])
+        self.assertGreaterEqual(
+            renamed['last_modified'],
+            saved['last_modified'],
+        )
 
     def test_get(self):
         cm = self.contents_manager
