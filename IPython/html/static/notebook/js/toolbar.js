@@ -120,7 +120,7 @@ define([
                     action_name = el;
 
                 }
-                var button  = $('<button/>')
+                var button  = $('<div/>')
                     .addClass('btn btn-default')
                     .attr("title", el.label||action.help)
                     .append(

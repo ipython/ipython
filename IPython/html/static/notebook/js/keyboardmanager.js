@@ -64,7 +64,7 @@ define([
     KeyboardManager.prototype.get_default_common_shortcuts = function() {
         return {
             'shift'       : 'ipython.ignore',
-            'shift-enter' : 'ipython.run-select-next',
+            'shift-enter' : 'ipython.run-select-next-cell-and-focus',
             'ctrl-enter'  : 'ipython.execute-in-place',
             'alt-enter'   : 'ipython.execute-and-insert-after',
             // cmd on mac, ctrl otherwise
@@ -91,14 +91,14 @@ define([
             'shift-o' : 'ipython.toggle-output-scrolling-selected-cell',
             'enter' : 'ipython.enter-edit-mode',
             'space' : 'ipython.scroll-down',
-            'down' : 'ipython.select-next-cell',
+            'down' : 'ipython.select-next-cell-and-focus',
             'i,i' : 'ipython.interrupt-kernel',
             '0,0' : 'ipython.restart-kernel',
             'd,d' : 'ipython.delete-cell',
             'esc': 'ipython.close-pager',
-            'up' : 'ipython.select-previous-cell',
-            'k' : 'ipython.select-previous-cell',
-            'j' : 'ipython.select-next-cell',
+            'up' : 'ipython.select-previous-cell-and-focus',
+            'k' : 'ipython.select-previous-cell-and-focus',
+            'j' : 'ipython.select-next-cell-and-focus',
             'x' : 'ipython.cut-selected-cell',
             'c' : 'ipython.copy-selected-cell',
             'v' : 'ipython.paste-cell-after',
