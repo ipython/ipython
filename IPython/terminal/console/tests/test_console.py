@@ -62,7 +62,7 @@ def stop_console(p, pexpect, t):
 
 def start_console():
     "Start `ipython console` using pexpect"
-    from IPython.external import pexpect
+    import pexpect
     
     args = ['-m', 'IPython', 'console', '--colors=NoColor']
     cmd = sys.executable

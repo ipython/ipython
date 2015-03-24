@@ -27,6 +27,8 @@ import types
 import subprocess
 from io import open as io_open
 
+from pickleshare import PickleShareDB
+
 from IPython.config.configurable import SingletonConfigurable
 from IPython.core import debugger, oinspect
 from IPython.core import magic
@@ -63,7 +65,6 @@ from IPython.utils.decorators import undoc
 from IPython.utils.io import ask_yes_no
 from IPython.utils.ipstruct import Struct
 from IPython.utils.path import get_home_dir, get_ipython_dir, get_py_filename, unquote_filename, ensure_dir_exists
-from IPython.utils.pickleshare import PickleShareDB
 from IPython.utils.process import system, getoutput
 from IPython.utils.py3compat import (builtin_mod, unicode_type, string_types,
                                      with_metaclass, iteritems)

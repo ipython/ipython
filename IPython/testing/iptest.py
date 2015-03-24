@@ -42,12 +42,6 @@ from IPython.external.decorators import KnownFailure, knownfailureif
 
 pjoin = path.join
 
-
-#-----------------------------------------------------------------------------
-# Globals
-#-----------------------------------------------------------------------------
-
-
 #-----------------------------------------------------------------------------
 # Warnings control
 #-----------------------------------------------------------------------------
@@ -127,7 +121,7 @@ have = {}
 have['curses'] = test_for('_curses')
 have['matplotlib'] = test_for('matplotlib')
 have['numpy'] = test_for('numpy')
-have['pexpect'] = test_for('IPython.external.pexpect')
+have['pexpect'] = test_for('pexpect')
 have['pymongo'] = test_for('pymongo')
 have['pygments'] = test_for('pygments')
 have['qt'] = test_for('IPython.external.qt')

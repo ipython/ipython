@@ -490,37 +490,23 @@ class install_scripts_for_symlink(install_scripts):
 # Verify all dependencies
 #---------------------------------------------------------------------------
 
-def check_for_dependencies():
-    """Check for IPython's dependencies.
-
-    This function should NOT be called if running under setuptools!
-    """
-    from setupext.setupext import (
-        print_line, print_raw, print_status,
-        check_for_sphinx, check_for_pygments,
-        check_for_nose, check_for_pexpect,
-        check_for_pyzmq, check_for_readline,
-        check_for_jinja2, check_for_tornado
-    )
-    print_line()
-    print_raw("BUILDING IPYTHON")
-    print_status('python', sys.version)
-    print_status('platform', sys.platform)
-    if sys.platform == 'win32':
-        print_status('Windows version', sys.getwindowsversion())
-
-    print_raw("")
-    print_raw("OPTIONAL DEPENDENCIES")
-
-    check_for_sphinx()
-    check_for_pygments()
-    check_for_nose()
-    if os.name == 'posix':
-        check_for_pexpect()
-    check_for_pyzmq()
-    check_for_tornado()
-    check_for_readline()
-    check_for_jinja2()
+def check_for_readline():
+    """Check for GNU readline"""
+    try:
+        import gnureadline as readline
+    except ImportError:
+        pass
+    else:
+        return True
+    try:
+        import readline
+    except ImportError:
+        return False
+    else:
+        if sys.platform == 'darwin' and 'libedit' in readline.__doc__:
+            print("Ignoring readline linked to libedit", file=sys.stderr)
+            return False
+        return True
 
 #---------------------------------------------------------------------------
 # VCS related
@@ -670,7 +656,7 @@ def get_bdist_wheel():
                     if found:
                         lis.pop(idx)
                 
-                for pkg in ("gnureadline", "pyreadline", "mock", "terminado"):
+                for pkg in ("gnureadline", "pyreadline", "mock", "terminado", "appnope", "pexpect"):
                     _remove_startswith(requires, pkg)
                 requires.append("gnureadline; sys.platform == 'darwin' and platform.python_implementation == 'CPython'")
                 requires.append("terminado (>=0.3.3); extra == 'notebook' and sys.platform != 'win32'")
@@ -678,6 +664,8 @@ def get_bdist_wheel():
                 requires.append("pyreadline (>=2.0); extra == 'terminal' and sys.platform == 'win32' and platform.python_implementation == 'CPython'")
                 requires.append("pyreadline (>=2.0); extra == 'all' and sys.platform == 'win32' and platform.python_implementation == 'CPython'")
                 requires.append("mock; extra == 'test' and python_version < '3.3'")
+                requires.append("appnope; sys.platform == 'darwin'")
+                requires.append("pexpect; sys.platform != 'win32'")
                 for r in requires:
                     pkg_info['Requires-Dist'] = r
                 write_pkg_info(metadata_path, pkg_info)

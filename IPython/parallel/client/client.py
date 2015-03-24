@@ -31,7 +31,7 @@ from IPython.utils.path import get_ipython_dir, compress_user
 from IPython.utils.py3compat import cast_bytes, string_types, xrange, iteritems
 from IPython.utils.traitlets import (HasTraits, Integer, Instance, Unicode,
                                     Dict, List, Bool, Set, Any)
-from IPython.external.decorator import decorator
+from decorator import decorator
 
 from IPython.parallel import Reference
 from IPython.parallel import error

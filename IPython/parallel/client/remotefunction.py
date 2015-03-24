@@ -8,7 +8,7 @@ from __future__ import division
 import sys
 import warnings
 
-from IPython.external.decorator import decorator
+from decorator import decorator
 from IPython.testing.skipdoctest import skip_doctest
 
 from . import map as Map

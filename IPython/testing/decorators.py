@@ -52,7 +52,7 @@ import unittest
 # Third-party imports
 
 # This is Michele Simionato's decorator module, kept verbatim.
-from IPython.external.decorator import decorator
+from decorator import decorator
 
 # Expose the unittest-driven decorators
 from .ipunittest import ipdoctest, ipdocstring

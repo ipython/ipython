@@ -12,7 +12,7 @@ from datetime import datetime
 from zmq import MessageTracker
 
 from IPython.core.display import clear_output, display, display_pretty
-from IPython.external.decorator import decorator
+from decorator import decorator
 from IPython.parallel import error
 from IPython.utils.py3compat import string_types
 

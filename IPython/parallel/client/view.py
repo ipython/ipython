@@ -18,7 +18,7 @@ from IPython.utils import pickleutil
 from IPython.utils.traitlets import (
     HasTraits, Any, Bool, List, Dict, Set, Instance, CFloat, Integer
 )
-from IPython.external.decorator import decorator
+from decorator import decorator
 
 from IPython.parallel import util
 from IPython.parallel.controller.dependency import Dependency, dependent

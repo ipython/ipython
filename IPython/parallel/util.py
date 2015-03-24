@@ -28,7 +28,7 @@ import zmq
 from zmq.log import handlers
 
 from IPython.utils.log import get_logger
-from IPython.external.decorator import decorator
+from decorator import decorator
 
 from IPython.config.application import Application
 from IPython.utils.localinterfaces import localhost, is_public_ip, public_ips
