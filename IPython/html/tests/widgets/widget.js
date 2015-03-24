@@ -118,7 +118,7 @@ casper.notebook_test(function () {
             '.my-throttle-textbox'), 'Textbox exists.');
 
         // Send 20 characters
-        this.sendKeys('.my-throttle-textbox input', '....................');
+        this.sendKeys('.my-throttle-textbox input', '12345678901234567890');
     });
 
     this.wait_for_widget(textbox);
