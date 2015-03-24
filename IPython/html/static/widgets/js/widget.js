@@ -396,7 +396,7 @@ define(["widgets/js/manager",
                     }
                 }
                 that.comm.send({method: 'backbone', sync_data: state, buffer_keys: buffer_keys}, callbacks, {}, buffers);
-            }).catch(utils.reject("Couldn't send widget sync message"), true)
+            }).catch(utils.reject("Couldn't send widget sync message", true))
                 .catch(function(error) {
                     that.pending_msgs--;
                     return error;
@@ -480,7 +480,7 @@ define(["widgets/js/manager",
              */
             var that = this;
             options = $.extend({ parent: this }, options || {});
-            return this.model.widget_manager.create_view(child_model, options).catch(utils.reject("Couldn't create child view"), true);
+            return this.model.widget_manager.create_view(child_model, options).catch(utils.reject("Couldn't create child view", true));
         },
 
         callbacks: function(){
