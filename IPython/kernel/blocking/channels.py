@@ -5,11 +5,14 @@ Useful for test suites and blocking terminal interfaces.
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
+import errno
 
 try:
     from queue import Queue, Empty  # Py 3
 except ImportError:
     from Queue import Queue, Empty  # Py 2
+
+from zmq import ZMQError
 
 
 class ZMQSocketChannel(object):
@@ -47,7 +50,15 @@ class ZMQSocketChannel(object):
         if block:
             if timeout is not None:
                 timeout *= 1000  # seconds to ms
-            ready = self.socket.poll(timeout)
+
+            try:
+                ready = self.socket.poll(timeout)
+            except ZMQError as e:
+                if e.errno == errno.EINTR:
+                    # Interrupted before anything was ready
+                    raise Empty
+                raise
+
         else:
             ready = self.socket.poll(timeout=0)
 
