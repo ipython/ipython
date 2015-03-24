@@ -455,9 +455,11 @@ class PyFileConfigLoader(FileConfigLoader):
     def _read_file_as_dict(self):
         """Load the config file into self.config, with recursive loading."""
         def get_config():
+            """Unnecessary now, but a deprecation warning is more trouble than it's worth."""
             return self.config
         
         namespace = dict(
+            c=self.config,
             load_subconfig=self.load_subconfig,
             get_config=get_config,
             __file__=self.full_filename,

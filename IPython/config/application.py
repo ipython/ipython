@@ -554,9 +554,7 @@ class Application(SingletonConfigurable):
 
     def generate_config_file(self):
         """generate default config file from Configurables"""
-        lines = ["# Configuration file for %s."%self.name]
-        lines.append('')
-        lines.append('c = get_config()')
+        lines = ["# Configuration file for %s." % self.name]
         lines.append('')
         for cls in self._config_classes:
             lines.append(cls.class_config_section())
