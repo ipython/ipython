@@ -244,13 +244,13 @@ define([
             }
         }
         help.sort(function (a, b) {
-            if (a.help_index > b.help_index){
+            if (a.help_index === b.help_index) {
+                return 0;
+            }
+            if (a.help_index === undefined || a.help_index > b.help_index){
                 return 1;
             }
-            if (a.help_index < b.help_index){
-                return -1;
-            }
-            return 0;
+            return -1;
         });
         return help;
     };
