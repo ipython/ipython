@@ -36,14 +36,8 @@ class ShimModule(types.ModuleType):
             try:
                 pak = module.__dict__[obj]
             except KeyError:
-                raise
                 raise AttributeError(obj)
             return pak
         else:
             # called with un-dotted string
             return __import__(parts[0])
-
-class ShimPackage(ShimModule):
-    @property
-    def __path__(self):
-        return __import__(self._mirror).__path__
