@@ -189,7 +189,6 @@ def find_package_data():
         'IPython.testing.plugin' : ['*.txt'],
         'IPython.html' : ['templates/*'] + static_data,
         'IPython.html.tests' : js_tests,
-        'IPython.qt.console' : ['resources/icon/*.svg'],
         'IPython.nbconvert' : nbconvert_templates +
             [
                 'tests/files/*.*',
