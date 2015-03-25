@@ -80,6 +80,7 @@ class TestApplication(TestCase):
         # trigger reconstruction of the log formatter
         app.log.handlers = [handler]
         app.log_format = "%(message)s"
+        app.log_datefmt = "%Y-%m-%d %H:%M"
         app.log.info("hello")
         nt.assert_in("hello", stream.getvalue())
 
