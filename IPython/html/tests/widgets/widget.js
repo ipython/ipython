@@ -40,9 +40,9 @@ casper.notebook_test(function () {
     var index;
 
     index = this.append_cell(
-        'from IPython.html import widgets\n' + 
-        'from IPython.display import display, clear_output\n' +
-        'print("Success")');
+        ['from IPython.html import widgets',
+         'from IPython.display import display, clear_output',
+         'print("Success")'].join('\n'));
     this.execute_cell_then(index);
 
     this.then(function () {
@@ -62,20 +62,20 @@ casper.notebook_test(function () {
 
     // Try creating the multiset widget, verify that sets the values correctly.
     var multiset = {};
-    multiset.index = this.append_cell(
-        'from IPython.utils.traitlets import Unicode, CInt\n' +
-        'class MultiSetWidget(widgets.Widget):\n' +
-        '    _view_name = Unicode("MultiSetView", sync=True)\n' +
-        '    a = CInt(0, sync=True)\n' +
-        '    b = CInt(0, sync=True)\n' +
-        '    c = CInt(0, sync=True)\n' +
-        '    d = CInt(-1, sync=True)\n' + // See if it sends a full state.
-        '    def set_state(self, sync_data):\n' +
-        '        widgets.Widget.set_state(self, sync_data)\n'+
-        '        self.d = len(sync_data)\n' +
-        'multiset = MultiSetWidget()\n' +
-        'display(multiset)\n' +
-        'print(multiset.model_id)');
+    multiset.index = this.append_cell([
+        'from IPython.utils.traitlets import Unicode, CInt',
+        'class MultiSetWidget(widgets.Widget):',
+        '    _view_name = Unicode("MultiSetView", sync=True)',
+        '    a = CInt(0, sync=True)',
+        '    b = CInt(0, sync=True)',
+        '    c = CInt(0, sync=True)',
+        '    d = CInt(-1, sync=True)', // See if it sends a full state.
+        '    def set_state(self, sync_data):',
+        '        widgets.Widget.set_state(self, sync_data)'+
+        '        self.d = len(sync_data)',
+        'multiset = MultiSetWidget()',
+        'display(multiset)',
+        'print(multiset.model_id)'].join('\n'));
     this.execute_cell_then(multiset.index, function(index) {
         multiset.model_id = this.get_output_cell(index).text.trim();
     });
@@ -97,16 +97,16 @@ casper.notebook_test(function () {
     });
 
     var textbox = {};
-    throttle_index = this.append_cell(
-        'import time\n' +
-        'textbox = widgets.Text()\n' +
-        'display(textbox)\n' +
-        'textbox._dom_classes = ["my-throttle-textbox"]\n' +
-        'def handle_change(name, old, new):\n' +
-        '    display(len(new))\n' +
-        '    time.sleep(0.5)\n' +
-        'textbox.on_trait_change(handle_change, "value")\n' +
-        'print(textbox.model_id)');
+    throttle_index = this.append_cell([
+        'import time',
+        'textbox = widgets.Text()',
+        'display(textbox)',
+        'textbox._dom_classes = ["my-throttle-textbox"]',
+        'def handle_change(name, old, new):',
+        '    display(len(new))',
+        '    time.sleep(0.5)',
+        'textbox.on_trait_change(handle_change, "value")',
+        'print(textbox.model_id)'].join('\n'));
     this.execute_cell_then(throttle_index, function(index){
         textbox.model_id = this.get_output_cell(index).text.trim();
 
@@ -137,4 +137,160 @@ casper.notebook_test(function () {
         var last_state = outputs[outputs.length-1].data['text/plain'];
         this.test.assertEquals(last_state, "20", "Last state sent when throttling.");
     });
+
+
+/* New Test
+
+
+%%javascript
+define('TestWidget', ['widgets/js/widget', 'base/js/utils'], function(widget, utils) {
+    var TestWidget = widget.DOMWidgetView.extend({
+        render: function () {
+            this.listenTo(this.model, 'msg:custom', this.handle_msg);
+            window.w = this;
+            console.log('data:', this.model.get('data'));
+        },
+        handle_msg: function(content, buffers) {
+            this.msg = [content, buffers];
+        }
+    });
+
+    var floatArray = {
+        deserialize: function (value, model) {
+        // DataView -> float64 typed array
+            return new Float64Array(value.buffer);
+        },
+        // serialization automatically handled by message buffers
+    };
+
+    
+    var floatList = {
+        deserialize: function (value, model) {
+        // list of floats -> list of strings
+            return value.map(function(x) {return x.toString()});
+        },
+        serialize: function(value, model) {
+        // list of strings -> list of floats
+            return value.map(function(x) {return parseFloat(x);})
+        }
+    };
+    return {TestWidget: TestWidget, floatArray: floatArray, floatList: floatList};
+});
+
+
+--------------
+
+
+from IPython.html import widgets
+from IPython.utils.traitlets import Unicode, Instance, List
+from IPython.display import display
+from array import array
+def _array_to_memoryview(x):
+    if x is None: return None, {}
+    try:
+        y = memoryview(x)
+    except TypeError:
+        # in python 2, arrays don't support the new buffer protocol
+        y = memoryview(buffer(x))
+    return y, {'serialization': ('floatArray', 'TestWidget')}
+
+def _memoryview_to_array(x):
+    return array('d', x.tobytes())
+
+arrays_binary = {
+    'from_json': _memoryview_to_array,
+    'to_json': _array_to_memoryview
+}
+
+def _array_to_list(x):
+    if x is None: return None, {}
+    return list(x), {'serialization': ('floatList', 'TestWidget')}
+
+def _list_to_array(x):
+    return array('d',x)
+
+arrays_list = {
+    'from_json': _list_to_array,
+    'to_json': _array_to_list
+}
+
+
+class TestWidget(widgets.DOMWidget):
+    _view_module = Unicode('TestWidget', sync=True)
+    _view_name = Unicode('TestWidget', sync=True)
+    array_binary = Instance(array, sync=True, **arrays_binary)
+    array_list = Instance(array, sync=True, **arrays_list)
+    def __init__(self, **kwargs):
+        super(widgets.DOMWidget, self).__init__(**kwargs)
+        self.on_msg(self._msg)
+    def _msg(self, _, content, buffers):
+        self.msg = [content, buffers]
+
+
+----------------
+
+x=TestWidget()
+display(x)
+x.array_binary=array('d', [1.5,2.5,5])
+print x.model_id
+
+-----------------
+
+%%javascript
+console.log(w.model.get('array_binary'))
+var z = w.model.get('array_binary')
+z[0]*=3
+z[1]*=3
+z[2]*=3
+// we set to null so that we recognize the change
+// when we set data back to z
+w.model.set('array_binary', null)
+w.model.set('array_binary', z)
+console.log(w.model.get('array_binary'))
+w.touch()
+
+----------------
+x.array_binary.tolist() == [4.5, 7.5, 15.0]
+----------------
+
+x.array_list = array('d', [1.5, 2.0, 3.1])
+----------------
+
+%%javascript
+console.log(w.model.get('array_list'))
+var z = w.model.get('array_list')
+z[0]+="1234"
+z[1]+="5678"
+// we set to null so that we recognize the change
+// when we set data back to z
+w.model.set('array_list', null)
+w.model.set('array_list', z)
+w.touch()
+
+-----------------
+
+x.array_list.tolist() == [1.51234, 25678.0, 3.1]
+
+-------------------
+x.send('some content', [memoryview(b'binarycontent'), memoryview('morecontent')])
+
+-------------------
+
+%%javascript
+console.log(w.msg[0] === 'some content')
+var d=new TextDecoder('utf-8')
+console.log(d.decode(w.msg[1][0])==='binarycontent')
+console.log(d.decode(w.msg[1][1])==='morecontent')
+w.send('content back', [new Uint8Array([1,2,3,4]), new Float64Array([2.1828, 3.14159])])
+
+--------------------
+
+print x.msg[0] == 'content back'
+print x.msg[1][0].tolist() == [1,2,3,4]
+print array('d', x.msg[1][1].tobytes()).tolist() == [2.1828, 3.14159]
+
+
+*/
+
+
 });
