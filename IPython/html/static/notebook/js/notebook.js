@@ -2084,6 +2084,7 @@ define(function (require) {
             function (json) {
                 that.notebook_name = json.name;
                 that.notebook_path = json.path;
+                that.last_modified = new Date(json.last_modified);
                 that.session.rename_notebook(json.path);
                 that.events.trigger('notebook_renamed.Notebook', json);
             }
