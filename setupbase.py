@@ -183,7 +183,7 @@ def find_package_data():
     os.chdir(cwd)
 
     package_data = {
-        'IPython.config.profile' : ['README*', '*/*.py'],
+        'IPython.core' : ['profile/README*'],
         'IPython.core.tests' : ['*.png', '*.jpg'],
         'IPython.lib.tests' : ['*.wav'],
         'IPython.testing.plugin' : ['*.txt'],

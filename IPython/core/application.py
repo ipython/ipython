@@ -20,7 +20,7 @@ import shutil
 import sys
 
 from IPython.config.application import Application, catch_config_error
-from IPython.config.loader import ConfigFileNotFound
+from IPython.config.loader import ConfigFileNotFound, PyFileConfigLoader
 from IPython.core import release, crashhandler
 from IPython.core.profiledir import ProfileDir, ProfileDirError
 from IPython.utils.path import get_ipython_dir, get_ipython_package_dir, ensure_dir_exists
@@ -63,6 +63,19 @@ base_flags = dict(
             """)
 )
 
+class ProfileAwareConfigLoader(PyFileConfigLoader):
+    """A Python file config loader that is aware of IPython profiles."""
+    def load_subconfig(self, fname, path=None, profile=None):
+        if profile is not None:
+            try:
+                profile_dir = ProfileDir.find_profile_dir_by_name(
+                        get_ipython_dir(),
+                        profile,
+                )
+            except ProfileDirError:
+                return
+            path = profile_dir.location
+        return super(ProfileAwareConfigLoader, self).load_subconfig(fname, path=path)
 
 class BaseIPythonApplication(Application):
 
@@ -73,6 +86,9 @@ class BaseIPythonApplication(Application):
     aliases = Dict(base_aliases)
     flags = Dict(base_flags)
     classes = List([ProfileDir])
+    
+    # enable `load_subconfig('cfg.py', profile='name')`
+    python_config_loader_class = ProfileAwareConfigLoader
 
     # Track whether the config_file has changed,
     # because some logic happens only if we aren't using the default.
