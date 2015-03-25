@@ -25,24 +25,26 @@ data-terminals-available="{{terminals_available}}"
         <div id="notebooks" class="tab-pane active">
           <div id="notebook_toolbar" class="row">
             <div class="col-sm-8 no-padding">
-              <form id='alternate_upload'  class='alternate_upload'>
-                <span id="notebook_list_info">
-                To import a notebook, drag the file onto the listing below or
-                <span class="input-overlay">
-                <input type="file" name="datafile" class="fileinput" multiple='multiple'>
-                click here.
-                </span>
-                </span>
-              </form>
+              <div class="dynamic-instructions">
+                Select items to perform actions on them.
+              </div>
+              <div class="dynamic-buttons">
+                  <button title="Duplicate selected" class="duplicate-button btn btn-default btn-xs">Duplicate</button>
+                  <button title="Rename selected" class="rename-button btn btn-default btn-xs">Rename</button>
+                  <button title="Shutdown selected notebook(s)" class="shutdown-button btn btn-default btn-xs btn-warning">Shutdown</button>
+                  <button title="Deleted selected" class="delete-button btn btn-default btn-xs btn-danger"><i class="fa fa-trash"></i></button>
+              </div>
             </div>
             <div class="col-sm-4 no-padding tree-buttons">
               <div class="pull-right">
-                <div class="dynamic-buttons">
-                    <button title="Duplicate selected" class="duplicate-button btn btn-default btn-xs">Duplicate</button>
-                    <button title="Rename selected" class="rename-button btn btn-default btn-xs">Rename</button>
-                    <button title="Shutdown selected notebook(s)" class="shutdown-button btn btn-default btn-xs btn-warning">Shutdown</button>
-                    <button title="Deleted selected" class="delete-button btn btn-default btn-xs btn-danger"><i class="fa fa-trash"></i></button>
-                </div>
+                <form id='alternate_upload'  class='alternate_upload'>
+                  <span id="notebook_list_info">
+                  <span class="btn btn-xs btn-default btn-upload">
+                  <input  title="Click to browse for a file to upload." type="file" name="datafile" class="fileinput" multiple='multiple'>
+                  Upload
+                  </span>
+                  </span>
+                </form>
                 <div id="new-buttons" class="btn-group">
                   <button class="dropdown-toggle btn btn-default btn-xs" data-toggle="dropdown">
                   <span>New</span>
