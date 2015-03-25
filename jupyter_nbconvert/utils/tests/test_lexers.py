@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 from pygments.token import Token
 
-from IPython.nbconvert.tests.base import TestsBase
+from jupyter_nbconvert.tests.base import TestsBase
 from .. import lexers
 
 

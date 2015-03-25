@@ -5,7 +5,7 @@
 
 import os
 
-from IPython.nbconvert.filters.highlight import Highlight2HTML
+from jupyter_nbconvert.filters.highlight import Highlight2HTML
 from IPython.config import Config
 
 from .templateexporter import TemplateExporter

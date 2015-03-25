@@ -21,8 +21,8 @@ except ImportError as e:
         """mistune is unavailable, raise ImportError"""
         raise ImportError("markdown2html requires mistune: %s" % _mistune_import_error)
 
-from IPython.nbconvert.utils.pandoc import pandoc
-from IPython.nbconvert.utils.exceptions import ConversionException
+from jupyter_nbconvert.utils.pandoc import pandoc
+from jupyter_nbconvert.utils.exceptions import ConversionException
 from IPython.utils.process import get_output_error_code
 from IPython.utils.py3compat import cast_bytes
 from IPython.utils.version import check_version

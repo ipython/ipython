@@ -27,7 +27,7 @@ from IPython.utils.traitlets import MetaHasTraits, Unicode, List, Dict, Any
 from IPython.utils.importstring import import_item
 from IPython.utils import py3compat, text
 
-from IPython.nbconvert import filters
+from jupyter_nbconvert import filters
 from .exporter import Exporter
 
 #-----------------------------------------------------------------------------

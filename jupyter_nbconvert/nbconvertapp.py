@@ -23,7 +23,7 @@ from IPython.utils.traitlets import (
 from IPython.utils.importstring import import_item
 
 from .exporters.export import get_export_names, exporter_map
-from IPython.nbconvert import exporters, preprocessors, writers, postprocessors
+from jupyter_nbconvert import exporters, preprocessors, writers, postprocessors
 from .utils.base import NbConvertBase
 from .utils.exceptions import ConversionException
 
@@ -159,15 +159,15 @@ class NbConvertApp(BaseIPythonApplication):
         """.format(get_export_names()))
 
     # Writer specific variables
-    writer = Instance('IPython.nbconvert.writers.base.WriterBase',  
+    writer = Instance('jupyter_nbconvert.writers.base.WriterBase',  
                       help="""Instance of the writer class used to write the 
                       results of the conversion.""")
     writer_class = DottedObjectName('FilesWriter', config=True, 
                                     help="""Writer class used to write the 
                                     results of the conversion""")
-    writer_aliases = {'fileswriter': 'IPython.nbconvert.writers.files.FilesWriter',
-                      'debugwriter': 'IPython.nbconvert.writers.debug.DebugWriter',
-                      'stdoutwriter': 'IPython.nbconvert.writers.stdout.StdoutWriter'}
+    writer_aliases = {'fileswriter': 'jupyter_nbconvert.writers.files.FilesWriter',
+                      'debugwriter': 'jupyter_nbconvert.writers.debug.DebugWriter',
+                      'stdoutwriter': 'jupyter_nbconvert.writers.stdout.StdoutWriter'}
     writer_factory = Type()
 
     def _writer_class_changed(self, name, old, new):
@@ -176,14 +176,14 @@ class NbConvertApp(BaseIPythonApplication):
         self.writer_factory = import_item(new)
 
     # Post-processor specific variables
-    postprocessor = Instance('IPython.nbconvert.postprocessors.base.PostProcessorBase',  
+    postprocessor = Instance('jupyter_nbconvert.postprocessors.base.PostProcessorBase',  
                       help="""Instance of the PostProcessor class used to write the 
                       results of the conversion.""")
 
     postprocessor_class = DottedOrNone(config=True, 
                                     help="""PostProcessor class used to write the 
                                     results of the conversion""")
-    postprocessor_aliases = {'serve': 'IPython.nbconvert.postprocessors.serve.ServePostProcessor'}
+    postprocessor_aliases = {'serve': 'jupyter_nbconvert.postprocessors.serve.ServePostProcessor'}
     postprocessor_factory = Type()
 
     def _postprocessor_class_changed(self, name, old, new):

@@ -14,7 +14,7 @@ import warnings
 
 from IPython.testing import decorators as dec
 
-from IPython.nbconvert.tests.base import TestsBase
+from jupyter_nbconvert.tests.base import TestsBase
 from .. import pandoc
 
 #-----------------------------------------------------------------------------
