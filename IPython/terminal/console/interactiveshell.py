@@ -8,6 +8,7 @@ from __future__ import print_function
 
 import base64
 import bdb
+import errno
 import signal
 import os
 import sys
@@ -20,6 +21,8 @@ try:
     from queue import Empty  # Py 3
 except ImportError:
     from Queue import Empty  # Py 2
+
+from zmq import ZMQError
 
 from IPython.core import page
 from IPython.core import release
@@ -169,6 +172,10 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
             except Empty:
                 # display intermediate print statements, etc.
                 self.handle_iopub(msg_id)
+            except ZMQError as e:
+                # Carry on if polling was interrupted by a signal
+                if e.errno != errno.EINTR:
+                    raise
         
         # after all of that is done, wait for the execute reply
         while self.client.is_alive():
