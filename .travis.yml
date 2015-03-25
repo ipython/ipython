@@ -21,7 +21,7 @@ before_install:
     - git clone --quiet --depth 1 https://github.com/minrk/travis-wheels travis-wheels
     - 'if [[ $GROUP != js* ]]; then COVERAGE="--coverage xml"; fi'
 install:
-    - pip install -f travis-wheels/wheelhouse file://$PWD#egg=ipython[all] coveralls
+    - pip install -f travis-wheels/wheelhouse -e file://$PWD#egg=ipython[all] coveralls
 before_script:
     - 'if [[ $GROUP == js* ]]; then python -m IPython.external.mathjax mathjax.zip; fi'
 script:
