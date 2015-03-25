@@ -9,10 +9,8 @@ import glob
 import shutil
 import unittest
 
-import IPython
 from IPython.nbformat import v4, write
 from IPython.utils.tempdir import TemporaryWorkingDirectory
-from IPython.utils.path import get_ipython_package_dir
 from IPython.utils.process import get_output_error_code
 from IPython.testing.tools import get_ipython_cmd
 
@@ -121,12 +119,11 @@ class TestsBase(unittest.TestCase):
         names = self.__module__.split('.')[1:-1]
         names.append('files')
         
-        #Build a path using the IPython directory and the relative path we just
+        #Build a path using the nbconvert directory and the relative path we just
         #found.
-        path = get_ipython_package_dir()
-        for name in names:
-            path = os.path.join(path, name)
-        return path
+        import jupyter_nbconvert
+        path = os.path.dirname(jupyter_nbconvert.__file__)
+        return os.path.join(path, *names)
 
 
     def call(self, parameters, ignore_return_code=False):
