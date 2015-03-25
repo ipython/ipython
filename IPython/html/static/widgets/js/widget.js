@@ -396,11 +396,10 @@ define(["widgets/js/manager",
                     }
                 }
                 that.comm.send({method: 'backbone', sync_data: state, buffer_keys: buffer_keys}, callbacks, {}, buffers);
-            }).catch(utils.reject("Couldn't send widget sync message", true))
-                .catch(function(error) {
-                    that.pending_msgs--;
-                    return error;
-                });
+            }).catch(function(error) {
+                that.pending_msgs--;
+                return (utils.reject("Couldn't send widget sync message", true))(error);
+            });
         },
         
         serialize: function(model, attrs) {
