@@ -23,7 +23,7 @@ from unittest import TestCase
 from nose import SkipTest
 
 from pymongo import Connection
-from IPython.parallel.controller.mongodb import MongoDB
+from ipython_parallel.controller.mongodb import MongoDB
 
 from . import test_db
 

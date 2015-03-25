@@ -33,9 +33,9 @@ from IPython.utils.traitlets import (HasTraits, Integer, Instance, Unicode,
                                     Dict, List, Bool, Set, Any)
 from decorator import decorator
 
-from IPython.parallel import Reference
-from IPython.parallel import error
-from IPython.parallel import util
+from ipython_parallel import Reference
+from ipython_parallel import error
+from ipython_parallel import util
 
 from IPython.kernel.zmq.session import Session, Message
 from IPython.kernel.zmq import serialize
@@ -1197,7 +1197,7 @@ class Client(HasTraits):
             NOT IMPLEMENTED
             whether to restart engines after shutting them down.
         """
-        from IPython.parallel.error import NoEnginesRegistered
+        from ipython_parallel.error import NoEnginesRegistered
         if restart:
             raise NotImplementedError("Engine restart is not yet implemented")
         

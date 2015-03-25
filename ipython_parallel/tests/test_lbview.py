@@ -24,9 +24,9 @@ from nose import SkipTest
 from nose.plugins.attrib import attr
 
 from IPython import parallel  as pmod
-from IPython.parallel import error
+from ipython_parallel import error
 
-from IPython.parallel.tests import add_engines
+from ipython_parallel.tests import add_engines
 
 from .clienttest import ClusterTestCase, crash, wait, skip_without
 

@@ -31,7 +31,7 @@ from nose import SkipTest
 
 from IPython.config import Config
 
-from IPython.parallel.apps import launcher
+from ipython_parallel.apps import launcher
 
 from IPython.testing import decorators as dec
 from IPython.utils.py3compat import string_types

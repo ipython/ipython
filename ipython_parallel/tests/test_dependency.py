@@ -23,10 +23,10 @@ import os
 
 from IPython.utils.pickleutil import can, uncan
 
-import IPython.parallel as pmod
-from IPython.parallel.util import interactive
+import ipython_parallel as pmod
+from ipython_parallel.util import interactive
 
-from IPython.parallel.tests import add_engines
+from ipython_parallel.tests import add_engines
 from .clienttest import ClusterTestCase
 
 def setup():

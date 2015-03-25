@@ -13,9 +13,9 @@ Authors:
 
 from types import ModuleType
 
-from IPython.parallel.client.asyncresult import AsyncResult
-from IPython.parallel.error import UnmetDependency
-from IPython.parallel.util import interactive
+from ipython_parallel.client.asyncresult import AsyncResult
+from ipython_parallel.error import UnmetDependency
+from ipython_parallel.util import interactive
 from IPython.utils import py3compat
 from IPython.utils.py3compat import string_types
 from IPython.utils.pickleutil import can, uncan
@@ -80,7 +80,7 @@ class dependent(object):
 @interactive
 def _require(*modules, **mapping):
     """Helper for @require decorator."""
-    from IPython.parallel.error import UnmetDependency
+    from ipython_parallel.error import UnmetDependency
     from IPython.utils.pickleutil import uncan
     user_ns = globals()
     for name in modules:

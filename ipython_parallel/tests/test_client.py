@@ -11,10 +11,10 @@ from datetime import datetime
 import zmq
 
 from IPython import parallel
-from IPython.parallel.client import client as clientmod
-from IPython.parallel import error
-from IPython.parallel import AsyncResult, AsyncHubResult
-from IPython.parallel import LoadBalancedView, DirectView
+from ipython_parallel.client import client as clientmod
+from ipython_parallel import error
+from ipython_parallel import AsyncResult, AsyncHubResult
+from ipython_parallel import LoadBalancedView, DirectView
 
 from .clienttest import ClusterTestCase, segfault, wait, add_engines
 

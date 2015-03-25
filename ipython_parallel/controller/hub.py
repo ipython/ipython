@@ -27,8 +27,8 @@ from IPython.utils.traitlets import (
         HasTraits, Any, Instance, Integer, Unicode, Dict, Set, Tuple, DottedObjectName
         )
 
-from IPython.parallel import error, util
-from IPython.parallel.factory import RegistrationFactory
+from ipython_parallel import error, util
+from ipython_parallel.factory import RegistrationFactory
 
 from IPython.kernel.zmq.session import SessionFactory
 
@@ -114,10 +114,10 @@ class EngineConnector(HasTraits):
 
 
 _db_shortcuts = {
-    'sqlitedb' : 'IPython.parallel.controller.sqlitedb.SQLiteDB',
-    'mongodb'  : 'IPython.parallel.controller.mongodb.MongoDB',
-    'dictdb'   : 'IPython.parallel.controller.dictdb.DictDB',
-    'nodb'     : 'IPython.parallel.controller.dictdb.NoDB',
+    'sqlitedb' : 'ipython_parallel.controller.sqlitedb.SQLiteDB',
+    'mongodb'  : 'ipython_parallel.controller.mongodb.MongoDB',
+    'dictdb'   : 'ipython_parallel.controller.dictdb.DictDB',
+    'nodb'     : 'ipython_parallel.controller.dictdb.NoDB',
 }
 
 class HubFactory(RegistrationFactory):
@@ -211,8 +211,8 @@ class HubFactory(RegistrationFactory):
         return max(30, int(.01 * self.heartmonitor.period))
 
     # not configurable
-    db = Instance('IPython.parallel.controller.dictdb.BaseDB')
-    heartmonitor = Instance('IPython.parallel.controller.heartmonitor.HeartMonitor')
+    db = Instance('ipython_parallel.controller.dictdb.BaseDB')
+    heartmonitor = Instance('ipython_parallel.controller.heartmonitor.HeartMonitor')
 
     def _ip_changed(self, name, old, new):
         self.engine_ip = new

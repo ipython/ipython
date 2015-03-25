@@ -28,12 +28,12 @@ import zmq
 from IPython.core.profiledir import ProfileDir
 from IPython.utils.traitlets import Bool, Dict, Unicode
 
-from IPython.parallel.apps.baseapp import (
+from ipython_parallel.apps.baseapp import (
     BaseParallelApplication,
     base_aliases,
     catch_config_error,
 )
-from IPython.parallel.apps.logwatcher import LogWatcher
+from ipython_parallel.apps.logwatcher import LogWatcher
 
 #-----------------------------------------------------------------------------
 # Module level variables

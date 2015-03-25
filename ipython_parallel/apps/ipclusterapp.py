@@ -23,7 +23,7 @@ from IPython.utils.sysinfo import num_cpus
 from IPython.utils.traitlets import (Integer, Unicode, Bool, CFloat, Dict, List, Any,
                                         DottedObjectName)
 
-from IPython.parallel.apps.baseapp import (
+from ipython_parallel.apps.baseapp import (
     BaseParallelApplication,
     PIDFileError,
     base_flags, base_aliases
@@ -106,7 +106,7 @@ def find_launcher_class(clsname, kind):
             # doesn't match necessary full class name, assume it's
             # just 'PBS' or 'MPI' etc prefix:
             clsname = clsname + kind + 'Launcher'
-        clsname = 'IPython.parallel.apps.launcher.'+clsname
+        clsname = 'ipython_parallel.apps.launcher.'+clsname
     klass = import_item(clsname)
     return klass
 
@@ -228,7 +228,7 @@ class IPClusterEngines(BaseParallelApplication):
     default_log_level = logging.INFO
     classes = List()
     def _classes_default(self):
-        from IPython.parallel.apps import launcher
+        from ipython_parallel.apps import launcher
         launchers = launcher.all_launchers
         eslaunchers = [ l for l in launchers if 'EngineSet' in l.__name__]
         return [ProfileDir]+eslaunchers
@@ -432,7 +432,7 @@ class IPClusterStart(IPClusterEngines):
         help="whether to create the profile_dir if it doesn't exist")
     classes = List()
     def _classes_default(self,):
-        from IPython.parallel.apps import launcher
+        from ipython_parallel.apps import launcher
         return [ProfileDir] + [IPClusterEngines] + launcher.all_launchers
 
     clean_logs = Bool(True, config=True,
@@ -562,7 +562,7 @@ class IPClusterStart(IPClusterEngines):
         finally:
             self.remove_pid_file()
 
-base='IPython.parallel.apps.ipclusterapp.IPCluster'
+base='ipython_parallel.apps.ipclusterapp.IPCluster'
 
 class IPClusterApp(BaseIPythonApplication):
     name = u'ipcluster'

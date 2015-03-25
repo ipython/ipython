@@ -24,9 +24,9 @@ from IPython.testing import decorators as dec
 from IPython.utils.io import capture_output
 
 from IPython import parallel  as pmod
-from IPython.parallel import AsyncResult
+from ipython_parallel import AsyncResult
 
-from IPython.parallel.tests import add_engines
+from ipython_parallel.tests import add_engines
 
 from .clienttest import ClusterTestCase, generate_output
 

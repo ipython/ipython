@@ -24,10 +24,10 @@ from zmq.tests import BaseZMQTestCase
 
 from decorator import decorator
 
-from IPython.parallel import error
-from IPython.parallel import Client
+from ipython_parallel import error
+from ipython_parallel import Client
 
-from IPython.parallel.tests import launchers, add_engines
+from ipython_parallel.tests import launchers, add_engines
 
 # simple tasks for use in apply tests
 

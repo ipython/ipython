@@ -21,9 +21,9 @@ from IPython.utils.traitlets import (
 )
 from IPython.utils.py3compat import cast_bytes
 
-from IPython.parallel.controller.heartmonitor import Heart
-from IPython.parallel.factory import RegistrationFactory
-from IPython.parallel.util import disambiguate_url
+from ipython_parallel.controller.heartmonitor import Heart
+from ipython_parallel.factory import RegistrationFactory
+from ipython_parallel.util import disambiguate_url
 
 from IPython.kernel.zmq.ipkernel import IPythonKernel as Kernel
 from IPython.kernel.zmq.kernelapp import IPKernelApp

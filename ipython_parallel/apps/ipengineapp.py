@@ -30,7 +30,7 @@ import zmq
 from zmq.eventloop import ioloop
 
 from IPython.core.profiledir import ProfileDir
-from IPython.parallel.apps.baseapp import (
+from ipython_parallel.apps.baseapp import (
     BaseParallelApplication,
     base_aliases,
     base_flags,
@@ -46,8 +46,8 @@ from IPython.kernel.zmq.zmqshell import ZMQInteractiveShell
 
 from IPython.config.configurable import Configurable
 
-from IPython.parallel.engine.engine import EngineFactory
-from IPython.parallel.util import disambiguate_ip_address
+from ipython_parallel.engine.engine import EngineFactory
+from ipython_parallel.util import disambiguate_ip_address
 
 from IPython.utils.importstring import import_item
 from IPython.utils.py3compat import cast_bytes

@@ -26,10 +26,10 @@ import time
 from datetime import datetime, timedelta
 from unittest import TestCase
 
-from IPython.parallel import error
-from IPython.parallel.controller.dictdb import DictDB
-from IPython.parallel.controller.sqlitedb import SQLiteDB
-from IPython.parallel.controller.hub import init_record, empty_record
+from ipython_parallel import error
+from ipython_parallel.controller.dictdb import DictDB
+from ipython_parallel.controller.sqlitedb import SQLiteDB
+from ipython_parallel.controller.hub import init_record, empty_record
 
 from IPython.testing import decorators as dec
 from IPython.kernel.zmq.session import Session

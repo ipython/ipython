@@ -20,8 +20,8 @@ from IPython.utils.traitlets import (
 )
 from decorator import decorator
 
-from IPython.parallel import util
-from IPython.parallel.controller.dependency import Dependency, dependent
+from ipython_parallel import util
+from ipython_parallel.controller.dependency import Dependency, dependent
 from IPython.utils.py3compat import string_types, iteritems, PY3
 
 from . import map as Map
@@ -107,7 +107,7 @@ class View(HasTraits):
     history=List()
     outstanding = Set()
     results = Dict()
-    client = Instance('IPython.parallel.Client')
+    client = Instance('ipython_parallel.Client')
 
     _socket = Instance('zmq.Socket')
     _flag_names = List(['targets', 'block', 'track'])
@@ -215,7 +215,7 @@ class View(HasTraits):
 
         This method sets all apply flags via this View's attributes.
 
-        Returns :class:`~IPython.parallel.client.asyncresult.AsyncResult`
+        Returns :class:`~ipython_parallel.client.asyncresult.AsyncResult`
         instance if ``self.block`` is False, otherwise the return value of
         ``f(*args, **kwargs)``.
         """
@@ -224,7 +224,7 @@ class View(HasTraits):
     def apply_async(self, f, *args, **kwargs):
         """calls ``f(*args, **kwargs)`` on remote engines in a nonblocking manner.
 
-        Returns :class:`~IPython.parallel.client.asyncresult.AsyncResult` instance.
+        Returns :class:`~ipython_parallel.client.asyncresult.AsyncResult` instance.
         """
         return self._really_apply(f, args, kwargs, block=False)
 
@@ -307,7 +307,7 @@ class View(HasTraits):
     def get_result(self, indices_or_msg_ids=None, block=None, owner=True):
         """return one or more results, specified by history index or msg_id.
 
-        See :meth:`IPython.parallel.client.client.Client.get_result` for details.
+        See :meth:`ipython_parallel.client.client.Client.get_result` for details.
         """
 
         if indices_or_msg_ids is None:
@@ -603,7 +603,7 @@ class DirectView(View):
 
 
         If block=False
-          An :class:`~IPython.parallel.client.asyncresult.AsyncMapResult` instance.
+          An :class:`~ipython_parallel.client.asyncresult.AsyncMapResult` instance.
           An object like AsyncResult, but which reassembles the sequence of results
           into a single list. AsyncMapResults can be iterated through before all
           results are complete.
@@ -832,7 +832,7 @@ class DirectView(View):
             on the even engines.
         """
         
-        from IPython.parallel.client.magics import ParallelMagics
+        from ipython_parallel.client.magics import ParallelMagics
         
         try:
             # This is injected into __builtins__.
@@ -1099,7 +1099,7 @@ class LoadBalancedView(View):
         -------
 
         if block=False
-          An :class:`~IPython.parallel.client.asyncresult.AsyncMapResult` instance.
+          An :class:`~ipython_parallel.client.asyncresult.AsyncMapResult` instance.
           An object like AsyncResult, but which reassembles the sequence of results
           into a single list. AsyncMapResults can be iterated through before all
           results are complete.

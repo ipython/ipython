@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-The Base Application class for IPython.parallel apps
+The Base Application class for ipython_parallel apps
 """
 
 
@@ -70,7 +70,7 @@ base_flags = {
 base_flags.update(base_ip_flags)
 
 class BaseParallelApplication(BaseIPythonApplication):
-    """The base Application for IPython.parallel apps
+    """The base Application for ipython_parallel apps
     
     Principle extensions to BaseIPyythonApplication:
     

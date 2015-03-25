@@ -9,9 +9,9 @@ import nose.tools as nt
 
 from IPython.utils.io import capture_output
 
-from IPython.parallel.error import TimeoutError
-from IPython.parallel import error, Client
-from IPython.parallel.tests import add_engines
+from ipython_parallel.error import TimeoutError
+from ipython_parallel import error, Client
+from ipython_parallel.tests import add_engines
 from .clienttest import ClusterTestCase
 from IPython.utils.py3compat import iteritems
 

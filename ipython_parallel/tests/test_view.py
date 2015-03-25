@@ -19,11 +19,11 @@ from IPython.utils.io import capture_output
 from IPython.utils.py3compat import unicode_type
 
 from IPython import parallel  as pmod
-from IPython.parallel import error
-from IPython.parallel import AsyncResult, AsyncHubResult, AsyncMapResult
-from IPython.parallel.util import interactive
+from ipython_parallel import error
+from ipython_parallel import AsyncResult, AsyncHubResult, AsyncMapResult
+from ipython_parallel.util import interactive
 
-from IPython.parallel.tests import add_engines
+from ipython_parallel.tests import add_engines
 
 from .clienttest import ClusterTestCase, crash, wait, skip_without
 
@@ -799,7 +799,7 @@ class TestView(ClusterTestCase):
     
     def test_return_namedtuple(self):
         def namedtuplify(x, y):
-            from IPython.parallel.tests.test_view import point
+            from ipython_parallel.tests.test_view import point
             return point(x, y)
         
         view = self.client[-1]

@@ -19,7 +19,7 @@ from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import Set, Instance, CFloat, Integer, Dict, Bool
 
-from IPython.parallel.util import log_errors
+from ipython_parallel.util import log_errors
 
 class Heart(object):
     """A basic heart object for responding to a HeartMonitor.

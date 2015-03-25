@@ -4,7 +4,7 @@
 
 Inheritance diagram:
 
-.. inheritance-diagram:: IPython.parallel.error
+.. inheritance-diagram:: ipython_parallel.error
    :parts: 3
 
 Authors:

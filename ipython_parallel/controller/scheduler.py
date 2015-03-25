@@ -32,9 +32,9 @@ from IPython.config.loader import Config
 from IPython.utils.traitlets import Instance, Dict, List, Set, Integer, Enum, CBytes
 from IPython.utils.py3compat import cast_bytes
 
-from IPython.parallel import error, util
-from IPython.parallel.factory import SessionFactory
-from IPython.parallel.util import connect_logger, local_logger
+from ipython_parallel import error, util
+from ipython_parallel.factory import SessionFactory
+from ipython_parallel.util import connect_logger, local_logger
 
 from .dependency import Dependency
 

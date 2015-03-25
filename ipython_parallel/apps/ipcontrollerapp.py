@@ -37,7 +37,7 @@ from zmq.log.handlers import PUBHandler
 
 from IPython.core.profiledir import ProfileDir
 
-from IPython.parallel.apps.baseapp import (
+from ipython_parallel.apps.baseapp import (
     BaseParallelApplication,
     base_aliases,
     base_flags,
@@ -51,25 +51,25 @@ from IPython.kernel.zmq.session import (
     Session, session_aliases, session_flags,
 )
 
-from IPython.parallel.controller.heartmonitor import HeartMonitor
-from IPython.parallel.controller.hub import HubFactory
-from IPython.parallel.controller.scheduler import TaskScheduler,launch_scheduler
-from IPython.parallel.controller.dictdb import DictDB
+from ipython_parallel.controller.heartmonitor import HeartMonitor
+from ipython_parallel.controller.hub import HubFactory
+from ipython_parallel.controller.scheduler import TaskScheduler,launch_scheduler
+from ipython_parallel.controller.dictdb import DictDB
 
-from IPython.parallel.util import split_url, disambiguate_url, set_hwm
+from ipython_parallel.util import split_url, disambiguate_url, set_hwm
 
 # conditional import of SQLiteDB / MongoDB backend class
 real_dbs = []
 
 try:
-    from IPython.parallel.controller.sqlitedb import SQLiteDB
+    from ipython_parallel.controller.sqlitedb import SQLiteDB
 except ImportError:
     pass
 else:
     real_dbs.append(SQLiteDB)
 
 try:
-    from IPython.parallel.controller.mongodb import MongoDB
+    from ipython_parallel.controller.mongodb import MongoDB
 except ImportError:
     pass
 else:
@@ -106,13 +106,13 @@ flags.update(base_flags)
 flags.update({
     'usethreads' : ( {'IPControllerApp' : {'use_threads' : True}},
                     'Use threads instead of processes for the schedulers'),
-    'sqlitedb' : ({'HubFactory' : {'db_class' : 'IPython.parallel.controller.sqlitedb.SQLiteDB'}},
+    'sqlitedb' : ({'HubFactory' : {'db_class' : 'ipython_parallel.controller.sqlitedb.SQLiteDB'}},
                     'use the SQLiteDB backend'),
-    'mongodb' : ({'HubFactory' : {'db_class' : 'IPython.parallel.controller.mongodb.MongoDB'}},
+    'mongodb' : ({'HubFactory' : {'db_class' : 'ipython_parallel.controller.mongodb.MongoDB'}},
                     'use the MongoDB backend'),
-    'dictdb' : ({'HubFactory' : {'db_class' : 'IPython.parallel.controller.dictdb.DictDB'}},
+    'dictdb' : ({'HubFactory' : {'db_class' : 'ipython_parallel.controller.dictdb.DictDB'}},
                     'use the in-memory DictDB backend'),
-    'nodb' : ({'HubFactory' : {'db_class' : 'IPython.parallel.controller.dictdb.NoDB'}},
+    'nodb' : ({'HubFactory' : {'db_class' : 'ipython_parallel.controller.dictdb.NoDB'}},
                     """use dummy DB backend, which doesn't store any information.
                     
                     This is the default as of IPython 0.13.

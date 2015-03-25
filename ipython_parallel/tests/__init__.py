@@ -20,8 +20,8 @@ from subprocess import Popen, PIPE, STDOUT
 import nose
 
 from IPython.utils.path import get_ipython_dir
-from IPython.parallel import Client, error
-from IPython.parallel.apps.launcher import (LocalProcessLauncher,
+from ipython_parallel import Client, error
+from ipython_parallel.apps.launcher import (LocalProcessLauncher,
                                                   ipengine_cmd_argv,
                                                   ipcontroller_cmd_argv,
                                                   SIGKILL,

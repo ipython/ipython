@@ -19,7 +19,7 @@ Authors:
 from IPython.utils.localinterfaces import localhost
 from IPython.utils.traitlets import Integer, Unicode
 
-from IPython.parallel.util import select_random_ports
+from ipython_parallel.util import select_random_ports
 from IPython.kernel.zmq.session import SessionFactory
 
 #-----------------------------------------------------------------------------
