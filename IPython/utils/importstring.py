@@ -1,22 +1,11 @@
 # encoding: utf-8
 """
 A simple utility to import something by its string name.
-
-Authors:
-
-* Brian Granger
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Functions and classes
-#-----------------------------------------------------------------------------
 
 def import_item(name):
     """Import and return ``bar`` given the string ``foo.bar``.
@@ -41,8 +30,8 @@ def import_item(name):
         package, obj = parts
         module = __import__(package, fromlist=[obj])
         try:
-            pak = module.__dict__[obj]
-        except KeyError:
+            pak = getattr(module, obj)
+        except AttributeError:
             raise ImportError('No module named %s' % obj)
         return pak
     else:

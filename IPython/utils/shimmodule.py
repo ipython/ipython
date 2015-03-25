@@ -15,7 +15,7 @@ class ShimModule(types.ModuleType):
         # Use the equivalent of import_item(name), see below
         name = "%s.%s" % (self._mirror, key)
 
-        # NOTE: the code below is copied *verbatim* from
+        # NOTE: the code below was copied *verbatim* from
         # importstring.import_item. For some very strange reason that makes no
         # sense to me, if we call it *as a function*, it doesn't work.  This
         # has something to do with the deep bowels of the import machinery and
@@ -33,11 +33,7 @@ class ShimModule(types.ModuleType):
             # called with 'foo.bar....'
             package, obj = parts
             module = __import__(package, fromlist=[obj])
-            try:
-                pak = module.__dict__[obj]
-            except KeyError:
-                raise AttributeError(obj)
-            return pak
+            return getattr(module, obj)
         else:
             # called with un-dotted string
             return __import__(parts[0])
