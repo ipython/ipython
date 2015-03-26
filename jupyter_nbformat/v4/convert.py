@@ -11,7 +11,7 @@ from .nbbase import (
     NotebookNode,
 )
 
-from IPython.nbformat import v3
+from jupyter_nbformat import v3
 from IPython.utils.log import get_logger
 
 def _warn_if_invalid(nb, version):
