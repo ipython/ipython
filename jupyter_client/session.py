@@ -53,7 +53,6 @@ from IPython.utils.traitlets import (CBytes, Unicode, Bool, Any, Instance, Set,
                                         TraitError,
 )
 from IPython.utils.pickleutil import PICKLE_PROTOCOL
-from IPython.kernel.zmq.serialize import MAX_ITEMS, MAX_BYTES
 from jupyter_client.adapter import adapt
 
 #-----------------------------------------------------------------------------
@@ -77,6 +76,10 @@ def squash_unicode(obj):
 #-----------------------------------------------------------------------------
 # globals and defaults
 #-----------------------------------------------------------------------------
+
+# default values for the thresholds:
+MAX_ITEMS = 64
+MAX_BYTES = 1024
 
 # ISO8601-ify datetime objects
 # allow unicode
