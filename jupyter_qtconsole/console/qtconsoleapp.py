@@ -101,7 +101,6 @@ aliases = dict(aliases)
 qt_aliases = dict(
     style = 'IPythonWidget.syntax_style',
     stylesheet = 'IPythonQtConsoleApp.stylesheet',
-    colors = 'ZMQInteractiveShell.colors',
 
     editor = 'IPythonWidget.editor',
     paging = 'ConsoleWidget.paging',
@@ -115,7 +114,6 @@ aliases.update(qt_aliases)
 # get flags&aliases into sets, and remove a couple that
 # shouldn't be scrubbed from backend flags:
 qt_aliases = set(qt_aliases.keys())
-qt_aliases.remove('colors')
 qt_flags = set(qt_flags.keys())
 
 #-----------------------------------------------------------------------------
