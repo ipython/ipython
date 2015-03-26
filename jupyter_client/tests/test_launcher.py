@@ -20,7 +20,7 @@ Authors
 import nose.tools as nt
 
 # Our own imports
-from IPython.kernel.launcher import swallow_argv
+from jupyter_client.launcher import swallow_argv
 
 #-----------------------------------------------------------------------------
 # Classes and functions

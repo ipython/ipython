@@ -151,7 +151,7 @@ def get_connection_file(app=None):
         If unspecified, the currently running app will be used
     """
     if app is None:
-        from IPython.kernel.zmq.kernelapp import IPKernelApp
+        from jupyter_client.kernelapp import IPKernelApp
         if not IPKernelApp.initialized():
             raise RuntimeError("app not specified, and not in a running Kernel")
 
@@ -432,9 +432,9 @@ class ConnectionFileMixin(LoggingConfigurable):
         return [ getattr(self, name) for name in port_names ]
 
     # The Session to use for communication with the kernel.
-    session = Instance('IPython.kernel.zmq.session.Session')
+    session = Instance('jupyter_client.session.Session')
     def _session_default(self):
-        from IPython.kernel.zmq.session import Session
+        from jupyter_client.session import Session
         return Session(parent=self)
 
     #--------------------------------------------------------------------------

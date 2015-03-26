@@ -175,7 +175,7 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None, env=None,
             cwd = cast_bytes_py2(cwd, sys.getfilesystemencoding() or 'ascii')
             kwargs['cwd'] = cwd
 
-        from IPython.kernel.zmq.parentpoller import ParentPollerWindows
+        from jupyter_client.parentpoller import ParentPollerWindows
         # Create a Win32 event for interrupting the kernel
         # and store it in an environment variable.
         interrupt_event = ParentPollerWindows.create_interrupt_event()

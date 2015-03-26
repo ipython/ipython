@@ -7,7 +7,7 @@ from unittest import TestCase
 from IPython.testing import decorators as dec
 
 from IPython.config.loader import Config
-from IPython.kernel import KernelManager
+from jupyter_client import KernelManager
 
 class TestKernelManager(TestCase):
 

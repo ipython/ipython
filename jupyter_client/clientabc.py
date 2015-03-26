@@ -24,7 +24,7 @@ class KernelClientABC(with_metaclass(abc.ABCMeta, object)):
 
     The docstrings for this class can be found in the base implementation:
 
-    `IPython.kernel.client.KernelClient`
+    `jupyter_client.client.KernelClient`
     """
 
     @abc.abstractproperty

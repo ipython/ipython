@@ -25,12 +25,12 @@ from IPython.utils.path import get_ipython_dir
 from IPython.utils.traitlets import (
     Any, Instance, Unicode, List, Bool, Type, DottedObjectName
 )
-from IPython.kernel import (
+from jupyter_client import (
     launch_kernel,
     kernelspec,
 )
 from .connect import ConnectionFileMixin
-from .zmq.session import Session
+from .session import Session
 from .managerabc import (
     KernelManagerABC
 )
@@ -48,7 +48,7 @@ class KernelManager(ConnectionFileMixin):
         return zmq.Context.instance()
 
     # the class to create with our `client` method
-    client_class = DottedObjectName('IPython.kernel.blocking.BlockingKernelClient')
+    client_class = DottedObjectName('jupyter_client.blocking.BlockingKernelClient')
     client_factory = Type(allow_none=True)
     def _client_class_changed(self, name, old, new):
         self.client_factory = import_item(str(new))
@@ -381,7 +381,7 @@ class KernelManager(ConnectionFileMixin):
         """
         if self.has_kernel:
             if sys.platform == 'win32':
-                from .zmq.parentpoller import ParentPollerWindows as Poller
+                from .parentpoller import ParentPollerWindows as Poller
                 Poller.send_interrupt(self.kernel.win32_interrupt_event)
             else:
                 self.kernel.send_signal(signal.SIGINT)

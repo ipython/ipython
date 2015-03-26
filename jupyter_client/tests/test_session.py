@@ -13,7 +13,7 @@ import zmq
 from zmq.tests import BaseZMQTestCase
 from zmq.eventloop.zmqstream import ZMQStream
 
-from IPython.kernel.zmq import session as ss
+from jupyter_client import session as ss
 
 from IPython.testing.decorators import skipif, module_not_available
 from IPython.utils.py3compat import string_types

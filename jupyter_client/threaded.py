@@ -14,9 +14,9 @@ from zmq.eventloop import ioloop, zmqstream
 
 # Local imports
 from IPython.utils.traitlets import Type, Instance
-from IPython.kernel.channels import HBChannel
-from IPython.kernel import KernelClient
-from IPython.kernel.channels import HBChannel
+from jupyter_client.channels import HBChannel
+from jupyter_client import KernelClient
+from jupyter_client.channels import HBChannel
 
 class ThreadedZMQSocketChannel(object):
     """A ZMQ socket invoking a callback in the ioloop"""

@@ -18,7 +18,7 @@ from IPython.utils.traitlets import (
 class KernelRestarter(LoggingConfigurable):
     """Monitor and autorestart a kernel."""
 
-    kernel_manager = Instance('IPython.kernel.KernelManager')
+    kernel_manager = Instance('jupyter_client.KernelManager')
 
     debug = Bool(False, config=True,
         help="""Whether to include every poll event in debugging output.

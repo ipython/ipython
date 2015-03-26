@@ -53,8 +53,8 @@ from IPython.utils.traitlets import (CBytes, Unicode, Bool, Any, Instance, Set,
                                         TraitError,
 )
 from IPython.utils.pickleutil import PICKLE_PROTOCOL
-from IPython.kernel.adapter import adapt
 from IPython.kernel.zmq.serialize import MAX_ITEMS, MAX_BYTES
+from jupyter_client.adapter import adapt
 
 #-----------------------------------------------------------------------------
 # utility functions
@@ -148,7 +148,7 @@ class SessionFactory(LoggingConfigurable):
     def _context_default(self):
         return zmq.Context.instance()
 
-    session = Instance('IPython.kernel.zmq.session.Session',
+    session = Instance('jupyter_client.session.Session',
                        allow_none=True)
 
     loop = Instance('zmq.eventloop.ioloop.IOLoop')

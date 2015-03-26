@@ -8,8 +8,8 @@ from IPython.testing import decorators as dec
 
 from IPython.config.loader import Config
 from IPython.utils.localinterfaces import localhost
-from IPython.kernel import KernelManager
-from IPython.kernel.multikernelmanager import MultiKernelManager
+from jupyter_client import KernelManager
+from jupyter_client.multikernelmanager import MultiKernelManager
 
 class TestKernelManager(TestCase):
 

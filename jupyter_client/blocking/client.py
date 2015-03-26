@@ -11,8 +11,8 @@ except ImportError:
     from Queue import Empty  # Python 2
 
 from IPython.utils.traitlets import Type
-from IPython.kernel.channels import HBChannel
-from IPython.kernel.client import KernelClient
+from jupyter_client.channels import HBChannel
+from jupyter_client.client import KernelClient
 from .channels import ZMQSocketChannel
 
 class BlockingKernelClient(KernelClient):
