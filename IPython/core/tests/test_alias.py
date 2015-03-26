@@ -42,9 +42,9 @@ def test_alias_args_error():
     
 def test_alias_args_commented():
     """Check that alias correctly ignores 'commented out' args"""
-    _ip.alias_manager.define_alias('commetarg', 'echo this is %%s a "commented out" arg')
+    _ip.magic('alias commetarg echo this is %%s a "commented out" arg')
     
-    with capture_output as cap:
+    with capture_output() as cap:
         _ip.run_cell('commetarg')
     
     nt.assert_equal(cap.stdout, 'this is %s a "commented out" arg')
