@@ -3,7 +3,6 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import sys
 import types
 
 class ShimModule(types.ModuleType):
@@ -11,8 +10,11 @@ class ShimModule(types.ModuleType):
     def __init__(self, *args, **kwargs):
         self._mirror = kwargs.pop("mirror")
         super(ShimModule, self).__init__(*args, **kwargs)
-        if sys.version_info >= (3,4):
-            self.__spec__ = __import__(self._mirror).__spec__
+
+    @property
+    def __spec__(self):
+        """Don't produce __spec__ until requested"""
+        return __import__(self._mirror).__spec__
 
     def __getattr__(self, key):
         # Use the equivalent of import_item(name), see below
