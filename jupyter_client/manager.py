@@ -56,19 +56,19 @@ class KernelManager(ConnectionFileMixin):
     # The kernel process with which the KernelManager is communicating.
     # generally a Popen instance
     kernel = Any()
-    
+
     kernel_spec_manager = Instance(kernelspec.KernelSpecManager)
-    
+
     def _kernel_spec_manager_default(self):
         return kernelspec.KernelSpecManager(ipython_dir=self.ipython_dir)
-    
+
     kernel_name = Unicode(kernelspec.NATIVE_KERNEL_NAME)
-    
+
     kernel_spec = Instance(kernelspec.KernelSpec)
-    
+
     def _kernel_spec_default(self):
         return self.kernel_spec_manager.get_kernel_spec(self.kernel_name)
-    
+
     def _kernel_name_changed(self, name, old, new):
         if new == 'python':
             self.kernel_name = kernelspec.NATIVE_KERNEL_NAME
@@ -79,12 +79,12 @@ class KernelManager(ConnectionFileMixin):
 
     kernel_cmd = List(Unicode, config=True,
         help="""DEPRECATED: Use kernel_name instead.
-        
+
         The Popen Command to launch the kernel.
         Override this if you have a custom kernel.
         If kernel_cmd is specified in a configuration file,
         IPython does not pass any arguments to the kernel,
-        because it cannot make any assumptions about the 
+        because it cannot make any assumptions about the
         arguments that the kernel understands. In particular,
         this means that the kernel does not receive the
         option --debug if it given on the IPython command line.
@@ -97,7 +97,7 @@ class KernelManager(ConnectionFileMixin):
         self.ipython_kernel = False
 
     ipython_kernel = Bool(True)
-    
+
     ipython_dir = Unicode()
     def _ipython_dir_default(self):
         return get_ipython_dir()
@@ -173,12 +173,12 @@ class KernelManager(ConnectionFileMixin):
 
         ns = dict(connection_file=self.connection_file)
         ns.update(self._launch_args)
-        
+
         pat = re.compile(r'\{([A-Za-z0-9_]+)\}')
         def from_ns(match):
             """Get the key out of ns if it's there, otherwise no change."""
             return ns.get(match.group(1), match.group())
-        
+
         return [ pat.sub(from_ns, arg) for arg in cmd ]
 
     def _launch_kernel(self, kernel_cmd, **kw):
@@ -243,7 +243,7 @@ class KernelManager(ConnectionFileMixin):
 
     def request_shutdown(self, restart=False):
         """Send a shutdown request via control channel
-        
+
         On Windows, this just kills kernels instead, because the shutdown
         messages don't work.
         """
@@ -253,7 +253,7 @@ class KernelManager(ConnectionFileMixin):
 
     def finish_shutdown(self, waittime=1, pollinterval=0.1):
         """Wait for kernel shutdown, then kill process if it doesn't shutdown.
-        
+
         This does not send shutdown requests - use :meth:`request_shutdown`
         first.
         """
@@ -427,9 +427,9 @@ def start_new_kernel(startup_timeout=60, kernel_name='python', **kwargs):
 @contextmanager
 def run_kernel(**kwargs):
     """Context manager to create a kernel in a subprocess.
-    
+
     The kernel is shut down when the context exits.
-    
+
     Returns
     -------
     kernel_client: connected KernelClient instance

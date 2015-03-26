@@ -22,7 +22,7 @@ class KernelSpecTests(unittest.TestCase):
             json.dump(sample_kernel_json, f)
 
         self.ksm = kernelspec.KernelSpecManager(ipython_dir=td.name)
-        
+
         td2 = TemporaryDirectory()
         self.addCleanup(td2.cleanup)
         self.installable_kernel = td2.name
@@ -39,18 +39,18 @@ class KernelSpecTests(unittest.TestCase):
         self.assertEqual(ks.argv, sample_kernel_json['argv'])
         self.assertEqual(ks.display_name, sample_kernel_json['display_name'])
         self.assertEqual(ks.env, {})
-    
+
     def test_install_kernel_spec(self):
         self.ksm.install_kernel_spec(self.installable_kernel,
                                      kernel_name='tstinstalled',
                                      user=True)
         self.assertIn('tstinstalled', self.ksm.find_kernel_specs())
-        
+
         with self.assertRaises(OSError):
             self.ksm.install_kernel_spec(self.installable_kernel,
                                          kernel_name='tstinstalled',
                                          user=True)
-        
+
         # Smoketest that this succeeds
         self.ksm.install_kernel_spec(self.installable_kernel,
                                      kernel_name='tstinstalled',

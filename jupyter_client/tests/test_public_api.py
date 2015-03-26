@@ -38,4 +38,3 @@ def test_launcher():
 def test_connect():
     for name in connect.__all__:
         nt.assert_in(name, dir(kernel))
-

@@ -41,13 +41,13 @@ def kernel_method(f):
 
 class MultiKernelManager(LoggingConfigurable):
     """A class for managing multiple kernels."""
-    
+
     ipython_kernel_argv = List(Unicode)
 
     default_kernel_name = Unicode(NATIVE_KERNEL_NAME, config=True,
         help="The name of the default kernel to start"
     )
-    
+
     kernel_manager_class = DottedObjectName(
         "IPython.kernel.ioloop.IOLoopKernelManager", config=True,
         help="""The kernel manager class.  This is configurable to allow
@@ -56,11 +56,11 @@ class MultiKernelManager(LoggingConfigurable):
     )
     def _kernel_manager_class_changed(self, name, old, new):
         self.kernel_manager_factory = import_item(new)
-    
+
     kernel_manager_factory = Any(help="this is kernel_manager_class after import")
     def _kernel_manager_factory_default(self):
         return import_item(self.kernel_manager_class)
-    
+
     context = Instance('zmq.Context')
     def _context_default(self):
         return zmq.Context.instance()
@@ -96,7 +96,7 @@ class MultiKernelManager(LoggingConfigurable):
         kernel_id = kwargs.pop('kernel_id', unicode_type(uuid.uuid4()))
         if kernel_id in self:
             raise DuplicateKernelError('Kernel already exists: %s' % kernel_id)
-        
+
         if kernel_name is None:
             kernel_name = self.default_kernel_name
         # kernel_manager_factory is the constructor for the KernelManager

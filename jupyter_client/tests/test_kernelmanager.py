@@ -40,7 +40,7 @@ class TestKernelManager(TestCase):
     def test_ipc_lifecycle(self):
         km = self._get_ipc_km()
         self._run_lifecycle(km)
-    
+
     def test_get_connect_info(self):
         km = self._get_tcp_km()
         cinfo = km.get_connection_info()
@@ -51,4 +51,3 @@ class TestKernelManager(TestCase):
             'key', 'signature_scheme',
         ])
         self.assertEqual(keys, expected)
-

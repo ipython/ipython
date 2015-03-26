@@ -19,14 +19,14 @@ class KernelRestarter(LoggingConfigurable):
     """Monitor and autorestart a kernel."""
 
     kernel_manager = Instance('IPython.kernel.KernelManager')
-    
+
     debug = Bool(False, config=True,
         help="""Whether to include every poll event in debugging output.
-        
+
         Has to be set explicitly, because there will be *a lot* of output.
         """
     )
-    
+
     time_to_dead = Float(3.0, config=True,
         help="""Kernel heartbeat interval in seconds."""
     )

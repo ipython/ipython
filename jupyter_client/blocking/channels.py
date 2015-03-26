@@ -89,4 +89,3 @@ class ZMQSocketChannel(object):
 
     def start(self):
         pass
-

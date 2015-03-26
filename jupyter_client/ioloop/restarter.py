@@ -51,4 +51,3 @@ class IOLoopKernelRestarter(KernelRestarter):
         if self._pcallback is not None:
             self._pcallback.stop()
             self._pcallback = None
-

@@ -55,4 +55,3 @@ def test_swallow_argv():
             "returned : %r" % stripped,
         ])
         nt.assert_equal(expected, stripped, message)
-

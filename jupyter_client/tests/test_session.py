@@ -77,7 +77,7 @@ class TestSession(SessionTestCase):
 
         msg = self.session.msg('execute', content=dict(a=10))
         self.session.send(A, msg, ident=b'foo', buffers=[b'bar'])
-        
+
         ident, msg_list = self.session.feed_identities(B.recv_multipart())
         new_msg = self.session.deserialize(msg_list)
         self.assertEqual(ident[0], b'foo')
@@ -88,7 +88,7 @@ class TestSession(SessionTestCase):
         self.assertEqual(new_msg['parent_header'],msg['parent_header'])
         self.assertEqual(new_msg['metadata'],msg['metadata'])
         self.assertEqual(new_msg['buffers'],[b'bar'])
-        
+
         content = msg['content']
         header = msg['header']
         header['msg_id'] = self.session.msg_id
@@ -107,9 +107,9 @@ class TestSession(SessionTestCase):
         self.assertEqual(new_msg['metadata'],msg['metadata'])
         self.assertEqual(new_msg['parent_header'],msg['parent_header'])
         self.assertEqual(new_msg['buffers'],[b'bar'])
-        
+
         header['msg_id'] = self.session.msg_id
-        
+
         self.session.send(A, msg, ident=b'foo', buffers=[b'bar'])
         ident, new_msg = self.session.recv(B)
         self.assertEqual(ident[0], b'foo')
@@ -216,7 +216,7 @@ class TestSession(SessionTestCase):
         self.assertTrue(len(session.digest_history) == 100)
         session._add_digest(uuid.uuid4().bytes)
         self.assertTrue(len(session.digest_history) == 91)
-    
+
     def test_bad_pack(self):
         try:
             session = ss.Session(pack=_bad_packer)
@@ -225,7 +225,7 @@ class TestSession(SessionTestCase):
             self.assertIn("don't work", str(e))
         else:
             self.fail("Should have raised ValueError")
-    
+
     def test_bad_unpack(self):
         try:
             session = ss.Session(unpack=_bad_unpacker)
@@ -234,7 +234,7 @@ class TestSession(SessionTestCase):
             self.assertIn("don't work either", str(e))
         else:
             self.fail("Should have raised ValueError")
-    
+
     def test_bad_packer(self):
         try:
             session = ss.Session(packer=__name__ + '._bad_packer')
@@ -243,7 +243,7 @@ class TestSession(SessionTestCase):
             self.assertIn("don't work", str(e))
         else:
             self.fail("Should have raised ValueError")
-    
+
     def test_bad_unpacker(self):
         try:
             session = ss.Session(unpacker=__name__ + '._bad_unpacker')
@@ -252,11 +252,11 @@ class TestSession(SessionTestCase):
             self.assertIn("don't work either", str(e))
         else:
             self.fail("Should have raised ValueError")
-    
+
     def test_bad_roundtrip(self):
         with self.assertRaises(ValueError):
             session = ss.Session(unpack=lambda b: 5)
-    
+
     def _datetime_test(self, session):
         content = dict(t=datetime.now())
         metadata = dict(t=datetime.now())
@@ -274,24 +274,24 @@ class TestSession(SessionTestCase):
         assert isinstance(msg2['metadata']['t'], string_types)
         self.assertEqual(msg['content'], jsonutil.extract_dates(msg2['content']))
         self.assertEqual(msg['content'], jsonutil.extract_dates(msg2['content']))
-    
+
     def test_datetimes(self):
         self._datetime_test(self.session)
-    
+
     def test_datetimes_pickle(self):
         session = ss.Session(packer='pickle')
         self._datetime_test(session)
-    
+
     @skipif(module_not_available('msgpack'))
     def test_datetimes_msgpack(self):
         import msgpack
-        
+
         session = ss.Session(
             pack=msgpack.packb,
             unpack=lambda buf: msgpack.unpackb(buf, encoding='utf8'),
         )
         self._datetime_test(session)
-    
+
     def test_send_raw(self):
         ctx = zmq.Context.instance()
         A = ctx.socket(zmq.PAIR)
@@ -300,10 +300,10 @@ class TestSession(SessionTestCase):
         B.connect("inproc://test")
 
         msg = self.session.msg('execute', content=dict(a=10))
-        msg_list = [self.session.pack(msg[part]) for part in 
+        msg_list = [self.session.pack(msg[part]) for part in
                     ['header', 'parent_header', 'metadata', 'content']]
         self.session.send_raw(A, msg_list, ident=b'foo')
-        
+
         ident, new_msg_list = self.session.feed_identities(B.recv_multipart())
         new_msg = self.session.deserialize(new_msg_list)
         self.assertEqual(ident[0], b'foo')

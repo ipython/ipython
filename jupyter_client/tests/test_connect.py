@@ -60,13 +60,13 @@ def test_load_connection_file_session():
     app = DummyConsoleApp(session=Session())
     app.initialize(argv=[])
     session = app.session
-    
+
     with TemporaryDirectory() as d:
         cf = os.path.join(d, 'kernel.json')
         connect.write_connection_file(cf, **sample_info)
         app.connection_file = cf
         app.load_connection_file()
-    
+
     nt.assert_equal(session.key, sample_info['key'])
     nt.assert_equal(session.signature_scheme, sample_info['signature_scheme'])
 
@@ -78,7 +78,7 @@ def test_app_load_connection_file():
         connect.write_connection_file(cf, **sample_info)
         app = DummyConsoleApp(connection_file=cf)
         app.initialize(argv=[])
-    
+
     for attr, expected in sample_info.items():
         if attr in ('key', 'signature_scheme'):
             continue
@@ -92,14 +92,14 @@ def test_get_connection_file():
         cf = 'kernel.json'
         app = DummyConsoleApp(config=cfg, connection_file=cf)
         app.initialize(argv=[])
-        
+
         profile_cf = os.path.join(app.profile_dir.location, 'security', cf)
         nt.assert_equal(profile_cf, app.connection_file)
         with open(profile_cf, 'w') as f:
             f.write("{}")
         nt.assert_true(os.path.exists(profile_cf))
         nt.assert_equal(connect.get_connection_file(app), profile_cf)
-        
+
         app.connection_file = cf
         nt.assert_equal(connect.get_connection_file(app), profile_cf)
 
@@ -111,11 +111,11 @@ def test_find_connection_file():
         app = DummyConsoleApp(config=cfg, connection_file=cf)
         app.initialize(argv=[])
         BaseIPythonApplication._instance = app
-        
+
         profile_cf = os.path.join(app.profile_dir.location, 'security', cf)
         with open(profile_cf, 'w') as f:
             f.write("{}")
-        
+
         for query in (
             'kernel.json',
             'kern*',
@@ -123,7 +123,7 @@ def test_find_connection_file():
             'k*',
             ):
             nt.assert_equal(connect.find_connection_file(query), profile_cf)
-        
+
         BaseIPythonApplication._instance = None
 
 def test_get_connection_info():
@@ -132,12 +132,10 @@ def test_get_connection_info():
         connect.write_connection_file(cf, **sample_info)
         json_info = connect.get_connection_info(cf)
         info = connect.get_connection_info(cf, unpack=True)
-    
+
     nt.assert_equal(type(json_info), type(""))
     nt.assert_equal(info, sample_info)
-    
+
     info2 = json.loads(json_info)
     info2['key'] = str_to_bytes(info2['key'])
     nt.assert_equal(info2, sample_info)
-    
-
