@@ -169,13 +169,12 @@ class Alias(object):
         if cmd.find('%l') >= 0:
             cmd = cmd.replace('%l', rest)
             rest = ''
-         
-        if cmd.find('%%s') >= 1:
-            cmd = cmd.replace('%%s', '%s')
-            
+		
         if nargs==0:
-            # Simple, argument-less aliases
-            cmd = '%s %s' % (cmd, rest)
+			if cmd.find('%%s') >= 1:
+				cmd = cmd.replace('%%s', '%s')
+			# Simple, argument-less aliases
+			cmd = '%s %s' % (cmd, rest)
         else:
             # Handle aliases with positional arguments
             args = rest.split(None, nargs)
