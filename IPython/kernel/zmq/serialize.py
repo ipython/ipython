@@ -17,6 +17,8 @@ from IPython.utils.pickleutil import (
     can, uncan, can_sequence, uncan_sequence, CannedObject,
     istype, sequence_types, PICKLE_PROTOCOL,
 )
+from .session import MAX_ITEMS, MAX_BYTES
+
 
 if PY3:
     buffer = memoryview
@@ -25,9 +27,6 @@ if PY3:
 # Serialization Functions
 #-----------------------------------------------------------------------------
 
-# default values for the thresholds:
-MAX_ITEMS = 64
-MAX_BYTES = 1024
 
 def _extract_buffers(obj, threshold=MAX_BYTES):
     """extract buffers larger than a certain threshold"""
