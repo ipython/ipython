@@ -20,7 +20,7 @@ from IPython.utils.traitlets import (
     Instance
 )
 
-from IPython.kernel.manager import KernelManager
+from jupyter_client.manager import KernelManager
 from .restarter import IOLoopKernelRestarter
 
 #-----------------------------------------------------------------------------
@@ -40,7 +40,7 @@ class IOLoopKernelManager(KernelManager):
     def _loop_default(self):
         return ioloop.IOLoop.instance()
 
-    _restarter = Instance('IPython.kernel.ioloop.IOLoopKernelRestarter')
+    _restarter = Instance('jupyter_client.ioloop.IOLoopKernelRestarter')
 
     def start_restarter(self):
         if self.autorestart and self.has_kernel:

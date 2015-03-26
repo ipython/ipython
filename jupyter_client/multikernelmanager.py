@@ -49,7 +49,7 @@ class MultiKernelManager(LoggingConfigurable):
     )
     
     kernel_manager_class = DottedObjectName(
-        "IPython.kernel.ioloop.IOLoopKernelManager", config=True,
+        "jupyter_client.ioloop.IOLoopKernelManager", config=True,
         help="""The kernel manager class.  This is configurable to allow
         subclassing of the KernelManager for customized behavior.
         """

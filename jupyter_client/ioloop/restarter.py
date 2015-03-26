@@ -20,7 +20,7 @@ from __future__ import absolute_import
 from zmq.eventloop import ioloop
 
 
-from IPython.kernel.restarter import KernelRestarter
+from jupyter_client.restarter import KernelRestarter
 from IPython.utils.traitlets import (
     Instance,
 )

@@ -29,7 +29,7 @@ class HBChannelABC(ChannelABC):
 
     The docstrings for this class can be found in the base implementation:
 
-    `IPython.kernel.channels.HBChannel`
+    `jupyter_client.channels.HBChannel`
     """
 
     @abc.abstractproperty

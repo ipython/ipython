@@ -8,8 +8,8 @@ import json
 from unittest import TestCase
 import nose.tools as nt
 
-from IPython.kernel.adapter import adapt, V4toV5, V5toV4, code_to_line
-from IPython.kernel.zmq.session import Session
+from jupyter_client.adapter import adapt, V4toV5, V5toV4, code_to_line
+from jupyter_client.session import Session
 
 
 def test_default_version():

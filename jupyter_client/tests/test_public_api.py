@@ -1,4 +1,4 @@
-"""Test the IPython.kernel public API
+"""Test the jupyter_client public API
 
 Authors
 -------
@@ -14,7 +14,7 @@ Authors
 
 import nose.tools as nt
 
-from IPython.kernel import launcher, connect
+from jupyter_client import launcher, connect
 from IPython import kernel
 
 #-----------------------------------------------------------------------------
