@@ -151,8 +151,8 @@ class Alias(object):
             raise InvalidAliasError("An alias command must be a string, "
                                     "got: %r" % self.cmd)
 
-        nargs = self.cmd.count('%s')
-
+        nargs = self.cmd.count('%s') - self.cmd.count('%%s')
+  
         if (nargs > 0) and (self.cmd.find('%l') >= 0):
             raise InvalidAliasError('The %s and %l specifiers are mutually '
                                     'exclusive in alias definitions.')
@@ -169,7 +169,10 @@ class Alias(object):
         if cmd.find('%l') >= 0:
             cmd = cmd.replace('%l', rest)
             rest = ''
+        
         if nargs==0:
+            if cmd.find('%%s') >= 1:
+                cmd = cmd.replace('%%s', '%s')
             # Simple, argument-less aliases
             cmd = '%s %s' % (cmd, rest)
         else:
