@@ -3,6 +3,14 @@ IPython Documentation
 
 This directory contains the majority of the documentation for IPython. 
 
+Deploy docs
+-----------
+
+Run ``make gh-pages``, and follow instruction, that is to say:
+cd into ``gh-pages``, check that everything is alright and push.
+
+
+
 Requirements
 ------------
 The following tools are needed to build the documentation:
