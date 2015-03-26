@@ -1,7 +1,7 @@
 # Installs IPython from the current branch
 # Another Docker container should build from this one to get services like the notebook
 
-FROM ubuntu:14.04
+FROM debian:jessie
 
 MAINTAINER IPython Project <ipython-dev@scipy.org>
 
@@ -9,13 +9,13 @@ ENV DEBIAN_FRONTEND noninteractive
 
 # Not essential, but wise to set the lang
 # Note: Users with other languages should set this in their derivative image
-RUN apt-get update && apt-get install -y language-pack-en
+RUN apt-get update && \
+    apt-get -y install locales \
+    && echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen \
+    && dpkg-reconfigure locales
 ENV LANGUAGE en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
-
-RUN locale-gen en_US.UTF-8
-RUN dpkg-reconfigure locales
 
 # Python binary dependencies, developer tools
 RUN apt-get update && apt-get install -y -q \
