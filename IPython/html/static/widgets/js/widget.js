@@ -611,7 +611,7 @@ define(["widgets/js/manager",
             /**
              * Makes browser interpret a numerical string as a pixel value.
              */
-            if (/^\d+\.?(\d+)?$/.test(value.trim())) {
+            if (value && /^\d+\.?(\d+)?$/.test(value.trim())) {
                 return value.trim() + 'px';
             }
             return value;
