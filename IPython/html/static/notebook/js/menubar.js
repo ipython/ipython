@@ -76,7 +76,7 @@ define([
             notebook_path
         ) + "?download=" + download.toString();
         
-        var w = window.open(undefined, IPython._target);
+        var w = window.open('', IPython._target);
         if (this.notebook.dirty) {
             this.notebook.save_notebook().then(function() {
                 w.location = url;
