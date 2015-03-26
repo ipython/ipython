@@ -123,6 +123,7 @@ define([
                 var button  = $('<div/>')
                     .addClass('btn btn-default')
                     .attr("title", el.label||action.help)
+                    .attr("role","button")
                     .append(
                         $("<i/>").addClass(el.icon||action.icon).addClass('fa')
                     );
