@@ -337,6 +337,19 @@ casper.execute_cell_then = function(index, then_callback, expect_failure) {
     return return_val;
 };
 
+casper.append_cell_execute_then = function(text, then_callback, expect_failure) {
+    // Append a code cell and execute it, optionally calling a then_callback
+    var c = this.append_cell(text);
+    return this.execute_cell_then(c, then_callback, expect_failure);
+};
+
+casper.assert_output_equals = function(text, output_text, message) {
+    // Append a code cell with the text, then assert the output is equal to output_text
+    this.append_cell_execute_then(text, function(index) {
+        this.test.assertEquals(this.get_output_cell(index).text.trim(), output_text, message);
+    });
+};
+
 casper.wait_for_element = function(index, selector){
     // Utility function that allows us to easily wait for an element 
     // within a cell.  Uses JQuery selector to look for the element.

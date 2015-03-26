@@ -71,7 +71,7 @@ casper.notebook_test(function () {
         '    c = CInt(0, sync=True)',
         '    d = CInt(-1, sync=True)', // See if it sends a full state.
         '    def set_state(self, sync_data):',
-        '        widgets.Widget.set_state(self, sync_data)'+
+        '        widgets.Widget.set_state(self, sync_data)',
         '        self.d = len(sync_data)',
         'multiset = MultiSetWidget()',
         'display(multiset)',
@@ -139,158 +139,159 @@ casper.notebook_test(function () {
     });
 
 
-/* New Test
+    this.thenEvaluate(function() {
+        define('TestWidget', ['widgets/js/widget', 'base/js/utils'], function(widget, utils) {
+            var TestWidget = widget.DOMWidgetView.extend({
+                render: function () {
+                    this.listenTo(this.model, 'msg:custom', this.handle_msg);
+                },
+                handle_msg: function(content, buffers) {
+                    this.msg = [content, buffers];
+                }
+            });
 
-
-%%javascript
-define('TestWidget', ['widgets/js/widget', 'base/js/utils'], function(widget, utils) {
-    var TestWidget = widget.DOMWidgetView.extend({
-        render: function () {
-            this.listenTo(this.model, 'msg:custom', this.handle_msg);
-            window.w = this;
-            console.log('data:', this.model.get('data'));
-        },
-        handle_msg: function(content, buffers) {
-            this.msg = [content, buffers];
-        }
+            var floatArray = {
+                deserialize: function (value, model) {
+                    // DataView -> float64 typed array
+                    return new Float64Array(value.buffer);
+                },
+                // serialization automatically handled by message buffers
+            };
+            
+            var floatList = {
+                deserialize: function (value, model) {
+                    // list of floats -> list of strings
+                    return value.map(function(x) {return x.toString()});
+                },
+                serialize: function(value, model) {
+                    // list of strings -> list of floats
+                    return value.map(function(x) {return parseFloat(x);})
+                }
+            };
+            return {TestWidget: TestWidget, floatArray: floatArray, floatList: floatList};
+        });
     });
 
-    var floatArray = {
-        deserialize: function (value, model) {
-        // DataView -> float64 typed array
-            return new Float64Array(value.buffer);
-        },
-        // serialization automatically handled by message buffers
-    };
+    var testwidget = {};
+    this.append_cell_execute_then([
+        'from IPython.html import widgets',
+        'from IPython.utils.traitlets import Unicode, Instance, List',
+        'from IPython.display import display',
+        'from array import array',
+        'def _array_to_memoryview(x):',
+        '    if x is None: return None, {}',
+        '    try:',
+        '        y = memoryview(x)',
+        '    except TypeError:',
+        "        # in python 2, arrays don't support the new buffer protocol",
+        '        y = memoryview(buffer(x))',
+        "    return y, {'serialization': ('floatArray', 'TestWidget')}",
+        'def _memoryview_to_array(x):',
+        "    return array('d', x.tobytes())",
+        'arrays_binary = {',
+        "    'from_json': _memoryview_to_array,",
+        "    'to_json': _array_to_memoryview",
+        '}',
+        '',
+        'def _array_to_list(x):',
+        '    if x is None: return None, {}',
+        "    return list(x), {'serialization': ('floatList', 'TestWidget')}",
+        'def _list_to_array(x):',
+        "    return array('d',x)",
+        'arrays_list = {',
+        "    'from_json': _list_to_array,",
+        "    'to_json': _array_to_list",
+        '}',
+        '',
+        'class TestWidget(widgets.DOMWidget):',
+        "    _view_module = Unicode('TestWidget', sync=True)",
+        "    _view_name = Unicode('TestWidget', sync=True)",
+        '    array_binary = Instance(array, sync=True, **arrays_binary)',
+        '    array_list = Instance(array, sync=True, **arrays_list)',
+        '    msg = {}',
+        '    def __init__(self, **kwargs):',
+        '        super(widgets.DOMWidget, self).__init__(**kwargs)',
+        '        self.on_msg(self._msg)',
+        '    def _msg(self, _, content, buffers):',
+        '        self.msg = [content, buffers]',
+        'x=TestWidget()',
+        'display(x)',
+        'print x.model_id'].join('\n'), function(index){
+            testwidget.index = index;
+            testwidget.model_id = this.get_output_cell(index).text.trim();
+        });
+    this.wait_for_widget(testwidget);
 
+
+    this.append_cell_execute_then('x.array_list = array("d", [1.5, 2.0, 3.1])');
+    this.wait_for_widget(testwidget);
+    this.then(function() {
+        var result = this.evaluate(function(index) {
+            var v = IPython.notebook.get_cell(index).widget_views[0];
+            var result = v.model.get('array_list');
+            var z = result.slice();
+            z[0]+="1234";
+            z[1]+="5678";
+            v.model.set('array_list', z);
+            v.touch();
+            return result;
+        }, testwidget.index);
+        this.test.assertEquals(result, ["1.5", "2", "3.1"], "JSON custom serializer kernel -> js");
+    });
     
-    var floatList = {
-        deserialize: function (value, model) {
-        // list of floats -> list of strings
-            return value.map(function(x) {return x.toString()});
-        },
-        serialize: function(value, model) {
-        // list of strings -> list of floats
-            return value.map(function(x) {return parseFloat(x);})
-        }
-    };
-    return {TestWidget: TestWidget, floatArray: floatArray, floatList: floatList};
-});
+    this.assert_output_equals('print x.array_list.tolist() == [1.51234, 25678.0, 3.1]',
+                              'True', 'JSON custom serializer js -> kernel');
 
+    if (this.slimerjs) {
+        this.append_cell_execute_then("x.array_binary=array('d', [1.5,2.5,5])", function() {
+            this.evaluate(function(index) {
+                var v = IPython.notebook.get_cell(index).widget_views[0];
+                var z = v.model.get('array_binary');
+                z[0]*=3;
+                z[1]*=3;
+                z[2]*=3;
+                // we set to null so that we recognize the change
+                // when we set data back to z
+                v.model.set('array_binary', null);
+                v.model.set('array_binary', z);
+                v.touch();
+            }, textwidget.index);
+        });
+        this.wait_for_widget(testwidget);
+        this.assert_output_equals('x.array_binary.tolist() == [4.5, 7.5, 15.0]',
+                                  'True\n', 'Binary custom serializer js -> kernel')
 
---------------
+        this.append_cell_execute_then('x.send("some content", [memoryview(b"binarycontent"), memoryview("morecontent")])');
+        this.wait_for_widget(testwidget);
 
+        this.then(function() {
+            var result = this.evaluate(function(index) {
+                var v = IPython.notebook.get_cell(index).widget_views[0];
+                var d = new TextDecoder('utf-8');
+                return {text: v.msg[0], 
+                        binary0: d.decode(v.msg[1][0]),
+                        binary1: d.decode(v.msg[1][1])};
+            }, testwidget.index);
+            this.test.assertEquals(result, {text: 'some content', 
+                                       binary0: 'binarycontent', 
+                                       binary1: 'morecontent'}, 
+                              "Binary widget messages kernel -> js");
+        });
 
-from IPython.html import widgets
-from IPython.utils.traitlets import Unicode, Instance, List
-from IPython.display import display
-from array import array
-def _array_to_memoryview(x):
-    if x is None: return None, {}
-    try:
-        y = memoryview(x)
-    except TypeError:
-        # in python 2, arrays don't support the new buffer protocol
-        y = memoryview(buffer(x))
-    return y, {'serialization': ('floatArray', 'TestWidget')}
-
-def _memoryview_to_array(x):
-    return array('d', x.tobytes())
-
-arrays_binary = {
-    'from_json': _memoryview_to_array,
-    'to_json': _array_to_memoryview
-}
-
-def _array_to_list(x):
-    if x is None: return None, {}
-    return list(x), {'serialization': ('floatList', 'TestWidget')}
-
-def _list_to_array(x):
-    return array('d',x)
-
-arrays_list = {
-    'from_json': _list_to_array,
-    'to_json': _array_to_list
-}
-
-
-class TestWidget(widgets.DOMWidget):
-    _view_module = Unicode('TestWidget', sync=True)
-    _view_name = Unicode('TestWidget', sync=True)
-    array_binary = Instance(array, sync=True, **arrays_binary)
-    array_list = Instance(array, sync=True, **arrays_list)
-    def __init__(self, **kwargs):
-        super(widgets.DOMWidget, self).__init__(**kwargs)
-        self.on_msg(self._msg)
-    def _msg(self, _, content, buffers):
-        self.msg = [content, buffers]
-
-
-----------------
-
-x=TestWidget()
-display(x)
-x.array_binary=array('d', [1.5,2.5,5])
-print x.model_id
-
------------------
-
-%%javascript
-console.log(w.model.get('array_binary'))
-var z = w.model.get('array_binary')
-z[0]*=3
-z[1]*=3
-z[2]*=3
-// we set to null so that we recognize the change
-// when we set data back to z
-w.model.set('array_binary', null)
-w.model.set('array_binary', z)
-console.log(w.model.get('array_binary'))
-w.touch()
-
-----------------
-x.array_binary.tolist() == [4.5, 7.5, 15.0]
-----------------
-
-x.array_list = array('d', [1.5, 2.0, 3.1])
-----------------
-
-%%javascript
-console.log(w.model.get('array_list'))
-var z = w.model.get('array_list')
-z[0]+="1234"
-z[1]+="5678"
-// we set to null so that we recognize the change
-// when we set data back to z
-w.model.set('array_list', null)
-w.model.set('array_list', z)
-w.touch()
-
------------------
-
-x.array_list.tolist() == [1.51234, 25678.0, 3.1]
-
--------------------
-x.send('some content', [memoryview(b'binarycontent'), memoryview('morecontent')])
-
--------------------
-
-%%javascript
-console.log(w.msg[0] === 'some content')
-var d=new TextDecoder('utf-8')
-console.log(d.decode(w.msg[1][0])==='binarycontent')
-console.log(d.decode(w.msg[1][1])==='morecontent')
-w.send('content back', [new Uint8Array([1,2,3,4]), new Float64Array([2.1828, 3.14159])])
-
---------------------
-
-print x.msg[0] == 'content back'
-print x.msg[1][0].tolist() == [1,2,3,4]
-print array('d', x.msg[1][1].tobytes()).tolist() == [2.1828, 3.14159]
-
-
-*/
-
+        this.then(function() {
+            this.evaluate(function(index) {
+                var v = IPython.notebook.get_cell(index).widget_views[0];
+                v.send('content back', [new Uint8Array([1,2,3,4]), new Float64Array([2.1828, 3.14159])])
+            }, testwidget.index);
+        });
+        this.wait_for_widget(testwidget);
+        this.assert_output_equals([
+            'all([x.msg[0] == "content back",',
+            '     x.msg[1][0].tolist() == [1,2,3,4],',
+            '     array("d", x.msg[1][1].tobytes()).tolist() == [2.1828, 3.14159]])'].join('\n'),
+                                  'True', 'Binary buffers message js -> kernel');
+    } else {
+        console.log("skipping binary websocket tests on phantomjs");
+    }
 
 });
