@@ -8,7 +8,7 @@ from .nbbase import (
     nbformat, nbformat_minor
 )
 
-from IPython.nbformat import v2
+from jupyter_nbformat import v2
 
 def _unbytes(obj):
     """There should be no bytes objects in a notebook

@@ -30,13 +30,4 @@ class TestsBase(unittest.TestCase):
 
 
     def _get_files_path(self):
-
-        #Get the relative path to this module in the IPython directory.
-        names = self.__module__.split(u'.')[1:-1]
-        
-        #Build a path using the IPython directory and the relative path we just
-        #found.
-        path = IPython.__path__[0]
-        for name in names:
-            path = os.path.join(path, name)
-        return path
+        return os.path.dirname(__file__)
