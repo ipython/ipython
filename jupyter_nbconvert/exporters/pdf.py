@@ -36,7 +36,7 @@ class PDFExporter(LatexExporter):
         help="File extensions of temp files to remove after running."
     )
     
-    writer = Instance("IPython.nbconvert.writers.FilesWriter", args=())
+    writer = Instance("jupyter_nbconvert.writers.FilesWriter", args=())
 
     def run_command(self, command_list, filename, count, log_function):
         """Run command_list count times.

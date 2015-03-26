@@ -21,7 +21,7 @@ from IPython import nbformat
 from .base import PreprocessorTestsBase
 from ..execute import ExecutePreprocessor
 
-from IPython.nbconvert.filters import strip_ansi
+from jupyter_nbconvert.filters import strip_ansi
 from nose.tools import assert_raises
 
 addr_pat = re.compile(r'0x[0-9a-f]{7,9}')

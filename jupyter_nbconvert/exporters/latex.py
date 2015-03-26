@@ -19,7 +19,7 @@ import os
 from IPython.utils.traitlets import Unicode
 from IPython.config import Config
 
-from IPython.nbconvert.filters.highlight import Highlight2Latex
+from jupyter_nbconvert.filters.highlight import Highlight2Latex
 from .templateexporter import TemplateExporter
 
 #-----------------------------------------------------------------------------

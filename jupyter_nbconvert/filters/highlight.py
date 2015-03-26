@@ -10,7 +10,7 @@ from within Jinja templates.
 # because errors should be raised at runtime if it's actually needed,
 # not import time, when it may not be needed.
 
-from IPython.nbconvert.utils.base import NbConvertBase
+from jupyter_nbconvert.utils.base import NbConvertBase
 from warnings import warn
 
 MULTILINE_OUTPUTS = ['text', 'html', 'svg', 'latex', 'javascript', 'json']

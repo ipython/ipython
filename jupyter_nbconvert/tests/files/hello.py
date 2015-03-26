@@ -1,4 +1,4 @@
-from IPython.nbconvert.writers.base import WriterBase
+from jupyter_nbconvert.writers.base import WriterBase
 
 class HelloWriter(WriterBase):
 

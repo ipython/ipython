@@ -16,8 +16,8 @@ from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 from pygments.util import ClassNotFound
 
-from IPython.nbconvert.filters.strings import add_anchor
-from IPython.nbconvert.utils.exceptions import ConversionException
+from jupyter_nbconvert.filters.strings import add_anchor
+from jupyter_nbconvert.utils.exceptions import ConversionException
 from IPython.utils.decorators import undoc
 
 

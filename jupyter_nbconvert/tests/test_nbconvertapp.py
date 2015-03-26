@@ -87,7 +87,7 @@ class TestNbConvertApp(TestsBase):
         """Do post processors work?"""
         with self.create_temp_cwd(['notebook1.ipynb']):
             out, err = self.call('nbconvert --log-level 0 --to python notebook1 '
-                      '--post IPython.nbconvert.tests.test_nbconvertapp.DummyPost')
+                      '--post jupyter_nbconvert.tests.test_nbconvertapp.DummyPost')
             self.assertIn('Dummy:notebook1.py', out)
 
     @dec.onlyif_cmds_exist('pandoc')

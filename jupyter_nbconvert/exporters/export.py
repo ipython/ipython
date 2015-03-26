@@ -93,7 +93,7 @@ def export(exporter, nb, **kw):
     
     Parameters
     ----------
-    exporter : class:`~IPython.nbconvert.exporters.exporter.Exporter` class or instance
+    exporter : class:`~jupyter_nbconvert.exporters.exporter.Exporter` class or instance
       Class type or instance of the exporter that should be used.  If the
       method initializes it's own instance of the class, it is ASSUMED that
       the class type provided exposes a constructor (``__init__``) with the same

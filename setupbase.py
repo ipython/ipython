@@ -175,10 +175,20 @@ def find_package_data():
     
     os.chdir(os.path.join('tests',))
     js_tests = glob('*.js') + glob('*/*.js')
-
-    os.chdir(os.path.join(cwd, 'IPython', 'nbconvert'))
-    nbconvert_templates = [os.path.join(dirpath, '*.*')
-                            for dirpath, _, _ in os.walk('templates')]
+    
+    # nbconvert package_data:
+    # os.chdir(os.path.join(cwd, 'IPython', 'nbconvert'))
+    # nbconvert_templates = [os.path.join(dirpath, '*.*')
+    #                         for dirpath, _, _ in os.walk('templates')]
+    # package_data = {
+    #     'IPython.nbconvert.filters' : ['marked.js'],
+    #     'IPython.nbconvert' : nbconvert_templates +
+    #         [
+    #             'tests/files/*.*',
+    #             'exporters/tests/files/*.*',
+    #             'preprocessors/tests/files/*.*',
+    #         ],
+    # }
 
     os.chdir(cwd)
 
@@ -189,13 +199,6 @@ def find_package_data():
         'IPython.testing.plugin' : ['*.txt'],
         'IPython.html' : ['templates/*'] + static_data,
         'IPython.html.tests' : js_tests,
-        'IPython.nbconvert' : nbconvert_templates +
-            [
-                'tests/files/*.*',
-                'exporters/tests/files/*.*',
-                'preprocessors/tests/files/*.*',
-            ],
-        'IPython.nbconvert.filters' : ['marked.js'],
         # 'IPython.nbformat' : [
         #     'tests/*.ipynb',
         #     'v3/nbformat.v3.schema.json',
