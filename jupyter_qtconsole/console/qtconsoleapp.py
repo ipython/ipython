@@ -5,13 +5,8 @@ input, there is no real readline support, among other limitations.
 """
 
 # Copyright (c) IPython Development Team.
-# Distributed under the terms of the Modified BSD License. 
+# Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
-# stdlib imports
 import os
 import signal
 import sys
@@ -46,10 +41,8 @@ if os.name == 'nt':
 
     sys.excepthook = gui_excepthook
 
-# System library imports
 from IPython.external.qt import QtCore, QtGui
 
-# Local imports
 from IPython.config.application import boolean_flag
 from IPython.config.application import catch_config_error
 from IPython.core.application import BaseIPythonApplication
@@ -191,7 +184,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
 
     def parse_command_line(self, argv=None):
         super(IPythonQtConsoleApp, self).parse_command_line(argv)
-        self.build_kernel_argv(argv)
+        self.build_kernel_argv(self.extra_args)
 
 
     def new_frontend_master(self):

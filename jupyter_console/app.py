@@ -2,17 +2,11 @@
 
 This is not a complete console app, as subprocess will not be able to receive
 input, there is no real readline support, among other limitations.
-
-Authors:
-
-* Min RK
-* Paul Ivanov
-
 """
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 import signal
 
 from IPython.terminal.ipapp import TerminalIPythonApp, frontend_flags as term_flags
@@ -58,6 +52,7 @@ aliases = dict(aliases)
 frontend_aliases = dict(app_aliases)
 # load updated frontend flags into full dict
 aliases.update(frontend_aliases)
+aliases['colors'] = 'InteractiveShell.colors'
 
 # get flags&aliases into sets, and remove a couple that
 # shouldn't be scrubbed from backend flags:
@@ -98,10 +93,12 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonConsoleApp):
     frontend_flags = Any(frontend_flags)
     
     subcommands = Dict()
+    
+    force_interact = True
 
     def parse_command_line(self, argv=None):
         super(ZMQTerminalIPythonApp, self).parse_command_line(argv)
-        self.build_kernel_argv(argv)
+        self.build_kernel_argv(self.extra_args)
 
     def init_shell(self):
         IPythonConsoleApp.initialize(self)
