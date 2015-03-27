@@ -301,9 +301,8 @@ define(function (require) {
                     return "Unsaved changes will be lost.";
                 }
             }
-            // Null is the *only* return value that will make the browser not
-            // pop up the "don't leave" dialog.
-            return null;
+            // IE treats null as a string.  Instead just return which will avoid the dialog.
+            return;
         };
     };
     
