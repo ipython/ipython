@@ -18,8 +18,6 @@ class Box(DOMWidget):
     # Child widgets in the container.
     # Using a tuple here to force reassignment to update the list.
     # When a proper notifying-list trait exists, that is what should be used here.
-    # TODO: make this tuple serialize models
-    # TODO: enforce that tuples here have a single datatype
     children = Tuple(sync=True, **widget_serialization)
     
     _overflow_values = ['visible', 'hidden', 'scroll', 'auto', 'initial', 'inherit', '']
