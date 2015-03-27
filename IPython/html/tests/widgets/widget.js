@@ -216,7 +216,7 @@ casper.notebook_test(function () {
         '        self.msg = [content, buffers]',
         'x=TestWidget()',
         'display(x)',
-        'print x.model_id'].join('\n'), function(index){
+        'print(x.model_id)'].join('\n'), function(index){
             testwidget.index = index;
             testwidget.model_id = this.get_output_cell(index).text.trim();
         });
@@ -239,7 +239,7 @@ casper.notebook_test(function () {
         this.test.assertEquals(result, ["1.5", "2", "3.1"], "JSON custom serializer kernel -> js");
     });
     
-    this.assert_output_equals('print x.array_list.tolist() == [1.51234, 25678.0, 3.1]',
+    this.assert_output_equals('print(x.array_list.tolist() == [1.51234, 25678.0, 3.1])',
                               'True', 'JSON custom serializer js -> kernel');
 
     if (this.slimerjs) {
