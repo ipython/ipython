@@ -99,8 +99,8 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
     flags = Dict(kernel_flags)
     classes = [IPythonKernel, ZMQInteractiveShell, ProfileDir, Session]
     # the kernel class, as an importstring
-    kernel_class = Type('ipython_kernel.zmq.ipkernel.IPythonKernel', config=True,
-                        klass='ipython_kernel.zmq.kernelbase.Kernel',
+    kernel_class = Type('ipython_kernel.ipkernel.IPythonKernel', config=True,
+                        klass='ipython_kernel.kernelbase.Kernel',
     help="""The Kernel subclass to be used.
 
     This should allow easy re-use of the IPKernelApp entry point
@@ -124,9 +124,9 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp,
     # streams, etc.
     no_stdout = Bool(False, config=True, help="redirect stdout to the null device")
     no_stderr = Bool(False, config=True, help="redirect stderr to the null device")
-    outstream_class = DottedObjectName('ipython_kernel.zmq.iostream.OutStream',
+    outstream_class = DottedObjectName('ipython_kernel.iostream.OutStream',
         config=True, help="The importstring for the OutStream factory")
-    displayhook_class = DottedObjectName('ipython_kernel.zmq.displayhook.ZMQDisplayHook',
+    displayhook_class = DottedObjectName('ipython_kernel.displayhook.ZMQDisplayHook',
         config=True, help="The importstring for the DisplayHook factory")
 
     # polling

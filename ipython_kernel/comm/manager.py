@@ -31,12 +31,12 @@ class CommManager(LoggingConfigurable):
     # If this is instantiated by a non-IPython kernel, shell will be None
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC',
                      allow_none=True)
-    kernel = Instance('ipython_kernel.zmq.kernelbase.Kernel')
+    kernel = Instance('ipython_kernel.kernelbase.Kernel')
 
     iopub_socket = Any()
     def _iopub_socket_default(self):
         return self.kernel.iopub_socket
-    session = Instance('ipython_kernel.zmq.session.Session')
+    session = Instance('ipython_kernel.session.Session')
     def _session_default(self):
         return self.kernel.session
 

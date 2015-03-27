@@ -324,7 +324,7 @@ class Kernel(SingletonConfigurable):
              buffers=None, track=False, header=None, metadata=None):
         """Send a response to the message we're currently processing.
 
-        This accepts all the parameters of :meth:`ipython_kernel.zmq.session.Session.send`
+        This accepts all the parameters of :meth:`ipython_kernel.session.Session.send`
         except ``parent``.
 
         This relies on :meth:`set_parent` having been called for the current

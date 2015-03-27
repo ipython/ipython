@@ -16,8 +16,8 @@ from IPython.config import Configurable
 from ipython_kernel.inprocess.socket import SocketABC
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.traitlets import Instance, Dict, CBytes
-from ipython_kernel.zmq.serialize import serialize_object
-from ipython_kernel.zmq.session import Session, extract_header
+from ipython_kernel.serialize import serialize_object
+from ipython_kernel.session import Session, extract_header
 
 #-----------------------------------------------------------------------------
 # Code
@@ -66,5 +66,5 @@ def publish_data(data):
     data : dict
         The data to be published. Think of it as a namespace.
     """
-    from ipython_kernel.zmq.zmqshell import ZMQInteractiveShell
+    from ipython_kernel.zmqshell import ZMQInteractiveShell
     ZMQInteractiveShell.instance().data_pub.publish_data(data)

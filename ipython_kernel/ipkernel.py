@@ -10,7 +10,7 @@ from IPython.utils.tokenutil import token_at_cursor, line_at_cursor
 from IPython.utils.traitlets import Instance, Type, Any, List
 from IPython.utils.decorators import undoc
 
-from ..comm import CommManager
+from .comm import CommManager
 from .kernelbase import Kernel as KernelBase
 from .serialize import serialize_object, unpack_apply_message
 from .zmqshell import ZMQInteractiveShell
@@ -363,6 +363,6 @@ class IPythonKernel(KernelBase):
 class Kernel(IPythonKernel):
     def __init__(self, *args, **kwargs):
         import warnings
-        warnings.warn('Kernel is a deprecated alias of ipython_kernel.zmq.ipkernel.IPythonKernel',
+        warnings.warn('Kernel is a deprecated alias of ipython_kernel.ipkernel.IPythonKernel',
                       DeprecationWarning)
         super(Kernel, self).__init__(*args, **kwargs)

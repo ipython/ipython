@@ -10,8 +10,8 @@ import sys
 from IPython.core.interactiveshell import InteractiveShellABC
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.traitlets import Any, Enum, Instance, List, Type
-from ipython_kernel.zmq.ipkernel import IPythonKernel
-from ipython_kernel.zmq.zmqshell import ZMQInteractiveShell
+from ipython_kernel.ipkernel import IPythonKernel
+from ipython_kernel.zmqshell import ZMQInteractiveShell
 
 from .socket import DummySocket
 
@@ -121,18 +121,18 @@ class InProcessKernel(IPythonKernel):
         return logging.getLogger(__name__)
 
     def _session_default(self):
-        from ipython_kernel.zmq.session import Session
+        from ipython_kernel.session import Session
         return Session(parent=self, key=b'')
 
     def _shell_class_default(self):
         return InProcessInteractiveShell
 
     def _stdout_default(self):
-        from ipython_kernel.zmq.iostream import OutStream
+        from ipython_kernel.iostream import OutStream
         return OutStream(self.session, self.iopub_socket, u'stdout', pipe=False)
 
     def _stderr_default(self):
-        from ipython_kernel.zmq.iostream import OutStream
+        from ipython_kernel.iostream import OutStream
         return OutStream(self.session, self.iopub_socket, u'stderr', pipe=False)
 
 #-----------------------------------------------------------------------------
@@ -150,7 +150,7 @@ class InProcessInteractiveShell(ZMQInteractiveShell):
 
     def enable_gui(self, gui=None):
         """Enable GUI integration for the kernel."""
-        from ipython_kernel.zmq.eventloops import enable_gui
+        from ipython_kernel.eventloops import enable_gui
         if not gui:
             gui = self.kernel.gui
         return enable_gui(gui, kernel=self.kernel)
