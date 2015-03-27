@@ -30,6 +30,8 @@ define([
                     return Promise.resolve(value);
                 }
             },
+            /* We don't need a serializer since models automatically serialize to their UUIDs */
+            /* courtesy of the model toJSON */
         },
     }
 });

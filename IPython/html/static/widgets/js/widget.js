@@ -440,6 +440,14 @@ define(["widgets/js/manager",
             }, this);
 
         },
+
+        toJSON: function(options) {
+            /**
+             * Serialize the model.  See the types.js deserialization function
+             * and the kernel-side serializer/deserializer
+             */
+            return "IPY_MODEL_"+this.id;
+        }
     });
     widgetmanager.WidgetManager.register_widget_model('WidgetModel', WidgetModel);
 
