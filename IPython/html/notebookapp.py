@@ -19,6 +19,7 @@ import re
 import select
 import signal
 import socket
+import ssl
 import sys
 import threading
 import webbrowser
@@ -832,6 +833,8 @@ class NotebookApp(BaseIPythonApplication):
                 ssl_options['keyfile'] = self.keyfile
         else:
             ssl_options = None
+        # Disable SSLv3, since its use is discouraged.
+        ssl_options['ssl_version']=ssl.PROTOCOL_TLSv1
         self.login_handler_class.validate_security(self, ssl_options=ssl_options)
         self.http_server = httpserver.HTTPServer(self.web_app, ssl_options=ssl_options,
                                                  xheaders=self.trust_xheaders)
