@@ -54,7 +54,7 @@ def get_validator(version=None, version_minor=None):
         from .. import current_nbformat
         version = current_nbformat
 
-    v = import_item("IPython.nbformat.v%s" % version)
+    v = import_item("jupyter_nbformat.v%s" % version)
     current_minor = v.nbformat_minor
     if version_minor is None:
         version_minor = current_minor
