@@ -455,18 +455,14 @@ class Widget(LoggingConfigurable):
         self._display_callbacks(self, **kwargs)
 
     def _trait_to_json(self, x):
-        """Convert a trait value to json
+        """Convert a trait value to json.
 
-        Traverse lists/tuples and dicts and serialize their values as well.
-        Replace any widgets with their model_id
+        Metadata (the second return value) is not sent
         """
         return x, None
 
     def _trait_from_json(self, x):
-        """Convert json values to objects
-
-        Replace any strings representing valid model id values to Widget references.
-        """
+        """Convert json values to objects."""
         return x
 
     def _ipython_display_(self, **kwargs):
