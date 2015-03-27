@@ -9,7 +9,7 @@ from collections import namedtuple
 import nose.tools as nt
 
 # from unittest import TestCaes
-from ipython_kernel.zmq.serialize import serialize_object, deserialize_object
+from ipython_kernel.serialize import serialize_object, deserialize_object
 from IPython.testing import decorators as dec
 from IPython.utils.pickleutil import CannedArray, CannedClass
 from IPython.utils.py3compat import iteritems

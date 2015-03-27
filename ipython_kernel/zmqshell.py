@@ -46,9 +46,9 @@ from IPython.utils import py3compat
 from IPython.utils.py3compat import unicode_type
 from IPython.utils.traitlets import Instance, Type, Dict, CBool, CBytes, Any
 from IPython.utils.warn import error
-from ipython_kernel.zmq.displayhook import ZMQShellDisplayHook
-from ipython_kernel.zmq.datapub import ZMQDataPublisher
-from ipython_kernel.zmq.session import extract_header
+from ipython_kernel.displayhook import ZMQShellDisplayHook
+from ipython_kernel.datapub import ZMQDataPublisher
+from ipython_kernel.session import extract_header
 from .session import Session
 
 #-----------------------------------------------------------------------------

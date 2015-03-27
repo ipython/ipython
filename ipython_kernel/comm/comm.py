@@ -9,7 +9,7 @@ import uuid
 from zmq.eventloop.ioloop import IOLoop
 
 from IPython.config import LoggingConfigurable
-from ipython_kernel.zmq.kernelbase import Kernel
+from ipython_kernel.kernelbase import Kernel
 
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.traitlets import Instance, Unicode, Bytes, Bool, Dict, Any
@@ -20,7 +20,7 @@ class Comm(LoggingConfigurable):
     # If this is instantiated by a non-IPython kernel, shell will be None
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC',
                      allow_none=True)
-    kernel = Instance('ipython_kernel.zmq.kernelbase.Kernel')
+    kernel = Instance('ipython_kernel.kernelbase.Kernel')
     def _kernel_default(self):
         if Kernel.initialized():
             return Kernel.instance()
@@ -28,7 +28,7 @@ class Comm(LoggingConfigurable):
     iopub_socket = Any()
     def _iopub_socket_default(self):
         return self.kernel.iopub_socket
-    session = Instance('ipython_kernel.zmq.session.Session')
+    session = Instance('ipython_kernel.session.Session')
     def _session_default(self):
         if self.kernel is not None:
             return self.kernel.session
