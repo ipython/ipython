@@ -10866,6 +10866,7 @@ ul#help_menu li a i {
   color: #777777;
   z-index: 10;
   background: rgba(240, 240, 240, 0.5);
+  margin-right: 4px;
   color: #333333;
   background-color: #ffffff;
   border-color: #cccccc;
