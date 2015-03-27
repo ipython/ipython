@@ -6,13 +6,40 @@ Represents a container that can be used to group other widgets.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from .widget import DOMWidget, register, widget_serialization
+from .widget import DOMWidget, Widget, register
 from IPython.utils.traitlets import Unicode, Tuple, TraitError, Int, CaselessStrEnum
 from IPython.utils.warn import DeprecatedClass
+
+def _widget_to_json(x):
+    if isinstance(x, dict):
+        return {k: _widget_to_json(v) for k, v in x.items()}
+    elif isinstance(x, (list, tuple)):
+        return [_widget_to_json(v) for v in x]
+    elif isinstance(x, Widget):
+        return "IPY_MODEL_" + x.model_id
+    else:
+        return x
+
+def _json_to_widget(x):
+    if isinstance(x, dict):
+        return {k: _json_to_widget(v) for k, v in x.items()}
+    elif isinstance(x, (list, tuple)):
+        return [_json_to_widget(v) for v in x]
+    elif isinstance(x, string_types) and x.startswith('IPY_MODEL_') and x[10:] in Widget.widgets:
+        return Widget.widgets[x[10:]]
+    else:
+        return x
+
+widget_serialization = {
+    'from_json': _json_to_widget,
+    'to_json': _widget_to_json
+}
+
 
 @register('IPython.Box')
 class Box(DOMWidget):
     """Displays multiple widgets in a group."""
+    _model_name = Unicode('BoxModel', sync=True)
     _view_name = Unicode('BoxView', sync=True)
 
     # Child widgets in the container.

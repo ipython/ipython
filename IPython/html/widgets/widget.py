@@ -89,31 +89,6 @@ def register(key=None):
     return wrap
 
 
-def _widget_to_json(x):
-    if isinstance(x, dict):
-        return {k: _widget_to_json(v) for k, v in x.items()}
-    elif isinstance(x, (list, tuple)):
-        return [_widget_to_json(v) for v in x]
-    elif isinstance(x, Widget):
-        return "IPY_MODEL_" + x.model_id
-    else:
-        return x
-
-def _json_to_widget(x):
-    if isinstance(x, dict):
-        return {k: _json_to_widget(v) for k, v in x.items()}
-    elif isinstance(x, (list, tuple)):
-        return [_json_to_widget(v) for v in x]
-    elif isinstance(x, string_types) and x.startswith('IPY_MODEL_') and x[10:] in Widget.widgets:
-        return Widget.widgets[x[10:]]
-    else:
-        return x
-
-widget_serialization = {
-    'from_json': _json_to_widget,
-    'to_json': lambda x: (_widget_to_json(x), {'serialization': ('models', 'widgets/js/types')})
-}
-
 class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
     # Class attributes
@@ -241,12 +216,10 @@ class Widget(LoggingConfigurable):
         key : unicode, or iterable (optional)
             A single property's name or iterable of property names to sync with the front-end.
         """
-        state, buffer_keys, buffers, metadata = self.get_state(key=key)
+        state, buffer_keys, buffers = self.get_state(key=key)
         msg = {"method": "update", "state": state}
         if buffer_keys:
             msg['buffers'] = buffer_keys
-        if metadata:
-            msg['metadata'] = metadata
         self._send(msg, buffers=buffers)
 
     def get_state(self, key=None):
@@ -278,19 +251,16 @@ class Widget(LoggingConfigurable):
         state = {}
         buffers = []
         buffer_keys = []
-        metadata = {}
         for k in keys:
             f = self.trait_metadata(k, 'to_json', self._trait_to_json)
             value = getattr(self, k)
-            serialized, md = f(value)
+            serialized = f(value)
             if isinstance(serialized, memoryview):
                 buffers.append(serialized)
                 buffer_keys.append(k)
             else:
                 state[k] = serialized
-            if md is not None:
-                metadata[k] = md
-        return state, buffer_keys, buffers, metadata
+        return state, buffer_keys, buffers
 
     def set_state(self, sync_data):
         """Called when a state is received from the front-end."""
@@ -439,11 +409,8 @@ class Widget(LoggingConfigurable):
         self._display_callbacks(self, **kwargs)
 
     def _trait_to_json(self, x):
-        """Convert a trait value to json.
-
-        Metadata (the second return value) is not sent
-        """
-        return x, None
+        """Convert a trait value to json."""
+        return x
 
     def _trait_from_json(self, x):
         """Convert json values to objects."""

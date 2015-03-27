@@ -32,7 +32,6 @@ define(["widgets/js/manager",
             this.state_lock = null;
             this.id = model_id;
             this.views = {};
-            this.serializers = {};
             this._resolve_received_state = {};
 
             if (comm !== undefined) {
@@ -146,23 +145,17 @@ define(["widgets/js/manager",
                             var state = msg.content.data.state || {};
                             var buffer_keys = msg.content.data.buffers || [];
                             var buffers = msg.buffers || [];
-                            var metadata = msg.content.data.metadata || {};
-                            var i,k;
                             for (var i=0; i<buffer_keys.length; i++) {
-                                k = buffer_keys[i];
-                                state[k] = buffers[i];
+                                state[buffer_keys[i]] = buffers[i];
                             }
 
-                            // for any metadata specifying a deserializer, set the
-                            // state to a promise that resolves to the deserialized version
-                            // also, store the serialization function for the attribute
-                            var keys = Object.keys(metadata);
-                            for (var i=0; i<keys.length; i++) {
-                                k = keys[i];
-                                if (metadata[k] && metadata[k].serialization) {
-                                    that.serializers[k] = utils.load_class.apply(that,
-                                                                                 metadata[k].serialization);
-                                    state[k] = that.deserialize(that.serializers[k], state[k]);
+                            // deserialize fields that have custom deserializers
+                            var serializers = that.constructor.serializers;
+                            if (serializers) {
+                                for (var k in state) {
+                                    if (serializers[k] && serializers[k].deserialize) {
+                                        state[k] = (serializers[k].deserialize)(state[k], that);
+                                    }
                                 }
                             }
                             return utils.resolve_promises_dict(state);
@@ -186,19 +179,6 @@ define(["widgets/js/manager",
                     }).catch(utils.reject('Could not process display view msg', true));
                     break;
             }
-        },
-
-        deserialize: function(serializer, value) {
-            // given a serializer dict and a value,
-            // return a promise for the deserialized value
-            var that = this;
-            return serializer.then(function(s) {
-                if (s.deserialize) {
-                    return s.deserialize(value, that);
-                } else {
-                    return value;
-                }
-            });
         },
 
         set_state: function (state) {
@@ -362,25 +342,15 @@ define(["widgets/js/manager",
             var that = this;
             // first, build a state dictionary with key=the attribute and the value
             // being the value or the promise of the serialized value
-            var state_promise_dict = {};
-            var keys = Object.keys(attrs);
-            for (var i=0; i<keys.length; i++) {
-                // bind k and v locally; needed since we have an inner async function using v
-                (function(k,v) {
-                    if (that.serializers[k]) {
-                        state_promise_dict[k] = that.serializers[k].then(function(f) {
-                            if (f.serialize) {
-                                return f.serialize(v, that);
-                            } else {
-                                return v;
-                            }
-                        })
-                    } else {
-                        state_promise_dict[k] = v;
+            var serializers = this.constructor.serializers;
+            if (serializers) {
+                for (k in attrs) {
+                    if (serializers[k] && serializers[k].serialize) {
+                        attrs[k] = (serializers[k].serialize)(attrs[k], this);
                     }
-                })(keys[i], attrs[keys[i]])
+                }
             }
-            utils.resolve_promises_dict(state_promise_dict).then(function(state) {
+            utils.resolve_promises_dict(attrs).then(function(state) {
                 // get binary values, then send
                 var keys = Object.keys(state);
                 var buffers = [];
@@ -402,20 +372,6 @@ define(["widgets/js/manager",
             });
         },
         
-        serialize: function(model, attrs) {
-            // Serialize the attributes into a sync message
-            var keys = Object.keys(attrs);            
-            var key, value;
-            var buffers, metadata, buffer_keys, serialize;
-            for (var i=0; i<keys.length; i++) {
-                key = keys[i];
-                serialize = model.serializers[key];
-                if (serialize && serialize.serialize) {
-                    attrs[key] = serialize.serialize(attrs[key]);
-                }
-            }
-        },
-
         save_changes: function(callbacks) {
             /**
              * Push this model's state to the back-end

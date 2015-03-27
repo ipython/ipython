@@ -14,18 +14,33 @@ define([
     "widgets/js/widget_selection",
     "widgets/js/widget_selectioncontainer",
     "widgets/js/widget_string",
-], function(widgetmanager, linkModels) {
-    for (var target_name in linkModels) {
-        if (linkModels.hasOwnProperty(target_name)) {
-            widgetmanager.WidgetManager.register_widget_model(target_name, linkModels[target_name]);
-        }
-    }
+], function(widgetmanager) {
 
-    // Register all of the loaded views with the widget manager.
-    for (var i = 2; i < arguments.length; i++) {
-        for (var target_name in arguments[i]) {
-            if (arguments[i].hasOwnProperty(target_name)) {
-                widgetmanager.WidgetManager.register_widget_view(target_name, arguments[i][target_name]);
+
+    /**
+     * From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith
+     * Can be removed with the string endsWith function is implemented in major browsers
+     */
+    var endsWith = function(target, searchString, position) {
+        var subjectString = target.toString();
+        if (position === undefined || position > subjectString.length) {
+            position = subjectString.length;
+        }
+        position -= searchString.length;
+        var lastIndex = subjectString.indexOf(searchString, position);
+        return lastIndex !== -1 && lastIndex === position;
+    };
+
+    // Register all of the loaded models and views with the widget manager.
+    for (var i = 1; i < arguments.length; i++) {
+        var module = arguments[i];
+        for (var target_name in module) {
+            if (module.hasOwnProperty(target_name)) {
+                if (endsWith(target_name, "View")) {
+                    widgetmanager.WidgetManager.register_widget_view(target_name, module[target_name]);
+                } else if (endsWith(target_name, "Model")) {
+                    widgetmanager.WidgetManager.register_widget_model(target_name, module[target_name]);
+                }
             }
         }
     }
