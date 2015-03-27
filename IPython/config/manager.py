@@ -8,7 +8,6 @@ import json
 import os
 
 from IPython.config import LoggingConfigurable
-from IPython.utils.path import locate_profile
 from IPython.utils.py3compat import PY3
 from IPython.utils.traitlets import Unicode
 
@@ -35,22 +34,12 @@ def recursive_update(target, new):
 
 
 class BaseJSONConfigManager(LoggingConfigurable):
-    """General config manager 
+    """General JSON config manager
     
     Deals with persisting/storing config in a json file
-    in IPython profile
     """
 
-    profile_dir = Unicode()
-    def _profile_dir_default(self):
-        return locate_profile()
-
-    @property
-    def config_dir(self):
-        return self._config_dir()
-
-    def _config_dir(self):
-        return self.profile_dir
+    config_dir = Unicode('.')
 
     def ensure_config_dir_exists(self):
         try:

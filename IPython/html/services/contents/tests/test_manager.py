@@ -5,6 +5,7 @@ from __future__ import print_function
 import os
 import sys
 import time
+from contextlib import contextmanager
 
 from nose import SkipTest
 from tornado.web import HTTPError
@@ -15,7 +16,6 @@ from IPython.nbformat import v4 as nbformat
 
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.traitlets import TraitError
-from IPython.html.utils import url_path_join
 from IPython.testing import decorators as dec
 
 from ..filemanager import FileContentsManager
@@ -33,6 +33,16 @@ def _make_dir(contents_manager, api_path):
 
 
 class TestFileContentsManager(TestCase):
+
+    @contextmanager
+    def assertRaisesHTTPError(self, status, msg=None):
+        msg = msg or "Should have raised HTTPError(%i)" % status
+        try:
+            yield
+        except HTTPError as e:
+            self.assertEqual(e.status_code, status)
+        else:
+            self.fail(msg)
 
     def symlink(self, contents_manager, src, dst):
         """Make a symlink to src from dst
@@ -152,6 +162,30 @@ class TestFileContentsManager(TestCase):
             else:
                 self.fail("Should have raised HTTPError(403)")
 
+    def test_escape_root(self):
+        with TemporaryDirectory() as td:
+            cm = FileContentsManager(root_dir=td)
+            # make foo, bar next to root
+            with open(os.path.join(cm.root_dir, '..', 'foo'), 'w') as f:
+                f.write('foo')
+            with open(os.path.join(cm.root_dir, '..', 'bar'), 'w') as f:
+                f.write('bar')
+
+            with self.assertRaisesHTTPError(404):
+                cm.get('..')
+            with self.assertRaisesHTTPError(404):
+                cm.get('foo/../../../bar')
+            with self.assertRaisesHTTPError(404):
+                cm.delete('../foo')
+            with self.assertRaisesHTTPError(404):
+                cm.rename('../foo', '../bar')
+            with self.assertRaisesHTTPError(404):
+                cm.save(model={
+                    'type': 'file',
+                    'content': u'',
+                    'format': 'text',
+                }, path='../foo')
+
 
 class TestContentsManager(TestCase):
     
@@ -164,7 +198,7 @@ class TestContentsManager(TestCase):
 
     def tearDown(self):
         self._temp_dir.cleanup()
-
+    
     def make_dir(self, api_path):
         """make a subdirectory at api_path
         
@@ -222,6 +256,33 @@ class TestContentsManager(TestCase):
         self.assertEqual(model['type'], 'file')
         self.assertEqual(model['name'], 'untitled')
         self.assertEqual(model['path'], '%s/untitled' % sub_dir)
+
+    def test_modified_date(self):
+
+        cm = self.contents_manager
+
+        # Create a new notebook.
+        nb, name, path = self.new_notebook()
+        model = cm.get(path)
+
+        # Add a cell and save.
+        self.add_code_cell(model['content'])
+        cm.save(model, path)
+
+        # Reload notebook and verify that last_modified incremented.
+        saved = cm.get(path)
+        self.assertGreaterEqual(saved['last_modified'], model['last_modified'])
+
+        # Move the notebook and verify that last_modified stayed the same.
+        # (The frontend fires a warning if last_modified increases on the
+        # renamed file.)
+        new_path = 'renamed.ipynb'
+        cm.rename(path, new_path)
+        renamed = cm.get(new_path)
+        self.assertGreaterEqual(
+            renamed['last_modified'],
+            saved['last_modified'],
+        )
 
     def test_get(self):
         cm = self.contents_manager
@@ -399,6 +460,12 @@ class TestContentsManager(TestCase):
         # Check that a 'get' on the deleted notebook raises and error
         self.assertRaises(HTTPError, cm.get, path)
 
+    def test_delete_root(self):
+        cm = self.contents_manager
+        with self.assertRaises(HTTPError) as err:
+            cm.delete('')
+        self.assertEqual(err.exception.status_code, 400)
+
     def test_copy(self):
         cm = self.contents_manager
         parent = u'å b'
@@ -461,4 +528,3 @@ class TestContentsManager(TestCase):
         cm.mark_trusted_cells(nb, path)
         cm.check_and_sign(nb, path)
         assert cm.notary.check_signature(nb)
-

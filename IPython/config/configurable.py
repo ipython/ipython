@@ -69,6 +69,11 @@ class Configurable(HasTraits):
             self.parent = parent
         
         config = kwargs.pop('config', None)
+        
+        # load kwarg traits, other than config
+        super(Configurable, self).__init__(**kwargs)
+        
+        # load config
         if config is not None:
             # We used to deepcopy, but for now we are trying to just save
             # by reference.  This *could* have side effects as all components
@@ -81,9 +86,12 @@ class Configurable(HasTraits):
         else:
             # allow _config_default to return something
             self._load_config(self.config)
-        # This should go second so individual keyword arguments override
-        # the values in config.
-        super(Configurable, self).__init__(**kwargs)
+        
+        # Ensure explicit kwargs are applied after loading config.
+        # This is usually redundant, but ensures config doesn't override
+        # explicitly assigned values.
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
     #-------------------------------------------------------------------------
     # Static trait notifiations
@@ -130,17 +138,20 @@ class Configurable(HasTraits):
             section_names = self.section_names()
         
         my_config = self._find_my_config(cfg)
-        for name, config_value in iteritems(my_config):
-            if name in traits:
-                if isinstance(config_value, LazyConfigValue):
-                    # ConfigValue is a wrapper for using append / update on containers
-                    # without having to copy the 
-                    initial = getattr(self, name)
-                    config_value = config_value.get_value(initial)
-                # We have to do a deepcopy here if we don't deepcopy the entire
-                # config object. If we don't, a mutable config_value will be
-                # shared by all instances, effectively making it a class attribute.
-                setattr(self, name, deepcopy(config_value))
+        
+        # hold trait notifications until after all config has been loaded
+        with self.hold_trait_notifications():
+            for name, config_value in iteritems(my_config):
+                if name in traits:
+                    if isinstance(config_value, LazyConfigValue):
+                        # ConfigValue is a wrapper for using append / update on containers
+                        # without having to copy the initial value
+                        initial = getattr(self, name)
+                        config_value = config_value.get_value(initial)
+                    # We have to do a deepcopy here if we don't deepcopy the entire
+                    # config object. If we don't, a mutable config_value will be
+                    # shared by all instances, effectively making it a class attribute.
+                    setattr(self, name, deepcopy(config_value))
 
     def _config_changed(self, name, old, new):
         """Update all the class traits having ``config=True`` as metadata.

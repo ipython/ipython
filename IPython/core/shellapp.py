@@ -2,23 +2,10 @@
 """
 A mixin for :class:`~IPython.core.application.Application` classes that
 launch InteractiveShell instances, load extensions, etc.
-
-Authors
--------
-
-* Min Ragan-Kelley
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from __future__ import absolute_import
 from __future__ import print_function
@@ -152,11 +139,13 @@ class InteractiveShellApp(Configurable):
     extra_extension = Unicode('', config=True,
         help="dotted module name of an IPython extension to load."
     )
-    def _extra_extension_changed(self, name, old, new):
-        if new:
-            # add to self.extensions
-            self.extensions.append(new)
-    
+
+    reraise_ipython_extension_failures = Bool(
+        False,
+        config=True,
+        help="Reraise exceptions encountered loading IPython extensions?",
+    )
+
     # Extensions that are always loaded (not configurable)
     default_extensions = List(Unicode, [u'storemagic'], config=False)
     
@@ -184,15 +173,15 @@ class InteractiveShellApp(Configurable):
     module_to_run = Unicode('', config=True,
         help="Run the module as a script."
     )
-    gui = CaselessStrEnum(gui_keys, config=True,
+    gui = CaselessStrEnum(gui_keys, config=True, allow_none=True,
         help="Enable GUI event loop integration with any of {0}.".format(gui_keys)
     )
-    matplotlib = CaselessStrEnum(backend_keys,
+    matplotlib = CaselessStrEnum(backend_keys, allow_none=True,
         config=True,
         help="""Configure matplotlib for interactive use with
         the default matplotlib backend."""
     )
-    pylab = CaselessStrEnum(backend_keys,
+    pylab = CaselessStrEnum(backend_keys, allow_none=True,
         config=True,
         help="""Pre-load matplotlib and numpy for interactive use,
         selecting a particular matplotlib backend and loop integration.
@@ -269,11 +258,15 @@ class InteractiveShellApp(Configurable):
         try:
             self.log.debug("Loading IPython extensions...")
             extensions = self.default_extensions + self.extensions
+            if self.extra_extension:
+                extensions.append(self.extra_extension)
             for ext in extensions:
                 try:
                     self.log.info("Loading IPython extension: %s" % ext)
                     self.shell.extension_manager.load_extension(ext)
                 except:
+                    if self.reraise_ipython_extension_failures:
+                        raise
                     msg = ("Error in loading extension: {ext}\n"
                            "Check your config files in {location}".format(
                                ext=ext,
@@ -281,6 +274,8 @@ class InteractiveShellApp(Configurable):
                            ))
                     self.log.warn(msg, exc_info=True)
         except:
+            if self.reraise_ipython_extension_failures:
+                raise
             self.log.warn("Unknown error in loading extensions:", exc_info=True)
 
     def init_code(self):

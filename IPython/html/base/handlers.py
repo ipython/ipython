@@ -404,7 +404,7 @@ class FileFindHandler(web.StaticFileHandler):
         # disable browser caching, rely on 304 replies for savings
         if "v" not in self.request.arguments or \
                 any(self.request.path.startswith(path) for path in self.no_cache_paths):
-            self.add_header("Cache-Control", "no-cache")
+            self.set_header("Cache-Control", "no-cache")
     
     def initialize(self, path, default_filename=None, no_cache_paths=None):
         self.no_cache_paths = no_cache_paths or []

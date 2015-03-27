@@ -28,6 +28,7 @@ help:
 	@echo "  info        Texinfo files and run them through makeinfo"
 	@echo "  changes     an overview over all changed/added/deprecated items"
 	@echo "  linkcheck   check all external links for integrity (takes a long time)"
+	@echo "  gh-pages    clone IPython docs in ./gh-pages/ , build doc, autocommit"
 	@echo
 	@echo "Compound utility targets:"
 	@echo "pdf          latex and then runs the PDF generation"

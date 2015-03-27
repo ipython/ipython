@@ -60,7 +60,7 @@ def test_ipython_embed():
 @skip_win32
 def test_nest_embed():
     """test that `IPython.embed()` is nestable"""
-    from IPython.external import pexpect
+    import pexpect
     ipy_prompt = r']:' #ansi color codes give problems matching beyond this
 
 

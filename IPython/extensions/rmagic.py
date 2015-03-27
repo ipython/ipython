@@ -73,7 +73,7 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.core.magic_arguments import (
     argument, magic_arguments, parse_argstring
 )
-from IPython.external.simplegeneric import generic
+from simplegeneric import generic
 from IPython.utils.py3compat import (str_to_unicode, unicode_to_str, PY3,
                                      unicode_type)
 from IPython.utils.text import dedent

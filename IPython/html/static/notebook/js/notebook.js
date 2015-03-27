@@ -695,6 +695,16 @@ define(function (require) {
             cell.focus_editor();
         }
     };
+    
+    /**
+     * Ensure either cell, or codemirror is focused. Is none 
+     * is focused, focus the cell.
+     */
+    Notebook.prototype.ensure_focused = function(){
+        var cell = this.get_selected_cell();
+        if (cell === null) {return;}  // No cell is selected
+        cell.ensure_focused();
+    }
 
     /**
      * Focus the currently selected cell.
@@ -2074,6 +2084,7 @@ define(function (require) {
             function (json) {
                 that.notebook_name = json.name;
                 that.notebook_path = json.path;
+                that.last_modified = new Date(json.last_modified);
                 that.session.rename_notebook(json.path);
                 that.events.trigger('notebook_renamed.Notebook', json);
             }

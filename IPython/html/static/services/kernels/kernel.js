@@ -41,6 +41,7 @@ define([
         this.username = "username";
         this.session_id = utils.uuid();
         this._msg_callbacks = {};
+        this._msg_queue = Promise.resolve();
         this.info_reply = {}; // kernel_info_reply stored here after starting
 
         if (typeof(WebSocket) !== 'undefined') {
@@ -854,19 +855,23 @@ define([
     };
     
     Kernel.prototype._handle_ws_message = function (e) {
-        serialize.deserialize(e.data, $.proxy(this._finish_ws_message, this));
+        var that = this;
+        this._msg_queue = this._msg_queue.then(function() {
+            return serialize.deserialize(e.data);
+        }).then(function(msg) {return that._finish_ws_message(msg);})
+        .catch(utils.reject("Couldn't process kernel message", true));
     };
 
     Kernel.prototype._finish_ws_message = function (msg) {
         switch (msg.channel) {
             case 'shell':
-                this._handle_shell_reply(msg);
+                return this._handle_shell_reply(msg);
                 break;
             case 'iopub':
-                this._handle_iopub_message(msg);
+                return this._handle_iopub_message(msg);
                 break;
             case 'stdin':
-                this._handle_input_request(msg);
+                return this._handle_input_request(msg);
                 break;
             default:
                 console.error("unrecognized message channel", msg.channel, msg);
@@ -875,10 +880,12 @@ define([
     
     Kernel.prototype._handle_shell_reply = function (reply) {
         this.events.trigger('shell_reply.Kernel', {kernel: this, reply:reply});
+        var that = this;
         var content = reply.content;
         var metadata = reply.metadata;
         var parent_id = reply.parent_header.msg_id;
         var callbacks = this.get_callbacks_for_msg(parent_id);
+        var promise = Promise.resolve();
         if (!callbacks || !callbacks.shell) {
             return;
         }
@@ -888,17 +895,21 @@ define([
         this._finish_shell(parent_id);
         
         if (shell_callbacks.reply !== undefined) {
-            shell_callbacks.reply(reply);
+            promise = promise.then(function() {return shell_callbacks.reply(reply)});
         }
         if (content.payload && shell_callbacks.payload) {
-            this._handle_payloads(content.payload, shell_callbacks.payload, reply);
+            promise = promise.then(function() {
+                return that._handle_payloads(content.payload, shell_callbacks.payload, reply);
+            });
         }
+        return promise;
     };
 
     /**
      * @function _handle_payloads
      */
     Kernel.prototype._handle_payloads = function (payloads, payload_callbacks, msg) {
+        var promise = [];
         var l = payloads.length;
         // Payloads are handled by triggering events because we don't want the Kernel
         // to depend on the Notebook or Pager classes.
@@ -906,9 +917,10 @@ define([
             var payload = payloads[i];
             var callback = payload_callbacks[payload.source];
             if (callback) {
-                callback(payload, msg);
+                promise.push(callback(payload, msg));
             }
         }
+        return Promise.all(promise);
     };
 
     /**
@@ -1021,7 +1033,7 @@ define([
     Kernel.prototype._handle_iopub_message = function (msg) {
         var handler = this.get_iopub_handler(msg.header.msg_type);
         if (handler !== undefined) {
-            handler(msg);
+            return handler(msg);
         }
     };
 

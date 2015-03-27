@@ -42,12 +42,6 @@ from IPython.external.decorators import KnownFailure, knownfailureif
 
 pjoin = path.join
 
-
-#-----------------------------------------------------------------------------
-# Globals
-#-----------------------------------------------------------------------------
-
-
 #-----------------------------------------------------------------------------
 # Warnings control
 #-----------------------------------------------------------------------------
@@ -127,7 +121,7 @@ have = {}
 have['curses'] = test_for('_curses')
 have['matplotlib'] = test_for('matplotlib')
 have['numpy'] = test_for('numpy')
-have['pexpect'] = test_for('IPython.external.pexpect')
+have['pexpect'] = test_for('pexpect')
 have['pymongo'] = test_for('pymongo')
 have['pygments'] = test_for('pygments')
 have['qt'] = test_for('IPython.external.qt')
@@ -176,8 +170,13 @@ class TestSection(object):
     def will_run(self):
         return self.enabled and all(have[p] for p in self.dependencies)
 
+shims = {
+    'parallel': 'ipython_parallel',
+}
+
 # Name -> (include, exclude, dependencies_met)
-test_sections = {n:TestSection(n, ['IPython.%s' % n]) for n in test_group_names}
+test_sections = {n:TestSection(n, [shims.get(n, 'IPython.%s' % n)]) for n in test_group_names}
+
 
 # Exclusions and dependencies
 # ---------------------------

@@ -354,8 +354,6 @@ class NotebookApp(BaseIPythonApplication):
         list=(NbserverListApp, NbserverListApp.description.splitlines()[0]),
     )
 
-    ipython_kernel_argv = List(Unicode)
-    
     _log_formatter_cls = LogFormatter
 
     def _log_level_default(self):
@@ -410,6 +408,20 @@ class NotebookApp(BaseIPythonApplication):
     ip = Unicode('localhost', config=True,
         help="The IP address the notebook server will listen on."
     )
+    def _ip_default(self):
+        """Return localhost if available, 127.0.0.1 otherwise.
+        
+        On some (horribly broken) systems, localhost cannot be bound.
+        """
+        s = socket.socket()
+        try:
+            s.bind(('localhost', 0))
+        except socket.error as e:
+            self.log.warn("Cannot bind to localhost, using 127.0.0.1 as default ip\n%s", e)
+            return '127.0.0.1'
+        else:
+            s.close()
+            return 'localhost'
 
     def _ip_changed(self, name, old, new):
         if new == u'*': self.ip = u''
@@ -737,6 +749,12 @@ class NotebookApp(BaseIPythonApplication):
               "This is an experimental API, and may change in future releases.")
     )
 
+    reraise_server_extension_failures = Bool(
+        False,
+        config=True,
+        help="Reraise exceptions encountered loading server extensions?",
+    )
+
     def parse_command_line(self, argv=None):
         super(NotebookApp, self).parse_command_line(argv)
         
@@ -757,12 +775,6 @@ class NotebookApp(BaseIPythonApplication):
                 c.NotebookApp.file_to_run = f
             self.update_config(c)
 
-    def init_kernel_argv(self):
-        """add the profile-dir to arguments to be passed to IPython kernels"""
-        # FIXME: remove special treatment of IPython kernels
-        # Kernel should get *absolute* path to profile directory
-        self.ipython_kernel_argv = ["--profile-dir", self.profile_dir.location]
-
     def init_configurables(self):
         self.kernel_spec_manager = self.kernel_spec_manager_class(
             parent=self,
@@ -771,7 +783,6 @@ class NotebookApp(BaseIPythonApplication):
         self.kernel_manager = self.kernel_manager_class(
             parent=self,
             log=self.log,
-            ipython_kernel_argv=self.ipython_kernel_argv,
             connection_dir=self.profile_dir.security_dir,
         )
         self.contents_manager = self.contents_manager_class(
@@ -970,6 +981,8 @@ class NotebookApp(BaseIPythonApplication):
                 if func is not None:
                     func(self)
             except Exception:
+                if self.reraise_server_extension_failures:
+                    raise
                 self.log.warn("Error loading server extension %s", modulename,
                               exc_info=True)
     
@@ -977,7 +990,6 @@ class NotebookApp(BaseIPythonApplication):
     def initialize(self, argv=None):
         super(NotebookApp, self).initialize(argv)
         self.init_logging()
-        self.init_kernel_argv()
         self.init_configurables()
         self.init_components()
         self.init_webapp()

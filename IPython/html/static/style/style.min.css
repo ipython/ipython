@@ -8572,10 +8572,11 @@ span#login_widget > .button .badge,
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  min-height: 80%;
+  min-height: 80vh;
 }
 .modal_stretch .modal-dialog .modal-body {
-  max-height: none;
+  max-height: calc(100vh - 200px);
+  overflow: auto;
   flex: 1;
 }
 @media (min-width: 768px) {
@@ -8620,10 +8621,8 @@ span#login_widget > .button .badge,
   width: 12ex;
   margin-right: -12ex;
 }
-.alternate_upload .input-overlay {
-  display: inline-block;
-  font-weight: bold;
-  line-height: 1em;
+.alternate_upload .btn-upload {
+  height: 22px;
 }
 /**
  * Primary styles
@@ -8656,6 +8655,7 @@ ul.breadcrumb span {
   padding-top: 1px;
 }
 .dynamic-buttons {
+  padding-top: 3px;
   display: inline-block;
 }
 .list_toolbar [class*="span"] {
@@ -8738,7 +8738,6 @@ ul.breadcrumb span {
   vertical-align: baseline;
 }
 .item_buttons {
-  padding-top: 4px;
   line-height: 1em;
   margin-left: -5px;
 }
@@ -8755,6 +8754,7 @@ ul.breadcrumb span {
   min-width: 13ex;
 }
 .item_buttons .running-indicator {
+  padding-top: 4px;
   color: #5cb85c;
 }
 .toolbar_info {
@@ -8787,12 +8787,17 @@ input.engine_num_input {
   font-weight: bold;
 }
 #tree-selector {
-  display: inline-block;
   padding-right: 0px;
 }
-#tree-selector input[type=checkbox] {
+#button-select-all {
+  min-width: 50px;
+}
+#select-all {
   margin-left: 7px;
-  vertical-align: baseline;
+  margin-right: 2px;
+}
+.menu_icon {
+  margin-right: 2px;
 }
 .tab-content .row {
   margin-left: 0px;
@@ -8933,6 +8938,10 @@ ul#new-menu {
 }
 .shutdown-button {
   display: none;
+}
+.dynamic-instructions {
+  display: inline-block;
+  padding-top: 4px;
 }
 /*!
 *
@@ -9530,6 +9539,7 @@ div.output_wrapper {
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  z-index: 1;
 }
 /* class for the output area when it should be height-limited */
 div.output_scroll {
@@ -10259,6 +10269,12 @@ h6:hover .anchor-link {
 .widget_item .dropdown-menu li a {
   color: inherit;
 }
+.widget-valid {
+  margin-top: 9px;
+  margin-bottom: 10px;
+  margin-left: 3px;
+  margin-right: 3px;
+}
 .widget-hbox {
   /* Horizontal widgets */
   /* Old browsers */
@@ -10358,8 +10374,6 @@ h6:hover .anchor-link {
 }
 .widget-radio-box label {
   margin-top: 0px;
-}
-.widget-radio {
   margin-left: 20px;
 }
 /*!

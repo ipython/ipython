@@ -48,8 +48,7 @@ def dir2(obj):
     """dir2(obj) -> list of strings
 
     Extended version of the Python builtin dir(), which does a few extra
-    checks, and supports common objects with unusual internals that confuse
-    dir(), such as Traits and PyCrust.
+    checks, and handles Traits objects, which can confuse dir().
 
     This version is guaranteed to return only a list of true strings, whereas
     dir() returns anything that objects inject into themselves, even if they
@@ -72,15 +71,13 @@ def dir2(obj):
 
 
     # for objects with Enthought's traits, add trait_names() list
-    # for PyCrust-style, add _getAttributeNames() magic method list
-    for attr in ('trait_names', '_getAttributeNames'):
-        try:
-            func = getattr(obj, attr)
-            if callable(func):
-                words |= set(func())
-        except:
-            # TypeError: obj is class not instance
-            pass
+    try:
+        func = getattr(obj, 'trait_names')
+        if callable(func):
+            words |= set(func())
+    except:
+        # TypeError: obj is class not instance
+        pass
 
     # filter out non-string attributes which may be stuffed by dir() calls
     # and poor coding in third-party modules

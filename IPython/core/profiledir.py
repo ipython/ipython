@@ -114,7 +114,7 @@ class ProfileDir(LoggingConfigurable):
         self._mkdir(self.startup_dir)
 
         readme = os.path.join(self.startup_dir, 'README')
-        src = os.path.join(get_ipython_package_dir(), u'config', u'profile', u'README_STARTUP')
+        src = os.path.join(get_ipython_package_dir(), u'core', u'profile', u'README_STARTUP')
 
         if not os.path.exists(src):
             self.log.warn("Could not copy README_STARTUP to startup dir. Source file %s does not exist.", src)
@@ -169,7 +169,7 @@ class ProfileDir(LoggingConfigurable):
         if os.path.isfile(dst) and not overwrite:
             return False
         if path is None:
-            path = os.path.join(get_ipython_package_dir(), u'config', u'profile', u'default')
+            path = os.path.join(get_ipython_package_dir(), u'core', u'profile', u'default')
         src = os.path.join(path, config_file)
         shutil.copy(src, dst)
         return True

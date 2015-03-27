@@ -1,7 +1,9 @@
 div.output_wrapper {
     /* this position must be relative to enable descendents to be absolute within it */
     position: relative;
-    .vbox()
+    .vbox();
+    // avoid scrolled output overlaying input in some strange circumstances
+    z-index: 1;
 }
 
 /* class for the output area when it should be height-limited */

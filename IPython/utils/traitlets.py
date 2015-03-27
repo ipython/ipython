@@ -51,7 +51,9 @@ try:
     ClassTypes = (ClassType, type)
 except:
     ClassTypes = (type,)
+from warnings import warn
 
+from .getargspec import getargspec
 from .importstring import import_item
 from IPython.utils import py3compat
 from IPython.utils import eventful
@@ -293,6 +295,7 @@ class directional_link(object):
 
 dlink = directional_link
 
+
 #-----------------------------------------------------------------------------
 # Base TraitType for all traits
 #-----------------------------------------------------------------------------
@@ -330,6 +333,13 @@ class TraitType(object):
         if allow_none is not None:
             self.allow_none = allow_none
 
+        if 'default' in metadata:
+            # Warn the user that they probably meant default_value.
+            warn(
+                "Parameter 'default' passed to TraitType. "
+                "Did you mean 'default_value'?"
+            )
+
         if len(metadata) > 0:
             if len(self.metadata) > 0:
                 self._metadata = self.metadata.copy()
@@ -348,33 +358,43 @@ class TraitType(object):
         """Create a new instance of the default value."""
         return self.default_value
 
-    def instance_init(self, obj):
-        """This is called by :meth:`HasTraits.__new__` to finish init'ing.
+    def instance_init(self):
+        """Part of the initialization which may depends on the underlying
+        HasTraits instance.
 
-        Some stages of initialization must be delayed until the parent
-        :class:`HasTraits` instance has been created.  This method is
-        called in :meth:`HasTraits.__new__` after the instance has been
-        created.
+        It is typically overloaded for specific trait types.
 
-        This method trigger the creation and validation of default values
-        and also things like the resolution of str given class names in
-        :class:`Type` and :class`Instance`.
+        This method is called by :meth:`HasTraits.__new__` and in the
+        :meth:`TraitType.instance_init` method of trait types holding
+        other trait types.
+        """
+        pass
 
+    def init_default_value(self, obj):
+        """Instantiate the default value for the trait type.
+
+        This method is called by :meth:`TraitType.set_default_value` in the
+        case a default value is provided at construction time or later when
+        accessing the trait value for the first time in
+        :meth:`HasTraits.__get__`.
+        """
+        value = self.get_default_value()
+        value = self._validate(obj, value)
+        obj._trait_values[self.name] = value
+        return value
+
+    def set_default_value(self, obj):
+        """Set the default value on a per instance basis.
+
+        This method is called by :meth:`HasTraits.__new__` to instantiate and
+        validate the default value. The creation and validation of
+        default values must be delayed until the parent :class:`HasTraits`
+        class has been instantiated.
         Parameters
         ----------
         obj : :class:`HasTraits` instance
             The parent :class:`HasTraits` instance that has just been
             created.
-        """
-        self.set_default_value(obj)
-
-    def set_default_value(self, obj):
-        """Set the default value on a per instance basis.
-
-        This method is called by :meth:`instance_init` to create and
-        validate the default value.  The creation and validation of
-        default values must be delayed until the parent :class:`HasTraits`
-        class has been instantiated.
         """
         # Check for a deferred initializer defined in the same class as the
         # trait declaration or above.
@@ -385,13 +405,11 @@ class TraitType(object):
                 break
         else:
             # We didn't find one. Do static initialization.
-            dv = self.get_default_value()
-            newdv = self._validate(obj, dv)
-            obj._trait_values[self.name] = newdv
+            self.init_default_value(obj)
             return
         # Complete the dynamic initialization.
         obj._trait_dyn_inits[self.name] = meth_name
-    
+
     def __get__(self, obj, cls=None):
         """Get the value of the trait by self.name for the instance.
 
@@ -415,14 +433,12 @@ class TraitType(object):
                     obj._trait_values[self.name] = value
                     return value
                 else:
-                    raise TraitError('Unexpected error in TraitType: '
-                        'both default value and dynamic initializer are '
-                        'absent.')
+                    return self.init_default_value(obj)
             except Exception:
                 # HasTraits should call set_default_value to populate
                 # this.  So this should never be reached.
                 raise TraitError('Unexpected error in TraitType: '
-                                    'default value not set properly')
+                                 'default value not set properly')
             else:
                 return value
 
@@ -448,17 +464,15 @@ class TraitType(object):
         if value is None and self.allow_none:
             return value
         if hasattr(self, 'validate'):
-            return self.validate(obj, value)
-        elif hasattr(self, 'is_valid_for'):
-            valid = self.is_valid_for(value)
-            if valid:
-                return value
-            else:
-                raise TraitError('invalid value for type: %r' % value)
-        elif hasattr(self, 'value_for'):
-            return self.value_for(value)
+            value = self.validate(obj, value)
+        try:
+            obj_validate = getattr(obj, '_%s_validate' % self.name)
+        except (AttributeError, RuntimeError):
+            # Qt mixins raise RuntimeError on missing attrs accessed before __init__
+            pass
         else:
-            return value
+            value = obj_validate(value, self)
+        return value
 
     def __or__(self, other):
         if isinstance(other, Union):
@@ -553,7 +567,9 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
                 pass
             else:
                 if isinstance(value, TraitType):
-                    value.instance_init(inst)
+                    value.instance_init()
+                    if key not in kw:
+                        value.set_default_value(inst)
 
         return inst
 
@@ -561,8 +577,36 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
         # Allow trait values to be set using keyword arguments.
         # We need to use setattr for this to trigger validation and
         # notifications.
-        for key, value in iteritems(kw):
-            setattr(self, key, value)
+        
+        with self.hold_trait_notifications():
+            for key, value in iteritems(kw):
+                setattr(self, key, value)
+    
+    @contextlib.contextmanager
+    def hold_trait_notifications(self):
+        """Context manager for bundling trait change notifications
+        
+        Use this when doing multiple trait assignments (init, config),
+        to avoid race conditions in trait notifiers requesting other trait values.
+        All trait notifications will fire after all values have been assigned.
+        """
+        _notify_trait = self._notify_trait
+        notifications = []
+        self._notify_trait = lambda *a: notifications.append(a)
+        
+        try:
+            yield
+        finally:
+            self._notify_trait = _notify_trait
+            if isinstance(_notify_trait, types.MethodType):
+                # FIXME: remove when support is bumped to 3.4.
+                # when original method is restored,
+                # remove the redundant value from __dict__
+                # (only used to preserve pickleability on Python < 3.4)
+                self.__dict__.pop('_notify_trait', None)
+        # trigger delayed notifications
+        for args in notifications:
+            self._notify_trait(*args)
 
     def _notify_trait(self, name, old_value, new_value):
 
@@ -583,7 +627,8 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
         for c in callables:
             # Traits catches and logs errors here.  I allow them to raise
             if callable(c):
-                argspec = inspect.getargspec(c)
+                argspec = getargspec(c)
+
                 nargs = len(argspec[0])
                 # Bound methods have an additional 'self' argument
                 # I don't know how to treat unbound methods, but they
@@ -822,7 +867,7 @@ class Type(ClassBasedTraitType):
             may be specified in a string like: 'foo.bar.MyClass'.
             The string is resolved into real class, when the parent
             :class:`HasTraits` class is instantiated.
-        allow_none : boolean
+        allow_none : bool [ default True ]
             Indicates whether None is allowed as an assignable value. Even if
             ``False``, the default value may be ``None``.
         """
@@ -846,7 +891,7 @@ class Type(ClassBasedTraitType):
                 value = self._resolve_string(value)
             except ImportError:
                 raise TraitError("The '%s' trait of %s instance must be a type, but "
-                                "%r could not be imported" % (self.name, obj, value))
+                                 "%r could not be imported" % (self.name, obj, value))
         try:
             if issubclass(value, self.klass):
                 return value
@@ -866,9 +911,9 @@ class Type(ClassBasedTraitType):
             return result + ' or None'
         return result
 
-    def instance_init(self, obj):
+    def instance_init(self):
         self._resolve_classes()
-        super(Type, self).instance_init(obj)
+        super(Type, self).instance_init()
 
     def _resolve_classes(self):
         if isinstance(self.klass, py3compat.string_types):
@@ -919,7 +964,7 @@ class Instance(ClassBasedTraitType):
             Positional arguments for generating the default value.
         kw : dict
             Keyword arguments for generating the default value.
-        allow_none : bool
+        allow_none : bool [default True]
             Indicates whether None is allowed as a value.
 
         Notes
@@ -975,9 +1020,9 @@ class Instance(ClassBasedTraitType):
 
         return result
 
-    def instance_init(self, obj):
+    def instance_init(self):
         self._resolve_classes()
-        super(Instance, self).instance_init(obj)
+        super(Instance, self).instance_init()
 
     def _resolve_classes(self):
         if isinstance(self.klass, py3compat.string_types):
@@ -1054,7 +1099,8 @@ class Union(TraitType):
         """Construct a Union  trait.
 
         This trait allows values that are allowed by at least one of the
-        specified trait types.
+        specified trait types. A Union traitlet cannot have metadata on
+        its own, besides the metadata of the listed types.
 
         Parameters
         ----------
@@ -1071,16 +1117,12 @@ class Union(TraitType):
         self.default_value = self.trait_types[0].get_default_value()
         super(Union, self).__init__(**metadata)
 
-    def _resolve_classes(self):
+    def instance_init(self):
         for trait_type in self.trait_types:
             trait_type.name = self.name
             trait_type.this_class = self.this_class
-            if hasattr(trait_type, '_resolve_classes'):
-                trait_type._resolve_classes()
-
-    def instance_init(self, obj):
-        self._resolve_classes()
-        super(Union, self).instance_init(obj)
+            trait_type.instance_init()
+        super(Union, self).instance_init()
 
     def validate(self, obj, value):
         for trait_type in self.trait_types:
@@ -1340,9 +1382,9 @@ class CBool(Bool):
 class Enum(TraitType):
     """An enum that whose value must be in a given sequence."""
 
-    def __init__(self, values, default_value=None, allow_none=True, **metadata):
+    def __init__(self, values, default_value=None, **metadata):
         self.values = values
-        super(Enum, self).__init__(default_value, allow_none=allow_none, **metadata)
+        super(Enum, self).__init__(default_value, **metadata)
 
     def validate(self, obj, value):
         if value in self.values:
@@ -1378,7 +1420,7 @@ class Container(Instance):
     _valid_defaults = SequenceTypes
     _trait = None
 
-    def __init__(self, trait=None, default_value=None, allow_none=True,
+    def __init__(self, trait=None, default_value=None, allow_none=False,
                 **metadata):
         """Create a container trait type from a list, set, or tuple.
 
@@ -1404,7 +1446,7 @@ class Container(Instance):
             The default value for the Trait.  Must be list/tuple/set, and
             will be cast to the container type.
 
-        allow_none : Bool [ default True ]
+        allow_none : bool [ default False ]
             Whether to allow the value to be None
 
         **metadata : any
@@ -1461,12 +1503,11 @@ class Container(Instance):
                 validated.append(v)
         return self.klass(validated)
 
-    def instance_init(self, obj):
+    def instance_init(self):
         if isinstance(self._trait, TraitType):
             self._trait.this_class = self.this_class
-        if hasattr(self._trait, '_resolve_classes'):
-            self._trait._resolve_classes()
-        super(Container, self).instance_init(obj)
+            self._trait.instance_init()
+        super(Container, self).instance_init()
 
 
 class List(Container):
@@ -1474,8 +1515,7 @@ class List(Container):
     klass = list
     _cast_types = (tuple,)
 
-    def __init__(self, trait=None, default_value=None, minlen=0, maxlen=sys.maxsize,
-                allow_none=True, **metadata):
+    def __init__(self, trait=None, default_value=None, minlen=0, maxlen=sys.maxsize, **metadata):
         """Create a List trait type from a list, set, or tuple.
 
         The default value is created by doing ``List(default_value)``,
@@ -1506,7 +1546,7 @@ class List(Container):
         maxlen : Int [ default sys.maxsize ]
             The maximum length of the input list
 
-        allow_none : Bool [ default True ]
+        allow_none : bool [ default False ]
             Whether to allow the value to be None
 
         **metadata : any
@@ -1516,7 +1556,7 @@ class List(Container):
         self._minlen = minlen
         self._maxlen = maxlen
         super(List, self).__init__(trait=trait, default_value=default_value,
-                                allow_none=allow_none, **metadata)
+                                **metadata)
 
     def length_error(self, obj, value):
         e = "The '%s' trait of %s instance must be of length %i <= L <= %i, but a value of %s was specified." \
@@ -1529,14 +1569,11 @@ class List(Container):
             self.length_error(obj, value)
 
         return super(List, self).validate_elements(obj, value)
-    
+
     def validate(self, obj, value):
         value = super(List, self).validate(obj, value)
-
         value = self.validate_elements(obj, value)
-
         return value
-        
 
 
 class Set(List):
@@ -1544,13 +1581,14 @@ class Set(List):
     klass = set
     _cast_types = (tuple, list)
 
+
 class Tuple(Container):
     """An instance of a Python tuple."""
     klass = tuple
     _cast_types = (list,)
 
     def __init__(self, *traits, **metadata):
-        """Tuple(*traits, default_value=None, allow_none=True, **medatata)
+        """Tuple(*traits, default_value=None, **medatata)
 
         Create a tuple from a list, set, or tuple.
 
@@ -1571,7 +1609,7 @@ class Tuple(Container):
         ----------
 
         *traits : TraitTypes [ optional ]
-            the tsype for restricting the contents of the Tuple.  If unspecified,
+            the types for restricting the contents of the Tuple.  If unspecified,
             types are not checked. If specified, then each positional argument
             corresponds to an element of the tuple.  Tuples defined with traits
             are of fixed length.
@@ -1581,7 +1619,7 @@ class Tuple(Container):
             will be cast to a tuple. If `traits` are specified, the
             `default_value` must conform to the shape and type they specify.
 
-        allow_none : Bool [ default True ]
+        allow_none : bool [ default False ]
             Whether to allow the value to be None
 
         **metadata : any
@@ -1612,8 +1650,7 @@ class Tuple(Container):
         if self._traits and default_value is None:
             # don't allow default to be an empty container if length is specified
             args = None
-        super(Container,self).__init__(klass=self.klass, args=args,
-                                  allow_none=allow_none, **metadata)
+        super(Container,self).__init__(klass=self.klass, args=args, **metadata)
 
     def validate_elements(self, obj, value):
         if not self._traits:
@@ -1625,7 +1662,7 @@ class Tuple(Container):
             raise TraitError(e)
 
         validated = []
-        for t,v in zip(self._traits, value):
+        for t, v in zip(self._traits, value):
             try:
                 v = t._validate(obj, v)
             except TraitError:
@@ -1634,24 +1671,43 @@ class Tuple(Container):
                 validated.append(v)
         return tuple(validated)
 
-    def instance_init(self, obj):
+    def instance_init(self):
         for trait in self._traits:
             if isinstance(trait, TraitType):
                 trait.this_class = self.this_class
-            if hasattr(trait, '_resolve_classes'):
-                trait._resolve_classes()
-        super(Container, self).instance_init(obj)
+                trait.instance_init()
+        super(Container, self).instance_init()
 
 
 class Dict(Instance):
     """An instance of a Python dict."""
+    _trait = None
 
-    def __init__(self, default_value={}, allow_none=True, **metadata):
+    def __init__(self, trait=None, default_value=NoDefaultSpecified, allow_none=False, **metadata):
         """Create a dict trait type from a dict.
 
         The default value is created by doing ``dict(default_value)``,
         which creates a copy of the ``default_value``.
+
+        trait : TraitType [ optional ]
+            the type for restricting the contents of the Container.  If unspecified,
+            types are not checked.
+
+        default_value : SequenceType [ optional ]
+            The default value for the Dict.  Must be dict, tuple, or None, and
+            will be cast to a dict if not None. If `trait` is specified, the
+            `default_value` must conform to the constraints it specifies.
+
+        allow_none : bool [ default False ]
+            Whether to allow the value to be None
+
         """
+        if default_value is NoDefaultSpecified and trait is not None:
+            if not is_trait(trait):
+                default_value = trait
+                trait = None
+        if default_value is NoDefaultSpecified:
+            default_value = {}
         if default_value is None:
             args = None
         elif isinstance(default_value, dict):
@@ -1661,14 +1717,52 @@ class Dict(Instance):
         else:
             raise TypeError('default value of Dict was %s' % default_value)
 
+        if is_trait(trait):
+            self._trait = trait() if isinstance(trait, type) else trait
+            self._trait.name = 'element'
+        elif trait is not None:
+            raise TypeError("`trait` must be a Trait or None, got %s"%repr_type(trait))
+
         super(Dict,self).__init__(klass=dict, args=args,
                                   allow_none=allow_none, **metadata)
+
+    def element_error(self, obj, element, validator):
+        e = "Element of the '%s' trait of %s instance must be %s, but a value of %s was specified." \
+            % (self.name, class_of(obj), validator.info(), repr_type(element))
+        raise TraitError(e)
+
+    def validate(self, obj, value):
+        value = super(Dict, self).validate(obj, value)
+        if value is None:
+            return value
+        value = self.validate_elements(obj, value)
+        return value
+
+    def validate_elements(self, obj, value):
+        if self._trait is None or isinstance(self._trait, Any):
+            return value
+        validated = {}
+        for key in value:
+            v = value[key]
+            try:
+                v = self._trait._validate(obj, v)
+            except TraitError:
+                self.element_error(obj, v, self._trait)
+            else:
+                validated[key] = v
+        return self.klass(validated)
+
+    def instance_init(self):
+        if isinstance(self._trait, TraitType):
+            self._trait.this_class = self.this_class
+            self._trait.instance_init()
+        super(Dict, self).instance_init()
 
 
 class EventfulDict(Instance):
     """An instance of an EventfulDict."""
 
-    def __init__(self, default_value={}, allow_none=True, **metadata):
+    def __init__(self, default_value={}, allow_none=False, **metadata):
         """Create a EventfulDict trait type from a dict.
 
         The default value is created by doing
@@ -1691,7 +1785,7 @@ class EventfulDict(Instance):
 class EventfulList(Instance):
     """An instance of an EventfulList."""
 
-    def __init__(self, default_value=None, allow_none=True, **metadata):
+    def __init__(self, default_value=None, allow_none=False, **metadata):
         """Create a EventfulList trait type from a dict.
 
         The default value is created by doing 

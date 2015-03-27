@@ -127,26 +127,26 @@ define([
             },
             mode: 'ipython',
             theme: 'ipython',
-            matchBrackets: true
-        }
-    };
-
-    CodeCell.config_defaults = {
+            matchBrackets: true,
+            autoCloseBrackets: true
+        },
         highlight_modes : {
-            'magic_javascript'    :{'reg':[/^%%javascript/]},
-            'magic_perl'          :{'reg':[/^%%perl/]},
-            'magic_ruby'          :{'reg':[/^%%ruby/]},
-            'magic_python'        :{'reg':[/^%%python3?/]},
-            'magic_shell'         :{'reg':[/^%%bash/]},
-            'magic_r'             :{'reg':[/^%%R/]},
-            'magic_text/x-cython' :{'reg':[/^%%cython/]},
+            'magic_javascript'    :{'reg':['^%%javascript']},
+            'magic_perl'          :{'reg':['^%%perl']},
+            'magic_ruby'          :{'reg':['^%%ruby']},
+            'magic_python'        :{'reg':['^%%python3?']},
+            'magic_shell'         :{'reg':['^%%bash']},
+            'magic_r'             :{'reg':['^%%R']},
+            'magic_text/x-cython' :{'reg':['^%%cython']},
         },
     };
+
+    CodeCell.config_defaults = CodeCell.options_default;
 
     CodeCell.msg_cells = {};
 
     CodeCell.prototype = Object.create(Cell.prototype);
-
+    
     /** @method create_element */
     CodeCell.prototype.create_element = function () {
         Cell.prototype.create_element.apply(this, arguments);

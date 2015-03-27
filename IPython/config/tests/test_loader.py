@@ -4,6 +4,8 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import copy
+import logging
 import os
 import pickle
 import sys
@@ -33,7 +35,7 @@ c = get_config()
 c.a=10
 c.b=20
 c.Foo.Bar.value=10
-c.Foo.Bam.value=list(range(10))  # list() is just so it's the same on Python 3
+c.Foo.Bam.value=list(range(10))
 c.D.C.value='hi there'
 """
 
@@ -188,14 +190,23 @@ class TestArgParseCL(TestCase):
 class TestKeyValueCL(TestCase):
     klass = KeyValueConfigLoader
 
+    def test_eval(self):
+        cl = self.klass(log=log)
+        config = cl.load_config('--Class.str_trait=all --Class.int_trait=5 --Class.list_trait=["hello",5]'.split())
+        self.assertEqual(config.Class.str_trait, 'all')
+        self.assertEqual(config.Class.int_trait, 5)
+        self.assertEqual(config.Class.list_trait, ["hello", 5])
+
     def test_basic(self):
         cl = self.klass(log=log)
-        argv = ['--'+s.strip('c.') for s in pyfile.split('\n')[2:-1]]
+        argv = [ '--' + s[2:] for s in pyfile.split('\n') if s.startswith('c.') ]
+        print(argv)
         config = cl.load_config(argv)
         self.assertEqual(config.a, 10)
         self.assertEqual(config.b, 20)
         self.assertEqual(config.Foo.Bar.value, 10)
-        self.assertEqual(config.Foo.Bam.value, list(range(10)))
+        # non-literal expressions are not evaluated
+        self.assertEqual(config.Foo.Bam.value, 'list(range(10))')
         self.assertEqual(config.D.C.value, 'hi there')
     
     def test_expanduser(self):
@@ -310,11 +321,15 @@ class TestConfig(TestCase):
         c1.Foo.bam = 30
         c1.a = 'asdf'
         c1.b = range(10)
-        import copy
+        c1.Test.logger = logging.Logger('test')
+        c1.Test.get_logger = logging.getLogger('test')
         c2 = copy.deepcopy(c1)
         self.assertEqual(c1, c2)
         self.assertTrue(c1 is not c2)
         self.assertTrue(c1.Foo is not c2.Foo)
+        self.assertTrue(c1.Test is not c2.Test)
+        self.assertTrue(c1.Test.logger is c2.Test.logger)
+        self.assertTrue(c1.Test.get_logger is c2.Test.get_logger)
 
     def test_builtin(self):
         c1 = Config()

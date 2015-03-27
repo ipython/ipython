@@ -14,7 +14,7 @@ import sys
 from copy import deepcopy
 from collections import defaultdict
 
-from IPython.external.decorator import decorator
+from decorator import decorator
 
 from IPython.config.configurable import SingletonConfigurable
 from IPython.config.loader import (
@@ -118,6 +118,9 @@ class Application(SingletonConfigurable):
     option_description = Unicode(option_description)
     keyvalue_description = Unicode(keyvalue_description)
     subcommand_description = Unicode(subcommand_description)
+    
+    python_config_loader_class = PyFileConfigLoader
+    json_config_loader_class = JSONFileConfigLoader
 
     # The usage and example string that goes at the end of the help string.
     examples = Unicode()
@@ -159,7 +162,7 @@ class Application(SingletonConfigurable):
         help="The date format used by logging formatters for %(asctime)s"
     )
     def _log_datefmt_changed(self, name, old, new):
-        self._log_format_changed()
+        self._log_format_changed('log_format', self.log_format, self.log_format)
     
     log_format = Unicode("[%(name)s]%(highlevel)s %(message)s", config=True,
         help="The Logging format template",
@@ -507,8 +510,8 @@ class Application(SingletonConfigurable):
             path = [path]
         for path in path[::-1]:
             # path list is in descending priority order, so load files backwards:
-            pyloader = PyFileConfigLoader(basefilename+'.py', path=path, log=log)
-            jsonloader = JSONFileConfigLoader(basefilename+'.json', path=path, log=log)
+            pyloader = cls.python_config_loader_class(basefilename+'.py', path=path, log=log)
+            jsonloader = cls.json_config_loader_class(basefilename+'.json', path=path, log=log)
             config = None
             for loader in [pyloader, jsonloader]:
                 try:
@@ -551,9 +554,7 @@ class Application(SingletonConfigurable):
 
     def generate_config_file(self):
         """generate default config file from Configurables"""
-        lines = ["# Configuration file for %s."%self.name]
-        lines.append('')
-        lines.append('c = get_config()')
+        lines = ["# Configuration file for %s." % self.name]
         lines.append('')
         for cls in self._config_classes:
             lines.append(cls.class_config_section())

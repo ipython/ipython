@@ -22,6 +22,7 @@ from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import Unicode, Dict, Instance, Bool, List, \
     CaselessStrEnum, Tuple, CUnicode, Int, Set
 from IPython.utils.py3compat import string_types
+from .trait_types import Color
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -140,7 +141,7 @@ class Widget(LoggingConfigurable):
     
     _property_lock = Tuple((None, None))
     _send_state_lock = Int(0)
-    _states_to_send = Set(allow_none=False)
+    _states_to_send = Set()
     _display_callbacks = Instance(CallbackDispatcher, ())
     _msg_callbacks = Instance(CallbackDispatcher, ())
     
@@ -438,9 +439,9 @@ class DOMWidget(Widget):
     padding = CUnicode(sync=True)
     margin = CUnicode(sync=True)
 
-    color = Unicode(sync=True)
-    background_color = Unicode(sync=True)
-    border_color = Unicode(sync=True)
+    color = Color(None, allow_none=True, sync=True)
+    background_color = Color(None, allow_none=True, sync=True)
+    border_color = Color(None, allow_none=True, sync=True)
 
     border_width = CUnicode(sync=True)
     border_radius = CUnicode(sync=True)

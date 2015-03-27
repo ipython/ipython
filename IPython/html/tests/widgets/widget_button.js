@@ -29,7 +29,7 @@ casper.notebook_test(function () {
             'Widget button exists.');
 
         this.test.assert(this.cell_element_function(button_index, 
-            widget_button_selector, 'html')=='Title',
+            widget_button_selector, 'html')=='<i class="fa"></i>Title',
             'Set button description.');
 
         this.cell_element_function(button_index, 

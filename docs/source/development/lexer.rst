@@ -7,7 +7,7 @@ New IPython Console Lexer
 
 The IPython console lexer has been rewritten and now supports tracebacks
 and customized input/output prompts. An entire suite of lexers is now
-available at :mod:`IPython.nbconvert.utils.lexers`. These include:
+available at :mod:`IPython.lib.lexers`. These include:
 
 IPythonLexer & IPython3Lexer
   Lexers for pure IPython (python + magic/shell commands)

@@ -16,7 +16,7 @@ import nose.tools as nt
 from nose import SkipTest
 
 from IPython.utils.traitlets import (
-    HasTraits, MetaHasTraits, TraitType, Any, Bool, CBytes, Dict,
+    HasTraits, MetaHasTraits, TraitType, Any, Bool, CBytes, Dict, Enum,
     Int, Long, Integer, Float, Complex, Bytes, Unicode, TraitError,
     Union, Undefined, Type, This, Instance, TCPAddress, List, Tuple,
     ObjectName, DottedObjectName, CRegExp, link, directional_link,
@@ -88,28 +88,6 @@ class TestTraitType(TestCase):
         class B(HasTraits):
             tt = MyIntTT('bad default')
         self.assertRaises(TraitError, B)
-
-    def test_is_valid_for(self):
-        class MyTT(TraitType):
-            def is_valid_for(self, value):
-                return True
-        class A(HasTraits):
-            tt = MyTT
-
-        a = A()
-        a.tt = 10
-        self.assertEqual(a.tt, 10)
-
-    def test_value_for(self):
-        class MyTT(TraitType):
-            def value_for(self, value):
-                return 20
-        class A(HasTraits):
-            tt = MyTT
-
-        a = A()
-        a.tt = 10
-        self.assertEqual(a.tt, 20)
 
     def test_info(self):
         class A(HasTraits):
@@ -941,7 +919,6 @@ class TestDottedObjectName(TraitTestBase):
 
 
 class TCPAddressTrait(HasTraits):
-
     value = TCPAddress()
 
 class TestTCPAddress(TraitTestBase):
@@ -998,8 +975,8 @@ class TestInstanceList(TraitTestBase):
         self.assertIs(self.obj.traits()['value']._trait.klass, Foo)
 
     _default_value = []
-    _good_values = [[Foo(), Foo(), None], None]
-    _bad_values = [['1', 2,], '1', [Foo]]
+    _good_values = [[Foo(), Foo(), None], []]
+    _bad_values = [['1', 2,], '1', [Foo], None]
 
 class UnionListTrait(HasTraits):
 
@@ -1114,6 +1091,19 @@ def test_dict_assignment():
     nt.assert_equal(d, c.value)
     nt.assert_true(c.value is d)
 
+class ValidatedDictTrait(HasTraits):
+
+    value = Dict(Unicode())
+
+class TestInstanceDict(TraitTestBase):
+
+    obj = ValidatedDictTrait()
+
+    _default_value = {}
+    _good_values = [{'0': 'foo'}, {'1': 'bar'}]
+    _bad_values = [{'0': 0}, {'1': 1}]
+
+
 def test_dict_default_value():
     """Check that the `{}` default value of the Dict traitlet constructor is
     actually copied."""
@@ -1121,7 +1111,36 @@ def test_dict_default_value():
     d1, d2 = Dict(), Dict()
     nt.assert_false(d1.get_default_value() is d2.get_default_value())
 
+
+class TestValidationHook(TestCase):
+
+    def test_parity_trait(self):
+        """Verify that the early validation hook is effective"""
+
+        class Parity(HasTraits):
+
+            value = Int(0)
+            parity = Enum(['odd', 'even'], default_value='even', allow_none=False)
+
+            def _value_validate(self, value, trait):
+                if self.parity == 'even' and value % 2:
+                    raise TraitError('Expected an even number')
+                if self.parity == 'odd' and (value % 2 == 0):
+                    raise TraitError('Expected an odd number')
+                return value
+        
+        u = Parity()
+        u.parity = 'odd'
+        u.value = 1  # OK
+        with self.assertRaises(TraitError):
+            u.value = 2  # Trait Error
+
+        u.parity = 'even'
+        u.value = 2  # OK
+
+
 class TestLink(TestCase):
+
     def test_connect_same(self):
         """Verify two traitlets of the same type can be linked together using link."""
 
@@ -1220,25 +1239,6 @@ class TestLink(TestCase):
         a.value = 4
         self.assertEqual(''.join(callback_count), 'ab')
         del callback_count[:]
-    
-    def test_validate_args(self):
-        class A(HasTraits):
-            value = Int()
-        class B(HasTraits):
-            count = Int()
-        a = A(value=9)
-        b = B(count=8)
-        b.value = 5
-        
-        with self.assertRaises(TypeError):
-            link((a, 'value'))
-        with self.assertRaises(TypeError):
-            link((a, 'value', 'count'), (b, 'count'))
-        with self.assertRaises(TypeError):
-            link((a, 'value'), (b, 'value'))
-        with self.assertRaises(TypeError):
-            link((a, 'traits'), (b, 'count'))
-
 
 class TestDirectionalLink(TestCase):
     def test_connect_same(self):
@@ -1305,25 +1305,6 @@ class TestDirectionalLink(TestCase):
         a.value = 5
         self.assertNotEqual(a.value, b.value)
 
-    def test_validate_args(self):
-        class A(HasTraits):
-            value = Int()
-        class B(HasTraits):
-            count = Int()
-        a = A(value=9)
-        b = B(count=8)
-        b.value = 5
-        
-        with self.assertRaises(TypeError):
-            directional_link((a, 'value'))
-        with self.assertRaises(TypeError):
-            directional_link((a, 'value', 'count'), (b, 'count'))
-        with self.assertRaises(TypeError):
-            directional_link((a, 'value'), (b, 'value'))
-        with self.assertRaises(TypeError):
-            directional_link((a, 'traits'), (b, 'count'))
-
-
 class Pickleable(HasTraits):
     i = Int()
     j = Int()
@@ -1348,6 +1329,78 @@ def test_pickle_hastraits():
         c2 = pickle.loads(p)
         nt.assert_equal(c2.i, c.i)
         nt.assert_equal(c2.j, c.j)
+
+
+def test_hold_trait_notifications():
+    changes = []
+    class Test(HasTraits):
+        a = Integer(0)
+        def _a_changed(self, name, old, new):
+            changes.append((old, new))
+    
+    t = Test()
+    with t.hold_trait_notifications():
+        with t.hold_trait_notifications():
+            t.a = 1
+            nt.assert_equal(t.a, 1)
+            nt.assert_equal(changes, [])
+        t.a = 2
+        nt.assert_equal(t.a, 2)
+        with t.hold_trait_notifications():
+            t.a = 3
+            nt.assert_equal(t.a, 3)
+            nt.assert_equal(changes, [])
+            t.a = 4
+            nt.assert_equal(t.a, 4)
+            nt.assert_equal(changes, [])
+        t.a = 4
+        nt.assert_equal(t.a, 4)
+        nt.assert_equal(changes, [])
+    nt.assert_equal(changes, [(0,1), (1,2), (2,3), (3,4)])
+
+
+class OrderTraits(HasTraits):
+    notified = Dict()
+    
+    a = Unicode()
+    b = Unicode()
+    c = Unicode()
+    d = Unicode()
+    e = Unicode()
+    f = Unicode()
+    g = Unicode()
+    h = Unicode()
+    i = Unicode()
+    j = Unicode()
+    k = Unicode()
+    l = Unicode()
+    
+    def _notify(self, name, old, new):
+        """check the value of all traits when each trait change is triggered
+        
+        This verifies that the values are not sensitive
+        to dict ordering when loaded from kwargs
+        """
+        # check the value of the other traits
+        # when a given trait change notification fires
+        self.notified[name] = {
+            c: getattr(self, c) for c in 'abcdefghijkl'
+        }
+    
+    def __init__(self, **kwargs):
+        self.on_trait_change(self._notify)
+        super(OrderTraits, self).__init__(**kwargs)
+
+def test_notification_order():
+    d = {c:c for c in 'abcdefghijkl'}
+    obj = OrderTraits()
+    nt.assert_equal(obj.notified, {})
+    obj = OrderTraits(**d)
+    notifications = {
+        c: d for c in 'abcdefghijkl'
+    }
+    nt.assert_equal(obj.notified, notifications)
+
 
 class TestEventful(TestCase):
 
@@ -1475,14 +1528,14 @@ class TestForwardDeclaredInstanceList(TraitTestBase):
         [ForwardDeclaredBar(), ForwardDeclaredBarSub(), None],
         [None],
         [],
-        None,
     ]
     _bad_values = [
         ForwardDeclaredBar(),
         [ForwardDeclaredBar(), 3],
         '1',
         # Note that this is the type, not an instance.
-        [ForwardDeclaredBar]
+        [ForwardDeclaredBar],
+        None,
     ]
 
 class TestForwardDeclaredTypeList(TraitTestBase):
@@ -1498,14 +1551,14 @@ class TestForwardDeclaredTypeList(TraitTestBase):
         [ForwardDeclaredBar, ForwardDeclaredBarSub, None],
         [],
         [None],
-        None,
     ]
     _bad_values = [
         ForwardDeclaredBar,
         [ForwardDeclaredBar, 3],
         '1',
         # Note that this is an instance, not the type.
-        [ForwardDeclaredBar()]
+        [ForwardDeclaredBar()],
+        None,
     ]
 ###
 # End Forward Declaration Tests

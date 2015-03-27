@@ -49,7 +49,7 @@ casper.notebook_test(function () {
             'Toggle button exists.');
 
         this.test.assert(this.cell_element_function(bool_index, 
-            widget_togglebutton_selector, 'html')=="Title",
+            widget_togglebutton_selector, 'html')=='<i class="fa"></i>Title',
             'Toggle button labeled correctly.');
 
         this.test.assert(this.cell_element_function(bool_index, 
