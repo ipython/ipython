@@ -73,7 +73,7 @@ from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import (format_screen, LSString, SList,
                                 DollarFormatter)
 from IPython.utils.traitlets import (Integer, Bool, CBool, CaselessStrEnum, Enum,
-                                     List, Unicode, Instance, Type)
+                                     List, Dict, Unicode, Instance, Type)
 from IPython.utils.warn import warn, error
 import IPython.core.hooks
 
@@ -296,8 +296,8 @@ class InteractiveShell(SingletonConfigurable):
         help="Don't call post-execute functions that have failed in the past."
     )
     display_formatter = Instance(DisplayFormatter, allow_none=True)
-    displayhook_class = Type(DisplayHook, allow_none=True)
-    display_pub_class = Type(DisplayPublisher, allow_none=True)
+    displayhook_class = Type(DisplayHook)
+    display_pub_class = Type(DisplayPublisher)
     data_pub_class = None
 
     exit_now = CBool(False)
