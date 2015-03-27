@@ -46,7 +46,7 @@ class InProcessKernel(IPythonKernel):
     # Kernel interface
     #-------------------------------------------------------------------------
 
-    shell_class = Type()
+    shell_class = Type(allow_none=True)
     shell_streams = List()
     control_stream = Any()
     iopub_socket = Instance(DummySocket, ())

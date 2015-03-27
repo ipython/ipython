@@ -87,7 +87,7 @@ def signature_removed(nb):
 class NotebookNotary(LoggingConfigurable):
     """A class for computing and verifying notebook signatures."""
     
-    profile_dir = Instance("IPython.core.profiledir.ProfileDir", allow_none=True)
+    profile_dir = Instance("IPython.core.profiledir.ProfileDir")
     def _profile_dir_default(self):
         from IPython.core.application import BaseIPythonApplication
         app = None
@@ -388,7 +388,7 @@ class TrustNotebookApp(BaseIPythonApplication):
         """
     )
     
-    notary = Instance(NotebookNotary, allow_none=True)
+    notary = Instance(NotebookNotary)
     def _notary_default(self):
         return NotebookNotary(parent=self, profile_dir=self.profile_dir)
     

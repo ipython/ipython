@@ -603,7 +603,7 @@ class DirectView(View):
 
 
         If block=False
-          An :class:`~IPython.parallel.client.asyncresult.AsyncMapResult` instance.
+          An :class:`~ipython_parallel.client.asyncresult.AsyncMapResult` instance.
           An object like AsyncResult, but which reassembles the sequence of results
           into a single list. AsyncMapResults can be iterated through before all
           results are complete.
