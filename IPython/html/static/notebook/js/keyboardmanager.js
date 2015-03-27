@@ -77,7 +77,9 @@ define([
             'esc'                 : 'ipython.go-to-command-mode',
             'ctrl-m'              : 'ipython.go-to-command-mode',
             'up'                  : 'ipython.move-cursor-up-or-previous-cell',
+            'pageup'              : 'ipython.move-cursor-up-or-previous-cell',
             'down'                : 'ipython.move-cursor-down-or-next-cell',
+            'pagedown'            : 'ipython.move-cursor-down-or-next-cell',
             'ctrl-shift--'        : 'ipython.split-cell-at-cursor',
             'ctrl-shift-subtract' : 'ipython.split-cell-at-cursor'
         };
