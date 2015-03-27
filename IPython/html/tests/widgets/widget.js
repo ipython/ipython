@@ -140,22 +140,15 @@ casper.notebook_test(function () {
 
 
     this.thenEvaluate(function() {
-        define('TestWidget', ['widgets/js/widget', 'base/js/utils'], function(widget, utils) {
-            var TestWidget = widget.DOMWidgetView.extend({
-                render: function () {
-                    this.listenTo(this.model, 'msg:custom', this.handle_msg);
-                },
-                handle_msg: function(content, buffers) {
-                    this.msg = [content, buffers];
-                }
-            });
-
+        define('TestWidget', ['widgets/js/widget', 'base/js/utils', 'underscore'], function(widget, utils, _) {
             var floatArray = {
                 deserialize: function (value, model) {
+                    if (value===null) {return null;}
                     // DataView -> float64 typed array
                     return new Float64Array(value.buffer);
                 },
-                // serialization automatically handled by message buffers
+                // serialization automatically handled since the 
+                // attribute is an ArrayBuffer view
             };
             
             var floatList = {
@@ -168,7 +161,24 @@ casper.notebook_test(function () {
                     return value.map(function(x) {return parseFloat(x);})
                 }
             };
-            return {TestWidget: TestWidget, floatArray: floatArray, floatList: floatList};
+
+            var TestWidgetModel = widget.WidgetModel.extend({}, {
+                serializers: _.extend({
+                    array_list: floatList,
+                    array_binary: floatArray
+                }, widget.WidgetModel.serializers)
+            });
+            
+            var TestWidgetView = widget.DOMWidgetView.extend({
+                render: function () {
+                    this.listenTo(this.model, 'msg:custom', this.handle_msg);
+                },
+                handle_msg: function(content, buffers) {
+                    this.msg = [content, buffers];
+                }
+            });
+
+            return {TestWidgetModel: TestWidgetModel, TestWidgetView: TestWidgetView};
         });
     });
 
@@ -179,14 +189,15 @@ casper.notebook_test(function () {
         'from IPython.display import display',
         'from array import array',
         'def _array_to_memoryview(x):',
-        '    if x is None: return None, {}',
+        '    if x is None: return None',
         '    try:',
         '        y = memoryview(x)',
         '    except TypeError:',
         '        # in python 2, arrays do not support the new buffer protocol',
         '        y = memoryview(buffer(x))',
-        '    return y, {"serialization": ("floatArray", "TestWidget")}',
+        '    return y',
         'def _memoryview_to_array(x):',
+        '    if x is None: return None',
         '    return array("d", x.tobytes())',
         'arrays_binary = {',
         '    "from_json": _memoryview_to_array,',
@@ -194,8 +205,7 @@ casper.notebook_test(function () {
         '}',
         '',
         'def _array_to_list(x):',
-        '    if x is None: return None, {}',
-        '    return list(x), {"serialization": ("floatList", "TestWidget")}',
+        '    return list(x)',
         'def _list_to_array(x):',
         '    return array("d",x)',
         'arrays_list = {',
@@ -204,10 +214,12 @@ casper.notebook_test(function () {
         '}',
         '',
         'class TestWidget(widgets.DOMWidget):',
+        '    _model_module = Unicode("TestWidget", sync=True)',
+        '    _model_name = Unicode("TestWidgetModel", sync=True)',
         '    _view_module = Unicode("TestWidget", sync=True)',
-        '    _view_name = Unicode("TestWidget", sync=True)',
-        '    array_binary = Instance(array, sync=True, **arrays_binary)',
-        '    array_list = Instance(array, sync=True, **arrays_list)',
+        '    _view_name = Unicode("TestWidgetView", sync=True)',
+        '    array_binary = Instance(array, allow_none=True, sync=True, **arrays_binary)',
+        '    array_list = Instance(array, args=("d", [3.0]), allow_none=False, sync=True, **arrays_list)',
         '    msg = {}',
         '    def __init__(self, **kwargs):',
         '        super(widgets.DOMWidget, self).__init__(**kwargs)',
