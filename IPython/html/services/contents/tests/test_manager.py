@@ -433,6 +433,12 @@ class TestContentsManager(TestCase):
         # Check that a 'get' on the deleted notebook raises and error
         self.assertRaises(HTTPError, cm.get, path)
 
+    def test_delete_root(self):
+        cm = self.contents_manager
+        with self.assertRaises(HTTPError) as err:
+            cm.delete('')
+        self.assertEqual(err.exception.status_code, 400)
+
     def test_copy(self):
         cm = self.contents_manager
         parent = u'å b'
