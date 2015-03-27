@@ -1184,6 +1184,9 @@ h6:hover .anchor-link {
 .text_cell.rendered .input_area {
   display: none;
 }
+.text_cell.rendered .rendered_html {
+  overflow-x: auto;
+}
 .text_cell.unrendered .text_cell_render {
   display: none;
 }
