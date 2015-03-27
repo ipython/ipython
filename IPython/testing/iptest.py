@@ -172,6 +172,8 @@ class TestSection(object):
 
 shims = {
     'parallel': 'ipython_parallel',
+    'kernel': 'ipython_kernel',
+    'kernel.inprocess': 'ipython_kernel.inprocess',
 }
 
 # Name -> (include, exclude, dependencies_met)
