@@ -804,6 +804,12 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
         else:
             return trait.get_metadata(key, default)
 
+    def add_trait(self, traitname, trait):
+        """Dynamically add a trait attribute to the HasTraits instance."""
+        self.__class__ = type(self.__class__.__name__, (self.__class__,),
+                              {traitname: trait})
+        trait.set_default_value(self)
+
 #-----------------------------------------------------------------------------
 # Actual TraitTypes implementations/subclasses
 #-----------------------------------------------------------------------------

@@ -1563,3 +1563,55 @@ class TestForwardDeclaredTypeList(TraitTestBase):
 ###
 # End Forward Declaration Tests
 ###
+
+class TestDynamicTraits(TestCase):
+
+    def setUp(self):
+        self._notify1 = []
+
+    def notify1(self, name, old, new):
+        self._notify1.append((name, old, new))
+
+    def test_notify_all(self):
+
+        class A(HasTraits):
+            pass
+
+        a = A()
+        self.assertTrue(not hasattr(a, 'x'))
+        self.assertTrue(not hasattr(a, 'y'))
+
+        # Dynamically add trait x.
+        a.add_trait('x', Int())
+        self.assertTrue(hasattr(a, 'x'))
+        self.assertTrue(isinstance(a, (A, )))
+
+        # Dynamically add trait y.
+        a.add_trait('y', Float())
+        self.assertTrue(hasattr(a, 'y'))
+        self.assertTrue(isinstance(a, (A, )))
+        self.assertEqual(a.__class__.__name__, A.__name__)
+
+        # Create a new instance and verify that x and y
+        # aren't defined.
+        b = A()
+        self.assertTrue(not hasattr(b, 'x'))
+        self.assertTrue(not hasattr(b, 'y'))
+
+        # Verify that notification works like normal.
+        a.on_trait_change(self.notify1)
+        a.x = 0
+        self.assertEqual(len(self._notify1), 0)
+        a.y = 0.0
+        self.assertEqual(len(self._notify1), 0)
+        a.x = 10
+        self.assertTrue(('x', 0, 10) in self._notify1)
+        a.y = 10.0
+        self.assertTrue(('y', 0.0, 10.0) in self._notify1)
+        self.assertRaises(TraitError, setattr, a, 'x', 'bad string')
+        self.assertRaises(TraitError, setattr, a, 'y', 'bad string')
+        self._notify1 = []
+        a.on_trait_change(self.notify1, remove=True)
+        a.x = 20
+        a.y = 20.0
+        self.assertEqual(len(self._notify1), 0)
