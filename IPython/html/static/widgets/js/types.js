@@ -4,9 +4,8 @@
 define([
     "base/js/utils"
 ], function(utils){
-
     return {
-        widget_serialization: {
+        models: {
             deserialize: function deserialize_models(value, model) {
                 /**
                  * Replace model ids with models recursively.
@@ -32,19 +31,5 @@ define([
                 }
             },
         },
-        
-        list_of_numbers: {
-            deserialize: function (value, model) {
-                /* value is a DataView */
-                /* create a float64 typed array */
-                return new Float64Array(value.buffer)
-            },
-            serialize: function (value, model) {
-                return value;
-            },
-        }
     }
-
-    
-
 });

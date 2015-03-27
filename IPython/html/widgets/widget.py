@@ -111,24 +111,8 @@ def _json_to_widget(x):
 
 widget_serialization = {
     'from_json': _json_to_widget,
-    'to_json': lambda x: (_widget_to_json(x), {'serialization': ('widget_serialization', 'widgets/js/types')})
+    'to_json': lambda x: (_widget_to_json(x), {'serialization': ('models', 'widgets/js/types')})
 }
-
-def _to_binary_list(x):
-    import numpy
-    return memoryview(numpy.array(x, dtype=float)), {'serialization': ('list_of_numbers', 'widgets/js/types')}
-
-def _from_binary_list(x):
-    import numpy
-    a = numpy.frombuffer(x.tobytes(), dtype=float)
-    return list(a)
-
-list_of_numbers = {
-    'from_json': _from_binary_list,
-    'to_json': _to_binary_list
-}
-
-
 
 class Widget(LoggingConfigurable):
     #-------------------------------------------------------------------------
