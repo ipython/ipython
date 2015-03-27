@@ -588,6 +588,7 @@ define([
         var toinsert = this.create_output_subarea(md, "output_html rendered_html", type);
         this.keyboard_manager.register_events(toinsert);
         toinsert.append(html);
+        dblclick_to_reset_size(toinsert.find('img'));
         element.append(toinsert);
         return toinsert;
     };
@@ -603,6 +604,7 @@ define([
             html = mathjaxutils.replace_math(html, math);
             toinsert.append(html);
         });
+        dblclick_to_reset_size(toinsert.find('img'));
         element.append(toinsert);
         return toinsert;
     };
@@ -668,7 +670,7 @@ define([
         return toinsert;
     };
 
-    dblclick_to_reset_size = function (img) {
+    function dblclick_to_reset_size (img) {
         /**
          * Double-click on an image toggles confinement to notebook width
          *
