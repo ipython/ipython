@@ -73,7 +73,7 @@ define([
         if (!NotebookList._bound_singletons) {
             NotebookList._bound_singletons = true;
             $('#new-file').click(function(e) {
-                var w = window.open(undefined, IPython._target);
+                var w = window.open('', IPython._target);
                 that.contents.new_untitled(that.notebook_path || '', {type: 'file', ext: '.txt'}).then(function(data) {
                     var url = utils.url_join_encode(
                         that.base_url, 'edit', data.path
