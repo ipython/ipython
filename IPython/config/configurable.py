@@ -372,7 +372,7 @@ class LoggingConfigurable(Configurable):
     is to get the logger from the currently running Application.
     """
 
-    log = Instance('logging.Logger', allow_none=True)
+    log = Instance('logging.Logger')
     def _log_default(self):
         from IPython.utils import log
         return log.get_logger()

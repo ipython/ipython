@@ -52,7 +52,7 @@ class LogWatcher(LoggingConfigurable):
     # internals
     stream = Instance('zmq.eventloop.zmqstream.ZMQStream', allow_none=True)
     
-    context = Instance(zmq.Context, allow_none=True)
+    context = Instance(zmq.Context)
     def _context_default(self):
         return zmq.Context.instance()
     

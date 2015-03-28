@@ -79,7 +79,7 @@ class HeartMonitor(LoggingConfigurable):
 
     pingstream=Instance('zmq.eventloop.zmqstream.ZMQStream', allow_none=True)
     pongstream=Instance('zmq.eventloop.zmqstream.ZMQStream', allow_none=True)
-    loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=True)
+    loop = Instance('zmq.eventloop.ioloop.IOLoop')
     def _loop_default(self):
         return ioloop.IOLoop.instance()
 

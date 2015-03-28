@@ -301,7 +301,7 @@ class InteractiveShell(SingletonConfigurable):
     data_pub_class = None
 
     exit_now = CBool(False)
-    exiter = Instance(ExitAutocall, allow_none=True)
+    exiter = Instance(ExitAutocall)
     def _exiter_default(self):
         return ExitAutocall(self)
     # Monotonically increasing execution counter
@@ -453,7 +453,7 @@ class InteractiveShell(SingletonConfigurable):
 
 
     # Private interface
-    _post_execute = Instance(dict, allow_none=True)
+    _post_execute = Dict()
 
     # Tracks any GUI loop loaded for pylab
     pylab_gui_select = None

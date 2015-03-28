@@ -20,7 +20,7 @@ class ClusterManager(LoggingConfigurable):
     delay = Float(1., config=True,
         help="delay (in s) between starting the controller and the engines")
 
-    loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=True)
+    loop = Instance('zmq.eventloop.ioloop.IOLoop')
     def _loop_default(self):
         from zmq.eventloop.ioloop import IOLoop
         return IOLoop.instance()

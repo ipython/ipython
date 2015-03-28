@@ -367,7 +367,7 @@ class ZMQInteractiveShell(InteractiveShell):
     # will print a warning in the absence of readline.
     autoindent = CBool(False)
 
-    exiter = Instance(ZMQExitAutocall, allow_none=True)
+    exiter = Instance(ZMQExitAutocall)
     def _exiter_default(self):
         return ZMQExitAutocall(self)
     

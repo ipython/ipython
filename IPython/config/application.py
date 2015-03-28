@@ -174,7 +174,7 @@ class Application(SingletonConfigurable):
         _log_handler.setFormatter(_log_formatter)
     
 
-    log = Instance(logging.Logger, allow_none=True)
+    log = Instance(logging.Logger)
     def _log_default(self):
         """Start logging for this application.
 
