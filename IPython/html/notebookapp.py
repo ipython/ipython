@@ -831,10 +831,10 @@ class NotebookApp(BaseIPythonApplication):
             ssl_options = dict(certfile=self.certfile)
             if self.keyfile:
                 ssl_options['keyfile'] = self.keyfile
+            # Disable SSLv3, since its use is discouraged.
+            ssl_options['ssl_version']=ssl.PROTOCOL_TLSv1
         else:
             ssl_options = None
-        # Disable SSLv3, since its use is discouraged.
-        ssl_options['ssl_version']=ssl.PROTOCOL_TLSv1
         self.login_handler_class.validate_security(self, ssl_options=ssl_options)
         self.http_server = httpserver.HTTPServer(self.web_app, ssl_options=ssl_options,
                                                  xheaders=self.trust_xheaders)
