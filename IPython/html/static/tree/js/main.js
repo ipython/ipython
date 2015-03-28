@@ -177,4 +177,23 @@ require([
     if (window.location.hash) {
         $("#tabs").find("a[href=" + window.location.hash + "]").click();
     }
+    
+	// Create a clone of the menu, right next to original.
+	$('.sticky').addClass('original').clone().insertAfter('.sticky').addClass('cloned').css('position','fixed').css('top','0').css('margin-top','0').css('z-index','500').removeClass('original').hide();
+
+	function stickIt($) {
+		var orgElementPos = $('.original').offset();
+		var orgElementTop = orgElementPos.top;               
+		if ($(window).scrollTop() >= (orgElementTop)) {
+			var orgElement = $('.original');
+			console.log(orgElement);
+			$('.cloned').css('left',orgElement.offset().left+'px').css('top',40).css('display','block').css('width',orgElement.css('width')).css('border-top','1px solid #E9E9E9').show();
+			$('.original').css('visibility','hidden');
+		} else {
+			$('.cloned').hide();
+			$('.original').css('visibility','visible');
+		}
+	}
+	
+	scrollIntervalID = setInterval(function(){ stickIt($); }, 10); 
 });
