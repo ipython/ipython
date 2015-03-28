@@ -25,7 +25,8 @@ from IPython.utils.traitlets import (
     Dict, List, Unicode, CUnicode, CBool, Any
 )
 from IPython.kernel.zmq.session import Session
-from IPython.kernel.connect import ConnectionFileMixin
+from IPython.kernel import connect
+ConnectionFileMixin = connect.ConnectionFileMixin
 
 from IPython.utils.localinterfaces import localhost
 

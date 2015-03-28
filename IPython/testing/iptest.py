@@ -172,6 +172,8 @@ class TestSection(object):
 
 shims = {
     'parallel': 'ipython_parallel',
+    'kernel': 'ipython_kernel',
+    'kernel.inprocess': 'ipython_kernel.inprocess',
 }
 
 # Name -> (include, exclude, dependencies_met)
@@ -230,10 +232,10 @@ sec.requires('zmq')
 # The in-process kernel tests are done in a separate section
 sec.exclude('inprocess')
 # importing gtk sets the default encoding, which we want to avoid
-sec.exclude('zmq.gui.gtkembed')
-sec.exclude('zmq.gui.gtk3embed')
+sec.exclude('gui.gtkembed')
+sec.exclude('gui.gtk3embed')
 if not have['matplotlib']:
-    sec.exclude('zmq.pylab')
+    sec.exclude('pylab')
 
 # kernel.inprocess:
 test_sections['kernel.inprocess'].requires('zmq')
