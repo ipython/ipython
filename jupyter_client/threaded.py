@@ -201,7 +201,7 @@ class ThreadedKernelClient(KernelClient):
             self._ioloop = ioloop.IOLoop()
         return self._ioloop
 
-    ioloop_thread = Instance(IOLoopThread)
+    ioloop_thread = Instance(IOLoopThread, allow_none=True)
 
     def start_channels(self, shell=True, iopub=True, stdin=True, hb=True):
         if shell:
