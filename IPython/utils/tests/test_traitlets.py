@@ -1356,7 +1356,7 @@ def test_hold_trait_notifications():
         t.a = 4
         nt.assert_equal(t.a, 4)
         nt.assert_equal(changes, [])
-    nt.assert_equal(changes, [(0,1), (1,2), (2,3), (3,4)])
+    nt.assert_equal(changes, [(3,4)])
 
 
 class OrderTraits(HasTraits):
