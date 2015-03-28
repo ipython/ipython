@@ -624,6 +624,7 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
                             setattr(self, name, cache[name][1])
                         else:
                             delattr(self, name)
+                    cache = {}
                     notifications = {}
                     raise e
                 finally:
