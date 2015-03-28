@@ -27,6 +27,8 @@ import types
 import subprocess
 from io import open as io_open
 
+from pickleshare import PickleShareDB
+
 from IPython.config.configurable import SingletonConfigurable
 from IPython.core import debugger, oinspect
 from IPython.core import magic
@@ -34,7 +36,7 @@ from IPython.core import page
 from IPython.core import prefilter
 from IPython.core import shadowns
 from IPython.core import ultratb
-from IPython.core.alias import AliasManager, AliasError
+from IPython.core.alias import Alias, AliasManager
 from IPython.core.autocall import ExitAutocall
 from IPython.core.builtin_trap import BuiltinTrap
 from IPython.core.events import EventManager, available_events
@@ -63,7 +65,6 @@ from IPython.utils.decorators import undoc
 from IPython.utils.io import ask_yes_no
 from IPython.utils.ipstruct import Struct
 from IPython.utils.path import get_home_dir, get_ipython_dir, get_py_filename, unquote_filename, ensure_dir_exists
-from IPython.utils.pickleshare import PickleShareDB
 from IPython.utils.process import system, getoutput
 from IPython.utils.py3compat import (builtin_mod, unicode_type, string_types,
                                      with_metaclass, iteritems)
@@ -72,7 +73,7 @@ from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import (format_screen, LSString, SList,
                                 DollarFormatter)
 from IPython.utils.traitlets import (Integer, Bool, CBool, CaselessStrEnum, Enum,
-                                     List, Unicode, Instance, Type)
+                                     List, Dict, Unicode, Instance, Type)
 from IPython.utils.warn import warn, error
 import IPython.core.hooks
 
@@ -294,7 +295,7 @@ class InteractiveShell(SingletonConfigurable):
     disable_failing_post_execute = CBool(False, config=True,
         help="Don't call post-execute functions that have failed in the past."
     )
-    display_formatter = Instance(DisplayFormatter)
+    display_formatter = Instance(DisplayFormatter, allow_none=True)
     displayhook_class = Type(DisplayHook)
     display_pub_class = Type(DisplayPublisher)
     data_pub_class = None
@@ -320,7 +321,8 @@ class InteractiveShell(SingletonConfigurable):
     
     logstart = CBool(False, config=True, help=
         """
-        Start logging to the default log file.
+        Start logging to the default log file in overwrite mode.
+        Use `logappend` to specify a log file to **append** logs to.
         """
     )
     logfile = Unicode('', config=True, help=
@@ -331,6 +333,7 @@ class InteractiveShell(SingletonConfigurable):
     logappend = Unicode('', config=True, help=
         """
         Start logging to the given file in append mode.
+        Use `logfile` to specify a log file to **overwrite** logs to.
         """
     )
     object_info_string_level = Enum((0,1,2), default_value=0,
@@ -432,16 +435,16 @@ class InteractiveShell(SingletonConfigurable):
                             default_value='Context', config=True)
 
     # Subcomponents of InteractiveShell
-    alias_manager = Instance('IPython.core.alias.AliasManager')
-    prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager')
-    builtin_trap = Instance('IPython.core.builtin_trap.BuiltinTrap')
-    display_trap = Instance('IPython.core.display_trap.DisplayTrap')
-    extension_manager = Instance('IPython.core.extensions.ExtensionManager')
-    payload_manager = Instance('IPython.core.payload.PayloadManager')
-    history_manager = Instance('IPython.core.history.HistoryAccessorBase')
-    magics_manager = Instance('IPython.core.magic.MagicsManager')
+    alias_manager = Instance('IPython.core.alias.AliasManager', allow_none=True)
+    prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager', allow_none=True)
+    builtin_trap = Instance('IPython.core.builtin_trap.BuiltinTrap', allow_none=True)
+    display_trap = Instance('IPython.core.display_trap.DisplayTrap', allow_none=True)
+    extension_manager = Instance('IPython.core.extensions.ExtensionManager', allow_none=True)
+    payload_manager = Instance('IPython.core.payload.PayloadManager', allow_none=True)
+    history_manager = Instance('IPython.core.history.HistoryAccessorBase', allow_none=True)
+    magics_manager = Instance('IPython.core.magic.MagicsManager', allow_none=True)
 
-    profile_dir = Instance('IPython.core.application.ProfileDir')
+    profile_dir = Instance('IPython.core.application.ProfileDir', allow_none=True)
     @property
     def profile(self):
         if self.profile_dir is not None:
@@ -450,7 +453,7 @@ class InteractiveShell(SingletonConfigurable):
 
 
     # Private interface
-    _post_execute = Instance(dict)
+    _post_execute = Dict()
 
     # Tracks any GUI loop loaded for pylab
     pylab_gui_select = None
@@ -1502,6 +1505,7 @@ class InteractiveShell(SingletonConfigurable):
                 found = True
                 ospace = 'IPython internal'
                 ismagic = True
+                isalias = isinstance(obj, Alias)
 
         # Last try: special-case some literals like '', [], {}, etc:
         if not found and oname_head in ["''",'""','[]','{}','()']:

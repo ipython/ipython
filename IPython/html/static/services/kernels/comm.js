@@ -117,6 +117,7 @@ define([
             // don't return a comm, so that further .then() functions
             // get an undefined comm input
         });
+        return this.comms[content.comm_id];
     };
     
     CommManager.prototype.comm_msg = function(msg) {
@@ -134,6 +135,7 @@ define([
             }
             return comm;
         });
+        return this.comms[content.comm_id];
     };
     
     //-----------------------------------------------------------------------

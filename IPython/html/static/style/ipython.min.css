@@ -747,6 +747,7 @@ div.output_wrapper {
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  z-index: 1;
 }
 /* class for the output area when it should be height-limited */
 div.output_scroll {
@@ -872,6 +873,7 @@ div.output_area pre {
 /* This class is for the output subarea inside the output_area and after
    the prompt div. */
 div.output_subarea {
+  overflow-x: auto;
   padding: 0.4em;
   /* Old browsers */
   -webkit-box-flex: 1;
@@ -1476,6 +1478,12 @@ h6:hover .anchor-link {
 .widget_item .dropdown-menu li a {
   color: inherit;
 }
+.widget-valid {
+  margin-top: 9px;
+  margin-bottom: 10px;
+  margin-left: 3px;
+  margin-right: 3px;
+}
 .widget-hbox {
   /* Horizontal widgets */
   /* Old browsers */
@@ -1575,8 +1583,6 @@ h6:hover .anchor-link {
 }
 .widget-radio-box label {
   margin-top: 0px;
-}
-.widget-radio {
   margin-left: 20px;
 }
 /*# sourceMappingURL=ipython.min.css.map */

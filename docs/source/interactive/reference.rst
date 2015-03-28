@@ -106,7 +106,7 @@ In this case, ``x = range(10000)`` is called as the line argument, and the
 block with ``min(x)`` and ``max(x)`` is called as the cell body.  The
 :magic:`timeit` magic receives both.
   
-If you have 'automagic' enabled (as it by default), you don't need to type in
+If you have 'automagic' enabled (as it is by default), you don't need to type in
 the single ``%`` explicitly for line magics; IPython will scan its internal
 list of magic functions and call one if it exists. With automagic on you can
 then just type ``cd mydir`` to go to directory 'mydir'::

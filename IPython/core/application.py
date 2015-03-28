@@ -20,7 +20,7 @@ import shutil
 import sys
 
 from IPython.config.application import Application, catch_config_error
-from IPython.config.loader import ConfigFileNotFound
+from IPython.config.loader import ConfigFileNotFound, PyFileConfigLoader
 from IPython.core import release, crashhandler
 from IPython.core.profiledir import ProfileDir, ProfileDirError
 from IPython.utils.path import get_ipython_dir, get_ipython_package_dir, ensure_dir_exists
@@ -63,6 +63,19 @@ base_flags = dict(
             """)
 )
 
+class ProfileAwareConfigLoader(PyFileConfigLoader):
+    """A Python file config loader that is aware of IPython profiles."""
+    def load_subconfig(self, fname, path=None, profile=None):
+        if profile is not None:
+            try:
+                profile_dir = ProfileDir.find_profile_dir_by_name(
+                        get_ipython_dir(),
+                        profile,
+                )
+            except ProfileDirError:
+                return
+            path = profile_dir.location
+        return super(ProfileAwareConfigLoader, self).load_subconfig(fname, path=path)
 
 class BaseIPythonApplication(Application):
 
@@ -73,6 +86,9 @@ class BaseIPythonApplication(Application):
     aliases = Dict(base_aliases)
     flags = Dict(base_flags)
     classes = List([ProfileDir])
+    
+    # enable `load_subconfig('cfg.py', profile='name')`
+    python_config_loader_class = ProfileAwareConfigLoader
 
     # Track whether the config_file has changed,
     # because some logic happens only if we aren't using the default.
@@ -130,7 +146,7 @@ class BaseIPythonApplication(Application):
         return d
     
     _in_init_profile_dir = False
-    profile_dir = Instance(ProfileDir)
+    profile_dir = Instance(ProfileDir, allow_none=True)
     def _profile_dir_default(self):
         # avoid recursion
         if self._in_init_profile_dir:
@@ -170,9 +186,9 @@ class BaseIPythonApplication(Application):
         try:
             directory = py3compat.getcwd()
         except:
-            # raise exception
+            # exit if cwd doesn't exist
             self.log.error("Current working directory doesn't exist.")
-            raise
+            self.exit(1)
 
     #-------------------------------------------------------------------------
     # Various stages of Application creation
@@ -294,7 +310,7 @@ class BaseIPythonApplication(Application):
                     self.log.fatal("Profile %r not found."%self.profile)
                     self.exit(1)
             else:
-                self.log.info("Using existing profile dir: %r"%p.location)
+                self.log.debug("Using existing profile dir: %r"%p.location)
         else:
             location = self.config.ProfileDir.location
             # location is fully specified
@@ -309,7 +325,7 @@ class BaseIPythonApplication(Application):
                         self.log.fatal("Could not create profile directory: %r"%location)
                         self.exit(1)
                     else:
-                        self.log.info("Creating new profile dir: %r"%location)
+                        self.log.debug("Creating new profile dir: %r"%location)
                 else:
                     self.log.fatal("Profile directory %r not found."%location)
                     self.exit(1)

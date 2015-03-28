@@ -78,7 +78,7 @@ from IPython.core.application import (
 from IPython.core.profiledir import ProfileDir
 from IPython.kernel import KernelManager
 from IPython.kernel.kernelspec import KernelSpecManager
-from IPython.kernel.zmq.session import default_secure, Session
+from IPython.kernel.zmq.session import Session
 from IPython.nbformat.sign import NotebookNotary
 from IPython.utils.importstring import import_item
 from IPython.utils import submodule
@@ -355,8 +355,6 @@ class NotebookApp(BaseIPythonApplication):
         list=(NbserverListApp, NbserverListApp.description.splitlines()[0]),
     )
 
-    ipython_kernel_argv = List(Unicode)
-    
     _log_formatter_cls = LogFormatter
 
     def _log_level_default(self):
@@ -411,6 +409,20 @@ class NotebookApp(BaseIPythonApplication):
     ip = Unicode('localhost', config=True,
         help="The IP address the notebook server will listen on."
     )
+    def _ip_default(self):
+        """Return localhost if available, 127.0.0.1 otherwise.
+        
+        On some (horribly broken) systems, localhost cannot be bound.
+        """
+        s = socket.socket()
+        try:
+            s.bind(('localhost', 0))
+        except socket.error as e:
+            self.log.warn("Cannot bind to localhost, using 127.0.0.1 as default ip\n%s", e)
+            return '127.0.0.1'
+        else:
+            s.close()
+            return 'localhost'
 
     def _ip_changed(self, name, old, new):
         if new == u'*': self.ip = u''
@@ -506,7 +518,11 @@ class NotebookApp(BaseIPythonApplication):
     tornado_settings = Dict(config=True,
             help="Supply overrides for the tornado.web.Application that the "
                  "IPython notebook uses.")
-
+    
+    ssl_options = Dict(config=True,
+            help="""Supply SSL options for the tornado HTTPServer.
+            See the tornado docs for details.""")
+    
     jinja_environment_options = Dict(config=True, 
             help="Supply extra arguments that will be passed to Jinja environment.")
     
@@ -650,7 +666,7 @@ class NotebookApp(BaseIPythonApplication):
         help='The config manager class to use'
     )
 
-    kernel_spec_manager = Instance(KernelSpecManager)
+    kernel_spec_manager = Instance(KernelSpecManager, allow_none=True)
 
     kernel_spec_manager_class = Type(
         default_value=KernelSpecManager,
@@ -734,6 +750,12 @@ class NotebookApp(BaseIPythonApplication):
               "This is an experimental API, and may change in future releases.")
     )
 
+    reraise_server_extension_failures = Bool(
+        False,
+        config=True,
+        help="Reraise exceptions encountered loading server extensions?",
+    )
+
     def parse_command_line(self, argv=None):
         super(NotebookApp, self).parse_command_line(argv)
         
@@ -754,16 +776,7 @@ class NotebookApp(BaseIPythonApplication):
                 c.NotebookApp.file_to_run = f
             self.update_config(c)
 
-    def init_kernel_argv(self):
-        """add the profile-dir to arguments to be passed to IPython kernels"""
-        # FIXME: remove special treatment of IPython kernels
-        # Kernel should get *absolute* path to profile directory
-        self.ipython_kernel_argv = ["--profile-dir", self.profile_dir.location]
-
     def init_configurables(self):
-        # force Session default to be secure
-        default_secure(self.config)
-
         self.kernel_spec_manager = self.kernel_spec_manager_class(
             parent=self,
             ipython_dir=self.ipython_dir,
@@ -771,7 +784,6 @@ class NotebookApp(BaseIPythonApplication):
         self.kernel_manager = self.kernel_manager_class(
             parent=self,
             log=self.log,
-            ipython_kernel_argv=self.ipython_kernel_argv,
             connection_dir=self.profile_dir.security_dir,
         )
         self.contents_manager = self.contents_manager_class(
@@ -827,14 +839,17 @@ class NotebookApp(BaseIPythonApplication):
             self.log, self.base_url, self.default_url, self.tornado_settings,
             self.jinja_environment_options
         )
+        ssl_options = self.ssl_options
         if self.certfile:
-            ssl_options = dict(certfile=self.certfile)
-            if self.keyfile:
-                ssl_options['keyfile'] = self.keyfile
+            ssl_options['certfile'] = self.certfile
+        if self.keyfile:
+            ssl_options['keyfile'] = self.keyfile
+        if not ssl_options:
+            # None indicates no SSL config
+            ssl_options = None
+        else:
             # Disable SSLv3, since its use is discouraged.
             ssl_options['ssl_version']=ssl.PROTOCOL_TLSv1
-        else:
-            ssl_options = None
         self.login_handler_class.validate_security(self, ssl_options=ssl_options)
         self.http_server = httpserver.HTTPServer(self.web_app, ssl_options=ssl_options,
                                                  xheaders=self.trust_xheaders)
@@ -970,6 +985,8 @@ class NotebookApp(BaseIPythonApplication):
                 if func is not None:
                     func(self)
             except Exception:
+                if self.reraise_server_extension_failures:
+                    raise
                 self.log.warn("Error loading server extension %s", modulename,
                               exc_info=True)
     
@@ -977,7 +994,6 @@ class NotebookApp(BaseIPythonApplication):
     def initialize(self, argv=None):
         super(NotebookApp, self).initialize(argv)
         self.init_logging()
-        self.init_kernel_argv()
         self.init_configurables()
         self.init_components()
         self.init_webapp()

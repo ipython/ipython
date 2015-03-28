@@ -109,7 +109,7 @@ class ContentsManager(LoggingConfigurable):
 
     checkpoints_class = Type(Checkpoints, config=True)
     checkpoints = Instance(Checkpoints, config=True)
-    checkpoints_kwargs = Dict(allow_none=False, config=True)
+    checkpoints_kwargs = Dict(config=True)
 
     def _checkpoints_default(self):
         return self.checkpoints_class(**self.checkpoints_kwargs)
@@ -222,6 +222,9 @@ class ContentsManager(LoggingConfigurable):
 
     def delete(self, path):
         """Delete a file/directory and any associated checkpoints."""
+        path = path.strip('/')
+        if not path:
+            raise HTTPError(400, "Can't delete root")
         self.delete_file(path)
         self.checkpoints.delete_all_checkpoints(path)
 

@@ -11,6 +11,7 @@ import os
 import re
 import sys
 import json
+from ast import literal_eval
 
 from IPython.utils.path import filefind, get_ipython_dir
 from IPython.utils import py3compat
@@ -232,13 +233,26 @@ class Config(dict):
     
     def copy(self):
         return type(self)(dict.copy(self))
+        # copy nested config objects
+        for k, v in self.items():
+            if isinstance(v, Config):
+                new_config[k] = v.copy()
+        return new_config
 
     def __copy__(self):
         return self.copy()
 
     def __deepcopy__(self, memo):
-        import copy
-        return type(self)(copy.deepcopy(list(self.items())))
+        new_config = type(self)()
+        for key, value in self.items():
+            if isinstance(value, (Config, LazyConfigValue)):
+                # deep copy config objects
+                value = copy.deepcopy(value, memo)
+            elif type(value) in {dict, list, set, tuple}:
+                # shallow copy plain container traits
+                value = copy.copy(value)
+            new_config[key] = value
+        return new_config
     
     def __getitem__(self, key):
         try:
@@ -422,52 +436,31 @@ class PyFileConfigLoader(FileConfigLoader):
             raise ConfigFileNotFound(str(e))
         self._read_file_as_dict()
         return self.config
-
-
+    
+    def load_subconfig(self, fname, path=None):
+        """Injected into config file namespace as load_subconfig"""
+        if path is None:
+            path = self.path
+        
+        loader = self.__class__(fname, path)
+        try:
+            sub_config = loader.load_config()
+        except ConfigFileNotFound:
+            # Pass silently if the sub config is not there,
+            # treat it as an empty config file.
+            pass
+        else:
+            self.config.merge(sub_config)
+    
     def _read_file_as_dict(self):
         """Load the config file into self.config, with recursive loading."""
-        # This closure is made available in the namespace that is used
-        # to exec the config file.  It allows users to call
-        # load_subconfig('myconfig.py') to load config files recursively.
-        # It needs to be a closure because it has references to self.path
-        # and self.config.  The sub-config is loaded with the same path
-        # as the parent, but it uses an empty config which is then merged
-        # with the parents.
-
-        # If a profile is specified, the config file will be loaded
-        # from that profile
-
-        def load_subconfig(fname, profile=None):
-            # import here to prevent circular imports
-            from IPython.core.profiledir import ProfileDir, ProfileDirError
-            if profile is not None:
-                try:
-                    profile_dir = ProfileDir.find_profile_dir_by_name(
-                            get_ipython_dir(),
-                            profile,
-                    )
-                except ProfileDirError:
-                    return
-                path = profile_dir.location
-            else:
-                path = self.path
-            loader = PyFileConfigLoader(fname, path)
-            try:
-                sub_config = loader.load_config()
-            except ConfigFileNotFound:
-                # Pass silently if the sub config is not there. This happens
-                # when a user s using a profile, but not the default config.
-                pass
-            else:
-                self.config.merge(sub_config)
-
-        # Again, this needs to be a closure and should be used in config
-        # files to get the config being loaded.
         def get_config():
+            """Unnecessary now, but a deprecation warning is more trouble than it's worth."""
             return self.config
-
+        
         namespace = dict(
-            load_subconfig=load_subconfig,
+            c=self.config,
+            load_subconfig=self.load_subconfig,
             get_config=get_config,
             __file__=self.full_filename,
         )
@@ -487,7 +480,7 @@ class CommandLineConfigLoader(ConfigLoader):
         """execute self.config.<lhs> = <rhs>
         
         * expands ~ with expanduser
-        * tries to assign with raw eval, otherwise assigns with just the string,
+        * tries to assign with literal_eval, otherwise assigns with just the string,
           allowing `--C.a=foobar` and `--C.a="foobar"` to be equivalent.  *Not*
           equivalent are `--C.a=4` and `--C.a='4'`.
         """
@@ -496,8 +489,8 @@ class CommandLineConfigLoader(ConfigLoader):
             # Try to see if regular Python syntax will work. This
             # won't handle strings as the quote marks are removed
             # by the system shell.
-            value = eval(rhs)
-        except (NameError, SyntaxError):
+            value = literal_eval(rhs)
+        except (NameError, SyntaxError, ValueError):
             # This case happens if the rhs is a string.
             value = rhs
 

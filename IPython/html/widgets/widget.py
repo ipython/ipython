@@ -22,6 +22,7 @@ from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import Unicode, Dict, Instance, Bool, List, \
     CaselessStrEnum, Tuple, CUnicode, Int, Set
 from IPython.utils.py3compat import string_types
+from .trait_types import Color
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -128,7 +129,7 @@ class Widget(LoggingConfigurable):
         If empty, look in the global registry.""", sync=True)
     _view_name = Unicode(None, allow_none=True, help="""Default view registered in the front-end
         to use to represent the widget.""", sync=True)
-    comm = Instance('IPython.kernel.comm.Comm')
+    comm = Instance('IPython.kernel.comm.Comm', allow_none=True)
     
     msg_throttle = Int(3, sync=True, help="""Maximum number of msgs the 
         front-end can send before receiving an idle msg from the back-end.""")
@@ -140,7 +141,7 @@ class Widget(LoggingConfigurable):
     
     _property_lock = Tuple((None, None))
     _send_state_lock = Int(0)
-    _states_to_send = Set(allow_none=False)
+    _states_to_send = Set()
     _display_callbacks = Instance(CallbackDispatcher, ())
     _msg_callbacks = Instance(CallbackDispatcher, ())
     
@@ -291,6 +292,13 @@ class Widget(LoggingConfigurable):
             True if the callback should be unregistered."""
         self._display_callbacks.register_callback(callback, remove=remove)
 
+    def add_trait(self, traitname, trait):
+        """Dynamically add a trait attribute to the Widget."""
+        super(Widget, self).add_trait(traitname, trait)
+        if trait.get_metadata('sync'):
+             self.keys.append(traitname)
+             self.send_state(traitname)
+
     #-------------------------------------------------------------------------
     # Support methods
     #-------------------------------------------------------------------------
@@ -438,9 +446,9 @@ class DOMWidget(Widget):
     padding = CUnicode(sync=True)
     margin = CUnicode(sync=True)
 
-    color = Unicode(sync=True)
-    background_color = Unicode(sync=True)
-    border_color = Unicode(sync=True)
+    color = Color(None, allow_none=True, sync=True)
+    background_color = Color(None, allow_none=True, sync=True)
+    border_color = Color(None, allow_none=True, sync=True)
 
     border_width = CUnicode(sync=True)
     border_radius = CUnicode(sync=True)

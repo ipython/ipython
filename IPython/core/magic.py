@@ -27,7 +27,7 @@ from IPython.config.configurable import Configurable
 from IPython.core import oinspect
 from IPython.core.error import UsageError
 from IPython.core.inputsplitter import ESC_MAGIC, ESC_MAGIC2
-from IPython.external.decorator import decorator
+from decorator import decorator
 from IPython.utils.ipstruct import Struct
 from IPython.utils.process import arg_split
 from IPython.utils.py3compat import string_types, iteritems
@@ -301,7 +301,7 @@ class MagicsManager(Configurable):
     # A registry of the original objects that we've been given holding magics.
     registry = Dict
 
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
 
     auto_magic = Bool(True, config=True, help=
         "Automatically call line magics without requiring explicit % prefix")
@@ -313,7 +313,7 @@ class MagicsManager(Configurable):
         'Automagic is OFF, % prefix IS needed for line magics.',
         'Automagic is ON, % prefix IS NOT needed for line magics.']
 
-    user_magics = Instance('IPython.core.magics.UserMagics')
+    user_magics = Instance('IPython.core.magics.UserMagics', allow_none=True)
 
     def __init__(self, shell=None, config=None, user_magics=None, **traits):
 

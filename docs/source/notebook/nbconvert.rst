@@ -43,20 +43,23 @@ The currently supported export formats are:
 * ``--to latex``
 
   Latex export.  This generates ``NOTEBOOK_NAME.tex`` file,
-  ready for export.  You can automatically run latex on it to generate a PDF
-  by adding ``--post PDF``.
+  ready for export.
   
   - ``--template article`` (default)
   
     Latex article, derived from Sphinx's howto template.
 
-  - ``--template book``
+  - ``--template report``
   
-    Latex book, derived from Sphinx's manual template.
+    Latex report, providing a table of contents and chapters.
 
   - ``--template basic``
   
     Very basic latex output - mainly meant as a starting point for custom templates.
+
+* ``--to pdf``
+
+  Generates a PDF via latex. Supports the same templates as ``--to latex``.
 
 * ``--to slides``
 

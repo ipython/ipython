@@ -28,12 +28,13 @@ class FilesHandler(IPythonHandler):
         else:
             name = path
         
-        model = cm.get(path)
+        model = cm.get(path, type='file')
         
         if self.get_argument("download", False):
             self.set_header('Content-Disposition','attachment; filename="%s"' % name)
         
-        if model['type'] == 'notebook':
+        # get mimetype from filename
+        if name.endswith('.ipynb'):
             self.set_header('Content-Type', 'application/json')
         else:
             cur_mime = mimetypes.guess_type(name)[0]

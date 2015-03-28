@@ -29,7 +29,8 @@ class DisplayHook(Configurable):
     that gets called anytime user code returns a value.
     """
 
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC',
+                     allow_none=True)
     exec_result = Instance('IPython.core.interactiveshell.ExecutionResult',
                            allow_none=True)
     cull_fraction = Float(0.2)

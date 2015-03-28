@@ -124,7 +124,7 @@ define([
                     .addClass('btn btn-default')
                     .attr("title", el.label||action.help)
                     .append(
-                        $("<i/>").addClass(el.icon||action.icon).addClass('fa')
+                        $("<i/>").addClass(el.icon||(action||{icon:'fa-exclamation-triangle'}).icon).addClass('fa')
                     );
                 var id = el.id;
                 if( id !== undefined ){

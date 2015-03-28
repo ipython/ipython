@@ -1,6 +1,8 @@
 from .widget import Widget, DOMWidget, CallbackDispatcher, register
 
-from .widget_bool import Checkbox, ToggleButton
+from .trait_types import Color
+
+from .widget_bool import Checkbox, ToggleButton, Valid
 from .widget_button import Button
 from .widget_box import Box, FlexBox, HBox, VBox
 from .widget_float import FloatText, BoundedFloatText, FloatSlider, FloatProgress, FloatRangeSlider

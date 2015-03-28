@@ -112,7 +112,7 @@ def list_profiles_in(path):
 
 def list_bundled_profiles():
     """list profiles that are bundled with IPython."""
-    path = os.path.join(get_ipython_package_dir(), u'config', u'profile')
+    path = os.path.join(get_ipython_package_dir(), u'core', u'profile')
     files = os.listdir(path)
     profiles = []
     for profile in files:

@@ -24,15 +24,25 @@ from IPython.utils.warn import DeprecatedClass
 @register('IPython.Button')
 class Button(DOMWidget):
     """Button widget.
+       This widget has an `on_click` method that allows you to listen for the 
+       user clicking on the button.  The click event itself is stateless.
 
-    This widget has an `on_click` method that allows you to listen for the 
-    user clicking on the button.  The click event itself is stateless."""
+       Parameters
+       ----------
+       description : str
+           description displayed next to the button
+       tooltip: str
+           tooltip caption of the toggle button
+       icon: str
+           font-awesome icon name
+    """
     _view_name = Unicode('ButtonView', sync=True)
 
     # Keys
     description = Unicode('', help="Button label.", sync=True)
     tooltip = Unicode(help="Tooltip caption of the button.", sync=True)
     disabled = Bool(False, help="Enable or disable user changes.", sync=True)
+    icon = Unicode('', help= "Font-awesome icon.", sync=True)
 
     button_style = CaselessStrEnum(
         values=['primary', 'success', 'info', 'warning', 'danger', ''], 

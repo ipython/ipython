@@ -57,9 +57,17 @@ class PylabMagics(Magics):
             
             In [2]: set_matplotlib_formats('pdf', 'svg')
 
-        See the docstring of `IPython.display.set_matplotlib_formats` and
+        The default for inline figures sets `bbox_inches` to 'tight'. This can
+        cause discrepancies between the displayed image and the identical
+        image created using `savefig`. This behavior can be disabled using the
+        `%config` magic::
+            
+            In [3]: %config InlineBackend.print_figure_kwargs = {'bbox_inches':None}
+
+        In addition, see the docstring of
+        `IPython.display.set_matplotlib_formats` and
         `IPython.display.set_matplotlib_close` for more information on
-        changing the behavior of the inline backend.
+        changing additional behaviors of the inline backend.
 
         Examples
         --------

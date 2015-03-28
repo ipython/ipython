@@ -58,6 +58,9 @@ def token_at_cursor(cell, cursor_pos=0):
     
     Used for introspection.
     
+    Function calls are prioritized, so the token for the callable will be returned
+    if the cursor is anywhere inside the call.
+    
     Parameters
     ----------
     
@@ -70,6 +73,7 @@ def token_at_cursor(cell, cursor_pos=0):
     names = []
     tokens = []
     offset = 0
+    call_names = []
     for tup in generate_tokens(StringIO(cell).readline):
         
         tok = Token(*tup)
@@ -93,6 +97,11 @@ def token_at_cursor(cell, cursor_pos=0):
             if tok.text == '=' and names:
                 # don't inspect the lhs of an assignment
                 names.pop(-1)
+            if tok.text == '(' and names:
+                # if we are inside a function call, inspect the function
+                call_names.append(names[-1])
+            elif tok.text == ')' and call_names:
+                call_names.pop(-1)
         
         if offset + end_col > cursor_pos:
             # we found the cursor, stop reading
@@ -102,7 +111,9 @@ def token_at_cursor(cell, cursor_pos=0):
         if tok.token == tokenize2.NEWLINE:
             offset += len(tok.line)
     
-    if names:
+    if call_names:
+        return call_names[-1]
+    elif names:
         return names[-1]
     else:
         return ''

@@ -76,7 +76,7 @@ define([
             notebook_path
         ) + "?download=" + download.toString();
         
-        var w = window.open(undefined, IPython._target);
+        var w = window.open('', IPython._target);
         if (this.notebook.dirty) {
             this.notebook.save_notebook().then(function() {
                 w.location = url;
@@ -104,6 +104,9 @@ define([
             window.open(utils.url_join_encode(that.base_url, 'tree', parent), IPython._target);
         });
         this.element.find('#copy_notebook').click(function () {
+            if (that.notebook.dirty) {
+                that.notebook.save_notebook({async : false});
+            }
             that.notebook.copy_notebook();
             return false;
         });
@@ -124,6 +127,10 @@ define([
 
         this.element.find('#download_html').click(function () {
             that._nbconvert('html', true);
+        });
+
+        this.element.find('#download_markdown').click(function () {
+            that._nbconvert('markdown', true);
         });
 
         this.element.find('#download_rst').click(function () {

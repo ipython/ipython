@@ -48,7 +48,7 @@
 .. _scipy: http://www.scipy.org
 .. _scipy_conference: http://conference.scipy.org
 .. _matplotlib: http://matplotlib.org
-.. _pythonxy: http://www.pythonxy.com
+.. _pythonxy: https://code.google.com/p/pythonxy/
 .. _ETS: http://code.enthought.com/projects/tool-suite.php
 .. _EPD: http://www.enthought.com/products/epd.php
 .. _python: http://www.python.org

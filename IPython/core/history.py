@@ -28,7 +28,7 @@ import threading
 
 # Our own packages
 from IPython.config.configurable import Configurable
-from IPython.external.decorator import decorator
+from decorator import decorator
 from IPython.utils.decorators import undoc
 from IPython.utils.path import locate_profile
 from IPython.utils import py3compat
@@ -443,7 +443,8 @@ class HistoryManager(HistoryAccessor):
     # Public interface
 
     # An instance of the IPython shell we are attached to
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC',
+                     allow_none=True)
     # Lists to hold processed and raw history. These start with a blank entry
     # so that we can index them starting from 1
     input_hist_parsed = List([""])
@@ -477,11 +478,12 @@ class HistoryManager(HistoryAccessor):
     db_output_cache = List()
     
     # History saving in separate thread
-    save_thread = Instance('IPython.core.history.HistorySavingThread')
+    save_thread = Instance('IPython.core.history.HistorySavingThread',
+                           allow_none=True)
     try:               # Event is a function returning an instance of _Event...
-        save_flag = Instance(threading._Event)
+        save_flag = Instance(threading._Event, allow_none=True)
     except AttributeError:         # ...until Python 3.3, when it's a class.
-        save_flag = Instance(threading.Event)
+        save_flag = Instance(threading.Event, allow_none=True)
     
     # Private interface
     # Variables used to store the three last inputs from the user.  On each new

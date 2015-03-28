@@ -21,7 +21,7 @@ import os
 import subprocess as sp
 import sys
 
-from IPython.external import pexpect
+import pexpect
 
 # Our own
 from ._process_common import getoutput, arg_split

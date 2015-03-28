@@ -1,3 +1,4 @@
+# coding: utf-8
 """Tests for IPython.lib.pretty."""
 
 # Copyright (c) IPython Development Team.
@@ -5,13 +6,11 @@
 
 from __future__ import print_function
 
-# Third-party imports
 import nose.tools as nt
 
-# Our own imports
 from IPython.lib import pretty
 from IPython.testing.decorators import skip_without
-from IPython.utils.py3compat import PY3
+from IPython.utils.py3compat import PY3, unicode_to_str
 
 if PY3:
     from io import StringIO
@@ -236,6 +235,21 @@ ClassWithMeta = MetaClass('ClassWithMeta')
 def test_metaclass_repr():
     output = pretty.pretty(ClassWithMeta)
     nt.assert_equal(output, "[CUSTOM REPR FOR CLASS ClassWithMeta]")
+
+
+def test_unicode_repr():
+    u = u"üniçodé"
+    ustr = unicode_to_str(u)
+    
+    class C(object):
+        def __repr__(self):
+            return ustr
+    
+    c = C()
+    p = pretty.pretty(c)
+    nt.assert_equal(p, u)
+    p = pretty.pretty([c])
+    nt.assert_equal(p, u'[%s]' % u)
 
 
 def test_basic_class():

@@ -1,7 +1,9 @@
 div.output_wrapper {
     /* this position must be relative to enable descendents to be absolute within it */
     position: relative;
-    .vbox()
+    .vbox();
+    // avoid scrolled output overlaying input in some strange circumstances
+    z-index: 1;
 }
 
 /* class for the output area when it should be height-limited */
@@ -92,6 +94,8 @@ div.output_area pre {
 /* This class is for the output subarea inside the output_area and after
    the prompt div. */
 div.output_subarea {
+    // Don't let contents overflow page area.
+    overflow-x: auto;
     padding: @code_padding;
     .box-flex1();
 }

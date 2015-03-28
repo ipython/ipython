@@ -41,28 +41,27 @@ define([
             /**
              * Handles when the checkbox is clicked.
              *
-             * Calling model.set will trigger all of the other views of the 
+             * Calling model.set will trigger all of the other views of the
              * model to update.
              */
             var value = this.model.get('value');
             this.model.set('value', ! value, {updated_view: this});
             this.touch();
         },
-        
+
         update : function(options){
             /**
              * Update the contents of this view
              *
-             * Called when the model is changed.  The model may have been 
+             * Called when the model is changed. The model may have been
              * changed by another view or by a state update from the back-end.
              */
             this.$checkbox.prop('checked', this.model.get('value'));
 
             if (options === undefined || options.updated_view != this) {
-                var disabled = this.model.get('disabled');
-                this.$checkbox.prop('disabled', disabled);
+                this.$checkbox.prop("disabled", this.model.get("disabled"));
 
-                var description = this.model.get('description');
+                var description = this.model.get("description");
                 if (description.trim().length === 0) {
                     this.$label.hide();
                 } else {
@@ -72,7 +71,6 @@ define([
             }
             return CheckboxView.__super__.update.apply(this);
         },
-        
     });
 
 
@@ -108,12 +106,12 @@ define([
             };
             this.update_mapped_classes(class_map, 'button_style', previous_trait_value);
         },
-        
+
         update : function(options){
             /**
              * Update the contents of this view
              *
-             * Called when the model is changed.  The model may have been 
+             * Called when the model is changed. The model may have been
              * changed by another view or by a state update from the back-end.
              */
             if (this.model.get('value')) {
@@ -123,26 +121,26 @@ define([
             }
 
             if (options === undefined || options.updated_view != this) {
-
-                var disabled = this.model.get('disabled');
-                this.$el.prop('disabled', disabled);
-
-                var description = this.model.get('description');
+                this.$el.prop("disabled", this.model.get("disabled"));
                 this.$el.attr("title", this.model.get("tooltip"));
-                if (description.trim().length === 0) {
+
+                var description = this.model.get("description");
+                var icon = this.model.get("icon");
+                if (description.trim().length === 0 && icon.trim().length ===0) {
                     this.$el.html("&nbsp;"); // Preserve button height
                 } else {
                     this.$el.text(description);
+                    $('<i class="fa"></i>').prependTo(this.$el).addClass(icon);
                 }
             }
             return ToggleButtonView.__super__.update.apply(this);
         },
-        
-        handle_click: function(e) { 
+
+        handle_click: function(e) {
             /**
              * Handles and validates user input.
              *
-             * Calling model.set will trigger all of the other views of the 
+             * Calling model.set will trigger all of the other views of the
              * model to update.
              */
             var value = this.model.get('value');
@@ -151,8 +149,45 @@ define([
         },
     });
 
+
+    var ValidView = widget.DOMWidgetView.extend({
+        render: function() {
+            /**
+             * Called when view is rendered.
+             */
+            this.$el.addClass("widget-valid");
+            this.model.on("change", this.update, this);
+            this.update();
+        },
+        update: function() {
+            /**
+             * Update the contents of this view
+             *
+             * Called when the model is changed.  The model may have been
+             * changed by another view or by a state update from the back-end.
+             */
+            var icon, color, readout;
+            if (this.model.get("value")) {
+                icon = "fa-check";
+                color = "green";
+                readout = "";
+            } else {
+                icon = "fa-close";
+                color = "red";
+                readout = this.model.get("readout");
+            } 
+            this.$el.text(readout);
+            $('<i class="fa"></i>').prependTo(this.$el).addClass(icon);
+            this.after_displayed(function() {
+                this.$el.css("color", color);
+            }, this);
+        }
+    });
+
+
     return {
         'CheckboxView': CheckboxView,
         'ToggleButtonView': ToggleButtonView,
+        'ValidView': ValidView,
     };
 });
