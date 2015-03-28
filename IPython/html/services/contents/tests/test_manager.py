@@ -271,7 +271,7 @@ class TestContentsManager(TestCase):
 
         # Reload notebook and verify that last_modified incremented.
         saved = cm.get(path)
-        self.assertGreater(saved['last_modified'], model['last_modified'])
+        self.assertGreaterEqual(saved['last_modified'], model['last_modified'])
 
         # Move the notebook and verify that last_modified stayed the same.
         # (The frontend fires a warning if last_modified increases on the
