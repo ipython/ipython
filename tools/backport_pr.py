@@ -107,7 +107,7 @@ def backport_pr(branch, num, project='ipython/ipython'):
 
     return 0
 
-backport_re = re.compile(r"[Bb]ackport.*?(\d+)")
+backport_re = re.compile(r"(?:[Bb]ackport|[Mm]erge).*#(\d+)")
 
 def already_backported(branch, since_tag=None):
     """return set of PRs that have been backported already"""
