@@ -622,6 +622,8 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
                     for name in cache:
                         if cache[name][1] is not Undefined:
                             setattr(self, name, cache[name][1])
+                        else:
+                            delattr(self, name)
                     notifications = {}
                     raise e
                 finally:
@@ -633,10 +635,9 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
                         # remove the redundant value from __dict__
                         # (only used to preserve pickleability on Python < 3.4)
                         self.__dict__.pop('_notify_trait', None)
-
                     # trigger delayed notifications
-                    for name in notifications:
-                        self._notify_trait(*(notifications[name]))
+                    for v in dict(cache, **notifications).values():
+                        self._notify_trait(*v)
 
     def _notify_trait(self, name, old_value, new_value):
 
