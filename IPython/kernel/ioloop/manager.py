@@ -36,11 +36,11 @@ def as_zmqstream(f):
 
 class IOLoopKernelManager(KernelManager):
 
-    loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=False)
+    loop = Instance('zmq.eventloop.ioloop.IOLoop')
     def _loop_default(self):
         return ioloop.IOLoop.instance()
 
-    _restarter = Instance('IPython.kernel.ioloop.IOLoopKernelRestarter')
+    _restarter = Instance('IPython.kernel.ioloop.IOLoopKernelRestarter', allow_none=True)
 
     def start_restarter(self):
         if self.autorestart and self.has_kernel:

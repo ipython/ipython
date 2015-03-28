@@ -49,7 +49,7 @@ class KernelManager(ConnectionFileMixin):
 
     # the class to create with our `client` method
     client_class = DottedObjectName('IPython.kernel.blocking.BlockingKernelClient')
-    client_factory = Type()
+    client_factory = Type(allow_none=True)
     def _client_class_changed(self, name, old, new):
         self.client_factory = import_item(str(new))
 

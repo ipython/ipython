@@ -301,7 +301,7 @@ class MagicsManager(Configurable):
     # A registry of the original objects that we've been given holding magics.
     registry = Dict
 
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
 
     auto_magic = Bool(True, config=True, help=
         "Automatically call line magics without requiring explicit % prefix")
@@ -313,7 +313,7 @@ class MagicsManager(Configurable):
         'Automagic is OFF, % prefix IS needed for line magics.',
         'Automagic is ON, % prefix IS NOT needed for line magics.']
 
-    user_magics = Instance('IPython.core.magics.UserMagics')
+    user_magics = Instance('IPython.core.magics.UserMagics', allow_none=True)
 
     def __init__(self, shell=None, config=None, user_magics=None, **traits):
 

@@ -211,8 +211,8 @@ class HubFactory(RegistrationFactory):
         return max(30, int(.01 * self.heartmonitor.period))
 
     # not configurable
-    db = Instance('ipython_parallel.controller.dictdb.BaseDB')
-    heartmonitor = Instance('ipython_parallel.controller.heartmonitor.HeartMonitor')
+    db = Instance('ipython_parallel.controller.dictdb.BaseDB', allow_none=True)
+    heartmonitor = Instance('ipython_parallel.controller.heartmonitor.HeartMonitor', allow_none=True)
 
     def _ip_changed(self, name, old, new):
         self.engine_ip = new
@@ -382,12 +382,12 @@ class Hub(SessionFactory):
     _idcounter=Integer(0)
 
     # objects from constructor:
-    query=Instance(ZMQStream)
-    monitor=Instance(ZMQStream)
-    notifier=Instance(ZMQStream)
-    resubmit=Instance(ZMQStream)
-    heartmonitor=Instance(HeartMonitor)
-    db=Instance(object)
+    query=Instance(ZMQStream, allow_none=True)
+    monitor=Instance(ZMQStream, allow_none=True)
+    notifier=Instance(ZMQStream, allow_none=True)
+    resubmit=Instance(ZMQStream, allow_none=True)
+    heartmonitor=Instance(HeartMonitor, allow_none=True)
+    db=Instance(object, allow_none=True)
     client_info=Dict()
     engine_info=Dict()
 

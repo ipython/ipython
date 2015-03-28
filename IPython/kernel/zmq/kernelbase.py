@@ -45,13 +45,13 @@ class Kernel(SingletonConfigurable):
         loop = ioloop.IOLoop.instance()
         loop.add_callback(self.enter_eventloop)
 
-    session = Instance(Session)
-    profile_dir = Instance('IPython.core.profiledir.ProfileDir')
+    session = Instance(Session, allow_none=True)
+    profile_dir = Instance('IPython.core.profiledir.ProfileDir', allow_none=True)
     shell_streams = List()
-    control_stream = Instance(ZMQStream)
-    iopub_socket = Instance(zmq.Socket)
-    stdin_socket = Instance(zmq.Socket)
-    log = Instance(logging.Logger)
+    control_stream = Instance(ZMQStream, allow_none=True)
+    iopub_socket = Instance(zmq.Socket, allow_none=True)
+    stdin_socket = Instance(zmq.Socket, allow_none=True)
+    log = Instance(logging.Logger, allow_none=True)
 
     # identities:
     int_id = Integer(-1)

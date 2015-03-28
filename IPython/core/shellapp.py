@@ -194,7 +194,8 @@ class InteractiveShellApp(Configurable):
         When False, pylab mode should not import any names into the user namespace.
         """
     )
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC',
+                     allow_none=True)
     
     user_ns = Instance(dict, args=None, allow_none=True)
     def _user_ns_changed(self, name, old, new):

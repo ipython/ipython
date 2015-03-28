@@ -193,7 +193,7 @@ class AliasManager(Configurable):
 
     default_aliases = List(default_aliases(), config=True)
     user_aliases = List(default_value=[], config=True)
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
 
     def __init__(self, shell=None, **kwargs):
         super(AliasManager, self).__init__(shell=shell, **kwargs)

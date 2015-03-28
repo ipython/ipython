@@ -58,8 +58,8 @@ from .session import Session
 class ZMQDisplayPublisher(DisplayPublisher):
     """A display publisher that publishes data using a ZeroMQ PUB socket."""
 
-    session = Instance(Session)
-    pub_socket = Instance(SocketABC)
+    session = Instance(Session, allow_none=True)
+    pub_socket = Instance(SocketABC, allow_none=True)
     parent_header = Dict({})
     topic = CBytes(b'display_data')
 

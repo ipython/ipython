@@ -50,7 +50,7 @@ class LogWatcher(LoggingConfigurable):
         return 'tcp://%s:20202' % localhost()
     
     # internals
-    stream = Instance('zmq.eventloop.zmqstream.ZMQStream')
+    stream = Instance('zmq.eventloop.zmqstream.ZMQStream', allow_none=True)
     
     context = Instance(zmq.Context)
     def _context_default(self):

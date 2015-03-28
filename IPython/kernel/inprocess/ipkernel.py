@@ -27,7 +27,8 @@ class InProcessKernel(IPythonKernel):
 
     # The frontends connected to this kernel.
     frontends = List(
-        Instance('IPython.kernel.inprocess.client.InProcessKernelClient')
+        Instance('IPython.kernel.inprocess.client.InProcessKernelClient',
+                 allow_none=True)
     )
 
     # The GUI environment that the kernel is running under. This need not be
@@ -45,7 +46,7 @@ class InProcessKernel(IPythonKernel):
     # Kernel interface
     #-------------------------------------------------------------------------
 
-    shell_class = Type()
+    shell_class = Type(allow_none=True)
     shell_streams = List()
     control_stream = Any()
     iopub_socket = Instance(DummySocket, ())
@@ -140,7 +141,8 @@ class InProcessKernel(IPythonKernel):
 
 class InProcessInteractiveShell(ZMQInteractiveShell):
 
-    kernel = Instance('IPython.kernel.inprocess.ipkernel.InProcessKernel')
+    kernel = Instance('IPython.kernel.inprocess.ipkernel.InProcessKernel',
+                      allow_none=True)
 
     #-------------------------------------------------------------------------
     # InteractiveShell interface

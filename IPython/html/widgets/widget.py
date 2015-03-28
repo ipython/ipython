@@ -129,7 +129,7 @@ class Widget(LoggingConfigurable):
         If empty, look in the global registry.""", sync=True)
     _view_name = Unicode(None, allow_none=True, help="""Default view registered in the front-end
         to use to represent the widget.""", sync=True)
-    comm = Instance('IPython.kernel.comm.Comm')
+    comm = Instance('IPython.kernel.comm.Comm', allow_none=True)
     
     msg_throttle = Int(3, sync=True, help="""Maximum number of msgs the 
         front-end can send before receiving an idle msg from the back-end.""")

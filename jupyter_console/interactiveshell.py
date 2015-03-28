@@ -109,8 +109,8 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         """
     )
 
-    manager = Instance('IPython.kernel.KernelManager')
-    client = Instance('IPython.kernel.KernelClient')
+    manager = Instance('IPython.kernel.KernelManager', allow_none=True)
+    client = Instance('IPython.kernel.KernelClient', allow_none=True)
     def _client_changed(self, name, old, new):
         self.session_id = new.session.session
     session_id = Unicode()

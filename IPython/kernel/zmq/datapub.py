@@ -27,8 +27,8 @@ from IPython.kernel.zmq.session import Session, extract_header
 class ZMQDataPublisher(Configurable):
 
     topic = topic = CBytes(b'datapub')
-    session = Instance(Session)
-    pub_socket = Instance(SocketABC)
+    session = Instance(Session, allow_none=True)
+    pub_socket = Instance(SocketABC, allow_none=True)
     parent_header = Dict({})
 
     def set_parent(self, parent):

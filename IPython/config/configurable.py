@@ -34,7 +34,7 @@ class MultipleInstanceError(ConfigurableError):
 class Configurable(HasTraits):
 
     config = Instance(Config, (), {})
-    parent = Instance('IPython.config.configurable.Configurable')
+    parent = Instance('IPython.config.configurable.Configurable', allow_none=True)
 
     def __init__(self, **kwargs):
         """Create a configurable given a config config.

@@ -67,8 +67,8 @@ class EngineFactory(RegistrationFactory):
     connection_info = Dict()
     user_ns = Dict()
     id = Integer(allow_none=True)
-    registrar = Instance('zmq.eventloop.zmqstream.ZMQStream')
-    kernel = Instance(Kernel)
+    registrar = Instance('zmq.eventloop.zmqstream.ZMQStream', allow_none=True)
+    kernel = Instance(Kernel, allow_none=True)
     hb_check_period=Integer()
     
     # States for the heartbeat monitoring

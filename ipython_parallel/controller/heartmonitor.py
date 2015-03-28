@@ -77,8 +77,8 @@ class HeartMonitor(LoggingConfigurable):
         help='Allowed consecutive missed pings from controller Hub to engine before unregistering.',
     )
 
-    pingstream=Instance('zmq.eventloop.zmqstream.ZMQStream')
-    pongstream=Instance('zmq.eventloop.zmqstream.ZMQStream')
+    pingstream=Instance('zmq.eventloop.zmqstream.ZMQStream', allow_none=True)
+    pongstream=Instance('zmq.eventloop.zmqstream.ZMQStream', allow_none=True)
     loop = Instance('zmq.eventloop.ioloop.IOLoop')
     def _loop_default(self):
         return ioloop.IOLoop.instance()

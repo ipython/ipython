@@ -183,11 +183,11 @@ help="""select the task scheduler scheme  [default: Python LRU]
     scheme = Instance(FunctionType) # function for determining the destination
     def _scheme_default(self):
         return leastload
-    client_stream = Instance(zmqstream.ZMQStream) # client-facing stream
-    engine_stream = Instance(zmqstream.ZMQStream) # engine-facing stream
-    notifier_stream = Instance(zmqstream.ZMQStream) # hub-facing sub stream
-    mon_stream = Instance(zmqstream.ZMQStream) # hub-facing pub stream
-    query_stream = Instance(zmqstream.ZMQStream) # hub-facing DEALER stream
+    client_stream = Instance(zmqstream.ZMQStream, allow_none=True) # client-facing stream
+    engine_stream = Instance(zmqstream.ZMQStream, allow_none=True) # engine-facing stream
+    notifier_stream = Instance(zmqstream.ZMQStream, allow_none=True) # hub-facing sub stream
+    mon_stream = Instance(zmqstream.ZMQStream, allow_none=True) # hub-facing pub stream
+    query_stream = Instance(zmqstream.ZMQStream, allow_none=True) # hub-facing DEALER stream
 
     # internals:
     queue = Instance(deque) # sorted list of Jobs

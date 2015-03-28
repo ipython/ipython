@@ -46,7 +46,8 @@ class ExtensionManager(Configurable):
     is added to ``sys.path`` automatically.
     """
 
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC',
+                     allow_none=True)
 
     def __init__(self, shell=None, **kwargs):
         super(ExtensionManager, self).__init__(shell=shell, **kwargs)

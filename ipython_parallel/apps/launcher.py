@@ -102,7 +102,7 @@ class BaseLauncher(LoggingConfigurable):
     # controller_args, engine_args attributes of the launchers to add
     # the work_dir option.
     work_dir = Unicode(u'.')
-    loop = Instance('zmq.eventloop.ioloop.IOLoop')
+    loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=True)
 
     start_data = Any()
     stop_data = Any()

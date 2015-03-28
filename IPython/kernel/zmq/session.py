@@ -148,9 +148,10 @@ class SessionFactory(LoggingConfigurable):
     def _context_default(self):
         return zmq.Context.instance()
 
-    session = Instance('IPython.kernel.zmq.session.Session')
+    session = Instance('IPython.kernel.zmq.session.Session',
+                       allow_none=True)
 
-    loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=False)
+    loop = Instance('zmq.eventloop.ioloop.IOLoop')
     def _loop_default(self):
         return IOLoop.instance()
 
@@ -340,7 +341,7 @@ class Session(Configurable):
     def _digest_mod_default(self):
         return hashlib.sha256
     
-    auth = Instance(hmac.HMAC)
+    auth = Instance(hmac.HMAC, allow_none=True)
     
     def _new_auth(self):
         if self.key:
