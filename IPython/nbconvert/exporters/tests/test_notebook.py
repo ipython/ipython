@@ -24,7 +24,7 @@ class TestNotebookExporter(ExportersTestsBase):
             file_contents = f.read()
         (output, resources) = self.exporter_class().from_filename(self._get_notebook())
         assert len(output) > 0
-        assert_big_text_equal(output, file_contents)
+        assert_big_text_equal(output.strip(), file_contents.strip())
 
     def test_downgrade_3(self):
         exporter = self.exporter_class(nbformat_version=3)
