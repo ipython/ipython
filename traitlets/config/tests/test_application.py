@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Tests for IPython.config.application.Application
+Tests for traitlets.config.application.Application
 """
 
 # Copyright (c) IPython Development Team.
@@ -15,15 +15,15 @@ pjoin = os.path.join
 
 import nose.tools as nt
 
-from IPython.config.configurable import Configurable
-from IPython.config.loader import Config
+from traitlets.config.configurable import Configurable
+from traitlets.config.loader import Config
 
-from IPython.config.application import (
+from traitlets.config.application import (
     Application
 )
 
 from IPython.utils.tempdir import TemporaryDirectory
-from IPython.utils.traitlets import (
+from traitlets.traitlets import (
     Bool, Unicode, Integer, List, Dict
 )
 

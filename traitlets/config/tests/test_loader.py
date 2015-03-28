@@ -1,5 +1,5 @@
 # encoding: utf-8
-"""Tests for IPython.config.loader"""
+"""Tests for traitlets.config.loader"""
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
@@ -18,7 +18,7 @@ import nose.tools as nt
 
 
 
-from IPython.config.loader import (
+from traitlets.config.loader import (
     Config,
     LazyConfigValue,
     PyFileConfigLoader,

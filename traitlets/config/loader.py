@@ -17,7 +17,7 @@ from IPython.utils.path import filefind, get_ipython_dir
 from IPython.utils import py3compat
 from IPython.utils.encoding import DEFAULT_ENCODING
 from IPython.utils.py3compat import unicode_type, iteritems
-from IPython.utils.traitlets import HasTraits, List, Any
+from traitlets.traitlets import HasTraits, List, Any
 
 #-----------------------------------------------------------------------------
 # Exceptions
@@ -330,7 +330,7 @@ class ConfigLoader(object):
         """A base class for config loaders.
 
         log : instance of :class:`logging.Logger` to use.
-              By default loger of :meth:`IPython.config.application.Application.instance()`
+              By default loger of :meth:`traitlets.config.application.Application.instance()`
               will be used
 
         Examples
@@ -558,7 +558,7 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
         Examples
         --------
 
-            >>> from IPython.config.loader import KeyValueConfigLoader
+            >>> from traitlets.config.loader import KeyValueConfigLoader
             >>> cl = KeyValueConfigLoader()
             >>> d = cl.load_config(["--A.name='brian'","--B.number=0"])
             >>> sorted(d.items())

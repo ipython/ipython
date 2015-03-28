@@ -7,9 +7,9 @@ import io
 import json
 import os
 
-from IPython.config import LoggingConfigurable
+from traitlets.config import LoggingConfigurable
 from IPython.utils.py3compat import PY3
-from IPython.utils.traitlets import Unicode
+from traitlets.traitlets import Unicode
 
 
 def recursive_update(target, new):

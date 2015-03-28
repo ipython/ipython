@@ -1,21 +1,21 @@
 # encoding: utf-8
-"""Tests for IPython.config.configurable"""
+"""Tests for traitlets.config.configurable"""
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
 from unittest import TestCase
 
-from IPython.config.configurable import (
+from traitlets.config.configurable import (
     Configurable, 
     SingletonConfigurable
 )
 
-from IPython.utils.traitlets import (
+from traitlets.traitlets import (
     Integer, Float, Unicode, List, Dict, Set,
 )
 
-from IPython.config.loader import Config
+from traitlets.config.loader import Config
 from IPython.utils.py3compat import PY3
 
 
