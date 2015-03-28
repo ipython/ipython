@@ -341,7 +341,7 @@ class Session(Configurable):
     def _digest_mod_default(self):
         return hashlib.sha256
     
-    auth = Instance(hmac.HMAC)
+    auth = Instance(hmac.HMAC, allow_none=True)
     
     def _new_auth(self):
         if self.key:
