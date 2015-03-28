@@ -56,7 +56,7 @@ class LogWatcher(LoggingConfigurable):
     def _context_default(self):
         return zmq.Context.instance()
     
-    loop = Instance(zmq.eventloop.ioloop.IOLoop, allow_none=True)
+    loop = Instance(zmq.eventloop.ioloop.IOLoop)
     def _loop_default(self):
         return ioloop.IOLoop.instance()
     

@@ -146,7 +146,7 @@ class BaseIPythonApplication(Application):
         return d
     
     _in_init_profile_dir = False
-    profile_dir = Instance(ProfileDir, allow_none=True)
+    profile_dir = Instance(ProfileDir)
     def _profile_dir_default(self):
         # avoid recursion
         if self._in_init_profile_dir:

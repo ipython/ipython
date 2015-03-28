@@ -27,7 +27,7 @@ class InProcessKernel(IPythonKernel):
 
     # The frontends connected to this kernel.
     frontends = List(
-        Instance('IPython.kernel.inprocess.client.InProcessKernelClient'
+        Instance('IPython.kernel.inprocess.client.InProcessKernelClient',
                  allow_none=True)
     )
 
