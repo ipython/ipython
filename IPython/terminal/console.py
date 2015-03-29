@@ -17,4 +17,5 @@ from IPython.utils.shimmodule import ShimModule
 # Unconditionally insert the shim into sys.modules so that further import calls
 # trigger the custom attribute access above
 
-sys.modules['IPython.terminal.console'] = ShimModule('console', mirror='jupyter_console')
+sys.modules['IPython.terminal.console'] = ShimModule(
+    src='IPython.terminal.console', mirror='jupyter_console')
