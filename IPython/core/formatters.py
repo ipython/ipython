@@ -270,7 +270,11 @@ def _get_type(obj):
     """Return the type of an instance (old and new-style)"""
     return getattr(obj, '__class__', None) or type(obj)
 
-_raise_key_error = object()
+class _RaiseKeyError(object):
+    def __repr__(self):
+        return '<'+self.__module__ + "." + self.__class__.__name__+'>'
+
+_raise_key_error = _RaiseKeyError()
 
 
 class BaseFormatter(Configurable):

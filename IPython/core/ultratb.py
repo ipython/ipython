@@ -1322,9 +1322,12 @@ def text_repr(value):
 def eqrepr(value, repr=text_repr):
     return '=%s' % repr(value)
 
+eqrepr.__repr__ = lambda x:'<'+eqrepr.__module__ + "."+'eqrepr>'
 
 def nullrepr(value, repr=text_repr):
     return ''
+
+nullrepr.__repr__ = lambda x:'<'+nullrepr.__module__ + "."+'nullrepr>'
 
 
 #----------------------------------------------------------------------------
@@ -1368,4 +1371,3 @@ if __name__ == "__main__":
     except:
         handler(*sys.exc_info())
     print('')
-

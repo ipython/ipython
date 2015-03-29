@@ -105,7 +105,7 @@ version = iprelease['version'].split('-', 1)[0]
 # non-false value, then it is used:
 #today = ''
 # Else, today_fmt is used as the format for a strftime call.
-today_fmt = '%B %d, %Y'
+today_fmt = '%B %Y'
 
 # List of documents that shouldn't be included in the build.
 #unused_docs = []
