@@ -5,7 +5,7 @@
 
 from unittest import TestCase
 from IPython.utils.traitlets import HasTraits
-from IPython.utils.tests.test_traitlets import TraitTestBase
+from traitlets.tests.test_traitlets import TraitTestBase
 from IPython.html.widgets import Color
 
 
