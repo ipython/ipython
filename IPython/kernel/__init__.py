@@ -14,14 +14,18 @@ warn("The `IPython.kernel` package has been deprecated. "
 from IPython.utils.shimmodule import ShimModule
 
 # zmq subdir is gone
-sys.modules['IPython.kernel.zmq.session'] = ShimModule('session', mirror='jupyter_client.session')
-sys.modules['IPython.kernel.zmq'] = ShimModule('zmq', mirror='ipython_kernel')
+sys.modules['IPython.kernel.zmq.session'] = ShimModule(
+    src='IPython.kernel.zmq.session', mirror='jupyter_client.session')
+sys.modules['IPython.kernel.zmq'] = ShimModule(
+    src='IPython.kernel.zmq', mirror='ipython_kernel')
 
 for pkg in ('comm', 'inprocess'):
-    sys.modules['IPython.kernel.%s' % pkg] = ShimModule(pkg, mirror='ipython_kernel.%s' % pkg)
+    src = 'IPython.kernel.%s' % pkg
+    sys.modules[src] = ShimModule(src=src, mirror='ipython_kernel.%s' % pkg)
 
 for pkg in ('ioloop', 'blocking'):
-    sys.modules['IPython.kernel.%s' % pkg] = ShimModule(pkg, mirror='jupyter_client.%s' % pkg)
+    src = 'IPython.kernel.%s' % pkg
+    sys.modules[src] = ShimModule(src=src, mirror='jupyter_client.%s' % pkg)
 
 # required for `from IPython.kernel import PKG`
 from ipython_kernel import comm, inprocess

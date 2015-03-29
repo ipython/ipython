@@ -12,11 +12,7 @@ working, though a warning will be printed.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from __future__ import print_function
-
-# Stdlib
 import sys
-import types
 from warnings import warn
 
 warn("The top-level `frontend` package has been deprecated. "
@@ -27,5 +23,7 @@ from IPython.utils.shimmodule import ShimModule
 # Unconditionally insert the shim into sys.modules so that further import calls
 # trigger the custom attribute access above
 
-sys.modules['IPython.frontend.html.notebook'] = ShimModule('notebook', mirror='IPython.html')
-sys.modules['IPython.frontend'] = ShimModule('frontend', mirror='IPython')
+sys.modules['IPython.frontend.html.notebook'] = ShimModule(
+    src='IPython.frontend.html.notebook', mirror='IPython.html')
+sys.modules['IPython.frontend'] = ShimModule(
+    src='IPython.frontend', mirror='IPython')

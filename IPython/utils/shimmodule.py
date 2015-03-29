@@ -3,14 +3,65 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import sys
 import types
+
+
+class ShimImporter(object):
+    """Import hook for a shim.
+    
+    This ensures that submodule imports return the real target module,
+    not a clone that will confuse `is` and `isinstance` checks.
+    """
+    def __init__(self, src, mirror):
+        self.src = src
+        self.mirror = mirror
+    
+    def _mirror_name(self, fullname):
+        """get the name of the mirrored module"""
+        
+        return self.mirror + fullname[len(self.src):]
+
+    def find_module(self, fullname, path=None):
+        """Return self if we should be used to import the module."""
+        if fullname.startswith(self.src + '.'):
+            mirror_name = self._mirror_name(fullname)
+            try:
+                __import__(mirror_name)
+            except ImportError:
+                return
+            else:
+                return self
+
+    def load_module(self, fullname):
+        """Import the mirrored module, and insert it into sys.modules"""
+        mirror_name = self._mirror_name(fullname)
+        mod = __import__(mirror_name)
+        if '.' in mirror_name:
+            name = mirror_name.rsplit('.', 1)[-1]
+            mod = getattr(mod, name)
+        sys.modules[fullname] = mod
+        return mod
+
 
 class ShimModule(types.ModuleType):
 
     def __init__(self, *args, **kwargs):
         self._mirror = kwargs.pop("mirror")
+        src = kwargs.pop("src", None)
+        if src:
+            kwargs['name'] = src.rsplit('.', 1)[-1]
         super(ShimModule, self).__init__(*args, **kwargs)
-
+        # add import hook for descendent modules
+        if src:
+            sys.meta_path.append(
+                ShimImporter(src=src, mirror=self._mirror)
+            )
+    
+    @property
+    def __path__(self):
+        return []
+    
     @property
     def __spec__(self):
         """Don't produce __spec__ until requested"""
