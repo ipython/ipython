@@ -594,6 +594,7 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
         """
         if self._cross_validation_lock is True:
             yield
+            return
         else:
             self._cross_validation_lock = True
             cache = {}
@@ -628,8 +629,8 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
                     notifications = {}
                     raise e
                 finally:
-                    self._cross_validation_lock = False
                     self._notify_trait = _notify_trait
+                    self._cross_validation_lock = False
                     if isinstance(_notify_trait, types.MethodType):
                         # FIXME: remove when support is bumped to 3.4.
                         # when original method is restored,

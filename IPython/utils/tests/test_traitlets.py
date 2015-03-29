@@ -1333,11 +1333,20 @@ def test_pickle_hastraits():
 
 def test_hold_trait_notifications():
     changes = []
+
     class Test(HasTraits):
         a = Integer(0)
+        b = Integer(0)
+
         def _a_changed(self, name, old, new):
             changes.append((old, new))
-    
+
+        def _b_validate(self, value, trait):
+            if value != 0:
+                raise TraitError('Only 0 is a valid value')
+            return value
+
+    # Test context manager and nesting
     t = Test()
     with t.hold_trait_notifications():
         with t.hold_trait_notifications():
@@ -1356,8 +1365,16 @@ def test_hold_trait_notifications():
         t.a = 4
         nt.assert_equal(t.a, 4)
         nt.assert_equal(changes, [])
-    nt.assert_equal(changes, [(3,4)])
 
+    nt.assert_equal(changes, [(3,4)])
+    # Test roll-back
+    try:
+         with t.hold_trait_notifications():
+             t.b = 1  # raises a Trait error
+    except:
+        pass
+    nt.assert_equal(t.b, 0)
+    
 
 class OrderTraits(HasTraits):
     notified = Dict()
