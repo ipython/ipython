@@ -366,20 +366,22 @@ div.cell {
 }
 div.cell.selected {
   border-color: #ababab;
-  /* Don't border the cells when printing */
+  /* Don't show the background when printing */
 }
 @media print {
   div.cell.selected {
     border-color: transparent;
+    background-color: transparent;
   }
 }
 .edit_mode div.cell.selected {
-  border-color: green;
-  /* Don't border the cells when printing */
+  background-color: #ded;
+  border-color: #ded;
+  /* Don't show the background when printing */
 }
 @media print {
   .edit_mode div.cell.selected {
-    border-color: transparent;
+    background-color: transparent;
   }
 }
 .prompt {
