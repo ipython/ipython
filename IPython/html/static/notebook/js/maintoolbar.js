@@ -25,7 +25,6 @@ define([
         this.events = options.events;
         this.notebook = options.notebook;
         this._make();
-        this.notebook.keyboard_manager.register_events(this.element);
         Object.seal(this);
     };
 
@@ -51,7 +50,7 @@ define([
              'ipython.move-selected-cell-down'
             ],
             'move_up_down'],
-          [ ['ipython.run-select-next',
+          [ ['ipython.run-select-next-cell-and-focus',
              'ipython.interrupt-kernel',
              'ipython.restart-kernel'
             ],

@@ -36,7 +36,7 @@ define(function(require){
      *
      **/
     var _actions = {
-        'run-select-next': {
+        'run-select-next-cell-and-focus': {
             icon: 'fa-play',
             help    : 'run cell, select below',
             help_index : 'ba',
@@ -78,7 +78,7 @@ define(function(require){
                 env.notebook.edit_mode();
             }
         },
-        'select-previous-cell' : {
+        'select-previous-cell-and-focus' : {
             help: 'select cell above',
             help_index : 'da',
             handler : function (env) {
@@ -89,7 +89,7 @@ define(function(require){
                 }
             }
         },
-        'select-next-cell' : {
+        'select-next-cell-and-focus' : {
             help: 'select cell below',
             help_index : 'db',
             handler : function (env) {
@@ -115,7 +115,6 @@ define(function(require){
             help_index : 'ef',
             handler : function (env) {
                 env.notebook.copy_cell();
-                env.notebook.focus_cell();
             }
         },
         'paste-cell-before' : {
@@ -268,7 +267,6 @@ define(function(require){
             help_index : 'ha',
             handler : function (env) {
                 env.notebook.kernel.interrupt();
-                env.notebook.focus_cell();
             }
         },
         'restart-kernel':{
@@ -276,7 +274,6 @@ define(function(require){
             help_index : 'hb',
             handler : function (env) {
                 env.notebook.restart_kernel();
-                env.notebook.focus_cell();
             }
         },
         'undo-last-cell-deletion' : {
@@ -381,7 +378,6 @@ define(function(require){
                 if(event){
                     event.preventDefault();
                 }
-                env.notebook.ensure_focused();
                 return false;
             }
         },

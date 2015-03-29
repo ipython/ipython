@@ -120,9 +120,10 @@ define([
                     action_name = el;
 
                 }
-                var button  = $('<button/>')
+                var button  = $('<div/>')
                     .addClass('btn btn-default')
                     .attr("title", el.label||action.help)
+                    .attr("role","button")
                     .append(
                         $("<i/>").addClass(el.icon||(action||{icon:'fa-exclamation-triangle'}).icon).addClass('fa')
                     );
