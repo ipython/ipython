@@ -25,7 +25,7 @@ from IPython.core import release, crashhandler
 from IPython.core.profiledir import ProfileDir, ProfileDirError
 from IPython.utils.path import get_ipython_dir, get_ipython_package_dir, ensure_dir_exists
 from IPython.utils import py3compat
-from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict, Set, Instance
+from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict, Set, Instance, Undefined
 
 if os.name == 'nt':
     programdata = os.environ.get('PROGRAMDATA', None)
@@ -215,7 +215,7 @@ class BaseIPythonApplication(Application):
             return crashhandler.crash_handler_lite(etype, evalue, tb)
     
     def _ipython_dir_changed(self, name, old, new):
-        if old is not None:
+        if old is not None and old is not Undefined:
             str_old = py3compat.cast_bytes_py2(os.path.abspath(old),
                 sys.getfilesystemencoding()
             )

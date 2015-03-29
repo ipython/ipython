@@ -1,4 +1,4 @@
-"""Int class.  
+"""Int class.
 
 Represents an unbounded int using a widget.
 """
@@ -15,7 +15,8 @@ Represents an unbounded int using a widget.
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget, register
 from .trait_types import Color
-from IPython.utils.traitlets import Unicode, CInt, Bool, CaselessStrEnum, Tuple
+from IPython.utils.traitlets import (Unicode, CInt, Bool, CaselessStrEnum,
+                                     Tuple, TraitError)
 from IPython.utils.warn import DeprecatedClass
 
 #-----------------------------------------------------------------------------
@@ -32,41 +33,39 @@ class _Int(DOMWidget):
             kwargs['value'] = value
         super(_Int, self).__init__(**kwargs)
 
+
 class _BoundedInt(_Int):
     """Base class used to create widgets that represent a int that is bounded
     by a minium and maximum."""
-    step = CInt(1, help="Minimum step that the value can take (ignored by some views)", sync=True)
+    step = CInt(1, help="Minimum step to increment the value (ignored by some views)", sync=True)
     max = CInt(100, help="Max value", sync=True)
     min = CInt(0, help="Min value", sync=True)
 
     def __init__(self, *pargs, **kwargs):
         """Constructor"""
         super(_BoundedInt, self).__init__(*pargs, **kwargs)
-        self._handle_value_changed('value', None, self.value)
-        self._handle_max_changed('max', None, self.max)
-        self._handle_min_changed('min', None, self.min)
-        self.on_trait_change(self._handle_value_changed, 'value')
-        self.on_trait_change(self._handle_max_changed, 'max')
-        self.on_trait_change(self._handle_min_changed, 'min')
 
-    def _handle_value_changed(self, name, old, new):
-        """Validate value."""
-        if self.min > new or new > self.max:
-            self.value = min(max(new, self.min), self.max)
+    def _value_validate(self, value, trait):
+        """Cap and floor value"""
+        if self.min > value or self.max < value:
+            value = min(max(value, self.min), self.max)
+        return value
 
-    def _handle_max_changed(self, name, old, new):
-        """Make sure the min is always <= the max."""
-        if new < self.min:
-            raise ValueError("setting max < min")
-        if new < self.value:
-            self.value = new
+    def _min_validate(self, min, trait):
+        """Enforce min <= value <= max"""
+        if min > self.max:
+            raise TraitError("Setting min > max")
+        if min > self.value:
+            self.value = min
+        return min
 
-    def _handle_min_changed(self, name, old, new):
-        """Make sure the max is always >= the min."""
-        if new > self.max:
-            raise ValueError("setting min > max")
-        if new > self.value:
-            self.value = new
+    def _max_validate(self, max, trait):
+        """Enforce min <= value <= max"""
+        if max < self.min:
+            raise TraitError("setting max < min")
+        if max < self.value:
+            self.value = max
+        return max
 
 @register('IPython.IntText')
 class IntText(_Int):

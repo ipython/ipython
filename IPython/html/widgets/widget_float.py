@@ -1,4 +1,4 @@
-"""Float class.  
+"""Float class.
 
 Represents an unbounded float using a widget.
 """
@@ -15,7 +15,8 @@ Represents an unbounded float using a widget.
 #-----------------------------------------------------------------------------
 from .widget import DOMWidget, register
 from .trait_types import Color
-from IPython.utils.traitlets import Unicode, CFloat, Bool, CaselessStrEnum, Tuple
+from IPython.utils.traitlets import (Unicode, CFloat, Bool, CaselessStrEnum,
+                                     Tuple, TraitError)
 from IPython.utils.warn import DeprecatedClass
 
 #-----------------------------------------------------------------------------
@@ -31,39 +32,37 @@ class _Float(DOMWidget):
             kwargs['value'] = value
         super(_Float, self).__init__(**kwargs)
 
+
 class _BoundedFloat(_Float):
     max = CFloat(100.0, help="Max value", sync=True)
     min = CFloat(0.0, help="Min value", sync=True)
-    step = CFloat(0.1, help="Minimum step that the value can take (ignored by some views)", sync=True)
+    step = CFloat(0.1, help="Minimum step to increment the value (ignored by some views)", sync=True)
 
     def __init__(self, *pargs, **kwargs):
         """Constructor"""
         super(_BoundedFloat, self).__init__(*pargs, **kwargs)
-        self._handle_value_changed('value', None, self.value)
-        self._handle_max_changed('max', None, self.max)
-        self._handle_min_changed('min', None, self.min)
-        self.on_trait_change(self._handle_value_changed, 'value')
-        self.on_trait_change(self._handle_max_changed, 'max')
-        self.on_trait_change(self._handle_min_changed, 'min')
 
-    def _handle_value_changed(self, name, old, new):
-        """Validate value."""
-        if self.min > new or new > self.max:
-            self.value = min(max(new, self.min), self.max)
+    def _value_validate(self, value, trait):
+        """Cap and floor value"""
+        if self.min > value or self.max < value:
+            value = min(max(value, self.min), self.max)
+        return value
 
-    def _handle_max_changed(self, name, old, new):
-        """Make sure the min is always <= the max."""
-        if new < self.min:
-            raise ValueError("setting max < min")
-        if new < self.value:
-            self.value = new
+    def _min_validate(self, min, trait):
+        """Enforce min <= value <= max"""
+        if min > self.max:
+            raise TraitError("Setting min > max")
+        if min > self.value:
+            self.value = min
+        return min
 
-    def _handle_min_changed(self, name, old, new):
-        """Make sure the max is always >= the min."""
-        if new > self.max:
-            raise ValueError("setting min > max")
-        if new > self.value:
-            self.value = new
+    def _max_validate(self, max, trait):
+        """Enforce min <= value <= max"""
+        if max < self.min:
+            raise TraitError("setting max < min")
+        if max < self.value:
+            self.value = max
+        return max
 
 
 @register('IPython.FloatText')
@@ -76,9 +75,9 @@ class FloatText(_Float):
 	value : float
 	    value displayed
 	description : str
-	    description displayed next to the textbox   
+	    description displayed next to the text box
 	color : str Unicode color code (eg. '#C13535'), optional
-	    color of the value displayed   
+	    color of the value displayed
     """
     _view_name = Unicode('FloatTextView', sync=True)
 

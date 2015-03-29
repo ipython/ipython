@@ -319,7 +319,6 @@ class TraitType(object):
        accept superclasses for :class:`This` values.
     """
 
-
     metadata = {}
     default_value = Undefined
     allow_none = False
@@ -447,7 +446,7 @@ class TraitType(object):
         try:
             old_value = obj._trait_values[self.name]
         except KeyError:
-            old_value = None
+            old_value = Undefined
 
         obj._trait_values[self.name] = new_value
         try:
@@ -465,13 +464,14 @@ class TraitType(object):
             return value
         if hasattr(self, 'validate'):
             value = self.validate(obj, value)
-        try:
-            obj_validate = getattr(obj, '_%s_validate' % self.name)
-        except (AttributeError, RuntimeError):
-            # Qt mixins raise RuntimeError on missing attrs accessed before __init__
-            pass
-        else:
-            value = obj_validate(value, self)
+        if obj._cross_validation_lock is False:
+            value = self._cross_validate(obj, value)
+        return value
+
+    def _cross_validate(self, obj, value):
+        if hasattr(obj, '_%s_validate' % self.name):
+            cross_validate = getattr(obj, '_%s_validate' % self.name)
+            value = cross_validate(value, self)
         return value
 
     def __or__(self, other):
@@ -542,6 +542,7 @@ class MetaHasTraits(type):
                 v.this_class = cls
         super(MetaHasTraits, cls).__init__(name, bases, classdict)
 
+
 class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
 
     def __new__(cls, *args, **kw):
@@ -555,6 +556,7 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
         inst._trait_values = {}
         inst._trait_notifiers = {}
         inst._trait_dyn_inits = {}
+        inst._cross_validation_lock = True
         # Here we tell all the TraitType instances to set their default
         # values on the instance.
         for key in dir(cls):
@@ -570,43 +572,74 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
                     value.instance_init()
                     if key not in kw:
                         value.set_default_value(inst)
-
+        inst._cross_validation_lock = False
         return inst
 
     def __init__(self, *args, **kw):
         # Allow trait values to be set using keyword arguments.
         # We need to use setattr for this to trigger validation and
         # notifications.
-        
         with self.hold_trait_notifications():
             for key, value in iteritems(kw):
                 setattr(self, key, value)
-    
+
     @contextlib.contextmanager
     def hold_trait_notifications(self):
-        """Context manager for bundling trait change notifications
-        
-        Use this when doing multiple trait assignments (init, config),
-        to avoid race conditions in trait notifiers requesting other trait values.
+        """Context manager for bundling trait change notifications and cross
+        validation.
+
+        Use this when doing multiple trait assignments (init, config), to avoid
+        race conditions in trait notifiers requesting other trait values.
         All trait notifications will fire after all values have been assigned.
         """
-        _notify_trait = self._notify_trait
-        notifications = []
-        self._notify_trait = lambda *a: notifications.append(a)
-        
-        try:
+        if self._cross_validation_lock is True:
             yield
-        finally:
-            self._notify_trait = _notify_trait
-            if isinstance(_notify_trait, types.MethodType):
-                # FIXME: remove when support is bumped to 3.4.
-                # when original method is restored,
-                # remove the redundant value from __dict__
-                # (only used to preserve pickleability on Python < 3.4)
-                self.__dict__.pop('_notify_trait', None)
-        # trigger delayed notifications
-        for args in notifications:
-            self._notify_trait(*args)
+            return
+        else:
+            self._cross_validation_lock = True
+            cache = {}
+            notifications = {}
+            _notify_trait = self._notify_trait
+
+            def cache_values(*a):
+                cache[a[0]] = a
+
+            def hold_notifications(*a):
+                notifications[a[0]] = a
+
+            self._notify_trait = cache_values
+
+            try:
+                yield
+            finally:
+                try:
+                    self._notify_trait = hold_notifications
+                    for name in cache:
+                        if hasattr(self, '_%s_validate' % name):
+                            cross_validate = getattr(self, '_%s_validate' % name)
+                            setattr(self, name, cross_validate(getattr(self, name), self))
+                except TraitError as e:
+                    self._notify_trait = lambda *x: None
+                    for name in cache:
+                        if cache[name][1] is not Undefined:
+                            setattr(self, name, cache[name][1])
+                        else:
+                            delattr(self, name)
+                    cache = {}
+                    notifications = {}
+                    raise e
+                finally:
+                    self._notify_trait = _notify_trait
+                    self._cross_validation_lock = False
+                    if isinstance(_notify_trait, types.MethodType):
+                        # FIXME: remove when support is bumped to 3.4.
+                        # when original method is restored,
+                        # remove the redundant value from __dict__
+                        # (only used to preserve pickleability on Python < 3.4)
+                        self.__dict__.pop('_notify_trait', None)
+                    # trigger delayed notifications
+                    for v in dict(cache, **notifications).values():
+                        self._notify_trait(*v)
 
     def _notify_trait(self, name, old_value, new_value):
 
