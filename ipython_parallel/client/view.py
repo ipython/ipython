@@ -109,7 +109,7 @@ class View(HasTraits):
     results = Dict()
     client = Instance('ipython_parallel.Client', allow_none=True)
 
-    _socket = Instance('zmq.Socket')
+    _socket = Instance('zmq.Socket', allow_none=True)
     _flag_names = List(['targets', 'block', 'track'])
     _in_sync_results = Bool(False)
     _targets = Any()
