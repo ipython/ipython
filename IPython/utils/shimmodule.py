@@ -29,10 +29,13 @@ class ShimImporter(object):
         if fullname.startswith(self.src + '.'):
             mirror_name = self._mirror_name(fullname)
             try:
-                __import__(mirror_name)
+                mod = import_item(mirror_name)
             except ImportError:
                 return
             else:
+                if not isinstance(mod, types.ModuleType):
+                    # not a module
+                    return None
                 return self
 
     def load_module(self, fullname):
