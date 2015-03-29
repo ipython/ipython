@@ -65,7 +65,7 @@ define([
         this._clocklink = $('<a/>').attr('href', "#");
         this._clocklink.attr('role', "button");
         this._clocklink.addClass('ui-button');
-        this._clocklink.attr('title', 'Tooltip is not dismissed while typing for 10 seconds');
+        this._clocklink.attr('title', 'Tooltip will linger for 10 seconds while you type');
         var clockspan = $('<span/>').text('Close');
         clockspan.addClass('ui-icon');
         clockspan.addClass('ui-icon-clock');
