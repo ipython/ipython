@@ -9617,6 +9617,15 @@ div.output_area .rendered_html img {
   margin-left: 0;
   margin-right: 0;
 }
+div.output_area img,
+div.output_area svg {
+  max-width: 100%;
+  height: auto;
+}
+div.output_area img.unconfined,
+div.output_area svg.unconfined {
+  max-width: none;
+}
 /* This is needed to protect the pre formating from global settings such
    as that of bootstrap */
 .output {
@@ -9673,6 +9682,7 @@ div.output_subarea {
   box-flex: 1;
   /* Modern browsers */
   flex: 1;
+  max-width: calc(100% - 14ex);
 }
 /* The rest of the output_* classes are for special styling of the different
    output types */
@@ -9908,6 +9918,15 @@ div.output_unrecognized a:hover {
 .rendered_html * + img {
   margin-top: 1em;
 }
+.rendered_html img,
+.rendered_html svg {
+  max-width: 100%;
+  height: auto;
+}
+.rendered_html img.unconfined,
+.rendered_html svg.unconfined {
+  max-width: none;
+}
 div.text_cell {
   /* Old browsers */
   display: -webkit-box;
@@ -9956,6 +9975,9 @@ h6:hover .anchor-link {
 }
 .text_cell.rendered .input_area {
   display: none;
+}
+.text_cell.rendered .rendered_html {
+  overflow-x: auto;
 }
 .text_cell.unrendered .text_cell_render {
   display: none;

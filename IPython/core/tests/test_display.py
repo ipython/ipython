@@ -22,6 +22,8 @@ def test_image_size():
     nt.assert_equal(u'<img src="%s" width="200"/>' % (thisurl), img._repr_html_())
     img = display.Image(url=thisurl)
     nt.assert_equal(u'<img src="%s"/>' % (thisurl), img._repr_html_())
+    img = display.Image(url=thisurl, unconfined=True)
+    nt.assert_equal(u'<img src="%s" class="unconfined"/>' % (thisurl), img._repr_html_())
 
 def test_retina_png():
     here = os.path.dirname(__file__)

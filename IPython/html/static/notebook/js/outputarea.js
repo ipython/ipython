@@ -588,6 +588,7 @@ define([
         var toinsert = this.create_output_subarea(md, "output_html rendered_html", type);
         this.keyboard_manager.register_events(toinsert);
         toinsert.append(html);
+        dblclick_to_reset_size(toinsert.find('img'));
         element.append(toinsert);
         return toinsert;
     };
@@ -603,6 +604,7 @@ define([
             html = mathjaxutils.replace_math(html, math);
             toinsert.append(html);
         });
+        dblclick_to_reset_size(toinsert.find('img'));
         element.append(toinsert);
         return toinsert;
     };
@@ -668,6 +670,23 @@ define([
         return toinsert;
     };
 
+    function dblclick_to_reset_size (img) {
+        /**
+         * Double-click on an image toggles confinement to notebook width
+         *
+         * img: jQuery element
+         */
+
+        img.dblclick(function () {
+            // dblclick toggles *raw* size, disabling max-width confinement.
+            if (img.hasClass('unconfined')) {
+                img.removeClass('unconfined');
+            } else {
+                img.addClass('unconfined');
+            }
+        });
+    };
+    
     var set_width_height = function (img, md, mime) {
         /**
          * set width and height of an img element from metadata
@@ -676,6 +695,9 @@ define([
         if (height !== undefined) img.attr('height', height);
         var width = _get_metadata_key(md, 'width', mime);
         if (width !== undefined) img.attr('width', width);
+        if (_get_metadata_key(md, 'unconfined', mime)) {
+            img.addClass('unconfined');
+        }
     };
     
     var append_png = function (png, md, element, handle_inserted) {
@@ -689,6 +711,7 @@ define([
         }
         img[0].src = 'data:image/png;base64,'+ png;
         set_width_height(img, md, 'image/png');
+        dblclick_to_reset_size(img);
         toinsert.append(img);
         element.append(toinsert);
         return toinsert;
@@ -706,6 +729,7 @@ define([
         }
         img[0].src = 'data:image/jpeg;base64,'+ jpeg;
         set_width_height(img, md, 'image/jpeg');
+        dblclick_to_reset_size(img);
         toinsert.append(img);
         element.append(toinsert);
         return toinsert;

@@ -66,6 +66,14 @@ div.output_area {
             margin-right: 0;
         }
     }
+    
+    img, svg {
+        max-width: 100%;
+        height: auto;
+        &.unconfined {
+            max-width: none;
+        }
+    }
 }
 
 /* This is needed to protect the pre formating from global settings such
@@ -98,6 +106,8 @@ div.output_subarea {
     overflow-x: auto;
     padding: @code_padding;
     .box-flex1();
+    // appears to be needed for max-width in children to mean anything on Firefox:
+    max-width: calc(~"100% - 14ex");
 }
 
 /* The rest of the output_* classes are for special styling of the different
