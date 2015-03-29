@@ -25,7 +25,6 @@ define([
         this.events = options.events;
         this.notebook = options.notebook;
         this._make();
-        this.notebook.keyboard_manager.register_events(this.element);
         Object.seal(this);
     };
 
@@ -74,6 +73,7 @@ define([
             .append($('<option/>').attr('value','markdown').text('Markdown'))
             .append($('<option/>').attr('value','raw').text('Raw NBConvert'))
             .append($('<option/>').attr('value','heading').text('Heading'));
+        this.notebook.keyboard_manager.register_events(sel);
         this.events.on('selected_cell_type_changed.Notebook', function (event, data) {
             if (data.cell_type === 'heading') {
                 sel.val('Markdown');
@@ -126,6 +126,7 @@ define([
                 }
                 that.notebook.focus_cell();
             });
+        this.notebook.keyboard_manager.register_events(select);
         // Setup the currently registered presets.
         var presets = celltoolbar.CellToolbar.list_presets();
         for (var i=0; i<presets.length; i++) {
