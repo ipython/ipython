@@ -16,12 +16,12 @@ from collections import defaultdict
 
 from decorator import decorator
 
-from IPython.config.configurable import SingletonConfigurable
-from IPython.config.loader import (
+from traitlets.config.configurable import SingletonConfigurable
+from traitlets.config.loader import (
     KVArgParseConfigLoader, PyFileConfigLoader, Config, ArgumentError, ConfigFileNotFound, JSONFileConfigLoader
 )
 
-from IPython.utils.traitlets import (
+from traitlets.traitlets import (
     Unicode, List, Enum, Dict, Instance, TraitError
 )
 from IPython.utils.importstring import import_item
@@ -227,7 +227,7 @@ class Application(SingletonConfigurable):
     # and the second being the help string for the subcommand
     subcommands = Dict()
     # parse_command_line will initialize a subapp, if requested
-    subapp = Instance('IPython.config.application.Application', allow_none=True)
+    subapp = Instance('traitlets.config.application.Application', allow_none=True)
 
     # extra command-line arguments that don't set config values
     extra_args = List(Unicode)

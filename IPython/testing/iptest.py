@@ -174,6 +174,7 @@ shims = {
     'parallel': 'ipython_parallel',
     'kernel': 'ipython_kernel',
     'kernel.inprocess': 'ipython_kernel.inprocess',
+    'config': 'traitlets',
 }
 
 # Name -> (include, exclude, dependencies_met)
@@ -269,10 +270,6 @@ if not have['pygments'] or not have['jinja2']:
     sec.exclude('nbconvert')
 if not have['terminado']:
     sec.exclude('terminal')
-
-# config:
-# Config files aren't really importable stand-alone
-test_sections['config'].exclude('profile')
 
 # nbconvert:
 sec = test_sections['nbconvert']

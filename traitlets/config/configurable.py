@@ -10,7 +10,7 @@ import logging
 from copy import deepcopy
 
 from .loader import Config, LazyConfigValue
-from IPython.utils.traitlets import HasTraits, Instance
+from traitlets.traitlets import HasTraits, Instance
 from IPython.utils.text import indent, wrap_paragraphs
 from IPython.utils.py3compat import iteritems
 
@@ -34,7 +34,7 @@ class MultipleInstanceError(ConfigurableError):
 class Configurable(HasTraits):
 
     config = Instance(Config, (), {})
-    parent = Instance('IPython.config.configurable.Configurable', allow_none=True)
+    parent = Instance('traitlets.config.configurable.Configurable', allow_none=True)
 
     def __init__(self, **kwargs):
         """Create a configurable given a config config.
@@ -329,7 +329,7 @@ class SingletonConfigurable(Configurable):
 
         Create a singleton class using instance, and retrieve it::
 
-            >>> from IPython.config.configurable import SingletonConfigurable
+            >>> from traitlets.config.configurable import SingletonConfigurable
             >>> class Foo(SingletonConfigurable): pass
             >>> foo = Foo.instance()
             >>> foo == Foo.instance()
