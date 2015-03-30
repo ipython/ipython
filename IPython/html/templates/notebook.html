@@ -25,6 +25,7 @@ window.mathjax_url = "{{mathjax_url}}";
 
 {% block params %}
 
+{{super()}}
 data-project="{{project}}"
 data-base-url="{{base_url}}"
 data-ws-url="{{ws_url}}"
