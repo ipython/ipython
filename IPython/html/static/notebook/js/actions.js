@@ -377,7 +377,6 @@ define(function(require){
                 if(event){
                     event.preventDefault();
                 }
-                env.notebook.ensure_focused();
                 return false;
             }
         },
