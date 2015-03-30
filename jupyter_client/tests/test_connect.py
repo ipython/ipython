@@ -1,20 +1,7 @@
-"""Tests for kernel connection utilities
+"""Tests for kernel connection utilities"""
 
-Authors
--------
-* MinRK
-"""
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
+# Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 import json
 import os
@@ -29,9 +16,6 @@ from IPython.utils.py3compat import str_to_bytes
 from jupyter_client import connect
 from jupyter_client.session import Session
 
-#-----------------------------------------------------------------------------
-# Classes and functions
-#-----------------------------------------------------------------------------
 
 class DummyConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
     def initialize(self, argv=[]):
@@ -85,23 +69,6 @@ def test_app_load_connection_file():
         value = getattr(app, attr)
         nt.assert_equal(value, expected, "app.%s = %s != %s" % (attr, value, expected))
 
-def test_get_connection_file():
-    cfg = Config()
-    with TemporaryWorkingDirectory() as d:
-        cfg.ProfileDir.location = d
-        cf = 'kernel.json'
-        app = DummyConsoleApp(config=cfg, connection_file=cf)
-        app.initialize(argv=[])
-
-        profile_cf = os.path.join(app.profile_dir.location, 'security', cf)
-        nt.assert_equal(profile_cf, app.connection_file)
-        with open(profile_cf, 'w') as f:
-            f.write("{}")
-        nt.assert_true(os.path.exists(profile_cf))
-        nt.assert_equal(connect.get_connection_file(app), profile_cf)
-
-        app.connection_file = cf
-        nt.assert_equal(connect.get_connection_file(app), profile_cf)
 
 def test_find_connection_file():
     cfg = Config()
@@ -109,10 +76,11 @@ def test_find_connection_file():
         cfg.ProfileDir.location = d
         cf = 'kernel.json'
         app = DummyConsoleApp(config=cfg, connection_file=cf)
-        app.initialize(argv=[])
-        BaseIPythonApplication._instance = app
+        app.initialize()
 
-        profile_cf = os.path.join(app.profile_dir.location, 'security', cf)
+        security_dir = os.path.join(app.profile_dir.location, 'security')
+        profile_cf = os.path.join(security_dir, cf)
+
         with open(profile_cf, 'w') as f:
             f.write("{}")
 
@@ -122,20 +90,7 @@ def test_find_connection_file():
             '*ernel*',
             'k*',
             ):
-            nt.assert_equal(connect.find_connection_file(query), profile_cf)
+            nt.assert_equal(connect.find_connection_file(query, path=security_dir), profile_cf)
 
         BaseIPythonApplication._instance = None
 
-def test_get_connection_info():
-    with TemporaryDirectory() as d:
-        cf = os.path.join(d, 'kernel.json')
-        connect.write_connection_file(cf, **sample_info)
-        json_info = connect.get_connection_info(cf)
-        info = connect.get_connection_info(cf, unpack=True)
-
-    nt.assert_equal(type(json_info), type(""))
-    nt.assert_equal(info, sample_info)
-
-    info2 = json.loads(json_info)
-    info2['key'] = str_to_bytes(info2['key'])
-    nt.assert_equal(info2, sample_info)
