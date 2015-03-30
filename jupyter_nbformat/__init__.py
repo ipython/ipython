@@ -40,7 +40,22 @@ class NBFormatError(ValueError):
     pass
 
 # no-conversion singleton
-NO_CONVERT = object()
+class Sentinel(object):
+
+    def __init__(self, name, module, docstring=None):
+        self.name = name
+        self.module = module
+        if docstring:
+            self.__doc__ = docstring
+
+
+    def __repr__(self):
+        return str(self.module)+'.'+self.name
+
+NO_CONVERT = Sentinel('NO_CONVERT', __name__,
+    """Value to prevent nbformat to convert notebooks to most recent version.
+    """)
+
 
 def reads(s, as_version, **kwargs):
     """Read a notebook from a string and return the NotebookNode object as the given version.
