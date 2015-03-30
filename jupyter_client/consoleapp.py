@@ -16,16 +16,16 @@ import uuid
 
 from IPython.config.application import boolean_flag
 from IPython.core.profiledir import ProfileDir
-from IPython.kernel.blocking import BlockingKernelClient
-from IPython.kernel import KernelManager
-from IPython.kernel import tunnel_to_kernel, find_connection_file
-from IPython.kernel.kernelspec import NoSuchKernel
 from IPython.utils.path import filefind
 from IPython.utils.traitlets import (
     Dict, List, Unicode, CUnicode, CBool, Any
 )
-from IPython.kernel.zmq.session import Session
-from IPython.kernel import connect
+
+from .blocking import BlockingKernelClient
+from . import KernelManager, tunnel_to_kernel, find_connection_file, connect
+from .kernelspec import NoSuchKernel
+from .session import Session
+
 ConnectionFileMixin = connect.ConnectionFileMixin
 
 from IPython.utils.localinterfaces import localhost
