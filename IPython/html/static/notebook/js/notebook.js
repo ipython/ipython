@@ -663,10 +663,9 @@ define(function (require) {
     Notebook.prototype.command_mode = function () {
         var cell = this.get_cell(this.get_edit_index());
         if (cell && this.mode !== 'command') {
-            // We don't call cell.command_mode, but rather call cell.focus_cell()
-            // which will blur and CM editor and trigger the call to
-            // handle_command_mode.
-            cell.focus_cell();
+            // We don't call cell.command_mode, but rather blur the CM editor
+            // which will trigger the call to handle_command_mode.
+            cell.code_mirror.getInputField().blur();
         }
     };
 
