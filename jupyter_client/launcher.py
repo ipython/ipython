@@ -175,10 +175,10 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None, env=None,
             cwd = cast_bytes_py2(cwd, sys.getfilesystemencoding() or 'ascii')
             kwargs['cwd'] = cwd
 
-        from jupyter_client.parentpoller import ParentPollerWindows
+        from .win_interrupt import create_interrupt_event
         # Create a Win32 event for interrupting the kernel
         # and store it in an environment variable.
-        interrupt_event = ParentPollerWindows.create_interrupt_event()
+        interrupt_event = create_interrupt_event()
         env["JPY_INTERRUPT_EVENT"] = str(interrupt_event)
         # deprecated old env name:
         env["IPY_INTERRUPT_EVENT"] = env["JPY_INTERRUPT_EVENT"]
