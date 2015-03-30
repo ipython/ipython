@@ -113,8 +113,8 @@ casper.notebook_test(function () {
             "assert len(msgs) == 3, len(msgs)",
             "bufs = msgs[0]['buffers']",
             "assert len(bufs) == len(buffers), bufs",
-            "assert bufs[0].bytes == buffers[0], bufs[0].bytes",
-            "assert bufs[1].bytes == buffers[1], bufs[1].bytes",
+            "assert bufs[0].tobytes() == buffers[0], bufs[0]",
+            "assert bufs[1].tobytes() == buffers[1], bufs[1]",
             "1",
         ].join('\n'), 'code');
         this.execute_cell(index);
