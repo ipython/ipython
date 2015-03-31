@@ -10644,7 +10644,6 @@ select[multiple].celltoolbar select {
   margin-left: 4px;
 }
 #kernel_logo_widget .current_kernel_logo {
-  display: none;
   margin-top: -1px;
   margin-bottom: -1px;
   width: 32px;
@@ -11213,7 +11212,7 @@ span.save_widget span.filename {
   height: 1em;
   line-height: 1em;
   padding: 3px;
-  margin-left: 16px;
+  margin-left: 4px;
   border: none;
   font-size: 146.5%;
   border-radius: 2px;

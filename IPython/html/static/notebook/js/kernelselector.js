@@ -129,9 +129,9 @@ define([
         $("#kernel_indicator").find('.kernel_indicator_name').text(ks.spec.display_name);
         if (ks.resources['logo-64x64']) {
             logo_img.attr("src", ks.resources['logo-64x64']);
-            logo_img.show();
+            logo_img.css('visibility', 'visible');
         } else {
-            logo_img.hide();
+            logo_img.css('visibility', 'hidden');
         }
         
         // load kernel css
@@ -314,10 +314,10 @@ define([
         
         var logo_img = this.element.find("img.current_kernel_logo");
         logo_img.on("load", function() {
-            logo_img.show();
+            logo_img.css('visibility', 'visible');
         });
         logo_img.on("error", function() {
-            logo_img.hide();
+            logo_img.css('visibility', 'hidden');
         });
     };
 
