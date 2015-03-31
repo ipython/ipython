@@ -1,7 +1,6 @@
-"""Utilities for launching kernels
-"""
+"""Utilities for launching kernels"""
 
-# Copyright (c) IPython Development Team.
+# Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
 import os
@@ -10,99 +9,6 @@ from subprocess import Popen, PIPE
 
 from IPython.utils.encoding import getdefaultencoding
 from IPython.utils.py3compat import cast_bytes_py2
-
-
-def swallow_argv(argv, aliases=None, flags=None):
-    """strip frontend-specific aliases and flags from an argument list
-
-    For use primarily in frontend apps that want to pass a subset of command-line
-    arguments through to a subprocess, where frontend-specific flags and aliases
-    should be removed from the list.
-
-    Parameters
-    ----------
-
-    argv : list(str)
-        The starting argv, to be filtered
-    aliases : container of aliases (dict, list, set, etc.)
-        The frontend-specific aliases to be removed
-    flags : container of flags (dict, list, set, etc.)
-        The frontend-specific flags to be removed
-
-    Returns
-    -------
-
-    argv : list(str)
-        The argv list, excluding flags and aliases that have been stripped
-    """
-
-    if aliases is None:
-        aliases = set()
-    if flags is None:
-        flags = set()
-
-    stripped = list(argv) # copy
-
-    swallow_next = False
-    was_flag = False
-    for a in argv:
-        if a == '--':
-            break
-        if swallow_next:
-            swallow_next = False
-            # last arg was an alias, remove the next one
-            # *unless* the last alias has a no-arg flag version, in which
-            # case, don't swallow the next arg if it's also a flag:
-            if not (was_flag and a.startswith('-')):
-                stripped.remove(a)
-                continue
-        if a.startswith('-'):
-            split = a.lstrip('-').split('=')
-            name = split[0]
-            # we use startswith because argparse accepts any arg to be specified
-            # by any leading section, as long as it is unique,
-            # so `--no-br` means `--no-browser` in the notebook, etc.
-            if any(alias.startswith(name) for alias in aliases):
-                stripped.remove(a)
-                if len(split) == 1:
-                    # alias passed with arg via space
-                    swallow_next = True
-                    # could have been a flag that matches an alias, e.g. `existing`
-                    # in which case, we might not swallow the next arg
-                    was_flag = name in flags
-            elif len(split) == 1 and any(flag.startswith(name) for flag in flags):
-                # strip flag, but don't swallow next, as flags don't take args
-                stripped.remove(a)
-
-    # return shortened list
-    return stripped
-
-
-def make_ipkernel_cmd(mod='ipython_kernel', executable=None, extra_arguments=[], **kw):
-    """Build Popen command list for launching an IPython kernel.
-
-    Parameters
-    ----------
-    mod : str, optional (default 'ipython_kernel')
-        A string of an IPython module whose __main__ starts an IPython kernel
-
-    executable : str, optional (default sys.executable)
-        The Python executable to use for the kernel process.
-
-    extra_arguments : list, optional
-        A list of extra arguments to pass when executing the launch code.
-
-    Returns
-    -------
-
-    A Popen command list
-    """
-    if executable is None:
-        executable = sys.executable
-    arguments = [ executable, '-m', mod, '-f', '{connection_file}' ]
-    arguments.extend(extra_arguments)
-
-    return arguments
 
 
 def launch_kernel(cmd, stdin=None, stdout=None, stderr=None, env=None,
@@ -220,7 +126,5 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None, env=None,
     return proc
 
 __all__ = [
-    'swallow_argv',
-    'make_ipkernel_cmd',
     'launch_kernel',
 ]

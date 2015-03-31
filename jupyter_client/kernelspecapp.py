@@ -11,7 +11,7 @@ from IPython.core.application import (
 )
 from IPython.utils.traitlets import Instance, Dict, Unicode, Bool
 
-from .kernelspec import KernelSpecManager, _pythonfirst
+from .kernelspec import KernelSpecManager
 
 class ListKernelSpecs(BaseIPythonApplication):
     description = """List installed kernel specifications."""
@@ -26,8 +26,7 @@ class ListKernelSpecs(BaseIPythonApplication):
 
     def start(self):
         print("Available kernels:")
-        for kernelname in sorted(self.kernel_spec_manager.find_kernel_specs(),
-                                 key=_pythonfirst):
+        for kernelname in sorted(self.kernel_spec_manager.find_kernel_specs()):
             print("  %s" % kernelname)
 
 
@@ -92,7 +91,7 @@ class InstallKernelSpec(BaseIPythonApplication):
             raise
 
 class InstallNativeKernelSpec(BaseIPythonApplication):
-    description = """Install the native kernel spec directory for this Python."""
+    description = """[DEPRECATED] Install the IPython kernel spec directory for this Python."""
     kernel_spec_manager = Instance(KernelSpecManager)
 
     def _kernel_spec_manager_default(self):
