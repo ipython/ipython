@@ -351,7 +351,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     #---------------------------------------------------------------------------
     def _handle_clear_output(self, msg):
         """Handle clear output messages."""
-        if include_output(msg):
+        if self.include_output(msg):
             wait = msg['content'].get('wait', True)
             if wait:
                 self._pending_clearoutput = True
