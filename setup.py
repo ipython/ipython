@@ -225,6 +225,24 @@ setup_args['cmdclass'] = {
     'jsversion' : JavascriptVersion,
 }
 
+### Temporarily disable install while it's broken during the big split
+from textwrap import dedent
+from distutils.command.install import install
+
+class DisabledInstall(install):
+    def run(self):
+        msg = dedent("""
+        While we are in the midst of The Big Split,
+        IPython cannot be installed from master.
+        You can use `pip install -e .` for an editable install,
+        which still works.
+        """)
+        print(msg, file=sys.stderr)
+        raise SystemExit(1)
+
+setup_args['cmdclass']['install'] = DisabledInstall
+
+
 #---------------------------------------------------------------------------
 # Handle scripts, dependencies, and setuptools specific things
 #---------------------------------------------------------------------------
