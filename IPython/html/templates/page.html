@@ -85,6 +85,8 @@
   <div id="header-container" class="container">
   <div id="ipython_notebook" class="nav navbar-brand pull-left"><a href="{{default_url}}" title='dashboard'>{% block logo %}<img src='{{static_url("base/images/logo.png") }}' alt='Jupyter Notebook'/>{% endblock %}</a></div>
 
+  {% block header_buttons %}
+  
   {% block login_widget %}
 
     <span id="login_widget">
@@ -96,6 +98,8 @@
     </span>
 
   {% endblock %}
+
+  {% endblock header_buttons %}
 
   {% block headercontainer %}
   {% endblock %}
