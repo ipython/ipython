@@ -179,6 +179,7 @@ define([
     });
 
     return {
+        'unpack_models': unpack_models,
         'BoxModel': BoxModel,
         'BoxView': BoxView,
         'FlexBoxView': FlexBoxView,
