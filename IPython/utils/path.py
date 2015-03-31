@@ -21,6 +21,8 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.process import system
 from IPython.utils.importstring import import_item
 from IPython.utils import py3compat
+from IPython.utils.decorators import undoc
+
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
@@ -443,50 +445,13 @@ def target_update(target,deps,cmd):
     if target_outdated(target,deps):
         system(cmd)
 
+@undoc
 def filehash(path):
     """Make an MD5 hash of a file, ignoring any differences in line
     ending characters."""
+    warn("filehash() is deprecated")
     with open(path, "rU") as f:
         return md5(py3compat.str_to_bytes(f.read())).hexdigest()
-
-# If the config is unmodified from the default, we'll just delete it.
-# These are consistent for 0.10.x, thankfully. We're not going to worry about
-# older versions.
-old_config_md5 = {'ipy_user_conf.py': 'fc108bedff4b9a00f91fa0a5999140d3',
-                  'ipythonrc': '12a68954f3403eea2eec09dc8fe5a9b5'}
-
-def check_for_old_config(ipython_dir=None):
-    """Check for old config files, and present a warning if they exist.
-
-    A link to the docs of the new config is included in the message.
-
-    This should mitigate confusion with the transition to the new
-    config system in 0.11.
-    """
-    if ipython_dir is None:
-        ipython_dir = get_ipython_dir()
-
-    old_configs = ['ipy_user_conf.py', 'ipythonrc', 'ipython_config.py']
-    warned = False
-    for cfg in old_configs:
-        f = os.path.join(ipython_dir, cfg)
-        if os.path.exists(f):
-            if filehash(f) == old_config_md5.get(cfg, ''):
-                os.unlink(f)
-            else:
-                warn("Found old IPython config file {!r} (modified by user)".format(f))
-                warned = True
-
-    if warned:
-        warn("""
-  The IPython configuration system has changed as of 0.11, and these files will
-  be ignored. See http://ipython.github.com/ipython-doc/dev/config for details
-  of the new config system.
-  To start configuring IPython, do `ipython profile create`, and edit
-  `ipython_config.py` in <ipython_dir>/profile_default.
-  If you need to leave the old config files in place for an older version of
-  IPython and want to suppress this warning message, set
-  `c.InteractiveShellApp.ignore_old_config=True` in the new config.""")
 
 def get_security_file(filename, profile='default'):
     """Return the absolute path of a security file given by filename and profile

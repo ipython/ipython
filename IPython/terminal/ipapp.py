@@ -34,7 +34,7 @@ from IPython.core.shellapp import (
 from IPython.extensions.storemagic import StoreMagics
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.utils import warn
-from IPython.utils.path import get_ipython_dir, check_for_old_config
+from IPython.utils.path import get_ipython_dir
 from IPython.utils.traitlets import (
     Bool, List, Dict,
 )
@@ -246,16 +246,12 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     # *do* autocreate requested profile, but don't create the config file.
     auto_create=Bool(True)
     # configurables
-    ignore_old_config=Bool(False, config=True,
-        help="Suppress warning messages about legacy config files"
-    )
     quick = Bool(False, config=True,
         help="""Start IPython quickly by skipping the loading of config files."""
     )
     def _quick_changed(self, name, old, new):
         if new:
             self.load_config_file = lambda *a, **kw: None
-            self.ignore_old_config=True
 
     display_banner = Bool(True, config=True,
         help="Whether to display a banner upon starting IPython."
@@ -307,8 +303,6 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         if self.subapp is not None:
             # don't bother initializing further, starting subapp
             return
-        if not self.ignore_old_config:
-            check_for_old_config(self.ipython_dir)
         # print self.extra_args
         if self.extra_args and not self.something_to_run:
             self.file_to_run = self.extra_args[0]
