@@ -67,7 +67,7 @@ class Button(DOMWidget):
             Set to true to remove the callback from the list of callbacks."""
         self._click_handlers.register_callback(callback, remove=remove)
 
-    def _handle_button_msg(self, _, content):
+    def _handle_button_msg(self, _, content, buffers):
         """Handle a msg from the front-end.
 
         Parameters

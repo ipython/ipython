@@ -4,10 +4,41 @@
 define([
     "widgets/js/widget",
     "jqueryui",
+    "underscore",
     "base/js/utils",
     "bootstrap",
-], function(widget, $, utils){
+], function(widget, $, _, utils){
     "use strict";
+    var unpack_models = function unpack_models(value, model) {
+        /**
+         * Replace model ids with models recursively.
+         */
+        var unpacked;
+        if ($.isArray(value)) {
+            unpacked = [];
+            _.each(value, function(sub_value, key) {
+                unpacked.push(unpack_models(sub_value, model));
+            });
+            return Promise.all(unpacked);
+        } else if (value instanceof Object) {
+            unpacked = {};
+            _.each(value, function(sub_value, key) {
+                unpacked[key] = unpack_models(sub_value, model);
+            });
+            return utils.resolve_promises_dict(unpacked);
+        } else if (typeof value === 'string' && value.slice(0,10) === "IPY_MODEL_") {
+            // get_model returns a promise already
+            return model.widget_manager.get_model(value.slice(10, value.length));
+        } else {
+            return Promise.resolve(value);
+        }
+    };
+
+    var BoxModel = widget.WidgetModel.extend({}, {
+        serializers: _.extend({
+            children: {deserialize: unpack_models}
+        }, widget.WidgetModel.serializers)
+    });
 
     var BoxView = widget.DOMWidgetView.extend({
         initialize: function(){
@@ -148,6 +179,8 @@ define([
     });
 
     return {
+        'unpack_models': unpack_models,
+        'BoxModel': BoxModel,
         'BoxView': BoxView,
         'FlexBoxView': FlexBoxView,
     };

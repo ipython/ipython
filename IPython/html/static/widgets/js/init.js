@@ -3,6 +3,7 @@
 
 define([
     "widgets/js/manager",
+    "widgets/js/widget",
     "widgets/js/widget_link",
     "widgets/js/widget_bool",
     "widgets/js/widget_button",
@@ -14,21 +15,20 @@ define([
     "widgets/js/widget_selection",
     "widgets/js/widget_selectioncontainer",
     "widgets/js/widget_string",
-], function(widgetmanager, linkModels) {
-    for (var target_name in linkModels) {
-        if (linkModels.hasOwnProperty(target_name)) {
-            widgetmanager.WidgetManager.register_widget_model(target_name, linkModels[target_name]);
-        }
-    }
-
-    // Register all of the loaded views with the widget manager.
+], function(widgetmanager, widget) {
+    // Register all of the loaded models and views with the widget manager.
     for (var i = 2; i < arguments.length; i++) {
-        for (var target_name in arguments[i]) {
-            if (arguments[i].hasOwnProperty(target_name)) {
-                widgetmanager.WidgetManager.register_widget_view(target_name, arguments[i][target_name]);
+        var module = arguments[i];
+        for (var target_name in module) {
+            if (module.hasOwnProperty(target_name)) {
+                var target = module[target_name];
+                if (target.prototype instanceof widget.WidgetModel) {
+                    widgetmanager.WidgetManager.register_widget_model(target_name, target);
+                } else if (target.prototype instanceof widget.WidgetView) {
+                    widgetmanager.WidgetManager.register_widget_view(target_name, target);
+                }
             }
         }
     }
-
     return {'WidgetManager': widgetmanager.WidgetManager}; 
 });

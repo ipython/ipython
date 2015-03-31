@@ -216,10 +216,11 @@ class Widget(LoggingConfigurable):
         key : unicode, or iterable (optional)
             A single property's name or iterable of property names to sync with the front-end.
         """
-        self._send({
-            "method" : "update",
-            "state"  : self.get_state(key=key)
-        })
+        state, buffer_keys, buffers = self.get_state(key=key)
+        msg = {"method": "update", "state": state}
+        if buffer_keys:
+            msg['buffers'] = buffer_keys
+        self._send(msg, buffers=buffers)
 
     def get_state(self, key=None):
         """Gets the widget state, or a piece of it.
@@ -228,6 +229,16 @@ class Widget(LoggingConfigurable):
         ----------
         key : unicode or iterable (optional)
             A single property's name or iterable of property names to get.
+
+        Returns
+        -------
+        state : dict of states
+        buffer_keys : list of strings
+            the values that are stored in buffers
+        buffers : list of binary memoryviews
+            values to transmit in binary
+        metadata : dict
+            metadata for each field: {key: metadata}
         """
         if key is None:
             keys = self.keys
@@ -238,11 +249,18 @@ class Widget(LoggingConfigurable):
         else:
             raise ValueError("key must be a string, an iterable of keys, or None")
         state = {}
+        buffers = []
+        buffer_keys = []
         for k in keys:
             f = self.trait_metadata(k, 'to_json', self._trait_to_json)
             value = getattr(self, k)
-            state[k] = f(value)
-        return state
+            serialized = f(value)
+            if isinstance(serialized, memoryview):
+                buffers.append(serialized)
+                buffer_keys.append(k)
+            else:
+                state[k] = serialized
+        return state, buffer_keys, buffers
 
     def set_state(self, sync_data):
         """Called when a state is received from the front-end."""
@@ -253,15 +271,17 @@ class Widget(LoggingConfigurable):
                 with self._lock_property(name, json_value):
                     setattr(self, name, from_json(json_value))
     
-    def send(self, content):
+    def send(self, content, buffers=None):
         """Sends a custom msg to the widget model in the front-end.
 
         Parameters
         ----------
         content : dict
             Content of the message to send.
+        buffers : list of binary buffers
+            Binary buffers to send with message
         """
-        self._send({"method": "custom", "content": content})
+        self._send({"method": "custom", "content": content}, buffers=buffers)
 
     def on_msg(self, callback, remove=False):
         """(Un)Register a custom msg receive callback.
@@ -269,9 +289,9 @@ class Widget(LoggingConfigurable):
         Parameters
         ----------
         callback: callable
-            callback will be passed two arguments when a message arrives::
+            callback will be passed three arguments when a message arrives::
             
-                callback(widget, content)
+                callback(widget, content, buffers)
             
         remove: bool
             True if the callback should be unregistered."""
@@ -353,7 +373,10 @@ class Widget(LoggingConfigurable):
         # Handle backbone sync methods CREATE, PATCH, and UPDATE all in one.
         if method == 'backbone':
             if 'sync_data' in data:
+                # get binary buffers too
                 sync_data = data['sync_data']
+                for i,k in enumerate(data.get('buffer_keys', [])):
+                    sync_data[k] = msg['buffers'][i]
                 self.set_state(sync_data) # handles all methods
 
         # Handle a state request.
@@ -363,15 +386,15 @@ class Widget(LoggingConfigurable):
         # Handle a custom msg from the front-end.
         elif method == 'custom':
             if 'content' in data:
-                self._handle_custom_msg(data['content'])
+                self._handle_custom_msg(data['content'], msg['buffers'])
 
         # Catch remainder.
         else:
             self.log.error('Unknown front-end to back-end widget msg with method "%s"' % method)
 
-    def _handle_custom_msg(self, content):
+    def _handle_custom_msg(self, content, buffers):
         """Called when a custom msg is received."""
-        self._msg_callbacks(self, content)
+        self._msg_callbacks(self, content, buffers)
 
     def _notify_trait(self, name, old_value, new_value):
         """Called when a property has been changed."""
@@ -393,35 +416,12 @@ class Widget(LoggingConfigurable):
         self._display_callbacks(self, **kwargs)
 
     def _trait_to_json(self, x):
-        """Convert a trait value to json
-
-        Traverse lists/tuples and dicts and serialize their values as well.
-        Replace any widgets with their model_id
-        """
-        if isinstance(x, dict):
-            return {k: self._trait_to_json(v) for k, v in x.items()}
-        elif isinstance(x, (list, tuple)):
-            return [self._trait_to_json(v) for v in x]
-        elif isinstance(x, Widget):
-            return "IPY_MODEL_" + x.model_id
-        else:
-            return x # Value must be JSON-able
+        """Convert a trait value to json."""
+        return x
 
     def _trait_from_json(self, x):
-        """Convert json values to objects
-
-        Replace any strings representing valid model id values to Widget references.
-        """
-        if isinstance(x, dict):
-            return {k: self._trait_from_json(v) for k, v in x.items()}
-        elif isinstance(x, (list, tuple)):
-            return [self._trait_from_json(v) for v in x]
-        elif isinstance(x, string_types) and x.startswith('IPY_MODEL_') and x[10:] in Widget.widgets:
-            # we want to support having child widgets at any level in a hierarchy
-            # trusting that a widget UUID will not appear out in the wild
-            return Widget.widgets[x[10:]]
-        else:
-            return x
+        """Convert json values to objects."""
+        return x
 
     def _ipython_display_(self, **kwargs):
         """Called when `IPython.display.display` is called on the widget."""
@@ -430,9 +430,9 @@ class Widget(LoggingConfigurable):
             self._send({"method": "display"})
             self._handle_displayed(**kwargs)
 
-    def _send(self, msg):
+    def _send(self, msg, buffers=None):
         """Sends a message to the model in the front-end."""
-        self.comm.send(msg)
+        self.comm.send(data=msg, buffers=buffers)
 
 
 class DOMWidget(Widget):
