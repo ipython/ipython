@@ -10639,8 +10639,9 @@ select[multiple].celltoolbar select {
   color: #286090;
 }
 #kernel_logo_widget {
-  float: right !important;
-  float: right;
+  float: left !important;
+  float: left;
+  margin-left: 4px;
 }
 #kernel_logo_widget .current_kernel_logo {
   display: none;
