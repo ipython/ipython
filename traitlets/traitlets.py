@@ -56,6 +56,7 @@ from warnings import warn
 from IPython.utils import py3compat
 from IPython.utils import eventful
 from IPython.utils.getargspec import getargspec
+from IPython.utils.signatures import Sentinel
 from IPython.utils.importstring import import_item
 from IPython.utils.py3compat import iteritems, string_types
 from IPython.testing.skipdoctest import skip_doctest
@@ -67,8 +68,11 @@ SequenceTypes = (list, tuple, set, frozenset)
 #-----------------------------------------------------------------------------
 
 
-class NoDefaultSpecified ( object ): pass
-NoDefaultSpecified = NoDefaultSpecified()
+NoDefaultSpecified = Sentinel('NoDefaultSpecified', __name__, 
+'''
+Used in Traitlets to specify that no defaults are set in kwargs
+'''
+)
 
 
 class Undefined ( object ): pass
