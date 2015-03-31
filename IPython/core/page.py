@@ -103,7 +103,8 @@ def _detect_screen_size(screen_lines_def):
     try:
         term_flags = termios.tcgetattr(sys.stdout)
     except termios.error as err:
-        raise TypeError
+        # can fail on Linux 2.6, pager_page will catch the TypeError
+        raise TypeError('termios error: {0}'.format(err))
 
     # Curses modifies the stdout buffer size by default, which messes
     # up Python's normal stdout buffering.  This would manifest itself
