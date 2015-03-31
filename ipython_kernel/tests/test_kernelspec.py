@@ -1,0 +1,65 @@
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
+import json
+import io
+import os
+import sys
+import tempfile
+
+
+from ipython_kernel.kernelspec import (
+    make_ipkernel_cmd,
+    get_kernel_dict,
+    write_kernel_spec,
+    RESOURCES,
+)
+
+import nose.tools as nt
+
+pjoin = os.path.join
+
+
+def test_make_ipkernel_cmd():
+    cmd = make_ipkernel_cmd()
+    nt.assert_equal(cmd, [
+        sys.executable,
+        '-m',
+        'ipython_kernel',
+        '-f',
+        '{connection_file}'
+    ])
+
+
+def assert_kernel_dict(d):
+    nt.assert_equal(d['argv'], make_ipkernel_cmd())
+    nt.assert_equal(d['display_name'], 'Python %i' % sys.version_info[0])
+    nt.assert_equal(d['language'], 'python')
+
+
+def test_get_kernel_dict():
+    d = get_kernel_dict()
+    assert_kernel_dict(d)
+
+
+def assert_is_spec(path):
+    for fname in os.listdir(RESOURCES):
+        dst = pjoin(path, fname)
+        assert os.path.exists(dst)
+    kernel_json = pjoin(path, 'kernel.json')
+    assert os.path.exists(kernel_json)
+    with io.open(kernel_json, encoding='utf8') as f:
+        d = json.load(f)
+
+
+def test_write_kernel_spec():
+    path = write_kernel_spec()
+    assert_is_spec(path)
+
+
+def test_write_kernel_spec_path():
+    path = tempfile.TemporaryDirectory().name
+    path2 = write_kernel_spec(path)
+    nt.assert_equal(path, path2)
+    assert_is_spec(path)
+
