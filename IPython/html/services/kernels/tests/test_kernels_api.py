@@ -3,6 +3,8 @@
 import json
 import requests
 
+from jupyter_client.kernelspec import NATIVE_KERNEL_NAME
+
 from IPython.html.utils import url_path_join
 from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
 
@@ -30,7 +32,7 @@ class KernelAPI(object):
     def get(self, id):
         return self._req('GET', id)
 
-    def start(self, name='python'):
+    def start(self, name=NATIVE_KERNEL_NAME):
         body = json.dumps({'name': name})
         return self._req('POST', '', body)
 
@@ -52,7 +54,7 @@ class KernelAPITest(NotebookTestBase):
         for k in self.kern_api.list().json():
             self.kern_api.shutdown(k['id'])
 
-    def test__no_kernels(self):
+    def test_no_kernels(self):
         """Make sure there are no kernels running at the start"""
         kernels = self.kern_api.list().json()
         self.assertEqual(kernels, [])
