@@ -67,7 +67,7 @@ define([
             change_kernel_submenu.append(
                 $("<li>").attr("id", "kernel-submenu-"+ks.name).append(
                     $('<a>')
-                        .attr('href', 'javascript:void(0)')
+                        .attr('href', '#')
                         .click( function () {
                             that.set_kernel(ks.name);
                         })
@@ -78,7 +78,7 @@ define([
             new_notebook_submenu.append(
                 $("<li>").attr("id", "new-notebook-submenu-"+ks.name).append(
                     $('<a>')
-                        .attr('href', 'javascript:void(0)')
+                        .attr('href', '#')
                         .click( function () {
                             that.new_notebook(ks.name);
                         })

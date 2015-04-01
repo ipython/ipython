@@ -52,18 +52,18 @@ data-terminals-available="{{terminals_available}}"
                   </button>
                   <ul id="new-menu" class="dropdown-menu">
                     <li role="presentation" id="new-file">
-                      <a role="menuitem" tabindex="-1" href="javascript:void(0)">Text File</a>
+                      <a role="menuitem" tabindex="-1" href="#">Text File</a>
                     </li>
                     <li role="presentation" id="new-folder">
-                      <a role="menuitem" tabindex="-1" href="javascript:void(0)">Folder</a>
+                      <a role="menuitem" tabindex="-1" href="#">Folder</a>
                     </li>
                     {% if terminals_available %}
                     <li role="presentation" id="new-terminal">
-                      <a role="menuitem" tabindex="-1" href="javascript:void(0)">Terminal</a>
+                      <a role="menuitem" tabindex="-1" href="#">Terminal</a>
                     </li>
                     {% else %}
                     <li role="presentation" id="new-terminal-disabled" class="disabled">
-                      <a role="menuitem" tabindex="-1" href="javascript:void(0)">Terminals Unavailable</a>
+                      <a role="menuitem" tabindex="-1" href="#">Terminals Unavailable</a>
                     </li>
                     {% endif %}
                     <li role="presentation" class="divider"></li>
@@ -87,10 +87,10 @@ data-terminals-available="{{terminals_available}}"
                   <span class="sr-only">Toggle Dropdown</span>
                 </button>
                 <ul id='selector-menu' class="dropdown-menu" role="menu" aria-labelledby="tree-selector-btn">
-                  <li role="presentation"><a id="select-folders" role="menuitem" tabindex="-1" href="javascript:void(0)" title="Select All Folders"><i class="menu_icon folder_icon icon-fixed-width"></i> Folders</a></li>
-                  <li role="presentation"><a id="select-notebooks" role="menuitem" tabindex="-1" href="javascript:void(0)" title="Select All Notebooks"><i class="menu_icon notebook_icon icon-fixed-width"></i> All Notebooks</a></li>
-                  <li role="presentation"><a id="select-running-notebooks" role="menuitem" tabindex="-1" href="javascript:void(0)" title="Select Running Notebooks"><i class="menu_icon running_notebook_icon icon-fixed-width"></i> Running</a></li>
-                  <li role="presentation"><a id="select-files" role="menuitem" tabindex="-1" href="javascript:void(0)" title="Select All Files"><i class="menu_icon file_icon icon-fixed-width"></i> Files</a></li>
+                  <li role="presentation"><a id="select-folders" role="menuitem" tabindex="-1" href="#" title="Select All Folders"><i class="menu_icon folder_icon icon-fixed-width"></i> Folders</a></li>
+                  <li role="presentation"><a id="select-notebooks" role="menuitem" tabindex="-1" href="#" title="Select All Notebooks"><i class="menu_icon notebook_icon icon-fixed-width"></i> All Notebooks</a></li>
+                  <li role="presentation"><a id="select-running-notebooks" role="menuitem" tabindex="-1" href="#" title="Select Running Notebooks"><i class="menu_icon running_notebook_icon icon-fixed-width"></i> Running</a></li>
+                  <li role="presentation"><a id="select-files" role="menuitem" tabindex="-1" href="#" title="Select All Files"><i class="menu_icon file_icon icon-fixed-width"></i> Files</a></li>
                 </ul>
               </div>
               <div id="project_name">
@@ -118,7 +118,7 @@ data-terminals-available="{{terminals_available}}"
           <div class="panel-group" id="accordion" >
             <div class="panel panel-default">
               <div class="panel-heading">
-                <a data-toggle="collapse" data-target="#collapseOne" href="javascript:void(0)">
+                <a data-toggle="collapse" data-target="#collapseOne" href="#">
                   Terminals
                 </a>
               </div>
@@ -138,7 +138,7 @@ data-terminals-available="{{terminals_available}}"
             </div>
             <div class="panel panel-default">
               <div class="panel-heading">
-                <a data-toggle="collapse" data-target="#collapseTwo" href="javascript:void(0)">
+                <a data-toggle="collapse" data-target="#collapseTwo" href="#">
                   Notebooks
                 </a>
               </div>
