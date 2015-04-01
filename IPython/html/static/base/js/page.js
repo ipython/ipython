@@ -69,18 +69,15 @@ define([
             if (pathname.indexOf("/notebooks/") == 0) {
 
                 var href = typeof(href) == "string" ? href : $(this).attr("href");
-               
-                var fromTop = $("#header").height();
                 
                 // If our Href points to a valid, non-empty anchor, and is on the same page (e.g. #foo)
                 // Legacy jQuery and IE7 may have issues: http://stackoverflow.com/q/1593174
                 if(href.indexOf("#") == 0) {
                     var $target = $(href);
-                    
                     // Older browser without pushState might flicker here, as they momentarily
                     // jump to the wrong position (IE < 10)
                     if($target.length) {
-                        $('html, body').animate({ scrollTop: $target.offset().top - fromTop - 30});
+                        $target[0].scrollIntoView();
                         if(history && "pushState" in history) {
                             history.pushState({}, document.title, window.location.pathname + href);
                             return false;
@@ -95,7 +92,7 @@ define([
             scroll_if_anchor(window.location.hash); 
         });
         // Intercept all anchor clicks
-        $("body").on("click", "a", scroll_if_anchor);
+        $("#site").on("click", "a", scroll_if_anchor);
 
     }
 
