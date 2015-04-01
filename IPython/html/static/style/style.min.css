@@ -8395,6 +8395,8 @@ body {
   top: 0px;
   bottom: 0px;
   overflow: visible;
+  display: flex;
+  flex-direction: column;
 }
 #header {
   /* Initially hidden to prevent FLOUC */
@@ -8634,9 +8636,11 @@ span#login_widget > .button .badge,
 .header_tree {
   position: relative;
   width: 100%;
+  flex: 0 0 auto;
 }
 .site_tree {
   position: relative;
+  flex: 1 1 auto;
 }
 ul#tabs {
   margin-bottom: 4px;
@@ -10398,11 +10402,11 @@ h6:hover .anchor-link {
    margin between #site and #header when resizing. 
  */
 .header_notebook {
-  position: fixed;
+  flex: 0 0 auto;
   width: 100%;
 }
 .site_notebook {
-  margin-top: 9em;
+  flex: 1 1 auto;
 }
 @media screen and (-webkit-min-device-pixel-ratio: 0) and (max-width: 636px) {
   .site_notebook {
