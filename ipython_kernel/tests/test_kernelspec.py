@@ -4,6 +4,7 @@
 import json
 import io
 import os
+import shutil
 import sys
 import tempfile
 
@@ -55,11 +56,13 @@ def assert_is_spec(path):
 def test_write_kernel_spec():
     path = write_kernel_spec()
     assert_is_spec(path)
+    shutil.rmtree(path)
 
 
 def test_write_kernel_spec_path():
-    path = tempfile.TemporaryDirectory().name
+    path = tempfile.mkdtemp()
     path2 = write_kernel_spec(path)
     nt.assert_equal(path, path2)
     assert_is_spec(path)
+    shutil.rmtree(path)
 

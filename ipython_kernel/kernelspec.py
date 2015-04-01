@@ -65,7 +65,7 @@ def write_kernel_spec(path=None):
     The path to the kernelspec is always returned.
     """
     if path is None:
-        path = tempfile.TemporaryDirectory(suffix='_python').name
+        path = tempfile.mkdtemp(suffix='_python')
     
     # stage resources
     shutil.copytree(RESOURCES, path)
