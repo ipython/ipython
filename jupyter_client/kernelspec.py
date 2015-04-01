@@ -3,6 +3,7 @@ import json
 import os
 import shutil
 import sys
+import warnings
 
 pjoin = os.path.join
 
@@ -163,20 +164,12 @@ class KernelSpecManager(Configurable):
         shutil.copytree(source_dir, destination)
 
     def install_native_kernel_spec(self, user=False):
-        """Install the native kernel spec to the filesystem
+        """DEPRECATED: Use ipython_kernel.kenelspec.install"""
+        warnings.warn("install_native_kernel_spec is deprecated."
+            " Use ipython_kernel.kernelspec import install.")
+        from ipython_kernel.kernelspec import install
+        install(self, user=user)
 
-        This allows a Python 3 frontend to use a Python 2 kernel, or vice versa.
-        The kernelspec will be written pointing to the Python executable on
-        which this is run.
-
-        If ``user`` is False, it will attempt to install into the systemwide
-        kernel registry. If the process does not have appropriate permissions,
-        an :exc:`OSError` will be raised.
-        """
-        from ipython_kernel.kernelspec import write_kernel_spec
-        path = write_kernel_spec()
-        self.install_kernel_spec(path,
-            kernel_name=NATIVE_KERNEL_NAME, user=user, replace=True)
 
 def find_kernel_specs():
     """Returns a dict mapping kernel names to resource directories."""

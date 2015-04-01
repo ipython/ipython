@@ -113,7 +113,12 @@ class InstallNativeKernelSpec(BaseIPythonApplication):
 
     def start(self):
         try:
-            self.kernel_spec_manager.install_native_kernel_spec(user=self.user)
+            from ipython_kernel import kernelspec
+        except ImportError:
+            print("ipython_kernel not available, can't install its spec.", file=sys.stderr)
+            self.exit(1)
+        try:
+            kernelspec.install(self.kernel_spec_manager, user=self.user)
         except OSError as e:
             self.exit(e)
 
