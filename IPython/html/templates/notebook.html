@@ -36,15 +36,14 @@ data-notebook-path="{{notebook_path}}"
 
 {% block headercontainer %}
 
+<span id="kernel_logo_widget">
+  <img class="current_kernel_logo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"/>
+</span>
 
 <span id="save_widget" class="pull-left save_widget">
     <span id="notebook_name" class="filename"></span>
     <span class="checkpoint_status"></span>
     <span class="autosave_status"></span>
-</span>
-
-<span id="kernel_logo_widget">
-  <img class="current_kernel_logo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"/>
 </span>
 
 {% endblock headercontainer %}
