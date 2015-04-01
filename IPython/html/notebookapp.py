@@ -77,7 +77,7 @@ from IPython.core.application import (
 )
 from IPython.core.profiledir import ProfileDir
 from IPython.kernel import KernelManager
-from IPython.kernel.kernelspec import KernelSpecManager
+from IPython.kernel.kernelspec import KernelSpecManager, NoSuchKernel, NATIVE_KERNEL_NAME
 from IPython.kernel.zmq.session import Session
 from IPython.nbformat.sign import NotebookNotary
 from IPython.utils.importstring import import_item
@@ -969,6 +969,20 @@ class NotebookApp(BaseIPythonApplication):
         elif status == 'unclean':
             self.log.warn("components submodule unclean, you may see 404s on static/components")
             self.log.warn("run `setup.py submodule` or `git submodule update` to update")
+    
+    def init_kernel_specs(self):
+        """Check that the IPython kernel is present, if available"""
+        try:
+            self.kernel_spec_manager.get_kernel_spec(NATIVE_KERNEL_NAME)
+        except NoSuchKernel:
+            try:
+                import ipython_kernel
+            except ImportError:
+                self.log.warn("IPython kernel not available")
+            else:
+                self.log.warn("Installing IPython kernel spec")
+                self.kernel_spec_manager.install_native_kernel_spec(user=True)
+        
 
     def init_server_extensions(self):
         """Load any extensions specified by config.
@@ -997,6 +1011,7 @@ class NotebookApp(BaseIPythonApplication):
         self.init_configurables()
         self.init_components()
         self.init_webapp()
+        self.init_kernel_specs()
         self.init_terminals()
         self.init_signal()
         self.init_server_extensions()
