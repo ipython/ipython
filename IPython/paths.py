@@ -116,34 +116,3 @@ def locate_profile(profile='default'):
         # IOError makes more sense when people are expecting a path
         raise IOError("Couldn't find profile %r" % profile)
     return pd.location
-
-def get_security_file(filename, profile='default'):
-    """Return the absolute path of a security file given by filename and profile
-
-    This allows users and developers to find security files without
-    knowledge of the IPython directory structure. The search path
-    will be ['.', profile.security_dir]
-
-    Parameters
-    ----------
-
-    filename : str
-        The file to be found. If it is passed as an absolute path, it will
-        simply be returned.
-    profile : str [default: 'default']
-        The name of the profile to search.  Leaving this unspecified
-        The file to be found. If it is passed as an absolute path, fname will
-        simply be returned.
-
-    Returns
-    -------
-    Raises :exc:`IOError` if file not found or returns absolute path to file.
-    """
-    # import here, because profiledir also imports from utils.path
-    from IPython.core.profiledir import ProfileDir
-    try:
-        pd = ProfileDir.find_profile_dir_by_name(get_ipython_dir(), profile)
-    except Exception:
-        # will raise ProfileDirError if no such profile
-        raise IOError("Profile %r not found")
-    return filefind(filename, ['.', pd.security_dir])

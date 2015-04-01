@@ -375,13 +375,6 @@ def filehash(path):
     with open(path, "rU") as f:
         return md5(py3compat.str_to_bytes(f.read())).hexdigest()
 
-@undoc
-def get_security_file(filename, profile='default'):
-    warn("get_security_file has moved to the IPython.paths module")
-    from IPython.paths import get_security_file
-    return get_security_file(filename, profile=profile)
-
-
 ENOLINK = 1998
 
 def link(src, dst):

@@ -20,7 +20,7 @@ import zmq
 
 from IPython.kernel.zmq.session import Session
 from IPython.utils.py3compat import str_to_bytes
-from IPython.utils.path import get_security_file
+from jupyter_client.connect import find_connection_file
 
 def main(connection_file):
     """watch iopub channel, and print messages"""
@@ -73,5 +73,5 @@ if __name__ == '__main__':
         cf = sys.argv[1]
     else:
         # This gets the security file for the default profile:
-        cf = get_security_file('ipcontroller-client.json')
+        cf = find_connection_file('ipcontroller-client.json')
     main(cf)
