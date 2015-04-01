@@ -29,7 +29,7 @@ from IPython.utils.traitlets import (
 )
 from IPython.utils.importstring import import_item
 from jupyter_client import write_connection_file
-from ipython_kernel.connect import ConnectionFileMixin
+from jupyter_client.connect import ConnectionFileMixin
 
 # local imports
 from .heartbeat import Heartbeat
