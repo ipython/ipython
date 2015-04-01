@@ -76,6 +76,11 @@ for line in valid_idents:
     s += '    "%s" : "%s",\n' % (line[0], line[1])
 s += "}\n"
 
+s += """
+
+reverse_latex_symbol = { v:k for k,v in latex_symbols.items()}
+"""
+
 fn = os.path.join('..','IPython','core','latex_symbols.py')
 print("Writing the file: %s" % fn)
 with open(fn, 'w', encoding='utf-8') as f:
