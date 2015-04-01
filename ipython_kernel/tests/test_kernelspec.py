@@ -8,11 +8,17 @@ import shutil
 import sys
 import tempfile
 
+try:
+    from unittest import mock
+except ImportError:
+    import mock # py2
 
 from ipython_kernel.kernelspec import (
     make_ipkernel_cmd,
     get_kernel_dict,
     write_kernel_spec,
+    install,
+    KERNEL_NAME,
     RESOURCES,
 )
 
@@ -60,9 +66,29 @@ def test_write_kernel_spec():
 
 
 def test_write_kernel_spec_path():
-    path = tempfile.mkdtemp()
+    path = os.path.join(tempfile.mkdtemp(), KERNEL_NAME)
     path2 = write_kernel_spec(path)
     nt.assert_equal(path, path2)
     assert_is_spec(path)
     shutil.rmtree(path)
+
+
+def test_install_user():
+    ipydir = tempfile.mkdtemp()
+    
+    with mock.patch.dict(os.environ, {'IPYTHONDIR': ipydir}):
+        install(user=True)
+    
+    assert_is_spec(os.path.join(ipydir, 'kernels', KERNEL_NAME))
+
+
+def test_install():
+    system_kernel_dir = tempfile.mkdtemp(suffix='kernels')
+    
+    with mock.patch('jupyter_client.kernelspec.SYSTEM_KERNEL_DIRS',
+            [system_kernel_dir]):
+        install()
+    
+    assert_is_spec(os.path.join(system_kernel_dir, KERNEL_NAME))
+
 

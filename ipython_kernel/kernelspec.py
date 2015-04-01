@@ -3,18 +3,17 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import errno
 import json
 import os
 import shutil
 import sys
 import tempfile
 
-from jupyter_client.kernelspec import KernelSpec
-
-from IPython.utils.py3compat import PY3
+from jupyter_client.kernelspec import KernelSpecManager
 
 pjoin = os.path.join
+
+KERNEL_NAME = 'python%i' % sys.version_info[0]
 
 # path to kernelspec resources
 RESOURCES = pjoin(os.path.dirname(__file__), 'resources')
@@ -64,7 +63,7 @@ def write_kernel_spec(path=None):
     The path to the kernelspec is always returned.
     """
     if path is None:
-        path = tempfile.mkdtemp(suffix='_python')
+        path = os.path.join(tempfile.mkdtemp(suffix='_kernels'), KERNEL_NAME)
     
     # stage resources
     shutil.copytree(RESOURCES, path)
@@ -75,3 +74,22 @@ def write_kernel_spec(path=None):
     return path
 
 
+def install(kernel_spec_manager=None, user=False):
+    """Install the IPython kernelspec for Jupyter
+    
+    Parameters
+    ----------
+    
+    kernel_spec_manager: KernelSpecManager [optional]
+        A KernelSpecManager to use for installation.
+        If none provided, a default instance will be created.
+    user: bool [default: False]
+        Whether to do a user-only install, or system-wide.
+    """
+    if kernel_spec_manager is None:
+        kernel_spec_manager = KernelSpecManager()
+    path = write_kernel_spec()
+    kernel_spec_manager.install_kernel_spec(path,
+        kernel_name=KERNEL_NAME, user=user, replace=True)
+    # cleanup afterward
+    shutil.rmtree(path)
