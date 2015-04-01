@@ -4,7 +4,6 @@
 # Distributed under the terms of the Modified BSD License.
 
 import errno
-import io
 import json
 import os
 import shutil
@@ -70,7 +69,7 @@ def write_kernel_spec(path=None):
     # stage resources
     shutil.copytree(RESOURCES, path)
     # write kernel.json
-    with io.open(pjoin(path, 'kernel.json'), 'w', encoding='utf8') as f:
+    with open(pjoin(path, 'kernel.json'), 'w') as f:
         json.dump(get_kernel_dict(), f, indent=1)
     
     return path
