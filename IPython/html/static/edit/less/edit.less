@@ -1,8 +1,10 @@
 .header_edit {
+    flex: 0 0 auto;
 }
 
 .site_edit {
-    height: 88.5%;
+    flex: 1 1 auto;
+    position: relative;
 }
 
 .dirty-indicator{
@@ -35,6 +37,8 @@
     padding-top: @page-header-padding;
     padding-bottom: @page-header-padding;
     height: 100%;
+    width: 100%;
+    position: absolute;
 
     @media not print{
         background-color: @page-backdrop-color;

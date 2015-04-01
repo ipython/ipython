@@ -8974,8 +8974,12 @@ ul#new-menu {
     header */
   margin-bottom: -1px;
 }
+.header_edit {
+  flex: 0 0 auto;
+}
 .site_edit {
-  height: 88.5%;
+  flex: 1 1 auto;
+  position: relative;
 }
 .dirty-indicator {
   display: inline-block;
@@ -9054,6 +9058,8 @@ ul#new-menu {
   padding-top: 20px;
   padding-bottom: 20px;
   height: 100%;
+  width: 100%;
+  position: absolute;
 }
 @media not print {
   #texteditor-backdrop {
