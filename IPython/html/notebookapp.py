@@ -785,6 +785,7 @@ class NotebookApp(BaseIPythonApplication):
             parent=self,
             log=self.log,
             connection_dir=self.profile_dir.security_dir,
+            kernel_spec_manager=self.kernel_spec_manager,
         )
         self.contents_manager = self.contents_manager_class(
             parent=self,
