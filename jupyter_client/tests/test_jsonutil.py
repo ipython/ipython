@@ -10,7 +10,7 @@ from base64 import decodestring
 
 import nose.tools as nt
 
-from jupyter_client import jsonutil, tz
+from jupyter_client import jsonutil
 from ..jsonutil import json_clean, encode_images
 from IPython.utils.py3compat import unicode_to_str, str_to_bytes, iteritems
 
@@ -129,8 +129,24 @@ def test_parse_ms_precision():
         else:
             nt.assert_is_instance(parsed, str)
 
+
+ZERO = datetime.timedelta(0)
+
+class tzUTC(datetime.tzinfo):
+    """tzinfo object for UTC (zero offset)"""
+
+    def utcoffset(self, d):
+        return ZERO
+
+    def dst(self, d):
+        return ZERO
+
+UTC = tzUTC()
+
 def test_date_default():
-    data = dict(today=datetime.datetime.now(), utcnow=tz.utcnow())
+    now = today=datetime.datetime.now()
+    utcnow = now.replace(tzinfo=UTC)
+    data = dict(now=now, utcnow=utcnow)
     jsondata = json.dumps(data, default=jsonutil.date_default)
     nt.assert_in("+00", jsondata)
     nt.assert_equal(jsondata.count("+00"), 1)
