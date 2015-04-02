@@ -269,7 +269,7 @@ extras_require = dict(
     parallel = [pyzmq],
     qtconsole = [pyzmq, 'pygments'],
     doc = ['Sphinx>=1.1', 'numpydoc'],
-    test = ['nose>=0.10.1', 'requests'],
+    test = ['nose>=0.10.1', 'requests', 'testpath'],
     terminal = [],
     nbformat = ['jsonschema>=2.0'],
     notebook = ['tornado>=4.0', pyzmq, 'jinja2', 'pygments', 'mistune>=0.5'],
