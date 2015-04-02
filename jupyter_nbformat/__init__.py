@@ -14,7 +14,7 @@ from . import v1
 from . import v2
 from . import v3
 from . import v4
-from IPython.utils.signatures import Sentinel
+from .sentinel import Sentinel
 
 __all__ = ['versions', 'validate', 'ValidationError', 'convert', 'from_dict',
            'NotebookNode', 'current_nbformat', 'current_nbformat_minor',

@@ -56,11 +56,11 @@ from warnings import warn
 from IPython.utils import py3compat
 from IPython.utils import eventful
 from IPython.utils.getargspec import getargspec
-from IPython.utils.signatures import Sentinel
 from IPython.utils.importstring import import_item
 from IPython.utils.py3compat import iteritems, string_types
 from IPython.testing.skipdoctest import skip_doctest
 
+from .sentinel import Sentinel
 SequenceTypes = (list, tuple, set, frozenset)
 
 #-----------------------------------------------------------------------------
