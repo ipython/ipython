@@ -25,10 +25,6 @@ import threading
 import webbrowser
 
 
-# check for pyzmq
-from IPython.utils.zmqrelated import check_for_zmq
-check_for_zmq('13', 'IPython.html')
-
 from jinja2 import Environment, FileSystemLoader
 
 # Install the pyzmq ioloop. This has to be done before anything else from
