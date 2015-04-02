@@ -16,18 +16,18 @@ from IPython.config.application import catch_config_error
 from IPython.config.loader import Config
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
-from IPython.utils.daemonize import daemonize
 from IPython.utils.importstring import import_item
 from IPython.utils.py3compat import string_types
 from IPython.utils.sysinfo import num_cpus
 from IPython.utils.traitlets import (Integer, Unicode, Bool, CFloat, Dict, List, Any,
                                         DottedObjectName)
 
-from ipython_parallel.apps.baseapp import (
+from .baseapp import (
     BaseParallelApplication,
     PIDFileError,
     base_flags, base_aliases
 )
+from .daemonize import daemonize
 
 
 #-----------------------------------------------------------------------------
