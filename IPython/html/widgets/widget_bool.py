@@ -1,25 +1,16 @@
-"""Bool class.  
+"""Bool class.
 
 Represents a boolean using a widget.
 """
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
-# Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from .widget import DOMWidget, register
 from IPython.utils.traitlets import Unicode, Bool, CaselessStrEnum
-from IPython.utils.warn import DeprecatedClass
+from .deprecated import DeprecatedClass
 
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
+
 class _Bool(DOMWidget):
     """A base class for creating widgets that represent booleans."""
     value = Bool(False, help="Bool value", sync=True)

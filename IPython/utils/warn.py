@@ -3,26 +3,15 @@
 Utilities for warnings.  Shoudn't we just use the built in warnings module.
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 from __future__ import print_function
 
 import sys
-import warnings
 
 from IPython.utils import io
 
-#-----------------------------------------------------------------------------
-# Code
-#-----------------------------------------------------------------------------
 
 def warn(msg,level=2,exit_val=1):
     """Standard warning printer. Gives formatting consistency.
@@ -66,16 +55,3 @@ def fatal(msg,exit_val=1):
 
     warn(msg,exit_val=exit_val,level=4)
 
-
-def DeprecatedClass(base, class_name):
-    # Hook the init method of the base class.
-    def init_hook(self, *pargs, **kwargs):
-        base.__init__(self, *pargs, **kwargs)
-
-        # Warn once per class.
-        if base not in DeprecatedClass._warned_classes:
-            DeprecatedClass._warned_classes.append(base)
-            warn('"{}" is deprecated, please use "{}" instead.'.format(
-                class_name, base.__name__))
-    return type(class_name, (base,), {'__init__': init_hook})
-DeprecatedClass._warned_classes = []

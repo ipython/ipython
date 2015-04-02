@@ -1,25 +1,16 @@
-"""String class.  
+"""String class.
 
 Represents a unicode string using a widget.
 """
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
-# Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from .widget import DOMWidget, CallbackDispatcher, register
 from IPython.utils.traitlets import Unicode, Bool
-from IPython.utils.warn import DeprecatedClass
+from .deprecated import DeprecatedClass
 
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
+
 class _String(DOMWidget):
     """Base class used to create widgets that represent a string."""
     value = Unicode(help="String value", sync=True)
