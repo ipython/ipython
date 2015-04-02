@@ -21,7 +21,7 @@ from decorator import decorator
 
 from IPython.config.configurable import Configurable
 from IPython.core.getipython import get_ipython
-from IPython.utils.signatures import Sentinel
+from IPython.utils.sentinel import Sentinel
 from IPython.lib import pretty
 from IPython.utils.traitlets import (
     Bool, Dict, Integer, Unicode, CUnicode, ObjectName, List,

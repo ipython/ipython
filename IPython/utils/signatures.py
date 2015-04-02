@@ -815,18 +815,3 @@ class Signature(object):
 
         return rendered
 
-## Fake unique value as KWargs, in some places.
-# do not put docstrings here or they will appear 
-# on created fake values.
-class Sentinel(object):
-
-    def __init__(self, name, module, docstring=None):
-        self.name = name
-        self.module = module
-        if docstring:
-            self.__doc__ = docstring
-
-
-    def __repr__(self):
-        return str(self.module)+'.'+self.name
-
