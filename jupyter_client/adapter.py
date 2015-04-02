@@ -3,10 +3,10 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import re
 import json
 
 from IPython.core.release import kernel_protocol_version_info
-from IPython.utils.tokenutil import token_at_cursor
 
 
 def code_to_line(code, cursor_pos):
@@ -24,6 +24,33 @@ def code_to_line(code, cursor_pos):
         else:
             break
     return line, cursor_pos
+
+
+_match_bracket = re.compile(r'\([^\(\)]+\)', re.UNICODE)
+_end_bracket = re.compile(r'\([^\(]*$', re.UNICODE)
+_identifier = re.compile(r'[a-z_][0-9a-z._]*', re.I|re.UNICODE)
+
+def extract_oname_v4(code, cursor_pos):
+    """Reimplement token-finding logic from IPython 2.x javascript
+    
+    for adapting object_info_request from v5 to v4
+    """
+    
+    line, _ = code_to_line(code, cursor_pos)
+    
+    oldline = line
+    line = _match_bracket.sub(u'', line)
+    while oldline != line:
+        oldline = line
+        line = _match_bracket.sub(u'', line)
+
+    # remove everything after last open bracket
+    line = _end_bracket.sub('', line)
+    matches = _identifier.findall(line)
+    if matches:
+        return matches[-1]
+    else:
+        return ''
 
 
 class Adapter(object):
@@ -158,7 +185,7 @@ class V5toV4(Adapter):
         line, _ = code_to_line(code, cursor_pos)
 
         new_content = msg['content'] = {}
-        new_content['oname'] = token_at_cursor(code, cursor_pos)
+        new_content['oname'] = extract_oname_v4(code, cursor_pos)
         new_content['detail_level'] = content['detail_level']
         return msg
 
