@@ -323,7 +323,7 @@ class ConfigLoader(object):
     """
 
     def _log_default(self):
-        from IPython.utils.log import get_logger
+        from traitlets.log import get_logger
         return get_logger()
 
     def __init__(self, log=None):
