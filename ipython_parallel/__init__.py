@@ -1,19 +1,8 @@
-"""The IPython ZMQ-based parallel computing interface.
+"""The IPython ZMQ-based parallel computing interface."""
 
-Authors:
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-* MinRK
-"""
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2011 The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 import os
 import warnings
@@ -21,11 +10,6 @@ import warnings
 import zmq
 
 from IPython.config.configurable import MultipleInstanceError
-from IPython.utils.zmqrelated import check_for_zmq
-
-min_pyzmq = '2.1.11'
-
-check_for_zmq(min_pyzmq, 'ipython_parallel')
 
 from IPython.utils.pickleutil import Reference
 
