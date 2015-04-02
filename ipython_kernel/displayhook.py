@@ -7,7 +7,7 @@ import sys
 
 from IPython.core.displayhook import DisplayHook
 from ipython_kernel.inprocess.socket import SocketABC
-from IPython.utils.jsonutil import encode_images
+from jupyter_client.jsonutil import encode_images
 from IPython.utils.py3compat import builtin_mod
 from IPython.utils.traitlets import Instance, Dict
 from .session import extract_header, Session

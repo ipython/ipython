@@ -51,7 +51,7 @@ from IPython.core.release import kernel_protocol_version
 from IPython.config.configurable import Configurable, LoggingConfigurable
 from IPython.utils import io
 from IPython.utils.importstring import import_item
-from IPython.utils.jsonutil import extract_dates, squash_dates, date_default
+from jupyter_client.jsonutil import extract_dates, squash_dates, date_default
 from IPython.utils.py3compat import (str_to_bytes, str_to_unicode, unicode_type,
                                      iteritems)
 from IPython.utils.traitlets import (CBytes, Unicode, Bool, Any, Instance, Set,

@@ -8,7 +8,7 @@ import logging
 import sys
 
 from IPython.core.interactiveshell import InteractiveShellABC
-from IPython.utils.jsonutil import json_clean
+from jupyter_client.jsonutil import json_clean
 from IPython.utils.traitlets import Any, Enum, Instance, List, Type
 from ipython_kernel.ipkernel import IPythonKernel
 from ipython_kernel.zmqshell import ZMQInteractiveShell

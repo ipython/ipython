@@ -25,7 +25,7 @@ from IPython.core.profiledir import ProfileDir, ProfileDirError
 
 from IPython.utils.capture import RichOutput
 from IPython.utils.coloransi import TermColors
-from IPython.utils.jsonutil import rekey, extract_dates, parse_date
+from jupyter_client.jsonutil import rekey, extract_dates, parse_date
 from IPython.utils.localinterfaces import localhost, is_local_ip
 from IPython.utils.path import get_ipython_dir, compress_user
 from IPython.utils.py3compat import cast_bytes, string_types, xrange, iteritems

@@ -10,9 +10,9 @@ from base64 import decodestring
 
 import nose.tools as nt
 
-from IPython.utils import jsonutil, tz
+from jupyter_client import jsonutil, tz
 from ..jsonutil import json_clean, encode_images
-from ..py3compat import unicode_to_str, str_to_bytes, iteritems
+from IPython.utils.py3compat import unicode_to_str, str_to_bytes, iteritems
 
 
 class Int(int):

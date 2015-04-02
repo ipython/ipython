@@ -20,7 +20,7 @@ from tornado import gen, ioloop, web
 from tornado.websocket import WebSocketHandler
 
 from IPython.kernel.zmq.session import Session
-from IPython.utils.jsonutil import date_default, extract_dates
+from jupyter_client.jsonutil import date_default, extract_dates
 from IPython.utils.py3compat import cast_unicode
 
 from .handlers import IPythonHandler

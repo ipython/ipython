@@ -24,7 +24,7 @@ from IPython.core.error import StdinNotImplementedError
 from IPython.core import release
 from IPython.utils import py3compat
 from IPython.utils.py3compat import unicode_type, string_types
-from IPython.utils.jsonutil import json_clean
+from jupyter_client.jsonutil import json_clean
 from IPython.utils.traitlets import (
     Any, Instance, Float, Dict, List, Set, Integer, Unicode, Bool,
 )

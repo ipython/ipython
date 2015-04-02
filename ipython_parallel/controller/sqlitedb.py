@@ -20,7 +20,7 @@ from zmq.eventloop import ioloop
 
 from IPython.utils.traitlets import Unicode, Instance, List, Dict
 from .dictdb import BaseDB
-from IPython.utils.jsonutil import date_default, extract_dates, squash_dates
+from jupyter_client.jsonutil import date_default, extract_dates, squash_dates
 from IPython.utils.py3compat import iteritems
 
 #-----------------------------------------------------------------------------
