@@ -8,7 +8,7 @@ Represents a container that can be used to group other widgets.
 
 from .widget import DOMWidget, Widget, register
 from IPython.utils.traitlets import Unicode, Tuple, TraitError, Int, CaselessStrEnum
-from IPython.utils.warn import DeprecatedClass
+from .deprecated import DeprecatedClass
 
 def _widget_to_json(x):
     if isinstance(x, dict):

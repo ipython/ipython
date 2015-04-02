@@ -1,27 +1,17 @@
-"""Image class.  
+"""Image class.
 
 Represents an image in the frontend using a widget.
 """
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, the IPython Development Team.
-#
-# Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 import base64
 
 from .widget import DOMWidget, register
 from IPython.utils.traitlets import Unicode, CUnicode, Bytes
-from IPython.utils.warn import DeprecatedClass
+from .deprecated import DeprecatedClass
 
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
 @register('IPython.Image')
 class Image(DOMWidget):
     """Displays an image as a widget.
