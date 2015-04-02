@@ -21,6 +21,7 @@ from decorator import decorator
 
 from IPython.config.configurable import Configurable
 from IPython.core.getipython import get_ipython
+from IPython.utils.signatures import Sentinel
 from IPython.lib import pretty
 from IPython.utils.traitlets import (
     Bool, Dict, Integer, Unicode, CUnicode, ObjectName, List,
@@ -270,7 +271,13 @@ def _get_type(obj):
     """Return the type of an instance (old and new-style)"""
     return getattr(obj, '__class__', None) or type(obj)
 
-_raise_key_error = object()
+
+_raise_key_error = Sentinel('_raise_key_error', __name__, 
+"""
+Special value to raise a KeyError
+
+Raise KeyError in `BaseFormatter.pop` if passed as the default value to `pop`
+""")
 
 
 class BaseFormatter(Configurable):

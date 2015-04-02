@@ -14,6 +14,7 @@ from . import v1
 from . import v2
 from . import v3
 from . import v4
+from IPython.utils.signatures import Sentinel
 
 __all__ = ['versions', 'validate', 'ValidationError', 'convert', 'from_dict',
            'NotebookNode', 'current_nbformat', 'current_nbformat_minor',
@@ -40,7 +41,10 @@ class NBFormatError(ValueError):
     pass
 
 # no-conversion singleton
-NO_CONVERT = object()
+NO_CONVERT = Sentinel('NO_CONVERT', __name__,
+    """Value to prevent nbformat to convert notebooks to most recent version.
+    """)
+
 
 def reads(s, as_version, **kwargs):
     """Read a notebook from a string and return the NotebookNode object as the given version.
