@@ -11,28 +11,18 @@ LOCAL_IPS : A list of IP addresses, loopback first, that point to this machine.
 PUBLIC_IPS : A list of public IP addresses that point to this machine.
              Use these to tell remote clients where to find you.
 """
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2010  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import os
 import re
 import socket
 
-from .data import uniq_stable
-from .process import get_output_error_code
-from .warn import warn
+from IPython.utils.data import uniq_stable
+from IPython.utils.process import get_output_error_code
+from warnings import warn
 
-#-----------------------------------------------------------------------------
-# Code
-#-----------------------------------------------------------------------------
 
 LOCAL_IPS = []
 PUBLIC_IPS = []
