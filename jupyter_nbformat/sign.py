@@ -19,7 +19,6 @@ except ImportError:
     except ImportError:
         sqlite3 = None
 
-from IPython.utils.io import atomic_writing
 from IPython.utils.py3compat import unicode_type, cast_bytes
 from IPython.utils.traitlets import Instance, Bytes, Enum, Any, Unicode, Bool, Integer
 from IPython.config import LoggingConfigurable, MultipleInstanceError
@@ -403,8 +402,6 @@ class TrustNotebookApp(BaseIPythonApplication):
         else:
             print("Signing notebook: %s" % notebook_path)
             self.notary.sign(nb)
-            with atomic_writing(notebook_path) as f:
-                write(nb, f, NO_CONVERT)
     
     def generate_new_key(self):
         """Generate a new notebook signature key"""
