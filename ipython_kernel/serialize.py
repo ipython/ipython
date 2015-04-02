@@ -13,7 +13,7 @@ except:
 # IPython imports
 from IPython.utils.py3compat import PY3, buffer_to_bytes_py2
 from IPython.utils.data import flatten
-from IPython.utils.pickleutil import (
+from ipython_kernel.pickleutil import (
     can, uncan, can_sequence, uncan_sequence, CannedObject,
     istype, sequence_types, PICKLE_PROTOCOL,
 )

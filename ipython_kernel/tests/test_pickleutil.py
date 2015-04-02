@@ -2,8 +2,8 @@
 import pickle
 
 import nose.tools as nt
-from IPython.utils import codeutil
-from IPython.utils.pickleutil import can, uncan
+from ipython_kernel import codeutil
+from ipython_kernel.pickleutil import can, uncan
 
 def interactive(f):
     f.__module__ = '__main__'

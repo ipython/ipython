@@ -14,10 +14,11 @@ try:
 except ImportError:
     import pickle
 
+from IPython.utils import py3compat
+from IPython.utils.importstring import import_item
+from IPython.utils.py3compat import string_types, iteritems, buffer_to_bytes_py2
+
 from . import codeutil  # This registers a hook when it's imported
-from . import py3compat
-from .importstring import import_item
-from .py3compat import string_types, iteritems, buffer_to_bytes_py2
 
 from IPython.config import Application
 from IPython.utils.log import get_logger

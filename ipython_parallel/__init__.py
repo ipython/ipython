@@ -27,7 +27,7 @@ min_pyzmq = '2.1.11'
 
 check_for_zmq(min_pyzmq, 'ipython_parallel')
 
-from IPython.utils.pickleutil import Reference
+from ipython_kernel.pickleutil import Reference
 
 from .client.asyncresult import *
 from .client.client import Client
