@@ -29,6 +29,12 @@ except:
     import pickle
 
 try:
+    # py3
+    PICKLE_PROTOCOL = pickle.DEFAULT_PROTOCOL
+except AttributeError:
+    PICKLE_PROTOCOL = pickle.HIGHEST_PROTOCOL
+
+try:
     # We are using compare_digest to limit the surface of timing attacks
     from hmac import compare_digest
 except ImportError:
@@ -45,14 +51,13 @@ from IPython.core.release import kernel_protocol_version
 from IPython.config.configurable import Configurable, LoggingConfigurable
 from IPython.utils import io
 from IPython.utils.importstring import import_item
-from IPython.utils.jsonutil import extract_dates, squash_dates, date_default
+from jupyter_client.jsonutil import extract_dates, squash_dates, date_default
 from IPython.utils.py3compat import (str_to_bytes, str_to_unicode, unicode_type,
                                      iteritems)
 from IPython.utils.traitlets import (CBytes, Unicode, Bool, Any, Instance, Set,
                                         DottedObjectName, CUnicode, Dict, Integer,
                                         TraitError,
 )
-from IPython.utils.pickleutil import PICKLE_PROTOCOL
 from jupyter_client.adapter import adapt
 
 #-----------------------------------------------------------------------------

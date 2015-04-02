@@ -9,7 +9,7 @@ from tornado import gen, web
 from tornado.concurrent import Future
 from tornado.ioloop import IOLoop
 
-from IPython.utils.jsonutil import date_default
+from jupyter_client.jsonutil import date_default
 from IPython.utils.py3compat import cast_unicode
 from IPython.html.utils import url_path_join, url_escape
 

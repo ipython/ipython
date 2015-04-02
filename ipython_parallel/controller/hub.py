@@ -20,7 +20,7 @@ from zmq.eventloop.zmqstream import ZMQStream
 
 # internal:
 from IPython.utils.importstring import import_item
-from IPython.utils.jsonutil import extract_dates
+from jupyter_client.jsonutil import extract_dates
 from IPython.utils.localinterfaces import localhost
 from IPython.utils.py3compat import cast_bytes, unicode_type, iteritems
 from IPython.utils.traitlets import (

@@ -40,7 +40,7 @@ from ipython_kernel import (
 )
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import openpy
-from IPython.utils.jsonutil import json_clean, encode_images
+from jupyter_client.jsonutil import json_clean, encode_images
 from IPython.utils.process import arg_split
 from IPython.utils import py3compat
 from IPython.utils.py3compat import unicode_type

@@ -503,7 +503,7 @@ class DirectView(View):
         
         adds support for closures, etc.
         
-        This calls IPython.utils.pickleutil.use_dill() here and on each engine.
+        This calls ipython_kernel.pickleutil.use_dill() here and on each engine.
         """
         pickleutil.use_dill()
         return self.apply(pickleutil.use_dill)
