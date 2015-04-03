@@ -3,36 +3,23 @@
 Utilities for working with external processes.
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 from __future__ import print_function
 
-# Stdlib
 import os
 import sys
 
-# Our own
 if sys.platform == 'win32':
-    from ._process_win32 import _find_cmd, system, getoutput, arg_split, check_pid
+    from ._process_win32 import system, getoutput, arg_split, check_pid
 elif sys.platform == 'cli':
-    from ._process_cli import _find_cmd, system, getoutput, arg_split, check_pid
+    from ._process_cli import system, getoutput, arg_split, check_pid
 else:
-    from ._process_posix import _find_cmd, system, getoutput, arg_split, check_pid
+    from ._process_posix import system, getoutput, arg_split, check_pid
 
 from ._process_common import getoutputerror, get_output_error_code, process_handler
 from . import py3compat
-
-#-----------------------------------------------------------------------------
-# Code
-#-----------------------------------------------------------------------------
 
 
 class FindCmdError(Exception):
@@ -59,14 +46,10 @@ def find_cmd(cmd):
     cmd : str
         The command line program to look for.
     """
-    try:
-        path = _find_cmd(cmd).rstrip()
-    except OSError:
+    path = py3compat.which(cmd)
+    if path is None:
         raise FindCmdError('command could not be found: %s' % cmd)
-    # which returns empty if not found
-    if path == '':
-        raise FindCmdError('command could not be found: %s' % cmd)
-    return os.path.abspath(path)
+    return path
 
 
 def is_cmd_found(cmd):

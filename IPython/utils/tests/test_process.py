@@ -52,7 +52,7 @@ def has_pywin32():
 def test_find_cmd_pythonw():
     """Try to find pythonw on Windows."""
     path = find_cmd('pythonw')
-    nt.assert_true(path.endswith('pythonw.exe'))
+    assert path.lower().endswith('pythonw.exe'), path
 
 
 @dec.onlyif(lambda : sys.platform != 'win32' or has_pywin32(),
