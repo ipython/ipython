@@ -23,6 +23,11 @@ import tempfile
 import textwrap
 import unittest
 
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch
+
 import nose.tools as nt
 from nose import SkipTest
 
@@ -448,7 +453,7 @@ class TestMagicRunWithPackage(unittest.TestCase):
     def with_fake_debugger(func):
         @functools.wraps(func)
         def wrapper(*args, **kwds):
-            with tt.monkeypatch(debugger.Pdb, 'run', staticmethod(eval)):
+            with patch.object(debugger.Pdb, 'run', staticmethod(eval)):
                 return func(*args, **kwds)
         return wrapper
 

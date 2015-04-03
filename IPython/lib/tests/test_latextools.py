@@ -1,18 +1,18 @@
 # encoding: utf-8
 """Tests for IPython.utils.path.py"""
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch
 
 import nose.tools as nt
 
 from IPython.lib import latextools
 from IPython.testing.decorators import onlyif_cmds_exist, skipif_not_matplotlib
-from IPython.testing.tools import monkeypatch
 from IPython.utils.process import FindCmdError
 
 
@@ -29,7 +29,7 @@ def check_latex_to_png_dvipng_fails_when_no_cmd(command):
         if arg == command:
             raise FindCmdError
 
-    with monkeypatch(latextools, "find_cmd", mock_find_cmd):
+    with patch.object(latextools, "find_cmd", mock_find_cmd):
         nt.assert_equals(latextools.latex_to_png_dvipng("whatever", True),
                          None)
 
@@ -46,7 +46,7 @@ def test_latex_to_png_dvipng_runs():
     for (s, wrap) in [(u"$$x^2$$", False), (u"x^2", True)]:
         yield (latextools.latex_to_png_dvipng, s, wrap)
 
-        with monkeypatch(latextools, "kpsewhich", mock_kpsewhich):
+        with patch.object(latextools, "kpsewhich", mock_kpsewhich):
             yield (latextools.latex_to_png_dvipng, s, wrap)
 
 @skipif_not_matplotlib
@@ -61,7 +61,7 @@ def test_latex_to_png_mpl_runs():
     for (s, wrap) in [("$x^2$", False), ("x^2", True)]:
         yield (latextools.latex_to_png_mpl, s, wrap)
 
-        with monkeypatch(latextools, "kpsewhich", mock_kpsewhich):
+        with patch.object(latextools, "kpsewhich", mock_kpsewhich):
             yield (latextools.latex_to_png_mpl, s, wrap)
 
 @skipif_not_matplotlib
@@ -78,7 +78,7 @@ def test_genelatex_no_wrap():
         assert False, ("kpsewhich should not be called "
                        "(called with {0})".format(filename))
 
-    with monkeypatch(latextools, "kpsewhich", mock_kpsewhich):
+    with patch.object(latextools, "kpsewhich", mock_kpsewhich):
         nt.assert_equals(
             '\n'.join(latextools.genelatex("body text", False)),
             r'''\documentclass{article}
@@ -100,7 +100,7 @@ def test_genelatex_wrap_with_breqn():
         nt.assert_equals(filename, "breqn.sty")
         return "path/to/breqn.sty"
 
-    with monkeypatch(latextools, "kpsewhich", mock_kpsewhich):
+    with patch.object(latextools, "kpsewhich", mock_kpsewhich):
         nt.assert_equals(
             '\n'.join(latextools.genelatex("x^2", True)),
             r'''\documentclass{article}
@@ -125,7 +125,7 @@ def test_genelatex_wrap_without_breqn():
         nt.assert_equals(filename, "breqn.sty")
         return None
 
-    with monkeypatch(latextools, "kpsewhich", mock_kpsewhich):
+    with patch.object(latextools, "kpsewhich", mock_kpsewhich):
         nt.assert_equals(
             '\n'.join(latextools.genelatex("x^2", True)),
             r'''\documentclass{article}

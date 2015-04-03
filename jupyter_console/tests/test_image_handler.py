@@ -1,14 +1,15 @@
-#-----------------------------------------------------------------------------
-# Copyright (C) 2012 The IPython Development Team
-#
-# Distributed under the terms of the BSD License. The full license is in
-# the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import os
 import sys
 import unittest
 import base64
+
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch
 
 from IPython.kernel import KernelClient
 from IPython.terminal.console.interactiveshell import ZMQTerminalInteractiveShell
@@ -54,7 +55,7 @@ class ZMQTerminalInteractiveShellTestCase(unittest.TestCase):
             open_called_with.append(arg)
             return Struct(show=lambda: show_called_with.append(None))
 
-        with monkeypatch(PIL.Image, 'open', fake_open):
+        with patch.object(PIL.Image, 'open', fake_open):
             self.shell.handle_image_PIL(self.data, self.mime)
 
         self.assertEqual(len(open_called_with), 1)
