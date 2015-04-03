@@ -3,8 +3,55 @@
 Issues closed in the 3.x development cycle
 ==========================================
 
+Issues closed in 3.1
+--------------------
+
+GitHub stats for 2015/02/27 - 2015/04/03 (since 3.0)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 46 issues and merged 133 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/milestones/3.1>`_.
+
+The following 33 authors contributed 344 commits:
+
+* Abe Guerra
+* Adal Chiriliuc
+* Benjamin Ragan-Kelley
+* Brian Drawert
+* Fernando Perez
+* Gareth Elston
+* Gert-Ludwig Ingold
+* Giuseppe Venturini
+* Jakob Gager
+* Jan Schulz
+* Jason Grout
+* Jessica B. Hamrick
+* Jonathan Frederic
+* Justin Tyberg
+* Lorena Pantano
+* mashenjun
+* Mathieu
+* Matthias Bussonnier
+* Morten Enemark Lund
+* Naveen Nathan
+* Nicholas Bollweg
+* onesandzeroes
+* Patrick Snape
+* Peter Parente
+* RickWinter
+* Robert Smith
+* Ryan Nelson
+* Scott Sanderson
+* Sylvain Corlay
+* Thomas Kluyver
+* tmtabor
+* Wieland Hoffmann
+* Yuval Langer
+
+
 Issues closed in 3.0
-----------------------
+--------------------
 
 GitHub stats for 2014/04/02 - 2015/02/13 (since 2.0)
 

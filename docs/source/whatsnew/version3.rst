@@ -2,6 +2,33 @@
  3.x Series
 ============
 
+IPython 3.1
+===========
+
+Released April 3, 2015
+
+The first 3.x bugfix release, with 33 contributors and 344 commits.
+This primarily includes bugfixes to notebook layout and focus problems.
+
+
+Highlights:
+
+- Various focus jumping and scrolling fixes in the notebook.
+- Various message ordering and widget fixes in the notebook.
+- Images in markdown and output are confined to the notebook width.
+  An `.unconfined` CSS class is added to disable this behavior per-image.
+  The resize handle on output images is removed.
+- Improved ordering of tooltip content for Python functions, putting the signature at the top.
+- Fix UnicodeErrors when displaying some objects with unicode reprs on Python 2.
+- Set the kernel's working directory to the notebook directory when running ``nbconvert --execute``,
+  so that behavior matches the live notebook.
+- Allow setting custom SSL options for the tornado server with ``NotebookApp.ssl_options``,
+  and protect against POODLE with default settings by disabling SSLv3.
+- Fix memory leak in the IPython.parallel Controller on Python 3.
+
+
+See :ref:`issues_list_3` for details.
+
 
 Release 3.0
 ===========
