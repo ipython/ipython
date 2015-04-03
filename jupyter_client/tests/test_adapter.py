@@ -311,6 +311,20 @@ class V5toV4TestCase(AdapterTest):
         self.assertEqual(v4c['oname'], 'apple')
         self.assertEqual(v5c['detail_level'], v4c['detail_level'])
 
+    def test_inspect_request_token(self):
+        line = 'something(range(10), kwarg=smth) ; xxx.xxx.xxx( firstarg, rand(234,23), kwarg1=2,'
+        msg = self.msg("inspect_request", {
+            'code' : line,
+            'cursor_pos': len(line)-1,
+            'detail_level' : 1,
+        })
+        v5, v4 = self.adapt(msg)
+        self.assertEqual(v4['header']['msg_type'], 'object_info_request')
+        v4c = v4['content']
+        v5c = v5['content']
+        self.assertEqual(v4c['oname'], 'xxx.xxx.xxx')
+        self.assertEqual(v5c['detail_level'], v4c['detail_level'])
+
     def test_inspect_reply(self):
         msg = self.msg("inspect_reply", {
             'name' : 'foo',
