@@ -5,10 +5,12 @@
 
 from __future__ import print_function
 
-from collections import OrderedDict
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch
 
 import nose.tools as nt
-import IPython.testing.tools as tt
 
 from IPython.kernel.comm import Comm
 from IPython.html import widgets
@@ -354,7 +356,7 @@ def test_priority():
 
 @nt.with_setup(clear_display)
 def test_decorator_kwarg():
-    with tt.monkeypatch(interaction, 'display', record_display):
+    with patch.object(interaction, 'display', record_display):
         @interact(a=5)
         def foo(a):
             pass
@@ -373,7 +375,7 @@ def test_interact_instancemethod():
 
     f = Foo()
     
-    with tt.monkeypatch(interaction, 'display', record_display):
+    with patch.object(interaction, 'display', record_display):
         g = interact(f.show, x=(1,10))
     nt.assert_equal(len(displayed), 1)
     w = displayed[0].children[0]
@@ -384,7 +386,7 @@ def test_interact_instancemethod():
 
 @nt.with_setup(clear_display)
 def test_decorator_no_call():
-    with tt.monkeypatch(interaction, 'display', record_display):
+    with patch.object(interaction, 'display', record_display):
         @interact
         def foo(a='default'):
             pass
@@ -399,7 +401,7 @@ def test_decorator_no_call():
 def test_call_interact():
     def foo(a='default'):
         pass
-    with tt.monkeypatch(interaction, 'display', record_display):
+    with patch.object(interaction, 'display', record_display):
         ifoo = interact(foo)
     nt.assert_equal(len(displayed), 1)
     w = displayed[0].children[0]
@@ -412,7 +414,7 @@ def test_call_interact():
 def test_call_interact_kwargs():
     def foo(a='default'):
         pass
-    with tt.monkeypatch(interaction, 'display', record_display):
+    with patch.object(interaction, 'display', record_display):
         ifoo = interact(foo, a=10)
     nt.assert_equal(len(displayed), 1)
     w = displayed[0].children[0]
@@ -425,7 +427,7 @@ def test_call_interact_kwargs():
 def test_call_decorated_on_trait_change():
     """test calling @interact decorated functions"""
     d = {}
-    with tt.monkeypatch(interaction, 'display', record_display):
+    with patch.object(interaction, 'display', record_display):
         @interact
         def foo(a='default'):
             d['a'] = a
@@ -449,7 +451,7 @@ def test_call_decorated_on_trait_change():
 def test_call_decorated_kwargs_on_trait_change():
     """test calling @interact(foo=bar) decorated functions"""
     d = {}
-    with tt.monkeypatch(interaction, 'display', record_display):
+    with patch.object(interaction, 'display', record_display):
         @interact(a='kwarg')
         def foo(a='default'):
             d['a'] = a

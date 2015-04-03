@@ -444,17 +444,6 @@ def make_tempfile(name):
         os.unlink(name)
 
 
-@contextmanager
-def monkeypatch(obj, name, attr):
-    """
-    Context manager to replace attribute named `name` in `obj` with `attr`.
-    """
-    orig = getattr(obj, name)
-    setattr(obj, name, attr)
-    yield
-    setattr(obj, name, orig)
-
-
 def help_output_test(subcommand=''):
     """test that `ipython [subcommand] -h` works"""
     cmd = get_ipython_cmd() + [subcommand, '-h']
