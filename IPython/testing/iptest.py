@@ -463,10 +463,6 @@ def run_iptest():
         
 
     argv = sys.argv + [ '--detailed-errors',  # extra info in tracebacks
-
-                        '--with-ipdoctest',
-                        '--ipdoctest-tests','--ipdoctest-extension=txt',
-
                         # We add --exe because of setuptools' imbecility (it
                         # blindly does chmod +x on ALL files).  Nose does the
                         # right thing and it tries to avoid executables,
@@ -489,10 +485,18 @@ def run_iptest():
         # for nose >= 0.11, though unfortunately nose 0.10 doesn't support it.
         argv.append('--traverse-namespace')
 
-    # use our plugin for doctesting.  It will remove the standard doctest plugin
-    # if it finds it enabled
-    plugins = [ExclusionPlugin(section.excludes), IPythonDoctest(), KnownFailure(),
+    plugins = [ ExclusionPlugin(section.excludes), KnownFailure(),
                SubprocessStreamCapturePlugin() ]
+    
+    # we still have some vestigial doctests in core
+    if (section.name.startswith(('core', 'IPython.core'))):
+        plugins.append(IPythonDoctest())
+        argv.extend([
+            '--with-ipdoctest',
+            '--ipdoctest-tests',
+            '--ipdoctest-extension=txt',
+        ])
+
     
     # Use working directory set by parent process (see iptestcontroller)
     if 'IPTEST_WORKING_DIR' in os.environ:
