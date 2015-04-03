@@ -1,24 +1,13 @@
 """
 Contains Stdout writer
 """
-#-----------------------------------------------------------------------------
-#Copyright (c) 2013, the IPython Development Team.
-#
-#Distributed under the terms of the Modified BSD License.
-#
-#The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) Jupyter Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-from IPython.utils import io
+from jupyter_nbconvert.utils import io
 from .base import WriterBase
 
-#-----------------------------------------------------------------------------
-# Classes
-#-----------------------------------------------------------------------------
 
 class StdoutWriter(WriterBase):
     """Consumes output from nbconvert export...() methods and writes to the 

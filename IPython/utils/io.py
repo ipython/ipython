@@ -3,32 +3,23 @@
 IO related utilities.
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from __future__ import print_function
 from __future__ import absolute_import
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+
 import codecs
 from contextlib import contextmanager
 import io
 import os
 import shutil
-import stat
 import sys
 import tempfile
+import warnings
 from .capture import CapturedIO, capture_output
 from .py3compat import string_types, input, PY3
-
-#-----------------------------------------------------------------------------
-# Code
-#-----------------------------------------------------------------------------
 
 
 class IOStream:
@@ -323,25 +314,9 @@ def raw_print_err(*args, **kw):
 rprint = raw_print
 rprinte = raw_print_err
 
+
 def unicode_std_stream(stream='stdout'):
-    u"""Get a wrapper to write unicode to stdout/stderr as UTF-8.
-
-    This ignores environment variables and default encodings, to reliably write
-    unicode to stdout or stderr.
-
-    ::
-
-        unicode_std_stream().write(u'ł@e¶ŧ←')
-    """
-    assert stream in ('stdout', 'stderr')
-    stream  = getattr(sys, stream)
-    if PY3:
-        try:
-            stream_b = stream.buffer
-        except AttributeError:
-            # sys.stdout has been replaced - use it directly
-            return stream
-    else:
-        stream_b = stream
-
-    return codecs.getwriter('utf-8')(stream_b)
+    """DEPRECATED, moved to jupyter_nbconvert.utils.io"""
+    warn("IPython.utils.io.unicode_std_stream has moved to jupyter_nbconvert.utils.io")
+    from jupyter_nbconvert.utils.io import unicode_std_stream
+    return unicode_std_stream(stream)
