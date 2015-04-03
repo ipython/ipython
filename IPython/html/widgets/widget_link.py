@@ -7,7 +7,6 @@ Propagate changes between widgets on the javascript side
 # Distributed under the terms of the Modified BSD License.
 
 from .widget import Widget
-from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.traitlets import Unicode, Tuple, List,Instance, TraitError
 
 class WidgetTraitTuple(Tuple):
@@ -51,7 +50,6 @@ class Link(Widget):
         self.close()
 
 
-@skip_doctest
 def jslink(*args):
     """Link traits from different widgets together on the frontend so they remain in sync.
 
@@ -92,7 +90,6 @@ class DirectionalLink(Widget):
     def unlink(self):
         self.close()
 
-@skip_doctest
 def jsdlink(source, *targets):
     """Link the trait of a source widget with traits of target widgets in the frontend.
 

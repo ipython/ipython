@@ -10,10 +10,8 @@ from .widget import DOMWidget
 import sys
 from IPython.utils.traitlets import Unicode, List
 from IPython.display import clear_output
-from IPython.testing.skipdoctest import skip_doctest
 from IPython.kernel.zmq.session import Message
 
-@skip_doctest
 class Output(DOMWidget):
     """Widget used as a context manager to display output.
 

@@ -13,7 +13,6 @@ from types import ModuleType
 
 import zmq
 
-from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import pickleutil
 from IPython.utils.traitlets import (
     HasTraits, Any, Bool, List, Dict, Set, Instance, CFloat, Integer
@@ -69,7 +68,6 @@ def spin_after(f, self, *args, **kwargs):
 # Classes
 #-----------------------------------------------------------------------------
 
-@skip_doctest
 class View(HasTraits):
     """Base View class for more convenint apply(f,*args,**kwargs) syntax via attributes.
 
@@ -377,7 +375,6 @@ class View(HasTraits):
         block = self.block if block is None else block
         return parallel(self, dist=dist, block=block, **flags)
 
-@skip_doctest
 class DirectView(View):
     """Direct Multiplexer View of one or more engines.
 
@@ -845,7 +842,6 @@ class DirectView(View):
         ip.magics_manager.register(M)
 
 
-@skip_doctest
 class LoadBalancedView(View):
     """An load-balancing View that only executes via the Task scheduler.
 
