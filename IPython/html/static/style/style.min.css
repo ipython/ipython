@@ -8385,15 +8385,13 @@ div.traceback-wrapper {
  *
  * Author: IPython Development Team
  */
+html,
+body {
+  min-height: 100%;
+  height: 100%;
+}
 body {
   background-color: #ffffff;
-  /* This makes sure that the body covers the entire window and needs to
-       be in a different element than the display: box in wrapper below */
-  position: absolute;
-  left: 0px;
-  right: 0px;
-  top: 0px;
-  bottom: 0px;
   overflow: visible;
   display: flex;
   flex-direction: column;
