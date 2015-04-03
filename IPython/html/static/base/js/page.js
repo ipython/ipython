@@ -9,22 +9,7 @@ define([
     "use strict";
 
     var Page = function () {
-        this.bind_events();
         this.show_anchor_link();
-    };
-
-    Page.prototype.bind_events = function () {
-        // resize site on:
-        // - window resize
-        // - header change
-        // - page load
-        //var _handle_resize = $.proxy(this._resize_site, this);
-        
-        //$(window).resize(_handle_resize);
-        
-        // On document ready, resize codemirror.
-        //$(document).ready(_handle_resize);
-        //events.on('resize-header.Page', _handle_resize);
     };
 
     Page.prototype.show = function () {
@@ -52,7 +37,6 @@ define([
          * TODO: selector are hardcoded, pass as constructor argument
          */
         $('div#site').css('display', 'block');
-        //this._resize_site();
     };
     
 
@@ -91,15 +75,10 @@ define([
         $(window).on('hashchange', function() {
             scroll_if_anchor(window.location.hash); 
         });
-        // Intercept all anchor clicks
+        // Intercept all anchor clicks in #site div
         $("#site").on("click", "a", scroll_if_anchor);
 
     }
-
-    //Page.prototype._resize_site = function() {
-        // Update the site's size.
-        //$('div#site').height(window.innerHeight - $('#header').height());
-    //};
 
     // Register self in the global namespace for convenience.
     IPython.Page = Page;
