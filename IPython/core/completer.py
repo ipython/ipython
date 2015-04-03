@@ -476,6 +476,64 @@ def _safe_isinstance(obj, module, class_name):
 
 
 
+def back_unicode_name_matches(text):
+    u"""Match unicode characters back to unicode name
+    
+    This does  ☃ -> \\snowman
+
+    Note that snowman is not a valid python3 combining character but will be expanded.
+    Though it will not recombine back to the snowman character by the completion machinery.
+
+    This will not either back-complete standard sequences like \n, \b ...
+    
+    Used on Python 3 only.
+    """
+    if len(text)<2:
+        return u'', ()
+    maybe_slash = text[-2]
+    if maybe_slash != '\\':
+        return u'', ()
+
+    char = text[-1]
+    # no expand on quote for completion in strings.
+    # nor backcomplete standard ascii keys
+    if char in string.ascii_letters or char in ['"',"'"]:
+        return u'', ()
+    try :
+        unic = unicodedata.name(char)
+        return '\\'+char,['\\'+unic]
+    except KeyError as e:
+        pass
+    return u'', ()
+
+def back_latex_name_matches(text):
+    u"""Match latex characters back to unicode name
+    
+    This does  ->\\sqrt
+
+    Used on Python 3 only.
+    """
+    if len(text)<2:
+        return u'', ()
+    maybe_slash = text[-2]
+    if maybe_slash != '\\':
+        return u'', ()
+
+
+    char = text[-1]
+    # no expand on quote for completion in strings.
+    # nor backcomplete standard ascii keys
+    if char in string.ascii_letters or char in ['"',"'"]:
+        return u'', ()
+    try :
+        latex = reverse_latex_symbol[char]
+        # '\\' replace the \ as well
+        return '\\'+char,[latex]
+    except KeyError as e:
+        pass
+    return u'', ()
+
+
 class IPCompleter(Completer):
     """Extension of the completer class with IPython-specific features"""
 
@@ -980,62 +1038,6 @@ class IPCompleter(Completer):
                 pass
         return u'', []
 
-    def back_unicode_name_matches(self, text):
-        u"""Match unicode characters back to unicode name
-        
-        This does  ☃ -> \\snowman
-
-        Note that snowman is not a valid python3 combining character but will be expanded.
-        Though it will not recombine back to the snowman character by the completion machinery.
-
-        This will not either back-complete standard sequences like \n, \b ...
-        
-        Used on Python 3 only.
-        """
-        if len(text)<2:
-            return u'', ()
-        maybe_slash = text[-2]
-        if maybe_slash != '\\':
-            return u'', ()
-
-        char = text[-1]
-        # no expand on quote for completion in strings.
-        # nor backcomplete standard ascii keys
-        if char in string.ascii_letters or char in ['"',"'"]:
-            return u'', ()
-        try :
-            unic = unicodedata.name(char)
-            return '\\'+char,['\\'+unic]
-        except KeyError as e:
-            pass
-        return u'', ()
-
-    def back_latex_name_matches(self, text):
-        u"""Match latex characters back to unicode name
-        
-        This does  ->\\sqrt
-
-        Used on Python 3 only.
-        """
-        if len(text)<2:
-            return u'', ()
-        maybe_slash = text[-2]
-        if maybe_slash != '\\':
-            return u'', ()
-
-
-        char = text[-1]
-        # no expand on quote for completion in strings.
-        # nor backcomplete standard ascii keys
-        if char in string.ascii_letters or char in ['"',"'"]:
-            return u'', ()
-        try :
-            latex = reverse_latex_symbol[char]
-            # '\\' replace the \ as well
-            return '\\'+char,[latex]
-        except KeyError as e:
-            pass
-        return u'', ()
 
 
 
@@ -1148,13 +1150,10 @@ class IPCompleter(Completer):
                  return latex_text, latex_matches
             name_text = ''
             name_matches = []
-            for meth in (self.unicode_name_matches, self.back_unicode_name_matches, self.back_latex_name_matches):
-                _name_text, _name_matches = meth(base_text)
-                if _name_text:
-                    name_text = _name_text
-                    name_matches.extend(_name_matches)
-            if name_text:
-                return name_text, name_matches
+            for meth in (self.unicode_name_matches, back_latex_name_matches, back_unicode_name_matches):
+                name_text, name_matches = meth(base_text)
+                if name_text:
+                    return name_text, name_matches
         
         # if text is either None or an empty string, rely on the line buffer
         if not text:
