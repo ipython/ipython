@@ -210,7 +210,7 @@ if __name__ == "__main__":
     all_authors.extend([ u'* ' + a.split(' <')[0] for a in with_email ])
     unique_authors = sorted(set(all_authors), key=lambda s: s.lower())
 
-    print("We closed %d issues and merged %d pull requests." % (n_pulls, n_issues))
+    print("We closed %d issues and merged %d pull requests." % (n_issues, n_pulls))
     if milestone:
         print("The full list can be seen `on GitHub <https://github.com/%s/milestone/%s>`"
             % (project, milestone)
