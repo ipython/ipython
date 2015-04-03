@@ -1,33 +1,20 @@
 """Utility for calling pandoc"""
-#-----------------------------------------------------------------------------
-# Copyright (c) 2014 the IPython Development Team.
-#
+# Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
-# Stdlib imports
 import subprocess
 import warnings
 import re
 from io import TextIOWrapper, BytesIO
 
-# IPython imports
 from IPython.utils.py3compat import cast_bytes
 from IPython.utils.version import check_version
 from IPython.utils.process import is_cmd_found, FindCmdError
 
 from .exceptions import ConversionException
 
-#-----------------------------------------------------------------------------
-# Classes and functions
-#-----------------------------------------------------------------------------
 _minimal_version = "1.12.1"
 
 def pandoc(source, fmt, to, extra_args=None, encoding='utf-8'):
