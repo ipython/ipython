@@ -3,32 +3,23 @@
 IO related utilities.
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from __future__ import print_function
 from __future__ import absolute_import
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+
 import codecs
 from contextlib import contextmanager
 import io
 import os
 import shutil
-import stat
 import sys
 import tempfile
+import warnings
 from .capture import CapturedIO, capture_output
 from .py3compat import string_types, input, PY3
-
-#-----------------------------------------------------------------------------
-# Code
-#-----------------------------------------------------------------------------
 
 
 class IOStream:
@@ -221,87 +212,11 @@ def temp_pyfile(src, ext='.py'):
     f.flush()
     return fname, f
 
-def _copy_metadata(src, dst):
-    """Copy the set of metadata we want for atomic_writing.
-    
-    Permission bits and flags. We'd like to copy file ownership as well, but we
-    can't do that.
-    """
-    shutil.copymode(src, dst)
-    st = os.stat(src)
-    if hasattr(os, 'chflags') and hasattr(st, 'st_flags'):
-        os.chflags(dst, st.st_flags)
-
-@contextmanager
-def atomic_writing(path, text=True, encoding='utf-8', **kwargs):
-    """Context manager to write to a file only if the entire write is successful.
-    
-    This works by creating a temporary file in the same directory, and renaming
-    it over the old file if the context is exited without an error. If other
-    file names are hard linked to the target file, this relationship will not be
-    preserved.
-    
-    On Windows, there is a small chink in the atomicity: the target file is
-    deleted before renaming the temporary file over it. This appears to be
-    unavoidable.
-    
-    Parameters
-    ----------
-    path : str
-      The target file to write to.
-     
-    text : bool, optional
-      Whether to open the file in text mode (i.e. to write unicode). Default is
-      True.
-    
-    encoding : str, optional
-      The encoding to use for files opened in text mode. Default is UTF-8.
-     
-    **kwargs
-      Passed to :func:`io.open`.
-    """
-    # realpath doesn't work on Windows: http://bugs.python.org/issue9949
-    # Luckily, we only need to resolve the file itself being a symlink, not
-    # any of its directories, so this will suffice:
-    if os.path.islink(path):
-        path = os.path.join(os.path.dirname(path), os.readlink(path))
-
-    dirname, basename = os.path.split(path)
-    tmp_dir = tempfile.mkdtemp(prefix=basename, dir=dirname)
-    tmp_path = os.path.join(tmp_dir, basename)
-    if text:
-        fileobj = io.open(tmp_path, 'w', encoding=encoding, **kwargs)
-    else:
-        fileobj = io.open(tmp_path, 'wb', **kwargs)
-
-    try:
-        yield fileobj
-    except:
-        fileobj.close()
-        shutil.rmtree(tmp_dir)
-        raise
-
-    # Flush to disk
-    fileobj.flush()
-    os.fsync(fileobj.fileno())
-
-    # Written successfully, now rename it
-    fileobj.close()
-
-    # Copy permission bits, access time, etc.
-    try:
-        _copy_metadata(path, tmp_path)
-    except OSError:
-        # e.g. the file didn't already exist. Ignore any failure to copy metadata
-        pass
-
-    if os.name == 'nt' and os.path.exists(path):
-        # Rename over existing file doesn't work on Windows
-        os.remove(path)
-
-    os.rename(tmp_path, path)
-    shutil.rmtree(tmp_dir)
-
+def atomic_writing(*args, **kwargs):
+    """DEPRECATED: moved to IPython.html.services.contents.fileio"""
+    warn("IPython.utils.io.atomic_writing has moved to IPython.html.services.contents.fileio")
+    from IPython.html.services.contents.fileio import atomic_writing
+    return atomic_writing(*args, **kwargs)
 
 def raw_print(*args, **kw):
     """Raw print to sys.__stdout__, otherwise identical interface to print()."""
@@ -323,25 +238,9 @@ def raw_print_err(*args, **kw):
 rprint = raw_print
 rprinte = raw_print_err
 
+
 def unicode_std_stream(stream='stdout'):
-    u"""Get a wrapper to write unicode to stdout/stderr as UTF-8.
-
-    This ignores environment variables and default encodings, to reliably write
-    unicode to stdout or stderr.
-
-    ::
-
-        unicode_std_stream().write(u'ł@e¶ŧ←')
-    """
-    assert stream in ('stdout', 'stderr')
-    stream  = getattr(sys, stream)
-    if PY3:
-        try:
-            stream_b = stream.buffer
-        except AttributeError:
-            # sys.stdout has been replaced - use it directly
-            return stream
-    else:
-        stream_b = stream
-
-    return codecs.getwriter('utf-8')(stream_b)
+    """DEPRECATED, moved to jupyter_nbconvert.utils.io"""
+    warn("IPython.utils.io.unicode_std_stream has moved to jupyter_nbconvert.utils.io")
+    from jupyter_nbconvert.utils.io import unicode_std_stream
+    return unicode_std_stream(stream)

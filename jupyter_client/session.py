@@ -49,7 +49,6 @@ from zmq.eventloop.zmqstream import ZMQStream
 
 from IPython.core.release import kernel_protocol_version
 from IPython.config.configurable import Configurable, LoggingConfigurable
-from IPython.utils import io
 from IPython.utils.importstring import import_item
 from jupyter_client.jsonutil import extract_dates, squash_dates, date_default
 from IPython.utils.py3compat import (str_to_bytes, str_to_unicode, unicode_type,
@@ -59,6 +58,8 @@ from IPython.utils.traitlets import (CBytes, Unicode, Bool, Any, Instance, Set,
                                         TraitError,
 )
 from jupyter_client.adapter import adapt
+from traitlets.log import get_logger
+
 
 #-----------------------------------------------------------------------------
 # utility functions
@@ -653,8 +654,9 @@ class Session(Configurable):
             msg = self.msg(msg_or_type, content=content, parent=parent,
                            header=header, metadata=metadata)
         if not os.getpid() == self.pid:
-            io.rprint("WARNING: attempted to send message from fork")
-            io.rprint(msg)
+            get_logger().warn("WARNING: attempted to send message from fork\n%s",
+                msg
+            )
             return
         buffers = [] if buffers is None else buffers
         if self.adapt_version:
