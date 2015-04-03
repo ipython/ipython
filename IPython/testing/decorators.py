@@ -26,32 +26,16 @@ IPython.external.decorators, we import either numpy.testing.decorators if numpy 
 available, OR use equivalent code in IPython.external._decorators, which
 we've copied verbatim from numpy.
 
-Authors
--------
-
-- Fernando Perez <Fernando.Perez@berkeley.edu>
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2009-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
-# Stdlib imports
 import sys
 import os
 import tempfile
 import unittest
 
-# Third-party imports
-
-# This is Michele Simionato's decorator module, kept verbatim.
 from decorator import decorator
 
 # Expose the unittest-driven decorators
@@ -63,8 +47,7 @@ from .ipunittest import ipdoctest, ipdocstring
 from IPython.external.decorators import *
 
 # For onlyif_cmd_exists decorator
-from IPython.utils.process import is_cmd_found
-from IPython.utils.py3compat import string_types
+from IPython.utils.py3compat import string_types, which
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -370,16 +353,9 @@ def onlyif_cmds_exist(*commands):
     Decorator to skip test when at least one of `commands` is not found.
     """
     for cmd in commands:
-        try:
-            if not is_cmd_found(cmd):
-                return skip("This test runs only if command '{0}' "
-                            "is installed".format(cmd))
-        except ImportError as e:
-            # is_cmd_found uses pywin32 on windows, which might not be available
-            if sys.platform == 'win32' and 'pywin32' in str(e):
-                return skip("This test runs only if pywin32 and command '{0}' "
-                            "is installed".format(cmd))
-            raise e
+        if not which(cmd):
+            return skip("This test runs only if command '{0}' "
+                        "is installed".format(cmd))
     return null_deco
 
 def onlyif_any_cmd_exists(*commands):
@@ -387,14 +363,7 @@ def onlyif_any_cmd_exists(*commands):
     Decorator to skip test unless at least one of `commands` is found.
     """
     for cmd in commands:
-        try:
-            if is_cmd_found(cmd):
-                return null_deco
-        except ImportError as e:
-            # is_cmd_found uses pywin32 on windows, which might not be available
-            if sys.platform == 'win32' and 'pywin32' in str(e):
-                return skip("This test runs only if pywin32 and commands '{0}' "
-                            "are installed".format(commands))
-            raise e
+        if which(cmd):
+            return null_deco
     return skip("This test runs only if one of the commands {0} "
                 "is installed".format(commands))

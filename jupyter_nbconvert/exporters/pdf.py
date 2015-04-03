@@ -7,7 +7,7 @@ import subprocess
 import os
 import sys
 
-from IPython.utils.process import find_cmd
+from IPython.utils.py3compat import which
 from IPython.utils.traitlets import Integer, List, Bool, Instance
 from IPython.utils.tempdir import TemporaryWorkingDirectory
 from .latex import LatexExporter
@@ -65,10 +65,12 @@ class PDFExporter(LatexExporter):
             #We must use cp1252 encoding for calling subprocess.Popen
             #Note that sys.stdin.encoding and encoding.DEFAULT_ENCODING
             # could be different (cp437 in case of dos console)
-            command = [c.encode('cp1252') for c in command]        
+            command = [c.encode('cp1252') for c in command]
 
         # This will throw a clearer error if the command is not found
-        find_cmd(command_list[0])
+        cmd = which(command_list[0])
+        if cmd is None:
+            raise OSError("%s not found on PATH" % command_list[0])
         
         times = 'time' if count == 1 else 'times'
         self.log.info("Running %s %i %s: %s", command_list[0], count, times, command)
