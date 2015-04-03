@@ -94,6 +94,7 @@ define([
     
     KernelSelector.prototype._spec_changed = function (event, ks) {
         /** event handler for spec_changed */
+        var that = this;
         
         // update selection
         this.current_selection = ks.name;
@@ -157,6 +158,15 @@ define([
                     console.warn("Failed to load kernel.js from ", ks.resources['kernel.js'], err);
                 }
             );
+            this.events.on('spec_changed.Kernel', function (evt, new_ks) {
+                if (ks.name != new_ks.name) {
+                    console.warn("kernelspec %s had custom kernel.js. Forcing page reload for %s.",
+                        ks.name, new_ks.name);
+                    that.notebook.save_notebook().then(function () {
+                        window.location.reload();
+                    });
+                }
+            });
         }
     };
 
