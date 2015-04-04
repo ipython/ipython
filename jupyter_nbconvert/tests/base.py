@@ -6,16 +6,14 @@
 import io
 import os
 import glob
+import shlex
 import shutil
+import sys
 import unittest
 
 from IPython.nbformat import v4, write
 from IPython.utils.tempdir import TemporaryWorkingDirectory
 from IPython.utils.process import get_output_error_code
-from IPython.testing.tools import get_ipython_cmd
-
-# a trailing space allows for simpler concatenation with the other arguments
-ipy_cmd = get_ipython_cmd(as_string=True) + " "
 
 
 class TestsBase(unittest.TestCase):
@@ -126,20 +124,22 @@ class TestsBase(unittest.TestCase):
         return os.path.join(path, *names)
 
 
-    def call(self, parameters, ignore_return_code=False):
+    def nbconvert(self, parameters, ignore_return_code=False):
         """
-        Execute a, IPython shell command, listening for both Errors and non-zero
+        Run nbconvert a, IPython shell command, listening for both Errors and non-zero
         return codes.
 
         Parameters
         ----------
-        parameters : str
+        parameters : str, list(str)
             List of parameters to pass to IPython.
         ignore_return_code : optional bool (default False)
             Throw an OSError if the return code 
         """
-
-        stdout, stderr, retcode = get_output_error_code(ipy_cmd + parameters)
+        if isinstance(parameters, string_types):
+            parameters = shlex.split(parameters)
+        cmd = [sys.executable, '-m', 'jupyter_nbconvert'] + parameters
+        stdout, stderr, retcode = get_output_error_code(cmd)
         if not (retcode == 0 or ignore_return_code):
             raise OSError(stderr)
         return stdout, stderr
