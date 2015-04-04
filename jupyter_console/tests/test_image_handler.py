@@ -14,7 +14,6 @@ except ImportError:
 from IPython.kernel import KernelClient
 from IPython.terminal.console.interactiveshell import ZMQTerminalInteractiveShell
 from IPython.utils.tempdir import TemporaryDirectory
-from IPython.testing.tools import monkeypatch
 from IPython.testing.decorators import skip_without
 from IPython.utils.ipstruct import Struct
 
