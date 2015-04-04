@@ -20,7 +20,7 @@ import tempfile
 import zmq
 
 from IPython.config import LoggingConfigurable
-from IPython.utils.localinterfaces import localhost
+from .localinterfaces import localhost
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import (str_to_bytes, bytes_to_str, cast_bytes_py2,
                                      string_types)

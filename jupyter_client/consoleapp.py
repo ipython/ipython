@@ -28,7 +28,7 @@ from .session import Session
 
 ConnectionFileMixin = connect.ConnectionFileMixin
 
-from IPython.utils.localinterfaces import localhost
+from .localinterfaces import localhost
 
 #-----------------------------------------------------------------------------
 # Aliases and Flags

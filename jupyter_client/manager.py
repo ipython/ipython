@@ -20,7 +20,7 @@ except ImportError:
 import zmq
 
 from IPython.utils.importstring import import_item
-from IPython.utils.localinterfaces import is_local_ip, local_ips
+from .localinterfaces import is_local_ip, local_ips
 from IPython.utils.path import get_ipython_dir
 from IPython.utils.traitlets import (
     Any, Instance, Unicode, List, Bool, Type, DottedObjectName
