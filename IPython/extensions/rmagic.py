@@ -69,7 +69,6 @@ except ImportError:
 from IPython.core.displaypub import publish_display_data
 from IPython.core.magic import (Magics, magics_class, line_magic,
                                 line_cell_magic, needs_local_scope)
-from IPython.testing.skipdoctest import skip_doctest
 from IPython.core.magic_arguments import (
     argument, magic_arguments, parse_argstring
 )
@@ -234,7 +233,6 @@ class RMagics(Magics):
         self.Rstdout_cache = []
         return value
 
-    @skip_doctest
     @needs_local_scope
     @line_magic
     def Rpush(self, line, local_ns=None):
@@ -275,7 +273,6 @@ class RMagics(Magics):
 
             self.r.assign(input, self.pyconverter(val))
 
-    @skip_doctest
     @magic_arguments()
     @argument(
         '-d', '--as_dataframe', action='store_true',
@@ -327,7 +324,6 @@ class RMagics(Magics):
         for output in outputs:
             self.shell.push({output:self.Rconverter(self.r(output),dataframe=args.as_dataframe)})
 
-    @skip_doctest
     @magic_arguments()
     @argument(
         '-d', '--as_dataframe', action='store_true',
@@ -370,7 +366,6 @@ class RMagics(Magics):
         return self.Rconverter(self.r(output[0]),dataframe=args.as_dataframe)
 
 
-    @skip_doctest
     @magic_arguments()
     @argument(
         '-i', '--input', action='append',

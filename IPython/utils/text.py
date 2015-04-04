@@ -646,7 +646,6 @@ def _get_or_default(mylist, i, default=None):
         return mylist[i]
 
 
-@skip_doctest
 def compute_item_matrix(items, empty=None, *args, **kwargs) :
     """Returns a nested list, and info to columnize items
 

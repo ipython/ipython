@@ -9,7 +9,6 @@ import sys
 import warnings
 
 from decorator import decorator
-from IPython.testing.skipdoctest import skip_doctest
 
 from . import map as Map
 from .asyncresult import AsyncMapResult
@@ -18,7 +17,6 @@ from .asyncresult import AsyncMapResult
 # Functions and Decorators
 #-----------------------------------------------------------------------------
 
-@skip_doctest
 def remote(view, block=None, **flags):
     """Turn a function into a remote function.
 
@@ -33,7 +31,6 @@ def remote(view, block=None, **flags):
         return RemoteFunction(view, f, block=block, **flags)
     return remote_function
 
-@skip_doctest
 def parallel(view, dist='b', block=None, ordered=True, **flags):
     """Turn a function into a parallel remote function.
 

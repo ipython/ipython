@@ -11,7 +11,6 @@ import random
 
 # Our own
 from IPython.core.error import UsageError
-from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.py3compat import cast_bytes, str_to_bytes
 
 #-----------------------------------------------------------------------------
@@ -26,7 +25,6 @@ salt_len = 12
 # Functions
 #-----------------------------------------------------------------------------
 
-@skip_doctest
 def passwd(passphrase=None, algorithm='sha1'):
     """Generate hashed password and salt for use in notebook configuration.
 

@@ -44,7 +44,6 @@ from pygments.token import (
 from pygments.util import get_bool_opt
 
 # Local
-from IPython.testing.skipdoctest import skip_doctest
 
 line_re = re.compile('.*?\n')
 
@@ -190,7 +189,6 @@ class IPythonTracebackLexer(DelegatingLexer):
         DelegatingLexer.__init__(self, IPyLexer,
                                  IPythonPartialTracebackLexer, **options)
 
-@skip_doctest
 class IPythonConsoleLexer(Lexer):
     """
     An IPython console lexer for IPython code-blocks and doctests, such as:

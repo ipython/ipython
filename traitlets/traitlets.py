@@ -58,7 +58,6 @@ from IPython.utils import eventful
 from IPython.utils.getargspec import getargspec
 from IPython.utils.importstring import import_item
 from IPython.utils.py3compat import iteritems, string_types
-from IPython.testing.skipdoctest import skip_doctest
 
 from .sentinel import Sentinel
 SequenceTypes = (list, tuple, set, frozenset)
@@ -189,7 +188,6 @@ def _validate_link(*tuples):
         if not trait_name in obj.traits():
             raise TypeError("%r has no trait %r" % (obj, trait_name))
 
-@skip_doctest
 class link(object):
     """Link traits from different objects together so they remain in sync.
 
@@ -244,7 +242,6 @@ class link(object):
             (obj, attr) = key
             obj.on_trait_change(callback, attr, remove=True)
 
-@skip_doctest
 class directional_link(object):
     """Link the trait of a source object with traits of target objects.
 

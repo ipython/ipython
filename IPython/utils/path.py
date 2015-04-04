@@ -16,7 +16,6 @@ import glob
 from warnings import warn
 from hashlib import md5
 
-from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.process import system
 from IPython.utils import py3compat
 from IPython.utils.decorators import undoc
@@ -32,7 +31,6 @@ def _writable_dir(path):
     return os.path.isdir(path) and os.access(path, os.W_OK)
 
 if sys.platform == 'win32':
-    @skip_doctest
     def _get_long_path_name(path):
         """Get a long path name (expand ~) on Windows using ctypes.
 

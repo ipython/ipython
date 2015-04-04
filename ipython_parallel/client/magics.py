@@ -45,7 +45,6 @@ import re
 from IPython.core.error import UsageError
 from IPython.core.magic import Magics
 from IPython.core import magic_arguments
-from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.text import dedent
 
 #-----------------------------------------------------------------------------
@@ -190,7 +189,6 @@ class ParallelMagics(Magics):
 
     @magic_arguments.magic_arguments()
     @output_args
-    @skip_doctest
     def result(self, line=''):
         """Print the result of the last asynchronous %px command.
         
@@ -218,7 +216,6 @@ class ParallelMagics(Magics):
         self.last_result.get()
         self.last_result.display_outputs(groupby=args.groupby)
 
-    @skip_doctest
     def px(self, line=''):
         """Executes the given python command in parallel.
         
@@ -269,7 +266,6 @@ class ParallelMagics(Magics):
     @magic_arguments.magic_arguments()
     @exec_args
     @output_args
-    @skip_doctest
     def cell_px(self, line='', cell=None):
         """Executes the cell in parallel.
         
@@ -316,7 +312,6 @@ class ParallelMagics(Magics):
         if not block:
             return ar
     
-    @skip_doctest
     def autopx(self, line=''):
         """Toggles auto parallel mode.
 

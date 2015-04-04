@@ -38,7 +38,6 @@ from ipython_kernel.inprocess.socket import SocketABC
 from ipython_kernel import (
     get_connection_file, get_connection_info, connect_qtconsole
 )
-from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import openpy
 from jupyter_client.jsonutil import json_clean, encode_images
 from IPython.utils.process import arg_split
@@ -105,7 +104,6 @@ class KernelMagics(Magics):
 
     _find_edit_target = CodeMagics._find_edit_target
 
-    @skip_doctest
     @line_magic
     def edit(self, parameter_s='', last_call=['','']):
         """Bring up an editor and execute the resulting code.
