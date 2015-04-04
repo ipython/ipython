@@ -1010,15 +1010,15 @@ class TestLenList(TraitTestBase):
 
 class TupleTrait(HasTraits):
 
-    value = Tuple(Int(allow_none=True))
+    value = Tuple(Int(allow_none=True), default_value=(1,))
 
 class TestTupleTrait(TraitTestBase):
 
     obj = TupleTrait()
 
-    _default_value = None
-    _good_values = [(1,), None, (0,), [1], (None,)]
-    _bad_values = [10, (1,2), ('a'), ()]
+    _default_value = (1,) 
+    _good_values = [(1,), (0,), [1]]
+    _bad_values = [10, (1, 2), ('a'), (), None]
 
     def coerce(self, value):
         if value is not None:
@@ -1039,8 +1039,8 @@ class TestLooseTupleTrait(TraitTestBase):
     obj = LooseTupleTrait()
 
     _default_value = (1,2,3)
-    _good_values = [(1,), None, [1], (0,), tuple(range(5)), tuple('hello'), ('a',5), ()]
-    _bad_values = [10, 'hello', {}]
+    _good_values = [(1,), [1], (0,), tuple(range(5)), tuple('hello'), ('a',5), ()]
+    _bad_values = [10, 'hello', {}, None]
 
     def coerce(self, value):
         if value is not None:
