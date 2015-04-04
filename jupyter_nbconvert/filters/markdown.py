@@ -23,7 +23,6 @@ except ImportError as e:
 
 from jupyter_nbconvert.utils.pandoc import pandoc
 from jupyter_nbconvert.utils.exceptions import ConversionException
-from IPython.utils.process import get_output_error_code
 from IPython.utils.py3compat import cast_bytes
 from IPython.utils.version import check_version
 
@@ -130,11 +129,14 @@ def _verify_node(cmd):
     cmd : string
         Node command to verify (i.e 'node')."""
     try:
-        out, err, return_code = get_output_error_code([cmd, '--version'])
+        p = subprocess.Popen([cmd, '--version'],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, _ = p.communicate()
+        out = out.decode('utf8', 'replace')
     except OSError:
         # Command not found
         return False
-    if return_code:
+    if p.returncode:
         # Command error
         return False
     return check_version(out.lstrip('v'), '0.9.12')

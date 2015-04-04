@@ -11,7 +11,7 @@ from io import TextIOWrapper, BytesIO
 
 from IPython.utils.py3compat import cast_bytes
 from IPython.utils.version import check_version
-from IPython.utils.process import is_cmd_found, FindCmdError
+from IPython.utils.py3compat import which
 
 from .exceptions import ConversionException
 
@@ -71,7 +71,7 @@ def get_pandoc_version():
     global __version
 
     if __version is None:
-        if not is_cmd_found('pandoc'):
+        if not which('pandoc'):
             raise PandocMissing()
 
         out = subprocess.check_output(['pandoc', '-v'],
