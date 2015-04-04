@@ -1,16 +1,4 @@
-"""Simple utility for building a list of local IPs using the socket module.
-This module defines two constants:
-
-LOCALHOST : The loopback interface, or the first interface that points to this
-            machine.  It will *almost* always be '127.0.0.1'
-
-LOCAL_IPS : A list of IP addresses, loopback first, that point to this machine.
-            This will include LOCALHOST, PUBLIC_IPS, and aliases for all hosts,
-            such as '0.0.0.0'.
-
-PUBLIC_IPS : A list of public IP addresses that point to this machine.
-             Use these to tell remote clients where to find you.
-"""
+"""Utilities for identifying local IP addresses."""
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
@@ -18,9 +6,9 @@ PUBLIC_IPS : A list of public IP addresses that point to this machine.
 import os
 import re
 import socket
+from subprocess import Popen, PIPE
 
 from IPython.utils.data import uniq_stable
-from IPython.utils.process import get_output_error_code
 from warnings import warn
 
 
@@ -28,6 +16,14 @@ LOCAL_IPS = []
 PUBLIC_IPS = []
 
 LOCALHOST = ''
+
+def _get_output(cmd):
+    """Get output of a command, raising IOError if it fails"""
+    p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+    stdout, stderr = p.communicate()
+    if p.returncode:
+        raise IOError("Failed to run %s: %s" % (cmd, stderr.decode('utf8', 'replace')))
+    return stdout.decode('utf8', 'replace')
 
 def _only_once(f):
     """decorator to only run a function once"""
@@ -79,12 +75,11 @@ def _populate_from_list(addrs):
 def _load_ips_ifconfig():
     """load ip addresses from `ifconfig` output (posix)"""
     
-    out, err, rc = get_output_error_code('ifconfig')
-    if rc:
+    try:
+        out = _get_output('ifconfig')
+    except (IOError, OSError):
         # no ifconfig, it's usually in /sbin and /sbin is not on everyone's PATH
-        out, err, rc = get_output_error_code('/sbin/ifconfig')
-    if rc:
-        raise IOError("no ifconfig: %s" % err)
+        out = _get_output('/sbin/ifconfig')
     
     lines = out.splitlines()
     addrs = []
@@ -100,9 +95,7 @@ def _load_ips_ifconfig():
 
 def _load_ips_ip():
     """load ip addresses from `ip addr` output (Linux)"""
-    out, err, rc = get_output_error_code('ip addr')
-    if rc:
-        raise IOError("no ip: %s" % err)
+    out = _get_output(['ip', 'addr'])
     
     lines = out.splitlines()
     addrs = []
@@ -116,9 +109,7 @@ _ipconfig_ipv4_pat = re.compile(r'ipv4.*?(\d+\.\d+\.\d+\.\d+)$', re.IGNORECASE)
 
 def _load_ips_ipconfig():
     """load ip addresses from `ipconfig` output (Windows)"""
-    out, err, rc = get_output_error_code('ipconfig')
-    if rc:
-        raise IOError("no ipconfig: %s" % err)
+    out = _get_output('ipconfig')
     
     lines = out.splitlines()
     addrs = []
