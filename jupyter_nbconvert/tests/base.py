@@ -11,10 +11,12 @@ import shutil
 import sys
 import unittest
 
+import nose.tools as nt
+
 from IPython.nbformat import v4, write
 from IPython.utils.tempdir import TemporaryWorkingDirectory
 from IPython.utils.process import get_output_error_code
-
+from IPython.utils.py3compat import string_types
 
 class TestsBase(unittest.TestCase):
     """Base tests class.  Contains useful fuzzy comparison and nbconvert
@@ -143,3 +145,24 @@ class TestsBase(unittest.TestCase):
         if not (retcode == 0 or ignore_return_code):
             raise OSError(stderr)
         return stdout, stderr
+    
+def assert_big_text_equal(a, b, chunk_size=80):
+    """assert that large strings are equal
+
+    Zooms in on first chunk that differs,
+    to give better info than vanilla assertEqual for large text blobs.
+    """
+    for i in range(0, len(a), chunk_size):
+        chunk_a = a[i:i + chunk_size]
+        chunk_b = b[i:i + chunk_size]
+        nt.assert_equal(chunk_a, chunk_b, "[offset: %i]\n%r != \n%r" % (
+            i, chunk_a, chunk_b))
+
+    if len(a) > len(b):
+        nt.fail("Length doesn't match (%i > %i). Extra text:\n%r" % (
+            len(a), len(b), a[len(b):]
+        ))
+    elif len(a) < len(b):
+        nt.fail("Length doesn't match (%i < %i). Extra text:\n%r" % (
+            len(a), len(b), b[len(a):]
+        ))
