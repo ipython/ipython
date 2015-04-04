@@ -7,13 +7,18 @@
 import glob
 import os
 import re
+import sys
 import tarfile
 import zipfile
-from io import BytesIO
+from io import BytesIO, StringIO
 from os.path import basename, join as pjoin
 from unittest import TestCase
 
-import IPython.testing.tools as tt
+try:
+    from unittest import mock
+except ImportError:
+    import mock # py2
+
 import IPython.testing.decorators as dec
 from IPython.utils import py3compat
 from IPython.utils.tempdir import TemporaryDirectory
@@ -213,8 +218,13 @@ class TestInstallNBExtension(TestCase):
             self.assertEqual(new_mtime, old_mtime)
 
     def test_quiet(self):
-        with tt.AssertNotPrints(re.compile(r'.+')):
+        stdout = StringIO()
+        stderr = StringIO()
+        with mock.patch.object(sys, 'stdout', stdout), \
+             mock.patch.object(sys, 'stderr', stderr):
             install_nbextension(self.src, verbose=0)
+        self.assertEqual(stdout.getvalue(), '')
+        self.assertEqual(stderr.getvalue(), '')
     
     def test_install_zip(self):
         path = pjoin(self.src, "myjsext.zip")
