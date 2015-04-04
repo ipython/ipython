@@ -599,22 +599,23 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
         else:
             self._cross_validation_lock = True
             cache = {}
-            notifications = {}
-            _notify_trait = self._notify_trait
 
-            def cache_values(*a):
-                cache[a[0]] = a
+            def merge(previous, current):
+                """merges notifications of the form (name, old, value)"""
+                if previous is None:
+                    return current
+                else:
+                    return (current[0], previous[1], current[2])
 
-            def hold_notifications(*a):
-                notifications[a[0]] = a
-
-            self._notify_trait = cache_values
+            def hold(*a):
+                cache[a[0]] = merge(cache.get(a[0]), a)
 
             try:
+                _notify_trait = self._notify_trait
+                self._notify_trait = hold
                 yield
             finally:
                 try:
-                    self._notify_trait = hold_notifications
                     for name in cache:
                         if hasattr(self, '_%s_validate' % name):
                             cross_validate = getattr(self, '_%s_validate' % name)
@@ -627,7 +628,6 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
                         else:
                             delattr(self, name)
                     cache = {}
-                    notifications = {}
                     raise e
                 finally:
                     self._notify_trait = _notify_trait
@@ -638,8 +638,9 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
                         # remove the redundant value from __dict__
                         # (only used to preserve pickleability on Python < 3.4)
                         self.__dict__.pop('_notify_trait', None)
+
                     # trigger delayed notifications
-                    for v in dict(cache, **notifications).values():
+                    for v in cache.values():
                         self._notify_trait(*v)
 
     def _notify_trait(self, name, old_value, new_value):

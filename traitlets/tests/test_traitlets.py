@@ -1366,7 +1366,7 @@ def test_hold_trait_notifications():
         nt.assert_equal(t.a, 4)
         nt.assert_equal(changes, [])
 
-    nt.assert_equal(changes, [(3,4)])
+    nt.assert_equal(changes, [(0, 4)])
     # Test roll-back
     try:
          with t.hold_trait_notifications():
