@@ -24,6 +24,33 @@ from IPython.utils.traitlets import Unicode, Dict, Instance, Bool, List, \
 from IPython.utils.py3compat import string_types
 from .trait_types import Color
 
+
+def _widget_to_json(x):
+    if isinstance(x, dict):
+        return {k: _widget_to_json(v) for k, v in x.items()}
+    elif isinstance(x, (list, tuple)):
+        return [_widget_to_json(v) for v in x]
+    elif isinstance(x, Widget):
+        return "IPY_MODEL_" + x.model_id
+    else:
+        return x
+
+def _json_to_widget(x):
+    if isinstance(x, dict):
+        return {k: _json_to_widget(v) for k, v in x.items()}
+    elif isinstance(x, (list, tuple)):
+        return [_json_to_widget(v) for v in x]
+    elif isinstance(x, string_types) and x.startswith('IPY_MODEL_') and x[10:] in Widget.widgets:
+        return Widget.widgets[x[10:]]
+    else:
+        return x
+
+widget_serialization = {
+    'from_json': _json_to_widget,
+    'to_json': _widget_to_json
+}
+
+
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
