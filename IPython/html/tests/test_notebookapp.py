@@ -1,15 +1,5 @@
 """Test NotebookApp"""
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013 The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 
 import logging
 import os
@@ -17,19 +7,17 @@ from tempfile import NamedTemporaryFile
 
 import nose.tools as nt
 
+from traitlets.tests.utils import check_help_all_output
+
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.traitlets import TraitError
-import IPython.testing.tools as tt
 from IPython.html import notebookapp
 NotebookApp = notebookapp.NotebookApp
 
-#-----------------------------------------------------------------------------
-# Test functions
-#-----------------------------------------------------------------------------
 
 def test_help_output():
     """ipython notebook --help-all works"""
-    tt.help_all_output_test('notebook')
+    check_help_all_output('IPython.html')
 
 def test_server_info_file():
     nbapp = NotebookApp(profile='nbserver_file_test', log=logging.getLogger())

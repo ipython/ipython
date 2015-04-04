@@ -1,27 +1,14 @@
-"""Tests for two-process terminal frontend
+"""Tests for two-process terminal frontend"""
 
-Currently only has the most simple test possible, starting a console and running
-a single command.
-
-Authors:
-
-* Min RK
-"""
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) Jupyter Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import sys
 
 from nose import SkipTest
 
-import IPython.testing.tools as tt
+from traitlets.tests.utils import check_help_all_output
 from IPython.testing import decorators as dec
-
-#-----------------------------------------------------------------------------
-# Tests
-#-----------------------------------------------------------------------------
 
 @dec.skip_win32
 def test_console_starts():
@@ -34,8 +21,7 @@ def test_console_starts():
 
 def test_help_output():
     """ipython console --help-all works"""
-    tt.help_all_output_test('console')
-
+    check_help_all_output('jupyter_console')
 
 def test_display_text():
     "Ensure display protocol plain/text key is supported"

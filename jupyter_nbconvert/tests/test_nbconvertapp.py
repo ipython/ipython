@@ -11,7 +11,7 @@ import sys
 from .base import TestsBase
 from ..postprocessors import PostProcessorBase
 
-import IPython.testing.tools as tt
+from traitlets.tests.utils import check_help_all_output
 from IPython.testing import decorators as dec
 
 #-----------------------------------------------------------------------------
@@ -34,7 +34,7 @@ class TestNbConvertApp(TestsBase):
     
     def test_help_output(self):
         """ipython nbconvert --help-all works"""
-        tt.help_all_output_test('nbconvert')
+        check_help_all_output('jupyter_nbconvert')
 
     def test_glob(self):
         """
