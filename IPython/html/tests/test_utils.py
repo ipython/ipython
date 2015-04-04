@@ -1,31 +1,21 @@
 """Test HTML utils"""
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2013 The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) Jupyter Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import os
 
 import nose.tools as nt
 
-import IPython.testing.tools as tt
+from traitlets.tests.utils import check_help_all_output
 from IPython.html.utils import url_escape, url_unescape, is_hidden
 from IPython.utils.tempdir import TemporaryDirectory
 
-#-----------------------------------------------------------------------------
-# Test functions
-#-----------------------------------------------------------------------------
 
 def test_help_output():
-    """ipython notebook --help-all works"""
-    tt.help_all_output_test('notebook')
+    """jupyter notebook --help-all works"""
+    # FIXME: will be jupyter_notebook
+    check_help_all_output('IPython.html')
 
 
 def test_url_escape():
