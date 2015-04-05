@@ -5,8 +5,10 @@
 
 from __future__ import print_function
 
+import errno
 import os
 import stat
+import sys
 
 try:
     from urllib.parse import quote, unquote
@@ -139,3 +141,30 @@ def to_api_path(os_path, root=''):
     path = '/'.join(parts)
     return path
 
+
+# Copy of IPython.utils.process.check_pid:
+
+def _check_pid_win32(pid):
+    import ctypes
+    # OpenProcess returns 0 if no such process (of ours) exists
+    # positive int otherwise
+    return bool(ctypes.windll.kernel32.OpenProcess(1,0,pid))
+
+def _check_pid_posix(pid):
+    """Copy of IPython.utils.pro"""
+    try:
+        os.kill(pid, 0)
+    except OSError as err:
+        if err.errno == errno.ESRCH:
+            return False
+        elif err.errno == errno.EPERM:
+            # Don't have permission to signal the process - probably means it exists
+            return True
+        raise
+    else:
+        return True
+
+if sys.platform == 'win32':
+    check_pid = _check_pid_win32
+else:
+    check_pid = _check_pid_posix

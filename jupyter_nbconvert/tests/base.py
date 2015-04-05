@@ -10,13 +10,14 @@ import shlex
 import shutil
 import sys
 import unittest
+from subprocess import Popen, PIPE
 
 import nose.tools as nt
 
 from IPython.nbformat import v4, write
 from IPython.utils.tempdir import TemporaryWorkingDirectory
-from IPython.utils.process import get_output_error_code
-from IPython.utils.py3compat import string_types
+
+from IPython.utils.py3compat import string_types, bytes_to_str
 
 class TestsBase(unittest.TestCase):
     """Base tests class.  Contains useful fuzzy comparison and nbconvert
@@ -141,11 +142,13 @@ class TestsBase(unittest.TestCase):
         if isinstance(parameters, string_types):
             parameters = shlex.split(parameters)
         cmd = [sys.executable, '-m', 'jupyter_nbconvert'] + parameters
-        stdout, stderr, retcode = get_output_error_code(cmd)
-        if not (retcode == 0 or ignore_return_code):
-            raise OSError(stderr)
-        return stdout, stderr
-    
+        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = p.communicate()
+        if not (p.returncode == 0 or ignore_return_code):
+            raise OSError(bytes_to_str(stderr))
+        return stdout.decode('utf8', 'replace'), stderr.decode('utf8', 'replace')
+
+
 def assert_big_text_equal(a, b, chunk_size=80):
     """assert that large strings are equal
 

@@ -78,7 +78,6 @@ from IPython.kernel.zmq.session import Session
 from IPython.nbformat.sign import NotebookNotary
 from IPython.utils.importstring import import_item
 from IPython.utils import submodule
-from IPython.utils.process import check_pid
 from IPython.utils.traitlets import (
     Dict, Unicode, Integer, List, Bool, Bytes, Instance,
     TraitError, Type,
@@ -88,7 +87,7 @@ from IPython.utils.path import filefind, get_ipython_dir
 from IPython.utils.sysinfo import get_sys_info
 
 from .nbextensions import SYSTEM_NBEXTENSIONS_DIRS
-from .utils import url_path_join
+from .utils import url_path_join, check_pid
 
 #-----------------------------------------------------------------------------
 # Module globals
