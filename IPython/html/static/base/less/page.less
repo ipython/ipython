@@ -17,6 +17,13 @@ body {
     flex-direction: column;
 }
 
+@media print {
+    html, body {
+        overflow: visible;
+        display: block;
+    }
+}
+
 #header {
     /* Initially hidden to prevent FLOUC */
     display: none;

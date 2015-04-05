@@ -8396,6 +8396,13 @@ body {
   display: flex;
   flex-direction: column;
 }
+@media print {
+  html,
+  body {
+    overflow: visible;
+    display: block;
+  }
+}
 #header {
   /* Initially hidden to prevent FLOUC */
   display: none;
@@ -10410,6 +10417,12 @@ h6:hover .anchor-link {
 }
 .site_notebook {
   flex: 1 1 auto;
+}
+@media print {
+  .header_notebook,
+  .site_notebook {
+    display: block;
+  }
 }
 #ipython-main-app {
   box-sizing: border-box;
