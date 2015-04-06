@@ -8397,7 +8397,6 @@ body {
   flex-direction: column;
 }
 @media print {
-  html,
   body {
     overflow: visible;
     display: block;
