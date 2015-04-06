@@ -164,7 +164,7 @@ define(function (require) {
     Notebook.prototype.create_elements = function () {
         var that = this;
         this.element.attr('tabindex','-1');
-        this.container = $("<div/>").addClass("container").attr("id", "notebook-container");
+        this.container = $("<div/>").addClass("container_").attr("id", "notebook-container");
         // We add this end_space div to the end of the notebook div to:
         // i) provide a margin between the last cell and the end of the notebook
         // ii) to prevent the div from scrolling up when the last cell is being
