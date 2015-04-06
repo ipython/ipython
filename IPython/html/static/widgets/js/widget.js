@@ -10,6 +10,31 @@ define(["widgets/js/manager",
 ], function(widgetmanager, _, Backbone, $, utils, IPython){
     "use strict";
 
+    var unpack_models = function unpack_models(value, model) {
+        /**
+         * Replace model ids with models recursively.
+         */
+        var unpacked;
+        if ($.isArray(value)) {
+            unpacked = [];
+            _.each(value, function(sub_value, key) {
+                unpacked.push(unpack_models(sub_value, model));
+            });
+            return Promise.all(unpacked);
+        } else if (value instanceof Object) {
+            unpacked = {};
+            _.each(value, function(sub_value, key) {
+                unpacked[key] = unpack_models(sub_value, model);
+            });
+            return utils.resolve_promises_dict(unpacked);
+        } else if (typeof value === 'string' && value.slice(0,10) === "IPY_MODEL_") {
+            // get_model returns a promise already
+            return model.widget_manager.get_model(value.slice(10, value.length));
+        } else {
+            return Promise.resolve(value);
+        }
+    };
+
     var WidgetModel = Backbone.Model.extend({
         constructor: function (widget_manager, model_id, comm) {
             /**
@@ -767,6 +792,7 @@ define(["widgets/js/manager",
     });
 
     var widget = {
+        'unpack_models': unpack_models,
         'WidgetModel': WidgetModel,
         'WidgetView': WidgetView,
         'DOMWidgetView': DOMWidgetView,

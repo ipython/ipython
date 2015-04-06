@@ -1,4 +1,4 @@
-from .widget import Widget, DOMWidget, CallbackDispatcher, register
+from .widget import Widget, DOMWidget, CallbackDispatcher, register, widget_serialization
 
 from .trait_types import Color
 
