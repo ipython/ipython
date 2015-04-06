@@ -885,8 +885,7 @@ class ClassBasedTraitType(TraitType):
 class Type(ClassBasedTraitType):
     """A trait whose value must be a subclass of a specified class."""
 
-    def __init__ (self, default_value=None, klass=None, allow_none=False,
-                  **metadata):
+    def __init__ (self, default_value=None, klass=None, **metadata):
         """Construct a Type trait
 
         A Type trait specifies that its values must be subclasses of
@@ -922,7 +921,7 @@ class Type(ClassBasedTraitType):
 
         self.klass       = klass
 
-        super(Type, self).__init__(default_value, allow_none=allow_none, **metadata)
+        super(Type, self).__init__(default_value, **metadata)
 
     def validate(self, obj, value):
         """Validates that the value is a valid object instance."""
@@ -986,8 +985,7 @@ class Instance(ClassBasedTraitType):
 
     klass = None
 
-    def __init__(self, klass=None, args=None, kw=None, allow_none=False,
-                 **metadata ):
+    def __init__(self, klass=None, args=None, kw=None, **metadata):
         """Construct an Instance trait.
 
         This trait allows values that are instances of a particular
@@ -1041,7 +1039,7 @@ class Instance(ClassBasedTraitType):
 
             default_value = DefaultValueGenerator(*args, **kw)
 
-        super(Instance, self).__init__(default_value, allow_none=allow_none, **metadata)
+        super(Instance, self).__init__(default_value, **metadata)
 
     def validate(self, obj, value):
         if isinstance(value, self.klass):
@@ -1460,8 +1458,7 @@ class Container(Instance):
     _valid_defaults = SequenceTypes
     _trait = None
 
-    def __init__(self, trait=None, default_value=None, allow_none=False,
-                **metadata):
+    def __init__(self, trait=None, default_value=None, **metadata):
         """Create a container trait type from a list, set, or tuple.
 
         The default value is created by doing ``List(default_value)``,
@@ -1511,8 +1508,7 @@ class Container(Instance):
         elif trait is not None:
             raise TypeError("`trait` must be a Trait or None, got %s"%repr_type(trait))
 
-        super(Container,self).__init__(klass=self.klass, args=args,
-                                  allow_none=allow_none, **metadata)
+        super(Container,self).__init__(klass=self.klass, args=args, **metadata)
 
     def element_error(self, obj, element, validator):
         e = "Element of the '%s' trait of %s instance must be %s, but a value of %s was specified." \
@@ -1667,7 +1663,6 @@ class Tuple(Container):
 
         """
         default_value = metadata.pop('default_value', None)
-        allow_none = metadata.pop('allow_none', True)
 
         # allow Tuple((values,)):
         if len(traits) == 1 and default_value is None and not is_trait(traits[0]):
@@ -1690,7 +1685,7 @@ class Tuple(Container):
         if self._traits and default_value is None:
             # don't allow default to be an empty container if length is specified
             args = None
-        super(Container,self).__init__(klass=self.klass, args=args, allow_none=allow_none, **metadata)
+        super(Container,self).__init__(klass=self.klass, args=args, **metadata)
 
     def validate_elements(self, obj, value):
         if not self._traits:
@@ -1723,7 +1718,7 @@ class Dict(Instance):
     """An instance of a Python dict."""
     _trait = None
 
-    def __init__(self, trait=None, default_value=NoDefaultSpecified, allow_none=False, **metadata):
+    def __init__(self, trait=None, default_value=NoDefaultSpecified, **metadata):
         """Create a dict trait type from a dict.
 
         The default value is created by doing ``dict(default_value)``,
@@ -1763,8 +1758,7 @@ class Dict(Instance):
         elif trait is not None:
             raise TypeError("`trait` must be a Trait or None, got %s"%repr_type(trait))
 
-        super(Dict,self).__init__(klass=dict, args=args,
-                                  allow_none=allow_none, **metadata)
+        super(Dict,self).__init__(klass=dict, args=args, **metadata)
 
     def element_error(self, obj, element, validator):
         e = "Element of the '%s' trait of %s instance must be %s, but a value of %s was specified." \
@@ -1802,7 +1796,7 @@ class Dict(Instance):
 class EventfulDict(Instance):
     """An instance of an EventfulDict."""
 
-    def __init__(self, default_value={}, allow_none=False, **metadata):
+    def __init__(self, default_value={}, **metadata):
         """Create a EventfulDict trait type from a dict.
 
         The default value is created by doing
@@ -1819,13 +1813,13 @@ class EventfulDict(Instance):
             raise TypeError('default value of EventfulDict was %s' % default_value)
 
         super(EventfulDict, self).__init__(klass=eventful.EventfulDict, args=args,
-                                  allow_none=allow_none, **metadata)
+                                           **metadata)
 
 
 class EventfulList(Instance):
     """An instance of an EventfulList."""
 
-    def __init__(self, default_value=None, allow_none=False, **metadata):
+    def __init__(self, default_value=None, **metadata):
         """Create a EventfulList trait type from a dict.
 
         The default value is created by doing 
@@ -1838,7 +1832,7 @@ class EventfulList(Instance):
             args = (default_value,)
 
         super(EventfulList, self).__init__(klass=eventful.EventfulList, args=args,
-                                  allow_none=allow_none, **metadata)
+                                           **metadata)
 
 
 class TCPAddress(TraitType):
