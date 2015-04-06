@@ -597,50 +597,49 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
             yield
             return
         else:
-            self._cross_validation_lock = True
             cache = {}
-            notifications = {}
             _notify_trait = self._notify_trait
 
-            def cache_values(*a):
-                cache[a[0]] = a
+            def merge(previous, current):
+                """merges notifications of the form (name, old, value)"""
+                if previous is None:
+                    return current
+                else:
+                    return (current[0], previous[1], current[2])
 
-            def hold_notifications(*a):
-                notifications[a[0]] = a
-
-            self._notify_trait = cache_values
+            def hold(*a):
+                cache[a[0]] = merge(cache.get(a[0]), a)
 
             try:
+                self._notify_trait = hold
+                self._cross_validation_lock = True
                 yield
+                for name in cache:
+                    if hasattr(self, '_%s_validate' % name):
+                        cross_validate = getattr(self, '_%s_validate' % name)
+                        setattr(self, name, cross_validate(getattr(self, name), self))
+            except TraitError as e:
+                self._notify_trait = lambda *x: None
+                for name in cache:
+                    if cache[name][1] is not Undefined:
+                        setattr(self, name, cache[name][1])
+                    else:
+                        delattr(self, name)
+                cache = {}
+                raise e
             finally:
-                try:
-                    self._notify_trait = hold_notifications
-                    for name in cache:
-                        if hasattr(self, '_%s_validate' % name):
-                            cross_validate = getattr(self, '_%s_validate' % name)
-                            setattr(self, name, cross_validate(getattr(self, name), self))
-                except TraitError as e:
-                    self._notify_trait = lambda *x: None
-                    for name in cache:
-                        if cache[name][1] is not Undefined:
-                            setattr(self, name, cache[name][1])
-                        else:
-                            delattr(self, name)
-                    cache = {}
-                    notifications = {}
-                    raise e
-                finally:
-                    self._notify_trait = _notify_trait
-                    self._cross_validation_lock = False
-                    if isinstance(_notify_trait, types.MethodType):
-                        # FIXME: remove when support is bumped to 3.4.
-                        # when original method is restored,
-                        # remove the redundant value from __dict__
-                        # (only used to preserve pickleability on Python < 3.4)
-                        self.__dict__.pop('_notify_trait', None)
-                    # trigger delayed notifications
-                    for v in dict(cache, **notifications).values():
-                        self._notify_trait(*v)
+                self._notify_trait = _notify_trait
+                self._cross_validation_lock = False
+                if isinstance(_notify_trait, types.MethodType):
+                    # FIXME: remove when support is bumped to 3.4.
+                    # when original method is restored,
+                    # remove the redundant value from __dict__
+                    # (only used to preserve pickleability on Python < 3.4)
+                    self.__dict__.pop('_notify_trait', None)
+
+                # trigger delayed notifications
+                for v in cache.values():
+                    self._notify_trait(*v)
 
     def _notify_trait(self, name, old_value, new_value):
 
