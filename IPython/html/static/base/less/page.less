@@ -8,19 +8,18 @@
 html, body {
     min-height: 100%;
     height: 100%;
-    overflow: hidden;
+    overflow: hidden; // Prevents scrollbar in html element
 }
 
 body {
     background-color: @body-bg;
-    overflow: visible;
+    overflow: visible; // We want the scrollbar here
     display: flex;
     flex-direction: column;
 }
 
 @media print {
     body {
-        overflow: visible;
         display: block;
     }
 }

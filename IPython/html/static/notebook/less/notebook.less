@@ -5,8 +5,7 @@
         padding-right: 0px;
     }
 }
-/* Sticky header effect. Includes media queries to keep 
-   margin between #site and #header when resizing. 
+/* Sticky header effect.  
  */
 
 .header_notebook {
@@ -18,8 +17,14 @@
     flex: 1 1 auto;
 }
 
+/* Firefox print preview has some issues with fixed header
+   using flexbox. The most straightforward solution is to
+   use display: block; for elements to be printed.
+   In this case, #header is set to display: none; so there
+   is no need to change its display property.
+ */
 @media print {
-    .header_notebook, .site_notebook {
+    .site_notebook {
         display: block;
     }
 }
