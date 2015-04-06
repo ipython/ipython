@@ -195,6 +195,7 @@ class NotebookWebApplication(web.Application):
             config_manager=config_manager,
 
             # IPython stuff
+            jinja_template_vars=ipython_app.jinja_template_vars,
             nbextensions_path=ipython_app.nbextensions_path,
             websocket_url=ipython_app.websocket_url,
             mathjax_url=ipython_app.mathjax_url,
@@ -520,6 +521,11 @@ class NotebookApp(BaseIPythonApplication):
     
     jinja_environment_options = Dict(config=True, 
             help="Supply extra arguments that will be passed to Jinja environment.")
+
+    jinja_template_vars = Dict(
+        config=True,
+        help="Extra variables to supply to jinja templates when rendering.",
+    )
     
     enable_mathjax = Bool(True, config=True,
         help="""Whether to enable MathJax for typesetting math/TeX
