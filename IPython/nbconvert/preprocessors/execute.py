@@ -130,6 +130,8 @@ class ExecutePreprocessor(Preprocessor):
             elif msg_type == 'clear_output':
                 outs = []
                 continue
+            elif msg_type.startswith('comm'):
+                continue
 
             try:
                 out = output_from_msg(msg)
