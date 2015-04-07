@@ -58,7 +58,6 @@ from IPython.utils.getargspec import getargspec
 from IPython.utils.importstring import import_item
 from IPython.utils.py3compat import iteritems, string_types
 
-from . import eventful
 from .sentinel import Sentinel
 SequenceTypes = (list, tuple, set, frozenset)
 
@@ -1791,48 +1790,6 @@ class Dict(Instance):
             self._trait.this_class = self.this_class
             self._trait.instance_init()
         super(Dict, self).instance_init()
-
-
-class EventfulDict(Instance):
-    """An instance of an EventfulDict."""
-
-    def __init__(self, default_value={}, **metadata):
-        """Create a EventfulDict trait type from a dict.
-
-        The default value is created by doing
-        ``eventful.EvenfulDict(default_value)``, which creates a copy of the
-        ``default_value``.
-        """
-        if default_value is None:
-            args = None
-        elif isinstance(default_value, dict):
-            args = (default_value,)
-        elif isinstance(default_value, SequenceTypes):
-            args = (default_value,)
-        else:
-            raise TypeError('default value of EventfulDict was %s' % default_value)
-
-        super(EventfulDict, self).__init__(klass=eventful.EventfulDict, args=args,
-                                           **metadata)
-
-
-class EventfulList(Instance):
-    """An instance of an EventfulList."""
-
-    def __init__(self, default_value=None, **metadata):
-        """Create a EventfulList trait type from a dict.
-
-        The default value is created by doing 
-        ``eventful.EvenfulList(default_value)``, which creates a copy of the 
-        ``default_value``.
-        """
-        if default_value is None:
-            args = ((),)
-        else:
-            args = (default_value,)
-
-        super(EventfulList, self).__init__(klass=eventful.EventfulList, args=args,
-                                           **metadata)
 
 
 class TCPAddress(TraitType):
