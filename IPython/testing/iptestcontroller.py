@@ -165,6 +165,16 @@ class PyTestController(TestController):
         ipydir = TemporaryDirectory()
         self.dirs.append(ipydir)
         self.env['IPYTHONDIR'] = ipydir.name
+        # FIXME: install IPython kernel in temporary IPython dir
+        # remove after big split
+        try:
+            from jupyter_client.kernelspec import KernelSpecManager
+        except ImportError:
+            pass
+        else:
+            ksm = KernelSpecManager(ipython_dir=ipydir.name)
+            ksm.install_native_kernel_spec(user=True)
+        
         self.workingdir = workingdir = TemporaryDirectory()
         self.dirs.append(workingdir)
         self.env['IPTEST_WORKING_DIR'] = workingdir.name

@@ -3,14 +3,14 @@ import json
 import os
 import shutil
 import sys
+import warnings
 
 pjoin = os.path.join
 
 from IPython.utils.path import get_ipython_dir
 from IPython.utils.py3compat import PY3
-from IPython.utils.traitlets import HasTraits, List, Unicode, Dict, Any, Set
+from IPython.utils.traitlets import HasTraits, List, Unicode, Dict, Set
 from IPython.config import Configurable
-from .launcher import make_ipkernel_cmd
 
 if os.name == 'nt':
     programdata = os.environ.get('PROGRAMDATA', None)
@@ -25,14 +25,6 @@ else:
 
 NATIVE_KERNEL_NAME = 'python3' if PY3 else 'python2'
 
-def _pythonfirst(s):
-    "Sort key function that will put strings starting with 'python' first."
-    if s == NATIVE_KERNEL_NAME:
-        return '  ' + s  # Two spaces to sort this first of all
-    elif s.startswith('python'):
-        # Space is not valid in kernel names, so this should sort first
-        return ' ' + s
-    return s
 
 class KernelSpec(HasTraits):
     argv = List()
@@ -111,30 +103,12 @@ class KernelSpecManager(Configurable):
         dirs.append(self.user_kernel_dir)
         return dirs
 
-    @property
-    def _native_kernel_dict(self):
-        """Makes a kernel directory for the native kernel.
-
-        The native kernel is the kernel using the same Python runtime as this
-        process. This will put its information in the user kernels directory.
-        """
-        return {
-                'argv': make_ipkernel_cmd(),
-                'display_name': 'Python %i' % (3 if PY3 else 2),
-                'language': 'python',
-               }
-
-    @property
-    def _native_kernel_resource_dir(self):
-        return pjoin(os.path.dirname(__file__), 'resources')
-
     def find_kernel_specs(self):
         """Returns a dict mapping kernel names to resource directories."""
         d = {}
         for kernel_dir in self.kernel_dirs:
             d.update(_list_kernels_in(kernel_dir))
 
-        d[NATIVE_KERNEL_NAME] = self._native_kernel_resource_dir
         if self.whitelist:
             # filter if there's a whitelist
             d = {name:spec for name,spec in d.items() if name in self.whitelist}
@@ -146,11 +120,6 @@ class KernelSpecManager(Configurable):
 
         Raises :exc:`NoSuchKernel` if the given kernel name is not found.
         """
-        if kernel_name in {'python', NATIVE_KERNEL_NAME} and \
-            (not self.whitelist or kernel_name in self.whitelist):
-            return KernelSpec(resource_dir=self._native_kernel_resource_dir,
-                              **self._native_kernel_dict)
-
         d = self.find_kernel_specs()
         try:
             resource_dir = d[kernel_name.lower()]
@@ -195,24 +164,12 @@ class KernelSpecManager(Configurable):
         shutil.copytree(source_dir, destination)
 
     def install_native_kernel_spec(self, user=False):
-        """Install the native kernel spec to the filesystem
+        """DEPRECATED: Use ipython_kernel.kenelspec.install"""
+        warnings.warn("install_native_kernel_spec is deprecated."
+            " Use ipython_kernel.kernelspec import install.")
+        from ipython_kernel.kernelspec import install
+        install(self, user=user)
 
-        This allows a Python 3 frontend to use a Python 2 kernel, or vice versa.
-        The kernelspec will be written pointing to the Python executable on
-        which this is run.
-
-        If ``user`` is False, it will attempt to install into the systemwide
-        kernel registry. If the process does not have appropriate permissions,
-        an :exc:`OSError` will be raised.
-        """
-        path = self._get_destination_dir(NATIVE_KERNEL_NAME, user=user)
-        os.makedirs(path, mode=0o755)
-        with open(pjoin(path, 'kernel.json'), 'w') as f:
-            json.dump(self._native_kernel_dict, f, indent=1)
-        copy_from = self._native_kernel_resource_dir
-        for file in os.listdir(copy_from):
-            shutil.copy(pjoin(copy_from, file), path)
-        return path
 
 def find_kernel_specs():
     """Returns a dict mapping kernel names to resource directories."""

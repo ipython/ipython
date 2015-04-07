@@ -61,7 +61,7 @@ class MappingKernelManager(MultiKernelManager):
             os_path = os.path.dirname(os_path)
         return os_path
 
-    def start_kernel(self, kernel_id=None, path=None, kernel_name='python', **kwargs):
+    def start_kernel(self, kernel_id=None, path=None, **kwargs):
         """Start a kernel for a session and return its kernel_id.
 
         Parameters
@@ -81,7 +81,7 @@ class MappingKernelManager(MultiKernelManager):
             if path is not None:
                 kwargs['cwd'] = self.cwd_for_path(path)
             kernel_id = super(MappingKernelManager, self).start_kernel(
-                                            kernel_name=kernel_name, **kwargs)
+                                            **kwargs)
             self.log.info("Kernel started: %s" % kernel_id)
             self.log.debug("Kernel args: %r" % kwargs)
             # register callback for failed auto-restart
