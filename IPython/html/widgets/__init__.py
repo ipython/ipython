@@ -1,6 +1,6 @@
 from .widget import Widget, DOMWidget, CallbackDispatcher, register, widget_serialization
 
-from .trait_types import Color
+from .trait_types import Color, EventfulDict, EventfulList
 
 from .widget_bool import Checkbox, ToggleButton, Valid
 from .widget_button import Button
