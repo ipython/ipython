@@ -23,8 +23,8 @@ except ImportError as e:
 
 from jupyter_nbconvert.utils.pandoc import pandoc
 from jupyter_nbconvert.utils.exceptions import ConversionException
+from jupyter_nbconvert.utils.version import check_version
 from IPython.utils.py3compat import cast_bytes
-from IPython.utils.version import check_version
 
 
 marked = os.path.join(os.path.dirname(__file__), "marked.js")
