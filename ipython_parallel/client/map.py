@@ -12,10 +12,7 @@ pieces to individual nodes in a cluster.
 from __future__ import division
 
 import sys
-from itertools import islice
-
-from IPython.utils.data import flatten as utils_flatten
-
+from itertools import islice, chain
 
 numpy = None
 
@@ -75,7 +72,7 @@ class Map(object):
             return numpy.concatenate(listOfPartitions)
         # Next try for Python sequence types
         if isinstance(testObject, (list, tuple)):
-            return utils_flatten(listOfPartitions)
+            return list(chain.from_iterable(listOfPartitions))
         # If we have scalars, just return listOfPartitions
         return listOfPartitions
 
@@ -125,5 +122,3 @@ def mappable(obj):
 
 dists = {'b':Map,'r':RoundRobinMap}
 
-    
-    
