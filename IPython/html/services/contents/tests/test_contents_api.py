@@ -24,9 +24,16 @@ from IPython.nbformat.v4 import (
 )
 from IPython.nbformat import v2
 from IPython.utils import py3compat
-from IPython.utils.data import uniq_stable
 from IPython.utils.tempdir import TemporaryDirectory
 
+def uniq_stable(elems):
+    """uniq_stable(elems) -> list
+
+    Return from an iterable, a list of all the unique elements in the input,
+    maintaining the order in which they first appear.
+    """
+    seen = set()
+    return [x for x in elems if x not in seen and not seen.add(x)]
 
 def notebooks_only(dir_model):
     return [nb for nb in dir_model['content'] if nb['type']=='notebook']

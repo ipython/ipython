@@ -1,6 +1,6 @@
 """Utilities for identifying local IP addresses."""
 
-# Copyright (c) IPython Development Team.
+# Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
 import os
@@ -8,7 +8,6 @@ import re
 import socket
 from subprocess import Popen, PIPE
 
-from IPython.utils.data import uniq_stable
 from warnings import warn
 
 
@@ -16,6 +15,18 @@ LOCAL_IPS = []
 PUBLIC_IPS = []
 
 LOCALHOST = ''
+
+
+def _uniq_stable(elems):
+    """uniq_stable(elems) -> list
+
+    Return from an iterable, a list of all the unique elements in the input,
+    maintaining the order in which they first appear.
+    
+    From IPython.utils.data
+    """
+    seen = set()
+    return [x for x in elems if x not in seen and not seen.add(x)]
 
 def _get_output(cmd):
     """Get output of a command, raising IOError if it fails"""
@@ -69,8 +80,8 @@ def _populate_from_list(addrs):
         
     local_ips.extend(['0.0.0.0', ''])
     
-    LOCAL_IPS[:] = uniq_stable(local_ips)
-    PUBLIC_IPS[:] = uniq_stable(public_ips)
+    LOCAL_IPS[:] = _uniq_stable(local_ips)
+    PUBLIC_IPS[:] = _uniq_stable(public_ips)
 
 def _load_ips_ifconfig():
     """load ip addresses from `ifconfig` output (posix)"""
@@ -145,8 +156,8 @@ def _load_ips_netifaces():
         LOCALHOST = '127.0.0.1'
         local_ips.insert(0, LOCALHOST)
     local_ips.extend(['0.0.0.0', ''])
-    LOCAL_IPS[:] = uniq_stable(local_ips)
-    PUBLIC_IPS[:] = uniq_stable(public_ips)
+    LOCAL_IPS[:] = _uniq_stable(local_ips)
+    PUBLIC_IPS[:] = _uniq_stable(public_ips)
 
 
 def _load_ips_gethostbyname():
@@ -170,13 +181,13 @@ def _load_ips_gethostbyname():
     except socket.error:
         pass
     finally:
-        PUBLIC_IPS[:] = uniq_stable(PUBLIC_IPS)
+        PUBLIC_IPS[:] = _uniq_stable(PUBLIC_IPS)
         LOCAL_IPS.extend(PUBLIC_IPS)
     
     # include all-interface aliases: 0.0.0.0 and ''
     LOCAL_IPS.extend(['0.0.0.0', ''])
 
-    LOCAL_IPS[:] = uniq_stable(LOCAL_IPS)
+    LOCAL_IPS[:] = _uniq_stable(LOCAL_IPS)
 
     LOCALHOST = LOCAL_IPS[0]
 

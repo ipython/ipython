@@ -10,9 +10,9 @@ except:
     cPickle = None
     import pickle
 
-# IPython imports
+from itertools import chain
+
 from IPython.utils.py3compat import PY3, buffer_to_bytes_py2
-from IPython.utils.data import flatten
 from ipython_kernel.pickleutil import (
     can, uncan, can_sequence, uncan_sequence, CannedObject,
     istype, sequence_types, PICKLE_PROTOCOL,
@@ -138,10 +138,12 @@ def pack_apply_message(f, args, kwargs, buffer_threshold=MAX_BYTES, item_thresho
     With length at least two + len(args) + len(kwargs)
     """
 
-    arg_bufs = flatten(serialize_object(arg, buffer_threshold, item_threshold) for arg in args)
+    arg_bufs = list(chain.from_iterable(
+        serialize_object(arg, buffer_threshold, item_threshold) for arg in args))
 
     kw_keys = sorted(kwargs.keys())
-    kwarg_bufs = flatten(serialize_object(kwargs[key], buffer_threshold, item_threshold) for key in kw_keys)
+    kwarg_bufs = list(chain.from_iterable(
+        serialize_object(kwargs[key], buffer_threshold, item_threshold) for key in kw_keys))
 
     info = dict(nargs=len(args), narg_bufs=len(arg_bufs), kw_keys=kw_keys)
 
