@@ -416,7 +416,7 @@ define(["widgets/js/manager",
              */
             this.on('change', function() {
                 if (keys.some(this.hasChanged, this)) {
-                    callback.apply(context);
+                    callback.apply(context, arguments);
                 }
             }, this);
 
