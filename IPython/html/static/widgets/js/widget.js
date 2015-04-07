@@ -369,7 +369,7 @@ define(["widgets/js/manager",
             // being the value or the promise of the serialized value
             var serializers = this.constructor.serializers;
             if (serializers) {
-                for (k in attrs) {
+                for (var k in attrs) {
                     if (serializers[k] && serializers[k].serialize) {
                         attrs[k] = (serializers[k].serialize)(attrs[k], this);
                     }
