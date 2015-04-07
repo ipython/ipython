@@ -1374,7 +1374,25 @@ def test_hold_trait_notifications():
     except:
         pass
     nt.assert_equal(t.b, 0)
-    
+
+
+class RollBack(HasTraits):
+    bar = Int()
+    def _bar_validate(self, value, trait):
+        if value:
+            raise TraitError('foobar')
+        return value
+
+
+class TestRollback(TestCase):
+
+    def test_roll_back(self):
+
+        def assign_rollback():
+            RollBack(bar=1)
+
+        self.assertRaises(TraitError, assign_rollback)
+
 
 class OrderTraits(HasTraits):
     notified = Dict()
