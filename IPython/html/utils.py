@@ -9,6 +9,7 @@ import errno
 import os
 import stat
 import sys
+from distutils.version import LooseVersion
 
 try:
     from urllib.parse import quote, unquote
@@ -140,6 +141,19 @@ def to_api_path(os_path, root=''):
     parts = [p for p in parts if p != ''] # remove duplicate splits
     path = '/'.join(parts)
     return path
+
+
+def check_version(v, check):
+    """check version string v >= check
+
+    If dev/prerelease tags result in TypeError for string-number comparison,
+    it is assumed that the dependency is satisfied.
+    Users on dev branches are responsible for keeping their own packages up to date.
+    """
+    try:
+        return LooseVersion(v) >= LooseVersion(check)
+    except TypeError:
+        return True
 
 
 # Copy of IPython.utils.process.check_pid:

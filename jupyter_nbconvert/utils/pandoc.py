@@ -9,9 +9,8 @@ import warnings
 import re
 from io import TextIOWrapper, BytesIO
 
-from IPython.utils.py3compat import cast_bytes
-from IPython.utils.version import check_version
-from IPython.utils.py3compat import which
+from jupyter_nbconvert.utils.version import check_version
+from IPython.utils.py3compat import cast_bytes, which
 
 from .exceptions import ConversionException
 
