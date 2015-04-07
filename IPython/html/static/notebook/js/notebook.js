@@ -1514,29 +1514,50 @@ define(function (require) {
     Notebook.prototype.cell_toggle_line_numbers = function() {
         this.get_selected_cell().toggle_line_numbers();
     };
+
+
+    //dispatch codemirror mode to all cells.
+    Notebook.prototype._dispatch_mode = function(spec, newmode){
+        this.codemirror_mode = newmode;
+        codecell.CodeCell.options_default.cm_config.mode = newmode;
+        this.get_cells().map(function(cell, i) {
+            if (cell.cell_type === 'code'){
+                cell.code_mirror.setOption('mode', spec);
+                // This is currently redundant, because cm_config ends up as
+                // codemirror's own .options object, but I don't want to
+                // rely on that.
+                cell.cm_config.mode = spec;
+            }
+        });
+
+    };
+
+    // roughly try to check mode equality
+    var _mode_equal = function(mode1, mode2){
+        return ((mode1||{}).name||mode1)===((mode2||{}).name||mode2);
+    };
     
     /**
      * Set the codemirror mode for all code cells, including the default for
      * new code cells.
+     * Set the mode to 'null' (no highlighting) if it can't be found.
      */
     Notebook.prototype.set_codemirror_mode = function(newmode){
-        if (newmode === this.codemirror_mode) {
+        // if mode is the same don't reset,
+        // to avoid n-time re-highlighting.
+        if (_mode_equal(newmode, this.codemirror_mode)) {
             return;
         }
-        this.codemirror_mode = newmode;
-        codecell.CodeCell.options_default.cm_config.mode = newmode;
         
         var that = this;
         utils.requireCodeMirrorMode(newmode, function (spec) {
-            that.get_cells().map(function(cell, i) {
-                if (cell.cell_type === 'code'){
-                    cell.code_mirror.setOption('mode', spec);
-                    // This is currently redundant, because cm_config ends up as
-                    // codemirror's own .options object, but I don't want to
-                    // rely on that.
-                    cell.cm_config.mode = spec;
-                }
-            });
+            that._dispatch_mode(spec, newmode);
+        }, function(){
+            // on error don't dispatch the new mode as re-setting it later will not work.
+            // don't either set to null mode if it has been changed in the meantime
+            if( _mode_equal(newmode, this.codemirror_mode) ){
+                that._dispatch_mode('null','null');
+            }
         });
     };
 
@@ -2121,7 +2142,6 @@ define(function (require) {
      * @param {string} notebook_path - A notebook to load
      */
     Notebook.prototype.load_notebook = function (notebook_path) {
-        var that = this;
         this.notebook_path = notebook_path;
         this.notebook_name = utils.url_path_split(this.notebook_path)[1];
         this.events.trigger('notebook_loading.Notebook');
