@@ -4,11 +4,10 @@
 define([
     "underscore",
     "backbone",
-    "jquery",
     "base/js/utils",
     "base/js/namespace",
     "services/kernels/comm"
-], function (_, Backbone, $, utils, IPython, comm) {
+], function (_, Backbone, utils, IPython, comm) {
     "use strict";
     //--------------------------------------------------------------------
     // WidgetManager class
@@ -27,7 +26,7 @@ define([
         this._models = {}; /* Dictionary of model ids and model instance promises */
 
         // Register with the comm manager.
-        this.comm_manager.register_target(this.comm_target_name, $.proxy(this._handle_comm_open, this));
+        this.comm_manager.register_target(this.comm_target_name, _.bind(this._handle_comm_open, this));
 
         // Load the initial state of the widget manager if a load callback was
         // registered.
@@ -247,8 +246,8 @@ define([
             var handle_output = null;
             var handle_clear_output = null;
             if (cell.output_area) {
-                handle_output = $.proxy(cell.output_area.handle_output, cell.output_area);
-                handle_clear_output = $.proxy(cell.output_area.handle_clear_output, cell.output_area);
+                handle_output = _.bind(cell.output_area.handle_output, cell.output_area);
+                handle_clear_output = _.bind(cell.output_area.handle_clear_output, cell.output_area);
             }
 
             // Create callback dictionary using what is known
@@ -301,7 +300,7 @@ define([
          *      model_name: 'WidgetModel', 
          *      widget_class: 'IPython.html.widgets.widget_int.IntSlider'})
          *      .then(function(model) { console.log('Create success!', model); },
-         *      $.proxy(console.error, console));
+         *      _.bind(console.error, console));
          *
          * Parameters
          * ----------
