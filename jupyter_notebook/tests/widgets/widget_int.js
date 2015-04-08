@@ -3,7 +3,7 @@ casper.notebook_test(function () {
     var int_text = {};
     int_text.query = '.widget-area .widget-subarea .my-second-int-text input';
     int_text.index = this.append_cell(
-        'from IPython.html import widgets\n' + 
+        'from jupyter_notebook import widgets\n' + 
         'from IPython.display import display, clear_output\n' +
         'int_widget = widgets.IntText()\n' +
         'display(int_widget)\n' + 

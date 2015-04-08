@@ -12,7 +12,7 @@ except ImportError:
 from inspect import getcallargs
 
 from IPython.core.getipython import get_ipython
-from IPython.html.widgets import (Widget, Text,
+from jupyter_notebook.widgets import (Widget, Text,
     FloatSlider, IntSlider, Checkbox, Dropdown,
     Box, Button, DOMWidget)
 from IPython.display import display, clear_output

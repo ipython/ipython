@@ -1,13 +1,13 @@
 """Test the /tree handlers"""
 import os
 import io
-from IPython.html.utils import url_path_join
+from jupyter_notebook.utils import url_path_join
 from IPython.nbformat import write
 from IPython.nbformat.v4 import new_notebook
 
 import requests
 
-from IPython.html.tests.launchnotebook import NotebookTestBase
+from jupyter_notebook.tests.launchnotebook import NotebookTestBase
 
 class TreeTest(NotebookTestBase):
     def setUp(self):

@@ -13,8 +13,8 @@ except ImportError:
 import nose.tools as nt
 
 from IPython.kernel.comm import Comm
-from IPython.html import widgets
-from IPython.html.widgets import interact, interactive, Widget, interaction
+from jupyter_notebook import widgets
+from jupyter_notebook.widgets import interact, interactive, Widget, interaction
 from IPython.utils.py3compat import annotate
 
 #-----------------------------------------------------------------------------

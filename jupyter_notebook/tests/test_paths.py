@@ -2,7 +2,7 @@
 import re
 import nose.tools as nt
 
-from IPython.html.base.handlers import path_regex
+from jupyter_notebook.base.handlers import path_regex
 
 try: # py3
     assert_regex = nt.assert_regex

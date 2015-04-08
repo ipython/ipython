@@ -10,7 +10,7 @@ import base64
 
 from tornado import web
 
-from IPython.html.base.handlers import IPythonHandler
+from jupyter_notebook.base.handlers import IPythonHandler
 
 class FilesHandler(IPythonHandler):
     """serve files via ContentsManager"""

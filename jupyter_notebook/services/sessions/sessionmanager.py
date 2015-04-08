@@ -15,8 +15,8 @@ from IPython.utils.traitlets import Instance
 
 class SessionManager(LoggingConfigurable):
 
-    kernel_manager = Instance('IPython.html.services.kernels.kernelmanager.MappingKernelManager')
-    contents_manager = Instance('IPython.html.services.contents.manager.ContentsManager')
+    kernel_manager = Instance('jupyter_notebook.services.kernels.kernelmanager.MappingKernelManager')
+    contents_manager = Instance('jupyter_notebook.services.contents.manager.ContentsManager')
     
     # Session database initialized below
     _cursor = None

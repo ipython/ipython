@@ -5,8 +5,8 @@ from unittest import TestCase
 from tornado import web
 
 from ..sessionmanager import SessionManager
-from IPython.html.services.kernels.kernelmanager import MappingKernelManager
-from IPython.html.services.contents.manager import ContentsManager
+from jupyter_notebook.services.kernels.kernelmanager import MappingKernelManager
+from jupyter_notebook.services.contents.manager import ContentsManager
 
 class DummyKernel(object):
     def __init__(self, kernel_name='python'):

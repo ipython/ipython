@@ -9,7 +9,7 @@ from tornado import web
 
 from ...base.handlers import IPythonHandler, json_errors
 from jupyter_client.jsonutil import date_default
-from IPython.html.utils import url_path_join, url_escape
+from jupyter_notebook.utils import url_path_join, url_escape
 from IPython.kernel.kernelspec import NoSuchKernel
 
 

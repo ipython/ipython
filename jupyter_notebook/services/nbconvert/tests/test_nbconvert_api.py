@@ -1,7 +1,7 @@
 import requests
 
-from IPython.html.utils import url_path_join
-from IPython.html.tests.launchnotebook import NotebookTestBase
+from jupyter_notebook.utils import url_path_join
+from jupyter_notebook.tests.launchnotebook import NotebookTestBase
 
 class NbconvertAPI(object):
     """Wrapper for nbconvert API calls."""

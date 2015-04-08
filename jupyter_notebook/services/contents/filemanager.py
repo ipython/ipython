@@ -20,7 +20,7 @@ from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import Any, Unicode, Bool, TraitError
 from IPython.utils.py3compat import getcwd, string_types
 from IPython.utils import tz
-from IPython.html.utils import (
+from jupyter_notebook.utils import (
     is_hidden,
     to_api_path,
 )

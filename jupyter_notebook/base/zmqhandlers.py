@@ -90,7 +90,7 @@ WS_PING_INTERVAL = 30000
 if os.environ.get('IPYTHON_ALLOW_DRAFT_WEBSOCKETS_FOR_PHANTOMJS', False):
     warnings.warn("""Allowing draft76 websocket connections!
     This should only be done for testing with phantomjs!""")
-    from IPython.html import allow76
+    from jupyter_notebook import allow76
     WebSocketHandler = allow76.AllowDraftWebSocketHandler
     # draft 76 doesn't support ping
     WS_PING_INTERVAL = 0

@@ -5,8 +5,8 @@ import requests
 
 from jupyter_client.kernelspec import NATIVE_KERNEL_NAME
 
-from IPython.html.utils import url_path_join
-from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
+from jupyter_notebook.utils import url_path_join
+from jupyter_notebook.tests.launchnotebook import NotebookTestBase, assert_http_error
 
 class KernelAPI(object):
     """Wrapper for kernel REST API requests"""

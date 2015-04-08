@@ -49,7 +49,7 @@ from tornado import httpserver
 from tornado import web
 from tornado.log import LogFormatter, app_log, access_log, gen_log
 
-from IPython.html import (
+from jupyter_notebook import (
     DEFAULT_STATIC_FILES_PATH,
     DEFAULT_TEMPLATE_PATH_LIST,
 )
@@ -116,7 +116,7 @@ def random_ports(port, n):
 
 def load_handlers(name):
     """Load the (URL pattern, handler) tuples for each component."""
-    name = 'IPython.html.' + name
+    name = 'jupyter_notebook.' + name
     mod = __import__(name, fromlist=['default_handlers'])
     return mod.default_handlers
 
@@ -576,7 +576,7 @@ class NotebookApp(BaseIPythonApplication):
     extra_template_paths = List(Unicode, config=True,
         help="""Extra paths to search for serving jinja templates.
 
-        Can be used to override templates from IPython.html.templates."""
+        Can be used to override templates from jupyter_notebook.templates."""
     )
     def _extra_template_paths_default(self):
         return []

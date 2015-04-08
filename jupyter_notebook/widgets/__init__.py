@@ -31,10 +31,10 @@ from .widget_string import HTMLWidget, LatexWidget, TextWidget, TextareaWidget
 # To ignore this warning, do:
 #
 #     from warnings import filterwarnings
-#     filterwarnings('ignore', module='IPython.html.widgets')
+#     filterwarnings('ignore', module='jupyter_notebook.widgets')
 
 from warnings import warn_explicit
 __warningregistry__ = {}
 warn_explicit("IPython widgets are experimental and may change in the future.",
-              FutureWarning, '', 0, module = 'IPython.html.widgets',
+              FutureWarning, '', 0, module = 'jupyter_notebook.widgets',
               registry = __warningregistry__, module_globals = globals)

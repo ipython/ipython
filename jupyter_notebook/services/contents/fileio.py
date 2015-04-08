@@ -15,7 +15,7 @@ import tempfile
 
 from tornado.web import HTTPError
 
-from IPython.html.utils import (
+from jupyter_notebook.utils import (
     to_api_path,
     to_os_path,
 )

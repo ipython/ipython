@@ -10,8 +10,8 @@ import time
 
 pjoin = os.path.join
 
-from IPython.html.utils import url_path_join
-from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
+from jupyter_notebook.utils import url_path_join
+from jupyter_notebook.tests.launchnotebook import NotebookTestBase, assert_http_error
 from IPython.nbformat.v4 import new_notebook
 from IPython.nbformat import write
 

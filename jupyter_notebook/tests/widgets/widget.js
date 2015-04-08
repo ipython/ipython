@@ -40,7 +40,7 @@ casper.notebook_test(function () {
     var index;
 
     index = this.append_cell(
-        ['from IPython.html import widgets',
+        ['from jupyter_notebook import widgets',
          'from IPython.display import display, clear_output',
          'print("Success")'].join('\n'));
     this.execute_cell_then(index);
@@ -184,7 +184,7 @@ casper.notebook_test(function () {
 
     var testwidget = {};
     this.append_cell_execute_then([
-        'from IPython.html import widgets',
+        'from jupyter_notebook import widgets',
         'from IPython.utils.traitlets import Unicode, Instance, List',
         'from IPython.display import display',
         'from array import array',

@@ -18,7 +18,7 @@ casper.notebook_test(function () {
         this.evaluate(function() {
             IPython.notebook.kernel.widget_manager.create_model({
                 model_name: 'WidgetModel', 
-                widget_class: 'IPython.html.widgets.widget_int.IntSlider'})
+                widget_class: 'jupyter_notebook.widgets.widget_int.IntSlider'})
                 .then(function(model) { 
                     console.log('Create success!', model); 
                     window.slider_id = model.id; 
@@ -34,7 +34,7 @@ casper.notebook_test(function () {
     });
 
     index = this.append_cell(
-        'from IPython.html.widgets import Widget\n' + 
+        'from jupyter_notebook.widgets import Widget\n' + 
         'widget = list(Widget.widgets.values())[0]\n' +
         'print(widget.model_id)');
     this.execute_cell_then(index, function(index) {
@@ -45,7 +45,7 @@ casper.notebook_test(function () {
 
     // Widget persistence tests.
     index = this.append_cell(
-        'from IPython.html.widgets import HTML\n' + 
+        'from jupyter_notebook.widgets import HTML\n' + 
         'from IPython.display import display\n' + 
         'display(HTML(value="<div id=\'hello\'></div>"))');
     this.execute_cell_then(index, function() {});

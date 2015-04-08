@@ -299,7 +299,7 @@ define([
          * JS:
          * IPython.notebook.kernel.widget_manager.create_model({
          *      model_name: 'WidgetModel', 
-         *      widget_class: 'IPython.html.widgets.widget_int.IntSlider'})
+         *      widget_class: 'jupyter_notebook.widgets.widget_int.IntSlider'})
          *      .then(function(model) { console.log('Create success!', model); },
          *      $.proxy(console.error, console));
          *

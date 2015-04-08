@@ -15,7 +15,7 @@ from IPython.nbformat.v4 import (new_notebook,
                               new_markdown_cell, new_code_cell,
                               new_output)
 
-from IPython.html.utils import url_path_join
+from jupyter_notebook.utils import url_path_join
 from .launchnotebook import NotebookTestBase
 from IPython.utils import py3compat
 

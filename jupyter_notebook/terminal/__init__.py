@@ -8,7 +8,7 @@ if not check_version(terminado.__version__, '0.3.3'):
 
 from terminado import NamedTermManager
 from tornado.log import app_log
-from IPython.html.utils import url_path_join as ujoin
+from jupyter_notebook.utils import url_path_join as ujoin
 from .handlers import TerminalHandler, TermSocket
 from . import api_handlers
 

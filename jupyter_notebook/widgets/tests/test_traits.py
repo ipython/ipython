@@ -6,7 +6,7 @@
 from unittest import TestCase
 from IPython.utils.traitlets import HasTraits
 from traitlets.tests.test_traitlets import TraitTestBase
-from IPython.html.widgets import Color, EventfulDict, EventfulList
+from jupyter_notebook.widgets import Color, EventfulDict, EventfulList
 
 
 class ColorTrait(HasTraits):

@@ -11,13 +11,13 @@ from traitlets.tests.utils import check_help_all_output
 
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.traitlets import TraitError
-from IPython.html import notebookapp
+from jupyter_notebook import notebookapp
 NotebookApp = notebookapp.NotebookApp
 
 
 def test_help_output():
     """ipython notebook --help-all works"""
-    check_help_all_output('IPython.html')
+    check_help_all_output('jupyter_notebook')
 
 def test_server_info_file():
     nbapp = NotebookApp(profile='nbserver_file_test', log=logging.getLogger())

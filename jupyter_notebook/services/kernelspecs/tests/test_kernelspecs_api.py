@@ -12,8 +12,8 @@ pjoin = os.path.join
 import requests
 
 from IPython.kernel.kernelspec import NATIVE_KERNEL_NAME
-from IPython.html.utils import url_path_join
-from IPython.html.tests.launchnotebook import NotebookTestBase, assert_http_error
+from jupyter_notebook.utils import url_path_join
+from jupyter_notebook.tests.launchnotebook import NotebookTestBase, assert_http_error
 
 # Copied from IPython.kernel.tests.test_kernelspec so updating that doesn't
 # break these tests

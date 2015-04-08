@@ -22,8 +22,8 @@ except ImportError:
 import IPython.testing.decorators as dec
 from IPython.utils import py3compat
 from IPython.utils.tempdir import TemporaryDirectory
-from IPython.html import nbextensions
-from IPython.html.nbextensions import install_nbextension, check_nbextension
+from jupyter_notebook import nbextensions
+from jupyter_notebook.nbextensions import install_nbextension, check_nbextension
 
 
 def touch(file, mtime=None):

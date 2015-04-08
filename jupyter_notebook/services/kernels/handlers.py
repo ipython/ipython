@@ -11,7 +11,7 @@ from tornado.ioloop import IOLoop
 
 from jupyter_client.jsonutil import date_default
 from IPython.utils.py3compat import cast_unicode
-from IPython.html.utils import url_path_join, url_escape
+from jupyter_notebook.utils import url_path_join, url_escape
 
 from ...base.handlers import IPythonHandler, json_errors
 from ...base.zmqhandlers import AuthenticatedZMQStreamHandler, deserialize_binary_message

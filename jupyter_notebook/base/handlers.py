@@ -29,9 +29,9 @@ from IPython.utils.sysinfo import get_sys_info
 from IPython.config import Application
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import string_types
-from IPython.html.utils import is_hidden, url_path_join, url_escape
+from jupyter_notebook.utils import is_hidden, url_path_join, url_escape
 
-from IPython.html.services.security import csp_report_uri
+from jupyter_notebook.services.security import csp_report_uri
 
 #-----------------------------------------------------------------------------
 # Top-level handlers

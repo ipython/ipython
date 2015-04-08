@@ -1,7 +1,7 @@
 // Test multicontainer class
 casper.notebook_test(function () {
     index = this.append_cell(
-        'from IPython.html import widgets\n' + 
+        'from jupyter_notebook import widgets\n' + 
         'from IPython.display import display, clear_output\n' +
         'print("Success")');
     this.execute_cell_then(index);

@@ -1,7 +1,7 @@
 // Test widget string class
 casper.notebook_test(function () {
     var string_index = this.append_cell(
-        'from IPython.html import widgets\n' + 
+        'from jupyter_notebook import widgets\n' + 
         'from IPython.display import display, clear_output\n' +
         'string_widget = [widgets.Text(value = "xyz", placeholder = "abc"),\n' +
         '    widgets.Textarea(value = "xyz", placeholder = "def"),\n' +

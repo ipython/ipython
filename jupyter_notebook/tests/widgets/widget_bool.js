@@ -4,7 +4,7 @@ casper.notebook_test(function () {
 
     // Create a checkbox and togglebutton.
     var bool_index = this.append_cell(
-        'from IPython.html import widgets\n' + 
+        'from jupyter_notebook import widgets\n' + 
         'from IPython.display import display, clear_output\n' +
         'bool_widgets = [widgets.Checkbox(description="Title", value=True),\n' +
         '    widgets.ToggleButton(description="Title", value=True)]\n' +

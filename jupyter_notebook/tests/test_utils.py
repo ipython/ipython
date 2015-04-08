@@ -8,14 +8,14 @@ import os
 import nose.tools as nt
 
 from traitlets.tests.utils import check_help_all_output
-from IPython.html.utils import url_escape, url_unescape, is_hidden
+from jupyter_notebook.utils import url_escape, url_unescape, is_hidden
 from IPython.utils.tempdir import TemporaryDirectory
 
 
 def test_help_output():
     """jupyter notebook --help-all works"""
     # FIXME: will be jupyter_notebook
-    check_help_all_output('IPython.html')
+    check_help_all_output('jupyter_notebook')
 
 
 def test_url_escape():
