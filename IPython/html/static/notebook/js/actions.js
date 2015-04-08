@@ -368,6 +368,26 @@ define(function(require){
                 return env.notebook.scroll_manager.scroll(-1);
             },
         },
+        'scroll-cell-center': {
+            help: "Scroll the current cell to the center",
+            handler: function (env, event) {
+                if(event){
+                    event.preventDefault();
+                }
+                var cell = env.notebook.get_selected_index();
+                return env.notebook.scroll_cell_percent(cell, 50, 0);
+            }
+        },
+        'scroll-cell-top': {
+            help: "Scroll the current cell to the top",
+            handler: function (env, event) {
+                if(event){
+                    event.preventDefault();
+                }
+                var cell = env.notebook.get_selected_index();
+                return env.notebook.scroll_cell_percent(cell, 0, 0);
+            }
+        },
         'save-notebook':{
             help: "Save and Checkpoint",
             help_index : 'fb',
