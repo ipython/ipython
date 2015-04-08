@@ -36,18 +36,8 @@ import os
 import tempfile
 import unittest
 
-from decorator import decorator
-
-# Expose the unittest-driven decorators
-from .ipunittest import ipdoctest, ipdocstring
-
-# Grab the numpy-specific decorators which we keep in a file that we
-# occasionally update from upstream: decorators.py is a copy of
-# numpy.testing.decorators, we expose all of it here.
-from IPython.external.decorators import *
-
 # For onlyif_cmd_exists decorator
-from IPython.utils.py3compat import string_types, which
+from ..py3compat import string_types, which
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -66,18 +56,6 @@ def as_unittest(func):
 
 # Utility functions
 
-def apply_wrapper(wrapper,func):
-    """Apply a wrapper to a function for decoration.
-
-    This mixes Michele Simionato's decorator tool with nose's make_decorator,
-    to apply a wrapper in a decorator so that all nose attributes, as well as
-    function signature and other properties, survive the decoration cleanly.
-    This will ensure that wrapped functions can still be well introspected via
-    IPython, for example.
-    """
-    import nose.tools
-
-    return decorator(wrapper,nose.tools.make_decorator(func)(wrapper))
 
 
 def make_label_dec(label,ds=None):
@@ -263,13 +241,13 @@ def module_not_available(module):
     This is used to make a decorator to skip tests that require module to be
     available, but delay the 'import numpy' to test execution time.
     """
-    try:
-        mod = __import__(module)
-        mod_not_avail = False
-    except ImportError:
-        mod_not_avail = True
-
-    return mod_not_avail
+    def condition():
+        try:
+            mod = __import__(module)
+            return False
+        except ImportError:
+            return True
+    return condition
 
 
 def decorated_dummy(dec, name):
@@ -324,11 +302,6 @@ skipif_not_numpy = skip_without('numpy')
 skipif_not_matplotlib = skip_without('matplotlib')
 
 skipif_not_sympy = skip_without('sympy')
-
-skip_known_failure = knownfailureif(True,'This test is known to fail')
-
-known_failure_py3 = knownfailureif(sys.version_info[0] >= 3, 
-                                    'This test is known to fail on Python 3.')
 
 # A null 'decorator', useful to make more readable code that needs to pick
 # between different decorators based on OS or other conditions
