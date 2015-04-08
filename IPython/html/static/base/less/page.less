@@ -5,16 +5,23 @@
  */
 
 
+html, body {
+    min-height: 100%;
+    height: 100%;
+    overflow: hidden; // Prevents scrollbar in html element
+}
+
 body {
     background-color: @body-bg;
-    /* This makes sure that the body covers the entire window and needs to
-       be in a different element than the display: box in wrapper below */
-    position: absolute;
-    left: 0px;
-    right: 0px;
-    top: 0px;
-    bottom: 0px;
-    overflow: visible;
+    overflow: visible; // We want the scrollbar here
+    display: flex;
+    flex-direction: column;
+}
+
+@media print {
+    body {
+        display: block;
+    }
 }
 
 #header {
@@ -23,8 +30,7 @@ body {
     background-color: @body-bg;
 
     /* Display over codemirror */
-    position: relative;
-    z-index: 100;
+    z-index: 1001;
 
     #header-container {
         padding-bottom: 5px;

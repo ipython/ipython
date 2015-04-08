@@ -21,6 +21,27 @@ label {
 }
 /* Make the page background atleast 100% the height of the view port */
 /* Make the page itself atleast 70% the height of the view port */
+.container_ {
+  margin-right: auto;
+  margin-left: auto;
+  padding-left: 0px;
+  padding-right: 0px;
+}
+@media screen and (min-width: 768px) {
+  .container_ {
+    width: 768px;
+  }
+}
+@media screen and (min-width: 992px) {
+  .container_ {
+    width: 940px;
+  }
+}
+@media screen and (min-width: 1200px) {
+  .container_ {
+    width: 1140px;
+  }
+}
 .border-box-sizing {
   box-sizing: border-box;
   -moz-box-sizing: border-box;

@@ -8,7 +8,7 @@ define([
 ], function(IPython, $, Tour) {
     "use strict";
 
-    var tour_style = "<div class='popover tour'>\n" +
+    var tour_style = "<div style='position:fixed;' class='popover tour'>\n" +
         "<div class='arrow'></div>\n" +
         "<div style='position:absolute; top:7px; right:7px'>\n" +
             "<button class='btn btn-default btn-sm fa fa-times' data-role='end'></button>\n" +

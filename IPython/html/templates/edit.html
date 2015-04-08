@@ -1,6 +1,7 @@
 {% extends "page.html" %}
 
 {% block title %}{{page_title}}{% endblock %}
+{% block header_class %}header_edit{% endblock %}
 
 {% block stylesheet %}
 <link rel="stylesheet" href="{{ static_url('components/codemirror/lib/codemirror.css') }}">
@@ -83,6 +84,7 @@ data-file-path="{{file_path}}"
 
 {% endblock %}
 
+{% block site_class %}site_edit{% endblock %}
 {% block site %}
 
 <div id="texteditor-backdrop">

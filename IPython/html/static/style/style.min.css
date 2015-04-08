@@ -6028,6 +6028,8 @@ button.close {
 .panel-body:after,
 .modal-footer:before,
 .modal-footer:after,
+.container_:before,
+.container_:after,
 .item_buttons:before,
 .item_buttons:after {
   content: " ";
@@ -6048,6 +6050,7 @@ button.close {
 .pager:after,
 .panel-body:after,
 .modal-footer:after,
+.container_:after,
 .item_buttons:after {
   clear: both;
 }
@@ -8124,6 +8127,27 @@ label {
 }
 /* Make the page background atleast 100% the height of the view port */
 /* Make the page itself atleast 70% the height of the view port */
+.container_ {
+  margin-right: auto;
+  margin-left: auto;
+  padding-left: 0px;
+  padding-right: 0px;
+}
+@media screen and (min-width: 768px) {
+  .container_ {
+    width: 768px;
+  }
+}
+@media screen and (min-width: 992px) {
+  .container_ {
+    width: 940px;
+  }
+}
+@media screen and (min-width: 1200px) {
+  .container_ {
+    width: 1140px;
+  }
+}
 .border-box-sizing {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -8385,24 +8409,29 @@ div.traceback-wrapper {
  *
  * Author: IPython Development Team
  */
+html,
+body {
+  min-height: 100%;
+  height: 100%;
+  overflow: hidden;
+}
 body {
   background-color: #ffffff;
-  /* This makes sure that the body covers the entire window and needs to
-       be in a different element than the display: box in wrapper below */
-  position: absolute;
-  left: 0px;
-  right: 0px;
-  top: 0px;
-  bottom: 0px;
   overflow: visible;
+  display: flex;
+  flex-direction: column;
+}
+@media print {
+  body {
+    display: block;
+  }
 }
 #header {
   /* Initially hidden to prevent FLOUC */
   display: none;
   background-color: #ffffff;
   /* Display over codemirror */
-  position: relative;
-  z-index: 100;
+  z-index: 1001;
 }
 #header #header-container {
   padding-bottom: 5px;
@@ -8629,6 +8658,15 @@ span#login_widget > .button .badge,
  *
  * Author: IPython Development Team
  */
+.header_tree {
+  position: relative;
+  width: 100%;
+  flex: 0 0 auto;
+}
+.site_tree {
+  position: relative;
+  flex: 1 1 auto;
+}
 ul#tabs {
   margin-bottom: 4px;
 }
@@ -8876,7 +8914,6 @@ input.engine_num_input {
 }
 #notebook_toolbar .pull-right {
   padding-top: 0px;
-  margin-right: -1px;
 }
 ul#new-menu {
   left: auto;
@@ -8967,6 +9004,13 @@ ul#new-menu {
     header */
   margin-bottom: -1px;
 }
+.header_edit {
+  flex: 0 0 auto;
+}
+.site_edit {
+  flex: 1 1 auto;
+  position: relative;
+}
 .dirty-indicator {
   display: inline-block;
   font: normal normal normal 14px/1 FontAwesome;
@@ -9043,11 +9087,20 @@ ul#new-menu {
 #texteditor-backdrop {
   padding-top: 20px;
   padding-bottom: 20px;
+  height: 100%;
+  width: 100%;
+  position: absolute;
 }
 @media not print {
   #texteditor-backdrop {
     background-color: #eeeeee;
   }
+}
+#texteditor-backdrop #texteditor-container {
+  height: inherit;
+}
+#texteditor-backdrop #texteditor-container .CodeMirror {
+  height: inherit;
 }
 @media print {
   #texteditor-backdrop #texteditor-container .CodeMirror-gutter,
@@ -10408,6 +10461,26 @@ h6:hover .anchor-link {
   .notebook_app {
     padding-left: 0px;
     padding-right: 0px;
+  }
+}
+/* Sticky header effect.  
+ */
+.header_notebook {
+  flex: 0 0 auto;
+  width: 100%;
+}
+.site_notebook {
+  flex: 1 1 auto;
+}
+/* Firefox print preview has some issues with fixed header
+   using flexbox. The most straightforward solution is to
+   use display: block; for elements to be printed.
+   In this case, #header is set to display: none; so there
+   is no need to change its display property.
+ */
+@media print {
+  .site_notebook {
+    display: block;
   }
 }
 #ipython-main-app {

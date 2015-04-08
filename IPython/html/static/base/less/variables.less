@@ -58,3 +58,17 @@ label {
 // when window width go from 768 to 769+
 @container-sm : @screen-sm-min;
 
+.container_ {
+  .container-fixed();
+
+  @media screen and (min-width: @screen-sm-min) {
+    width: @container-sm;
+  }
+  @media screen and (min-width: @screen-md-min) {
+    width: @container-md;
+  }
+  @media screen and (min-width: @screen-lg-min) {
+    width: @container-lg;
+  }
+}
+
