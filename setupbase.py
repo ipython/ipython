@@ -126,55 +126,55 @@ def find_package_data():
     
     # exclude components and less from the walk;
     # we will build the components separately
-    excludes = [
-        pjoin('static', 'components'),
-        pjoin('static', '*', 'less'),
-    ]
-    
-    # walk notebook resources:
-    cwd = os.getcwd()
-    os.chdir(os.path.join('IPython', 'html'))
-    static_data = []
-    for parent, dirs, files in os.walk('static'):
-        if any(fnmatch(parent, pat) for pat in excludes):
-            # prevent descending into subdirs
-            dirs[:] = []
-            continue
-        for f in files:
-            static_data.append(pjoin(parent, f))
-    
-    components = pjoin("static", "components")
-    # select the components we actually need to install
-    # (there are lots of resources we bundle for sdist-reasons that we don't actually use)
-    static_data.extend([
-        pjoin(components, "backbone", "backbone-min.js"),
-        pjoin(components, "bootstrap", "js", "bootstrap.min.js"),
-        pjoin(components, "bootstrap-tour", "build", "css", "bootstrap-tour.min.css"),
-        pjoin(components, "bootstrap-tour", "build", "js", "bootstrap-tour.min.js"),
-        pjoin(components, "es6-promise", "*.js"),
-        pjoin(components, "font-awesome", "fonts", "*.*"),
-        pjoin(components, "google-caja", "html-css-sanitizer-minified.js"),
-        pjoin(components, "jquery", "jquery.min.js"),
-        pjoin(components, "jquery-ui", "ui", "minified", "jquery-ui.min.js"),
-        pjoin(components, "jquery-ui", "themes", "smoothness", "jquery-ui.min.css"),
-        pjoin(components, "jquery-ui", "themes", "smoothness", "images", "*"),
-        pjoin(components, "marked", "lib", "marked.js"),
-        pjoin(components, "requirejs", "require.js"),
-        pjoin(components, "underscore", "underscore-min.js"),
-        pjoin(components, "moment", "moment.js"),
-        pjoin(components, "moment", "min", "moment.min.js"),
-        pjoin(components, "term.js", "src", "term.js"),
-        pjoin(components, "text-encoding", "lib", "encoding.js"),
-    ])
-    
-    # Ship all of Codemirror's CSS and JS
-    for parent, dirs, files in os.walk(pjoin(components, 'codemirror')):
-        for f in files:
-            if f.endswith(('.js', '.css')):
-                static_data.append(pjoin(parent, f))
-    
-    os.chdir(os.path.join('tests',))
-    js_tests = glob('*.js') + glob('*/*.js')
+    # excludes = [
+    #     pjoin('static', 'components'),
+    #     pjoin('static', '*', 'less'),
+    # ]
+    #
+    # # walk notebook resources:
+    # cwd = os.getcwd()
+    # os.chdir(os.path.join('IPython', 'html'))
+    # static_data = []
+    # for parent, dirs, files in os.walk('static'):
+    #     if any(fnmatch(parent, pat) for pat in excludes):
+    #         # prevent descending into subdirs
+    #         dirs[:] = []
+    #         continue
+    #     for f in files:
+    #         static_data.append(pjoin(parent, f))
+    #
+    # components = pjoin("static", "components")
+    # # select the components we actually need to install
+    # # (there are lots of resources we bundle for sdist-reasons that we don't actually use)
+    # static_data.extend([
+    #     pjoin(components, "backbone", "backbone-min.js"),
+    #     pjoin(components, "bootstrap", "js", "bootstrap.min.js"),
+    #     pjoin(components, "bootstrap-tour", "build", "css", "bootstrap-tour.min.css"),
+    #     pjoin(components, "bootstrap-tour", "build", "js", "bootstrap-tour.min.js"),
+    #     pjoin(components, "es6-promise", "*.js"),
+    #     pjoin(components, "font-awesome", "fonts", "*.*"),
+    #     pjoin(components, "google-caja", "html-css-sanitizer-minified.js"),
+    #     pjoin(components, "jquery", "jquery.min.js"),
+    #     pjoin(components, "jquery-ui", "ui", "minified", "jquery-ui.min.js"),
+    #     pjoin(components, "jquery-ui", "themes", "smoothness", "jquery-ui.min.css"),
+    #     pjoin(components, "jquery-ui", "themes", "smoothness", "images", "*"),
+    #     pjoin(components, "marked", "lib", "marked.js"),
+    #     pjoin(components, "requirejs", "require.js"),
+    #     pjoin(components, "underscore", "underscore-min.js"),
+    #     pjoin(components, "moment", "moment.js"),
+    #     pjoin(components, "moment", "min", "moment.min.js"),
+    #     pjoin(components, "term.js", "src", "term.js"),
+    #     pjoin(components, "text-encoding", "lib", "encoding.js"),
+    # ])
+    #
+    # # Ship all of Codemirror's CSS and JS
+    # for parent, dirs, files in os.walk(pjoin(components, 'codemirror')):
+    #     for f in files:
+    #         if f.endswith(('.js', '.css')):
+    #             static_data.append(pjoin(parent, f))
+    #
+    # os.chdir(os.path.join('tests',))
+    # js_tests = glob('*.js') + glob('*/*.js')
     
     # nbconvert package_data:
     # os.chdir(os.path.join(cwd, 'IPython', 'nbconvert'))
@@ -190,15 +190,15 @@ def find_package_data():
     #         ],
     # }
 
-    os.chdir(cwd)
+    # os.chdir(cwd)
 
     package_data = {
         'IPython.core' : ['profile/README*'],
         'IPython.core.tests' : ['*.png', '*.jpg'],
         'IPython.lib.tests' : ['*.wav'],
         'IPython.testing.plugin' : ['*.txt'],
-        'IPython.html' : ['templates/*'] + static_data,
-        'IPython.html.tests' : js_tests,
+        # 'IPython.html' : ['templates/*'] + static_data,
+        # 'IPython.html.tests' : js_tests,
         # 'IPython.nbformat' : [
         #     'tests/*.ipynb',
         #     'v3/nbformat.v3.schema.json',
@@ -706,7 +706,7 @@ class CompileCSS(Command):
         if self.force:
             cmd.append('--force')
         try:
-            p = Popen(cmd, cwd=pjoin(repo_root, "IPython", "html"), stderr=PIPE)
+            p = Popen(cmd, cwd=pjoin(repo_root, "jupyter_notebook"), stderr=PIPE)
         except OSError:
             raise DistutilsExecError("invoke is required to rebuild css (pip install invoke)")
         out, err = p.communicate()
@@ -728,7 +728,7 @@ class JavascriptVersion(Command):
         pass
     
     def run(self):
-        nsfile = pjoin(repo_root, "IPython", "html", "static", "base", "js", "namespace.js")
+        nsfile = pjoin(repo_root, "jupyter_notebook", "static", "base", "js", "namespace.js")
         with open(nsfile) as f:
             lines = f.readlines()
         with open(nsfile, 'w') as f:
