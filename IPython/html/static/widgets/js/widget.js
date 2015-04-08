@@ -355,7 +355,7 @@ define(["widgets/js/manager",
                     this.pending_msgs++;
                 }
             }
-            // Since the comm is a one-way communication, assume the message 
+            // Since the comm is a one-way communication, assume the message
             // arrived.  Don't call success since we don't have a model back from the server
             // this means we miss out on the 'sync' event.
             this._buffered_state_diff = {};
@@ -369,7 +369,7 @@ define(["widgets/js/manager",
             // being the value or the promise of the serialized value
             var serializers = this.constructor.serializers;
             if (serializers) {
-                for (k in attrs) {
+                for (var k in attrs) {
                     if (serializers[k] && serializers[k].serialize) {
                         attrs[k] = (serializers[k].serialize)(attrs[k], this);
                     }
@@ -383,11 +383,13 @@ define(["widgets/js/manager",
                 for (var i=0; i<keys.length; i++) {
                     var key = keys[i];
                     var value = state[key];
-                    if (value.buffer instanceof ArrayBuffer
-                        || value instanceof ArrayBuffer) {
-                        buffers.push(value);
-                        buffer_keys.push(key);
-                        delete state[key];
+                    if (value) {
+                        if (value.buffer instanceof ArrayBuffer
+                            || value instanceof ArrayBuffer) {
+                            buffers.push(value);
+                            buffer_keys.push(key);
+                            delete state[key];
+                        }
                     }
                 }
                 that.comm.send({method: 'backbone', sync_data: state, buffer_keys: buffer_keys}, callbacks, {}, buffers);
@@ -396,7 +398,7 @@ define(["widgets/js/manager",
                 return (utils.reject("Couldn't send widget sync message", true))(error);
             });
         },
-        
+
         save_changes: function(callbacks) {
             /**
              * Push this model's state to the back-end
@@ -410,7 +412,7 @@ define(["widgets/js/manager",
             /**
              * on_some_change(["key1", "key2"], foo, context) differs from
              * on("change:key1 change:key2", foo, context).
-             * If the widget attributes key1 and key2 are both modified, 
+             * If the widget attributes key1 and key2 are both modified,
              * the second form will result in foo being called twice
              * while the first will call foo only once.
              */

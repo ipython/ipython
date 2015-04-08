@@ -623,7 +623,7 @@ class HasTraits(py3compat.with_metaclass(MetaHasTraits, object)):
                     if cache[name][1] is not Undefined:
                         setattr(self, name, cache[name][1])
                     else:
-                        delattr(self, name)
+                        self._trait_values.pop(name)
                 cache = {}
                 raise e
             finally:

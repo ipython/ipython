@@ -215,7 +215,7 @@ class BaseIPythonApplication(Application):
             return crashhandler.crash_handler_lite(etype, evalue, tb)
     
     def _ipython_dir_changed(self, name, old, new):
-        if old is not None and old is not Undefined:
+        if old is not Undefined:
             str_old = py3compat.cast_bytes_py2(os.path.abspath(old),
                 sys.getfilesystemencoding()
             )
