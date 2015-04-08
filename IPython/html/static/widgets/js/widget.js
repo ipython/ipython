@@ -15,7 +15,7 @@ define(["widgets/js/manager",
          * Replace model ids with models recursively.
          */
         var unpacked;
-        if ($.isArray(value)) {
+        if (_.isArray(value)) {
             unpacked = [];
             _.each(value, function(sub_value, key) {
                 unpacked.push(unpack_models(sub_value, model));
@@ -65,8 +65,8 @@ define(["widgets/js/manager",
                 comm.model = this;
 
                 // Hook comm messages up to model.
-                comm.on_close($.proxy(this._handle_comm_closed, this));
-                comm.on_msg($.proxy(this._handle_comm_msg, this));
+                comm.on_close(_.bind(this._handle_comm_closed, this));
+                comm.on_msg(_.bind(this._handle_comm_msg, this));
 
                 // Assume the comm is alive.
                 this.set_comm_live(true);
@@ -274,7 +274,7 @@ define(["widgets/js/manager",
             // Backbone only remembers the diff of the most recent set()
             // operation.  Calling set multiple times in a row results in a 
             // loss of diff information.  Here we keep our own running diff.
-            this._buffered_state_diff = $.extend(this._buffered_state_diff, this.changedAttributes() || {});
+            this._buffered_state_diff = _.extend(this._buffered_state_diff, this.changedAttributes() || {});
             return return_value;
         },
 
@@ -336,7 +336,7 @@ define(["widgets/js/manager",
                     // Combine updates if it is a 'patch' sync, otherwise replace updates
                     switch (method) {
                         case 'patch':
-                            this.msg_buffer = $.extend(this.msg_buffer || {}, attrs);
+                            this.msg_buffer = _.extend(this.msg_buffer || {}, attrs);
                             break;
                         case 'update':
                         case 'create':
@@ -467,7 +467,7 @@ define(["widgets/js/manager",
              * Create and promise that resolves to a child view of a given model
              */
             var that = this;
-            options = $.extend({ parent: this }, options || {});
+            options = _.extend({ parent: this }, options || {});
             return this.model.widget_manager.create_view(child_model, options).catch(utils.reject("Couldn't create child view", true));
         },
 
@@ -800,7 +800,7 @@ define(["widgets/js/manager",
     };
 
     // For backwards compatability.
-    $.extend(IPython, widget);
+    _.extend(IPython, widget);
 
     return widget;
 });
