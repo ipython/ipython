@@ -54,7 +54,7 @@ except:
 from warnings import warn
 
 from IPython.utils import py3compat
-from IPython.utils.getargspec import getargspec
+from .getargspec import getargspec
 from IPython.utils.importstring import import_item
 from IPython.utils.py3compat import iteritems, string_types
 
