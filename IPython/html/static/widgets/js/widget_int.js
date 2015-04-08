@@ -461,7 +461,7 @@ define([
                 warning: ['progress-bar-warning'],
                 danger: ['progress-bar-danger']
             };
-            this.update_mapped_classes(class_map, 'bar_style', previous_trait_value, this.$bar);
+            this.update_mapped_classes(class_map, 'bar_style', previous_trait_value, this.$bar[0]);
         },
 
         update_attr: function(name, value) {

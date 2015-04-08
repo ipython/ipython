@@ -113,8 +113,8 @@ define([
                 warning: ['btn-warning'],
                 danger: ['btn-danger']
             };
-            this.update_mapped_classes(class_map, 'button_style', previous_trait_value, this.$droplabel);
-            this.update_mapped_classes(class_map, 'button_style', previous_trait_value, this.$dropbutton);
+            this.update_mapped_classes(class_map, 'button_style', previous_trait_value, this.$droplabel[0]);
+            this.update_mapped_classes(class_map, 'button_style', previous_trait_value, this.$dropbutton[0]);
         },
 
         update_attr: function(name, value) {
@@ -411,7 +411,7 @@ define([
                 warning: ['btn-warning'],
                 danger: ['btn-danger']
             };
-            this.update_mapped_classes(class_map, 'button_style', previous_trait_value, this.$buttongroup.find('button'));
+            this.update_mapped_classes(class_map, 'button_style', previous_trait_value, this.$buttongroup.find('button')[0]);
         },
 
         handle_click: function (e) {

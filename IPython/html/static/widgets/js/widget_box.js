@@ -77,7 +77,7 @@ define([
                 warning: ['alert', 'alert-warning'],
                 danger: ['alert', 'alert-danger']
             };
-            this.update_mapped_classes(class_map, 'box_style', previous_trait_value, this.$box);
+            this.update_mapped_classes(class_map, 'box_style', previous_trait_value, this.$box[0]);
         },
         
         add_child_model: function(model) {
