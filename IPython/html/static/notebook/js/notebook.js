@@ -351,34 +351,30 @@ define(function (require) {
      * @return {integer} Pixel offset from the top of the container
      */
     Notebook.prototype.scroll_to_cell = function (index, time) {
-        var cells = this.get_cells();
-        time = time || 0;
-        index = Math.min(cells.length-1,index);
-        index = Math.max(0             ,index);
-        var scroll_value = cells[index].element.position().top-cells[0].element.position().top ;
-        this.scroll_manager.element.animate({scrollTop:scroll_value}, time);
-        return scroll_value;
+        return this.scroll_cell_percent(index, 0, time);
     };
 
     /**
      * Scroll the middle of the page to a given cell.
      *
      * @param {integer}  index - An index of the cell to view
+     * @param {integer}  percent - 0-100, the location on the screen to scroll.
+     *                   0 is the top, 100 is the bottom.
      * @param {integer}  time - Animation time in milliseconds
      * @return {integer} Pixel offset from the top of the container
      */
-    Notebook.prototype.scroll_middle_to_cell = function (index, time) {
+    Notebook.prototype.scroll_cell_percent = function (index, percent, time) {
         var cells = this.get_cells();
         time = time || 0;
+        percent = percent || 0;
         index = Math.min(cells.length-1,index);
         index = Math.max(0             ,index);
-        // var scroll_value = cells[index].element.position().top-cells[0].element.position().top ;
         var sme = this.scroll_manager.element;
         var h = sme.height();
         var st = sme.scrollTop();
         var t = sme.offset().top;
         var ct = cells[index].element.offset().top;
-        var scroll_value =  st + ct - (t + h/2);
+        var scroll_value =  st + ct - (t + .01 * percent * h);
         this.scroll_manager.element.animate({scrollTop:scroll_value}, time);
         return scroll_value;
     };

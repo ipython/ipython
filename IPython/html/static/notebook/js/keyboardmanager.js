@@ -80,8 +80,6 @@ define([
             'down'                : 'ipython.move-cursor-down-or-next-cell',
             'ctrl-shift--'        : 'ipython.split-cell-at-cursor',
             'ctrl-shift-subtract' : 'ipython.split-cell-at-cursor',
-            'ctrl-l'              : 'ipython.recenter',
-            'ctrl-shift-l'        : 'ipython.top'
         };
     };
 
