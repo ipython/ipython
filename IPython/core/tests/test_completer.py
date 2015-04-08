@@ -148,6 +148,45 @@ def test_latex_completions():
     nt.assert_in('\\aleph', matches)
 
 
+
+
+@dec.onlyif(sys.version_info[0] >= 3, 'This test only apply on python3')
+def test_back_latex_completion():
+    ip = get_ipython()
+
+    # do not return more than 1 matches fro \beta, only the latex one.
+    name, matches = ip.complete('\\β')
+    nt.assert_equal(len(matches), 1)
+    nt.assert_equal(matches[0], '\\beta')
+
+@dec.onlyif(sys.version_info[0] >= 3, 'This test only apply on python3')
+def test_back_unicode_completion():
+    ip = get_ipython()
+    
+    name, matches = ip.complete('\\Ⅴ')
+    nt.assert_equal(len(matches), 1)
+    nt.assert_equal(matches[0], '\\ROMAN NUMERAL FIVE')
+
+
+@dec.onlyif(sys.version_info[0] >= 3, 'This test only apply on python3')
+def test_forward_unicode_completion():
+    ip = get_ipython()
+    
+    name, matches = ip.complete('\\ROMAN NUMERAL FIVE')
+    nt.assert_equal(len(matches), 1)
+    nt.assert_equal(matches[0], 'Ⅴ')
+
+@dec.onlyif(sys.version_info[0] >= 3, 'This test only apply on python3')
+def test_no_ascii_back_completion():
+    ip = get_ipython()
+    # single ascii letter that don't have yet completions
+    for letter in 'fjqyJMQVWY' :
+        name, matches = ip.complete('\\'+letter)
+        nt.assert_equal(len(matches), 0)
+
+
+
+
 class CompletionSplitterTestCase(unittest.TestCase):
     def setUp(self):
         self.sp = completer.CompletionSplitter()

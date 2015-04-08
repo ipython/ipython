@@ -1295,3 +1295,6 @@ latex_symbols = {
     "\\mtteight" : "𝟾",
     "\\mttnine" : "𝟿",
 }
+
+
+reverse_latex_symbol = { v:k for k,v in latex_symbols.items()}
