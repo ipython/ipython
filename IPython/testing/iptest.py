@@ -145,7 +145,7 @@ have['zmq'] = test_for('zmq.pyzmq_version_info', min_zmq, callback=lambda x: x()
 # Test suite definitions
 #-----------------------------------------------------------------------------
 
-test_group_names = ['parallel', 'config', 'core',
+test_group_names = ['core',
                     'extensions', 'lib', 'terminal', 'testing', 'utils',
                     'qt', 'html', 'nbconvert'
                    ]
@@ -171,8 +171,6 @@ class TestSection(object):
         return self.enabled and all(have[p] for p in self.dependencies)
 
 shims = {
-    'parallel': 'ipython_parallel',
-    'config': 'traitlets',
     'html': 'jupyter_notebook',
 }
 
@@ -218,13 +216,6 @@ if sys.platform == 'win32':
 # terminal:
 if (not have['pexpect']) or (not have['zmq']):
     test_sections['terminal'].exclude('console')
-
-# parallel
-sec = test_sections['parallel']
-sec.requires('zmq')
-if not have['pymongo']:
-    sec.exclude('controller.mongodb')
-    sec.exclude('tests.test_mongodb')
 
 # extensions:
 sec = test_sections['extensions']

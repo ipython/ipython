@@ -80,9 +80,6 @@ def install():
     programs = [
         'ipython',
         'iptest',
-        'ipcontroller',
-        'ipengine',
-        'ipcluster',
     ]
     programs = [suffix(p) for p in programs]
     scripts = pjoin(sys.prefix, 'scripts')
@@ -105,10 +102,6 @@ def install():
                arguments(scripts, 'ipython'), iconpath)
     mkshortcut(python, 'IPython (pylab mode)', ip_start_menu,
                arguments(scripts, 'ipython', '--pylab'), iconpath)
-    mkshortcut(python, 'IPython Controller', ip_start_menu,
-               arguments(scripts, 'ipcontroller'), iconpath)
-    mkshortcut(python, 'IPython Engine', ip_start_menu,
-               arguments(scripts, 'ipengine'), iconpath)
     mkshortcut(pythonw, 'IPython Qt Console', ip_start_menu,
                arguments(scripts, 'ipython', 'qtconsole'), iconpath)
 

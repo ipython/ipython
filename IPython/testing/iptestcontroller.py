@@ -451,7 +451,6 @@ def prepare_controllers(options):
         py_testgroups = py_test_group_names
         if not options.all:
             js_testgroups = []
-            test_sections['parallel'].enabled = False
         else:
             js_testgroups = all_js_groups()
 
@@ -558,8 +557,7 @@ def run_iptestall(options):
       is passed, one process is used per CPU core. Default 1 (i.e. sequential)
 
     inc_slow : bool
-      Include slow tests, like IPython.parallel. By default, these tests aren't
-      run.
+      Include slow tests. By default, these tests aren't run.
 
     slimerjs : bool
       Use slimerjs if it's installed instead of phantomjs for casperjs tests.

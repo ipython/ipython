@@ -145,28 +145,9 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
     # List of things to be updated. Each entry is a triplet of args for
     # target_update()
     to_update = [
-                  # FIXME - Disabled for now: we need to redo an automatic way
-                  # of generating the magic info inside the rst.
-                  #('docs/magic.tex',
-                  #['IPython/Magic.py'],
-                  #"cd doc && ./update_magic.sh" ),
-
-                 ('docs/man/ipcluster.1.gz',
-                  ['docs/man/ipcluster.1'],
-                  'cd docs/man && gzip -9c ipcluster.1 > ipcluster.1.gz'),
-
-                 ('docs/man/ipcontroller.1.gz',
-                  ['docs/man/ipcontroller.1'],
-                  'cd docs/man && gzip -9c ipcontroller.1 > ipcontroller.1.gz'),
-
-                 ('docs/man/ipengine.1.gz',
-                  ['docs/man/ipengine.1'],
-                  'cd docs/man && gzip -9c ipengine.1 > ipengine.1.gz'),
-
                  ('docs/man/ipython.1.gz',
                   ['docs/man/ipython.1'],
                   'cd docs/man && gzip -9c ipython.1 > ipython.1.gz'),
-
                  ]
 
 
@@ -266,7 +247,7 @@ setuptools_extra_args = {}
 pyzmq = 'pyzmq>=13'
 
 extras_require = dict(
-    parallel = [pyzmq],
+    parallel = ['ipython_parallel'],
     qtconsole = [pyzmq, 'pygments'],
     doc = ['Sphinx>=1.1', 'numpydoc'],
     test = ['nose>=0.10.1', 'requests'],
