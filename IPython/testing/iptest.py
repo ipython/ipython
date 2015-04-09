@@ -175,6 +175,7 @@ shims = {
     'kernel': 'ipython_kernel',
     'kernel.inprocess': 'ipython_kernel.inprocess',
     'config': 'traitlets',
+    'html': 'jupyter_notebook',
 }
 
 # Name -> (include, exclude, dependencies_met)
