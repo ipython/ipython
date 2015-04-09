@@ -8878,6 +8878,10 @@ input.engine_num_input {
   padding-top: 0px;
   margin-right: -1px;
 }
+#notebook_toolbar {
+  background:#ffffff;
+}
+
 ul#new-menu {
   left: auto;
   right: 0;
