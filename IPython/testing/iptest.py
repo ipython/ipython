@@ -213,9 +213,8 @@ if sys.platform == 'win32':
     sec.exclude('plugin.test_exampleip')
     sec.exclude('plugin.dtexample')
 
-# terminal:
-if (not have['pexpect']) or (not have['zmq']):
-    test_sections['terminal'].exclude('console')
+# don't run jupyter_console tests found via shim
+test_sections['terminal'].exclude('console')
 
 # extensions:
 sec = test_sections['extensions']
