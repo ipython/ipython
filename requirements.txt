@@ -1,2 +1,4 @@
 -e git+https://github.com/ipython/ipython_genutils.git#egg=ipython_genutils
 -e git+https://github.com/ipython/traitlets.git#egg=traitlets
+-e git+https://github.com/jupyter/jupyter_core.git#egg=jupyter_core
+-e git+https://github.com/jupyter/jupyter_nbformat.git#egg=jupyter_nbformat
