@@ -782,6 +782,10 @@ class NotebookApp(BaseIPythonApplication):
             parent=self,
             ipython_dir=self.ipython_dir,
         )
+        # FIXME: temporarily add .ipython/kernels to the kernel search path
+        self.kernel_spec_manager.kernel_dirs.append(
+            os.path.join(self.ipython_dir, 'kernels'),
+        )
         self.kernel_manager = self.kernel_manager_class(
             parent=self,
             log=self.log,

@@ -145,7 +145,7 @@ have['zmq'] = test_for('zmq.pyzmq_version_info', min_zmq, callback=lambda x: x()
 # Test suite definitions
 #-----------------------------------------------------------------------------
 
-test_group_names = ['parallel', 'kernel', 'kernel.inprocess', 'config', 'core',
+test_group_names = ['parallel', 'config', 'core',
                     'extensions', 'lib', 'terminal', 'testing', 'utils',
                     'qt', 'html', 'nbconvert'
                    ]
@@ -172,8 +172,6 @@ class TestSection(object):
 
 shims = {
     'parallel': 'ipython_parallel',
-    'kernel': 'ipython_kernel',
-    'kernel.inprocess': 'ipython_kernel.inprocess',
     'config': 'traitlets',
     'html': 'jupyter_notebook',
 }
@@ -227,20 +225,6 @@ sec.requires('zmq')
 if not have['pymongo']:
     sec.exclude('controller.mongodb')
     sec.exclude('tests.test_mongodb')
-
-# kernel:
-sec = test_sections['kernel']
-sec.requires('zmq')
-# The in-process kernel tests are done in a separate section
-sec.exclude('inprocess')
-# importing gtk sets the default encoding, which we want to avoid
-sec.exclude('gui.gtkembed')
-sec.exclude('gui.gtk3embed')
-if not have['matplotlib']:
-    sec.exclude('pylab')
-
-# kernel.inprocess:
-test_sections['kernel.inprocess'].requires('zmq')
 
 # extensions:
 sec = test_sections['extensions']
