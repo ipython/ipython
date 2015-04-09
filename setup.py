@@ -271,7 +271,7 @@ extras_require = dict(
     doc = ['Sphinx>=1.1', 'numpydoc'],
     test = ['nose>=0.10.1', 'requests'],
     terminal = [],
-    nbformat = ['jsonschema>=2.0'],
+    nbformat = ['jupyter_nbformat'],
     notebook = ['tornado>=4.0', pyzmq, 'jinja2', 'pygments', 'mistune>=0.5'],
     nbconvert = ['pygments', 'jinja2', 'mistune>=0.3.1']
 )

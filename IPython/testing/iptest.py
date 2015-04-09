@@ -147,7 +147,7 @@ have['zmq'] = test_for('zmq.pyzmq_version_info', min_zmq, callback=lambda x: x()
 
 test_group_names = ['parallel', 'kernel', 'kernel.inprocess', 'config', 'core',
                     'extensions', 'lib', 'terminal', 'testing', 'utils',
-                    'nbformat', 'qt', 'html', 'nbconvert'
+                    'qt', 'html', 'nbconvert'
                    ]
 
 class TestSection(object):
@@ -283,8 +283,6 @@ if not have['tornado']:
     sec.exclude('nbconvert.post_processors.serve')
     sec.exclude('nbconvert.post_processors.tests.test_serve')
 
-# nbformat:
-test_sections['nbformat'].requires('jsonschema')
 
 #-----------------------------------------------------------------------------
 # Functions and classes
