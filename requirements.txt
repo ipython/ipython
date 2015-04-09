@@ -1,4 +1,8 @@
 -e git+https://github.com/ipython/ipython_genutils.git#egg=ipython_genutils
 -e git+https://github.com/ipython/traitlets.git#egg=traitlets
+# Below here aren't actually needed by IPython.
+# Only while the split is partial
+# and the IPython repo is still running Jupyter tests
 -e git+https://github.com/jupyter/jupyter_core.git#egg=jupyter_core
 -e git+https://github.com/jupyter/jupyter_nbformat.git#egg=jupyter_nbformat
+-e git+https://github.com/jupyter/jupyter_client.git#egg=jupyter_client
