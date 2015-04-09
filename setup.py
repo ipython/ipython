@@ -289,6 +289,7 @@ install_requires = [
     'decorator',
     'pickleshare',
     'simplegeneric>0.8',
+    'traitlets',
 ]
 
 # add platform-specific dependencies

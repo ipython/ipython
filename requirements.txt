@@ -1,0 +1,2 @@
+-e git+https://github.com/ipython/ipython_genutils.git#egg=ipython_genutils
+-e git+https://github.com/ipython/traitlets.git#egg=traitlets
