@@ -146,7 +146,7 @@ have['zmq'] = test_for('zmq.pyzmq_version_info', min_zmq, callback=lambda x: x()
 
 test_group_names = ['core',
                     'extensions', 'lib', 'terminal', 'testing', 'utils',
-                    'html', 'nbconvert'
+                    'html',
                    ]
 
 class TestSection(object):
@@ -239,21 +239,8 @@ sec.exclude('static')
 sec.exclude('tasks')
 if not have['jinja2']:
     sec.exclude('notebookapp')
-if not have['pygments'] or not have['jinja2']:
-    sec.exclude('nbconvert')
 if not have['terminado']:
     sec.exclude('terminal')
-
-# nbconvert:
-sec = test_sections['nbconvert']
-sec.requires('pygments', 'jinja2', 'jsonschema', 'mistune')
-# Exclude nbconvert directories containing config files used to test.
-# Executing the config files with iptest would cause an exception.
-sec.exclude('tests.files')
-sec.exclude('exporters.tests.files')
-if not have['tornado']:
-    sec.exclude('nbconvert.post_processors.serve')
-    sec.exclude('nbconvert.post_processors.tests.test_serve')
 
 
 #-----------------------------------------------------------------------------
