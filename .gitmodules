@@ -1,3 +1,0 @@
-[submodule "components"]
-	path = jupyter_notebook/static/components
-	url = https://github.com/ipython/ipython-components.git
