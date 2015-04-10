@@ -71,7 +71,7 @@ class ClusterManager(LoggingConfigurable):
         for profile in stale:
             # remove profiles that no longer exist
             self.log.debug("Profile '%s' no longer exists", profile)
-            self.profiles.pop(stale)
+            self.profiles.pop(profile)
 
     def list_profiles(self):
         self.update_profiles()
