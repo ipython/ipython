@@ -7,3 +7,4 @@
 -e git+https://github.com/jupyter/jupyter_nbformat.git#egg=jupyter_nbformat
 -e git+https://github.com/jupyter/jupyter_client.git#egg=jupyter_client
 -e git+https://github.com/ipython/ipython_kernel.git#egg=ipython_kernel
+-e git+https://github.com/jupyter/jupyter_nbconvert.git#egg=jupyter_nbconvert
