@@ -193,6 +193,8 @@ if not have['matplotlib']:
 sec = test_sections['lib']
 if not have['zmq']:
     sec.exclude('kernel')
+if not have['pygments']:
+    sec.exclude('tests.test_lexers')
 # We do this unconditionally, so that the test suite doesn't import
 # gtk, changing the default encoding and masking some unicode bugs.
 sec.exclude('inputhookgtk')
