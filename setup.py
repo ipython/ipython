@@ -248,10 +248,11 @@ pyzmq = 'pyzmq>=13'
 
 extras_require = dict(
     parallel = ['ipython_parallel'],
-    qtconsole = [pyzmq, 'pygments'],
+    qtconsole = ['jupyter_qtconsole'],
     doc = ['Sphinx>=1.1', 'numpydoc'],
     test = ['nose>=0.10.1', 'requests'],
     terminal = [],
+    kernel = ['ipython_kernel'],
     nbformat = ['jupyter_nbformat'],
     notebook = ['tornado>=4.0', pyzmq, 'jinja2', 'pygments', 'mistune>=0.5'],
     nbconvert = ['pygments', 'jinja2', 'mistune>=0.3.1']
@@ -263,8 +264,9 @@ if not sys.platform.startswith('win'):
 if sys.version_info < (3, 3):
     extras_require['test'].append('mock')
 
-extras_require['notebook'].extend(extras_require['nbformat'])
 extras_require['nbconvert'].extend(extras_require['nbformat'])
+extras_require['notebook'].extend(extras_require['kernel'])
+extras_require['notebook'].extend(extras_require['nbconvert'])
 
 install_requires = [
     'decorator',

@@ -124,7 +124,6 @@ have['numpy'] = test_for('numpy')
 have['pexpect'] = test_for('pexpect')
 have['pymongo'] = test_for('pymongo')
 have['pygments'] = test_for('pygments')
-have['qt'] = test_for('IPython.external.qt')
 have['sqlite3'] = test_for('sqlite3')
 have['tornado'] = test_for('tornado.version_info', (4,0), callback=None)
 have['jinja2'] = test_for('jinja2')
@@ -147,7 +146,7 @@ have['zmq'] = test_for('zmq.pyzmq_version_info', min_zmq, callback=lambda x: x()
 
 test_group_names = ['core',
                     'extensions', 'lib', 'terminal', 'testing', 'utils',
-                    'qt', 'html', 'nbconvert'
+                    'html', 'nbconvert'
                    ]
 
 class TestSection(object):
@@ -226,9 +225,6 @@ sec.exclude('tests.test_autoreload')
 test_sections['autoreload'] = TestSection('autoreload',
         ['IPython.extensions.autoreload', 'IPython.extensions.tests.test_autoreload'])
 test_group_names.append('autoreload')
-
-# qt:
-test_sections['qt'].requires('zmq', 'qt', 'pygments')
 
 # html:
 sec = test_sections['html']

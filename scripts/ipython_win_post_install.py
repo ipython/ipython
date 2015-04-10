@@ -102,8 +102,6 @@ def install():
                arguments(scripts, 'ipython'), iconpath)
     mkshortcut(python, 'IPython (pylab mode)', ip_start_menu,
                arguments(scripts, 'ipython', '--pylab'), iconpath)
-    mkshortcut(pythonw, 'IPython Qt Console', ip_start_menu,
-               arguments(scripts, 'ipython', 'qtconsole'), iconpath)
 
     iconpath = pjoin(scripts, 'ipython_nb.ico')
     mkshortcut(python, 'IPython Notebook', ip_start_menu,
