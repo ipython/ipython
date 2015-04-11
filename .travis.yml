@@ -2,36 +2,16 @@
 language: python
 python:
     - 3.4
+    - 3.3
     - 2.7
 sudo: false
-env:
-  global:
-    - PATH=$TRAVIS_BUILD_DIR/pandoc:$PATH
-  matrix:
-    - GROUP=
-    - GROUP=js/base
-    - GROUP=js/notebook
-    - GROUP=js/services
-    - GROUP=js/tree
-    - GROUP=js/widgets
 before_install:
-    - 'if [[ $GROUP != js* ]]; then wget https://7de4dfdec62155b49b44-d726a73613a1989d29b147f20996e7c1.ssl.cf2.rackcdn.com/pandoc-1.12.3-linux-debian-x86_64.zip && unzip pandoc-1.12.3-linux-debian-x86_64.zip; fi'
-    - 'if [[ $GROUP == js* ]]; then wget https://7de4dfdec62155b49b44-d726a73613a1989d29b147f20996e7c1.ssl.cf2.rackcdn.com/mathjax.zip; fi'
-    - 'if [[ $GROUP == js* ]]; then npm install -g casperjs; fi'
     - git clone --quiet --depth 1 https://github.com/minrk/travis-wheels travis-wheels
-    - 'if [[ $GROUP != js* ]]; then COVERAGE="--coverage xml"; fi'
+    - 'if [[ $GROUP != js* ]]; then COVERAGE=""; fi'
 install:
-    - pip install -f travis-wheels/wheelhouse -r requirements.txt -e file://$PWD#egg=ipython[test,notebook] coveralls
-before_script:
-    - 'if [[ $GROUP == js* ]]; then python -m IPython.external.mathjax mathjax.zip; fi'
+    - pip install -f travis-wheels/wheelhouse -r requirements.txt -e file://$PWD#egg=ipython[test] coveralls
 script:
-    - cd /tmp && iptest $GROUP $COVERAGE && cd -
-
-matrix:
-    include:
-        - python: 3.3
-          env: GROUP=
-
+    - cd /tmp && iptest --coverage xml && cd -
 after_success:
     - cp /tmp/ipy_coverage.xml ./
     - cp /tmp/.coverage ./
