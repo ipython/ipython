@@ -416,7 +416,7 @@ def get__all__entries(obj):
     return [w for w in words if isinstance(w, string_types)]
 
 
-def match_dict_keys(keys, prefix):
+def match_dict_keys(keys, prefix, delims):
     """Used by dict_key_matches, matching the prefix to a list of keys"""
     if not prefix:
         return None, 0, [repr(k) for k in keys
@@ -427,8 +427,9 @@ def match_dict_keys(keys, prefix):
         prefix_str = eval(prefix + quote, {})
     except Exception:
         return None, 0, []
-    
-    token_match = re.search(r'\w*$', prefix, re.UNICODE)
+
+    pattern = '[^' + ''.join('\\' + c for c in delims) + ']*$'
+    token_match = re.search(pattern, prefix, re.UNICODE)
     token_start = token_match.start()
     token_prefix = token_match.group()
 
@@ -913,7 +914,7 @@ class IPCompleter(Completer):
         keys = get_keys(obj)
         if not keys:
             return keys
-        closing_quote, token_offset, matches = match_dict_keys(keys, prefix)
+        closing_quote, token_offset, matches = match_dict_keys(keys, prefix, self.splitter.delims)
         if not matches:
             return matches
         
