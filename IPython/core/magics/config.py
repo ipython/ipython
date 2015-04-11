@@ -106,7 +106,7 @@ class ConfigMagics(Magics):
             In [5]: %config IPCompleter.greedy = feeling_greedy
 
         """
-        from IPython.config.loader import Config
+        from traitlets.config.loader import Config
         # some IPython objects are Configurable, but do not yet have
         # any configurable traits.  Exclude them from the effects of
         # this magic, as their presence is just noise:

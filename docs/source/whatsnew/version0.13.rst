@@ -517,7 +517,7 @@ Official Public API
 We have begun organizing our API for easier public use, with an eye towards an
 official IPython 1.0 release which will firmly maintain this API compatible for
 its entire lifecycle.  There is now an :mod:`IPython.display` module that
-aggregates all display routines, and the :mod:`IPython.config` namespace has
+aggregates all display routines, and the :mod:`traitlets.config` namespace has
 all public configuration tools.  We will continue improving our public API
 layout so that users only need to import names one level deeper than the main
 ``IPython`` package to access all public namespaces.

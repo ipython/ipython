@@ -15,8 +15,8 @@ import logging
 import os
 import sys
 
-from IPython.config.loader import Config
-from IPython.config.application import boolean_flag, catch_config_error, Application
+from traitlets.config.loader import Config
+from traitlets.config.application import boolean_flag, catch_config_error, Application
 from IPython.core import release
 from IPython.core import usage
 from IPython.core.completer import IPCompleter
@@ -34,8 +34,8 @@ from IPython.core.shellapp import (
 from IPython.extensions.storemagic import StoreMagics
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.utils import warn
-from IPython.utils.path import get_ipython_dir
-from IPython.utils.traitlets import (
+from IPython.paths import get_ipython_dir
+from traitlets import (
     Bool, List, Dict,
 )
 
@@ -207,20 +207,20 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         ]
 
     subcommands = dict(
-        qtconsole=('IPython.qt.console.qtconsoleapp.IPythonQtConsoleApp',
-            """Launch the IPython Qt Console."""
+        qtconsole=('jupyter_qtconsole.console.qtconsoleapp.IPythonQtConsoleApp',
+            """DEPRECATD: Launch the Jupyter Qt Console."""
         ),
-        notebook=('IPython.html.notebookapp.NotebookApp',
-            """Launch the IPython HTML Notebook Server."""
+        notebook=('jupyter_notebook.notebookapp.NotebookApp',
+            """DEPRECATED: Launch the IPython HTML Notebook Server."""
         ),
         profile = ("IPython.core.profileapp.ProfileApp",
             "Create and manage IPython profiles."
         ),
-        kernel = ("IPython.kernel.zmq.kernelapp.IPKernelApp",
+        kernel = ("ipython_kernel.kernelapp.IPKernelApp",
             "Start a kernel without an attached frontend."
         ),
-        console=('IPython.terminal.console.app.ZMQTerminalIPythonApp',
-            """Launch the IPython terminal-based Console."""
+        console=('jupyter_console.app.ZMQTerminalIPythonApp',
+            """DEPRECATED: Launch the Jupyter terminal-based Console."""
         ),
         locate=('IPython.terminal.ipapp.LocateIPythonApp',
             LocateIPythonApp.description
@@ -228,19 +228,19 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         history=('IPython.core.historyapp.HistoryApp',
             "Manage the IPython history database."
         ),
-        nbconvert=('IPython.nbconvert.nbconvertapp.NbConvertApp',
-            "Convert notebooks to/from other formats."
+        nbconvert=('jupyter_nbconvert.nbconvertapp.NbConvertApp',
+            "DEPRECATED: Convert notebooks to/from other formats."
         ),
-        trust=('IPython.nbformat.sign.TrustNotebookApp',
-            "Sign notebooks to trust their potentially unsafe contents at load."
+        trust=('jupyter_nbformat.sign.TrustNotebookApp',
+            "DEPRECATED: Sign notebooks to trust their potentially unsafe contents at load."
         ),
-        kernelspec=('IPython.kernel.kernelspecapp.KernelSpecApp',
-            "Manage IPython kernel specifications."
+        kernelspec=('jupyter_client.kernelspecapp.KernelSpecApp',
+            "DEPRECATED: Manage Jupyter kernel specifications."
         ),
     )
     subcommands['install-nbextension'] = (
-        "IPython.html.nbextensions.NBExtensionApp",
-        "Install IPython notebook extension files"
+        "jupyter_notebook.nbextensions.NBExtensionApp",
+        "DEPRECATED: Install Jupyter notebook extension files"
     )
 
     # *do* autocreate requested profile, but don't create the config file.

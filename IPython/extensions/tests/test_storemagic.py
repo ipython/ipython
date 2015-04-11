@@ -1,6 +1,6 @@
 import tempfile, os
 
-from IPython.config.loader import Config
+from traitlets.config.loader import Config
 import nose.tools as nt
 
 ip = get_ipython()

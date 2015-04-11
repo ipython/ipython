@@ -596,7 +596,7 @@ Defaulting color scheme to 'NoColor'"""
         """
         args = magic_arguments.parse_argstring(self.notebook, s)
 
-        from IPython.nbformat import write, v4
+        from jupyter_nbformat import write, v4
         args.filename = unquote_filename(args.filename)
         if args.export:
             cells = []

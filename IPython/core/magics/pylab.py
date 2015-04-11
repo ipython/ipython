@@ -14,7 +14,7 @@ from __future__ import print_function
 #-----------------------------------------------------------------------------
 
 # Our own packages
-from IPython.config.application import Application
+from traitlets.config.application import Application
 from IPython.core import magic_arguments
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest

@@ -27,12 +27,12 @@ except ImportError:
 import threading
 
 # Our own packages
-from IPython.config.configurable import Configurable
+from traitlets.config.configurable import Configurable
 from decorator import decorator
 from IPython.utils.decorators import undoc
 from IPython.utils.path import locate_profile
 from IPython.utils import py3compat
-from IPython.utils.traitlets import (
+from traitlets import (
     Any, Bool, Dict, Instance, Integer, List, Unicode, TraitError,
 )
 from IPython.utils.warn import warn
@@ -177,7 +177,7 @@ class HistoryAccessor(HistoryAccessorBase):
         hist_file : str
           Path to an SQLite history database stored by IPython. If specified,
           hist_file overrides profile.
-        config : :class:`~IPython.config.loader.Config`
+        config : :class:`~traitlets.config.loader.Config`
           Config object. hist_file can also be set through this.
         """
         # We need a pointer back to the shell for various tasks.

@@ -12,9 +12,9 @@ import shutil
 import subprocess
 
 from IPython.utils.process import find_cmd, FindCmdError
-from IPython.config import get_config
-from IPython.config.configurable import SingletonConfigurable
-from IPython.utils.traitlets import List, Bool, Unicode
+from traitlets.config import get_config
+from traitlets.config.configurable import SingletonConfigurable
+from traitlets import List, Bool, Unicode
 from IPython.utils.py3compat import cast_unicode, cast_unicode_py2 as u
 
 

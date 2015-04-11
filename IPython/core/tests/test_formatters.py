@@ -10,7 +10,7 @@ except:
 import nose.tools as nt
 
 from IPython import get_ipython
-from IPython.config import Config
+from traitlets.config import Config
 from IPython.core.formatters import (
     PlainTextFormatter, HTMLFormatter, PDFFormatter, _mod_name_key,
     DisplayFormatter, JSONFormatter,

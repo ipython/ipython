@@ -25,6 +25,7 @@ import nose.tools as nt
 from nose import with_setup
 
 import IPython
+from IPython import paths
 from IPython.testing import decorators as dec
 from IPython.testing.decorators import (skip_if_not_win32, skip_win32,
                                         onlyif_unicode_paths,)
@@ -253,7 +254,7 @@ def test_filefind():
     """Various tests for filefind"""
     f = tempfile.NamedTemporaryFile()
     # print 'fname:',f.name
-    alt_dirs = path.get_ipython_dir()
+    alt_dirs = paths.get_ipython_dir()
     t = path.filefind(f.name, alt_dirs)
     # print 'found:',t
 
@@ -298,7 +299,7 @@ def test_not_writable_ipdir():
         # assume I'm root and skip the test
         raise SkipTest("I can't create directories that I can't write to")
     with AssertPrints('is not a writable location', channel='stderr'):
-        ipdir = path.get_ipython_dir()
+        ipdir = paths.get_ipython_dir()
     env.pop('IPYTHON_DIR', None)
 
 def test_unquote_filename():

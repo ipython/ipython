@@ -23,7 +23,7 @@ import types
 from getopt import getopt, GetoptError
 
 # Our own
-from IPython.config.configurable import Configurable
+from traitlets.config.configurable import Configurable
 from IPython.core import oinspect
 from IPython.core.error import UsageError
 from IPython.core.inputsplitter import ESC_MAGIC, ESC_MAGIC2
@@ -32,7 +32,7 @@ from IPython.utils.ipstruct import Struct
 from IPython.utils.process import arg_split
 from IPython.utils.py3compat import string_types, iteritems
 from IPython.utils.text import dedent
-from IPython.utils.traitlets import Bool, Dict, Instance, MetaHasTraits
+from traitlets import Bool, Dict, Instance, MetaHasTraits
 from IPython.utils.warn import error
 
 #-----------------------------------------------------------------------------

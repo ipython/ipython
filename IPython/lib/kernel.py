@@ -8,5 +8,5 @@ warnings.warn("IPython.lib.kernel moved to IPython.kernel.connect in IPython 1.0
     DeprecationWarning
 )
 
-from IPython.kernel.connect import *
+from ipython_kernel.connect import *
 

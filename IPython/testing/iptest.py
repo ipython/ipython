@@ -209,7 +209,7 @@ test_group_names.append('autoreload')
 #-----------------------------------------------------------------------------
 
 def check_exclusions_exist():
-    from IPython.utils.path import get_ipython_package_dir
+    from IPython.paths import get_ipython_package_dir
     from IPython.utils.warn import warn
     parent = os.path.dirname(get_ipython_package_dir())
     for sec in test_sections:

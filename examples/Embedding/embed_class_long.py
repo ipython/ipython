@@ -17,7 +17,7 @@ from __future__ import print_function
 
 # Try running this code both at the command line and from inside IPython (with
 # %run example-embed.py)
-from IPython.config.loader import Config
+from traitlets.config.loader import Config
 try:
     get_ipython
 except NameError:

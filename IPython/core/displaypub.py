@@ -17,9 +17,9 @@ spec.
 
 from __future__ import print_function
 
-from IPython.config.configurable import Configurable
+from traitlets.config.configurable import Configurable
 from IPython.utils import io
-from IPython.utils.traitlets import List
+from traitlets import List
 
 # This used to be defined here - it is imported for backwards compatibility
 from .display import publish_display_data

@@ -24,15 +24,15 @@ from __future__ import print_function
 
 import os
 
-from IPython.config.application import Application
+from traitlets.config.application import Application
 from IPython.core.application import (
     BaseIPythonApplication, base_flags
 )
 from IPython.core.profiledir import ProfileDir
 from IPython.utils.importstring import import_item
-from IPython.utils.path import get_ipython_dir, get_ipython_package_dir
+from IPython.paths import get_ipython_dir, get_ipython_package_dir
 from IPython.utils import py3compat
-from IPython.utils.traitlets import Unicode, Bool, Dict
+from traitlets import Unicode, Bool, Dict
 
 #-----------------------------------------------------------------------------
 # Constants
@@ -261,25 +261,19 @@ class ProfileCreate(BaseIPythonApplication):
         from IPython.terminal.ipapp import TerminalIPythonApp
         apps = [TerminalIPythonApp]
         for app_path in (
-            'IPython.kernel.zmq.kernelapp.IPKernelApp',
-            'IPython.terminal.console.app.ZMQTerminalIPythonApp',
-            'IPython.qt.console.qtconsoleapp.IPythonQtConsoleApp',
-            'IPython.html.notebookapp.NotebookApp',
-            'IPython.nbconvert.nbconvertapp.NbConvertApp',
+            'ipython_kernel.kernelapp.IPKernelApp',
         ):
             app = self._import_app(app_path)
             if app is not None:
                 apps.append(app)
         if self.parallel:
-            from IPython.parallel.apps.ipcontrollerapp import IPControllerApp
-            from IPython.parallel.apps.ipengineapp import IPEngineApp
-            from IPython.parallel.apps.ipclusterapp import IPClusterStart
-            from IPython.parallel.apps.iploggerapp import IPLoggerApp
+            from ipython_parallel.apps.ipcontrollerapp import IPControllerApp
+            from ipython_parallel.apps.ipengineapp import IPEngineApp
+            from ipython_parallel.apps.ipclusterapp import IPClusterStart
             apps.extend([
                 IPControllerApp,
                 IPEngineApp,
                 IPClusterStart,
-                IPLoggerApp,
             ])
         for App in apps:
             app = App()

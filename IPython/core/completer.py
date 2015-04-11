@@ -64,7 +64,7 @@ import sys
 import unicodedata
 import string
 
-from IPython.config.configurable import Configurable 
+from traitlets.config.configurable import Configurable 
 from IPython.core.error import TryNext
 from IPython.core.inputsplitter import ESC_MAGIC
 from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
@@ -74,7 +74,7 @@ from IPython.utils.decorators import undoc
 from IPython.utils.dir2 import dir2
 from IPython.utils.process import arg_split
 from IPython.utils.py3compat import builtin_mod, string_types, PY3
-from IPython.utils.traitlets import CBool, Enum
+from traitlets import CBool, Enum
 
 #-----------------------------------------------------------------------------
 # Globals

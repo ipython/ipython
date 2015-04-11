@@ -930,9 +930,9 @@ def set_matplotlib_formats(*formats, **kwargs):
     """
     from IPython.core.interactiveshell import InteractiveShell
     from IPython.core.pylabtools import select_figure_formats
-    from IPython.kernel.zmq.pylab.config import InlineBackend
     # build kwargs, starting with InlineBackend config
     kw = {}
+    from ipython_kernel.pylab.config import InlineBackend
     cfg = InlineBackend.instance()
     kw.update(cfg.print_figure_kwargs)
     kw.update(**kwargs)
@@ -961,7 +961,7 @@ def set_matplotlib_close(close=True):
         Should all matplotlib figures be automatically closed after each cell is
         run?
     """
-    from IPython.kernel.zmq.pylab.config import InlineBackend
+    from ipython_kernel.pylab.config import InlineBackend
     cfg = InlineBackend.instance()
     cfg.close_figures = close
 

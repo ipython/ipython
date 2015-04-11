@@ -42,7 +42,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "extensions"))
 # Setup the top level names
 #-----------------------------------------------------------------------------
 
-from .config.loader import Config
 from .core.getipython import get_ipython
 from .core import release
 from .core.application import Application
@@ -88,7 +87,7 @@ def embed_kernel(module=None, local_ns=None, **kwargs):
         local_ns = caller_locals
     
     # Only import .zmq when we really need it
-    from IPython.kernel.zmq.embed import embed_kernel as real_embed_kernel
+    from ipython_kernel.embed import embed_kernel as real_embed_kernel
     real_embed_kernel(module=module, local_ns=local_ns, **kwargs)
 
 def start_ipython(argv=None, **kwargs):

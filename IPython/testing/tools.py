@@ -36,7 +36,7 @@ try:
 except ImportError:
     has_nose = False
 
-from IPython.config.loader import Config
+from traitlets.config.loader import Config
 from IPython.utils.process import get_output_error_code
 from IPython.utils.text import list_strings
 from IPython.utils.io import temp_pyfile, Tee

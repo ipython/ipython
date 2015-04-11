@@ -37,7 +37,7 @@ no error.
 
 To add to a collection which may have already been defined elsewhere,
 you can use methods like those found on lists, dicts and sets: append,
-extend, :meth:`~IPython.config.loader.LazyConfigValue.prepend` (like
+extend, :meth:`~traitlets.config.loader.LazyConfigValue.prepend` (like
 extend, but at the front), add and update (which works both for dicts
 and sets)::
 

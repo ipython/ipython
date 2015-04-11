@@ -18,7 +18,7 @@ from IPython.core.interactiveshell import InteractiveShell
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.terminal.ipapp import load_default_config
 
-from IPython.utils.traitlets import Bool, CBool, Unicode
+from traitlets import Bool, CBool, Unicode
 from IPython.utils.io import ask_yes_no
 
 

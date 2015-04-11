@@ -18,10 +18,10 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-from IPython.config.configurable import Configurable
+from traitlets.config.configurable import Configurable
 
 from IPython.utils.py3compat import builtin_mod, iteritems
-from IPython.utils.traitlets import Instance
+from traitlets import Instance
 
 #-----------------------------------------------------------------------------
 # Classes and functions
