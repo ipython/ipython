@@ -34,7 +34,6 @@ from nose.core import TestProgram
 from nose.plugins import Plugin
 from nose.util import safe_str
 
-from IPython.utils.process import is_cmd_found
 from IPython.utils.py3compat import bytes_to_str
 from IPython.utils.importstring import import_item
 from IPython.testing.plugin.ipdoctest import IPythonDoctest
@@ -132,9 +131,6 @@ have['requests'] = test_for('requests')
 have['sphinx'] = test_for('sphinx')
 have['jsonschema'] = test_for('jsonschema')
 have['terminado'] = test_for('terminado')
-have['casperjs'] = is_cmd_found('casperjs')
-have['phantomjs'] = is_cmd_found('phantomjs')
-have['slimerjs'] = is_cmd_found('slimerjs')
 
 min_zmq = (13,)
 
