@@ -50,11 +50,8 @@ def test_image_filename_defaults():
                      embed=True)
     nt.assert_raises(ValueError, display.Image)
     nt.assert_raises(ValueError, display.Image, data='this is not an image', format='badformat', embed=True)
-    from IPython.html import DEFAULT_STATIC_FILES_PATH
     # check boths paths to allow packages to test at build and install time
-    imgfile = os.path.join(tpath, 'html/static/base/images/logo.png')
-    if not os.path.exists(imgfile):
-        imgfile = os.path.join(DEFAULT_STATIC_FILES_PATH, 'base/images/logo.png')
+    imgfile = os.path.join(tpath, 'core/tests/2x2.png')
     img = display.Image(filename=imgfile)
     nt.assert_equal('png', img.format)
     nt.assert_is_not_none(img._repr_png_())
