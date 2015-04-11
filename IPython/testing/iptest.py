@@ -117,24 +117,9 @@ def test_for(item, min_version=None, callback=extract_version):
 # have available at test run time
 have = {}
 
-have['curses'] = test_for('_curses')
 have['matplotlib'] = test_for('matplotlib')
-have['numpy'] = test_for('numpy')
-have['pexpect'] = test_for('pexpect')
-have['pymongo'] = test_for('pymongo')
 have['pygments'] = test_for('pygments')
 have['sqlite3'] = test_for('sqlite3')
-have['tornado'] = test_for('tornado.version_info', (4,0), callback=None)
-have['jinja2'] = test_for('jinja2')
-have['mistune'] = test_for('mistune')
-have['requests'] = test_for('requests')
-have['sphinx'] = test_for('sphinx')
-have['jsonschema'] = test_for('jsonschema')
-have['terminado'] = test_for('terminado')
-
-min_zmq = (13,)
-
-have['zmq'] = test_for('zmq.pyzmq_version_info', min_zmq, callback=lambda x: x())
 
 #-----------------------------------------------------------------------------
 # Test suite definitions
@@ -182,8 +167,7 @@ if not have['matplotlib']:
 
 # lib:
 sec = test_sections['lib']
-if not have['zmq']:
-    sec.exclude('kernel')
+sec.exclude('kernel')
 if not have['pygments']:
     sec.exclude('tests.test_lexers')
 # We do this unconditionally, so that the test suite doesn't import
