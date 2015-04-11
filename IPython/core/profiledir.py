@@ -141,7 +141,10 @@ class ProfileDir(LoggingConfigurable):
         self._mkdir(self.static_dir)
         custom = os.path.join(self.static_dir, 'custom')
         self._mkdir(custom)
-        from IPython.html import DEFAULT_STATIC_FILES_PATH
+        try:
+            from jupyter_notebook import DEFAULT_STATIC_FILES_PATH
+        except ImportError:
+            return
         for fname in ('custom.js', 'custom.css'):
             src = os.path.join(DEFAULT_STATIC_FILES_PATH, 'custom', fname)
             dest = os.path.join(custom, fname)

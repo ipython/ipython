@@ -247,218 +247,15 @@ class PyTestController(TestController):
         super(PyTestController, self).launch(buffer_output=buffer_output)
 
 
-js_prefix = 'js/'
-
-def get_js_test_dir():
-    import IPython.html.tests as t
-    return os.path.join(os.path.dirname(t.__file__), '')
-
-def all_js_groups():
-    import glob
-    test_dir = get_js_test_dir()
-    all_subdirs = glob.glob(test_dir + '[!_]*/')
-    return [js_prefix+os.path.relpath(x, test_dir) for x in all_subdirs]
-
-class JSController(TestController):
-    """Run CasperJS tests """
-    
-    requirements =  ['zmq', 'tornado', 'jinja2', 'casperjs', 'sqlite3',
-                     'jsonschema']
-
-    def __init__(self, section, xunit=True, engine='phantomjs', url=None):
-        """Create new test runner."""
-        TestController.__init__(self)
-        self.engine = engine
-        self.section = section
-        self.xunit = xunit
-        self.url = url
-        self.slimer_failure = re.compile('^FAIL.*', flags=re.MULTILINE)
-        js_test_dir = get_js_test_dir()
-        includes = '--includes=' + os.path.join(js_test_dir,'util.js')
-        test_cases = os.path.join(js_test_dir, self.section[len(js_prefix):])
-        self.cmd = ['casperjs', 'test', includes, test_cases, '--engine=%s' % self.engine]
-
-    def setup(self):
-        self.ipydir = TemporaryDirectory()
-        self.nbdir = TemporaryDirectory()
-        self.dirs.append(self.ipydir)
-        self.dirs.append(self.nbdir)
-        os.makedirs(os.path.join(self.nbdir.name, os.path.join(u'sub ∂ir1', u'sub ∂ir 1a')))
-        os.makedirs(os.path.join(self.nbdir.name, os.path.join(u'sub ∂ir2', u'sub ∂ir 1b')))
-
-        if self.xunit:
-            self.add_xunit()
-
-        # If a url was specified, use that for the testing.
-        if self.url:
-            try:
-                alive = requests.get(self.url).status_code == 200
-            except:
-                alive = False
-
-            if alive:
-                self.cmd.append("--url=%s" % self.url)
-            else:
-                raise Exception('Could not reach "%s".' % self.url)
-        else:
-            # start the ipython notebook, so we get the port number
-            self.server_port = 0
-            self._init_server()
-            if self.server_port:
-                self.cmd.append("--port=%i" % self.server_port)
-            else:
-                # don't launch tests if the server didn't start
-                self.cmd = [sys.executable, '-c', 'raise SystemExit(1)']
-
-    def add_xunit(self):
-        xunit_file = os.path.abspath(self.section.replace('/','.') + '.xunit.xml')
-        self.cmd.append('--xunit=%s' % xunit_file)
-
-    def launch(self, buffer_output):
-        # If the engine is SlimerJS, we need to buffer the output because
-        # SlimerJS does not support exit codes, so CasperJS always returns 0.
-        if self.engine == 'slimerjs' and not buffer_output:
-            return super(JSController, self).launch(capture_output=True)
-
-        else:
-            return super(JSController, self).launch(buffer_output=buffer_output)
-
-    def wait(self, *pargs, **kwargs):
-        """Wait for the JSController to finish"""
-        ret = super(JSController, self).wait(*pargs, **kwargs)
-        # If this is a SlimerJS controller, check the captured stdout for
-        # errors.  Otherwise, just return the return code.
-        if self.engine == 'slimerjs':
-            stdout = bytes_to_str(self.stdout)
-            if ret != 0:
-                # This could still happen e.g. if it's stopped by SIGINT
-                return ret
-            return bool(self.slimer_failure.search(strip_ansi(stdout)))
-        else:
-            return ret
-
-    def print_extra_info(self):
-        print("Running tests with notebook directory %r" % self.nbdir.name)
-
-    @property
-    def will_run(self):
-        should_run = all(have[a] for a in self.requirements + [self.engine])
-        return should_run
-
-    def _init_server(self):
-        "Start the notebook server in a separate process"
-        self.server_command = command = [sys.executable,
-            '-m', 'IPython.html',
-            '--no-browser',
-            '--ipython-dir', self.ipydir.name,
-            '--notebook-dir', self.nbdir.name,
-        ]
-        # ipc doesn't work on Windows, and darwin has crazy-long temp paths,
-        # which run afoul of ipc's maximum path length.
-        if sys.platform.startswith('linux'):
-            command.append('--KernelManager.transport=ipc')
-        self.stream_capturer = c = StreamCapturer()
-        c.start()
-        env = os.environ.copy()
-        if self.engine == 'phantomjs':
-            env['IPYTHON_ALLOW_DRAFT_WEBSOCKETS_FOR_PHANTOMJS'] = '1'
-        self.server = subprocess.Popen(command,
-            stdout=c.writefd,
-            stderr=subprocess.STDOUT,
-            cwd=self.nbdir.name,
-            env=env,
-        )
-        self.server_info_file = os.path.join(self.ipydir.name,
-            'profile_default', 'security', 'nbserver-%i.json' % self.server.pid
-        )
-        self._wait_for_server()
-    
-    def _wait_for_server(self):
-        """Wait 30 seconds for the notebook server to start"""
-        for i in range(300):
-            if self.server.poll() is not None:
-                return self._failed_to_start()
-            if os.path.exists(self.server_info_file):
-                try:
-                    self._load_server_info()
-                except ValueError:
-                    # If the server is halfway through writing the file, we may
-                    # get invalid JSON; it should be ready next iteration.
-                    pass
-                else:
-                    return
-            time.sleep(0.1)
-        print("Notebook server-info file never arrived: %s" % self.server_info_file,
-            file=sys.stderr
-        )
-    
-    def _failed_to_start(self):
-        """Notebook server exited prematurely"""
-        captured = self.stream_capturer.get_buffer().decode('utf-8', 'replace')
-        print("Notebook failed to start: ", file=sys.stderr)
-        print(self.server_command)
-        print(captured, file=sys.stderr)
-    
-    def _load_server_info(self):
-        """Notebook server started, load connection info from JSON"""
-        with open(self.server_info_file) as f:
-            info = json.load(f)
-        self.server_port = info['port']
-
-    def cleanup(self):
-        if hasattr(self, 'server'):
-            try:
-                self.server.terminate()
-            except OSError:
-                # already dead
-                pass
-            # wait 10s for the server to shutdown
-            try:
-                popen_wait(self.server, NOTEBOOK_SHUTDOWN_TIMEOUT)
-            except TimeoutExpired:
-                # server didn't terminate, kill it
-                try:
-                    print("Failed to terminate notebook server, killing it.",
-                        file=sys.stderr
-                    )
-                    self.server.kill()
-                except OSError:
-                    # already dead
-                    pass
-            # wait another 10s
-            try:
-                popen_wait(self.server, NOTEBOOK_SHUTDOWN_TIMEOUT)
-            except TimeoutExpired:
-                print("Notebook server still running (%s)" % self.server_info_file,
-                    file=sys.stderr
-                )
-              
-            self.stream_capturer.halt()
-        TestController.cleanup(self)
-
-
 def prepare_controllers(options):
     """Returns two lists of TestController instances, those to run, and those
     not to run."""
     testgroups = options.testgroups
-    if testgroups:
-        if 'js' in testgroups:
-            js_testgroups = all_js_groups()
-        else:
-            js_testgroups = [g for g in testgroups if g.startswith(js_prefix)]
-        py_testgroups = [g for g in testgroups if not g.startswith('js')]
-    else:
-        py_testgroups = py_test_group_names
-        if not options.all:
-            js_testgroups = []
-        else:
-            js_testgroups = all_js_groups()
+    if not testgroups:
+        testgroups = py_test_group_names
 
-    engine = 'slimerjs' if options.slimerjs else 'phantomjs'
-    c_js = [JSController(name, xunit=options.xunit, engine=engine, url=options.url) for name in js_testgroups]
-    c_py = [PyTestController(name, options) for name in py_testgroups]
+    controllers = [PyTestController(name, options) for name in testgroups]
 
-    controllers = c_py + c_js
     to_run = [c for c in controllers if c.will_run]
     not_run = [c for c in controllers if not c.will_run]
     return to_run, not_run
@@ -558,9 +355,6 @@ def run_iptestall(options):
 
     inc_slow : bool
       Include slow tests. By default, these tests aren't run.
-
-    slimerjs : bool
-      Use slimerjs if it's installed instead of phantomjs for casperjs tests.
 
     url : unicode
       Address:port to use when running the JS tests.
@@ -696,8 +490,6 @@ argparser.add_argument('testgroups', nargs='*',
                     'all tests.')
 argparser.add_argument('--all', action='store_true',
                     help='Include slow tests not run by default.')
-argparser.add_argument('--slimerjs', action='store_true',
-                    help="Use slimerjs if it's installed instead of phantomjs for casperjs tests.")
 argparser.add_argument('--url', help="URL to use for the JS tests.")
 argparser.add_argument('-j', '--fast', nargs='?', const=None, default=1, type=int,
                     help='Run test sections in parallel. This starts as many '

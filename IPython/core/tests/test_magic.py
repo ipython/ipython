@@ -619,18 +619,16 @@ def test_extension():
         tmpdir.cleanup()
 
 
-# The nose skip decorator doesn't work on classes, so this uses unittest's skipIf
-@skipIf(dec.module_not_available('IPython.nbformat'), 'nbformat not importable')
-class NotebookExportMagicTests(TestCase):
-    def test_notebook_export_json(self):
-        _ip = get_ipython()
-        _ip.history_manager.reset()   # Clear any existing history.
-        cmds = [u"a=1", u"def b():\n  return a**2", u"print('noël, été', b())"]
-        for i, cmd in enumerate(cmds, start=1):
-            _ip.history_manager.store_inputs(i, cmd)
-        with TemporaryDirectory() as td:
-            outfile = os.path.join(td, "nb.ipynb")
-            _ip.magic("notebook -e %s" % outfile)
+@dec.skip_without('jupyter_nbformat')
+def test_notebook_export_json():
+    _ip = get_ipython()
+    _ip.history_manager.reset()   # Clear any existing history.
+    cmds = [u"a=1", u"def b():\n  return a**2", u"print('noël, été', b())"]
+    for i, cmd in enumerate(cmds, start=1):
+        _ip.history_manager.store_inputs(i, cmd)
+    with TemporaryDirectory() as td:
+        outfile = os.path.join(td, "nb.ipynb")
+        _ip.magic("notebook -e %s" % outfile)
 
 
 class TestEnv(TestCase):

@@ -34,7 +34,6 @@ from nose.core import TestProgram
 from nose.plugins import Plugin
 from nose.util import safe_str
 
-from IPython.utils.process import is_cmd_found
 from IPython.utils.py3compat import bytes_to_str
 from IPython.utils.importstring import import_item
 from IPython.testing.plugin.ipdoctest import IPythonDoctest
@@ -118,27 +117,9 @@ def test_for(item, min_version=None, callback=extract_version):
 # have available at test run time
 have = {}
 
-have['curses'] = test_for('_curses')
 have['matplotlib'] = test_for('matplotlib')
-have['numpy'] = test_for('numpy')
-have['pexpect'] = test_for('pexpect')
-have['pymongo'] = test_for('pymongo')
 have['pygments'] = test_for('pygments')
 have['sqlite3'] = test_for('sqlite3')
-have['tornado'] = test_for('tornado.version_info', (4,0), callback=None)
-have['jinja2'] = test_for('jinja2')
-have['mistune'] = test_for('mistune')
-have['requests'] = test_for('requests')
-have['sphinx'] = test_for('sphinx')
-have['jsonschema'] = test_for('jsonschema')
-have['terminado'] = test_for('terminado')
-have['casperjs'] = is_cmd_found('casperjs')
-have['phantomjs'] = is_cmd_found('phantomjs')
-have['slimerjs'] = is_cmd_found('slimerjs')
-
-min_zmq = (13,)
-
-have['zmq'] = test_for('zmq.pyzmq_version_info', min_zmq, callback=lambda x: x())
 
 #-----------------------------------------------------------------------------
 # Test suite definitions
@@ -146,7 +127,6 @@ have['zmq'] = test_for('zmq.pyzmq_version_info', min_zmq, callback=lambda x: x()
 
 test_group_names = ['core',
                     'extensions', 'lib', 'terminal', 'testing', 'utils',
-                    'html',
                    ]
 
 class TestSection(object):
@@ -169,12 +149,8 @@ class TestSection(object):
     def will_run(self):
         return self.enabled and all(have[p] for p in self.dependencies)
 
-shims = {
-    'html': 'jupyter_notebook',
-}
-
 # Name -> (include, exclude, dependencies_met)
-test_sections = {n:TestSection(n, [shims.get(n, 'IPython.%s' % n)]) for n in test_group_names}
+test_sections = {n:TestSection(n, ['IPython.%s' % n]) for n in test_group_names}
 
 
 # Exclusions and dependencies
@@ -191,8 +167,7 @@ if not have['matplotlib']:
 
 # lib:
 sec = test_sections['lib']
-if not have['zmq']:
-    sec.exclude('kernel')
+sec.exclude('kernel')
 if not have['pygments']:
     sec.exclude('tests.test_lexers')
 # We do this unconditionally, so that the test suite doesn't import
@@ -227,20 +202,6 @@ sec.exclude('tests.test_autoreload')
 test_sections['autoreload'] = TestSection('autoreload',
         ['IPython.extensions.autoreload', 'IPython.extensions.tests.test_autoreload'])
 test_group_names.append('autoreload')
-
-# html:
-sec = test_sections['html']
-sec.requires('zmq', 'tornado', 'requests', 'sqlite3', 'jsonschema')
-# The notebook 'static' directory contains JS, css and other
-# files for web serving.  Occasionally projects may put a .py
-# file in there (MathJax ships a conf.py), so we might as
-# well play it safe and skip the whole thing.
-sec.exclude('static')
-sec.exclude('tasks')
-if not have['jinja2']:
-    sec.exclude('notebookapp')
-if not have['terminado']:
-    sec.exclude('terminal')
 
 
 #-----------------------------------------------------------------------------

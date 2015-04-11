@@ -375,10 +375,10 @@ tclass.py: deleting object: C-third
         with tt.AssertNotPrints('SystemExit'):
             _ip.magic('run -e %s' % self.fname)
 
-    @dec.skip_without('IPython.nbformat')  # Requires jsonschema
+    @dec.skip_without('jupyter_nbformat')  # Requires jsonschema
     def test_run_nb(self):
         """Test %run notebook.ipynb"""
-        from IPython.nbformat import v4, writes
+        from jupyter_nbformat import v4, writes
         nb = v4.new_notebook(
            cells=[
                 v4.new_markdown_cell("The Ultimate Question of Everything"),

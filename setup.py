@@ -65,14 +65,7 @@ from setupbase import (
     find_data_files,
     check_for_readline,
     git_prebuild,
-    check_submodule_status,
-    update_submodules,
-    require_submodules,
-    UpdateSubmodules,
     get_bdist_wheel,
-    CompileCSS,
-    JavascriptVersion,
-    css_js_prerelease,
     install_symlinked,
     install_lib_symlink,
     install_scripts_for_symlink,
@@ -98,42 +91,6 @@ if os_name == 'windows' and 'sdist' in sys.argv:
     print('The sdist command is not available under Windows.  Exiting.')
     sys.exit(1)
 
-#-------------------------------------------------------------------------------
-# Make sure we aren't trying to run without submodules
-#-------------------------------------------------------------------------------
-here = os.path.abspath(os.path.dirname(__file__))
-
-def require_clean_submodules():
-    """Check on git submodules before distutils can do anything
-
-    Since distutils cannot be trusted to update the tree
-    after everything has been set in motion,
-    this is not a distutils command.
-    """
-    # PACKAGERS: Add a return here to skip checks for git submodules
-    
-    # don't do anything if nothing is actually supposed to happen
-    for do_nothing in ('-h', '--help', '--help-commands', 'clean', 'submodule'):
-        if do_nothing in sys.argv:
-            return
-
-    status = check_submodule_status(here)
-
-    if status == "missing":
-        print("checking out submodules for the first time")
-        update_submodules(here)
-    elif status == "unclean":
-        print('\n'.join([
-            "Cannot build / install IPython with unclean submodules",
-            "Please update submodules with",
-            "    python setup.py submodule",
-            "or",
-            "    git submodule update",
-            "or commit any submodule changes you have made."
-        ]))
-        sys.exit(1)
-
-require_clean_submodules()
 
 #-------------------------------------------------------------------------------
 # Things related to the IPython documentation
@@ -193,17 +150,14 @@ class UploadWindowsInstallers(upload):
             self.upload_file('bdist_wininst', 'any', dist_file)
 
 setup_args['cmdclass'] = {
-    'build_py': css_js_prerelease(
-            check_package_data_first(git_prebuild('IPython'))),
-    'sdist' : css_js_prerelease(git_prebuild('IPython', sdist)),
+    'build_py': \
+            check_package_data_first(git_prebuild('IPython')),
+    'sdist' : git_prebuild('IPython', sdist),
     'upload_wininst' : UploadWindowsInstallers,
-    'submodule' : UpdateSubmodules,
-    'css' : CompileCSS,
     'symlink': install_symlinked,
     'install_lib_symlink': install_lib_symlink,
     'install_scripts_sym': install_scripts_for_symlink,
     'unsymlink': unsymlink,
-    'jsversion' : JavascriptVersion,
 }
 
 ### Temporarily disable install while it's broken during the big split
@@ -254,19 +208,12 @@ extras_require = dict(
     terminal = [],
     kernel = ['ipython_kernel'],
     nbformat = ['jupyter_nbformat'],
-    notebook = ['tornado>=4.0', pyzmq, 'jinja2', 'pygments', 'mistune>=0.5'],
-    nbconvert = ['pygments', 'jinja2', 'mistune>=0.3.1']
+    notebook = ['jupyter_notebook'],
+    nbconvert = ['jupyter_nbconvert']
 )
-
-if not sys.platform.startswith('win'):
-    extras_require['notebook'].append('terminado>=0.3.3')
 
 if sys.version_info < (3, 3):
     extras_require['test'].append('mock')
-
-extras_require['nbconvert'].extend(extras_require['nbformat'])
-extras_require['notebook'].extend(extras_require['kernel'])
-extras_require['notebook'].extend(extras_require['nbconvert'])
 
 install_requires = [
     'decorator',
@@ -292,10 +239,7 @@ for deps in extras_require.values():
 extras_require['all'] = everything
 
 if 'setuptools' in sys.modules:
-    # setup.py develop should check for submodules
-    from setuptools.command.develop import develop
-    setup_args['cmdclass']['develop'] = require_submodules(develop)
-    setup_args['cmdclass']['bdist_wheel'] = css_js_prerelease(get_bdist_wheel())
+    setup_args['cmdclass']['bdist_wheel'] = get_bdist_wheel()
     
     setuptools_extra_args['zip_safe'] = False
     setuptools_extra_args['entry_points'] = {
