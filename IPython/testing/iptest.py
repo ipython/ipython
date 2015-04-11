@@ -142,7 +142,6 @@ have['zmq'] = test_for('zmq.pyzmq_version_info', min_zmq, callback=lambda x: x()
 
 test_group_names = ['core',
                     'extensions', 'lib', 'terminal', 'testing', 'utils',
-                    'html',
                    ]
 
 class TestSection(object):
@@ -165,12 +164,8 @@ class TestSection(object):
     def will_run(self):
         return self.enabled and all(have[p] for p in self.dependencies)
 
-shims = {
-    'html': 'jupyter_notebook',
-}
-
 # Name -> (include, exclude, dependencies_met)
-test_sections = {n:TestSection(n, [shims.get(n, 'IPython.%s' % n)]) for n in test_group_names}
+test_sections = {n:TestSection(n, ['IPython.%s' % n]) for n in test_group_names}
 
 
 # Exclusions and dependencies
@@ -223,20 +218,6 @@ sec.exclude('tests.test_autoreload')
 test_sections['autoreload'] = TestSection('autoreload',
         ['IPython.extensions.autoreload', 'IPython.extensions.tests.test_autoreload'])
 test_group_names.append('autoreload')
-
-# html:
-sec = test_sections['html']
-sec.requires('zmq', 'tornado', 'requests', 'sqlite3', 'jsonschema')
-# The notebook 'static' directory contains JS, css and other
-# files for web serving.  Occasionally projects may put a .py
-# file in there (MathJax ships a conf.py), so we might as
-# well play it safe and skip the whole thing.
-sec.exclude('static')
-sec.exclude('tasks')
-if not have['jinja2']:
-    sec.exclude('notebookapp')
-if not have['terminado']:
-    sec.exclude('terminal')
 
 
 #-----------------------------------------------------------------------------
