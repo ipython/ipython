@@ -28,10 +28,10 @@ import time
 
 from string import Formatter
 
-from IPython.config.configurable import Configurable
+from traitlets.config.configurable import Configurable
 from IPython.core import release
 from IPython.utils import coloransi, py3compat
-from IPython.utils.traitlets import (Unicode, Instance, Dict, Bool, Int)
+from traitlets import (Unicode, Instance, Dict, Bool, Int)
 
 #-----------------------------------------------------------------------------
 # Color schemes for prompts

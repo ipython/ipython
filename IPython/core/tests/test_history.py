@@ -16,7 +16,7 @@ from datetime import datetime
 import nose.tools as nt
 
 # our own packages
-from IPython.config.loader import Config
+from traitlets.config.loader import Config
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.core.history import HistoryManager, extract_hist_ranges
 from IPython.utils import py3compat

@@ -12,10 +12,10 @@ from __future__ import print_function
 import sys
 
 from IPython.core.formatters import _safe_get_formatter_method
-from IPython.config.configurable import Configurable
+from traitlets.config.configurable import Configurable
 from IPython.utils import io
 from IPython.utils.py3compat import builtin_mod
-from IPython.utils.traitlets import Instance, Float
+from traitlets import Instance, Float
 from IPython.utils.warn import warn
 
 # TODO: Move the various attributes (cache_size, [others now moved]). Some

@@ -9,9 +9,9 @@ from __future__ import print_function
 import os
 import sqlite3
 
-from IPython.config.application import Application
+from traitlets.config.application import Application
 from IPython.core.application import BaseIPythonApplication
-from IPython.utils.traitlets import Bool, Int, Dict
+from traitlets import Bool, Int, Dict
 from IPython.utils.io import ask_yes_no
 
 trim_hist_help = """Trim the IPython history database to the last 1000 entries.

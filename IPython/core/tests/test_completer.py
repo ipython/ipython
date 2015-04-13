@@ -12,7 +12,7 @@ from contextlib import contextmanager
 
 import nose.tools as nt
 
-from IPython.config.loader import Config
+from traitlets.config.loader import Config
 from IPython.core import completer
 from IPython.external.decorators import knownfailureif
 from IPython.utils.tempdir import TemporaryDirectory, TemporaryWorkingDirectory

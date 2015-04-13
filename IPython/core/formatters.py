@@ -19,11 +19,11 @@ import warnings
 
 from decorator import decorator
 
-from IPython.config.configurable import Configurable
+from traitlets.config.configurable import Configurable
 from IPython.core.getipython import get_ipython
 from IPython.utils.sentinel import Sentinel
 from IPython.lib import pretty
-from IPython.utils.traitlets import (
+from traitlets import (
     Bool, Dict, Integer, Unicode, CUnicode, ObjectName, List,
     ForwardDeclaredInstance,
 )

@@ -184,7 +184,7 @@ not work with this. Instead, we do this::
         ...
 
 This gives the new class a metaclass of :class:`~IPython.qt.util.MetaQObjectHasTraits`,
-and the parent classes :class:`~IPython.utils.traitlets.HasTraits` and
+and the parent classes :class:`~traitlets.HasTraits` and
 :class:`~IPython.qt.util.SuperQObject`.
 
 

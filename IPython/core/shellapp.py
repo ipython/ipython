@@ -14,14 +14,14 @@ import glob
 import os
 import sys
 
-from IPython.config.application import boolean_flag
-from IPython.config.configurable import Configurable
-from IPython.config.loader import Config
+from traitlets.config.application import boolean_flag
+from traitlets.config.configurable import Configurable
+from traitlets.config.loader import Config
 from IPython.core import pylabtools
 from IPython.utils import py3compat
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.path import filefind
-from IPython.utils.traitlets import (
+from traitlets import (
     Unicode, Instance, List, Bool, CaselessStrEnum
 )
 from IPython.lib.inputhook import guis

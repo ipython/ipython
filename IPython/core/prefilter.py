@@ -28,7 +28,7 @@ from keyword import iskeyword
 import re
 
 from IPython.core.autocall import IPyAutocall
-from IPython.config.configurable import Configurable
+from traitlets.config.configurable import Configurable
 from IPython.core.inputsplitter import (
     ESC_MAGIC,
     ESC_QUOTE,
@@ -38,7 +38,7 @@ from IPython.core.inputsplitter import (
 from IPython.core.macro import Macro
 from IPython.core.splitinput import LineInfo
 
-from IPython.utils.traitlets import (
+from traitlets import (
     List, Integer, Unicode, CBool, Bool, Instance, CRegExp
 )
 

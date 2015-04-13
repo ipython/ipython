@@ -9,7 +9,7 @@ import nose.tools as nt
 
 from IPython.core import display
 from IPython.core.getipython import get_ipython
-from IPython.utils import path as ipath
+from IPython import paths as ipath
 
 import IPython.testing.decorators as dec
 
@@ -60,7 +60,7 @@ def test_image_filename_defaults():
     nt.assert_is_none(img._repr_jpeg_())
 
 def _get_inline_config():
-    from IPython.kernel.zmq.pylab.config import InlineBackend
+    from ipython_kernel.pylab.config import InlineBackend
     return InlineBackend.instance()
     
 @dec.skip_without('matplotlib')

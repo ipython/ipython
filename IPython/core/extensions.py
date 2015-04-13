@@ -8,9 +8,9 @@ import os
 from shutil import copyfile
 import sys
 
-from IPython.config.configurable import Configurable
+from traitlets.config.configurable import Configurable
 from IPython.utils.path import ensure_dir_exists
-from IPython.utils.traitlets import Instance
+from traitlets import Instance
 from IPython.utils.py3compat import PY3
 if PY3:
     from imp import reload

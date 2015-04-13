@@ -19,13 +19,14 @@ import os
 import shutil
 import sys
 
-from IPython.config.application import Application, catch_config_error
-from IPython.config.loader import ConfigFileNotFound, PyFileConfigLoader
+from traitlets.config.application import Application, catch_config_error
+from traitlets.config.loader import ConfigFileNotFound, PyFileConfigLoader
 from IPython.core import release, crashhandler
 from IPython.core.profiledir import ProfileDir, ProfileDirError
-from IPython.utils.path import get_ipython_dir, get_ipython_package_dir, ensure_dir_exists
+from IPython.paths import get_ipython_dir, get_ipython_package_dir
+from IPython.utils.path import ensure_dir_exists
 from IPython.utils import py3compat
-from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict, Set, Instance, Undefined
+from traitlets import List, Unicode, Type, Bool, Dict, Set, Instance, Undefined
 
 if os.name == 'nt':
     programdata = os.environ.get('PROGRAMDATA', None)

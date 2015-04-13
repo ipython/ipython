@@ -18,8 +18,8 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-from IPython.config.configurable import Configurable
-from IPython.utils.traitlets import List
+from traitlets.config.configurable import Configurable
+from traitlets import List
 
 #-----------------------------------------------------------------------------
 # Main payload class

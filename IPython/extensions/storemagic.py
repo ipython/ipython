@@ -28,7 +28,7 @@ import inspect, os, sys, textwrap
 # Our own
 from IPython.core.error import UsageError
 from IPython.core.magic import Magics, magics_class, line_magic
-from IPython.utils.traitlets import Bool
+from traitlets import Bool
 from IPython.utils.py3compat import string_types
 
 #-----------------------------------------------------------------------------

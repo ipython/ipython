@@ -268,11 +268,11 @@ As of this release, a signifiant portion of IPython has been refactored.  This
 refactoring is founded on a number of new abstractions.  The main new classes
 that implement these abstractions are:
 
-* :class:`IPython.utils.traitlets.HasTraits`.
-* :class:`IPython.config.configurable.Configurable`.
-* :class:`IPython.config.application.Application`.
-* :class:`IPython.config.loader.ConfigLoader`.
-* :class:`IPython.config.loader.Config`
+* :class:`traitlets.HasTraits`.
+* :class:`traitlets.config.configurable.Configurable`.
+* :class:`traitlets.config.application.Application`.
+* :class:`traitlets.config.loader.ConfigLoader`.
+* :class:`traitlets.config.loader.Config`
 
 We are still in the process of writing developer focused documentation about
 these classes, but for now our :ref:`configuration documentation
@@ -383,7 +383,7 @@ Additional new features
 
 .. sourcecode:: python
 
-    from IPython.config.application import Application
+    from traitlets.config.application import Application
     logger = Application.instance().log
 
 * You can now get help on an object halfway through typing a command. For
@@ -403,7 +403,7 @@ Additional new features
   configuration system :ref:`documentation <config_index>` for more details.
 
 * The :class:`~IPython.core.interactiveshell.InteractiveShell` class is now a
-  :class:`~IPython.config.configurable.Configurable` subclass and has traitlets
+  :class:`~traitlets.config.configurable.Configurable` subclass and has traitlets
   that determine the defaults and runtime environment. The ``__init__`` method
   has also been refactored so this class can be instantiated and run without
   the old :mod:`ipmaker` module.
@@ -426,7 +426,7 @@ Additional new features
   strings like ``foo.bar.Bar`` to the actual class.
 
 * Completely refactored the :mod:`IPython.core.prefilter` module into
-  :class:`~IPython.config.configurable.Configurable` subclasses. Added a new
+  :class:`~traitlets.config.configurable.Configurable` subclasses. Added a new
   layer into the prefilter system, called "transformations" that all new
   prefilter logic should use (rather than the older "checker/handler"
   approach).
@@ -439,22 +439,22 @@ Additional new features
   instance and call it. In later calls, it just calls the previously created
   :class:`~IPython.frontend.terminal.embed.InteractiveShellEmbed`.
 
-* Created a configuration system (:mod:`IPython.config.configurable`) that is
-  based on :mod:`IPython.utils.traitlets`. Configurables are arranged into a
+* Created a configuration system (:mod:`traitlets.config.configurable`) that is
+  based on :mod:`traitlets`. Configurables are arranged into a
   runtime containment tree (not inheritance) that i) automatically propagates
   configuration information and ii) allows singletons to discover each other in
   a loosely coupled manner. In the future all parts of IPython will be
-  subclasses of :class:`~IPython.config.configurable.Configurable`. All IPython
+  subclasses of :class:`~traitlets.config.configurable.Configurable`. All IPython
   developers should become familiar with the config system.
 
-* Created a new :class:`~IPython.config.loader.Config` for holding
+* Created a new :class:`~traitlets.config.loader.Config` for holding
   configuration information. This is a dict like class with a few extras: i)
   it supports attribute style access, ii) it has a merge function that merges
-  two :class:`~IPython.config.loader.Config` instances recursively and iii) it
-  will automatically create sub-:class:`~IPython.config.loader.Config`
+  two :class:`~traitlets.config.loader.Config` instances recursively and iii) it
+  will automatically create sub-:class:`~traitlets.config.loader.Config`
   instances for attributes that start with an uppercase character.
 
-* Created new configuration loaders in :mod:`IPython.config.loader`. These
+* Created new configuration loaders in :mod:`traitlets.config.loader`. These
   loaders provide a unified loading interface for all configuration
   information including command line arguments and configuration files. We
   have two default implementations based on :mod:`argparse` and plain python
@@ -474,12 +474,12 @@ Additional new features
   as strings, like ``foo.bar.Bar``. This is needed for forward declarations.
   But, this was implemented in a careful way so that string to class
   resolution is done at a single point, when the parent
-  :class:`~IPython.utils.traitlets.HasTraitlets` is instantiated.
+  :class:`~traitlets.HasTraitlets` is instantiated.
 
 * :mod:`IPython.utils.ipstruct` has been refactored to be a subclass of 
   dict.  It also now has full docstrings and doctests.
 
-* Created a Traits like implementation in :mod:`IPython.utils.traitlets`.  This
+* Created a Traits like implementation in :mod:`traitlets`.  This
   is a pure Python, lightweight version of a library that is similar to
   Enthought's Traits project, but has no dependencies on Enthought's code.  We
   are using this for validation, defaults and notification in our new component
@@ -511,7 +511,7 @@ Backwards incompatible changes
   ``ipython profile create <name>``.
 
 * All IPython applications have been rewritten to use
-  :class:`~IPython.config.loader.KeyValueConfigLoader`. This means that
+  :class:`~traitlets.config.loader.KeyValueConfigLoader`. This means that
   command-line options have changed. Now, all configurable values are accessible
   from the command-line with the same syntax as in a configuration file.
 

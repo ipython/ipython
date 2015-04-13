@@ -24,11 +24,11 @@ import os
 import re
 import sys
 
-from IPython.config.configurable import Configurable
+from traitlets.config.configurable import Configurable
 from IPython.core.error import UsageError
 
 from IPython.utils.py3compat import string_types
-from IPython.utils.traitlets import List, Instance
+from traitlets import List, Instance
 from IPython.utils.warn import error
 
 #-----------------------------------------------------------------------------

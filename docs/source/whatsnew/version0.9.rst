@@ -78,7 +78,7 @@ New features
 
 * All of the parallel computing capabilities from `ipython1-dev` have been
   merged into IPython proper.  This resulted in the following new subpackages:
-  :mod:`IPython.kernel`, :mod:`IPython.kernel.core`, :mod:`IPython.config`,
+  :mod:`IPython.kernel`, :mod:`IPython.kernel.core`, :mod:`traitlets.config`,
   :mod:`IPython.tools` and :mod:`IPython.testing`.
 
 * As part of merging in the `ipython1-dev` stuff, the `setup.py` script and

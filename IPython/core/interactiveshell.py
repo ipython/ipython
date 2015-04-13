@@ -29,7 +29,7 @@ from io import open as io_open
 
 from pickleshare import PickleShareDB
 
-from IPython.config.configurable import SingletonConfigurable
+from traitlets.config.configurable import SingletonConfigurable
 from IPython.core import debugger, oinspect
 from IPython.core import magic
 from IPython.core import page
@@ -64,7 +64,8 @@ from IPython.utils import openpy
 from IPython.utils.decorators import undoc
 from IPython.utils.io import ask_yes_no
 from IPython.utils.ipstruct import Struct
-from IPython.utils.path import get_home_dir, get_ipython_dir, get_py_filename, unquote_filename, ensure_dir_exists
+from IPython.paths import get_ipython_dir
+from IPython.utils.path import get_home_dir, get_py_filename, unquote_filename, ensure_dir_exists
 from IPython.utils.process import system, getoutput
 from IPython.utils.py3compat import (builtin_mod, unicode_type, string_types,
                                      with_metaclass, iteritems)
@@ -72,7 +73,7 @@ from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import (format_screen, LSString, SList,
                                 DollarFormatter)
-from IPython.utils.traitlets import (Integer, Bool, CBool, CaselessStrEnum, Enum,
+from traitlets import (Integer, Bool, CBool, CaselessStrEnum, Enum,
                                      List, Dict, Unicode, Instance, Type)
 from IPython.utils.warn import warn, error
 import IPython.core.hooks
@@ -2688,7 +2689,7 @@ class InteractiveShell(SingletonConfigurable):
         def get_cells():
             """generator for sequence of code blocks to run"""
             if fname.endswith('.ipynb'):
-                from IPython.nbformat import read
+                from jupyter_nbformat import read
                 with io_open(fname) as f:
                     nb = read(f, as_version=4)
                     if not nb.cells:
