@@ -877,7 +877,7 @@ class Video(DisplayObject):
         output = """<video controls>
  <source src="data:{0};base64,{1}" type="{0}">
  Your browser does not support the video tag.
- </video>""".format(mimetype, video_encoded.decode('utf-8'))
+ </video>""".format(mimetype, video_encoded.decode('ASCII'))
         return output
 
     def reload(self):
