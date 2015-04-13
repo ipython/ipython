@@ -70,9 +70,14 @@ def needs_sqlite(f, self, *a, **kw):
 
 if sqlite3 is not None:
     DatabaseError = sqlite3.DatabaseError
+    OperationalError = sqlite3.OperationalError
 else:
     @undoc
     class DatabaseError(Exception):
+        "Dummy exception when sqlite could not be imported. Should never occur."
+    
+    @undoc
+    class OperationalError(Exception):
         "Dummy exception when sqlite could not be imported. Should never occur."
 
 @decorator
@@ -83,7 +88,7 @@ def catch_corrupt_db(f, self, *a, **kw):
     """
     try:
         return f(self, *a, **kw)
-    except DatabaseError:
+    except (DatabaseError, OperationalError):
         if os.path.isfile(self.hist_file):
             # Try to move the file out of the way
             base,ext = os.path.splitext(self.hist_file)
