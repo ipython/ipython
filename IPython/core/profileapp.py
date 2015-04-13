@@ -264,8 +264,6 @@ class ProfileCreate(BaseIPythonApplication):
             'IPython.kernel.zmq.kernelapp.IPKernelApp',
             'IPython.terminal.console.app.ZMQTerminalIPythonApp',
             'IPython.qt.console.qtconsoleapp.IPythonQtConsoleApp',
-            'IPython.html.notebookapp.NotebookApp',
-            'IPython.nbconvert.nbconvertapp.NbConvertApp',
         ):
             app = self._import_app(app_path)
             if app is not None:
