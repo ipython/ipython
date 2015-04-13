@@ -6,6 +6,7 @@
 
 from __future__ import print_function
 
+import base64
 import json
 import mimetypes
 import os
@@ -869,14 +870,14 @@ class Video(DisplayObject):
             mimetype, encoding = mimetypes.guess_type(self.filename)
 
             video = open(self.filename, 'rb').read()
-            video_encoded = video.encode('base64')
+            video_encoded = base64.b64encode(video)
         else:
             video_encoded = self.data
             mimetype = self.mimetype
         output = """<video controls>
  <source src="data:{0};base64,{1}" type="{0}">
  Your browser does not support the video tag.
- </video>""".format(mimetype, video_encoded)
+ </video>""".format(mimetype, video_encoded.decode('utf-8'))
         return output
 
     def reload(self):
