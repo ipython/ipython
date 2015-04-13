@@ -228,7 +228,11 @@ def _list_readline(x):
 # Code for going between .py files and cached .pyc files ----------------------
 
 try:    # Python 3.2, see PEP 3147
-    from imp import source_from_cache, cache_from_source
+    try: 
+        from importlib.util import source_from_cache, cache_from_source
+    except ImportError :
+        ## deprecated since 3.4
+        from imp import source_from_cache, cache_from_source
 except ImportError:
     # Python <= 3.1: .pyc files go next to .py
     def source_from_cache(path):
