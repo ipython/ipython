@@ -280,7 +280,7 @@ class BaseIPythonApplication(Application):
                 else:
                     msg = self.log.debug
                 msg("Config file not found, skipping: %s", config_file_name)
-            except:
+            except Exception:
                 # For testing purposes.
                 if not suppress_errors:
                     raise
