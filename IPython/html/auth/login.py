@@ -37,7 +37,13 @@ class LoginHandler(IPythonHandler):
         typed_password = self.get_argument('password', default=u'')
         if self.login_available(self.settings):
             if passwd_check(self.hashed_password, typed_password):
-                self.set_secure_cookie(self.cookie_name, str(uuid.uuid4()))
+                # tornado <4.2 have a bug that consider secure==True as soon as
+                # 'secure' kwarg is passed to set_secure_cookie
+                if self.settings.get('secure_cookie', self.request.protocol == 'https'):
+                    kwargs = {'secure':True}
+                else:
+                    kwargs = {}
+                self.set_secure_cookie(self.cookie_name, str(uuid.uuid4()), **kwargs)
             else:
                 self._render(message={'error': 'Invalid password'})
                 return
