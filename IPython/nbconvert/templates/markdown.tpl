@@ -31,7 +31,7 @@
 {% endblock stream %}
 
 {% block data_svg %}
-![svg]({{ output.svg_filename | path2url }})
+![svg]({{ output.metadata.filenames['image/svg+xml'] | path2url }})
 {% endblock data_svg %}
 
 {% block data_png %}
