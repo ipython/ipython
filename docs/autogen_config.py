@@ -4,7 +4,6 @@ from IPython.utils.text import indent, dedent
 
 from IPython.terminal.ipapp import TerminalIPythonApp
 from IPython.kernel.zmq.kernelapp import IPKernelApp
-from IPython.html.notebookapp import NotebookApp
 
 def document_config_options(classes):
     lines = []
@@ -70,18 +69,5 @@ if __name__ == '__main__':
     write_doc('terminal', 'Terminal IPython options', TerminalIPythonApp().classes)
     write_doc('kernel', 'IPython kernel options', kernel_classes,
         preamble="These options can be used in :file:`ipython_kernel_config.py`",
-    )
-    write_doc('notebook', 'IPython notebook options', NotebookApp().classes,
-        preamble="To configure the IPython kernel, see :doc:`kernel`."
-    )
-
-    try:
-        from IPython.qt.console.qtconsoleapp import IPythonQtConsoleApp
-    except ImportError:
-        print("WARNING: Could not import qtconsoleapp. Config options for the "
-              "Qt Console will not be documented.")
-    else:
-        write_doc('qtconsole', 'IPython Qt console options', IPythonQtConsoleApp().classes,
-        preamble="To configure the IPython kernel, see :doc:`kernel`."
     )
 
