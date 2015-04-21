@@ -8,7 +8,7 @@ import sys
 from warnings import warn
 
 warn("The `IPython.html` package has been deprecated. "
-     "You should import from jupyter_notebook instead.")
+     "You should import from `jupyter_notebook` instead.")
 
 from IPython.utils.shimmodule import ShimModule
 
