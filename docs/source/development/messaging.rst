@@ -153,7 +153,7 @@ Every message is serialized to a sequence of at least six blobs of bytes:
       b'{header}',        # serialized header dict
       b'{parent_header}', # serialized parent header dict
       b'{metadata}',      # serialized metadata dict
-      b'{content},        # serialized content dict
+      b'{content}',       # serialized content dict
       b'blob',            # extra raw data buffer(s)
       ...
     ]
