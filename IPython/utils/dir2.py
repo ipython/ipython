@@ -30,20 +30,6 @@ def safe_hasattr(obj, attr):
         return False
 
 
-def get_class_members(cls):
-    ret = dir(cls)
-    if safe_hasattr(cls, '__bases__'):
-        try:
-            bases = cls.__bases__
-        except AttributeError:
-            # `obj` lied to hasattr (e.g. Pyro), ignore
-            pass
-        else:
-            for base in bases:
-                ret.extend(get_class_members(base))
-    return ret
-
-
 def dir2(obj):
     """dir2(obj) -> list of strings
 
@@ -64,11 +50,6 @@ def dir2(obj):
     except Exception:
         # TypeError: dir(obj) does not return a list
         words = set()
-
-    if safe_hasattr(obj, '__class__'):
-        #words.add('__class__')
-        words |= set(get_class_members(obj.__class__))
-
 
     # for objects with Enthought's traits, add trait_names() list
     try:
