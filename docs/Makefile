@@ -60,7 +60,7 @@ dist: html
 	cp -al build/html .
 	@echo "Build finished.  Final docs are in html/"
 
-html: jsapi api autoconfig automagic
+html: api autoconfig automagic
 html_noapi: clean_api autoconfig automagic
 
 html html_noapi:
@@ -80,9 +80,6 @@ autoconfig: source/config/options/generated
 source/config/options/generated:
 	python autogen_config.py
 	@echo "Created docs for config options"
-
-jsapi:
-	jsdoc -c jsdoc_config.json -d ./build/jsapi_html/
 
 api: source/api/generated/gen.txt
 

@@ -5,7 +5,6 @@ SETLOCAL
 
 SET SPHINXOPTS=
 SET SPHINXBUILD=sphinx-build
-SET JSDOC=jsdoc
 SET PAPER=
 SET SRCDIR=source
 
@@ -43,9 +42,6 @@ FOR %%L IN (html pickle htmlhelp latex changes linkcheck) DO (
     )
 )
 
-IF "%1" == "jsapi" (
-    %JSDOC% -c jsdoc_config.json -d ./build/jsapi_html/
-)
 
 IF "%1" == "clean" (
     RD /s /q build dist %SRCDIR%\api\generated 2>NUL
