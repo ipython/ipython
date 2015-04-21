@@ -2,6 +2,19 @@
  3.x Series
 ============
 
+
+IPython 3.2
+===========
+
+
+Highlights:
+
+- A security improvement that set the secure attribute to login cookie to prevent them to be sent over http
+- Revert the face color of matplotlib axes in the inline backend to not be transparent.
+
+
+
+
 IPython 3.1
 ===========
 
