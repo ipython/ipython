@@ -51,15 +51,6 @@ def dir2(obj):
         # TypeError: dir(obj) does not return a list
         words = set()
 
-    # for objects with Enthought's traits, add trait_names() list
-    try:
-        func = getattr(obj, 'trait_names')
-        if callable(func):
-            words |= set(func())
-    except:
-        # TypeError: obj is class not instance
-        pass
-
     # filter out non-string attributes which may be stuffed by dir() calls
     # and poor coding in third-party modules
 
