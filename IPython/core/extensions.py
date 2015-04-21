@@ -11,8 +11,11 @@ import sys
 from traitlets.config.configurable import Configurable
 from IPython.utils.path import ensure_dir_exists
 from traitlets import Instance
-from IPython.utils.py3compat import PY3
-if PY3:
+
+try:
+    from importlib import reload
+except ImportError :
+    ## deprecated since 3.4
     from imp import reload
 
 #-----------------------------------------------------------------------------
