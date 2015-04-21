@@ -179,10 +179,11 @@ def test_forward_unicode_completion():
 @dec.onlyif(sys.version_info[0] >= 3, 'This test only apply on python3')
 def test_no_ascii_back_completion():
     ip = get_ipython()
-    # single ascii letter that don't have yet completions
-    for letter in 'fjqyJMQVWY' :
-        name, matches = ip.complete('\\'+letter)
-        nt.assert_equal(len(matches), 0)
+    with TemporaryWorkingDirectory():  # Avoid any filename completions
+        # single ascii letter that don't have yet completions
+        for letter in 'fjqyJMQVWY' :
+            name, matches = ip.complete('\\'+letter)
+            nt.assert_equal(matches, [])
 
 
 
