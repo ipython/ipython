@@ -235,7 +235,7 @@ class BaseIPythonApplication(Application):
             path = os.path.join(new, d)
             try:
                 ensure_dir_exists(path)
-            except OSError:
+            except OSError as e:
                 # this will not be EEXIST
                 self.log.error("couldn't create path %s: %s", path, e)
         self.log.debug("IPYTHONDIR set to: %s" % new)

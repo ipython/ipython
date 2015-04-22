@@ -4,7 +4,6 @@ Shim to maintain backwards compatibility with old IPython.consoleapp imports.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import sys
 from warnings import warn
 
 warn("The `IPython.consoleapp` package has been deprecated. "

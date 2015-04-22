@@ -18,6 +18,7 @@ import shutil
 import sys
 import tempfile
 import warnings
+from warnings import warn
 from .capture import CapturedIO, capture_output
 from .py3compat import string_types, input, PY3
 
