@@ -490,6 +490,11 @@ def test_dict_key_completion_string():
     _, matches = complete(line_buffer="d[\"a'")
     nt.assert_in("b", matches)
 
+    # need to not split at delims that readline won't split at
+    if '-' not in ip.Completer.splitter.delims:
+        ip.user_ns['d'] = {'before-after': None}
+        _, matches = complete(line_buffer="d['before-af")
+        nt.assert_in('before-after', matches)
 
 def test_dict_key_completion_contexts():
     """Test expression contexts in which dict key completion occurs"""
