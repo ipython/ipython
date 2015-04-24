@@ -17,6 +17,9 @@ class TerminalHandler(IPythonHandler):
                    ws_path="terminals/websocket/%s" % term_name))
 
 class TermSocket(terminado.TermSocket, IPythonHandler):
+    def set_default_headers(self):
+        pass
+    
     def get(self, *args, **kwargs):
         if not self.get_current_user():
             raise web.HTTPError(403)
