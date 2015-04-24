@@ -40,6 +40,17 @@ def make_empty_file(fname):
     f = open(fname, 'w')
     f.close()
 
+from contextlib import contextmanager
+
+@contextmanager
+def sys_meta_path(newvalue):
+    _old = sys.meta_path
+    sys.meta_path = newvalue
+    try:
+        yield
+    finally:
+        sys.meta_path = _old
+
 
 def setup():
     """Setup testenvironment for the module:
@@ -114,7 +125,15 @@ def test_find_module_1():
 
 def test_find_module_2():
     """Testing sys.path that is empty"""
-    nt.assert_is_none(mp.find_module("xmod", []))
+    # on 3.5 we cannot pass PATH top importlib, 
+    # it searches by default in sys.meta_path
+    # make it empty
+    with sys_meta_path(()):
+        # ensure xmod not already loaded, 
+        # or or will find it
+        if sys.modules.get('xmod'):
+            del sys.modules['xmod']
+        nt.assert_is_none(mp.find_module("xmod", []))
 
 def test_find_module_3():
     """Testing sys.path that is empty"""
