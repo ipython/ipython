@@ -50,6 +50,9 @@ ip = get_ipython()
 # Tests
 #-----------------------------------------------------------------------------
 
+class DerivedInterrupt(KeyboardInterrupt):
+    pass
+
 class InteractiveShellTestCase(unittest.TestCase):
     def test_naked_string_cells(self):
         """Test that cells with only naked strings are fully executed"""
@@ -502,8 +505,6 @@ class InteractiveShellTestCase(unittest.TestCase):
             msg = ip.get_exception_only()
         self.assertEqual(msg, 'KeyboardInterrupt\n')
 
-        class DerivedInterrupt(KeyboardInterrupt):
-            pass
         try:
             raise DerivedInterrupt("foo")
         except KeyboardInterrupt:
