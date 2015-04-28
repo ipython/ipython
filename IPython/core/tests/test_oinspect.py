@@ -203,6 +203,7 @@ def test_calltip_function2():
     check_calltip(g, 'g', 'g(y, z=3, *a, **kw)', '<no docstring>')
 
 
+@skipif(sys.version_info >= (3, 5))
 def test_calltip_builtin():
     check_calltip(sum, 'sum', None, sum.__doc__)
 
