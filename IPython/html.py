@@ -13,11 +13,15 @@ warn("The `IPython.html` package has been deprecated. "
 
 from IPython.utils.shimmodule import ShimModule
 
-sys.modules['IPython.html.widgets'] = ShimModule(
+_widgets = sys.modules['IPython.html.widgets'] = ShimModule(
     src='IPython.html.widgets', mirror='ipython_widgets')
 
-sys.modules['IPython.html'] = ShimModule(
+_html = ShimModule(
     src='IPython.html', mirror='jupyter_notebook')
+
+# hook up widgets
+_html.widgets = _widgets
+sys.modules['IPython.html'] = _html
 
 if __name__ == '__main__':
     from jupyter_notebook import notebookapp as app
