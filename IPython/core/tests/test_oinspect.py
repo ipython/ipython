@@ -16,6 +16,7 @@ from __future__ import print_function
 # Stdlib imports
 import os
 import re
+import sys
 
 # Third-party imports
 import nose.tools as nt
