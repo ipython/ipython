@@ -68,6 +68,18 @@ class ShimModule(types.ModuleType):
     def __spec__(self):
         """Don't produce __spec__ until requested"""
         return __import__(self._mirror).__spec__
+    
+    def __dir__(self):
+        return dir(__import__(self._mirror))
+    
+    @property
+    def __all__(self):
+        """Ensure __all__ is always defined"""
+        mod = __import__(self._mirror)
+        try:
+            return mod.__all__
+        except AttributeError:
+            return [name for name in dir(mod) if not name.startswith('_')]
 
     def __getattr__(self, key):
         # Use the equivalent of import_item(name), see below
