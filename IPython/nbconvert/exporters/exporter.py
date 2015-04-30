@@ -73,7 +73,7 @@ class Exporter(LoggingConfigurable):
                                   'IPython.nbconvert.preprocessors.CSSHTMLHeaderPreprocessor',
                                   'IPython.nbconvert.preprocessors.RevealHelpPreprocessor',
                                   'IPython.nbconvert.preprocessors.LatexPreprocessor',
-                                  'IPython.nbconvert.preprocessors.HighlightMagicsPreprocessor'
+                                  'IPython.nbconvert.preprocessors.HighlightMagicsPreprocessor',
                                   'IPython.nbconvert.preprocessors.ExtractOutputPreprocessor',
                                  ],
         config=True,
