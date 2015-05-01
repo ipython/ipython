@@ -16,6 +16,7 @@ from __future__ import print_function
 # Stdlib imports
 import os
 import re
+import sys
 
 # Third-party imports
 import nose.tools as nt
@@ -48,7 +49,7 @@ ip = get_ipython()
 # defined, if any code is inserted above, the following line will need to be
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
-THIS_LINE_NUMBER = 51  # Put here the actual number of this line
+THIS_LINE_NUMBER = 52  # Put here the actual number of this line
 def test_find_source_lines():
     nt.assert_equal(oinspect.find_source_lines(test_find_source_lines), 
                     THIS_LINE_NUMBER+1)
@@ -203,6 +204,7 @@ def test_calltip_function2():
     check_calltip(g, 'g', 'g(y, z=3, *a, **kw)', '<no docstring>')
 
 
+@skipif(sys.version_info >= (3, 5))
 def test_calltip_builtin():
     check_calltip(sum, 'sum', None, sum.__doc__)
 
