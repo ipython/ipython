@@ -24,7 +24,7 @@ backends = {'tk': 'TkAgg',
             'nbagg': 'nbAgg',
             'notebook': 'nbAgg',
             'inline' : 'module://ipython_kernel.pylab.backend_inline',
-            'iterm2': 'iTerm2'}
+            'iterm2' : 'module://matplotlib_iterm2.backend_iterm2'}
 
 # We also need a reverse backends2guis mapping that will properly choose which
 # GUI support to activate based on the desired matplotlib backend.  For the
