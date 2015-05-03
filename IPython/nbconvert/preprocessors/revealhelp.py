@@ -48,9 +48,15 @@ class RevealHelpPreprocessor(Preprocessor):
                 nb.cells[index].metadata.frag_number = index
                 i = 1
                 while i < len(nb.cells) - index:
-                    nb.cells[index + i].metadata.frag_helper = 'fragment_end'
-                    nb.cells[index + i].metadata.frag_number = index
-                    i += 1
+                    # We need to break the loop when a new slide or subslide is
+                    # found to avoid the propagation of the data-fragment-index
+                    # across multiple slides/subslides
+                    if nb.cells[index + i].metadata.slideshow.slide_type in ['slide', 'subslide']:
+                        break
+                    else:
+                        nb.cells[index + i].metadata.frag_helper = 'fragment_end'
+                        nb.cells[index + i].metadata.frag_number = index
+                        i += 1
             # Restart the slide_helper when the cell status is changed
             # to other types.
             if cell.metadata.slide_type in ['-', 'skip', 'notes', 'fragment']:
