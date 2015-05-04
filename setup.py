@@ -201,7 +201,7 @@ setuptools_extra_args = {}
 pyzmq = 'pyzmq>=13'
 
 extras_require = dict(
-    parallel = ['ipython_parallel'],
+    parallel = ['ipyparallel'],
     qtconsole = ['jupyter_qtconsole'],
     doc = ['Sphinx>=1.1', 'numpydoc'],
     test = ['nose>=0.10.1', 'requests'],

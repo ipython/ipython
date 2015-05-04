@@ -267,9 +267,9 @@ class ProfileCreate(BaseIPythonApplication):
             if app is not None:
                 apps.append(app)
         if self.parallel:
-            from ipython_parallel.apps.ipcontrollerapp import IPControllerApp
-            from ipython_parallel.apps.ipengineapp import IPEngineApp
-            from ipython_parallel.apps.ipclusterapp import IPClusterStart
+            from ipyparallel.apps.ipcontrollerapp import IPControllerApp
+            from ipyparallel.apps.ipengineapp import IPEngineApp
+            from ipyparallel.apps.ipclusterapp import IPClusterStart
             apps.extend([
                 IPControllerApp,
                 IPEngineApp,
