@@ -8,7 +8,7 @@ import sys
 from warnings import warn
 
 warn("The `IPython.parallel` package has been deprecated. "
-     "You should import from ipython_parallel instead.")
+     "You should import from ipyparallel instead.")
 
 from IPython.utils.shimmodule import ShimModule
 
@@ -16,5 +16,5 @@ from IPython.utils.shimmodule import ShimModule
 # trigger the custom attribute access above
 
 sys.modules['IPython.parallel'] = ShimModule(
-    src='IPython.parallel', mirror='ipython_parallel')
+    src='IPython.parallel', mirror='ipyparallel')
 

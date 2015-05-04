@@ -1,4 +1,4 @@
 from warnings import warn
 
-warn("IPython.utils.daemonize has moved to ipython_parallel.apps.daemonize")
-from ipython_parallel.apps.daemonize import daemonize
+warn("IPython.utils.daemonize has moved to ipyparallel.apps.daemonize")
+from ipyparallel.apps.daemonize import daemonize
