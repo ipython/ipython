@@ -204,7 +204,7 @@ extras_require = dict(
     parallel = ['ipython_parallel'],
     qtconsole = ['jupyter_qtconsole'],
     doc = ['Sphinx>=1.1', 'numpydoc'],
-    test = ['nose>=0.10.1', 'requests'],
+    test = ['nose>=0.10.1', 'requests', 'testpath'],
     terminal = [],
     kernel = ['ipython_kernel'],
     nbformat = ['jupyter_nbformat'],
