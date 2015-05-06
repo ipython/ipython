@@ -11,7 +11,7 @@ except ImportError:     # Python 2
     from mock import patch
 
 import nose.tools as nt
-from testpath import modified_env
+from testpath import modified_env, assert_isdir, assert_isfile
 
 from IPython import paths
 from IPython.testing.decorators import skip_win32
@@ -183,12 +183,12 @@ def test_get_ipython_cache_dir():
                 ipdir = paths.get_ipython_cache_dir()
             nt.assert_equal(os.path.join(HOME_TEST_DIR, ".cache", "ipython"),
                             ipdir)
-            nt.assert_true(os.path.isdir(ipdir))
+            assert_isdir(ipdir)
 
             # test env override
             with modified_env({"XDG_CACHE_HOME": XDG_CACHE_DIR}):
                 ipdir = paths.get_ipython_cache_dir()
-            nt.assert_true(os.path.isdir(ipdir))
+            assert_isdir(ipdir)
             nt.assert_equal(ipdir, os.path.join(XDG_CACHE_DIR, "ipython"))
         else:
             nt.assert_equal(paths.get_ipython_cache_dir(),
@@ -196,9 +196,9 @@ def test_get_ipython_cache_dir():
 
 def test_get_ipython_package_dir():
     ipdir = paths.get_ipython_package_dir()
-    nt.assert_true(os.path.isdir(ipdir))
+    assert_isdir(ipdir)
 
 
 def test_get_ipython_module_path():
     ipapp_path = paths.get_ipython_module_path('IPython.terminal.ipapp')
-    nt.assert_true(os.path.isfile(ipapp_path))
+    assert_isfile(ipapp_path)
