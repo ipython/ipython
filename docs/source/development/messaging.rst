@@ -508,6 +508,9 @@ Message type: ``inspect_reply``::
         # 'ok' if the request succeeded or 'error', with error information as in all other replies.
         'status' : 'ok',
         
+        # found should be true if an object was found, false otherwise
+        'found' : bool,
+        
         # data can be empty if nothing is found
         'data' : dict,
         'metadata' : dict,
