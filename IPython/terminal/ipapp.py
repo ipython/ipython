@@ -207,7 +207,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         ]
 
     subcommands = dict(
-        qtconsole=('jupyter_qtconsole.console.qtconsoleapp.JupyterQtConsoleApp',
+        qtconsole=('qtconsole.console.qtconsoleapp.JupyterQtConsoleApp',
             """DEPRECATD: Launch the Jupyter Qt Console."""
         ),
         notebook=('jupyter_notebook.notebookapp.NotebookApp',
@@ -228,7 +228,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         history=('IPython.core.historyapp.HistoryApp',
             "Manage the IPython history database."
         ),
-        nbconvert=('jupyter_nbconvert.nbconvertapp.NbConvertApp',
+        nbconvert=('nbconvert.nbconvertapp.NbConvertApp',
             "DEPRECATED: Convert notebooks to/from other formats."
         ),
         trust=('jupyter_nbformat.sign.TrustNotebookApp',

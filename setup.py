@@ -202,14 +202,14 @@ pyzmq = 'pyzmq>=13'
 
 extras_require = dict(
     parallel = ['ipyparallel'],
-    qtconsole = ['jupyter_qtconsole'],
+    qtconsole = ['qtconsole'],
     doc = ['Sphinx>=1.1', 'numpydoc'],
     test = ['nose>=0.10.1', 'requests'],
     terminal = [],
     kernel = ['ipython_kernel'],
     nbformat = ['jupyter_nbformat'],
     notebook = ['jupyter_notebook'],
-    nbconvert = ['jupyter_nbconvert']
+    nbconvert = ['nbconvert'],
 )
 
 if sys.version_info < (3, 3):

@@ -241,7 +241,7 @@ rprinte = raw_print_err
 
 
 def unicode_std_stream(stream='stdout'):
-    """DEPRECATED, moved to jupyter_nbconvert.utils.io"""
-    warn("IPython.utils.io.unicode_std_stream has moved to jupyter_nbconvert.utils.io")
-    from jupyter_nbconvert.utils.io import unicode_std_stream
+    """DEPRECATED, moved to nbconvert.utils.io"""
+    warn("IPython.utils.io.unicode_std_stream has moved to nbconvert.utils.io")
+    from nbconvert.utils.io import unicode_std_stream
     return unicode_std_stream(stream)

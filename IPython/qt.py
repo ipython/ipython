@@ -8,11 +8,11 @@ import sys
 from warnings import warn
 
 warn("The `IPython.qt` package has been deprecated. "
-     "You should import from jupyter_qtconsole instead.")
+     "You should import from qtconsole instead.")
 
 from IPython.utils.shimmodule import ShimModule
 
 # Unconditionally insert the shim into sys.modules so that further import calls
 # trigger the custom attribute access above
 
-sys.modules['IPython.qt'] = ShimModule(src='IPython.qt', mirror='jupyter_qtconsole')
+sys.modules['IPython.qt'] = ShimModule(src='IPython.qt', mirror='qtconsole')
