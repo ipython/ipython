@@ -117,6 +117,7 @@ define(function(require) {
             processData : false,
             type : "POST",
             data: data,
+            contentType: 'application/json',
             dataType : "json",
         };
         return utils.promising_ajax(this.api_url(path), settings);
@@ -181,6 +182,7 @@ define(function(require) {
             processData : false,
             type: "POST",
             data: JSON.stringify({copy_from: from_file}),
+            contentType: 'application/json',
             dataType : "json",
         };
         return utils.promising_ajax(url, settings);
@@ -195,6 +197,7 @@ define(function(require) {
         var settings = {
             type : "POST",
             dataType : "json",
+            contentType: false,  // no data
         };
         return utils.promising_ajax(url, settings);
     };
@@ -213,6 +216,7 @@ define(function(require) {
         var url = this.api_url(path, 'checkpoints', checkpoint_id);
         var settings = {
             type : "POST",
+            contentType: false,  // no data
         };
         return utils.promising_ajax(url, settings);
     };

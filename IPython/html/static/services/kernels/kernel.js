@@ -196,6 +196,7 @@ define([
             cache: false,
             type: "POST",
             data: JSON.stringify({name: this.name}),
+            contentType: 'application/json',
             dataType: "json",
             success: this._on_success(on_success),
             error: this._on_error(error)
@@ -278,6 +279,7 @@ define([
             processData: false,
             cache: false,
             type: "POST",
+            contentType: false,  // no data
             dataType: "json",
             success: this._on_success(on_success),
             error: this._on_error(error)
@@ -319,6 +321,7 @@ define([
             processData: false,
             cache: false,
             type: "POST",
+            contentType: false,  // no data
             dataType: "json",
             success: this._on_success(on_success),
             error: this._on_error(on_error)
