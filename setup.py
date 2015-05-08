@@ -207,7 +207,7 @@ extras_require = dict(
     test = ['nose>=0.10.1', 'requests', 'testpath'],
     terminal = [],
     kernel = ['ipykernel'],
-    nbformat = ['jupyter_nbformat'],
+    nbformat = ['nbformat'],
     notebook = ['jupyter_notebook'],
     nbconvert = ['nbconvert'],
 )

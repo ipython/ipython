@@ -619,7 +619,7 @@ def test_extension():
         tmpdir.cleanup()
 
 
-@dec.skip_without('jupyter_nbformat')
+@dec.skip_without('nbformat')
 def test_notebook_export_json():
     _ip = get_ipython()
     _ip.history_manager.reset()   # Clear any existing history.

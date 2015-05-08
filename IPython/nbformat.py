@@ -8,7 +8,7 @@ import sys
 from warnings import warn
 
 warn("The `IPython.nbformat` package has been deprecated. "
-     "You should import from jupyter_nbformat instead.")
+     "You should import from nbformat instead.")
 
 from IPython.utils.shimmodule import ShimModule
 
@@ -16,4 +16,4 @@ from IPython.utils.shimmodule import ShimModule
 # trigger the custom attribute access above
 
 sys.modules['IPython.nbformat'] = ShimModule(
-    src='IPython.nbformat', mirror='jupyter_nbformat')
+    src='IPython.nbformat', mirror='nbformat')
