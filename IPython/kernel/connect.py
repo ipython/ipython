@@ -1,2 +1,2 @@
-from ipython_kernel.connect import *
+from ipykernel.connect import *
 from jupyter_client.connect import *
