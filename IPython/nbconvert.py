@@ -16,4 +16,4 @@ from IPython.utils.shimmodule import ShimModule
 # trigger the custom attribute access above
 
 sys.modules['IPython.nbconvert'] = ShimModule(
-    src='IPython.nbconvert', mirror='jupyter_nbconvert')
+    src='IPython.nbconvert', mirror='nbconvert')

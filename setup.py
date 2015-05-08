@@ -209,7 +209,7 @@ extras_require = dict(
     kernel = ['ipython_kernel'],
     nbformat = ['jupyter_nbformat'],
     notebook = ['jupyter_notebook'],
-    nbconvert = ['jupyter_nbconvert']
+    nbconvert = ['nbconvert'],
 )
 
 if sys.version_info < (3, 3):

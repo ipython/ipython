@@ -228,7 +228,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         history=('IPython.core.historyapp.HistoryApp',
             "Manage the IPython history database."
         ),
-        nbconvert=('jupyter_nbconvert.nbconvertapp.NbConvertApp',
+        nbconvert=('nbconvert.nbconvertapp.NbConvertApp',
             "DEPRECATED: Convert notebooks to/from other formats."
         ),
         trust=('jupyter_nbformat.sign.TrustNotebookApp',
