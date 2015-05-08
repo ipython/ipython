@@ -60,7 +60,7 @@ def test_image_filename_defaults():
     nt.assert_is_none(img._repr_jpeg_())
 
 def _get_inline_config():
-    from ipython_kernel.pylab.config import InlineBackend
+    from ipykernel.pylab.config import InlineBackend
     return InlineBackend.instance()
     
 @dec.skip_without('matplotlib')

@@ -609,7 +609,7 @@ class TestModules(unittest.TestCase, tt.TempFileMixin):
         self.mktmp("import sys\n"
                    "print('numpy' in sys.modules)\n"
                    "print('ipyparallel' in sys.modules)\n"
-                   "print('ipython_kernel' in sys.modules)\n"
+                   "print('ipykernel' in sys.modules)\n"
                    )
         out = "False\nFalse\nFalse\n"
         tt.ipexec_validate(self.fname, out)

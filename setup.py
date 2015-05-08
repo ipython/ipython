@@ -206,7 +206,7 @@ extras_require = dict(
     doc = ['Sphinx>=1.1', 'numpydoc'],
     test = ['nose>=0.10.1', 'requests', 'testpath'],
     terminal = [],
-    kernel = ['ipython_kernel'],
+    kernel = ['ipykernel'],
     nbformat = ['jupyter_nbformat'],
     notebook = ['jupyter_notebook'],
     nbconvert = ['nbconvert'],

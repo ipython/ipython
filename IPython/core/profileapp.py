@@ -261,7 +261,7 @@ class ProfileCreate(BaseIPythonApplication):
         from IPython.terminal.ipapp import TerminalIPythonApp
         apps = [TerminalIPythonApp]
         for app_path in (
-            'ipython_kernel.kernelapp.IPKernelApp',
+            'ipykernel.kernelapp.IPKernelApp',
         ):
             app = self._import_app(app_path)
             if app is not None:

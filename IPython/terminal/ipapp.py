@@ -216,7 +216,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         profile = ("IPython.core.profileapp.ProfileApp",
             "Create and manage IPython profiles."
         ),
-        kernel = ("ipython_kernel.kernelapp.IPKernelApp",
+        kernel = ("ipykernel.kernelapp.IPKernelApp",
             "Start a kernel without an attached frontend."
         ),
         console=('jupyter_console.app.ZMQTerminalIPythonApp',
