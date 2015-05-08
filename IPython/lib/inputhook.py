@@ -363,7 +363,7 @@ class Qt4InputHook(InputHookBase):
             app = QtGui.QApplication(sys.argv)
         """
         from IPython.lib.inputhookqt4 import create_inputhook_qt4
-        app, inputhook_qt4 = create_inputhook_qt4(self, app)
+        app, inputhook_qt4 = create_inputhook_qt4(self.manager, app)
         self.manager.set_inputhook(inputhook_qt4)
         if _use_appnope():
             from appnope import nope
