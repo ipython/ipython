@@ -202,7 +202,7 @@ pyzmq = 'pyzmq>=13'
 
 extras_require = dict(
     parallel = ['ipyparallel'],
-    qtconsole = ['jupyter_qtconsole'],
+    qtconsole = ['qtconsole'],
     doc = ['Sphinx>=1.1', 'numpydoc'],
     test = ['nose>=0.10.1', 'requests'],
     terminal = [],

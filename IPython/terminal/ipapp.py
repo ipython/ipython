@@ -207,7 +207,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         ]
 
     subcommands = dict(
-        qtconsole=('jupyter_qtconsole.console.qtconsoleapp.JupyterQtConsoleApp',
+        qtconsole=('qtconsole.console.qtconsoleapp.JupyterQtConsoleApp',
             """DEPRECATD: Launch the Jupyter Qt Console."""
         ),
         notebook=('jupyter_notebook.notebookapp.NotebookApp',
