@@ -231,7 +231,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         nbconvert=('nbconvert.nbconvertapp.NbConvertApp',
             "DEPRECATED: Convert notebooks to/from other formats."
         ),
-        trust=('jupyter_nbformat.sign.TrustNotebookApp',
+        trust=('nbformat.sign.TrustNotebookApp',
             "DEPRECATED: Sign notebooks to trust their potentially unsafe contents at load."
         ),
         kernelspec=('jupyter_client.kernelspecapp.KernelSpecApp',
