@@ -220,7 +220,7 @@ Another way of getting this is to do:
     $ pip install "ipython[test]"
 
 For more installation options, see the `nose website
-<http://somethingaboutorange.com/mrl/projects/nose/>`_.  
+<https://nose.readthedocs.org>`_.  
 
 Once you have nose installed, you can run IPython's test suite using the
 iptest command:
