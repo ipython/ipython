@@ -893,6 +893,39 @@ python-profiler package from non-free.""")
         print("Wall time: %10.2f s." % (twall1 - twall0))
 
     @skip_doctest
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument('-n', '--number', type=int, default=0,
+        help="""11
+        """
+    )
+    @magic_arguments.argument('-r', '--repeat', type=int, default=timeit.default_repeat,
+        help="""1
+        """
+    )
+    @magic_arguments.argument('-p', '--precision', type=int, default=3,
+        help="""1
+        """
+    )
+    @magic_arguments.argument('-o', '--output', nargs='?', default=False, const=True,
+        help="""1
+        """
+    )
+    @magic_arguments.argument('-t', '--use-time', action='store_true',
+        help="""1
+        """
+    )
+    @magic_arguments.argument('-c', '--use-clock', action='store_true',
+        help="""1
+        """
+    )
+    @magic_arguments.argument('-q', '--quiet', action='store_true',
+        help="""11
+        """
+    )
+    @magic_arguments.argument('stmt', nargs='?', default="",
+        help="""1
+        """
+    )    
     @line_cell_magic
     def timeit(self, line='', cell=None):
         """Time execution of a Python statement or expression
@@ -965,21 +998,29 @@ python-profiler package from non-free.""")
         statement to import function or create variables. Generally, the bias
         does not matter as long as results from timeit.py are not mixed with
         those from %timeit."""
+        
+        args = magic_arguments.parse_argstring(self.timeit, line)
+        stmt = args.stmt
 
-        opts, stmt = self.parse_options(line,'n:r:tcp:qo',
-                                        posix=False, strict=False)
         if stmt == "" and cell is None:
             return
-        
+            
         timefunc = timeit.default_timer
-        number = int(getattr(opts, "n", 0))
-        repeat = int(getattr(opts, "r", timeit.default_repeat))
-        precision = int(getattr(opts, "p", 3))
-        quiet = 'q' in opts
-        return_result = 'o' in opts
-        if hasattr(opts, "t"):
+#        number = int(getattr(opts, "n", 0))
+        number = args.number
+#        repeat = int(getattr(opts, "r", timeit.default_repeat))
+        repeat = args.repeat
+#        precision = int(getattr(opts, "p", 3))
+        precision = args.precision
+#        quiet = 'q' in opts
+        quiet = args.quiet
+        output = args.output
+#        return_result = 'o' in opts
+#        return_timing = getattr(opts, "o", None)
+        if args.use_time:
             timefunc = time.time
-        if hasattr(opts, "c"):
+        if args.use_clock:
+#        if 'c' in opts:
             timefunc = clock
 
         timer = Timer(timer=timefunc)
@@ -1057,13 +1098,19 @@ python-profiler package from non-free.""")
                                                               _format_time(best, precision)))
             if tc > tc_min:
                 print("Compiler time: %.2f s" % tc)
-        if return_result:
-            return TimeitResult(number, repeat, best, all_runs, tc, precision)
+        if output == False:
+            return
+        else:
+            result = TimeitResult(number, repeat, best, all_runs, tc, precision)
+            if output == True:
+                return result
+            else:
+                self.shell.user_ns[output] = result
 
     @skip_doctest
     @needs_local_scope
     @line_cell_magic
-    def time(self,line='', cell=None, local_ns=None):
+    def time(self, line='', cell=None, local_ns=None):
         """Time execution of a Python statement or expression.
 
         The CPU and wall clock times are printed, and the value of the
