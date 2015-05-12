@@ -105,7 +105,8 @@ def test_find_mod_4():
     nt.assert_equal(mp.find_mod("pack"), modpath)
 
 def test_find_mod_5():
-    nt.assert_is_none(mp.find_mod("packpyc"))
+    modpath = join(TMP_TEST_DIR, "packpyc.pyc")
+    nt.assert_equal(mp.find_mod("packpyc"), modpath)
 
 def test_find_module_1():
     modpath = join(TMP_TEST_DIR, "xmod")
