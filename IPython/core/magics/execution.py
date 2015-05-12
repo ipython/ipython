@@ -895,50 +895,50 @@ python-profiler package from non-free.""")
     @skip_doctest
     @magic_arguments.magic_arguments()
     @magic_arguments.argument('-n', '--number', type=int, default=0,
-        help="""11
+        help="""execute the given statement NUMBER times in a loop. If this value
+        is not given, a fitting value is chosen.
         """
     )
     @magic_arguments.argument('-r', '--repeat', type=int, default=timeit.default_repeat,
-        help="""1
+        help="""repeat the loop iteration REPEAT times and take the best result.
+        Default: 3
         """
     )
     @magic_arguments.argument('-p', '--precision', type=int, default=3,
-        help="""1
+        help="""use a precision of PRECISION digits to display the timing result.
+        Default: 3
         """
     )
     @magic_arguments.argument('-o', '--output', nargs='?', default=False, const=True,
-        help="""1
+        help="""return a TimeitResult that can be stored in a variable to inspect
+            the result in more details.
         """
     )
     @magic_arguments.argument('-t', '--use-time', action='store_true',
-        help="""1
+        help="""use time.time to measure the time, which is the default on Unix.
+        This function measures wall time.
         """
     )
     @magic_arguments.argument('-c', '--use-clock', action='store_true',
-        help="""1
+        help="""use time.clock to measure the time, which is the default on
+        Windows and measures wall time. On Unix, resource.getrusage is used
+        instead and returns the CPU user time.
         """
     )
     @magic_arguments.argument('-q', '--quiet', action='store_true',
-        help="""11
+        help="""Quiet, do not print result.
         """
     )
     @magic_arguments.argument('stmt', nargs='?', default="",
-        help="""1
+        help="""Statement to be executed (only in line magic mode.)
         """
     )    
     @line_cell_magic
     def timeit(self, line='', cell=None):
-        """Time execution of a Python statement or expression
-
-        Usage, in line mode:
-          %timeit [-n<N> -r<R> [-t|-c] -q -p<P> -o] statement
-        or in cell mode:
-          %%timeit [-n<N> -r<R> [-t|-c] -q -p<P> -o] setup_code
-          code
-          code...
-
-        Time execution of a Python statement or expression using the timeit
-        module.  This function can be used both as a line and cell magic:
+        """Time execution of a Python statement or expression.
+        
+        Time execution of Python code using the timeit module.  This function
+        can be used both as a line and cell magic:
 
         - In line mode you can time a single-line statement (though multiple
           ones can be chained with using semicolons).
@@ -946,29 +946,6 @@ python-profiler package from non-free.""")
         - In cell mode, the statement in the first line is used as setup code
           (executed but not timed) and the body of the cell is timed.  The cell
           body has access to any variables created in the setup code.
-
-        Options:
-        -n<N>: execute the given statement <N> times in a loop. If this value
-        is not given, a fitting value is chosen.
-
-        -r<R>: repeat the loop iteration <R> times and take the best result.
-        Default: 3
-
-        -t: use time.time to measure the time, which is the default on Unix.
-        This function measures wall time.
-
-        -c: use time.clock to measure the time, which is the default on
-        Windows and measures wall time. On Unix, resource.getrusage is used
-        instead and returns the CPU user time.
-
-        -p<P>: use a precision of <P> digits to display the timing result.
-        Default: 3
-
-        -q: Quiet, do not print result.
-
-        -o: return a TimeitResult that can be stored in a variable to inspect
-            the result in more details.
-
 
         Examples
         --------
@@ -997,30 +974,26 @@ python-profiler package from non-free.""")
         of the shell, compared with timeit.py, which uses a single setup
         statement to import function or create variables. Generally, the bias
         does not matter as long as results from timeit.py are not mixed with
-        those from %timeit."""
-        
-        args = magic_arguments.parse_argstring(self.timeit, line)
-        stmt = args.stmt
+        those from %timeit.
 
+        """
+
+        # Parse args and collect into local vars for further use
+        args = magic_arguments.parse_argstring(self.timeit, line)
+        
+        stmt = args.stmt
         if stmt == "" and cell is None:
             raise UsageError("You must provide a statement to execute and time, none was given.")
-            
-        timefunc = timeit.default_timer
-#        number = int(getattr(opts, "n", 0))
+
         number = args.number
-#        repeat = int(getattr(opts, "r", timeit.default_repeat))
         repeat = args.repeat
-#        precision = int(getattr(opts, "p", 3))
         precision = args.precision
-#        quiet = 'q' in opts
         quiet = args.quiet
         output = args.output
-#        return_result = 'o' in opts
-#        return_timing = getattr(opts, "o", None)
+        timefunc = timeit.default_timer
         if args.use_time:
             timefunc = time.time
         if args.use_clock:
-#        if 'c' in opts:
             timefunc = clock
 
         timer = Timer(timer=timefunc)
@@ -1081,7 +1054,7 @@ python-profiler package from non-free.""")
                 number *= 10
         all_runs = timer.repeat(repeat, number)
         best = min(all_runs) / number
-        if not quiet :
+        if not quiet:
             worst = max(all_runs) / number
             if worst_tuning:
                 worst = max(worst, worst_tuning)
