@@ -391,6 +391,13 @@ class InteractiveShell(SingletonConfigurable):
 
     history_length = Integer(10000, config=True)
 
+    history_load_length = Integer(1000, config=True, help=
+        """
+        The number of saved history entries to be loaded
+        into the readline buffer at startup.
+        """
+    )
+
     # The readline stuff will eventually be moved to the terminal subclass
     # but for now, we can't do that as readline is welded in everywhere.
     readline_use = CBool(True, config=True)
@@ -1996,7 +2003,7 @@ class InteractiveShell(SingletonConfigurable):
         self.readline.clear_history()
         stdin_encoding = sys.stdin.encoding or "utf-8"
         last_cell = u""
-        for _, _, cell in self.history_manager.get_tail(1000,
+        for _, _, cell in self.history_manager.get_tail(self.history_load_length,
                                                         include_latest=True):
             # Ignore blank lines and consecutive duplicates
             cell = cell.rstrip()
