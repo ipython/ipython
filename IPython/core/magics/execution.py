@@ -1003,7 +1003,7 @@ python-profiler package from non-free.""")
         stmt = args.stmt
 
         if stmt == "" and cell is None:
-            return
+            raise UsageError("You must provide a statement to execute and time, none was given.")
             
         timefunc = timeit.default_timer
 #        number = int(getattr(opts, "n", 0))
