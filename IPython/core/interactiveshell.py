@@ -393,7 +393,7 @@ class InteractiveShell(SingletonConfigurable):
 
     history_load_length = Integer(1000, config=True, help=
         """
-        Determines the number of saved history entries to be loaded
+        The number of saved history entries to be loaded
         into the readline buffer at startup.
         """
     )
