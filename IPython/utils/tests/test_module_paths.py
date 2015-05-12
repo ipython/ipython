@@ -25,6 +25,8 @@ from IPython.testing.tools import make_tempfile
 
 import IPython.utils.module_paths as mp
 
+import nose.tools as nt
+
 env = os.environ
 TEST_FILE_PATH = split(abspath(__file__))[0]
 TMP_TEST_DIR = tempfile.mkdtemp()
@@ -79,47 +81,48 @@ def test_get_init_2():
 def test_get_init_3():
     """get_init can't find __init__.pyc in this testdir"""
     with make_tempfile(join(TMP_TEST_DIR, "__init__.pyc")):
-        assert mp.get_init(TMP_TEST_DIR) is None
+        nt.assert_is_none(mp.get_init(TMP_TEST_DIR))
 
 def test_get_init_4():
     """get_init can't find __init__ in empty testdir"""
-    assert mp.get_init(TMP_TEST_DIR) is None
+    nt.assert_is_none(mp.get_init(TMP_TEST_DIR))
 
 
 def test_find_mod_1():
     modpath = join(TMP_TEST_DIR, "xmod", "__init__.py")
-    assert mp.find_mod("xmod") == modpath
+    nt.assert_equal(mp.find_mod("xmod"), modpath)
 
 def test_find_mod_2():
     modpath = join(TMP_TEST_DIR, "xmod", "__init__.py")
-    assert mp.find_mod("xmod") == modpath
+    nt.assert_equal(mp.find_mod("xmod"), modpath)
 
 def test_find_mod_3():
     modpath = join(TMP_TEST_DIR, "xmod", "sub.py")
-    assert mp.find_mod("xmod.sub") == modpath
+    nt.assert_equal(mp.find_mod("xmod.sub"), modpath)
 
 def test_find_mod_4():
     modpath = join(TMP_TEST_DIR, "pack.py")
-    assert mp.find_mod("pack") == modpath
+    nt.assert_equal(mp.find_mod("pack"), modpath)
 
 def test_find_mod_5():
-    assert mp.find_mod("packpyc") is None
+    modpath = join(TMP_TEST_DIR, "packpyc.pyc")
+    nt.assert_equal(mp.find_mod("packpyc"), modpath)
 
 def test_find_module_1():
     modpath = join(TMP_TEST_DIR, "xmod")
-    assert mp.find_module("xmod") == modpath
+    nt.assert_equal(mp.find_module("xmod"), modpath)
 
 def test_find_module_2():
     """Testing sys.path that is empty"""
-    assert mp.find_module("xmod", []) is None
+    nt.assert_is_none(mp.find_module("xmod", []))
 
 def test_find_module_3():
     """Testing sys.path that is empty"""
-    assert mp.find_module(None, None) is None
+    nt.assert_is_none(mp.find_module(None, None))
 
 def test_find_module_4():
     """Testing sys.path that is empty"""
-    assert mp.find_module(None) is None
+    nt.assert_is_none(mp.find_module(None))
 
 def test_find_module_5():
-    assert mp.find_module("xmod.nopack") is None
+    nt.assert_is_none(mp.find_module("xmod.nopack"))

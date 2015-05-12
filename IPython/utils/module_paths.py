@@ -74,7 +74,7 @@ def find_module(name, path=None):
         return filename
     else:
         file.close()
-    if os.path.splitext(filename)[1] in [".py", "pyc"]:
+    if os.path.splitext(filename)[1] in [".py", ".pyc"]:
         return filename
     else:
         return None
