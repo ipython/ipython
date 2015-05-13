@@ -1515,7 +1515,7 @@ define(function (require) {
                     // This is currently redundant, because cm_config ends up as
                     // codemirror's own .options object, but I don't want to
                     // rely on that.
-                    cell.cm_config.mode = spec;
+                    cell._options.cm_config.mode = spec;
                 }
             });
         });
