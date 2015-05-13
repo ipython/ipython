@@ -935,7 +935,7 @@ python-profiler package from non-free.""")
     )    
     @line_cell_magic
     def timeit(self, line='', cell=None):
-        """Time execution of a Python statement or expression, using the timeit module.
+        """Time execution of Python code, using the timeit module.
         
         This function can be used both as a line and cell magic:
 
@@ -974,6 +974,7 @@ python-profiler package from non-free.""")
         statement to import function or create variables. Generally, the bias
         does not matter as long as results from timeit.py are not mixed with
         those from %timeit.
+
         """
 
         # Parse args and collect into local vars for further use
