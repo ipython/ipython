@@ -107,8 +107,8 @@ class InputHookManager(object):
     def __init__(self):
         if ctypes is None:
             warn("IPython GUI event loop requires ctypes, %gui will not be available")
-            return
-        self.PYFUNC = ctypes.PYFUNCTYPE(ctypes.c_int)
+        else:
+            self.PYFUNC = ctypes.PYFUNCTYPE(ctypes.c_int)
         self.guihooks = {}
         self.aliases = {}
         self.apps = {}
@@ -197,10 +197,11 @@ class InputHookManager(object):
                     ...
         """
         def decorator(cls):
-            inst = cls(self)
-            self.guihooks[toolkitname] = inst
-            for a in aliases:
-                self.aliases[a] = toolkitname
+            if ctypes is not None:
+                inst = cls(self)
+                self.guihooks[toolkitname] = inst
+                for a in aliases:
+                    self.aliases[a] = toolkitname
             return cls
         return decorator
 
