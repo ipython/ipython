@@ -214,9 +214,9 @@ def temp_pyfile(src, ext='.py'):
     return fname, f
 
 def atomic_writing(*args, **kwargs):
-    """DEPRECATED: moved to jupyter_notebook.services.contents.fileio"""
-    warn("IPython.utils.io.atomic_writing has moved to jupyter_notebook.services.contents.fileio")
-    from jupyter_notebook.services.contents.fileio import atomic_writing
+    """DEPRECATED: moved to notebook.services.contents.fileio"""
+    warn("IPython.utils.io.atomic_writing has moved to notebook.services.contents.fileio")
+    from notebook.services.contents.fileio import atomic_writing
     return atomic_writing(*args, **kwargs)
 
 def raw_print(*args, **kw):

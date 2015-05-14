@@ -210,8 +210,8 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         qtconsole=('qtconsole.console.qtconsoleapp.JupyterQtConsoleApp',
             """DEPRECATD: Launch the Jupyter Qt Console."""
         ),
-        notebook=('jupyter_notebook.notebookapp.NotebookApp',
-            """DEPRECATED: Launch the IPython HTML Notebook Server."""
+        notebook=('notebook.notebookapp.NotebookApp',
+            """DEPRECATED: Launch the Jupyter HTML Notebook Server."""
         ),
         profile = ("IPython.core.profileapp.ProfileApp",
             "Create and manage IPython profiles."
@@ -239,7 +239,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         ),
     )
     subcommands['install-nbextension'] = (
-        "jupyter_notebook.nbextensions.NBExtensionApp",
+        "notebook.nbextensions.NBExtensionApp",
         "DEPRECATED: Install Jupyter notebook extension files"
     )
 
