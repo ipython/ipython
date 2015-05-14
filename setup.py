@@ -208,7 +208,7 @@ extras_require = dict(
     terminal = [],
     kernel = ['ipykernel'],
     nbformat = ['nbformat'],
-    notebook = ['jupyter_notebook'],
+    notebook = ['notebook'],
     nbconvert = ['nbconvert'],
 )
 
