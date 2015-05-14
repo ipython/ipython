@@ -178,7 +178,8 @@ def arg_split(s, posix=False, strict=True):
     This is because we sometimes use arg_split to parse things other than
     command-line args.
     """
-
+    print("arg_split, posix %s strict %s" % (posix, strict))
+    print("arg_split arg:<%s>" % s)  # dbg
     # Unfortunately, python's shlex module is buggy with unicode input:
     # http://bugs.python.org/issue1170
     # At least encoding the input when it's unicode seems to help, but there
