@@ -15,4 +15,6 @@ from IPython.utils.shimmodule import ShimModule
 # Unconditionally insert the shim into sys.modules so that further import calls
 # trigger the custom attribute access above
 
-sys.modules['IPython.qt'] = ShimModule(src='IPython.qt', mirror='qtconsole')
+sys.modules['IPython.qt'] = _qt = ShimModule(src='IPython.qt', mirror='qtconsole')
+sys.modules['IPython.qt.console'] = _console = ShimModule(src='IPython.qt.console', mirror='qtconsole')
+_qt.console = _console
