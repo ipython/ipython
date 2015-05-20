@@ -155,7 +155,7 @@ class V4toV5TestCase(AdapterTest):
     
     def test_object_info_reply(self):
         msg = self.msg("object_info_reply", {
-            'oname' : 'foo',
+            'name' : 'foo',
             'found' : True,
             'status' : 'ok',
             'definition' : 'foo(a=5)',
@@ -165,10 +165,26 @@ class V4toV5TestCase(AdapterTest):
         self.assertEqual(v5['header']['msg_type'], 'inspect_reply')
         v4c = v4['content']
         v5c = v5['content']
-        self.assertEqual(sorted(v5c), [ 'data', 'found', 'metadata', 'name', 'status'])
+        self.assertEqual(sorted(v5c), [ 'data', 'found', 'metadata', 'status'])
         text = v5c['data']['text/plain']
         self.assertEqual(text, '\n'.join([v4c['definition'], v4c['docstring']]))
-    
+
+    def test_object_info_reply_not_found(self):
+        msg = self.msg("object_info_reply", {
+            'name' : 'foo',
+            'found' : False,
+        })
+        v4, v5 = self.adapt(msg)
+        self.assertEqual(v5['header']['msg_type'], 'inspect_reply')
+        v4c = v4['content']
+        v5c = v5['content']
+        self.assertEqual(v5c, {
+            'status': 'ok',
+            'found': False,
+            'data': {},
+            'metadata': {},
+        })
+
     def test_kernel_info_reply(self):
         msg = self.msg("kernel_info_reply", {
             'language': 'python',

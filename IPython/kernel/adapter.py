@@ -292,7 +292,6 @@ class V4toV5(Adapter):
         content = msg['content']
         new_content = msg['content'] = {'status' : 'ok'}
         found = new_content['found'] = content['found']
-        new_content['name'] = content['oname']
         new_content['data'] = data = {}
         new_content['metadata'] = {}
         if found:
