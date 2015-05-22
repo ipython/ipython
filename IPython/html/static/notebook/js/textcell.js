@@ -245,6 +245,28 @@ define([
 
     MarkdownCell.prototype = Object.create(TextCell.prototype);
 
+    /** @method bind_events **/
+    MarkdownCell.prototype.bind_events = function () {
+        TextCell.prototype.bind_events.apply(this);
+        var that = this;
+        this.events.on("rendered.MarkdownCell", function(event, data) {
+            var that = data.cell;
+            that.element.find("input").each( function (i, obj) {
+                $(obj).change({'num':i},function (event) {
+                    var text = that.get_text();
+                    var rep = event.currentTarget.checked ? "[x]" : "[ ]";
+                    var n = -1;
+                    var regexp = /\s*\-\s*(\[[ x]\])\s*/g;
+                    text = text.replace(regexp, function (match,i , orig) {
+                        n++;
+                        return (n===event.data.num) ? match.replace(/\[[ x]\]/,rep) : match;
+                    });
+                    that.set_text(text);
+                    that.render();
+            })});
+        });
+    };
+
     MarkdownCell.prototype.set_heading_level = function (level) {
         /**
          * make a markdown cell a heading
@@ -273,7 +295,20 @@ define([
             var text_and_math = mathjaxutils.remove_math(text);
             text = text_and_math[0];
             math = text_and_math[1];
-            marked(text, function (err, html) {
+            var renderer = new marked.Renderer();
+            renderer.listitem = function(text) {
+                if (/^\s*\[[x ]\]\s*/.test(text)) {
+                    text = text
+                          .replace(/^\s*\[ \]\s*/,
+                                  '<input type="checkbox"></input> ')
+                          .replace(/^\s*\[x\]\s*/,
+                                  '<input type="checkbox" checked="checked"></input> ');
+                    return '<li style="list-style: none">' + text + '</li>\n';
+                } else {
+                    return '<li>' + text + '</li>\n';
+                }
+            };
+            marked(text, {renderer : renderer}, function (err, html) {
                 html = mathjaxutils.replace_math(html, math);
                 html = security.sanitize_html(html);
                 html = $($.parseHTML(html));
