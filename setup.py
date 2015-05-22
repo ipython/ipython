@@ -63,7 +63,6 @@ from setupbase import (
     find_entry_points,
     build_scripts_entrypt,
     find_data_files,
-    check_for_readline,
     git_prebuild,
     install_symlinked,
     install_lib_symlink,

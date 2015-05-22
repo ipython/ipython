@@ -409,27 +409,6 @@ class install_scripts_for_symlink(install_scripts):
                                    ('skip_build', 'skip_build'),
                                   )
 
-#---------------------------------------------------------------------------
-# Verify all dependencies
-#---------------------------------------------------------------------------
-
-def check_for_readline():
-    """Check for GNU readline"""
-    try:
-        import gnureadline as readline
-    except ImportError:
-        pass
-    else:
-        return True
-    try:
-        import readline
-    except ImportError:
-        return False
-    else:
-        if sys.platform == 'darwin' and 'libedit' in readline.__doc__:
-            print("Ignoring readline linked to libedit", file=sys.stderr)
-            return False
-        return True
 
 #---------------------------------------------------------------------------
 # VCS related
