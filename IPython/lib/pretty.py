@@ -816,6 +816,51 @@ _singleton_pprinters = dict.fromkeys(map(id, [None, True, False, Ellipsis,
                                       NotImplemented]), _repr_pprint)
 
 
+def _defaultdict_pprint(obj, p, cycle):
+    name = 'defaultdict'
+    p.begin_group(len(name) + 1, name + '(')
+    if cycle:
+        p.text('...')
+    else:
+        p.pretty(obj.default_factory)
+        p.text(',')
+        p.breakable()
+        p.pretty(dict(obj))
+    p.end_group(len(name) + 1, ')')
+
+def _ordereddict_pprint(obj, p, cycle):
+    name = 'OrderedDict'
+    p.begin_group(len(name) + 1, name + '(')
+    if cycle:
+        p.text('...')
+    elif len(obj):
+            p.pretty(list(obj.items()))
+    p.end_group(len(name) + 1, ')')
+
+def _deque_pprint(obj, p, cycle):
+    name = 'deque'
+    p.begin_group(len(name) + 1, name + '(')
+    if cycle:
+        p.text('...')
+    else:
+        p.pretty(list(obj))
+    p.end_group(len(name) + 1, ')')
+
+
+def _counter_pprint(obj, p, cycle):
+    name = 'Counter'
+    p.begin_group(len(name) + 1, name + '(')
+    if cycle:
+        p.text('...')
+    elif len(obj):
+            p.pretty(dict(obj))
+    p.end_group(len(name) + 1, ')')
+
+for_type_by_name('collections', 'defaultdict', _defaultdict_pprint)
+for_type_by_name('collections', 'OrderedDict', _ordereddict_pprint)
+for_type_by_name('collections', 'deque', _deque_pprint)
+for_type_by_name('collections', 'Counter', _counter_pprint)
+
 if __name__ == '__main__':
     from random import randrange
     class Foo(object):
