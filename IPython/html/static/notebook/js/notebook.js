@@ -135,7 +135,7 @@ define(function (require) {
         this.notebook_name_blacklist_re = /[\/\\:]/;
         this.nbformat = 4; // Increment this when changing the nbformat
         this.nbformat_minor = this.current_nbformat_minor = 0; // Increment this when changing the nbformat
-        this.codemirror_mode = 'ipython';
+        this.codemirror_mode = 'text';
         this.create_elements();
         this.bind_events();
         this.kernel_selector = null;
@@ -1515,7 +1515,7 @@ define(function (require) {
                     // This is currently redundant, because cm_config ends up as
                     // codemirror's own .options object, but I don't want to
                     // rely on that.
-                    cell.cm_config.mode = spec;
+                    cell._options.cm_config.mode = spec;
                 }
             });
         });
