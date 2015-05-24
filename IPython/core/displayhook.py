@@ -84,18 +84,22 @@ class DisplayHook(Configurable):
     def quiet(self):
         """Should we silence the display hook because of ';'?"""
         # do not print output if input ends in ';'
-
+ 
 	cell = self.shell.history_manager.input_hist_parsed[self.prompt_count]
         sio = io.StringIO(cell)
         tokens = list(tokenize.generate_tokens(sio.readline))
-
-    	for token in reversed(tokens):
-            if token.type in (tokenize.ENDMARKER, tokenize.COMMENT):
-            	continue
-            if (token.type == tokenize.OP) and (token.string == ';'):
-            	return True
-            else:
-            	return False
+ 
+        try:
+    	    for token in reversed(tokens):
+                if token.type in (tokenize.ENDMARKER, tokenize.COMMENT):
+            	    continue
+                if (token.type == tokenize.OP) and (token.string == ';'):
+            	    return True
+                else:
+            	    return False
+        except IndexError:
+            # some uses of ipshellembed may fail here
+            return False
 
     def start_displayhook(self):
         """Start the displayhook, initializing resources."""
