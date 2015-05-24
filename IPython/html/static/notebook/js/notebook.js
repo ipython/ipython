@@ -135,7 +135,7 @@ define(function (require) {
         this.notebook_name_blacklist_re = /[\/\\:]/;
         this.nbformat = 4; // Increment this when changing the nbformat
         this.nbformat_minor = this.current_nbformat_minor = 0; // Increment this when changing the nbformat
-        this.codemirror_mode = 'ipython';
+        this.codemirror_mode = 'text';
         this.create_elements();
         this.bind_events();
         this.kernel_selector = null;
