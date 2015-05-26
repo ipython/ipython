@@ -807,7 +807,7 @@ def _ordereddict_pprint(obj, p, cycle):
         if cycle:
             p.text('...')
         elif len(obj):
-                p.pretty(list(obj.items()))
+            p.pretty(list(obj.items()))
 
 def _deque_pprint(obj, p, cycle):
     name = 'deque'
@@ -824,7 +824,7 @@ def _counter_pprint(obj, p, cycle):
         if cycle:
             p.text('...')
         elif len(obj):
-                p.pretty(dict(obj))
+            p.pretty(dict(obj))
 
 for_type_by_name('collections', 'defaultdict', _defaultdict_pprint)
 for_type_by_name('collections', 'OrderedDict', _ordereddict_pprint)
