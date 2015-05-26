@@ -154,3 +154,6 @@ the directory :file:`~/.ipython/` by default.
 
    This command line option can also be used to override the default
    IPython directory.
+
+To see where IPython is looking for the IPython directory, use the command
+``ipython locate``, or the Python function :func:`IPython.paths.get_ipython_dir`.
