@@ -26,7 +26,6 @@ Contents
    install/index
    interactive/index
    notebook/index
-   parallel/index
    config/index
    development/index
    api/index
