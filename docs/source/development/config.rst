@@ -121,18 +121,6 @@ config file:
 
     load_subconfig('ipython_config.py', profile='default')
 
-Security Files
---------------
-
-If you are using the notebook, qtconsole, or parallel code, IPython stores
-connection information in small JSON files in the active profile's security
-directory. This directory is made private, so only you can see the files inside. If
-you need to move connection files around to other computers, this is where they will
-be. If you want your code to be able to open security files by name, we have a
-convenience function :func:`IPython.utils.path.get_security_file`, which will return
-the absolute path to a security file from its filename and [optionally] profile
-name.
-
 .. _startup_files:
 
 Startup Files
