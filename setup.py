@@ -63,9 +63,7 @@ from setupbase import (
     find_entry_points,
     build_scripts_entrypt,
     find_data_files,
-    check_for_readline,
     git_prebuild,
-    get_bdist_wheel,
     install_symlinked,
     install_lib_symlink,
     install_scripts_for_symlink,
@@ -181,8 +179,6 @@ setuptools_extra_args = {}
 
 # setuptools requirements
 
-pyzmq = 'pyzmq>=13'
-
 extras_require = dict(
     parallel = ['ipyparallel'],
     qtconsole = ['qtconsole'],
@@ -194,10 +190,6 @@ extras_require = dict(
     notebook = ['notebook'],
     nbconvert = ['nbconvert'],
 )
-
-if sys.version_info < (3, 3):
-    extras_require['test'].append('mock')
-
 install_requires = [
     'decorator',
     'pickleshare',
@@ -205,16 +197,28 @@ install_requires = [
     'traitlets',
 ]
 
-# add platform-specific dependencies
-if sys.platform == 'darwin':
-    install_requires.append('appnope')
-    if 'bdist_wheel' in sys.argv[1:] or not check_for_readline():
-        install_requires.append('gnureadline')
+# Platform-specific dependencies:
+# This is the correct way to specify these,
+# but requires pip >= 6. pip < 6 ignores these.
+extras_require.update({
+    ':sys_platform != "win32"': ['pexpect'],
+    ':sys_platform == "darwin"': ['appnope', 'gnureadline'],
+    'terminal:sys_platform == "win32"': ['pyreadline>=2'],
+    'test:python_version == "2.7"': ['mock'],
+})
+# FIXME: re-specify above platform dependencies for pip < 6
+# These would result in non-portable bdists.
+if not any(arg.startswith('bdist') for arg in sys.argv):
+    if sys.version_info < (3, 3):
+        extras_require['test'].append('mock')
 
-if sys.platform.startswith('win'):
-    extras_require['terminal'].append('pyreadline>=2.0')
-else:
-    install_requires.append('pexpect')
+    if sys.platform == 'darwin':
+        install_requires.extend(['appnope', 'gnureadline'])
+
+    if sys.platform.startswith('win'):
+        extras_require['terminal'].append('pyreadline>=2.0')
+    else:
+        install_requires.append('pexpect')
 
 everything = set()
 for deps in extras_require.values():
@@ -222,8 +226,6 @@ for deps in extras_require.values():
 extras_require['all'] = everything
 
 if 'setuptools' in sys.modules:
-    setup_args['cmdclass']['bdist_wheel'] = get_bdist_wheel()
-    
     setuptools_extra_args['zip_safe'] = False
     setuptools_extra_args['entry_points'] = {
         'console_scripts': find_entry_points(),
