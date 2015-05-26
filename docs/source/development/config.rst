@@ -120,17 +120,3 @@ config file:
 .. sourcecode:: python
 
     load_subconfig('ipython_config.py', profile='default')
-
-.. _startup_files:
-
-Startup Files
--------------
-
-If you want some code to be run at the beginning of every IPython session with
-a particular profile, the easiest way is to add Python (``.py``) or 
-IPython (``.ipy``) scripts to your :file:`<profile>/startup` directory. Files
-in this directory will always be executed as soon as the IPython shell is 
-constructed, and before any other code or scripts you have specified. If you 
-have multiple files in the startup directory, they will be run in 
-lexicographical order, so you can control the ordering by adding a '00-' 
-prefix.
