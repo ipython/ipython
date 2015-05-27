@@ -901,3 +901,20 @@ def test_warning_suppression():
             ip.run_cell("warnings.warn('asdf')")
     finally:
         ip.run_cell("del warnings")
+
+
+def test_deprecation_warning():
+    ip.run_cell("""
+import warnings
+def wrn():
+    warnings.warn(
+        "I AM  A WARNING",
+        DeprecationWarning
+    )
+        """)
+    try:
+        with tt.AssertPrints("I AM  A WARNING", channel="stderr"):
+            ip.run_cell("wrn()")
+    finally:
+        ip.run_cell("del warnings")
+        ip.run_cell("del wrn")
