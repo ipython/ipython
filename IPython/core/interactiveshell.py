@@ -25,6 +25,7 @@ import tempfile
 import traceback
 import types
 import subprocess
+import warnings
 from io import open as io_open
 
 from pickleshare import PickleShareDB
@@ -547,6 +548,7 @@ class InteractiveShell(SingletonConfigurable):
         self.init_pdb()
         self.init_extension_manager()
         self.init_payload()
+        self.init_deprecation_warnings()
         self.hooks.late_startup_hook()
         self.events.trigger('shell_initialized', self)
         atexit.register(self.atexit_operations)
@@ -662,6 +664,18 @@ class InteractiveShell(SingletonConfigurable):
             self.magic('logstart %s' % self.logfile)
         elif self.logstart:
             self.magic('logstart')
+
+    @staticmethod
+    def init_deprecation_warnings():
+        """
+        register default filter for (pending) deprecation warning.
+
+        This will allow deprecation warning of function used interactively to show
+        warning to users, and still hide deprecation warning from libraries import.
+        """
+        warnings.filterwarnings("default", category=DeprecationWarning, module="__main__")
+        warnings.filterwarnings("default", category=PendingDeprecationWarning, module="__main__")
+
 
     def init_builtins(self):
         # A single, static flag that we set to True.  Its presence indicates
