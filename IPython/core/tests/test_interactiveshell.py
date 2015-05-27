@@ -918,3 +918,27 @@ def wrn():
     finally:
         ip.run_cell("del warnings")
         ip.run_cell("del wrn")
+
+
+class TestImportNoDeprecate(tt.TempFileMixin):
+
+    def setup(self):
+        """Make a valid python temp file."""
+        self.mktmp("""
+import warnings
+def wrn():
+    warnings.warn(
+        "I AM  A WARNING",
+        DeprecationWarning
+    )
+""")
+
+    def test_no_dep(self):
+        """
+        No deprecation warning should be raised from imported functions
+        """
+        ip.run_cell("from {} import wrn".format(self.fname))
+
+        with tt.AssertNotPrints("I AM  A WARNING"):
+            ip.run_cell("wrn()")
+        ip.run_cell("del wrn")
