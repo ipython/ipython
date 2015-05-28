@@ -665,16 +665,15 @@ class InteractiveShell(SingletonConfigurable):
         elif self.logstart:
             self.magic('logstart')
 
-    @staticmethod
-    def init_deprecation_warnings():
+    def init_deprecation_warnings(self):
         """
         register default filter for (pending) deprecation warning.
 
         This will allow deprecation warning of function used interactively to show
         warning to users, and still hide deprecation warning from libraries import.
         """
-        warnings.filterwarnings("default", category=DeprecationWarning, module="__main__")
-        warnings.filterwarnings("default", category=PendingDeprecationWarning, module="__main__")
+        warnings.filterwarnings("default", category=DeprecationWarning, module=self.user_ns.get("__name__"))
+        warnings.filterwarnings("default", category=PendingDeprecationWarning, module=self.user_ns.get("__name__"))
 
 
     def init_builtins(self):
