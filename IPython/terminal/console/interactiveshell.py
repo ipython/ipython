@@ -212,6 +212,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                     elif source == 'set_next_input':
                         self.set_next_input(item['text'])
                     elif source == 'ask_exit':
+                        self.keepkernel=item.get('keepkernel', False)
                         self.ask_exit()
                
             elif status == 'error':
@@ -233,7 +234,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         Only relevant if include_other_output is True.
         """
     )
-    
+
     def from_here(self, msg):
         """Return whether a message is from this session"""
         return msg['parent_header'].get("session", self.session_id) == self.session_id
@@ -409,6 +410,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 self.client.input(raw_data)
 
     def mainloop(self, display_banner=False):
+        self.keepkernel = False
         while True:
             try:
                 self.interact(display_banner=display_banner)
@@ -421,7 +423,15 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 # handling seems rather unpredictable...
                 self.write("\nKeyboardInterrupt in interact()\n")
 
-        self.client.shutdown()
+        
+        if self.keepkernel and not self.own_kernel:
+            print('keeping kernel alive')
+        elif self.keepkernel and self.own_kernel :
+            print("owning kernel, cannot keep it alive")
+            self.client.shutdown()
+        else :
+            print("Shutting down kernel")
+            self.client.shutdown()
     
     def _banner1_default(self):
         return "IPython Console {version}\n".format(version=release.version)
