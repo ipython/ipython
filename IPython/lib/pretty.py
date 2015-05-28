@@ -34,14 +34,8 @@ pretty printer passed::
         def _repr_pretty_(self, p, cycle):
             ...
 
-Depending on the python version you want to support you have two
-possibilities.  The following list shows the python 2.5 version and the
-compatibility one.
-
-
-Here the example implementation of a `_repr_pretty_` method for a list
-subclass for python 2.5 and higher (python 2.5 requires the with statement
-__future__ import)::
+Here is an example implementation of a `_repr_pretty_` method for a list
+subclass::
 
     class MyList(list):
 
@@ -64,35 +58,15 @@ default space.  `p.pretty` prettyprints another object using the pretty print
 method.
 
 The first parameter to the `group` function specifies the extra indentation
-of the next line.  In this example the next item will either be not
-breaked (if the items are short enough) or aligned with the right edge of
-the opening bracked of `MyList`.
-
-If you want to support python 2.4 and lower you can use this code::
-
-    class MyList(list):
-
-        def _repr_pretty_(self, p, cycle):
-            if cycle:
-                p.text('MyList(...)')
-            else:
-                p.begin_group(8, 'MyList([')
-                for idx, item in enumerate(self):
-                    if idx:
-                        p.text(',')
-                        p.breakable()
-                    p.pretty(item)
-                p.end_group(8, '])')
+of the next line.  In this example the next item will either be on the same
+line (if the items are short enough) or aligned with the right edge of the
+opening bracket of `MyList`.
 
 If you just want to indent something you can use the group function
-without open / close parameters.  Under python 2.5 you can also use this
-code::
+without open / close parameters.  Yu can also use this code::
 
     with p.indent(2):
         ...
-
-Or under python2.4 you might want to modify ``p.indentation`` by hand but
-this is rather ugly.
 
 Inheritance diagram:
 
@@ -815,6 +789,47 @@ def for_type_by_name(type_module, type_name, func):
 _singleton_pprinters = dict.fromkeys(map(id, [None, True, False, Ellipsis,
                                       NotImplemented]), _repr_pprint)
 
+
+def _defaultdict_pprint(obj, p, cycle):
+    name = 'defaultdict'
+    with p.group(len(name) + 1, name + '(', ')'):
+        if cycle:
+            p.text('...')
+        else:
+            p.pretty(obj.default_factory)
+            p.text(',')
+            p.breakable()
+            p.pretty(dict(obj))
+
+def _ordereddict_pprint(obj, p, cycle):
+    name = 'OrderedDict'
+    with p.group(len(name) + 1, name + '(', ')'):
+        if cycle:
+            p.text('...')
+        elif len(obj):
+            p.pretty(list(obj.items()))
+
+def _deque_pprint(obj, p, cycle):
+    name = 'deque'
+    with p.group(len(name) + 1, name + '(', ')'):
+        if cycle:
+            p.text('...')
+        else:
+            p.pretty(list(obj))
+
+
+def _counter_pprint(obj, p, cycle):
+    name = 'Counter'
+    with p.group(len(name) + 1, name + '(', ')'):
+        if cycle:
+            p.text('...')
+        elif len(obj):
+            p.pretty(dict(obj))
+
+for_type_by_name('collections', 'defaultdict', _defaultdict_pprint)
+for_type_by_name('collections', 'OrderedDict', _ordereddict_pprint)
+for_type_by_name('collections', 'deque', _deque_pprint)
+for_type_by_name('collections', 'Counter', _counter_pprint)
 
 if __name__ == '__main__':
     from random import randrange
