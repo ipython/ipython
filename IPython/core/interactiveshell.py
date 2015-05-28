@@ -667,14 +667,12 @@ class InteractiveShell(SingletonConfigurable):
 
     def init_deprecation_warnings(self):
         """
-        register default filter for (pending) deprecation warning.
+        register default filter for deprecation warning.
 
         This will allow deprecation warning of function used interactively to show
         warning to users, and still hide deprecation warning from libraries import.
         """
         warnings.filterwarnings("default", category=DeprecationWarning, module=self.user_ns.get("__name__"))
-        warnings.filterwarnings("default", category=PendingDeprecationWarning, module=self.user_ns.get("__name__"))
-
 
     def init_builtins(self):
         # A single, static flag that we set to True.  Its presence indicates
