@@ -28,6 +28,7 @@ from __future__ import print_function
 
 import bdb
 import functools
+import inspect
 import linecache
 import sys
 
@@ -512,6 +513,28 @@ class Pdb(OldPdb):
         # vds: <<
 
     do_l = do_list
+
+    def getsourcelines(self, obj):
+        lines, lineno = inspect.findsource(obj)
+        if inspect.isframe(obj) and obj.f_globals is obj.f_locals:
+            # must be a module frame: do not try to cut a block out of it
+            return lines, 1
+        elif inspect.ismodule(obj):
+            return lines, 1
+        return inspect.getblock(lines[lineno:]), lineno+1
+
+    def do_longlist(self, arg):
+        self.lastcmd = 'longlist'
+        filename = self.curframe.f_code.co_filename
+        breaklist = self.get_file_breaks(filename)
+        try:
+            lines, lineno = self.getsourcelines(self.curframe)
+        except OSError as err:
+            self.error(err)
+            return
+        last = lineno + len(lines)
+        self.print_list_lines(self.curframe.f_code.co_filename, lineno, last)
+    do_ll = do_longlist
 
     def do_pdef(self, arg):
         """Print the call signature for any callable object.
