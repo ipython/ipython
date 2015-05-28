@@ -10,7 +10,7 @@ import os
 import nose.tools as nt
 
 from IPython.testing import decorators as dec
-from IPython.utils.py3compat import builtin_mod_name
+from IPython.utils.py3compat import builtin_mod_name, PY3
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.lib.deepreload import reload as dreload
@@ -29,6 +29,13 @@ def test_deepreload_numpy():
         # Test-related exclusions:
         'unittest', 'UserDict',
         ]
+
+    # `collections` builtin shall not be reloaded to avoid failure
+    # of lib.pretty collections related pretty printing.
+    # of course this make nose crash on Py3 because of Py 2.3 compat...
+    if not PY3:
+        exclude.append('collections')
+
     dreload(numpy, exclude=exclude)
 
 def test_deepreload():
