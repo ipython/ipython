@@ -37,7 +37,7 @@ no error.
 
 To add to a collection which may have already been defined elsewhere,
 you can use methods like those found on lists, dicts and sets: append,
-extend, :meth:`~traitlets.config.loader.LazyConfigValue.prepend` (like
+extend, :meth:`~traitlets.config.LazyConfigValue.prepend` (like
 extend, but at the front), add and update (which works both for dicts
 and sets)::
 
@@ -154,3 +154,6 @@ the directory :file:`~/.ipython/` by default.
 
    This command line option can also be used to override the default
    IPython directory.
+
+To see where IPython is looking for the IPython directory, use the command
+``ipython locate``, or the Python function :func:`IPython.paths.get_ipython_dir`.
