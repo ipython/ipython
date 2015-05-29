@@ -70,7 +70,6 @@ Example config file
     c.InteractiveShell.autoindent = True
     c.InteractiveShell.colors = 'LightBG'
     c.InteractiveShell.confirm_exit = False
-    c.InteractiveShell.deep_reload = True
     c.InteractiveShell.editor = 'nano'
     c.InteractiveShell.xmode = 'Context'
 

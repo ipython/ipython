@@ -71,7 +71,7 @@ addflag('color-info', 'InteractiveShell.color_info',
     "Disable using colors for info related things."
 )
 addflag('deep-reload', 'InteractiveShell.deep_reload',
-    """Enable deep (recursive) reloading by default. IPython can use the
+    """ **Deprecated** Enable deep (recursive) reloading by default. IPython can use the
     deep_reload module which reloads changes in modules recursively (it
     replaces the reload() function, so you don't need to change anything to
     use it). deep_reload() forces a full reload of modules whose code may

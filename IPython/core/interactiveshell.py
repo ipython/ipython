@@ -284,10 +284,12 @@ class InteractiveShell(SingletonConfigurable):
     debug = CBool(False, config=True)
     deep_reload = CBool(False, config=True, help=
         """
+        **Deprecated**
+
         Enable deep (recursive) reloading by default. IPython can use the
         deep_reload module which reloads changes in modules recursively (it
         replaces the reload() function, so you don't need to change anything to
-        use it). deep_reload() forces a full reload of modules whose code may
+        use it). `deep_reload` forces a full reload of modules whose code may
         have changed, which the default reload() function does not.  When
         deep_reload is off, IPython will use the normal reload(), but
         deep_reload will still be available as dreload().
