@@ -2722,6 +2722,8 @@ class InteractiveShell(SingletonConfigurable):
                     elif not result.success:
                         break
             except:
+                if raise_exceptions:
+                    raise
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)
 
