@@ -2655,7 +2655,7 @@ class InteractiveShell(SingletonConfigurable):
                 # tb offset is 2 because we wrap execfile
                 self.showtraceback(tb_offset=2)
 
-    def safe_execfile_ipy(self, fname, shell_futures=False):
+    def safe_execfile_ipy(self, fname, raise_exceptions=False, shell_futures=False):
         """Like safe_execfile, but for .ipy or .ipynb files with IPython syntax.
 
         Parameters
@@ -2663,6 +2663,8 @@ class InteractiveShell(SingletonConfigurable):
         fname : str
             The name of the file to execute.  The filename must have a
             .ipy or .ipynb extension.
+        raise_exceptions : bool (False)
+            If True raise exceptions everywhere. Meant for testing.
         shell_futures : bool (False)
             If True, the code will share future statements with the interactive
             shell. It will both be affected by previous __future__ imports, and
@@ -2702,12 +2704,13 @@ class InteractiveShell(SingletonConfigurable):
         with prepended_to_syspath(dname):
             try:
                 for cell in get_cells():
-                    # self.run_cell currently captures all exceptions
-                    # raised in user code.  It would be nice if there were
-                    # versions of run_cell that did raise, so
-                    # we could catch the errors.
                     result = self.run_cell(cell, silent=True, shell_futures=shell_futures)
-                    if not result.success:
+                    if not result.success and raise_exceptions:
+                        if result.error_before_exec is not None:
+                            raise result.error_before_exec
+                        else:
+                            raise result.error_in_exec
+                    elif not result.success:
                         break
             except:
                 self.showtraceback()
