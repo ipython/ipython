@@ -206,6 +206,13 @@ class ExecutionResult(object):
     def success(self):
         return (self.error_before_exec is None) and (self.error_in_exec is None)
 
+    def raise_error(self):
+        """Reraises error if `success` is `False`, otherwise does nothing"""
+        if self.error_before_exec is not None:
+            raise self.error_before_exec
+        if self.error_in_exec is not None:
+            raise self.error_in_exec
+
 
 class InteractiveShell(SingletonConfigurable):
     """An enhanced, interactive shell for Python."""
@@ -2705,11 +2712,8 @@ class InteractiveShell(SingletonConfigurable):
             try:
                 for cell in get_cells():
                     result = self.run_cell(cell, silent=True, shell_futures=shell_futures)
-                    if not result.success and raise_exceptions:
-                        if result.error_before_exec is not None:
-                            raise result.error_before_exec
-                        else:
-                            raise result.error_in_exec
+                    if raise_exceptions:
+                        result.raise_error()
                     elif not result.success:
                         break
             except:
