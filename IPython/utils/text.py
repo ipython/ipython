@@ -619,7 +619,7 @@ class DollarFormatter(FullEvalFormatter):
             # Re-yield the {foo} style pattern
             yield (txt + literal_txt[continue_from:], field_name, format_spec, conversion)
     def _vformat(self, format_string, args, kwargs, used_args, recursion_depth, supressExceptions=True):
-        return super(FullEvalFormatter,self)._vformat(format_string, args, kwargs, used_args, recursion_depth, supressExceptions)
+        return super(DollarFormatter,self)._vformat(format_string, args, kwargs, used_args, recursion_depth, supressExceptions)
 
 #-----------------------------------------------------------------------------
 # Utils to columnize a list of string
