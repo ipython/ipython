@@ -208,6 +208,13 @@ class ExecutionResult(object):
     def success(self):
         return (self.error_before_exec is None) and (self.error_in_exec is None)
 
+    def raise_error(self):
+        """Reraises error if `success` is `False`, otherwise does nothing"""
+        if self.error_before_exec is not None:
+            raise self.error_before_exec
+        if self.error_in_exec is not None:
+            raise self.error_in_exec
+
 
 class InteractiveShell(SingletonConfigurable):
     """An enhanced, interactive shell for Python."""
@@ -2664,7 +2671,7 @@ class InteractiveShell(SingletonConfigurable):
                 # tb offset is 2 because we wrap execfile
                 self.showtraceback(tb_offset=2)
 
-    def safe_execfile_ipy(self, fname, shell_futures=False):
+    def safe_execfile_ipy(self, fname, shell_futures=False, raise_exceptions=False):
         """Like safe_execfile, but for .ipy or .ipynb files with IPython syntax.
 
         Parameters
@@ -2677,6 +2684,8 @@ class InteractiveShell(SingletonConfigurable):
             shell. It will both be affected by previous __future__ imports, and
             any __future__ imports in the code will affect the shell. If False,
             __future__ imports are not shared in either direction.
+        raise_exceptions : bool (False)
+            If True raise exceptions everywhere.  Meant for testing.
         """
         fname = os.path.abspath(os.path.expanduser(fname))
 
@@ -2711,14 +2720,14 @@ class InteractiveShell(SingletonConfigurable):
         with prepended_to_syspath(dname):
             try:
                 for cell in get_cells():
-                    # self.run_cell currently captures all exceptions
-                    # raised in user code.  It would be nice if there were
-                    # versions of run_cell that did raise, so
-                    # we could catch the errors.
                     result = self.run_cell(cell, silent=True, shell_futures=shell_futures)
-                    if not result.success:
+                    if raise_exceptions:
+                        result.raise_error()
+                    elif not result.success:
                         break
             except:
+                if raise_exceptions:
+                    raise
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)
 
