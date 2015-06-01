@@ -561,7 +561,10 @@ class FullEvalFormatter(Formatter):
 
                 # eval the contents of the field for the object
                 # to be formatted
-                obj = eval(field_name, kwargs)
+                try:
+                    obj = eval(field_name, kwargs)
+                except NameError:
+                    obj = field_name
 
                 # do any conversion on the resulting object
                 obj = self.convert_field(obj, conversion)
