@@ -56,9 +56,11 @@ class BuiltinTrap(Configurable):
         try:
             from IPython.lib import deepreload
             if self.shell.deep_reload:
-                self.auto_builtins['reload'] = deepreload.reload
+                from warnings import warn
+                warn("Automatically replacing builtin `reload` by `deepreload.reload` is deprecated, please import `reload` explicitly from `IPython.lib.deeprelaod", DeprecationWarning)
+                self.auto_builtins['reload'] = deepreload._dreload
             else:
-                self.auto_builtins['dreload']= deepreload.reload
+                self.auto_builtins['dreload']= deepreload._dreload
         except ImportError:
             pass
 
