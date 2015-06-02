@@ -10,4 +10,5 @@ The IPython notebook
     nbconvert
     public_server
     security
+    plotting
 

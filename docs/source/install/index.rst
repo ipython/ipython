@@ -8,4 +8,5 @@ Installation
    :maxdepth: 2
 
    install
+   kernel_install
 
