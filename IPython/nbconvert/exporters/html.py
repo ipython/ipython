@@ -37,7 +37,15 @@ class HTMLExporter(TemplateExporter):
     def default_config(self):
         c = Config({
             'NbConvertBase': {
-                'display_data_priority' : ['application/javascript', 'text/html', 'text/markdown', 'application/pdf', 'image/svg+xml', 'text/latex', 'image/png', 'image/jpeg', 'text/plain']
+                'display_data_priority' : ['application/javascript',
+                                           'text/html',
+                                           'text/markdown',
+                                           'image/svg+xml',
+                                           'text/latex',
+                                           'image/png',
+                                           'image/jpeg',
+                                           'text/plain'
+                                          ]
                 },
             'CSSHTMLHeaderPreprocessor':{
                 'enabled':True
