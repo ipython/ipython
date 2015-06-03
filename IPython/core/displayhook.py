@@ -10,12 +10,13 @@ This defines a callable class that IPython uses for `sys.displayhook`.
 from __future__ import print_function
 
 import sys
-import io, tokenize
+import io as _io
+import tokenize
 
 from IPython.core.formatters import _safe_get_formatter_method
 from traitlets.config.configurable import Configurable
 from IPython.utils import io
-from IPython.utils.py3compat import builtin_mod
+from IPython.utils.py3compat import builtin_mod, cast_unicode_py2
 from traitlets import Instance, Float
 from IPython.utils.warn import warn
 
@@ -84,22 +85,23 @@ class DisplayHook(Configurable):
     def quiet(self):
         """Should we silence the display hook because of ';'?"""
         # do not print output if input ends in ';'
-
-        cell = self.shell.history_manager.input_hist_parsed[self.prompt_count]
-        sio = io.StringIO(cell)
-        tokens = list(tokenize.generate_tokens(sio.readline))
-
+        
         try:
-            for token in reversed(tokens):
-                if token.type in (tokenize.ENDMARKER, tokenize.COMMENT):
-                    continue
-                if (token.type == tokenize.OP) and (token.string == ';'):
-                    return True
-                else:
-                    return False
+            cell = cast_unicode_py2(self.shell.history_manager.input_hist_parsed[-1])
         except IndexError:
             # some uses of ipshellembed may fail here
             return False
+        
+        sio = _io.StringIO(cell)
+        tokens = list(tokenize.generate_tokens(sio.readline))
+
+        for token in reversed(tokens):
+            if token[0] in (tokenize.ENDMARKER, tokenize.COMMENT):
+                continue
+            if (token[0] == tokenize.OP) and (token[1] == ';'):
+                return True
+            else:
+                return False
 
     def start_displayhook(self):
         """Start the displayhook, initializing resources."""
