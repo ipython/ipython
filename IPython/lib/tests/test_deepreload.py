@@ -27,7 +27,7 @@ def test_deepreload_numpy():
         # Standard exclusions:
         'sys', 'os.path', builtin_mod_name, '__main__',
         # Test-related exclusions:
-        'unittest', 'UserDict',
+        'unittest', 'UserDict', '_collections_abc', 'tokenize'
         ]
 
     # `collections` builtin shall not be reloaded to avoid failure
