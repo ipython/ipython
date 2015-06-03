@@ -42,7 +42,7 @@ class PylabMagics(Magics):
     @skip_doctest
     @line_magic
     @magic_arguments.magic_arguments()
-    @magic_arguments.argument('-l', '--list', default=False, action='store_true',
+    @magic_arguments.argument('-l', '--list', action='store_true',
                               help='Show available matplotlib backends')
     @magic_gui_arg
     def matplotlib(self, line=''):
