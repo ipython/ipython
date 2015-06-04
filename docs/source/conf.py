@@ -193,7 +193,7 @@ htmlhelp_basename = 'ipythondoc'
 intersphinx_mapping = {'python': ('http://docs.python.org/2/', None),
                        'rpy2': ('http://rpy.sourceforge.net/rpy2/doc-2.4/html/', None),
                        'traitlets': ('http://traitlets.readthedocs.org/en/latest/', None),
-                       'jupyterclient': ('http://jupyter-client.readthedocs.org/en/latest/', None),
+                       'jupyter-client': ('http://jupyter-client.readthedocs.org/en/latest/', None),
                       }
 
 # Options for LaTeX output

@@ -389,7 +389,6 @@ resulting plots will then also be stored in the notebook document.
 
     `Plotting with Matplotlib`_  example notebook
 
-
 Configuring the IPython Notebook
 --------------------------------
 The notebook server can be run with a variety of command line arguments. 
@@ -429,7 +428,7 @@ be installed as kernels by following these steps:
 * run once ``ipython kernelspec install-self --user`` (or ``ipython2 ...`` or ``ipython3 ...``
   if you want to install specific python versions)
 
-The last command installs a kernel spec file for the current python installation in
+The last command installs a :ref:`kernel spec <jupyter-client:kernel-specs>` file for the current python installation in
 ``~/.ipython/kernels/``. Kernel spec files are JSON files, which can be viewed and changed with a
 normal text editor.
 

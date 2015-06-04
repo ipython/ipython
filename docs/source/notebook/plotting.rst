@@ -2,7 +2,7 @@
 
 Plotting
 --------
-One major feature of the Jupyter notebook is the ability to display plots that 
+One major feature of the IPython kernel is the ability to display plots that 
 are the output of running code cells. The IPython kernel is designed to work 
 seamlessly with the matplotlib_ plotting library to provide this functionality.
 
@@ -21,7 +21,7 @@ requested using, for example::
 
 A particularly interesting backend, provided by IPython, is the ``inline``
 backend.  This is available only for the Jupyter Notebook and the
-:ref:`IPython QtConsole <qtconsole>`.  It can be invoked as follows::
+:ref:`Jupyter QtConsole <qtconsole>`.  It can be invoked as follows::
 
   %matplotlib inline
 
