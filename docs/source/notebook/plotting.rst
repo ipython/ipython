@@ -32,3 +32,5 @@ resulting plots will then also be stored in the notebook document.
 .. seealso::
 
     `Plotting with Matplotlib`_  example notebook
+
+.. include:: ../links.txt
