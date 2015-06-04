@@ -42,6 +42,8 @@ class PylabMagics(Magics):
     @skip_doctest
     @line_magic
     @magic_arguments.magic_arguments()
+    @magic_arguments.argument('-l', '--list', action='store_true',
+                              help='Show available matplotlib backends')
     @magic_gui_arg
     def matplotlib(self, line=''):
         """Set up matplotlib to work interactively.
@@ -83,10 +85,20 @@ class PylabMagics(Magics):
         But you can explicitly request a different GUI backend::
 
             In [3]: %matplotlib qt
+
+        You can list the available backends using the -l/--list option
+
+           In [4]: %matplotlib --list
+           Available matplotlib backends: ['osx', 'qt4', 'qt5', 'gtk3', 'notebook', 'wx', 'qt', 'nbagg',
+            'gtk', 'tk', 'inline']
         """
         args = magic_arguments.parse_argstring(self.matplotlib, line)
-        gui, backend = self.shell.enable_matplotlib(args.gui)
-        self._show_matplotlib_backend(args.gui, backend)
+        if args.list:
+            backends_list = list(backends.keys())
+            print("Available matplotlib backends: %s" % backends_list)
+        else:
+            gui, backend = self.shell.enable_matplotlib(args.gui)
+            self._show_matplotlib_backend(args.gui, backend)
 
     @skip_doctest
     @line_magic
