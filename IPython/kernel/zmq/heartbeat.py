@@ -52,13 +52,13 @@ class Heartbeat(Thread):
         self.daemon = True
 
     def run(self):
-        self.socket = self.context.socket(zmq.REP)
+        self.socket = self.context.socket(zmq.ROUTER)
         self.socket.linger = 1000
         c = ':' if self.transport == 'tcp' else '-'
         self.socket.bind('%s://%s' % (self.transport, self.ip) + c + str(self.port))
         while True:
             try:
-                zmq.device(zmq.FORWARDER, self.socket, self.socket)
+                zmq.device(zmq.QUEUE, self.socket, self.socket)
             except zmq.ZMQError as e:
                 if e.errno == errno.EINTR:
                     continue
