@@ -34,7 +34,6 @@ help:
 	@echo "pdf          latex and then runs the PDF generation"
 	@echo "all          html and pdf"
 	@echo "dist         all, and then puts the results in dist/"
-	@echo "gitwash-update update git workflow from source repo"
 
 clean_api:
 	-rm -rf $(SRCDIR)/api/generated
@@ -134,9 +133,6 @@ linkcheck:
 	@echo
 	@echo "Link check complete; look for any errors in the above output " \
 	      "or in build/linkcheck/output.rst."
-
-gitwash-update:
-	python ../tools/gitwash_dumper.py source/development ipython
 
 nightly: dist
 	rsync -avH --delete dist/ ipython:www/doc/nightly
