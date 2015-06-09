@@ -172,7 +172,7 @@ COMMENT, INPUT, OUTPUT =  range(3)
 def block_parser(part, rgxin, rgxout, fmtin, fmtout):
     """
     part is a string of ipython text, comprised of at most one
-    input, one ouput, comments, and blank lines.  The block parser
+    input, one output, comments, and blank lines.  The block parser
     parses the text into a list of::
 
       blocks = [ (TOKEN0, data0), (TOKEN1, data1), ...]
@@ -297,8 +297,8 @@ class EmbeddedSphinxShell(object):
 
         # Create and initialize global ipython, but don't start its mainloop.
         # This will persist across different EmbededSphinxShell instances.
-        atexit.register(self.cleanup)
         IP = InteractiveShell.instance(config=config, profile_dir=profile)
+        atexit.register(self.cleanup)
 
         # io.stdout redirect must be done after instantiating InteractiveShell
         io.stdout = self.cout
@@ -657,14 +657,41 @@ class EmbeddedSphinxShell(object):
         image_file = None
         image_directive = None
 
+        found_input = False
         for token, data in block:
             if token == COMMENT:
                 out_data = self.process_comment(data)
             elif token == INPUT:
+                found_input = True
                 (out_data, input_lines, output, is_doctest,
                  decorator, image_file, image_directive) = \
                           self.process_input(data, input_prompt, lineno)
             elif token == OUTPUT:
+                if not found_input:
+
+                    TAB = ' ' * 4
+                    linenumber = 0
+                    source = 'Unavailable'
+                    content = 'Unavailable'
+                    if self.directive:
+                        linenumber = self.directive.state.document.current_line
+                        source = self.directive.state.document.current_source
+                        content = self.directive.content
+                        # Add tabs and join into a single string.
+                        content = '\n'.join([TAB + line for line in content])
+
+                    e = ('\n\nInvalid block: Block contains an output prompt '
+                         'without an input prompt.\n\n'
+                         'Document source: {0}\n\n'
+                         'Content begins at line {1}: \n\n{2}\n\n'
+                         'Problematic block within content: \n\n{TAB}{3}\n\n')
+                    e = e.format(source, linenumber, content, block, TAB=TAB)
+
+                    # Write, rather than include in exception, since Sphinx
+                    # will truncate tracebacks.
+                    sys.stdout.write(e)
+                    raise RuntimeError('An invalid block was detected.')
+
                 out_data = \
                     self.process_output(data, output_prompt, input_lines,
                                         output, is_doctest, decorator,
@@ -923,6 +950,8 @@ class IPythonDirective(Directive):
             content = self.content
             self.content = self.shell.process_pure_python(content)
 
+        # parts consists of all text within the ipython-block.
+        # Each part is an input/output block.
         parts = '\n'.join(self.content).split('\n\n')
 
         lines = ['.. code-block:: ipython', '']
