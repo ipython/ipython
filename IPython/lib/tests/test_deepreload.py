@@ -33,8 +33,8 @@ def test_deepreload_numpy():
     # `collections` builtin shall not be reloaded to avoid failure
     # of lib.pretty collections related pretty printing.
     # of course this make nose crash on Py3 because of Py 2.3 compat...
-    if not PY3:
-        exclude.append('collections')
+    #if not PY3:
+    exclude.append('collections')
 
     dreload(numpy, exclude=exclude)
 
