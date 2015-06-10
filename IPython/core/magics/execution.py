@@ -38,7 +38,7 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
 from IPython.utils.py3compat import builtin_mod, iteritems, PY3
 from IPython.utils.contexts import preserve_keys
-from IPython.utils.io import capture_output
+from IPython.utils.capture import capture_output
 from IPython.utils.ipstruct import Struct
 from IPython.utils.module_paths import find_mod
 from IPython.utils.path import get_py_filename, unquote_filename, shellglob

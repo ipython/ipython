@@ -10,14 +10,9 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 
-import codecs
-from contextlib import contextmanager
-import io
 import os
-import shutil
 import sys
 import tempfile
-import warnings
 from warnings import warn
 from .capture import CapturedIO, capture_output
 from .py3compat import string_types, input, PY3
@@ -81,23 +76,6 @@ devnull = open(os.devnull, 'w')
 stdin = IOStream(sys.stdin, fallback=devnull)
 stdout = IOStream(sys.stdout, fallback=devnull)
 stderr = IOStream(sys.stderr, fallback=devnull)
-
-class IOTerm:
-    """ Term holds the file or file-like objects for handling I/O operations.
-
-    These are normally just sys.stdin, sys.stdout and sys.stderr but for
-    Windows they can can replaced to allow editing the strings before they are
-    displayed."""
-
-    # In the future, having IPython channel all its I/O operations through
-    # this class will make it easier to embed it into other environments which
-    # are not a normal terminal (such as a GUI-based shell)
-    def __init__(self, stdin=None, stdout=None, stderr=None):
-        mymodule = sys.modules[__name__]
-        self.stdin  = IOStream(stdin, mymodule.stdin)
-        self.stdout = IOStream(stdout, mymodule.stdout)
-        self.stderr = IOStream(stderr, mymodule.stderr)
-
 
 class Tee(object):
     """A class to duplicate an output stream to stdout/err.
