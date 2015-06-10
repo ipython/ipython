@@ -35,6 +35,7 @@ from __future__ import print_function
 
 from contextlib import contextmanager
 import imp
+import os.path
 import sys
 
 from types import ModuleType
