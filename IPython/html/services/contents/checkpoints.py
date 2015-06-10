@@ -67,7 +67,7 @@ class GenericCheckpointsMixin(object):
     - get_notebook_checkpoint(self, checkpoint_id, path)
 
     To create a generic CheckpointManager, add this mixin to a class that
-    implement the above three methods plus the remaining Checkpoints API
+    implement the above four methods plus the remaining Checkpoints API
     methods:
 
     - delete_checkpoint(self, checkpoint_id, path)
@@ -118,10 +118,25 @@ class GenericCheckpointsMixin(object):
         """
         raise NotImplementedError("must be implemented in a subclass")
 
-    def get_checkpoint(self, checkpoint_id, path, type):
-        """Get the content of a checkpoint.
+    def get_file_checkpoint(self, checkpoint_id, path):
+        """Get the content of a checkpoint for a non-notebook file.
 
-        Returns an unvalidated model with the same structure as
-        the return value of ContentsManager.get
+        Returns a dict of the form:
+        {
+            'type': 'file',
+            'content': <str>,
+            'format': {'text','base64'},
+        }
+        """
+        raise NotImplementedError("must be implemented in a subclass")
+
+    def get_notebook_checkpoint(self, checkpoint_id, path):
+        """Get the content of a checkpoint for a notebook.
+
+        Returns a dict of the form:
+        {
+            'type': 'notebook',
+            'content': <output of nbformat.read>,
+        }
         """
         raise NotImplementedError("must be implemented in a subclass")
