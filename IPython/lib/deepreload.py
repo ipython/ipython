@@ -35,7 +35,7 @@ from __future__ import print_function
 
 from contextlib import contextmanager
 import imp
-import os.path
+import os
 import sys
 
 from types import ModuleType
@@ -165,7 +165,7 @@ def load_next(mod, altmod, name, buf):
 
     return result, next, buf
 
-stdlib_dir = os.path.dirname(imp.__file__)
+stdlib_dir = os.path.dirname(os.__file__)
 
 def is_stdlib(mod):
     path = getattr(mod, '__file__', '')
