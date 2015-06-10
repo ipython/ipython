@@ -164,6 +164,12 @@ def load_next(mod, altmod, name, buf):
 
     return result, next, buf
 
+stdlib_dir = os.path.dirname(imp.__file__)
+
+def is_stdlib(mod):
+    path = getattr(mod, '__file__', '')
+    return os.path.dirname(path) == stdlib_dir
+
 # Need to keep track of what we've already reloaded to prevent cyclic evil
 found_now = {}
 
@@ -175,6 +181,8 @@ def import_submodule(mod, subname, fullname):
 
     global found_now
     if fullname in found_now and fullname in sys.modules:
+        m = sys.modules[fullname]
+    elif fullname in sys.modules and is_stdlib(sys.modules[fullname]):
         m = sys.modules[fullname]
     else:
         print('Reloading', fullname)
