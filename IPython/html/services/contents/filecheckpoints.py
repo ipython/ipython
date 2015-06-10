@@ -142,7 +142,7 @@ class GenericFileCheckpoints(GenericCheckpointsMixin, FileCheckpoints):
     ContentsManager.
     """
     def create_file_checkpoint(self, content, format, path):
-        """Create a checkpoint from the current content of a notebook."""
+        """Create a checkpoint from the current content of a file."""
         path = path.strip('/')
         # only the one checkpoint ID:
         checkpoint_id = u"checkpoint"
@@ -168,7 +168,7 @@ class GenericFileCheckpoints(GenericCheckpointsMixin, FileCheckpoints):
         return self.checkpoint_model(checkpoint_id, os_checkpoint_path)
 
     def get_notebook_checkpoint(self, checkpoint_id, path):
-
+        """Get a checkpoint for a notebook."""
         path = path.strip('/')
         self.log.info("restoring %s from checkpoint %s", path, checkpoint_id)
         os_checkpoint_path = self.checkpoint_path(checkpoint_id, path)
@@ -185,6 +185,7 @@ class GenericFileCheckpoints(GenericCheckpointsMixin, FileCheckpoints):
         }
 
     def get_file_checkpoint(self, checkpoint_id, path):
+        """Get a checkpoint for a file."""
         path = path.strip('/')
         self.log.info("restoring %s from checkpoint %s", path, checkpoint_id)
         os_checkpoint_path = self.checkpoint_path(checkpoint_id, path)
