@@ -25,16 +25,11 @@ def test_deepreload_numpy():
     import numpy
     exclude = [
         # Standard exclusions:
-        'sys', 'os.path', builtin_mod_name, '__main__',
+        'sys',  builtin_mod_name, '__main__',
         # Test-related exclusions:
-        'unittest', 'UserDict', '_collections_abc', 'tokenize'
+        '_collections_abc',
+        'unittest', # Should be caught by stdlib excludes, but Travis is bizarre
         ]
-
-    # `collections` builtin shall not be reloaded to avoid failure
-    # of lib.pretty collections related pretty printing.
-    # of course this make nose crash on Py3 because of Py 2.3 compat...
-    if not PY3:
-        exclude.append('collections')
 
     dreload(numpy, exclude=exclude)
 

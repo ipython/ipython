@@ -35,6 +35,7 @@ from __future__ import print_function
 
 from contextlib import contextmanager
 import imp
+import os
 import sys
 
 from types import ModuleType
@@ -164,6 +165,20 @@ def load_next(mod, altmod, name, buf):
 
     return result, next, buf
 
+stdlib_dir = os.path.dirname(os.path.realpath(os.__file__))
+
+def is_stdlib(fullname):
+    top_level = fullname.split('.')[0]
+    if top_level not in sys.modules:
+        return False
+    mod = sys.modules[top_level]
+    path = getattr(mod, '__file__', '')
+    print('stdlib check {}: {}'.format(fullname, path))
+    if os.path.splitext(os.path.basename(path))[0] == '__init__':
+        # Package - use the directory path
+        path = os.path.dirname(path)
+    return os.path.dirname(os.path.realpath(path)) == stdlib_dir
+
 # Need to keep track of what we've already reloaded to prevent cyclic evil
 found_now = {}
 
@@ -175,6 +190,8 @@ def import_submodule(mod, subname, fullname):
 
     global found_now
     if fullname in found_now and fullname in sys.modules:
+        m = sys.modules[fullname]
+    elif is_stdlib(fullname):
         m = sys.modules[fullname]
     else:
         print('Reloading', fullname)
@@ -327,7 +344,7 @@ except AttributeError:
     original_reload = imp.reload    # Python 3
 
 # Replacement for reload()
-def reload(module, exclude=('sys', 'os.path', builtin_mod_name, '__main__')):
+def reload(module, exclude=('sys', builtin_mod_name, '__main__')):
     """Recursively reload all modules used in the given module.  Optionally
     takes a list of modules to exclude from reloading.  The default exclude
     list contains sys, __main__, and __builtin__, to prevent, e.g., resetting
@@ -337,6 +354,7 @@ def reload(module, exclude=('sys', 'os.path', builtin_mod_name, '__main__')):
     for i in exclude:
         found_now[i] = 1
     try:
+        print('os is in:', stdlib_dir)
         with replace_import_hook(deep_import_hook):
             return deep_reload_hook(module)
     finally:
