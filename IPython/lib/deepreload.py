@@ -173,6 +173,7 @@ def is_stdlib(fullname):
         return False
     mod = sys.modules[top_level]
     path = getattr(mod, '__file__', '')
+    print('stdlib check {}: {}'.format())
     if os.path.splitext(os.path.basename(path))[0] == '__init__':
         # Package - use the directory path
         path = os.path.dirname(path)
@@ -353,6 +354,7 @@ def reload(module, exclude=('sys', builtin_mod_name, '__main__')):
     for i in exclude:
         found_now[i] = 1
     try:
+        print('os is in:', stdlib_dir)
         with replace_import_hook(deep_import_hook):
             return deep_reload_hook(module)
     finally:
