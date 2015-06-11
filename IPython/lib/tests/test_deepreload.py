@@ -28,6 +28,7 @@ def test_deepreload_numpy():
         'sys',  builtin_mod_name, '__main__',
         # Test-related exclusions:
         '_collections_abc',
+        'unittest', # Should be caught by stdlib excludes, but Travis is bizarre
         ]
 
     dreload(numpy, exclude=exclude)
