@@ -28,7 +28,7 @@ def test_deepreload_numpy():
         'sys', 'os.path', builtin_mod_name, '__main__',
         # Test-related exclusions:
         'unittest', 'UserDict', '_collections_abc', 'tokenize',
-        'collections', 'collections.abc'
+        'collections', 'collections.abc',
         ]
 
     dreload(numpy, exclude=exclude)
