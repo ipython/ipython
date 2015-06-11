@@ -173,7 +173,7 @@ def is_stdlib(fullname):
         return False
     mod = sys.modules[top_level]
     path = getattr(mod, '__file__', '')
-    print('stdlib check {}: {}'.format())
+    print('stdlib check {}: {}'.format(fullname, path))
     if os.path.splitext(os.path.basename(path))[0] == '__init__':
         # Package - use the directory path
         path = os.path.dirname(path)
