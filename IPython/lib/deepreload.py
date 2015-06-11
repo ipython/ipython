@@ -165,7 +165,7 @@ def load_next(mod, altmod, name, buf):
 
     return result, next, buf
 
-stdlib_dir = os.path.realpath(os.path.dirname(os.__file__))
+stdlib_dir = os.path.dirname(os.path.realpath(os.__file__))
 
 def is_stdlib(fullname):
     top_level = fullname.split('.')[0]
@@ -177,7 +177,7 @@ def is_stdlib(fullname):
     if os.path.splitext(os.path.basename(path))[0] == '__init__':
         # Package - use the directory path
         path = os.path.dirname(path)
-    return os.path.realpath(os.path.dirname(path)) == stdlib_dir
+    return os.path.dirname(os.path.realpath(path)) == stdlib_dir
 
 # Need to keep track of what we've already reloaded to prevent cyclic evil
 found_now = {}
