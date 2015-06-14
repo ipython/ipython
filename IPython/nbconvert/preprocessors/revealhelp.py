@@ -36,6 +36,8 @@ class RevealHelpPreprocessor(Preprocessor):
             #Make sure the cell has slideshow metadata.
             cell.metadata.slide_type = cell.get('metadata', {}).get('slideshow', {}).get('slide_type', '-')
 
+        for index, cell in enumerate(nb.cells):
+
             # Get the slide type. If type is start, subslide, or slide,
             # end the last subslide/slide.
             if cell.metadata.slide_type in ['slide']:
