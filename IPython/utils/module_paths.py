@@ -63,7 +63,7 @@ if sys.version_info >= (3,4):
     import importlib.util
     def _find_module(name, path):
         if path is not None:
-            warnings.warn( "`path=` argument deprecated on python 3.4 and above", DeprecationWarning, stacklevel=2)
+            warnings.warn( "`path=` argument deprecated and ignored on python 3.4 and above", DeprecationWarning, stacklevel=2)
         if name is None:
             return None
         spec = importlib.util.find_spec(name)
