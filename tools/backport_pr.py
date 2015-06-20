@@ -60,7 +60,7 @@ def backport_pr(branch, num, project='ipython/ipython'):
     files = get_pull_request_files(project, num, auth=True)
     patch_url = pr['patch_url']
     title = pr['title']
-    description = pr['body']
+    description = pr['body'] or ''
     fname = "PR%i.patch" % num
     if os.path.exists(fname):
         print("using patch from {fname}".format(**locals()))
@@ -92,6 +92,7 @@ def backport_pr(branch, num, project='ipython/ipython'):
     a,b = p.communicate(patch)
 
     filenames = [ f['filename'] for f in files ]
+    filenames = [ f.replace('jupyter_notebook', 'IPython/html') for f in filenames ]
 
     check_call(['git', 'add'] + filenames)
 
