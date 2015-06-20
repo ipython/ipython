@@ -743,7 +743,7 @@ Message type: ``kernel_info_reply``::
             # mimetype for script files in this language
             'mimetype': str,
 
-            # Extension without the dot, e.g. 'py'
+            # Extension including the dot, e.g. '.py'
             'file_extension': str,
 
             # Pygments lexer, for highlighting
