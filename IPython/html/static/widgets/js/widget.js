@@ -314,7 +314,9 @@ define(["widgets/js/manager",
              *
              * This invokes a Backbone.Sync.
              */
-            this.save(this._buffered_state_diff, {patch: true, callbacks: callbacks});
+            if (this.comm_live) {
+                this.save(this._buffered_state_diff, {patch: true, callbacks: callbacks});
+            }
         },
 
         _pack_models: function(value) {
