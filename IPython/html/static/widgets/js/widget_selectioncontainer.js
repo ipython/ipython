@@ -193,7 +193,7 @@ define([
             /**
              * Set a css attr of the widget view.
              */
-            if (name == 'padding' || name == 'margin') {
+            if (['padding', 'margin', 'height', 'width'].indexOf(name) !== -1) {
                 this.$el.css(name, value);
             } else {
                 this.$tabs.css(name, value);
