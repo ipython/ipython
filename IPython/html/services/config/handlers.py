@@ -9,9 +9,9 @@ import errno
 from tornado import web
 
 from IPython.utils.py3compat import PY3
-from ...base.handlers import IPythonHandler, json_errors
+from ...base.handlers import APIHandler, json_errors
 
-class ConfigHandler(IPythonHandler):
+class ConfigHandler(APIHandler):
     SUPPORTED_METHODS = ('GET', 'PUT', 'PATCH')
 
     @web.authenticated

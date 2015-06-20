@@ -2,9 +2,9 @@ import json
 
 from tornado import web
 
-from ...base.handlers import IPythonHandler, json_errors
+from ...base.handlers import APIHandler, json_errors
 
-class NbconvertRootHandler(IPythonHandler):
+class NbconvertRootHandler(APIHandler):
     SUPPORTED_METHODS = ('GET',)
 
     @web.authenticated

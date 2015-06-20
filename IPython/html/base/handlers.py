@@ -307,7 +307,14 @@ class IPythonHandler(AuthenticatedHandler):
             html = self.render_template('error.html', **ns)
         
         self.write(html)
-        
+
+
+class APIHandler(IPythonHandler):
+    """Base class for API handlers"""
+    def finish(self, *args, **kwargs):
+        self.set_header('Content-Security-Policy', "default-src 'none'")
+        self.set_header('Content-Type', 'application/json')
+        return super(APIHandler, self).finish(*args, **kwargs)
 
 
 class Template404(IPythonHandler):
@@ -370,6 +377,7 @@ def json_errors(method):
         try:
             result = yield gen.maybe_future(method(self, *args, **kwargs))
         except web.HTTPError as e:
+            self.set_header('Content-Type', 'application/json')
             status = e.status_code
             message = e.log_message
             self.log.warn(message)
@@ -377,6 +385,7 @@ def json_errors(method):
             reply = dict(message=message, reason=e.reason)
             self.finish(json.dumps(reply))
         except Exception:
+            self.set_header('Content-Type', 'application/json')
             self.log.error("Unhandled error in API request", exc_info=True)
             status = 500
             message = "Unknown server error"
@@ -453,7 +462,7 @@ class FileFindHandler(web.StaticFileHandler):
         return super(FileFindHandler, self).validate_absolute_path(root, absolute_path)
 
 
-class ApiVersionHandler(IPythonHandler):
+class APIVersionHandler(APIHandler):
 
     @json_errors
     def get(self):
@@ -524,5 +533,5 @@ path_regex = r"(?P<path>(?:(?:/[^/]+)+|/?))"
 
 default_handlers = [
     (r".*/", TrailingSlashHandler),
-    (r"api", ApiVersionHandler)
+    (r"api", APIVersionHandler)
 ]

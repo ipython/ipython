@@ -7,28 +7,28 @@ import json
 
 from tornado import web
 
-from ...base.handlers import IPythonHandler
+from ...base.handlers import APIHandler
 
 #-----------------------------------------------------------------------------
 # Cluster handlers
 #-----------------------------------------------------------------------------
 
 
-class MainClusterHandler(IPythonHandler):
+class MainClusterHandler(APIHandler):
 
     @web.authenticated
     def get(self):
         self.finish(json.dumps(self.cluster_manager.list_profiles()))
 
 
-class ClusterProfileHandler(IPythonHandler):
+class ClusterProfileHandler(APIHandler):
 
     @web.authenticated
     def get(self, profile):
         self.finish(json.dumps(self.cluster_manager.profile_info(profile)))
 
 
-class ClusterActionHandler(IPythonHandler):
+class ClusterActionHandler(APIHandler):
 
     @web.authenticated
     def post(self, profile, action):
