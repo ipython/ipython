@@ -424,7 +424,7 @@ def json_errors(method):
 # to minimize subclass changes:
 HTTPError = web.HTTPError
 
-class FileFindHandler(web.StaticFileHandler):
+class FileFindHandler(IPythonHandler, web.StaticFileHandler):
     """subclass of StaticFileHandler for serving files from a search path"""
     
     # cache search results, don't search for files more than once
