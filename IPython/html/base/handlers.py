@@ -42,16 +42,24 @@ sys_info = json.dumps(get_sys_info())
 
 class AuthenticatedHandler(web.RequestHandler):
     """A RequestHandler with an authenticated user."""
+    
+    @property
+    def content_security_policy(self):
+        """The default Content-Security-Policy header
+        
+        Can be overridden by defining Content-Security-Policy in settings['headers']
+        """
+        return '; '.join([
+            "frame-ancestors 'self'",
+            # Make sure the report-uri is relative to the base_url
+            "report-uri " + url_path_join(self.base_url, csp_report_uri),
+        ])
 
     def set_default_headers(self):
         headers = self.settings.get('headers', {})
 
         if "Content-Security-Policy" not in headers:
-            headers["Content-Security-Policy"] = (
-                    "frame-ancestors 'self'; "
-                    # Make sure the report-uri is relative to the base_url
-                    "report-uri " + url_path_join(self.base_url, csp_report_uri) + ";"
-            )
+            headers["Content-Security-Policy"] = self.content_security_policy
 
         # Allow for overriding headers
         for header_name,value in headers.items() :
@@ -311,8 +319,16 @@ class IPythonHandler(AuthenticatedHandler):
 
 class APIHandler(IPythonHandler):
     """Base class for API handlers"""
+    
+    @property
+    def content_security_policy(self):
+        csp = '; '.join([
+                super(APIHandler, self).content_security_policy,
+                "default-src 'none'",
+            ])
+        return csp
+    
     def finish(self, *args, **kwargs):
-        self.set_header('Content-Security-Policy', "default-src 'none'")
         self.set_header('Content-Type', 'application/json')
         return super(APIHandler, self).finish(*args, **kwargs)
 
