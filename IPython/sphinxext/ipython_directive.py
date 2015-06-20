@@ -296,8 +296,8 @@ class EmbeddedSphinxShell(object):
 
         # Create and initialize global ipython, but don't start its mainloop.
         # This will persist across different EmbededSphinxShell instances.
-        IP = InteractiveShell.instance(config=config, profile_dir=profile)
         atexit.register(self.cleanup)
+        IP = InteractiveShell.instance(config=config, profile_dir=profile)
 
         # io.stdout redirect must be done after instantiating InteractiveShell
         io.stdout = self.cout
