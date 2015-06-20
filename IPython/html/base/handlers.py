@@ -119,6 +119,11 @@ class IPythonHandler(AuthenticatedHandler):
             return Application.instance().log
         else:
             return app_log
+
+    @property
+    def jinja_template_vars(self):
+        """User-supplied values to supply to jinja templates."""
+        return self.settings.get('jinja_template_vars', {})
     
     #---------------------------------------------------------------
     # URLs
@@ -250,6 +255,7 @@ class IPythonHandler(AuthenticatedHandler):
             sys_info=sys_info,
             contents_js_source=self.contents_js_source,
             version_hash=self.version_hash,
+            **self.jinja_template_vars
         )
     
     def get_json_body(self):
