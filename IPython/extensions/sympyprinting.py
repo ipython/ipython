@@ -28,5 +28,5 @@ maintained here for backwards compatablitiy with old SymPy versions.
 import warnings
 
 def load_ipython_extension(ip):
-    warnings.warn("The sympyprinting extension in IPython is deprecated, "
-        "use 'from sympy import init_printing; init_printing()'")
+    warnings.warn("The sympyprinting extension as move to `sympy`, "
+        "use `from sympy import init_printing; init_printing()`")
