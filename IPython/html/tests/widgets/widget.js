@@ -115,7 +115,7 @@ casper.notebook_test(function () {
     var multiset = {};
     multiset.index = this.append_cell(
         'from IPython.utils.traitlets import Unicode, CInt\n' +
-        'class MultiSetWidget(widgets.Widget):\n' +
+        'class MultiSetWidget(widgets.DOMWidget):\n' +
         '    _view_name = Unicode("MultiSetView", sync=True)\n' +
         '    a = CInt(0, sync=True)\n' +
         '    b = CInt(0, sync=True)\n' +
