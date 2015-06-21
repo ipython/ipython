@@ -566,20 +566,6 @@ disable_gui = inputhook_manager.disable_gui
 register = inputhook_manager.register
 guis = inputhook_manager.guihooks
 
-# Deprecated methods: kept for backwards compatibility, do not use in new code
-def _make_deprecated_enable(name):
-    def enable_toolkit(app=None):
-        warn("This function is deprecated - use enable_gui(%r) instead" % name)
-        inputhook_manager.enable_gui(name, app)
-    
-enable_osx = _make_deprecated_enable('osx')
-enable_wx = _make_deprecated_enable('wx')
-enable_qt4 = _make_deprecated_enable('qt4')
-enable_gtk = _make_deprecated_enable('gtk')
-enable_tk = _make_deprecated_enable('tk')
-enable_glut = _make_deprecated_enable('glut')
-enable_pyglet = _make_deprecated_enable('pyglet')
-enable_gtk3 = _make_deprecated_enable('gtk3')
 
 def _deprecated_disable():
     warn("This function is deprecated: use disable_gui() instead")
