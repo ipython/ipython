@@ -24,6 +24,7 @@ define(["widgets/js/manager",
              *      An ID unique to this model.
              * comm : Comm instance (optional)
              */
+            WidgetModel.__super__.constructor.apply(this);
             this.widget_manager = widget_manager;
             this.state_change = Promise.resolve();
             this._buffered_state_diff = {};
@@ -32,6 +33,13 @@ define(["widgets/js/manager",
             this.state_lock = null;
             this.id = model_id;
             this.views = {};
+
+            // Force backbone to think that the model has already been
+            // synced with the server.  As of backbone 1.1, backbone
+            // ignores `patch` if it thinks the model has never been
+            // pushed.
+            this.isNew = function() { return false; };
+
             this._resolve_received_state = {};
 
             if (comm !== undefined) {
