@@ -282,9 +282,10 @@ define([
          * Handle when a comm is opened.
          */
         return this.create_model({
-            model_name: msg.content.data.model_name, 
-            model_module: msg.content.data.model_module, 
-            comm: comm}).catch(utils.reject("Couldn't create a model.", true));
+            model_name: msg.content.data.model_name,
+            model_module: msg.content.data.model_module,
+            comm: comm,
+        }).catch(utils.reject("Couldn't create a model.", true));
     };
 
     WidgetManager.prototype.create_model = function (options) {
@@ -298,10 +299,11 @@ define([
          * --------
          * JS:
          * IPython.notebook.kernel.widget_manager.create_model({
-         *      model_name: 'WidgetModel', 
-         *      widget_class: 'IPython.html.widgets.widget_int.IntSlider'})
-         *      .then(function(model) { console.log('Create success!', model); },
-         *      $.proxy(console.error, console));
+         *      model_name: 'WidgetModel',
+         *      widget_class: 'IPython.html.widgets.widget_int.IntSlider'
+         *  })
+         *  .then(function(model) { console.log('Create success!', model); },
+         *  $.proxy(console.error, console));
          *
          * Parameters
          * ----------
@@ -403,7 +405,7 @@ define([
             return Promise.all(model_promises).then(function() { return state; });
         }).catch(utils.reject('Could not get state of widget manager', true));
     };
-    
+
     WidgetManager.prototype.set_state = function(state) {
         /**
          * Set the notebook's state.
@@ -411,18 +413,13 @@ define([
          * Reconstructs all of the widget models and attempts to redisplay the
          * widgets in the appropriate cells by cell index.
          */
-        
+
         // Get the kernel when it's available.
         var that = this;
         return this._get_connected_kernel().then(function(kernel) {
-            
-            // Recreate all the widget models for the given state and 
-            // display the views.
-            that.all_views = [];
-            var model_ids = Object.keys(state);
-            for (var i = 0; i < model_ids.length; i++) {
-                var model_id = model_ids[i];
-                
+
+            // Recreate all the widget models for the given notebook state.
+            var all_models = Promise.all(_.map(Object.keys(state), function (model_id) {
                 // Recreate a comm using the widget's model id (model_id == comm_id).
                 var new_comm = new comm.Comm(kernel.widget_manager.comm_target_name, model_id);
                 kernel.comm_manager.register_comm(new_comm);
@@ -431,36 +428,31 @@ define([
                 // created we don't know yet if the comm is valid so set_comm_live
                 // false.  Once we receive the first state push from the back-end
                 // we know the comm is alive.
-                var views = kernel.widget_manager.create_model({
-                    comm: new_comm, 
-                    model_name: state[model_id].model_name, 
-                    model_module: state[model_id].model_module})
-                .then(function(model) {
-
+                return kernel.widget_manager.create_model({
+                    comm: new_comm,
+                    model_name: state[model_id].model_name,
+                    model_module: state[model_id].model_module,
+                }).then(function(model) {
                     model.set_comm_live(false);
-                    var view_promise = Promise.resolve().then(function() {
-                        return model.set_state(state[model.id].state);
-                    }).then(function() {
-                        model.request_state().then(function() {
-                            model.set_comm_live(true);
-                        });
-
-                        // Display the views of the model.
-                        var views = [];
-                        var model_views = state[model.id].views;
-                        for (var j=0; j<model_views.length; j++) {
-                            var cell_index = model_views[j];
-                            var cell = that.notebook.get_cell(cell_index);
-                            views.push(that.display_view_in_cell(cell, model));
-                        }
-                        return Promise.all(views);
+                    model.set_state(state[model.id].state);
+                    return model.request_state().then(function() {
+                        model.set_comm_live(true);
+                        return model;
                     });
-                    return view_promise;
                 });
-                that.all_views.push(views);
-            }
-            return Promise.all(that.all_views);
-        }).catch(utils.reject('Could not set widget manager state.', true));  
+            }, this));
+
+            // Display all the views
+            return all_models.then(function(models) {
+                return Promise.all(_.map(models, function(model) {
+                    // Display the views of the model.
+                    return Promise.all(_.map(state[model.id].views, function(cell_index) {
+                        var cell = that.notebook.get_cell(cell_index);
+                        return that.display_view_in_cell(cell, model);
+                    }));
+                }));
+            });
+        }).catch(utils.reject('Could not set widget manager state.', true));
     };
 
     WidgetManager.prototype._get_connected_kernel = function() {
@@ -469,8 +461,8 @@ define([
          */
         var that = this;
         return new Promise(function(resolve, reject) {
-            if (that.comm_manager && 
-                that.comm_manager.kernel && 
+            if (that.comm_manager &&
+                that.comm_manager.kernel &&
                 that.comm_manager.kernel.is_connected()) {
 
                 resolve(that.comm_manager.kernel);
@@ -478,7 +470,7 @@ define([
                 that.notebook.events.on('kernel_connected.Kernel', function(event, data) {
                     resolve(data.kernel);
                 });
-            }    
+            }
         });
     };
 
