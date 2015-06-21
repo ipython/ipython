@@ -1,9 +1,9 @@
 import json
 from tornado import web, gen
-from ..base.handlers import IPythonHandler, json_errors
+from ..base.handlers import APIHandler, json_errors
 from ..utils import url_path_join
 
-class TerminalRootHandler(IPythonHandler):
+class TerminalRootHandler(APIHandler):
     @web.authenticated
     @json_errors
     def get(self):
@@ -19,7 +19,7 @@ class TerminalRootHandler(IPythonHandler):
         self.finish(json.dumps({'name': name}))
 
 
-class TerminalHandler(IPythonHandler):
+class TerminalHandler(APIHandler):
     SUPPORTED_METHODS = ('GET', 'DELETE')
 
     @web.authenticated

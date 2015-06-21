@@ -7,13 +7,13 @@ import json
 
 from tornado import web
 
-from ...base.handlers import IPythonHandler, json_errors
+from ...base.handlers import APIHandler, json_errors
 from IPython.utils.jsonutil import date_default
 from IPython.html.utils import url_path_join, url_escape
 from IPython.kernel.kernelspec import NoSuchKernel
 
 
-class SessionRootHandler(IPythonHandler):
+class SessionRootHandler(APIHandler):
 
     @web.authenticated
     @json_errors
@@ -65,7 +65,7 @@ class SessionRootHandler(IPythonHandler):
         self.set_status(201)
         self.finish(json.dumps(model, default=date_default))
 
-class SessionHandler(IPythonHandler):
+class SessionHandler(APIHandler):
 
     SUPPORTED_METHODS = ('GET', 'PATCH', 'DELETE')
 

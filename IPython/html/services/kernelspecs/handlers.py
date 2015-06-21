@@ -10,7 +10,7 @@ pjoin = os.path.join
 
 from tornado import web
 
-from ...base.handlers import IPythonHandler, json_errors
+from ...base.handlers import APIHandler, json_errors
 from ...utils import url_path_join
 
 def kernelspec_model(handler, name):
@@ -40,7 +40,7 @@ def kernelspec_model(handler, name):
         )
     return d
 
-class MainKernelSpecHandler(IPythonHandler):
+class MainKernelSpecHandler(APIHandler):
     SUPPORTED_METHODS = ('GET',)
 
     @web.authenticated
@@ -62,7 +62,7 @@ class MainKernelSpecHandler(IPythonHandler):
         self.finish(json.dumps(model))
 
 
-class KernelSpecHandler(IPythonHandler):
+class KernelSpecHandler(APIHandler):
     SUPPORTED_METHODS = ('GET',)
 
     @web.authenticated

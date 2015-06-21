@@ -67,7 +67,8 @@ class KernelAPITest(NotebookTestBase):
 
         self.assertEqual(r.headers['Content-Security-Policy'], (
                             "frame-ancestors 'self'; "
-                            "report-uri /api/security/csp-report;"
+                            "report-uri /api/security/csp-report; "
+                            "default-src 'none'"
         ))
 
     def test_main_kernel_handler(self):
@@ -80,7 +81,8 @@ class KernelAPITest(NotebookTestBase):
 
         self.assertEqual(r.headers['Content-Security-Policy'], (
                             "frame-ancestors 'self'; "
-                            "report-uri /api/security/csp-report;"
+                            "report-uri /api/security/csp-report; "
+                            "default-src 'none'"
         ))
 
         # GET request
