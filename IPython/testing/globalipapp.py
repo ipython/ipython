@@ -56,33 +56,6 @@ class StreamProxy(io.IOStream):
     def flush(self):
         self.stream.flush()
 
-# Hack to modify the %run command so we can sync the user's namespace with the
-# test globals.  Once we move over to a clean magic system, this will be done
-# with much less ugliness.
-
-class py_file_finder(object):
-    def __init__(self,test_filename):
-        self.test_filename = test_filename
-
-    def __call__(self,name,win32=False):
-        from IPython.utils.path import get_py_filename
-        try:
-            return get_py_filename(name,win32=win32)
-        except IOError:
-            test_dir = os.path.dirname(self.test_filename)
-            new_path = os.path.join(test_dir,name)
-            return get_py_filename(new_path,win32=win32)
-
-
-def _run_ns_sync(self,arg_s,runner=None):
-    """Modified version of %run that syncs testing namespaces.
-
-    This is strictly needed for running doctests that call %run.
-    """
-    #print('in run_ns_sync', arg_s, file=sys.stderr)  # dbg
-    finder = py_file_finder(arg_s)
-    return get_ipython().magic_run_ori(arg_s, runner, finder)
-
 
 def get_ipython():
     # This will get replaced by the real thing once we start IPython below
