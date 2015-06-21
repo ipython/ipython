@@ -3,6 +3,36 @@
 Issues closed in the 3.x development cycle
 ==========================================
 
+
+Issues closed in 3.2
+--------------------
+
+GitHub stats for 2015/04/03 - 2015/06/21 (since 3.1)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 7 issues and merged 30 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/milestones/3.2>`_
+
+The following 15 authors contributed 74 commits.
+
+* Benjamin Ragan-Kelley
+* Brian Gough
+* Damián Avila
+* Ian Barfield
+* Jason Grout
+* Jeff Hussmann
+* Jessica B. Hamrick
+* Kyle Kelley
+* Matthias Bussonnier
+* Nicholas Bollweg
+* Randy Lai
+* Scott Sanderson
+* Sylvain Corlay
+* Thomas A Caswell
+* Thomas Kluyver
+
+
 Issues closed in 3.1
 --------------------
 

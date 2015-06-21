@@ -6,12 +6,17 @@
 IPython 3.2
 ===========
 
+IPython 3.2 contains important security fixes. Users are **strongly** encouraged to upgrade immediately.
 
 Highlights:
 
 - A security improvement that set the secure attribute to login cookie to prevent them to be sent over http
 - Revert the face color of matplotlib axes in the inline backend to not be transparent.
+- Enable mathjax safe mode by default
+- Fix XSS vulnerability in JSON error messages
+- Various widget-related fixes
 
+See :ref:`issues_list_3` for details.
 
 
 
