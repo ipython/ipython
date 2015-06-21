@@ -472,7 +472,7 @@ class ConnectionFileMixin(LoggingConfigurable):
         """Cleanup ipc files if we wrote them."""
         if self.transport != 'ipc':
             return
-        for port in self.ports:
+        for port in self.ports.values():
             ipcfile = "%s-%i" % (self.ip, port)
             try:
                 os.remove(ipcfile)
