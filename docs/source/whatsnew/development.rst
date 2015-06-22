@@ -20,4 +20,3 @@ Backwards incompatible changes
 
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. INCOMPAT INSERTION POINT.
 
-
