@@ -41,17 +41,6 @@ def make_empty_file(fname):
     f = open(fname, 'w')
     f.close()
 
-from contextlib import contextmanager
-
-@contextmanager
-def sys_meta_path(newvalue):
-    _old = sys.meta_path
-    sys.meta_path = newvalue
-    try:
-        yield
-    finally:
-        sys.meta_path = _old
-
 
 def setup():
     """Setup testenvironment for the module:
