@@ -25,7 +25,11 @@ class LoginHandler(IPythonHandler):
 
     def get(self):
         if self.current_user:
-            self.redirect(self.get_argument('next', default=self.base_url))
+            next_url = self.get_argument('next', default=self.base_url)
+            if not next_url.startswith(self.base_url):
+                # require that next_url be absolute path within our path
+                next_url = self.base_url
+            self.redirect(next_url)
         else:
             self._render()
     
@@ -47,8 +51,12 @@ class LoginHandler(IPythonHandler):
             else:
                 self._render(message={'error': 'Invalid password'})
                 return
-
-        self.redirect(self.get_argument('next', default=self.base_url))
+        
+        next_url = self.get_argument('next', default=self.base_url)
+        if not next_url.startswith(self.base_url):
+            # require that next_url be absolute path within our path
+            next_url = self.base_url
+        self.redirect(next_url)
     
     @classmethod
     def get_user(cls, handler):
