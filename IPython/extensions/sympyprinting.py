@@ -28,5 +28,5 @@ maintained here for backwards compatablitiy with old SymPy versions.
 import warnings
 
 def load_ipython_extension(ip):
-    warnings.warn("The sympyprinting extension as move to `sympy`, "
+    warnings.warn("The sympyprinting extension has moved to `sympy`, "
         "use `from sympy import init_printing; init_printing()`")
