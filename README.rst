@@ -44,37 +44,3 @@ by typing at the terminal::
 
    $ python -m IPython
 
-
-Development installation
-========================
-
-If you want to hack on certain parts, e.g. the IPython notebook, in a clean
-environment (such as a virtualenv) you can use ``pip`` to grab the necessary
-dependencies quickly::
-
-   $ git clone --recursive https://github.com/ipython/ipython.git
-   $ cd ipython
-   $ pip install -e ".[notebook]" --user
-
-This installs the necessary packages and symlinks IPython into your current
-environment so that you can work on your local repo copy and run it from anywhere::
-
-   $ ipython notebook
-
-The same process applies for other parts, such as the qtconsole (the
-``extras_require`` attribute in the setup.py file lists all the possibilities).
-
-Git Hooks and Submodules
-************************
-
-IPython now uses git submodules to ship its javascript dependencies.
-If you run IPython from git master, you may need to update submodules once in a while with::
-
-    $ git submodule update
-
-or::
-
-    $ python setup.py submodule
-
-We have some git hooks for helping keep your submodules always in sync,
-see our ``git-hooks`` directory for more info.
