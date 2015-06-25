@@ -15,6 +15,7 @@ from __future__ import absolute_import, print_function
 import __future__
 import abc
 import ast
+import pdb
 import atexit
 import functools
 import os
@@ -2179,6 +2180,7 @@ class InteractiveShell(SingletonConfigurable):
         else:
             self.Completer.namespace = self.user_ns
             self.Completer.global_namespace = self.user_global_ns
+        self.Completer.namespace.update({'pdb': pdb})
 
     #-------------------------------------------------------------------------
     # Things related to magics
