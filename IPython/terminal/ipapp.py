@@ -239,7 +239,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         ),
     )
     subcommands['install-nbextension'] = (
-        "notebook.nbextensions.NBExtensionApp",
+        "notebook.nbextensions.InstallNBExtensionApp",
         "DEPRECATED: Install Jupyter notebook extension files"
     )
 
