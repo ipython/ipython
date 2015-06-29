@@ -92,6 +92,8 @@ def test_find_file_decorated2():
         return f(*a, **kw)
 
     @noop2
+    @noop2
+    @noop2
     def f(x):
         "My docstring 2"
     
