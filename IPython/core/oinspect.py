@@ -201,10 +201,7 @@ def getsource(obj, oname=''):
     else:
         # Get source for non-property objects.
 
-        # '__wrapped__' attribute is used by some decorators (e.g. ones defined
-        # functools) to provide access to the decorated function.
-        if hasattr(obj, "__wrapped__"):
-            obj = obj.__wrapped__
+        obj = _get_wrapped(obj)
 
         try:
             src = inspect.getsource(obj)
@@ -303,6 +300,12 @@ def call_tip(oinfo, format_call=True):
     return call_line, doc
 
 
+def _get_wrapped(obj):
+    """Get the original object if wrapped in one or more @decorators"""
+    while safe_hasattr(obj, '__wrapped__'):
+        obj = obj.__wrapped__
+    return obj
+
 def find_file(obj):
     """Find the absolute path to the file where an object was defined.
 
@@ -319,9 +322,7 @@ def find_file(obj):
     fname : str
       The absolute path to the file where the object was defined.
     """
-    # get source if obj was decorated with @decorator
-    if safe_hasattr(obj, '__wrapped__'):
-        obj = obj.__wrapped__
+    obj = _get_wrapped(obj)
 
     fname = None
     try:
@@ -356,9 +357,7 @@ def find_source_lines(obj):
     lineno : int
       The line number where the object definition starts.
     """
-    # get source if obj was decorated with @decorator
-    if safe_hasattr(obj, '__wrapped__'):
-        obj = obj.__wrapped__
+    obj = _get_wrapped(obj)
     
     try:
         try:
