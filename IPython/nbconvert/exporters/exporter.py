@@ -66,8 +66,8 @@ class Exporter(LoggingConfigurable):
     _preprocessors = List()
 
     default_preprocessors = List([
-                                  'IPython.nbconvert.preprocessors.ExecutePreprocessor',
                                   'IPython.nbconvert.preprocessors.ClearOutputPreprocessor',
+                                  'IPython.nbconvert.preprocessors.ExecutePreprocessor',
                                   'IPython.nbconvert.preprocessors.coalesce_streams',
                                   'IPython.nbconvert.preprocessors.SVG2PDFPreprocessor',
                                   'IPython.nbconvert.preprocessors.CSSHTMLHeaderPreprocessor',
