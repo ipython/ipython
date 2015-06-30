@@ -292,11 +292,13 @@ def test_omit__names():
     s,matches = c.complete('ip.')
     nt.assert_in('ip.__str__', matches)
     nt.assert_in('ip._hidden_attr', matches)
+    cfg = Config()
     cfg.IPCompleter.omit__names = 1
     c.update_config(cfg)
     s,matches = c.complete('ip.')
     nt.assert_not_in('ip.__str__', matches)
     nt.assert_in('ip._hidden_attr', matches)
+    cfg = Config()
     cfg.IPCompleter.omit__names = 2
     c.update_config(cfg)
     s,matches = c.complete('ip.')
