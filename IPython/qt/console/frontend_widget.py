@@ -764,7 +764,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def _process_execute_ok(self, msg):
         """ Process a reply for a successful execution request.
         """
-        payload = msg['content']['payload']
+        payload = msg['content'].get('payload', [])
         for item in payload:
             if not self._process_execute_payload(item):
                 warning = 'Warning: received unknown payload of type %s'

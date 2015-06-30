@@ -205,7 +205,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 return
             elif status == 'ok':
                 # handle payloads
-                for item in content["payload"]:
+                for item in content.get('payload', []):
                     source = item['source']
                     if source == 'page':
                         page.page(item['data']['text/plain'])
