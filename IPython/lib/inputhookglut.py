@@ -30,7 +30,6 @@ from __future__ import print_function
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-import os
 import sys
 import time
 import signal
@@ -76,26 +75,6 @@ else:
 
 
 #-----------------------------------------------------------------------------
-# Platform-dependent imports and functions
-#-----------------------------------------------------------------------------
-
-if os.name == 'posix':
-    import select
-
-    def stdin_ready():
-        infds, outfds, erfds = select.select([sys.stdin],[],[],0)
-        if infds:
-            return True
-        else:
-            return False
-
-elif sys.platform == 'win32':
-    import msvcrt
-
-    def stdin_ready():
-        return msvcrt.kbhit()
-
-#-----------------------------------------------------------------------------
 # Callback functions
 #-----------------------------------------------------------------------------
 
@@ -123,7 +102,7 @@ def glut_int_handler(signum, frame):
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
-def inputhook_glut():
+def inputhook_glut(inputhook_context):
     """Run the pyglet event loop by processing pending events only.
 
     This keeps processing pending events until stdin is ready.  After
@@ -145,7 +124,7 @@ def inputhook_glut():
             glutMainLoopEvent()
             return 0
 
-        while not stdin_ready():
+        while not inputhook_context.input_is_ready():
             glutMainLoopEvent()
             # We need to sleep at this point to keep the idle CPU load
             # low.  However, if sleep to long, GUI response is poor.  As

@@ -22,7 +22,7 @@ import threading
 
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.external.qt_for_kernel import QtCore, QtGui
-from IPython.lib.inputhook import allow_CTRL_C, ignore_CTRL_C, stdin_ready
+from IPython.lib.inputhook import allow_CTRL_C, ignore_CTRL_C
 
 #-----------------------------------------------------------------------------
 # Module Globals
@@ -75,7 +75,7 @@ def create_inputhook_qt4(mgr, app=None):
     # Otherwise create the inputhook_qt4/preprompthook_qt4 pair of
     # hooks (they both share the got_kbdint flag)
 
-    def inputhook_qt4():
+    def inputhook_qt4(inputhook_context):
         """PyOS_InputHook python hook for Qt4.
 
         Process pending Qt events and if there's no pending keyboard
@@ -93,7 +93,7 @@ def create_inputhook_qt4(mgr, app=None):
             if not app: # shouldn't happen, but safer if it happens anyway...
                 return 0
             app.processEvents(QtCore.QEventLoop.AllEvents, 300)
-            if not stdin_ready():
+            if not inputhook_context.input_is_ready():
                 # Generally a program would run QCoreApplication::exec()
                 # from main() to enter and process the Qt event loop until
                 # quit() or exit() is called and the program terminates.
@@ -118,7 +118,7 @@ def create_inputhook_qt4(mgr, app=None):
                 timer = QtCore.QTimer()
                 event_loop = QtCore.QEventLoop()
                 timer.timeout.connect(event_loop.quit)
-                while not stdin_ready():
+                while not inputhook_context.input_is_ready():
                     timer.start(50)
                     event_loop.exec_()
                     timer.stop()

@@ -325,59 +325,8 @@ Currently the magic system has the following functions:""",
 
           %colors nocolor
         """
-        def color_switch_err(name):
-            warn('Error changing %s color schemes.\n%s' %
-                 (name, sys.exc_info()[1]))
-
-
-        new_scheme = parameter_s.strip()
-        if not new_scheme:
-            raise UsageError(
-                "%colors: you must specify a color scheme. See '%colors?'")
-        # local shortcut
-        shell = self.shell
-
-        import IPython.utils.rlineimpl as readline
-
-        if not shell.colors_force and \
-                not readline.have_readline and \
-                (sys.platform == "win32" or sys.platform == "cli"):
-            msg = """\
-Proper color support under MS Windows requires the pyreadline library.
-You can find it at:
-http://ipython.org/pyreadline.html
-
-Defaulting color scheme to 'NoColor'"""
-            new_scheme = 'NoColor'
-            warn(msg)
-
-        # readline option is 0
-        if not shell.colors_force and not shell.has_readline:
-            new_scheme = 'NoColor'
-
-        # Set prompt colors
-        try:
-            shell.prompt_manager.color_scheme = new_scheme
-        except:
-            color_switch_err('prompt')
-        else:
-            shell.colors = \
-                   shell.prompt_manager.color_scheme_table.active_scheme_name
-        # Set exception colors
-        try:
-            shell.InteractiveTB.set_colors(scheme = new_scheme)
-            shell.SyntaxTB.set_colors(scheme = new_scheme)
-        except:
-            color_switch_err('exception')
-
-        # Set info (for 'object?') colors
-        if shell.color_info:
-            try:
-                shell.inspector.set_active_scheme(new_scheme)
-            except:
-                color_switch_err('object inspector')
-        else:
-            shell.inspector.set_active_scheme('NoColor')
+        print('*** TODO: implement %color magic.')
+        return
 
     @line_magic
     def xmode(self, parameter_s=''):

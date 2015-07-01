@@ -16,7 +16,6 @@ Authors: Thomi Richards
 # Imports
 #-----------------------------------------------------------------------------
 
-import sys
 from gi.repository import Gtk, GLib
 
 #-----------------------------------------------------------------------------
@@ -28,7 +27,7 @@ def _main_quit(*args, **kwargs):
     return False
 
 
-def inputhook_gtk3():
-    GLib.io_add_watch(sys.stdin, GLib.IO_IN, _main_quit)
+def inputhook_gtk3(inputhook_context):
+    GLib.io_add_watch(inputhook_context.fileno(), GLib.IO_IN, _main_quit)
     Gtk.main()
     return 0

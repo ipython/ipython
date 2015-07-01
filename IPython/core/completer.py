@@ -64,7 +64,7 @@ import sys
 import unicodedata
 import string
 
-from traitlets.config.configurable import Configurable 
+from traitlets.config.configurable import Configurable
 from IPython.core.error import TryNext
 from IPython.core.inputsplitter import ESC_MAGIC
 from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
@@ -545,9 +545,9 @@ class IPCompleter(Completer):
         else:
             self.splitter.delims = DELIMS
 
-        if self.readline:
-            self.readline.set_completer_delims(self.splitter.delims)
-    
+#        if self.readline:
+#            self.readline.set_completer_delims(self.splitter.delims)
+
     merge_completions = CBool(True, config=True,
         help="""Whether to merge completion results into a single list
         
@@ -579,7 +579,7 @@ class IPCompleter(Completer):
     )
 
     def __init__(self, shell=None, namespace=None, global_namespace=None,
-                 use_readline=True, config=None, **kwargs):
+                 config=None, **kwargs):
         """IPCompleter() -> completer
 
         Return a completer object suitable for use by the readline library
@@ -595,23 +595,10 @@ class IPCompleter(Completer):
 
         - global_namespace: secondary optional dict for completions, to
           handle cases (such as IPython embedded inside functions) where
-          both Python scopes are visible.
-
-        use_readline : bool, optional
-          If true, use the readline library.  This completer can still function
-          without readline, though in that case callers must provide some extra
-          information on each call about the current line."""
+          both Python scopes are visible."""
 
         self.magic_escape = ESC_MAGIC
         self.splitter = CompletionSplitter()
-
-        # Readline configuration, only used by the rlcompleter method.
-        if use_readline:
-            # We store the right version of readline so that later code
-            import IPython.utils.rlineimpl as readline
-            self.readline = readline
-        else:
-            self.readline = None
 
         # _greedy_changed() depends on splitter and readline being defined:
         Completer.__init__(self, namespace=namespace, global_namespace=global_namespace,
