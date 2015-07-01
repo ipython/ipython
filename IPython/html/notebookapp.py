@@ -154,7 +154,7 @@ class NotebookWebApplication(web.Application):
             "template_path",
             ipython_app.template_file_path,
         )
-        if isinstance(_template_path, str):
+        if isinstance(_template_path, py3compat.string_types):
             _template_path = (_template_path,)
         template_path = [os.path.expanduser(path) for path in _template_path]
 
