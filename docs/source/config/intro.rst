@@ -46,6 +46,62 @@ and sets)::
 .. versionadded:: 2.0
    list, dict and set methods for config values
 
+To add a pre/post-save hooks (version 3.0 or later) use::
+
+    c.FileContentsManager.pre_save_hook = pre_save_method
+    c.FileContentsManager.post_save_hook = post_save_method
+
+You can add a pre-save hook to clear cell outputs and cell execution count like this::
+
+    def scrub_output_pre_save(model, **kwargs):
+        """scrub output before saving notebooks"""
+        # only run on notebooks
+        if model['type'] != 'notebook':
+            return
+        # only run on nbformat v4
+        if model['content']['nbformat'] != 4:
+            return
+
+        model['content']['metadata'].pop('signature', None)
+        for cell in model['content']['cells']:
+            if cell['cell_type'] != 'code':
+                continue
+            cell['outputs'] = []
+            cell['execution_count'] = None
+
+    c.FileContentsManager.pre_save_hook = scrub_output_pre_save
+
+Here is an example of a post-save hook to where the iPython notebook is convereted to a python script after save::
+
+    import io
+    import os
+
+    _script_exporter = None
+
+    def script_post_save(model, os_path, contents_manager, **kwargs):
+        """convert notebooks to Python script after save with nbconvert
+
+        replaces `ipython notebook --script`
+        """
+        from IPython.nbconvert.exporters.script import ScriptExporter
+
+        if model['type'] != 'notebook':
+            return
+
+        global _script_exporter
+        if _script_exporter is None:
+            _script_exporter = ScriptExporter(parent=contents_manager)
+        log = contents_manager.log
+
+        base, ext = os.path.splitext(os_path)
+        py_fname = base + '.py'
+        script, resources = _script_exporter.from_filename(os_path)
+        script_fname = base + resources.get('output_extension', '.txt')
+        log.info("Saving script /%s", to_api_path(script_fname, contents_manager.root_dir))
+        with io.open(script_fname, 'w', encoding='utf-8') as f:
+            f.write(script)
+    c.FileContentsManager.post_save_hook = script_post_save
+
 Example config file
 ```````````````````
 
@@ -83,6 +139,25 @@ Example config file
     c.AliasManager.user_aliases = [
      ('la', 'ls -al')
     ]
+
+    # Add pre-save hook to clear cell output and execution count.
+    def scrub_output_pre_save(model, **kwargs):
+        """scrub output before saving notebooks"""
+        # only run on notebooks
+        if model['type'] != 'notebook':
+            return
+        # only run on nbformat v4
+        if model['content']['nbformat'] != 4:
+            return
+
+        model['content']['metadata'].pop('signature', None)
+        for cell in model['content']['cells']:
+            if cell['cell_type'] != 'code':
+                continue
+            cell['outputs'] = []
+            cell['execution_count'] = None
+
+    c.FileContentsManager.pre_save_hook = scrub_output_pre_save
 
 
 Command line arguments
