@@ -28,7 +28,7 @@ these manuals.  If you have Sphinx installed, you can build them by typing
 Dependencies and supported Python versions
 ==========================================
 
-For full details, see the installation section of the manual.  The basic parts
+For full details, see the installation section of the `manual<https://github.com/ipython/ipython/blob/e51e50d36f2d05061ef7bdcea56531f5fca08f4c/docs/source/install/install.rst>`_;.  The basic parts
 of IPython only need the Python standard library, but much of its more advanced
 functionality requires extra packages.
 
