@@ -19,9 +19,6 @@ the `Framework :: IPython tag <https://pypi.python.org/pypi?:action=browse&c=586
 on PyPI.
 
 Extensions on PyPI can be installed using ``pip``, like any other Python package.
-Other simple extensions can be installed with the ``%install_ext`` magic. The
-latter does no validation, so be careful using it on untrusted networks like
-public wifi.
 
 Using extensions
 ================
