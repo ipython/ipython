@@ -15,10 +15,10 @@ working, though a warning will be printed.
 import sys
 from warnings import warn
 
-warn("The top-level `frontend` package has been deprecated. "
-     "All its subpackages have been moved to the top `IPython` level.")
+from IPython.utils.shimmodule import ShimModule, ShimWarning
 
-from IPython.utils.shimmodule import ShimModule
+warn("The top-level `frontend` package has been deprecated. "
+     "All its subpackages have been moved to the top `IPython` level.", ShimWarning)
 
 # Unconditionally insert the shim into sys.modules so that further import calls
 # trigger the custom attribute access above

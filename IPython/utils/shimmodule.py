@@ -8,6 +8,8 @@ import types
 
 from .importstring import import_item
 
+class ShimWarning(Warning):
+    """A warning to show when a module has moved, and a shim is in its place."""
 
 class ShimImporter(object):
     """Import hook for a shim.

@@ -7,10 +7,10 @@ Shim to maintain backwards compatibility with old IPython.parallel imports.
 import sys
 from warnings import warn
 
-warn("The `IPython.parallel` package has been deprecated. "
-     "You should import from ipyparallel instead.")
+from IPython.utils.shimmodule import ShimModule, ShimWarning
 
-from IPython.utils.shimmodule import ShimModule
+warn("The `IPython.parallel` package has been deprecated. "
+     "You should import from ipyparallel instead.", ShimWarning)
 
 # Unconditionally insert the shim into sys.modules so that further import calls
 # trigger the custom attribute access above

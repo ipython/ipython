@@ -7,11 +7,11 @@ Shim to maintain backwards compatibility with old IPython.html imports.
 import sys
 from warnings import warn
 
+from IPython.utils.shimmodule import ShimModule, ShimWarning
+
 warn("The `IPython.html` package has been deprecated. "
      "You should import from `notebook` instead. "
-     "`IPython.html.widgets` has moved to `ipywidgets`.")
-
-from IPython.utils.shimmodule import ShimModule
+     "`IPython.html.widgets` has moved to `ipywidgets`.", ShimWarning)
 
 _widgets = sys.modules['IPython.html.widgets'] = ShimModule(
     src='IPython.html.widgets', mirror='ipywidgets')
