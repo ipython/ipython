@@ -7,10 +7,10 @@ Shim to maintain backwards compatibility with old IPython.nbformat imports.
 import sys
 from warnings import warn
 
-warn("The `IPython.nbformat` package has been deprecated. "
-     "You should import from nbformat instead.")
+from IPython.utils.shimmodule import ShimModule, ShimWarning
 
-from IPython.utils.shimmodule import ShimModule
+warn("The `IPython.nbformat` package has been deprecated. "
+     "You should import from nbformat instead.", ShimWarning)
 
 # Unconditionally insert the shim into sys.modules so that further import calls
 # trigger the custom attribute access above

@@ -7,11 +7,11 @@ Shim to maintain backwards compatibility with old IPython.kernel imports.
 import sys
 from warnings import warn
 
+from IPython.utils.shimmodule import ShimModule, ShimWarning
+
 warn("The `IPython.kernel` package has been deprecated. "
-     "You should import from ipykernel or jupyter_client instead.")
+     "You should import from ipykernel or jupyter_client instead.", ShimWarning)
 
-
-from IPython.utils.shimmodule import ShimModule
 
 # zmq subdir is gone
 sys.modules['IPython.kernel.zmq.session'] = ShimModule(
