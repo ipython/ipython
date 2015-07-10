@@ -83,7 +83,8 @@ def unquote_filename(name, win32=(sys.platform=='win32')):
 
 def compress_user(path):
     """Reverse of :func:`os.path.expanduser`
-    """
+    """    
+    path = py3compat.unicode_to_str(path, sys.getfilesystemencoding())
     home = os.path.expanduser('~')
     if path.startswith(home):
         path =  "~" + path[len(home):]
@@ -176,13 +177,13 @@ def get_home_dir(require_writable=False):
     """Return the 'home' directory, as a unicode string.
 
     Uses os.path.expanduser('~'), and checks for writability.
-    
+
     See stdlib docs for how this is determined.
     $HOME is first priority on *ALL* platforms.
-    
+
     Parameters
     ----------
-    
+
     require_writable : bool [default: False]
         if True:
             guarantees the return value is a writable directory, otherwise
@@ -195,7 +196,7 @@ def get_home_dir(require_writable=False):
     # Next line will make things work even when /home/ is a symlink to
     # /usr/home as it is on FreeBSD, for example
     homedir = os.path.realpath(homedir)
-    
+
     if not _writable_dir(homedir) and os.name == 'nt':
         # expanduser failed, use the registry to get the 'My Documents' folder.
         try:
@@ -211,7 +212,7 @@ def get_home_dir(require_writable=False):
             key.Close()
         except:
             pass
-    
+
     if (not require_writable) or _writable_dir(homedir):
         return py3compat.cast_unicode(homedir, fs_encoding)
     else:
@@ -577,10 +578,10 @@ def link_or_copy(src, dst):
 
 def ensure_dir_exists(path, mode=0o755):
     """ensure that a directory exists
-    
+
     If it doesn't exist, try to create it and protect against a race condition
     if another process is doing the same.
-    
+
     The default permissions are 755, which differ from os.makedirs default of 777.
     """
     if not os.path.exists(path):
