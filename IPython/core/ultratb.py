@@ -985,6 +985,8 @@ class VerboseTB(TBTools):
             cause = getattr(exception_value, '__cause__', None)
             if cause:
                 return cause
+            if getattr(exception_value, '__suppress_context__', False):
+                return None
             return getattr(exception_value, '__context__', None)
 
         chained_evalue = get_chained_exception(evalue)

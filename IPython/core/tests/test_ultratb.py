@@ -173,6 +173,13 @@ except Exception as e:
     raise KeyError('uh')
     """
 
+    SUPPRESS_CHAINING_CODE = """
+try:
+    1/0
+except Exception:
+    raise ValueError("Yikes") from None
+    """
+
     def test_direct_cause_error(self):
         if PY3:
             with tt.AssertPrints(["KeyError", "NameError", "direct cause"]):
@@ -182,3 +189,9 @@ except Exception as e:
         if PY3:
             with tt.AssertPrints(["KeyError", "NameError", "During handling"]):
                 ip.run_cell(self.EXCEPTION_DURING_HANDLING_CODE)
+
+    def test_suppress_exception_chaining(self):
+        if PY3:
+            with tt.AssertNotPrints("ZeroDivisionError"), \
+                    tt.AssertPrints("ValueError", suppress=False):
+                ip.run_cell(self.SUPPRESS_CHAINING_CODE)
