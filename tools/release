@@ -23,10 +23,6 @@ cd(ipdir)
 
 # Load release info
 execfile(pjoin('IPython','core','release.py'), globals())
-# ensure js version is in sync
-sh('./setup.py jsversion')
-# build minified css and sourcemaps
-sh('./setup.py css -x -f')
 
 # Build site addresses for file uploads
 release_site = '%s/release/%s' % (archive, version)
