@@ -29,6 +29,10 @@ try:
     from http.client import responses
 except ImportError:
     from httplib import responses
+try:
+    from urllib.parse import urlparse # Py 3
+except ImportError:
+    from urlparse import urlparse # Py 2
 
 from jinja2 import TemplateNotFound
 from tornado import web
@@ -207,6 +211,50 @@ class IPythonHandler(AuthenticatedHandler):
         else:
             origin = self.request.headers.get("Sec-Websocket-Origin", None)
         return origin
+
+    def check_origin_api(self):
+        """Check Origin for cross-site API requests.
+        
+        Copied from WebSocket with changes:
+        
+        - allow unspecified host/origin (e.g. scripts)
+        """
+        if self.allow_origin == '*':
+            return True
+
+        host = self.request.headers.get("Host")
+        origin = self.request.headers.get("Origin")
+
+        # If no header is provided, assume it comes from a script/curl.
+        # We are only concerned with cross-site browser stuff here.
+        if origin is None or host is None:
+            return True
+        
+        origin = origin.lower()
+        origin_host = urlparse(origin).netloc
+        
+        # OK if origin matches host
+        if origin_host == host:
+            return True
+        
+        # Check CORS headers
+        if self.allow_origin:
+            allow = self.allow_origin == origin
+        elif self.allow_origin_pat:
+            allow = bool(self.allow_origin_pat.match(origin))
+        else:
+            # No CORS headers deny the request
+            allow = False
+        if not allow:
+            self.log.warn("Blocking Cross Origin API request.  Origin: %s, Host: %s",
+                origin, host,
+            )
+        return allow
+
+    def prepare(self):
+        if not self.check_origin_api():
+            raise web.HTTPError(404)
+        return super(IPythonHandler, self).prepare()
 
     #---------------------------------------------------------------
     # template rendering
