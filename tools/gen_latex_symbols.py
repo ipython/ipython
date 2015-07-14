@@ -24,7 +24,7 @@ r = requests.get(url)
 
 
 # Build a list of key, value pairs
-print('Building a list of (latex, unicode) key-vaule pairs...')
+print('Building a list of (latex, unicode) key-value pairs...')
 lines = r.text.splitlines()[60:]
 lines = [line for line in lines if '=>' in line]
 lines = [line.replace('=>',':') for line in lines]
