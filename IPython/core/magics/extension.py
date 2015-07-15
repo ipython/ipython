@@ -19,6 +19,7 @@ import os
 # Our own packages
 from IPython.core.error import UsageError
 from IPython.core.magic import Magics, magics_class, line_magic
+from  warnings import warn
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -42,6 +43,8 @@ class ExtensionMagics(Magics):
           -n filename : Specify a name for the file, rather than taking it from
                         the URL.
         """
+        warn("%install_ext` is deprecated, please distribute your extension(s)"
+             "as a python packages.", UserWarning)
         opts, args = self.parse_options(parameter_s, 'n:')
         try:
             filename = self.shell.extension_manager.install_extension(args,
