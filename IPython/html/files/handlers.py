@@ -40,6 +40,11 @@ class FilesHandler(IPythonHandler):
             cur_mime = mimetypes.guess_type(name)[0]
             if cur_mime is not None:
                 self.set_header('Content-Type', cur_mime)
+            else:
+                if model['format'] == 'base64':
+                    self.set_header('Content-Type', 'application/octet-stream')
+                else:
+                    self.set_header('Content-Type', 'text/plain')
         
         if model['format'] == 'base64':
             b64_bytes = model['content'].encode('ascii')
