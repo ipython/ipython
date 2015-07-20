@@ -107,7 +107,7 @@ class BaseIPythonApplication(Application):
         os.path.join(get_ipython_package_dir(), u'config', u'profile', u'default')
     )
     
-    config_file_paths = List(Unicode)
+    config_file_paths = List(Unicode())
     def _config_file_paths_default(self):
         return [py3compat.getcwd()]
 
@@ -161,7 +161,7 @@ class BaseIPythonApplication(Application):
     auto_create = Bool(False, config=True,
         help="""Whether to create profile dir if it doesn't exist""")
 
-    config_files = List(Unicode)
+    config_files = List(Unicode())
     def _config_files_default(self):
         return [self.config_file_name]
 

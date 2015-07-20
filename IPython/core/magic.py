@@ -296,10 +296,10 @@ class MagicsManager(Configurable):
     # A two-level dict, first keyed by magic type, then by magic function, and
     # holding the actual callable object as value.  This is the dict used for
     # magic function dispatch
-    magics = Dict
+    magics = Dict()
 
     # A registry of the original objects that we've been given holding magics.
-    registry = Dict
+    registry = Dict()
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
 

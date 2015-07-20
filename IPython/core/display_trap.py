@@ -36,7 +36,7 @@ class DisplayTrap(Configurable):
     (no callbacks or formatters) until more of the core is refactored.
     """
 
-    hook = Any
+    hook = Any()
 
     def __init__(self, hook=None):
         super(DisplayTrap, self).__init__(hook=hook, config=None)
