@@ -277,18 +277,20 @@ class FileContentsManager(FileManagerMixin, ContentsManager):
         model['type'] = 'file'
 
         os_path = self._get_os_path(path)
+        model['mimetype'] = mimetypes.guess_type(os_path)[0]
 
         if content:
             content, format = self._read_file(os_path, format)
-            default_mime = {
-                'text': 'text/plain',
-                'base64': 'application/octet-stream'
-            }[format]
+            if model['mimetype'] is None:
+                default_mime = {
+                    'text': 'text/plain',
+                    'base64': 'application/octet-stream'
+                }[format]
+                model['mimetype'] = default_mime
 
             model.update(
                 content=content,
                 format=format,
-                mimetype=mimetypes.guess_type(os_path)[0] or default_mime,
             )
 
         return model
