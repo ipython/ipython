@@ -133,7 +133,7 @@ class InteractiveShellApp(Configurable):
       - :meth:`init_extensions`
       - :meth:`init_code`
     """
-    extensions = List(Unicode, config=True,
+    extensions = List(Unicode(), config=True,
         help="A list of dotted module names of IPython extensions to load."
     )
     extra_extension = Unicode('', config=True,
@@ -147,14 +147,14 @@ class InteractiveShellApp(Configurable):
     )
 
     # Extensions that are always loaded (not configurable)
-    default_extensions = List(Unicode, [u'storemagic'], config=False)
+    default_extensions = List(Unicode(), [u'storemagic'], config=False)
     
     hide_initial_ns = Bool(True, config=True,
         help="""Should variables loaded at startup (by startup files, exec_lines, etc.)
         be hidden from tools like %who?"""
     )
 
-    exec_files = List(Unicode, config=True,
+    exec_files = List(Unicode(), config=True,
         help="""List of files to run at IPython startup."""
     )
     exec_PYTHONSTARTUP = Bool(True, config=True,
@@ -164,7 +164,7 @@ class InteractiveShellApp(Configurable):
     file_to_run = Unicode('', config=True,
         help="""A file to be run""")
 
-    exec_lines = List(Unicode, config=True,
+    exec_lines = List(Unicode(), config=True,
         help="""lines of code to run at IPython startup."""
     )
     code_to_run = Unicode('', config=True,

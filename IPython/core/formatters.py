@@ -70,7 +70,7 @@ class DisplayFormatter(Configurable):
         else:
             self.active_types = self.format_types
     
-    active_types = List(Unicode, config=True,
+    active_types = List(Unicode(), config=True,
         help="""List of currently active mime-types to display.
         You can use this to set a white-list for formats to display.
         
