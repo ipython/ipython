@@ -532,6 +532,13 @@ define([
             icon = 'running_' + icon;
         }
         var uri_prefix = NotebookList.uri_prefixes[model.type];
+        if (model.type === 'file' &&
+            model.mimetype && model.mimetype.substr(0,5) !== 'text/'
+        ) {
+            // send text/unidentified files to editor, others go to raw viewer
+            uri_prefix = 'files';
+        }
+        
         item.find(".item_icon").addClass(icon).addClass('icon-fixed-width');
         var link = item.find("a.item_link")
             .attr('href',
