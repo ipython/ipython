@@ -42,7 +42,7 @@ class HistoryTrim(BaseIPythonApplication):
     
     flags = Dict(dict(
         backup = ({'HistoryTrim' : {'backup' : True}},
-            backup.get_metadata('help')
+            backup.metadata['help']
         )
     ))
 
@@ -126,9 +126,9 @@ class HistoryClear(HistoryTrim):
     
     flags = Dict(dict(
         force = ({'HistoryClear' : {'force' : True}},
-            force.get_metadata('help')),
+                 force.metadata['help']),
         f = ({'HistoryTrim' : {'force' : True}},
-            force.get_metadata('help')
+            force.metadata['help']
         )
     ))
     aliases = Dict()
