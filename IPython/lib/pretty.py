@@ -63,7 +63,7 @@ line (if the items are short enough) or aligned with the right edge of the
 opening bracket of `MyList`.
 
 If you just want to indent something you can use the group function
-without open / close parameters.  Yu can also use this code::
+without open / close parameters.  You can also use this code::
 
     with p.indent(2):
         ...
