@@ -191,8 +191,8 @@ class Alias(object):
 
 class AliasManager(Configurable):
 
-    default_aliases = List(default_aliases(), config=True)
-    user_aliases = List(default_value=[], config=True)
+    default_aliases = List(default_aliases()).tag(config=True)
+    user_aliases = List(default_value=[]).tag(config=True)
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
 
     def __init__(self, shell=None, **kwargs):

@@ -254,14 +254,14 @@ class TerminalMagics(Magics):
 
 class TerminalInteractiveShell(InteractiveShell):
 
-    autoedit_syntax = CBool(False, config=True,
-        help="auto editing of files with syntax errors.")
-    confirm_exit = CBool(True, config=True,
+    autoedit_syntax = CBool(False, 
+        help="auto editing of files with syntax errors.").tag(config=True)
+    confirm_exit = CBool(True, 
         help="""
         Set to confirm when you try to exit IPython with an EOF (Control-D
         in Unix, Control-Z/Enter in Windows). By typing 'exit' or 'quit',
         you can force a direct exit without any confirmation.""",
-    )
+    ).tag(config=True)
     # This display_banner only controls whether or not self.show_banner()
     # is called when mainloop/interact are called.  The default is False
     # because for the terminal based application, the banner behavior
@@ -269,13 +269,13 @@ class TerminalInteractiveShell(InteractiveShell):
     display_banner = CBool(False) # This isn't configurable!
     embedded = CBool(False)
     embedded_active = CBool(False)
-    editor = Unicode(get_default_editor(), config=True,
+    editor = Unicode(get_default_editor(), 
         help="Set the editor used by IPython (default to $EDITOR/vi/notepad)."
     )
-    pager = Unicode('less', config=True,
-        help="The shell program to be used for paging.")
+    pager = Unicode('less', 
+        help="The shell program to be used for paging.").tag(config=True)
 
-    screen_length = Integer(0, config=True,
+    screen_length = Integer(0, 
         help=
         """Number of lines of your screen, used to control printing of very
         long strings.  Strings longer than this number of lines will be sent
@@ -286,10 +286,10 @@ class TerminalInteractiveShell(InteractiveShell):
         internally). If for some reason this isn't working well (it needs
         curses support), specify it yourself. Otherwise don't change the
         default.""",
-    )
-    term_title = CBool(False, config=True,
+    ).tag(config=True)
+    term_title = CBool(False, 
         help="Enable auto setting the terminal title."
-    )
+    ).tag(config=True)
     usage = Unicode(interactive_usage)
     
     # This `using_paste_magics` is used to detect whether the code is being

@@ -47,10 +47,10 @@ class ProfileDir(LoggingConfigurable):
     pid_dir = Unicode(u'')
     static_dir = Unicode(u'')
 
-    location = Unicode(u'', config=True,
+    location = Unicode(u'', 
         help="""Set the profile location directly. This overrides the logic used by the
         `profile` option.""",
-        )
+        ).tag(config=True)
 
     _location_isset = Bool(False) # flag for detecting multiply set location
 

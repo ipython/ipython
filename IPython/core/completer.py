@@ -268,13 +268,13 @@ class CompletionSplitter(object):
 
 class Completer(Configurable):
 
-    greedy = CBool(False, config=True,
+    greedy = CBool(False, 
         help="""Activate greedy completion
 
         This will enable completion on elements of lists, results of function calls, etc.,
         but can be unsafe because the code is actually evaluated on TAB.
         """
-    )
+    ).tag(config=True)
     
 
     def __init__(self, namespace=None, global_namespace=None, **kwargs):
@@ -548,14 +548,14 @@ class IPCompleter(Completer):
         if self.readline:
             self.readline.set_completer_delims(self.splitter.delims)
     
-    merge_completions = CBool(True, config=True,
+    merge_completions = CBool(True, 
         help="""Whether to merge completion results into a single list
         
         If False, only the completion results from the first non-empty
         completer will be returned.
         """
-    )
-    omit__names = Enum((0,1,2), default_value=2, config=True,
+    ).tag(config=True)
+    omit__names = Enum((0,1,2), default_value=2, 
         help="""Instruct the completer to omit private method names
         
         Specifically, when completing on ``object.<tab>``.
@@ -566,8 +566,8 @@ class IPCompleter(Completer):
         
         When 0: nothing will be excluded.
         """
-    )
-    limit_to__all__ = CBool(default_value=False, config=True,
+    ).tag(config=True)
+    limit_to__all__ = CBool(default_value=False, 
         help="""Instruct the completer to use __all__ for the completion
         
         Specifically, when completing on ``object.<tab>``.
@@ -576,7 +576,7 @@ class IPCompleter(Completer):
         
         When False [default]: the __all__ attribute is ignored 
         """
-    )
+    ).tag(config=True)
 
     def __init__(self, shell=None, namespace=None, global_namespace=None,
                  use_readline=True, config=None, **kwargs):

@@ -246,24 +246,24 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     # *do* autocreate requested profile, but don't create the config file.
     auto_create=Bool(True)
     # configurables
-    quick = Bool(False, config=True,
+    quick = Bool(False, 
         help="""Start IPython quickly by skipping the loading of config files."""
-    )
+    ).tag(config=True)
     def _quick_changed(self, name, old, new):
         if new:
             self.load_config_file = lambda *a, **kw: None
 
-    display_banner = Bool(True, config=True,
+    display_banner = Bool(True, 
         help="Whether to display a banner upon starting IPython."
-    )
+    ).tag(config=True)
 
     # if there is code of files to run from the cmd line, don't interact
     # unless the --i flag (App.force_interact) is true.
-    force_interact = Bool(False, config=True,
+    force_interact = Bool(False, 
         help="""If a command or file is given via the command-line,
         e.g. 'ipython foo.py', start an interactive shell after executing the
         file or command."""
-    )
+    ).tag(config=True)
     def _force_interact_changed(self, name, old, new):
         if new:
             self.interact = True

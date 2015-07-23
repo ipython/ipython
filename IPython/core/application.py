@@ -111,11 +111,11 @@ class BaseIPythonApplication(Application):
     def _config_file_paths_default(self):
         return [py3compat.getcwd()]
 
-    extra_config_file = Unicode(config=True,
+    extra_config_file = Unicode(
     help="""Path to an extra config file to load.
     
     If specified, load this config file in addition to any other IPython config.
-    """)
+    """).tag(config=True)
     def _extra_config_file_changed(self, name, old, new):
         try:
             self.config_files.remove(old)
@@ -124,23 +124,23 @@ class BaseIPythonApplication(Application):
         self.config_file_specified.add(new)
         self.config_files.append(new)
 
-    profile = Unicode(u'default', config=True,
+    profile = Unicode(u'default', 
         help="""The IPython profile to use."""
-    )
+    ).tag(config=True)
 
     def _profile_changed(self, name, old, new):
         self.builtin_profile_dir = os.path.join(
                 get_ipython_package_dir(), u'config', u'profile', new
         )
 
-    ipython_dir = Unicode(config=True,
+    ipython_dir = Unicode(
         help="""
         The name of the IPython directory. This directory is used for logging
         configuration (through profiles), history storage, etc. The default
         is usually $HOME/.ipython. This option can also be specified through
         the environment variable IPYTHONDIR.
         """
-    )
+    ).tag(config=True)
     def _ipython_dir_default(self):
         d = get_ipython_dir()
         self._ipython_dir_changed('ipython_dir', d, d)
@@ -156,26 +156,26 @@ class BaseIPythonApplication(Application):
         self.init_profile_dir()
         return self.profile_dir
 
-    overwrite = Bool(False, config=True,
-        help="""Whether to overwrite existing config files when copying""")
-    auto_create = Bool(False, config=True,
-        help="""Whether to create profile dir if it doesn't exist""")
+    overwrite = Bool(False, 
+        help="""Whether to overwrite existing config files when copying""").tag(config=True)
+    auto_create = Bool(False, 
+        help="""Whether to create profile dir if it doesn't exist""").tag(config=True)
 
     config_files = List(Unicode())
     def _config_files_default(self):
         return [self.config_file_name]
 
-    copy_config_files = Bool(False, config=True,
+    copy_config_files = Bool(False, 
         help="""Whether to install the default config files into the profile dir.
         If a new profile is being created, and IPython contains config files for that
         profile, then they will be staged into the new directory.  Otherwise,
         default config files will be automatically generated.
-        """)
+        """).tag(config=True)
     
-    verbose_crash = Bool(False, config=True,
+    verbose_crash = Bool(False, 
         help="""Create a massive crash report when IPython encounters what may be an
         internal error.  The default is to append a short message to the
-        usual traceback""")
+        usual traceback""").tag(config=True)
 
     # The class to use as the crash handler.
     crash_handler_class = Type(crashhandler.CrashHandler)

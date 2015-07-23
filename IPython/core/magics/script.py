@@ -79,7 +79,7 @@ class ScriptMagics(Magics):
     with a program in a subprocess, and registers a few top-level
     magics that call %%script with common interpreters.
     """
-    script_magics = List(config=True,
+    script_magics = List(
         help="""Extra script cell magics to define
         
         This generates simple wrappers of `%%script foo` as `%%foo`.
@@ -87,7 +87,7 @@ class ScriptMagics(Magics):
         If you want to add script magics that aren't on your path,
         specify them in script_paths
         """,
-    )
+    ).tag(config=True)
     def _script_magics_default(self):
         """default to a common list of programs"""
         
@@ -108,13 +108,13 @@ class ScriptMagics(Magics):
         
         return defaults
     
-    script_paths = Dict(config=True,
+    script_paths = Dict(
         help="""Dict mapping short 'ruby' names to full paths, such as '/opt/secret/bin/ruby'
         
         Only necessary for items in script_magics where the default path will not
         find the right interpreter.
         """
-    )
+    ).tag(config=True)
     
     def __init__(self, shell=None):
         super(ScriptMagics, self).__init__(shell=shell)
