@@ -180,6 +180,7 @@ def test_LSString():
     lss = text.LSString("abc\ndef")
     nt.assert_equal(lss.l, ['abc', 'def'])
     nt.assert_equal(lss.s, 'abc def')
+    nt.assert_in("path", sys.modules)
 
 def test_SList():
     sl = text.SList(['a 11', 'b 1', 'a 2'])
@@ -188,6 +189,3 @@ def test_SList():
     nt.assert_equal(sl.grep(lambda x: x.startswith('a')), text.SList(['a 11', 'a 2']))
     nt.assert_equal(sl.fields(0), text.SList(['a', 'b', 'a']))
     nt.assert_equal(sl.sort(field=1, nums=True), text.SList(['b 1', 'a 2', 'a 11']))
-
-def test_non_local_path_import():
-    nt.assert_in("path", sys.modules)
