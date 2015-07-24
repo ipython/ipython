@@ -24,7 +24,7 @@ class LaTeXTool(SingletonConfigurable):
         return get_config()
     
     backends = List(
-        Unicode, ["matplotlib", "dvipng"],
+        Unicode(), ["matplotlib", "dvipng"],
         help="Preferred backend to draw LaTeX math equations. "
         "Backends in the list are checked one by one and the first "
         "usable one is used.  Note that `matplotlib` backend "
