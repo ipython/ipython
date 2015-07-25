@@ -180,7 +180,7 @@ def test_LSString():
     lss = text.LSString("abc\ndef")
     nt.assert_equal(lss.l, ['abc', 'def'])
     nt.assert_equal(lss.s, 'abc def')
-    nt.assert_isinstance(lss.p[0], path.path)
+    nt.assert_is_instance(lss.p[0], path.path)
 
 def test_SList():
     sl = text.SList(['a 11', 'b 1', 'a 2'])
