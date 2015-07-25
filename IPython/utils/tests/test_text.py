@@ -19,6 +19,7 @@ import random
 import sys
 
 import nose.tools as nt
+import path
 
 from IPython.utils import text
 
@@ -180,6 +181,8 @@ def test_LSString():
     lss = text.LSString("abc\ndef")
     nt.assert_equal(lss.l, ['abc', 'def'])
     nt.assert_equal(lss.s, 'abc def')
+    lss = text.LSString(os.getcwd())
+    nt.assert_is_instance(lss.p[0], path.path)
 
 def test_SList():
     sl = text.SList(['a 11', 'b 1', 'a 2'])
