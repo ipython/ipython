@@ -10,7 +10,7 @@ system works. The main classes are:
 
 To see the command line option help, run this program from the command line::
 
-    $ python appconfig.py -h
+    $ ipython appconfig.py -h
 
 To make one of your classes configurable (from the command line and config
 files) inherit from Configurable and declare class attributes as traits (see
