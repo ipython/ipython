@@ -19,6 +19,7 @@ import random
 import sys
 
 import nose.tools as nt
+import path
 
 from IPython.utils import text
 
