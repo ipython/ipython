@@ -23,12 +23,15 @@ from IPython.lib.deepreload import reload as dreload
 def test_deepreload_numpy():
     "Test that NumPy can be deep reloaded."
     import numpy
+    # TODO: Find a way to exclude all standard library modules from reloading.
     exclude = [
         # Standard exclusions:
         'sys', 'os.path', builtin_mod_name, '__main__',
         # Test-related exclusions:
         'unittest', 'UserDict', '_collections_abc', 'tokenize',
         'collections', 'collections.abc',
+        'importlib', 'importlib._bootstrap', '_frozen_importlib',
+        '_frozen_importlib_external',
         ]
 
     dreload(numpy, exclude=exclude)
