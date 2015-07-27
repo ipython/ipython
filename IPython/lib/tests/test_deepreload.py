@@ -30,8 +30,9 @@ def test_deepreload_numpy():
         # Test-related exclusions:
         'unittest', 'UserDict', '_collections_abc', 'tokenize',
         'collections', 'collections.abc',
-        'importlib', 'importlib._bootstrap', '_frozen_importlib',
-        '_frozen_importlib_external',
+        'importlib', 'importlib.machinery', '_imp',
+        'importlib._bootstrap', 'importlib._bootstrap_external',
+        '_frozen_importlib', '_frozen_importlib_external',
         ]
 
     dreload(numpy, exclude=exclude)
