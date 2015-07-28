@@ -6,12 +6,6 @@ Inputhook management for GUI event loop integration.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-try:
-    import ctypes
-except ImportError:
-    ctypes = None
-except SystemError: # IronPython issue, 2/8/2014
-    ctypes = None
 import os
 import platform
 import sys
@@ -39,19 +33,6 @@ GUI_NONE = 'none' # i.e. disable
 # Utilities
 #-----------------------------------------------------------------------------
 
-def _stdin_ready_posix():
-    """Return True if there's something to read on stdin (posix version)."""
-    infds, outfds, erfds = select.select([sys.stdin],[],[],0)
-    return bool(infds)
-
-def _stdin_ready_nt():
-    """Return True if there's something to read on stdin (nt version)."""
-    return msvcrt.kbhit()
-
-def _stdin_ready_other():
-    """Return True, assuming there's something to read on stdin."""
-    return True
-
 def _use_appnope():
     """Should we use appnope for dealing with OS X app nap?
 
@@ -76,18 +57,13 @@ def _allow_CTRL_C_other():
     pass
 
 if os.name == 'posix':
-    import select
     import signal
-    stdin_ready = _stdin_ready_posix
     ignore_CTRL_C = _ignore_CTRL_C_posix
     allow_CTRL_C = _allow_CTRL_C_posix
 elif os.name == 'nt':
-    import msvcrt
-    stdin_ready = _stdin_ready_nt
     ignore_CTRL_C = _ignore_CTRL_C_other
     allow_CTRL_C = _allow_CTRL_C_other
 else:
-    stdin_ready = _stdin_ready_other
     ignore_CTRL_C = _ignore_CTRL_C_other
     allow_CTRL_C = _allow_CTRL_C_other
 
@@ -103,30 +79,16 @@ class InputHookManager(object):
     This class installs various hooks under ``PyOSInputHook`` to handle
     GUI event loop integration.
     """
-    
     def __init__(self):
-        if ctypes is None:
-            warn("IPython GUI event loop requires ctypes, %gui will not be available")
-        else:
-            self.PYFUNC = ctypes.PYFUNCTYPE(ctypes.c_int)
         self.guihooks = {}
         self.aliases = {}
         self.apps = {}
         self._reset()
 
     def _reset(self):
-        self._callback_pyfunctype = None
         self._callback = None
         self._installed = False
         self._current_gui = None
-
-    def get_pyos_inputhook(self):
-        """Return the current PyOS_InputHook as a ctypes.c_void_p."""
-        return ctypes.c_void_p.in_dll(ctypes.pythonapi,"PyOS_InputHook")
-
-    def get_pyos_inputhook_as_func(self):
-        """Return the current PyOS_InputHook as a ctypes.PYFUNCYPE."""
-        return self.PYFUNC.in_dll(ctypes.pythonapi,"PyOS_InputHook")
 
     def set_inputhook(self, callback):
         """Set PyOS_InputHook to callback and return the previous one."""
@@ -136,13 +98,7 @@ class InputHookManager(object):
         # we need to disable CTRL+C in this situation.
         ignore_CTRL_C()
         self._callback = callback
-        self._callback_pyfunctype = self.PYFUNC(callback)
-        pyos_inputhook_ptr = self.get_pyos_inputhook()
-        original = self.get_pyos_inputhook_as_func()
-        pyos_inputhook_ptr.value = \
-            ctypes.cast(self._callback_pyfunctype, ctypes.c_void_p).value
         self._installed = True
-        return original
 
     def clear_inputhook(self, app=None):
         """Set PyOS_InputHook to NULL and return the previous one.
@@ -155,12 +111,8 @@ class InputHookManager(object):
           the actual value of the parameter is ignored.  This uniform interface
           makes it easier to have user-level entry points in the main IPython
           app like :meth:`enable_gui`."""
-        pyos_inputhook_ptr = self.get_pyos_inputhook()
-        original = self.get_pyos_inputhook_as_func()
-        pyos_inputhook_ptr.value = ctypes.c_void_p(None).value
-        allow_CTRL_C()
+        self._callback = None
         self._reset()
-        return original
 
     def clear_app_refs(self, gui=None):
         """Clear IPython's internal reference to an application instance.
@@ -184,24 +136,23 @@ class InputHookManager(object):
 
     def register(self, toolkitname, *aliases):
         """Register a class to provide the event loop for a given GUI.
-        
+
         This is intended to be used as a class decorator. It should be passed
         the names with which to register this GUI integration. The classes
         themselves should subclass :class:`InputHookBase`.
-        
+
         ::
-        
+
             @inputhook_manager.register('qt')
             class QtInputHook(InputHookBase):
                 def enable(self, app=None):
                     ...
         """
         def decorator(cls):
-            if ctypes is not None:
-                inst = cls(self)
-                self.guihooks[toolkitname] = inst
-                for a in aliases:
-                    self.aliases[a] = toolkitname
+            inst = cls(self)
+            self.guihooks[toolkitname] = inst
+            for a in aliases:
+                self.aliases[a] = toolkitname
             return cls
         return decorator
 
@@ -408,12 +359,10 @@ class GtkInputHook(InputHookBase):
         IPython.
         """
         import gtk
-        try:
-            gtk.set_interactive(True)
-        except AttributeError:
-            # For older versions of gtk, use our own ctypes version
-            from IPython.lib.inputhookgtk import inputhook_gtk
-            self.manager.set_inputhook(inputhook_gtk)
+        from IPython.lib.inputhookgtk import inputhook_gtk
+
+        gtk.gdk.threads_init()
+        self.manager.set_inputhook(inputhook_gtk)
 
 
 @inputhook_manager.register('tk')
@@ -434,6 +383,8 @@ class TkInputHook(InputHookBase):
         :class:`InputHookManager`, since creating that object automatically
         sets ``PyOS_InputHook``.
         """
+        from IPython.lib.inputhooktk import inputhook_tk
+
         if app is None:
             try:
                 from tkinter import Tk  # Py 3
@@ -442,7 +393,9 @@ class TkInputHook(InputHookBase):
             app = Tk()
             app.withdraw()
             self.manager.apps[GUI_TK] = app
-            return app
+
+        self.manager.set_inputhook(lambda context: inputhook_tk(app, context))
+        return app
 
 
 @inputhook_manager.register('glut')

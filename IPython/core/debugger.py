@@ -33,9 +33,8 @@ import linecache
 import sys
 
 from IPython import get_ipython
-from IPython.utils import PyColorize, ulinecache
-from IPython.utils import coloransi, io, py3compat
-from IPython.core.excolors import exception_colors
+from IPython.utils import ulinecache
+from IPython.utils import io, py3compat
 from IPython.testing.skipdoctest import skip_doctest
 
 # See if we can use pydb.
@@ -245,32 +244,9 @@ class Pdb(OldPdb):
 
         self.aliases = {}
 
-        # Create color table: we copy the default one from the traceback
-        # module and add a few attributes needed for debugging
-        self.color_scheme_table = exception_colors()
-
-        # shorthands
-        C = coloransi.TermColors
-        cst = self.color_scheme_table
-
-        cst['NoColor'].colors.breakpoint_enabled = C.NoColor
-        cst['NoColor'].colors.breakpoint_disabled = C.NoColor
-
-        cst['Linux'].colors.breakpoint_enabled = C.LightRed
-        cst['Linux'].colors.breakpoint_disabled = C.Red
-
-        cst['LightBG'].colors.breakpoint_enabled = C.LightRed
-        cst['LightBG'].colors.breakpoint_disabled = C.Red
-
-        self.set_colors(color_scheme)
-
         # Add a python parser so we can syntax highlight source while
         # debugging.
-        self.parser = PyColorize.Parser()
-
-    def set_colors(self, scheme):
-        """Shorthand access to the color table scheme selector method."""
-        self.color_scheme_table.set_active_scheme(scheme)
+        self.parser = None #PyColorize.Parser()  # XXX: todo
 
     def interaction(self, frame, traceback):
         self.shell.set_completer_frame(frame)

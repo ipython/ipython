@@ -58,7 +58,6 @@ from IPython.core.profiledir import ProfileDir
 from IPython.core.prompts import PromptManager
 from IPython.core.usage import default_banner
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils import PyColorize
 from IPython.utils import io
 from IPython.utils import py3compat
 from IPython.utils import openpy
@@ -408,37 +407,8 @@ class InteractiveShell(SingletonConfigurable):
         """
     )
 
-    # The readline stuff will eventually be moved to the terminal subclass
-    # but for now, we can't do that as readline is welded in everywhere.
-    readline_use = CBool(True, config=True)
-    readline_remove_delims = Unicode('-/~', config=True)
-    readline_delims = Unicode() # set by init_readline()
-    # don't use \M- bindings by default, because they
-    # conflict with 8-bit encodings. See gh-58,gh-88
-    readline_parse_and_bind = List([
-            'tab: complete',
-            '"\C-l": clear-screen',
-            'set show-all-if-ambiguous on',
-            '"\C-o": tab-insert',
-            '"\C-r": reverse-search-history',
-            '"\C-s": forward-search-history',
-            '"\C-p": history-search-backward',
-            '"\C-n": history-search-forward',
-            '"\e[A": history-search-backward',
-            '"\e[B": history-search-forward',
-            '"\C-k": kill-line',
-            '"\C-u": unix-line-discard',
-        ], config=True)
-    
-    _custom_readline_config = False
-    
-    def _readline_parse_and_bind_changed(self, name, old, new):
-        # notice that readline config is customized
-        # indicates that it should have higher priority than inputrc
-        self._custom_readline_config = True
-    
     ast_node_interactivity = Enum(['all', 'last', 'last_expr', 'none'],
-                                  default_value='last_expr', config=True, 
+                                  default_value='last_expr', config=True,
                                   help="""
         'all', 'last', 'last_expr' or 'none', specifying which nodes should be
         run interactively (displaying output from expressions).""")
@@ -514,7 +484,6 @@ class InteractiveShell(SingletonConfigurable):
         self.init_encoding()
         self.init_prefilter()
 
-        self.init_syntax_highlighting()
         self.init_hooks()
         self.init_events()
         self.init_pushd_popd_magic()
@@ -526,20 +495,6 @@ class InteractiveShell(SingletonConfigurable):
 
         # The following was in post_config_initialization
         self.init_inspector()
-        # init_readline() must come before init_io(), because init_io uses
-        # readline related things.
-        self.init_readline()
-        # We save this here in case user code replaces raw_input, but it needs
-        # to be after init_readline(), because PyPy's readline works by replacing
-        # raw_input.
-        if py3compat.PY3:
-            self.raw_input_original = input
-        else:
-            self.raw_input_original = raw_input
-        # init_completer must come after init_readline, because it needs to
-        # know whether readline is present or not system-wide to configure the
-        # completers, since the completion machinery can now operate
-        # independently of readline (e.g. over the network)
         self.init_completer()
         # TODO: init_io() needs to happen before init_traceback handlers
         # because the traceback handlers hardcode the stdout/stderr streams.
@@ -649,11 +604,6 @@ class InteractiveShell(SingletonConfigurable):
         except AttributeError:
             self.stdin_encoding = 'ascii'
 
-    def init_syntax_highlighting(self):
-        # Python source parser/formatter for syntax highlighting
-        pyformat = PyColorize.Parser().format
-        self.pycolorize = lambda src: pyformat(src,'str',self.colors)
-
     def init_pushd_popd_magic(self):
         # for pushd/popd management
         self.home_dir = get_home_dir()
@@ -702,10 +652,7 @@ class InteractiveShell(SingletonConfigurable):
 
     def init_inspector(self):
         # Object inspector
-        self.inspector = oinspect.Inspector(oinspect.InspectColors,
-                                            PyColorize.ANSICodeColors,
-                                            'NoColor',
-                                            self.object_info_string_level)
+        self.inspector = oinspect.Inspector(self.object_info_string_level)
 
     def init_io(self):
         # This will just use sys.stdout and sys.stderr. If you want to
@@ -1934,90 +1881,6 @@ class InteractiveShell(SingletonConfigurable):
     # Things related to readline
     #-------------------------------------------------------------------------
 
-    def init_readline(self):
-        """Command history completion/saving/reloading."""
-
-        if self.readline_use:
-            import IPython.utils.rlineimpl as readline
-
-        self.rl_next_input = None
-        self.rl_do_indent = False
-
-        if not self.readline_use or not readline.have_readline:
-            self.has_readline = False
-            self.readline = None
-            # Set a number of methods that depend on readline to be no-op
-            self.readline_no_record = no_op_context
-            self.set_readline_completer = no_op
-            self.set_custom_completer = no_op
-            if self.readline_use:
-                warn('Readline services not available or not loaded.')
-        else:
-            self.has_readline = True
-            self.readline = readline
-            sys.modules['readline'] = readline
-
-            # Platform-specific configuration
-            if os.name == 'nt':
-                # FIXME - check with Frederick to see if we can harmonize
-                # naming conventions with pyreadline to avoid this
-                # platform-dependent check
-                self.readline_startup_hook = readline.set_pre_input_hook
-            else:
-                self.readline_startup_hook = readline.set_startup_hook
-
-            # Readline config order:
-            # - IPython config (default value)
-            # - custom inputrc
-            # - IPython config (user customized)
-            
-            # load IPython config before inputrc if default
-            # skip if libedit because parse_and_bind syntax is different
-            if not self._custom_readline_config and not readline.uses_libedit:
-                for rlcommand in self.readline_parse_and_bind:
-                    readline.parse_and_bind(rlcommand)
-
-            # Load user's initrc file (readline config)
-            # Or if libedit is used, load editrc.
-            inputrc_name = os.environ.get('INPUTRC')
-            if inputrc_name is None:
-                inputrc_name = '.inputrc'
-                if readline.uses_libedit:
-                    inputrc_name = '.editrc'
-                inputrc_name = os.path.join(self.home_dir, inputrc_name)
-            if os.path.isfile(inputrc_name):
-                try:
-                    readline.read_init_file(inputrc_name)
-                except:
-                    warn('Problems reading readline initialization file <%s>'
-                         % inputrc_name)
-            
-            # load IPython config after inputrc if user has customized
-            if self._custom_readline_config:
-                for rlcommand in self.readline_parse_and_bind:
-                    readline.parse_and_bind(rlcommand)
-
-            # Remove some chars from the delimiters list.  If we encounter
-            # unicode chars, discard them.
-            delims = readline.get_completer_delims()
-            if not py3compat.PY3:
-                delims = delims.encode("ascii", "ignore")
-            for d in self.readline_remove_delims:
-                delims = delims.replace(d, "")
-            delims = delims.replace(ESC_MAGIC, '')
-            readline.set_completer_delims(delims)
-            # Store these so we can restore them if something like rpy2 modifies
-            # them.
-            self.readline_delims = delims
-            # otherwise we end up with a monster history after a while:
-            readline.set_history_length(self.history_length)
-
-            self.refill_readline_hist()
-            self.readline_no_record = ReadlineNoRecord(self)
-
-        # Configure auto-indent for all platforms
-        self.set_autoindent(self.autoindent)
-
     def refill_readline_hist(self):
         # Load the last 1000 lines from history
         self.readline.clear_history()
@@ -2056,18 +1919,6 @@ class InteractiveShell(SingletonConfigurable):
         """
         self.rl_next_input = py3compat.cast_bytes_py2(s)
 
-    # Maybe move this to the terminal subclass?
-    def pre_readline(self):
-        """readline hook to be used at the start of each line.
-
-        Currently it handles auto-indent only."""
-
-        if self.rl_do_indent:
-            self.readline.insert_text(self._indent_current_str())
-        if self.rl_next_input is not None:
-            self.readline.insert_text(self.rl_next_input)
-            self.rl_next_input = None
-
     def _indent_current_str(self):
         """return the current level of indentation as a string"""
         return self.input_splitter.indent_spaces * ' '
@@ -2091,7 +1942,6 @@ class InteractiveShell(SingletonConfigurable):
         self.Completer = IPCompleter(shell=self,
                                      namespace=self.user_ns,
                                      global_namespace=self.user_global_ns,
-                                     use_readline=self.has_readline,
                                      parent=self,
                                      )
         self.configurables.append(self.Completer)
@@ -2106,12 +1956,6 @@ class InteractiveShell(SingletonConfigurable):
         self.set_hook('complete_command', magic_run_completer, str_key = '%run')
         self.set_hook('complete_command', cd_completer, str_key = '%cd')
         self.set_hook('complete_command', reset_completer, str_key = '%reset')
-
-        # Only configure readline if we truly are using readline.  IPython can
-        # do tab-completion over the network, in GUIs, etc, where readline
-        # itself may be absent
-        if self.has_readline:
-            self.set_readline_completer()
 
     def complete(self, text, line=None, cursor_pos=None):
         """Return the completed text and a list of completions.

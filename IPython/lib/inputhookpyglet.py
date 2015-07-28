@@ -20,7 +20,6 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 
-import os
 import sys
 import time
 from timeit import default_timer as clock
@@ -29,23 +28,6 @@ import pyglet
 #-----------------------------------------------------------------------------
 # Platform-dependent imports and functions
 #-----------------------------------------------------------------------------
-
-if os.name == 'posix':
-    import select
-
-    def stdin_ready():
-        infds, outfds, erfds = select.select([sys.stdin],[],[],0)
-        if infds:
-            return True
-        else:
-            return False
-
-elif sys.platform == 'win32':
-    import msvcrt
-
-    def stdin_ready():
-        return msvcrt.kbhit()
-
 
 # On linux only, window.flip() has a bug that causes an AttributeError on
 # window close.  For details, see:
@@ -65,7 +47,7 @@ else:
 # Code
 #-----------------------------------------------------------------------------
 
-def inputhook_pyglet():
+def inputhook_pyglet(inputhook_context):
     """Run the pyglet event loop by processing pending events only.
 
     This keeps processing pending events until stdin is ready.  After
@@ -77,7 +59,7 @@ def inputhook_pyglet():
     # idle and this is running. We trap KeyboardInterrupt and pass.
     try:
         t = clock()
-        while not stdin_ready():
+        while not inputhook_context.input_is_ready():
             pyglet.clock.tick()
             for window in pyglet.app.windows:
                 window.switch_to()

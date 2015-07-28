@@ -23,14 +23,12 @@ import time
 from timeit import default_timer as clock
 import wx
 
-from IPython.lib.inputhook import stdin_ready
-
 
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
 
-def inputhook_wx1():
+def inputhook_wx1(inputhook_context):
     """Run the wx event loop by processing pending events only.
 
     This approach seems to work, but its performance is not great as it
@@ -65,18 +63,19 @@ class EventLoopTimer(wx.Timer):
 
 class EventLoopRunner(object):
 
-    def Run(self, time):
+    def Run(self, time, inputhook_context):
+        self.inputhook_context = inputhook_context
         self.evtloop = wx.EventLoop()
         self.timer = EventLoopTimer(self.check_stdin)
         self.timer.Start(time)
         self.evtloop.Run()
 
     def check_stdin(self):
-        if stdin_ready():
+        if self.inputhook_context.input_is_ready():
             self.timer.Stop()
             self.evtloop.Exit()
 
-def inputhook_wx2():
+def inputhook_wx2(inputhook_context):
     """Run the wx event loop, polling for stdin.
 
     This version runs the wx eventloop for an undetermined amount of time,
@@ -94,7 +93,7 @@ def inputhook_wx2():
         app = wx.GetApp()
         if app is not None:
             assert wx.Thread_IsMain()
-            elr = EventLoopRunner()
+            elr = EventLoopRunner(inputhook_context)
             # As this time is made shorter, keyboard response improves, but idle
             # CPU load goes up.  10 ms seems like a good compromise.
             elr.Run(time=10)  # CHANGE time here to control polling interval
@@ -102,7 +101,7 @@ def inputhook_wx2():
         pass
     return 0
 
-def inputhook_wx3():
+def inputhook_wx3(inputhook_context):
     """Run the wx event loop by processing pending events only.
 
     This is like inputhook_wx1, but it keeps processing pending events
@@ -126,7 +125,7 @@ def inputhook_wx3():
             evtloop = wx.EventLoop()
             ea = wx.EventLoopActivator(evtloop)
             t = clock()
-            while not stdin_ready():
+            while not inputhook_context.input_is_ready():
                 while evtloop.Pending():
                     t = clock()
                     evtloop.Dispatch()

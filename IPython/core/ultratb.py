@@ -50,21 +50,7 @@ library module 'traceback.py' and Ka-Ping Yee's 'cgitb.py'.
 Color schemes
 -------------
 
-The colors are defined in the class TBTools through the use of the
-ColorSchemeTable class. Currently the following exist:
-
-  - NoColor: allows all of this module to be used in any terminal (the color
-    escapes are just dummy blank strings).
-
-  - Linux: is meant to look good in a terminal like the Linux console (black
-    or very dark background).
-
-  - LightBG: similar to Linux but swaps dark/light colors to be more readable
-    in light background terminals.
-
-You can implement other color schemes easily, the syntax is fairly
-self-explanatory. Please send back new schemes you develop to the author for
-possible inclusion in future releases.
+TODO: ...
 
 Inheritance diagram:
 
@@ -109,8 +95,6 @@ from inspect import getsourcefile, getfile, getmodule, \
 from IPython import get_ipython
 from IPython.core import debugger
 from IPython.core.display_trap import DisplayTrap
-from IPython.core.excolors import exception_colors
-from IPython.utils import PyColorize
 from IPython.utils import io
 from IPython.utils import openpy
 from IPython.utils import path as util_path
@@ -295,10 +279,7 @@ def _fixed_getinnerframes(etb, context=1, tb_offset=0):
 # can be recognized properly by ipython.el's py-traceback-line-re
 # (SyntaxErrors have to be treated specially because they have no traceback)
 
-_parser = PyColorize.Parser()
-
-
-def _format_traceback_lines(lnum, index, lines, Colors, lvals=None, scheme=None):
+def _format_traceback_lines(lnum, index, lines, Colors, lvals=None):
     numbers_width = INDENT_SIZE - 1
     res = []
     i = lnum - index
@@ -367,14 +348,8 @@ class TBTools(object):
         # subclasses can simply access self.ostream for writing.
         self._ostream = ostream
 
-        # Create color table
-        self.color_scheme_table = exception_colors()
-
-        self.set_colors(color_scheme)
-        self.old_scheme = color_scheme  # save initial value for toggles
-
         if call_pdb:
-            self.pdb = debugger.Pdb(self.color_scheme_table.active_scheme_name)
+            self.pdb = debugger.Pdb()
         else:
             self.pdb = None
 
@@ -396,28 +371,6 @@ class TBTools(object):
         self._ostream = val
 
     ostream = property(_get_ostream, _set_ostream)
-
-    def set_colors(self, *args, **kw):
-        """Shorthand access to the color table scheme selector method."""
-
-        # Set own color table
-        self.color_scheme_table.set_active_scheme(*args, **kw)
-        # for convenience, set Colors to the active scheme
-        self.Colors = self.color_scheme_table.active_colors
-        # Also set colors of debugger
-        if hasattr(self, 'pdb') and self.pdb is not None:
-            self.pdb.set_colors(*args, **kw)
-
-    def color_toggle(self):
-        """Toggle between the currently active color scheme and NoColor."""
-
-        if self.color_scheme_table.active_scheme_name == 'NoColor':
-            self.color_scheme_table.set_active_scheme(self.old_scheme)
-            self.Colors = self.color_scheme_table.active_colors
-        else:
-            self.old_scheme = self.color_scheme_table.active_scheme_name
-            self.color_scheme_table.set_active_scheme('NoColor')
-            self.Colors = self.color_scheme_table.active_colors
 
     def stb2text(self, stb):
         """Convert a structured traceback (a list) to a string."""
@@ -700,7 +653,6 @@ class VerboseTB(TBTools):
     def format_records(self, records):
         Colors = self.Colors  # just a shorthand + quicker name lookup
         ColorsNormal = Colors.Normal  # used a lot
-        col_scheme = self.color_scheme_table.active_scheme_name
         indent = ' ' * INDENT_SIZE
         em_normal = '%s\n%s%s' % (Colors.valEm, indent, ColorsNormal)
         undefined = '%sundefined%s' % (Colors.em, ColorsNormal)
@@ -867,8 +819,7 @@ class VerboseTB(TBTools):
                 frames.append(level)
             else:
                 frames.append('%s%s' % (level, ''.join(
-                    _format_traceback_lines(lnum, index, lines, Colors, lvals,
-                                            col_scheme))))
+                    _format_traceback_lines(lnum, index, lines, Colors, lvals))))
 
         return frames
 

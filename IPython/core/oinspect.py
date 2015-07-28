@@ -12,7 +12,7 @@ reference the name under which an object is being read.
 
 from __future__ import print_function
 
-__all__ = ['Inspector','InspectColors']
+__all__ = ['Inspector']
 
 # stdlib modules
 import inspect
@@ -31,7 +31,6 @@ except ImportError:
 from IPython.core import page
 from IPython.lib.pretty import pretty
 from IPython.testing.skipdoctest import skip_doctest_py3
-from IPython.utils import PyColorize
 from IPython.utils import io
 from IPython.utils import openpy
 from IPython.utils import py3compat
@@ -39,7 +38,6 @@ from IPython.utils.dir2 import safe_hasattr
 from IPython.utils.path import compress_user
 from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace
-from IPython.utils.coloransi import TermColors, ColorScheme, ColorSchemeTable
 from IPython.utils.py3compat import cast_unicode, string_types, PY3
 from IPython.utils.signatures import signature
 
@@ -53,33 +51,6 @@ _builtin_type_docstrings = {
 
 _builtin_func_type = type(all)
 _builtin_meth_type = type(str.upper)  # Bound methods have the same type as builtin functions
-#****************************************************************************
-# Builtin color schemes
-
-Colors = TermColors  # just a shorthand
-
-# Build a few color schemes
-NoColor = ColorScheme(
-    'NoColor',{
-    'header' : Colors.NoColor,
-    'normal' : Colors.NoColor  # color off (usu. Colors.Normal)
-    }  )
-
-LinuxColors = ColorScheme(
-    'Linux',{
-    'header' : Colors.LightRed,
-    'normal' : Colors.Normal  # color off (usu. Colors.Normal)
-    } )
-
-LightBGColors = ColorScheme(
-    'LightBG',{
-    'header' : Colors.Red,
-    'normal' : Colors.Normal  # color off (usu. Colors.Normal)
-    }  )
-
-# Build table of color schemes (needed by the parser)
-InspectColors = ColorSchemeTable([NoColor,LinuxColors,LightBGColors],
-                                 'Linux')
 
 #****************************************************************************
 # Auxiliary functions and objects
@@ -375,15 +346,9 @@ def find_source_lines(obj):
 
 
 class Inspector:
-    def __init__(self, color_table=InspectColors,
-                 code_color_table=PyColorize.ANSICodeColors,
-                 scheme='NoColor',
+    def __init__(self,
                  str_detail_level=0):
-        self.color_table = color_table
-        self.parser = PyColorize.Parser(code_color_table,out='str')
-        self.format = self.parser.format
         self.str_detail_level = str_detail_level
-        self.set_active_scheme(scheme)
 
     def _getdef(self,obj,oname=''):
         """Return the call signature for any callable object.
@@ -400,10 +365,6 @@ class Inspector:
         """Return a header string with proper colors."""
         return '%s%s%s' % (self.color_table.active_colors.header,h,
                            self.color_table.active_colors.normal)
-
-    def set_active_scheme(self, scheme):
-        self.color_table.set_active_scheme(scheme)
-        self.parser.color_table.set_active_scheme(scheme)
 
     def noinfo(self, msg, oname):
         """Generic message when no information is found."""

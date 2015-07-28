@@ -30,53 +30,9 @@ from string import Formatter
 
 from traitlets.config.configurable import Configurable
 from IPython.core import release
-from IPython.utils import coloransi, py3compat
+from IPython.utils import py3compat
 from traitlets import (Unicode, Instance, Dict, Bool, Int)
 
-#-----------------------------------------------------------------------------
-# Color schemes for prompts
-#-----------------------------------------------------------------------------
-
-InputColors = coloransi.InputTermColors  # just a shorthand
-Colors = coloransi.TermColors  # just a shorthand
-
-color_lists = dict(normal=Colors(), inp=InputColors(), nocolor=coloransi.NoColors())
-
-PColNoColors = coloransi.ColorScheme(
-    'NoColor',
-    in_prompt  = InputColors.NoColor,  # Input prompt
-    in_number  = InputColors.NoColor,  # Input prompt number
-    in_prompt2 = InputColors.NoColor, # Continuation prompt
-    in_normal  = InputColors.NoColor,  # color off (usu. Colors.Normal)
-
-    out_prompt = Colors.NoColor, # Output prompt
-    out_number = Colors.NoColor, # Output prompt number
-
-    normal = Colors.NoColor  # color off (usu. Colors.Normal)
-    )
-
-# make some schemes as instances so we can copy them for modification easily:
-PColLinux =  coloransi.ColorScheme(
-    'Linux',
-    in_prompt  = InputColors.Green,
-    in_number  = InputColors.LightGreen,
-    in_prompt2 = InputColors.Green,
-    in_normal  = InputColors.Normal,  # color off (usu. Colors.Normal)
-
-    out_prompt = Colors.Red,
-    out_number = Colors.LightRed,
-
-    normal = Colors.Normal
-    )
-
-# Slightly modified Linux for light backgrounds
-PColLightBG  = PColLinux.copy('LightBG')
-
-PColLightBG.colors.update(
-    in_prompt  = InputColors.Blue,
-    in_number  = InputColors.LightBlue,
-    in_prompt2 = InputColors.Blue
-)
 
 #-----------------------------------------------------------------------------
 # Utilities
@@ -154,8 +110,8 @@ ROOT_SYMBOL    = "#" if (os.name=='nt' or sys.platform=='cli' or os.getuid()==0)
 
 prompt_abbreviations = {
     # Prompt/history count
-    '%n' : '{color.number}' '{count}' '{color.prompt}',
-    r'\#': '{color.number}' '{count}' '{color.prompt}',
+    '%n' : '{count}',
+    r'\#': '{count}',
     # Just the prompt counter number, WITHOUT any coloring wrappers, so users
     # can get numbers displayed in whatever color they want.
     r'\N': '{count}',
@@ -280,14 +236,6 @@ class PromptManager(Configurable):
     """This is the primary interface for producing IPython's prompts."""
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
     
-    color_scheme_table = Instance(coloransi.ColorSchemeTable, allow_none=True)
-    color_scheme = Unicode('Linux', config=True)
-    def _color_scheme_changed(self, name, new_value):
-        self.color_scheme_table.set_active_scheme(new_value)
-        for pname in ['in', 'in2', 'out', 'rewrite']:
-            # We need to recalculate the number of invisible characters
-            self.update_prompt(pname)
-    
     lazy_evaluate_fields = Dict(help="""
         This maps field names used in the prompt templates to functions which
         will be called when the prompt is rendered. This allows us to include
@@ -324,10 +272,6 @@ class PromptManager(Configurable):
     def __init__(self, shell, **kwargs):
         super(PromptManager, self).__init__(shell=shell, **kwargs)
         
-        # Prepare colour scheme table
-        self.color_scheme_table = coloransi.ColorSchemeTable([PColNoColors,
-                                    PColLinux, PColLightBG], self.color_scheme)
-        
         self._formatter = UserNSFormatter(shell)
         # Prepare templates & numbers of invisible characters
         self.update_prompt('in', self.in_template)
@@ -350,64 +294,39 @@ class PromptManager(Configurable):
             self.templates[name] = multiple_replace(prompt_abbreviations, new_template)
         # We count invisible characters (colour escapes) on the last line of the
         # prompt, to calculate the width for lining up subsequent prompts.
-        invis_chars = _lenlastline(self._render(name, color=True)) - \
-                        _lenlastline(self._render(name, color=False))
+        invis_chars = _lenlastline(self._render(name)) - \
+                        _lenlastline(self._render(name))
         self.invisible_chars[name] = invis_chars
     
     def _update_prompt_trait(self, traitname, new_template):
         name = traitname[:-9]   # Cut off '_template'
         self.update_prompt(name, new_template)
     
-    def _render(self, name, color=True, **kwargs):
+    def _render(self, name, **kwargs):
         """Render but don't justify, or update the width or txtwidth attributes.
         """
         if name == 'rewrite':
-            return self._render_rewrite(color=color)
-        
-        if color:
-            scheme = self.color_scheme_table.active_colors
-            if name=='out':
-                colors = color_lists['normal']
-                colors.number, colors.prompt, colors.normal = \
-                        scheme.out_number, scheme.out_prompt, scheme.normal
-            else:
-                colors = color_lists['inp']
-                colors.number, colors.prompt, colors.normal = \
-                        scheme.in_number, scheme.in_prompt, scheme.in_normal
-                if name=='in2':
-                    colors.prompt = scheme.in_prompt2
-        else:
-            # No color
-            colors = color_lists['nocolor']
-            colors.number, colors.prompt, colors.normal = '', '', ''
+            return self._render_rewrite()
         
         count = self.shell.execution_count    # Shorthand
         # Build the dictionary to be passed to string formatting
-        fmtargs = dict(color=colors, count=count,
+        fmtargs = dict(count=count,
                         dots="."*len(str(count)),
                         width=self.width, txtwidth=self.txtwidth )
         fmtargs.update(self.lazy_evaluate_fields)
         fmtargs.update(kwargs)
         
         # Prepare the prompt
-        prompt = colors.prompt + self.templates[name] + colors.normal
+        prompt = self.templates[name]
         
         # Fill in required fields
         return self._formatter.format(prompt, **fmtargs)
     
-    def _render_rewrite(self, color=True):
+    def _render_rewrite(self):
         """Render the ---> rewrite prompt."""
-        if color:
-            scheme = self.color_scheme_table.active_colors
-            # We need a non-input version of these escapes
-            color_prompt = scheme.in_prompt.replace("\001","").replace("\002","")
-            color_normal = scheme.normal
-        else:
-            color_prompt, color_normal = '', ''
-
-        return color_prompt + "-> ".rjust(self.txtwidth, "-") + color_normal
+        return "-> ".rjust(self.txtwidth, "-")
     
-    def render(self, name, color=True, just=None, **kwargs):
+    def render(self, name, just=None, **kwargs):
         """
         Render the selected prompt.
         
@@ -415,8 +334,6 @@ class PromptManager(Configurable):
         ----------
         name : str
           Which prompt to render. One of 'in', 'in2', 'out', 'rewrite'
-        color : bool
-          If True (default), include ANSI escape sequences for a coloured prompt.
         just : bool
           If True, justify the prompt to the width of the last prompt. The
           default is stored in self.justify.
@@ -429,14 +346,13 @@ class PromptManager(Configurable):
         -------
         A string containing the rendered prompt.
         """
-        res = self._render(name, color=color, **kwargs)
+        res = self._render(name, **kwargs)
         
         # Handle justification of prompt
-        invis_chars = self.invisible_chars[name] if color else 0
-        self.txtwidth = _lenlastline(res) - invis_chars
+        self.txtwidth = _lenlastline(res)
         just = self.justify if (just is None) else just
         # If the prompt spans more than one line, don't try to justify it:
         if just and name != 'in' and ('\n' not in res) and ('\r' not in res):
-            res = res.rjust(self.width + invis_chars)
-        self.width = _lenlastline(res) - invis_chars
+            res = res.rjust(self.width)
+        self.width = _lenlastline(res)
         return res

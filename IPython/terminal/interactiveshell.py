@@ -25,12 +25,16 @@ from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.lib.clipboard import ClipboardEmpty
+from IPython.lib.inputhook import inputhook_manager
 from IPython.utils.encoding import get_stream_enc
 from IPython.utils import py3compat
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
 from IPython.utils.warn import warn, error
 from IPython.utils.text import num_ini_spaces, SList, strip_email_quotes
+from IPython.terminal.python_input.interface import PythonInput
+from prompt_toolkit.shortcuts import create_eventloop
+from prompt_toolkit import CommandLineInterface
 from traitlets import Integer, CBool, Unicode
 
 #-----------------------------------------------------------------------------
@@ -291,10 +295,16 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Enable auto setting the terminal title."
     )
     usage = Unicode(interactive_usage)
-    
+
     # This `using_paste_magics` is used to detect whether the code is being
     # executed via paste magics functions
     using_paste_magics = CBool(False)
+
+    def __init__(self, *a, **kw):
+        super(TerminalInteractiveShell, self).__init__(*a, **kw)
+
+        self.python_input = PythonInput(self.Completer)
+        self.python_input_app = self.python_input.create_application()
 
     # In the terminal, GUI control is done via PyOS_InputHook
     @staticmethod
@@ -379,9 +389,6 @@ class TerminalInteractiveShell(InteractiveShell):
             while 1:
                 try:
                     self.interact(display_banner=display_banner)
-                    #self.interact_with_readline()
-                    # XXX for testing of a readline-decoupled repl loop, call
-                    # interact_with_readline above
                     break
                 except KeyboardInterrupt:
                     # this should not be necessary, but KeyboardInterrupt
@@ -430,10 +437,7 @@ class TerminalInteractiveShell(InteractiveShell):
         elif display_banner:
             self.show_banner()
 
-        more = False
-
         if self.has_readline:
-            self.readline_startup_hook(self.pre_readline)
             hlen_b4_cell = self.readline.get_current_history_length()
         else:
             hlen_b4_cell = 0
@@ -442,21 +446,18 @@ class TerminalInteractiveShell(InteractiveShell):
 
         while not self.exit_now:
             self.hooks.pre_prompt_hook()
-            if more:
-                try:
-                    prompt = self.prompt_manager.render('in2')
-                except:
-                    self.showtraceback()
-                if self.autoindent:
-                    self.rl_do_indent = True
-
-            else:
-                try:
-                    prompt = self.separate_in + self.prompt_manager.render('in')
-                except:
-                    self.showtraceback()
             try:
-                line = self.raw_input(prompt)
+                prompt = self.separate_in + self.prompt_manager.render('in')
+            except:
+                self.showtraceback()
+            try:
+                self.python_input.prompt = prompt
+                cli = CommandLineInterface(
+                    application=self.python_input_app,
+                    eventloop=create_eventloop(inputhook=inputhook_manager._callback))
+                line = cli.run().text
+
+                #line = self.raw_input(prompt)
                 if self.exit_now:
                     # quick exit on sys.std[in|out] close
                     break
@@ -470,14 +471,11 @@ class TerminalInteractiveShell(InteractiveShell):
                     source_raw = self.input_splitter.raw_reset()
                     hlen_b4_cell = \
                         self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
-                    more = False
                 except KeyboardInterrupt:
                     pass
             except EOFError:
                 if self.autoindent:
                     self.rl_do_indent = False
-                    if self.has_readline:
-                        self.readline_startup_hook(None)
                 self.write('\n')
                 self.exit()
             except bdb.BdbQuit:
@@ -492,55 +490,20 @@ class TerminalInteractiveShell(InteractiveShell):
             else:
                 try:
                     self.input_splitter.push(line)
-                    more = self.input_splitter.push_accepts_more()
                 except SyntaxError:
-                    # Run the code directly - run_cell takes care of displaying
-                    # the exception.
-                    more = False
+                    pass
+
                 if (self.SyntaxTB.last_syntax_error and
                     self.autoedit_syntax):
                     self.edit_syntax_error()
-                if not more:
-                    source_raw = self.input_splitter.raw_reset()
-                    self.run_cell(source_raw, store_history=True)
-                    hlen_b4_cell = \
-                        self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
+
+                source_raw = self.input_splitter.raw_reset()
+                self.run_cell(source_raw, store_history=True)
+                hlen_b4_cell = \
+                    self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
 
         # Turn off the exit flag, so the mainloop can be restarted if desired
         self.exit_now = False
-
-    def raw_input(self, prompt=''):
-        """Write a prompt and read a line.
-
-        The returned line does not include the trailing newline.
-        When the user enters the EOF key sequence, EOFError is raised.
-
-        Parameters
-        ----------
-
-        prompt : str, optional
-          A string to be printed to prompt the user.
-        """
-        # raw_input expects str, but we pass it unicode sometimes
-        prompt = py3compat.cast_bytes_py2(prompt)
-
-        try:
-            line = py3compat.str_to_unicode(self.raw_input_original(prompt))
-        except ValueError:
-            warn("\n********\nYou or a %run:ed script called sys.stdin.close()"
-                 " or sys.stdout.close()!\nExiting IPython!\n")
-            self.ask_exit()
-            return ""
-
-        # Try to be reasonably smart about not re-indenting pasted input more
-        # than necessary.  We do this by trimming out the auto-indent initial
-        # spaces, if the user's actual input started itself with whitespace.
-        if self.autoindent:
-            if num_ini_spaces(line) > self.indent_current_nsp:
-                line = line[self.indent_current_nsp:]
-                self.indent_current_nsp = 0
-
-        return line
 
     #-------------------------------------------------------------------------
     # Methods to support auto-editing of SyntaxErrors.
