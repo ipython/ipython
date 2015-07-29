@@ -525,7 +525,7 @@ class TerminalInteractiveShell(InteractiveShell):
         prompt = py3compat.cast_bytes_py2(prompt)
 
         try:
-            line = py3compat.str_to_unicode(self.raw_input_original(prompt))
+            line = py3compat.cast_unicode_py2(self.raw_input_original(prompt))
         except ValueError:
             warn("\n********\nYou or a %run:ed script called sys.stdin.close()"
                  " or sys.stdout.close()!\nExiting IPython!\n")
