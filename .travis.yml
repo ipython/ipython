@@ -1,7 +1,7 @@
 # http://travis-ci.org/#!/ipython/ipython
 language: python
 python:
-    - "3.5.0b3"
+    - "3.5.0b4"
     - 3.4
     - 3.3
     - 2.7
