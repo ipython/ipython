@@ -69,6 +69,8 @@ To launch your kernel, add this at the end of your module::
     if __name__ == '__main__':
         from IPython.kernel.zmq.kernelapp import IPKernelApp
         IPKernelApp.launch_instance(kernel_class=MyKernel)
+        
+Place your kernel anywhere that you could import it (e.g. current directory). Now create a JSON kernel spec file (see below for example), and place it in ``~/.ipython/kernels/<mykernelname>/``. Now, you can run your kernel using ``ipython console --kernel <mykernelname>``
 
 Example
 -------
