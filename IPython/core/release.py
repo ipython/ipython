@@ -50,13 +50,9 @@ long_description = \
 IPython provides a rich toolkit to help you make the most out of using Python
 interactively.  Its main components are:
 
-* Powerful interactive Python shells (terminal- and Qt-based).
-* A web-based interactive notebook environment with all shell features plus
-  support for embedded figures, animations and rich media.
-* Support for interactive data visualization and use of GUI toolkits.
-* Flexible, embeddable interpreters to load into your own projects.
-* A high-performance library for high level and interactive parallel computing
-  that works in multicore systems, clusters, supercomputing and cloud scenarios.
+* A powerful interactive Python shell
+* A `Jupyter <http://jupyter.org/>`_ kernel to work with Python code in Jupyter
+  notebooks and other interactive frontends.
 
 The enhanced interactive Python shells have the following main features:
 
@@ -85,27 +81,6 @@ The enhanced interactive Python shells have the following main features:
 * Easily embeddable in other Python programs and GUIs.
 
 * Integrated access to the pdb debugger and the Python profiler.
-
-The parallel computing architecture has the following main features:
-
-* Quickly parallelize Python code from an interactive Python/IPython session.
-
-* A flexible and dynamic process model that be deployed on anything from
-  multicore workstations to supercomputers.
-
-* An architecture that supports many different styles of parallelism, from
-  message passing to task farming.
-
-* Both blocking and fully asynchronous interfaces.
-
-* High level APIs that enable many things to be parallelized in a few lines
-  of code.
-
-* Share live parallel jobs with other users securely.
-
-* Dynamically load balanced task farming system.
-
-* Robust error handling in parallel code.
 
 The latest development version is always available from IPython's `GitHub
 site <http://github.com/ipython>`_.
@@ -138,6 +113,7 @@ keywords = ['Interactive','Interpreter','Shell','Parallel','Distributed',
             'Web-based computing', 'Qt console', 'Embedding']
 
 classifiers = [
+    'Framework :: IPython',
     'Intended Audience :: Developers',
     'Intended Audience :: Science/Research',
     'License :: OSI Approved :: BSD License',
@@ -145,6 +121,5 @@ classifiers = [
     'Programming Language :: Python :: 2',
     'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3',
-    'Topic :: System :: Distributed Computing',
     'Topic :: System :: Shells'
     ]
