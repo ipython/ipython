@@ -461,6 +461,43 @@ class EmbeddedSphinxShell(object):
         # Fetch the processed output. (This is not the submitted output.)
         self.cout.seek(0)
         processed_output = self.cout.read()
+
+        # context information
+        filename = "Unknown"
+        lineno = 0
+        if self.directive.state:
+            filename = self.directive.state.document.current_source
+            lineno = self.directive.state.document.current_line
+
+        # output any exceptions raised during execution to stdout
+        # unless :okexcept: has been specified.
+        if not is_okexcept and "Traceback" in processed_output:
+            s =  "\nException in %s at block ending on line %s\n" % (filename, lineno)
+            s += "Specify :okexcept: as an option in the ipython:: block to suppress this message\n"
+            sys.stdout.write('\n\n>>>' + ('-' * 73))
+            sys.stdout.write(s)
+            sys.stdout.write(processed_output)
+            sys.stdout.write('<<<' + ('-' * 73) + '\n\n')
+
+        # output any warning raised during execution to stdout
+        # unless :okwarning: has been specified.
+        if not is_okwarning:
+            for w in ws:
+                s =  "\nWarning in %s at block ending on line %s\n" % (filename, lineno)
+                s += "Specify :okwarning: as an option in the ipython:: block to suppress this message\n"
+                sys.stdout.write('\n\n>>>' + ('-' * 73))
+                sys.stdout.write(s)
+                sys.stdout.write(('-' * 76) + '\n')
+                s=warnings.formatwarning(w.message, w.category,
+                                         w.filename, w.lineno, w.line)
+                sys.stdout.write(s)
+                sys.stdout.write('<<<' + ('-' * 73) + '\n')
+
+        # if :okexcept: has been specified, display shorter traceback
+        if is_okexcept and "Traceback" in processed_output:
+            traceback = processed_output.split('\n')
+            processed_output= '\n'.join(traceback[-2:])
+
         if not is_suppress and not is_semicolon:
             #
             # In IPythonDirective.run, the elements of `ret` are eventually
@@ -506,37 +543,6 @@ class EmbeddedSphinxShell(object):
         elif is_semicolon:
             # Make sure there is a newline after the semicolon.
             ret.append('')
-
-        # context information
-        filename = "Unknown"
-        lineno = 0
-        if self.directive.state:
-            filename = self.directive.state.document.current_source
-            lineno = self.directive.state.document.current_line
-
-        # output any exceptions raised during execution to stdout
-        # unless :okexcept: has been specified.
-        if not is_okexcept and "Traceback" in processed_output:
-            s =  "\nException in %s at block ending on line %s\n" % (filename, lineno)
-            s += "Specify :okexcept: as an option in the ipython:: block to suppress this message\n"
-            sys.stdout.write('\n\n>>>' + ('-' * 73))
-            sys.stdout.write(s)
-            sys.stdout.write(processed_output)
-            sys.stdout.write('<<<' + ('-' * 73) + '\n\n')
-
-        # output any warning raised during execution to stdout
-        # unless :okwarning: has been specified.
-        if not is_okwarning:
-            for w in ws:
-                s =  "\nWarning in %s at block ending on line %s\n" % (filename, lineno)
-                s += "Specify :okwarning: as an option in the ipython:: block to suppress this message\n"
-                sys.stdout.write('\n\n>>>' + ('-' * 73))
-                sys.stdout.write(s)
-                sys.stdout.write(('-' * 76) + '\n')
-                s=warnings.formatwarning(w.message, w.category,
-                                         w.filename, w.lineno, w.line)
-                sys.stdout.write(s)
-                sys.stdout.write('<<<' + ('-' * 73) + '\n')
 
         self.cout.truncate(0)
 
