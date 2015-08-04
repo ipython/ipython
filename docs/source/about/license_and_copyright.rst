@@ -372,25 +372,8 @@ Fernando Perez began IPython in 2001 based on code from Janko Hauser
 the project lead.
 
 The IPython Development Team is the set of all contributors to the IPython
-project. This includes all of the IPython subprojects. Here is a list of the
-currently active contributors:
-
-* Matthieu Brucher
-* Ondrej Certik
-* Laurent Dufrechou
-* Robert Kern
-* Thomas Kluyver
-* Brian E. Granger
-* Paul Ivanov
-* Evan Patterson
-* Fernando Perez (project leader)
-* Benjamin Ragan-Kelley
-* Ville M. Vainio
-* Gael Varoququx
-* Stefan van der Walt
-* Barry Wark
-
-If your name is missing, please add it.  
+project. This includes all of the IPython subprojects. See the release notes
+for a list of people who have contributed to each release.
 
 Our Copyright Policy
 ====================
