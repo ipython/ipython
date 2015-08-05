@@ -32,9 +32,9 @@ Rather than manipulating os.environ directly, you may like to use the magic
 and values.  To get the value of a specific variable, use `%env var`.  To set
 the value of a specific variable, use `%env foo bar`, `%env foo=bar`.  By
 default values are considered to be strings so quoting them is unnecessary.
-However, python variables are expanded as usual in the magic command, so
+However, Python variables are expanded as usual in the magic command, so
 `%env foo=$bar` means "set the environment variable foo to the value of the
-python variable `bar`".
+Python variable `bar`".
 
 Aliases
 =======
@@ -48,7 +48,7 @@ See ``%alias?``  and ``%unalias?`` for details on the alias facilities. See also
 Directory management
 ====================
 
-Since each command passed by ipython to the underlying system is executed
+Since each command passed by IPython to the underlying system is executed
 in a subshell which exits immediately, you can NOT use !cd to navigate
 the filesystem.
 
@@ -166,7 +166,7 @@ for lists if files), use the .s property::
     [Q:doc/examples]|15> ls $files
     example-demo.py  example-gnuplot.py  extension.py  seteditor.py  seteditor.pyc
 
-SLists are inherited from normal python lists, so every list method is
+SLists are inherited from normal Python lists, so every list method is
 available::
 
     [Q:doc/examples]|21> lines.append('hey')
