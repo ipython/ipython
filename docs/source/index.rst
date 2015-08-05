@@ -30,6 +30,15 @@ Contents
    api/index
    about/index
 
+.. seealso::
+
+   `Jupyter documentation <http://jupyter.readthedocs.org/en/latest/>`__
+     The Notebook code and many other pieces formerly in IPython are now parts
+     of Project Jupyter.
+   `ipyparallel documentation <http://ipyparallel.readthedocs.org/en/latest/>`__
+     Formerly ``IPython.parallel``.
+
+
 .. htmlonly::
    * :ref:`genindex`
    * :ref:`modindex`
