@@ -25,7 +25,6 @@ Contents
    whatsnew/index
    install/index
    interactive/index
-   notebook/index
    config/index
    development/index
    api/index
