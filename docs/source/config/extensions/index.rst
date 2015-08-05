@@ -89,7 +89,6 @@ Extensions bundled with IPython
 
    autoreload
    storemagic
-   sympyprinting
 
 * ``octavemagic`` used to be bundled, but is now part of `oct2py <http://blink1073.github.io/oct2py/docs/>`_.
   Use ``%load_ext oct2py.ipython`` to load it.
@@ -98,3 +97,5 @@ Extensions bundled with IPython
   details of how to use it.
 * ``cythonmagic`` used to be bundled, but is now part of `cython <https://github.com/cython/cython/>`_
   Use ``%load_ext Cython`` to load it.
+* ``sympyprinting`` used to be a bundled extension, but you should now use
+  :func:`sympy.init_printing` instead.
