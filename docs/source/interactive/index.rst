@@ -14,4 +14,4 @@ Using IPython for interactive work
 
 .. seealso::
 
-    :doc:`/notebook/index`
+    `The Jupyter Notebook <http://jupyter-notebook.readthedocs.org/en/latest/>`__
