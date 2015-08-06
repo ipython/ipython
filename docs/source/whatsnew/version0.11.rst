@@ -253,8 +253,8 @@ Twisted is itself a Python library.  So while Twisted is a very capable
 framework, we think ZeroMQ fits our needs much better and we hope you will find
 the change to be a significant improvement in the long run.
 
-Our manual contains :ref:`a full description of how to use IPython for parallel
-computing <parallel_overview>`, and the `tutorial`__ presented by Min
+Our manual contains a full description of how to use IPython for parallel
+computing, and the `tutorial`__ presented by Min
 Ragan-Kelley at the SciPy 2011 conference provides a hands-on complement to the
 reference docs.
 
@@ -287,7 +287,7 @@ that assigning values is pure Python assignment.  Simple flags exist for
 commonly used options, these are always prefixed with '--'.
 
 The IPython command-line help has the details of all the options (via
-``ipythyon --help``), but a simple example should clarify things; the ``pylab``
+``ipython --help``), but a simple example should clarify things; the ``pylab``
 flag can be used to start in pylab mode with the qt4 backend::
 
   ipython --pylab=qt

@@ -86,11 +86,11 @@ class PylabMagics(Magics):
 
             In [3]: %matplotlib qt
 
-        You can list the available backends using the -l/--list option
+        You can list the available backends using the -l/--list option::
 
            In [4]: %matplotlib --list
            Available matplotlib backends: ['osx', 'qt4', 'qt5', 'gtk3', 'notebook', 'wx', 'qt', 'nbagg',
-            'gtk', 'tk', 'inline']
+           'gtk', 'tk', 'inline']
         """
         args = magic_arguments.parse_argstring(self.matplotlib, line)
         if args.list:

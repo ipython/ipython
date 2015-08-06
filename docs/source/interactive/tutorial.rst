@@ -190,6 +190,8 @@ Profiles allow you to use IPython for different tasks, keeping separate config
 files and history for each one. More details in :ref:`the profiles section
 <profiles>`.
 
+.. _startup_files:
+
 Startup Files
 -------------
 
