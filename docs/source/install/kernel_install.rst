@@ -11,6 +11,5 @@ be installed as a kernel by following these steps:
 * run once ``ipython kernelspec install-self --user`` (or ``ipython2 ...`` or ``ipython3 ...``
   if you want to install specific python versions)
 
-The last command installs a :ref:`kernel spec <jupyter-client:kernel-specs>` file for the current python installation in
-``~/.jupyter/kernels/``. Kernel spec files are JSON files, which can be viewed and changed with a
+The last command installs a :ref:`kernel spec <jupyter-client:kernel-specs>` file for the current python installation. Kernel spec files are JSON files, which can be viewed and changed with a
 normal text editor.
