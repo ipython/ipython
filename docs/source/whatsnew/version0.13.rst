@@ -283,7 +283,7 @@ that provide specialized magics.  These typically require additional software
 to run and must be manually loaded via ``%load_ext <extension name>``, but are
 extremely useful.  The following extensions are provided:
 
-**Cython magics** (extension :ref:`cythonmagic <extensions_cythonmagic>`)
+**Cython magics** (extension ``cythonmagic``)
     This extension provides magics to automatically build and compile Python
     extension modules using the Cython_ language. You must install Cython
     separately, as well as a C compiler, for this to work.  The examples
@@ -425,7 +425,7 @@ of the internal execution parts:
 The parallel tools now default to using ``NoDB`` as the storage backend for
 intermediate results.  This means that the default usage case will have a
 significantly reduced memory footprint, though certain advanced features are
-not available with this backend.  For more details, see :ref:`parallel_db`.
+not available with this backend.
 
 The parallel magics now display all output, so you can do parallel plotting or
 other actions with complex display.  The ``px`` magic has now both line and cell
@@ -530,10 +530,7 @@ The directory ``docs/resources`` in the source distribution contains SVG and
 PNG versions of our file icons, as well as an ``Info.plist.example`` file with
 instructions to install them on Mac OSX.  This is a first draft of our icons,
 and we encourage contributions from users with graphic talent to improve them
-in the future:
-
-.. image:: ../../resources/ipynb_icon_128x128.png
-   :alt:  IPython notebook file icon.
+in the future.
 
 	  
 New top-level `locate` command

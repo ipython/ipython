@@ -1,12 +1,10 @@
 IPython requires Python 2.7 or ≥ 3.3.
 
-.. note::
+.. seealso::
 
-    If you need to use Python 2.6 or 3.2, you can find IPython 1.x
-    `here <http://archive.ipython.org/release/>`__,
-    or get it with pip::
-    
-        pip install 'ipython<2'
+   `Installing Jupyter <http://jupyter.readthedocs.org/en/latest/install.html>`__
+     The Notebook, nbconvert, and many other former pieces of IPython are now
+     part of Project Jupyter.
 
 
 Quickstart
@@ -17,12 +15,10 @@ the quickest way to get up and running with IPython is:
 
 .. code-block:: bash
 
-    $ pip install "ipython[all]"
+    $ pip install ipython
 
-This will download and install IPython and its main optional dependencies for the notebook,
-qtconsole, tests, and other functionality.
-Some dependencies (Qt, PyQt for the QtConsole, pandoc for nbconvert) are not pip-installable,
-and will not be pulled in by pip.
+To use IPython with notebooks or the Qt console, you should also install
+``jupyter``.
 
 To run IPython's test suite, use the :command:`iptest` command:
 
@@ -34,15 +30,9 @@ To run IPython's test suite, use the :command:`iptest` command:
 Overview
 ========
 
-This document describes in detail the steps required to install IPython,
-and its various optional dependencies.
+This document describes in detail the steps required to install IPython.
 For a few quick ways to get started with package managers or full Python distributions,
 see `the install page <http://ipython.org/install.html>`_ of the IPython website.
-
-IPython is organized into a number of subpackages, each of which has its own dependencies.
-All of the subpackages come with IPython, so you don't need to download and
-install them separately.  However, to use a given subpackage, you will need to
-install all of its dependencies.
 
 Please let us know if you have problems installing IPython or any of its dependencies.
 
@@ -84,8 +74,8 @@ Installation from source
 ------------------------
 
 If you don't want to use :command:`pip`, or don't have it installed,
-grab the latest stable build of IPython from `here
-<http://ipython.org/download.html>`_.  Then do the following:
+grab the latest stable tarball of IPython `from PyPI
+<https://pypi.python.org/pypi/ipython>`__.  Then do the following:
 
 .. code-block:: bash
 
@@ -95,7 +85,6 @@ grab the latest stable build of IPython from `here
 
 If you are installing to a location (like ``/usr/local``) that requires higher
 permissions, you may need to run the last command with :command:`sudo`.
-
 
 
 Installing the development version
@@ -127,51 +116,34 @@ Then, if you want to update your IPython at any time, do:
 
     $ git pull
 
-IPython now uses git submodules to ship its javascript dependencies. If you run 
-IPython from git master, you may need to update submodules once in a while with:
+.. _dependencies:
 
-.. code-block:: bash
+Dependencies
+============
 
-    $ git submodule update
+IPython relies on a number of other Python packages. Installing using a package
+manager like pip or conda will ensure the necessary packages are installed. If
+you install manually, it's up to you to make sure dependencies are installed.
+They're not listed here, because they may change from release to release, so a
+static list will inevitably get out of date.
 
-or
-
-.. code-block:: bash
-
-    $ python setup.py submodule
-
-Another option is to copy `git hooks <https://github.com/ipython/ipython/tree/master/git-hooks>`_
-to your ``./git/hooks/`` directory to ensure that your submodules are up to date on each pull.
-
-
-Basic optional dependencies
-===========================
-
-There are a number of basic optional dependencies that most users will want to
-get.  These are:
-
-* readline (for command line editing, tab completion, etc.)
-* nose (to run the IPython test suite)
-* mock (Python < 3, also for tests)
-
-If you are comfortable installing these things yourself, have at it, otherwise
-read on for more details.
-
-IPython uses several other modules, such as pexpect_ and path.py, if they are
-installed on your system, but it can also use bundled versions from
-:mod:`IPython.external`, so there's no need to install them separately.
+It also has one key non-Python dependency which you may need to install separately.
 
 readline
 --------
 
-As indicated above, on Windows, to get full functionality in the console
-version of IPython, PyReadline is needed.
+IPython's terminal interface relies on readline to provide features like tab
+completion and history navigation. If you only want to use IPython as a kernel
+for Jupyter notebooks and other frontends, you don't need readline.
+
+
+**On Windows**, to get full console functionality, *PyReadline* is required.
 PyReadline is a separate, Windows only implementation of readline that uses
 native Windows calls through :mod:`ctypes`. The easiest way of installing
 PyReadline is you use the binary installer available `here
 <http://pypi.python.org/pypi/pyreadline>`__.
 
-On OS X, if you are using the built-in Python shipped by Apple, you will be
+**On OS X**, if you are using the built-in Python shipped by Apple, you will be
 missing a proper readline implementation as Apple ships instead a library called
 ``libedit`` that provides only some of readline's functionality.  While you may
 find libedit sufficient, we have occasional reports of bugs with it and several
@@ -179,7 +151,8 @@ developers who use OS X as their main environment consider libedit unacceptable
 for productive, regular use with IPython.
 
 Therefore, IPython on OS X depends on the :mod:`gnureadline` module.
-We will *not* consider completion/history problems to be bugs for IPython if you are using libedit.
+We will *not* consider completion/history problems to be bugs for IPython if you
+are using libedit.
 
 To get a working :mod:`readline` module on OS X, do (with :mod:`pip`
 installed):
@@ -201,174 +174,7 @@ optional dependencies:
 
     $ pip install "ipython[terminal]"
 
+**On Linux**, readline is normally installed by default. If not, install it
+from your system package manager. If you are compiling your own Python, make
+sure you install the readline development headers first.
 
-nose
-----
-
-To run the IPython test suite you will need the :mod:`nose` package.  Nose
-provides a great way of sniffing out and running all of the IPython tests.  The
-simplest way of getting nose is to use :command:`pip`:
-
-.. code-block:: bash
-
-    $ pip install nose
-
-Another way of getting this is to do:
-
-.. code-block:: bash
-
-    $ pip install "ipython[test]"
-
-For more installation options, see the `nose website
-<https://nose.readthedocs.org>`_.  
-
-Once you have nose installed, you can run IPython's test suite using the
-iptest command:
-
-.. code-block:: bash
-
-    $ iptest
-
-Dependencies for IPython.parallel (parallel computing)
-======================================================
-
-IPython's inter-process communication uses the PyZMQ_ bindings for the ZeroMQ_ messaging library.
-This is the only dependency for :mod:`IPython.parallel`.
-
-Shortcut:
-
-.. code-block:: bash
-
-    pip install "ipython[parallel]"
-
-or manual
-
-.. code-block:: bash
-
-    pip install pyzmq
-
-PyZMQ provides wheels for current Python on OS X and Windows, so installing pyzmq will typically not require compilation.
-
-IPython.parallel can use SSH tunnels, which require paramiko_ on Windows.
-
-Dependencies for the IPython Qt console
-=======================================
-
-pyzmq_, pygments_, PyQt_ (or PySide_)
-
-Shortcut:
-
-.. code-block:: bash
-
-    pip install "ipython[qtconsole]"
-
-or manual
-
-.. code-block:: bash
-
-    pip install pyzmq pygments
-
-PyQt/PySide are not pip installable, so generally must be installed via system package managers (or conda).
-
-.. _installnotebook:
-
-Dependencies for the IPython HTML notebook
-==========================================
-
-The HTML notebook is a complex web application with quite a few dependencies:
-
-pyzmq_, jinja2_, tornado_, mistune_, jsonschema_, pygments_, terminado_
-
-Shortcut:
-
-.. code-block:: bash
-
-    pip install "ipython[notebook]"
-
-or manual:
-
-.. code-block:: bash
-
-    pip install pyzmq jinja2 tornado mistune jsonschema pygments terminado
-
-The IPython notebook is a notebook-style web interface to IPython and can be
-started with the command ``ipython notebook``.
-
-MathJax
--------
-
-The IPython notebook uses the MathJax_ Javascript library for rendering LaTeX
-in web browsers. Because MathJax is large, we don't include it with
-IPython. Normally IPython will load MathJax from a CDN, but if you have a slow
-network connection, or want to use LaTeX without an internet connection at all,
-you can install MathJax locally.
-
-A quick and easy method is to install it from a python session::
-
-    python -m IPython.external.mathjax
-
-If you need tighter configuration control, you can download your own copy
-of MathJax from http://www.mathjax.org/download/ - use the MathJax-2.0 link.
-When you have the file stored locally, install it with::
-
-    python -m IPython.external.mathjax /path/to/source/mathjax-MathJax-v2.0-20-g07669ac.zip
-
-For unusual needs, IPython can tell you what directory it wants to find MathJax in::
-
-    python -m IPython.external.mathjax -d /some/other/mathjax
-
-By default MathJax will be installed in your ipython directory, but you
-can install MathJax system-wide.  Please refer to the documentation
-of :mod:`IPython.external.mathjax`
-
-Browser Compatibility
----------------------
-
-The IPython notebook is officially supported on the following browsers:
-
-* Chrome ≥ 13
-* Safari ≥ 5
-* Firefox ≥ 6
-
-The is mainly due to the notebook's usage of WebSockets and the flexible box model.
-
-The following browsers are unsupported:
-
-* Safari < 5
-* Firefox < 6
-* Chrome < 13
-* Opera (any): CSS issues, but execution might work
-* Internet Explorer < 10
-* Internet Explorer ≥ 10 (same as Opera)
-
-Using Safari with HTTPS and an untrusted certificate is known to not work (websockets will fail).
-
-
-Dependencies for nbconvert (converting notebooks to various formats)
-====================================================================
-
-For converting markdown to formats other than HTML, nbconvert uses Pandoc_ (1.12.1 or later).
-
-To install pandoc on Linux, you can generally use your package manager::
-
-    sudo apt-get install pandoc
-
-On other platforms, you can get pandoc from `their website <http://johnmacfarlane.net/pandoc/installing.html>`_.
-
-
-.. _ZeroMQ: http://www.zeromq.org
-.. _PyZMQ: https://github.com/zeromq/pyzmq
-.. _paramiko: https://github.com/robey/paramiko
-.. _pygments: http://pygments.org
-.. _pexpect: http://pexpect.readthedocs.org/en/latest/
-.. _Jinja: http://jinja.pocoo.org
-.. _Sphinx: http://sphinx-doc.org
-.. _pandoc: http://johnmacfarlane.net/pandoc
-.. _Tornado: http://www.tornadoweb.org
-.. _MathJax: http://www.mathjax.org
-.. _PyQt: http://www.riverbankcomputing.com/software/pyqt/intro
-.. _PySide: http://qt-project.org/wiki/PySide
-.. _jinja2: http://jinja.pocoo.org/
-.. _mistune: https://github.com/lepture/mistune
-.. _jsonschema: https://github.com/Julian/jsonschema
-.. _terminado: https://github.com/takluyver/terminado

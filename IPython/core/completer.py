@@ -485,7 +485,7 @@ def back_unicode_name_matches(text):
     Note that snowman is not a valid python3 combining character but will be expanded.
     Though it will not recombine back to the snowman character by the completion machinery.
 
-    This will not either back-complete standard sequences like \n, \b ...
+    This will not either back-complete standard sequences like \\n, \\b ...
     
     Used on Python 3 only.
     """
