@@ -19,10 +19,10 @@
       <div class="navbar-inner">
         <div class="container">
           <div class="center-nav">
-            <p class="navbar-text nav">Password:</p>
-            <form action="{{base_url}}login?next={{next}}" method="post" class="navbar-form pull-left">
-              <input type="password" name="password" id="password_input">
-              <button type="submit" id="login_submit">Log in</button>
+            <form action="{{base_url}}login?next={{next}}" method="post" class="form-inline" style="margin-top:15px">
+                <input type="email" name="email" id="email_input" class="input-small" placeholder="Email">
+                <input type="password" name="password" id="password_input" class="input-small" placeholder="Password">
+                <button type="submit" id="login_submit" class="btn">Sign in</button>
             </form>
           </div>
         </div>
