@@ -10,5 +10,3 @@ details.
 
    terminal
    kernel
-   notebook
-   qtconsole
