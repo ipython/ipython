@@ -3,8 +3,8 @@
 Kernel Installation
 -------------------
 
-IPython can be installed (different python versions, virtualenv or conda environments) can
-be installed as a kernel by following these steps:
+IPython can be installed (different python versions, virtualenv or conda 
+environments) as a kernel by following these steps:
 
 * make sure that the desired python installation is active (e.g. activate the environment)
   and ipython is installed
