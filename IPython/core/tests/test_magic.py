@@ -536,7 +536,7 @@ def test_timeit_shlex():
 
 def test_timeit_arguments():
     "Test valid timeit arguments, should not cause SyntaxError (GH #1269)"
-    _ip.magic("timeit ('#')")
+    _ip.magic("timeit -r1 -n1 ('#')")
 
 
 def test_timeit_special_syntax():
@@ -555,11 +555,19 @@ def test_timeit_special_syntax():
 
 def test_timeit_return():
     """
-    test wether timeit -o return object
+    test whether timeit -o returns object
     """
 
-    res = _ip.run_line_magic('timeit','-n10 -r10 -o 1')
+    res = _ip.run_line_magic('timeit', '-n10 -r10 -o 1')
     assert(res is not None)
+
+def test_timeit_return_store():
+    """
+    test that returned values are correctly stored in user namespace
+    """
+    assert('__timeit_output' not in _ip.user_ns)
+    _ip.run_line_magic('timeit', '-n1 -r1 -O __timeit_output 1')
+    assert('__timeit_output' in _ip.user_ns)
 
 def test_timeit_quiet():
     """

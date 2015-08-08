@@ -132,7 +132,7 @@ class MagicArgumentParser(argparse.ArgumentParser):
     def parse_argstring(self, argstring):
         """ Split a string into an argument list and parse that argument list.
         """
-        argv = arg_split(argstring)
+        argv = arg_split(argstring, strict=False)
         return self.parse_args(argv)
 
 
