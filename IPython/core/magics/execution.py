@@ -69,10 +69,11 @@ class TimeitResult(object):
 
     """
 
-    def __init__(self, loops, repeat, best, all_runs, compile_time, precision):
+    def __init__(self, loops, repeat, best, worst, all_runs, compile_time, precision):
         self.loops = loops
         self.repeat = repeat
         self.best = best
+        self.worst = worst
         self.all_runs = all_runs
         self.compile_time = compile_time
         self._precision = precision
@@ -1058,7 +1059,7 @@ python-profiler package from non-free.""")
             if tc > tc_min:
                 print("Compiler time: %.2f s" % tc)
         if return_result:
-            return TimeitResult(number, repeat, best, all_runs, tc, precision)
+            return TimeitResult(number, repeat, best, worst, all_runs, tc, precision)
 
     @skip_doctest
     @needs_local_scope
