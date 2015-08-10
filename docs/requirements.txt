@@ -1,0 +1,2 @@
+numpydoc
+-e ..
