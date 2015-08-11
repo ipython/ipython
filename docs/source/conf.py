@@ -24,7 +24,14 @@ if ON_RTD:
     # see
     # http://read-the-docs.readthedocs.org/en/latest/faq.html
     tags.add('rtd')
-    
+
+    # RTD doesn't use the Makefile, so re-run autogen_{things}.py here.
+    for name in ('config', 'api', 'magics'):
+        fname = 'autogen_{}.py'.format(name)
+        fpath = os.path.abspath(os.path.join('..', fname))
+        with open(fpath) as f:
+            exec(compile(f.read(), fname, 'exec'), {'__file__': fpath})
+
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
