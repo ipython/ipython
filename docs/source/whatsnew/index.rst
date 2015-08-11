@@ -21,6 +21,8 @@ development work they do here in a user friendly format.
    :maxdepth: 1
 
    development
+   version4
+   github-stats-4
    version3
    github-stats-3
    version3_widget_migration

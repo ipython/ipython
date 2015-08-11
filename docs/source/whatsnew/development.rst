@@ -10,22 +10,6 @@ This document describes in-flight development work.
     conflicts for other Pull Requests). Instead, create a new file in the
     `docs/source/whatsnew/pr` folder
 
-
-Added a ``Valid`` widget which inherits the ``_Bool`` widget and displays a green checkmark or red cross depending on the truth of ``.value``.
-
-Callbacks registered with the ``Widget.on_some_change`` method are passed the Backbone model ``change`` event's arguments.
-
-The serialization of widget traitlets can be customized.  Custom serialization can use binary message buffers.  Refer to :ghpull:`7757` for more information.
-
-Code raising ``DeprecationWarning``
-entered by the user in an interactive session will now display the warning by
-default. See :ghpull:`8480` an :ghissue:`8478`.
-
-The `--deep-reload` flag and the corresponding options to inject `dreload` or
-`reload` into the interactive namespace have been deprecated, and will be
-removed in future versions. You should now explicitly import `reload` from
-`IPython.lib.deepreload` to use it.
-
 .. DO NOT EDIT THIS LINE BEFORE RELEASE. FEATURE INSERTION POINT.
 
 
