@@ -30,7 +30,10 @@ if ON_RTD:
         fname = 'autogen_{}.py'.format(name)
         fpath = os.path.abspath(os.path.join('..', fname))
         with open(fpath) as f:
-            exec(compile(f.read(), fname, 'exec'), {'__file__': fpath})
+            exec(compile(f.read(), fname, 'exec'), {
+                '__file__': fpath,
+                '__name__': '__main__',
+            })
 
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
