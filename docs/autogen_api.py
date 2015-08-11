@@ -1,19 +1,23 @@
 #!/usr/bin/env python
 """Script to auto-generate our API docs.
 """
-# stdlib imports
+
 import os
 import sys
 
-# local imports
-sys.path.append(os.path.abspath('sphinxext'))
+pjoin = os.path.join
+
+here = os.path.abspath(os.path.dirname(__file__))
+sys.path.append(pjoin(os.path.abspath(here), 'sphinxext'))
+
 from apigen import ApiDocWriter
+
+source = pjoin(here, 'source')
 
 #*****************************************************************************
 if __name__ == '__main__':
-    pjoin = os.path.join
     package = 'IPython'
-    outdir = pjoin('source','api','generated')
+    outdir = pjoin(source, 'api', 'generated')
     docwriter = ApiDocWriter(package,rst_extension='.rst')
     # You have to escape the . here because . is a special char for regexps.
     # You must do make clean if you change this!
@@ -67,6 +71,6 @@ if __name__ == '__main__':
     # Write index with .txt extension - we can include it, but Sphinx won't try
     # to compile it
     docwriter.write_index(outdir, 'gen.txt',
-                          relative_to = pjoin('source','api')
+                          relative_to = pjoin(source, 'api')
                           )
     print ('%d files written' % len(docwriter.written_modules))
