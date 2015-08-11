@@ -6,11 +6,12 @@ Using IPython for interactive work
    :maxdepth: 2
 
    tutorial
-   tips
-   reference
    magics
-   shell
+   plotting
    qtconsole
+   reference
+   shell
+   tips
 
 .. seealso::
 
