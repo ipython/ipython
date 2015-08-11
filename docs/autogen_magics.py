@@ -1,3 +1,5 @@
+import os
+
 from IPython.core.alias import Alias
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.core.magic import MagicAlias
@@ -60,5 +62,7 @@ for name, func in sorted(magics['cell'].items(), key=sortkey):
                    format_docstring(func),
                    ""])
 
-with open("source/interactive/magics-generated.txt", "w") as f:
+here = os.path.dirname(__file__)
+dest = os.path.join(here, 'source', 'interactive', 'magics-generated.txt')
+with open(dest, "w") as f:
     f.write("\n".join(output))
