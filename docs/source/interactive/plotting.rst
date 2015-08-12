@@ -21,7 +21,7 @@ requested using, for example::
 
 A particularly interesting backend, provided by IPython, is the ``inline``
 backend.  This is available only for the Jupyter Notebook and the
-:ref:`Jupyter QtConsole <qtconsole>`.  It can be invoked as follows::
+Jupyter QtConsole.  It can be invoked as follows::
 
   %matplotlib inline
 

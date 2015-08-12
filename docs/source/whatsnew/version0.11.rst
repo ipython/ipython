@@ -232,7 +232,7 @@ may also offer a slightly more featureful application (with menus and other GUI
 elements), but we remain committed to always shipping this easy to embed
 widget.
 
-See the :ref:`Qt console section <qtconsole>` of the docs for a detailed
+See the `Jupyter Qt Console site <http://jupyter.org/qtconsole>`_ for a detailed
 description of the console's features and use.
 
 
