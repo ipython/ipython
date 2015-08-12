@@ -130,13 +130,13 @@ that specific figure:
 
 .. _inline:
 
-``--matplotlib inline``
+``%matplotlib inline``
 ***********************
 
-If you want to have all of your figures embedded in your session, instead of
-calling :func:`display`, you can specify ``--matplotlib inline`` when you start the
-console, and each time you make a plot, it will show up in your document, as if
-you had called :func:`display(fig)`.
+If you want to have all of your figures automatically embedded in your session
+without having to explicitly call :func:`display`, you can specify 
+``%matplotlib inline`` within the console; after doing so, generated plots will 
+show up directly in your document just as if you had called :func:`display(fig)`.
 
 The inline backend can use either SVG or PNG figures (PNG being the default).
 It also supports the special key ``'retina'``, which is 2x PNG for high-DPI displays.
@@ -236,34 +236,23 @@ Colors and Highlighting
 =======================
 
 Terminal IPython has always had some coloring, but never syntax
-highlighting. There are a few simple color choices, specified by the ``colors``
-flag or ``%colors`` magic:
+highlighting. There are a few simple color choices, specified by the 
+``%colors`` magic:
 
 * LightBG for light backgrounds
 * Linux for dark backgrounds
 * NoColor for a simple colorless terminal
 
-The Qt widget has full support for the ``colors`` flag used in the terminal shell.
-
 The Qt widget, however, has full syntax highlighting as you type, handled by
 the `pygments`_ library. The ``style`` argument exposes access to any style by
 name that can be found by pygments, and there are several already
-installed. The ``colors`` argument, if unspecified, will be guessed based on
-the chosen style. Similarly, there are default styles associated with each
-``colors`` option.
+installed. 
 
-
-Screenshot of ``ipython qtconsole --colors=linux``, which uses the 'monokai'
-theme by default:
+Screenshot of the Linux color, which uses the 'monokai' theme by default:
 
 .. image:: figs/colors_dark.png
     :width: 627px
     
-.. Note::
-
-    Calling ``ipython qtconsole -h`` will show all the style names that
-    pygments can find on your system.
-
 You can also pass the filename of a custom CSS stylesheet, if you want to do
 your own coloring, via the ``stylesheet`` argument.  The default LightBG
 stylesheet:
