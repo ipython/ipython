@@ -217,9 +217,11 @@ running, use the ``%connect_info`` magic to get the unique connection file,
 which will be something like ``--existing kernel-19732.json`` but with
 different numbers which correspond to the Process ID of the kernel.
 
-You can read more about using :ref:`ipython qtconsole <qtconsole>`, and
-:ref:`ipython notebook <htmlnotebook>`. There is also a :ref:`message spec
-<messaging>` which documents the protocol for communication between kernels
+You can read more about using `ipython qtconsole 
+<http://jupyter.org/qtconsole/>`_, and
+`ipython notebook <http://jupyter-notebook.readthedocs.org/en/latest/>`_. There 
+is also a :ref:`message spec <messaging>` which documents the protocol for 
+communication between kernels
 and clients.
 
 .. seealso::

@@ -8,11 +8,11 @@ Using IPython for interactive work
    tutorial
    magics
    plotting
-   qtconsole
    reference
    shell
    tips
 
 .. seealso::
 
+    `A Qt Console for Jupyter <http://jupyter.org/qtconsole/>`__
     `The Jupyter Notebook <http://jupyter-notebook.readthedocs.org/en/latest/>`__
