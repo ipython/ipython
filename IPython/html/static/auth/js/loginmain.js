@@ -15,7 +15,7 @@ $(document).ready(function () {
     IPython.page = new IPython.Page();
     $('button#login_submit').addClass("btn");
     IPython.page.show();
-    $('input#password_input').focus();
+    $('input#email_input').focus();
 
 });
 
