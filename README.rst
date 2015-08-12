@@ -25,12 +25,11 @@ these manuals.  If you have Sphinx installed, you can build them by typing
 ``cd docs; make html`` for local browsing.
 
 
-Dependencies and supported Python versions
-==========================================
+See the `install page <http://ipython.org/install.html>`__ to install IPython.
 
-For full details, see the installation section of the manual.  The basic parts
-of IPython only need the Python standard library, but much of its more advanced
-functionality requires extra packages.
+The Notebook, Qt console and a number of other pieces are now parts of *Jupyter*.
+See the `Jupyter installation docs <http://jupyter.readthedocs.org/en/latest/install.html>`__
+if you want to use these.
 
 Officially, IPython requires Python version 2.7, or 3.3 and above.
 IPython 1.x is the last IPython version to support Python 2.6 and 3.2.
