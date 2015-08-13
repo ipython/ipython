@@ -17,7 +17,7 @@ define([
         var extensions = [];
         var extension_names = arguments;
         for (var i = 0; i < extension_names.length; i++) {
-            extensions.push("nbextensions/" + arguments[i]);
+            extensions.push("/nbextensions/" + arguments[i]);
         }
         
         require(extensions,
