@@ -52,9 +52,9 @@ def test_image_filename_defaults():
     nt.assert_raises(ValueError, display.Image, data='this is not an image', format='badformat', embed=True)
     from IPython.html import DEFAULT_STATIC_FILES_PATH
     # check boths paths to allow packages to test at build and install time
-    imgfile = os.path.join(tpath, 'html/static/base/images/ipynblogo.png')
+    imgfile = os.path.join(tpath, 'html/static/base/images/datadocs.png')
     if not os.path.exists(imgfile):
-        imgfile = os.path.join(DEFAULT_STATIC_FILES_PATH, 'base/images/ipynblogo.png')
+        imgfile = os.path.join(DEFAULT_STATIC_FILES_PATH, 'base/images/datadocs.png')
     img = display.Image(filename=imgfile)
     nt.assert_equal('png', img.format)
     nt.assert_is_not_none(img._repr_png_())
@@ -65,7 +65,7 @@ def test_image_filename_defaults():
 def _get_inline_config():
     from IPython.kernel.zmq.pylab.config import InlineBackend
     return InlineBackend.instance()
-    
+
 @dec.skip_without('matplotlib')
 def test_set_matplotlib_close():
     cfg = _get_inline_config()
