@@ -116,7 +116,7 @@ class PromptTests(unittest.TestCase):
         self.assertEqual(_invisible_characters('\001\033]133;A\a\002'), 10)
 
     def test_width(self):
-        default_in = '\x01\x1b]133;A\x07\x02In [\\#]: \x01\x1b]133;B\x07\x02'
+        default_in = '\x01\x1b]133;A\x07\x02In [1]: \x01\x1b]133;B\x07\x02'
         self.pm.in_template = default_in
         self.pm.render('in')
         self.assertEqual(self.pm.width, 8)
