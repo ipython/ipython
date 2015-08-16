@@ -257,6 +257,14 @@ def _lenlastline(s):
     return len(s.splitlines()[-1])
 
 
+invisible_chars_re = re.compile('\001[^\001\002]*\002')
+def _invisible_characters(s):
+    """
+    Get the number of invisible ANSI characters in s. Invisible characters
+    must be delimited by \001 and \002.
+    """
+    return _lenlastline(s) - _lenlastline(invisible_chars_re.sub('', s))
+
 class UserNSFormatter(Formatter):
     """A Formatter that falls back on a shell's user_ns and __builtins__ for name resolution"""
     def __init__(self, shell):
@@ -350,8 +358,7 @@ class PromptManager(Configurable):
             self.templates[name] = multiple_replace(prompt_abbreviations, new_template)
         # We count invisible characters (colour escapes) on the last line of the
         # prompt, to calculate the width for lining up subsequent prompts.
-        invis_chars = _lenlastline(self._render(name, color=True)) - \
-                        _lenlastline(self._render(name, color=False))
+        invis_chars = _invisible_characters(self._render(name, color=True))
         self.invisible_chars[name] = invis_chars
     
     def _update_prompt_trait(self, traitname, new_template):
