@@ -159,7 +159,6 @@ def test_profile_create_ipython_dir():
         getoutput([sys.executable, '-m', 'IPython', 'profile', 'create',
              'foo', '--ipython-dir=%s' % td])
         profile_dir = os.path.join(td, 'profile_foo')
-        assert os.path.exists(profile_dir)
+        nt.assert_true(os.path.exists(profile_dir))
         ipython_config = os.path.join(profile_dir, 'ipython_config.py')
-        assert os.path.exists(ipython_config)
-        
+        nt.assert_true(os.path.exists(ipython_config))
