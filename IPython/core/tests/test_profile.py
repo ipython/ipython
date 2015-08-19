@@ -160,5 +160,5 @@ def test_profile_create_ipython_dir():
              'foo', '--ipython-dir=%s' % td])
         profile_dir = os.path.join(td, 'profile_foo')
         nt.assert_true(os.path.exists(profile_dir))
+        raise ValueError(str(os.listdir(profile_dir)))
         ipython_config = os.path.join(profile_dir, 'ipython_config.py')
-        nt.assert_true(os.path.exists(ipython_config))
