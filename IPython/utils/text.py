@@ -623,7 +623,7 @@ def _col_chunks(l, nrows, row_first=False):
     if row_first:
         ncols = (len(l) // nrows) + (len(l) % nrows > 0)
         for i in py3compat.xrange(ncols):
-            yield [l[j] for j in py3compat.xrange(i, len(l), nrows)]
+            yield [l[j] for j in py3compat.xrange(i, len(l), ncols)]
     else:
         for i in py3compat.xrange(0, len(l), nrows):
             yield l[i:(i + nrows)]
@@ -712,7 +712,7 @@ def compute_item_matrix(items, row_first=False, empty=None, *args, **kwargs) :
     info = _find_optimal(list(map(len, items)), row_first, *args, **kwargs)
     nrow, ncol = info['num_rows'], info['num_columns']
     if row_first:
-        return ([[_get_or_default(items, c * nrow + r, default=empty) for r in range(nrow)] for c in range(ncol)], info)
+        return ([[_get_or_default(items, r * ncol + c, default=empty) for c in range(ncol)] for r in range(nrow)], info)
     else:
         return ([[_get_or_default(items, c * nrow + r, default=empty) for c in range(ncol)] for r in range(nrow)], info)
 
