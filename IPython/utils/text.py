@@ -661,7 +661,7 @@ def compute_item_matrix(items, row_first=False, empty=None, *args, **kwargs) :
     items
         list of strings to columize
     row_first : (default False)
-        Whether to to compute columns for a row-first matrix instead ofr
+        Whether to compute columns for a row-first matrix instead of
         column-first (default).
     empty : (default None)
         default value to fill list if needed
@@ -726,7 +726,7 @@ def columnize(items, row_first=False, separator='  ', displaywidth=80):
         The strings to process.
 
     row_first : (default False)
-        Whether to to compute columns for a row-first matrix instead ofr
+        Whether to compute columns for a row-first matrix instead of
         column-first (default).
 
     separator : str, optional [default is two spaces]
