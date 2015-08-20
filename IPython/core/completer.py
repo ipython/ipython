@@ -170,7 +170,7 @@ def compress_user(path, tilde_expand, tilde_val):
 
 
 
-def penalize_magics_key(word):
+def penalize_magics_key(match):
     """key for sorting that penalizes magic commands in the ordering
 
     Normal words are left alone.
@@ -195,6 +195,7 @@ def penalize_magics_key(word):
 
     # Move any % signs from start to end of the key 
     # provided there are no others elsewhere in the string
+    word = match['text']
 
     if word[:2] == "%%":
         if not "%" in word[2:]:
@@ -344,15 +345,79 @@ class Completer(Configurable):
         matches = []
         match_append = matches.append
         n = len(text)
+        self.namespace = self.namespace if hasattr(self, "namespace") else {}
         for lst in [keyword.kwlist,
                     builtin_mod.__dict__.keys(),
-                    self.namespace.keys(),
-                    self.global_namespace.keys()]:
+                    list(self.namespace.keys()),
+                    list(self.global_namespace.keys())]:
             for word in lst:
                 if word[:n] == text and word != "__builtins__":
-                    match_append(word)
+                    try:
+                        obj = eval(word, self.namespace)
+                        match_append(self.build_match(word, obj))
+                    except:
+                        try:
+                            obj = eval(word, self.global_namespace)
+                            match_append(self.build_match(word, obj))
+                        except:
+                            # No way to analyze it further, so just give back
+                            # the bare string
+                            match_append({
+                                "text": word,
+                            })
         return matches
 
+    def build_match(self, name, obj):
+        docstring = inspect.getdoc(obj)
+        if docstring != None:
+            docstring = docstring.splitlines()[0]
+
+        if inspect.isroutine(obj):
+            argspec = inspect.getargspec(obj)
+            arguments = []
+            for index, argument in enumerate(argspec.args):
+                argdict = {"name": argument}
+
+                if argspec.defaults != None:
+                    defaults_index = len(argspec.defaults) - len(argspec.args) + index
+                    if defaults_index >= 0:
+                        argdict["default"] = argspec.defaults[defaults_index]
+
+                arguments.append(argdict)
+
+            varargs = None
+            if argspec.varargs != None:
+                varargs = {
+                    "name": argspec.varargs
+                }
+
+            kwargs = []
+            if argspec.keywords != None:
+                kwargs.append({
+                    "name": argspec.keywords
+                })
+
+            return {
+                "text": name,
+                "type": type(obj).__name__,
+                "documentation_string": docstring,
+                "signatures": [{
+                    "parameters": arguments,
+                    "rest_parameters": varargs,
+                    "keyword_parameters": kwargs,
+                }]
+            }
+        else:
+            value_str = str(obj)
+            if value_str.startswith('<'):
+                value_str = None
+
+            return {
+                "text": name,
+                "type": type(obj).__name__,
+                "value": value_str,
+                "documentation_string": docstring,
+            }
     def attr_matches(self, text):
         """Compute matches when text contains a dot.
 
@@ -404,8 +469,22 @@ class Completer(Configurable):
             pass
         # Build match list to return
         n = len(attr)
-        res = ["%s.%s" % (expr, w) for w in words if w[:n] == attr ]
-        return res
+
+        matches = []
+        for w in words:
+            if w[:n] == attr:
+                qualified_expr = "%s.%s" % (expr, w)
+                try:
+                    attribute_obj = eval(qualified_expr, self.namespace)
+                except:
+                    try:
+                        attribute_obj = eval(qualified_expr, self.global_namespace)
+                    except:
+                        continue
+                matches.append(self.build_match(qualified_expr, attribute_obj))
+
+        # res = ["%s.%s" % (expr, w) for w in words if w[:n] == attr ]
+        return matches
 
 
 def get__all__entries(obj):
@@ -752,6 +831,9 @@ class IPCompleter(Completer):
         #print 'Completer->magic_matches:',text,'lb',self.text_until_cursor # dbg
         # Get all shell magics now rather than statically, so magics loaded at
         # runtime show up too.
+        if self.shell is None:
+            return []
+
         lsm = self.shell.magics_manager.lsmagic()
         line_magics = lsm['line']
         cell_magics = lsm['cell']
@@ -1064,6 +1146,11 @@ class IPCompleter(Completer):
         return u'', []
 
     def dispatch_custom_completer(self, text):
+
+        try:
+            self.custom_completers
+        except AttributeError:
+            return None
         #io.rprint("Custom! '%s' %s" % (text, self.custom_completers)) # dbg
         line = self.line_buffer
         if not line.strip():
@@ -1198,7 +1285,7 @@ class IPCompleter(Completer):
         # richer completion semantics in other evironments.
 
         # use penalize_magics_key to put magics after variables with same name
-        self.matches = sorted(set(self.matches), key=penalize_magics_key)
+        self.matches = sorted(self.matches, key=penalize_magics_key)
 
         #io.rprint('COMP TEXT, MATCHES: %r, %r' % (text, self.matches)) # dbg
         return text, self.matches
