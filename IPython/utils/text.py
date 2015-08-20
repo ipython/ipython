@@ -618,28 +618,28 @@ class DollarFormatter(FullEvalFormatter):
 # Utils to columnize a list of string
 #-----------------------------------------------------------------------------
 
-def _col_chunks(l, nrows, row_first=False):
-    """Yield successive nrows-sized column chunks from l."""
+def _col_chunks(l, max_rows, row_first=False):
+    """Yield successive max_rows-sized column chunks from l."""
     if row_first:
-        ncols = (len(l) // nrows) + (len(l) % nrows > 0)
+        ncols = (len(l) // max_rows) + (len(l) % max_rows > 0)
         for i in py3compat.xrange(ncols):
             yield [l[j] for j in py3compat.xrange(i, len(l), ncols)]
     else:
-        for i in py3compat.xrange(0, len(l), nrows):
-            yield l[i:(i + nrows)]
+        for i in py3compat.xrange(0, len(l), max_rows):
+            yield l[i:(i + max_rows)]
 
 
 def _find_optimal(rlist, row_first=False, separator_size=2, displaywidth=80):
     """Calculate optimal info to columnize a list of string"""
-    for nrow in range(1, len(rlist) + 1):
-        col_widths = list(map(max, _col_chunks(rlist, nrow, row_first)))
+    for max_rows in range(1, len(rlist) + 1):
+        col_widths = list(map(max, _col_chunks(rlist, max_rows, row_first)))
         sumlength = sum(col_widths)
         ncols = len(col_widths)
         if sumlength + separator_size * (ncols - 1) <= displaywidth:
             break
     return {'num_columns': ncols,
             'optimal_separator_width': (displaywidth - sumlength) / (ncols - 1) if (ncols - 1) else 0,
-            'num_rows': nrow,
+            'max_rows': max_rows,
             'column_widths': col_widths
             }
 
@@ -685,8 +685,8 @@ def compute_item_matrix(items, row_first=False, empty=None, *args, **kwargs) :
 
         num_columns
           number of columns
-        num_rows
-          number of rows
+        max_rows
+          maximum number of rows (final number may be less)
         column_widths
           list of with of each columns
         optimal_separator_width
@@ -707,10 +707,10 @@ def compute_item_matrix(items, row_first=False, empty=None, *args, **kwargs) :
             {'num_columns': 3,
             'column_widths': [5, 1, 1],
             'optimal_separator_width': 2,
-            'num_rows': 5})
+            'max_rows': 5})
     """
     info = _find_optimal(list(map(len, items)), row_first, *args, **kwargs)
-    nrow, ncol = info['num_rows'], info['num_columns']
+    nrow, ncol = info['max_rows'], info['num_columns']
     if row_first:
         return ([[_get_or_default(items, r * ncol + c, default=empty) for c in range(ncol)] for r in range(nrow)], info)
     else:
