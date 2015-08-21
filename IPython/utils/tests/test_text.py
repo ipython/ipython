@@ -50,6 +50,15 @@ def test_columnize():
     out = text.columnize(items, row_first=True, displaywidth=10)
     nt.assert_equal(out, 'aaaaa\nbbbbb\nccccc\nddddd\n')
 
+    out = text.columnize(items, displaywidth=40, spread=True)
+    nt.assert_equal(out, 'aaaaa      bbbbb      ccccc      ddddd\n')
+    out = text.columnize(items, displaywidth=20, spread=True)
+    nt.assert_equal(out, 'aaaaa          ccccc\nbbbbb          ddddd\n')
+    out = text.columnize(items, displaywidth=12, spread=True)
+    nt.assert_equal(out, 'aaaaa  ccccc\nbbbbb  ddddd\n')
+    out = text.columnize(items, displaywidth=10, spread=True)
+    nt.assert_equal(out, 'aaaaa\nbbbbb\nccccc\nddddd\n')
+
 
 def test_columnize_random():
     """Test with random input to hopfully catch edge case """

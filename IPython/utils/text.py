@@ -717,7 +717,7 @@ def compute_item_matrix(items, row_first=False, empty=None, *args, **kwargs) :
         return ([[_get_or_default(items, c * nrow + r, default=empty) for c in range(ncol)] for r in range(nrow)], info)
 
 
-def columnize(items, row_first=False, separator='  ', displaywidth=80):
+def columnize(items, row_first=False, separator='  ', displaywidth=80, spread=False):
     """ Transform a list of strings into a single string with columns.
 
     Parameters
@@ -742,6 +742,8 @@ def columnize(items, row_first=False, separator='  ', displaywidth=80):
     if not items:
         return '\n'
     matrix, info = compute_item_matrix(items, row_first=row_first, separator_size=len(separator), displaywidth=displaywidth)
+    if spread:
+        separator = separator.ljust(int(info['optimal_separator_width']))
     fmatrix = [filter(None, x) for x in matrix]
     sjoin = lambda x : separator.join([ y.ljust(w, ' ') for y, w in zip(x, info['column_widths'])])
     return '\n'.join(map(sjoin, fmatrix))+'\n'
