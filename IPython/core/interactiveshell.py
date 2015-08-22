@@ -3252,10 +3252,10 @@ class InteractiveShell(SingletonConfigurable):
         """Write a string to the default error output"""
         io.stderr.write(data)
 
-    def ask_yes_no(self, prompt, default=None):
+    def ask_yes_no(self, prompt, default=None, interrupt=None):
         if self.quiet:
             return True
-        return ask_yes_no(prompt,default)
+        return ask_yes_no(prompt,default,interrupt)
 
     def show_usage(self):
         """Show a usage message"""
