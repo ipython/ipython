@@ -87,6 +87,7 @@ from collections import deque
 
 from IPython.utils.py3compat import PY3, cast_unicode
 from IPython.utils.encoding import get_stream_enc
+from IPython.utils.text import columnize
 
 from io import StringIO
 
@@ -545,15 +546,18 @@ def _seq_pprinter_factory(start, end, basetype):
             return p.text(start + '...' + end)
         step = len(start)
         p.begin_group(step, start)
-        for idx, x in p._enumerate(obj):
+        rows = columnize([repr(l) for l in obj], row_first=True,
+                         separator=", ", displaywidth=p.max_width).split("\n")
+        rows.remove('')
+        for idx, x in p._enumerate(rows):
             if idx:
-                p.text(',')
                 p.breakable()
-            p.pretty(x)
+            p.text(x)
         if len(obj) == 1 and type(obj) is tuple:
             # Special case for 1-item tuples.
             p.text(',')
         p.end_group(step, end)
+
     return inner
 
 
@@ -583,11 +587,13 @@ def _set_pprinter_factory(start, end, basetype):
                 except Exception:
                     # Sometimes the items don't sort.
                     pass
-            for idx, x in p._enumerate(items):
+            rows = columnize([repr(l) for l in items], row_first=True,
+                             separator=", ", displaywidth=p.max_width).split("\n")
+            rows.remove('')
+            for idx, x in p._enumerate(rows):
                 if idx:
-                    p.text(',')
                     p.breakable()
-                p.pretty(x)
+                p.text(x)
             p.end_group(step, end)
     return inner
 
@@ -614,13 +620,17 @@ def _dict_pprinter_factory(start, end, basetype=None):
             except Exception:
                 # Sometimes the keys don't sort.
                 pass
-        for idx, key in p._enumerate(keys):
+        items = []
+        for key in keys:
+            items += [repr(key) + ": " + repr(obj[key])]
+        rows = columnize([l for l in items], row_first=True,
+             separator=", ", displaywidth=p.max_width).split("\n")
+        rows.remove('')
+        for idx, x in p._enumerate(rows):
             if idx:
-                p.text(',')
                 p.breakable()
-            p.pretty(key)
-            p.text(': ')
-            p.pretty(obj[key])
+            p.text(x)
+
         p.end_group(1, end)
     return inner
 
