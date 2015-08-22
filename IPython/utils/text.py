@@ -618,25 +618,30 @@ class DollarFormatter(FullEvalFormatter):
 # Utils to columnize a list of string
 #-----------------------------------------------------------------------------
 
-def _chunks(l, n):
-    """Yield successive n-sized chunks from l."""
-    for i in py3compat.xrange(0, len(l), n):
-        yield l[i:i+n]
+def _col_chunks(l, max_rows, row_first=False):
+    """Yield successive max_rows-sized column chunks from l."""
+    if row_first:
+        ncols = (len(l) // max_rows) + (len(l) % max_rows > 0)
+        for i in py3compat.xrange(ncols):
+            yield [l[j] for j in py3compat.xrange(i, len(l), ncols)]
+    else:
+        for i in py3compat.xrange(0, len(l), max_rows):
+            yield l[i:(i + max_rows)]
 
 
-def _find_optimal(rlist , separator_size=2 , displaywidth=80):
+def _find_optimal(rlist, row_first=False, separator_size=2, displaywidth=80):
     """Calculate optimal info to columnize a list of string"""
-    for nrow in range(1, len(rlist)+1) :
-        chk = list(map(max,_chunks(rlist, nrow)))
-        sumlength = sum(chk)
-        ncols = len(chk)
-        if sumlength+separator_size*(ncols-1) <= displaywidth :
-            break;
-    return {'columns_numbers' : ncols,
-            'optimal_separator_width':(displaywidth - sumlength)/(ncols-1) if (ncols -1) else 0,
-            'rows_numbers' : nrow,
-            'columns_width' : chk
-           }
+    for max_rows in range(1, len(rlist) + 1):
+        col_widths = list(map(max, _col_chunks(rlist, max_rows, row_first)))
+        sumlength = sum(col_widths)
+        ncols = len(col_widths)
+        if sumlength + separator_size * (ncols - 1) <= displaywidth:
+            break
+    return {'num_columns': ncols,
+            'optimal_separator_width': (displaywidth - sumlength) / (ncols - 1) if (ncols - 1) else 0,
+            'max_rows': max_rows,
+            'column_widths': col_widths
+            }
 
 
 def _get_or_default(mylist, i, default=None):
@@ -647,7 +652,7 @@ def _get_or_default(mylist, i, default=None):
         return mylist[i]
 
 
-def compute_item_matrix(items, empty=None, *args, **kwargs) :
+def compute_item_matrix(items, row_first=False, empty=None, *args, **kwargs) :
     """Returns a nested list, and info to columnize items
 
     Parameters
@@ -655,6 +660,9 @@ def compute_item_matrix(items, empty=None, *args, **kwargs) :
 
     items
         list of strings to columize
+    row_first : (default False)
+        Whether to compute columns for a row-first matrix instead of
+        column-first (default).
     empty : (default None)
         default value to fill list if needed
     separator_size : int (default=2)
@@ -675,11 +683,11 @@ def compute_item_matrix(items, empty=None, *args, **kwargs) :
     dict_info
         some info to make columnize easier:
 
-        columns_numbers
+        num_columns
           number of columns
-        rows_numbers
-          number of rows
-        columns_width
+        max_rows
+          maximum number of rows (final number may be less)
+        column_widths
           list of with of each columns
         optimal_separator_width
           best separator width between columns
@@ -689,30 +697,37 @@ def compute_item_matrix(items, empty=None, *args, **kwargs) :
     ::
 
         In [1]: l = ['aaa','b','cc','d','eeeee','f','g','h','i','j','k','l']
-           ...: compute_item_matrix(l,displaywidth=12)
+           ...: compute_item_matrix(l, displaywidth=12)
         Out[1]:
             ([['aaa', 'f', 'k'],
             ['b', 'g', 'l'],
             ['cc', 'h', None],
             ['d', 'i', None],
             ['eeeee', 'j', None]],
-            {'columns_numbers': 3,
-            'columns_width': [5, 1, 1],
+            {'num_columns': 3,
+            'column_widths': [5, 1, 1],
             'optimal_separator_width': 2,
-            'rows_numbers': 5})
+            'max_rows': 5})
     """
-    info = _find_optimal(list(map(len, items)), *args, **kwargs)
-    nrow, ncol = info['rows_numbers'], info['columns_numbers']
-    return ([[ _get_or_default(items, c*nrow+i, default=empty) for c in range(ncol) ] for i in range(nrow) ], info)
+    info = _find_optimal(list(map(len, items)), row_first, *args, **kwargs)
+    nrow, ncol = info['max_rows'], info['num_columns']
+    if row_first:
+        return ([[_get_or_default(items, r * ncol + c, default=empty) for c in range(ncol)] for r in range(nrow)], info)
+    else:
+        return ([[_get_or_default(items, c * nrow + r, default=empty) for c in range(ncol)] for r in range(nrow)], info)
 
 
-def columnize(items, separator='  ', displaywidth=80):
+def columnize(items, row_first=False, separator='  ', displaywidth=80, spread=False):
     """ Transform a list of strings into a single string with columns.
 
     Parameters
     ----------
     items : sequence of strings
         The strings to process.
+
+    row_first : (default False)
+        Whether to compute columns for a row-first matrix instead of
+        column-first (default).
 
     separator : str, optional [default is two spaces]
         The string that separates columns.
@@ -724,11 +739,13 @@ def columnize(items, separator='  ', displaywidth=80):
     -------
     The formatted string.
     """
-    if not items :
+    if not items:
         return '\n'
-    matrix, info = compute_item_matrix(items, separator_size=len(separator), displaywidth=displaywidth)
+    matrix, info = compute_item_matrix(items, row_first=row_first, separator_size=len(separator), displaywidth=displaywidth)
+    if spread:
+        separator = separator.ljust(int(info['optimal_separator_width']))
     fmatrix = [filter(None, x) for x in matrix]
-    sjoin = lambda x : separator.join([ y.ljust(w, ' ') for y, w in zip(x, info['columns_width'])])
+    sjoin = lambda x : separator.join([ y.ljust(w, ' ') for y, w in zip(x, info['column_widths'])])
     return '\n'.join(map(sjoin, fmatrix))+'\n'
 
 
