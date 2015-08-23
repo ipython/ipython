@@ -30,35 +30,6 @@ class ExtensionMagics(Magics):
     """Magics to manage the IPython extensions system."""
 
     @line_magic
-    def install_ext(self, parameter_s=''):
-        """Download and install an extension from a URL, e.g.::
-
-            %install_ext https://bitbucket.org/birkenfeld/ipython-physics/raw/d1310a2ab15d/physics.py
-
-        The URL should point to an importable Python module - either a .py file
-        or a .zip file.
-
-        Parameters:
-
-          -n filename : Specify a name for the file, rather than taking it from
-                        the URL.
-        """
-        warn("%install_ext` is deprecated, please distribute your extension "
-             "as a python package.", UserWarning)
-        opts, args = self.parse_options(parameter_s, 'n:')
-        try:
-            filename = self.shell.extension_manager.install_extension(args,
-                                                                 opts.get('n'))
-        except ValueError as e:
-            print(e)
-            return
-
-        filename = os.path.basename(filename)
-        print("Installed %s. To use it, type:" % filename)
-        print("  %%load_ext %s" % os.path.splitext(filename)[0])
-
-
-    @line_magic
     def load_ext(self, module_str):
         """Load an IPython extension by its module name."""
         if not module_str:
