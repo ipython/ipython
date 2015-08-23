@@ -600,24 +600,23 @@ def test_prun_quotes():
     _ip.magic(r"prun -q x = '\t'")
     nt.assert_equal(_ip.user_ns['x'], '\t')
 
-def test_extension():
-    tmpdir = TemporaryDirectory()
-    orig_ipython_dir = _ip.ipython_dir
-    try:
-        _ip.ipython_dir = tmpdir.name
-        nt.assert_raises(ImportError, _ip.magic, "load_ext daft_extension")
-        url = os.path.join(os.path.dirname(__file__), "daft_extension.py")
-        _ip.magic("install_ext %s" % url)
-        _ip.user_ns.pop('arq', None)
-        invalidate_caches()   # Clear import caches
-        _ip.magic("load_ext daft_extension")
-        nt.assert_equal(_ip.user_ns['arq'], 185)
-        _ip.magic("unload_ext daft_extension")
-        assert 'arq' not in _ip.user_ns
-    finally:
-        _ip.ipython_dir = orig_ipython_dir
-        tmpdir.cleanup()
-
+#def test_extension():
+#    tmpdir = TemporaryDirectory()
+#    orig_ipython_dir = _ip.ipython_dir
+#    try:
+#        _ip.ipython_dir = tmpdir.name
+#        nt.assert_raises(ImportError, _ip.magic, "load_ext daft_extension")
+#        url = os.path.join(os.path.dirname(__file__), "daft_extension.py")
+#        _ip.magic("install_ext %s" % url)
+#        _ip.user_ns.pop('arq', None)
+#        invalidate_caches()   # Clear import caches
+#        _ip.magic("load_ext daft_extension")
+#        nt.assert_equal(_ip.user_ns['arq'], 185)
+#        _ip.magic("unload_ext daft_extension")
+#        assert 'arq' not in _ip.user_ns
+#    finally:
+#        _ip.ipython_dir = orig_ipython_dir
+#        tmpdir.cleanup()
 
 @dec.skip_without('nbformat')
 def test_notebook_export_json():
