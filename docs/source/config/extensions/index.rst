@@ -56,9 +56,11 @@ imported, and the currently active :class:`~IPython.core.interactiveshell.Intera
 instance is passed as the only argument. You can do anything you want with
 IPython at that point.
 
-:func:`load_ipython_extension` will be called again if you load or reload
-the extension again. It is up to the extension author to add code to manage
-that.
+:func:`load_ipython_extension` will not be called again if the user use
+`%load_extension`.  The user have to explicitly ask the extension to be
+reloaded (with `%reload_extension`). In case where the use ask the extension to
+be reloaded, , the extension will be unloaded (with
+`unload_ipython_extension`), and loaded again. 
 
 Useful :class:`InteractiveShell` methods include :meth:`~IPython.core.interactiveshell.InteractiveShell.register_magic_function`, 
 :meth:`~IPython.core.interactiveshell.InteractiveShell.push` (to add variables to the user namespace) and 
