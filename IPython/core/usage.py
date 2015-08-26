@@ -336,6 +336,10 @@ help      -> Python's own help system.
 object?   -> Details about 'object', use 'object??' for extra details.
 """
 
+gui_note = """\
+%guiref   -> A brief reference about the graphical user interface.
+"""
+
 default_banner_parts = [
     'Python %s\n' % (sys.version.split('\n')[0],),
     'Type "copyright", "credits" or "license" for more information.\n\n',
