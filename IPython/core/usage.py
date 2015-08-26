@@ -548,18 +548,8 @@ gui_note = """\
 %guiref   -> A brief reference about the graphical user interface.
 """
 
-<<<<<<< HEAD
-default_banner_parts = [
-    'Python %s\n' % (sys.version.split('\n')[0],),
-    'Type "copyright", "credits" or "license" for more information.\n\n',
-    'IPython {version} -- An enhanced Interactive Python.\n'.format(
-        version=release.version,
-        ),
-    quick_guide
-=======
 default_banner_parts = [ 
     'IPython {version} (Python {pythonversion}) -- An enhanced Interactive Python.\n'.format(version=release.version,pythonversion=sys.version.split(' ')[0])
->>>>>>> b91d50d... modified ipython banner
 ]
 
 default_gui_banner_parts = default_banner_parts + [gui_note]
