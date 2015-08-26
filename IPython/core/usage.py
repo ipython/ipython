@@ -325,20 +325,16 @@ The following magic functions are currently available:
 
 """
 
-quick_guide = """\
-?         -> Introduction and overview of IPython's features.
-%quickref -> Quick reference.
-help      -> Python's own help system.
-object?   -> Details about 'object', use 'object??' for extra details.
+quick_guide = "Type '?', '%quickref' or 'help' for help, and 'x?/x??' for object details\n"
+
+gui_note = """\
+%guiref   -> A brief reference about the graphical user interface.
 """
 
-default_banner_parts = [
-    'Python %s\n' % (sys.version.split('\n')[0],),
-    'Type "copyright", "credits" or "license" for more information.\n\n',
-    'IPython {version} -- An enhanced Interactive Python.\n'.format(
-        version=release.version,
-        ),
-    quick_guide
+default_banner_parts = ["Python %s\n"%sys.version.split("\n")[0],
+    "Type 'copyright', 'credits' or 'license' for more information\n" ,
+    'IPython {version} -- An enhanced Interactive Python.\n'.format(version=release.version),
+    quick_guide    
 ]
 
 default_banner = ''.join(default_banner_parts)
