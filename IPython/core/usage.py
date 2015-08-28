@@ -545,7 +545,7 @@ or ``matplotlib=<your backend>``, then a GUI backend will be used, but IPython's
 """
 
 
-quick_guide = "Type '?', '%quickref' or 'help' for help, and 'object?'/'object??' for object informationi\n"
+quick_guide = "Type '?', '%quickref' or 'help' for help, and 'x?/x??' for object details\n"
 
 gui_note = """\
 %guiref   -> A brief reference about the graphical user interface.
