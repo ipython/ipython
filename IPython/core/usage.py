@@ -537,13 +537,13 @@ or ``matplotlib=<your backend>``, then a GUI backend will be used, but IPython's
 """
 
 
-quick_guide = "Type '?', '%quickref' or 'help' for help, and 'object?'/'object??' for object informationi\n"
+quick_guide = "Type '?', '%quickref' or 'help' for help, and 'x?/x??' for object details\n"
 
 gui_note = """\
 %guiref   -> A brief reference about the graphical user interface.
 """
 
-default_banner_parts = ["Python %s\n"%sys.version.replace("\n"," "),
+default_banner_parts = ["Python %s\n"%sys.version.split("\n")[0],
     "Type 'copyryight', 'credits' or 'license' for more information\n" ,
     'IPython {version} -- An enhanced Interactive Python.\n'.format(version=release.version),
     quick_guide    
