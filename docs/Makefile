@@ -147,6 +147,8 @@ gh-pages: clean html
 	# if VERSION is unspecified, it will be dev
 	# For releases, VERSION should be just the major version,
 	# e.g. VERSION=2 make gh-pages
+	# use ARCHIVE=1 VERSION=3 gh-pages to build the
+	# docs with a warning that this is not stable docs anymore.
 	python gh-pages.py $(VERSION)
 
 texinfo:

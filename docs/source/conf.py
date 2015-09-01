@@ -78,6 +78,15 @@ if iprelease['_version_extra'] == 'dev':
 
     """
 
+elif os.environ.get('ARCHIVE', None):
+    rst_prolog = """
+    .. warning::
+
+        This documentation is for an old version of IPython.
+        You can find docs for newer versions `here <http://ipython.readthedocs.org/en/stable/>`_.
+        
+    """
+
 # The master toctree document.
 master_doc = 'index'
 
