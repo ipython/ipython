@@ -158,7 +158,9 @@ class NotebookWebApplication(web.Application):
             _template_path = (_template_path,)
         template_path = [os.path.expanduser(path) for path in _template_path]
 
-        jenv_opt = jinja_env_options if jinja_env_options else {}
+        jenv_opt = {"autoescape": True}
+        jenv_opt.update(jinja_env_options if jinja_env_options else {})
+
         env = Environment(loader=FileSystemLoader(template_path), **jenv_opt)
         
         sys_info = get_sys_info()
