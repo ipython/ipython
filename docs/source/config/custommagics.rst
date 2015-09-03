@@ -37,7 +37,8 @@ magic, a cell one and one that works in both modes, using just plain functions:
             print("Called as cell magic")
             return line, cell
 
-    # We delete these to avoid name conflicts for automagic to work
+    # In an interactive session, we need to delete these to avoid
+    # name conflicts for automagic to work on line magics.
     del lmagic, lcmagic
 
 
