@@ -10,7 +10,7 @@ before_install:
     - "if [[ ! $TRAVIS_PYTHON_VERSION == '3.2'* ]]; then pip install jinja2; fi"
     - easy_install -q pyzmq
     - sudo apt-get install pandoc
-    - pip install pygments
+    - pip install 'pygments<1.5'
     - pip install sphinx
 install:
     - python setup.py install -q 

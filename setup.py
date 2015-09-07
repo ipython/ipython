@@ -273,12 +273,12 @@ if 'setuptools' in sys.modules:
     setuptools_extra_args['entry_points'] = find_scripts(True)
     setup_args['extras_require'] = dict(
         parallel = 'pyzmq>=2.1.11',
-        qtconsole = ['pyzmq>=2.1.11', 'pygments'],
+        qtconsole = ['pyzmq>=2.1.11', 'pygments<1.5'],
         zmq = 'pyzmq>=2.1.11',
         doc = 'Sphinx>=0.3',
         test = 'nose>=0.10.1',
         notebook = ['tornado>=2.0', 'pyzmq>=2.1.11', 'jinja2'],
-        nbconvert = ['pygments', 'jinja2', 'Sphinx>=0.3']
+        nbconvert = ['pygments<1.5', 'jinja2', 'Sphinx>=0.3']
     )
     everything = set()
     for deps in setup_args['extras_require'].values():
