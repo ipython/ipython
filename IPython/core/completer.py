@@ -839,17 +839,21 @@ class IPCompleter(Completer):
             # for all others, check if they are __call__able
             elif hasattr(obj, '__call__'):
                 call_obj = obj.__call__
-
         ret += self._default_arguments_from_docstring(
                  getattr(call_obj, '__doc__', ''))
-
         try:
-            args,_,_1,defaults = inspect.getargspec(call_obj)
-            if defaults:
-                ret+=args[-len(defaults):]
+            if PY3:
+                _keepers = (inspect.Parameter.KEYWORD_ONLY,
+                            inspect.Parameter.POSITIONAL_OR_KEYWORD)
+                sig = inspect.signature(call_obj)
+                ret.extend(k for k, v in sig.parameters.items() if
+                           v.kind in _keepers)
+            else:
+                args, _, _1, defaults = inspect.getargspec(call_obj)
+                if defaults:
+                    ret += args[-len(defaults):]
         except TypeError:
             pass
-
         return list(set(ret))
 
     def python_func_kw_matches(self,text):
