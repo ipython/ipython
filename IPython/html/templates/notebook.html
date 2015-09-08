@@ -265,7 +265,10 @@ data-notebook-path="{{notebook_path}}"
                         {% for helplinks in sections %}
                             {% for link in helplinks %}
                                 <li><a href="{{link[0]}}" {{'target="_blank" title="Opens in a new window"' if link[2]}}>
-                                {{'<i class="fa fa-external-link menu-icon pull-right"></i>' if link[2]}}
+                                {% if link[2] %}
+                                    <i class="fa fa-external-link menu-icon pull-right"></i>
+                                {% endif %}
+
                                 {{link[1]}}
                                 </a></li>
                             {% endfor %}
@@ -319,7 +322,7 @@ data-notebook-path="{{notebook_path}}"
 {% block script %}
 {{super()}}
 <script type="text/javascript">
-    sys_info = {{sys_info}};
+    sys_info = {{sys_info|safe}};
 </script>
 
 <script src="{{ static_url("components/text-encoding/lib/encoding.js") }}" charset="utf-8"></script>
