@@ -843,21 +843,22 @@ class IPCompleter(Completer):
                  getattr(call_obj, '__doc__', ''))
 
         if PY3:
-            _keepers = (inspect.Parameter.KEYWORD_ONLY,
-                        inspect.Parameter.POSITIONAL_OR_KEYWORD)
-            try:
-                sig = inspect.signature(call_obj)
-                ret.extend(k for k, v in sig.parameters.items() if
-                           v.kind in _keepers)
-            except ValueError:
-                pass
+            _keeps = (inspect.Parameter.KEYWORD_ONLY,
+                      inspect.Parameter.POSITIONAL_OR_KEYWORD)
+            signature = inspect.signature
         else:
-            try:
-                args, _, _1, defaults = inspect.getargspec(call_obj)
-                if defaults:
-                    ret += args[-len(defaults):]
-            except TypeError:
-                pass
+            import IPython.utils.signatures
+            _keeps = (IPython.utils.signatures.Parameter.KEYWORD_ONLY,
+                      IPython.utils.signatures.Parameter.POSITIONAL_OR_KEYWORD)
+            signature = IPython.utils.signatures.signature
+
+        try:
+            sig = signature(call_obj)
+            ret.extend(k for k, v in sig.parameters.items() if
+                       v.kind in _keeps)
+        except ValueError:
+            pass
+
         return list(set(ret))
 
     def python_func_kw_matches(self,text):
