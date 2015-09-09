@@ -221,8 +221,9 @@ if not any(arg.startswith('bdist') for arg in sys.argv):
         install_requires.append('pexpect')
 
 everything = set()
-for deps in extras_require.values():
-    everything.update(deps)
+for key, deps in extras_require.items():
+    if ':' not in key:
+        everything.update(deps)
 extras_require['all'] = everything
 
 if 'setuptools' in sys.modules:
