@@ -202,7 +202,8 @@ install_requires = [
 # but requires pip >= 6. pip < 6 ignores these.
 extras_require.update({
     ':sys_platform != "win32"': ['pexpect'],
-    ':sys_platform == "darwin"': ['appnope', 'gnureadline'],
+    ':sys_platform == "darwin"': ['appnope'],
+    ':sys_platform == "darwin" and python_implementation == "CPython"': ['gnureadline'],
     'terminal:sys_platform == "win32"': ['pyreadline>=2'],
     'test:python_version == "2.7"': ['mock'],
 })
@@ -213,7 +214,17 @@ if not any(arg.startswith('bdist') for arg in sys.argv):
         extras_require['test'].append('mock')
 
     if sys.platform == 'darwin':
-        install_requires.extend(['appnope', 'gnureadline'])
+        install_requires.extend(['appnope'])
+        have_readline = False
+        try:
+            import readline
+        except ImportError:
+            pass
+        else:
+            if 'libedit' not in readline.__doc__:
+                have_readline = True
+        if not have_readline:
+            install_requires.extend(['gnureadline'])
 
     if sys.platform.startswith('win'):
         extras_require['terminal'].append('pyreadline>=2.0')
