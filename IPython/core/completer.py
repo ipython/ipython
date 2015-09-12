@@ -839,22 +839,31 @@ class IPCompleter(Completer):
             # for all others, check if they are __call__able
             elif hasattr(obj, '__call__'):
                 call_obj = obj.__call__
-
         ret += self._default_arguments_from_docstring(
                  getattr(call_obj, '__doc__', ''))
 
+        if PY3:
+            _keeps = (inspect.Parameter.KEYWORD_ONLY,
+                      inspect.Parameter.POSITIONAL_OR_KEYWORD)
+            signature = inspect.signature
+        else:
+            import IPython.utils.signatures
+            _keeps = (IPython.utils.signatures.Parameter.KEYWORD_ONLY,
+                      IPython.utils.signatures.Parameter.POSITIONAL_OR_KEYWORD)
+            signature = IPython.utils.signatures.signature
+
         try:
-            args,_,_1,defaults = inspect.getargspec(call_obj)
-            if defaults:
-                ret+=args[-len(defaults):]
-        except TypeError:
+            sig = signature(call_obj)
+            ret.extend(k for k, v in sig.parameters.items() if
+                       v.kind in _keeps)
+        except ValueError:
             pass
 
         return list(set(ret))
 
     def python_func_kw_matches(self,text):
         """Match named parameters (kwargs) of the last open function"""
-        
+
         if "." in text: # a parameter cannot be dotted
             return []
         try: regexp = self.__funcParamsRegex
