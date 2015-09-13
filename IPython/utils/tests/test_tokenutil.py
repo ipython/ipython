@@ -13,7 +13,7 @@ def expect_token(expected, cell, cursor_pos):
         if offset + len(line) >= cursor_pos:
             break
         else:
-            offset += len(line)
+            offset += len(line)+1
     column = cursor_pos - offset
     line_with_cursor = '%s|%s' % (line[:column], line[column:])
     nt.assert_equal(token, expected,
@@ -88,3 +88,15 @@ def test_line_at_cursor():
     (line, offset) = line_at_cursor(cell, cursor_pos=11)
     assert line == "", ("Expected '', got %r" % line)
     assert offset == 0, ("Expected '', got %r" % line)
+
+def test_muliline_statement():
+    cell = """a = (1,
+    3)
+
+int()
+map()
+"""
+    for c in range(16, 22):
+        yield lambda: expect_token("int", cell, c)
+    for c in range(22, 28):
+        yield lambda: expect_token("map", cell, c)
