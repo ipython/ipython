@@ -108,7 +108,7 @@ def token_at_cursor(cell, cursor_pos=0):
             break
         
         tokens.append(tok)
-        if tok.token == tokenize2.NEWLINE:
+        if tok.token in (tokenize2.NEWLINE, tokenize2.NL):
             offset += len(tok.line)
     
     if call_names:
