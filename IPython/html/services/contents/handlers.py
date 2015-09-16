@@ -52,9 +52,6 @@ def validate_model(model, expect_content):
         )
 
     maybe_none_keys = ['content', 'format']
-    if model['type'] == 'file':
-        # mimetype should be populated only for file models
-        maybe_none_keys.append('mimetype')
     if expect_content:
         errors = [key for key in maybe_none_keys if model[key] is None]
         if errors:

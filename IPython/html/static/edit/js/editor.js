@@ -90,19 +90,10 @@ function($,
             }).catch(
             function(error) {
                 that.events.trigger("file_load_failed.Editor", error);
-                if (((error.xhr||{}).responseJSON||{}).reason === 'bad format') {
-                    window.location = utils.url_path_join(
-                        that.base_url,
-                        'files',
-                        that.file_path
-                    );
-                } else {
-                    console.warn('Error while loading: the error was:')
-                    console.warn(error)
-                }
+                console.warn('Error loading: ', error);
                 cm.setValue("Error! " + error.message +
                                 "\nSaving disabled.\nSee Console for more details.");
-                cm.setOption('readOnly','nocursor')
+                cm.setOption('readOnly','nocursor');
                 that.save_enabled = false;
             }
         );
@@ -186,7 +177,7 @@ function($,
     Editor.prototype._clean_state = function(){
         var clean = this.codemirror.isClean(this.generation);
         if (clean === this.clean){
-            return
+            return;
         } else {
             this.clean = clean;
         }
