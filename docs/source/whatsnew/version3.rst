@@ -2,6 +2,16 @@
  3.x Series
 ============
 
+IPython 3.2.2
+=============
+
+Address vulnerabilities when files have maliciously crafted filenames (CVE-2015-6938),
+or vulnerability when opening text files with malicious binary content (CVE pending).
+
+Users are **strongly** encouraged to upgrade immediately.
+There are also a few small unicode and nbconvert-related fixes.
+
+
 IPython 3.2.1
 =============
 
