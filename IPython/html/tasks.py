@@ -7,8 +7,7 @@ import sys
 from distutils.version import LooseVersion as V
 from subprocess import check_output
 
-from invoke import task, run
-from invoke.runner import Result
+from invoke import task, run, Result
 from invoke.exceptions import Failure
 
 pjoin = os.path.join
