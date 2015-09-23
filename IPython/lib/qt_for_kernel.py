@@ -77,7 +77,7 @@ def get_options():
         return matplotlib_options(mpl) or [QT_API_PYQT_DEFAULT, QT_API_PYSIDE]
     elif qt_api not in _qt_apis:
         raise RuntimeError("Invalid Qt API %r, valid values are: %r" %
-                           (qt_api, ' ,'.join(_qt_apis)))
+                           (qt_api, ', '.join(_qt_apis)))
     else:
         return [qt_api]
 
