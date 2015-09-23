@@ -248,4 +248,4 @@ Combining it all
 
 .. code-block::
 
-    find a snippet that comboine all that into one thing !
+    find a snippet that combine all that into one thing !
