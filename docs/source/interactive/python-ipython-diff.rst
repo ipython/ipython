@@ -1,8 +1,8 @@
-==================
-IPython vs IPython
-==================
+=================
+Python vs IPython
+=================
 
-This document is meant to highlight the main differences between the python
+This document is meant to highlight the main differences between the Python
 language and what are the specific construct you can do only in IPython.
 
 Unless expressed otherwise all of the construct you will see here will raise a
@@ -33,7 +33,7 @@ All the following construct are valid IPython syntax :
 
 .. code-block::
 
-    *patern*?
+    *pattern*?
 
 .. code-block::
 
@@ -108,7 +108,7 @@ and if possible display the python source code of this object.
 .. code-block::
 
     In[1]: import collections
-    In[2]: collection.Counter?
+    In[2]: collection.Counter??
 
     Init signature: collections.Counter(*args, **kwds)
     Source:
@@ -129,9 +129,9 @@ and if possible display the python source code of this object.
 
 
 
-If you are looking for an object, the use of wildcards ``*`` in conjonction
+If you are looking for an object, the use of wildcards ``*`` in conjunction
 with question mark will allow you to search current namespace for object with
-mathcing names:
+matching names:
 
 .. code-block::
     In [24]: *int*?
@@ -145,7 +145,7 @@ Shell Assignment
 
 
 When doing interactive computing it is common to need to access the underlying shell.
-This is doable through th use of the exclamation mark ``!`` (or bang). 
+This is doable through the use of the exclamation mark ``!`` (or bang). 
 
 This allow to execute simple command when present in beginning of line:
 
@@ -167,9 +167,9 @@ Or edit file:
     In[1]: !mvim myfile.txt
 
 
-The line after the bang can can call any program installed in the underlying
+The line after the bang can call any program installed in the underlying
 shell, and support variable expansion in the form of ``$variable`` or ``{variable}``.
-The later for of expansion support arbitrary python expression:
+The later form of expansion supports arbitrary python expression:
 
 .. code-block::
 
@@ -180,10 +180,10 @@ The later for of expansion support arbitrary python expression:
 
 The bang can also be present in the right hand side of an assignment, just
 after the equal sign, or separated from it by a white space. In which case the
-standard output of the command after the bang ``!`` will be spilt out into line
+standard output of the command after the bang ``!`` will be split out into lines
 in a list-like object (:see:`IPython Slist`) and assign to the left hand side. 
 
-This allow you for example to put th list of files of the current working directory in a variable:
+This allow you for example to put the list of files of the current working directory in a variable:
 
 .. code-block::
 
@@ -206,7 +206,7 @@ Magics
 
 Magics function are often present in the form of shell-like syntax, but are
 under the hood python function. The syntax and assignment possibility are
-similar to the one with the bang (``~``) syntax, but with more flexibility and
+similar to the one with the bang (``!``) syntax, but with more flexibility and
 power. Magic function start with a percent sign (``%``) or double percent (``%%``). 
 
 A magic call with a sign percent will act only one line:
