@@ -35,9 +35,12 @@ import os
 import sys
 
 from IPython.utils.version import check_version
-from IPython.external.qt_loaders import (load_qt, QT_API_PYSIDE,
-                                         QT_API_PYQT, QT_API_PYQT_DEFAULT,
-                                         loaded_api)
+from IPython.external.qt_loaders import (load_qt, loaded_api, QT_API_PYSIDE,
+                                         QT_API_PYQT, QT_API_PYQT5,
+                                         QT_API_PYQTv1, QT_API_PYQT_DEFAULT)
+
+_qt_apis = (QT_API_PYSIDE, QT_API_PYQT, QT_API_PYQT5, QT_API_PYQTv1,
+            QT_API_PYQT_DEFAULT)
 
 #Constraints placed on an imported matplotlib
 def matplotlib_options(mpl):
@@ -68,16 +71,15 @@ def get_options():
         #1.0.1 only supports PyQt4 v1
         return [QT_API_PYQT_DEFAULT]
 
-    if os.environ.get('QT_API', None) is None:
+    qt_api = os.environ.get('QT_API', None)
+    if qt_api is None:
         #no ETS variable. Ask mpl, then use either
         return matplotlib_options(mpl) or [QT_API_PYQT_DEFAULT, QT_API_PYSIDE]
-
-    #ETS variable present. Will fallback to external.qt
-    return None
+    elif qt_api not in _qt_apis:
+        raise RuntimeError("Invalid Qt API %r, valid values are: %r" %
+                           (qt_api, ' ,'.join(_qt_apis)))
+    else:
+        return [qt_api]
 
 api_opts = get_options()
-if api_opts is not None:
-    QtCore, QtGui, QtSvg, QT_API = load_qt(api_opts)
-
-else: # use ETS variable
-    from IPython.external.qt import QtCore, QtGui, QtSvg, QT_API
+QtCore, QtGui, QtSvg, QT_API = load_qt(api_opts)
