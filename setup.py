@@ -126,7 +126,7 @@ def require_clean_submodules():
     this is not a distutils command.
     """
     # PACKAGERS: Add a return here to skip checks for git submodules
-
+    
     # don't do anything if nothing is actually supposed to happen
     for do_nothing in ('-h', '--help', '--help-commands', 'clean', 'submodule'):
         if do_nothing in sys.argv:
@@ -266,7 +266,6 @@ setuptools_extra_args = {}
 # setuptools requirements
 
 extras_require = dict(
-    django = ["Django>=1.6.6"],
     parallel = ['pyzmq>=2.1.11'],
     qtconsole = ['pyzmq>=2.1.11', 'pygments'],
     zmq = ['pyzmq>=2.1.11'],
@@ -296,7 +295,7 @@ if 'setuptools' in sys.modules:
     from setuptools.command.develop import develop
     setup_args['cmdclass']['develop'] = require_submodules(develop)
     setup_args['cmdclass']['bdist_wheel'] = get_bdist_wheel()
-
+    
     setuptools_extra_args['zip_safe'] = False
     setuptools_extra_args['entry_points'] = {'console_scripts':find_entry_points()}
     setup_args['extras_require'] = extras_require
