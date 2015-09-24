@@ -4,13 +4,13 @@ This is the import used for the `gui=qt` or `matplotlib=qt` initialization.
 
 Import Priority:
 
-if Qt has been imported anywhere else:
+if Qt4 has been imported anywhere else:
    use that
 
 if matplotlib has been imported and doesn't support v2 (<= 1.0.1):
     use PyQt4 @v1
 
-Next, ask QT_API env variable
+Next, ask ETS' QT_API env variable
 
 if QT_API not set:
     ask matplotlib via rcParams['backend.qt4']
@@ -26,7 +26,8 @@ if QT_API not set:
         except:
             fallback on PySide
 else:
-    use what QT_API says
+    use PyQt @v2 or PySide, depending on QT_API
+    because ETS doesn't work with PyQt @v1.
 
 """
 
@@ -41,9 +42,7 @@ from IPython.external.qt_loaders import (load_qt, loaded_api, QT_API_PYSIDE,
 _qt_apis = (QT_API_PYSIDE, QT_API_PYQT, QT_API_PYQT5, QT_API_PYQTv1,
             QT_API_PYQT_DEFAULT)
 
-# Constraints placed on an imported matplotlib
-# TODO: check that this is still consistent with what matplotlib supports,
-# in particular with regard to qt5.
+#Constraints placed on an imported matplotlib
 def matplotlib_options(mpl):
     if mpl is None:
         return
