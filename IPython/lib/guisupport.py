@@ -108,7 +108,7 @@ def start_event_loop_wx(app=None):
 
 def get_app_qt4(*args, **kwargs):
     """Create a new qt4 app or return an existing one."""
-    from IPython.lib.qt_for_kernel import QtGui
+    from IPython.external.qt_for_kernel import QtGui
     app = QtGui.QApplication.instance()
     if app is None:
         if not args:
