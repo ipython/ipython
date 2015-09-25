@@ -1,0 +1,3 @@
+numpydoc
+sphinx
+pygments
