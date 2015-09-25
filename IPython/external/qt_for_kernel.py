@@ -52,7 +52,7 @@ def matplotlib_options(mpl):
             return [QT_API_PYSIDE]
         elif mpqt.lower() == 'pyqt4':
             return [QT_API_PYQT_DEFAULT]
-        elif mpqt.lower() == 'pyqtv2':
+        elif mpqt.lower() == 'pyqt4v2':
             return [QT_API_PYQT]
         raise ImportError("unhandled value for backend.qt4 from matplotlib: %r" %
                           mpqt)
