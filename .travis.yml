@@ -11,7 +11,7 @@ before_install:
     - easy_install -q pyzmq
     - sudo apt-get install pandoc
     - pip install 'pygments<1.5'
-    - pip install sphinx
+    - pip install 'sphinx<1.3'
 install:
     - python setup.py install -q 
 script:
