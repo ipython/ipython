@@ -27,6 +27,7 @@ from ..base.handlers import IPythonHandler
 #-----------------------------------------------------------------------------
 # Handler
 #-----------------------------------------------------------------------------
+from django.contrib.auth import authenticate
 
 class LoginHandler(IPythonHandler):
 
@@ -43,9 +44,11 @@ class LoginHandler(IPythonHandler):
             self._render()
 
     def post(self):
+        email = self.get_argument('email', default=u'')
         pwd = self.get_argument('password', default=u'')
         if self.login_available:
-            if passwd_check(self.password, pwd):
+            user = authenticate(username=email, password=pwd)
+            if user:
                 self.set_secure_cookie(self.cookie_name, str(uuid.uuid4()))
             else:
                 self._render(message={'error': 'Invalid password'})
