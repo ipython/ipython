@@ -1,3 +1,9 @@
 numpydoc
 sphinx
 pygments
+scipy
+oct2py
+cython
+nose
+pymongo
+fabric
