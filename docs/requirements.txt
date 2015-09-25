@@ -1,0 +1,8 @@
+numpydoc
+sphinx
+pygments
+oct2py
+cython
+nose
+pymongo
+fabric
