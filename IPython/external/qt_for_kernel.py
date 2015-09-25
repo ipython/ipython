@@ -19,7 +19,7 @@ if QT_API not set:
     else: (matplotlib said nothing)
         # this is the default path - nobody told us anything
         try in this order:
-            PyQt default version, PySide
+            PyQt default version, PySide, PyQt5
 else:
     use what QT_API says
 
@@ -83,8 +83,7 @@ def get_options():
     qt_api = os.environ.get('QT_API', None)
     if qt_api is None:
         #no ETS variable. Ask mpl, then use default fallback path
-        # TODO: should Qt5 be on the fallback path if there is no Qt4 API?
-        return matplotlib_options(mpl) or [QT_API_PYQT_DEFAULT, QT_API_PYSIDE]
+        return matplotlib_options(mpl) or [QT_API_PYQT_DEFAULT, QT_API_PYSIDE, QT_API_PYQT5]
     elif qt_api not in _qt_apis:
         raise RuntimeError("Invalid Qt API %r, valid values are: %r" %
                            (qt_api, ', '.join(_qt_apis)))
