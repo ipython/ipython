@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 """Script to commit the doc build outputs into the github-pages repo.
 
 Use:
@@ -31,6 +32,12 @@ pages_dir = 'gh-pages'
 html_dir = 'build/html'
 pdf_dir = 'build/latex'
 pages_repo = 'git@github.com:ipython/ipython-doc.git'
+
+
+if sys.version_info[0] <= 3: 
+    getcwd = os.getcwd
+else:
+    getcwd = os.getcwdu
 
 #-----------------------------------------------------------------------------
 # Functions
@@ -69,7 +76,7 @@ def sh3(cmd):
 def init_repo(path):
     """clone the gh-pages repo if we haven't already."""
     sh("git clone %s %s"%(pages_repo, path))
-    here = os.getcwdu()
+    here = getcwd()
     cd(path)
     sh('git checkout gh-pages')
     cd(here)
@@ -84,7 +91,7 @@ if __name__ == '__main__':
     except IndexError:
         tag = "dev"
     
-    startdir = os.getcwdu()
+    startdir = getcwd()
     if not os.path.exists(pages_dir):
         # init the repo
         init_repo(pages_dir)
@@ -115,20 +122,20 @@ if __name__ == '__main__':
     try:
         cd(pages_dir)
         branch = sh2('git rev-parse --abbrev-ref HEAD').strip()
-        if branch != 'gh-pages':
+        if branch != b'gh-pages':
             e = 'On %r, git branch is %r, MUST be "gh-pages"' % (pages_dir,
                                                                  branch)
             raise RuntimeError(e)
 
         sh('git add -A %s' % tag)
         sh('git commit -m"Updated doc release: %s"' % tag)
-        print
-        print 'Most recent 3 commits:'
+        print()
+        print( 'Most recent 3 commits:')
         sys.stdout.flush()
         sh('git --no-pager log --oneline HEAD~3..')
     finally:
         cd(startdir)
 
-    print
-    print 'Now verify the build in: %r' % dest
-    print "If everything looks good, 'git push'"
+    print()
+    print( 'Now verify the build in: %r' % dest)
+    print( "If everything looks good, 'git push'")
