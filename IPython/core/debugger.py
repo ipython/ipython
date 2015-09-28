@@ -271,7 +271,7 @@ class Pdb(OldPdb):
 
         # Set the prompt
         Colors = cst.active_colors
-        self.prompt = u'%s%s' % (Colors.prompt, prompt) # The default prompt is '(Pdb)'
+        self.prompt = u'%s%s%s' % (Colors.prompt, prompt, Colors.Normal) # The default prompt is '(Pdb)'
 
     def set_colors(self, scheme):
         """Shorthand access to the color table scheme selector method."""
