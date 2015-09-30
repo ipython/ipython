@@ -1041,10 +1041,12 @@ python-profiler package from non-free.""")
                 number *= 10
         all_runs = timer.repeat(repeat, number)
         best = min(all_runs) / number
+
+        worst = max(all_runs) / number
+        if worst_tuning:
+            worst = max(worst, worst_tuning)
+
         if not quiet :
-            worst = max(all_runs) / number
-            if worst_tuning:
-                worst = max(worst, worst_tuning)
             # Check best timing is greater than zero to avoid a
             # ZeroDivisionError.
             # In cases where the slowest timing is lesser than a micosecond
