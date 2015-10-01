@@ -42,7 +42,8 @@ RUN curl -O https://bootstrap.pypa.io/get-pip.py \
  && rm get-pip.py
 
 # In order to build from source, need less
-RUN npm install -g 'less@<3.0'
+RUN npm install -g 'less@<3.0' \
+ && npm cache clean
 
 RUN pip install invoke
 
@@ -54,8 +55,8 @@ RUN chmod -R +rX /srv/ipython
 
 # .[all] only works with -e, so use file://path#egg
 # Can't use -e because ipython2 and ipython3 will clobber each other
-RUN pip2 install file:///srv/ipython#egg=ipython[all]
-RUN pip3 install file:///srv/ipython#egg=ipython[all]
+RUN pip2 install --no-cache-dir file:///srv/ipython#egg=ipython[all]
+RUN pip3 install --no-cache-dir file:///srv/ipython#egg=ipython[all]
 
 # install kernels
 RUN python2 -m IPython kernelspec install-self
