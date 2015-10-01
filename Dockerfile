@@ -31,36 +31,29 @@ RUN apt-get update -qq \
         python3-dev \
         sqlite3 \
         zlib1g-dev \
- && rm -rf /var/lib/apt/lists/*
-
-# Install the recent pip release
-RUN curl -O https://bootstrap.pypa.io/get-pip.py \
+ && rm -rf /var/lib/apt/lists/* \
+ \
+ `# Install the recent pip release` \
+ && curl -O https://bootstrap.pypa.io/get-pip.py \
  && python2 get-pip.py \
  && python3 get-pip.py \
- && rm get-pip.py
-
-# In order to build from source, need less
-RUN npm install -g 'less@<3.0' \
+ && rm get-pip.py \
+ \
+ `# In order to build from source, need less` \
+ && npm install -g 'less@<3.0' \
  && npm cache clean
 
-RUN pip install invoke
-
-RUN mkdir -p /srv/
-WORKDIR /srv/
 ADD . /srv/ipython
-WORKDIR /srv/ipython/
-RUN chmod -R +rX /srv/ipython
-
-# .[all] only works with -e, so use file://path#egg
-# Can't use -e because ipython2 and ipython3 will clobber each other
-RUN pip2 install --no-cache-dir file:///srv/ipython#egg=ipython[all] sphinx
-RUN pip3 install --no-cache-dir file:///srv/ipython#egg=ipython[all] sphinx
-
-# install kernels
-RUN python2 -m IPython kernelspec install-self
-RUN python3 -m IPython kernelspec install-self
+RUN chmod -R +rX /srv/ipython \
+\
+`# .[all] only works with -e, so use file://path#egg` \
+`# Cant use -e because ipython2 and ipython3 will clobber each other` \
+ && pip2 install --no-cache-dir file:///srv/ipython#egg=ipython[all] sphinx invoke \
+ && pip3 install --no-cache-dir file:///srv/ipython#egg=ipython[all] sphinx invoke \
+ \
+ `# install kernels` \
+ && python2 -m IPython kernelspec install-self \
+ && python3 -m IPython kernelspec install-self \
+ && iptest2 && iptest3
 
 WORKDIR /tmp/
-
-RUN iptest2
-RUN iptest3
