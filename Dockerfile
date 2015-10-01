@@ -29,8 +29,6 @@ RUN apt-get update -qq \
         python \
         python-dev \
         python3-dev \
-        python-sphinx \
-        python3-sphinx \
         sqlite3 \
         zlib1g-dev \
  && rm -rf /var/lib/apt/lists/*
@@ -55,8 +53,8 @@ RUN chmod -R +rX /srv/ipython
 
 # .[all] only works with -e, so use file://path#egg
 # Can't use -e because ipython2 and ipython3 will clobber each other
-RUN pip2 install --no-cache-dir file:///srv/ipython#egg=ipython[all]
-RUN pip3 install --no-cache-dir file:///srv/ipython#egg=ipython[all]
+RUN pip2 install --no-cache-dir file:///srv/ipython#egg=ipython[all] sphinx
+RUN pip3 install --no-cache-dir file:///srv/ipython#egg=ipython[all] sphinx
 
 # install kernels
 RUN python2 -m IPython kernelspec install-self
