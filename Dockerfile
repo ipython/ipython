@@ -22,9 +22,6 @@ RUN apt-get update -qq \
         libcurl4-openssl-dev \
         libsqlite3-dev \
         libzmq3-dev \
-        nodejs \
-        nodejs-legacy \
-        npm \
         pandoc \
         python \
         python-dev \
@@ -37,19 +34,29 @@ RUN apt-get update -qq \
  && curl -O https://bootstrap.pypa.io/get-pip.py \
  && python2 get-pip.py \
  && python3 get-pip.py \
- && rm get-pip.py \
- \
- `# In order to build from source, need less` \
- && npm install -g 'less@<3.0' \
- && npm cache clean
+ && rm get-pip.py
 
+# Install IPython
 ADD . /srv/ipython
 RUN chmod -R +rX /srv/ipython \
-\
-`# .[all] only works with -e, so use file://path#egg` \
-`# Cant use -e because ipython2 and ipython3 will clobber each other` \
+ \
+ `# Install build dependencies` \
+ && BUILD_DEPS="nodejs nodejs-legacy npm" \
+ && apt-get update -qq \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends $BUILD_DEPS \
+ && npm install -g 'less@<3.0' \
+ \
+ `# .[all] only works with -e, so use file://path#egg` \
+ `# Cant use -e because ipython2 and ipython3 will clobber each other` \
  && pip2 install --no-cache-dir file:///srv/ipython#egg=ipython[all] sphinx invoke \
  && pip3 install --no-cache-dir file:///srv/ipython#egg=ipython[all] sphinx invoke \
+ \
+ `# Uninstall build dependencies` \
+ && npm remove -g less \
+ && npm cache clean \
+ && apt-get purge -y --auto-remove \
+        -o APT::AutoRemove::RecommendsImportant=false -o APT::AutoRemove::SuggestsImportant=false $BUILD_DEPS \
+ && rm -rf /var/lib/apt/lists/* \
  \
  `# install kernels` \
  && python2 -m IPython kernelspec install-self \
