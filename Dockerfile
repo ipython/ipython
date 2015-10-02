@@ -48,8 +48,8 @@ RUN chmod -R +rX /srv/ipython \
  \
  `# .[all] only works with -e, so use file://path#egg` \
  `# Cant use -e because ipython2 and ipython3 will clobber each other` \
- && pip2 install --no-cache-dir file:///srv/ipython#egg=ipython[all] sphinx invoke \
- && pip3 install --no-cache-dir file:///srv/ipython#egg=ipython[all] sphinx invoke \
+ && pip2 install --no-cache-dir file:///srv/ipython#egg=ipython[all] \
+ && pip3 install --no-cache-dir file:///srv/ipython#egg=ipython[all] \
  \
  `# Uninstall build dependencies` \
  && npm remove -g less \
