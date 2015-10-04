@@ -453,7 +453,7 @@ def run_iptestall(options):
                         cu.name = '.'.join(nameparts[ix:])
 
             # Reimplement the html_report method with our custom reporter
-            cov._harvest_data()
+            cov.get_data()
             cov.config.from_args(omit='*{0}tests{0}*'.format(os.sep), html_dir=html_dir,
                                  html_title='IPython test coverage',
                                 )
