@@ -62,6 +62,7 @@ ipython_tokens = [
   (r'^(!!)(.+)(\n)', bygroups(Operator, using(BashLexer), Text)),
   (r'(!)(?!=)(.+)(\n)', bygroups(Operator, using(BashLexer), Text)),
   (r'^(\s*)(\?\??)(\s*%{0,2}[\w\.\*]*)', bygroups(Text, Operator, Text)),
+  (r'(\s*%{0,2}[\w\.\*]*)(\?\??)(\s*)$', bygroups(Text, Operator, Text)),
 ]
 
 def build_ipy_lexer(python3):
