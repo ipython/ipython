@@ -131,6 +131,7 @@ class Alias(object):
         self.shell = shell
         self.name = name
         self.cmd = cmd
+        self.__doc__ = "Alias for `!{}`".format(cmd)
         self.nargs = self.validate()
 
     def validate(self):
