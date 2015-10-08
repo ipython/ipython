@@ -13,11 +13,11 @@ from contextlib import contextmanager
 import nose.tools as nt
 
 from traitlets.config.loader import Config
+from IPython import get_ipython
 from IPython.core import completer
 from IPython.external.decorators import knownfailureif
 from IPython.utils.tempdir import TemporaryDirectory, TemporaryWorkingDirectory
 from IPython.utils.generics import complete_object
-from IPython.utils import py3compat
 from IPython.utils.py3compat import string_types, unicode_type
 from IPython.testing import decorators as dec
 
@@ -760,3 +760,21 @@ def test_dict_key_completion_invalids():
     _, matches = complete(line_buffer="empty['")
     _, matches = complete(line_buffer="name_error['")
     _, matches = complete(line_buffer="d['\\")  # incomplete escape
+
+def test_aimport_module_completer():
+    ip = get_ipython()
+    _, matches = ip.complete('i', '%aimport i')
+    nt.assert_in('io', matches)
+    nt.assert_not_in('int', matches)
+
+def test_import_module_completer():
+    ip = get_ipython()
+    _, matches = ip.complete('i', 'import i')
+    nt.assert_in('io', matches)
+    nt.assert_not_in('int', matches)
+
+def test_from_module_completer():
+    ip = get_ipython()
+    _, matches = ip.complete('B', 'from io import B')
+    nt.assert_in('BytesIO', matches)
+    nt.assert_not_in('BaseException', matches)
