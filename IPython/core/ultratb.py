@@ -224,7 +224,7 @@ def findsource(object):
 
 
 # This is a patched version of inspect.getargs that applies the (unmerged)
-# patch for http://bugs.python.org/file25269/issue_14611.  This fixes
+# patch for http://bugs.python.org/issue14611 by Stefano Taschini.  This fixes
 # https://github.com/ipython/ipython/issues/8205 and
 # https://github.com/ipython/ipython/issues/8293
 def getargs(co):
