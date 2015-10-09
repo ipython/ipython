@@ -850,14 +850,14 @@ class IPythonDirective(Directive):
         config = self.state.document.settings.env.config
 
         # get config variables to set figure output directory
-        confdir = self.state.document.settings.env.app.confdir
+        outdir = self.state.document.settings.env.app.outdir
         savefig_dir = config.ipython_savefig_dir
         source_dir = os.path.dirname(self.state.document.current_source)
         if savefig_dir is None:
-            savefig_dir = config.html_static_path
+            savefig_dir = config.html_static_path or '_static'
         if isinstance(savefig_dir, list):
-            savefig_dir = savefig_dir[0] # safe to assume only one path?
-        savefig_dir = os.path.join(confdir, savefig_dir)
+            savefig_dir = os.path.join(*savefig_dir)
+        savefig_dir = os.path.join(outdir, savefig_dir)
 
         # get regex and prompt stuff
         rgxin      = config.ipython_rgxin
