@@ -135,16 +135,9 @@ import ast
 import warnings
 import shutil
 
-# To keep compatibility with various python versions
-try:
-    from hashlib import md5
-except ImportError:
-    from md5 import md5
 
 # Third-party
-import sphinx
 from docutils.parsers.rst import directives
-from docutils import nodes
 from sphinx.util.compat import Directive
 
 # Our own
@@ -285,6 +278,7 @@ class EmbeddedSphinxShell(object):
 
         # Create config object for IPython
         config = Config()
+        config.HistoryManager.hist_file = ':memory:'
         config.InteractiveShell.autocall = False
         config.InteractiveShell.autoindent = False
         config.InteractiveShell.colors = 'NoColor'
