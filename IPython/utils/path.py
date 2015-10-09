@@ -437,6 +437,13 @@ def ensure_dir_exists(path, mode=0o755):
 
     The default permissions are 755, which differ from os.makedirs default of 777.
     """
+    path_exists = False
+    try:
+        path_exists = os.path.exists(path)
+    except UnicodeEncodeError:
+        path = path.encode("utf8")
+        path_exists = os.path.exists(path)
+
     if not os.path.exists(path):
         try:
             os.makedirs(path, mode=mode)
