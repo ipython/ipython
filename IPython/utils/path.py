@@ -441,7 +441,7 @@ def ensure_dir_exists(path, mode=0o755):
     try:
         path_exists = os.path.exists(path)
     except UnicodeEncodeError:
-        path = path.encode(sys.getfilesystemencoding() or "utf8")
+        path = path.encode("utf8")
         path_exists = os.path.exists(path)
 
     if not os.path.exists(path):
