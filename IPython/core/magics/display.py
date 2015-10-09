@@ -38,7 +38,10 @@ class DisplayMagics(Magics):
     
     @cell_magic
     def latex(self, line, cell):
-        """Render the cell as a block of latex"""
+        """Render the cell as a block of latex
+        
+        This magic only renders the subset of latex defined by MathJax 
+        [here](https://docs.mathjax.org/en/v2.5-latest/tex.html)."""
         display(Latex(cell))
 
     @cell_magic
