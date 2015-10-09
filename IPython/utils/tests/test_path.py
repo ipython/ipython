@@ -430,11 +430,11 @@ def test_unescape_glob():
 
 def test_ensure_dir_exists():
     with TemporaryDirectory() as td:
-        d = os.path.join(td, u'∂ir').encode("utf8")
+        d = os.path.join(td, u'∂ir')
         path.ensure_dir_exists(d) # create it
         assert os.path.isdir(d)
         path.ensure_dir_exists(d) # no-op
-        f = os.path.join(td, u'ƒile').encode("utf8")
+        f = os.path.join(td, u'ƒile')
         open(f, 'w').close() # touch
         with nt.assert_raises(IOError):
             path.ensure_dir_exists(f)
