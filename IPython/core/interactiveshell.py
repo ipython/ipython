@@ -2616,9 +2616,9 @@ class InteractiveShell(SingletonConfigurable):
     def safe_execfile(self, fname, *where, **kw):
         """A safe version of the builtin execfile().
 
-        This version will never throw an exception, but instead print
-        helpful error messages to the screen.  This only works on pure
-        Python files with the .py extension.
+        This version will not throw an exception when the file being excuted
+        returns normally. This only works on pure Python files with the .py
+        extension.
 
         Parameters
         ----------
@@ -2672,17 +2672,9 @@ class InteractiveShell(SingletonConfigurable):
                 # 0
                 # > python -c'import sys;sys.exit()'; echo $?
                 # 0
-                # For other exit status, we show the exception unless
-                # explicitly silenced, but only in short form.
-                if kw['raise_exceptions']:
+                # For other exit status, raise them to a higher level.
+                if kw['raise_exceptions'] or status.code and not kw['exit_ignore']:
                     raise
-                if status.code and not kw['exit_ignore']:
-                    self.showtraceback(exception_only=True)
-            except:
-                if kw['raise_exceptions']:
-                    raise
-                # tb offset is 2 because we wrap execfile
-                self.showtraceback(tb_offset=2)
 
     def safe_execfile_ipy(self, fname, shell_futures=False, raise_exceptions=False):
         """Like safe_execfile, but for .ipy or .ipynb files with IPython syntax.
