@@ -1,3 +1,2 @@
-numpydoc
 -e .
 ipykernel

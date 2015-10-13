@@ -3,7 +3,9 @@
 """
 import io
 import os.path
+from textwrap import dedent
 import unittest
+
 
 from IPython.testing import tools as tt
 from IPython.testing.decorators import onlyif_unicode_paths
@@ -88,6 +90,29 @@ class NonAsciiTest(unittest.TestCase):
             with tt.AssertPrints("ZeroDivisionError"):
                 with tt.AssertPrints(u'дбИЖ', suppress=False):
                     ip.run_cell('fail()')
+
+
+class NestedGenExprTestCase(unittest.TestCase):
+    """
+    Regression test for the following issues:
+    https://github.com/ipython/ipython/issues/8293
+    https://github.com/ipython/ipython/issues/8205
+    """
+    def test_nested_genexpr(self):
+        code = dedent(
+            """\
+            class SpecificException(Exception):
+                pass
+
+            def foo(x):
+                raise SpecificException("Success!")
+
+            sum(sum(foo(x) for _ in [0]) for x in [0])
+            """
+        )
+        with tt.AssertPrints('SpecificException: Success!', suppress=False):
+            ip.run_cell(code)
+
 
 indentationerror_file = """if True:
 zoon()
