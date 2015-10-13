@@ -182,7 +182,7 @@ setuptools_extra_args = {}
 extras_require = dict(
     parallel = ['ipyparallel'],
     qtconsole = ['qtconsole'],
-    doc = ['Sphinx>=1.1', 'numpydoc'],
+    doc = ['Sphinx>=1.3'],
     test = ['nose>=0.10.1', 'requests', 'testpath'],
     terminal = [],
     kernel = ['ipykernel'],

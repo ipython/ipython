@@ -60,7 +60,7 @@ extensions = [
     'sphinx.ext.intersphinx',
     'IPython.sphinxext.ipython_console_highlighting',
     'IPython.sphinxext.ipython_directive',
-    'numpydoc',  # to preprocess docstrings
+    'sphinx.ext.napoleon',  # to preprocess docstrings
     'github',  # for easy GitHub links
     'magics',
 ]
