@@ -187,7 +187,7 @@ extras_require = dict(
     terminal = [],
     kernel = ['ipykernel'],
     nbformat = ['nbformat'],
-    notebook = ['notebook'],
+    notebook = ['notebook', 'ipywidgets'],
     nbconvert = ['nbconvert'],
 )
 install_requires = [
