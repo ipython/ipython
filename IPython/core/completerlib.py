@@ -223,7 +223,7 @@ def module_completion(line):
         return ['import ']
 
     # 'from xy<tab>' or 'import xy<tab>'
-    if nwords < 3 and (words[0] in ['import','from']) :
+    if nwords < 3 and (words[0] in {'%aimport', 'import', 'from'}) :
         if nwords == 1:
             return get_root_modules()
         mod = words[1].split('.')
