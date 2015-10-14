@@ -733,15 +733,10 @@ python-profiler package from non-free.""")
                                     return
                             except (KeyError):
                                 nruns = 1
-                            self._run_with_timing(self, run, nruns)
+                            self._run_with_timing(run, nruns)
                         else:
                             # regular execution
-                            try:
-                                run()
-                            except SystemExit:
-                                self.shell.showtraceback(exception_only=True)
-                            except:
-                                self.shell.showtraceback(tb_offset=4)
+                            run()
 
                 if 'i' in opts:
                     self.shell.user_ns['__name__'] = __name__save
@@ -860,7 +855,7 @@ python-profiler package from non-free.""")
             self.shell.InteractiveTB(etype, value, tb, tb_offset=3)
 
     @staticmethod
-    def _run_with_timing(self, run, nruns):
+    def _run_with_timing(run, nruns):
         """
         Run function `run` and print timing information.
 
@@ -875,10 +870,7 @@ python-profiler package from non-free.""")
         twall0 = time.time()
         if nruns == 1:
             t0 = clock2()
-            try:
-                run()
-            except:
-                self.shell.showtraceback(exception_only=True)
+            run()
             t1 = clock2()
             t_usr = t1[0] - t0[0]
             t_sys = t1[1] - t0[1]
@@ -889,10 +881,7 @@ python-profiler package from non-free.""")
             runs = range(nruns)
             t0 = clock2()
             for nr in runs:
-                try:
-                    run()
-                except:
-                    self.shell.showtraceback(tb_offset=5)
+                run()
             t1 = clock2()
             t_usr = t1[0] - t0[0]
             t_sys = t1[1] - t0[1]

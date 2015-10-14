@@ -345,7 +345,8 @@ class InteractiveShellApp(Configurable):
                         # default to python, even without extension
                         self.shell.safe_execfile(full_filename,
                                                  self.shell.user_ns,
-                                                 shell_futures=shell_futures)
+                                                 shell_futures=shell_futures,
+                                                 raise_exceptions=True)
         finally:
             sys.argv = save_argv
 
