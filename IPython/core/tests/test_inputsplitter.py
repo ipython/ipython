@@ -496,7 +496,7 @@ class IPythonInputTestCase(InputSplitterTestCase):
 if __name__ == '__main__':
     # A simple demo for interactive experimentation.  This code will not get
     # picked up by any test suite.
-    from IPython.core.inputsplitter import InputSplitter, IPythonInputSplitter
+    from IPython.core.inputsplitter import IPythonInputSplitter
 
     # configure here the syntax to use, prompt and whether to autoindent
     #isp, start_prompt = InputSplitter(), '>>> '
@@ -592,6 +592,16 @@ class CellModeCellMagics(CellMagicsCommon, unittest.TestCase):
         sp.push('\n')
         # This should accept a blank line and carry on until the cell is reset
         nt.assert_true(sp.push_accepts_more()) #3
+    
+    def test_no_strip_coding(self):
+        src = '\n'.join([
+            '%%writefile foo.py',
+            '# coding: utf-8',
+            'print(u"üñîçø∂é")',
+        ])
+        out = self.sp.transform_cell(src)
+        nt.assert_in('# coding: utf-8', out)
+
 
 class LineModeCellMagics(CellMagicsCommon, unittest.TestCase):
     sp = isp.IPythonInputSplitter(line_input_checker=True)
