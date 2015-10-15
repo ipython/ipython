@@ -7,6 +7,7 @@ SPHINXBUILD   = sphinx-build
 PAPER         =
 SRCDIR        = source
 BUILDDIR      = build
+PYTHON        = python
 
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
@@ -71,19 +72,19 @@ html html_noapi:
 automagic: source/interactive/magics-generated.txt
 
 source/interactive/magics-generated.txt: autogen_magics.py
-	python autogen_magics.py
+	$(PYTHON) autogen_magics.py
 	@echo "Created docs for line & cell magics"
 
 autoconfig: source/config/options/generated
 
 source/config/options/generated:
-	python autogen_config.py
+	$(PYTHON) autogen_config.py
 	@echo "Created docs for config options"
 
 api: source/api/generated/gen.txt
 
 source/api/generated/gen.txt:
-	python autogen_api.py
+	$(PYTHON) autogen_api.py
 	@echo "Build API docs finished."
 
 pickle:
@@ -141,7 +142,7 @@ gh-pages: clean html
 	# if VERSION is unspecified, it will be dev
 	# For releases, VERSION should be just the major version,
 	# e.g. VERSION=2 make gh-pages
-	python gh-pages.py $(VERSION)
+	$(PYTHON) gh-pages.py $(VERSION)
 
 texinfo:
 	mkdir -p $(BUILDDIR)/texinfo
