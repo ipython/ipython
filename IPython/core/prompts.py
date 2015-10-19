@@ -160,9 +160,10 @@ prompt_abbreviations = {
     # can get numbers displayed in whatever color they want.
     r'\N': '{count}',
 
-    # Prompt/history count, with the actual digits replaced by dots.  Used
-    # mainly in continuation prompts (prompt_in2)
+    # Prompt/history count, with the actual digits replaced by dots or
+    # spaces.  Used mainly in continuation prompts (prompt_in2).
     r'\D': '{dots}',
+    r'\S': '{spaces}',
 
     # Current time
     r'\T' : '{time}',
@@ -391,8 +392,8 @@ class PromptManager(Configurable):
         count = self.shell.execution_count    # Shorthand
         # Build the dictionary to be passed to string formatting
         fmtargs = dict(color=colors, count=count,
-                        dots="."*len(str(count)),
-                        width=self.width, txtwidth=self.txtwidth )
+                       dots="."*len(str(count)), spaces=" "*len(str(count)),
+                       width=self.width, txtwidth=self.txtwidth)
         fmtargs.update(self.lazy_evaluate_fields)
         fmtargs.update(kwargs)
         
