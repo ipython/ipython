@@ -229,6 +229,26 @@ class TestPylabSwitch(object):
         nt.assert_equal(gui, 'qt')
         nt.assert_equal(s.pylab_gui_select, 'qt')
 
+    def test_inline_twice(self):
+        "Using '%matplotlib inline' twice should not reset formatters"
+
+        ip = get_ipython()
+        gui, backend = ip.enable_matplotlib('inline')
+        nt.assert_equal(gui, 'inline')
+
+        fmts =  {'png'}
+        active_mimes = {_fmt_mime_map[fmt] for fmt in fmts}
+        pt.select_figure_formats(ip, fmts)
+
+        gui, backend = ip.enable_matplotlib('inline')
+        nt.assert_equal(gui, 'inline')
+
+        for mime, f in ip.display_formatter.formatters.items():
+            if mime in active_mimes:
+                nt.assert_in(Figure, f)
+            else:
+                nt.assert_not_in(Figure, f)
+
     def test_qt_gtk(self):
         s = self.Shell()
         gui, backend = s.enable_matplotlib('qt')

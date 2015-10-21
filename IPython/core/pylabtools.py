@@ -354,6 +354,7 @@ def configure_inline_support(shell, backend):
             shell._saved_rcParams[k] = pyplot.rcParams[k]
         # load inline_rc
         pyplot.rcParams.update(cfg.rc)
+        new_backend_name = "inline"
     else:
         from ipykernel.pylab.backend_inline import flush_figures
         try:
@@ -363,7 +364,13 @@ def configure_inline_support(shell, backend):
         if hasattr(shell, '_saved_rcParams'):
             pyplot.rcParams.update(shell._saved_rcParams)
             del shell._saved_rcParams
+        new_backend_name = "other"
 
-    # Setup the default figure format
-    select_figure_formats(shell, cfg.figure_formats, **cfg.print_figure_kwargs)
-
+    # only enable the formats once -> don't change the enabled formats (which the user may
+    # has changed) when getting another "%matplotlib inline" call.
+    # See https://github.com/ipython/ipykernel/issues/29
+    cur_backend = getattr(configure_inline_support, "current_backend", "unset")
+    if new_backend_name != cur_backend:
+        # Setup the default figure format
+        select_figure_formats(shell, cfg.figure_formats, **cfg.print_figure_kwargs)
+        configure_inline_support.current_backend = new_backend_name
