@@ -79,7 +79,11 @@ class TimeitResult(object):
         self._precision = precision
 
     def _repr_pretty_(self, p , cycle):
-         unic =  u"%d loops, best of %d: %s per loop" % (self.loops, self.repeat,
+         if self.loops == 1:  # No s at "loops" if only one loop
+             unic =  u"%d loop, best of %d: %s per loop" % (self.loops, self.repeat,
+                                            _format_time(self.best, self._precision))
+         else:
+             unic =  u"%d loops, best of %d: %s per loop" % (self.loops, self.repeat,
                                             _format_time(self.best, self._precision))
          p.text(u'<TimeitResult : '+unic+u'>')
 
@@ -956,7 +960,7 @@ python-profiler package from non-free.""")
           In [5]: import time
 
           In [6]: %timeit -n1 time.sleep(2)
-          1 loops, best of 3: 2 s per loop
+          1 loop, best of 3: 2 s per loop
 
 
         The times reported by %timeit will be slightly higher than those
@@ -1055,8 +1059,12 @@ python-profiler package from non-free.""")
             if worst > 4 * best and best > 0 and worst > 1e-6:
                 print("The slowest run took %0.2f times longer than the "
                       "fastest. This could mean that an intermediate result "
-                      "is being cached " % (worst / best))
-            print(u"%d loops, best of %d: %s per loop" % (number, repeat,
+                      "is being cached." % (worst / best))
+            if number == 1:  # No s at "loops" if only one loop
+                print(u"%d loop, best of %d: %s per loop" % (number, repeat,
+                                                              _format_time(best, precision)))
+            else:
+                print(u"%d loops, best of %d: %s per loop" % (number, repeat,
                                                               _format_time(best, precision)))
             if tc > tc_min:
                 print("Compiler time: %.2f s" % tc)
