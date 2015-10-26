@@ -288,7 +288,8 @@ class Pdb(OldPdb):
                 break
             finally:
                 # Pdb sets readline delimiters, so set them back to our own
-                self.shell.readline.set_completer_delims(self.shell.readline_delims)
+                if self.shell.readline is not None:
+                    self.shell.readline.set_completer_delims(self.shell.readline_delims)
 
     def new_do_up(self, arg):
         OldPdb.do_up(self, arg)
