@@ -15,6 +15,7 @@ from __future__ import absolute_import
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+import atexit
 import codecs
 from contextlib import contextmanager
 import io
@@ -86,6 +87,7 @@ class IOStream:
 
 # setup stdin/stdout/stderr to sys.stdin/sys.stdout/sys.stderr
 devnull = open(os.devnull, 'w') 
+atexit.register(devnull.close)
 stdin = IOStream(sys.stdin, fallback=devnull)
 stdout = IOStream(sys.stdout, fallback=devnull)
 stderr = IOStream(sys.stderr, fallback=devnull)
