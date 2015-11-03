@@ -1,16 +1,9 @@
 """Tests for pylab tools module.
 """
-#-----------------------------------------------------------------------------
-# Copyright (c) 2011, the IPython Development Team.
-#
-# Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from __future__ import print_function
 
 from io import UnsupportedOperation, BytesIO
@@ -25,7 +18,6 @@ import nose.tools as nt
 from matplotlib import pyplot as plt
 import numpy as np
 
-# Our own imports
 from IPython.core.getipython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.core.display import _PNG, _JPEG
@@ -33,17 +25,6 @@ from .. import pylabtools as pt
 
 from IPython.testing import decorators as dec
 
-#-----------------------------------------------------------------------------
-# Globals and constants
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Local utilities
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Classes and functions
-#-----------------------------------------------------------------------------
 
 def test_figure_to_svg():
     # simple empty-figure test
@@ -232,7 +213,7 @@ class TestPylabSwitch(object):
     def test_inline_twice(self):
         "Using '%matplotlib inline' twice should not reset formatters"
 
-        ip = get_ipython()
+        ip = self.Shell()
         gui, backend = ip.enable_matplotlib('inline')
         nt.assert_equal(gui, 'inline')
 
