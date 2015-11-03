@@ -791,7 +791,7 @@ _singleton_pprinters = dict.fromkeys(map(id, [None, True, False, Ellipsis,
 
 
 def _defaultdict_pprint(obj, p, cycle):
-    name = 'defaultdict'
+    name = obj.__class__.__name__
     with p.group(len(name) + 1, name + '(', ')'):
         if cycle:
             p.text('...')
@@ -802,7 +802,7 @@ def _defaultdict_pprint(obj, p, cycle):
             p.pretty(dict(obj))
 
 def _ordereddict_pprint(obj, p, cycle):
-    name = 'OrderedDict'
+    name = obj.__class__.__name__
     with p.group(len(name) + 1, name + '(', ')'):
         if cycle:
             p.text('...')
@@ -810,7 +810,7 @@ def _ordereddict_pprint(obj, p, cycle):
             p.pretty(list(obj.items()))
 
 def _deque_pprint(obj, p, cycle):
-    name = 'deque'
+    name = obj.__class__.__name__
     with p.group(len(name) + 1, name + '(', ')'):
         if cycle:
             p.text('...')
@@ -819,7 +819,7 @@ def _deque_pprint(obj, p, cycle):
 
 
 def _counter_pprint(obj, p, cycle):
-    name = 'Counter'
+    name = obj.__class__.__name__
     with p.group(len(name) + 1, name + '(', ')'):
         if cycle:
             p.text('...')
