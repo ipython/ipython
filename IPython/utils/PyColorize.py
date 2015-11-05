@@ -87,6 +87,56 @@ NoColor = ColorScheme(
     'normal'         : Colors.NoColor  # color off (usu. Colors.Normal)
     }  )
 
+
+from pygments.token import Keyword, Name, Comment, String, Error, \
+    Number, Operator, Generic, Token, Whitespace
+
+_TERMINAL_COLORS = {
+    Token:              ('',            ''),
+
+    Whitespace:         ('lightgray',   'darkgray'),
+    Comment:            ('Red',         'darkRed'),
+    Comment.Preproc:    ('teal',        'teal'),
+    Keyword:            ('Green',       'darkGreen'),
+    Keyword.Type:       ('teal',        'teal'),
+    Operator:           ('Yellow',      'darkBlue'),
+    Operator.Word:      ('Yellow',      'darkGreen'),
+    Name.Builtin:       ('teal',        'teal'),
+    Name.Function:      ('darkgreen',   'black'),
+    Name.Namespace:     ('_teal_',      '_turquoise_'),
+    Name.Class:         ('_darkgreen_', '_green_'),
+    Name.Exception:     ('teal',        'teal'),
+    Name.Decorator:     ('darkgray',    'lightgray'),
+    Name.Variable:      ('darkred',     'darkred'),
+    Name.Constant:      ('darkred',     'darkred'),
+    Name.Attribute:     ('teal',        'teal'),
+    Name.Tag:           ('blue',        'blue'),
+    String:             ('Blue',        'darkBlue'),
+    Number:             ('Teal',        'Teal'),
+
+    Generic.Deleted:    ('red',         'darkred'),
+    Generic.Inserted:   ('darkgreen',   'green'),
+    Generic.Heading:    ('**',          '**'),
+    Generic.Subheading: ('*purple*',    '*fuchsia*'),
+    Generic.Error:      ('red',         'darkred'),
+
+    Error:              ('_red_',       '_red_'),
+}
+
+low = lambda x: (x[0].lower(), x[1].lower())
+
+TERMINAL_COLORS = {k:low(v) for k,v in _TERMINAL_COLORS.items() }
+
+from pygments import highlight
+from pygments.lexers import PythonLexer
+from pygments.formatters import TerminalFormatter
+
+PL = PythonLexer()
+TF = TerminalFormatter(bg='dark', colorscheme=TERMINAL_COLORS) 
+
+hl = lambda code : highlight(code, PL, TF )
+
+
 LinuxColors = ColorScheme(
     'Linux',{
     token.NUMBER     : Colors.LightCyan,
