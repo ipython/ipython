@@ -32,7 +32,7 @@ from IPython.utils.ipstruct import Struct
 from IPython.utils.process import arg_split
 from IPython.utils.py3compat import string_types, iteritems
 from IPython.utils.text import dedent
-from traitlets import Bool, Dict, Instance, MetaHasTraits
+from traitlets import Bool, Dict, Instance
 from IPython.utils.warn import error
 
 #-----------------------------------------------------------------------------
@@ -386,7 +386,7 @@ class MagicsManager(Configurable):
             if not m.registered:
                 raise ValueError("Class of magics %r was constructed without "
                                  "the @register_magics class decorator")
-            if type(m) in (type, MetaHasTraits):
+            if isinstance(m, type):
                 # If we're given an uninstantiated class
                 m = m(shell=self.shell)
 

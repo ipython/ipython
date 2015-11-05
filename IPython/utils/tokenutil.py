@@ -72,15 +72,24 @@ def token_at_cursor(cell, cursor_pos=0):
     cell = cast_unicode_py2(cell)
     names = []
     tokens = []
-    offset = 0
     call_names = []
+    
+    offsets = {1: 0} # lines start at 1
     for tup in generate_tokens(StringIO(cell).readline):
         
         tok = Token(*tup)
         
         # token, text, start, end, line = tup
-        start_col = tok.start[1]
-        end_col = tok.end[1]
+        start_line, start_col = tok.start
+        end_line, end_col = tok.end
+        if end_line + 1 not in offsets:
+            # keep track of offsets for each line
+            lines = tok.line.splitlines(True)
+            for lineno, line in zip(range(start_line + 1, end_line + 2), lines):
+                if lineno not in offsets:
+                    offsets[lineno] = offsets[lineno-1] + len(line)
+        
+        offset = offsets[start_line]
         # allow '|foo' to find 'foo' at the beginning of a line
         boundary = cursor_pos + 1 if start_col == 0 else cursor_pos
         if offset + start_col >= boundary:
@@ -103,14 +112,12 @@ def token_at_cursor(cell, cursor_pos=0):
             elif tok.text == ')' and call_names:
                 call_names.pop(-1)
         
-        if offset + end_col > cursor_pos:
+        tokens.append(tok)
+        
+        if offsets[end_line] + end_col > cursor_pos:
             # we found the cursor, stop reading
             break
         
-        tokens.append(tok)
-        if tok.token == tokenize2.NEWLINE:
-            offset += len(tok.line)
-    
     if call_names:
         return call_names[-1]
     elif names:

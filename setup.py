@@ -182,12 +182,12 @@ setuptools_extra_args = {}
 extras_require = dict(
     parallel = ['ipyparallel'],
     qtconsole = ['qtconsole'],
-    doc = ['Sphinx>=1.1', 'numpydoc'],
+    doc = ['Sphinx>=1.3'],
     test = ['nose>=0.10.1', 'requests', 'testpath'],
     terminal = [],
     kernel = ['ipykernel'],
     nbformat = ['nbformat'],
-    notebook = ['notebook'],
+    notebook = ['notebook', 'ipywidgets'],
     nbconvert = ['nbconvert'],
 )
 install_requires = [
@@ -200,9 +200,11 @@ install_requires = [
 # Platform-specific dependencies:
 # This is the correct way to specify these,
 # but requires pip >= 6. pip < 6 ignores these.
+
 extras_require.update({
     ':sys_platform != "win32"': ['pexpect'],
-    ':sys_platform == "darwin"': ['appnope', 'gnureadline'],
+    ':sys_platform == "darwin"': ['appnope'],
+    ':sys_platform == "darwin" and platform_python_implementation == "CPython"': ['gnureadline'],
     'terminal:sys_platform == "win32"': ['pyreadline>=2'],
     'test:python_version == "2.7"': ['mock'],
 })
@@ -213,16 +215,35 @@ if not any(arg.startswith('bdist') for arg in sys.argv):
         extras_require['test'].append('mock')
 
     if sys.platform == 'darwin':
-        install_requires.extend(['appnope', 'gnureadline'])
+        install_requires.extend(['appnope'])
+        have_readline = False
+        try:
+            import readline
+        except ImportError:
+            pass
+        else:
+            if 'libedit' not in readline.__doc__:
+                have_readline = True
+        if not have_readline:
+            install_requires.extend(['gnureadline'])
 
     if sys.platform.startswith('win'):
         extras_require['terminal'].append('pyreadline>=2.0')
     else:
         install_requires.append('pexpect')
+    
+    # workaround pypa/setuptools#147, where setuptools misspells
+    # platform_python_implementation as python_implementation
+    if 'setuptools' in sys.modules:
+        for key in list(extras_require):
+            if 'platform_python_implementation' in key:
+                new_key = key.replace('platform_python_implementation', 'python_implementation')
+                extras_require[new_key] = extras_require.pop(key)
 
 everything = set()
-for deps in extras_require.values():
-    everything.update(deps)
+for key, deps in extras_require.items():
+    if ':' not in key:
+        everything.update(deps)
 extras_require['all'] = everything
 
 if 'setuptools' in sys.modules:

@@ -484,8 +484,8 @@ class IPythonInputSplitter(InputSplitter):
                                              leading_indent(),
                                              classic_prompt(),
                                              ipy_prompt(),
-                                             strip_encoding_cookie(),
                                              cellmagic(end_on_blank_line=line_input_checker),
+                                             strip_encoding_cookie(),
                                             ]
         
         self.assemble_logical_lines = assemble_logical_lines()

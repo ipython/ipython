@@ -6,7 +6,7 @@ import unittest
 import os
 
 from IPython.testing import tools as tt, decorators as dec
-from IPython.core.prompts import PromptManager, LazyEvaluate
+from IPython.core.prompts import PromptManager, LazyEvaluate, _invisible_characters
 from IPython.testing.globalipapp import get_ipython
 from IPython.utils.tempdir import TemporaryWorkingDirectory
 from IPython.utils import py3compat
@@ -106,4 +106,24 @@ class PromptTests(unittest.TestCase):
             self.assertEqual(p, '~')
         finally:
             os.chdir(save)
-    
+
+    def test_invisible_chars(self):
+        self.assertEqual(_invisible_characters('abc'), 0)
+        self.assertEqual(_invisible_characters('\001\033[1;37m\002'), 9)
+        # Sequences must be between \001 and \002 to be counted
+        self.assertEqual(_invisible_characters('\033[1;37m'), 0)
+        # Test custom escape sequences
+        self.assertEqual(_invisible_characters('\001\033]133;A\a\002'), 10)
+
+    def test_width(self):
+        default_in = '\x01\x1b]133;A\x07\x02In [1]: \x01\x1b]133;B\x07\x02'
+        self.pm.in_template = default_in
+        self.pm.render('in')
+        self.assertEqual(self.pm.width, 8)
+        self.assertEqual(self.pm.txtwidth, 8)
+
+        # Test custom escape sequences
+        self.pm.in_template = '\001\033]133;A\a\002' + default_in + '\001\033]133;B\a\002'
+        self.pm.render('in')
+        self.assertEqual(self.pm.width, 8)
+        self.assertEqual(self.pm.txtwidth, 8)

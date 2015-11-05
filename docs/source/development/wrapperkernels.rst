@@ -18,7 +18,7 @@ such as bash.
 Required steps
 --------------
 
-Subclass :class:`IPython.kernel.zmq.kernelbase.Kernel`, and implement the
+Subclass :class:`ipykernel.kernelbase.Kernel`, and implement the
 following methods and attributes:
 
 .. class:: MyKernel
@@ -61,13 +61,13 @@ following methods and attributes:
      
      Your method should return a dict containing the fields described in
      :ref:`execution_results`. To display output, it can send messages
-     using :meth:`~IPython.kernel.zmq.kernelbase.Kernel.send_response`.
+     using :meth:`~ipykernel.kernelbase.Kernel.send_response`.
      See :doc:`messaging` for details of the different message types.
 
 To launch your kernel, add this at the end of your module::
 
     if __name__ == '__main__':
-        from IPython.kernel.zmq.kernelapp import IPKernelApp
+        from ipykernel.kernelapp import IPKernelApp
         IPKernelApp.launch_instance(kernel_class=MyKernel)
 
 Example
@@ -75,7 +75,7 @@ Example
 
 ``echokernel.py`` will simply echo any input it's given to stdout::
 
-    from IPython.kernel.zmq.kernelbase import Kernel
+    from ipykernel.kernelbase import Kernel
 
     class EchoKernel(Kernel):
         implementation = 'Echo'
@@ -99,7 +99,7 @@ Example
                    }
 
     if __name__ == '__main__':
-        from IPython.kernel.zmq.kernelapp import IPKernelApp
+        from ipykernel.kernelapp import IPKernelApp
         IPKernelApp.launch_instance(kernel_class=EchoKernel)
 
 Here's the Kernel spec ``kernel.json`` file for this::

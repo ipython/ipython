@@ -247,7 +247,7 @@ NOTE: If you have 'automagic' enabled (via the command line option or with the
 magics; cell magics always require an explicit '%%' escape.  By default,
 IPython ships with automagic on, so you should only rarely need the % escape.
 
-Example: typing '%cd mydir' (without the quotes) changes you working directory
+Example: typing '%cd mydir' (without the quotes) changes your working directory
 to 'mydir', if it exists.
 
 For a list of the available magic functions, use %lsmagic. For a description

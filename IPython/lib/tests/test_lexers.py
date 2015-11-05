@@ -120,3 +120,11 @@ class TestLexers(TestCase):
             (Token.Text, '\n'),
         ]
         self.assertEqual(tokens_2, list(self.lexer.get_tokens(fragment_2)))
+
+        fragment = ' *int*?\n'
+        tokens = [
+            (Token.Text, ' *int*'),
+            (Token.Operator, '?'),
+            (Token.Text, '\n'),
+        ]
+        self.assertEqual(tokens, list(self.lexer.get_tokens(fragment)))

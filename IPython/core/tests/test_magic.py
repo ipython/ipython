@@ -568,6 +568,11 @@ def test_timeit_quiet():
     with tt.AssertNotPrints("loops"):
         _ip.run_cell("%timeit -n1 -r1 -q 1")
 
+def test_timeit_return_quiet():
+    with tt.AssertNotPrints("loops"):
+        res = _ip.run_line_magic('timeit', '-n1 -r1 -q -o 1')
+    assert (res is not None)
+
 @dec.skipif(sys.version_info[0] >= 3, "no differences with __future__ in py3")
 def test_timeit_futures():
     "Test %timeit with __future__ environments"

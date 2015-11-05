@@ -564,7 +564,10 @@ class Inspector:
             for title, key in fields:
                 field = info[key]
                 if field is not None:
-                    displayfields.append((title, field.rstrip()))
+                    if key == "source":
+                        displayfields.append((title, self.format(cast_unicode(field.rstrip()))))
+                    else:
+                        displayfields.append((title, field.rstrip()))
 
         if info['isalias']:
             add_fields([('Repr', "string_form")])

@@ -65,7 +65,7 @@ ipython help profile       # show the help for the profile subcmd
 ipython locate             # print the path to the IPython directory
 ipython locate profile foo # print the path to the directory for profile `foo`
 
-ipython nbconvert           # convert notebooks to/from other formats
+ipython nbconvert          # convert notebooks to/from other formats
 """
 
 #-----------------------------------------------------------------------------

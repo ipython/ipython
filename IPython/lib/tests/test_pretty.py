@@ -350,9 +350,12 @@ def test_collections_deque():
         nt.assert_equal(pretty.pretty(obj), expected)
 
 def test_collections_counter():
+    class MyCounter(Counter):
+        pass
     cases = [
         (Counter(), 'Counter()'),
         (Counter(a=1), "Counter({'a': 1})"),
+        (MyCounter(a=1), "MyCounter({'a': 1})"),
     ]
     for obj, expected in cases:
         nt.assert_equal(pretty.pretty(obj), expected)

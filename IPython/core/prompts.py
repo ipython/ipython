@@ -160,9 +160,10 @@ prompt_abbreviations = {
     # can get numbers displayed in whatever color they want.
     r'\N': '{count}',
 
-    # Prompt/history count, with the actual digits replaced by dots.  Used
-    # mainly in continuation prompts (prompt_in2)
+    # Prompt/history count, with the actual digits replaced by dots or
+    # spaces.  Used mainly in continuation prompts (prompt_in2).
     r'\D': '{dots}',
+    r'\S': '{spaces}',
 
     # Current time
     r'\T' : '{time}',
@@ -257,6 +258,14 @@ def _lenlastline(s):
     return len(s.splitlines()[-1])
 
 
+invisible_chars_re = re.compile('\001[^\001\002]*\002')
+def _invisible_characters(s):
+    """
+    Get the number of invisible ANSI characters in s. Invisible characters
+    must be delimited by \001 and \002.
+    """
+    return _lenlastline(s) - _lenlastline(invisible_chars_re.sub('', s))
+
 class UserNSFormatter(Formatter):
     """A Formatter that falls back on a shell's user_ns and __builtins__ for name resolution"""
     def __init__(self, shell):
@@ -350,8 +359,7 @@ class PromptManager(Configurable):
             self.templates[name] = multiple_replace(prompt_abbreviations, new_template)
         # We count invisible characters (colour escapes) on the last line of the
         # prompt, to calculate the width for lining up subsequent prompts.
-        invis_chars = _lenlastline(self._render(name, color=True)) - \
-                        _lenlastline(self._render(name, color=False))
+        invis_chars = _invisible_characters(self._render(name, color=True))
         self.invisible_chars[name] = invis_chars
     
     def _update_prompt_trait(self, traitname, new_template):
@@ -384,8 +392,8 @@ class PromptManager(Configurable):
         count = self.shell.execution_count    # Shorthand
         # Build the dictionary to be passed to string formatting
         fmtargs = dict(color=colors, count=count,
-                        dots="."*len(str(count)),
-                        width=self.width, txtwidth=self.txtwidth )
+                       dots="."*len(str(count)), spaces=" "*len(str(count)),
+                       width=self.width, txtwidth=self.txtwidth)
         fmtargs.update(self.lazy_evaluate_fields)
         fmtargs.update(kwargs)
         
