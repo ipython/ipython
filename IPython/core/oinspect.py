@@ -566,6 +566,7 @@ class Inspector:
                 if field is not None:
                     if key == "source":
                         displayfields.append((title, self.format(cast_unicode(field.rstrip()))))
+                        displayfields.append((title, PyColorize.hl(cast_unicode(field.rstrip()))))
                     else:
                         displayfields.append((title, field.rstrip()))
 
@@ -621,6 +622,8 @@ class Inspector:
             if detail_level > 0 and info['source'] is not None:
                 displayfields.append(("Source",
                                       self.format(cast_unicode(info['source']))))
+                displayfields.append(("Source",
+                                      PyColorize.hl(cast_unicode(info['source']))))
             elif info['docstring'] is not None:
                 displayfields.append(("Docstring", info["docstring"]))
 
