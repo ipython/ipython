@@ -128,11 +128,11 @@ class DocTestFinder(doctest.DocTestFinder):
         Find tests for the given object and any contained objects, and
         add them to `tests`.
         """
-        #print '_find for:', obj, name, module  # dbg
+        print('_find for:', obj, name, module)  # dbg
         if hasattr(obj,"skip_doctest"):
             #print 'SKIPPING DOCTEST FOR:',obj  # dbg
             obj = DocTestSkip(obj)
-
+        
         doctest.DocTestFinder._find(self,tests, obj, name, module,
                                     source_lines, globs, seen)
 
