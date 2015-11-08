@@ -115,11 +115,9 @@ def test_for(item, min_version=None, callback=extract_version):
 
 # Global dict where we can store information on what we have and what we don't
 # have available at test run time
-have = {}
-
-have['matplotlib'] = test_for('matplotlib')
-have['pygments'] = test_for('pygments')
-have['sqlite3'] = test_for('sqlite3')
+have = {'matplotlib': test_for('matplotlib'),
+        'pygments': test_for('pygments'),
+        'sqlite3': test_for('sqlite3')}
 
 #-----------------------------------------------------------------------------
 # Test suite definitions
