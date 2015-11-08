@@ -235,7 +235,7 @@ class Parser:
             return
 
         # map token type to a color group
-        if token.LPAR <= toktype and toktype <= token.OP:
+        if token.LPAR <= toktype <= token.OP:
             toktype = token.OP
         elif toktype == token.NAME and keyword.iskeyword(toktext):
             toktype = _KEYWORD
