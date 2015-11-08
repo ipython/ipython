@@ -225,7 +225,7 @@ class SList(list):
                 try:
                     n = int(numstr)
                 except ValueError:
-                    n = 0;
+                    n = 0
                 dsu[i][0] = n
 
 
