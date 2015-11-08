@@ -870,8 +870,7 @@ class Inspector:
 
         return object_info(**out)
 
-    def psearch(self,pattern,ns_table,ns_search=[],
-                ignore_case=False,show_all=False):
+    def psearch(self, pattern, ns_table, ns_search=None, ignore_case=False, show_all=False):
         """Search namespaces with wildcards for objects.
 
         Arguments:
@@ -891,6 +890,8 @@ class Inspector:
           - show_all(False): show all names, including those starting with
             underscores.
         """
+        if not ns_search:
+            ns_search = []
         #print 'ps pattern:<%r>' % pattern # dbg
 
         # defaults
