@@ -144,7 +144,7 @@ def test_list_profiles_in():
             break
     if dec.unicode_paths:
         nt.assert_true(found_unicode)
-    nt.assert_equal(set(profiles), set(['foo', 'hello']))
+    nt.assert_equal(set(profiles), {'foo', 'hello'})
 
 
 def test_list_bundled_profiles():
