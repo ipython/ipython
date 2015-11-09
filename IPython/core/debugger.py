@@ -33,9 +33,10 @@ import sys
 
 from IPython import get_ipython
 from IPython.utils import PyColorize, ulinecache
-from IPython.utils import coloransi, io, py3compat
-from IPython.core.excolors import exception_colors
+from IPython.utils import io, py3compat
 from IPython.testing.skipdoctest import skip_doctest
+
+from pygments.token import  Token
 
 # See if we can use pydb.
 has_pydb = False
@@ -56,6 +57,15 @@ if has_pydb:
     prompt = 'ipydb> '
 else:
     from pdb import Pdb as OldPdb
+
+
+def make_arrow(pad):
+    """generate the leading arrow in front of traceback or debugger"""
+    if pad >= 2:
+        return '-'*(pad-2) + '> '
+    elif pad == 1:
+        return '>'
+    return ''
 
 # Allow the set_trace code to operate outside of an ipython instance, even if
 # it does so with some limitations.  The rest of this support is implemented in
@@ -84,7 +94,7 @@ def BdbQuit_excepthook(et, ev, tb, excepthook=None):
         # Backwards compatibility. Raise deprecation warning?
         BdbQuit_excepthook.excepthook_ori(et,ev,tb)
 
-def BdbQuit_IPython_excepthook(self,et,ev,tb,tb_offset=None):
+def BdbQuit_IPython_excepthook(self, et, ev, tb, tb_offset=None):
     print('Exiting Debugger.')
 
 
@@ -134,7 +144,7 @@ class Tracer(object):
             # Outside of ipython, we set our own exception hook manually
             sys.excepthook = functools.partial(BdbQuit_excepthook,
                                                excepthook=sys.excepthook)
-            def_colors = 'NoColor'
+            defaults_colors = 'NoColor'
             try:
                 # Limited tab completion support
                 import readline
@@ -143,11 +153,11 @@ class Tracer(object):
                 pass
         else:
             # In ipython, we use its custom exception handler mechanism
-            def_colors = ip.colors
+            defaults_colors = ip.colors
             ip.set_custom_exc((bdb.BdbQuit,), BdbQuit_IPython_excepthook)
 
         if colors is None:
-            colors = def_colors
+            colors = defaults_colors
 
         # The stdlib debugger internally uses a modified repr from the `repr`
         # module, that limits the length of printed strings to a hardcoded
@@ -176,6 +186,33 @@ class Tracer(object):
         using IPython's enhanced debugger."""
 
         self.debugger.set_trace(sys._getframe().f_back)
+
+
+## helper generators
+
+def _tpl_line(toktype ,a, b, c ):
+    """
+    helper generator to yield a traceback line.
+
+    This will be used to yield the tokens for a normal line, ie indented with 
+    spaces and with the line numbers. 
+    """
+    yield (toktype, a)
+    yield (Token.LineNo, b)
+    yield (Token.LineNo, ' ')
+    yield (Token.Normal, c)
+
+def _tpl_line_em(toktype, a, b, c ):
+    """
+    helper generator to yield a traceback line.
+
+    This will be used to yield the tokens for an empahsed line, ie indented with 
+    an arrow (if set) and with the line numbers. 
+    """
+    yield (toktype, a)
+    yield (Token.LineNoEm, b)
+    yield (Token.LineNoEm, ' ')
+    yield (Token.Line, c)
 
 
 def decorate_fn_with_doc(new_fn, old_fn, additional_text=""):
@@ -209,7 +246,7 @@ def _file_lines(fname):
 class Pdb(OldPdb):
     """Modified Pdb class, does not load readline."""
 
-    def __init__(self,color_scheme='NoColor',completekey=None,
+    def __init__(self, color_scheme='NoColor', completekey=None,
                  stdin=None, stdout=None, context=5):
 
         # Parent constructor:
@@ -258,44 +295,29 @@ class Pdb(OldPdb):
 
         self.aliases = {}
 
-        # Create color table: we copy the default one from the traceback
-        # module and add a few attributes needed for debugging
-        self.color_scheme_table = exception_colors()
-
-        # shorthands
-        C = coloransi.TermColors
-        cst = self.color_scheme_table
-
-        cst['NoColor'].colors.prompt = C.NoColor
-        cst['NoColor'].colors.breakpoint_enabled = C.NoColor
-        cst['NoColor'].colors.breakpoint_disabled = C.NoColor
-
-        cst['Linux'].colors.prompt = C.Green
-        cst['Linux'].colors.breakpoint_enabled = C.LightRed
-        cst['Linux'].colors.breakpoint_disabled = C.Red
-
-        cst['LightBG'].colors.prompt = C.Blue
-        cst['LightBG'].colors.breakpoint_enabled = C.LightRed
-        cst['LightBG'].colors.breakpoint_disabled = C.Red
-
-        self.set_colors(color_scheme)
-
         # Add a python parser so we can syntax highlight source while
         # debugging.
-        self.parser = PyColorize.Parser()
+        self.parser = PyColorize.Parser(style=color_scheme)
+        self.prompt = self.parser.fmt((Token.Prompt, prompt))
 
-        # Set the prompt - the default prompt is '(Pdb)'
-        Colors = cst.active_colors
-        if color_scheme == 'NoColor':
-            self.prompt = prompt
-        else:
-            # The colour markers are wrapped by bytes 01 and 02 so that readline
-            # can calculate the width.
-            self.prompt = u'\x01%s\x02%s\x01%s\x02' % (Colors.prompt, prompt, Colors.Normal)
+# TODO FIX this conflict with 9244
+# <<<<<<< e4b502ff1bcd7e33891f3f8b61953799e5e488cd
+#         # Set the prompt - the default prompt is '(Pdb)'
+#         Colors = cst.active_colors
+#         if color_scheme == 'NoColor':
+#             self.prompt = prompt
+#         else:
+#             # The colour markers are wrapped by bytes 01 and 02 so that readline
+#             # can calculate the width.
+#             self.prompt = u'\x01%s\x02%s\x01%s\x02' % (Colors.prompt, prompt, Colors.Normal)
+# =======
+# >>>>>>> more workon pygments
 
     def set_colors(self, scheme):
-        """Shorthand access to the color table scheme selector method."""
-        self.color_scheme_table.set_active_scheme(scheme)
+        """Shorthand to set the colorscheme used by the debugger"""
+        self.parser.style = scheme
+        self.prompt = self.parser.fmt((Token.Prompt, prompt))
+        
 
     def interaction(self, frame, traceback):
         self.shell.set_completer_frame(frame)
@@ -371,11 +393,9 @@ class Pdb(OldPdb):
                 raise ValueError("Context must be a positive integer")
         print(self.format_stack_entry(frame_lineno, '', context), file=io.stdout)
 
-        # vds: >>
         frame, lineno = frame_lineno
         filename = frame.f_code.co_filename
         self.shell.hooks.synchronize_with_editor(filename, lineno, 0)
-        # vds: <<
 
     def format_stack_entry(self, frame_lineno, lprefix=': ', context=None):
         if context is None:
@@ -386,33 +406,25 @@ class Pdb(OldPdb):
                 print("Context must be a positive integer")
         except (TypeError, ValueError):
                 print("Context must be a positive integer")
+        return self.parser.fmt(*self._yield_format_stack_entry(frame_lineno, lprefix=lprefix, context=context))
+
+
+    def _yield_format_stack_entry(self, frame_lineno, lprefix=': ', context = 3):
         try:
             import reprlib  # Py 3
         except ImportError:
             import repr as reprlib  # Py 2
-
-        ret = []
-
-        Colors = self.color_scheme_table.active_colors
-        ColorsNormal = Colors.Normal
-        tpl_link = u'%s%%s%s' % (Colors.filenameEm, ColorsNormal)
-        tpl_call = u'%s%%s%s%%s%s' % (Colors.vName, Colors.valEm, ColorsNormal)
-        tpl_line = u'%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
-        tpl_line_em = u'%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line,
-                                            ColorsNormal)
 
         frame, lineno = frame_lineno
 
         return_value = ''
         if '__return__' in frame.f_locals:
             rv = frame.f_locals['__return__']
-            #return_value += '->'
             return_value += reprlib.repr(rv) + '\n'
-        ret.append(return_value)
+        yield (Token.Normal, return_value)
 
-        #s = filename + '(' + `lineno` + ')'
         filename = self.canonic(frame.f_code.co_filename)
-        link = tpl_link % py3compat.cast_unicode(filename)
+        link = self.parser.fmt((Token.FileNameEm,py3compat.cast_unicode(filename)))
 
         if frame.f_code.co_name:
             func = frame.f_code.co_name
@@ -425,15 +437,15 @@ class Pdb(OldPdb):
                 args = reprlib.repr(frame.f_locals['__args__'])
             else:
                 args = '()'
-            call = tpl_call % (func, args)
+            call = self.parser.fmt((Token.VName, func), (Token.ValEm, args ))
 
         # The level info should be generated in the same format pdb uses, to
         # avoid breaking the pdbtrack functionality of python-mode in *emacs.
         if frame is self.curframe:
-            ret.append('> ')
+            yield (Token.Normal, '> ')
         else:
-            ret.append('  ')
-        ret.append(u'%s(%s)%s\n' % (link,lineno,call))
+            yield (Token.Normal, '  ')
+        yield (Token.Normal, u'%s(%s)%s\n' % (link,lineno,call))
 
         start = lineno - 1 - context//2
         lines = ulinecache.getlines(filename)
@@ -443,34 +455,41 @@ class Pdb(OldPdb):
 
         for i,line in enumerate(lines):
             show_arrow = (start + 1 + i == lineno)
-            linetpl = (frame is self.curframe or show_arrow) \
-                      and tpl_line_em \
-                      or tpl_line
-            ret.append(self.__format_line(linetpl, filename,
+            linetpl = (_tpl_line_em if (frame is self.curframe or show_arrow) else _tpl_line)
+            for tok in  self._yield_format_line(linetpl, filename,
                                           start + 1 + i, line,
-                                          arrow = show_arrow) )
-        return ''.join(ret)
+                                          arrow = show_arrow):
+                yield tok
 
     def __format_line(self, tpl_line, filename, lineno, line, arrow = False):
-        bp_mark = ""
-        bp_mark_color = ""
+        return self.parser.fmt(*self._yield_format_line(tpl_line, filename, lineno, line, arrow = arrow))
 
-        scheme = self.color_scheme_table.active_scheme_name
-        new_line, err = self.parser.format2(line, 'str', scheme)
+    def _yield_format_line(self, tpl_line, filename, lineno, line, arrow = False):
+        """
+        Helper generator that yield the token for one line of a stack trace. 
+
+        Will format the breakpoints in the gutter, insert line numbers, and add an arrow
+        for the emphased line.
+        """
+        bp_mark = ""
+        bp = None
+        toktype = Token.Normal
+
+        new_line, err = self.parser.format2(line, 'str')
         if not err: line = new_line
 
-        bp = None
         if lineno in self.get_file_breaks(filename):
             bps = self.get_breaks(filename, lineno)
             bp = bps[-1]
 
         if bp:
-            Colors = self.color_scheme_table.active_colors
             bp_mark = str(bp.number)
-            bp_mark_color = Colors.breakpoint_enabled
+            toktype = Token.Breakpoint.Enabled
             if not bp.enabled:
-                bp_mark_color = Colors.breakpoint_disabled
+                toktype = Token.Breakpoint.Disabled
 
+        # TODO: this likely can be shared with ultratb.py
+        # which has the same functionality
         numbers_width = 7
         if arrow:
             # This is the line with the error
@@ -479,8 +498,7 @@ class Pdb(OldPdb):
         else:
             num = '%*s' % (numbers_width - len(bp_mark), str(lineno))
 
-        return tpl_line % (bp_mark_color + bp_mark, num, line)
-
+        return tpl_line(toktype, bp_mark, num, line)
 
     def list_command_pydb(self, arg):
         """List command to use if we have a newer pydb installed"""
@@ -492,10 +510,7 @@ class Pdb(OldPdb):
         """The printing (as opposed to the parsing part of a 'list'
         command."""
         try:
-            Colors = self.color_scheme_table.active_colors
-            ColorsNormal = Colors.Normal
-            tpl_line = '%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
-            tpl_line_em = '%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line, ColorsNormal)
+
             src = []
             if filename == "<string>" and hasattr(self, "_exec_filename"):
                 filename = self._exec_filename
@@ -506,9 +521,9 @@ class Pdb(OldPdb):
                     break
 
                 if lineno == self.curframe.f_lineno:
-                    line = self.__format_line(tpl_line_em, filename, lineno, line, arrow = True)
+                    line = self.__format_line(_tpl_line_em, filename, lineno, line, arrow = True)
                 else:
-                    line = self.__format_line(tpl_line, filename, lineno, line, arrow = False)
+                    line = self.__format_line(_tpl_line, filename, lineno, line, arrow = False)
 
                 src.append(line)
                 self.lineno = lineno
@@ -544,11 +559,9 @@ class Pdb(OldPdb):
             last = first + 10
         self.print_list_lines(self.curframe.f_code.co_filename, first, last)
 
-        # vds: >>
         lineno = first
         filename = self.curframe.f_code.co_filename
         self.shell.hooks.synchronize_with_editor(filename, lineno, 0)
-        # vds: <<
 
     do_l = do_list
 
@@ -570,7 +583,12 @@ class Pdb(OldPdb):
             return
         last = lineno + len(lines)
         self.print_list_lines(self.curframe.f_code.co_filename, lineno, last)
+
     do_ll = do_longlist
+
+    def do_colors(self, arg):
+        """allow to change colors from inside debugger"""
+        self.set_colors(arg)
 
     def do_pdef(self, arg):
         """Print the call signature for any callable object.

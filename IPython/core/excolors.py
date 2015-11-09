@@ -14,6 +14,9 @@ import warnings
 
 from IPython.utils.coloransi import ColorSchemeTable, TermColors, ColorScheme
 
+# TODO: mode that to the theming handling
+# Dynamically map these to other token types if not defined in the
+# Themes, and define these for LightBG and LinuxColor.
 def exception_colors():
     """Return a color table with fields for exception reporting.
 
@@ -26,7 +29,7 @@ def exception_colors():
     >>> ec = exception_colors()
     >>> ec.active_scheme_name
     ''
-    >>> print(ec.active_colors)
+    >>> print(ec.active_colors)IPython/core/excolors.py
     None
 
     Now we activate a color scheme:

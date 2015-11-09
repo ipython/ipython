@@ -12,15 +12,17 @@ reference the name under which an object is being read.
 
 from __future__ import print_function
 
-__all__ = ['Inspector','InspectColors']
+__all__ = ['Inspector']
 
 # stdlib modules
 import inspect
 import linecache
 import os
-from textwrap import dedent
 import types
 import io as stdlib_io
+import warnings
+
+from textwrap import dedent
 
 try:
     from itertools import izip_longest
@@ -39,7 +41,6 @@ from IPython.utils.dir2 import safe_hasattr
 from IPython.utils.path import compress_user
 from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace
-from IPython.utils.coloransi import TermColors, ColorScheme, ColorSchemeTable
 from IPython.utils.py3compat import cast_unicode, string_types, PY3
 from IPython.utils.signatures import signature
 from IPython.utils.colorable import Colorable
@@ -55,11 +56,6 @@ _builtin_type_docstrings = {
 _builtin_func_type = type(all)
 _builtin_meth_type = type(str.upper)  # Bound methods have the same type as builtin functions
 #****************************************************************************
-# Builtin color schemes
-
-Colors = TermColors  # just a shorthand
-
-InspectColors = PyColorize.ANSICodeColors
 
 #****************************************************************************
 # Auxiliary functions and objects
@@ -365,19 +361,28 @@ def find_source_lines(obj):
 
     return lineno
 
+DeprecatedAgument = object()
 
 class Inspector(Colorable):
-    def __init__(self, color_table=InspectColors,
-                 code_color_table=PyColorize.ANSICodeColors,
-                 scheme='NoColor',
-                 str_detail_level=0, 
-                 parent=None, config=None):
+    def __init__(self, color_table=DeprecatedAgument,
+                 code_color_table=DeprecatedAgument,
+                 scheme=None,
+                 str_detail_level=0, parent=None, config=None):
+
         super(Inspector, self).__init__(parent=parent, config=config)
-        self.color_table = color_table
+        if color_table is not DeprecatedAgument:
+            warnings.warn("IPython.core.oinspect:Inspectorcolor(color_table)"
+                "argument is now ignore and will be removed in future versions", 
+                DeprecationWarning)
+
+        if code_color_table is not DeprecatedAgument:
+            warnings.warn("IPython.core.oinspect:Inspectorcolor(code_color_table)"
+                "argument is now ignore and will be removed in future versions", 
+                DeprecationWarning)
+
         self.parser = PyColorize.Parser(out='str', parent=self, style=scheme)
         self.format = self.parser.format
         self.str_detail_level = str_detail_level
-        self.set_active_scheme(scheme)
 
     def _getdef(self,obj,oname=''):
         """Return the call signature for any callable object.
@@ -392,12 +397,10 @@ class Inspector(Colorable):
 
     def __head(self,h):
         """Return a header string with proper colors."""
-        return '%s%s%s' % (self.color_table.active_colors.header,h,
-                           self.color_table.active_colors.normal)
+        return self.parser._form.single_fmt(h, 'Token.Generic.Subheading')
 
     def set_active_scheme(self, scheme):
-        self.color_table.set_active_scheme(scheme)
-        self.parser.color_table.set_active_scheme(scheme)
+        self.parser.style = scheme
 
     def noinfo(self, msg, oname):
         """Generic message when no information is found."""
