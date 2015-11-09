@@ -804,11 +804,10 @@ class InteractiveShell(SingletonConfigurable):
 
         This has to be called after self.user_module is created.
         """
-        self._orig_sys_module_state = {}
-        self._orig_sys_module_state['stdin'] = sys.stdin
-        self._orig_sys_module_state['stdout'] = sys.stdout
-        self._orig_sys_module_state['stderr'] = sys.stderr
-        self._orig_sys_module_state['excepthook'] = sys.excepthook
+        self._orig_sys_module_state = {'stdin': sys.stdin,
+                                       'stdout': sys.stdout,
+                                       'stderr': sys.stderr,
+                                       'excepthook': sys.excepthook}
         self._orig_sys_modules_main_name = self.user_module.__name__
         self._orig_sys_modules_main_mod = sys.modules.get(self.user_module.__name__)
 
