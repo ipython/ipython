@@ -1471,7 +1471,7 @@ class InteractiveShell(SingletonConfigurable):
                            ]
 
         # initialize results to 'null'
-        found = False; obj = None;  ospace = None;  ds = None;
+        found = False; obj = None;  ospace = None;  ds = None
         ismagic = False; isalias = False; parent = None
 
         # We need to special-case 'print', which as of python2.6 registers as a
