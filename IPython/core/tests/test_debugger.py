@@ -77,6 +77,11 @@ def test_ipdb_magics():
 
     First, set up some test functions and classes which we can inspect.
 
+    >>> ip = get_ipython()
+    >>> old_style = ip.inspector.parser.style
+    >>> ip.inspector.parser.style = 'nocolor'
+
+
     >>> class ExampleClass(object):
     ...    """Docstring for ExampleClass."""
     ...    def __init__(self):
@@ -129,6 +134,7 @@ def test_ipdb_magics():
     Restore previous trace function, e.g. for coverage.py    
     
     >>> sys.settrace(old_trace)
+    >>> ip.inspector.parser.style = old_style
     '''
 
 def test_ipdb_magics2():

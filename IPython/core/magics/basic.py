@@ -6,6 +6,7 @@ import io
 import json
 import sys
 from pprint import pformat
+from textwrap import wrap
 
 from IPython.core import magic_arguments, page
 from IPython.core.error import UsageError
@@ -16,6 +17,7 @@ from IPython.utils.ipstruct import Struct
 from IPython.utils.path import unquote_filename
 from IPython.utils.py3compat import unicode_type
 from IPython.utils.warn import warn, error
+from IPython.utils import PyColorize
 
 
 class MagicsDisplay(object):
@@ -73,6 +75,9 @@ class BasicMagics(Magics):
 
     These are various magics that don't fit into specific categories but that
     are all part of the base 'IPython experience'."""
+
+    def __init__(self, *args, **kwargs):
+        super(BasicMagics, self).__init__(*args, **kwargs)
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
@@ -315,25 +320,23 @@ Currently the magic system has the following functions:""",
     def colors(self, parameter_s=''):
         """Switch color scheme for prompts, info system and exception handlers.
 
-        Currently implemented schemes: NoColor, Linux, LightBG.
-
-        Color scheme names are not case-sensitive.
-
         Examples
         --------
         To get a plain black and white terminal::
 
           %colors nocolor
+
         """
+
         def color_switch_err(name):
             warn('Error changing %s color schemes.\n%s' %
                  (name, sys.exc_info()[1]))
 
-
         new_scheme = parameter_s.strip()
         if not new_scheme:
             raise UsageError(
-                "%colors: you must specify a color scheme. See '%colors?'")
+                "%colors: you must specify a color scheme. See '%colors?'\n"
+                "known themes: {}".format(PyColorize.available_themes()))
         # local shortcut
         shell = self.shell
 
@@ -355,14 +358,10 @@ Defaulting color scheme to 'NoColor'"""
         if not shell.colors_force and not shell.has_readline:
             new_scheme = 'NoColor'
 
-        # Set prompt colors
-        try:
-            shell.prompt_manager.color_scheme = new_scheme
-        except:
-            color_switch_err('prompt')
-        else:
-            shell.colors = \
-                   shell.prompt_manager.color_scheme_table.active_scheme_name
+        # Set color globally on the shell object, 
+        # which will take care of propagating down
+        shell.colors = new_scheme
+
         # Set exception colors
         try:
             shell.InteractiveTB.set_colors(scheme = new_scheme)
@@ -370,14 +369,6 @@ Defaulting color scheme to 'NoColor'"""
         except:
             color_switch_err('exception')
 
-        # Set info (for 'object?') colors
-        if shell.color_info:
-            try:
-                shell.inspector.set_active_scheme(new_scheme)
-            except:
-                color_switch_err('object inspector')
-        else:
-            shell.inspector.set_active_scheme('NoColor')
 
     @line_magic
     def xmode(self, parameter_s=''):
@@ -611,3 +602,11 @@ Defaulting color scheme to 'NoColor'"""
             nb = v4.new_notebook(cells=cells)
             with io.open(args.filename, 'w', encoding='utf-8') as f:
                 write(nb, f, version=4)
+
+
+BasicMagics.colors.__doc__ = BasicMagics.colors.__doc__ +\
+        'Known themes :\n\n'+indent(indent(
+        '\n'.join(wrap(
+            ', '.join(PyColorize.available_themes())
+        )))
+        )

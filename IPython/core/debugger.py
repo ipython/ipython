@@ -29,7 +29,6 @@ from __future__ import print_function
 import bdb
 import functools
 import inspect
-import linecache
 import sys
 
 from IPython import get_ipython
@@ -94,7 +93,7 @@ class Tracer(object):
     """
 
     @skip_doctest
-    def __init__(self,colors=None):
+    def __init__(self, colors=None):
         """Create a local debugger instance.
 
         Parameters
@@ -267,7 +266,7 @@ class Pdb(OldPdb):
 
         # Add a python parser so we can syntax highlight source while
         # debugging.
-        self.parser = PyColorize.Parser()
+        self.parser = PyColorize.Parser(style=color_scheme)
 
         # Set the prompt
         Colors = cst.active_colors
@@ -529,8 +528,6 @@ class Pdb(OldPdb):
 
     def do_longlist(self, arg):
         self.lastcmd = 'longlist'
-        filename = self.curframe.f_code.co_filename
-        breaklist = self.get_file_breaks(filename)
         try:
             lines, lineno = self.getsourcelines(self.curframe)
         except OSError as err:
@@ -538,6 +535,7 @@ class Pdb(OldPdb):
             return
         last = lineno + len(lines)
         self.print_list_lines(self.curframe.f_code.co_filename, lineno, last)
+
     do_ll = do_longlist
 
     def do_pdef(self, arg):

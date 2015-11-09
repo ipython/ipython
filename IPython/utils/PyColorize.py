@@ -38,8 +38,7 @@ _scheme_default = 'Linux'
 
 
 # Imports
-import keyword
-import os
+import io
 import sys
 import token
 import tokenize
@@ -58,6 +57,127 @@ if PY3:
     from io import StringIO
 else:
     from StringIO import StringIO
+
+from pygments import highlight
+from pygments.lexers import PythonLexer
+from pygments.formatters import  Terminal256Formatter
+import pygments.styles
+
+from collections import defaultdict
+
+from IPython.utils.linux import LinuxStyle
+from IPython.utils.lightbg import LightBGStyle, NoColorStyle
+from traitlets.config import Configurable
+from traitlets import Unicode, Bool
+
+available_themes = lambda : [s for s in pygments.styles.get_all_styles()]+['NoColor','LightBG','Linux']
+
+class Colorable(Configurable):
+    """
+    A subclass of configurable for all the classes that have a `default_scheme`
+    """
+    default_style=Unicode('lightbg', config=True)
+
+
+## map from lower case styles 
+# to uppercase one. 
+style_map = {
+    'linux': LinuxStyle,
+    'Linux': LinuxStyle,
+    'lightbg': LightBGStyle, 
+    'LightBG': LightBGStyle, 
+    'nocolor': NoColorStyle,
+    'NoColors': NoColorStyle,
+    'NoColor': NoColorStyle,
+    }
+
+## map to old-style Prompt token name to new ones. 
+tmap = {
+    'in_number': 'Token.InPrompt.Color',
+    'in_prompt': 'Token.InPrompt.Number',
+    'out_number': 'Token.OutPrompt.Color',
+    'out_prompt': 'Token.OutPrompt.Number',
+}
+
+## map to default Token name, if the definition for above token do not exist
+# (eg, all the non-ipython styles in pygments) 
+fallbackp = defaultdict(lambda:'Token.Literal.String',{
+    'in_number': 'Token.Keyword',
+    'in_prompt': 'Token.Keyword',
+    'out_number': 'Token.Generic.Output',
+    'out_prompt': 'Token.Generic.Output',
+})
+
+
+class debugWrappAccessor(dict):
+    def __getitem__(self, key):
+        return ('<'+key+'>', '</'+key+'>')
+
+
+class wrappAccessor(dict):
+    """
+    Wrapper Pygments styles Setting dict that wrap colors codes in \001 and \002
+    to correctly calculate the length of formatted strings when redrawing the
+    prompts.
+    """
+
+    def __getitem__(self, key):
+        try:
+            return dict.__getitem__(self,key)
+        except:
+            pass
+        if isinstance(key, str):
+            for k in (key, tmap[key], fallbackp[key]):
+                try:
+                    escape_code = dict.__getitem__(self,k)
+                except KeyError:
+                    escape_code = None
+                if escape_code:
+                    break
+            if escape_code:
+                # if there are escape codes, wrap them in
+                v = ['\001%s\002'% x  if x else '' for x in escape_code ] 
+                return v
+                 
+def normalize_style(style):
+    return style_map.get(style, style)
+
+class IPythonTerm256Formatter(Colorable, Terminal256Formatter ):
+    """Pygments Terminal formater special-cased for IPython
+
+    Addition of single_format, that **returns** a single formatted token.
+    Wraps colorcodes on \001 and \002 to correctly measure length of colored
+    strings. 
+    """
+
+    debug = Bool(False, config=True, help='replace color by <tagname>...<tagname>')
+    
+    def __init__(self, *args, **kwargs):
+        Colorable.__init__(self, *args, **kwargs)
+
+        if kwargs.get('style'):
+            kwargs['style'] = normalize_style(kwargs['style'])
+        else:
+            kwargs['style']= normalize_style(self.default_style)
+        
+        Terminal256Formatter.__init__(self, *args, **kwargs)
+
+        # patch for subclass to go through accessors.
+        if self.debug:
+            self.style_string = debugWrappAccessor(self.style_string)
+        else:
+            self.style_string = wrappAccessor(self.style_string)
+    
+        
+    def single_fmt(self, string, ttype):
+        """
+        Format string with the style of ttype token.
+        """
+        S = io.StringIO()
+        self.format([(ttype,string)], S)
+        S.seek(0)
+        return S.read()
+
 
 #############################################################################
 ### Python Source Parser (does Hilighting)
@@ -118,6 +238,7 @@ LinuxColors = ColorScheme(
     'out_number'     : Colors.LightRed,
 
     'normal'         : Colors.Normal  # color off (usu. Colors.Normal)
+    
     } )
 
 LightBGColors = ColorScheme(
@@ -148,17 +269,36 @@ LightBGColors = ColorScheme(
 ANSICodeColors = ColorSchemeTable([NoColor,LinuxColors,LightBGColors],
                                   _scheme_default)
 
-class Parser:
+class Parser(Colorable):
     """ Format colored Python source.
     """
 
-    def __init__(self, color_table=None,out = sys.stdout):
+    style = Unicode(None, allow_none=True)
+
+    def _style_changed(self, name, old, new):
+        if new != old:
+            self._form = IPythonTerm256Formatter(style=new, parent=self)
+            return new
+        
+
+    def __init__(self, color_table=None, out=sys.stdout, parent=None, style=None):
         """ Create a parser with a specified color table and output channel.
+
+        color_table: DEPRECATED. Has no effects.
 
         Call format() to process code.
         """
-        self.color_table = color_table and color_table or ANSICodeColors
+        super(Parser, self).__init__(parent=parent)
         self.out = out
+        self._lex = PythonLexer()
+        if style: 
+            self.style=style
+        else:
+            self.style = self.default_style
+        self._form = IPythonTerm256Formatter(style=self.style, parent=self)
+        
+    def _pylight(self, code):
+        return highlight(code, self._lex, self._form)
 
     def format(self, raw, out = None, scheme = ''):
         return self.format2(raw, out, scheme)[0]
@@ -173,16 +313,16 @@ class Parser:
         string 'str' and the parser will automatically return the output in a
         string."""
 
-        string_output = 0
+        string_output = False
         if out == 'str' or self.out == 'str' or \
-           isinstance(self.out,StringIO):
+           isinstance(self.out, StringIO):
             # XXX - I don't really like this state handling logic, but at this
             # point I don't want to make major changes, so adding the
             # isinstance() check is the simplest I can do to ensure correct
             # behavior.
             out_old = self.out
             self.out = StringIO()
-            string_output = 1
+            string_output = True
         elif out is not None:
             self.out = out
 
@@ -191,152 +331,25 @@ class Parser:
             error = False
             self.out.write(raw)
             if string_output:
-                return raw,error
+                return raw, error
             else:
-                return None,error
-
-        # local shorthands
-        colors = self.color_table[scheme].colors
-        self.colors = colors # put in object so __call__ sees it
+                return None, error
 
         # Remove trailing whitespace and normalize tabs
         self.raw = raw.expandtabs().rstrip()
 
-        # store line offsets in self.lines
-        self.lines = [0, 0]
-        pos = 0
-        raw_find = self.raw.find
-        lines_append = self.lines.append
-        while 1:
-            pos = raw_find('\n', pos) + 1
-            if not pos: break
-            lines_append(pos)
-        lines_append(len(self.raw))
-
         # parse the source and write it
-        self.pos = 0
-        text = StringIO(self.raw)
-
         error = False
         try:
-            for atoken in generate_tokens(text.readline):
-                self(*atoken)
-        except tokenize.TokenError as ex:
-            msg = ex.args[0]
-            line = ex.args[1][0]
-            self.out.write("%s\n\n*** ERROR: %s%s%s\n" %
-                           (colors[token.ERRORTOKEN],
-                            msg, self.raw[self.lines[line]:],
-                            colors.normal)
-                           )
+            highlighted = self._pylight(self.raw)
+        # TODO: figure out what kind of exception it can throw 
+        except Exception :
             error = True
-        self.out.write(colors.normal+'\n')
+
+        self.out.write(highlighted)
+
         if string_output:
             output = self.out.getvalue()
             self.out = out_old
             return (output, error)
         return (None, error)
-
-    def __call__(self, toktype, toktext, start_pos, end_pos, line):
-        """ Token handler, with syntax highlighting."""
-        (srow,scol) = start_pos
-        (erow,ecol) = end_pos
-        colors = self.colors
-        owrite = self.out.write
-
-        # line separator, so this works across platforms
-        linesep = os.linesep
-
-        # calculate new positions
-        oldpos = self.pos
-        newpos = self.lines[srow] + scol
-        self.pos = newpos + len(toktext)
-
-        # send the original whitespace, if needed
-        if newpos > oldpos:
-            owrite(self.raw[oldpos:newpos])
-
-        # skip indenting tokens
-        if toktype in [token.INDENT, token.DEDENT]:
-            self.pos = newpos
-            return
-
-        # map token type to a color group
-        if token.LPAR <= toktype <= token.OP:
-            toktype = token.OP
-        elif toktype == token.NAME and keyword.iskeyword(toktext):
-            toktype = _KEYWORD
-        color = colors.get(toktype, colors[_TEXT])
-
-        #print '<%s>' % toktext,    # dbg
-
-        # Triple quoted strings must be handled carefully so that backtracking
-        # in pagers works correctly. We need color terminators on _each_ line.
-        if linesep in toktext:
-            toktext = toktext.replace(linesep, '%s%s%s' %
-                                      (colors.normal,linesep,color))
-
-        # send text
-        owrite('%s%s%s' % (color,toktext,colors.normal))
-
-def main(argv=None):
-    """Run as a command-line script: colorize a python file or stdin using ANSI
-    color escapes and print to stdout.
-
-    Inputs:
-
-      - argv(None): a list of strings like sys.argv[1:] giving the command-line
-        arguments. If None, use sys.argv[1:].
-    """
-
-    usage_msg = """%prog [options] [filename]
-
-Colorize a python file or stdin using ANSI color escapes and print to stdout.
-If no filename is given, or if filename is -, read standard input."""
-
-    import optparse
-    parser = optparse.OptionParser(usage=usage_msg)
-    newopt = parser.add_option
-    newopt('-s','--scheme',metavar='NAME',dest='scheme_name',action='store',
-           choices=['Linux','LightBG','NoColor'],default=_scheme_default,
-           help="give the color scheme to use. Currently only 'Linux'\
- (default) and 'LightBG' and 'NoColor' are implemented (give without\
- quotes)")
-
-    opts,args = parser.parse_args(argv)
-
-    if len(args) > 1:
-        parser.error("you must give at most one filename.")
-
-    if len(args) == 0:
-        fname = '-' # no filename given; setup to read from stdin
-    else:
-        fname = args[0]
-
-    if fname == '-':
-        stream = sys.stdin
-    else:
-        try:
-            stream = open(fname)
-        except IOError as msg:
-            print(msg, file=sys.stderr)
-            sys.exit(1)
-
-    parser = Parser()
-
-    # we need nested try blocks because pre-2.5 python doesn't support unified
-    # try-except-finally
-    try:
-        try:
-            # write colorized version to stdout
-            parser.format(stream.read(),scheme=opts.scheme_name)
-        except IOError as msg:
-            # if user reads through a pager and quits, don't print traceback
-            if msg.args != (32,'Broken pipe'):
-                raise
-    finally:
-        if stream is not sys.stdin:
-            stream.close() # in case a non-handled exception happened above
-
-if __name__ == "__main__":
-    main()

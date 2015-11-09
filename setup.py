@@ -195,6 +195,7 @@ install_requires = [
     'pickleshare',
     'simplegeneric>0.8',
     'traitlets',
+    'pygments',
 ]
 
 # Platform-specific dependencies:

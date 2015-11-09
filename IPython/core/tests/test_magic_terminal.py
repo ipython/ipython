@@ -25,6 +25,7 @@ else:
 # Globals
 #-----------------------------------------------------------------------------
 ip = get_ipython()
+ip.colors = 'nocolor'
 
 #-----------------------------------------------------------------------------
 # Test functions begin
@@ -183,7 +184,7 @@ class PasteTestCase(TestCase):
             ip.write = writer
         nt.assert_equal(ip.user_ns['a'], 100)
         nt.assert_equal(ip.user_ns['b'], 200)
-        nt.assert_equal(out, code+"\n## -- End pasted text --\n")
+        nt.assert_equal(out, code[1:]+"\n\n## -- End pasted text --\n")
 
     def test_paste_leading_commas(self):
         "Test multiline strings with leading commas"

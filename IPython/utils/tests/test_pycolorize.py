@@ -70,8 +70,7 @@ def test_loop_colors():
         def test_parse_error():
             p = Parser()
             f1 = p.format(')', 'str', scheme=scheme)
-            if scheme != 'NoColor':
-                nt.assert_in('ERROR', f1)
+            nt.assert_equal(f1.endswith('\n'), True)
 
         yield test_unicode_colorize
         yield test_parse_sample
