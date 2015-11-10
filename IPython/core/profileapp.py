@@ -149,14 +149,14 @@ class ProfileList(Application):
         )
     ))
 
-    ipython_dir = Unicode(get_ipython_dir(), config=True,
+    ipython_dir = Unicode(get_ipython_dir(), 
         help="""
         The name of the IPython directory. This directory is used for logging
         configuration (through profiles), history storage, etc. The default
         is usually $HOME/.ipython. This options can also be specified through
         the environment variable IPYTHONDIR.
         """
-    )
+    ).tag(config=True)
 
 
     def _print_profiles(self, profiles):
@@ -211,15 +211,15 @@ class ProfileCreate(BaseIPythonApplication):
     name = u'ipython-profile'
     description = create_help
     examples = _create_examples
-    auto_create = Bool(True, config=False)
+    auto_create = Bool(True).tag(config=False)
     def _log_format_default(self):
         return "[%(name)s] %(message)s"
 
     def _copy_config_files_default(self):
         return True
 
-    parallel = Bool(False, config=True,
-        help="whether to include parallel computing config files")
+    parallel = Bool(False, 
+        help="whether to include parallel computing config files").tag(config=True)
     def _parallel_changed(self, name, old, new):
         parallel_files = [   'ipcontroller_config.py',
                             'ipengine_config.py',

@@ -290,7 +290,7 @@ class PromptManager(Configurable):
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
     
     color_scheme_table = Instance(coloransi.ColorSchemeTable, allow_none=True)
-    color_scheme = Unicode('Linux', config=True)
+    color_scheme = Unicode('Linux').tag(config=True)
     def _color_scheme_changed(self, name, new_value):
         self.color_scheme_table.set_active_scheme(new_value)
         for pname in ['in', 'in2', 'out', 'rewrite']:
@@ -305,17 +305,17 @@ class PromptManager(Configurable):
         """)
     def _lazy_evaluate_fields_default(self): return lazily_evaluate.copy()
     
-    in_template = Unicode('In [\\#]: ', config=True,
-        help="Input prompt.  '\\#' will be transformed to the prompt number")
-    in2_template = Unicode('   .\\D.: ', config=True,
-        help="Continuation prompt.")
-    out_template = Unicode('Out[\\#]: ', config=True,
-        help="Output prompt. '\\#' will be transformed to the prompt number")
+    in_template = Unicode('In [\\#]: ', 
+        help="Input prompt.  '\\#' will be transformed to the prompt number").tag(config=True)
+    in2_template = Unicode('   .\\D.: ', 
+        help="Continuation prompt.").tag(config=True)
+    out_template = Unicode('Out[\\#]: ', 
+        help="Output prompt. '\\#' will be transformed to the prompt number").tag(config=True)
     
-    justify = Bool(True, config=True, help="""
+    justify = Bool(True, help="""
         If True (default), each prompt will be right-aligned with the
         preceding one.
-        """)
+        """).tag(config=True)
     
     # We actually store the expanded templates here:
     templates = Dict()

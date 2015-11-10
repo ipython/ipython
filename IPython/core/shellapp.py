@@ -133,67 +133,67 @@ class InteractiveShellApp(Configurable):
       - :meth:`init_extensions`
       - :meth:`init_code`
     """
-    extensions = List(Unicode(), config=True,
+    extensions = List(Unicode(), 
         help="A list of dotted module names of IPython extensions to load."
-    )
-    extra_extension = Unicode('', config=True,
+    ).tag(config=True)
+    extra_extension = Unicode('', 
         help="dotted module name of an IPython extension to load."
-    )
+    ).tag(config=True)
 
     reraise_ipython_extension_failures = Bool(
         False,
-        config=True,
+        
         help="Reraise exceptions encountered loading IPython extensions?",
-    )
+    ).tag(config=True)
 
     # Extensions that are always loaded (not configurable)
-    default_extensions = List(Unicode(), [u'storemagic'], config=False)
+    default_extensions = List(Unicode(), [u'storemagic']).tag(config=False)
     
-    hide_initial_ns = Bool(True, config=True,
+    hide_initial_ns = Bool(True, 
         help="""Should variables loaded at startup (by startup files, exec_lines, etc.)
         be hidden from tools like %who?"""
-    )
+    ).tag(config=True)
 
-    exec_files = List(Unicode(), config=True,
+    exec_files = List(Unicode(), 
         help="""List of files to run at IPython startup."""
-    )
-    exec_PYTHONSTARTUP = Bool(True, config=True,
+    ).tag(config=True)
+    exec_PYTHONSTARTUP = Bool(True, 
         help="""Run the file referenced by the PYTHONSTARTUP environment
         variable at IPython startup."""
-    )
-    file_to_run = Unicode('', config=True,
-        help="""A file to be run""")
+    ).tag(config=True)
+    file_to_run = Unicode('', 
+        help="""A file to be run""").tag(config=True)
 
-    exec_lines = List(Unicode(), config=True,
+    exec_lines = List(Unicode(), 
         help="""lines of code to run at IPython startup."""
-    )
-    code_to_run = Unicode('', config=True,
+    ).tag(config=True)
+    code_to_run = Unicode('', 
         help="Execute the given command string."
-    )
-    module_to_run = Unicode('', config=True,
+    ).tag(config=True)
+    module_to_run = Unicode('', 
         help="Run the module as a script."
-    )
-    gui = CaselessStrEnum(gui_keys, config=True, allow_none=True,
+    ).tag(config=True)
+    gui = CaselessStrEnum(gui_keys, allow_none=True,
         help="Enable GUI event loop integration with any of {0}.".format(gui_keys)
-    )
+    ).tag(config=True)
     matplotlib = CaselessStrEnum(backend_keys, allow_none=True,
-        config=True,
+        
         help="""Configure matplotlib for interactive use with
         the default matplotlib backend."""
-    )
+    ).tag(config=True)
     pylab = CaselessStrEnum(backend_keys, allow_none=True,
-        config=True,
+        
         help="""Pre-load matplotlib and numpy for interactive use,
         selecting a particular matplotlib backend and loop integration.
         """
-    )
-    pylab_import_all = Bool(True, config=True,
+    ).tag(config=True)
+    pylab_import_all = Bool(True, 
         help="""If true, IPython will populate the user namespace with numpy, pylab, etc.
         and an ``import *`` is done from numpy and pylab, when using pylab mode.
         
         When False, pylab mode should not import any names into the user namespace.
         """
-    )
+    ).tag(config=True)
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC',
                      allow_none=True)
     

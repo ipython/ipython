@@ -127,7 +127,7 @@ class HistoryAccessor(HistoryAccessorBase):
     HistoryManager, below, which is a subclass of this."""
 
     # String holding the path to the history file
-    hist_file = Unicode(config=True,
+    hist_file = Unicode(
         help="""Path to file to use for SQLite history database.
         
         By default, IPython will put the history database in the IPython
@@ -140,9 +140,9 @@ class HistoryAccessor(HistoryAccessorBase):
         
             ipython --HistoryManager.hist_file=/tmp/ipython_hist.sqlite
         
-        """)
+        """).tag(config=True)
     
-    enabled = Bool(True, config=True,
+    enabled = Bool(True, 
         help="""enable the SQLite history
         
         set enabled=False to disable the SQLite history,
@@ -150,15 +150,15 @@ class HistoryAccessor(HistoryAccessorBase):
         and no background saving thread.  This may be necessary in some
         threaded environments where IPython is embedded.
         """
-    )
+    ).tag(config=True)
     
-    connection_options = Dict(config=True,
+    connection_options = Dict(
         help="""Options for configuring the SQLite connection
         
         These options are passed as keyword args to sqlite3.connect
         when establishing database conenctions.
         """
-    )
+    ).tag(config=True)
 
     # The SQLite database
     db = Any()
@@ -471,13 +471,13 @@ class HistoryManager(HistoryAccessor):
     # The number of the current session in the history database
     session_number = Integer()
     
-    db_log_output = Bool(False, config=True,
+    db_log_output = Bool(False, 
         help="Should the history database include output? (default: no)"
-    )
-    db_cache_size = Integer(0, config=True,
+    ).tag(config=True)
+    db_cache_size = Integer(0, 
         help="Write to database every x commands (higher values save disk access & power).\n"
         "Values of 1 or less effectively disable caching."
-    )
+    ).tag(config=True)
     # The input and output caches
     db_input_cache = List()
     db_output_cache = List()
