@@ -540,7 +540,7 @@ class FullEvalFormatter(Formatter):
     """
     # copied from Formatter._vformat with minor changes to allow eval
     # and replace the format_spec code with slicing
-    def _vformat(self, format_string, args, kwargs, used_args, recursion_depth):
+    def _vformat(self, format_string, args, kwargs, used_args, recursion_depth, supressExceptions=False):
         if recursion_depth < 0:
             raise ValueError('Max string recursion exceeded')
         result = []
@@ -562,7 +562,13 @@ class FullEvalFormatter(Formatter):
 
                 # eval the contents of the field for the object
                 # to be formatted
-                obj = eval(field_name, kwargs)
+                try:
+                    obj = eval(field_name, kwargs)
+                except NameError:
+                    if supressExceptions:
+                       obj = field_name
+                    else:
+                       raise
 
                 # do any conversion on the resulting object
                 obj = self.convert_field(obj, conversion)
@@ -613,6 +619,8 @@ class DollarFormatter(FullEvalFormatter):
             
             # Re-yield the {foo} style pattern
             yield (txt + literal_txt[continue_from:], field_name, format_spec, conversion)
+    def _vformat(self, format_string, args, kwargs, used_args, recursion_depth, supressExceptions=True):
+        return super(DollarFormatter,self)._vformat(format_string, args, kwargs, used_args, recursion_depth, supressExceptions)
 
 #-----------------------------------------------------------------------------
 # Utils to columnize a list of string
