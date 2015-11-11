@@ -1,3 +1,4 @@
+# coding: utf-8
 """Test suite for our color utilities.
 
 Authors
@@ -21,14 +22,57 @@ import nose.tools as nt
 
 # our own
 from IPython.utils.PyColorize import Parser
+import io
 
 #-----------------------------------------------------------------------------
 # Test functions
 #-----------------------------------------------------------------------------
 
-def test_unicode_colorize():
-    p = Parser()
-    f1 = p.format('1/0', 'str')
-    f2 = p.format(u'1/0', 'str')
-    nt.assert_equal(f1, f2)
+sample = u"""
+def function(arg, *args, kwarg=True, **kwargs):
+    '''
+    this is docs
+    '''
+    pass is True
+    False == None
 
+    with io.open(ru'unicode'):
+        raise ValueError("\n escape \r sequence")
+
+    print("wěird ünicoðe")
+
+class Bar(Super):
+
+    def __init__(self):
+        super(Bar, self).__init__(1**2, 3^4, 5 or 6)
+"""
+
+def test_loop_colors():
+
+    for scheme in ('Linux', 'NoColor','LightBG'):
+
+        def test_unicode_colorize():
+            p = Parser()
+            f1 = p.format('1/0', 'str', scheme=scheme)
+            f2 = p.format(u'1/0', 'str', scheme=scheme)
+            nt.assert_equal(f1, f2)
+
+        def test_parse_sample():
+            """and test writing to a buffer"""
+            buf = io.StringIO()
+            p = Parser()
+            p.format(sample, buf, scheme=scheme)
+            buf.seek(0)
+            f1 = buf.read()
+
+            nt.assert_not_in('ERROR', f1)
+
+        def test_parse_error():
+            p = Parser()
+            f1 = p.format(')', 'str', scheme=scheme)
+            if scheme != 'NoColor':
+                nt.assert_in('ERROR', f1)
+
+        yield test_unicode_colorize
+        yield test_parse_sample
+        yield test_parse_error
