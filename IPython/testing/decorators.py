@@ -284,7 +284,7 @@ def decorated_dummy(dec, name):
     import IPython.testing.decorators as dec
     setup = dec.decorated_dummy(dec.skip_if_no_x11, __name__)
     """
-    warnings.warn("THe function `make_label_dec` is deprecated and might be removed in next major version of IPython", DeprecationWarning)
+    warnings.warn("The function `make_label_dec` is deprecated and might be removed in next major version of IPython", DeprecationWarning)
     dummy = lambda: None
     dummy.__name__ = name
     return dec(dummy)
