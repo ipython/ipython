@@ -128,7 +128,7 @@ def make_label_dec(label,ds=None):
     True
     """
 
-    warnings.warn("THe function `make_label_dec` is deprecated and might be removed in next major version of IPython", DeprecationWarning)
+    warnings.warn("The function `make_label_dec` is deprecated and might be removed in next major version of IPython", DeprecationWarning)
     if isinstance(label, string_types):
         labels = [label]
     else:
