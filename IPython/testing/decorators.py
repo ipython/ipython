@@ -35,6 +35,7 @@ import sys
 import os
 import tempfile
 import unittest
+import warnings
 
 from decorator import decorator
 
@@ -75,6 +76,8 @@ def apply_wrapper(wrapper,func):
     This will ensure that wrapped functions can still be well introspected via
     IPython, for example.
     """
+    warnings.warn("The function `apply_wrapper` is deprecated and might be removed in next major version of IPython", DeprecationWarning)
+
     import nose.tools
 
     return decorator(wrapper,nose.tools.make_decorator(func)(wrapper))
@@ -125,6 +128,7 @@ def make_label_dec(label,ds=None):
     True
     """
 
+    warnings.warn("THe function `make_label_dec` is deprecated and might be removed in next major version of IPython", DeprecationWarning)
     if isinstance(label, string_types):
         labels = [label]
     else:
@@ -280,6 +284,7 @@ def decorated_dummy(dec, name):
     import IPython.testing.decorators as dec
     setup = dec.decorated_dummy(dec.skip_if_no_x11, __name__)
     """
+    warnings.warn("THe function `make_label_dec` is deprecated and might be removed in next major version of IPython", DeprecationWarning)
     dummy = lambda: None
     dummy.__name__ = name
     return dec(dummy)
@@ -312,6 +317,7 @@ skip_if_no_x11 = skipif(_x11_skip_cond, _x11_skip_msg)
 
 # not a decorator itself, returns a dummy function to be used as setup
 def skip_file_no_x11(name):
+    warnings.warn("The function `skip_file_no_x11` is deprecated and might be removed in next major version of IPython", DeprecationWarning)
     return decorated_dummy(skip_if_no_x11, name) if _x11_skip_cond else None
 
 # Other skip decorators
@@ -352,6 +358,7 @@ def onlyif_cmds_exist(*commands):
     """
     Decorator to skip test when at least one of `commands` is not found.
     """
+    warnings.warn("The function `onlyif_cmds_exist` is deprecated and might be removed in next major version of IPython", DeprecationWarning)
     for cmd in commands:
         if not which(cmd):
             return skip("This test runs only if command '{0}' "
@@ -362,6 +369,7 @@ def onlyif_any_cmd_exists(*commands):
     """
     Decorator to skip test unless at least one of `commands` is found.
     """
+    warnings.warn("The function `onlyif_any_cmd_exists` is deprecated and might be removed in next major version of IPython", DeprecationWarning)
     for cmd in commands:
         if which(cmd):
             return null_deco
