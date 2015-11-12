@@ -11,9 +11,11 @@ before_install:
     - 'if [[ $GROUP != js* ]]; then COVERAGE=""; fi'
 install:
     - pip install -f travis-wheels/wheelhouse -r requirements.txt -e file://$PWD#egg=ipython[test] coveralls
+    - pip install codecov
 script:
     - cd /tmp && iptest --coverage xml && cd -
 after_success:
     - cp /tmp/ipy_coverage.xml ./
     - cp /tmp/.coverage ./
     - coveralls
+    - codecov
