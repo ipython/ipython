@@ -611,8 +611,8 @@ def test_extension():
     try:
         _ip.ipython_dir = tmpdir.name
         nt.assert_raises(ImportError, _ip.magic, "load_ext daft_extension")
-        url = os.path.join(os.path.dirname(__file__), "daft_extension.py")
-        _ip.magic("install_ext %s" % url)
+        url = os.path.join(os.path.dirname(__file__), "daft_extension")
+        _ip.system("pip install %s" % url)
         _ip.user_ns.pop('arq', None)
         invalidate_caches()   # Clear import caches
         _ip.magic("load_ext daft_extension")
