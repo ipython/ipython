@@ -538,9 +538,21 @@ class FullEvalFormatter(Formatter):
         In [4]: f.format('{3*2}')
         Out[4]: u'6'
     """
+
+    def __init__(self, *args, **kwargs):
+        super(FullEvalFormatter, self).__init__(*args, **kwargs)
+        self._debian_343_workaround = False
+        import sys
+        import string
+        if sys.version_info > (3,4):
+            f = string.Formatter()
+            if type(f.vformat('',[], {})) is not str :
+                self._debian_343_workaround = True
+
+
     # copied from Formatter._vformat with minor changes to allow eval
     # and replace the format_spec code with slicing
-    def _vformat(self, format_string, args, kwargs, used_args, recursion_depth):
+    def _vformat(self, format_string, args, kwargs, used_args, recursion_depth, auto_arg_index=0):
         if recursion_depth < 0:
             raise ValueError('Max string recursion exceeded')
         result = []
@@ -569,7 +581,8 @@ class FullEvalFormatter(Formatter):
 
                 # format the object and append to the result
                 result.append(self.format_field(obj, ''))
-
+        if self._debian_343_workaround:
+            return u''.join(py3compat.cast_unicode(s) for s in result), auto_arg_index
         return u''.join(py3compat.cast_unicode(s) for s in result)
 
 
