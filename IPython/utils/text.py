@@ -540,9 +540,7 @@ class FullEvalFormatter(Formatter):
     """
     # copied from Formatter._vformat with minor changes to allow eval
     # and replace the format_spec code with slicing
-    def _vformat(self, format_string, args, kwargs, used_args, recursion_depth):
-        if recursion_depth < 0:
-            raise ValueError('Max string recursion exceeded')
+    def vformat(self, format_string, args, kwargs):
         result = []
         for literal_text, field_name, format_spec, conversion in \
                 self.parse(format_string):
