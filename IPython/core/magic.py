@@ -303,8 +303,8 @@ class MagicsManager(Configurable):
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
 
-    auto_magic = Bool(True, config=True, help=
-        "Automatically call line magics without requiring explicit % prefix")
+    auto_magic = Bool(True, help=
+        "Automatically call line magics without requiring explicit % prefix").tag(config=True)
 
     def _auto_magic_changed(self, name, value):
         self.shell.automagic = value

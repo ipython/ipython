@@ -74,11 +74,11 @@ class StoreMagics(Magics):
 
     Provides the %store magic."""
     
-    autorestore = Bool(False, config=True, help=
+    autorestore = Bool(False, help=
         """If True, any %store-d variables will be automatically restored
         when IPython starts.
         """
-    )
+    ).tag(config=True)
     
     def __init__(self, shell):
         super(StoreMagics, self).__init__(shell=shell)
