@@ -85,7 +85,14 @@ NoColor = ColorScheme(
     _KEYWORD         : Colors.NoColor,
     _TEXT            : Colors.NoColor,
 
-    'normal'         : Colors.NoColor  # color off (usu. Colors.Normal)
+    'in_prompt'      : InputTermColors.NoColor,  # Input prompt
+    'in_number'      : InputTermColors.NoColor,  # Input prompt number
+    'in_prompt2'     : InputTermColors.NoColor, # Continuation prompt
+
+    'out_prompt'     : InputTermColors.NoColor, # Output prompt
+    'out_number'     : InputTermColors.NoColor, # Output prompt number
+
+    'normal'         : InputTermColors.NoColor  # color off (usu. Colors.Normal)
     }  )
 
 LinuxColors = ColorScheme(
@@ -101,7 +108,14 @@ LinuxColors = ColorScheme(
     _KEYWORD         : Colors.LightGreen,
     _TEXT            : Colors.Yellow,
 
-    'normal'         : Colors.Normal  # color off (usu. Colors.Normal)
+    'in_prompt'      : InputTermColors.Green,
+    'in_number'      : InputTermColors.LightGreen,
+    'in_prompt2'     : InputTermColors.Green,
+
+    'out_prompt'     : InputTermColors.Red,
+    'out_number'     : InputTermColors.LightRed,
+
+    'normal'         : InputTermColors.Normal  # color off (usu. Colors.Normal)
     } )
 
 LightBGColors = ColorScheme(
@@ -117,7 +131,14 @@ LightBGColors = ColorScheme(
     _KEYWORD         : Colors.Green,
     _TEXT            : Colors.Blue,
 
-    'normal'         : Colors.Normal  # color off (usu. Colors.Normal)
+    'in_prompt'      : InputTermColors.Blue,
+    'in_number'      : InputTermColors.LightBlue,
+    'in_prompt2'     : InputTermColors.Blue,
+
+    'out_prompt'     : InputTermColors.Red,
+    'out_number'     : InputTermColors.LightRed,
+
+    'normal'         : InputTermColors.Normal  # color off (usu. Colors.Normal)
     }  )
 
 # Build table of color schemes (needed by the parser)
