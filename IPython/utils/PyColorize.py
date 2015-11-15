@@ -51,7 +51,7 @@ except AttributeError:
     # strings, not bytes. See also Python issue #9969.
     generate_tokens = tokenize._tokenize
 
-from IPython.utils.coloransi import *
+from IPython.utils.coloransi import TermColors, InputTermColors ,ColorScheme, ColorSchemeTable
 from IPython.utils.py3compat import PY3
 
 if PY3:
@@ -74,6 +74,7 @@ Colors = TermColors  # just a shorthand
 # Build a few color schemes
 NoColor = ColorScheme(
     'NoColor',{
+    'header'         : Colors.NoColor,
     token.NUMBER     : Colors.NoColor,
     token.OP         : Colors.NoColor,
     token.STRING     : Colors.NoColor,
@@ -89,6 +90,7 @@ NoColor = ColorScheme(
 
 LinuxColors = ColorScheme(
     'Linux',{
+    'header'         : Colors.LightRed,
     token.NUMBER     : Colors.LightCyan,
     token.OP         : Colors.Yellow,
     token.STRING     : Colors.LightBlue,
@@ -104,6 +106,7 @@ LinuxColors = ColorScheme(
 
 LightBGColors = ColorScheme(
     'LightBG',{
+    'header'         : Colors.Red,
     token.NUMBER     : Colors.Cyan,
     token.OP         : Colors.Blue,
     token.STRING     : Colors.Blue,
