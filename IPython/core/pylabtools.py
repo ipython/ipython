@@ -123,6 +123,10 @@ def print_figure(fig, fmt='png', bbox_inches='tight', **kwargs):
 def retina_figure(fig, **kwargs):
     """format a figure as a pixel-doubled (retina) PNG"""
     pngdata = print_figure(fig, fmt='retina', **kwargs)
+    # Make sure that retina_figure acts just like print_figure and returns
+    # None when the figure is empty.
+    if pngdata is None:
+        return
     w, h = _pngxy(pngdata)
     metadata = dict(width=w//2, height=h//2)
     return pngdata, metadata
