@@ -1026,9 +1026,10 @@ class VerboseTB(TBTools):
         head = self.prepare_header(etype, self.long_header)
         records = self.get_records(etb, number_of_lines_of_context, tb_offset)
 
-        frames = self.format_records(records)
         if records is None:
             return ""
+
+        frames = self.format_records(records)
 
         formatted_exception = self.format_exception(etype, evalue)
         if records:
