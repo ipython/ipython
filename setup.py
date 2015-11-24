@@ -200,9 +200,11 @@ install_requires = [
 # Platform-specific dependencies:
 # This is the correct way to specify these,
 # but requires pip >= 6. pip < 6 ignores these.
+
 extras_require.update({
     ':sys_platform != "win32"': ['pexpect'],
-    ':sys_platform == "darwin"': ['appnope', 'gnureadline'],
+    ':sys_platform == "darwin"': ['appnope'],
+    ':sys_platform == "darwin" and platform_python_implementation == "CPython"': ['gnureadline'],
     'terminal:sys_platform == "win32"': ['pyreadline>=2'],
     'test:python_version == "2.7"': ['mock'],
 })
@@ -213,12 +215,30 @@ if not any(arg.startswith('bdist') for arg in sys.argv):
         extras_require['test'].append('mock')
 
     if sys.platform == 'darwin':
-        install_requires.extend(['appnope', 'gnureadline'])
+        install_requires.extend(['appnope'])
+        have_readline = False
+        try:
+            import readline
+        except ImportError:
+            pass
+        else:
+            if 'libedit' not in readline.__doc__:
+                have_readline = True
+        if not have_readline:
+            install_requires.extend(['gnureadline'])
 
     if sys.platform.startswith('win'):
         extras_require['terminal'].append('pyreadline>=2.0')
     else:
         install_requires.append('pexpect')
+    
+    # workaround pypa/setuptools#147, where setuptools misspells
+    # platform_python_implementation as python_implementation
+    if 'setuptools' in sys.modules:
+        for key in list(extras_require):
+            if 'platform_python_implementation' in key:
+                new_key = key.replace('platform_python_implementation', 'python_implementation')
+                extras_require[new_key] = extras_require.pop(key)
 
 everything = set()
 for key, deps in extras_require.items():
