@@ -2,6 +2,17 @@
  4.x Series
 ============
 
+IPython 4.0.1
+=============
+
+Released November, 2015
+
+Fixes for:
+
+- Installation on some systems
+- Compatibility with CPython 3.4.4
+- Compatibility with Qt5
+
 IPython 4.0
 ===========
 
