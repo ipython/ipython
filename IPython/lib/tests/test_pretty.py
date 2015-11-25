@@ -11,7 +11,7 @@ from collections import Counter, defaultdict, deque, OrderedDict
 import nose.tools as nt
 
 from IPython.lib import pretty
-from IPython.testing.decorators import skip_without
+from IPython.testing.decorators import skip_without, py2_only
 from IPython.utils.py3compat import PY3, unicode_to_str
 
 if PY3:
@@ -272,6 +272,83 @@ def test_basic_class():
     nt.assert_true(type_pprint_wrapper.called)
 
 
+# This is only run on Python 2 because in Python 3 the language prevents you
+# from setting a non-unicode value for __qualname__ on a metaclass, and it
+# doesn't respect the descriptor protocol if you subclass unicode and implement
+# __get__.
+@py2_only
+def test_fallback_to__name__on_type():
+    # Test that we correctly repr types that have non-string values for
+    # __qualname__ by falling back to __name__
+
+    class Type(object):
+        __qualname__ = 5
+
+    # Test repring of the type.
+    stream = StringIO()
+    printer = pretty.RepresentationPrinter(stream)
+
+    printer.pretty(Type)
+    printer.flush()
+    output = stream.getvalue()
+
+    # If __qualname__ is malformed, we should fall back to __name__.
+    expected = '.'.join([__name__, Type.__name__])
+    nt.assert_equal(output, expected)
+
+    # Clear stream buffer.
+    stream.buf = ''
+
+    # Test repring of an instance of the type.
+    instance = Type()
+    printer.pretty(instance)
+    printer.flush()
+    output = stream.getvalue()
+
+    # Should look like:
+    # <IPython.lib.tests.test_pretty.Type at 0x7f7658ae07d0>
+    prefix = '<' + '.'.join([__name__, Type.__name__]) + ' at 0x'
+    nt.assert_true(output.startswith(prefix))
+
+
+@py2_only
+def test_fail_gracefully_on_bogus__qualname__and__name__():
+    # Test that we correctly repr types that have non-string values for both
+    # __qualname__ and __name__
+
+    class Meta(type):
+        __name__ = 5
+
+    class Type(object):
+        __metaclass__ = Meta
+        __qualname__ = 5
+
+    stream = StringIO()
+    printer = pretty.RepresentationPrinter(stream)
+
+    printer.pretty(Type)
+    printer.flush()
+    output = stream.getvalue()
+
+    # If we can't find __name__ or __qualname__ just use a sentinel string.
+    expected = '.'.join([__name__, '<unknown type>'])
+    nt.assert_equal(output, expected)
+
+    # Clear stream buffer.
+    stream.buf = ''
+
+    # Test repring of an instance of the type.
+    instance = Type()
+    printer.pretty(instance)
+    printer.flush()
+    output = stream.getvalue()
+
+    # Should look like:
+    # <IPython.lib.tests.test_pretty.<unknown type> at 0x7f7658ae07d0>
+    prefix = '<' + '.'.join([__name__, '<unknown type>']) + ' at 0x'
+    nt.assert_true(output.startswith(prefix))
+
+
 def test_collections_defaultdict():
     # Create defaultdicts with cycles
     a = defaultdict()
@@ -350,9 +427,12 @@ def test_collections_deque():
         nt.assert_equal(pretty.pretty(obj), expected)
 
 def test_collections_counter():
+    class MyCounter(Counter):
+        pass
     cases = [
         (Counter(), 'Counter()'),
         (Counter(a=1), "Counter({'a': 1})"),
+        (MyCounter(a=1), "MyCounter({'a': 1})"),
     ]
     for obj, expected in cases:
         nt.assert_equal(pretty.pretty(obj), expected)

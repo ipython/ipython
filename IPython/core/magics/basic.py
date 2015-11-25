@@ -454,7 +454,7 @@ Defaulting color scheme to 'NoColor'"""
         save_dstore('rc_active_types',disp_formatter.active_types)
         save_dstore('prompt_templates',(pm.in_template, pm.in2_template, pm.out_template))
 
-        if mode == False:
+        if not mode:
             # turn on
             pm.in_template = '>>> '
             pm.in2_template = '... '

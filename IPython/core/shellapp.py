@@ -345,7 +345,8 @@ class InteractiveShellApp(Configurable):
                         # default to python, even without extension
                         self.shell.safe_execfile(full_filename,
                                                  self.shell.user_ns,
-                                                 shell_futures=shell_futures)
+                                                 shell_futures=shell_futures,
+                                                 raise_exceptions=True)
         finally:
             sys.argv = save_argv
 
@@ -415,9 +416,8 @@ class InteractiveShellApp(Configurable):
             try:
                 self._exec_file(fname, shell_futures=True)
             except:
-                self.log.warn("Error in executing file in user namespace: %s" %
-                              fname)
-                self.shell.showtraceback()
+                self.shell.showtraceback(tb_offset=4)
+                self.exit(1)
 
     def _run_module(self):
         """Run module specified at the command-line."""

@@ -1,5 +1,5 @@
-.. image:: https://img.shields.io/coveralls/ipython/ipython.svg 
-    :target: https://coveralls.io/r/ipython/ipython?branch=master
+.. image:: https://codecov.io/github/ipython/ipython/coverage.svg?branch=master
+    :target: https://codecov.io/github/ipython/ipython?branch=master
 
 .. image:: https://img.shields.io/pypi/dm/IPython.svg           
     :target: https://pypi.python.org/pypi/ipython

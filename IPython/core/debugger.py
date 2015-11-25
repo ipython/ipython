@@ -113,7 +113,7 @@ class Tracer(object):
             from IPython.core.debugger import Tracer; debug_here = Tracer()
 
         Later in your code::
-        
+
             debug_here()  # -> will open up the debugger at that point.
 
         Once the debugger activates, you can use all of its regular commands to
@@ -210,8 +210,6 @@ class Pdb(OldPdb):
         else:
             OldPdb.__init__(self,completekey,stdin,stdout)
 
-        self.prompt = prompt # The default prompt is '(Pdb)'
-
         # IPython changes...
         self.is_pydb = has_pydb
 
@@ -253,12 +251,15 @@ class Pdb(OldPdb):
         C = coloransi.TermColors
         cst = self.color_scheme_table
 
+        cst['NoColor'].colors.prompt = C.NoColor
         cst['NoColor'].colors.breakpoint_enabled = C.NoColor
         cst['NoColor'].colors.breakpoint_disabled = C.NoColor
 
+        cst['Linux'].colors.prompt = C.Green
         cst['Linux'].colors.breakpoint_enabled = C.LightRed
         cst['Linux'].colors.breakpoint_disabled = C.Red
 
+        cst['LightBG'].colors.prompt = C.Blue
         cst['LightBG'].colors.breakpoint_enabled = C.LightRed
         cst['LightBG'].colors.breakpoint_disabled = C.Red
 
@@ -267,6 +268,10 @@ class Pdb(OldPdb):
         # Add a python parser so we can syntax highlight source while
         # debugging.
         self.parser = PyColorize.Parser()
+
+        # Set the prompt
+        Colors = cst.active_colors
+        self.prompt = u'%s%s%s' % (Colors.prompt, prompt, Colors.Normal) # The default prompt is '(Pdb)'
 
     def set_colors(self, scheme):
         """Shorthand access to the color table scheme selector method."""
@@ -277,11 +282,14 @@ class Pdb(OldPdb):
         while True:
             try:
                 OldPdb.interaction(self, frame, traceback)
+                break
             except KeyboardInterrupt:
                 self.shell.write('\n' + self.shell.get_exception_only())
                 break
-            else:
-                break
+            finally:
+                # Pdb sets readline delimiters, so set them back to our own
+                if self.shell.readline is not None:
+                    self.shell.readline.set_completer_delims(self.shell.readline_delims)
 
     def new_do_up(self, arg):
         OldPdb.do_up(self, arg)
@@ -302,10 +310,6 @@ class Pdb(OldPdb):
 
         if hasattr(self, 'old_all_completions'):
             self.shell.Completer.all_completions=self.old_all_completions
-
-        # Pdb sets readline delimiters, so set them back to our own
-        if self.shell.readline is not None:
-            self.shell.readline.set_completer_delims(self.shell.readline_delims)
 
         return OldPdb.do_quit(self, arg)
 

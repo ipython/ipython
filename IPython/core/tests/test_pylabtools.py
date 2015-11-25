@@ -1,16 +1,9 @@
 """Tests for pylab tools module.
 """
-#-----------------------------------------------------------------------------
-# Copyright (c) 2011, the IPython Development Team.
-#
-# Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from __future__ import print_function
 
 from io import UnsupportedOperation, BytesIO
@@ -25,7 +18,6 @@ import nose.tools as nt
 from matplotlib import pyplot as plt
 import numpy as np
 
-# Our own imports
 from IPython.core.getipython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.core.display import _PNG, _JPEG
@@ -33,17 +25,6 @@ from .. import pylabtools as pt
 
 from IPython.testing import decorators as dec
 
-#-----------------------------------------------------------------------------
-# Globals and constants
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Local utilities
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Classes and functions
-#-----------------------------------------------------------------------------
 
 def test_figure_to_svg():
     # simple empty-figure test
@@ -85,6 +66,11 @@ def test_figure_to_jpeg():
     assert jpeg.startswith(_JPEG)
 
 def test_retina_figure():
+    # simple empty-figure test
+    fig = plt.figure()
+    nt.assert_equal(pt.retina_figure(fig), None)
+    plt.close('all')
+
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     ax.plot([1,2,3])
@@ -228,6 +214,26 @@ class TestPylabSwitch(object):
         gui, backend = s.enable_matplotlib('qt')
         nt.assert_equal(gui, 'qt')
         nt.assert_equal(s.pylab_gui_select, 'qt')
+
+    def test_inline_twice(self):
+        "Using '%matplotlib inline' twice should not reset formatters"
+
+        ip = self.Shell()
+        gui, backend = ip.enable_matplotlib('inline')
+        nt.assert_equal(gui, 'inline')
+
+        fmts =  {'png'}
+        active_mimes = {_fmt_mime_map[fmt] for fmt in fmts}
+        pt.select_figure_formats(ip, fmts)
+
+        gui, backend = ip.enable_matplotlib('inline')
+        nt.assert_equal(gui, 'inline')
+
+        for mime, f in ip.display_formatter.formatters.items():
+            if mime in active_mimes:
+                nt.assert_in(Figure, f)
+            else:
+                nt.assert_not_in(Figure, f)
 
     def test_qt_gtk(self):
         s = self.Shell()

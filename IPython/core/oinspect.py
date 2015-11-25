@@ -58,28 +58,7 @@ _builtin_meth_type = type(str.upper)  # Bound methods have the same type as buil
 
 Colors = TermColors  # just a shorthand
 
-# Build a few color schemes
-NoColor = ColorScheme(
-    'NoColor',{
-    'header' : Colors.NoColor,
-    'normal' : Colors.NoColor  # color off (usu. Colors.Normal)
-    }  )
-
-LinuxColors = ColorScheme(
-    'Linux',{
-    'header' : Colors.LightRed,
-    'normal' : Colors.Normal  # color off (usu. Colors.Normal)
-    } )
-
-LightBGColors = ColorScheme(
-    'LightBG',{
-    'header' : Colors.Red,
-    'normal' : Colors.Normal  # color off (usu. Colors.Normal)
-    }  )
-
-# Build table of color schemes (needed by the parser)
-InspectColors = ColorSchemeTable([NoColor,LinuxColors,LightBGColors],
-                                 'Linux')
+InspectColors = PyColorize.ANSICodeColors
 
 #****************************************************************************
 # Auxiliary functions and objects
@@ -564,7 +543,10 @@ class Inspector:
             for title, key in fields:
                 field = info[key]
                 if field is not None:
-                    displayfields.append((title, field.rstrip()))
+                    if key == "source":
+                        displayfields.append((title, self.format(cast_unicode(field.rstrip()))))
+                    else:
+                        displayfields.append((title, field.rstrip()))
 
         if info['isalias']:
             add_fields([('Repr', "string_form")])

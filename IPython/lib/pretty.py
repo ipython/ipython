@@ -85,7 +85,7 @@ import re
 import datetime
 from collections import deque
 
-from IPython.utils.py3compat import PY3, cast_unicode
+from IPython.utils.py3compat import PY3, cast_unicode, string_types
 from IPython.utils.encoding import get_stream_enc
 
 from io import StringIO
@@ -671,7 +671,16 @@ def _type_pprint(obj, p, cycle):
         return
 
     mod = _safe_getattr(obj, '__module__', None)
-    name = _safe_getattr(obj, '__qualname__', obj.__name__)
+    try:
+        name = obj.__qualname__
+        if not isinstance(name, string_types):
+            # This can happen if the type implements __qualname__ as a property
+            # or other descriptor in Python 2.
+            raise Exception("Try __name__")
+    except Exception:
+        name = obj.__name__
+        if not isinstance(name, string_types):
+            name = '<unknown type>'
 
     if mod in (None, '__builtin__', 'builtins', 'exceptions'):
         p.text(name)
@@ -791,7 +800,7 @@ _singleton_pprinters = dict.fromkeys(map(id, [None, True, False, Ellipsis,
 
 
 def _defaultdict_pprint(obj, p, cycle):
-    name = 'defaultdict'
+    name = obj.__class__.__name__
     with p.group(len(name) + 1, name + '(', ')'):
         if cycle:
             p.text('...')
@@ -802,7 +811,7 @@ def _defaultdict_pprint(obj, p, cycle):
             p.pretty(dict(obj))
 
 def _ordereddict_pprint(obj, p, cycle):
-    name = 'OrderedDict'
+    name = obj.__class__.__name__
     with p.group(len(name) + 1, name + '(', ')'):
         if cycle:
             p.text('...')
@@ -810,7 +819,7 @@ def _ordereddict_pprint(obj, p, cycle):
             p.pretty(list(obj.items()))
 
 def _deque_pprint(obj, p, cycle):
-    name = 'deque'
+    name = obj.__class__.__name__
     with p.group(len(name) + 1, name + '(', ')'):
         if cycle:
             p.text('...')
@@ -819,7 +828,7 @@ def _deque_pprint(obj, p, cycle):
 
 
 def _counter_pprint(obj, p, cycle):
-    name = 'Counter'
+    name = obj.__class__.__name__
     with p.group(len(name) + 1, name + '(', ')'):
         if cycle:
             p.text('...')

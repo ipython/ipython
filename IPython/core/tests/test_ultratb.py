@@ -2,8 +2,14 @@
 """Tests for IPython.core.ultratb
 """
 import io
+import sys
 import os.path
+from textwrap import dedent
+import traceback
 import unittest
+
+from ..ultratb import ColorTB, VerboseTB
+
 
 from IPython.testing import tools as tt
 from IPython.testing.decorators import onlyif_unicode_paths
@@ -88,6 +94,29 @@ class NonAsciiTest(unittest.TestCase):
             with tt.AssertPrints("ZeroDivisionError"):
                 with tt.AssertPrints(u'дбИЖ', suppress=False):
                     ip.run_cell('fail()')
+
+
+class NestedGenExprTestCase(unittest.TestCase):
+    """
+    Regression test for the following issues:
+    https://github.com/ipython/ipython/issues/8293
+    https://github.com/ipython/ipython/issues/8205
+    """
+    def test_nested_genexpr(self):
+        code = dedent(
+            """\
+            class SpecificException(Exception):
+                pass
+
+            def foo(x):
+                raise SpecificException("Success!")
+
+            sum(sum(foo(x) for _ in [0]) for x in [0])
+            """
+        )
+        with tt.AssertPrints('SpecificException: Success!', suppress=False):
+            ip.run_cell(code)
+
 
 indentationerror_file = """if True:
 zoon()
@@ -195,3 +224,49 @@ except Exception:
             with tt.AssertNotPrints("ZeroDivisionError"), \
                     tt.AssertPrints("ValueError", suppress=False):
                 ip.run_cell(self.SUPPRESS_CHAINING_CODE)
+
+
+#----------------------------------------------------------------------------
+
+# module testing (minimal)
+if sys.version_info > (3,):
+    def test_handlers():
+        def spam(c, d_e):
+            (d, e) = d_e
+            x = c + d
+            y = c * d
+            foo(x, y)
+
+        def foo(a, b, bar=1):
+            eggs(a, b + bar)
+
+        def eggs(f, g, z=globals()):
+            h = f + g
+            i = f - g
+            return h / i
+        
+        buff = io.StringIO()
+
+        buff.write('')
+        buff.write('*** Before ***')
+        try:
+            buff.write(spam(1, (2, 3)))
+        except:
+            traceback.print_exc(file=buff)
+
+        handler = ColorTB(ostream=buff)
+        buff.write('*** ColorTB ***')
+        try:
+            buff.write(spam(1, (2, 3)))
+        except:
+            handler(*sys.exc_info())
+        buff.write('')
+
+        handler = VerboseTB(ostream=buff)
+        buff.write('*** VerboseTB ***')
+        try:
+            buff.write(spam(1, (2, 3)))
+        except:
+            handler(*sys.exc_info())
+        buff.write('')
+

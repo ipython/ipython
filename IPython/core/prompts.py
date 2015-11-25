@@ -33,6 +33,8 @@ from IPython.core import release
 from IPython.utils import coloransi, py3compat
 from traitlets import (Unicode, Instance, Dict, Bool, Int)
 
+from IPython.utils.PyColorize import LightBGColors, LinuxColors, NoColor
+
 #-----------------------------------------------------------------------------
 # Color schemes for prompts
 #-----------------------------------------------------------------------------
@@ -41,42 +43,6 @@ InputColors = coloransi.InputTermColors  # just a shorthand
 Colors = coloransi.TermColors  # just a shorthand
 
 color_lists = dict(normal=Colors(), inp=InputColors(), nocolor=coloransi.NoColors())
-
-PColNoColors = coloransi.ColorScheme(
-    'NoColor',
-    in_prompt  = InputColors.NoColor,  # Input prompt
-    in_number  = InputColors.NoColor,  # Input prompt number
-    in_prompt2 = InputColors.NoColor, # Continuation prompt
-    in_normal  = InputColors.NoColor,  # color off (usu. Colors.Normal)
-
-    out_prompt = Colors.NoColor, # Output prompt
-    out_number = Colors.NoColor, # Output prompt number
-
-    normal = Colors.NoColor  # color off (usu. Colors.Normal)
-    )
-
-# make some schemes as instances so we can copy them for modification easily:
-PColLinux =  coloransi.ColorScheme(
-    'Linux',
-    in_prompt  = InputColors.Green,
-    in_number  = InputColors.LightGreen,
-    in_prompt2 = InputColors.Green,
-    in_normal  = InputColors.Normal,  # color off (usu. Colors.Normal)
-
-    out_prompt = Colors.Red,
-    out_number = Colors.LightRed,
-
-    normal = Colors.Normal
-    )
-
-# Slightly modified Linux for light backgrounds
-PColLightBG  = PColLinux.copy('LightBG')
-
-PColLightBG.colors.update(
-    in_prompt  = InputColors.Blue,
-    in_number  = InputColors.LightBlue,
-    in_prompt2 = InputColors.Blue
-)
 
 #-----------------------------------------------------------------------------
 # Utilities
@@ -104,7 +70,7 @@ class LazyEvaluate(object):
         return format(self(), format_spec)
 
 def multiple_replace(dict, text):
-    """ Replace in 'text' all occurences of any key in the given
+    """ Replace in 'text' all occurrences of any key in the given
     dictionary by its corresponding value.  Returns the new string."""
 
     # Function by Xavier Defrang, originally found at:
@@ -160,9 +126,10 @@ prompt_abbreviations = {
     # can get numbers displayed in whatever color they want.
     r'\N': '{count}',
 
-    # Prompt/history count, with the actual digits replaced by dots.  Used
-    # mainly in continuation prompts (prompt_in2)
+    # Prompt/history count, with the actual digits replaced by dots or
+    # spaces.  Used mainly in continuation prompts (prompt_in2).
     r'\D': '{dots}',
+    r'\S': '{spaces}',
 
     # Current time
     r'\T' : '{time}',
@@ -333,8 +300,8 @@ class PromptManager(Configurable):
         super(PromptManager, self).__init__(shell=shell, **kwargs)
         
         # Prepare colour scheme table
-        self.color_scheme_table = coloransi.ColorSchemeTable([PColNoColors,
-                                    PColLinux, PColLightBG], self.color_scheme)
+        self.color_scheme_table = coloransi.ColorSchemeTable([NoColor,
+                                    LinuxColors, LightBGColors], self.color_scheme)
         
         self._formatter = UserNSFormatter(shell)
         # Prepare templates & numbers of invisible characters
@@ -380,7 +347,7 @@ class PromptManager(Configurable):
             else:
                 colors = color_lists['inp']
                 colors.number, colors.prompt, colors.normal = \
-                        scheme.in_number, scheme.in_prompt, scheme.in_normal
+                        scheme.in_number, scheme.in_prompt, scheme.normal
                 if name=='in2':
                     colors.prompt = scheme.in_prompt2
         else:
@@ -391,8 +358,8 @@ class PromptManager(Configurable):
         count = self.shell.execution_count    # Shorthand
         # Build the dictionary to be passed to string formatting
         fmtargs = dict(color=colors, count=count,
-                        dots="."*len(str(count)),
-                        width=self.width, txtwidth=self.txtwidth )
+                       dots="."*len(str(count)), spaces=" "*len(str(count)),
+                       width=self.width, txtwidth=self.txtwidth)
         fmtargs.update(self.lazy_evaluate_fields)
         fmtargs.update(kwargs)
         

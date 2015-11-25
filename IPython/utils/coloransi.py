@@ -132,7 +132,7 @@ class ColorSchemeTable(dict):
     active_scheme_name -> obvious
     active_colors -> actual color table of the active scheme"""
 
-    def __init__(self,scheme_list=None,default_scheme=''):
+    def __init__(self, scheme_list=None, default_scheme=''):
         """Create a table of color schemes.
 
         The table can be created empty and manually filled or it can be

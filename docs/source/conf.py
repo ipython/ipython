@@ -60,7 +60,7 @@ extensions = [
     'sphinx.ext.intersphinx',
     'IPython.sphinxext.ipython_console_highlighting',
     'IPython.sphinxext.ipython_directive',
-    'numpydoc',  # to preprocess docstrings
+    'sphinx.ext.napoleon',  # to preprocess docstrings
     'github',  # for easy GitHub links
     'magics',
 ]
@@ -149,6 +149,7 @@ default_role = 'literal'
 # must exist either in Sphinx' static/ path, or in one of the custom paths
 # given in html_static_path.
 html_style = 'default.css'
+html_favicon = 'favicon.ico'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".

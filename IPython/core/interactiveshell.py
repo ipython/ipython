@@ -804,11 +804,10 @@ class InteractiveShell(SingletonConfigurable):
 
         This has to be called after self.user_module is created.
         """
-        self._orig_sys_module_state = {}
-        self._orig_sys_module_state['stdin'] = sys.stdin
-        self._orig_sys_module_state['stdout'] = sys.stdout
-        self._orig_sys_module_state['stderr'] = sys.stderr
-        self._orig_sys_module_state['excepthook'] = sys.excepthook
+        self._orig_sys_module_state = {'stdin': sys.stdin,
+                                       'stdout': sys.stdout,
+                                       'stderr': sys.stderr,
+                                       'excepthook': sys.excepthook}
         self._orig_sys_modules_main_name = self.user_module.__name__
         self._orig_sys_modules_main_mod = sys.modules.get(self.user_module.__name__)
 
@@ -1471,7 +1470,7 @@ class InteractiveShell(SingletonConfigurable):
                            ]
 
         # initialize results to 'null'
-        found = False; obj = None;  ospace = None;  ds = None;
+        found = False; obj = None;  ospace = None;  ds = None
         ismagic = False; isalias = False; parent = None
 
         # We need to special-case 'print', which as of python2.6 registers as a
@@ -2103,6 +2102,7 @@ class InteractiveShell(SingletonConfigurable):
 
         self.set_hook('complete_command', module_completer, str_key = 'import')
         self.set_hook('complete_command', module_completer, str_key = 'from')
+        self.set_hook('complete_command', module_completer, str_key = '%aimport')
         self.set_hook('complete_command', magic_run_completer, str_key = '%run')
         self.set_hook('complete_command', cd_completer, str_key = '%cd')
         self.set_hook('complete_command', reset_completer, str_key = '%reset')
@@ -2674,10 +2674,11 @@ class InteractiveShell(SingletonConfigurable):
                 # 0
                 # For other exit status, we show the exception unless
                 # explicitly silenced, but only in short form.
-                if kw['raise_exceptions']:
-                    raise
-                if status.code and not kw['exit_ignore']:
-                    self.showtraceback(exception_only=True)
+                if status.code:
+                    if kw['raise_exceptions']:
+                        raise
+                    if not kw['exit_ignore']:
+                        self.showtraceback(exception_only=True)
             except:
                 if kw['raise_exceptions']:
                     raise
@@ -2771,13 +2772,6 @@ class InteractiveShell(SingletonConfigurable):
         except:
             self.showtraceback()
             warn('Unknown failure executing module: <%s>' % mod_name)
-
-    def _run_cached_cell_magic(self, magic_name, line):
-        """Special method to call a cell magic with the data stored in self.
-        """
-        cell = self._current_cell_magic_body
-        self._current_cell_magic_body = None
-        return self.run_cell_magic(magic_name, line, cell)
 
     def run_cell(self, raw_cell, store_history=False, silent=False, shell_futures=True):
         """Run a complete IPython cell.

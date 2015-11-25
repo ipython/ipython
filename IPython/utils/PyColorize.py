@@ -51,7 +51,7 @@ except AttributeError:
     # strings, not bytes. See also Python issue #9969.
     generate_tokens = tokenize._tokenize
 
-from IPython.utils.coloransi import *
+from IPython.utils.coloransi import TermColors, InputTermColors ,ColorScheme, ColorSchemeTable
 from IPython.utils.py3compat import PY3
 
 if PY3:
@@ -74,6 +74,7 @@ Colors = TermColors  # just a shorthand
 # Build a few color schemes
 NoColor = ColorScheme(
     'NoColor',{
+    'header'         : Colors.NoColor,
     token.NUMBER     : Colors.NoColor,
     token.OP         : Colors.NoColor,
     token.STRING     : Colors.NoColor,
@@ -84,11 +85,19 @@ NoColor = ColorScheme(
     _KEYWORD         : Colors.NoColor,
     _TEXT            : Colors.NoColor,
 
-    'normal'         : Colors.NoColor  # color off (usu. Colors.Normal)
+    'in_prompt'      : InputTermColors.NoColor,  # Input prompt
+    'in_number'      : InputTermColors.NoColor,  # Input prompt number
+    'in_prompt2'     : InputTermColors.NoColor, # Continuation prompt
+
+    'out_prompt'     : InputTermColors.NoColor, # Output prompt
+    'out_number'     : InputTermColors.NoColor, # Output prompt number
+
+    'normal'         : InputTermColors.NoColor  # color off (usu. Colors.Normal)
     }  )
 
 LinuxColors = ColorScheme(
     'Linux',{
+    'header'         : Colors.LightRed,
     token.NUMBER     : Colors.LightCyan,
     token.OP         : Colors.Yellow,
     token.STRING     : Colors.LightBlue,
@@ -99,11 +108,19 @@ LinuxColors = ColorScheme(
     _KEYWORD         : Colors.LightGreen,
     _TEXT            : Colors.Yellow,
 
-    'normal'         : Colors.Normal  # color off (usu. Colors.Normal)
+    'in_prompt'      : InputTermColors.Green,
+    'in_number'      : InputTermColors.LightGreen,
+    'in_prompt2'     : InputTermColors.Green,
+
+    'out_prompt'     : InputTermColors.Red,
+    'out_number'     : InputTermColors.LightRed,
+
+    'normal'         : InputTermColors.Normal  # color off (usu. Colors.Normal)
     } )
 
 LightBGColors = ColorScheme(
     'LightBG',{
+    'header'         : Colors.Red,
     token.NUMBER     : Colors.Cyan,
     token.OP         : Colors.Blue,
     token.STRING     : Colors.Blue,
@@ -114,7 +131,14 @@ LightBGColors = ColorScheme(
     _KEYWORD         : Colors.Green,
     _TEXT            : Colors.Blue,
 
-    'normal'         : Colors.Normal  # color off (usu. Colors.Normal)
+    'in_prompt'      : InputTermColors.Blue,
+    'in_number'      : InputTermColors.LightBlue,
+    'in_prompt2'     : InputTermColors.Blue,
+
+    'out_prompt'     : InputTermColors.Red,
+    'out_number'     : InputTermColors.LightRed,
+
+    'normal'         : InputTermColors.Normal  # color off (usu. Colors.Normal)
     }  )
 
 # Build table of color schemes (needed by the parser)
@@ -235,7 +259,7 @@ class Parser:
             return
 
         # map token type to a color group
-        if token.LPAR <= toktype and toktype <= token.OP:
+        if token.LPAR <= toktype <= token.OP:
             toktype = token.OP
         elif toktype == token.NAME and keyword.iskeyword(toktext):
             toktype = _KEYWORD

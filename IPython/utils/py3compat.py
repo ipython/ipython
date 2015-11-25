@@ -289,6 +289,9 @@ else:
                 exec(compiler(scripttext, filename, 'exec'), glob, loc)
 
 
+PY2 = not PY3
+
+
 def annotate(**kwargs):
     """Python 3 compatible function annotation for Python 2."""
     if not kwargs:

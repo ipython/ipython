@@ -83,6 +83,7 @@ Inheritance diagram:
 from __future__ import unicode_literals
 from __future__ import print_function
 
+import dis
 import inspect
 import keyword
 import linecache
@@ -222,19 +223,96 @@ def findsource(object):
     raise IOError('could not find code object')
 
 
+# This is a patched version of inspect.getargs that applies the (unmerged)
+# patch for http://bugs.python.org/issue14611 by Stefano Taschini.  This fixes
+# https://github.com/ipython/ipython/issues/8205 and
+# https://github.com/ipython/ipython/issues/8293
+def getargs(co):
+    """Get information about the arguments accepted by a code object.
+
+    Three things are returned: (args, varargs, varkw), where 'args' is
+    a list of argument names (possibly containing nested lists), and
+    'varargs' and 'varkw' are the names of the * and ** arguments or None."""
+    if not iscode(co):
+        raise TypeError('{!r} is not a code object'.format(co))
+
+    nargs = co.co_argcount
+    names = co.co_varnames
+    args = list(names[:nargs])
+    step = 0
+
+    # The following acrobatics are for anonymous (tuple) arguments.
+    for i in range(nargs):
+        if args[i][:1] in ('', '.'):
+            stack, remain, count = [], [], []
+            while step < len(co.co_code):
+                op = ord(co.co_code[step])
+                step = step + 1
+                if op >= dis.HAVE_ARGUMENT:
+                    opname = dis.opname[op]
+                    value = ord(co.co_code[step]) + ord(co.co_code[step+1])*256
+                    step = step + 2
+                    if opname in ('UNPACK_TUPLE', 'UNPACK_SEQUENCE'):
+                        remain.append(value)
+                        count.append(value)
+                    elif opname in ('STORE_FAST', 'STORE_DEREF'):
+                        if op in dis.haslocal:
+                            stack.append(co.co_varnames[value])
+                        elif op in dis.hasfree:
+                            stack.append((co.co_cellvars + co.co_freevars)[value])
+                        # Special case for sublists of length 1: def foo((bar))
+                        # doesn't generate the UNPACK_TUPLE bytecode, so if
+                        # `remain` is empty here, we have such a sublist.
+                        if not remain:
+                            stack[0] = [stack[0]]
+                            break
+                        else:
+                            remain[-1] = remain[-1] - 1
+                            while remain[-1] == 0:
+                                remain.pop()
+                                size = count.pop()
+                                stack[-size:] = [stack[-size:]]
+                                if not remain: break
+                                remain[-1] = remain[-1] - 1
+                            if not remain: break
+            args[i] = stack[0]
+
+    varargs = None
+    if co.co_flags & inspect.CO_VARARGS:
+        varargs = co.co_varnames[nargs]
+        nargs = nargs + 1
+    varkw = None
+    if co.co_flags & inspect.CO_VARKEYWORDS:
+        varkw = co.co_varnames[nargs]
+    return inspect.Arguments(args, varargs, varkw)
+
+
 # Monkeypatch inspect to apply our bugfix.
 def with_patch_inspect(f):
     """decorator for monkeypatching inspect.findsource"""
 
     def wrapped(*args, **kwargs):
         save_findsource = inspect.findsource
+        save_getargs = inspect.getargs
         inspect.findsource = findsource
+        inspect.getargs = getargs
         try:
             return f(*args, **kwargs)
         finally:
             inspect.findsource = save_findsource
+            inspect.getargs = save_getargs
 
     return wrapped
+
+
+if py3compat.PY3:
+    fixed_getargvalues = inspect.getargvalues
+else:
+    # Fixes for https://github.com/ipython/ipython/issues/8293
+    #       and https://github.com/ipython/ipython/issues/8205.
+    # The relevant bug is caused by failure to correctly handle anonymous tuple
+    # unpacking, which only exists in Python 2.
+    fixed_getargvalues = with_patch_inspect(inspect.getargvalues)
 
 
 def fix_frame_records_filenames(records):
@@ -744,7 +822,7 @@ class VerboseTB(TBTools):
 
             file = py3compat.cast_unicode(file, util_path.fs_encoding)
             link = tpl_link % file
-            args, varargs, varkw, locals = inspect.getargvalues(frame)
+            args, varargs, varkw, locals = fixed_getargvalues(frame)
 
             if func == '?':
                 call = ''
@@ -948,9 +1026,10 @@ class VerboseTB(TBTools):
         head = self.prepare_header(etype, self.long_header)
         records = self.get_records(etb, number_of_lines_of_context, tb_offset)
 
-        frames = self.format_records(records)
         if records is None:
             return ""
+
+        frames = self.format_records(records)
 
         formatted_exception = self.format_exception(etype, evalue)
         if records:
@@ -1248,9 +1327,9 @@ class AutoFormattedTB(FormattedTB):
 class ColorTB(FormattedTB):
     """Shorthand to initialize a FormattedTB in Linux colors mode."""
 
-    def __init__(self, color_scheme='Linux', call_pdb=0):
+    def __init__(self, color_scheme='Linux', call_pdb=0, **kwargs):
         FormattedTB.__init__(self, color_scheme=color_scheme,
-                             call_pdb=call_pdb)
+                             call_pdb=call_pdb, **kwargs)
 
 
 class SyntaxTB(ListTB):
@@ -1327,47 +1406,3 @@ def eqrepr(value, repr=text_repr):
 
 def nullrepr(value, repr=text_repr):
     return ''
-
-
-#----------------------------------------------------------------------------
-
-# module testing (minimal)
-if __name__ == "__main__":
-    def spam(c, d_e):
-        (d, e) = d_e
-        x = c + d
-        y = c * d
-        foo(x, y)
-
-    def foo(a, b, bar=1):
-        eggs(a, b + bar)
-
-    def eggs(f, g, z=globals()):
-        h = f + g
-        i = f - g
-        return h / i
-
-    print('')
-    print('*** Before ***')
-    try:
-        print(spam(1, (2, 3)))
-    except:
-        traceback.print_exc()
-    print('')
-
-    handler = ColorTB()
-    print('*** ColorTB ***')
-    try:
-        print(spam(1, (2, 3)))
-    except:
-        handler(*sys.exc_info())
-    print('')
-
-    handler = VerboseTB()
-    print('*** VerboseTB ***')
-    try:
-        print(spam(1, (2, 3)))
-    except:
-        handler(*sys.exc_info())
-    print('')
-

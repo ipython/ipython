@@ -15,10 +15,10 @@ from functools import partial
 from IPython.utils.version import check_version
 
 # Available APIs.
-QT_API_PYQT = 'pyqt'
+QT_API_PYQT = 'pyqt' # Force version 2
 QT_API_PYQT5 = 'pyqt5'
-QT_API_PYQTv1 = 'pyqtv1'
-QT_API_PYQT_DEFAULT = 'pyqtdefault' # don't set SIP explicitly
+QT_API_PYQTv1 = 'pyqtv1' # Force version 2
+QT_API_PYQT_DEFAULT = 'pyqtdefault' # use system default for version 1 vs. 2
 QT_API_PYSIDE = 'pyside'
 
 
@@ -73,7 +73,7 @@ def loaded_api():
 
     Returns
     -------
-    None, 'pyside', 'pyqt', or 'pyqtv1'
+    None, 'pyside', 'pyqt', 'pyqt5', or 'pyqtv1'
     """
     if 'PyQt4.QtCore' in sys.modules:
         if qtapi_version() == 2:
