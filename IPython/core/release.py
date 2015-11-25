@@ -21,7 +21,7 @@ name = 'ipython'
 # version
 _version_major = 3
 _version_minor = 2
-_version_patch = 2
+_version_patch = 3
 # _version_extra = 'dev'
 # _version_extra = 'rc1'
 _version_extra = ''  # Uncomment this for full releases

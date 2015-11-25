@@ -2,6 +2,11 @@
  3.x Series
 ============
 
+IPython 3.2.3
+=============
+
+Fixes compatibility with Python 3.4.4.
+
 IPython 3.2.2
 =============
 
