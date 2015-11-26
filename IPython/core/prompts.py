@@ -55,17 +55,17 @@ class LazyEvaluate(object):
         self.func = func
         self.args = args
         self.kwargs = kwargs
-    
+
     def __call__(self, **kwargs):
         self.kwargs.update(kwargs)
         return self.func(*self.args, **self.kwargs)
-    
+
     def __str__(self):
         return str(self())
-    
+
     def __unicode__(self):
         return py3compat.unicode_type(self())
-    
+
     def __format__(self, format_spec):
         return format(self(), format_spec)
 
@@ -114,7 +114,7 @@ USER           = py3compat.str_to_unicode(os.environ.get("USER",''))
 HOSTNAME       = py3compat.str_to_unicode(socket.gethostname())
 HOSTNAME_SHORT = HOSTNAME.split(".")[0]
 
-# IronPython doesn't currently have os.getuid() even if 
+# IronPython doesn't currently have os.getuid() even if
 # os.name == 'posix'; 2/8/2014
 ROOT_SYMBOL    = "#" if (os.name=='nt' or sys.platform=='cli' or os.getuid()==0) else "$"
 
@@ -254,7 +254,7 @@ class UserNSFormatter(Formatter):
 class PromptManager(Configurable):
     """This is the primary interface for producing IPython's prompts."""
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
-    
+
     color_scheme_table = Instance(coloransi.ColorSchemeTable, allow_none=True)
     color_scheme = Unicode('Linux', config=True)
     def _color_scheme_changed(self, name, new_value):
@@ -262,7 +262,7 @@ class PromptManager(Configurable):
         for pname in ['in', 'in2', 'out', 'rewrite']:
             # We need to recalculate the number of invisible characters
             self.update_prompt(pname)
-    
+
     lazy_evaluate_fields = Dict(help="""
         This maps field names used in the prompt templates to functions which
         will be called when the prompt is rendered. This allows us to include
@@ -270,39 +270,39 @@ class PromptManager(Configurable):
         if they are used in the prompt.
         """)
     def _lazy_evaluate_fields_default(self): return lazily_evaluate.copy()
-    
+
     in_template = Unicode('In [\\#]: ', config=True,
         help="Input prompt.  '\\#' will be transformed to the prompt number")
     in2_template = Unicode('   .\\D.: ', config=True,
         help="Continuation prompt.")
     out_template = Unicode('Out[\\#]: ', config=True,
         help="Output prompt. '\\#' will be transformed to the prompt number")
-    
+
     justify = Bool(True, config=True, help="""
         If True (default), each prompt will be right-aligned with the
         preceding one.
         """)
-    
+
     # We actually store the expanded templates here:
     templates = Dict()
-    
+
     # The number of characters in the last prompt rendered, not including
     # colour characters.
     width = Int()
     txtwidth = Int()   # Not including right-justification
-    
+
     # The number of characters in each prompt which don't contribute to width
     invisible_chars = Dict()
     def _invisible_chars_default(self):
         return {'in': 0, 'in2': 0, 'out': 0, 'rewrite':0}
-    
+
     def __init__(self, shell, **kwargs):
         super(PromptManager, self).__init__(shell=shell, **kwargs)
-        
+
         # Prepare colour scheme table
         self.color_scheme_table = coloransi.ColorSchemeTable([NoColor,
                                     LinuxColors, LightBGColors], self.color_scheme)
-        
+
         self._formatter = UserNSFormatter(shell)
         # Prepare templates & numbers of invisible characters
         self.update_prompt('in', self.in_template)
@@ -311,13 +311,13 @@ class PromptManager(Configurable):
         self.update_prompt('rewrite')
         self.on_trait_change(self._update_prompt_trait, ['in_template',
                             'in2_template', 'out_template'])
-    
+
     def update_prompt(self, name, new_template=None):
         """This is called when a prompt template is updated. It processes
         abbreviations used in the prompt template (like \#) and calculates how
         many invisible characters (ANSI colour escapes) the resulting prompt
         contains.
-        
+
         It is also called for each prompt on changing the colour scheme. In both
         cases, traitlets should take care of calling this automatically.
         """
@@ -327,17 +327,17 @@ class PromptManager(Configurable):
         # prompt, to calculate the width for lining up subsequent prompts.
         invis_chars = _invisible_characters(self._render(name, color=True))
         self.invisible_chars[name] = invis_chars
-    
+
     def _update_prompt_trait(self, traitname, new_template):
         name = traitname[:-9]   # Cut off '_template'
         self.update_prompt(name, new_template)
-    
+
     def _render(self, name, color=True, **kwargs):
         """Render but don't justify, or update the width or txtwidth attributes.
         """
         if name == 'rewrite':
             return self._render_rewrite(color=color)
-        
+
         if color:
             scheme = self.color_scheme_table.active_colors
             if name=='out':
@@ -347,14 +347,14 @@ class PromptManager(Configurable):
             else:
                 colors = color_lists['inp']
                 colors.number, colors.prompt, colors.normal = \
-                        scheme.in_number, scheme.in_prompt, scheme.normal
+                        scheme.in_number, scheme.in_prompt, scheme.in_normal
                 if name=='in2':
                     colors.prompt = scheme.in_prompt2
         else:
             # No color
             colors = color_lists['nocolor']
             colors.number, colors.prompt, colors.normal = '', '', ''
-        
+
         count = self.shell.execution_count    # Shorthand
         # Build the dictionary to be passed to string formatting
         fmtargs = dict(color=colors, count=count,
@@ -362,13 +362,13 @@ class PromptManager(Configurable):
                        width=self.width, txtwidth=self.txtwidth)
         fmtargs.update(self.lazy_evaluate_fields)
         fmtargs.update(kwargs)
-        
+
         # Prepare the prompt
         prompt = colors.prompt + self.templates[name] + colors.normal
-        
+
         # Fill in required fields
         return self._formatter.format(prompt, **fmtargs)
-    
+
     def _render_rewrite(self, color=True):
         """Render the ---> rewrite prompt."""
         if color:
@@ -380,11 +380,11 @@ class PromptManager(Configurable):
             color_prompt, color_normal = '', ''
 
         return color_prompt + "-> ".rjust(self.txtwidth, "-") + color_normal
-    
+
     def render(self, name, color=True, just=None, **kwargs):
         """
         Render the selected prompt.
-        
+
         Parameters
         ----------
         name : str
@@ -398,13 +398,13 @@ class PromptManager(Configurable):
           Additional arguments will be passed to the string formatting operation,
           so they can override the values that would otherwise fill in the
           template.
-        
+
         Returns
         -------
         A string containing the rendered prompt.
         """
         res = self._render(name, color=color, **kwargs)
-        
+
         # Handle justification of prompt
         invis_chars = self.invisible_chars[name] if color else 0
         self.txtwidth = _lenlastline(res) - invis_chars
