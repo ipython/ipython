@@ -59,11 +59,6 @@ class ExtensionManager(Configurable):
         )
         self.loaded = set()
 
-    def __del__(self):
-        self.shell.on_trait_change(
-            self._on_ipython_dir_changed, 'ipython_dir', remove=True
-        )
-
     @property
     def ipython_extension_dir(self):
         return os.path.join(self.shell.ipython_dir, u'extensions')
