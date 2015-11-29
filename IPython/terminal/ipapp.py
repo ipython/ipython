@@ -50,22 +50,11 @@ ipython --matplotlib=qt    # enable matplotlib integration with qt4 backend
 ipython --log-level=DEBUG  # set logging to DEBUG
 ipython --profile=foo      # start with profile foo
 
-ipython qtconsole          # start the qtconsole GUI application
-ipython help qtconsole     # show the help for the qtconsole subcmd
-
-ipython console            # start the terminal-based console application
-ipython help console       # show the help for the console subcmd
-
-ipython notebook           # start the IPython notebook
-ipython help notebook      # show the help for the notebook subcmd
-
 ipython profile create foo # create profile foo w/ default config files
 ipython help profile       # show the help for the profile subcmd
 
 ipython locate             # print the path to the IPython directory
 ipython locate profile foo # print the path to the directory for profile `foo`
-
-ipython nbconvert          # convert notebooks to/from other formats
 """
 
 #-----------------------------------------------------------------------------
@@ -209,27 +198,15 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             StoreMagics,
         ]
 
-    subcommands = dict(
+    deprecated_subcommands = dict(
         qtconsole=('qtconsole.qtconsoleapp.JupyterQtConsoleApp',
             """DEPRECATD: Launch the Jupyter Qt Console."""
         ),
         notebook=('notebook.notebookapp.NotebookApp',
             """DEPRECATED: Launch the Jupyter HTML Notebook Server."""
         ),
-        profile = ("IPython.core.profileapp.ProfileApp",
-            "Create and manage IPython profiles."
-        ),
-        kernel = ("ipykernel.kernelapp.IPKernelApp",
-            "Start a kernel without an attached frontend."
-        ),
         console=('jupyter_console.app.ZMQTerminalIPythonApp',
             """DEPRECATED: Launch the Jupyter terminal-based Console."""
-        ),
-        locate=('IPython.terminal.ipapp.LocateIPythonApp',
-            LocateIPythonApp.description
-        ),
-        history=('IPython.core.historyapp.HistoryApp',
-            "Manage the IPython history database."
         ),
         nbconvert=('nbconvert.nbconvertapp.NbConvertApp',
             "DEPRECATED: Convert notebooks to/from other formats."
@@ -241,10 +218,25 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             "DEPRECATED: Manage Jupyter kernel specifications."
         ),
     )
-    subcommands['install-nbextension'] = (
+    subcommands = dict(
+        profile = ("IPython.core.profileapp.ProfileApp",
+            "Create and manage IPython profiles."
+        ),
+        kernel = ("ipykernel.kernelapp.IPKernelApp",
+            "Start a kernel without an attached frontend."
+        ),
+        locate=('IPython.terminal.ipapp.LocateIPythonApp',
+            LocateIPythonApp.description
+        ),
+        history=('IPython.core.historyapp.HistoryApp',
+            "Manage the IPython history database."
+        ),
+    )
+    deprecated_subcommands['install-nbextension'] = (
         "notebook.nbextensions.InstallNBExtensionApp",
         "DEPRECATED: Install Jupyter notebook extension files"
     )
+    subcommands.update(deprecated_subcommands)
 
     # *do* autocreate requested profile, but don't create the config file.
     auto_create=Bool(True)
