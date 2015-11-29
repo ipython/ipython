@@ -9,7 +9,7 @@ import io
 import os
 import sys
 import warnings
-from unittest import TestCase, skipIf
+from unittest import TestCase
 
 try:
     from importlib import invalidate_caches   # Required from Python 3.3
@@ -23,9 +23,8 @@ from IPython import get_ipython
 from IPython.core import magic
 from IPython.core.error import UsageError
 from IPython.core.magic import (Magics, magics_class, line_magic,
-                                cell_magic, line_cell_magic,
-                                register_line_magic, register_cell_magic,
-                                register_line_cell_magic)
+                                cell_magic,
+                                register_line_magic, register_cell_magic)
 from IPython.core.magics import execution, script, code
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
