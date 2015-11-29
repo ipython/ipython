@@ -3171,7 +3171,7 @@ class InteractiveShell(SingletonConfigurable):
         ns = {}
         import_pylab(ns, import_all)
         # warn about clobbered names
-        ignored = set(["__builtins__"])
+        ignored = {"__builtins__"}
         both = set(ns).intersection(self.user_ns).difference(ignored)
         clobbered = [ name for name in both if self.user_ns[name] is not ns[name] ]
         self.user_ns.update(ns)
