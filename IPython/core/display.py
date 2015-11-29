@@ -637,7 +637,7 @@ class Image(DisplayObject):
     _FMT_PNG = u'png'
     _ACCEPTABLE_EMBEDDINGS = [_FMT_JPEG, _FMT_PNG]
 
-    def __init__(self, data=None, url=None, filename=None, format=u'png',
+    def __init__(self, data=None, url=None, filename=None, format=None,
                  embed=None, width=None, height=None, retina=False,
                  unconfined=False, metadata=None):
         """Create a PNG/JPEG image object given raw data.
@@ -714,17 +714,27 @@ class Image(DisplayObject):
         else:
             ext = None
 
-        if ext is not None:
-            format = ext.lower()
-            if ext == u'jpg' or ext == u'jpeg':
-                format = self._FMT_JPEG
-            if ext == u'png':
-                format = self._FMT_PNG
-        elif isinstance(data, bytes) and format == 'png':
-            # infer image type from image data header,
-            # only if format might not have been specified.
-            if data[:2] == _JPEG:
-                format = 'jpeg'
+        if format is None:
+            if ext is not None:
+                if ext == u'jpg' or ext == u'jpeg':
+                    format = self._FMT_JPEG
+                if ext == u'png':
+                    format = self._FMT_PNG
+                else:
+                    format = ext.lower()
+            elif isinstance(data, bytes):
+                # infer image type from image data header,
+                # only if format has not been specified.
+                if data[:2] == _JPEG:
+                    format = self._FMT_JPEG
+
+        if format.lower() == 'jpg':
+            # jpg->jpeg
+            format = self._FMT_JPEG
+
+        # failed to detect format, default png
+        if format is None:
+            format = 'png'
 
         self.format = unicode_type(format).lower()
         self.embed = embed if embed is not None else (url is None)
