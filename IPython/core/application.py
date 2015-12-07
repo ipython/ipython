@@ -185,7 +185,7 @@ class BaseIPythonApplication(Application):
         super(BaseIPythonApplication, self).__init__(**kwargs)
         # ensure current working directory exists
         try:
-            directory = py3compat.getcwd()
+            py3compat.getcwd()
         except:
             # exit if cwd doesn't exist
             self.log.error("Current working directory doesn't exist.")
@@ -194,6 +194,19 @@ class BaseIPythonApplication(Application):
     #-------------------------------------------------------------------------
     # Various stages of Application creation
     #-------------------------------------------------------------------------
+
+    def initialize_subcommand(self, subc, argv=None):
+        if subc in self.deprecated_subcommands:
+            import time
+            self.log.warning("Subcommand `ipython {sub}` is deprecated and will be removed "
+                             "in future versions.".format(sub=subc))
+            self.log.warning("You likely want to use `jupyter {sub}`... continue "
+                             "in 5 sec. Press Ctrl-C to quit now.".format(sub=subc))
+            try:
+                time.sleep(5)
+            except KeyboardInterrupt:
+                sys.exit(1)
+        return super(BaseIPythonApplication, self).initialize_subcommand(subc, argv)
 
     def init_crash_handler(self):
         """Create a crash handler, typically setting sys.excepthook to it."""
