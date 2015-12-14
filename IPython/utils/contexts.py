@@ -1,22 +1,9 @@
 # encoding: utf-8
-"""
-Context managers for temporarily updating dictionaries.
-
-Authors:
-
-* Bradley Froehle
+"""Miscellaneous context managers.
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2012  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Code
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 class preserve_keys(object):
     """Preserve a set of keys in a dictionary.
@@ -69,3 +56,9 @@ class preserve_keys(object):
         for k in self.to_delete:
             d.pop(k, None)
         d.update(self.to_update)
+
+
+class NoOpContext(object):
+    """Context manager that does nothing."""
+    def __enter__(self): pass
+    def __exit__(self, type, value, traceback): pass

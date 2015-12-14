@@ -1,18 +1,9 @@
 # -*- coding: utf-8 -*-
 """Subclass of InteractiveShell for terminal based frontends."""
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2001 Janko Hauser <jhauser@zscout.de>
-#  Copyright (C) 2001-2007 Fernando Perez. <fperez@colorado.edu>
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
 from __future__ import print_function
 
 import bdb
@@ -21,10 +12,12 @@ import sys
 
 from IPython.core.error import TryNext, UsageError
 from IPython.core.usage import interactive_usage
-from IPython.core.inputsplitter import IPythonInputSplitter
+from IPython.core.inputsplitter import IPythonInputSplitter, ESC_MAGIC
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.lib.clipboard import ClipboardEmpty
+from IPython.utils.contexts import NoOpContext
+from IPython.utils.decorators import undoc
 from IPython.utils.encoding import get_stream_enc
 from IPython.utils import py3compat
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
@@ -33,9 +26,6 @@ from IPython.utils.warn import warn, error
 from IPython.utils.text import num_ini_spaces, SList, strip_email_quotes
 from traitlets import Integer, CBool, Unicode
 
-#-----------------------------------------------------------------------------
-# Utilities
-#-----------------------------------------------------------------------------
 
 def get_default_editor():
     try:
@@ -74,10 +64,55 @@ def get_pasted_lines(sentinel, l_input=py3compat.input, quiet=False):
             print('<EOF>')
             return
 
+@undoc
+def no_op(*a, **kw): pass
 
-#------------------------------------------------------------------------
-# Terminal-specific magics
-#------------------------------------------------------------------------
+
+class ReadlineNoRecord(object):
+    """Context manager to execute some code, then reload readline history
+    so that interactive input to the code doesn't appear when pressing up."""
+    def __init__(self, shell):
+        self.shell = shell
+        self._nested_level = 0
+
+    def __enter__(self):
+        if self._nested_level == 0:
+            try:
+                self.orig_length = self.current_length()
+                self.readline_tail = self.get_readline_tail()
+            except (AttributeError, IndexError):   # Can fail with pyreadline
+                self.orig_length, self.readline_tail = 999999, []
+        self._nested_level += 1
+
+    def __exit__(self, type, value, traceback):
+        self._nested_level -= 1
+        if self._nested_level == 0:
+            # Try clipping the end if it's got longer
+            try:
+                e = self.current_length() - self.orig_length
+                if e > 0:
+                    for _ in range(e):
+                        self.shell.readline.remove_history_item(self.orig_length)
+
+                # If it still doesn't match, just reload readline history.
+                if self.current_length() != self.orig_length \
+                    or self.get_readline_tail() != self.readline_tail:
+                    self.shell.refill_readline_hist()
+            except (AttributeError, IndexError):
+                pass
+        # Returning False will cause exceptions to propagate
+        return False
+
+    def current_length(self):
+        return self.shell.readline.get_current_history_length()
+
+    def get_readline_tail(self, n=10):
+        """Get the last n items in readline history."""
+        end = self.shell.readline.get_current_history_length() + 1
+        start = max(end-n, 1)
+        ghi = self.shell.readline.get_history_item
+        return [ghi(x) for x in range(start, end)]
+
 
 @magics_class
 class TerminalMagics(Magics):
@@ -248,9 +283,6 @@ class TerminalMagics(Magics):
             """
             os.system("cls")
 
-#-----------------------------------------------------------------------------
-# Main class
-#-----------------------------------------------------------------------------
 
 class TerminalInteractiveShell(InteractiveShell):
 
@@ -318,6 +350,141 @@ class TerminalInteractiveShell(InteractiveShell):
         super(TerminalInteractiveShell, self).init_display_formatter()
         # terminal only supports plaintext
         self.display_formatter.active_types = ['text/plain']
+
+    #-------------------------------------------------------------------------
+    # Things related to readline
+    #-------------------------------------------------------------------------
+
+    def init_readline(self):
+        """Command history completion/saving/reloading."""
+
+        if self.readline_use:
+            import IPython.utils.rlineimpl as readline
+
+        self.rl_next_input = None
+        self.rl_do_indent = False
+
+        if not self.readline_use or not readline.have_readline:
+            self.readline = None
+            # Set a number of methods that depend on readline to be no-op
+            self.readline_no_record = NoOpContext()
+            self.set_readline_completer = no_op
+            self.set_custom_completer = no_op
+            if self.readline_use:
+                warn('Readline services not available or not loaded.')
+        else:
+            self.has_readline = True
+            self.readline = readline
+            sys.modules['readline'] = readline
+
+            # Platform-specific configuration
+            if os.name == 'nt':
+                # FIXME - check with Frederick to see if we can harmonize
+                # naming conventions with pyreadline to avoid this
+                # platform-dependent check
+                self.readline_startup_hook = readline.set_pre_input_hook
+            else:
+                self.readline_startup_hook = readline.set_startup_hook
+
+            # Readline config order:
+            # - IPython config (default value)
+            # - custom inputrc
+            # - IPython config (user customized)
+
+            # load IPython config before inputrc if default
+            # skip if libedit because parse_and_bind syntax is different
+            if not self._custom_readline_config and not readline.uses_libedit:
+                for rlcommand in self.readline_parse_and_bind:
+                    readline.parse_and_bind(rlcommand)
+
+            # Load user's initrc file (readline config)
+            # Or if libedit is used, load editrc.
+            inputrc_name = os.environ.get('INPUTRC')
+            if inputrc_name is None:
+                inputrc_name = '.inputrc'
+                if readline.uses_libedit:
+                    inputrc_name = '.editrc'
+                inputrc_name = os.path.join(self.home_dir, inputrc_name)
+            if os.path.isfile(inputrc_name):
+                try:
+                    readline.read_init_file(inputrc_name)
+                except:
+                    warn('Problems reading readline initialization file <%s>'
+                         % inputrc_name)
+
+            # load IPython config after inputrc if user has customized
+            if self._custom_readline_config:
+                for rlcommand in self.readline_parse_and_bind:
+                    readline.parse_and_bind(rlcommand)
+
+            # Remove some chars from the delimiters list.  If we encounter
+            # unicode chars, discard them.
+            delims = readline.get_completer_delims()
+            if not py3compat.PY3:
+                delims = delims.encode("ascii", "ignore")
+            for d in self.readline_remove_delims:
+                delims = delims.replace(d, "")
+            delims = delims.replace(ESC_MAGIC, '')
+            readline.set_completer_delims(delims)
+            # Store these so we can restore them if something like rpy2 modifies
+            # them.
+            self.readline_delims = delims
+            # otherwise we end up with a monster history after a while:
+            readline.set_history_length(self.history_length)
+
+            self.refill_readline_hist()
+            self.readline_no_record = ReadlineNoRecord(self)
+
+        # Configure auto-indent for all platforms
+        self.set_autoindent(self.autoindent)
+
+    def init_completer(self):
+        super(TerminalInteractiveShell, self).init_completer()
+
+        # Only configure readline if we truly are using readline.
+        if self.has_readline:
+            self.set_readline_completer()
+
+    def set_readline_completer(self):
+        """Reset readline's completer to be our own."""
+        self.readline.set_completer(self.Completer.rlcomplete)
+
+
+    def pre_readline(self):
+        """readline hook to be used at the start of each line.
+
+        It handles auto-indent and text from set_next_input."""
+
+        if self.rl_do_indent:
+            self.readline.insert_text(self._indent_current_str())
+        if self.rl_next_input is not None:
+            self.readline.insert_text(self.rl_next_input)
+            self.rl_next_input = None
+
+    def refill_readline_hist(self):
+        # Load the last 1000 lines from history
+        self.readline.clear_history()
+        stdin_encoding = sys.stdin.encoding or "utf-8"
+        last_cell = u""
+        for _, _, cell in self.history_manager.get_tail(self.history_load_length,
+                                                        include_latest=True):
+            # Ignore blank lines and consecutive duplicates
+            cell = cell.rstrip()
+            if cell and (cell != last_cell):
+                try:
+                    if self.multiline_history:
+                          self.readline.add_history(py3compat.unicode_to_str(cell,
+                                                                    stdin_encoding))
+                    else:
+                        for line in cell.splitlines():
+                            self.readline.add_history(py3compat.unicode_to_str(line,
+                                                                    stdin_encoding))
+                    last_cell = cell
+
+                except TypeError:
+                    # The history DB can get corrupted so it returns strings
+                    # containing null bytes, which readline objects to.
+                    continue
 
     #-------------------------------------------------------------------------
     # Things related to the terminal
