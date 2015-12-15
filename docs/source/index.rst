@@ -7,13 +7,7 @@ IPython Documentation
    :Release: |release|
    :Date: |today|
 
-.. only:: not rtd
-
-    Welcome to the official IPython documentation.
-
-.. only:: rtd
-
-    This is a partial copy of IPython documentation, please visit `IPython official documentation <http://ipython.org/documentation.html>`_.
+Welcome to the official IPython documentation.
 
 Contents
 ========
