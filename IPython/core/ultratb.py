@@ -1036,20 +1036,18 @@ class VerboseTB(TBTools):
         # figure out what to do on len(args) > 1
         match = reg.match(evalue.args[0])
         if (etype == 'TypeError') and match:
-            last_record = records[-1]
-            function, kw = match.groups()
-            func = last_record[0].f_locals.get(function, None)
-            if not func:
-                func = last_record[0].f_globals.get(function, None)
-            signature = inspect.signature(func)
-            matches = difflib.get_close_matches(kw, signature.parameters.keys(), 3, 0.3)
-            if matches:
-                evalue.args = (evalue.args[0]+'. Did you meant one of %s ? ' % ', '.join(map(lambda x : "'"+x+"'",matches)), )
-            else:
-                import pdb; pdb.set_trace()
-        else:
-            import pdb; pdb.set_trace()
-
+            try:
+                last_record = records[-1]
+                function, kw = match.groups()
+                func = last_record[0].f_locals.get(function, None)
+                if not func:
+                    func = last_record[0].f_globals.get(function, None)
+                signature = inspect.signature(func)
+                matches = difflib.get_close_matches(kw, signature.parameters.keys(), 3, 0.3)
+                if matches:
+                    evalue.args = (evalue.args[0]+'. Did you meant one of %s ? ' % ', '.join(map(lambda x : "'"+x+"'",matches)), )
+            except Exception:
+                pass
     
     
     
