@@ -1044,8 +1044,10 @@ class VerboseTB(TBTools):
                     func = last_record[0].f_globals.get(function, None)
                 signature = inspect.signature(func)
                 matches = difflib.get_close_matches(kw, signature.parameters.keys(), 3, 0.3)
-                if matches:
-                    evalue.args = (evalue.args[0]+'. Did you meant one of %s ? ' % ', '.join(map(lambda x : "'"+x+"'",matches)), )
+                if len(matches) == 1:
+                    evalue.args = (evalue.args[0]+". Did you mean '%s' ? " % matches[0]), )
+                elif len(matches) > 1:
+                    evalue.args = (evalue.args[0]+'. Did you mean one of %s ? ' % ', '.join(map(lambda x : "'"+x+"'",matches)), )
         except Exception:
             pass
     
