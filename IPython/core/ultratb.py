@@ -1034,9 +1034,9 @@ class VerboseTB(TBTools):
         # record heuristics
         reg = re.compile("([a-zA-Z_]+)\(\) got an unexpected keyword argument '(.+)'")
         # figure out what to do on len(args) > 1
-        match = reg.match(evalue.args[0])
-        if (etype == 'TypeError') and match:
-            try:
+        try:
+            match = reg.match(evalue.args[0])
+            if (etype == 'TypeError') and match:
                 last_record = records[-1]
                 function, kw = match.groups()
                 func = last_record[0].f_locals.get(function, None)
@@ -1046,8 +1046,8 @@ class VerboseTB(TBTools):
                 matches = difflib.get_close_matches(kw, signature.parameters.keys(), 3, 0.3)
                 if matches:
                     evalue.args = (evalue.args[0]+'. Did you meant one of %s ? ' % ', '.join(map(lambda x : "'"+x+"'",matches)), )
-            except Exception:
-                pass
+        except Exception:
+            pass
     
     
     
