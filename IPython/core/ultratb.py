@@ -426,7 +426,7 @@ class TBTools(PyColorize.Colorable):
         #if not parent: 
         super(TBTools, self).__init__(parent=parent, config=config)
         self.call_pdb = call_pdb
-        self._parser = PyColorize.Parser(style='nocolor')
+        self._parser = PyColorize.Parser(style=color_scheme)
 
         # Output stream to write to.  Note that we store the original value in
         # a private attribute and then make the public ostream a property, so
@@ -493,6 +493,9 @@ class TBTools(PyColorize.Colorable):
 
     def set_colors(self, scheme):
         """Shorthand access to the color table scheme selector method."""
+
+        # TODO: set color should not touch the color_scheme_active_table, 
+        # it should change the style of self._parser
 
         # Set own color table
         self.style = scheme

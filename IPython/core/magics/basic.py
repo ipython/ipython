@@ -363,6 +363,7 @@ Defaulting color scheme to 'NoColor'"""
 
         # Set exception colors
         try:
+            # TODO: do not call set_colors here
             shell.InteractiveTB.set_colors(scheme = new_scheme)
             shell.SyntaxTB.set_colors(scheme = new_scheme)
         except:
