@@ -1033,6 +1033,7 @@ class VerboseTB(TBTools):
         ###
         # record heuristics
         reg = re.compile("([a-zA-Z_]+)\(\) got an unexpected keyword argument '(.+)'")
+        reg2 = re.compile("'([a-zA-Z_]+)' object has no attribute '(.+)'")
         # figure out what to do on len(args) > 1
         try:
             match = reg.match(evalue.args[0])
@@ -1047,7 +1048,28 @@ class VerboseTB(TBTools):
                 if len(matches) == 1:
                     evalue.args = (evalue.args[0]+". Did you mean '%s' ? " % matches[0], )
                 elif len(matches) > 1:
-                    evalue.args = (evalue.args[0]+'. Did you mean one of %s ? ' % ', '.join(map(lambda x : "'"+x+"'",matches)), )
+                    evalue.args = (evalue.args[0]+'. Did you mean one of %s ? ' % ', '.join(map(lambda x : "'"+x+"'", matches)), )
+            match = reg2.match(evalue.args[0])
+        except Exception:
+            pass
+        try:
+            if (etype == 'AttributeError') and match:
+                last_record = records[-1]
+                frame = last_record[0]
+                names = frame.f_code.co_names
+                typ, missing = match.groups()
+                for name in names:
+                    obj = frame.f_locals.get(name, frame.f_globals.get(name, None))
+                    # likely no the right object, but likely the right type. 
+                    if obj and type(obj).__name__ == typ and (name in last_record[4][0]):
+                        matches = difflib.get_close_matches(missing, dir(obj), 3, 0.3)
+                        if len(matches) == 1:
+                            evalue.args = (evalue.args[0]+". Did you mean '%s', which belong to '%s' ? " % (matches[0], name), )
+                        elif len(matches) > 1:
+                            evalue.args = (evalue.args[0]+". Did you mean one of %s, which belong to '%s' ? " % ( ', '.join(map(lambda x : "'"+x+"'", matches)), name), )
+
+
+
         except Exception:
             pass
     
