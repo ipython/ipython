@@ -429,7 +429,7 @@ class Pdb(OldPdb):
         return ''.join(ret)
 
     def __format_line(self, tpl_line, filename, lineno, line, arrow = False):
-        return self.yield_format_line(tpl_line, filename, lineno, line, arrow = False)
+        return self.yield_format_line(tpl_line, filename, lineno, line, arrow = arrow)
 
     def yield_format_line(self, tpl_line, filename, lineno, line, arrow = False):
         bp_mark = ""
