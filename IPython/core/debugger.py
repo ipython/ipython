@@ -176,13 +176,13 @@ class Tracer(object):
 
 ## helper generators
 
-def tpl_line(a, b, c ):
+def _tpl_line(a, b, c ):
     yield (Token.Normal, a)
     yield (Token.LineNo, b)
     yield (Token.LineNo, ' ')
     yield (Token.Normal, c)
 
-def tpl_line_em(a, b, c ):
+def _tpl_line_em(a, b, c ):
     yield (Token.Normal, a)
     yield (Token.LineNoEm, b)
     yield (Token.LineNoEm, ' ')
@@ -424,7 +424,7 @@ class Pdb(OldPdb):
 
         for i,line in enumerate(lines):
             show_arrow = (start + 1 + i == lineno)
-            linetpl = (tpl_line_em if (frame is self.curframe or show_arrow) else tpl_line)
+            linetpl = (_tpl_line_em if (frame is self.curframe or show_arrow) else _tpl_line)
             ret.append(self.__format_line(linetpl, filename,
                                           start + 1 + i, line,
                                           arrow = show_arrow) )
@@ -498,9 +498,9 @@ class Pdb(OldPdb):
                     break
 
                 if lineno == self.curframe.f_lineno:
-                    line = self.__format_line(tpl_line_em, filename, lineno, line, arrow = True)
+                    line = self.__format_line(_tpl_line_em, filename, lineno, line, arrow = True)
                 else:
-                    line = self.__format_line(tpl_line, filename, lineno, line, arrow = False)
+                    line = self.__format_line(_tpl_line, filename, lineno, line, arrow = False)
 
                 src.append(line)
                 self.lineno = lineno
