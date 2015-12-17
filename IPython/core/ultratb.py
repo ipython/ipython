@@ -438,8 +438,8 @@ class TBTools(PyColorize.Colorable):
         self._ostream = ostream
 
         # Create color table
-        self.color_scheme_table = exception_colors()
-        self._C = self.color_scheme_table.active_colors
+        # self.color_scheme_table = exception_colors()
+        # self._C = self.color_scheme_table.active_colors
 
 
         self.set_colors(color_scheme)
@@ -499,7 +499,7 @@ class TBTools(PyColorize.Colorable):
 
         # Set own color table
         self.style = scheme
-        self.color_scheme_table.set_active_scheme(scheme)
+        # self.color_scheme_table.set_active_scheme(scheme)
         # for convenience, set Colors to the active scheme
         # self.Colors = FakeColors()#self.color_scheme_table.active_colors
         # self.Colors = self.color_scheme_table.active_colors
@@ -511,13 +511,15 @@ class TBTools(PyColorize.Colorable):
         """Toggle between the currently active color scheme and NoColor."""
         warnings.warn("color toggle has been deprecated", DeprecationWarning)
 
-        if self.color_scheme_table.active_scheme_name == 'NoColor':
-            self.color_scheme_table.set_active_scheme(self.old_scheme)
-            self.Colors = self.color_scheme_table.active_colors
-        else:
-            self.old_scheme = self.color_scheme_table.active_scheme_name
-            self.color_scheme_table.set_active_scheme('NoColor')
-            self.Colors = self.color_scheme_table.active_colors
+        return
+
+        # if self.color_scheme_table.active_scheme_name == 'NoColor':
+        #     self.color_scheme_table.set_active_scheme(self.old_scheme)
+        #     self.Colors = self.color_scheme_table.active_colors
+        # else:
+        #     self.old_scheme = self.color_scheme_table.active_scheme_name
+        #     self.color_scheme_table.set_active_scheme('NoColor')
+        #     self.Colors = self.color_scheme_table.active_colors
 
     def stb2text(self, stb):
         """Convert a structured traceback (a list) to a string."""
