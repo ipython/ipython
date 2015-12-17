@@ -112,7 +112,7 @@ from inspect import getsourcefile, getfile, getmodule, \
 from IPython import get_ipython
 from IPython.core import debugger
 from IPython.core.display_trap import DisplayTrap
-from IPython.core.excolors import exception_colors
+#from IPython.core.excolors import exception_colors
 from IPython.utils import PyColorize
 from IPython.utils import io
 from IPython.utils import openpy
@@ -424,9 +424,10 @@ class TBTools(PyColorize.Colorable):
         # Whether to call the interactive pdb debugger after printing
         # tracebacks or not
         #if not parent: 
+        #import pdb; pdb.set_trace()
         super(TBTools, self).__init__(parent=parent, config=config)
         self.call_pdb = call_pdb
-        self._parser = PyColorize.Parser(style=color_scheme)
+        self._parser = PyColorize.Parser(style=color_scheme, parent=self)
 
         # Output stream to write to.  Note that we store the original value in
         # a private attribute and then make the public ostream a property, so
@@ -466,6 +467,7 @@ class TBTools(PyColorize.Colorable):
 
     def fmt(self, *tokens):
         S = built_in_io.StringIO()
+        # print('format with ', self._parser.style)
         self._parser._form.format_unencoded(tokens, S)
         S.seek(0)
         return S.read()
@@ -853,7 +855,7 @@ class VerboseTB(TBTools):
                 # Decide whether to include variable details or not
                 var_repr = self.include_vars and eqrepr or nullrepr
                 try:
-                    ycall = _ycall (func, inspect.formatargvalues(args,
+                    ycall = _ycall(func, inspect.formatargvalues(args,
                                                                      varargs, varkw,
                                                                      locals, formatvalue=var_repr))
                 except KeyError:
@@ -972,7 +974,14 @@ class VerboseTB(TBTools):
             yield yt
 
     def format_records(self, records):
-        return list(map(lambda _:self.fmt(*_), self._format_records(records)))
+        #import pdb; pdb.set_trace()
+        rcds = self._format_records(records)
+        v = []
+        for x in rcds :
+            f = self.fmt(*x)
+            v.append(f)
+        #v = list(map(lambda _:self.fmt(*_), ))
+        return v
 
     def prepare_chained_exception_message(self, cause):
         direct_cause = "\nThe above exception was the direct cause of the following exception:\n"

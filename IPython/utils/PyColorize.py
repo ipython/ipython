@@ -113,6 +113,7 @@ class debugWrappAccessor(dict):
     def __getitem__(self, key):
         return ('<'+key+'>', '</'+key+'>')
 
+import random
 
 class wrappAccessor(dict):
     """
@@ -123,21 +124,28 @@ class wrappAccessor(dict):
 
     def __getitem__(self, key):
         try:
-            return dict.__getitem__(self,key)
+            return dict.__getitem__(self, key)
         except:
+            #print('Asked for unknown token:', key, 'of type', type(key))
             pass
         if isinstance(key, str):
-            for k in (key, tmap[key], fallbackp[key]):
+            for k in (key, tmap.get(key), fallbackp.get(key)):
                 try:
-                    escape_code = dict.__getitem__(self,k)
+                    escape_code = dict.__getitem__(self, k)
                 except KeyError:
                     escape_code = None
                 if escape_code:
                     break
             if escape_code:
                 # if there are escape codes, wrap them in
+                # print('got ec.')
                 v = ['\001%s\002'% x  if x else '' for x in escape_code ] 
                 return v
+            #print('return random rainbow mode for unknown token types')
+            return dict.__getitem__(self, random.choice(list(self.keys())))
+        else:
+            print('Unknown Key Type will raise')
+            raise ValueError('Unknown Key Type')
                  
 def normalize_style(style):
     return style_map.get(style, style)

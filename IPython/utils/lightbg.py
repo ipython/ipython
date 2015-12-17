@@ -12,7 +12,7 @@ class NoColorStyle(Style):
     background_color = ''
     default_style = '' 
 
-    style = defaultdict(lambda:'', {'':''})
+    style = defaultdict(lambda:'bold #0000BB', {'':''})
 
 class LightBGStyle(Style):
     """
@@ -22,7 +22,7 @@ class LightBGStyle(Style):
     background_color = "#f8f8f8"
     default_style = ""
 
-    styles = {
+    styles = defaultdict(lambda:'italic #FF0000',{
         Token.InPrompt.Number:     "bold #0000BB", 
         Token.InPrompt.Color :     "bold #0000BB", 
         Token.OutPrompt.Number:    "bold #BB0000",
@@ -74,4 +74,4 @@ class LightBGStyle(Style):
         Generic.Traceback:         "#04D",
 
         Error:                     "border:#FF0000"
-    }
+    })

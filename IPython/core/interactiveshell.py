@@ -1650,13 +1650,13 @@ class InteractiveShell(SingletonConfigurable):
 
     def init_traceback_handlers(self, custom_exceptions):
         # Syntax error handler.
-        self.SyntaxTB = ultratb.SyntaxTB(color_scheme='NoColor', parent=self)
+        self.SyntaxTB = ultratb.SyntaxTB(color_scheme=self.colors, parent=self)
 
         # The interactive one is initialized with an offset, meaning we always
         # want to remove the topmost item in the traceback, which is our own
         # internal code. Valid modes: ['Plain','Context','Verbose']
         self.InteractiveTB = ultratb.AutoFormattedTB(mode = 'Plain',
-                                                     color_scheme='NoColor',
+                                                     color_scheme=self.colors,
                                                      tb_offset = 1,
                                    check_cache=check_linecache_ipython,
                                    parent=self)
