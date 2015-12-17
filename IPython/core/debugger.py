@@ -364,14 +364,6 @@ class Pdb(OldPdb):
 
         ret = []
 
-        # Colors = self.color_scheme_table.active_colors
-        # ColorsNormal = Colors.Normal
-        # tpl_link = u'%s%%s%s' % (Colors.filenameEm, ColorsNormal)
-        # tpl_call = u'%s%%s%s%%s%s' % (Colors.vName, Colors.valEm, ColorsNormal)
-        #tpl_line = u'%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
-        #tpl_line_em = u'%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line,
-        #                                    ColorsNormal)
-
         def tpl_line(a, b, c ):
             yield (Token.Normal, a)
             yield (Token.LineNo, b)
