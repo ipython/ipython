@@ -508,13 +508,13 @@ class TBTools(PyColorize.Colorable):
         """Toggle between the currently active color scheme and NoColor."""
         warnings.warn("color toggle has been deprecated", DeprecationWarning)
 
-#        if self.color_scheme_table.active_scheme_name == 'NoColor':
-#            self.color_scheme_table.set_active_scheme(self.old_scheme)
-#            self.Colors = self.color_scheme_table.active_colors
-#        else:
-#            self.old_scheme = self.color_scheme_table.active_scheme_name
-#            self.color_scheme_table.set_active_scheme('NoColor')
-#            self.Colors = self.color_scheme_table.active_colors
+        if self.color_scheme_table.active_scheme_name == 'NoColor':
+            self.color_scheme_table.set_active_scheme(self.old_scheme)
+            self.Colors = self.color_scheme_table.active_colors
+        else:
+            self.old_scheme = self.color_scheme_table.active_scheme_name
+            self.color_scheme_table.set_active_scheme('NoColor')
+            self.Colors = self.color_scheme_table.active_colors
 
     def stb2text(self, stb):
         """Convert a structured traceback (a list) to a string."""

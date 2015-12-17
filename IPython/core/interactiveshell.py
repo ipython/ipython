@@ -269,13 +269,10 @@ class InteractiveShell(SingletonConfigurable):
         get confused with color codes, this capability can be turned off.
         """
     )
-
-
     colors = CaselessStrEnum(PyColorize.available_themes(),
                              default_value=get_default_colors(), config=True,
         help="Set the color scheme among available Pygments themes, NoColor, Linux, and LightBG."
     )
-
     colors_force = CBool(False, help=
         """
         Force use of ANSI color codes, regardless of OS and readline
@@ -484,7 +481,6 @@ class InteractiveShell(SingletonConfigurable):
         # and which in turn need super() to have been called. . 
         super(InteractiveShell, self).__init__(**kwargs)
         self._preinit = False
-
 
         self.configurables = [self]
 
@@ -2229,7 +2225,7 @@ class InteractiveShell(SingletonConfigurable):
         # FIXME: Move the color initialization to the DisplayHook, which
         # should be split into a prompt manager and displayhook. We probably
         # even need a centralize colors management object.
-        # self.magic('colors %s' % self.colors)
+        self.magic('colors %s' % self.colors)
     
     # Defined here so that it's included in the documentation
     @functools.wraps(magic.MagicsManager.register_function)

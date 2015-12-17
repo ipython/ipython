@@ -325,12 +325,11 @@ Currently the magic system has the following functions:""",
         To get a plain black and white terminal::
 
           %colors nocolor
-
         """
-
         def color_switch_err(name):
             warn('Error changing %s color schemes.\n%s' %
                  (name, sys.exc_info()[1]))
+
 
         new_scheme = parameter_s.strip()
         if not new_scheme:
