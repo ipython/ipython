@@ -174,6 +174,21 @@ class Tracer(object):
         self.debugger.set_trace(sys._getframe().f_back)
 
 
+## helper generators
+
+def tpl_line(a, b, c ):
+    yield (Token.Normal, a)
+    yield (Token.LineNo, b)
+    yield (Token.LineNo, ' ')
+    yield (Token.Normal, c)
+
+def tpl_line_em(a, b, c ):
+    yield (Token.Normal, a)
+    yield (Token.LineNoEm, b)
+    yield (Token.LineNoEm, ' ')
+    yield (Token.Line, c)
+
+
 def decorate_fn_with_doc(new_fn, old_fn, additional_text=""):
     """Make new_fn have old_fn's doc string. This is particularly useful
     for the ``do_...`` commands that hook into the help system.
@@ -364,17 +379,6 @@ class Pdb(OldPdb):
 
         ret = []
 
-        def tpl_line(a, b, c ):
-            yield (Token.Normal, a)
-            yield (Token.LineNo, b)
-            yield (Token.LineNo, ' ')
-            yield (Token.Normal, c)
-
-        def tpl_line_em(a, b, c ):
-            yield (Token.Normal, a)
-            yield (Token.LineNoEm, b)
-            yield (Token.LineNoEm, ' ')
-            yield (Token.Line, c)
 
         frame, lineno = frame_lineno
 
@@ -420,9 +424,7 @@ class Pdb(OldPdb):
 
         for i,line in enumerate(lines):
             show_arrow = (start + 1 + i == lineno)
-            linetpl = (frame is self.curframe or show_arrow) \
-                      and tpl_line_em \
-                      or tpl_line
+            linetpl = (tpl_line_em if (frame is self.curframe or show_arrow) else tpl_line)
             ret.append(self.__format_line(linetpl, filename,
                                           start + 1 + i, line,
                                           arrow = show_arrow) )
@@ -485,10 +487,7 @@ class Pdb(OldPdb):
         """The printing (as opposed to the parsing part of a 'list'
         command."""
         try:
-            Colors = self.color_scheme_table.active_colors
-            ColorsNormal = Colors.Normal
-            tpl_line = '%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
-            tpl_line_em = '%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line, ColorsNormal)
+
             src = []
             if filename == "<string>" and hasattr(self, "_exec_filename"):
                 filename = self._exec_filename
