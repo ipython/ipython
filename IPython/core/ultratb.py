@@ -374,7 +374,7 @@ def _fixed_getinnerframes(etb, context=1, tb_offset=0):
 _parser = PyColorize.Parser(style='nocolor')
 
 
-def _yield_traceback_lines(lnum, index, lines, lvals=None):
+def _yield_traceback_lines(lnum, index, lines, lvals=None, _parser=_parser):
     """
     yields each (token, value) pair from a traceback line
 
@@ -965,7 +965,7 @@ class VerboseTB(TBTools):
 
             yt = [(Token.Link, ylink), (Token.Normal, ' ') ] + ycall
             if index is not None:
-                yt = yt + list(_yield_traceback_lines(lnum, index, lines, lvals))
+                yt = yt + list(_yield_traceback_lines(lnum, index, lines, lvals, _parser=self._parser))
 
             yield yt
 
