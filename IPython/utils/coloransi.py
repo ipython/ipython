@@ -181,7 +181,6 @@ class ColorSchemeTable(dict):
             import traceback
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
-            import pdb; pdb.set_trace()
             raise ValueError('Unrecognized color scheme: ' + scheme + \
                   '\nValid schemes: '+str(scheme_names).replace("'', ",''))
         else:
