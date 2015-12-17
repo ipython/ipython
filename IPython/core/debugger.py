@@ -33,9 +33,14 @@ import sys
 
 from IPython import get_ipython
 from IPython.utils import PyColorize, ulinecache
-from IPython.utils import coloransi, io, py3compat
-from IPython.core.excolors import exception_colors
+#from IPython.utils import coloransi, 
+from IPython.utils import io, py3compat
+#from IPython.core.excolors import exception_colors
 from IPython.testing.skipdoctest import skip_doctest
+
+from pygments.token import  Token
+
+import io as built_in_io
 
 # See if we can use pydb.
 has_pydb = False
@@ -200,7 +205,7 @@ def _file_lines(fname):
 class Pdb(OldPdb):
     """Modified Pdb class, does not load readline."""
 
-    def __init__(self,color_scheme='NoColor',completekey=None,
+    def __init__(self, color_scheme='NoColor',completekey=None,
                  stdin=None, stdout=None):
 
         # Parent constructor:
@@ -244,37 +249,47 @@ class Pdb(OldPdb):
 
         # Create color table: we copy the default one from the traceback
         # module and add a few attributes needed for debugging
-        self.color_scheme_table = exception_colors()
+        # self.color_scheme_table = exception_colors()
 
         # shorthands
-        C = coloransi.TermColors
-        cst = self.color_scheme_table
+        # C = coloransi.TermColors
+        #cst = self.color_scheme_table
 
-        cst['NoColor'].colors.prompt = C.NoColor
-        cst['NoColor'].colors.breakpoint_enabled = C.NoColor
-        cst['NoColor'].colors.breakpoint_disabled = C.NoColor
+        # cst['NoColor'].colors.prompt = C.NoColor
+        # cst['NoColor'].colors.breakpoint_enabled = C.NoColor
+        # cst['NoColor'].colors.breakpoint_disabled = C.NoColor
 
-        cst['Linux'].colors.prompt = C.Green
-        cst['Linux'].colors.breakpoint_enabled = C.LightRed
-        cst['Linux'].colors.breakpoint_disabled = C.Red
+        # cst['Linux'].colors.prompt = C.Green
+        # cst['Linux'].colors.breakpoint_enabled = C.LightRed
+        # cst['Linux'].colors.breakpoint_disabled = C.Red
 
-        cst['LightBG'].colors.prompt = C.Blue
-        cst['LightBG'].colors.breakpoint_enabled = C.LightRed
-        cst['LightBG'].colors.breakpoint_disabled = C.Red
+        # cst['LightBG'].colors.prompt = C.Blue
+        # cst['LightBG'].colors.breakpoint_enabled = C.LightRed
+        # cst['LightBG'].colors.breakpoint_disabled = C.Red
 
-        self.set_colors(color_scheme)
 
         # Add a python parser so we can syntax highlight source while
         # debugging.
         self.parser = PyColorize.Parser(style=color_scheme)
 
+        self.set_colors(color_scheme)
+
         # Set the prompt
-        Colors = cst.active_colors
-        self.prompt = u'%s%s%s' % (Colors.prompt, prompt, Colors.Normal) # The default prompt is '(Pdb)'
+        #Colors = cst.active_colors
+        self.prompt = self.fmt((Token.Prompt, prompt))
+        #u'%s%s%s' % (Colors.prompt, prompt, Colors.Normal) # The default prompt is '(Pdb)'
+
+    def fmt(self, *tokens):
+        S = built_in_io.StringIO()
+        self.parser._form.format_unencoded(tokens, S)
+        S.seek(0)
+        return S.read()
+
 
     def set_colors(self, scheme):
         """Shorthand access to the color table scheme selector method."""
-        self.color_scheme_table.set_active_scheme(scheme)
+        #self.color_scheme_table.set_active_scheme(scheme)
+        self.parser.style = scheme;
 
     def interaction(self, frame, traceback):
         self.shell.set_completer_frame(frame)
@@ -349,13 +364,25 @@ class Pdb(OldPdb):
 
         ret = []
 
-        Colors = self.color_scheme_table.active_colors
-        ColorsNormal = Colors.Normal
-        tpl_link = u'%s%%s%s' % (Colors.filenameEm, ColorsNormal)
-        tpl_call = u'%s%%s%s%%s%s' % (Colors.vName, Colors.valEm, ColorsNormal)
-        tpl_line = u'%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
-        tpl_line_em = u'%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line,
-                                            ColorsNormal)
+        # Colors = self.color_scheme_table.active_colors
+        # ColorsNormal = Colors.Normal
+        # tpl_link = u'%s%%s%s' % (Colors.filenameEm, ColorsNormal)
+        # tpl_call = u'%s%%s%s%%s%s' % (Colors.vName, Colors.valEm, ColorsNormal)
+        #tpl_line = u'%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
+        #tpl_line_em = u'%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line,
+        #                                    ColorsNormal)
+
+        def tpl_line(a, b, c ):
+            yield (Token.Normal, a)
+            yield (Token.LineNo, b)
+            yield (Token.LineNo, ' ')
+            yield (Token.Normal, c)
+
+        def tpl_line_em(a, b, c ):
+            yield (Token.Normal, a)
+            yield (Token.LineNoEm, b)
+            yield (Token.LineNoEm, ' ')
+            yield (Token.Line, c)
 
         frame, lineno = frame_lineno
 
@@ -368,7 +395,8 @@ class Pdb(OldPdb):
 
         #s = filename + '(' + `lineno` + ')'
         filename = self.canonic(frame.f_code.co_filename)
-        link = tpl_link % py3compat.cast_unicode(filename)
+        # link = tpl_link % py3compat.cast_unicode(filename)
+        link = self.fmt((Token.FileNameEm,py3compat.cast_unicode(filename)))
 
         if frame.f_code.co_name:
             func = frame.f_code.co_name
@@ -381,7 +409,8 @@ class Pdb(OldPdb):
                 args = reprlib.repr(frame.f_locals['__args__'])
             else:
                 args = '()'
-            call = tpl_call % (func, args)
+            #call = tpl_call % (func, args)
+            call = self.fmt((Token.VName, func), (Token.ValEm, args ))
 
         # The level info should be generated in the same format pdb uses, to
         # avoid breaking the pdbtrack functionality of python-mode in *emacs.
@@ -408,11 +437,13 @@ class Pdb(OldPdb):
         return ''.join(ret)
 
     def __format_line(self, tpl_line, filename, lineno, line, arrow = False):
+        return self.yield_format_line(tpl_line, filename, lineno, line, arrow = False)
+
+    def yield_format_line(self, tpl_line, filename, lineno, line, arrow = False):
         bp_mark = ""
         bp_mark_color = ""
 
-        scheme = self.color_scheme_table.active_scheme_name
-        new_line, err = self.parser.format2(line, 'str', scheme)
+        new_line, err = self.parser.format2(line, 'str')
         if not err: line = new_line
 
         bp = None
@@ -424,9 +455,13 @@ class Pdb(OldPdb):
             Colors = self.color_scheme_table.active_colors
             bp_mark = str(bp.number)
             bp_mark_color = Colors.breakpoint_enabled
+            toktype = Token.Breakpoint.Enabled
             if not bp.enabled:
                 bp_mark_color = Colors.breakpoint_disabled
+                toktype = Token.Breakpoint.Disabled
 
+        # TODO: this likely can be shared with ultratb.py
+        # which has the same functionlality
         numbers_width = 7
         if arrow:
             # This is the line with the error
@@ -440,10 +475,11 @@ class Pdb(OldPdb):
             else:
                  marker = ''
             num = '%s%s' % (marker, str(lineno))
-            line = tpl_line % (bp_mark_color + bp_mark, num, line)
+            line = self.fmt(*tpl_line(bp_mark_color + bp_mark, num, line))
+            # line = self.parser.format(())
         else:
             num = '%*s' % (numbers_width - len(bp_mark), str(lineno))
-            line = tpl_line % (bp_mark_color + bp_mark, num, line)
+            line = self.fmt(*tpl_line(bp_mark_color + bp_mark, num, line))
 
         return line
 

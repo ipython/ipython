@@ -301,6 +301,9 @@ class Parser(Colorable):
         return highlight(code, self._lex, self._form)
 
     def format(self, raw, out = None, scheme = ''):
+        """
+        Format a lost token and return a unicode string with escape sequences..
+        """
         return self.format2(raw, out, scheme)[0]
 
     def format2(self, raw, out = None, scheme = ''):
