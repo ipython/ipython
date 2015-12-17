@@ -330,13 +330,13 @@ class Parser(Colorable):
             self.out = out
 
         # Fast return of the unmodified input for NoColor scheme
-        if scheme == 'NoColor':
-            error = False
-            self.out.write(raw)
-            if string_output:
-                return raw, error
-            else:
-                return None, error
+        # if scheme == 'NoColor':
+        #     error = False
+        #     self.out.write(raw)
+        #     if string_output:
+        #         return raw, error
+        #     else:
+        #         return None, error
 
         # Remove trailing whitespace and normalize tabs
         self.raw = raw.expandtabs().rstrip()
