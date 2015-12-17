@@ -69,7 +69,7 @@ def test_longer_repr():
     nt.assert_equal(trepr(a), a_trunc)
     # The creation of our tracer modifies the repr module's repr function
     # in-place, since that global is used directly by the stdlib's pdb module.
-    t = debugger.Tracer()
+    debugger.Tracer()
     nt.assert_equal(trepr(a), ar)
 
 def test_ipdb_magics():

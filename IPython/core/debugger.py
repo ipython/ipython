@@ -176,14 +176,14 @@ class Tracer(object):
 
 ## helper generators
 
-def _tpl_line(a, b, c ):
-    yield (Token.Normal, a)
+def _tpl_line(toktype ,a, b, c ):
+    yield (toktype, a)
     yield (Token.LineNo, b)
     yield (Token.LineNo, ' ')
     yield (Token.Normal, c)
 
-def _tpl_line_em(a, b, c ):
-    yield (Token.Normal, a)
+def _tpl_line_em(toktype, a, b, c ):
+    yield (toktype, a)
     yield (Token.LineNoEm, b)
     yield (Token.LineNoEm, ' ')
     yield (Token.Line, c)
@@ -431,27 +431,24 @@ class Pdb(OldPdb):
         return ''.join(ret)
 
     def __format_line(self, tpl_line, filename, lineno, line, arrow = False):
-        return self.yield_format_line(tpl_line, filename, lineno, line, arrow = arrow)
+        return self.fmt(*self.yield_format_line(tpl_line, filename, lineno, line, arrow = arrow))
 
     def yield_format_line(self, tpl_line, filename, lineno, line, arrow = False):
         bp_mark = ""
-        bp_mark_color = ""
+        bp = None
+        toktype = Token.Normal
 
         new_line, err = self.parser.format2(line, 'str')
         if not err: line = new_line
 
-        bp = None
         if lineno in self.get_file_breaks(filename):
             bps = self.get_breaks(filename, lineno)
             bp = bps[-1]
 
         if bp:
-            Colors = self.color_scheme_table.active_colors
             bp_mark = str(bp.number)
-            bp_mark_color = Colors.breakpoint_enabled
             toktype = Token.Breakpoint.Enabled
             if not bp.enabled:
-                bp_mark_color = Colors.breakpoint_disabled
                 toktype = Token.Breakpoint.Disabled
 
         # TODO: this likely can be shared with ultratb.py
@@ -469,13 +466,10 @@ class Pdb(OldPdb):
             else:
                  marker = ''
             num = '%s%s' % (marker, str(lineno))
-            line = self.fmt(*tpl_line(bp_mark_color + bp_mark, num, line))
-            # line = self.parser.format(())
         else:
             num = '%*s' % (numbers_width - len(bp_mark), str(lineno))
-            line = self.fmt(*tpl_line(bp_mark_color + bp_mark, num, line))
 
-        return line
+        return tpl_line(toktype, bp_mark, num, line)
 
     def list_command_pydb(self, arg):
         """List command to use if we have a newer pydb installed"""
