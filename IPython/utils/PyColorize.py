@@ -70,6 +70,7 @@ from IPython.utils.lightbg import LightBGStyle, NoColorStyle
 from traitlets.config import Configurable
 from traitlets import Unicode, Bool
 
+
 available_themes = lambda : [s for s in pygments.styles.get_all_styles()]+['NoColor','LightBG','Linux']
 
 class Colorable(Configurable):
@@ -371,7 +372,11 @@ class Parser(Colorable):
 
         Convenience method.
         """
-        S = io.StringIO()
+        if sys.version_info < (3,):
+            S = io.BytesIO()
+            tokens = map(lambda pair: (pair[0], pair[1].decode('utf-8')), tokens)
+        else :
+            S = io.StringIO()
         self._form.format_unencoded(tokens, S)
         S.seek(0)
         return S.read()

@@ -198,8 +198,6 @@ class BasicMagics(Magics):
         mode = ''
         try:
             mode = parameter_s.split()[0][1:]
-            if mode == 'rest':
-                rest_docs = []
         except IndexError:
             pass
 
@@ -602,8 +600,8 @@ Defaulting color scheme to 'NoColor'"""
             with io.open(args.filename, 'w', encoding='utf-8') as f:
                 write(nb, f, version=4)
 
-
-BasicMagics.colors.__doc__ = BasicMagics.colors.__doc__ +\
+if sys.version_info > (3,):
+    BasicMagics.colors.__doc__ = BasicMagics.colors.__doc__ +\
         'Known themes :\n\n'+indent(indent(
         '\n'.join(wrap(
             ', '.join(PyColorize.available_themes())
