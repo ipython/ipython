@@ -32,7 +32,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-__all__ = ['ANSICodeColors','Parser']
+__all__ = ['Parser']
 
 _scheme_default = 'Linux'
 
@@ -50,7 +50,6 @@ except AttributeError:
     # strings, not bytes. See also Python issue #9969.
     generate_tokens = tokenize._tokenize
 
-from IPython.utils.coloransi import TermColors, InputTermColors ,ColorScheme, ColorSchemeTable
 from IPython.utils.py3compat import PY3
 
 if PY3:
@@ -209,85 +208,7 @@ _TEXT    = token.NT_OFFSET + 2
 #****************************************************************************
 # Builtin color schemes
 
-Colors = TermColors  # just a shorthand
-
-# Build a few color schemes
-NoColor = ColorScheme(
-    'NoColor',{
-    'header'         : Colors.NoColor,
-    token.NUMBER     : Colors.NoColor,
-    token.OP         : Colors.NoColor,
-    token.STRING     : Colors.NoColor,
-    tokenize.COMMENT : Colors.NoColor,
-    token.NAME       : Colors.NoColor,
-    token.ERRORTOKEN : Colors.NoColor,
-
-    _KEYWORD         : Colors.NoColor,
-    _TEXT            : Colors.NoColor,
-
-    'in_prompt'      : InputTermColors.NoColor,  # Input prompt
-    'in_number'      : InputTermColors.NoColor,  # Input prompt number
-    'in_prompt2'     : InputTermColors.NoColor, # Continuation prompt
-    'in_normal'      : InputTermColors.NoColor,  # color off (usu. Colors.Normal)
-
-    'out_prompt'     : Colors.NoColor, # Output prompt
-    'out_number'     : Colors.NoColor, # Output prompt number
-
-    'normal'         : Colors.NoColor  # color off (usu. Colors.Normal)
-    }  )
-
-LinuxColors = ColorScheme(
-    'Linux',{
-    'header'         : Colors.LightRed,
-    token.NUMBER     : Colors.LightCyan,
-    token.OP         : Colors.Yellow,
-    token.STRING     : Colors.LightBlue,
-    tokenize.COMMENT : Colors.LightRed,
-    token.NAME       : Colors.Normal,
-    token.ERRORTOKEN : Colors.Red,
-
-    _KEYWORD         : Colors.LightGreen,
-    _TEXT            : Colors.Yellow,
-
-    'in_prompt'      : InputTermColors.Green,
-    'in_number'      : InputTermColors.LightGreen,
-    'in_prompt2'     : InputTermColors.Green,
-    'in_normal'      : InputTermColors.Normal,  # color off (usu. Colors.Normal)
-
-    'out_prompt'     : Colors.Red,
-    'out_number'     : Colors.LightRed,
-
-    'normal'         : Colors.Normal  # color off (usu. Colors.Normal)
-    
-    } )
-
-LightBGColors = ColorScheme(
-    'LightBG',{
-    'header'         : Colors.Red,
-    token.NUMBER     : Colors.Cyan,
-    token.OP         : Colors.Blue,
-    token.STRING     : Colors.Blue,
-    tokenize.COMMENT : Colors.Red,
-    token.NAME       : Colors.Normal,
-    token.ERRORTOKEN : Colors.Red,
-
-    _KEYWORD         : Colors.Green,
-    _TEXT            : Colors.Blue,
-
-    'in_prompt'      : InputTermColors.Blue,
-    'in_number'      : InputTermColors.LightBlue,
-    'in_prompt2'     : InputTermColors.Blue,
-    'in_normal'      : InputTermColors.Normal,  # color off (usu. Colors.Normal)
-
-    'out_prompt'     : Colors.Red,
-    'out_number'     : Colors.LightRed,
-
-    'normal'         : Colors.Normal  # color off (usu. Colors.Normal)
-    }  )
-
 # Build table of color schemes (needed by the parser)
-ANSICodeColors = ColorSchemeTable([NoColor,LinuxColors,LightBGColors],
-                                  _scheme_default)
 
 class Parser(Colorable):
     """ Format colored Python source.

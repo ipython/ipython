@@ -33,12 +33,12 @@ from IPython.core import release
 from IPython.utils import coloransi, py3compat
 from traitlets import (Unicode, Instance, Dict, Bool, Int)
 
-from IPython.utils.PyColorize import IPythonTerm256Formatter, ANSICodeColors
-
+from IPython.utils.PyColorize import IPythonTerm256Formatter
 #-----------------------------------------------------------------------------
 # Color schemes for prompts
 #-----------------------------------------------------------------------------
 
+# TODO: we still use coloransi here. 
 InputColors = coloransi.InputTermColors  # just a shorthand
 Colors = coloransi.TermColors  # just a shorthand
 
@@ -327,7 +327,6 @@ class PromptManager(Configurable):
     def color_scheme_table(self):
         import warnings
         warnings.warn("PromptManager's `color_scheme_table` is deprecated.", DeprecationWarning)
-        return ANSICodeColors
 
     @color_scheme_table.setter
     def color_scheme_table(self, value):
