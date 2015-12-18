@@ -364,3 +364,15 @@ class Parser(Colorable):
             self.out = out_old
             return (output, error)
         return (None, error)
+
+    def fmt(self, *tokens):
+        """
+        Format a stream of (TokenType, Token) to an ANSO string and return it.
+
+        Convenience method.
+        """
+        S = io.StringIO()
+        self._form.format_unencoded(tokens, S)
+        S.seek(0)
+        return S.read()
+

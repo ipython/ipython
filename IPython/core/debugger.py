@@ -30,12 +30,11 @@ import bdb
 import functools
 import inspect
 import sys
+import warnings
 
 from IPython import get_ipython
 from IPython.utils import PyColorize, ulinecache
-#from IPython.utils import coloransi, 
 from IPython.utils import io, py3compat
-#from IPython.core.excolors import exception_colors
 from IPython.testing.skipdoctest import skip_doctest
 
 from pygments.token import  Token
@@ -262,49 +261,20 @@ class Pdb(OldPdb):
 
         self.aliases = {}
 
-        # Create color table: we copy the default one from the traceback
-        # module and add a few attributes needed for debugging
-        # self.color_scheme_table = exception_colors()
-
-        # shorthands
-        # C = coloransi.TermColors
-        #cst = self.color_scheme_table
-
-        # cst['NoColor'].colors.prompt = C.NoColor
-        # cst['NoColor'].colors.breakpoint_enabled = C.NoColor
-        # cst['NoColor'].colors.breakpoint_disabled = C.NoColor
-
-        # cst['Linux'].colors.prompt = C.Green
-        # cst['Linux'].colors.breakpoint_enabled = C.LightRed
-        # cst['Linux'].colors.breakpoint_disabled = C.Red
-
-        # cst['LightBG'].colors.prompt = C.Blue
-        # cst['LightBG'].colors.breakpoint_enabled = C.LightRed
-        # cst['LightBG'].colors.breakpoint_disabled = C.Red
-
-
         # Add a python parser so we can syntax highlight source while
         # debugging.
         self.parser = PyColorize.Parser(style=color_scheme)
 
-        self.set_colors(color_scheme)
-
         # Set the prompt
-        #Colors = cst.active_colors
-        self.prompt = self.fmt((Token.Prompt, prompt))
-        #u'%s%s%s' % (Colors.prompt, prompt, Colors.Normal) # The default prompt is '(Pdb)'
-
-    def fmt(self, *tokens):
-        S = built_in_io.StringIO()
-        self.parser._form.format_unencoded(tokens, S)
-        S.seek(0)
-        return S.read()
+        # TODO: rerender prompt on color scheme changed.
+        self.prompt = self.parser.fmt((Token.Prompt, prompt))
 
 
     def set_colors(self, scheme):
         """Shorthand access to the color table scheme selector method."""
-        #self.color_scheme_table.set_active_scheme(scheme)
-        self.parser.style = scheme;
+        warnings.warn("%s.set_colors is deprecated and will be removed in IPython 6.0" % self.__class__, DeprecationWarning)
+        raise DeprecationWarning('set_color is deprecated')
+        
 
     def interaction(self, frame, traceback):
         self.shell.set_completer_frame(frame)
@@ -392,7 +362,7 @@ class Pdb(OldPdb):
         #s = filename + '(' + `lineno` + ')'
         filename = self.canonic(frame.f_code.co_filename)
         # link = tpl_link % py3compat.cast_unicode(filename)
-        link = self.fmt((Token.FileNameEm,py3compat.cast_unicode(filename)))
+        link = self.parser.fmt((Token.FileNameEm,py3compat.cast_unicode(filename)))
 
         if frame.f_code.co_name:
             func = frame.f_code.co_name
@@ -406,7 +376,7 @@ class Pdb(OldPdb):
             else:
                 args = '()'
             #call = tpl_call % (func, args)
-            call = self.fmt((Token.VName, func), (Token.ValEm, args ))
+            call = self.parser.fmt((Token.VName, func), (Token.ValEm, args ))
 
         # The level info should be generated in the same format pdb uses, to
         # avoid breaking the pdbtrack functionality of python-mode in *emacs.
@@ -431,7 +401,7 @@ class Pdb(OldPdb):
         return ''.join(ret)
 
     def __format_line(self, tpl_line, filename, lineno, line, arrow = False):
-        return self.fmt(*self.yield_format_line(tpl_line, filename, lineno, line, arrow = arrow))
+        return self.parser.fmt(*self.yield_format_line(tpl_line, filename, lineno, line, arrow = arrow))
 
     def yield_format_line(self, tpl_line, filename, lineno, line, arrow = False):
         bp_mark = ""
@@ -452,7 +422,7 @@ class Pdb(OldPdb):
                 toktype = Token.Breakpoint.Disabled
 
         # TODO: this likely can be shared with ultratb.py
-        # which has the same functionlality
+        # which has the same functionality
         numbers_width = 7
         if arrow:
             # This is the line with the error

@@ -3,7 +3,6 @@
 from __future__ import print_function
 
 import io
-import json
 import sys
 from pprint import pformat
 from textwrap import wrap

@@ -96,7 +96,6 @@ import tokenize
 import traceback
 import warnings
 import types
-import io as built_in_io
 
 try:  # Python 2
     generate_tokens = tokenize.generate_tokens
@@ -406,10 +405,12 @@ def _yield_traceback_lines(lnum, index, lines, lvals=None, _parser=_parser):
         
         line = py3compat.cast_unicode(line)
         line = _parser._lex.get_tokens(line) 
-        yield from line
+        for l in line:
+            yield l
 
         if lvals and i == lnum:
-            yield from lvals 
+            for l in lvals:
+                yield l 
 
 
 #---------------------------------------------------------------------------
@@ -453,26 +454,18 @@ class TBTools(PyColorize.Colorable):
 
     @property
     def Colors(self):
-        warnings.warn("%s.Colors is deprecated" % self.__class__, DeprecationWarning)
+        warnings.warn("%s.Colors is deprecated and will be removed in IPython 6.0" % self.__class__, DeprecationWarning)
         raise DeprecationWarning('Usage of Color deprecated feature')
         return self._C
 
     @Colors.setter
     def Colors(self, value):
-        warnings.warn("%s.Colors is deprecated" % self.__class__, DeprecationWarning)
+        warnings.warn("%s.Colors is deprecated and will be removed in IPython 6.0" % self.__class__, DeprecationWarning)
         raise DeprecationWarning('Usage of Color deprecated feature')
         if value is None:
             return
         self._C = value
 
-    def fmt(self, *tokens):
-        S = built_in_io.StringIO()
-        # print('format with ', self._parser.style)
-        self._parser._form.format_unencoded(tokens, S)
-        S.seek(0)
-        return S.read()
-
-        
 
     def _get_ostream(self):
         """Output stream that exceptions are written to.
@@ -607,7 +600,7 @@ class ListTB(TBTools):
             if tb_offset and len(elist) > tb_offset:
                 elist = elist[tb_offset:]
 
-            out_list.append(self.fmt((Token.Normal, 'Traceback '),
+            out_list.append(self._parser.fmt((Token.Normal, 'Traceback '),
                                      (Token.NormalEm, '(most recent call last)'),
                                      (Token.Normal,':\n')))
             out_list.extend(self._format_list(elist))
@@ -657,7 +650,7 @@ class ListTB(TBTools):
             item.append((Token.Line, '    %s\n' % line.strip()))
 
         list_.append(item)
-        return list(map(lambda _:self.fmt(*_), list_))
+        return list(map(lambda _:self._parser.fmt(*_), list_))
 
     def _format_exception_only(self, etype, value):
         """Format the exception part of a traceback.
@@ -705,7 +698,7 @@ class ListTB(TBTools):
                         i += 1
                     list_.append((Token.Line, '    '+textline.strip()))
                     if value.offset is not None:
-                        s = '    '
+                        s = '\n    '
                         for c in textline[i:value.offset - 1]:
                             if c.isspace():
                                 s += c
@@ -731,7 +724,7 @@ class ListTB(TBTools):
             ipinst = get_ipython()
             if ipinst is not None:
                 ipinst.hooks.synchronize_with_editor(value.filename, value.lineno, 0)
-        return self.fmt(*list_)
+        return self._parser.fmt(*list_)
 
     def get_exception_only(self, etype, value):
         """Only print the exception type and message, without a traceback.
@@ -978,9 +971,9 @@ class VerboseTB(TBTools):
         rcds = self._format_records(records)
         v = []
         for x in rcds :
-            f = self.fmt(*x)
+            f = self._parser.fmt(*x)
             v.append(f)
-        #v = list(map(lambda _:self.fmt(*_), ))
+        #v = list(map(lambda _:self._parser.fmt(*_), ))
         return v
 
     def prepare_chained_exception_message(self, cause):
@@ -1014,10 +1007,10 @@ class VerboseTB(TBTools):
             head = ((Token.ExcName, etype),
                     (Token.Normal, 'Traceback (most recent call last)'.  rjust(75 - len(str(etype)))))
 
-        return self.fmt(*head)
+        return self._parser.fmt(*head)
 
     def format_exception(self, etype, evalue):
-        return list(map(lambda _: self.fmt(*_), self._format_exception_tokens(etype, evalue)))
+        return list(map(lambda _: self._parser.fmt(*_), self._format_exception_tokens(etype, evalue)))
 
     def _format_exception_tokens(self, etype, evalue):
         indent = ' ' * INDENT_SIZE
@@ -1126,7 +1119,7 @@ class VerboseTB(TBTools):
         formatted_exception = self.format_exception_as_a_whole(etype, evalue, etb, number_of_lines_of_context,
                                                                tb_offset)
 
-        head = self.fmt((Token.Topline, '-' * 75))
+        head = self._parser.fmt((Token.Topline, '-' * 75))
         structured_traceback_parts = [head]
         if py3compat.PY3:
             chained_exceptions_tb_offset = 0
