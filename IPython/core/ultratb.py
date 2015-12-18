@@ -605,7 +605,13 @@ class ListTB(TBTools):
                                      (Token.Normal,':\n')))
             out_list.extend(self._format_list(elist))
         # The exception info should be a single entry in the list.
-        lines = ''.join(self._format_exception_only(etype, value))+'\n'
+        # TODO : Bytes or string Py2 ?
+        fe= self._format_exception_only(etype, value)
+        lines = '<none>'
+        dfe = py3compat.str_to_unicode(fe)
+        lines = u''.join(dfe)
+
+        lines = lines + '\n'
         out_list.append(lines)
 
         return out_list
@@ -1149,7 +1155,9 @@ class VerboseTB(TBTools):
         else:
             structured_traceback_parts += formatted_exception[0]
 
-        return structured_traceback_parts
+        # TODO check unicode/byte Py2/3
+        dfe = py3compat.str_to_unicode(structured_traceback_parts)
+        return dfe
 
     def debugger(self, force=False):
         """Call up the pdb debugger if desired, always clean up the tb
@@ -1262,6 +1270,7 @@ class FormattedTB(VerboseTB, ListTB):
         mode = self.mode
         if mode in self.verbose_modes:
             # Verbose modes need a full traceback
+            # TODO: Py2/2 byte str
             return VerboseTB.structured_traceback(
                 self, etype, value, tb, tb_offset, number_of_lines_of_context
             )
@@ -1271,6 +1280,7 @@ class FormattedTB(VerboseTB, ListTB):
             self.check_cache()
             # Now we can extract and format the exception
             elist = self._extract_tb(tb)
+            # TODO: Py2/2 byte str
             return ListTB.structured_traceback(
                 self, etype, value, elist, tb_offset, number_of_lines_of_context
             )
@@ -1354,6 +1364,7 @@ class AutoFormattedTB(FormattedTB):
         if etype is None:
             etype, value, tb = sys.exc_info()
         self.tb = tb
+        # TODO: Py23/bytestr
         return FormattedTB.structured_traceback(
             self, etype, value, tb, tb_offset, number_of_lines_of_context)
 
