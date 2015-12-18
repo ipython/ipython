@@ -124,6 +124,7 @@ class wrappAccessor(dict):
     """
 
     def __getitem__(self, key):
+        import IPython.utils.py3compat as c
         try:
             return dict.__getitem__(self, key)
         except:
@@ -140,10 +141,12 @@ class wrappAccessor(dict):
             if escape_code:
                 # if there are escape codes, wrap them in
                 # print('got ec.')
-                v = ['\001%s\002'% x  if x else '' for x in escape_code ] 
+                v = [c.unicode_to_str('\001%s\002'% x)  if x else c.unicode_to_str('') for x in escape_code ] 
                 return v
+            else:
+                v=  dict.__getitem__(self, random.choice(list(self.keys())))
             #print('return random rainbow mode for unknown token types')
-            return dict.__getitem__(self, random.choice(list(self.keys())))
+            return v
         else:
             print('Unknown Key Type will raise')
             raise ValueError('Unknown Key Type')
@@ -178,12 +181,20 @@ class IPythonTerm256Formatter(Colorable, Terminal256Formatter ):
             self.style_string = wrappAccessor(self.style_string)
     
         
-    def single_fmt(self, string, ttype):
+    def single_fmt(self, string_, ttype):
         """
         Format string with the style of ttype token.
         """
-        S = io.StringIO()
-        self.format([(ttype,string)], S)
+        if sys.version_info < (3,):
+            S = io.BytesIO()
+            #import pdb; pdb.set_trace()
+            utype = ttype.encode()
+            ustr = string_.encode('utf-8')
+            self.format([(utype, ustr)], S)
+
+        else :
+            S = io.StringIO()
+            self.format([(ttype,string_)], S)
         S.seek(0)
         return S.read()
 
@@ -374,7 +385,7 @@ class Parser(Colorable):
         """
         if sys.version_info < (3,):
             S = io.BytesIO()
-            #tokens = map(lambda pair: (pair[0], pair[1].decode('utf-8')), tokens)
+            tokens = map(lambda pair: (pair[0], pair[1].encode('utf-8')), tokens)
         else :
             S = io.StringIO()
         self._form.format_unencoded(tokens, S)
