@@ -1459,7 +1459,6 @@ class InteractiveShell(SingletonConfigurable):
             not py3compat.isidentifier(oname, dotted=True):
             return dict(found=False)
 
-        alias_ns = None
         if namespaces is None:
             # Namespaces to search in:
             # Put them in a list. The order is important so that we
@@ -1470,7 +1469,7 @@ class InteractiveShell(SingletonConfigurable):
                            ]
 
         # initialize results to 'null'
-        found = False; obj = None;  ospace = None;  ds = None
+        found = False; obj = None;  ospace = None;
         ismagic = False; isalias = False; parent = None
 
         # We need to special-case 'print', which as of python2.6 registers as a
@@ -2647,7 +2646,7 @@ class InteractiveShell(SingletonConfigurable):
 
         # Make sure we can open the file
         try:
-            with open(fname) as thefile:
+            with open(fname):
                 pass
         except:
             warn('Could not open file <%s> for safe execution.' % fname)
@@ -2705,7 +2704,7 @@ class InteractiveShell(SingletonConfigurable):
 
         # Make sure we can open the file
         try:
-            with open(fname) as thefile:
+            with open(fname):
                 pass
         except:
             warn('Could not open file <%s> for safe execution.' % fname)
@@ -2990,8 +2989,6 @@ class InteractiveShell(SingletonConfigurable):
             to_run_exec, to_run_interactive = [], nodelist
         else:
             raise ValueError("Interactivity was %r" % interactivity)
-
-        exec_count = self.execution_count
 
         try:
             for i, node in enumerate(to_run_exec):
