@@ -111,7 +111,6 @@ from inspect import getsourcefile, getfile, getmodule, \
 from IPython import get_ipython
 from IPython.core import debugger
 from IPython.core.display_trap import DisplayTrap
-#from IPython.core.excolors import exception_colors
 from IPython.utils import PyColorize
 from IPython.utils import io
 from IPython.utils import openpy
