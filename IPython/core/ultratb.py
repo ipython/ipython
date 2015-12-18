@@ -494,10 +494,6 @@ class TBTools(PyColorize.Colorable):
 
         # Set own color table
         self.style = scheme
-        # self.color_scheme_table.set_active_scheme(scheme)
-        # for convenience, set Colors to the active scheme
-        # self.Colors = FakeColors()#self.color_scheme_table.active_colors
-        # self.Colors = self.color_scheme_table.active_colors
         # Also set colors of debugger
         if hasattr(self, 'pdb') and self.pdb is not None:
             self.pdb.set_colors(scheme=scheme)
@@ -658,6 +654,8 @@ class ListTB(TBTools):
         list_.append(item)
         return list(map(lambda _:self._parser.fmt(*_), list_))
 
+    # TODO: refactor this one to yield the tokens, and 
+    # format at a higher level. 
     def _format_exception_only(self, etype, value):
         """Format the exception part of a traceback.
 
@@ -740,6 +738,7 @@ class ListTB(TBTools):
         etype : exception type
         value : exception value
         """
+        # TODO: ListTB here seem like it can be `self..` check why
         return ListTB.structured_traceback(self, etype, value, [])
 
     def show_exception_only(self, etype, evalue):
@@ -765,21 +764,6 @@ class ListTB(TBTools):
             return '<unprintable %s object>' % type(value).__name__
 
 
-attr_map = {
-    'excName':"Token.Name.Exception",
-    'filenameEm': "Token.Name",
-    'vName':       "Token.Name",
-    'valEm':  "Token.Punctuation",
-}
-
-class WrapColors:
-    def __getattr__(self, name):
-        return attr_map.get(name, name)
-
-class FakeColors:
-
-    def __getattr__(self, name):
-        return '<'+attr_map.get(name, name)+'>'
 #----------------------------------------------------------------------------
 class VerboseTB(TBTools):
     """A port of Ka-Ping Yee's cgitb.py module that outputs color text instead

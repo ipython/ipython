@@ -39,8 +39,6 @@ from IPython.testing.skipdoctest import skip_doctest
 
 from pygments.token import  Token
 
-import io as built_in_io
-
 # See if we can use pydb.
 has_pydb = False
 prompt = 'ipdb> '
@@ -79,7 +77,7 @@ def BdbQuit_excepthook(et, ev, tb, excepthook=None):
         # Backwards compatibility. Raise deprecation warning?
         BdbQuit_excepthook.excepthook_ori(et,ev,tb)
 
-def BdbQuit_IPython_excepthook(self,et,ev,tb,tb_offset=None):
+def BdbQuit_IPython_excepthook(self, et, ev, tb, tb_offset=None):
     print('Exiting Debugger.')
 
 
@@ -129,7 +127,7 @@ class Tracer(object):
             # Outside of ipython, we set our own exception hook manually
             sys.excepthook = functools.partial(BdbQuit_excepthook,
                                                excepthook=sys.excepthook)
-            def_colors = 'NoColor'
+            defaults_colors = 'NoColor'
             try:
                 # Limited tab completion support
                 import readline
@@ -138,11 +136,11 @@ class Tracer(object):
                 pass
         else:
             # In ipython, we use its custom exception handler mechanism
-            def_colors = ip.colors
+            defaults_colors = ip.colors
             ip.set_custom_exc((bdb.BdbQuit,), BdbQuit_IPython_excepthook)
 
         if colors is None:
-            colors = def_colors
+            colors = defaults_colors
 
         # The stdlib debugger internally uses a modified repr from the `repr`
         # module, that limits the length of printed strings to a hardcoded
@@ -176,12 +174,24 @@ class Tracer(object):
 ## helper generators
 
 def _tpl_line(toktype ,a, b, c ):
+    """
+    helper generator to yield a traceback line.
+
+    This will be used to yield the tokens for a normal line, ie indented with 
+    spaces and with the line numbers. 
+    """
     yield (toktype, a)
     yield (Token.LineNo, b)
     yield (Token.LineNo, ' ')
     yield (Token.Normal, c)
 
 def _tpl_line_em(toktype, a, b, c ):
+    """
+    helper generator to yield a traceback line.
+
+    This will be used to yield the tokens for an empahsed line, ie indented with 
+    an arrow (if set) and with the line numbers. 
+    """
     yield (toktype, a)
     yield (Token.LineNoEm, b)
     yield (Token.LineNoEm, ' ')
@@ -274,6 +284,7 @@ class Pdb(OldPdb):
         """Shorthand access to the color table scheme selector method."""
         warnings.warn("%s.set_colors is deprecated and will be removed in IPython 6.0" % self.__class__, DeprecationWarning)
         raise DeprecationWarning('set_color is deprecated')
+        # TODO: restore deleted functionality ; and/or add more explanations on what the new way is. 
         
 
     def interaction(self, frame, traceback):
@@ -342,6 +353,7 @@ class Pdb(OldPdb):
         # vds: <<
 
     def format_stack_entry(self, frame_lineno, lprefix=': ', context = 3):
+        # TODO: docstring
         try:
             import reprlib  # Py 3
         except ImportError:
@@ -375,7 +387,6 @@ class Pdb(OldPdb):
                 args = reprlib.repr(frame.f_locals['__args__'])
             else:
                 args = '()'
-            #call = tpl_call % (func, args)
             call = self.parser.fmt((Token.VName, func), (Token.ValEm, args ))
 
         # The level info should be generated in the same format pdb uses, to
@@ -401,9 +412,15 @@ class Pdb(OldPdb):
         return ''.join(ret)
 
     def __format_line(self, tpl_line, filename, lineno, line, arrow = False):
-        return self.parser.fmt(*self.yield_format_line(tpl_line, filename, lineno, line, arrow = arrow))
+        return self.parser.fmt(*self._yield_format_line(tpl_line, filename, lineno, line, arrow = arrow))
 
-    def yield_format_line(self, tpl_line, filename, lineno, line, arrow = False):
+    def _yield_format_line(self, tpl_line, filename, lineno, line, arrow = False):
+        """
+        Helper generator that yield the token for one line of a stack trace. 
+
+        Will format the breakpoints in the gutter, insert line numbers, and add an arrow
+        for the emphased line.
+        """
         bp_mark = ""
         bp = None
         toktype = Token.Normal
