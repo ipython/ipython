@@ -374,7 +374,7 @@ class Parser(Colorable):
         """
         if sys.version_info < (3,):
             S = io.BytesIO()
-            tokens = map(lambda pair: (pair[0], pair[1].decode('utf-8')), tokens)
+            #tokens = map(lambda pair: (pair[0], pair[1].decode('utf-8')), tokens)
         else :
             S = io.StringIO()
         self._form.format_unencoded(tokens, S)
