@@ -30,7 +30,6 @@ from IPython.testing.decorators import (
     skipif, skip_win32, onlyif_unicode_paths, onlyif_cmds_exist,
 )
 from IPython.testing import tools as tt
-from IPython.utils import io
 from IPython.utils.process import find_cmd
 from IPython.utils import py3compat
 from IPython.utils.py3compat import unicode_type, PY3

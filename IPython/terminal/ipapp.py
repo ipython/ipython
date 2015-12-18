@@ -200,22 +200,22 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
 
     deprecated_subcommands = dict(
         qtconsole=('qtconsole.qtconsoleapp.JupyterQtConsoleApp',
-            """DEPRECATD: Launch the Jupyter Qt Console."""
+            """DEPRECATED, Will be removed in IPython 6.0 : Launch the Jupyter Qt Console."""
         ),
         notebook=('notebook.notebookapp.NotebookApp',
-            """DEPRECATED: Launch the Jupyter HTML Notebook Server."""
+            """DEPRECATED, Will be removed in IPython 6.0 : Launch the Jupyter HTML Notebook Server."""
         ),
         console=('jupyter_console.app.ZMQTerminalIPythonApp',
-            """DEPRECATED: Launch the Jupyter terminal-based Console."""
+            """DEPRECATED, Will be removed in IPython 6.0 : Launch the Jupyter terminal-based Console."""
         ),
         nbconvert=('nbconvert.nbconvertapp.NbConvertApp',
-            "DEPRECATED: Convert notebooks to/from other formats."
+            "DEPRECATED, Will be removed in IPython 6.0 : Convert notebooks to/from other formats."
         ),
         trust=('nbformat.sign.TrustNotebookApp',
-            "DEPRECATED: Sign notebooks to trust their potentially unsafe contents at load."
+            "DEPRECATED, Will be removed in IPython 6.0 : Sign notebooks to trust their potentially unsafe contents at load."
         ),
         kernelspec=('jupyter_client.kernelspecapp.KernelSpecApp',
-            "DEPRECATED: Manage Jupyter kernel specifications."
+            "DEPRECATED, Will be removed in IPython 6.0 : Manage Jupyter kernel specifications."
         ),
     )
     subcommands = dict(
@@ -234,7 +234,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     )
     deprecated_subcommands['install-nbextension'] = (
         "notebook.nbextensions.InstallNBExtensionApp",
-        "DEPRECATED: Install Jupyter notebook extension files"
+        "DEPRECATED, Will be removed in IPython 6.0 : Install Jupyter notebook extension files"
     )
     subcommands.update(deprecated_subcommands)
 

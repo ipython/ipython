@@ -351,7 +351,8 @@ def _dreload(module, **kwargs):
 
     """
     warn("""
-injecting `dreload` in interactive namespace is deprecated, please import `reload` explicitly from `IPython.lib.deepreload`
+injecting `dreload` in interactive namespace is deprecated, and will be removed in IPython 5.0. 
+Please import `reload` explicitly from `IPython.lib.deepreload`.
 """, DeprecationWarning, stacklevel=2)
     reload(module, **kwargs)
 

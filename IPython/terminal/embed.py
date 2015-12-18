@@ -63,7 +63,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
     
         if kw.get('user_global_ns', None) is not None:
             warnings.warn("user_global_ns has been replaced by user_module. The\
-                           parameter will be ignored.", DeprecationWarning)
+                           parameter will be ignored, and removed in IPython 5.0", DeprecationWarning)
 
         super(InteractiveShellEmbed,self).__init__(**kw)
 
@@ -158,7 +158,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         """
         
         if (global_ns is not None) and (module is None):
-            warnings.warn("global_ns is deprecated, use module instead.", DeprecationWarning)
+            warnings.warn("global_ns is deprecated, and will be removed in IPython 5.0 use module instead.", DeprecationWarning)
             module = DummyMod()
             module.__dict__ = global_ns
 
