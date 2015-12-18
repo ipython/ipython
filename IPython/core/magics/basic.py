@@ -3,7 +3,6 @@
 from __future__ import print_function
 
 import io
-import json
 import sys
 from pprint import pformat
 
@@ -194,8 +193,6 @@ class BasicMagics(Magics):
         mode = ''
         try:
             mode = parameter_s.split()[0][1:]
-            if mode == 'rest':
-                rest_docs = []
         except IndexError:
             pass
 
