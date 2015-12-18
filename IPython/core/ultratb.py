@@ -1156,7 +1156,7 @@ class VerboseTB(TBTools):
             structured_traceback_parts += formatted_exception[0]
 
         # TODO check unicode/byte Py2/3
-        dfe = py3compat.str_to_unicode(structured_traceback_parts)
+        dfe = list(map(py3compat.str_to_unicode, structured_traceback_parts))
         return dfe
 
     def debugger(self, force=False):
