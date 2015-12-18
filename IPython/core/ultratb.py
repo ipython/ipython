@@ -126,6 +126,7 @@ from pygments.token import Token
 # Globals
 # amount of space to put line numbers before verbose tracebacks
 INDENT_SIZE = 8
+LINE_LENGTH = 75
 
 # Utility functions
 def inspect_error():
@@ -868,6 +869,9 @@ class VerboseTB(TBTools):
                 # Look up the corresponding source file.
                 file = openpy.source_from_cache(file)
 
+            # TODO: closure with on purpose mutable default argument
+            # used as a generator. refactor that as a real generator. 
+            # TODO: the kwarg getline seem useless too as this is a closure. 
             def linereader(file=file, lnum=[lnum], getline=ulinecache.getline):
                 line = getline(file, lnum[0])
                 lnum[0] += 1
@@ -956,14 +960,13 @@ class VerboseTB(TBTools):
 
             yield yt
 
+    # TODO: likely refactor to yield
     def format_records(self, records):
-        #import pdb; pdb.set_trace()
         rcds = self._format_records(records)
         v = []
         for x in rcds :
             f = self._parser.fmt(*x)
             v.append(f)
-        #v = list(map(lambda _:self._parser.fmt(*_), ))
         return v
 
     def prepare_chained_exception_message(self, cause):
@@ -978,24 +981,25 @@ class VerboseTB(TBTools):
 
     def prepare_header(self, etype, long_version=False):
 
+
         if long_version:
             # Header with the exception type, python version, and date
             pyver = 'Python ' + sys.version.split()[0] + ': ' + sys.executable
             date = time.ctime(time.time())
 
-            head = ((Token.Topline, '-'*75),
+            head = ((Token.Topline, '-'*LINE_LENGTH),
                     (Token.Normal,  '\n'),
                     (Token.ExcName, etype),
-                    (Token.Normal,  ' ' * (75 - len(str(etype)) - len(pyver))), 
+                    (Token.Normal,  ' ' * (LINE_LENGTH - len(str(etype)) - len(pyver))), 
                     (Token.Normal,  pyver), 
-                    (Token.Normal,  date.rjust(75)), 
+                    (Token.Normal,  date.rjust(LINE_LENGTH)), 
                     (Token.Normal,  "\nA problem occurred executing Python code.  Here is the sequence of function" \
                                     "\ncalls leading up to the error, with the most recent (innermost) call last."))
                       
         else:
             # Simplified header
             head = ((Token.ExcName, etype),
-                    (Token.Normal, 'Traceback (most recent call last)'.  rjust(75 - len(str(etype)))))
+                    (Token.Normal, 'Traceback (most recent call last)'.  rjust(LINE_LENGTH - len(str(etype)))))
 
         return self._parser.fmt(*head)
 
@@ -1109,7 +1113,7 @@ class VerboseTB(TBTools):
         formatted_exception = self.format_exception_as_a_whole(etype, evalue, etb, number_of_lines_of_context,
                                                                tb_offset)
 
-        head = self._parser.fmt((Token.Topline, '-' * 75))
+        head = self._parser.fmt((Token.Topline, '-' * LINE_LENGTH))
         structured_traceback_parts = [head]
         if py3compat.PY3:
             chained_exceptions_tb_offset = 0
