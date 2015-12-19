@@ -375,13 +375,10 @@ class Pdb(OldPdb):
         return_value = ''
         if '__return__' in frame.f_locals:
             rv = frame.f_locals['__return__']
-            #return_value += '->'
             return_value += reprlib.repr(rv) + '\n'
         ret.append(return_value)
 
-        #s = filename + '(' + `lineno` + ')'
         filename = self.canonic(frame.f_code.co_filename)
-        # link = tpl_link % py3compat.cast_unicode(filename)
         link = self.parser.fmt((Token.FileNameEm,py3compat.cast_unicode(filename)))
 
         if frame.f_code.co_name:

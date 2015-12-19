@@ -480,12 +480,8 @@ class TBTools(PyColorize.Colorable):
 
     def set_colors(self, scheme):
         """Shorthand access to the color table scheme selector method."""
-
-        # TODO: set color should not touch the color_scheme_active_table, 
-        # it should change the style of self._parser
-
-        # Set own color table
         self.style = scheme
+        self._parser.style = scheme
         # Also set colors of debugger
         if hasattr(self, 'pdb') and self.pdb is not None:
             self.pdb.set_colors(scheme=scheme)
@@ -494,15 +490,6 @@ class TBTools(PyColorize.Colorable):
         """Toggle between the currently active color scheme and NoColor."""
         warnings.warn("color toggle has been deprecated", DeprecationWarning)
 
-        return
-
-        # if self.color_scheme_table.active_scheme_name == 'NoColor':
-        #     self.color_scheme_table.set_active_scheme(self.old_scheme)
-        #     self.Colors = self.color_scheme_table.active_colors
-        # else:
-        #     self.old_scheme = self.color_scheme_table.active_scheme_name
-        #     self.color_scheme_table.set_active_scheme('NoColor')
-        #     self.Colors = self.color_scheme_table.active_colors
 
     def stb2text(self, stb):
         """Convert a structured traceback (a list) to a string."""
@@ -594,7 +581,7 @@ class ListTB(TBTools):
             out_list.extend(self._format_list(elist))
         # The exception info should be a single entry in the list.
         # TODO : Bytes or string Py2 ?
-        fe= self._format_exception_only(etype, value)
+        fe = self._parser.fmt(*self._format_exception_only(etype, value))
         lines = '<none>'
         dfe = py3compat.str_to_unicode(fe)
         lines = u''.join(dfe)
@@ -720,7 +707,7 @@ class ListTB(TBTools):
             ipinst = get_ipython()
             if ipinst is not None:
                 ipinst.hooks.synchronize_with_editor(value.filename, value.lineno, 0)
-        return self._parser.fmt(*list_)
+        return list_
 
     def get_exception_only(self, etype, value):
         """Only print the exception type and message, without a traceback.
