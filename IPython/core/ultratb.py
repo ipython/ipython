@@ -581,7 +581,8 @@ class ListTB(TBTools):
             out_list.extend(self._format_list(elist))
         # The exception info should be a single entry in the list.
         # TODO : Bytes or string Py2 ?
-        fe = self._parser.fmt(*self._format_exception_only(etype, value))
+        import pdb; pdb.set_trace()
+        fe = self._parser.fmt(*list(self._format_exception_only(etype, value)))
         lines = '<none>'
         dfe = py3compat.str_to_unicode(fe)
         lines = u''.join(dfe)
@@ -649,12 +650,11 @@ class ListTB(TBTools):
         Also lifted nearly verbatim from traceback.py
         """
         have_filedata = False
-        list_ = []
         stype = (Token.ExcName, etype.__name__)
         if value is None:
             # Not sure if this can still happen in Python 2.6 and above
-            list_.append(stype)
-            list_.append((Token.Normal,'\n'))
+            yield stype
+            yield (Token.Normal,'\n')
         else:
             if issubclass(etype, SyntaxError):
                 have_filedata = True
@@ -665,13 +665,12 @@ class ListTB(TBTools):
                 else:
                     lineno = ' unknown'
                     textline = ''
-                list_.extend((
-                             (Token.NormalEm, '  File '),
-                             (Token.FileNameEm, '"'+py3compat.cast_unicode(value.filename+'"')),
-                             (Token.NormalEm, ', line'),
-                             (Token.LineNoEm, str(lineno)),
-                             (Token.Normal, '\n')
-                             ))
+                yield (Token.NormalEm, '  File ')
+                yield (Token.FileNameEm, '"'+py3compat.cast_unicode(value.filename+'"'))
+                yield (Token.NormalEm, ', line')
+                yield (Token.LineNoEm, str(lineno))
+                yield (Token.Normal, '\n')
+
                 if textline == '':
                     textline = py3compat.cast_unicode(value.text, "utf-8")
 
@@ -679,7 +678,7 @@ class ListTB(TBTools):
                     i = 0
                     while i < len(textline) and textline[i].isspace():
                         i += 1
-                    list_.append((Token.Line, '    '+textline.strip()))
+                    yield (Token.Line, '    '+textline.strip())
                     if value.offset is not None:
                         s = '\n    '
                         for c in textline[i:value.offset - 1]:
@@ -687,27 +686,25 @@ class ListTB(TBTools):
                                 s += c
                             else:
                                 s += ' '
-                        list_.append((Token.Carret, s+'^\n'))
+                        yield (Token.Carret, s+'^\n')
 
             try:
                 s = value.msg
             except Exception:
                 s = self._some_str(value)
+            yield stype
+            
             if s:
-                list_.extend(( stype,
-                              (Token.ExcName, ':'),
-                              (Token.Normal,  ' '+s)))
-
+                yield (Token.ExcName, ':')
+                yield (Token.Normal,  ' '+s)
             else:
-                list_.append(stype)
-                list_.append((Token.Normal, '\n' ))
+                yield (Token.Normal, '\n' )
 
         # sync with user hooks
         if have_filedata:
             ipinst = get_ipython()
             if ipinst is not None:
                 ipinst.hooks.synchronize_with_editor(value.filename, value.lineno, 0)
-        return list_
 
     def get_exception_only(self, etype, value):
         """Only print the exception type and message, without a traceback.
