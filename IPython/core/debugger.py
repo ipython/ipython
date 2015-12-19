@@ -358,6 +358,9 @@ class Pdb(OldPdb):
         # vds: <<
 
     def format_stack_entry(self, frame_lineno, lprefix=': ', context = 3):
+        """
+        Format a single stack entry and show `context` number of line after/before.
+        """
         # TODO: docstring
         try:
             import reprlib  # Py 3
