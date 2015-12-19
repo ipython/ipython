@@ -1054,7 +1054,7 @@ class InteractiveShell(SingletonConfigurable):
         # Now that FakeModule produces a real module, we've run into a nasty
         # problem: after script execution (via %run), the module where the user
         # code ran is deleted.  Now that this object is a true module (needed
-        # so docetst and other tools work correctly), the Python module
+        # so doctest and other tools work correctly), the Python module
         # teardown mechanism runs over it, and sets to None every variable
         # present in that module.  Top-level references to objects from the
         # script survive, because the user_ns is updated with them.  However,
@@ -1168,7 +1168,7 @@ class InteractiveShell(SingletonConfigurable):
         # user_ns, and we sync that contents into user_ns_hidden so that these
         # initial variables aren't shown by %who.  After the sync, we add the
         # rest of what we *do* want the user to see with %who even on a new
-        # session (probably nothing, so theye really only see their own stuff)
+        # session (probably nothing, so they really only see their own stuff)
 
         # The user dict must *always* have a __builtin__ reference to the
         # Python standard __builtin__ namespace,  which must be imported.
