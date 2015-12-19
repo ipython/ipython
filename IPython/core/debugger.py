@@ -60,6 +60,15 @@ if has_pydb:
 else:
     from pdb import Pdb as OldPdb
 
+
+def make_arrow(pad):
+    """generate the leading arrow in front of traceback or debugger"""
+    if pad >= 2:
+        return '-'*(pad-2) + '> '
+    elif pad == 1:
+        return '>'
+    return ''
+
 # Allow the set_trace code to operate outside of an ipython instance, even if
 # it does so with some limitations.  The rest of this support is implemented in
 # the Tracer constructor.
@@ -444,15 +453,7 @@ class Pdb(OldPdb):
         if arrow:
             # This is the line with the error
             pad = numbers_width - len(str(lineno)) - len(bp_mark)
-            if pad >= 3:
-                marker = '-'*(pad-3) + '-> '
-            elif pad == 2:
-                 marker = '> '
-            elif pad == 1:
-                 marker = '>'
-            else:
-                 marker = ''
-            num = '%s%s' % (marker, str(lineno))
+            num = '%s%s' % (make_arrow(pad), str(lineno))
         else:
             num = '%*s' % (numbers_width - len(bp_mark), str(lineno))
 

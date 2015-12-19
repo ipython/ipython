@@ -387,15 +387,7 @@ def _yield_traceback_lines(lnum, index, lines, lvals=None, _parser=_parser):
         if i == lnum:
             # This is the line with the error
             pad = numbers_width - len(str(i))
-            if pad >= 3:
-                marker = '-' * (pad - 3) + '-> '
-            elif pad == 2:
-                marker = '> '
-            elif pad == 1:
-                marker = '>'
-            else:
-                marker = ''
-            num = marker + str(i)
+            num = debugger.make_arrow(pad) + str(i)
             yield (Token.LinenoEm, num)
         else:
             num = '%*s' % (numbers_width, i)
