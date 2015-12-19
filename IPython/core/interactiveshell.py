@@ -2022,7 +2022,7 @@ class InteractiveShell(SingletonConfigurable):
 
         This creates completion machinery that can be used by client code,
         either interactively in-process (typically triggered by the readline
-        library), programatically (such as in test suites) or out-of-prcess
+        library), programmatically (such as in test suites) or out-of-process
         (typically over the network by remote frontends).
         """
         from IPython.core.completer import IPCompleter
@@ -3165,7 +3165,7 @@ class InteractiveShell(SingletonConfigurable):
 
           A string specifying code to retrieve. This will be tried respectively
           as: ranges of input history (see %history for syntax), url,
-          correspnding .py file, filename, or an expression evaluating to a
+          corresponding .py file, filename, or an expression evaluating to a
           string or Macro in the user namespace.
 
         raw : bool
