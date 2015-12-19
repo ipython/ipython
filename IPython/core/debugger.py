@@ -30,7 +30,6 @@ import bdb
 import functools
 import inspect
 import sys
-import warnings
 
 from IPython import get_ipython
 from IPython.utils import PyColorize, ulinecache
@@ -283,17 +282,14 @@ class Pdb(OldPdb):
         # Add a python parser so we can syntax highlight source while
         # debugging.
         self.parser = PyColorize.Parser(style=color_scheme)
-
-        # Set the prompt
-        # TODO: rerender prompt on color scheme changed.
         self.prompt = self.parser.fmt((Token.Prompt, prompt))
 
 
     def set_colors(self, scheme):
-        """Shorthand access to the color table scheme selector method."""
-        warnings.warn("%s.set_colors is deprecated and will be removed in IPython 6.0" % self.__class__, DeprecationWarning)
-        raise DeprecationWarning('set_color is deprecated')
+        """Shorthand to set the colorscheme used by the debugger"""
         # TODO: restore deleted functionality ; and/or add more explanations on what the new way is. 
+        self.parser.style = scheme
+        self.prompt = self.parser.fmt((Token.Prompt, prompt))
         
 
     def interaction(self, frame, traceback):
@@ -546,6 +542,10 @@ class Pdb(OldPdb):
         self.print_list_lines(self.curframe.f_code.co_filename, lineno, last)
 
     do_ll = do_longlist
+
+    def do_colors(self, arg):
+        """allow to change colors from inside debugger"""
+        self.set_colors(arg)
 
     def do_pdef(self, arg):
         """Print the call signature for any callable object.
