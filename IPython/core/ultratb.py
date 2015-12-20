@@ -580,7 +580,7 @@ class ListTB(TBTools):
             out_list.extend(self._format_list(elist))
         # The exception info should be a single entry in the list.
         # TODO : Bytes or string Py2 ?
-        fe = self._parser.fmt(*self._format_exception_only(etype, value))
+        fe = self._format_exception_only(etype, value)
         lines = '<none>'
         dfe = py3compat.str_to_unicode(fe)
         lines = u''.join(dfe)
@@ -632,7 +632,6 @@ class ListTB(TBTools):
         list_.append(item)
         return list(map(lambda _:self._parser.fmt(*_), list_))
 
-    # TODO: refactor this one to yield the tokens, and 
     # format at a higher level. 
     def _format_exception_only(self, etype, value):
         """Format the exception part of a traceback.
@@ -647,6 +646,9 @@ class ListTB(TBTools):
 
         Also lifted nearly verbatim from traceback.py
         """
+        return self._parser.fmt(*self._yield_from_format_exception_only(etype, value))
+
+    def _yield_from_format_exception_only(self, etype, value):
         have_filedata = False
         stype = (Token.ExcName, etype.__name__)
         if value is None:
