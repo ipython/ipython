@@ -580,7 +580,7 @@ class ListTB(TBTools):
             out_list.extend(self._format_list(elist))
         # The exception info should be a single entry in the list.
         # TODO : Bytes or string Py2 ?
-        fe = self._parser.fmt(*list(self._format_exception_only(etype, value)))
+        fe = self._parser.fmt(*self._format_exception_only(etype, value))
         lines = '<none>'
         dfe = py3compat.str_to_unicode(fe)
         lines = u''.join(dfe)
