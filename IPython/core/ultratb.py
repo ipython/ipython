@@ -590,6 +590,7 @@ class ListTB(TBTools):
 
         return out_list
 
+    # TODO: refactor to yield
     def _format_list(self, extracted_list):
         """Format a list of traceback entry tuples for printing.
 
@@ -772,6 +773,8 @@ class VerboseTB(TBTools):
             check_cache = linecache.checkcache
         self.check_cache = check_cache
 
+    # TODO: docstring
+    # TODO: funciton seem likely too long, and too complex. 
     def _format_records(self, records):
         indent = ' ' * INDENT_SIZE
 
@@ -935,7 +938,7 @@ class VerboseTB(TBTools):
 
             yield yt
 
-    # TODO: likely refactor to yield
+    # TODO: likely refactor to yield or list comprehension
     def format_records(self, records):
         rcds = self._format_records(records)
         v = []
@@ -978,7 +981,9 @@ class VerboseTB(TBTools):
 
         return self._parser.fmt(*head)
 
+    # TODO: docstring
     def format_exception(self, etype, evalue):
+        # TODO: list comprehension seem more suitable.
         return list(map(lambda _: self._parser.fmt(*_), self._format_exception_tokens(etype, evalue)))
 
     def _format_exception_tokens(self, etype, evalue):
@@ -1119,6 +1124,7 @@ class VerboseTB(TBTools):
             structured_traceback_parts += formatted_exception[0]
 
         # TODO check unicode/byte Py2/3
+        # TODO: list comprehension
         dfe = list(map(py3compat.str_to_unicode, structured_traceback_parts))
         return dfe
 
