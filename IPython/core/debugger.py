@@ -287,7 +287,6 @@ class Pdb(OldPdb):
 
     def set_colors(self, scheme):
         """Shorthand to set the colorscheme used by the debugger"""
-        # TODO: restore deleted functionality ; and/or add more explanations on what the new way is. 
         self.parser.style = scheme
         self.prompt = self.parser.fmt((Token.Prompt, prompt))
         
@@ -357,18 +356,18 @@ class Pdb(OldPdb):
         self.shell.hooks.synchronize_with_editor(filename, lineno, 0)
         # vds: <<
 
-    def format_stack_entry(self, frame_lineno, lprefix=': ', context = 3):
+    def format_stack_entry(self, frame_lineno, lprefix=': ', context=3):
         """
         Format a single stack entry and show `context` number of line after/before.
         """
-        # TODO: docstring
+        return self.fmt(*self._yield_format_stack_entry(frame_lineno, lprefix=': ', context=context))
+
+
+    def _yield_format_stack_entry(self, frame_lineno, lprefix=': ', context = 3):
         try:
             import reprlib  # Py 3
         except ImportError:
             import repr as reprlib  # Py 2
-
-        ret = []
-
 
         frame, lineno = frame_lineno
 
@@ -376,7 +375,7 @@ class Pdb(OldPdb):
         if '__return__' in frame.f_locals:
             rv = frame.f_locals['__return__']
             return_value += reprlib.repr(rv) + '\n'
-        ret.append(return_value)
+        yield return_value
 
         filename = self.canonic(frame.f_code.co_filename)
         link = self.parser.fmt((Token.FileNameEm,py3compat.cast_unicode(filename)))
@@ -397,10 +396,10 @@ class Pdb(OldPdb):
         # The level info should be generated in the same format pdb uses, to
         # avoid breaking the pdbtrack functionality of python-mode in *emacs.
         if frame is self.curframe:
-            ret.append('> ')
+            yield '> '
         else:
-            ret.append('  ')
-        ret.append(u'%s(%s)%s\n' % (link,lineno,call))
+            yield '  '
+        yield u'%s(%s)%s\n' % (link,lineno,call)
 
         start = lineno - 1 - context//2
         lines = ulinecache.getlines(filename)
@@ -411,10 +410,9 @@ class Pdb(OldPdb):
         for i,line in enumerate(lines):
             show_arrow = (start + 1 + i == lineno)
             linetpl = (_tpl_line_em if (frame is self.curframe or show_arrow) else _tpl_line)
-            ret.append(self.__format_line(linetpl, filename,
+            yield self.__format_line(linetpl, filename,
                                           start + 1 + i, line,
-                                          arrow = show_arrow) )
-        return ''.join(ret)
+                                          arrow = show_arrow)
 
     def __format_line(self, tpl_line, filename, lineno, line, arrow = False):
         return self.parser.fmt(*self._yield_format_line(tpl_line, filename, lineno, line, arrow = arrow))
