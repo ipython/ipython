@@ -358,7 +358,7 @@ class Pdb(OldPdb):
         """
         Format a single stack entry and show `context` number of line after/before.
         """
-        return self.fmt(*self._yield_format_stack_entry(frame_lineno, lprefix=': ', context=context))
+        return self.parser.fmt(*self._yield_format_stack_entry(frame_lineno, lprefix=': ', context=context))
 
 
     def _yield_format_stack_entry(self, frame_lineno, lprefix=': ', context = 3):
