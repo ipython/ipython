@@ -16,9 +16,9 @@ from traitlets.config.configurable import SingletonConfigurable
 from traitlets import List, Bool, Unicode
 from IPython.utils.py3compat import cast_unicode, cast_unicode_py2 as u, PY3
 
-if PY3:
+try: # Py3
     from base64 import encodebytes
-else :
+except ImportError: # Py2
     from base64 import encodestring as encodebytes
 
 
