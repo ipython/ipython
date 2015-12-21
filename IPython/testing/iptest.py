@@ -63,7 +63,7 @@ warnings.filterwarnings('ignore', 'wxPython/wxWidgets release number mismatch',
 warnings.filterwarnings('default', message='.*', category=Warning, module='IPy.*')
 
 
-if version_info < (5,):
+if version_info < (4,2):
     # ignore some warnings from traitlets until 6.0
     warnings.filterwarnings('ignore', message='.*on_trait_change is deprecated: use observe instead.*')
     warnings.filterwarnings('ignore', message='.*was set from the constructor.*', category=Warning, module='IPython.*')
