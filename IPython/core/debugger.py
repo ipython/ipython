@@ -324,10 +324,10 @@ class Pdb(OldPdb):
     def postloop(self):
         self.shell.set_completer_frame(None)
 
-    def print_stack_trace(self):
+    def print_stack_trace(self, context=5):
         try:
             for frame_lineno in self.stack:
-                self.print_stack_entry(frame_lineno, context = 5)
+                self.print_stack_entry(frame_lineno, context=context)
         except KeyboardInterrupt:
             pass
 
@@ -586,3 +586,21 @@ class Pdb(OldPdb):
         namespaces = [('Locals', self.curframe.f_locals),
                       ('Globals', self.curframe.f_globals)]
         self.shell.find_line_magic('psource')(arg, namespaces=namespaces)
+
+    def do_where(self, arg):
+        """w(here)
+        Print a stack trace, with the most recent frame at the bottom.
+        An arrow indicates the "current frame", which determines the
+        context of most commands.  'bt' is an alias for this command.
+
+        Take a number as argument as an (optional) number of context line to print
+
+        """
+        if arg:
+            print('got arg,', arg)
+            context = int(arg)
+            self.print_stack_trace(context)
+        else:
+            self.print_stack_trace()
+
+    do_w = do_where
