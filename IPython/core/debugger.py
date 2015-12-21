@@ -597,7 +597,6 @@ class Pdb(OldPdb):
 
         """
         if arg:
-            print('got arg,', arg)
             context = int(arg)
             self.print_stack_trace(context)
         else:
