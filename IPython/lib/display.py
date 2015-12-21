@@ -264,7 +264,7 @@ class YouTubeVideo(IFrame):
     
     def _repr_jpeg_(self):
         from urllib import urlopen
-        return urlopen("https://img.youtube.com/vi/{id}/default.jpg".format(id=self.id)).read()
+        return urlopen("https://img.youtube.com/vi/{id}/hqdefault.jpg".format(id=self.id)).read()
 
 class VimeoVideo(IFrame):
     """
