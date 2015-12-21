@@ -38,6 +38,11 @@ Give it a shot--you'll love it or you'll hate it.
   variables (but otherwise includes the information and context given by
   Verbose).
 
+.. note::
+
+  The verbose mode print all variables in the stack, which means it can
+  potentially leak sensitive information like access keys, or unencryted
+  password.
 
 Installation instructions for VerboseTB::
 
@@ -50,21 +55,9 @@ library module 'traceback.py' and Ka-Ping Yee's 'cgitb.py'.
 Color schemes
 -------------
 
-The colors are defined in the class TBTools through the use of the
-ColorSchemeTable class. Currently the following exist:
+Ultratb support various color schemes through the use of Pygments. 
+The scheme `nocolor` can be used to avoid any coloring. 
 
-  - NoColor: allows all of this module to be used in any terminal (the color
-    escapes are just dummy blank strings).
-
-  - Linux: is meant to look good in a terminal like the Linux console (black
-    or very dark background).
-
-  - LightBG: similar to Linux but swaps dark/light colors to be more readable
-    in light background terminals.
-
-You can implement other color schemes easily, the syntax is fairly
-self-explanatory. Please send back new schemes you develop to the author for
-possible inclusion in future releases.
 
 Inheritance diagram:
 
@@ -370,16 +363,18 @@ def _fixed_getinnerframes(etb, context=1, tb_offset=0):
 # can be recognized properly by ipython.el's py-traceback-line-re
 # (SyntaxErrors have to be treated specially because they have no traceback)
 
-_parser = PyColorize.Parser(style='nocolor')
 
-
-def _yield_traceback_lines(lnum, index, lines, lvals=None, _parser=_parser):
+def _yield_traceback_lines(lnum, index, lines, lvals=None, _parser=None):
     """
     yields each (token, value) pair from a traceback line
 
     `lvals` is list of token to insert just after lnum,
     that represent the locals variables.
     """
+
+    if _parser is None:
+        _parser = PyColorize.Parser(style='nocolor') 
+
     numbers_width = INDENT_SIZE - 1
     i = lnum - index
 
@@ -430,13 +425,7 @@ class TBTools(PyColorize.Colorable):
         # subclasses can simply access self.ostream for writing.
         self._ostream = ostream
 
-        # Create color table
-        # self.color_scheme_table = exception_colors()
-        # self._C = self.color_scheme_table.active_colors
-
-
         self.set_colors(color_scheme)
-        self.old_scheme = color_scheme  # save initial value for toggles
 
         if call_pdb:
             self.pdb = debugger.Pdb(self.style)
@@ -446,16 +435,10 @@ class TBTools(PyColorize.Colorable):
     @property
     def Colors(self):
         warnings.warn("%s.Colors is deprecated and will be removed in IPython 6.0" % self.__class__, DeprecationWarning)
-        raise DeprecationWarning('Usage of Color deprecated feature')
-        return self._C
 
     @Colors.setter
     def Colors(self, value):
         warnings.warn("%s.Colors is deprecated and will be removed in IPython 6.0" % self.__class__, DeprecationWarning)
-        raise DeprecationWarning('Usage of Color deprecated feature')
-        if value is None:
-            return
-        self._C = value
 
 
     def _get_ostream(self):
@@ -481,7 +464,6 @@ class TBTools(PyColorize.Colorable):
         """Shorthand access to the color table scheme selector method."""
         self.style = scheme
         self._parser.style = scheme
-        # Also set colors of debugger
         if hasattr(self, 'pdb') and self.pdb is not None:
             self.pdb.set_colors(scheme=scheme)
 
@@ -582,6 +564,8 @@ class ListTB(TBTools):
         # TODO : Bytes or string Py2 ?
         fe = self._format_exception_only(etype, value)
         lines = '<none>'
+        # TODO: don't make sens, if we join, it's a list, 
+        # if it's a list we can't  call str_to_unicode on it
         dfe = py3compat.str_to_unicode(fe)
         lines = u''.join(dfe)
 
@@ -603,8 +587,10 @@ class ListTB(TBTools):
 
         Lifted almost verbatim from traceback.py
         """
+        return [self._parser.fmt(*x) for x in self._yield_format_list(extracted_list)]
+        
 
-        list_ = []
+    def _yield_format_list(self, extracted_list):
         for filename, lineno, name, line in extracted_list[:-1]:
             item = [ (Token.Normal,   "  File "),
                      (Token.Filename, '"%s"' % py3compat.cast_unicode_py2(filename, "utf-8") ),
@@ -616,24 +602,22 @@ class ListTB(TBTools):
                     ]
             if line:
                 item.append((Token.Normal, '    %s\n' % line.strip()))
-            list_.append(item)
+            yield item
         # Emphasize the last entry
         filename, lineno, name, line = extracted_list[-1]
-        item = [ (Token.Normal,   "  File "),
-                     (Token.FilenameEm, '"%s"' %  py3compat.cast_unicode_py2(filename, "utf-8") ),
-                     (Token.NormalEm, ', line '),
-                     (Token.LinenoEm, '%s' % lineno),
-                     (Token.NormalEm, ', in '),
-                     (Token.NameEm, py3compat.cast_unicode_py2(name, "utf-8") ),
-                     (Token.Normal, '\n'),
+        item = [ (Token.Normal,     '  File '),
+                 (Token.FilenameEm, '"%s"' %  py3compat.cast_unicode_py2(filename, "utf-8") ),
+                 (Token.NormalEm,   ', line '),
+                 (Token.LinenoEm,   '%s' % lineno),
+                 (Token.NormalEm,   ', in '),
+                 (Token.NameEm, py3compat.cast_unicode_py2(name, "utf-8") ),
+                 (Token.Normal,     '\n'),
                     ]
         if line:
             item.append((Token.Line, '    %s\n' % line.strip()))
 
-        list_.append(item)
-        return list(map(lambda _:self._parser.fmt(*_), list_))
+        yield item
 
-    # format at a higher level. 
     def _format_exception_only(self, etype, value):
         """Format the exception part of a traceback.
 
@@ -774,7 +758,7 @@ class VerboseTB(TBTools):
         self.check_cache = check_cache
 
     # TODO: docstring
-    # TODO: funciton seem likely too long, and too complex. 
+    # TODO: function seem likely too long, and too complex. 
     def _format_records(self, records):
         indent = ' ' * INDENT_SIZE
 
@@ -1239,7 +1223,6 @@ class FormattedTB(VerboseTB, ListTB):
         mode = self.mode
         if mode in self.verbose_modes:
             # Verbose modes need a full traceback
-            # TODO: Py2/2 byte str
             return VerboseTB.structured_traceback(
                 self, etype, value, tb, tb_offset, number_of_lines_of_context
             )
@@ -1249,7 +1232,6 @@ class FormattedTB(VerboseTB, ListTB):
             self.check_cache()
             # Now we can extract and format the exception
             elist = self._extract_tb(tb)
-            # TODO: Py2/2 byte str
             return ListTB.structured_traceback(
                 self, etype, value, elist, tb_offset, number_of_lines_of_context
             )
