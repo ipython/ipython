@@ -350,11 +350,9 @@ class Pdb(OldPdb):
         #frame, lineno = frame_lineno
         print(self.format_stack_entry(frame_lineno, '', context), file=io.stdout)
 
-        # vds: >>
         frame, lineno = frame_lineno
         filename = frame.f_code.co_filename
         self.shell.hooks.synchronize_with_editor(filename, lineno, 0)
-        # vds: <<
 
     def format_stack_entry(self, frame_lineno, lprefix=': ', context=3):
         """
@@ -512,11 +510,9 @@ class Pdb(OldPdb):
             last = first + 10
         self.print_list_lines(self.curframe.f_code.co_filename, first, last)
 
-        # vds: >>
         lineno = first
         filename = self.curframe.f_code.co_filename
         self.shell.hooks.synchronize_with_editor(filename, lineno, 0)
-        # vds: <<
 
     do_l = do_list
 
