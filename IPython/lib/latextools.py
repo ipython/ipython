@@ -5,7 +5,6 @@
 # Distributed under the terms of the Modified BSD License.
 
 from io import BytesIO, open
-from base64 import encodestring
 import os
 import tempfile
 import shutil
@@ -15,7 +14,12 @@ from IPython.utils.process import find_cmd, FindCmdError
 from traitlets.config import get_config
 from traitlets.config.configurable import SingletonConfigurable
 from traitlets import List, Bool, Unicode
-from IPython.utils.py3compat import cast_unicode, cast_unicode_py2 as u
+from IPython.utils.py3compat import cast_unicode, cast_unicode_py2 as u, PY3
+
+try: # Py3
+    from base64 import encodebytes
+except ImportError: # Py2
+    from base64 import encodestring as encodebytes
 
 
 class LaTeXTool(SingletonConfigurable):
@@ -86,7 +90,7 @@ def latex_to_png(s, encode=False, backend=None, wrap=False):
         raise ValueError('No such backend {0}'.format(backend))
     bin_data = f(s, wrap)
     if encode and bin_data:
-        bin_data = encodestring(bin_data)
+        bin_data = encodebytes(bin_data)
     return bin_data
 
 
