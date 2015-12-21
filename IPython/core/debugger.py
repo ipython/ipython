@@ -358,7 +358,7 @@ class Pdb(OldPdb):
         """
         Format a single stack entry and show `context` number of line after/before.
         """
-        return self.parser.fmt(*self._yield_format_stack_entry(frame_lineno, lprefix=': ', context=context))
+        return self.parser.fmt(*self._yield_format_stack_entry(frame_lineno, lprefix=lprefix, context=context))
 
 
     def _yield_format_stack_entry(self, frame_lineno, lprefix=': ', context = 3):
@@ -373,7 +373,7 @@ class Pdb(OldPdb):
         if '__return__' in frame.f_locals:
             rv = frame.f_locals['__return__']
             return_value += reprlib.repr(rv) + '\n'
-        yield return_value
+        yield (Token.Normal, return_value)
 
         filename = self.canonic(frame.f_code.co_filename)
         link = self.parser.fmt((Token.FileNameEm,py3compat.cast_unicode(filename)))
@@ -394,10 +394,10 @@ class Pdb(OldPdb):
         # The level info should be generated in the same format pdb uses, to
         # avoid breaking the pdbtrack functionality of python-mode in *emacs.
         if frame is self.curframe:
-            yield '> '
+            yield (Token.Normal, '> ')
         else:
-            yield '  '
-        yield u'%s(%s)%s\n' % (link,lineno,call)
+            yield (Token.Normal, '  ')
+        yield (Token.Normal, u'%s(%s)%s\n' % (link,lineno,call))
 
         start = lineno - 1 - context//2
         lines = ulinecache.getlines(filename)
@@ -408,7 +408,7 @@ class Pdb(OldPdb):
         for i,line in enumerate(lines):
             show_arrow = (start + 1 + i == lineno)
             linetpl = (_tpl_line_em if (frame is self.curframe or show_arrow) else _tpl_line)
-            yield self.__format_line(linetpl, filename,
+            yield from self._yield_format_line(linetpl, filename,
                                           start + 1 + i, line,
                                           arrow = show_arrow)
 
