@@ -408,9 +408,10 @@ class Pdb(OldPdb):
         for i,line in enumerate(lines):
             show_arrow = (start + 1 + i == lineno)
             linetpl = (_tpl_line_em if (frame is self.curframe or show_arrow) else _tpl_line)
-            yield from self._yield_format_line(linetpl, filename,
+            for tok in  self._yield_format_line(linetpl, filename,
                                           start + 1 + i, line,
-                                          arrow = show_arrow)
+                                          arrow = show_arrow):
+                yield tok
 
     def __format_line(self, tpl_line, filename, lineno, line, arrow = False):
         return self.parser.fmt(*self._yield_format_line(tpl_line, filename, lineno, line, arrow = arrow))
