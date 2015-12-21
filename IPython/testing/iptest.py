@@ -34,6 +34,7 @@ from nose.core import TestProgram
 from nose.plugins import Plugin
 from nose.util import safe_str
 
+from IPython import version_info
 from IPython.utils.py3compat import bytes_to_str
 from IPython.utils.importstring import import_item
 from IPython.testing.plugin.ipdoctest import IPythonDoctest
@@ -57,6 +58,24 @@ warnings.filterwarnings('ignore', 'the sha module is deprecated',
 # Wx on Fedora11 spits these out
 warnings.filterwarnings('ignore', 'wxPython/wxWidgets release number mismatch',
                         UserWarning)
+
+# Enable printing all warnings raise by IPython's modules
+warnings.filterwarnings('default', message='.*', category=Warning, module='IPy.*')
+
+
+if version_info < (6,):
+    # ignore some warnings from traitlets until 6.0
+    warnings.filterwarnings('ignore', message='.*on_trait_change is deprecated: use observe instead.*')
+    warnings.filterwarnings('ignore', message='.*was set from the constructor.*', category=Warning, module='IPython.*')
+else :
+    warnings.warn('iptest has been filtering out for Traitlets warnings messages, for 2 major versions (since 4.x), please consider updating to use new API')
+
+if version_info < (6,):
+    # nose.tools renames all things from `camelCase` to `snake_case` which raise an
+    # warning with the runner they also import from standard import library. (as of Dec 2015)
+    # Ignore, let's revisit that in a couple of years for IPython 6.
+    warnings.filterwarnings('ignore', message='.*Please use assertEqual instead', category=Warning, module='IPython.*')
+
 
 # ------------------------------------------------------------------------------
 # Monkeypatch Xunit to count known failures as skipped.
