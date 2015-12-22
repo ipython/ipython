@@ -29,7 +29,6 @@ from __future__ import print_function
 import bdb
 import functools
 import inspect
-import linecache
 import sys
 
 from IPython import get_ipython
@@ -94,7 +93,7 @@ class Tracer(object):
     """
 
     @skip_doctest
-    def __init__(self,colors=None):
+    def __init__(self, colors=None):
         """Create a local debugger instance.
 
         Parameters
@@ -202,9 +201,10 @@ class Pdb(OldPdb):
     """Modified Pdb class, does not load readline."""
 
     def __init__(self,color_scheme='NoColor',completekey=None,
-                 stdin=None, stdout=None):
+                 stdin=None, stdout=None, context=5):
 
         # Parent constructor:
+        self.context = context
         if has_pydb and completekey is None:
             OldPdb.__init__(self,stdin=stdin,stdout=io.stdout)
         else:
@@ -324,7 +324,10 @@ class Pdb(OldPdb):
     def postloop(self):
         self.shell.set_completer_frame(None)
 
-    def print_stack_trace(self, context=5):
+    def print_stack_trace(self, context=None):
+        if not context: 
+            context = self.context
+
         try:
             for frame_lineno in self.stack:
                 self.print_stack_entry(frame_lineno, context=context)
@@ -332,7 +335,9 @@ class Pdb(OldPdb):
             pass
 
     def print_stack_entry(self,frame_lineno,prompt_prefix='\n-> ',
-                          context = 3):
+                          context=None):
+        if not context:
+            context = self.context
         #frame, lineno = frame_lineno
         print(self.format_stack_entry(frame_lineno, '', context), file=io.stdout)
 
@@ -342,7 +347,9 @@ class Pdb(OldPdb):
         self.shell.hooks.synchronize_with_editor(filename, lineno, 0)
         # vds: <<
 
-    def format_stack_entry(self, frame_lineno, lprefix=': ', context = 3):
+    def format_stack_entry(self, frame_lineno, lprefix=': ', context=None):
+        if not context:
+            context = self.context
         try:
             import reprlib  # Py 3
         except ImportError:
@@ -530,7 +537,6 @@ class Pdb(OldPdb):
     def do_longlist(self, arg):
         self.lastcmd = 'longlist'
         filename = self.curframe.f_code.co_filename
-        breaklist = self.get_file_breaks(filename)
         try:
             lines, lineno = self.getsourcelines(self.curframe)
         except OSError as err:
@@ -587,19 +593,22 @@ class Pdb(OldPdb):
                       ('Globals', self.curframe.f_globals)]
         self.shell.find_line_magic('psource')(arg, namespaces=namespaces)
 
-    def do_where(self, arg):
-        """w(here)
-        Print a stack trace, with the most recent frame at the bottom.
-        An arrow indicates the "current frame", which determines the
-        context of most commands.  'bt' is an alias for this command.
+    if sys.version_info > (3, ):
+        # carrots, new feature only on Python 3
 
-        Take a number as argument as an (optional) number of context line to print
+        def do_where(self, arg):
+            """w(here)
+            Print a stack trace, with the most recent frame at the bottom.
+            An arrow indicates the "current frame", which determines the
+            context of most commands.  'bt' is an alias for this command.
 
-        """
-        if arg:
-            context = int(arg)
-            self.print_stack_trace(context)
-        else:
-            self.print_stack_trace()
+            Take a number as argument as an (optional) number of context line to print
 
-    do_w = do_where
+            """
+            if arg:
+                context = int(arg)
+                self.print_stack_trace(context)
+            else:
+                self.print_stack_trace()
+
+        do_w = do_where
