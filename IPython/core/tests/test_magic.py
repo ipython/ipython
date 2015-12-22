@@ -605,6 +605,12 @@ def test_prun_quotes():
     nt.assert_equal(_ip.user_ns['x'], '\t')
 
 def test_extension():
+    # Debugging information for failures of this test
+    print('sys.path:')
+    for p in sys.path:
+        print(' ', p)
+    print('CWD', os.getcwd())
+
     nt.assert_raises(ImportError, _ip.magic, "load_ext daft_extension")
     daft_path = os.path.join(os.path.dirname(__file__), "daft_extension")
     sys.path.insert(0, daft_path)
