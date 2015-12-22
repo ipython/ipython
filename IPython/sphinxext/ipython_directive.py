@@ -1008,6 +1008,9 @@ def setup(app):
 
     app.add_config_value('ipython_holdcount', True, 'env')
 
+    metadata = {'parallel_read_safe': True, 'parallel_write_safe': True}
+    return metadata
+
 # Simple smoke test, needs to be converted to a proper automatic test.
 def test():
 
