@@ -57,7 +57,7 @@ class PTInteractiveShell(InteractiveShell):
         while self.keep_running:
             document = self.pt_cli.run()
             if document:
-                self.run_cell(document.text)
+                self.run_cell(document.text, store_history=True)
 
 
 if __name__ == '__main__':
