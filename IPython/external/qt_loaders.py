@@ -284,11 +284,11 @@ def load_qt(api_options):
     PyQt4 >= 4.7, PyQt5 or PySide >= 1.0.3 is available,
     and only one is imported per session.
 
-    Currently-imported Qt library:   %r
-    PyQt4 installed:                 %s
-    PyQt5 installed:                 %s
-    PySide >= 1.0.3 installed:       %s
-    Tried to load:                   %r
+    Currently-imported Qt library:                              %r
+    PyQt4 available (requires QtCore, QtGui, QtSvg):            %s
+    PyQt5 available (requires QtCore, QtGui, QtSvg, QtWidgets): %s
+    PySide >= 1.0.3 installed:                                  %s
+    Tried to load:                                              %r
     """ % (loaded_api(),
            has_binding(QT_API_PYQT),
            has_binding(QT_API_PYQT5),
