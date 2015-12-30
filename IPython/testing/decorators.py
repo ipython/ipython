@@ -361,7 +361,6 @@ def onlyif_cmds_exist(*commands):
     """
     Decorator to skip test when at least one of `commands` is not found.
     """
-    warnings.warn("The function `onlyif_cmds_exist` is deprecated and might be removed in next major version of IPython", DeprecationWarning)
     for cmd in commands:
         if not which(cmd):
             return skip("This test runs only if command '{0}' "
