@@ -252,11 +252,25 @@ class YouTubeVideo(IFrame):
 
     Other parameters can be provided as documented at
     https://developers.google.com/youtube/player_parameters#parameter-subheader
+    
+    When converting the notebook using nbconvert, a jpeg representation of the video
+    will be inserted in the document.
     """
 
     def __init__(self, id, width=400, height=300, **kwargs):
+        self.id=id
         src = "https://www.youtube.com/embed/{0}".format(id)
         super(YouTubeVideo, self).__init__(src, width, height, **kwargs)
+    
+    def _repr_jpeg_(self):
+        try:
+            from urllib.request import urlopen  # Py3
+        except ImportError:
+            from urllib2 import urlopen
+        try:
+            return urlopen("https://img.youtube.com/vi/{id}/hqdefault.jpg".format(id=self.id)).read()
+        except IOError:
+            return None
 
 class VimeoVideo(IFrame):
     """
