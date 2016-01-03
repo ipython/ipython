@@ -115,17 +115,10 @@ class NoOpContext(object):
     def __exit__(self, type, value, traceback): pass
 no_op_context = NoOpContext()
 
-class SpaceInInput(Exception): pass
-
-@undoc
-class Bunch: pass
-
 
 def get_default_colors():
     if sys.platform=='darwin':
         return "LightBG"
-    elif os.name=='nt':
-        return 'Linux'
     else:
         return 'Linux'
 
@@ -276,9 +269,9 @@ class InteractiveShell(SingletonConfigurable):
         get confused with color codes, this capability can be turned off.
         """
     )
-    colors = CaselessStrEnum(('NoColor','LightBG','Linux'),
+    colors = CaselessStrEnum(PyColorize.available_themes(),
                              default_value=get_default_colors(), config=True,
-        help="Set the color scheme (NoColor, Linux, or LightBG)."
+        help="Set the color scheme among available Pygments themes, NoColor, Linux, and LightBG."
     )
     colors_force = CBool(False, help=
         """
@@ -480,9 +473,15 @@ class InteractiveShell(SingletonConfigurable):
                  user_module=None, user_ns=None,
                  custom_exceptions=((), None), **kwargs):
 
+        self._preinit = True
         # This is where traits with a config_key argument are updated
-        # from the values on config.
+        # from the values on config. _reinit is set to true to 
+        # make sure the on_trait_change is not triggered while super() is 
+        # instantiated, as on_change need inspector (among others) to have been created
+        # and which in turn need super() to have been called. . 
         super(InteractiveShell, self).__init__(**kwargs)
+        self._preinit = False
+
         self.configurables = [self]
 
         # These are relatively independent and stateless
@@ -649,10 +648,17 @@ class InteractiveShell(SingletonConfigurable):
         except AttributeError:
             self.stdin_encoding = 'ascii'
 
+    def _colors_changed(self, name, old, new):
+        if old != new  and not self._preinit:
+            self.init_syntax_highlighting()
+            if self.color_info:
+                self.inspector.set_active_scheme(new)
+            self.prompt_manager.color_scheme = new
+
     def init_syntax_highlighting(self):
         # Python source parser/formatter for syntax highlighting
-        pyformat = PyColorize.Parser().format
-        self.pycolorize = lambda src: pyformat(src,'str',self.colors)
+        pyformat = PyColorize.Parser(parent=self, style=self.colors).format
+        self.pycolorize = lambda src: pyformat(src,'str')
 
     def init_pushd_popd_magic(self):
         # for pushd/popd management
@@ -702,10 +708,13 @@ class InteractiveShell(SingletonConfigurable):
 
     def init_inspector(self):
         # Object inspector
-        self.inspector = oinspect.Inspector(oinspect.InspectColors,
-                                            PyColorize.ANSICodeColors,
-                                            'NoColor',
-                                            self.object_info_string_level)
+        self.inspector = oinspect.Inspector(
+                                scheme=self.colors,
+                                str_detail_level=self.object_info_string_level,
+                                parent=self
+        )
+        self.configurables.append(self.inspector)
+
 
     def init_io(self):
         # This will just use sys.stdout and sys.stderr. If you want to
@@ -719,7 +728,7 @@ class InteractiveShell(SingletonConfigurable):
             io.stderr = io.IOStream(sys.stderr)
 
     def init_prompts(self):
-        self.prompt_manager = PromptManager(shell=self, parent=self)
+        self.prompt_manager = PromptManager(shell=self, parent=self, style=self.colors)
         self.configurables.append(self.prompt_manager)
         # Set system prompts, so that scripts can decide if they are running
         # interactively.
@@ -1640,15 +1649,16 @@ class InteractiveShell(SingletonConfigurable):
 
     def init_traceback_handlers(self, custom_exceptions):
         # Syntax error handler.
-        self.SyntaxTB = ultratb.SyntaxTB(color_scheme='NoColor')
+        self.SyntaxTB = ultratb.SyntaxTB(color_scheme=self.colors, parent=self)
 
         # The interactive one is initialized with an offset, meaning we always
         # want to remove the topmost item in the traceback, which is our own
         # internal code. Valid modes: ['Plain','Context','Verbose']
         self.InteractiveTB = ultratb.AutoFormattedTB(mode = 'Plain',
-                                                     color_scheme='NoColor',
+                                                     color_scheme=self.colors,
                                                      tb_offset = 1,
-                                   check_cache=check_linecache_ipython)
+                                   check_cache=check_linecache_ipython,
+                                   parent=self)
 
         # The instance will store a pointer to the system-wide exception hook,
         # so that runtime code (such as magics) can access it.  This is because

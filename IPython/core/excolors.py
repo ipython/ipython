@@ -14,6 +14,9 @@ import warnings
 
 from IPython.utils.coloransi import ColorSchemeTable, TermColors, ColorScheme
 
+# TODO: mode that to the theming handling
+# Dynamically map these to other token types if not defined in the
+# Themes, and define these for LightBG and LinuxColor.
 def exception_colors():
     """Return a color table with fields for exception reporting.
 
@@ -136,7 +139,7 @@ class Deprec(object):
 
     def __getattr__(self, name):
         val = getattr(self.wrapped, name)
-        warnings.warn("Using ExceptionColors global is deprecated", DeprecationWarning)
+        warnings.warn("Using ExceptionColors global is deprecated, and will be removed in IPython 6.0", DeprecationWarning)
         # using getattr after warnings break ipydoctest in weird way for 3.5
         return val
 

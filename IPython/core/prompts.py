@@ -33,12 +33,12 @@ from IPython.core import release
 from IPython.utils import coloransi, py3compat
 from traitlets import (Unicode, Instance, Dict, Bool, Int)
 
-from IPython.utils.PyColorize import LightBGColors, LinuxColors, NoColor
-
+from IPython.utils.PyColorize import IPythonTerm256Formatter
 #-----------------------------------------------------------------------------
 # Color schemes for prompts
 #-----------------------------------------------------------------------------
 
+# TODO: we still use coloransi here. 
 InputColors = coloransi.InputTermColors  # just a shorthand
 Colors = coloransi.TermColors  # just a shorthand
 
@@ -255,14 +255,18 @@ class PromptManager(Configurable):
     """This is the primary interface for producing IPython's prompts."""
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
 
-    color_scheme_table = Instance(coloransi.ColorSchemeTable, allow_none=True)
-    color_scheme = Unicode('Linux', config=True)
-    def _color_scheme_changed(self, name, new_value):
-        self.color_scheme_table.set_active_scheme(new_value)
-        for pname in ['in', 'in2', 'out', 'rewrite']:
-            # We need to recalculate the number of invisible characters
-            self.update_prompt(pname)
+    color_scheme = Unicode(None, config=True, allow_none=True)
 
+    def _color_scheme_changed(self, name, old_value, new_value):
+        if new_value == old_value:
+            return
+        self._terminal_formatter = IPythonTerm256Formatter(style=new_value, parent=self)
+        self.update_prompt('in', self.in_template)
+        self.update_prompt('in2', self.in2_template)
+        self.update_prompt('out', self.out_template)
+        self.update_prompt('rewrite')
+        return new_value
+    
     lazy_evaluate_fields = Dict(help="""
         This maps field names used in the prompt templates to functions which
         will be called when the prompt is rendered. This allows us to include
@@ -300,10 +304,17 @@ class PromptManager(Configurable):
         super(PromptManager, self).__init__(shell=shell, **kwargs)
 
         # Prepare colour scheme table
-        self.color_scheme_table = coloransi.ColorSchemeTable([NoColor,
-                                    LinuxColors, LightBGColors], self.color_scheme)
 
         self._formatter = UserNSFormatter(shell)
+        
+        super(PromptManager, self).__init__(shell=shell, **kwargs)
+
+        cs = kwargs.pop('style', None)
+        if cs:
+            self.color_scheme = cs
+
+        self._terminal_formatter = IPythonTerm256Formatter(style=self.color_scheme, parent=self)
+        
         # Prepare templates & numbers of invisible characters
         self.update_prompt('in', self.in_template)
         self.update_prompt('in2', self.in2_template)
@@ -312,6 +323,16 @@ class PromptManager(Configurable):
         self.on_trait_change(self._update_prompt_trait, ['in_template',
                             'in2_template', 'out_template'])
 
+    @property
+    def color_scheme_table(self):
+        import warnings
+        warnings.warn("PromptManager's `color_scheme_table` is deprecated.", DeprecationWarning)
+
+    @color_scheme_table.setter
+    def color_scheme_table(self, value):
+        import warnings
+        warnings.warn("PromptManager's `color_scheme_table` is deprecated. Setting value will have no effect", DeprecationWarning)
+    
     def update_prompt(self, name, new_template=None):
         """This is called when a prompt template is updated. It processes
         abbreviations used in the prompt template (like \#) and calculates how
@@ -339,17 +360,17 @@ class PromptManager(Configurable):
             return self._render_rewrite(color=color)
 
         if color:
-            scheme = self.color_scheme_table.active_colors
+            scheme = self._terminal_formatter.style_string
             if name=='out':
                 colors = color_lists['normal']
-                colors.number, colors.prompt, colors.normal = \
-                        scheme.out_number, scheme.out_prompt, scheme.normal
+                colors.number = scheme['out_number'][0]
+                colors.prompt, colors.normal = scheme['out_prompt']
             else:
                 colors = color_lists['inp']
-                colors.number, colors.prompt, colors.normal = \
-                        scheme.in_number, scheme.in_prompt, scheme.in_normal
+                colors.number = scheme['in_number'][0]
+                colors.prompt, colors.normal = scheme['in_prompt']
                 if name=='in2':
-                    colors.prompt = scheme.in_prompt2
+                    colors.prompt = scheme['in_prompt'][0]
         else:
             # No color
             colors = color_lists['nocolor']
@@ -371,15 +392,12 @@ class PromptManager(Configurable):
 
     def _render_rewrite(self, color=True):
         """Render the ---> rewrite prompt."""
-        if color:
-            scheme = self.color_scheme_table.active_colors
-            # We need a non-input version of these escapes
-            color_prompt = scheme.in_prompt.replace("\001","").replace("\002","")
-            color_normal = scheme.normal
-        else:
-            color_prompt, color_normal = '', ''
 
-        return color_prompt + "-> ".rjust(self.txtwidth, "-") + color_normal
+        prompt = "-> ".rjust(self.txtwidth, "-")
+        if color:
+            return self._terminal_formatter.single_fmt(prompt, 'in_prompt')
+        else:
+            return prompt
 
     def render(self, name, color=True, just=None, **kwargs):
         """

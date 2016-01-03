@@ -69,13 +69,18 @@ def test_longer_repr():
     nt.assert_equal(trepr(a), a_trunc)
     # The creation of our tracer modifies the repr module's repr function
     # in-place, since that global is used directly by the stdlib's pdb module.
-    t = debugger.Tracer()
+    debugger.Tracer()
     nt.assert_equal(trepr(a), ar)
 
 def test_ipdb_magics():
     '''Test calling some IPython magics from ipdb.
 
     First, set up some test functions and classes which we can inspect.
+
+    >>> ip = get_ipython()
+    >>> old_style = ip.inspector.parser.style
+    >>> ip.inspector.parser.style = 'nocolor'
+
 
     >>> class ExampleClass(object):
     ...    """Docstring for ExampleClass."""
@@ -100,7 +105,11 @@ def test_ipdb_magics():
     >>> with PdbTestInput([
     ...    'pdef example_function',
     ...    'pdoc ExampleClass',
+    ...    'up',
+    ...    'down',
+    ...    'list',
     ...    'pinfo a',
+    ...    'll',
     ...    'continue',
     ... ]):
     ...     trigger_ipdb()
@@ -118,17 +127,41 @@ def test_ipdb_magics():
         Docstring for ExampleClass.
     Init docstring:
         Docstring for ExampleClass.__init__
+    ipdb> up
+    > <doctest ...>(11)<module>()
+          9    'continue',
+         10 ]):
+    ---> 11     trigger_ipdb()
+    <BLANKLINE>
+    ipdb> down
+    None
+    > <doctest ...>(3)trigger_ipdb()
+          1 def trigger_ipdb():
+          2    a = ExampleClass()
+    ----> 3    debugger.Pdb().set_trace()
+    <BLANKLINE>
+    ipdb> list
+          1 def trigger_ipdb():
+          2    a = ExampleClass()
+    ----> 3    debugger.Pdb().set_trace()
+    <BLANKLINE>
     ipdb> pinfo a
     Type:           ExampleClass
     String form:    ExampleClass()
     Namespace:      Local...
     Docstring:      Docstring for ExampleClass.
     Init docstring: Docstring for ExampleClass.__init__
+    ipdb> ll
+          1 def trigger_ipdb():
+          2    a = ExampleClass()
+    ----> 3    debugger.Pdb().set_trace()
+    <BLANKLINE>
     ipdb> continue
     
     Restore previous trace function, e.g. for coverage.py    
     
     >>> sys.settrace(old_trace)
+    >>> ip.inspector.parser.style = old_style
     '''
 
 def test_ipdb_magics2():
