@@ -87,7 +87,7 @@ class ProfileDir(LoggingConfigurable):
                 try:
                     os.chmod(path, mode)
                 except OSError:
-                    self.log.warn(
+                    self.log.warning(
                         "Could not set permissions on %s",
                         path
                     )

@@ -231,11 +231,11 @@ class InteractiveShellApp(Configurable):
         try:
             r = enable(key)
         except ImportError:
-            self.log.warn("Eventloop or matplotlib integration failed. Is matplotlib installed?")
+            self.log.warning("Eventloop or matplotlib integration failed. Is matplotlib installed?")
             self.shell.showtraceback()
             return
         except Exception:
-            self.log.warn("GUI event loop or pylab initialization failed")
+            self.log.warning("GUI event loop or pylab initialization failed")
             self.shell.showtraceback()
             return
             
@@ -273,11 +273,11 @@ class InteractiveShellApp(Configurable):
                                ext=ext,
                                location=self.profile_dir.location
                            ))
-                    self.log.warn(msg, exc_info=True)
+                    self.log.warning(msg, exc_info=True)
         except:
             if self.reraise_ipython_extension_failures:
                 raise
-            self.log.warn("Unknown error in loading extensions:", exc_info=True)
+            self.log.warning("Unknown error in loading extensions:", exc_info=True)
 
     def init_code(self):
         """run the pre-flight code, specified via exec_lines"""
@@ -310,18 +310,18 @@ class InteractiveShellApp(Configurable):
                                   line)
                     self.shell.run_cell(line, store_history=False)
                 except:
-                    self.log.warn("Error in executing line in user "
+                    self.log.warning("Error in executing line in user "
                                   "namespace: %s" % line)
                     self.shell.showtraceback()
         except:
-            self.log.warn("Unknown error in handling IPythonApp.exec_lines:")
+            self.log.warning("Unknown error in handling IPythonApp.exec_lines:")
             self.shell.showtraceback()
 
     def _exec_file(self, fname, shell_futures=False):
         try:
             full_filename = filefind(fname, [u'.', self.ipython_dir])
         except IOError as e:
-            self.log.warn("File not found: %r"%fname)
+            self.log.warning("File not found: %r"%fname)
             return
         # Make sure that the running script gets a proper sys.argv as if it
         # were run from a system shell.
@@ -362,7 +362,7 @@ class InteractiveShellApp(Configurable):
             try:
                 self._exec_file(python_startup)
             except:
-                self.log.warn("Unknown error in handling PYTHONSTARTUP file %s:", python_startup)
+                self.log.warning("Unknown error in handling PYTHONSTARTUP file %s:", python_startup)
                 self.shell.showtraceback()
             finally:
                 # Many PYTHONSTARTUP files set up the readline completions,
@@ -381,7 +381,7 @@ class InteractiveShellApp(Configurable):
             for fname in sorted(startup_files):
                 self._exec_file(fname)
         except:
-            self.log.warn("Unknown error in handling startup files:")
+            self.log.warning("Unknown error in handling startup files:")
             self.shell.showtraceback()
 
     def _run_exec_files(self):
@@ -394,7 +394,7 @@ class InteractiveShellApp(Configurable):
             for fname in self.exec_files:
                 self._exec_file(fname)
         except:
-            self.log.warn("Unknown error in handling IPythonApp.exec_files:")
+            self.log.warning("Unknown error in handling IPythonApp.exec_files:")
             self.shell.showtraceback()
 
     def _run_cmd_line_code(self):
@@ -406,7 +406,7 @@ class InteractiveShellApp(Configurable):
                               line)
                 self.shell.run_cell(line, store_history=False)
             except:
-                self.log.warn("Error in executing line in user namespace: %s" %
+                self.log.warning("Error in executing line in user namespace: %s" %
                               line)
                 self.shell.showtraceback()
 
