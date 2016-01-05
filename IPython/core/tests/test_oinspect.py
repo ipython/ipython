@@ -172,6 +172,19 @@ class Awkward(object):
     def __getattr__(self, name):
         raise Exception(name)
 
+class NoBoolCall:
+    """
+    callable with `__bool__` raising should still be inspect-able.
+    """
+
+    def __call__(self):
+        """does nothing"""
+        pass
+
+    def __bool__(self):
+        """just raise NotImplemented"""
+        raise NotImplementedError('Must be implemented')
+
 
 def check_calltip(obj, name, call, docstring):
     """Generic check pattern all calltip tests will use"""
@@ -280,6 +293,9 @@ def test_info():
 def test_info_awkward():
     # Just test that this doesn't throw an error.
     i = inspector.info(Awkward())
+
+def test_bool_raise():
+    inspector.info(NoBoolCall())
 
 def test_calldef_none():
     # We should ignore __call__ for all of these.
