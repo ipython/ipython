@@ -62,6 +62,8 @@ class DisplayFormatter(Configurable):
     def _plain_text_only_changed(self, name, old, new):
         warnings.warn("""DisplayFormatter.plain_text_only is deprecated.
         
+        It will be removed in IPython 5.0
+
         Use DisplayFormatter.active_types = ['text/plain']
         for the same effect.
         """, DeprecationWarning)

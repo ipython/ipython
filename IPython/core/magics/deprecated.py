@@ -15,6 +15,7 @@ from __future__ import print_function
 
 # Our own packages
 from IPython.core.magic import Magics, magics_class, line_magic
+import warnings
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -28,7 +29,7 @@ class DeprecatedMagics(Magics):
     def install_profiles(self, parameter_s=''):
         """%install_profiles has been deprecated."""
         print('\n'.join([
-            "%install_profiles has been deprecated.",
+            "%install_profiles has been deprecated and will be removed in IPython 5.0.",
             "Use `ipython profile list` to view available profiles.",
             "Requesting a profile with `ipython profile create <name>`",
             "or `ipython --profile=<name>` will start with the bundled",
@@ -37,7 +38,7 @@ class DeprecatedMagics(Magics):
 
     @line_magic
     def install_default_config(self, parameter_s=''):
-        """%install_default_config has been deprecated."""
+        """%install_default_config has been deprecate and will be removed in IPython 5.0."""
         print('\n'.join([
             "%install_default_config has been deprecated.",
             "Use `ipython profile create <name>` to initialize a profile",

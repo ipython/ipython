@@ -433,6 +433,8 @@ class MagicsManager(Configurable):
     def define_magic(self, name, func):
         """[Deprecated] Expose own function as magic function for IPython.
 
+        Will be removed in IPython 5.0
+
         Example::
 
             def foo_impl(self, parameter_s=''):

@@ -294,6 +294,8 @@ class InteractiveShell(SingletonConfigurable):
         """
         **Deprecated**
 
+        Will be removed in IPython 6.0
+
         Enable deep (recursive) reloading by default. IPython can use the
         deep_reload module which reloads changes in modules recursively (it
         replaces the reload() function, so you don't need to change anything to
@@ -365,13 +367,13 @@ class InteractiveShell(SingletonConfigurable):
     # deprecated prompt traits:
     
     prompt_in1 = Unicode('In [\\#]: ', config=True,
-        help="Deprecated, use PromptManager.in_template")
+        help="Deprecated, will be removed in IPython 5.0, use PromptManager.in_template")
     prompt_in2 = Unicode('   .\\D.: ', config=True,
-        help="Deprecated, use PromptManager.in2_template")
+        help="Deprecated, will be removed in IPython 5.0, use PromptManager.in2_template")
     prompt_out = Unicode('Out[\\#]: ', config=True,
-        help="Deprecated, use PromptManager.out_template")
+        help="Deprecated, will be removed in IPython 5.0, use PromptManager.out_template")
     prompts_pad_left = CBool(True, config=True,
-        help="Deprecated, use PromptManager.justify")
+        help="Deprecated, will be removed in IPython 5.0, use PromptManager.justify")
     
     def _prompt_trait_changed(self, name, old, new):
         table = {
