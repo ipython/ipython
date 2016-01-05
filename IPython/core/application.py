@@ -194,7 +194,9 @@ class BaseIPythonApplication(Application):
     #-------------------------------------------------------------------------
     # Various stages of Application creation
     #-------------------------------------------------------------------------
-
+    
+    deprecated_subcommands = {}
+    
     def initialize_subcommand(self, subc, argv=None):
         if subc in self.deprecated_subcommands:
             import time
