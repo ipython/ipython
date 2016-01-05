@@ -832,7 +832,7 @@ class Inspector:
         else:
             callable_obj = None
 
-        if callable_obj:
+        if callable_obj is not None:
             try:
                 argspec = getargspec(callable_obj)
             except (TypeError, AttributeError):
