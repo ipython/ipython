@@ -22,6 +22,7 @@ from __future__ import absolute_import
 
 import os
 import sys
+import warnings
 
 #-----------------------------------------------------------------------------
 # Setup everything
@@ -143,3 +144,14 @@ def start_kernel(argv=None, **kwargs):
     from IPython.kernel.zmq.kernelapp import launch_new_instance
     return launch_new_instance(argv=argv, **kwargs)
     
+# deprecated shim for IPython.Config
+import traitlets.config
+class Config(traitlets.config.Config):
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            "IPython.Config is deprecated and will be removed in IPython 5."
+            " Use traitlets.config.Config.",
+            DeprecationWarning, stacklevel=2,
+        )
+        super(Config, self).__init__(*args, **kwargs)
+
