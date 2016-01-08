@@ -7,6 +7,7 @@ from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.layout.lexers import PygmentsLexer
+from prompt_toolkit.styles import PygmentsStyle
 
 from pygments.lexers import Python3Lexer
 from pygments.token import Token
@@ -33,7 +34,7 @@ class PTInteractiveShell(InteractiveShell):
     def get_prompt_tokens(self, cli):
         return [
             (Token.Prompt, 'In ['),
-            (Token.Prompt, str(self.execution_count)),
+            (Token.PromptNum, str(self.execution_count)),
             (Token.Prompt, ']: '),
         ]
 
@@ -68,12 +69,20 @@ class PTInteractiveShell(InteractiveShell):
             if cell and (cell != last_cell):
                 history.append(cell)
 
+        style = PygmentsStyle.from_defaults({
+            Token.Prompt: '#009900',
+            Token.PromptNum: '#00ff00 bold',
+            Token.Number: '#007700',
+            Token.Operator: '#bbbbbb',
+        })
+
         app = create_prompt_application(multiline=True,
                             lexer=PygmentsLexer(Python3Lexer),
                             get_prompt_tokens=self.get_prompt_tokens,
                             key_bindings_registry=kbmanager.registry,
                             history=history,
                             completer=IPythonPTCompleter(self.Completer),
+                            style=style,
         )
 
         self.pt_cli = CommandLineInterface(app)
