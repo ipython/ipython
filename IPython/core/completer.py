@@ -170,41 +170,38 @@ def compress_user(path, tilde_expand, tilde_val):
 
 
 
-def penalize_magics_key(word):
-    """key for sorting that penalizes magic commands in the ordering
+def completions_sorting_key(word):
+    """key for sorting completions
 
-    Normal words are left alone.
+    This does several things:
 
-    Magic commands have the initial % moved to the end, e.g.
-    %matplotlib is transformed as follows:
-
-    %matplotlib -> matplotlib%
-
-    [The choice of the final % is arbitrary.]
-
-    Since "matplotlib" < "matplotlib%" as strings, 
-    "timeit" will appear before the magic "%timeit" in the ordering
-
-    For consistency, move "%%" to the end, so cell magics appear *after*
-    line magics with the same name.
-
-    A check is performed that there are no other "%" in the string; 
-    if there are, then the string is not a magic command and is left unchanged.
-
+    - Lowercase all completions, so they are sorted alphabetically with
+      upper and lower case words mingled
+    - Demote any completions starting with underscores to the end
+    - Insert any %magic and %%cellmagic completions in the alphabetical order
+      by their name
     """
+    # Case insensitive sort
+    word = word.lower()
 
-    # Move any % signs from start to end of the key 
-    # provided there are no others elsewhere in the string
+    prio1, prio2 = 0, 0
 
-    if word[:2] == "%%":
+    if word.startswith('__'):
+        prio1 = 2
+    elif word.startswith('_'):
+        prio1 = 1
+
+    if word.startswith('%%'):
+        # If there's another % in there, this is something else, so leave it alone
         if not "%" in word[2:]:
-            return word[2:] + "%%" 
-
-    if word[:1] == "%":
+            word = word[2:]
+            prio2 = 2
+    elif word.startswith('%'):
         if not "%" in word[1:]:
-            return word[1:] + "%"
-    
-    return word
+            word = word[1:]
+            prio2 = 1
+
+    return prio1, word, prio2
 
 
 @undoc
@@ -1206,8 +1203,7 @@ class IPCompleter(Completer):
         # simply collapse the dict into a list for readline, but we'd have
         # richer completion semantics in other evironments.
 
-        # use penalize_magics_key to put magics after variables with same name
-        self.matches = sorted(set(self.matches), key=penalize_magics_key)
+        self.matches = sorted(set(self.matches), key=completions_sorting_key)
 
         #io.rprint('COMP TEXT, MATCHES: %r, %r' % (text, self.matches)) # dbg
         return text, self.matches
