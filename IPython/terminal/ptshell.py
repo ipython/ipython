@@ -38,6 +38,10 @@ class PTInteractiveShell(InteractiveShell):
             else:
                 b.insert_text('\n' + (' ' * (indent or 0)))
 
+        @kbmanager.registry.add_binding(Keys.ControlC)
+        def _(event):
+            event.current_buffer.reset()
+
         # Pre-populate history from IPython's history database
         history = InMemoryHistory()
         last_cell = u""
@@ -67,9 +71,15 @@ class PTInteractiveShell(InteractiveShell):
 
     def interact(self):
         while self.keep_running:
-            document = self.pt_cli.run()
-            if document:
-                self.run_cell(document.text, store_history=True)
+            try:
+                document = self.pt_cli.run()
+            except EOFError:
+                if self.ask_yes_no('Do you really want to exit ([y]/n)?','y','n'):
+                    self.ask_exit()
+
+            else:
+                if document:
+                    self.run_cell(document.text, store_history=True)
 
 
 if __name__ == '__main__':
