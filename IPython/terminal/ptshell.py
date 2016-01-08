@@ -1,5 +1,6 @@
 from IPython.core.interactiveshell import InteractiveShell
 
+from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.shortcuts import create_prompt_application
 from prompt_toolkit.interface import CommandLineInterface
@@ -9,6 +10,21 @@ from prompt_toolkit.layout.lexers import PygmentsLexer
 
 from pygments.lexers import Python3Lexer
 from pygments.token import Token
+
+
+class IPythonPTCompleter(Completer):
+    """Adaptor to provide IPython completions to prompt_toolkit"""
+    def __init__(self, ipy_completer):
+        self.ipy_completer = ipy_completer
+
+    def get_completions(self, document, complete_event):
+        used, matches = self.ipy_completer.complete(
+                            line_buffer=document.current_line,
+                            cursor_pos=document.cursor_position_col
+        )
+        start_pos = -len(used)
+        for m in matches:
+            yield Completion(m, start_position=start_pos)
 
 
 class PTInteractiveShell(InteractiveShell):
@@ -57,6 +73,7 @@ class PTInteractiveShell(InteractiveShell):
                             get_prompt_tokens=self.get_prompt_tokens,
                             key_bindings_registry=kbmanager.registry,
                             history=history,
+                            completer=IPythonPTCompleter(self.Completer),
         )
 
         self.pt_cli = CommandLineInterface(app)
@@ -83,4 +100,4 @@ class PTInteractiveShell(InteractiveShell):
 
 
 if __name__ == '__main__':
-    PTInteractiveShell().interact()
+    PTInteractiveShell.instance().interact()
