@@ -1,5 +1,6 @@
 from IPython.core.interactiveshell import InteractiveShell
 
+from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.shortcuts import create_prompt_application
 from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.key_binding.manager import KeyBindingManager
@@ -35,12 +36,23 @@ class PTInteractiveShell(InteractiveShell):
             if (status != 'incomplete') and b.accept_action.is_returnable:
                 b.accept_action.validate_and_handle(event.cli, b)
             else:
-                b.insert_text('\n' + (' ' * indent))
+                b.insert_text('\n' + (' ' * (indent or 0)))
+
+        # Pre-populate history from IPython's history database
+        history = InMemoryHistory()
+        last_cell = u""
+        for _, _, cell in self.history_manager.get_tail(self.history_load_length,
+                                                        include_latest=True):
+            # Ignore blank lines and consecutive duplicates
+            cell = cell.rstrip()
+            if cell and (cell != last_cell):
+                history.append(cell)
 
         app = create_prompt_application(multiline=True,
                             lexer=PygmentsLexer(Python3Lexer),
                             get_prompt_tokens=self.get_prompt_tokens,
                             key_bindings_registry=kbmanager.registry,
+                            history=history,
         )
 
         self.pt_cli = CommandLineInterface(app)
