@@ -1094,12 +1094,14 @@ class VerboseTB(TBTools):
                 etype, evalue, etb = exception
             else:
                 evalue = None
+            chained_exc_ids = set()
             while evalue:
                 formatted_exceptions += self.format_exception_as_a_whole(etype, evalue, etb, lines_of_context,
                                                                          chained_exceptions_tb_offset)
                 exception = self.get_parts_of_chained_exception(evalue)
 
-                if exception:
+                if exception and not id(exception[1]) in chained_exc_ids:
+                    chained_exc_ids.add(id(exception[1])) # trace exception to avoid infinite 'cause' loop
                     formatted_exceptions += self.prepare_chained_exception_message(evalue.__cause__)
                     etype, evalue, etb = exception
                 else:
