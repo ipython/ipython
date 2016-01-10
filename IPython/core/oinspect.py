@@ -280,9 +280,21 @@ def call_tip(oinfo, format_call=True):
 
 
 def _get_wrapped(obj):
-    """Get the original object if wrapped in one or more @decorators"""
+    """Get the original object if wrapped in one or more @decorators
+
+    Some objects automatically construct similar objects on any unrecognised
+    attribute access (e.g. unittest.mock.call). To protect against infinite loops,
+    this will arbitrarily cut off after 100 levels of obj.__wrapped__
+    attribute access. --TK, Jan 2016
+    """
+    orig_obj = obj
+    i = 0
     while safe_hasattr(obj, '__wrapped__'):
         obj = obj.__wrapped__
+        i += 1
+        if i > 100:
+            # __wrapped__ is probably a lie, so return the thing we started with
+            return orig_obj
     return obj
 
 def find_file(obj):
