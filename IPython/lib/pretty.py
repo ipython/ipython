@@ -124,7 +124,7 @@ def pretty(obj, verbose=False, max_width=79, newline='\n', max_seq_length=MAX_SE
     Pretty print the object's representation.
     """
     stream = CUnicodeIO()
-    printer = RepresentationPrinter(stream, verbose, max_width, newline, max_seq_length)
+    printer = RepresentationPrinter(stream, verbose, max_width, newline, max_seq_length=max_seq_length)
     printer.pretty(obj)
     printer.flush()
     return stream.getvalue()
@@ -134,7 +134,7 @@ def pprint(obj, verbose=False, max_width=79, newline='\n', max_seq_length=MAX_SE
     """
     Like `pretty` but print to stdout.
     """
-    printer = RepresentationPrinter(sys.stdout, verbose, max_width, newline, max_seq_length)
+    printer = RepresentationPrinter(sys.stdout, verbose, max_width, newline, max_seq_length=max_seq_length)
     printer.pretty(obj)
     printer.flush()
     sys.stdout.write(newline)
