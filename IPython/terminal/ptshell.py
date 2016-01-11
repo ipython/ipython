@@ -106,6 +106,7 @@ class PTInteractiveShell(InteractiveShell):
             else:
                 if document:
                     self.run_cell(document.text, store_history=True)
+                    print(self.separate_in, end='')
 
 
 if __name__ == '__main__':
