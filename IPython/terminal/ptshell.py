@@ -82,7 +82,8 @@ class PTInteractiveShell(InteractiveShell):
             Token.Prompt: '#009900',
             Token.PromptNum: '#00ff00 bold',
             Token.Number: '#007700',
-            Token.Operator: '#bbbbbb',
+            Token.Operator: 'noinherit',
+            Token.String: '#BB6622',
         })
 
         app = create_prompt_application(multiline=True,
