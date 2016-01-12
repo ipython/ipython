@@ -19,6 +19,9 @@ class IPythonPTCompleter(Completer):
         self.ipy_completer = ipy_completer
 
     def get_completions(self, document, complete_event):
+        if not document.current_line.strip():
+            return
+
         used, matches = self.ipy_completer.complete(
                             line_buffer=document.current_line,
                             cursor_pos=document.cursor_position_col
