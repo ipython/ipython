@@ -29,6 +29,8 @@ class IPythonPTCompleter(Completer):
 
 
 class PTInteractiveShell(InteractiveShell):
+    colors_force = True
+
     pt_cli = None
 
     def get_prompt_tokens(self, cli):
