@@ -1,6 +1,8 @@
 from IPython.core.interactiveshell import InteractiveShell
 
 from prompt_toolkit.completion import Completer, Completion
+from prompt_toolkit.enums import DEFAULT_BUFFER
+from prompt_toolkit.filters import HasFocus, HasSelection
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.shortcuts import create_prompt_application
 from prompt_toolkit.interface import CommandLineInterface
@@ -46,7 +48,9 @@ class PTInteractiveShell(InteractiveShell):
 
     def init_prompt_toolkit_cli(self):
         kbmanager = KeyBindingManager.for_prompt()
-        @kbmanager.registry.add_binding(Keys.ControlJ) # Ctrl+J == Enter, seemingly
+        # Ctrl+J == Enter, seemingly
+        @kbmanager.registry.add_binding(Keys.ControlJ,
+                            filter=HasFocus(DEFAULT_BUFFER) & ~HasSelection())
         def _(event):
             b = event.current_buffer
             if not b.document.on_last_line:
