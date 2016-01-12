@@ -99,6 +99,7 @@ class PTInteractiveShell(InteractiveShell):
 
     def interact(self):
         while self.keep_running:
+            print(self.separate_in, end='')
             try:
                 document = self.pt_cli.run()
             except EOFError:
@@ -108,7 +109,6 @@ class PTInteractiveShell(InteractiveShell):
             else:
                 if document:
                     self.run_cell(document.text, store_history=True)
-                    print(self.separate_in, end='')
 
 
 if __name__ == '__main__':
