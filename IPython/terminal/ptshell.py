@@ -91,6 +91,7 @@ class PTInteractiveShell(InteractiveShell):
                             key_bindings_registry=kbmanager.registry,
                             history=history,
                             completer=IPythonPTCompleter(self.Completer),
+                            enable_history_search=True,
                             style=style,
         )
 
