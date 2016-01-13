@@ -2,6 +2,15 @@
  4.x Series
 ============
 
+IPython 4.0.2
+=============
+
+Released January, 2016
+
+Fixes for:
+
+- Fix backward-compatiblity shim for ``IPython.Config``, which should have been deprecated instead of removed. This will be removed in 5.0.
+
 IPython 4.0.1
 =============
 
