@@ -1,4 +1,8 @@
+"""IPython terminal interface using prompt_toolkit in place of readline"""
+from __future__ import print_function
+
 from IPython.core.interactiveshell import InteractiveShell
+from IPython.utils.py3compat import PY3
 from traitlets import Bool, Unicode, Dict
 
 from prompt_toolkit.completion import Completer, Completion
@@ -15,7 +19,7 @@ from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.styles import PygmentsStyle
 
 from pygments.styles import get_style_by_name
-from pygments.lexers import Python3Lexer
+from pygments.lexers import Python3Lexer, PythonLexer
 from pygments.token import Token
 
 
@@ -116,7 +120,7 @@ class PTInteractiveShell(InteractiveShell):
                                             style_dict=style_overrides)
 
         app = create_prompt_application(multiline=True,
-                            lexer=PygmentsLexer(Python3Lexer),
+                            lexer=PygmentsLexer(Python3Lexer if PY3 else PythonLexer),
                             get_prompt_tokens=self.get_prompt_tokens,
                             key_bindings_registry=kbmanager.registry,
                             history=history,
