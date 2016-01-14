@@ -1,5 +1,5 @@
 from IPython.core.interactiveshell import InteractiveShell
-from traitlets import Bool
+from traitlets import Bool, Unicode, Dict
 
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.enums import DEFAULT_BUFFER
@@ -14,6 +14,7 @@ from prompt_toolkit.keys import Keys
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.styles import PygmentsStyle
 
+from pygments.styles import get_style_by_name
 from pygments.lexers import Python3Lexer
 from pygments.token import Token
 
@@ -43,6 +44,14 @@ class PTInteractiveShell(InteractiveShell):
 
     vi_mode = Bool(False, config=True,
         help="Use vi style keybindings at the prompt",
+    )
+
+    highlighting_style = Unicode('', config=True,
+        help="The name of a Pygments style to use for syntax highlighting"
+    )
+
+    highlighting_style_overrides = Dict(config=True,
+        help="Override highlighting format for specific tokens"
     )
 
     def get_prompt_tokens(self, cli):
@@ -89,13 +98,22 @@ class PTInteractiveShell(InteractiveShell):
             if cell and (cell != last_cell):
                 history.append(cell)
 
-        style = PygmentsStyle.from_defaults({
+        style_overrides = {
             Token.Prompt: '#009900',
             Token.PromptNum: '#00ff00 bold',
-            Token.Number: '#007700',
-            Token.Operator: 'noinherit',
-            Token.String: '#BB6622',
-        })
+        }
+        if self.highlighting_style:
+            style_cls = get_style_by_name(self.highlighting_style)
+        else:
+            style_cls = get_style_by_name('default')
+            style_overrides.update({
+                Token.Number: '#007700',
+                Token.Operator: 'noinherit',
+                Token.String: '#BB6622',
+            })
+        style_overrides.update(self.highlighting_style_overrides)
+        style = PygmentsStyle.from_defaults(pygments_style_cls=style_cls,
+                                            style_dict=style_overrides)
 
         app = create_prompt_application(multiline=True,
                             lexer=PygmentsLexer(Python3Lexer),
