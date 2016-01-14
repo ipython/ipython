@@ -1,4 +1,5 @@
 from IPython.core.interactiveshell import InteractiveShell
+from traitlets import Bool
 
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.enums import DEFAULT_BUFFER
@@ -7,6 +8,8 @@ from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.shortcuts import create_prompt_application
 from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.key_binding.manager import KeyBindingManager
+from prompt_toolkit.key_binding.vi_state import InputMode
+from prompt_toolkit.key_binding.bindings.vi import ViStateFilter
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.styles import PygmentsStyle
@@ -38,6 +41,10 @@ class PTInteractiveShell(InteractiveShell):
 
     pt_cli = None
 
+    vi_mode = Bool(False, config=True,
+        help="Use vi style keybindings at the prompt",
+    )
+
     def get_prompt_tokens(self, cli):
         return [
             (Token.Prompt, 'In ['),
@@ -47,10 +54,14 @@ class PTInteractiveShell(InteractiveShell):
 
 
     def init_prompt_toolkit_cli(self):
-        kbmanager = KeyBindingManager.for_prompt()
+        kbmanager = KeyBindingManager.for_prompt(enable_vi_mode=self.vi_mode)
+        insert_mode = ViStateFilter(kbmanager.get_vi_state, InputMode.INSERT)
         # Ctrl+J == Enter, seemingly
         @kbmanager.registry.add_binding(Keys.ControlJ,
-                            filter=HasFocus(DEFAULT_BUFFER) & ~HasSelection())
+                            filter=(HasFocus(DEFAULT_BUFFER)
+                                    & ~HasSelection()
+                                    & insert_mode
+                                   ))
         def _(event):
             b = event.current_buffer
             if not b.document.on_last_line:
