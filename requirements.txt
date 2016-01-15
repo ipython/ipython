@@ -1,1 +1,0 @@
--e git+https://github.com/ipython/traitlets.git#egg=traitlets
