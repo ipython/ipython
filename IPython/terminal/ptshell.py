@@ -9,7 +9,7 @@ from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.filters import HasFocus, HasSelection
 from prompt_toolkit.history import InMemoryHistory
-from prompt_toolkit.shortcuts import create_prompt_application
+from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop
 from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.key_binding.vi_state import InputMode
@@ -21,6 +21,8 @@ from prompt_toolkit.styles import PygmentsStyle
 from pygments.styles import get_style_by_name
 from pygments.lexers import Python3Lexer, PythonLexer
 from pygments.token import Token
+
+from .pt_inputhooks import get_inputhook_func
 
 
 class IPythonPTCompleter(Completer):
@@ -39,7 +41,6 @@ class IPythonPTCompleter(Completer):
         start_pos = -len(used)
         for m in matches:
             yield Completion(m, start_position=start_pos)
-
 
 class PTInteractiveShell(InteractiveShell):
     colors_force = True
@@ -69,7 +70,6 @@ class PTInteractiveShell(InteractiveShell):
         return [
             (Token.Prompt, (' ' * (width - 2)) + ': '),
         ]
-
 
     def init_prompt_toolkit_cli(self):
         kbmanager = KeyBindingManager.for_prompt(enable_vi_mode=self.vi_mode)
@@ -135,7 +135,8 @@ class PTInteractiveShell(InteractiveShell):
                             style=style,
         )
 
-        self.pt_cli = CommandLineInterface(app)
+        self.pt_cli = CommandLineInterface(app,
+                           eventloop=create_eventloop(self.inputhook))
 
     def __init__(self, *args, **kwargs):
         super(PTInteractiveShell, self).__init__(*args, **kwargs)
@@ -158,6 +159,16 @@ class PTInteractiveShell(InteractiveShell):
                 if document:
                     self.run_cell(document.text, store_history=True)
 
+    _inputhook = None
+    def inputhook(self, context):
+        if self._inputhook is not None:
+            self._inputhook(context)
+
+    def enable_gui(self, gui=None):
+        if gui:
+            self._inputhook = get_inputhook_func(gui)
+        else:
+            self._inputhook = None
 
 if __name__ == '__main__':
     PTInteractiveShell.instance().interact()
