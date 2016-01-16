@@ -65,6 +65,11 @@ class PTInteractiveShell(InteractiveShell):
             (Token.Prompt, ']: '),
         ]
 
+    def get_continuation_tokens(self, cli, width):
+        return [
+            (Token.Prompt, (' ' * (width - 2)) + ': '),
+        ]
+
 
     def init_prompt_toolkit_cli(self):
         kbmanager = KeyBindingManager.for_prompt(enable_vi_mode=self.vi_mode)
@@ -122,6 +127,7 @@ class PTInteractiveShell(InteractiveShell):
         app = create_prompt_application(multiline=True,
                             lexer=PygmentsLexer(Python3Lexer if PY3 else PythonLexer),
                             get_prompt_tokens=self.get_prompt_tokens,
+                            get_continuation_tokens=self.get_continuation_tokens,
                             key_bindings_registry=kbmanager.registry,
                             history=history,
                             completer=IPythonPTCompleter(self.Completer),
