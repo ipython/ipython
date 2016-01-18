@@ -124,6 +124,8 @@ def test_ipdb_magics():
         Docstring for ExampleClass.__init__
     ipdb> up
     > <doctest ...>(11)<module>()
+          7    'pinfo a',
+          8    'll',
           9    'continue',
          10 ]):
     ---> 11     trigger_ipdb()
