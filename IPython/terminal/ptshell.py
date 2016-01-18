@@ -152,11 +152,19 @@ class PTInteractiveShell(InteractiveShell):
     def ask_exit(self):
         self.keep_running = False
 
+    rl_next_input = None
+
+    def pre_prompt(self):
+        if self.rl_next_input:
+            self.pt_cli.application.buffer.text = self.rl_next_input
+            self.rl_next_input = None
+
     def interact(self):
         while self.keep_running:
             print(self.separate_in, end='')
+
             try:
-                document = self.pt_cli.run()
+                document = self.pt_cli.run(pre_run=self.pre_prompt)
             except EOFError:
                 if self.ask_yes_no('Do you really want to exit ([y]/n)?','y','n'):
                     self.ask_exit()
