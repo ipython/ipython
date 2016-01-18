@@ -1026,9 +1026,10 @@ class VerboseTB(TBTools):
         head = self.prepare_header(etype, self.long_header)
         records = self.get_records(etb, number_of_lines_of_context, tb_offset)
 
-        frames = self.format_records(records)
         if records is None:
             return ""
+
+        frames = self.format_records(records)
 
         formatted_exception = self.format_exception(etype, evalue)
         if records:
@@ -1093,12 +1094,14 @@ class VerboseTB(TBTools):
                 etype, evalue, etb = exception
             else:
                 evalue = None
+            chained_exc_ids = set()
             while evalue:
                 formatted_exceptions += self.format_exception_as_a_whole(etype, evalue, etb, lines_of_context,
                                                                          chained_exceptions_tb_offset)
                 exception = self.get_parts_of_chained_exception(evalue)
 
-                if exception:
+                if exception and not id(exception[1]) in chained_exc_ids:
+                    chained_exc_ids.add(id(exception[1])) # trace exception to avoid infinite 'cause' loop
                     formatted_exceptions += self.prepare_chained_exception_message(evalue.__cause__)
                     etype, evalue, etb = exception
                 else:
@@ -1326,9 +1329,9 @@ class AutoFormattedTB(FormattedTB):
 class ColorTB(FormattedTB):
     """Shorthand to initialize a FormattedTB in Linux colors mode."""
 
-    def __init__(self, color_scheme='Linux', call_pdb=0):
+    def __init__(self, color_scheme='Linux', call_pdb=0, **kwargs):
         FormattedTB.__init__(self, color_scheme=color_scheme,
-                             call_pdb=call_pdb)
+                             call_pdb=call_pdb, **kwargs)
 
 
 class SyntaxTB(ListTB):
@@ -1405,47 +1408,3 @@ def eqrepr(value, repr=text_repr):
 
 def nullrepr(value, repr=text_repr):
     return ''
-
-
-#----------------------------------------------------------------------------
-
-# module testing (minimal)
-if __name__ == "__main__":
-    def spam(c, d_e):
-        (d, e) = d_e
-        x = c + d
-        y = c * d
-        foo(x, y)
-
-    def foo(a, b, bar=1):
-        eggs(a, b + bar)
-
-    def eggs(f, g, z=globals()):
-        h = f + g
-        i = f - g
-        return h / i
-
-    print('')
-    print('*** Before ***')
-    try:
-        print(spam(1, (2, 3)))
-    except:
-        traceback.print_exc()
-    print('')
-
-    handler = ColorTB()
-    print('*** ColorTB ***')
-    try:
-        print(spam(1, (2, 3)))
-    except:
-        handler(*sys.exc_info())
-    print('')
-
-    handler = VerboseTB()
-    print('*** VerboseTB ***')
-    try:
-        print(spam(1, (2, 3)))
-    except:
-        handler(*sys.exc_info())
-    print('')
-

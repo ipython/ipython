@@ -85,7 +85,7 @@ import re
 import datetime
 from collections import deque
 
-from IPython.utils.py3compat import PY3, cast_unicode
+from IPython.utils.py3compat import PY3, cast_unicode, string_types
 from IPython.utils.encoding import get_stream_enc
 
 from io import StringIO
@@ -124,7 +124,7 @@ def pretty(obj, verbose=False, max_width=79, newline='\n', max_seq_length=MAX_SE
     Pretty print the object's representation.
     """
     stream = CUnicodeIO()
-    printer = RepresentationPrinter(stream, verbose, max_width, newline, max_seq_length)
+    printer = RepresentationPrinter(stream, verbose, max_width, newline, max_seq_length=max_seq_length)
     printer.pretty(obj)
     printer.flush()
     return stream.getvalue()
@@ -134,7 +134,7 @@ def pprint(obj, verbose=False, max_width=79, newline='\n', max_seq_length=MAX_SE
     """
     Like `pretty` but print to stdout.
     """
-    printer = RepresentationPrinter(sys.stdout, verbose, max_width, newline, max_seq_length)
+    printer = RepresentationPrinter(sys.stdout, verbose, max_width, newline, max_seq_length=max_seq_length)
     printer.pretty(obj)
     printer.flush()
     sys.stdout.write(newline)
@@ -671,7 +671,16 @@ def _type_pprint(obj, p, cycle):
         return
 
     mod = _safe_getattr(obj, '__module__', None)
-    name = _safe_getattr(obj, '__qualname__', obj.__name__)
+    try:
+        name = obj.__qualname__
+        if not isinstance(name, string_types):
+            # This can happen if the type implements __qualname__ as a property
+            # or other descriptor in Python 2.
+            raise Exception("Try __name__")
+    except Exception:
+        name = obj.__name__
+        if not isinstance(name, string_types):
+            name = '<unknown type>'
 
     if mod in (None, '__builtin__', 'builtins', 'exceptions'):
         p.text(name)

@@ -100,7 +100,11 @@ def test_ipdb_magics():
     >>> with PdbTestInput([
     ...    'pdef example_function',
     ...    'pdoc ExampleClass',
+    ...    'up',
+    ...    'down',
+    ...    'list',
     ...    'pinfo a',
+    ...    'll',
     ...    'continue',
     ... ]):
     ...     trigger_ipdb()
@@ -118,12 +122,37 @@ def test_ipdb_magics():
         Docstring for ExampleClass.
     Init docstring:
         Docstring for ExampleClass.__init__
+    ipdb> up
+    > <doctest ...>(11)<module>()
+          7    'pinfo a',
+          8    'll',
+          9    'continue',
+         10 ]):
+    ---> 11     trigger_ipdb()
+    <BLANKLINE>
+    ipdb> down
+    None
+    > <doctest ...>(3)trigger_ipdb()
+          1 def trigger_ipdb():
+          2    a = ExampleClass()
+    ----> 3    debugger.Pdb().set_trace()
+    <BLANKLINE>
+    ipdb> list
+          1 def trigger_ipdb():
+          2    a = ExampleClass()
+    ----> 3    debugger.Pdb().set_trace()
+    <BLANKLINE>
     ipdb> pinfo a
     Type:           ExampleClass
     String form:    ExampleClass()
     Namespace:      Local...
     Docstring:      Docstring for ExampleClass.
     Init docstring: Docstring for ExampleClass.__init__
+    ipdb> ll
+          1 def trigger_ipdb():
+          2    a = ExampleClass()
+    ----> 3    debugger.Pdb().set_trace()
+    <BLANKLINE>
     ipdb> continue
     
     Restore previous trace function, e.g. for coverage.py    

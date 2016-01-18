@@ -93,7 +93,7 @@ def get_parent(globals, level):
         else:
             # Normal module, so work out the package name if any
             lastdot = modname.rfind('.')
-            if lastdot < 0 and level > 0:
+            if lastdot < 0 < level:
                 raise ValueError("Attempted relative import in non-package")
             if lastdot < 0:
                 globals['__package__'] = None
@@ -351,7 +351,8 @@ def _dreload(module, **kwargs):
 
     """
     warn("""
-injecting `dreload` in interactive namespace is deprecated, please import `reload` explicitly from `IPython.lib.deepreload`
+injecting `dreload` in interactive namespace is deprecated, and will be removed in IPython 5.0. 
+Please import `reload` explicitly from `IPython.lib.deepreload`.
 """, DeprecationWarning, stacklevel=2)
     reload(module, **kwargs)
 

@@ -513,11 +513,17 @@ class HistoryManager(HistoryAccessor):
         self.save_flag = threading.Event()
         self.db_input_cache_lock = threading.Lock()
         self.db_output_cache_lock = threading.Lock()
+        
+        try:
+            self.new_session()
+        except OperationalError:
+            self.log.error("Failed to create history session in %s. History will not be saved.",
+                self.hist_file, exc_info=True)
+            self.hist_file = ':memory:'
+        
         if self.enabled and self.hist_file != ':memory:':
             self.save_thread = HistorySavingThread(self)
             self.save_thread.start()
-
-        self.new_session()
 
     def _get_hist_file_name(self, profile=None):
         """Get default history file name based on the Shell's profile.

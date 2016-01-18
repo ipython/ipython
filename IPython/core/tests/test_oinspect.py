@@ -172,6 +172,36 @@ class Awkward(object):
     def __getattr__(self, name):
         raise Exception(name)
 
+class NoBoolCall:
+    """
+    callable with `__bool__` raising should still be inspect-able.
+    """
+
+    def __call__(self):
+        """does nothing"""
+        pass
+
+    def __bool__(self):
+        """just raise NotImplemented"""
+        raise NotImplementedError('Must be implemented')
+
+
+class SerialLiar(object):
+    """Attribute accesses always get another copy of the same class.
+
+    unittest.mock.call does something similar, but it's not ideal for testing
+    as the failure mode is to eat all your RAM. This gives up after 10k levels.
+    """
+    def __init__(self, max_fibbing_twig, lies_told=0):
+        if lies_told > 10000:
+            raise RuntimeError('Nose too long, honesty is the best policy')
+        self.max_fibbing_twig = max_fibbing_twig
+        self.lies_told = lies_told
+        max_fibbing_twig[0] = max(max_fibbing_twig[0], lies_told)
+
+    def __getattr__(self, item):
+        return SerialLiar(self.max_fibbing_twig, self.lies_told + 1)
+
 
 def check_calltip(obj, name, call, docstring):
     """Generic check pattern all calltip tests will use"""
@@ -280,6 +310,17 @@ def test_info():
 def test_info_awkward():
     # Just test that this doesn't throw an error.
     i = inspector.info(Awkward())
+
+def test_bool_raise():
+    inspector.info(NoBoolCall())
+
+def test_info_serialliar():
+    fib_tracker = [0]
+    i = inspector.info(SerialLiar(fib_tracker))
+
+    # Nested attribute access should be cut off at 100 levels deep to avoid
+    # infinite loops: https://github.com/ipython/ipython/issues/9122
+    nt.assert_less(fib_tracker[0], 9000)
 
 def test_calldef_none():
     # We should ignore __call__ for all of these.

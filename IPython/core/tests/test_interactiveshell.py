@@ -30,7 +30,6 @@ from IPython.testing.decorators import (
     skipif, skip_win32, onlyif_unicode_paths, onlyif_cmds_exist,
 )
 from IPython.testing import tools as tt
-from IPython.utils import io
 from IPython.utils.process import find_cmd
 from IPython.utils import py3compat
 from IPython.utils.py3compat import unicode_type, PY3
@@ -645,12 +644,12 @@ class TestAstTransform(unittest.TestCase):
         
         with tt.AssertPrints("best of "):
             ip.run_line_magic("timeit", "-n1 f(1)")
-        self.assertEqual(called, set([-1]))
+        self.assertEqual(called, {-1})
         called.clear()
         
         with tt.AssertPrints("best of "):
             ip.run_cell_magic("timeit", "-n1 f(2)", "f(3)")
-        self.assertEqual(called, set([-2, -3]))
+        self.assertEqual(called, {-2, -3})
     
     def test_time(self):
         called = []
@@ -718,12 +717,12 @@ class TestAstTransform2(unittest.TestCase):
         
         with tt.AssertPrints("best of "):
             ip.run_line_magic("timeit", "-n1 f(1)")
-        self.assertEqual(called, set([(1,)]))
+        self.assertEqual(called, {(1,)})
         called.clear()
         
         with tt.AssertPrints("best of "):
             ip.run_cell_magic("timeit", "-n1 f(2)", "f(3)")
-        self.assertEqual(called, set([(2,), (3,)]))
+        self.assertEqual(called, {(2,), (3,)})
 
 class ErrorTransformer(ast.NodeTransformer):
     """Throws an error when it sees a number."""
@@ -799,12 +798,12 @@ def test_user_variables():
     ip.display_formatter.active_types = ip.display_formatter.format_types
     
     ip.user_ns['dummy'] = d = DummyRepr()
-    keys = set(['dummy', 'doesnotexist'])
+    keys = {'dummy', 'doesnotexist'}
     r = ip.user_expressions({ key:key for key in keys})
 
     nt.assert_equal(keys, set(r.keys()))
     dummy = r['dummy']
-    nt.assert_equal(set(['status', 'data', 'metadata']), set(dummy.keys()))
+    nt.assert_equal({'status', 'data', 'metadata'}, set(dummy.keys()))
     nt.assert_equal(dummy['status'], 'ok')
     data = dummy['data']
     metadata = dummy['metadata']
@@ -832,7 +831,7 @@ def test_user_expression():
     pprint.pprint(r)
     nt.assert_equal(set(r.keys()), set(query.keys()))
     a = r['a']
-    nt.assert_equal(set(['status', 'data', 'metadata']), set(a.keys()))
+    nt.assert_equal({'status', 'data', 'metadata'}, set(a.keys()))
     nt.assert_equal(a['status'], 'ok')
     data = a['data']
     metadata = a['metadata']

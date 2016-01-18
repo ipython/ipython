@@ -66,6 +66,11 @@ def test_figure_to_jpeg():
     assert jpeg.startswith(_JPEG)
 
 def test_retina_figure():
+    # simple empty-figure test
+    fig = plt.figure()
+    nt.assert_equal(pt.retina_figure(fig), None)
+    plt.close('all')
+
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     ax.plot([1,2,3])

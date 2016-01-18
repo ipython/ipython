@@ -34,7 +34,7 @@ def dir2(obj):
     """dir2(obj) -> list of strings
 
     Extended version of the Python builtin dir(), which does a few extra
-    checks, and handles Traits objects, which can confuse dir().
+    checks.
 
     This version is guaranteed to return only a list of true strings, whereas
     dir() returns anything that objects inject into themselves, even if they

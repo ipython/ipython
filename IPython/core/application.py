@@ -185,7 +185,7 @@ class BaseIPythonApplication(Application):
         super(BaseIPythonApplication, self).__init__(**kwargs)
         # ensure current working directory exists
         try:
-            directory = py3compat.getcwd()
+            py3compat.getcwd()
         except:
             # exit if cwd doesn't exist
             self.log.error("Current working directory doesn't exist.")
@@ -194,6 +194,21 @@ class BaseIPythonApplication(Application):
     #-------------------------------------------------------------------------
     # Various stages of Application creation
     #-------------------------------------------------------------------------
+    
+    deprecated_subcommands = {}
+    
+    def initialize_subcommand(self, subc, argv=None):
+        if subc in self.deprecated_subcommands:
+            import time
+            self.log.warning("Subcommand `ipython {sub}` is deprecated and will be removed "
+                             "in future versions.".format(sub=subc))
+            self.log.warning("You likely want to use `jupyter {sub}`... continue "
+                             "in 5 sec. Press Ctrl-C to quit now.".format(sub=subc))
+            try:
+                time.sleep(5)
+            except KeyboardInterrupt:
+                sys.exit(1)
+        return super(BaseIPythonApplication, self).initialize_subcommand(subc, argv)
 
     def init_crash_handler(self):
         """Create a crash handler, typically setting sys.excepthook to it."""
@@ -276,7 +291,7 @@ class BaseIPythonApplication(Application):
             except ConfigFileNotFound:
                 # Only warn if the default config file was NOT being used.
                 if config_file_name in self.config_file_specified:
-                    msg = self.log.warn
+                    msg = self.log.warning
                 else:
                     msg = self.log.debug
                 msg("Config file not found, skipping: %s", config_file_name)
@@ -284,7 +299,7 @@ class BaseIPythonApplication(Application):
                 # For testing purposes.
                 if not suppress_errors:
                     raise
-                self.log.warn("Error loading config file: %s" %
+                self.log.warning("Error loading config file: %s" %
                               self.config_file_name, exc_info=True)
 
     def init_profile_dir(self):
@@ -351,7 +366,7 @@ class BaseIPythonApplication(Application):
 
             cfg = self.config_file_name
             if path and os.path.exists(os.path.join(path, cfg)):
-                self.log.warn("Staging %r from %s into %r [overwrite=%s]"%(
+                self.log.warning("Staging %r from %s into %r [overwrite=%s]"%(
                         cfg, src, self.profile_dir.location, self.overwrite)
                 )
                 self.profile_dir.copy_config_file(cfg, path=path, overwrite=self.overwrite)
@@ -366,7 +381,7 @@ class BaseIPythonApplication(Application):
                 cfg = os.path.basename(fullpath)
                 if self.profile_dir.copy_config_file(cfg, path=path, overwrite=False):
                     # file was copied
-                    self.log.warn("Staging bundled %s from %s into %r"%(
+                    self.log.warning("Staging bundled %s from %s into %r"%(
                             cfg, self.profile, self.profile_dir.location)
                     )
 
@@ -376,7 +391,7 @@ class BaseIPythonApplication(Application):
         s = self.generate_config_file()
         fname = os.path.join(self.profile_dir.location, self.config_file_name)
         if self.overwrite or not os.path.exists(fname):
-            self.log.warn("Generating default config file: %r"%(fname))
+            self.log.warning("Generating default config file: %r"%(fname))
             with open(fname, 'w') as f:
                 f.write(s)
 
@@ -394,4 +409,3 @@ class BaseIPythonApplication(Application):
         self.load_config_file()
         # enforce cl-opts override configfile opts:
         self.update_config(cl_config)
-

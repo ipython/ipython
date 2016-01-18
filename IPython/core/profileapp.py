@@ -252,7 +252,7 @@ class ProfileCreate(BaseIPythonApplication):
         except ImportError:
             self.log.info("Couldn't import %s, config file will be excluded", name)
         except Exception:
-            self.log.warn('Unexpected error importing %s', name, exc_info=True)
+            self.log.warning('Unexpected error importing %s', name, exc_info=True)
         return app
 
     def init_config_files(self):

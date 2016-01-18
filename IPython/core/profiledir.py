@@ -87,7 +87,7 @@ class ProfileDir(LoggingConfigurable):
                 try:
                     os.chmod(path, mode)
                 except OSError:
-                    self.log.warn(
+                    self.log.warning(
                         "Could not set permissions on %s",
                         path
                     )
@@ -118,7 +118,7 @@ class ProfileDir(LoggingConfigurable):
         src = os.path.join(get_ipython_package_dir(), u'core', u'profile', u'README_STARTUP')
 
         if not os.path.exists(src):
-            self.log.warn("Could not copy README_STARTUP to startup dir. Source file %s does not exist.", src)
+            self.log.warning("Could not copy README_STARTUP to startup dir. Source file %s does not exist.", src)
 
         if os.path.exists(src) and not os.path.exists(readme):
             shutil.copy(src, readme)

@@ -58,28 +58,7 @@ _builtin_meth_type = type(str.upper)  # Bound methods have the same type as buil
 
 Colors = TermColors  # just a shorthand
 
-# Build a few color schemes
-NoColor = ColorScheme(
-    'NoColor',{
-    'header' : Colors.NoColor,
-    'normal' : Colors.NoColor  # color off (usu. Colors.Normal)
-    }  )
-
-LinuxColors = ColorScheme(
-    'Linux',{
-    'header' : Colors.LightRed,
-    'normal' : Colors.Normal  # color off (usu. Colors.Normal)
-    } )
-
-LightBGColors = ColorScheme(
-    'LightBG',{
-    'header' : Colors.Red,
-    'normal' : Colors.Normal  # color off (usu. Colors.Normal)
-    }  )
-
-# Build table of color schemes (needed by the parser)
-InspectColors = ColorSchemeTable([NoColor,LinuxColors,LightBGColors],
-                                 'Linux')
+InspectColors = PyColorize.ANSICodeColors
 
 #****************************************************************************
 # Auxiliary functions and objects
@@ -301,9 +280,21 @@ def call_tip(oinfo, format_call=True):
 
 
 def _get_wrapped(obj):
-    """Get the original object if wrapped in one or more @decorators"""
+    """Get the original object if wrapped in one or more @decorators
+
+    Some objects automatically construct similar objects on any unrecognised
+    attribute access (e.g. unittest.mock.call). To protect against infinite loops,
+    this will arbitrarily cut off after 100 levels of obj.__wrapped__
+    attribute access. --TK, Jan 2016
+    """
+    orig_obj = obj
+    i = 0
     while safe_hasattr(obj, '__wrapped__'):
         obj = obj.__wrapped__
+        i += 1
+        if i > 100:
+            # __wrapped__ is probably a lie, so return the thing we started with
+            return orig_obj
     return obj
 
 def find_file(obj):
@@ -853,7 +844,7 @@ class Inspector:
         else:
             callable_obj = None
 
-        if callable_obj:
+        if callable_obj is not None:
             try:
                 argspec = getargspec(callable_obj)
             except (TypeError, AttributeError):
