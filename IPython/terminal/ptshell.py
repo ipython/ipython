@@ -115,10 +115,16 @@ class PTInteractiveShell(InteractiveShell):
             style_cls = get_style_by_name(self.highlighting_style)
         else:
             style_cls = get_style_by_name('default')
+            # The default theme needs to be visible on both a dark background
+            # and a light background, because we can't tell what the terminal
+            # looks like. These tweaks to the default theme help with that.
             style_overrides.update({
                 Token.Number: '#007700',
                 Token.Operator: 'noinherit',
                 Token.String: '#BB6622',
+                Token.Name.Function: '#2080D0',
+                Token.Name.Class: 'bold #2080D0',
+                Token.Name.Namespace: 'bold #2080D0',
             })
         style_overrides.update(self.highlighting_style_overrides)
         style = PygmentsStyle.from_defaults(pygments_style_cls=style_cls,
