@@ -334,23 +334,25 @@ Currently the magic system has the following functions:""",
         # local shortcut
         shell = self.shell
 
-        import IPython.utils.rlineimpl as readline
 
-        if not shell.colors_force and \
-                not readline.have_readline and \
-                (sys.platform == "win32" or sys.platform == "cli"):
-            msg = """\
+
+        if not shell.colors_force:
+            if sys.platform in {'win32', 'cli'}:
+                import IPython.utils.rlineimpl as readline
+                if not readline.have_readline:
+                    msg = """\
 Proper color support under MS Windows requires the pyreadline library.
 You can find it at:
 http://ipython.org/pyreadline.html
 
 Defaulting color scheme to 'NoColor'"""
-            new_scheme = 'NoColor'
-            warn(msg)
+                    new_scheme = 'NoColor'
+                    warn(msg)
 
-        # readline option is 0
-        if not shell.colors_force and not shell.has_readline:
-            new_scheme = 'NoColor'
+            elif not shell.has_readline:
+                # Coloured prompts get messed up without readline
+                # Will remove this check after switching to prompt_toolkit
+                new_scheme = 'NoColor'
 
         # Set prompt colors
         try:
