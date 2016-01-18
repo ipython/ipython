@@ -2,7 +2,7 @@ import importlib
 import os
 
 aliases = {
-    'qt4': 'qt'
+    'qt4': 'qt',
 }
 
 def get_inputhook_func(gui):
