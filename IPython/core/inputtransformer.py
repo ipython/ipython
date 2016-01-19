@@ -418,12 +418,6 @@ def _strip_prompts(prompt_re, initial_re=None, turnoff_re=None):
     If any prompt is found on the first two lines,
     prompts will be stripped from the rest of the block.
     """
-    def pass_thru(line1):
-        "Pass lines through unaltered until the end of the cell"
-        line = line1
-        while line is not None:
-            line = (yield line)
-
     if initial_re is None:
         initial_re = prompt_re
     line = ''
@@ -438,8 +432,8 @@ def _strip_prompts(prompt_re, initial_re=None, turnoff_re=None):
             if turnoff_re.match(line):
                 # We're in e.g. a cell magic; disable this transformer for
                 # the rest of the cell.
-                yield from pass_thru(line)
-                line = None
+                while line is not None:
+                    line = (yield line)
                 continue
 
         line = (yield out)
@@ -460,8 +454,8 @@ def _strip_prompts(prompt_re, initial_re=None, turnoff_re=None):
         
         else:
             # Prompts not in input - wait for reset
-            yield from pass_thru(line)
-            line = None
+            while line is not None:
+                line = (yield line)
 
 @CoroutineInputTransformer.wrap
 def classic_prompt():
