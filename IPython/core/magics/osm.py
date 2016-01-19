@@ -98,7 +98,7 @@ class OSMagics(Magics):
           /usr/local/lf9560/bin:/usr/local/intel/compiler70/ia32/bin:...
 
         You can use the alias facility to acess all of $PATH.  See the %rehashx
-        function, which automatically create aliases for the contents of your
+        function, which automatically creates aliases for the contents of your
         $PATH.
 
         If called with no parameters, %alias prints the current alias table."""
