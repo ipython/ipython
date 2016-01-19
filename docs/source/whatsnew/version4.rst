@@ -2,6 +2,17 @@
  4.x Series
 ============
 
+IPython 4.0.3
+=============
+
+Released January, 2016
+
+Fixes for:
+
+- Python 3.5 bug in that could crash during shutdown, triggered by deprecations in traitlets 4.1.
+- Typo in deprecation message for nbconvert
+
+
 IPython 4.0.2
 =============
 
