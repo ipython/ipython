@@ -400,7 +400,7 @@ def cellmagic(end_on_blank_line=False):
         line = tpl % (magic_name, first, u'\n'.join(body))
 
 
-def _strip_prompts(prompt_re, initial_re=None):
+def _strip_prompts(prompt_re, initial_re=None, turnoff_re=None):
     """Remove matching input prompts from a block of input.
     
     Parameters
@@ -428,6 +428,14 @@ def _strip_prompts(prompt_re, initial_re=None):
         if line is None:
             continue
         out, n1 = initial_re.subn('', line, count=1)
+        if turnoff_re and not n1:
+            if turnoff_re.match(line):
+                # We're in e.g. a cell magic; disable this transformer for
+                # the rest of the cell.
+                while line is not None:
+                    line = (yield line)
+                continue
+
         line = (yield out)
         
         if line is None:
@@ -455,14 +463,18 @@ def classic_prompt():
     # FIXME: non-capturing version (?:...) usable?
     prompt_re = re.compile(r'^(>>>|\.\.\.)( |$)')
     initial_re = re.compile(r'^>>>( |$)')
-    return _strip_prompts(prompt_re, initial_re)
+    # Any %magic/!system is IPython syntax, so we needn't look for >>> prompts
+    turnoff_re = re.compile(r'^[%!]')
+    return _strip_prompts(prompt_re, initial_re, turnoff_re)
 
 @CoroutineInputTransformer.wrap
 def ipy_prompt():
     """Strip IPython's In [1]:/...: prompts."""
     # FIXME: non-capturing version (?:...) usable?
     prompt_re = re.compile(r'^(In \[\d+\]: |\s*\.{3,}: ?)')
-    return _strip_prompts(prompt_re)
+    # Disable prompt stripping inside cell magics
+    turnoff_re = re.compile(r'^%%')
+    return _strip_prompts(prompt_re, turnoff_re=turnoff_re)
 
 
 @CoroutineInputTransformer.wrap

@@ -360,11 +360,24 @@ def test_classic_prompt():
     for example in syntax_ml['multiline_datastructure_prompt']:
         transform_checker(example, ipt.classic_prompt)
 
+    # Check that we don't transform the second line if the first is obviously
+    # IPython syntax
+    transform_checker([
+        (u'%foo', '%foo'),
+        (u'>>> bar', '>>> bar'),
+    ], ipt.classic_prompt)
+
 
 def test_ipy_prompt():
     tt.check_pairs(transform_and_reset(ipt.ipy_prompt), syntax['ipy_prompt'])
     for example in syntax_ml['ipy_prompt']:
         transform_checker(example, ipt.ipy_prompt)
+
+    # Check that we don't transform the second line if we're inside a cell magic
+    transform_checker([
+        (u'%%foo', '%%foo'),
+        (u'In [1]: bar', 'In [1]: bar'),
+    ], ipt.ipy_prompt)
 
 def test_coding_cookie():
     tt.check_pairs(transform_and_reset(ipt.strip_encoding_cookie), syntax['strip_encoding_cookie'])
