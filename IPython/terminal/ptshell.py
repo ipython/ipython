@@ -1,6 +1,8 @@
 """IPython terminal interface using prompt_toolkit in place of readline"""
 from __future__ import print_function
 
+import sys
+
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.utils.py3compat import PY3
 from traitlets import Bool, Unicode, Dict
@@ -143,6 +145,20 @@ class PTInteractiveShell(InteractiveShell):
 
         self.pt_cli = CommandLineInterface(app,
                            eventloop=create_eventloop(self.inputhook))
+
+    def init_io(self):
+        if sys.platform not in {'win32', 'cli'}:
+            return
+
+        import colorama
+        colorama.init()
+
+        # For some reason we make these wrappers around stdout/stderr.
+        # For now, we need to reset them so all output gets coloured.
+        # https://github.com/ipython/ipython/issues/8669
+        from IPython.utils import io
+        io.stdout = io.IOStream(sys.stdout)
+        io.stderr = io.IOStream(sys.stderr)
 
     def __init__(self, *args, **kwargs):
         super(PTInteractiveShell, self).__init__(*args, **kwargs)
