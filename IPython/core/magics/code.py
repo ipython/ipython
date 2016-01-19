@@ -147,6 +147,10 @@ class InteractivelyDefined(Exception):
 class CodeMagics(Magics):
     """Magics related to code management (loading, saving, editing, ...)."""
 
+    def __init__(self, *args, **kwargs):
+        self._knowntemps = set()
+        super(CodeMagics, self).__init__(*args, **kwargs)
+
     @line_magic
     def save(self, parameter_s=''):
         """Save a set of lines or a macro to a given filename.
@@ -660,6 +664,12 @@ class CodeMagics(Magics):
             # nothing was found, warnings have already been issued,
             # just give up.
             return
+
+        if is_temp:
+            self._knowntemps.add(filename)
+        elif (filename in self._knowntemps):
+            is_temp = True
+
 
         # do actual editing here
         print('Editing...', end=' ')
