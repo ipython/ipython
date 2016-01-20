@@ -21,6 +21,7 @@ from IPython.terminal.ipapp import load_default_config
 from traitlets import Bool, CBool, Unicode
 from IPython.utils.io import ask_yes_no
 
+class KillEmbeded(Exception):pass
 
 # This is an additional magic that is exposed in embedded shells.
 @magics_class
@@ -45,6 +46,39 @@ class EmbeddedMagics(Magics):
             print ("This embedded IPython will not reactivate anymore "
                    "once you exit.")
 
+    @line_magic
+    def raise_on_exit(self, parameter_s=''):
+        """%raise_on_exit [True|False]: Make the current embeded kernel to raise an exception on exit.
+
+        You can change that again during current session by calling `%raise_on_exit` with `True`/`False` as parameter 
+
+        This function (after asking for confirmation) sets an internal flag so
+        that an embedded IPython will raise a `KillEmbeded` Exception on exit.  This is useful to
+        permanently exit a loop that create IPython embed instance.
+        """
+        parameter_s = parameter_s.strip().lower()
+
+        should_raise = None
+        if parameter_s in {'yes', 'raise', 'true', '1'}:
+            should_raise = True
+        elif parameter_s in {'no', 'false', '0', 'None'}:
+            should_raise = False
+        else:
+            if self.shell.should_raise :
+                print("The current embed instance will raise on exit, use `%raise_on_exit False` to disable")
+                return 
+            else:
+                print("The current embed instance will not raise on exit, use `%raise_on_exit True` to enable")
+                return 
+
+        if should_raise:
+            self.shell.should_raise = True
+            print ("This embedded IPython will raise while exiting.")
+        else :
+            self.shell.should_raise = False
+            print ("This embedded IPython will not raise while exiting.")
+
+
 
 class InteractiveShellEmbed(TerminalInteractiveShell):
 
@@ -52,6 +86,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
     exit_msg = Unicode('')
     embedded = CBool(True)
     embedded_active = CBool(True)
+    should_raise = CBool(False)
     # Like the base class display_banner is not configurable, but here it
     # is True by default.
     display_banner = CBool(True)
@@ -129,6 +164,10 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
 
         if self.exit_msg is not None:
             print(self.exit_msg)
+
+        if self.should_raise:
+            raise KillEmbeded('This instance has been marked as must raise on exit.')
+
 
     def mainloop(self, local_ns=None, module=None, stack_depth=0,
                  display_banner=None, global_ns=None, compile_flags=None):
