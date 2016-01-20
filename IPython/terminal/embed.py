@@ -46,37 +46,41 @@ class EmbeddedMagics(Magics):
             print ("This embedded IPython will not reactivate anymore "
                    "once you exit.")
 
-    @line_magic
-    def raise_on_exit(self, parameter_s=''):
-        """%raise_on_exit [True|False]: Make the current embeded kernel to raise an exception on exit.
+    if sys.version_info > (3,):
 
-        You can change that again during current session by calling `%raise_on_exit` with `True`/`False` as parameter 
+        @line_magic
+        def raise_on_exit(self, parameter_s=''):
+            """%raise_on_exit [True|False]: Make the current embeded kernel to raise an exception on exit.
 
-        This function (after asking for confirmation) sets an internal flag so
-        that an embedded IPython will raise a `KillEmbeded` Exception on exit.  This is useful to
-        permanently exit a loop that create IPython embed instance.
-        """
-        parameter_s = parameter_s.strip().lower()
+            You can change that again during current session by calling `%raise_on_exit` with `True`/`False` as parameter
 
-        should_raise = None
-        if parameter_s in {'yes', 'raise', 'true', '1'}:
-            should_raise = True
-        elif parameter_s in {'no', 'false', '0', 'None'}:
-            should_raise = False
-        else:
-            if self.shell.should_raise :
-                print("The current embed instance will raise on exit, use `%raise_on_exit False` to disable")
-                return 
+            This function (after asking for confirmation) sets an internal flag so
+            that an embedded IPython will raise a `KillEmbeded` Exception on exit.  This is useful to
+            permanently exit a loop that create IPython embed instance.
+
+            Available only for Python 3.
+            """
+            parameter_s = parameter_s.strip().lower()
+
+            should_raise = None
+            if parameter_s in {'yes', 'raise', 'true', '1'}:
+                should_raise = True
+            elif parameter_s in {'no', 'false', '0', 'None'}:
+                should_raise = False
             else:
-                print("The current embed instance will not raise on exit, use `%raise_on_exit True` to enable")
-                return 
+                if self.shell.should_raise :
+                    print("The current embed instance will raise on exit, use `%raise_on_exit False` to disable")
+                    return
+                else:
+                    print("The current embed instance will not raise on exit, use `%raise_on_exit True` to enable")
+                    return
 
-        if should_raise:
-            self.shell.should_raise = True
-            print ("This embedded IPython will raise while exiting.")
-        else :
-            self.shell.should_raise = False
-            print ("This embedded IPython will not raise while exiting.")
+            if should_raise:
+                self.shell.should_raise = True
+                print ("This embedded IPython will raise while exiting.")
+            else :
+                self.shell.should_raise = False
+                print ("This embedded IPython will not raise while exiting.")
 
 
 
