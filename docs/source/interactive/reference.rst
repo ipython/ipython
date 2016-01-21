@@ -724,6 +724,69 @@ how to control where pdb will stop execution first.
 For more information on the use of the pdb debugger, see :ref:`debugger-commands`
 in the Python documentation.
 
+IPython extends the debugger with a few useful additions, like coloring of
+tracebacks. The debugger will adopt the color scheme selected for IPython. 
+
+The ``where`` command has also been extended to take as argument the number of
+context line to show. This allows to a many line of context on shallow stack trace:
+
+.. code::
+    In [5]: def foo(x):
+    ...:     1
+    ...:     2
+    ...:     3
+    ...:     return 1/x+foo(x-1)
+    ...:     5
+    ...:     6
+    ...:     7
+    ...:
+    
+    In[6]: foo(1)
+    # ...
+    ipdb> where 8
+    <ipython-input-6-9e45007b2b59>(1)<module>()
+    ----> 1 foo(1)
+
+    <ipython-input-5-7baadc3d1465>(5)foo()
+        1 def foo(x):
+        2     1
+        3     2
+        4     3
+    ----> 5     return 1/x+foo(x-1)
+        6     5
+        7     6
+        8     7
+
+    > <ipython-input-5-7baadc3d1465>(5)foo()
+        1 def foo(x):
+        2     1
+        3     2
+        4     3
+    ----> 5     return 1/x+foo(x-1)
+        6     5
+        7     6
+        8     7
+
+
+And less context on shallower Stack Trace:
+
+.. code::
+    ipdb> where 1
+    <ipython-input-13-afa180a57233>(1)<module>()
+    ----> 1 foo(7)
+
+    <ipython-input-5-7baadc3d1465>(5)foo()
+    ----> 5     return 1/x+foo(x-1)
+
+    <ipython-input-5-7baadc3d1465>(5)foo()
+    ----> 5     return 1/x+foo(x-1)
+
+    <ipython-input-5-7baadc3d1465>(5)foo()
+    ----> 5     return 1/x+foo(x-1)
+
+    <ipython-input-5-7baadc3d1465>(5)foo()
+    ----> 5     return 1/x+foo(x-1)
+
 
 Post-mortem debugging
 ---------------------
