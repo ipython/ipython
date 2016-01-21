@@ -206,6 +206,7 @@ intersphinx_mapping = {'python': ('http://docs.python.org/2/', None),
                        'traitlets': ('http://traitlets.readthedocs.org/en/latest/', None),
                        'jupyterclient': ('http://jupyter-client.readthedocs.org/en/latest/', None),
                        'ipyparallel': ('http://ipyparallel.readthedocs.org/en/latest/', None),
+                       'jupyter': ('http://jupyter.readthedocs.org/en/latest/', None),
                       }
 
 # Options for LaTeX output
