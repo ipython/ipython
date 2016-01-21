@@ -25,6 +25,7 @@ from pygments.lexers import Python3Lexer, PythonLexer
 from pygments.token import Token
 
 from .pt_inputhooks import get_inputhook_func
+from .interactiveshell import get_default_editor
 
 
 class IPythonPTCompleter(Completer):
@@ -59,6 +60,10 @@ class PTInteractiveShell(InteractiveShell):
 
     highlighting_style_overrides = Dict(config=True,
         help="Override highlighting format for specific tokens"
+    )
+
+    editor = Unicode(get_default_editor(), config=True,
+        help="Set the editor used by IPython (default to $EDITOR/vi/notepad)."
     )
 
     def get_prompt_tokens(self, cli):
