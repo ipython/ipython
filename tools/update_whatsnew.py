@@ -21,11 +21,9 @@ INCOMPAT_MARK = ".. DO NOT EDIT THIS LINE BEFORE RELEASE. INCOMPAT INSERTION POI
 
 # 1. Collect the whatsnew snippet files ---------------------------------------
 
-files = set()
-for f in glob(pjoin(pr_dir, '*.rst')):
-    files.add(f)
+files = set(glob(pjoin(pr_dir, '*.rst')))
 # Ignore explanatory and example files
-files.difference_update({pjoin(pr_dir, f) for f in {'README.md',
+files.difference_update({pjoin(pr_dir, f) for f in {
                          'incompat-switching-to-perl.rst',
                          'antigravity-feature.rst'}
                          })
@@ -42,7 +40,7 @@ for path in files:
         try:
             content = f.read().rstrip()
         except Exception as e:
-            raise Exception('Error reading "{}"'.format(f))
+            raise Exception('Error reading "{}"'.format(f)) from e
 
     if basename(path).startswith('incompat-'):
         incompats.append(content)
