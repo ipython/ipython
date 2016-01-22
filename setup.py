@@ -23,6 +23,7 @@ requires utilities which are not available under Windows."""
 from __future__ import print_function
 
 import sys
+import re
 
 # This check is also made in IPython/__init__, don't forget to update both when
 # changing Python version requirements.
@@ -42,7 +43,6 @@ PY3 = (sys.version_info[0] >= 3)
 
 # Stdlib imports
 import os
-import shutil
 
 from glob import glob
 
@@ -291,7 +291,14 @@ else:
 
 setup_args.update(setuptools_extra_args)
 
+
+# loose as `.dev` is suppose to be invalid
+loose_pep440re = re.compile('^(\d+)\.(\d+)\.(\d+((a|b|rc)\d+)?)(\.post\d+)?(\.dev\d*)?$')
+
 def main():
+    import IPython.core.release as r
+    if not loose_pep440re.match(r.version):
+        raise ValueError("Version number '%s' is not valid (should match [N!]N(.N)*[{a|b|rc}N][.postN][.devN])" % r.version)
     setup(**setup_args)
 
 if __name__ == '__main__':
