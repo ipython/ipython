@@ -422,6 +422,57 @@ def _format_traceback_lines(lnum, index, lines, Colors, lvals=None, scheme=None)
         i = i + 1
     return res
 
+def is_recursion_error(etype, value, records):
+    try:
+        # RecursionError is new in Python 3.5
+        recursion_error_type = RecursionError
+    except NameError:
+        recursion_error_type = RuntimeError
+
+    # The default recursion limit is 1000, but some of that will be taken up
+    # by stack frames in IPython itself. >500 frames probably indicates
+    # a recursion error.
+    return (etype is recursion_error_type) \
+           and "recursion" in str(value).lower() \
+           and len(records) > 500
+
+def find_recursion(etype, value, records):
+    """Identify the repeating stack frames from a RecursionError traceback
+
+    'records' is a list as returned by VerboseTB.get_records()
+
+    Returns (last_unique, repeat_length)
+    """
+    # This involves a bit of guesswork - we want to show enough of the traceback
+    # to indicate where the recursion is occurring. We guess that the innermost
+    # quarter of the traceback (250 frames by default) is repeats, and find the
+    # first frame (from in to out) that looks different.
+    if not is_recursion_error(etype, value, records):
+        return len(records), 0
+
+    # Select filename, lineno, func_name to track frames with
+    records = [r[1:4] for r in records]
+    inner_frames = records[-(len(records)//4):]
+    frames_repeated = set(inner_frames)
+
+    last_seen_at = {}
+    longest_repeat = 0
+    i = len(records)
+    for frame in reversed(records):
+        i -= 1
+        if frame not in frames_repeated:
+            last_unique = i
+            break
+
+        if frame in last_seen_at:
+            distance = last_seen_at[frame] - i
+            longest_repeat = max(longest_repeat, distance)
+
+        last_seen_at[frame] = i
+    else:
+        last_unique = 0 # The whole traceback was recursion
+
+    return last_unique, longest_repeat
 
 #---------------------------------------------------------------------------
 # Module classes
@@ -775,15 +826,27 @@ class VerboseTB(TBTools):
             check_cache = linecache.checkcache
         self.check_cache = check_cache
 
-    def format_records(self, records):
+    def format_records(self, records, last_unique, recursion_repeat):
+        """Format the stack frames of the traceback"""
+        frames = []
+        for r in records[:last_unique+recursion_repeat+1]:
+            #print '*** record:',file,lnum,func,lines,index  # dbg
+            frames.append(self.format_record(*r))
+
+        if recursion_repeat:
+            frames.append('Last %d frames repeated, from:\n' % recursion_repeat)
+            frames.append(self.format_record(*records[last_unique+recursion_repeat+1]))
+
+        return frames
+
+    def format_record(self, frame, file, lnum, func, lines, index):
+        """Format a single stack frame"""
         Colors = self.Colors  # just a shorthand + quicker name lookup
         ColorsNormal = Colors.Normal  # used a lot
         col_scheme = self.color_scheme_table.active_scheme_name
         indent = ' ' * INDENT_SIZE
         em_normal = '%s\n%s%s' % (Colors.valEm, indent, ColorsNormal)
         undefined = '%sundefined%s' % (Colors.em, ColorsNormal)
-        frames = []
-        # build some color string templates outside these nested loops
         tpl_link = '%s%%s%s' % (Colors.filenameEm, ColorsNormal)
         tpl_call = 'in %s%%s%s%%s%s' % (Colors.vName, Colors.valEm,
                                         ColorsNormal)
@@ -799,156 +862,154 @@ class VerboseTB(TBTools):
                                          ColorsNormal)
 
         abspath = os.path.abspath
-        for frame, file, lnum, func, lines, index in records:
-            #print '*** record:',file,lnum,func,lines,index  # dbg
-            if not file:
-                file = '?'
-            elif file.startswith(str("<")) and file.endswith(str(">")):
-                # Not a real filename, no problem...
-                pass
-            elif not os.path.isabs(file):
-                # Try to make the filename absolute by trying all
-                # sys.path entries (which is also what linecache does)
-                for dirname in sys.path:
-                    try:
-                        fullname = os.path.join(dirname, file)
-                        if os.path.isfile(fullname):
-                            file = os.path.abspath(fullname)
-                            break
-                    except Exception:
-                        # Just in case that sys.path contains very
-                        # strange entries...
-                        pass
 
-            file = py3compat.cast_unicode(file, util_path.fs_encoding)
-            link = tpl_link % file
-            args, varargs, varkw, locals = fixed_getargvalues(frame)
 
-            if func == '?':
-                call = ''
-            else:
-                # Decide whether to include variable details or not
-                var_repr = self.include_vars and eqrepr or nullrepr
+        if not file:
+            file = '?'
+        elif file.startswith(str("<")) and file.endswith(str(">")):
+            # Not a real filename, no problem...
+            pass
+        elif not os.path.isabs(file):
+            # Try to make the filename absolute by trying all
+            # sys.path entries (which is also what linecache does)
+            for dirname in sys.path:
                 try:
-                    call = tpl_call % (func, inspect.formatargvalues(args,
-                                                                     varargs, varkw,
-                                                                     locals, formatvalue=var_repr))
-                except KeyError:
-                    # This happens in situations like errors inside generator
-                    # expressions, where local variables are listed in the
-                    # line, but can't be extracted from the frame.  I'm not
-                    # 100% sure this isn't actually a bug in inspect itself,
-                    # but since there's no info for us to compute with, the
-                    # best we can do is report the failure and move on.  Here
-                    # we must *not* call any traceback construction again,
-                    # because that would mess up use of %debug later on.  So we
-                    # simply report the failure and move on.  The only
-                    # limitation will be that this frame won't have locals
-                    # listed in the call signature.  Quite subtle problem...
-                    # I can't think of a good way to validate this in a unit
-                    # test, but running a script consisting of:
-                    #  dict( (k,v.strip()) for (k,v) in range(10) )
-                    # will illustrate the error, if this exception catch is
-                    # disabled.
-                    call = tpl_call_fail % func
-
-            # Don't attempt to tokenize binary files.
-            if file.endswith(('.so', '.pyd', '.dll')):
-                frames.append('%s %s\n' % (link, call))
-                continue
-            elif file.endswith(('.pyc', '.pyo')):
-                # Look up the corresponding source file.
-                file = openpy.source_from_cache(file)
-
-            def linereader(file=file, lnum=[lnum], getline=ulinecache.getline):
-                line = getline(file, lnum[0])
-                lnum[0] += 1
-                return line
-
-            # Build the list of names on this line of code where the exception
-            # occurred.
-            try:
-                names = []
-                name_cont = False
-
-                for token_type, token, start, end, line in generate_tokens(linereader):
-                    # build composite names
-                    if token_type == tokenize.NAME and token not in keyword.kwlist:
-                        if name_cont:
-                            # Continuation of a dotted name
-                            try:
-                                names[-1].append(token)
-                            except IndexError:
-                                names.append([token])
-                            name_cont = False
-                        else:
-                            # Regular new names.  We append everything, the caller
-                            # will be responsible for pruning the list later.  It's
-                            # very tricky to try to prune as we go, b/c composite
-                            # names can fool us.  The pruning at the end is easy
-                            # to do (or the caller can print a list with repeated
-                            # names if so desired.
-                            names.append([token])
-                    elif token == '.':
-                        name_cont = True
-                    elif token_type == tokenize.NEWLINE:
+                    fullname = os.path.join(dirname, file)
+                    if os.path.isfile(fullname):
+                        file = os.path.abspath(fullname)
                         break
+                except Exception:
+                    # Just in case that sys.path contains very
+                    # strange entries...
+                    pass
 
-            except (IndexError, UnicodeDecodeError, SyntaxError):
-                # signals exit of tokenizer
-                # SyntaxError can occur if the file is not actually Python
-                #  - see gh-6300
-                pass
-            except tokenize.TokenError as msg:
-                _m = ("An unexpected error occurred while tokenizing input\n"
-                      "The following traceback may be corrupted or invalid\n"
-                      "The error message is: %s\n" % msg)
-                error(_m)
+        file = py3compat.cast_unicode(file, util_path.fs_encoding)
+        link = tpl_link % file
+        args, varargs, varkw, locals = fixed_getargvalues(frame)
 
-            # Join composite names (e.g. "dict.fromkeys")
-            names = ['.'.join(n) for n in names]
-            # prune names list of duplicates, but keep the right order
-            unique_names = uniq_stable(names)
+        if func == '?':
+            call = ''
+        else:
+            # Decide whether to include variable details or not
+            var_repr = self.include_vars and eqrepr or nullrepr
+            try:
+                call = tpl_call % (func, inspect.formatargvalues(args,
+                                                                 varargs, varkw,
+                                                                 locals, formatvalue=var_repr))
+            except KeyError:
+                # This happens in situations like errors inside generator
+                # expressions, where local variables are listed in the
+                # line, but can't be extracted from the frame.  I'm not
+                # 100% sure this isn't actually a bug in inspect itself,
+                # but since there's no info for us to compute with, the
+                # best we can do is report the failure and move on.  Here
+                # we must *not* call any traceback construction again,
+                # because that would mess up use of %debug later on.  So we
+                # simply report the failure and move on.  The only
+                # limitation will be that this frame won't have locals
+                # listed in the call signature.  Quite subtle problem...
+                # I can't think of a good way to validate this in a unit
+                # test, but running a script consisting of:
+                #  dict( (k,v.strip()) for (k,v) in range(10) )
+                # will illustrate the error, if this exception catch is
+                # disabled.
+                call = tpl_call_fail % func
 
-            # Start loop over vars
-            lvals = []
-            if self.include_vars:
-                for name_full in unique_names:
-                    name_base = name_full.split('.', 1)[0]
-                    if name_base in frame.f_code.co_varnames:
-                        if name_base in locals:
-                            try:
-                                value = repr(eval(name_full, locals))
-                            except:
-                                value = undefined
-                        else:
-                            value = undefined
-                        name = tpl_local_var % name_full
+        # Don't attempt to tokenize binary files.
+        if file.endswith(('.so', '.pyd', '.dll')):
+            return '%s %s\n' % (link, call)
+
+        elif file.endswith(('.pyc', '.pyo')):
+            # Look up the corresponding source file.
+            file = openpy.source_from_cache(file)
+
+        def linereader(file=file, lnum=[lnum], getline=ulinecache.getline):
+            line = getline(file, lnum[0])
+            lnum[0] += 1
+            return line
+
+        # Build the list of names on this line of code where the exception
+        # occurred.
+        try:
+            names = []
+            name_cont = False
+
+            for token_type, token, start, end, line in generate_tokens(linereader):
+                # build composite names
+                if token_type == tokenize.NAME and token not in keyword.kwlist:
+                    if name_cont:
+                        # Continuation of a dotted name
+                        try:
+                            names[-1].append(token)
+                        except IndexError:
+                            names.append([token])
+                        name_cont = False
                     else:
-                        if name_base in frame.f_globals:
-                            try:
-                                value = repr(eval(name_full, frame.f_globals))
-                            except:
-                                value = undefined
-                        else:
+                        # Regular new names.  We append everything, the caller
+                        # will be responsible for pruning the list later.  It's
+                        # very tricky to try to prune as we go, b/c composite
+                        # names can fool us.  The pruning at the end is easy
+                        # to do (or the caller can print a list with repeated
+                        # names if so desired.
+                        names.append([token])
+                elif token == '.':
+                    name_cont = True
+                elif token_type == tokenize.NEWLINE:
+                    break
+
+        except (IndexError, UnicodeDecodeError, SyntaxError):
+            # signals exit of tokenizer
+            # SyntaxError can occur if the file is not actually Python
+            #  - see gh-6300
+            pass
+        except tokenize.TokenError as msg:
+            _m = ("An unexpected error occurred while tokenizing input\n"
+                  "The following traceback may be corrupted or invalid\n"
+                  "The error message is: %s\n" % msg)
+            error(_m)
+
+        # Join composite names (e.g. "dict.fromkeys")
+        names = ['.'.join(n) for n in names]
+        # prune names list of duplicates, but keep the right order
+        unique_names = uniq_stable(names)
+
+        # Start loop over vars
+        lvals = []
+        if self.include_vars:
+            for name_full in unique_names:
+                name_base = name_full.split('.', 1)[0]
+                if name_base in frame.f_code.co_varnames:
+                    if name_base in locals:
+                        try:
+                            value = repr(eval(name_full, locals))
+                        except:
                             value = undefined
-                        name = tpl_global_var % name_full
-                    lvals.append(tpl_name_val % (name, value))
-            if lvals:
-                lvals = '%s%s' % (indent, em_normal.join(lvals))
-            else:
-                lvals = ''
+                    else:
+                        value = undefined
+                    name = tpl_local_var % name_full
+                else:
+                    if name_base in frame.f_globals:
+                        try:
+                            value = repr(eval(name_full, frame.f_globals))
+                        except:
+                            value = undefined
+                    else:
+                        value = undefined
+                    name = tpl_global_var % name_full
+                lvals.append(tpl_name_val % (name, value))
+        if lvals:
+            lvals = '%s%s' % (indent, em_normal.join(lvals))
+        else:
+            lvals = ''
 
-            level = '%s %s\n' % (link, call)
+        level = '%s %s\n' % (link, call)
 
-            if index is None:
-                frames.append(level)
-            else:
-                frames.append('%s%s' % (level, ''.join(
-                    _format_traceback_lines(lnum, index, lines, Colors, lvals,
-                                            col_scheme))))
-
-        return frames
+        if index is None:
+            return level
+        else:
+            return '%s%s' % (level, ''.join(
+                _format_traceback_lines(lnum, index, lines, Colors, lvals,
+                                        col_scheme)))
 
     def prepare_chained_exception_message(self, cause):
         direct_cause = "\nThe above exception was the direct cause of the following exception:\n"
@@ -1016,7 +1077,13 @@ class VerboseTB(TBTools):
         return exception
 
     def format_exception_as_a_whole(self, etype, evalue, etb, number_of_lines_of_context, tb_offset):
+        """Formats the header, traceback and exception message for a single exception.
+
+        This may be called multiple times by Python 3 exception chaining
+        (PEP 3134).
+        """
         # some locals
+        orig_etype = etype
         try:
             etype = etype.__name__
         except AttributeError:
@@ -1029,7 +1096,9 @@ class VerboseTB(TBTools):
         if records is None:
             return ""
 
-        frames = self.format_records(records)
+        last_unique, recursion_repeat = find_recursion(orig_etype, evalue, records)
+
+        frames = self.format_records(records, last_unique, recursion_repeat)
 
         formatted_exception = self.format_exception(etype, evalue)
         if records:
