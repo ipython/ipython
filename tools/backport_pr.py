@@ -2,20 +2,27 @@
 """
 Backport pull requests to a particular branch.
 
-Usage: backport_pr.py branch [PR] [PR2]
+Usage: backport_pr.py [org/repository] branch [PR] [PR2]
 
 e.g.:
 
     python tools/backport_pr.py 0.13.1 123 155
 
-to backport PR #123 onto branch 0.13.1
+to backport PRs #123 and #155 onto branch 0.13.1
 
 or
 
     python tools/backport_pr.py 2.1
 
 to see what PRs are marked for backport with milestone=2.1 that have yet to be applied
-to branch 2.x.
+to branch 2.x
+
+or
+
+    python tools/backport_pr.py jupyter/notebook 0.13.1 123 155
+
+to backport PRs #123 and #155 of the `jupyter/notebook` repo onto branch 0.13.1
+of that repo.
 
 """
 
@@ -153,24 +160,30 @@ def should_backport(labels=None, milestone=None, project='ipython/ipython'):
     return should_backport
 
 if __name__ == '__main__':
+    project = 'ipython/ipython'
+    args = list(sys.argv)
+    if len(args) >= 2:
+        if '/' in args[1]:
+            project = args[1]
+            del args[1]
 
-    if len(sys.argv) < 2:
+    if len(args) < 2:
         print(__doc__)
         sys.exit(1)
 
-    if len(sys.argv) < 3:
-        milestone = sys.argv[1]
+    if len(args) < 3:
+        milestone = args[1]
         branch = milestone.split('.')[0] + '.x'
         already = already_backported(branch)
-        should = should_backport(milestone=milestone)
+        should = should_backport(milestone=milestone, project=project)
         print ("The following PRs should be backported:")
         for pr in sorted(should.difference(already)):
             print (pr)
         sys.exit(0)
-
-    for prno in map(int, sys.argv[2:]):
+    
+    for prno in map(int, args[2:]):
         print("Backporting PR #%i" % prno)
-        rc = backport_pr(sys.argv[1], prno)
+        rc = backport_pr(args[1], prno, project=project)
         if rc:
             print("Backporting PR #%i failed" % prno)
             sys.exit(rc)
