@@ -117,22 +117,22 @@ def already_backported(branch, since_tag=None):
     lines = check_output(cmd).decode('utf8')
     return set(int(num) for num in backport_re.findall(lines))
 
-def should_backport(labels=None, milestone=None):
+def should_backport(labels=None, milestone=None, project='ipython/ipython'):
     """return set of PRs marked for backport"""
     if labels is None and milestone is None:
         raise ValueError("Specify one of labels or milestone.")
     elif labels is not None and milestone is not None:
         raise ValueError("Specify only one of labels or milestone.")
     if labels is not None:
-        issues = get_issues_list("ipython/ipython",
+        issues = get_issues_list(project,
                 labels=labels,
                 state='closed',
                 auth=True,
         )
     else:
-        milestone_id = get_milestone_id("ipython/ipython", milestone,
+        milestone_id = get_milestone_id(project, milestone,
                 auth=True)
-        issues = get_issues_list("ipython/ipython",
+        issues = get_issues_list(project,
                 milestone=milestone_id,
                 state='closed',
                 auth=True,
@@ -142,7 +142,7 @@ def should_backport(labels=None, milestone=None):
     for issue in issues:
         if not is_pull_request(issue):
             continue
-        pr = get_pull_request("ipython/ipython", issue['number'],
+        pr = get_pull_request(project, issue['number'],
                 auth=True)
         if not pr['merged']:
             print ("Marked PR closed without merge: %i" % pr['number'])
