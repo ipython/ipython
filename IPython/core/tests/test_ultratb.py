@@ -8,7 +8,12 @@ from textwrap import dedent
 import traceback
 import unittest
 
-from ..ultratb import ColorTB, VerboseTB
+try:
+    from unittest import mock
+except ImportError:
+    import mock    # Python 2
+
+from ..ultratb import ColorTB, VerboseTB, find_recursion
 
 
 from IPython.testing import tools as tt
@@ -224,6 +229,70 @@ except Exception:
             with tt.AssertNotPrints("ZeroDivisionError"), \
                     tt.AssertPrints("ValueError", suppress=False):
                 ip.run_cell(self.SUPPRESS_CHAINING_CODE)
+
+
+class RecursionTest(unittest.TestCase):
+    DEFINITIONS = """
+def non_recurs():
+    1/0
+
+def r1():
+    r1()
+
+def r3a():
+    r3b()
+
+def r3b():
+    r3c()
+
+def r3c():
+    r3a()
+
+def r3o1():
+    r3a()
+
+def r3o2():
+    r3o1()
+"""
+    def setUp(self):
+        ip.run_cell(self.DEFINITIONS)
+
+    def test_no_recursion(self):
+        with tt.AssertNotPrints("frames repeated"):
+            ip.run_cell("non_recurs()")
+
+    def test_recursion_one_frame(self):
+        with tt.AssertPrints("1 frames repeated"):
+            ip.run_cell("r1()")
+
+    def test_recursion_three_frames(self):
+        with tt.AssertPrints("3 frames repeated"):
+            ip.run_cell("r3o2()")
+
+    def test_find_recursion(self):
+        captured = []
+        def capture_exc(*args, **kwargs):
+            captured.append(sys.exc_info())
+        with mock.patch.object(ip, 'showtraceback', capture_exc):
+            ip.run_cell("r3o2()")
+
+        self.assertEqual(len(captured), 1)
+        etype, evalue, tb = captured[0]
+        self.assertIn("recursion", str(evalue))
+
+        records = ip.InteractiveTB.get_records(tb, 3, ip.InteractiveTB.tb_offset)
+        for r in records[:10]:
+            print(r[1:4])
+
+        # The outermost frames should be:
+        # 0: the 'cell' that was running when the exception came up
+        # 1: r3o2()
+        # 2: r3o1()
+        # 3: r3a()
+        # Then repeating r3b, r3c, r3a
+        last_unique, repeat_length = find_recursion(etype, evalue, records)
+        self.assertEqual(last_unique, 2)
+        self.assertEqual(repeat_length, 3)
 
 
 #----------------------------------------------------------------------------
