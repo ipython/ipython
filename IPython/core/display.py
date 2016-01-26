@@ -185,6 +185,9 @@ def display_pretty(*objs, **kwargs):
 
 def display_html(*objs, **kwargs):
     """Display the HTML representation of an object.
+    
+    Note: If raw=False and the object does not have a HTML
+    representation, no HTML will be shown.
 
     Parameters
     ----------
