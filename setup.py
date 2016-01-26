@@ -42,7 +42,6 @@ PY3 = (sys.version_info[0] >= 3)
 
 # Stdlib imports
 import os
-import shutil
 
 from glob import glob
 
@@ -290,6 +289,8 @@ else:
 #---------------------------------------------------------------------------
 
 setup_args.update(setuptools_extra_args)
+
+
 
 def main():
     setup(**setup_args)
