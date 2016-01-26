@@ -21,6 +21,7 @@ from IPython.terminal.ipapp import load_default_config
 from traitlets import Bool, CBool, Unicode
 from IPython.utils.io import ask_yes_no
 
+class KillEmbeded(Exception):pass
 
 # This is an additional magic that is exposed in embedded shells.
 @magics_class
@@ -46,12 +47,27 @@ class EmbeddedMagics(Magics):
                    "once you exit.")
 
 
+    @line_magic
+    def exit_raise(self, parameter_s=''):
+        """%exit_raise Make the current embedded kernel exit and raise and exception.
+
+        This function sets an internal flag so that an embedded IPython will
+        raise a `IPython.terminal.embed.KillEmbeded` Exception on exit, and then exit the current I. This is
+        useful to permanently exit a loop that create IPython embed instance.
+        """
+
+        self.shell.should_raise = True
+        self.shell.ask_exit()
+
+
+
 class InteractiveShellEmbed(TerminalInteractiveShell):
 
     dummy_mode = Bool(False)
     exit_msg = Unicode('')
     embedded = CBool(True)
     embedded_active = CBool(True)
+    should_raise = CBool(False)
     # Like the base class display_banner is not configurable, but here it
     # is True by default.
     display_banner = CBool(True)
@@ -129,6 +145,10 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
 
         if self.exit_msg is not None:
             print(self.exit_msg)
+
+        if self.should_raise:
+            raise KillEmbeded('Embedded IPython raising error, as user requested.')
+
 
     def mainloop(self, local_ns=None, module=None, stack_depth=0,
                  display_banner=None, global_ns=None, compile_flags=None):
