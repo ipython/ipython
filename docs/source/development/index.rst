@@ -59,8 +59,8 @@ releases.
 
 .. code::
 
-    $ python setup.py sdist --formats=zip,gztar
-    $ python setup.py bdist_wheel
+    python setup.py sdist --formats=zip,gztar
+    python setup.py bdist_wheel --universal
 
 
 4. You can now test the ``wheel`` and the ``sdist`` locally before uploading to PyPI.
