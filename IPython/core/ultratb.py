@@ -834,7 +834,7 @@ class VerboseTB(TBTools):
             frames.append(self.format_record(*r))
 
         if recursion_repeat:
-            frames.append('Last %d frames repeated, from:\n' % recursion_repeat)
+            frames.append('... last %d frames repeated, from the frame below ...\n' % recursion_repeat)
             frames.append(self.format_record(*records[last_unique+recursion_repeat+1]))
 
         return frames
