@@ -51,10 +51,9 @@ class EmbeddedMagics(Magics):
     def exit_raise(self, parameter_s=''):
         """%exit_raise Make the current embedded kernel exit and raise and exception.
 
-        This function (after asking for confirmation) sets an internal flag so
-        that an embedded IPython will raise a `KillEmbeded` Exception on exit.
-        This is useful to permanently exit a loop that create IPython embed
-        instance.
+        This function sets an internal flag so that an embedded IPython will
+        raise a `IPython.terminal.embed.KillEmbeded` Exception on exit, and then exit the current I. This is
+        useful to permanently exit a loop that create IPython embed instance.
         """
 
         self.shell.should_raise = True
@@ -148,7 +147,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
             print(self.exit_msg)
 
         if self.should_raise:
-            raise KillEmbeded('This instance has been marked as must raise on exit.')
+            raise KillEmbeded('Embedded IPython raising error, as user requested.')
 
 
     def mainloop(self, local_ns=None, module=None, stack_depth=0,
