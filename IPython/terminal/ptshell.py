@@ -89,11 +89,13 @@ class PTInteractiveShell(InteractiveShell):
                                    ))
         def _(event):
             b = event.current_buffer
-            if not b.document.on_last_line:
+            d = b.document
+            if not (d.on_last_line or d.cursor_position_row >= d.line_count
+                                           - d.empty_line_count_at_the_end()):
                 b.newline()
                 return
 
-            status, indent = self.input_splitter.check_complete(b.document.text)
+            status, indent = self.input_splitter.check_complete(d.text)
 
             if (status != 'incomplete') and b.accept_action.is_returnable:
                 b.accept_action.validate_and_handle(event.cli, b)
