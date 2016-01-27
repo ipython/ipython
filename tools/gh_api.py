@@ -17,7 +17,7 @@ import json
 try:
     import requests_cache
 except ImportError:
-    print("no cache", file=sys.stderr)
+    print("cache not available, install `requests_cache` for caching.", file=sys.stderr)
 else:
     requests_cache.install_cache("gh_api", expire_after=3600)
 
