@@ -731,7 +731,7 @@ class Image(DisplayObject):
                 if data[:2] == _JPEG:
                     format = self._FMT_JPEG
 
-        if format.lower() == 'jpg':
+        if format and format.lower() == 'jpg':
             # jpg->jpeg
             format = self._FMT_JPEG
 
