@@ -4,7 +4,7 @@ from __future__ import print_function
 import sys
 
 from IPython.core.interactiveshell import InteractiveShell
-from IPython.utils.py3compat import PY3
+from IPython.utils.py3compat import PY3, cast_unicode_py2
 from traitlets import Bool, Unicode, Dict
 
 from prompt_toolkit.completion import Completer, Completion
@@ -177,7 +177,7 @@ class PTInteractiveShell(InteractiveShell):
 
     def pre_prompt(self):
         if self.rl_next_input:
-            self.pt_cli.application.buffer.text = self.rl_next_input
+            self.pt_cli.application.buffer.text = cast_unicode_py2(self.rl_next_input)
             self.rl_next_input = None
 
     def interact(self):
