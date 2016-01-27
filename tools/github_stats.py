@@ -212,8 +212,7 @@ if __name__ == "__main__":
 
     print("We closed %d issues and merged %d pull requests." % (n_issues, n_pulls))
     if milestone:
-        print("The full list can be seen `on GitHub <https://github.com/%s/milestone/%s>`__"
-            % (project, milestone)
+        print("The full list can be seen `on GitHub <https://github.com/{project}/issues?q=milestone%3A{milestone}+>`__".format(project=project,milestone=milestone)
         )
     
     print()
