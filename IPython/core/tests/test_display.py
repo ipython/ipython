@@ -13,6 +13,10 @@ from IPython import paths as ipath
 
 import IPython.testing.decorators as dec
 
+def test_image_no_format():
+    i = display.Image(u"data")
+    nt.assert_equal(i.format,  u"png")
+
 def test_image_size():
     """Simple test for display.Image(args, width=x,height=y)"""
     thisurl = 'http://www.google.fr/images/srpr/logo3w.png'
