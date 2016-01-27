@@ -35,7 +35,7 @@ You can remove all non-tracked files with:
 
 .. code::
 
-    $ git clean -xfdi
+    git clean -xfdi
 
 This would ask you for confirmation before removing all untracked files. Make
 sure the ``dist/`` folder is clean and avoid stale build from
@@ -60,7 +60,8 @@ releases.
 .. code::
 
     python setup.py sdist --formats=zip,gztar
-    python setup.py bdist_wheel --universal
+    python2 setup.py bdist_wheel
+    python3 setup.py bdist_wheel
 
 
 4. You can now test the ``wheel`` and the ``sdist`` locally before uploading to PyPI.
