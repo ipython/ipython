@@ -1,7 +1,7 @@
 .. old_release_doc::
 
-Making an IPython release [TODO:: Can this be replaced by the Release Process document???]
-==========================================================================================
+Making an IPython release [TODO:: Can this content by removed ???]
+==================================================================
 
 Make sure the repository is clean of any file that could be problematic.
 You can remove all non-tracked files with:
