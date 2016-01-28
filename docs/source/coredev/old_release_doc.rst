@@ -1,28 +1,7 @@
-.. _developer_guide:
+.. old_release_doc::
 
-=====================================================
-Developer's guide for Third Party Tools and Libraries
-=====================================================
-
-.. important:
-
-    This guide contains information for developers of third party tools and
-    libraries that use IPython. Documentation for developers of co
-    *IPython itself* can be found in the :doc:`coredev/index`.
-
-.. toctree::
-   :maxdepth: 1
-
-   how_ipython_works
-   wrapperkernels
-   execution
-   lexer
-   pycompat
-   config
-   inputhook_app
-
-Making an IPython release
-=========================
+Making an IPython release [TODO:: Can this be replaced by the Release Process document???]
+==========================================================================================
 
 Make sure the repository is clean of any file that could be problematic.
 You can remove all non-tracked files with:
