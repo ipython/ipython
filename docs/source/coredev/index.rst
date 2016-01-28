@@ -1,25 +1,21 @@
-.. _developer_guide:
+.. _core_developer_guide:
 
-=====================================================
-Developer's guide for Third Party Tools and Libraries
-=====================================================
+==================================
+Developer's guide for core IPython
+==================================
 
-.. important:
-    
-    This guide contains information for developers of third party tools and
-    libraries that use IPython. Documentation for developers of core 
-    *IPython itself* can be found in the :doc:`coredev/index`.
+This guide documents the development of core *IPython itself*. Developers of
+third party tools and libraries that use IPython should see the 
+:doc:`development/index` at `Developer's guide for Third Party Tools and Libraries`.
+
+Developers working on IPython itself should also consult the
+`developer information <https://github.com/ipython/ipython/wiki/Dev:-Index>`_ 
+on the IPython GitHub wiki.
 
 .. toctree::
    :maxdepth: 1
 
-   how_ipython_works
-   wrapperkernels
-   execution
-   lexer
-   pycompat
-   config
-   inputhook_app
+   release_process
 
 Making an IPython release
 =========================
