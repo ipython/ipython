@@ -4,7 +4,6 @@ from __future__ import print_function
 
 # Library imports
 import os
-import sys
 
 # Useful shorthands
 pjoin = os.path.join
