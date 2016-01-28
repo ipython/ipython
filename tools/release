@@ -50,10 +50,8 @@ if 'upload' not in sys.argv:
     print("`./release upload` to register and release")
     sys.exit(0)
 
-# Register with the Python Package Index (PyPI)
-print( 'Not Registering with PyPI, registering with setup.py is insecure as communication is not encrypted')
+# Not Registering with PyPI, registering with setup.py is insecure as communication is not encrypted
 cd(ipdir)
-# sh('./setup.py register')
 
 # Upload all files
 sh(sdists)
