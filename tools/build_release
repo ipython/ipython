@@ -15,7 +15,7 @@ cd(ipdir)
 execfile(pjoin('IPython', 'core', 'release.py'), globals())
 
 # Check that everything compiles
-compile_tree()
+compile_tree('*')
 
 # Cleanup
 for d in ['build', 'dist', pjoin('docs', 'build'), pjoin('docs', 'dist'),

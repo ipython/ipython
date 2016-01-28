@@ -8,7 +8,7 @@ from __future__ import print_function
 import os
 import sys
 
-from toollib import (get_ipdir, pjoin, cd, execfile, version, sh, archive,
+from toollib import (get_ipdir, pjoin, cd, execfile, sh, archive,
         sdists, archive_user, archive_dir)
 from gh_api import post_download
 
@@ -26,6 +26,7 @@ if not os.path.exists(ipbackupdir):
 cd(ipdir)
 
 # Load release info
+version = None
 execfile(pjoin('IPython','core','release.py'), globals())
 
 # Build site addresses for file uploads
@@ -50,17 +51,18 @@ sh('mv ipython-*.tgz %s' % ipbackupdir)
 # Build release files
 sh('./build_release %s' % ipdir)
 
-if 'upload' not in sys.argv:
-    print("`./release upload` to register and release")
-    sys.exit(0)
-
 # Not Registering with PyPI, registering with setup.py is insecure as communication is not encrypted
 cd(ipdir)
 
 # Upload all files
 sh(sdists)
-for py in ('2.7', '3.4'):
+for py in ('2', '3'):
     sh('python%s setupegg.py bdist_wheel' % py)
+
+if 'upload' not in sys.argv:
+    print("`./release upload` to register and release")
+    sys.exit(0)
+
 
 print('Will not upload with setuptools as upload connection is insecure. Please use `twine upload dist/*` to upload the files to PyPI')
 
