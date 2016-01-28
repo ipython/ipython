@@ -5,7 +5,7 @@
 import os
 from shutil import rmtree
 
-from toollib import *
+from toollib import sh, pjoin, get_ipdir, cd, compile_tree, execfile, sdists, wheels
 
 # Get main ipython dir, this will raise if it doesn't pass some checks
 ipdir = get_ipdir()

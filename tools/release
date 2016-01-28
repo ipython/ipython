@@ -5,7 +5,11 @@ This should ONLY be run at real release time.
 """
 from __future__ import print_function
 
-from toollib import *
+import os
+import sys
+
+from toollib import (get_ipdir, pjoin, cd, execfile, version, sh, archive,
+        sdists, archive_user, archive_dir)
 from gh_api import post_download
 
 # Get main ipython dir, this will raise if it doesn't pass some checks
