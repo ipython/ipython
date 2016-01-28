@@ -80,7 +80,6 @@ setup_args = dict(
       author           = author,
       author_email     = author_email,
       url              = url,
-      download_url     = download_url,
       license          = license,
       platforms        = platforms,
       keywords         = keywords,
