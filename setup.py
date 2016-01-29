@@ -172,9 +172,6 @@ needs_setuptools = set(('develop', 'release', 'bdist_egg', 'bdist_rpm',
 
 if len(needs_setuptools.intersection(sys.argv)) > 0:
     import setuptools
-    v = tuple(int(x) for x in setuptools.__version__.split('.'))
-    if v < (18,5):
-        raise ValueError('Setuptools version >=18.5 is required, found: %s'%setuptools.__version__)
 
 # This dict is used for passing extra arguments that are setuptools
 # specific to setup
