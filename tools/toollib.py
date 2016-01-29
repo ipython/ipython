@@ -48,9 +48,9 @@ def get_ipdir():
     return ipdir
 
 
-def compile_tree():
+def compile_tree(folder='.'):
     """Compile all Python files below current directory."""
-    stat = os.system('python -m compileall .')
+    stat = os.system('python -m compileall {}'.format(folder))
     if stat:
         msg = '*** ERROR: Some Python files in tree do NOT compile! ***\n'
         msg += 'See messages above for the actual file that produced it.\n'

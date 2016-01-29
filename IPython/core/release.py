@@ -105,12 +105,10 @@ author_email = 'ipython-dev@scipy.org'
 
 url = 'http://ipython.org'
 
-download_url = 'https://github.com/ipython/ipython/downloads'
 
-platforms = ['Linux','Mac OSX','Windows XP/Vista/7/8']
+platforms = ['Linux','Mac OSX','Windows']
 
-keywords = ['Interactive','Interpreter','Shell','Parallel','Distributed',
-            'Web-based computing', 'Qt console', 'Embedding']
+keywords = ['Interactive','Interpreter','Shell', 'Embedding']
 
 classifiers = [
     'Framework :: IPython',
