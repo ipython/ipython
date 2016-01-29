@@ -16,4 +16,4 @@ on the IPython GitHub wiki.
    :maxdepth: 1
 
    release_process
-   old_release_doc
+   making_release

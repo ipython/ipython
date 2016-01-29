@@ -1,8 +1,8 @@
 .. _release_process:
 
-======================
-Releasing core IPython
-======================
+=======================
+IPython release process
+=======================
 
 This document contains the process that is used to create an IPython release.
 
