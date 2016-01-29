@@ -6,7 +6,7 @@ whatsnew/development.rst (chronologically ordered), and deletes the snippets.
 """
 
 import io
-import os
+import sys
 from glob import glob
 from os.path import dirname, basename, abspath, join as pjoin
 from subprocess import check_call, check_output
@@ -27,6 +27,10 @@ files.difference_update({pjoin(pr_dir, f) for f in {
                          'incompat-switching-to-perl.rst',
                          'antigravity-feature.rst'}
                          })
+
+if not files:
+    print("No automatic update available for what's new")
+    sys.exit(0)
 
 
 def getmtime(f):
