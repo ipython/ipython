@@ -9,7 +9,7 @@ import os
 import sys
 
 from toollib import (get_ipdir, pjoin, cd, execfile, sh, archive,
-        sdists, archive_user, archive_dir)
+        sdists, archive_user, archive_dir, buildwheels)
 from gh_api import post_download
 
 # Get main ipython dir, this will raise if it doesn't pass some checks
@@ -56,8 +56,8 @@ cd(ipdir)
 
 # Upload all files
 sh(sdists)
-for py in ('2', '3'):
-    sh('python%s setupegg.py bdist_wheel' % py)
+
+buildwheels()
 
 if 'upload' not in sys.argv:
     print("`./release upload` to register and release")

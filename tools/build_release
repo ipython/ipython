@@ -1,28 +1,32 @@
 #!/usr/bin/env python
 """IPython release build script.
 """
-
 import os
 from shutil import rmtree
 
-from toollib import sh, pjoin, get_ipdir, cd, compile_tree, execfile, sdists, wheels
+from toollib import sh, pjoin, get_ipdir, cd, compile_tree, execfile, sdists, buildwheels
 
-# Get main ipython dir, this will raise if it doesn't pass some checks
-ipdir = get_ipdir()
-cd(ipdir)
+def build_release():
 
-# Load release info
-execfile(pjoin('IPython', 'core', 'release.py'), globals())
+    # Get main ipython dir, this will raise if it doesn't pass some checks
+    ipdir = get_ipdir()
+    cd(ipdir)
 
-# Check that everything compiles
-compile_tree('*')
+    # Load release info
+    execfile(pjoin('IPython', 'core', 'release.py'), globals())
 
-# Cleanup
-for d in ['build', 'dist', pjoin('docs', 'build'), pjoin('docs', 'dist'),
-          pjoin('docs', 'source', 'api', 'generated')]:
-    if os.path.isdir(d):
-        rmtree(d)
+    # Check that everything compiles
+    compile_tree('*')
 
-# Build source and binary distros
-sh(sdists)
-sh(wheels)
+    # Cleanup
+    for d in ['build', 'dist', pjoin('docs', 'build'), pjoin('docs', 'dist'),
+              pjoin('docs', 'source', 'api', 'generated')]:
+        if os.path.isdir(d):
+            rmtree(d)
+
+    # Build source and binary distros
+    sh(sdists)
+    buildwheels()
+
+if __name__ == '__main__':
+    build_release()
