@@ -193,7 +193,7 @@ extras_require = dict(
     nbconvert = ['nbconvert'],
 )
 install_requires = [
-    'setuptools>=18.5'
+    'setuptools>=18.5',
     'decorator',
     'pickleshare',
     'simplegeneric>0.8',
