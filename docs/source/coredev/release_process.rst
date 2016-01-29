@@ -62,8 +62,23 @@ To find duplicates and update `.mailmap`, use::
 
     git log --format="%aN <%aE>" $PREV_RELEASE... | sort -u -f
 
+3. Make sure the repository is clean
+------------------------------------
 
-3. Run the `tools/build_release` script
+of any file that could be problematic.
+   Remove all non-tracked files with:
+
+   .. code::
+
+       git clean -xfdi
+
+   This will ask for confirmation before removing all untracked files. Make
+   sure the ``dist/`` folder is clean to avoid any stale builds from
+   previous build attempts.
+
+
+
+4. Run the `tools/build_release` script
 ---------------------------------------
 
 Running `tools/build_release` does all the file checking and building that
@@ -72,10 +87,20 @@ the build procedure runs OK, and tests other steps in the release process.
 
 We encourage creating a test build of the docs as well.
 
-4. Create and push the new tag
+5. Create and push the new tag
 ------------------------------
 
 Edit `IPython/core/release.py` to have the current version.
+
+in particular, update version number and ``_version_extra`` content in
+``IPython/core/release.py``.
+
+Make sure the version number matches pep440, in particular, `rc` and `beta` are
+not separated by `.` or the `sdist` and `bdist` will appear as different
+releases. For example, a valid version number for a release candidate (rc)
+release is: ``1.3rc1``. Notice that there is no separator between the '3' and
+the 'r'.
+
 
 Commit the changes to release.py and jsversion::
 
@@ -92,7 +117,7 @@ Update release.py back to `x.y-dev` or `x.y-maint`, and push::
     git commit -am "back to development"
     git push origin $BRANCH
 
-5. Get a fresh clone
+6. Get a fresh clone
 --------------------
 
 Get a fresh clone of the tag for building the release::
@@ -100,19 +125,30 @@ Get a fresh clone of the tag for building the release::
     cd /tmp
     git clone --depth 1 https://github.com/ipython/ipython.git -b "$TAG"
 
-6. Run the release script
+7. Run the release script
 -------------------------
 
-Run the `release` script::
+Run the `release` script, this step requires having a current wheel, Python >=3.4 and Python 2.7.::
 
     cd tools && ./release
 
-This makes the tarballs, zipfiles, and wheels.  It posts
-them to archive.ipython.org and registers the release with PyPI.
+This makes the tarballs, zipfiles, and wheels, and put them under the `dist/`
+folder. Be sure to test the ``wheel`` and the ``sdist`` locally before uploading
+them to PyPI. 
 
-This step requires having a current wheel, Python 3.4 and Python 2.7.
+Use the following to actually upload the result of the build:
 
-7. Draft a short release announcement
+    ./release upload
+
+It should posts them to ``archive.ipython.org`` and registers the release
+with PyPI if you have the various authorisations. 
+
+You might need to use `twine <https://github.com/pypa/twine>`_ (`twine upload
+dist/*`) manually to actually upload on PyPI. Unlike setuptools, twine is able
+to upload packages over SSL.
+
+
+8. Draft a short release announcement
 -------------------------------------
 
 The announcement should include:
@@ -121,9 +157,9 @@ The announcement should include:
 - a link to the html version of the *What's new* section of the documentation
 - a link to upgrade or installation tips (if necessary)
 
-Post the announcement to the mailing list, and link from Twitter.
+Post the announcement to the mailing list and or blog, and link from Twitter.
 
-8. Update milestones on GitHub
+9. Update milestones on GitHub
 ------------------------------
 
 These steps will bring milestones up to date:
@@ -132,8 +168,8 @@ These steps will bring milestones up to date:
 - open a new milestone for the next release (x, y+1), if the milestone doesn't
   exist already
 
-9. Update the IPython website
------------------------------
+10. Update the IPython website
+------------------------------
 
 The IPython website should document the new release:
 
@@ -141,7 +177,7 @@ The IPython website should document the new release:
 - update current version and download links
 - update links on the documentation page (especially if a major release)
 
-10. Celebrate!
+11. Celebrate!
 --------------
 
 Celebrate the release and please thank the contributors for their work. Great
