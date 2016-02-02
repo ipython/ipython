@@ -104,11 +104,14 @@ def latex_to_png_mpl(s, wrap):
     s = s.replace('$$', '$')
     if wrap:
         s = u'${0}$'.format(s)
-    
-    mt = mathtext.MathTextParser('bitmap')
-    f = BytesIO()
-    mt.to_png(f, s, fontsize=12)
-    return f.getvalue()
+
+    try:
+        mt = mathtext.MathTextParser('bitmap')
+        f = BytesIO()
+        mt.to_png(f, s, fontsize=12)
+        return f.getvalue()
+    except:
+        return None
 
 
 def latex_to_png_dvipng(s, wrap):
@@ -138,6 +141,8 @@ def latex_to_png_dvipng(s, wrap):
 
         with open(outfile, "rb") as f:
             return f.read()
+    except:
+        return None
     finally:
         shutil.rmtree(workdir)
 
