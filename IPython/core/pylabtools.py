@@ -173,6 +173,16 @@ def mpl_runner(safe_execfile):
     return mpl_execfile
 
 
+def _reshow_nbagg_figure(fig):
+    """reshow an nbagg figure"""
+    try:
+        reshow = fig.canvas.manager.reshow
+    except AttributeError:
+        raise NotImplementedError()
+    else:
+        reshow()
+
+
 def select_figure_formats(shell, formats, **kwargs):
     """Select figure formats for the inline backend.
 
@@ -185,6 +195,7 @@ def select_figure_formats(shell, formats, **kwargs):
     **kwargs : any
         Extra keyword arguments to be passed to fig.canvas.print_figure.
     """
+    import matplotlib
     from matplotlib.figure import Figure
     from ipykernel.pylab import backend_inline
 
@@ -199,7 +210,11 @@ def select_figure_formats(shell, formats, **kwargs):
     formats = set(formats)
 
     [ f.pop(Figure, None) for f in shell.display_formatter.formatters.values() ]
-    
+
+    if matplotlib.backends.backend.lower() == 'nbagg':
+        formatter = shell.display_formatter.ipython_display_formatter
+        formatter.for_type(Figure, _reshow_nbagg_figure)
+
     supported = {'png', 'png2x', 'retina', 'jpg', 'jpeg', 'svg', 'pdf'}
     bad = formats.difference(supported)
     if bad:

@@ -97,9 +97,9 @@ class OSMagics(Magics):
           In [9]: show $$PATH
           /usr/local/lf9560/bin:/usr/local/intel/compiler70/ia32/bin:...
 
-        You can use the alias facility to acess all of $PATH.  See the %rehash
-        and %rehashx functions, which automatically create aliases for the
-        contents of your $PATH.
+        You can use the alias facility to acess all of $PATH.  See the %rehashx
+        function, which automatically creates aliases for the contents of your
+        $PATH.
 
         If called with no parameters, %alias prints the current alias table."""
 
@@ -148,8 +148,8 @@ class OSMagics(Magics):
     def rehashx(self, parameter_s=''):
         """Update the alias table with all executable files in $PATH.
 
-        This version explicitly checks that every entry in $PATH is a file
-        with execute access (os.X_OK), so it is much slower than %rehash.
+        rehashx explicitly checks that every entry in $PATH is a file
+        with execute access (os.X_OK).
 
         Under Windows, it checks executability as a match against a
         '|'-separated string of extensions, stored in the IPython config

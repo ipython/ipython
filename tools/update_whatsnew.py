@@ -6,7 +6,8 @@ whatsnew/development.rst (chronologically ordered), and deletes the snippets.
 """
 
 import io
-import os
+import sys
+from glob import glob
 from os.path import dirname, basename, abspath, join as pjoin
 from subprocess import check_call, check_output
 
@@ -20,15 +21,17 @@ INCOMPAT_MARK = ".. DO NOT EDIT THIS LINE BEFORE RELEASE. INCOMPAT INSERTION POI
 
 # 1. Collect the whatsnew snippet files ---------------------------------------
 
-files = set(os.listdir(pr_dir))
+files = set(glob(pjoin(pr_dir, '*.rst')))
 # Ignore explanatory and example files
-files.difference_update({'README.md',
+files.difference_update({pjoin(pr_dir, f) for f in {
                          'incompat-switching-to-perl.rst',
                          'antigravity-feature.rst'}
-                        )
+                         })
 
-# Absolute paths
-files = {pjoin(pr_dir, f) for f in files}
+if not files:
+    print("No automatic update available for what's new")
+    sys.exit(0)
+
 
 def getmtime(f):
     return check_output(['git', 'log', '-1', '--format="%ai"', '--', f])
@@ -38,7 +41,11 @@ files = sorted(files, key=getmtime)
 features, incompats = [], []
 for path in files:
     with io.open(path, encoding='utf-8') as f:
-        content = f.read().rstrip()
+        try:
+            content = f.read().rstrip()
+        except Exception as e:
+            raise Exception('Error reading "{}"'.format(f)) from e
+
     if basename(path).startswith('incompat-'):
         incompats.append(content)
     else:

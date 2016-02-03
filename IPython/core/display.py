@@ -12,7 +12,6 @@ import os
 import struct
 import warnings
 
-from IPython.core.formatters import _safe_get_formatter_method
 from IPython.utils.py3compat import (string_types, cast_bytes_py2, cast_unicode,
                                      unicode_type)
 from IPython.testing.skipdoctest import skip_doctest
@@ -185,6 +184,9 @@ def display_pretty(*objs, **kwargs):
 
 def display_html(*objs, **kwargs):
     """Display the HTML representation of an object.
+    
+    Note: If raw=False and the object does not have a HTML
+    representation, no HTML will be shown.
 
     Parameters
     ----------
@@ -728,13 +730,13 @@ class Image(DisplayObject):
                 if data[:2] == _JPEG:
                     format = self._FMT_JPEG
 
-        if format.lower() == 'jpg':
-            # jpg->jpeg
-            format = self._FMT_JPEG
-
         # failed to detect format, default png
         if format is None:
             format = 'png'
+
+        if format.lower() == 'jpg':
+            # jpg->jpeg
+            format = self._FMT_JPEG
 
         self.format = unicode_type(format).lower()
         self.embed = embed if embed is not None else (url is None)

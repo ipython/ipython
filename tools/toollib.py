@@ -4,7 +4,6 @@ from __future__ import print_function
 
 # Library imports
 import os
-import sys
 
 # Useful shorthands
 pjoin = os.path.join
@@ -21,7 +20,9 @@ archive = '%s:%s' % (archive_user, archive_dir)
 # Source dists
 sdists = './setup.py sdist --formats=gztar,zip'
 # Binary dists
-wheels = './setupegg.py bdist_wheel'
+def buildwheels():
+    for py in ('2', '3'):
+        sh('python%s setupegg.py bdist_wheel' % py)
 
 # Utility functions
 def sh(cmd):
@@ -49,9 +50,9 @@ def get_ipdir():
     return ipdir
 
 
-def compile_tree():
+def compile_tree(folder='.'):
     """Compile all Python files below current directory."""
-    stat = os.system('python -m compileall .')
+    stat = os.system('python -m compileall {}'.format(folder))
     if stat:
         msg = '*** ERROR: Some Python files in tree do NOT compile! ***\n'
         msg += 'See messages above for the actual file that produced it.\n'

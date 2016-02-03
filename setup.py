@@ -42,7 +42,6 @@ PY3 = (sys.version_info[0] >= 3)
 
 # Stdlib imports
 import os
-import shutil
 
 from glob import glob
 
@@ -183,7 +182,7 @@ extras_require = dict(
     parallel = ['ipyparallel'],
     qtconsole = ['qtconsole'],
     doc = ['Sphinx>=1.3'],
-    test = ['nose>=0.10.1', 'requests', 'testpath'],
+    test = ['nose>=0.10.1', 'requests', 'testpath', 'pygments'],
     terminal = [],
     kernel = ['ipykernel'],
     nbformat = ['nbformat'],
@@ -191,6 +190,7 @@ extras_require = dict(
     nbconvert = ['nbconvert'],
 )
 install_requires = [
+    'setuptools>=18.5',
     'decorator',
     'pickleshare',
     'simplegeneric>0.8',
@@ -286,6 +286,8 @@ else:
 #---------------------------------------------------------------------------
 
 setup_args.update(setuptools_extra_args)
+
+
 
 def main():
     setup(**setup_args)

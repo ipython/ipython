@@ -273,7 +273,7 @@ class PrettyPrinter(_PrettyPrinterBase):
                 self.text(',')
                 self.breakable()
                 self.text('...')
-                raise StopIteration
+                return
             yield idx, x
     
     def end_group(self, dedent=0, close=''):

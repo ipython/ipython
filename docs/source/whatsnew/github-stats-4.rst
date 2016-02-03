@@ -3,6 +3,73 @@
 Issues closed in the 4.x development cycle
 ==========================================
 
+Issues closed in 4.1
+--------------------
+
+
+GitHub stats for 2015/08/12 - 2016/02/02 (since 4.0.0)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 60 issues and merged 148 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A4.1+>`__
+
+The following 52 authors contributed 468 commits.
+
+* Aaron Meurer
+* Alexandre Avanian
+* Anthony Sottile
+* Antony Lee
+* Arthur Loder
+* Ben Kasel
+* Ben Rousch
+* Benjamin Ragan-Kelley
+* bollwyvl
+* Carol Willing
+* Christopher Roach
+* Douglas La Rocca
+* Fairly
+* Fernando Perez
+* Frank Sachsenheim
+* Guillaume DOUMENC
+* Gábor Luk
+* Hoyt Koepke
+* Ivan Timokhin
+* Jacob Niehus
+* JamshedVesuna
+* Jan Schulz
+* Jan-Philip Gehrcke
+* jc
+* Jessica B. Hamrick
+* jferrara
+* John Bohannon
+* John Kirkham
+* Jonathan Frederic
+* Kyle Kelley
+* Lev Givon
+* Lilian Besson
+* lingxz
+* Matthias Bussonnier
+* memeplex
+* Michael Droettboom
+* naught101
+* Peter Waller
+* Pierre Gerold
+* Rémy Léone
+* Scott Sanderson
+* Shanzhuo Zhang
+* Sylvain Corlay
+* Tayfun Sen
+* Thomas A Caswell
+* Thomas Ballinger
+* Thomas Kluyver
+* Vincent Legoll
+* Wouter Bolsterlee
+* xconverge
+* Yuri Numerov
+* Zachary Pincus
+
+
 Issues closed in 4.0
 --------------------
 

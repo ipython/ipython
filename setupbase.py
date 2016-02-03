@@ -14,7 +14,7 @@ This includes:
 
 from __future__ import print_function
 
-import errno
+import re
 import os
 import sys
 
@@ -24,10 +24,7 @@ from distutils.command.build_scripts import build_scripts
 from distutils.command.install import install
 from distutils.command.install_scripts import install_scripts
 from distutils.cmd import Command
-from distutils.errors import DistutilsExecError
-from fnmatch import fnmatch
 from glob import glob
-from subprocess import Popen, PIPE
 
 from setupext import install_data_ext
 
@@ -83,7 +80,6 @@ setup_args = dict(
       author           = author,
       author_email     = author_email,
       url              = url,
-      download_url     = download_url,
       license          = license,
       platforms        = platforms,
       keywords         = keywords,
@@ -426,6 +422,14 @@ def git_prebuild(pkg_dir, build_cmd=build_py):
     class MyBuildPy(build_cmd):
         ''' Subclass to write commit data into installation tree '''
         def run(self):
+            # loose as `.dev` is suppose to be invalid
+            print("check version number")
+            loose_pep440re = re.compile('^(\d+)\.(\d+)\.(\d+((a|b|rc)\d+)?)(\.post\d+)?(\.dev\d*)?$')
+            import IPython.core.release as r
+            if not loose_pep440re.match(r.version):
+                raise ValueError("Version number '%s' is not valid (should match [N!]N(.N)*[{a|b|rc}N][.postN][.devN])" % r.version)
+
+
             build_cmd.run(self)
             # this one will only fire for build commands
             if hasattr(self, 'build_lib'):

@@ -5,7 +5,11 @@ This should ONLY be run at real release time.
 """
 from __future__ import print_function
 
-from toollib import *
+import os
+import sys
+
+from toollib import (get_ipdir, pjoin, cd, execfile, sh, archive,
+        sdists, archive_user, archive_dir, buildwheels)
 from gh_api import post_download
 
 # Get main ipython dir, this will raise if it doesn't pass some checks
@@ -22,6 +26,7 @@ if not os.path.exists(ipbackupdir):
 cd(ipdir)
 
 # Load release info
+version = None
 execfile(pjoin('IPython','core','release.py'), globals())
 
 # Build site addresses for file uploads
@@ -46,22 +51,23 @@ sh('mv ipython-*.tgz %s' % ipbackupdir)
 # Build release files
 sh('./build_release %s' % ipdir)
 
+# Not Registering with PyPI, registering with setup.py is insecure as communication is not encrypted
+cd(ipdir)
+
+# Upload all files
+sh(sdists)
+
+buildwheels()
+
 if 'upload' not in sys.argv:
     print("`./release upload` to register and release")
     sys.exit(0)
 
-# Register with the Python Package Index (PyPI)
-print( 'Registering with PyPI...')
-cd(ipdir)
-sh('./setup.py register')
 
-# Upload all files
-sh(sdists + ' upload')
-for py in ('2.7', '3.4'):
-    sh('python%s setupegg.py bdist_wheel upload' % py)
+print('Will not upload with setuptools as upload connection is insecure. Please use `twine upload dist/*` to upload the files to PyPI')
 
 cd(distdir)
-print( 'Uploading distribution files...')
+print( 'Uploading distribution files to GitHub...')
 
 for fname in os.listdir('.'):
     # TODO: update to GitHub releases API
@@ -71,6 +77,7 @@ for fname in os.listdir('.'):
     post_download("ipython/ipython", fname, description=desc)
 
 # Make target dir if it doesn't exist
+print('Uploading IPython to backup site.')
 sh('ssh %s "mkdir -p %s/release/%s" ' % (archive_user, archive_dir, version))
 sh('scp * %s' % release_site)
 

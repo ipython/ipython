@@ -21,6 +21,7 @@ Contents
    interactive/index
    config/index
    development/index
+   coredev/index
    api/index
    about/index
 

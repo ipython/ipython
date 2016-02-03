@@ -51,8 +51,9 @@ if version_info < (4,2):
     # ignore some warnings from traitlets until 6.0
     warnings.filterwarnings('ignore', message='.*on_trait_change is deprecated: use observe instead.*')
     warnings.filterwarnings('ignore', message='.*was set from the constructor.*', category=Warning, module='IPython.*')
+    warnings.filterwarnings('ignore', message='.*use the instance .help string directly, like x.help.*', category=DeprecationWarning, module='IPython.*')
 else :
-    warnings.warn('iptest has been filtering out for Traitlets warnings messages, for 2 major versions (since 4.x), please consider updating to use new API')
+    warnings.warn('iptest has been filtering out for Traitlets warnings messages, for 2 minor versions (since 4.x), please consider updating to use new API')
 
 if version_info < (6,):
     # nose.tools renames all things from `camelCase` to `snake_case` which raise an
