@@ -425,9 +425,8 @@ def git_prebuild(pkg_dir, build_cmd=build_py):
             # loose as `.dev` is suppose to be invalid
             print("check version number")
             loose_pep440re = re.compile('^(\d+)\.(\d+)\.(\d+((a|b|rc)\d+)?)(\.post\d+)?(\.dev\d*)?$')
-            import IPython.core.release as r
-            if not loose_pep440re.match(r.version):
-                raise ValueError("Version number '%s' is not valid (should match [N!]N(.N)*[{a|b|rc}N][.postN][.devN])" % r.version)
+            if not loose_pep440re.match(version):
+                raise ValueError("Version number '%s' is not valid (should match [N!]N(.N)*[{a|b|rc}N][.postN][.devN])" % version)
 
 
             build_cmd.run(self)
