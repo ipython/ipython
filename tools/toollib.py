@@ -59,7 +59,7 @@ def compile_tree(folder='.'):
         raise SystemExit(msg)
 
 try:
-    execfile
+    execfile = execfile
 except NameError:
     def execfile(fname, globs, locs=None):
         locs = locs or globs
