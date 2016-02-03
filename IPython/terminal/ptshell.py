@@ -196,6 +196,16 @@ class PTInteractiveShell(InteractiveShell):
                 if document:
                     self.run_cell(document.text, store_history=True)
 
+    def mainloop(self):
+        # An extra layer of protection in case someone mashing Ctrl-C breaks
+        # out of our internal code.
+        while True:
+            try:
+                self.interact()
+                break
+            except KeyboardInterrupt:
+                print("\nKeyboardInterrupt escaped interact()\n")
+
     _inputhook = None
     def inputhook(self, context):
         if self._inputhook is not None:
