@@ -54,6 +54,10 @@ class PTInteractiveShell(InteractiveShell):
         help="Use vi style keybindings at the prompt",
     )
 
+    mouse_support = Bool(False, config=True,
+        help="Enable mouse support in the prompt"
+    )
+
     highlighting_style = Unicode('', config=True,
         help="The name of a Pygments style to use for syntax highlighting"
     )
@@ -148,6 +152,7 @@ class PTInteractiveShell(InteractiveShell):
                             completer=IPythonPTCompleter(self.Completer),
                             enable_history_search=True,
                             style=style,
+                            mouse_support=self.mouse_support,
         )
 
         self.pt_cli = CommandLineInterface(app,
