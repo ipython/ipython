@@ -19,8 +19,8 @@ name = 'ipython'
 # IPython version information.  An empty _version_extra corresponds to a full
 # release.  'dev' as a _version_extra string means this is a development
 # version
-_version_major = 4
-_version_minor = 2
+_version_major = 5
+_version_minor = 0
 _version_patch = 0
 _version_extra = '.dev'
 # _version_extra = 'rc2'
