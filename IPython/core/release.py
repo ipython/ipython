@@ -24,7 +24,7 @@ _version_minor = 1
 _version_patch = 0
 _version_extra = '.dev'
 # _version_extra = 'rc2'
-# _version_extra = ''  # Uncomment this for full releases
+_version_extra = ''  # Uncomment this for full releases
 
 # release.codename is deprecated in 2.0, will be removed in 3.0
 codename = ''
