@@ -492,17 +492,20 @@ class SVG(DisplayObject):
         x = minidom.parseString(svg)
         # get svg tag (should be 1)
         found_svg = x.getElementsByTagName('svg')
-        # if found_svg:
-        #     svg = found_svg[0].toxml()
-        # else:
-        #     # fallback on the input, trust the user
-        #     # but this is probably an error.
-        #     pass
+        if found_svg:
+            svg = found_svg[0].toxml()
+        else:
+            # fallback on the input, trust the user
+            # but this is probably an error.
+            pass
         svg = found_svg[0].toxml()
         svg = cast_unicode(svg)
         self._data = svg
 
     def _repr_svg_(self):
+        return self.data
+        
+    def _repr_html_(self):
         return self.data
 
 
