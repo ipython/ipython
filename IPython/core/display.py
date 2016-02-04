@@ -498,7 +498,6 @@ class SVG(DisplayObject):
             # fallback on the input, trust the user
             # but this is probably an error.
             pass
-        svg = found_svg[0].toxml()
         svg = cast_unicode(svg)
         self._data = svg
 
