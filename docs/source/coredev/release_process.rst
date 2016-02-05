@@ -16,10 +16,9 @@ handy reminder and checklist for the release manager.
 Set environment variables to document previous release tag, current
 release milestone, current release version, and git tag::
 
-    PREV_RELEASE=rel-1.0.0
-    MILESTONE=1.1
-    VERSION=1.1.0
-    TAG="rel-$VERSION"
+    PREV_RELEASE=4.0.0
+    MILESTONE=4.1
+    VERSION=4.1.0
     BRANCH=master
 
 These variables may be used later to copy/paste as answers to the script
@@ -109,7 +108,7 @@ Commit the changes to release.py::
 
 Create and push the tag::
 
-    git tag -am "release $VERSION" "$TAG"
+    git tag -am "release $VERSION" "$VERSION"
     git push origin --tags
 
 Update release.py back to `x.y-dev` or `x.y-maint`, and push::
@@ -123,7 +122,7 @@ Update release.py back to `x.y-dev` or `x.y-maint`, and push::
 Get a fresh clone of the tag for building the release::
 
     cd /tmp
-    git clone --depth 1 https://github.com/ipython/ipython.git -b "$TAG"
+    git clone --depth 1 https://github.com/ipython/ipython.git -b "$VERSION"
 
 7. Run the release script
 -------------------------
