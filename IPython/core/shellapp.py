@@ -198,6 +198,8 @@ class InteractiveShellApp(Configurable):
     )
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC',
                      allow_none=True)
+    # whether interact-loop should start
+    interact = Bool(True)
     
     user_ns = Instance(dict, args=None, allow_none=True)
     def _user_ns_changed(self, name, old, new):
@@ -411,6 +413,8 @@ class InteractiveShellApp(Configurable):
                 self.log.warning("Error in executing line in user namespace: %s" %
                               line)
                 self.shell.showtraceback()
+                if not self.interact:
+                    self.exit(1)
 
         # Like Python itself, ignore the second if the first of these is present
         elif self.file_to_run:
@@ -419,7 +423,8 @@ class InteractiveShellApp(Configurable):
                 self._exec_file(fname, shell_futures=True)
             except:
                 self.shell.showtraceback(tb_offset=4)
-                self.exit(1)
+                if not self.interact:
+                    self.exit(1)
 
     def _run_module(self):
         """Run module specified at the command-line."""
