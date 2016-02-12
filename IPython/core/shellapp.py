@@ -198,6 +198,8 @@ class InteractiveShellApp(Configurable):
     )
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC',
                      allow_none=True)
+    # whether interact-loop should start
+    interact = Bool(True)
     
     user_ns = Instance(dict, args=None, allow_none=True)
     def _user_ns_changed(self, name, old, new):
