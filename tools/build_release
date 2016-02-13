@@ -4,7 +4,7 @@
 import os
 from shutil import rmtree
 
-from toollib import sh, pjoin, get_ipdir, cd, compile_tree, execfile, sdists, buildwheels
+from toollib import sh, pjoin, get_ipdir, cd, execfile, sdists, buildwheels
 
 def build_release():
 
@@ -14,9 +14,6 @@ def build_release():
 
     # Load release info
     execfile(pjoin('IPython', 'core', 'release.py'), globals())
-
-    # Check that everything compiles
-    compile_tree('*')
 
     # Cleanup
     for d in ['build', 'dist', pjoin('docs', 'build'), pjoin('docs', 'dist'),
