@@ -60,6 +60,16 @@ else:
 # Allow the set_trace code to operate outside of an ipython instance, even if
 # it does so with some limitations.  The rest of this support is implemented in
 # the Tracer constructor.
+
+def make_arrow(pad):
+    """generate the leading arrow in front of traceback or debugger"""
+    if pad >= 2:
+        return '-'*(pad-2) + '> '
+    elif pad == 1:
+        return '>'
+    return ''
+
+
 def BdbQuit_excepthook(et, ev, tb, excepthook=None):
     """Exception hook which handles `BdbQuit` exceptions.
 
@@ -460,21 +470,12 @@ class Pdb(OldPdb):
         if arrow:
             # This is the line with the error
             pad = numbers_width - len(str(lineno)) - len(bp_mark)
-            if pad >= 3:
-                marker = '-'*(pad-3) + '-> '
-            elif pad == 2:
-                 marker = '> '
-            elif pad == 1:
-                 marker = '>'
-            else:
-                 marker = ''
-            num = '%s%s' % (marker, str(lineno))
-            line = tpl_line % (bp_mark_color + bp_mark, num, line)
+            num = '%s%s' % (make_arrow(pad), str(lineno))
         else:
             num = '%*s' % (numbers_width - len(bp_mark), str(lineno))
-            line = tpl_line % (bp_mark_color + bp_mark, num, line)
 
-        return line
+        return tpl_line % (bp_mark_color + bp_mark, num, line)
+
 
     def list_command_pydb(self, arg):
         """List command to use if we have a newer pydb installed"""
