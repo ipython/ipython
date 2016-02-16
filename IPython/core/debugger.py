@@ -557,7 +557,6 @@ class Pdb(OldPdb):
 
     def do_longlist(self, arg):
         self.lastcmd = 'longlist'
-        filename = self.curframe.f_code.co_filename
         try:
             lines, lineno = self.getsourcelines(self.curframe)
         except OSError as err:
