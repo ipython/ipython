@@ -46,6 +46,7 @@ pjoin = path.join
 # Enable printing all warnings raise by IPython's modules
 warnings.filterwarnings('default', message='.*', category=Warning, module='IPy.*')
 
+warnings.filterwarnings('error', "The 'warn' method is deprecated, use 'warning' instead", DeprecationWarning)
 
 if version_info < (4,2):
     # ignore some warnings from traitlets until 6.0
