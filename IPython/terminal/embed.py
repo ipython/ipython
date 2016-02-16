@@ -270,6 +270,7 @@ def embed(**kwargs):
     if config is None:
         config = load_default_config()
         config.InteractiveShellEmbed = config.TerminalInteractiveShell
+        config.InteractiveShellEmbed.colors='nocolor'
         kwargs['config'] = config
     #save ps1/ps2 if defined
     ps1 = None
