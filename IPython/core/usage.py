@@ -329,14 +329,6 @@ The following magic functions are currently available:
 
 """
 
-<<<<<<< 1cc88218f6bd2567d182021c1ff50a0431ad8c0a
-quick_guide = """\
-?         -> Introduction and overview of IPython's features.
-%quickref -> Quick reference.
-help      -> Python's own help system.
-object?   -> Details about 'object', use 'object??' for extra details.
-"""
-=======
 gui_reference = """\
 ===============================
  The graphical IPython console
