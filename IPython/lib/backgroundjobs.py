@@ -36,7 +36,7 @@ import threading
 
 from IPython import get_ipython
 from IPython.core.ultratb import AutoFormattedTB
-from IPython.utils.warn import error
+from logging import error
 from IPython.utils.py3compat import string_types
 
 

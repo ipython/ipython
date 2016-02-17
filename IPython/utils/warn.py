@@ -12,7 +12,7 @@ import sys
 
 from IPython.utils import io
 
-from warning import warn
+from warnings import warn
 
 warn("The module IPython.utils.warn is deprecated, use the standard warnings module instead", DeprecationWarning)
 

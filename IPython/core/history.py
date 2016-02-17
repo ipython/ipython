@@ -35,7 +35,7 @@ from IPython.utils import py3compat
 from traitlets import (
     Any, Bool, Dict, Instance, Integer, List, Unicode, TraitError,
 )
-from IPython.utils.warn import warn
+from warnings import warn
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -879,5 +879,3 @@ def _format_lineno(session, line):
     if session == 0:
         return str(line)
     return "%s#%s" % (session, line)
-
-

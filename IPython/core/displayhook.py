@@ -18,7 +18,7 @@ from traitlets.config.configurable import Configurable
 from IPython.utils import io
 from IPython.utils.py3compat import builtin_mod, cast_unicode_py2
 from traitlets import Instance, Float
-from IPython.utils.warn import warn
+from warnings import warn
 
 # TODO: Move the various attributes (cache_size, [others now moved]). Some
 # of these are also attributes of InteractiveShell. They should be on ONE object
@@ -293,4 +293,3 @@ class DisplayHook(Configurable):
         # IronPython blocks here forever
         if sys.platform != "cli":
             gc.collect()
-

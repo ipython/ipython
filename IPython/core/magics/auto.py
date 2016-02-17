@@ -16,7 +16,7 @@ from __future__ import print_function
 # Our own packages
 from IPython.core.magic import Bunch, Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils.warn import error
+from logging import error
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes

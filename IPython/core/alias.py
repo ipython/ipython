@@ -29,7 +29,7 @@ from IPython.core.error import UsageError
 
 from IPython.utils.py3compat import string_types
 from traitlets import List, Instance
-from IPython.utils.warn import error
+from logging import error
 
 #-----------------------------------------------------------------------------
 # Utilities

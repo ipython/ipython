@@ -43,7 +43,8 @@ from IPython.utils.ipstruct import Struct
 from IPython.utils.module_paths import find_mod
 from IPython.utils.path import get_py_filename, unquote_filename, shellglob
 from IPython.utils.timing import clock, clock2
-from IPython.utils.warn import warn, error
+from warnings import warn
+from logging import error
 
 if PY3:
     from io import StringIO

@@ -77,7 +77,8 @@ from IPython.utils.text import (format_screen, LSString, SList,
                                 DollarFormatter)
 from traitlets import (Integer, Bool, CBool, CaselessStrEnum, Enum,
                                      List, Dict, Unicode, Instance, Type)
-from IPython.utils.warn import warn, error
+from warnings import warn
+from logging import error
 import IPython.core.hooks
 
 #-----------------------------------------------------------------------------

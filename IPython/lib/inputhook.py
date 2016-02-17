@@ -17,7 +17,7 @@ import platform
 import sys
 from distutils.version import LooseVersion as V
 
-from IPython.utils.warn import warn
+from warnings import warn
 
 #-----------------------------------------------------------------------------
 # Constants

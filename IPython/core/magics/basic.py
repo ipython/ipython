@@ -14,7 +14,8 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.ipstruct import Struct
 from IPython.utils.path import unquote_filename
 from IPython.utils.py3compat import unicode_type
-from IPython.utils.warn import warn, error
+from warnings import warn
+from logging import error
 
 
 class MagicsDisplay(object):

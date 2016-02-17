@@ -118,7 +118,7 @@ from IPython.utils import path as util_path
 from IPython.utils import py3compat
 from IPython.utils import ulinecache
 from IPython.utils.data import uniq_stable
-from IPython.utils.warn import info, error
+from logging import info, error
 
 # Globals
 # amount of space to put line numbers before verbose tracebacks
