@@ -520,7 +520,6 @@ class Magics(Configurable):
                 shell.configurables.append(self)
             if hasattr(shell, 'config'):
                 kwargs.setdefault('parent', shell)
-            kwargs['shell'] = shell
 
         self.shell = shell
         self.options_table = {}
