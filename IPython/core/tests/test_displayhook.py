@@ -10,6 +10,10 @@ def test_output_displayed():
       
     with AssertPrints('2'):
         ip.run_cell('1+1 # comment with a semicolon;', store_history=True)
+
+    with AssertPrints('2'):
+        ip.run_cell('1+1\n#commented_out_function();', store_history=True)
+
       
 def test_output_quiet():
     """Checking to make sure that output is quiet"""
@@ -19,3 +23,6 @@ def test_output_quiet():
       
     with AssertNotPrints('2'):
         ip.run_cell('1+1; # comment with a semicolon', store_history=True)
+
+    with AssertNotPrints('2'):
+        ip.run_cell('1+1;\n#commented_out_function()', store_history=True)

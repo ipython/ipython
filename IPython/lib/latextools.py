@@ -97,18 +97,22 @@ def latex_to_png(s, encode=False, backend=None, wrap=False):
 def latex_to_png_mpl(s, wrap):
     try:
         from matplotlib import mathtext
+        from pyparsing import ParseFatalException
     except ImportError:
         return None
-    
+
     # mpl mathtext doesn't support display math, force inline
     s = s.replace('$$', '$')
     if wrap:
         s = u'${0}$'.format(s)
-    
-    mt = mathtext.MathTextParser('bitmap')
-    f = BytesIO()
-    mt.to_png(f, s, fontsize=12)
-    return f.getvalue()
+
+    try:
+        mt = mathtext.MathTextParser('bitmap')
+        f = BytesIO()
+        mt.to_png(f, s, fontsize=12)
+        return f.getvalue()
+    except (ValueError, RuntimeError, ParseFatalException):
+        return None
 
 
 def latex_to_png_dvipng(s, wrap):
@@ -138,6 +142,8 @@ def latex_to_png_dvipng(s, wrap):
 
         with open(outfile, "rb") as f:
             return f.read()
+    except subprocess.CalledProcessError:
+        return None
     finally:
         shutil.rmtree(workdir)
 

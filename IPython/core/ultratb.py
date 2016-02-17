@@ -400,15 +400,7 @@ def _format_traceback_lines(lnum, index, lines, Colors, lvals=None, scheme=None)
         if i == lnum:
             # This is the line with the error
             pad = numbers_width - len(str(i))
-            if pad >= 3:
-                marker = '-' * (pad - 3) + '-> '
-            elif pad == 2:
-                marker = '> '
-            elif pad == 1:
-                marker = '>'
-            else:
-                marker = ''
-            num = marker + str(i)
+            num = '%s%s' % (debugger.make_arrow(pad), str(lnum))
             line = '%s%s%s %s%s' % (Colors.linenoEm, num,
                                     Colors.line, line, Colors.Normal)
         else:

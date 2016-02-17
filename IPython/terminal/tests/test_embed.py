@@ -64,7 +64,7 @@ def test_nest_embed():
     ipy_prompt = r']:' #ansi color codes give problems matching beyond this
 
 
-    child = pexpect.spawn('%s -m IPython'%(sys.executable, ))
+    child = pexpect.spawn('%s -m IPython --colors=nocolor'%(sys.executable, ))
     child.expect(ipy_prompt)
     child.sendline("from __future__ import print_function")
     child.expect(ipy_prompt)
@@ -123,3 +123,5 @@ def test_nest_embed():
     child.sendline("print('true' if IPython.get_ipython() is ip0 else 'false')")
     assert(child.expect(['true\r\n', 'false\r\n']) == 0)
     child.expect(ipy_prompt)
+    child.sendline('exit')
+    child.close()
