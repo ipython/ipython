@@ -58,15 +58,6 @@ if has_pydb:
 else:
     from pdb import Pdb as OldPdb
 
-
-def make_arrow(pad):
-    """generate the leading arrow in front of traceback or debugger"""
-    if pad >= 2:
-        return '-'*(pad-2) + '> '
-    elif pad == 1:
-        return '>'
-    return ''
-
 # Allow the set_trace code to operate outside of an ipython instance, even if
 # it does so with some limitations.  The rest of this support is implemented in
 # the Tracer constructor.
@@ -458,7 +449,7 @@ class Pdb(OldPdb):
             linetpl = (_tpl_line_em if (frame is self.curframe or show_arrow) else _tpl_line)
             for tok in  self._yield_format_line(linetpl, filename,
                                           start + 1 + i, line,
-                                          arrow = show_arrow):
+                                          arrow=show_arrow):
                 yield tok
 
     def __format_line(self, tpl_line, filename, lineno, line, arrow = False):
@@ -510,7 +501,6 @@ class Pdb(OldPdb):
         """The printing (as opposed to the parsing part of a 'list'
         command."""
         try:
-
             src = []
             if filename == "<string>" and hasattr(self, "_exec_filename"):
                 filename = self._exec_filename
