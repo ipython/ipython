@@ -237,7 +237,7 @@ def _file_lines(fname):
 class Pdb(OldPdb):
     """Modified Pdb class, does not load readline."""
 
-    def __init__(self, color_scheme='NoColor', completekey=None,
+    def __init__(self,color_scheme='NoColor',completekey=None,
                  stdin=None, stdout=None, context=5):
 
         # Parent constructor:
