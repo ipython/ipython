@@ -22,7 +22,8 @@ from IPython.utils.encoding import get_stream_enc
 from IPython.utils import py3compat
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
-from IPython.utils.warn import warn, error
+from warnings import warn
+from logging import error
 from IPython.utils.text import num_ini_spaces, SList, strip_email_quotes
 from traitlets import Integer, CBool, Unicode
 

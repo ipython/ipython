@@ -12,6 +12,9 @@ import sys
 
 from IPython.utils import io
 
+import warnings
+
+warnings.warn("The module IPython.utils.warn is deprecated, use the standard warnings module instead", DeprecationWarning)
 
 def warn(msg,level=2,exit_val=1):
     """Standard warning printer. Gives formatting consistency.
@@ -29,7 +32,8 @@ def warn(msg,level=2,exit_val=1):
 
     -exit_val (1): exit value returned by sys.exit() for a level 4
     warning. Ignored for all other levels."""
-
+    
+    warnings.warn("The module IPython.utils.warn is deprecated, use the standard warnings module instead", DeprecationWarning)
     if level>0:
         header = ['','','WARNING: ','ERROR: ','FATAL ERROR: ']
         print(header[level], msg, sep='', file=io.stderr)
@@ -54,4 +58,3 @@ def fatal(msg,exit_val=1):
     """Equivalent to warn(msg,exit_val=exit_val,level=4)."""
 
     warn(msg,exit_val=exit_val,level=4)
-

@@ -212,7 +212,7 @@ test_group_names.append('autoreload')
 
 def check_exclusions_exist():
     from IPython.paths import get_ipython_package_dir
-    from IPython.utils.warn import warn
+    from warnings import warn
     parent = os.path.dirname(get_ipython_package_dir())
     for sec in test_sections:
         for pattern in sec.exclusions:
@@ -439,4 +439,3 @@ def run_iptest():
 
 if __name__ == '__main__':
     run_iptest()
-

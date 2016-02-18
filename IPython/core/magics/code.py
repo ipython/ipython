@@ -1,6 +1,7 @@
 """Implementation of code management magic functions.
 """
 from __future__ import print_function
+from __future__ import absolute_import
 #-----------------------------------------------------------------------------
 #  Copyright (c) 2012 The IPython Development Team.
 #
@@ -32,7 +33,8 @@ from IPython.utils import py3compat
 from IPython.utils.py3compat import string_types
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.path import get_py_filename, unquote_filename
-from IPython.utils.warn import warn, error
+from warnings import warn
+from logging import error
 from IPython.utils.text import get_text_list
 
 #-----------------------------------------------------------------------------

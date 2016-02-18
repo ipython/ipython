@@ -18,7 +18,7 @@ import sys
 
 # Our own packages
 from IPython.core.magic import Magics, magics_class, line_magic
-from IPython.utils.warn import warn
+from warnings import warn
 from IPython.utils.py3compat import str_to_unicode
 
 #-----------------------------------------------------------------------------
