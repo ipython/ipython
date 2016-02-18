@@ -455,58 +455,6 @@ def find_recursion(etype, value, records):
     else:
         last_unique = 0 # The whole traceback was recursion
 
-def is_recursion_error(etype, value, records):
-    try:
-        # RecursionError is new in Python 3.5
-        recursion_error_type = RecursionError
-    except NameError:
-        recursion_error_type = RuntimeError
-
-    # The default recursion limit is 1000, but some of that will be taken up
-    # by stack frames in IPython itself. >500 frames probably indicates
-    # a recursion error.
-    return (etype is recursion_error_type) \
-           and "recursion" in str(value).lower() \
-           and len(records) > 500
-
-def find_recursion(etype, value, records):
-    """Identify the repeating stack frames from a RecursionError traceback
-
-    'records' is a list as returned by VerboseTB.get_records()
-
-    Returns (last_unique, repeat_length)
-    """
-    # This involves a bit of guesswork - we want to show enough of the traceback
-    # to indicate where the recursion is occurring. We guess that the innermost
-    # quarter of the traceback (250 frames by default) is repeats, and find the
-    # first frame (from in to out) that looks different.
-    if not is_recursion_error(etype, value, records):
-        return len(records), 0
-
-    # Select filename, lineno, func_name to track frames with
-    records = [r[1:4] for r in records]
-    inner_frames = records[-(len(records)//4):]
-    frames_repeated = set(inner_frames)
-
-    last_seen_at = {}
-    longest_repeat = 0
-    i = len(records)
-    for frame in reversed(records):
-        i -= 1
-        if frame not in frames_repeated:
-            last_unique = i
-            break
-
-        if frame in last_seen_at:
-            distance = last_seen_at[frame] - i
-            longest_repeat = max(longest_repeat, distance)
-
-        last_seen_at[frame] = i
-    else:
-        last_unique = 0 # The whole traceback was recursion
-
-    return last_unique, longest_repeat
-
 #---------------------------------------------------------------------------
 # Module classes
 class TBTools(colorable.Colorable):
@@ -864,24 +812,21 @@ class VerboseTB(TBTools):
             check_cache = linecache.checkcache
         self.check_cache = check_cache
 
-    # TODO: docstring
-    # TODO: function seem likely too long, and too complex. 
-#    def _format_records(self, records):
-#        for record in records:
-#            yield from self._format_record(record)
-
     def _format_records(self, records, last_unique, recursion_repeat):
         """Format the stack frames of the traceback"""
         for r in records[:last_unique+recursion_repeat+1]:
             #print '*** record:',file,lnum,func,lines,index  # dbg
-            yield from self._format_record(r)
+            for x in self._format_record(r):
+                yield x
 
         if recursion_repeat:
             yield [(Token.Normal, '... last %d frames repeated, from the frame below ...\n' % recursion_repeat)]
-            yield from self._format_record(records[last_unique+recursion_repeat+1])
 
+            for x in self._format_record(records[last_unique+recursion_repeat+1]):
+                yield x
 
-
+    # TODO: docstring
+    # TODO: function seem likely too long, and too complex. 
     def _format_record(self, record):
         indent = ' ' * INDENT_SIZE
 

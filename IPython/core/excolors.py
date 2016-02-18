@@ -29,7 +29,7 @@ def exception_colors():
     >>> ec = exception_colors()
     >>> ec.active_scheme_name
     ''
-    >>> print(ec.active_colors)IPython/core/excolors.py
+    >>> print(ec.active_colors)
     None
 
     Now we activate a color scheme:

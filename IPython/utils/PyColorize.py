@@ -135,7 +135,7 @@ class wrappAccessor(dict):
                 return v
             else:
                 v=  dict.__getitem__(self, random.choice(list(self.keys())))
-            #print('return random rainbow mode for unknown token types')
+            # print('return random rainbow mode for unknown token types: %s', key)
             return v
         else:
             print('Unknown Key Type will raise')
