@@ -54,6 +54,8 @@ except AttributeError:
 from IPython.utils.coloransi import TermColors, InputTermColors ,ColorScheme, ColorSchemeTable
 from IPython.utils.py3compat import PY3
 
+from .colorable import Colorable
+
 if PY3:
     from io import StringIO
 else:
@@ -148,15 +150,18 @@ LightBGColors = ColorScheme(
 ANSICodeColors = ColorSchemeTable([NoColor,LinuxColors,LightBGColors],
                                   _scheme_default)
 
-class Parser:
+class Parser(Colorable):
     """ Format colored Python source.
     """
 
-    def __init__(self, color_table=None,out = sys.stdout):
+    def __init__(self, color_table=None, out = sys.stdout, parent=None, style=None):
         """ Create a parser with a specified color table and output channel.
 
         Call format() to process code.
         """
+
+        super(Parser, self).__init__(parent=parent)
+
         self.color_table = color_table and color_table or ANSICodeColors
         self.out = out
 

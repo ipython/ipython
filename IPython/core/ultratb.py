@@ -85,6 +85,7 @@ Inheritance diagram:
 # the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
+from __future__ import absolute_import
 from __future__ import unicode_literals
 from __future__ import print_function
 
@@ -124,6 +125,8 @@ from IPython.utils import py3compat
 from IPython.utils import ulinecache
 from IPython.utils.data import uniq_stable
 from logging import info, error
+
+import IPython.utils.colorable as colorable
 
 # Globals
 # amount of space to put line numbers before verbose tracebacks
@@ -476,15 +479,16 @@ def find_recursion(etype, value, records):
 
 #---------------------------------------------------------------------------
 # Module classes
-class TBTools(object):
+class TBTools(colorable.Colorable):
     """Basic tools used by all traceback printer classes."""
 
     # Number of frames to skip when reporting tracebacks
     tb_offset = 0
 
-    def __init__(self, color_scheme='NoColor', call_pdb=False, ostream=None):
+    def __init__(self, color_scheme='NoColor', call_pdb=False, ostream=None, parent=None, config=None):
         # Whether to call the interactive pdb debugger after printing
         # tracebacks or not
+        super(TBTools, self).__init__(parent=parent, config=config)
         self.call_pdb = call_pdb
 
         # Output stream to write to.  Note that we store the original value in
@@ -590,9 +594,9 @@ class ListTB(TBTools):
     Because they are meant to be called without a full traceback (only a
     list), instances of this class can't call the interactive pdb debugger."""
 
-    def __init__(self, color_scheme='NoColor', call_pdb=False, ostream=None):
+    def __init__(self, color_scheme='NoColor', call_pdb=False, ostream=None, parent=None):
         TBTools.__init__(self, color_scheme=color_scheme, call_pdb=call_pdb,
-                         ostream=ostream)
+                         ostream=ostream, parent=parent)
 
     def __call__(self, etype, value, elist):
         self.ostream.flush()
