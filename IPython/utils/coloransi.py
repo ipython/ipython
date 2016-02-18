@@ -12,8 +12,6 @@
 __all__ = ['TermColors','InputTermColors','ColorScheme','ColorSchemeTable']
 
 import os
-import sys
-import traceback
 
 from IPython.utils.ipstruct import Struct
 
@@ -163,7 +161,7 @@ class ColorSchemeTable(dict):
             raise ValueError('ColorSchemeTable only accepts ColorScheme instances')
         self[new_scheme.name] = new_scheme
 
-    def set_active_scheme(self, scheme, case_sensitive=0):
+    def set_active_scheme(self,scheme,case_sensitive=0):
         """Set the currently active scheme.
 
         Names are by default compared in a case-insensitive way, but this can
@@ -179,8 +177,6 @@ class ColorSchemeTable(dict):
         try:
             scheme_idx = valid_schemes.index(scheme_test)
         except ValueError:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
             raise ValueError('Unrecognized color scheme: ' + scheme + \
                   '\nValid schemes: '+str(scheme_names).replace("'', ",''))
         else:
