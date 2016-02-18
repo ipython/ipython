@@ -85,7 +85,7 @@ def BdbQuit_excepthook(et, ev, tb, excepthook=None):
         # Backwards compatibility. Raise deprecation warning?
         BdbQuit_excepthook.excepthook_ori(et,ev,tb)
 
-def BdbQuit_IPython_excepthook(self, et, ev, tb, tb_offset=None):
+def BdbQuit_IPython_excepthook(self,et,ev,tb,tb_offset=None):
     print('Exiting Debugger.')
 
 
@@ -135,7 +135,7 @@ class Tracer(object):
             # Outside of ipython, we set our own exception hook manually
             sys.excepthook = functools.partial(BdbQuit_excepthook,
                                                excepthook=sys.excepthook)
-            defaults_colors = 'NoColor'
+            def_colors = 'NoColor'
             try:
                 # Limited tab completion support
                 import readline
@@ -144,11 +144,11 @@ class Tracer(object):
                 pass
         else:
             # In ipython, we use its custom exception handler mechanism
-            defaults_colors = ip.colors
+            def_colors = ip.colors
             ip.set_custom_exc((bdb.BdbQuit,), BdbQuit_IPython_excepthook)
 
         if colors is None:
-            colors = defaults_colors
+            colors = def_colors
 
         # The stdlib debugger internally uses a modified repr from the `repr`
         # module, that limits the length of printed strings to a hardcoded
