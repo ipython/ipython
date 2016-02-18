@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from pygments.style import Style
+from collections import defaultdict
 
 class LinuxStyle(Style):
     """
