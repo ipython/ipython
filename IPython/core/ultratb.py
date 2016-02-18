@@ -413,8 +413,6 @@ def is_recursion_error(etype, value, records):
     # The default recursion limit is 1000, but some of that will be taken up
     # by stack frames in IPython itself. >500 frames probably indicates
     # a recursion error.
-    print("is not recerror")
-    #import pdb; pdb.set_trace()
     return (etype is recursion_error_type) \
             and "recursion" in str(value).lower() \
             and len(records) > 500
