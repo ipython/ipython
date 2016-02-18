@@ -454,7 +454,8 @@ def find_recursion(etype, value, records):
         last_seen_at[frame] = i
     else:
         last_unique = 0 # The whole traceback was recursion
-
+    
+    return last_unique, longest_repeat
 #---------------------------------------------------------------------------
 # Module classes
 class TBTools(colorable.Colorable):
