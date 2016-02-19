@@ -38,6 +38,11 @@ Give it a shot--you'll love it or you'll hate it.
   variables (but otherwise includes the information and context given by
   Verbose).
 
+.. note::
+
+  The verbose mode print all variables in the stack, which means it can
+  potentially leak sensitive information like access keys, or unencryted
+  password.
 
 Installation instructions for VerboseTB::
 
@@ -216,7 +221,8 @@ def findsource(object):
         # the length of lines, which causes an error.  Safeguard against that.
         lnum = min(object.co_firstlineno, len(lines)) - 1
         while lnum > 0:
-            if pmatch(lines[lnum]): break
+            if pmatch(lines[lnum]):
+                break
             lnum -= 1
 
         return lines, lnum
@@ -272,9 +278,11 @@ def getargs(co):
                                 remain.pop()
                                 size = count.pop()
                                 stack[-size:] = [stack[-size:]]
-                                if not remain: break
+                                if not remain:
+                                    break
                                 remain[-1] = remain[-1] - 1
-                            if not remain: break
+                            if not remain:
+                                break
             args[i] = stack[0]
 
     varargs = None
