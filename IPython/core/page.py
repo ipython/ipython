@@ -308,6 +308,13 @@ def get_pager_cmd(pager_cmd=None):
             pager_cmd = os.environ['PAGER']
         except:
             pager_cmd = default_pager_cmd
+    
+    if pager_cmd == 'less':
+    try:
+        os.getenv('LESS').index('-r')
+    except (ValueError, AttributeError):
+        pager_cmd += ' -r'
+    
     return pager_cmd
 
 
