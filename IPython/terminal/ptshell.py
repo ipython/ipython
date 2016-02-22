@@ -4,7 +4,7 @@ from __future__ import print_function
 import sys
 
 from IPython.core.interactiveshell import InteractiveShell
-from IPython.utils.py3compat import PY3, cast_unicode_py2
+from IPython.utils.py3compat import PY3, cast_unicode_py2, input
 from traitlets import Bool, Unicode, Dict
 
 from prompt_toolkit.completion import Completer, Completion
@@ -83,6 +83,14 @@ class PTInteractiveShell(InteractiveShell):
         ]
 
     def init_prompt_toolkit_cli(self):
+        if not sys.stdin.isatty():
+            # Piped input - e.g. for tests. Fall back to plain non-interactive
+            # output. This is very limited, and only accepts a single line.
+            def prompt():
+                return cast_unicode_py2(input('In [%d]: ' % self.execution_count))
+            self.prompt_for_code = prompt
+            return
+
         kbmanager = KeyBindingManager.for_prompt(enable_vi_mode=self.vi_mode)
         insert_mode = ViStateFilter(kbmanager.get_vi_state, InputMode.INSERT)
         # Ctrl+J == Enter, seemingly
@@ -160,6 +168,10 @@ class PTInteractiveShell(InteractiveShell):
         self.pt_cli = CommandLineInterface(app,
                            eventloop=create_eventloop(self.inputhook))
 
+    def prompt_for_code(self):
+        document = self.pt_cli.run(pre_run=self.pre_prompt)
+        return document.text
+
     def init_io(self):
         if sys.platform not in {'win32', 'cli'}:
             return
@@ -194,14 +206,14 @@ class PTInteractiveShell(InteractiveShell):
             print(self.separate_in, end='')
 
             try:
-                document = self.pt_cli.run(pre_run=self.pre_prompt)
+                code = self.prompt_for_code()
             except EOFError:
                 if self.ask_yes_no('Do you really want to exit ([y]/n)?','y','n'):
                     self.ask_exit()
 
             else:
-                if document:
-                    self.run_cell(document.text, store_history=True)
+                if code:
+                    self.run_cell(code, store_history=True)
 
     def mainloop(self):
         # An extra layer of protection in case someone mashing Ctrl-C breaks
