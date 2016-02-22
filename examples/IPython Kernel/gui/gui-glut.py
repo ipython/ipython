@@ -38,7 +38,7 @@ if glut.glutGetWindow() > 0:
 else:
     interactive = False
 
-glut.glutCreateWindow('gui-glut')
+glut.glutCreateWindow(b'gui-glut')
 glut.glutDisplayFunc(display)
 glut.glutReshapeFunc(resize)
 # This is necessary on osx to be able to close the window

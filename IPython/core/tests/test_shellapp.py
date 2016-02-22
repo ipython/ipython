@@ -52,8 +52,9 @@ class TestFileToRun(unittest.TestCase, tt.TempFileMixin):
         src = "True\n"
         self.mktmp(src)
 
+        out = 'In [1]: False\n\nIn [2]:'
         err = SQLITE_NOT_AVAILABLE_ERROR if sqlite_err_maybe else None
-        tt.ipexec_validate(self.fname, 'False', err, options=['-i'],
+        tt.ipexec_validate(self.fname, out, err, options=['-i'],
                            commands=['"__file__" in globals()', 'exit()'])
 
     @dec.skip_win32
@@ -63,6 +64,7 @@ class TestFileToRun(unittest.TestCase, tt.TempFileMixin):
         src = "from __future__ import division\n"
         self.mktmp(src)
 
+        out = 'In [1]: float\n\nIn [2]:'
         err = SQLITE_NOT_AVAILABLE_ERROR if sqlite_err_maybe else None
-        tt.ipexec_validate(self.fname, 'float', err, options=['-i'],
+        tt.ipexec_validate(self.fname, out, err, options=['-i'],
                            commands=['type(1/2)', 'exit()'])
