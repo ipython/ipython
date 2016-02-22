@@ -42,6 +42,7 @@ from IPython.utils.wildcard import list_namespace
 from IPython.utils.coloransi import TermColors, ColorScheme, ColorSchemeTable
 from IPython.utils.py3compat import cast_unicode, string_types, PY3
 from IPython.utils.signatures import signature
+from IPython.utils.colorable import Colorable
 
 # builtin docstrings to ignore
 _func_call_docstring = types.FunctionType.__call__.__doc__
@@ -365,13 +366,15 @@ def find_source_lines(obj):
     return lineno
 
 
-class Inspector:
+class Inspector(Colorable):
     def __init__(self, color_table=InspectColors,
                  code_color_table=PyColorize.ANSICodeColors,
                  scheme='NoColor',
-                 str_detail_level=0):
+                 str_detail_level=0, 
+                 parent=None, config=None):
+        super(Inspector, self).__init__(parent=parent, config=config)
         self.color_table = color_table
-        self.parser = PyColorize.Parser(code_color_table,out='str')
+        self.parser = PyColorize.Parser(out='str', parent=self, style=scheme)
         self.format = self.parser.format
         self.str_detail_level = str_detail_level
         self.set_active_scheme(scheme)
