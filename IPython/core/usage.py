@@ -346,3 +346,10 @@ default_banner_parts = [
 ]
 
 default_banner = ''.join(default_banner_parts)
+
+# deprecated GUI banner
+
+default_gui_banner = '\n'.join([
+    'DEPRECATED: IPython.core.usage.default_gui_banner is deprecated and will be removed',
+    default_banner,
+])
