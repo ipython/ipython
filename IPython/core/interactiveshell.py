@@ -75,6 +75,7 @@ from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import (format_screen, LSString, SList,
                                 DollarFormatter)
+from IPython.utils.colorable import available_themes
 from traitlets import (Integer, Bool, CBool, CaselessStrEnum, Enum,
                                      List, Dict, Unicode, Instance, Type)
 from warnings import warn
@@ -220,7 +221,7 @@ class InteractiveShell(SingletonConfigurable):
         get confused with color codes, this capability can be turned off.
         """
     )
-    colors = CaselessStrEnum(PyColorize.available_themes(),
+    colors = CaselessStrEnum(available_themes(),
                              default_value=get_default_colors(), config=True,
         help="Set the color scheme among available Pygments themes, NoColor, Linux, and LightBG."
     )

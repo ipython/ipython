@@ -18,7 +18,7 @@ from IPython.utils.path import unquote_filename
 from IPython.utils.py3compat import unicode_type
 from warnings import warn
 from logging import error
-from IPython.utils import PyColorize
+from IPython.utils.colorable import available_themes
 
 
 class MagicsDisplay(object):
@@ -334,7 +334,7 @@ Currently the magic system has the following functions:""",
         if not new_scheme:
             raise UsageError(
                 "%colors: you must specify a color scheme. See '%colors?'\n"
-                "known themes: {}".format(PyColorize.available_themes()))
+                "known themes: {}".format(available_themes()))
         # local shortcut
         shell = self.shell
 
@@ -608,6 +608,6 @@ if sys.version_info > (3,):
     BasicMagics.colors.__doc__ = BasicMagics.colors.__doc__ +\
         'Known themes :\n\n'+indent(indent(
         '\n'.join(wrap(
-            ', '.join(PyColorize.available_themes())
+            ', '.join(available_themes())
         )))
         )
