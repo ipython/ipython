@@ -195,6 +195,7 @@ install_requires = [
     'pickleshare',
     'simplegeneric>0.8',
     'traitlets',
+    'prompt_toolkit',  # We will require > 0.57 once a new release is made
 ]
 
 # Platform-specific dependencies:
@@ -204,8 +205,6 @@ install_requires = [
 extras_require.update({
     ':sys_platform != "win32"': ['pexpect'],
     ':sys_platform == "darwin"': ['appnope'],
-    ':sys_platform == "darwin" and platform_python_implementation == "CPython"': ['gnureadline'],
-    'terminal:sys_platform == "win32"': ['pyreadline>=2'],
     'test:python_version == "2.7"': ['mock'],
 })
 # FIXME: re-specify above platform dependencies for pip < 6
