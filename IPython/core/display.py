@@ -6,7 +6,11 @@
 
 from __future__ import print_function
 
-import base64
+try:
+    from base64 import encodebytes as base64_encode
+except ImportError:
+    from base64 import encodestring as base64_encode
+
 import json
 import mimetypes
 import os
@@ -849,13 +853,17 @@ class Video(DisplayObject):
             Note that QtConsole is not able to display images if `embed` is set to `False`
         mimetype: unicode
             Specify the mimetype in case you load in a encoded video.
+
         Examples
         --------
+
         Video('https://archive.org/download/Sita_Sings_the_Blues/Sita_Sings_the_Blues_small.mp4')
         Video('path/to/video.mp4')
         Video('path/to/video.mp4', embed=False)
+        Video(b'videodata')
+        Video(u'b64-encoded-videodata')
         """
-        if url is None and (data.startswith('http') or data.startswith('https')):
+        if url is None and isinstance(data, string_types) and data.startswith(('http:', 'https:')):
             url = data
             data = None
             embed = False
@@ -877,19 +885,25 @@ class Video(DisplayObject):
     </video>""".format(url)
             return output
         # Embedded videos uses base64 encoded videos.
+        mimetype = self.mimetype
         if self.filename is not None:
-            mimetypes.init()
-            mimetype, encoding = mimetypes.guess_type(self.filename)
-
-            video = open(self.filename, 'rb').read()
-            video_encoded = base64.b64encode(video)
+            if not mimetype:
+                mimetype, _ = mimetypes.guess_type(self.filename)
+            
+            with open(self.filename, 'rb') as f:
+                video = f.read()
         else:
-            video_encoded = self.data
-            mimetype = self.mimetype
+            video = self.data
+        if isinstance(video, unicode_type):
+            # unicode input is already b64-encoded
+            b64_video = video
+        else:
+            b64_video = base64_encode(video).decode('ascii').rstrip()
+        
         output = """<video controls>
  <source src="data:{0};base64,{1}" type="{0}">
  Your browser does not support the video tag.
- </video>""".format(mimetype, video_encoded.decode('ASCII'))
+ </video>""".format(mimetype, b64_video)
         return output
 
     def reload(self):
