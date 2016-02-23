@@ -11,6 +11,7 @@ Color managing related utilities
 """
 
 import pygments
+import pygments.styles
 
 from traitlets.config import Configurable
 from traitlets import Unicode

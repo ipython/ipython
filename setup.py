@@ -196,6 +196,7 @@ install_requires = [
     'simplegeneric>0.8',
     'traitlets',
     'prompt_toolkit',  # We will require > 0.57 once a new release is made
+    'pygments',
 ]
 
 # Platform-specific dependencies:

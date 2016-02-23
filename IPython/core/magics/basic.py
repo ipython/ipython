@@ -6,6 +6,7 @@ from __future__ import absolute_import
 import io
 import sys
 from pprint import pformat
+from textwrap import wrap
 
 from IPython.core import magic_arguments, page
 from IPython.core.error import UsageError
@@ -17,6 +18,7 @@ from IPython.utils.path import unquote_filename
 from IPython.utils.py3compat import unicode_type
 from warnings import warn
 from logging import error
+from IPython.utils.colorable import available_themes
 
 
 class MagicsDisplay(object):
@@ -74,6 +76,9 @@ class BasicMagics(Magics):
 
     These are various magics that don't fit into specific categories but that
     are all part of the base 'IPython experience'."""
+
+    def __init__(self, *args, **kwargs):
+        super(BasicMagics, self).__init__(*args, **kwargs)
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
@@ -332,7 +337,8 @@ Currently the magic system has the following functions:""",
         new_scheme = parameter_s.strip()
         if not new_scheme:
             raise UsageError(
-                "%colors: you must specify a color scheme. See '%colors?'")
+                "%colors: you must specify a color scheme. See '%colors?'\n"
+                "known themes: {}".format(available_themes()))
         # local shortcut
         shell = self.shell
 
@@ -612,3 +618,11 @@ Defaulting color scheme to 'NoColor'"""
             nb = v4.new_notebook(cells=cells)
             with io.open(args.filename, 'w', encoding='utf-8') as f:
                 write(nb, f, version=4)
+
+if sys.version_info > (3,):
+    BasicMagics.colors.__doc__ = BasicMagics.colors.__doc__ +\
+        'Known themes :\n\n'+indent(indent(
+        '\n'.join(wrap(
+            ', '.join(available_themes())
+        )))
+        )
