@@ -195,7 +195,7 @@ install_requires = [
     'pickleshare',
     'simplegeneric>0.8',
     'traitlets',
-    'prompt_toolkit',  # We will require > 0.57 once a new release is made
+    'prompt_toolkit>=0.58',
 ]
 
 # Platform-specific dependencies:
