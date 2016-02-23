@@ -45,7 +45,7 @@ class IPythonPTCompleter(Completer):
         for m in matches:
             yield Completion(m, start_position=start_pos)
 
-class PTInteractiveShell(InteractiveShell):
+class TerminalInteractiveShell(InteractiveShell):
     colors_force = True
 
     pt_cli = None
@@ -187,7 +187,7 @@ class PTInteractiveShell(InteractiveShell):
         io.stderr = io.IOStream(sys.stderr)
 
     def __init__(self, *args, **kwargs):
-        super(PTInteractiveShell, self).__init__(*args, **kwargs)
+        super(TerminalInteractiveShell, self).__init__(*args, **kwargs)
         self.init_prompt_toolkit_cli()
         self.keep_running = True
 
@@ -237,4 +237,4 @@ class PTInteractiveShell(InteractiveShell):
             self._inputhook = None
 
 if __name__ == '__main__':
-    PTInteractiveShell.instance().interact()
+    TerminalInteractiveShell.instance().interact()
