@@ -155,10 +155,37 @@ def test_json():
     
 def test_video_embedding():
     """use a tempfile, with dummy-data, to ensure that video embedding doesn't crash"""
+    v = display.Video("http://ignored")
+    assert not v.embed
+    html = v._repr_html_()
+    nt.assert_not_in('src="data:', html)
+    nt.assert_in('src="http://ignored"', html)
+
+    with nt.assert_raises(ValueError):
+        v = display.Video(b'abc')
+
     with tempfile.NamedTemporaryFile(suffix='.mp4') as f:
         with open(f.name,'wb') as f:
             f.write(b'abc')
 
+        v = display.Video(f.name)
+        assert not v.embed
+        html = v._repr_html_()
+        nt.assert_not_in('src="data:', html)
+        
         v = display.Video(f.name, embed=True)
         html = v._repr_html_()
         nt.assert_in('src="data:video/mp4;base64,YWJj"',html)
+        
+        v = display.Video(f.name, embed=True, mimetype='video/other')
+        html = v._repr_html_()
+        nt.assert_in('src="data:video/other;base64,YWJj"',html)
+        
+        v = display.Video(b'abc', embed=True, mimetype='video/mp4')
+        html = v._repr_html_()
+        nt.assert_in('src="data:video/mp4;base64,YWJj"',html)
+
+        v = display.Video(u'YWJj', embed=True, mimetype='video/xyz')
+        html = v._repr_html_()
+        nt.assert_in('src="data:video/xyz;base64,YWJj"',html)
+
