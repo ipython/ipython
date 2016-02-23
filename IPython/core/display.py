@@ -824,7 +824,7 @@ class Image(DisplayObject):
 
 class Video(DisplayObject):
 
-    def __init__(self, data=None, url=None, filename=None, embed=None, mimetype=None):
+    def __init__(self, data=None, url=None, filename=None, embed=False, mimetype=None):
         """Create a video object given raw data or an URL.
 
         When this object is returned by an input cell or passed to the
@@ -834,45 +834,54 @@ class Video(DisplayObject):
         Parameters
         ----------
         data : unicode, str or bytes
-            The raw image data or a URL or filename to load the data from.
-            This always results in embedded image data.
+            The raw video data or a URL or filename to load the data from.
+            Raw data will require passing `embed=True`.
         url : unicode
-            A URL to download the data from. If you specify `url=`,
-            the image data will not be embedded unless you also specify `embed=True`.
+            A URL for the video. If you specify `url=`,
+            the image data will not be embedded.
         filename : unicode
-            Path to a local file to load the data from.
-            Videos from a file are always embedded.
+            Path to a local file containing the video.
+            Will be interpreted as a local URL unless `embed=True`.
         embed : bool
-            Should the image data be embedded using a data URI (True) or be
-            loaded using an <img> tag. Set this to True if you want the image
-            to be viewable later with no internet connection in the notebook.
+            Should the video be embedded using a data URI (True) or be
+            loaded using a <video> tag (False).
 
-            Default is `True`, unless the keyword argument `url` is set, then
-            default value is `False`.
+            Since videos are large, embedding them should be avoided, if possible.
+            You must confirm embedding as your intention by passing `embed=True`.
 
-            Note that QtConsole is not able to display images if `embed` is set to `False`
+            Local files can be displayed with URLs without embedding the content, via::
+
+                Video('./video.mp4')
+
         mimetype: unicode
-            Specify the mimetype in case you load in a encoded video.
+            Specify the mimetype for embedded videos.
+            Default will be guessed from file extension, if available.
 
         Examples
         --------
 
         Video('https://archive.org/download/Sita_Sings_the_Blues/Sita_Sings_the_Blues_small.mp4')
         Video('path/to/video.mp4')
-        Video('path/to/video.mp4', embed=False)
-        Video(b'videodata')
-        Video(u'b64-encoded-videodata')
+        Video('path/to/video.mp4', embed=True)
+        Video(b'raw-videodata', embed=True)
         """
         if url is None and isinstance(data, string_types) and data.startswith(('http:', 'https:')):
             url = data
             data = None
-            embed = False
         elif os.path.exists(data):
             filename = data
             data = None
+        
+        if data and not embed:
+            msg = ''.join([
+                "To embed videos, you must pass embed=True ",
+                "(this may make your notebook files huge)\n",
+                "Consider passing Video(url='...')",
+            ])
+            raise ValueError(msg)
 
         self.mimetype = mimetype
-        self.embed = embed if embed is not None else (filename is not None)
+        self.embed = embed
         super(Video, self).__init__(data=data, url=url, filename=filename)
 
     def _repr_html_(self):
@@ -884,7 +893,8 @@ class Video(DisplayObject):
       Your browser does not support the <code>video</code> element.
     </video>""".format(url)
             return output
-        # Embedded videos uses base64 encoded videos.
+        
+        # Embedded videos are base64-encoded.
         mimetype = self.mimetype
         if self.filename is not None:
             if not mimetype:
