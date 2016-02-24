@@ -12,9 +12,9 @@
 #-----------------------------------------------------------------------------
 
 import os
+import subprocess
 import sys
 import nose.tools as nt
-from IPython.utils.process import process_handler
 from IPython.utils.tempdir import NamedFileInTemporaryDirectory
 from IPython.testing.decorators import skip_win32
 
@@ -47,9 +47,14 @@ def test_ipython_embed():
 
         # run `python file_with_embed.py`
         cmd = [sys.executable, f.name]
+        env = os.environ.copy()
+        env['IPY_TEST_SIMPLE_PROMPT'] = '1'
 
-        out, p = process_handler(cmd, lambda p: (p.communicate(_exit), p))
-        std = out[0].decode('UTF-8')
+        p = subprocess.Popen(cmd, env=env, stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate(_exit)
+        std = out.decode('UTF-8')
+
         nt.assert_equal(p.returncode, 0)
         nt.assert_in('3 . 14', std)
         if os.name != 'nt':
@@ -62,9 +67,12 @@ def test_nest_embed():
     """test that `IPython.embed()` is nestable"""
     import pexpect
     ipy_prompt = r']:' #ansi color codes give problems matching beyond this
+    env = os.environ.copy()
+    env['IPY_TEST_SIMPLE_PROMPT'] = '1'
 
 
-    child = pexpect.spawn('%s -m IPython --colors=nocolor'%(sys.executable, ))
+    child = pexpect.spawn(sys.executable, ['-m', 'IPython', '--colors=nocolor'],
+                          env=env)
     child.expect(ipy_prompt)
     child.sendline("from __future__ import print_function")
     child.expect(ipy_prompt)

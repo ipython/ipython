@@ -101,9 +101,9 @@ class TerminalInteractiveShell(InteractiveShell):
         ]
 
     def init_prompt_toolkit_cli(self):
-        if not sys.stdin.isatty():
-            # Piped input - e.g. for tests. Fall back to plain non-interactive
-            # output. This is very limited, and only accepts a single line.
+        if ('IPY_TEST_SIMPLE_PROMPT' in os.environ) or not sys.stdin.isatty():
+            # Fall back to plain non-interactive output for tests.
+            # This is very limited, and only accepts a single line.
             def prompt():
                 return cast_unicode_py2(input('In [%d]: ' % self.execution_count))
             self.prompt_for_code = prompt
