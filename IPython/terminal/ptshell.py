@@ -1,6 +1,7 @@
 """IPython terminal interface using prompt_toolkit in place of readline"""
 from __future__ import print_function
 
+import os
 import sys
 
 from IPython.core.interactiveshell import InteractiveShell
@@ -27,7 +28,7 @@ from pygments.lexers import Python3Lexer, PythonLexer
 from pygments.token import Token
 
 from .pt_inputhooks import get_inputhook_func
-from .interactiveshell import get_default_editor
+from .interactiveshell import get_default_editor, TerminalMagics
 
 
 
@@ -200,6 +201,23 @@ class TerminalInteractiveShell(InteractiveShell):
         from IPython.utils import io
         io.stdout = io.IOStream(sys.stdout)
         io.stderr = io.IOStream(sys.stderr)
+
+    def init_magics(self):
+        super(TerminalInteractiveShell, self).init_magics()
+        self.register_magics(TerminalMagics)
+
+    def init_alias(self):
+        # The parent class defines aliases that can be safely used with any
+        # frontend.
+        super(TerminalInteractiveShell, self).init_alias()
+
+        # Now define aliases that only make sense on the terminal, because they
+        # need direct access to the console in a way that we can't emulate in
+        # GUI or web frontend
+        if os.name == 'posix':
+            for cmd in ['clear', 'more', 'less', 'man']:
+                self.alias_manager.soft_define_alias(cmd, cmd)
+
 
     def __init__(self, *args, **kwargs):
         super(TerminalInteractiveShell, self).__init__(*args, **kwargs)
