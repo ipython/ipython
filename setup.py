@@ -196,6 +196,7 @@ install_requires = [
     'simplegeneric>0.8',
     'traitlets',
     'prompt_toolkit>=0.58',
+    'pygments',
 ]
 
 # Platform-specific dependencies:
