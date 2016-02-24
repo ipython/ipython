@@ -10,6 +10,7 @@ import nose.tools as nt
 
 from IPython.core import display
 from IPython.core.getipython import get_ipython
+from IPython.utils.tempdir import NamedFileInTemporaryDirectory
 from IPython import paths as ipath
 
 import IPython.testing.decorators as dec
@@ -164,9 +165,9 @@ def test_video_embedding():
     with nt.assert_raises(ValueError):
         v = display.Video(b'abc')
 
-    with tempfile.NamedTemporaryFile(suffix='.mp4') as f:
-        with open(f.name,'wb') as f:
-            f.write(b'abc')
+    with NamedFileInTemporaryDirectory('test.mp4') as f:
+        f.write(b'abc')
+        f.close()
 
         v = display.Video(f.name)
         assert not v.embed
