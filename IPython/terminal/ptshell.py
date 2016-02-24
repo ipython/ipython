@@ -79,7 +79,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
     def get_continuation_tokens(self, cli, width):
         return [
-            (Token.Prompt, (' ' * (width - 2)) + ': '),
+            (Token.Prompt, (' ' * (width - 5)) + '...: '),
         ]
 
     def init_prompt_toolkit_cli(self):
