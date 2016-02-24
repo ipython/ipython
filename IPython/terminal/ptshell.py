@@ -154,9 +154,7 @@ class TerminalInteractiveShell(InteractiveShell):
         app = create_prompt_application(multiline=True,
                             lexer=PygmentsLexer(Python3Lexer if PY3 else PythonLexer),
                             get_prompt_tokens=self.get_prompt_tokens,
-                            # The line below is waiting for a new release of
-                            # prompt_toolkit (> 0.57)
-                            #get_continuation_tokens=self.get_continuation_tokens,
+                            get_continuation_tokens=self.get_continuation_tokens,
                             key_bindings_registry=kbmanager.registry,
                             history=history,
                             completer=IPythonPTCompleter(self.Completer),
