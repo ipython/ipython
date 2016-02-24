@@ -5,6 +5,8 @@ import sys
 
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.utils.py3compat import PY3, cast_unicode_py2, input
+from IPython.utils.terminal import toggle_set_term_title, set_term_title
+from IPython.utils.process import abbrev_cwd
 from traitlets import Bool, Unicode, Dict
 
 from prompt_toolkit.completion import Completer, Completion
@@ -26,6 +28,7 @@ from pygments.token import Token
 
 from .pt_inputhooks import get_inputhook_func
 from .interactiveshell import get_default_editor
+
 
 
 class IPythonPTCompleter(Completer):
@@ -69,6 +72,20 @@ class TerminalInteractiveShell(InteractiveShell):
     editor = Unicode(get_default_editor(), config=True,
         help="Set the editor used by IPython (default to $EDITOR/vi/notepad)."
     )
+    
+    term_title = Bool(True, config=True,
+        help="Automatically set the terminal title"
+    )
+    def _term_title_changed(self, name, new_value):
+        self.init_term_title()
+    
+    def init_term_title(self):
+        # Enable or disable the terminal title.
+        if self.term_title:
+            toggle_set_term_title(True)
+            set_term_title('IPython: ' + abbrev_cwd())
+        else:
+            toggle_set_term_title(False)
 
     def get_prompt_tokens(self, cli):
         return [
@@ -187,6 +204,7 @@ class TerminalInteractiveShell(InteractiveShell):
     def __init__(self, *args, **kwargs):
         super(TerminalInteractiveShell, self).__init__(*args, **kwargs)
         self.init_prompt_toolkit_cli()
+        self.init_term_title()
         self.keep_running = True
 
     def ask_exit(self):
