@@ -206,6 +206,7 @@ install_requires = [
 extras_require.update({
     ':sys_platform != "win32"': ['pexpect'],
     ':sys_platform == "darwin"': ['appnope'],
+    ':sys_platform == "win32"': ['colorama'],
     'test:python_version == "2.7"': ['mock'],
 })
 # FIXME: re-specify above platform dependencies for pip < 6
