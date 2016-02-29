@@ -12,7 +12,7 @@ from traitlets import Bool, Unicode, Dict
 
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.enums import DEFAULT_BUFFER
-from prompt_toolkit.filters import HasFocus, HasSelection
+from prompt_toolkit.filters import HasFocus, HasSelection, Condition
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop
 from prompt_toolkit.interface import CommandLineInterface
@@ -135,6 +135,21 @@ class TerminalInteractiveShell(InteractiveShell):
         @kbmanager.registry.add_binding(Keys.ControlC)
         def _(event):
             event.current_buffer.reset()
+
+        @Condition
+        def cursor_in_leading_ws(cli):
+            before = cli.application.buffer.document.current_line_before_cursor
+            return (not before) or before.isspace()
+
+        # Ctrl+I == Tab
+        @kbmanager.registry.add_binding(Keys.ControlI,
+                            filter=(HasFocus(DEFAULT_BUFFER)
+                                    & ~HasSelection()
+                                    & insert_mode
+                                    & cursor_in_leading_ws
+                                   ))
+        def _(event):
+            event.current_buffer.insert_text(' ' * 4)
 
         # Pre-populate history from IPython's history database
         history = InMemoryHistory()
