@@ -6,8 +6,10 @@
 IPython 4.1
 ===========
 
-Release February, 2016. IPython 4.1 contain mostly bug fixes. It though contain
-a few improvement.
+IPython 4.1.2 (March, 2016) fixes installation issues with some versions of setuptools.
+
+Released February, 2016. IPython 4.1 contains mostly bug fixes,
+though there are a few improvements.
 
 
 - IPython debugger (IPdb) now supports the number of context lines for the
