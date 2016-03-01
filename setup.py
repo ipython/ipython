@@ -232,13 +232,6 @@ if not any(arg.startswith('bdist') for arg in sys.argv):
     else:
         install_requires.append('pexpect')
     
-    # workaround pypa/setuptools#147, where setuptools misspells
-    # platform_python_implementation as python_implementation
-    if 'setuptools' in sys.modules:
-        for key in list(extras_require):
-            if 'platform_python_implementation' in key:
-                new_key = key.replace('platform_python_implementation', 'python_implementation')
-                extras_require[new_key] = extras_require.pop(key)
 
 everything = set()
 for key, deps in extras_require.items():
