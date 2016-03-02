@@ -937,8 +937,8 @@ class IPCompleter(Completer):
         def get_keys(obj):
             # Objects can define their own completions by defining an
             # _ipy_key_completions_() method.
-            if _safe_really_hasattr(obj, '_ipy_key_completions_'):
-                return obj._ipy_key_completions_()
+            if _safe_really_hasattr(obj, '_ipython_key_completions_'):
+                return obj._ipython_key_completions_()
 
             # Special case some common in-memory dict-like types
             if isinstance(obj, dict) or\

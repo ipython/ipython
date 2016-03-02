@@ -765,7 +765,7 @@ class KeyCompletable(object):
     def __init__(self, things=()):
         self.things = things
 
-    def _ipy_key_completions_(self):
+    def _ipython_key_completions_(self):
         return list(self.things)
 
 def test_object_key_completion():
