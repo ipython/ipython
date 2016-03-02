@@ -211,7 +211,7 @@ def select_figure_formats(shell, formats, **kwargs):
 
     [ f.pop(Figure, None) for f in shell.display_formatter.formatters.values() ]
 
-    if matplotlib.backends.backend.lower() == 'nbagg':
+    if matplotlib.get_backend().lower() == 'nbagg':
         formatter = shell.display_formatter.ipython_display_formatter
         formatter.for_type(Figure, _reshow_nbagg_figure)
 
