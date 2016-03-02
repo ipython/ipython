@@ -71,7 +71,7 @@ from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
 from IPython.utils import generics
 from IPython.utils import io
 from IPython.utils.decorators import undoc
-from IPython.utils.dir2 import dir2
+from IPython.utils.dir2 import dir2, safe_hasattr
 from IPython.utils.process import arg_split
 from IPython.utils.py3compat import builtin_mod, string_types, PY3
 from traitlets import CBool, Enum
@@ -472,6 +472,18 @@ def _safe_isinstance(obj, module, class_name):
     return (module in sys.modules and
             isinstance(obj, getattr(__import__(module), class_name)))
 
+def _safe_really_hasattr(obj, name):
+    """Checks that an object genuinely has a given attribute.
+
+    Some objects claim to have any attribute that's requested, to act as a lazy
+    proxy for something else. We want to catch these cases and ignore their
+    claim to have the attribute we're interested in.
+    """
+    if safe_hasattr(obj, '_ipy_proxy_check_dont_define_this_'):
+        # If it claims this exists, don't trust it
+        return False
+
+    return safe_hasattr(obj, name)
 
 
 def back_unicode_name_matches(text):
@@ -923,7 +935,12 @@ class IPCompleter(Completer):
     def dict_key_matches(self, text):
         "Match string keys in a dictionary, after e.g. 'foo[' "
         def get_keys(obj):
-            # Only allow completion for known in-memory dict-like types
+            # Objects can define their own completions by defining an
+            # _ipy_key_completions_() method.
+            if _safe_really_hasattr(obj, '_ipy_key_completions_'):
+                return obj._ipy_key_completions_()
+
+            # Special case some common in-memory dict-like types
             if isinstance(obj, dict) or\
                _safe_isinstance(obj, 'pandas', 'DataFrame'):
                 try:
