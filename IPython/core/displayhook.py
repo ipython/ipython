@@ -13,7 +13,6 @@ import sys
 import io as _io
 import tokenize
 
-from IPython.core.formatters import _safe_get_formatter_method
 from traitlets.config.configurable import Configurable
 from IPython.utils import io
 from IPython.utils.py3compat import builtin_mod, cast_unicode_py2
