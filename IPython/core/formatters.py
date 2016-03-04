@@ -22,6 +22,7 @@ from decorator import decorator
 from traitlets.config.configurable import Configurable
 from IPython.core.getipython import get_ipython
 from IPython.utils.sentinel import Sentinel
+from IPython.utils.dir2 import get_real_method
 from IPython.lib import pretty
 from traitlets import (
     Bool, Dict, Integer, Unicode, CUnicode, ObjectName, List,
@@ -30,29 +31,6 @@ from traitlets import (
 from IPython.utils.py3compat import (
     with_metaclass, string_types, unicode_type,
 )
-
-
-#-----------------------------------------------------------------------------
-# The main DisplayFormatter class
-#-----------------------------------------------------------------------------
-
-
-def _safe_get_formatter_method(obj, name):
-    """Safely get a formatter method
-    
-    - Classes cannot have formatter methods, only instance
-    - protect against proxy objects that claim to have everything
-    """
-    if inspect.isclass(obj):
-        # repr methods only make sense on instances, not classes
-        return None
-    method = pretty._safe_getattr(obj, name, None)
-    if callable(method):
-        # obj claims to have repr method...
-        if callable(pretty._safe_getattr(obj, '_ipython_canary_method_should_not_exist_', None)):
-            # ...but don't trust proxy objects that claim to have everything
-            return None
-        return method
 
 
 class DisplayFormatter(Configurable):
@@ -338,7 +316,7 @@ class BaseFormatter(Configurable):
             else:
                 return printer(obj)
             # Finally look for special method names
-            method = _safe_get_formatter_method(obj, self.print_method)
+            method = get_real_method(obj, self.print_method)
             if method is not None:
                 return method()
             return None
@@ -904,7 +882,7 @@ class IPythonDisplayFormatter(BaseFormatter):
                 printer(obj)
                 return True
             # Finally look for special method names
-            method = _safe_get_formatter_method(obj, self.print_method)
+            method = get_real_method(obj, self.print_method)
             if method is not None:
                 method()
                 return True

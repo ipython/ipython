@@ -761,6 +761,22 @@ def test_dict_key_completion_invalids():
     _, matches = complete(line_buffer="name_error['")
     _, matches = complete(line_buffer="d['\\")  # incomplete escape
 
+class KeyCompletable(object):
+    def __init__(self, things=()):
+        self.things = things
+
+    def _ipython_key_completions_(self):
+        return list(self.things)
+
+def test_object_key_completion():
+    ip = get_ipython()
+    ip.user_ns['key_completable'] = KeyCompletable(['qwerty', 'qwick'])
+
+    _, matches = ip.Completer.complete(line_buffer="key_completable['qw")
+    nt.assert_in('qwerty', matches)
+    nt.assert_in('qwick', matches)
+
+
 def test_aimport_module_completer():
     ip = get_ipython()
     _, matches = ip.complete('i', '%aimport i')

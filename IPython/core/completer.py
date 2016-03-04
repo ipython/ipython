@@ -71,7 +71,7 @@ from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
 from IPython.utils import generics
 from IPython.utils import io
 from IPython.utils.decorators import undoc
-from IPython.utils.dir2 import dir2
+from IPython.utils.dir2 import dir2, get_real_method
 from IPython.utils.process import arg_split
 from IPython.utils.py3compat import builtin_mod, string_types, PY3
 from traitlets import CBool, Enum
@@ -471,7 +471,6 @@ def _safe_isinstance(obj, module, class_name):
     """
     return (module in sys.modules and
             isinstance(obj, getattr(__import__(module), class_name)))
-
 
 
 def back_unicode_name_matches(text):
@@ -923,7 +922,13 @@ class IPCompleter(Completer):
     def dict_key_matches(self, text):
         "Match string keys in a dictionary, after e.g. 'foo[' "
         def get_keys(obj):
-            # Only allow completion for known in-memory dict-like types
+            # Objects can define their own completions by defining an
+            # _ipy_key_completions_() method.
+            method = get_real_method(obj, '_ipython_key_completions_')
+            if method is not None:
+                return method()
+
+            # Special case some common in-memory dict-like types
             if isinstance(obj, dict) or\
                _safe_isinstance(obj, 'pandas', 'DataFrame'):
                 try:
