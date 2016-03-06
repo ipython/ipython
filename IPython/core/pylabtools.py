@@ -98,6 +98,8 @@ def print_figure(fig, fmt='png', bbox_inches='tight', **kwargs):
         return
 
     dpi = rcParams['savefig.dpi']
+    if dpi == 'figure':
+        dpi = fig.dpi
     if fmt == 'retina':
         dpi = dpi * 2
         fmt = 'png'
