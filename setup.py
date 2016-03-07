@@ -197,6 +197,7 @@ install_requires = [
     'traitlets',
     'prompt_toolkit>=0.58',
     'pygments',
+    'backports.shutil_get_terminal_size',
 ]
 
 # Platform-specific dependencies:
