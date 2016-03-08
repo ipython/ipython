@@ -53,6 +53,7 @@ range_re = re.compile(r"""
  (?P<end>\d+)?)?
 $""", re.VERBOSE)
 
+filename='temp.py'
 
 def extract_code_ranges(ranges_str):
     """Turn a string of range for %%load into 2-tuples of (start, stop)
@@ -216,6 +217,62 @@ class CodeMagics(Magics):
             if not out.endswith(u'\n'):
                 f.write(u'\n')
         print('The following commands were written to file `%s`:' % fname)
+        print(cmds)
+
+    @line_magic
+    def savef(self, parameter_s=''):
+        """Save last line to a file specified , builds python script as a stack of commands
+        i.e. pushes statements to the file in append mode
+
+        Usage:\\
+          %savef [options]
+
+        Options:
+
+            -s: SET new file to write , otherwise would write to temp.py
+            -f: force create new file ( overwrite original )
+            -r: raw
+
+        This function serves as an extension to %save magic function.It writes to
+        a file line by line instead of block for rapid development.
+        Possible Enhancements (1) merge with save (2) add option to append Last N lines
+
+        """
+
+        opts,args = self.parse_options(parameter_s, 'srf', mode='list')
+        set_f= 's' in opts
+        raw = 'r' in opts
+        force = 'f' in opts
+        ext = u'.ipy' if raw else u'.py'
+        global filename
+
+        if set_f:
+            filename, codefrom = unquote_filename(args[0]), " ".join(args[1:])
+            if not filename.endswith((u'.py',u'.ipy')):
+                filename += ext
+        file_exists = os.path.isfile(filename)
+
+        newfile = force and file_exists
+        mode = 'w' if newfile else 'a'
+
+        try:
+            hist = self.shell.history_manager.get_tail(1, raw)
+            cmds = "\n".join([x[2] for x in hist])
+
+        except (TypeError, ValueError) as e:
+            print(e.args[0])
+            return
+        out = py3compat.cast_unicode(cmds)
+        with io.open(filename, mode, encoding="utf-8") as f:
+            if newfile:
+                print('Starting python file: `%s`' % filename)
+                f.write(u"# coding: utf-8\n")
+            elif not set_f:
+                # Only allow setting of file in one command individual files can be pushed later
+                f.write(out)
+            # make sure we end on a newline
+            if not out.endswith(u'\n'):
+                f.write(u'\n')
         print(cmds)
 
     @line_magic
