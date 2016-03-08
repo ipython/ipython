@@ -546,11 +546,16 @@ class Inspector(Colorable):
                 title = header((title+":").ljust(title_width))
             out.append(cast_unicode(title) + cast_unicode(content))
         return "\n".join(out)
-    
+
     def _format_info(self, obj, oname='', formatter=None, info=None, detail_level=0):
         """Format an info dict as text"""
-        info = self.info(obj, oname=oname, formatter=formatter,
+
+        # hack docstring rendering
+        info = self.info(obj, oname=oname, formatter=None,
                             info=info, detail_level=detail_level)
+        if formatter:
+            return formatter(info["docstring"])
+
         displayfields = []
         def add_fields(fields):
             for title, key in fields:
