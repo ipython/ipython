@@ -83,6 +83,18 @@ from warnings import warn
 from logging import error
 import IPython.core.hooks
 
+try:
+    import docrepr.sphinxify as sphx
+
+    def docformat(doc):
+        dirname = tempfile.mkdtemp(prefix='ipython_sphinxify_')
+        return {
+            'text/html': sphx.sphinxify(doc, dirname),
+            'text/plain': doc
+        }
+except:
+    docformat = None
+
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
@@ -1528,7 +1540,7 @@ class InteractiveShell(SingletonConfigurable):
         info = self._object_find(oname, namespaces)
         if info.found:
             pmethod = getattr(self.inspector, meth)
-            formatter = format_screen if info.ismagic else None
+            formatter = format_screen if info.ismagic else docformat
             if meth == 'pdoc':
                 pmethod(info.obj, oname, formatter)
             elif meth == 'pinfo':
