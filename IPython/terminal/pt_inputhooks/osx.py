@@ -1,3 +1,7 @@
+"""Inputhook for OS X
+
+Calls NSApp / CoreFoundation APIs via ctypes.
+"""
 
 # obj-c boilerplate from appnope, used under BSD 2-clause
 
@@ -5,7 +9,6 @@ import ctypes
 import ctypes.util
 
 objc = ctypes.cdll.LoadLibrary(ctypes.util.find_library('objc'))
-CoreFoundation = ctypes.cdll.LoadLibrary(ctypes.util.find_library('CoreFoundation'))
 
 void_p = ctypes.c_void_p
 
@@ -30,7 +33,11 @@ def C(classname):
     """get an ObjC Class by name"""
     return objc.objc_getClass(_utf8(classname))
 
-# CoreFoundation calls we will use:
+# end obj-c boilerplate from appnope
+
+# CoreFoundation C-API calls we will use:
+CoreFoundation = ctypes.cdll.LoadLibrary(ctypes.util.find_library('CoreFoundation'))
+
 CFFileDescriptorCreate = CoreFoundation.CFFileDescriptorCreate
 CFFileDescriptorCreate.restype = void_p
 CFFileDescriptorCreate.argtypes = [void_p, ctypes.c_int, ctypes.c_bool, void_p]
@@ -66,9 +73,11 @@ CFFileDescriptorInvalidate.argtypes = [void_p]
 kCFFileDescriptorReadCallBack = 1
 kCFRunLoopCommonModes = void_p.in_dll(CoreFoundation, 'kCFRunLoopCommonModes')
 
+
 def _NSApp():
     """Return the global NSApplication instance (NSApp)"""
     return msg(C('NSApplication'), n('sharedApplication'))
+
 
 def _wake(NSApp):
     """Wake the Application"""
@@ -86,7 +95,8 @@ def _wake(NSApp):
         0, # data2
     )
     msg(NSApp, n('postEvent:atStart:'), void_p(event), True)
-    
+
+
 def _input_callback(fdref, flags, info):
     """Callback to fire when there's input to be read"""
     CFFileDescriptorInvalidate(fdref)
@@ -98,6 +108,7 @@ def _input_callback(fdref, flags, info):
 _c_callback_func_type = ctypes.CFUNCTYPE(None, void_p, void_p, void_p)
 _c_input_callback = _c_callback_func_type(_input_callback)
 
+
 def _stop_on_read(fd):
     """Register callback to stop eventloop when there's data on fd"""
     fdref = CFFileDescriptorCreate(None, fd, False, _c_input_callback, None)
@@ -106,6 +117,7 @@ def _stop_on_read(fd):
     loop = CFRunLoopGetCurrent()
     CFRunLoopAddSource(loop, source, kCFRunLoopCommonModes)
     CFRelease(source)
+
 
 def inputhook(context):
     """Inputhook for Cocoa (NSApp)"""
