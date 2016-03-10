@@ -6,7 +6,6 @@ import ctypes.util
 
 objc = ctypes.cdll.LoadLibrary(ctypes.util.find_library('objc'))
 CoreFoundation = ctypes.cdll.LoadLibrary(ctypes.util.find_library('CoreFoundation'))
-# Cocoa = ctypes.cdll.LoadLibrary(ctypes.util.find_library('Cocoa'))
 
 void_p = ctypes.c_void_p
 
@@ -24,7 +23,7 @@ def _utf8(s):
     return s
 
 def n(name):
-    """create a selector name (for methods)"""
+    """create a selector name (for ObjC methods)"""
     return objc.sel_registerName(_utf8(name))
 
 def C(classname):
@@ -63,7 +62,6 @@ CFFileDescriptorInvalidate = CoreFoundation.CFFileDescriptorInvalidate
 CFFileDescriptorInvalidate.restype = None
 CFFileDescriptorInvalidate.argtypes = [void_p]
 
-
 # From CFFileDescriptor.h
 kCFFileDescriptorReadCallBack = 1
 kCFRunLoopCommonModes = void_p.in_dll(CoreFoundation, 'kCFRunLoopCommonModes')
@@ -72,19 +70,37 @@ def _NSApp():
     """Return the global NSApplication instance (NSApp)"""
     return msg(C('NSApplication'), n('sharedApplication'))
 
+def _wake(NSApp):
+    """Wake the Application"""
+    event = msg(C('NSEvent'),
+        n('otherEventWithType:location:modifierFlags:'
+          'timestamp:windowNumber:context:subtype:data1:data2:'),
+        15, # Type
+        0, # location
+        0, # flags
+        0, # timestamp
+        0, # window
+        None, # context
+        0, # subtype
+        0, # data1
+        0, # data2
+    )
+    msg(NSApp, n('postEvent:atStart:'), void_p(event), True)
+    
 def _input_callback(fdref, flags, info):
     """Callback to fire when there's input to be read"""
     CFFileDescriptorInvalidate(fdref)
     CFRelease(fdref)
     NSApp = _NSApp()
     msg(NSApp, n('stop:'), NSApp)
+    _wake(NSApp)
 
 _c_callback_func_type = ctypes.CFUNCTYPE(None, void_p, void_p, void_p)
-_c_callback = _c_callback_func_type(_input_callback)
+_c_input_callback = _c_callback_func_type(_input_callback)
 
 def _stop_on_read(fd):
     """Register callback to stop eventloop when there's data on fd"""
-    fdref = CFFileDescriptorCreate(None, fd, False, _c_callback, None)
+    fdref = CFFileDescriptorCreate(None, fd, False, _c_input_callback, None)
     CFFileDescriptorEnableCallBacks(fdref, kCFFileDescriptorReadCallBack)
     source = CFFileDescriptorCreateRunLoopSource(None, fdref, 0)
     loop = CFRunLoopGetCurrent()
@@ -102,3 +118,4 @@ def inputhook(context):
         return
     _stop_on_read(context.fileno())
     msg(NSApp, n('run'))
+
