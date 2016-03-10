@@ -132,7 +132,7 @@ class TerminalInteractiveShell(InteractiveShell):
             else:
                 b.insert_text('\n' + (' ' * (indent or 0)))
 
-        @kbmanager.registry.add_binding(Keys.ControlC)
+        @kbmanager.registry.add_binding(Keys.ControlC, filter=HasFocus(DEFAULT_BUFFER))
         def _(event):
             event.current_buffer.reset()
 
