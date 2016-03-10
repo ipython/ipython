@@ -12,6 +12,7 @@ backends = [
     'tk',
     'wx',
     'pyglet', 'glut',
+    'osx',
 ]
 
 class UnknownBackend(KeyError):
