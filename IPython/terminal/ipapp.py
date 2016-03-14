@@ -317,7 +317,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         # based app, because we call shell.show_banner() by hand below
         # so the banner shows *before* all extension loading stuff.
         self.shell = TerminalInteractiveShell.instance(parent=self,
-                        display_banner=False, profile_dir=self.profile_dir,
+                        profile_dir=self.profile_dir,
                         ipython_dir=self.ipython_dir, user_ns=self.user_ns)
         self.shell.configurables.append(self)
 
