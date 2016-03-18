@@ -420,7 +420,6 @@ class Inspector(Colorable):
 
         if inspect.isclass(obj):
             header = self.__head('Class constructor information:\n')
-            obj = obj.__init__
         elif (not py3compat.PY3) and type(obj) is types.InstanceType:
             obj = obj.__call__
 
@@ -766,23 +765,28 @@ class Inspector(Colorable):
         # Constructor docstring for classes
         if inspect.isclass(obj):
             out['isclass'] = True
-            # reconstruct the function definition and print it:
+
+            # get the function signature:
             try:
-                obj_init =  obj.__init__
+                init_def = self._getdef(obj, oname)
+            except AttributeError:
+                init_def = None
+            else:
+                out['init_definition'] = self.format(init_def)
+
+            # get the __init__ docstring
+            try:
+                obj_init = obj.__init__
             except AttributeError:
                 init_def = init_ds = None
             else:
-                init_def = self._getdef(obj_init,oname)
                 init_ds  = getdoc(obj_init)
                 # Skip Python's auto-generated docstrings
                 if init_ds == _object_init_docstring:
                     init_ds = None
 
-            if init_def or init_ds:
-                if init_def:
-                    out['init_definition'] = self.format(init_def)
-                if init_ds:
-                    out['init_docstring'] = init_ds
+            if init_ds:
+                out['init_docstring'] = init_ds
 
         # and class docstring for instances:
         else:
