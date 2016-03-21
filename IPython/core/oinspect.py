@@ -766,21 +766,22 @@ class Inspector(Colorable):
         if inspect.isclass(obj):
             out['isclass'] = True
 
-            # get the function signature:
+            # get the init signature:
             try:
                 init_def = self._getdef(obj, oname)
             except AttributeError:
                 init_def = None
-            else:
+
+            if init_def:
                 out['init_definition'] = self.format(init_def)
 
             # get the __init__ docstring
             try:
                 obj_init = obj.__init__
             except AttributeError:
-                init_def = init_ds = None
+                init_ds = None
             else:
-                init_ds  = getdoc(obj_init)
+                init_ds = getdoc(obj_init)
                 # Skip Python's auto-generated docstrings
                 if init_ds == _object_init_docstring:
                     init_ds = None
