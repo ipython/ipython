@@ -482,10 +482,12 @@ class TerminalInteractiveShell(InteractiveShell):
                                                                     stdin_encoding))
                     last_cell = cell
 
-                except TypeError:
+                except (TypeError, ValueError) as e:
                     # The history DB can get corrupted so it returns strings
                     # containing null bytes, which readline objects to.
-                    continue
+                    warn(("Failed to add string to readline history.\n"
+                          "Error: {}\n"
+                          "Cell: {!r}").format(e, cell))
 
     #-------------------------------------------------------------------------
     # Things related to the terminal
