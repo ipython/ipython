@@ -1,27 +1,17 @@
 """Tests for the object inspection functionality.
 """
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2011 The IPython Development Team.
-#
-#  Distributed under the terms of the BSD License.
-#
-#  The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from __future__ import print_function
 
-# Stdlib imports
 import os
 import re
 import sys
 
-# Third-party imports
 import nose.tools as nt
 
-# Our own imports
 from .. import oinspect
 from IPython.core.magic import (Magics, magics_class, line_magic,
                                 cell_magic, line_cell_magic,
@@ -32,6 +22,7 @@ from IPython.testing.decorators import skipif
 from IPython.testing.tools import AssertPrints
 from IPython.utils.path import compress_user
 from IPython.utils import py3compat
+from IPython.utils.signatures import Signature, Parameter
 
 
 #-----------------------------------------------------------------------------
@@ -49,7 +40,7 @@ ip = get_ipython()
 # defined, if any code is inserted above, the following line will need to be
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
-THIS_LINE_NUMBER = 52  # Put here the actual number of this line
+THIS_LINE_NUMBER = 43  # Put here the actual number of this line
 def test_find_source_lines():
     nt.assert_equal(oinspect.find_source_lines(test_find_source_lines), 
                     THIS_LINE_NUMBER+1)
@@ -119,6 +110,14 @@ class Call(object):
 
     def method(self, x, z=2):
         """Some method's docstring"""
+
+class HasSignature(object):
+    """This is the class docstring."""
+    __signature__ = Signature([Parameter('test', Parameter.POSITIONAL_OR_KEYWORD)])
+
+    def __init__(self, *args):
+        """This is the init docstring"""
+
 
 class SimpleClass(object):
     def method(self, x, z=2):
@@ -282,7 +281,8 @@ def test_info():
     nt.assert_equal(i['docstring'], Call.__doc__)
     nt.assert_equal(i['source'], None)
     nt.assert_true(i['isclass'])
-    nt.assert_equal(i['init_definition'], "Call(self, x, y=1)\n")
+    _self_py2 = '' if py3compat.PY3 else 'self, '
+    nt.assert_equal(i['init_definition'], "Call(%sx, y=1)\n" % _self_py2)
     nt.assert_equal(i['init_docstring'], Call.__init__.__doc__)
 
     i = inspector.info(Call, detail_level=1)
@@ -306,6 +306,11 @@ def test_info():
         i = inspector.info(OldStyle())
         nt.assert_equal(i['type_name'], 'instance')
         nt.assert_equal(i['docstring'], OldStyle.__doc__)
+
+def test_class_signature():
+    info = inspector.info(HasSignature, 'HasSignature')
+    nt.assert_equal(info['init_definition'], "HasSignature(test)\n")
+    nt.assert_equal(info['init_docstring'], HasSignature.__init__.__doc__)
 
 def test_info_awkward():
     # Just test that this doesn't throw an error.
