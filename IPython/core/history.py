@@ -27,7 +27,7 @@ except ImportError:
 import threading
 
 # Our own packages
-from traitlets.config.configurable import Configurable
+from traitlets.config.configurable import LoggingConfigurable
 from decorator import decorator
 from IPython.utils.decorators import undoc
 from IPython.utils.path import locate_profile
@@ -103,7 +103,7 @@ def catch_corrupt_db(f, self, *a, **kw):
             # The hist_file is probably :memory: or something else.
             raise
         
-class HistoryAccessorBase(Configurable):
+class HistoryAccessorBase(LoggingConfigurable):
     """An abstract class for History Accessors """
 
     def get_tail(self, n=10, raw=True, output=False, include_latest=False):
