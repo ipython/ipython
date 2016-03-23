@@ -81,7 +81,7 @@ grab the latest stable tarball of IPython `from PyPI
 
     $ tar -xzf ipython.tar.gz
     $ cd ipython
-    $ python setup.py install
+    $ pip install .
 
 If you are installing to a location (like ``/usr/local``) that requires higher
 permissions, you may need to run the last command with :command:`sudo`.
@@ -96,9 +96,9 @@ need to have Git installed on your system.  Then do:
 
 .. code-block:: bash
 
-    $ git clone --recursive https://github.com/ipython/ipython.git
+    $ git clone https://github.com/ipython/ipython.git
     $ cd ipython
-    $ python setup.py install
+    $ pip install .
 
 Some users want to be able to follow the development branch as it changes.  If
 you have :mod:`pip`, you can replace the last step by:
