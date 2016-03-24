@@ -186,3 +186,26 @@ def test_hist_file_config():
             # delete it.  I have no clue why
             pass
 
+def test_histmanager_disabled():
+    """Ensure that disabling the history manager doesn't create a database."""
+    cfg = Config()
+    cfg.HistoryAccessor.enabled = False
+
+    ip = get_ipython()
+    with TemporaryDirectory() as tmpdir:
+        hist_manager_ori = ip.history_manager
+        hist_file = os.path.join(tmpdir, 'history.sqlite')
+        cfg.HistoryManager.hist_file = hist_file
+        try:
+            ip.history_manager = HistoryManager(shell=ip, config=cfg)
+            hist = [u'a=1', u'def f():\n    test = 1\n    return test', u"b='€Æ¾÷ß'"]
+            for i, h in enumerate(hist, start=1):
+                ip.history_manager.store_inputs(i, h)
+            nt.assert_equal(ip.history_manager.input_hist_raw, [''] + hist)
+            ip.history_manager.reset()
+            ip.history_manager.end_session()
+        finally:
+            ip.history_manager = hist_manager_ori
+
+    # hist_file should not be created
+    nt.assert_false(os.path.exists(hist_file))
