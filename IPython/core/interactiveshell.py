@@ -1771,7 +1771,7 @@ class InteractiveShell(SingletonConfigurable):
         
         These are special exceptions that shouldn't show a traceback.
         """
-        self.write_err("UsageError: %s" % exc)
+        print("UsageError: %s" % exc, file=sys.stderr)
     
     def get_exception_only(self, exc_tuple=None):
         """
