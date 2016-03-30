@@ -17,8 +17,9 @@ spec.
 
 from __future__ import print_function
 
+import sys
+
 from traitlets.config.configurable import Configurable
-from IPython.utils import io
 from traitlets import List
 
 # This used to be defined here - it is imported for backwards compatibility
@@ -92,14 +93,14 @@ class DisplayPublisher(Configurable):
 
         # The default is to simply write the plain text data using io.stdout.
         if 'text/plain' in data:
-            print(data['text/plain'], file=io.stdout)
+            print(data['text/plain'])
 
     def clear_output(self, wait=False):
         """Clear the output of the cell receiving output."""
-        print('\033[2K\r', file=io.stdout, end='')
-        io.stdout.flush()
-        print('\033[2K\r', file=io.stderr, end='')
-        io.stderr.flush()
+        print('\033[2K\r', end='')
+        sys.stdout.flush()
+        print('\033[2K\r', end='')
+        sys.stderr.flush()
 
 
 class CapturingDisplayPublisher(DisplayPublisher):

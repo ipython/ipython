@@ -9,9 +9,6 @@ Utilities for warnings.  Shoudn't we just use the built in warnings module.
 from __future__ import print_function
 
 import sys
-
-from IPython.utils import io
-
 import warnings
 
 warnings.warn("The module IPython.utils.warn is deprecated, use the standard warnings module instead", DeprecationWarning)
@@ -36,9 +33,9 @@ def warn(msg,level=2,exit_val=1):
     warnings.warn("The module IPython.utils.warn is deprecated, use the standard warnings module instead", DeprecationWarning)
     if level>0:
         header = ['','','WARNING: ','ERROR: ','FATAL ERROR: ']
-        print(header[level], msg, sep='', file=io.stderr)
+        print(header[level], msg, sep='', file=sys.stderr)
         if level == 4:
-            print('Exiting.\n', file=io.stderr)
+            print('Exiting.\n', file=sys.stderr)
             sys.exit(exit_val)
 
             

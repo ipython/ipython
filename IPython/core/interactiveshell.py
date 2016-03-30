@@ -1697,11 +1697,11 @@ class InteractiveShell(SingletonConfigurable):
                 except:
                     # clear custom handler immediately
                     self.set_custom_exc((), None)
-                    print("Custom TB Handler failed, unregistering", file=io.stderr)
+                    print("Custom TB Handler failed, unregistering", file=sys.stderr)
                     # show the exception in handler first
                     stb = self.InteractiveTB.structured_traceback(*sys.exc_info())
-                    print(self.InteractiveTB.stb2text(stb), file=io.stdout)
-                    print("The original exception:", file=io.stdout)
+                    print(self.InteractiveTB.stb2text(stb))
+                    print("The original exception:")
                     stb = self.InteractiveTB.structured_traceback(
                                             (etype,value,tb), tb_offset=tb_offset
                     )
@@ -1799,7 +1799,7 @@ class InteractiveShell(SingletonConfigurable):
             try:
                 etype, value, tb = self._get_exc_info(exc_tuple)
             except ValueError:
-                self.write_err('No traceback available to show.\n')
+                print('No traceback available to show.', file=sys.stderr)
                 return
             
             if issubclass(etype, SyntaxError):
@@ -1834,7 +1834,7 @@ class InteractiveShell(SingletonConfigurable):
                 self._showtraceback(etype, value, stb)
 
         except KeyboardInterrupt:
-            self.write_err('\n' + self.get_exception_only())
+            print('\n' + self.get_exception_only(), file=sys.stderr)
 
     def _showtraceback(self, etype, evalue, stb):
         """Actually show a traceback.
@@ -1842,7 +1842,7 @@ class InteractiveShell(SingletonConfigurable):
         Subclasses may override this method to put the traceback on a different
         place, like a side channel.
         """
-        print(self.InteractiveTB.stb2text(stb), file=io.stdout)
+        print(self.InteractiveTB.stb2text(stb))
 
     def showsyntaxerror(self, filename=None):
         """Display the syntax error that just occurred.
@@ -2228,7 +2228,7 @@ class InteractiveShell(SingletonConfigurable):
                 try:
                     ec = os.system(cmd)
                 except KeyboardInterrupt:
-                    self.write_err('\n' + self.get_exception_only())
+                    print('\n' + self.get_exception_only(), file=sys.stderr)
                     ec = -2
         else:
             cmd = py3compat.unicode_to_str(cmd)
@@ -2247,7 +2247,7 @@ class InteractiveShell(SingletonConfigurable):
                 ec = subprocess.call(cmd, shell=True, executable=executable)
             except KeyboardInterrupt:
                 # intercept control-C; a long traceback is not useful here
-                self.write_err('\n' + self.get_exception_only())
+                print('\n' + self.get_exception_only(), file=sys.stderr)
                 ec = 130
             if ec > 128:
                 ec = -(ec - 128)
@@ -2351,7 +2351,7 @@ class InteractiveShell(SingletonConfigurable):
             # plain ascii works better w/ pyreadline, on some machines, so
             # we use it and only print uncolored rewrite if we have unicode
             rw = str(rw)
-            print(rw, file=io.stdout)
+            print(rw)
         except UnicodeEncodeError:
             print("------> " + cmd)
 
@@ -3056,15 +3056,19 @@ class InteractiveShell(SingletonConfigurable):
             tmp_file.close()
         return filename
 
-    # TODO:  This should be removed when Term is refactored.
+    @undoc
     def write(self,data):
-        """Write a string to the default output"""
-        io.stdout.write(data)
+        """DEPRECATED: Write a string to the default output"""
+        warn('InteractiveShell.write() is deprecated, use sys.stdout instead',
+             DeprecationWarning, stacklevel=2)
+        sys.stdout.write(data)
 
-    # TODO:  This should be removed when Term is refactored.
+    @undoc
     def write_err(self,data):
-        """Write a string to the default error output"""
-        io.stderr.write(data)
+        """DEPRECATED: Write a string to the default error output"""
+        warn('InteractiveShell.write_err() is deprecated, use sys.stderr instead',
+             DeprecationWarning, stacklevel=2)
+        sys.stderr.write(data)
 
     def ask_yes_no(self, prompt, default=None, interrupt=None):
         if self.quiet:
