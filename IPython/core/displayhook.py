@@ -14,7 +14,6 @@ import io as _io
 import tokenize
 
 from traitlets.config.configurable import Configurable
-from IPython.utils import io
 from IPython.utils.py3compat import builtin_mod, cast_unicode_py2
 from traitlets import Instance, Float
 from warnings import warn
@@ -113,10 +112,10 @@ class DisplayHook(Configurable):
         ``io.stdout``.
         """
         # Use write, not print which adds an extra space.
-        io.stdout.write(self.shell.separate_out)
+        sys.stdout.write(self.shell.separate_out)
         outprompt = self.shell.prompt_manager.render('out')
         if self.do_full_cache:
-            io.stdout.write(outprompt)
+            sys.stdout.write(outprompt)
 
     def compute_format_data(self, result):
         """Compute format data of the object to be displayed.
@@ -185,7 +184,7 @@ class DisplayHook(Configurable):
                 # But avoid extraneous empty lines.
                 result_repr = '\n' + result_repr
 
-        print(result_repr, file=io.stdout)
+        print(result_repr)
 
     def update_user_ns(self, result):
         """Update user_ns with various things like _, __, _1, etc."""
@@ -229,8 +228,8 @@ class DisplayHook(Configurable):
 
     def finish_displayhook(self):
         """Finish up all displayhook activities."""
-        io.stdout.write(self.shell.separate_out2)
-        io.stdout.flush()
+        sys.stdout.write(self.shell.separate_out2)
+        sys.stdout.flush()
 
     def __call__(self, result=None):
         """Printing with history cache management.

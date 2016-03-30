@@ -15,10 +15,12 @@ import os
 import sys
 import tempfile
 from warnings import warn
+
+from IPython.utils.decorators import undoc
 from .capture import CapturedIO, capture_output
 from .py3compat import string_types, input, PY3
 
-
+@undoc
 class IOStream:
 
     def __init__(self,stream, fallback=None):
@@ -42,6 +44,8 @@ class IOStream:
         return tpl.format(mod=cls.__module__, cls=cls.__name__, args=self.stream)
 
     def write(self,data):
+        warn('IOStream is deprecated, use sys.{stdin,stdout,stderr} instead',
+             DeprecationWarning, stacklevel=2)
         try:
             self._swrite(data)
         except:
@@ -56,6 +60,8 @@ class IOStream:
                       file=sys.stderr)
 
     def writelines(self, lines):
+        warn('IOStream is deprecated, use sys.{stdin,stdout,stderr} instead',
+             DeprecationWarning, stacklevel=2)
         if isinstance(lines, string_types):
             lines = [lines]
         for line in lines:

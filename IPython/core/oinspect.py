@@ -32,7 +32,6 @@ from IPython.core import page
 from IPython.lib.pretty import pretty
 from IPython.testing.skipdoctest import skip_doctest_py3
 from IPython.utils import PyColorize
-from IPython.utils import io
 from IPython.utils import openpy
 from IPython.utils import py3compat
 from IPython.utils.dir2 import safe_hasattr
@@ -427,7 +426,7 @@ class Inspector(Colorable):
         if output is None:
             self.noinfo('definition header',oname)
         else:
-            print(header,self.format(output), end=' ', file=io.stdout)
+            print(header,self.format(output), end=' ')
 
     # In Python 3, all classes are new-style, so they all have __init__.
     @skip_doctest_py3

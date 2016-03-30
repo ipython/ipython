@@ -15,6 +15,7 @@ import json
 import mimetypes
 import os
 import struct
+import sys
 import warnings
 
 from IPython.utils.py3compat import (string_types, cast_bytes_py2, cast_unicode,
@@ -938,11 +939,10 @@ def clear_output(wait=False):
     if InteractiveShell.initialized():
         InteractiveShell.instance().display_pub.clear_output(wait)
     else:
-        from IPython.utils import io
-        print('\033[2K\r', file=io.stdout, end='')
-        io.stdout.flush()
-        print('\033[2K\r', file=io.stderr, end='')
-        io.stderr.flush()
+        print('\033[2K\r', end='')
+        sys.stdout.flush()
+        print('\033[2K\r', end='')
+        sys.stderr.flush()
 
 
 @skip_doctest

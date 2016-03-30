@@ -118,7 +118,6 @@ from IPython.core import debugger
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.excolors import exception_colors
 from IPython.utils import PyColorize
-from IPython.utils import io
 from IPython.utils import openpy
 from IPython.utils import path as util_path
 from IPython.utils import py3compat
@@ -523,7 +522,7 @@ class TBTools(colorable.Colorable):
 
         - Any object with 'write' and 'flush' attributes.
         """
-        return io.stdout if self._ostream is None else self._ostream
+        return sys.stdout if self._ostream is None else self._ostream
 
     def _set_ostream(self, val):
         assert val is None or (hasattr(val, 'write') and hasattr(val, 'flush'))

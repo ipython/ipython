@@ -33,7 +33,7 @@ import sys
 
 from IPython import get_ipython
 from IPython.utils import PyColorize, ulinecache
-from IPython.utils import coloransi, io, py3compat
+from IPython.utils import coloransi, py3compat
 from IPython.core.excolors import exception_colors
 from IPython.testing.skipdoctest import skip_doctest
 
@@ -221,7 +221,7 @@ class Pdb(OldPdb):
                 raise ValueError("Context must be a positive integer")
 
         if has_pydb and completekey is None:
-            OldPdb.__init__(self,stdin=stdin,stdout=io.stdout)
+            OldPdb.__init__(self,stdin=stdin,stdout=sys.stdout)
         else:
             OldPdb.__init__(self,completekey,stdin,stdout)
 
@@ -369,7 +369,7 @@ class Pdb(OldPdb):
                 raise ValueError("Context must be a positive integer")
         except (TypeError, ValueError):
                 raise ValueError("Context must be a positive integer")
-        print(self.format_stack_entry(frame_lineno, '', context), file=io.stdout)
+        print(self.format_stack_entry(frame_lineno, '', context))
 
         # vds: >>
         frame, lineno = frame_lineno
@@ -513,7 +513,7 @@ class Pdb(OldPdb):
                 src.append(line)
                 self.lineno = lineno
 
-            print(''.join(src), file=io.stdout)
+            print(''.join(src))
 
         except KeyboardInterrupt:
             pass

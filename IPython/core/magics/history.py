@@ -15,6 +15,7 @@ from __future__ import print_function
 
 # Stdlib
 import os
+import sys
 from io import open as io_open
 
 # Our own packages
@@ -147,7 +148,7 @@ class HistoryMagics(Magics):
         # Check if output to specific file was requested.
         outfname = args.filename
         if not outfname:
-            outfile = io.stdout  # default
+            outfile = sys.stdout  # default
             # We don't want to close stdout at the end!
             close_at_end = False
         else:
