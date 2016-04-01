@@ -20,11 +20,12 @@ from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.key_binding.bindings.vi import ViStateFilter
 from prompt_toolkit.keys import Keys
+from prompt_toolkit.layout.lexers import Lexer
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.styles import PygmentsStyle
 
 from pygments.styles import get_style_by_name
-from pygments.lexers import Python3Lexer, PythonLexer
+from pygments.lexers import Python3Lexer, BashLexer, PythonLexer
 from pygments.token import Token
 
 from .pt_inputhooks import get_inputhook_func
@@ -48,6 +49,22 @@ class IPythonPTCompleter(Completer):
         start_pos = -len(used)
         for m in matches:
             yield Completion(m, start_position=start_pos)
+
+
+class IPythonPTLexer(Lexer):
+    """
+    Wrapper around PythonLexer and BashLexer.
+    """
+    def __init__(self):
+        self.python_lexer = PygmentsLexer(Python3Lexer if PY3 else PythonLexer)
+        self.shell_lexer = PygmentsLexer(BashLexer)
+
+    def lex_document(self, cli, document):
+        if document.text.startswith('!'):
+            return self.shell_lexer.lex_document(cli, document)
+        else:
+            return self.python_lexer.lex_document(cli, document)
+
 
 class TerminalInteractiveShell(InteractiveShell):
     colors_force = True
@@ -185,7 +202,7 @@ class TerminalInteractiveShell(InteractiveShell):
                                             style_dict=style_overrides)
 
         app = create_prompt_application(multiline=True,
-                            lexer=PygmentsLexer(Python3Lexer if PY3 else PythonLexer),
+                            lexer=IPythonPTLexer(),
                             get_prompt_tokens=self.get_prompt_tokens,
                             get_continuation_tokens=self.get_continuation_tokens,
                             key_bindings_registry=kbmanager.registry,
