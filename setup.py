@@ -195,7 +195,7 @@ install_requires = [
     'pickleshare',
     'simplegeneric>0.8',
     'traitlets',
-    'prompt_toolkit>=0.58',
+    'prompt_toolkit>=0.60',
     'pygments',
     'backports.shutil_get_terminal_size',
 ]

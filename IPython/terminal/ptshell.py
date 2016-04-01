@@ -201,6 +201,7 @@ class TerminalInteractiveShell(InteractiveShell):
                             enable_history_search=True,
                             style=style,
                             mouse_support=self.mouse_support,
+                            reserve_space_for_menu=6,
         )
 
         self.pt_cli = CommandLineInterface(app,
