@@ -3,6 +3,7 @@ from __future__ import print_function
 
 import os
 import sys
+import signal
 
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.utils.py3compat import PY3, cast_unicode_py2, input
@@ -135,6 +136,12 @@ class TerminalInteractiveShell(InteractiveShell):
         @kbmanager.registry.add_binding(Keys.ControlC, filter=HasFocus(DEFAULT_BUFFER))
         def _(event):
             event.current_buffer.reset()
+
+        supports_suspend = Condition(lambda cli: hasattr(signal, 'SIGTSTP'))
+
+        @kbmanager.registry.add_binding(Keys.ControlZ, filter=supports_suspend)
+        def _(event):
+            event.cli.suspend_to_background()
 
         @Condition
         def cursor_in_leading_ws(cli):
