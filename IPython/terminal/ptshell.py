@@ -344,13 +344,10 @@ class TerminalInteractiveShell(InteractiveShell):
                 self.showtraceback()
             else:
                 try:
-                    f = open(err.filename)
-                    try:
+                    with open(err.filename) as f:
                         # This should be inside a display_trap block and I
                         # think it is.
                         sys.displayhook(f.read())
-                    finally:
-                        f.close()
                 except:
                     self.showtraceback()
 
