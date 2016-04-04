@@ -75,6 +75,13 @@ from IPython.utils.process import arg_split
 from IPython.utils.py3compat import builtin_mod, string_types, PY3, cast_unicode_py2
 from traitlets import CBool, Enum
 
+try:
+    import jedi
+    import jedi.api.helpers
+    import jedi.parser.user_context
+except ImportError:
+    pass
+
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
@@ -574,6 +581,9 @@ class IPCompleter(Completer):
         When False [default]: the __all__ attribute is ignored 
         """
     )
+    use_jedi_completions = CBool(default_value=True, config=True,
+        help="""Use Jedi to generate autocompletions.
+        """)
 
     def __init__(self, shell=None, namespace=None, global_namespace=None,
                  use_readline=True, config=None, **kwargs):
@@ -763,9 +773,59 @@ class IPCompleter(Completer):
             comp += [ pre+m for m in line_magics if m.startswith(bare_text)]
         return [cast_unicode_py2(c) for c in comp]
 
-    def python_matches(self, text):
+    def python_jedi_matches(self, text):
+        """Match attributes or global Python names using Jedi."""
+        namespaces = []
+        if self.namespace is None:
+            import __main__
+            namespaces.append(__main__.__dict__)
+        else:
+            namespaces.append(self.namespace)
+        if self.global_namespace is not None:
+            namespaces.append(self.global_namespace)
+
+        # From Jedi docs
+        sys.path.insert(0, os.getcwd())
+        # Calling Python doesn't have a path, so add to sys.path.
+        try:
+            interpreter = jedi.Interpreter(text, namespaces)
+            path = jedi.parser.user_context.UserContext(text, (1, len(text))).get_path_until_cursor()
+            path, dot, like = jedi.api.helpers.completion_parts(path)
+            before = text[:len(text) - len(like)]
+            completions = interpreter.completions()
+        finally:
+            sys.path.pop(0)
+
+        with open('tmp.txt', 'w') as f:
+            print('before:', before, file=f)
+            for c in completions:
+                print('', file=f)
+                print('full_name:', c.full_name, file=f)
+                print('name:', c.name, file=f)
+                print('name_with_symbols:', c.name_with_symbols, file=f)
+                print('description:', c.description, file=f)
+                print('type:', c.type, file=f)
+
+        completion_text = [c.name_with_symbols for c in completions]
+
+        if self.omit__names:
+            if self.omit__names == 1:
+                # true if txt is _not_ a __ name, false otherwise:
+                no__name = lambda txt: not txt.startswith('__')
+            else:
+                # true if txt is _not_ a _ name, false otherwise:
+                no__name = lambda txt: not txt.startswith('_')
+            completion_text = filter(no__name, completion_text)
+
+        matches = [before + c_text for c_text in completion_text]
+        return matches
+
+    def python_matches(self,text):
         """Match attributes or global python names"""
-        
+        # Jedi completion
+        if self.use_jedi_completions:
+            return self.python_jedi_matches(text)
+
         #io.rprint('Completer->python_matches, txt=%r' % text) # dbg
         if "." in text:
             try:
