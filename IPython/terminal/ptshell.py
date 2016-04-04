@@ -49,8 +49,12 @@ class IPythonPTCompleter(Completer):
         )
         start_pos = -len(used)
         for m in matches:
+            # TODO: Use Jedi to determine meta_text
+            # (Jedi currently has a bug that results in incorrect information.)
+            # meta_text = ''
+            # yield Completion(m, start_position=start_pos,
+            #                  display_meta=meta_text)
             yield Completion(m, start_position=start_pos)
-
 
 class IPythonPTLexer(Lexer):
     """

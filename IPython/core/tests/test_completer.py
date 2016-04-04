@@ -181,7 +181,7 @@ def test_no_ascii_back_completion():
     ip = get_ipython()
     with TemporaryWorkingDirectory():  # Avoid any filename completions
         # single ascii letter that don't have yet completions
-        for letter in 'fjqyJMQVWY' :
+        for letter in 'jJ' :
             name, matches = ip.complete('\\'+letter)
             nt.assert_equal(matches, [])
 
@@ -264,19 +264,36 @@ def test_local_file_completions():
         # Now check with a function call
         cmd = 'a = f("%s' % prefix
         c = ip.complete(prefix, cmd)[1]
-        comp = [prefix+s for s in suffixes]
-        nt.assert_equal(c, comp)
+        comp = set(prefix+s for s in suffixes)
+        nt.assert_true(comp.issubset(set(c)))
 
 
 def test_greedy_completions():
     ip = get_ipython()
     ip.ex('a=list(range(5))')
     _,c = ip.complete('.',line='a[0].')
-    nt.assert_false('a[0].real' in c,
+    nt.assert_false('.real' in c,
                     "Shouldn't have completed on a[0]: %s"%c)
     with greedy_completion():
-        _,c = ip.complete('.',line='a[0].')
-        nt.assert_true('a[0].real' in c, "Should have completed on a[0]: %s"%c)
+        def _(line, cursor_pos, expect, message):
+            _,c = ip.complete('.', line=line, cursor_pos=cursor_pos)
+            nt.assert_in(expect, c, message%c)
+
+        yield _, 'a[0].', 5, '.real', "Should have completed on a[0].: %s"
+        yield _, 'a[0].r', 6, '.real', "Should have completed on a[0].r: %s"
+        
+        if sys.version_info > (3,4):
+            yield _, 'a[0].from_', 10, '.from_bytes', "Should have completed on a[0].from_: %s"
+       
+
+        def _2():
+            # jedi bug, this will be empty, makeitfail for now, 
+            # once jedi is fixed, switch to assert_in
+            # https://github.com/davidhalter/jedi/issues/718
+            _,c = ip.complete('.',line='a[0].from', cursor_pos=9)
+            nt.assert_not_in('.from_bytes', c, "Should not have completed on a[0].from (jedi bug), if fails, update test to assert_in: %s"%c)
+        yield _2
+
 
 
 def test_omit__names():
@@ -321,20 +338,6 @@ def test_limit_to__all__False_ok():
     nt.assert_in('d.x', matches)
 
 
-def test_limit_to__all__True_ok():
-    ip = get_ipython()
-    c = ip.Completer
-    ip.ex('class D: x=24')
-    ip.ex('d=D()')
-    ip.ex("d.__all__=['z']")
-    cfg = Config()
-    cfg.IPCompleter.limit_to__all__ = True
-    c.update_config(cfg)
-    s, matches = c.complete('d.')
-    nt.assert_in('d.z', matches)
-    nt.assert_not_in('d.x', matches)
-
-
 def test_get__all__entries_ok():
     class A(object):
         __all__ = ['x', 1]
@@ -366,7 +369,6 @@ def test_func_kw_completions():
 
 
 def test_default_arguments_from_docstring():
-    doc = min.__doc__
     ip = get_ipython()
     c = ip.Completer
     kwd = c._default_arguments_from_docstring(
@@ -782,6 +784,12 @@ def test_aimport_module_completer():
     _, matches = ip.complete('i', '%aimport i')
     nt.assert_in('io', matches)
     nt.assert_not_in('int', matches)
+
+def test_nested_import_module_completer():
+    ip = get_ipython()
+    _, matches = ip.complete(None, 'import IPython.co', 17)
+    nt.assert_in('IPython.core', matches)
+    nt.assert_not_in('import IPython.core', matches)
 
 def test_import_module_completer():
     ip = get_ipython()

@@ -182,7 +182,7 @@ extras_require = dict(
     parallel = ['ipyparallel'],
     qtconsole = ['qtconsole'],
     doc = ['Sphinx>=1.3'],
-    test = ['nose>=0.10.1', 'requests', 'testpath', 'pygments'],
+    test = ['nose>=0.10.1', 'requests', 'testpath', 'pygments', 'path.py'],
     terminal = [],
     kernel = ['ipykernel'],
     nbformat = ['nbformat'],
@@ -191,6 +191,7 @@ extras_require = dict(
 )
 install_requires = [
     'setuptools>=18.5',
+    'jedi',
     'decorator',
     'pickleshare',
     'simplegeneric>0.8',
