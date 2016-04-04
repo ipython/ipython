@@ -75,6 +75,7 @@ from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import (format_screen, LSString, SList,
                                 DollarFormatter)
+from IPython.utils.tempdir import TemporaryDirectory
 from traitlets import (Integer, Bool, CBool, CaselessStrEnum, Enum,
                                      List, Dict, Unicode, Instance, Type)
 from warnings import warn
@@ -85,11 +86,11 @@ try:
     import docrepr.sphinxify as sphx
 
     def docformat(doc):
-        dirname = tempfile.mkdtemp(prefix='ipython_sphinxify_')
-        return {
-            'text/html': sphx.sphinxify(doc, dirname),
-            'text/plain': doc
-        }
+        with TemporaryDirectory() as dirname:
+            return {
+                'text/html': sphx.sphinxify(doc, dirname),
+                'text/plain': doc
+            }
 except:
     docformat = None
 
