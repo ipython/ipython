@@ -1432,6 +1432,7 @@ class SyntaxTB(ListTB):
             newtext = ulinecache.getline(value.filename, value.lineno)
             if newtext:
                 value.text = newtext
+        self.last_syntax_error = value
         return super(SyntaxTB, self).structured_traceback(etype, value, elist,
                                                           tb_offset=tb_offset, context=context)
 

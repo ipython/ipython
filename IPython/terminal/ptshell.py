@@ -4,7 +4,9 @@ from __future__ import print_function
 import os
 import sys
 import signal
+from warnings import warn
 
+from IPython.core.error import TryNext
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.utils.py3compat import PY3, cast_unicode_py2, input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
@@ -71,6 +73,9 @@ class TerminalInteractiveShell(InteractiveShell):
     colors_force = True
 
     pt_cli = None
+
+    autoedit_syntax = CBool(False, config=True,
+                            help="auto editing of files with syntax errors.")
 
     confirm_exit = CBool(True, config=True,
         help="""
@@ -295,6 +300,8 @@ class TerminalInteractiveShell(InteractiveShell):
             else:
                 if code:
                     self.run_cell(code, store_history=True)
+                    if self.autoedit_syntax and self.SyntaxTB.last_syntax_error:
+                        self.edit_syntax_error()
 
     def mainloop(self):
         # An extra layer of protection in case someone mashing Ctrl-C breaks
@@ -316,6 +323,68 @@ class TerminalInteractiveShell(InteractiveShell):
             self._inputhook = get_inputhook_func(gui)
         else:
             self._inputhook = None
+
+    # Methods to support auto-editing of SyntaxErrors:
+
+    def edit_syntax_error(self):
+        """The bottom half of the syntax error handler called in the main loop.
+
+        Loop until syntax error is fixed or user cancels.
+        """
+
+        while self.SyntaxTB.last_syntax_error:
+            # copy and clear last_syntax_error
+            err = self.SyntaxTB.clear_err_state()
+            if not self._should_recompile(err):
+                return
+            try:
+                # may set last_syntax_error again if a SyntaxError is raised
+                self.safe_execfile(err.filename, self.user_ns)
+            except:
+                self.showtraceback()
+            else:
+                try:
+                    f = open(err.filename)
+                    try:
+                        # This should be inside a display_trap block and I
+                        # think it is.
+                        sys.displayhook(f.read())
+                    finally:
+                        f.close()
+                except:
+                    self.showtraceback()
+
+    def _should_recompile(self, e):
+        """Utility routine for edit_syntax_error"""
+
+        if e.filename in ('<ipython console>', '<input>', '<string>',
+                          '<console>', '<BackgroundJob compilation>',
+                          None):
+            return False
+        try:
+            if (self.autoedit_syntax and
+                    not self.ask_yes_no(
+                        'Return to editor to correct syntax error? '
+                        '[Y/n] ', 'y')):
+                return False
+        except EOFError:
+            return False
+
+        def int0(x):
+            try:
+                return int(x)
+            except TypeError:
+                return 0
+
+        # always pass integer line and offset values to editor hook
+        try:
+            self.hooks.fix_error_editor(e.filename,
+                                        int0(e.lineno), int0(e.offset),
+                                        e.msg)
+        except TryNext:
+            warn('Could not open editor')
+            return False
+        return True
 
 if __name__ == '__main__':
     TerminalInteractiveShell.instance().interact()
