@@ -9,7 +9,7 @@ from IPython.core.interactiveshell import InteractiveShell
 from IPython.utils.py3compat import PY3, cast_unicode_py2, input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
-from traitlets import Bool, Unicode, Dict
+from traitlets import Bool, CBool, Unicode, Dict
 
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.enums import DEFAULT_BUFFER
@@ -72,6 +72,12 @@ class TerminalInteractiveShell(InteractiveShell):
 
     pt_cli = None
 
+    confirm_exit = CBool(True, config=True,
+        help="""
+        Set to confirm when you try to exit IPython with an EOF (Control-D
+        in Unix, Control-Z/Enter in Windows). By typing 'exit' or 'quit',
+        you can force a direct exit without any confirmation.""",
+    )
     vi_mode = Bool(False, config=True,
         help="Use vi style keybindings at the prompt",
     )
@@ -282,7 +288,8 @@ class TerminalInteractiveShell(InteractiveShell):
             try:
                 code = self.prompt_for_code()
             except EOFError:
-                if self.ask_yes_no('Do you really want to exit ([y]/n)?','y','n'):
+                if (not self.confirm_exit) \
+                        or self.ask_yes_no('Do you really want to exit ([y]/n)?','y','n'):
                     self.ask_exit()
 
             else:
