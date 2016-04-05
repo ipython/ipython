@@ -96,7 +96,7 @@ class DisplayHook(Configurable):
         tokens = list(tokenize.generate_tokens(sio.readline))
 
         for token in reversed(tokens):
-            if token[0] in (tokenize.ENDMARKER, tokenize.COMMENT):
+            if token[0] in (tokenize.ENDMARKER, tokenize.NL, tokenize.NEWLINE, tokenize.COMMENT):
                 continue
             if (token[0] == tokenize.OP) and (token[1] == ';'):
                 return True
