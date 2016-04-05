@@ -79,8 +79,9 @@ try:
     import jedi
     import jedi.api.helpers
     import jedi.parser.user_context
+    JEDI_INSTALLED = True
 except ImportError:
-    pass
+    JEDI_INSTALLED = False
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -581,7 +582,7 @@ class IPCompleter(Completer):
         When False [default]: the __all__ attribute is ignored 
         """
     )
-    use_jedi_completions = CBool(default_value=True, config=True,
+    use_jedi_completions = CBool(default_value=JEDI_INSTALLED, config=True,
         help="""Use Jedi to generate autocompletions.
         """)
 
