@@ -272,7 +272,6 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     _module_to_run_changed = _file_to_run_changed
 
     # internal, not-configurable
-    interact=Bool(True)
     something_to_run=Bool(False)
 
     def parse_command_line(self, argv=None):
