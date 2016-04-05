@@ -195,6 +195,7 @@ install_requires = [
     'pickleshare',
     'simplegeneric>0.8',
     'traitlets',
+    'backports.shutil_get_terminal_size',
 ]
 
 # Platform-specific dependencies:
