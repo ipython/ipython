@@ -202,12 +202,8 @@ class BaseIPythonApplication(Application):
             import time
             self.log.warning("Subcommand `ipython {sub}` is deprecated and will be removed "
                              "in future versions.".format(sub=subc))
-            self.log.warning("You likely want to use `jupyter {sub}`... continue "
-                             "in 5 sec. Press Ctrl-C to quit now.".format(sub=subc))
-            try:
-                time.sleep(5)
-            except KeyboardInterrupt:
-                sys.exit(1)
+            self.log.warning("You likely want to use `jupyter {sub}`... in the"
+                             "future".format(sub=subc))
         return super(BaseIPythonApplication, self).initialize_subcommand(subc, argv)
 
     def init_crash_handler(self):
