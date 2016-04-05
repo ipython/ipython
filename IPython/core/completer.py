@@ -53,6 +53,8 @@ Notes:
 # Some of this code originated from rlcompleter in the Python standard library
 # Copyright (C) 2001 Python Software Foundation, www.python.org
 
+from __future__ import print_function
+
 import __main__
 import glob
 import inspect
@@ -347,7 +349,7 @@ class Completer(Configurable):
         defined in self.namespace or self.global_namespace that match.
 
         """
-        #print 'Completer->global_matches, txt=%r' % text # dbg
+        #print('Completer->global_matches, txt=%r' % text) # dbg
         matches = []
         match_append = matches.append
         n = len(text)
@@ -754,7 +756,7 @@ class IPCompleter(Completer):
 
     def magic_matches(self, text):
         """Match magics"""
-        #print 'Completer->magic_matches:',text,'lb',self.text_until_cursor # dbg
+        #print('Completer->magic_matches:',text,'lb',self.text_until_cursor) # dbg
         # Get all shell magics now rather than statically, so magics loaded at
         # runtime show up too.
         lsm = self.shell.magics_manager.lsmagic()
@@ -1146,7 +1148,7 @@ class IPCompleter(Completer):
         event.command = cmd
         event.text_until_cursor = self.text_until_cursor
 
-        #print "\ncustom:{%s]\n" % event # dbg
+        #print("\ncustom:{%s]\n" % event) # dbg
 
         # for foo etc, try also to find completer for %foo
         if not cmd.startswith(self.magic_escape):
