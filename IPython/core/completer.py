@@ -787,27 +787,26 @@ class IPCompleter(Completer):
         if self.global_namespace is not None:
             namespaces.append(self.global_namespace)
 
-        # From Jedi docs
-        sys.path.insert(0, os.getcwd())
-        # Calling Python doesn't have a path, so add to sys.path.
-        try:
-            interpreter = jedi.Interpreter(text, namespaces)
-            path = jedi.parser.user_context.UserContext(text, (1, len(text))).get_path_until_cursor()
-            path, dot, like = jedi.api.helpers.completion_parts(path)
-            before = text[:len(text) - len(like)]
-            completions = interpreter.completions()
-        finally:
-            sys.path.pop(0)
+        # Differs from Jedi docs, does not insert and pop cwd in sys.path:
+        # http://jedi.jedidjah.ch/en/latest/_modules/jedi/utils.html
+        interpreter = jedi.Interpreter(text, namespaces)
+        path = jedi.parser.user_context.UserContext(text, \
+                (1, len(text))).get_path_until_cursor()
+        path, dot, like = jedi.api.helpers.completion_parts(path)
+        before = text[:len(text) - len(like)]
+        completions = interpreter.completions()
 
-        with open('tmp.txt', 'w') as f:
-            print('before:', before, file=f)
-            for c in completions:
-                print('', file=f)
-                print('full_name:', c.full_name, file=f)
-                print('name:', c.name, file=f)
-                print('name_with_symbols:', c.name_with_symbols, file=f)
-                print('description:', c.description, file=f)
-                print('type:', c.type, file=f)
+        # For debugging purposes to understand Jedi issue #713
+        # https://github.com/davidhalter/jedi/issues/713
+        # with open('tmp.txt', 'w') as f:
+        #     print('before:', before, file=f)
+        #     for c in completions:
+        #         print('', file=f)
+        #         print('full_name:', c.full_name, file=f)
+        #         print('name:', c.name, file=f)
+        #         print('name_with_symbols:', c.name_with_symbols, file=f)
+        #         print('description:', c.description, file=f)
+        #         print('type:', c.type, file=f)
 
         completion_text = [c.name_with_symbols for c in completions]
 
