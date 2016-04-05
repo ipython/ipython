@@ -274,9 +274,14 @@ class Pdb(OldPdb):
         # debugging.
         self.parser = PyColorize.Parser()
 
-        # Set the prompt
+        # Set the prompt - the default prompt is '(Pdb)'
         Colors = cst.active_colors
-        self.prompt = u'%s%s%s' % (Colors.prompt, prompt, Colors.Normal) # The default prompt is '(Pdb)'
+        if color_scheme == 'NoColor':
+            self.prompt = prompt
+        else:
+            # The colour markers are wrapped by bytes 01 and 02 so that readline
+            # can calculate the width.
+            self.prompt = u'\x01%s\x02%s\x01%s\x02' % (Colors.prompt, prompt, Colors.Normal)
 
     def set_colors(self, scheme):
         """Shorthand access to the color table scheme selector method."""
