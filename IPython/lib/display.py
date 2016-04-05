@@ -41,7 +41,7 @@ class Audio(DisplayObject):
     filename : unicode
         Path to a local file to load the data from.
     embed : boolean
-        Should the image data be embedded using a data URI (True) or should
+        Should the audio data be embedded using a data URI (True) or should
         the original source be referenced. Set this to True if you want the
         audio to playable later with no internet connection in the notebook.
 
