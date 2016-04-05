@@ -202,7 +202,7 @@ class BaseIPythonApplication(Application):
             import time
             self.log.warning("Subcommand `ipython {sub}` is deprecated and will be removed "
                              "in future versions.".format(sub=subc))
-            self.log.warning("You likely want to use `jupyter {sub}`... in the"
+            self.log.warning("You likely want to use `jupyter {sub}` in the "
                              "future".format(sub=subc))
         return super(BaseIPythonApplication, self).initialize_subcommand(subc, argv)
 
