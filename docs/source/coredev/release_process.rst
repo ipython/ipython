@@ -102,7 +102,7 @@ release is: ``1.3rc1``. Notice that there is no separator between the '3' and
 the 'r'.
 
 
-Commit the changes to release.py and jsversion::
+Commit the changes to release.py::
 
     git commit -am "release $VERSION"
     git push origin $BRANCH
