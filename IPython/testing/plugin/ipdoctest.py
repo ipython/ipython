@@ -28,6 +28,8 @@ import sys
 import traceback
 import unittest
 
+from testpath import modified_env
+
 from inspect import getmodule
 
 # We are overriding the default doctest runner, so we need to import a few
@@ -587,8 +589,10 @@ class IPDocTestRunner(doctest.DocTestRunner,object):
 
         test.globs.update(_ip.user_ns)
 
-        return super(IPDocTestRunner,self).run(test,
-                                               compileflags,out,clear_globs)
+        # Override terminal size to standardise traceback format
+        with modified_env({'COLUMNS': '80', 'LINES': '24'}):
+            return super(IPDocTestRunner,self).run(test,
+                                                   compileflags,out,clear_globs)
 
 
 class DocFileCase(doctest.DocFileCase):
