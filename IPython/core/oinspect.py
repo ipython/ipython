@@ -17,6 +17,7 @@ __all__ = ['Inspector','InspectColors']
 # stdlib modules
 import inspect
 import linecache
+import warnings
 import os
 from textwrap import dedent
 import types
@@ -693,6 +694,8 @@ class Inspector(Colorable):
     def info(self, obj, oname='', formatter=None, info=None, detail_level=0):
         """DEPRECATED. Compute a dict with detailed information about an object.
         """
+        warnings.warn('Inspector.info is deprecated as of IPython 5.0',
+                      DeprecationWarning, stacklevel=2)
         return self._info(obj, oname=oname, info=info, detail_level=detail_level)
 
     def _info(self, obj, oname='', info=None, detail_level=0):
