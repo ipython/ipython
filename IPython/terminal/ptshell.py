@@ -4,7 +4,9 @@ from __future__ import print_function
 import os
 import sys
 import signal
+import unicodedata
 from warnings import warn
+from wcwidth import wcwidth
 
 from IPython.core.error import TryNext
 from IPython.core.interactiveshell import InteractiveShell
@@ -35,7 +37,6 @@ from .pt_inputhooks import get_inputhook_func
 from .interactiveshell import get_default_editor, TerminalMagics
 
 
-
 class IPythonPTCompleter(Completer):
     """Adaptor to provide IPython completions to prompt_toolkit"""
     def __init__(self, ipy_completer):
@@ -51,6 +52,22 @@ class IPythonPTCompleter(Completer):
         )
         start_pos = -len(used)
         for m in matches:
+            m = unicodedata.normalize('NFC', m)
+
+            # When the first character of the completion has a zero length,
+            # then it's probably a decomposed unicode character. E.g. caused by
+            # the "\dot" completion. Try to compose again with the previous
+            # character.
+            if wcwidth(m[0]) == 0:
+                if document.cursor_position + start_pos > 0:
+                    char_before = document.text[document.cursor_position + start_pos - 1]
+                    m = unicodedata.normalize('NFC', char_before + m)
+
+                    # Yield the modified completion instead, if this worked.
+                    if wcwidth(m[0:1]) == 1:
+                        yield Completion(m, start_position=start_pos - 1)
+                        continue
+
             yield Completion(m, start_position=start_pos)
 
 
