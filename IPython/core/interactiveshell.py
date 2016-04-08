@@ -91,7 +91,7 @@ try:
                 'text/html': sphx.sphinxify(doc, dirname),
                 'text/plain': doc
             }
-except:
+except ImportError:
     docformat = None
 
 #-----------------------------------------------------------------------------
