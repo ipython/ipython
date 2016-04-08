@@ -876,12 +876,10 @@ class Inspector(Colorable):
             # Call form docstring for callable instances
             if safe_hasattr(obj, '__call__') and not is_simple_callable(obj):
                 call_def = self._getdef(obj.__call__, oname)
-                if call_def:
-                    call_def = call_def
+                if call_def and (call_def != out.get('definition')):
                     # it may never be the case that call def and definition differ,
                     # but don't include the same signature twice
-                    if call_def != out.get('definition'):
-                        out['call_def'] = call_def
+                    out['call_def'] = call_def
                 call_ds = getdoc(obj.__call__)
                 # Skip Python's auto-generated docstrings
                 if call_ds == _func_call_docstring:
