@@ -15,7 +15,7 @@ from IPython.core import ultratb, compilerop
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.core.interactiveshell import DummyMod
 from IPython.core.interactiveshell import InteractiveShell
-from IPython.terminal.interactiveshell import TerminalInteractiveShell
+from IPython.terminal.ptshell import TerminalInteractiveShell
 from IPython.terminal.ipapp import load_default_config
 
 from traitlets import Bool, CBool, Unicode
@@ -136,6 +136,9 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         else:
             self.old_banner2 = ''
 
+        if self.display_banner:
+            self.show_banner()
+
         # Call the embedding code with a stack depth of 1 so it can skip over
         # our call and get the original caller's namespaces.
         self.mainloop(local_ns, module, stack_depth=stack_depth,
@@ -182,6 +185,9 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
             module = DummyMod()
             module.__dict__ = global_ns
 
+        if (display_banner is not None):
+            warnings.warn("The display_banner parameter is deprecated.", DeprecationWarning)
+
         # Get locals and globals from caller
         if ((local_ns is None or module is None or compile_flags is None)
             and self.default_user_namespaces):
@@ -226,7 +232,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         self.set_completer_frame()
 
         with self.builtin_trap, self.display_trap:
-            self.interact(display_banner=display_banner)
+            self.interact()
         
         # now, purge out the local namespace of IPython's hidden variables.
         if local_ns is not None:
