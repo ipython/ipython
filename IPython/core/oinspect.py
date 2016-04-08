@@ -694,7 +694,8 @@ class Inspector(Colorable):
     def info(self, obj, oname='', formatter=None, info=None, detail_level=0):
         """DEPRECATED. Compute a dict with detailed information about an object.
         """
-        warnings.warn('Inspector.info is deprecated as of IPython 5.0',
+        if formatter is not None:
+            warnings.warn('Inspector.info(formatter) keyword is deprecated as of IPython 5.0 and will have no effects.',
                       DeprecationWarning, stacklevel=2)
         return self._info(obj, oname=oname, info=info, detail_level=detail_level)
 
