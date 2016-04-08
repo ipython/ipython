@@ -61,12 +61,12 @@ class TimeitResult(object):
     """
     Object returned by the timeit magic with info about the run.
 
-    Contain the following attributes :
+    Contains the following attributes :
 
-    loops: (int) number of loop done per measurement
-    repeat: (int) number of time the mesurement has been repeated
-    best: (float) best execusion time / number
-    all_runs: (list of float) execusion time of each run (in s)
+    loops: (int) number of loops done per measurement
+    repeat: (int) number of times the measurement has been repeated
+    best: (float) best execution time / number
+    all_runs: (list of float) execution time of each run (in s)
     compile_time: (float) time of statement compilation (s)
 
     """
