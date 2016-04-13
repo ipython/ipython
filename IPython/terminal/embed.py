@@ -197,7 +197,14 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
                 local_ns = call_frame.f_locals
             if module is None:
                 global_ns = call_frame.f_globals
-                module = sys.modules[global_ns['__name__']]
+                try:
+                    module = sys.modules[global_ns['__name__']]
+                except KeyError:
+                    warnings.warn("Failed to get module %s" % \
+                        global_ns.get('__name__', 'unknown module')
+                    )
+                    module = DummyMod()
+                    module.__dict__ = global_ns
             if compile_flags is None:
                 compile_flags = (call_frame.f_code.co_flags &
                                  compilerop.PyCF_MASK)
