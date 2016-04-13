@@ -799,6 +799,17 @@ class IPCompleter(Completer):
             before = dot
         else:
             before = line_buffer[:len(line_buffer) - len(like)]
+
+
+        def trim_start(completion):
+            """completions need to start with `text`, trim the beginning until it does"""
+            if text in completion and not (completion.startswith(text)):
+                start_index = completion.index(text)
+                if cursor_pos:
+                     assert start_index <  cursor_pos
+                return completion[start_index:]
+            return completion
+        
         completions = interpreter.completions()
 
         completion_text = [c.name_with_symbols for c in completions]
@@ -813,8 +824,7 @@ class IPCompleter(Completer):
             completion_text = filter(no__name, completion_text)
 
 
-        return [before + c_text for c_text in completion_text]
-    
+        return [trim_start(before + c_text) for c_text in completion_text]
 
 
     def python_matches(self ,text):
