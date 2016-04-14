@@ -400,5 +400,10 @@ class TerminalInteractiveShell(InteractiveShell):
             return False
         return True
 
+    # Run !system commands directly, not through pipes, so terminal programs
+    # work correctly.
+    system = InteractiveShell.system_raw
+
+
 if __name__ == '__main__':
     TerminalInteractiveShell.instance().interact()
