@@ -36,3 +36,8 @@ def skip_doctest_py3(f):
     """Decorator - skip the doctest under Python 3."""
     f.skip_doctest = (sys.version_info[0] >= 3)
     return f
+
+def skip_doctest_py2(f):
+    """Decorator - skip the doctest under Python 3."""
+    f.skip_doctest = (sys.version_info[0] < 3)
+    return f
