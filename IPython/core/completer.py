@@ -713,7 +713,7 @@ class IPCompleter(Completer):
             text = os.path.expanduser(text)
 
         if text == "":
-            return [cast_unicode_py2(text_prefix + protect_filename(f)) for f in self.glob("*")]
+            return [text_prefix + cast_unicode_py2(protect_filename(f)) for f in self.glob("*")]
 
         # Compute the matches from the filesystem
         m0 = self.clean_glob(text.replace('\\',''))
