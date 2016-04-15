@@ -365,6 +365,13 @@ def find_source_lines(obj):
 
     return lineno
 
+from pygments import highlight
+from pygments.lexers import PythonLexer
+from pygments.formatters import HtmlFormatter
+
+def pylight(code):
+    return highlight(code, PythonLexer(), HtmlFormatter(noclasses=True))
+
 
 class Inspector(Colorable):
 
@@ -470,7 +477,7 @@ class Inspector(Colorable):
         lines = []
         ds = getdoc(obj)
         if formatter:
-            ds = formatter(ds)
+            ds = formatter(ds).get('plain/text', ds)
         if ds:
             lines.append(head("Class docstring:"))
             lines.append(indent(ds))
@@ -607,7 +614,7 @@ class Inspector(Colorable):
         def code_formatter(text):
             return {
                 'text/plain': self.format(text),
-                'text/html': '<pre>' + text + '</pre>'
+                'text/html': pylight(text)
             }
 
         if info['isalias']:
