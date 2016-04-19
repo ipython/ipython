@@ -944,7 +944,7 @@ def format_display_data(obj, include=None, exclude=None):
     """
     from IPython.core.interactiveshell import InteractiveShell
 
-    InteractiveShell.instance().display_formatter.format(
+    return InteractiveShell.instance().display_formatter.format(
         obj,
         include,
         exclude
