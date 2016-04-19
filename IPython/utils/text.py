@@ -14,6 +14,11 @@ import re
 import sys
 import textwrap
 from string import Formatter
+try:
+    from pathlib import Path
+except ImportError:
+    # Python 2 backport
+    from pathlib2 import Path
 
 from IPython.testing.skipdoctest import skip_doctest_py3, skip_doctest
 from IPython.utils import py3compat
@@ -64,11 +69,10 @@ class LSString(str):
     n = nlstr = property(get_nlstr)
 
     def get_paths(self):
-        from path import path
         try:
             return self.__paths
         except AttributeError:
-            self.__paths = [path(p) for p in self.split('\n') if os.path.exists(p)]
+            self.__paths = [Path(p) for p in self.split('\n') if os.path.exists(p)]
             return self.__paths
 
     p = paths = property(get_paths)
@@ -123,11 +127,10 @@ class SList(list):
     n = nlstr = property(get_nlstr)
 
     def get_paths(self):
-        from path import path
         try:
             return self.__paths
         except AttributeError:
-            self.__paths = [path(p) for p in self if os.path.exists(p)]
+            self.__paths = [Path(p) for p in self if os.path.exists(p)]
             return self.__paths
 
     p = paths = property(get_paths)
