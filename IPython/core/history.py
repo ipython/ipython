@@ -1,18 +1,10 @@
 """ History related magics and functionality """
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2011 The IPython Development Team.
-#
-#  Distributed under the terms of the BSD License.
-#
-#  The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from __future__ import print_function
 
-# Stdlib imports
 import atexit
 import datetime
 import os
@@ -24,9 +16,9 @@ except ImportError:
         from pysqlite2 import dbapi2 as sqlite3
     except ImportError:
         sqlite3 = None
+import sys
 import threading
 
-# Our own packages
 from traitlets.config.configurable import LoggingConfigurable
 from decorator import decorator
 from IPython.utils.decorators import undoc
@@ -88,15 +80,15 @@ def catch_corrupt_db(f, self, *a, **kw):
     """
     try:
         return f(self, *a, **kw)
-    except (DatabaseError, OperationalError):
+    except (DatabaseError, OperationalError) as e:
         if os.path.isfile(self.hist_file):
             # Try to move the file out of the way
             base,ext = os.path.splitext(self.hist_file)
             newpath = base + '-corrupt' + ext
             os.rename(self.hist_file, newpath)
+            print("ERROR! History file wasn't a valid SQLite database (%s)." % e,
+            "It was moved to %s" % newpath, "and a new file created.", file=sys.stderr)
             self.init_db()
-            print("ERROR! History file wasn't a valid SQLite database.",
-            "It was moved to %s" % newpath, "and a new file created.")
             return []
         
         else:
