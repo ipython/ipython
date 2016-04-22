@@ -71,11 +71,18 @@ else:
     class OperationalError(Exception):
         "Dummy exception when sqlite could not be imported. Should never occur."
 
+# use 16kB as threshold for whether a corrupt history db should be saved
+# that should be at least 100 entries or so
+_SAVE_DB_SIZE = 16384
+
 @decorator
 def catch_corrupt_db(f, self, *a, **kw):
     """A decorator which wraps HistoryAccessor method calls to catch errors from
     a corrupt SQLite database, move the old database out of the way, and create
     a new one.
+
+    We avoid clobbering larger databases because this may be triggered due to filesystem issues,
+    not just a corrupt file.
     """
     try:
         return f(self, *a, **kw)
@@ -87,16 +94,23 @@ def catch_corrupt_db(f, self, *a, **kw):
                 self.hist_file = ':memory:'
                 self.log.error("Failed to load history too many times, history will not be saved.")
             elif os.path.isfile(self.hist_file):
-                # Try to move the file out of the way
-                base,ext = os.path.splitext(self.hist_file)
-                now = datetime.datetime.now().isoformat().replace(':', '.')
-                newpath = base + '-corrupt-' + now + ext
-                # don't clobber previous corrupt backups
-                for i in range(100):
-                    if not os.path.isfile(newpath):
-                        break
-                    else:
-                        newpath = base + '-corrupt-' + now + (u'-%i' % i) + ext
+                # move the file out of the way
+                base, ext = os.path.splitext(self.hist_file)
+                size = os.stat(self.hist_file).st_size
+                if size >= _SAVE_DB_SIZE:
+                    # if there's significant content, avoid clobbering
+                    now = datetime.datetime.now().isoformat().replace(':', '.')
+                    newpath = base + '-corrupt-' + now + ext
+                    # don't clobber previous corrupt backups
+                    for i in range(100):
+                        if not os.path.isfile(newpath):
+                            break
+                        else:
+                            newpath = base + '-corrupt-' + now + (u'-%i' % i) + ext
+                else:
+                    # not much content, possibly empty; don't worry about clobbering
+                    # maybe we should just delete it?
+                    newpath = base + '-corrupt' + ext
                 os.rename(self.hist_file, newpath)
                 self.log.error("History file was moved to %s and a new file created.", newpath)
             self.init_db()
