@@ -197,7 +197,6 @@ install_requires = [
     'traitlets',
     'prompt_toolkit>=0.60',
     'pygments',
-    'backports.shutil_get_terminal_size',
 ]
 
 # Platform-specific dependencies:
@@ -205,6 +204,7 @@ install_requires = [
 # but requires pip >= 6. pip < 6 ignores these.
 
 extras_require.update({
+    ':python_version == "2.7"': ['backports.shutil_get_terminal_size'],
     ':python_version == "2.7" or python_version == "3.3"': ['pathlib2'],
     ':sys_platform != "win32"': ['pexpect'],
     ':sys_platform == "darwin"': ['appnope'],
