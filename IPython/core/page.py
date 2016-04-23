@@ -308,7 +308,7 @@ def get_pager_cmd(pager_cmd=None):
         except:
             pager_cmd = default_pager_cmd
     
-    if pager_cmd == 'less' and '-r' not in os.environ.get('LESS', ''):
+    if pager_cmd == 'less' and '-r' not in os.environ.get('LESS', '').lower():
         pager_cmd += ' -R'
     
     return pager_cmd
