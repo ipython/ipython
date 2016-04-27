@@ -99,6 +99,21 @@ class NonAsciiTest(unittest.TestCase):
             with tt.AssertPrints("ZeroDivisionError"):
                 with tt.AssertPrints(u'дбИЖ', suppress=False):
                     ip.run_cell('fail()')
+    
+    def test_nonascii_msg(self):
+        cell = u"raise Exception('é')"
+        expected = u"Exception('é')"
+        ip.run_cell("%xmode plain")
+        with tt.AssertPrints(expected):
+            ip.run_cell(cell)
+
+        ip.run_cell("%xmode verbose")
+        with tt.AssertPrints(expected):
+            ip.run_cell(cell)
+
+        ip.run_cell("%xmode context")
+        with tt.AssertPrints(expected):
+            ip.run_cell(cell)
 
 
 class NestedGenExprTestCase(unittest.TestCase):
