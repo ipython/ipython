@@ -89,8 +89,8 @@ class IPythonPTLexer(Lexer):
 class TerminalInteractiveShell(InteractiveShell):
     colors_force = True
 
-    space_for_menu = Integer(6, config=True, help='space at the bottom of the screen to reserve for'
-                                                  'the completion menu')
+    space_for_menu = Integer(6, config=True, help='Number of line at the bottom of the screen '
+                                                  'to reserve for the completion menu')
 
     def _space_for_menu_changed(self, old, new):
         self._update_layout()
