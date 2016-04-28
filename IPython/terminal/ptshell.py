@@ -13,7 +13,7 @@ from IPython.core.interactiveshell import InteractiveShell
 from IPython.utils.py3compat import PY3, cast_unicode_py2, input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
-from traitlets import Bool, CBool, Unicode, Dict
+from traitlets import Bool, CBool, Unicode, Dict, Integer
 
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER
@@ -88,6 +88,9 @@ class IPythonPTLexer(Lexer):
 
 class TerminalInteractiveShell(InteractiveShell):
     colors_force = True
+
+    space_for_menu = Integer(6, config=True, help='space at the bottom of the screen to reserve for'
+                                                  'the completion menu')
 
     pt_cli = None
 
@@ -253,7 +256,7 @@ class TerminalInteractiveShell(InteractiveShell):
                             enable_history_search=True,
                             style=style,
                             mouse_support=self.mouse_support,
-                            reserve_space_for_menu=6,
+                            reserve_space_for_menu=self.space_for_menu,
         )
 
         self.pt_cli = CommandLineInterface(app,
