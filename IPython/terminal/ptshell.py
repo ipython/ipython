@@ -93,7 +93,7 @@ class TerminalInteractiveShell(InteractiveShell):
                                                   'the completion menu')
 
     def _space_for_menu_changed(self, old, new):
-        self.relayout()
+        self._update_layout()
 
     pt_cli = None
 
@@ -287,7 +287,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 }
 
 
-    def _relayout(self):
+    def _update_layout(self):
         """
         Ask for a re computation of the application layout, if for example ,
         some configuration options have changed.
