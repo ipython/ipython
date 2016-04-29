@@ -13,13 +13,13 @@ from IPython.core.interactiveshell import InteractiveShell
 from IPython.utils.py3compat import PY3, cast_unicode_py2, input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
-from traitlets import Bool, CBool, Unicode, Dict
+from traitlets import Bool, CBool, Unicode, Dict, Integer
 
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER
 from prompt_toolkit.filters import HasFocus, HasSelection, Condition
 from prompt_toolkit.history import InMemoryHistory
-from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop
+from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop, create_prompt_layout
 from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.key_binding.vi_state import InputMode
@@ -27,9 +27,9 @@ from prompt_toolkit.key_binding.bindings.vi import ViStateFilter
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.layout.lexers import Lexer
 from prompt_toolkit.layout.lexers import PygmentsLexer
-from prompt_toolkit.styles import PygmentsStyle
+from prompt_toolkit.styles import PygmentsStyle, DynamicStyle
 
-from pygments.styles import get_style_by_name
+from pygments.styles import get_style_by_name, get_all_styles
 from pygments.lexers import Python3Lexer, BashLexer, PythonLexer
 from pygments.token import Token
 
@@ -89,6 +89,12 @@ class IPythonPTLexer(Lexer):
 class TerminalInteractiveShell(InteractiveShell):
     colors_force = True
 
+    space_for_menu = Integer(6, config=True, help='Number of line at the bottom of the screen '
+                                                  'to reserve for the completion menu')
+
+    def _space_for_menu_changed(self, old, new):
+        self._update_layout()
+
     pt_cli = None
 
     autoedit_syntax = CBool(False, config=True,
@@ -108,9 +114,12 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Enable mouse support in the prompt"
     )
 
-    highlighting_style = Unicode('', config=True,
-        help="The name of a Pygments style to use for syntax highlighting"
+    highlighting_style = Unicode('default', config=True,
+            help="The name of a Pygments style to use for syntax highlighting: \n %s" % ', '.join(get_all_styles())
     )
+
+    def _highlighting_style_changed(self, old, new):
+        self._style = self._make_style_from_name(self.highlighting_style)
 
     highlighting_style_overrides = Dict(config=True,
         help="Override highlighting format for specific tokens"
@@ -220,13 +229,33 @@ class TerminalInteractiveShell(InteractiveShell):
             if cell and (cell != last_cell):
                 history.append(cell)
 
+        self._style = self._make_style_from_name(self.highlighting_style)
+        style = DynamicStyle(lambda: self._style)
+
+        self._app = create_prompt_application(
+                            key_bindings_registry=kbmanager.registry,
+                            history=history,
+                            completer=IPythonPTCompleter(self.Completer),
+                            enable_history_search=True,
+                            style=style,
+                            mouse_support=self.mouse_support,
+                            **self._layout_options()
+        )
+        self.pt_cli = CommandLineInterface(self._app,
+                           eventloop=create_eventloop(self.inputhook))
+
+    def _make_style_from_name(self, name):
+        """
+        Small wrapper that make an IPython compatible style from a style name
+
+        We need that to add style for prompt ... etc. 
+        """
+        style_cls = get_style_by_name(name)
         style_overrides = {
-            Token.Prompt: '#009900',
-            Token.PromptNum: '#00ff00 bold',
+            Token.Prompt: style_cls.styles.get( Token.Keyword, '#009900'),
+            Token.PromptNum: style_cls.styles.get( Token.Literal.Number, '#00ff00 bold')
         }
-        if self.highlighting_style:
-            style_cls = get_style_by_name(self.highlighting_style)
-        else:
+        if name is 'default':
             style_cls = get_style_by_name('default')
             # The default theme needs to be visible on both a dark background
             # and a light background, because we can't tell what the terminal
@@ -243,21 +272,27 @@ class TerminalInteractiveShell(InteractiveShell):
         style = PygmentsStyle.from_defaults(pygments_style_cls=style_cls,
                                             style_dict=style_overrides)
 
-        app = create_prompt_application(multiline=True,
-                            lexer=IPythonPTLexer(),
-                            get_prompt_tokens=self.get_prompt_tokens,
-                            get_continuation_tokens=self.get_continuation_tokens,
-                            key_bindings_registry=kbmanager.registry,
-                            history=history,
-                            completer=IPythonPTCompleter(self.Completer),
-                            enable_history_search=True,
-                            style=style,
-                            mouse_support=self.mouse_support,
-                            reserve_space_for_menu=6,
-        )
+        return style
 
-        self.pt_cli = CommandLineInterface(app,
-                           eventloop=create_eventloop(self.inputhook))
+    def _layout_options(self):
+        """
+        Return the current layout option for the current Terminal InteractiveShell
+        """
+        return {
+                'lexer':IPythonPTLexer(),
+                'reserve_space_for_menu':self.space_for_menu,
+                'get_prompt_tokens':self.get_prompt_tokens,
+                'get_continuation_tokens':self.get_continuation_tokens,
+                'multiline':False,
+                }
+
+
+    def _update_layout(self):
+        """
+        Ask for a re computation of the application layout, if for example ,
+        some configuration options have changed.
+        """
+        self._app.layout = create_prompt_layout(**self._layout_options())
 
     def prompt_for_code(self):
         document = self.pt_cli.run(pre_run=self.pre_prompt)
