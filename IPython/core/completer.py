@@ -190,6 +190,9 @@ def completions_sorting_key(word):
     elif word.startswith('_'):
         prio1 = 1
 
+    if word.endswith('='):
+        prio1 = -1
+
     if word.startswith('%%'):
         # If there's another % in there, this is something else, so leave it alone
         if not "%" in word[2:]:
