@@ -283,7 +283,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 'reserve_space_for_menu':self.space_for_menu,
                 'get_prompt_tokens':self.get_prompt_tokens,
                 'get_continuation_tokens':self.get_continuation_tokens,
-                'multiline':False,
+                'multiline':True,
                 }
 
 
