@@ -252,8 +252,8 @@ class TerminalInteractiveShell(InteractiveShell):
         """
         style_cls = get_style_by_name(name)
         style_overrides = {
-            Token.Prompt: style_cls.styles.get( Token.Keyword, '#009900'),
-            Token.PromptNum: style_cls.styles.get( Token.Literal.Number, '#00ff00 bold')
+            Token.Prompt: '#009900',
+            Token.PromptNum: '#00ff00 bold',
         }
         if name is 'default':
             style_cls = get_style_by_name('default')
