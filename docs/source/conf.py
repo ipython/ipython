@@ -22,7 +22,7 @@ ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
 if ON_RTD:
     # Mock the presence of matplotlib, which we don't have on RTD
     # see
-    # http://read-the-docs.readthedocs.org/en/latest/faq.html
+    # http://read-the-docs.readthedocs.io/en/latest/faq.html
     tags.add('rtd')
 
     # RTD doesn't use the Makefile, so re-run autogen_{things}.py here.
@@ -203,10 +203,10 @@ htmlhelp_basename = 'ipythondoc'
 
 intersphinx_mapping = {'python': ('http://docs.python.org/3/', None),
                        'rpy2': ('http://rpy.sourceforge.net/rpy2/doc-2.4/html/', None),
-                       'traitlets': ('http://traitlets.readthedocs.org/en/latest/', None),
-                       'jupyterclient': ('http://jupyter-client.readthedocs.org/en/latest/', None),
-                       'ipyparallel': ('http://ipyparallel.readthedocs.org/en/latest/', None),
-                       'jupyter': ('http://jupyter.readthedocs.org/en/latest/', None),
+                       'traitlets': ('http://traitlets.readthedocs.io/en/latest/', None),
+                       'jupyterclient': ('http://jupyter-client.readthedocs.io/en/latest/', None),
+                       'ipyparallel': ('http://ipyparallel.readthedocs.io/en/latest/', None),
+                       'jupyter': ('http://jupyter.readthedocs.io/en/latest/', None),
                       }
 
 # Options for LaTeX output

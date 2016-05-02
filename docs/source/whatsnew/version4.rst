@@ -47,8 +47,8 @@ Released August, 2015
 
 IPython 4.0 is the first major release after the Big Split.
 IPython no longer contains the notebook, qtconsole, etc. which have moved to
-`jupyter <https://jupyter.readthedocs.org>`_.
-IPython subprojects, such as `IPython.parallel <https://ipyparallel.readthedocs.org>`_ and `widgets <https://ipywidgets.readthedocs.org>`_ have moved to their own repos as well.
+`jupyter <https://jupyter.readthedocs.io>`_.
+IPython subprojects, such as `IPython.parallel <https://ipyparallel.readthedocs.io>`_ and `widgets <https://ipywidgets.readthedocs.io>`_ have moved to their own repos as well.
 
 The following subpackages are deprecated:
 

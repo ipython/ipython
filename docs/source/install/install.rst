@@ -2,7 +2,7 @@ IPython requires Python 2.7 or ≥ 3.3.
 
 .. seealso::
 
-   `Installing Jupyter <http://jupyter.readthedocs.org/en/latest/install.html>`__
+   `Installing Jupyter <http://jupyter.readthedocs.io/en/latest/install.html>`__
      The Notebook, nbconvert, and many other former pieces of IPython are now
      part of Project Jupyter.
 
