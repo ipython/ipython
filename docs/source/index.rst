@@ -27,10 +27,10 @@ Contents
 
 .. seealso::
 
-   `Jupyter documentation <http://jupyter.readthedocs.org/en/latest/>`__
+   `Jupyter documentation <http://jupyter.readthedocs.io/en/latest/>`__
      The Notebook code and many other pieces formerly in IPython are now parts
      of Project Jupyter.
-   `ipyparallel documentation <http://ipyparallel.readthedocs.org/en/latest/>`__
+   `ipyparallel documentation <http://ipyparallel.readthedocs.io/en/latest/>`__
      Formerly ``IPython.parallel``.
 
 

@@ -15,4 +15,4 @@ Using IPython for interactive work
 .. seealso::
 
     `A Qt Console for Jupyter <http://jupyter.org/qtconsole/>`__
-    `The Jupyter Notebook <http://jupyter-notebook.readthedocs.org/en/latest/>`__
+    `The Jupyter Notebook <http://jupyter-notebook.readthedocs.io/en/latest/>`__
