@@ -298,7 +298,7 @@ def get_pager_cmd(pager_cmd=None):
     Makes some attempts at finding an OS-correct one.
     """
     if os.name == 'posix':
-        default_pager_cmd = 'less -r'  # -r for color control sequences
+        default_pager_cmd = 'less -R'  # -R for color control sequences
     elif os.name in ['nt','dos']:
         default_pager_cmd = 'type'
 
@@ -308,8 +308,8 @@ def get_pager_cmd(pager_cmd=None):
         except:
             pager_cmd = default_pager_cmd
     
-    if pager_cmd == 'less' and '-r' not in os.environ.get('LESS', ''):
-        pager_cmd += ' -r'
+    if pager_cmd == 'less' and '-r' not in os.environ.get('LESS', '').lower():
+        pager_cmd += ' -R'
     
     return pager_cmd
 

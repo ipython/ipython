@@ -71,11 +71,10 @@ from IPython.core.error import TryNext
 from IPython.core.inputsplitter import ESC_MAGIC
 from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
 from IPython.utils import generics
-from IPython.utils import io
 from IPython.utils.decorators import undoc
 from IPython.utils.dir2 import dir2, get_real_method
 from IPython.utils.process import arg_split
-from IPython.utils.py3compat import builtin_mod, string_types, PY3
+from IPython.utils.py3compat import builtin_mod, string_types, PY3, cast_unicode_py2
 from traitlets import CBool, Enum
 
 try:
@@ -200,6 +199,9 @@ def completions_sorting_key(word):
         prio1 = 2
     elif word.startswith('_'):
         prio1 = 1
+
+    if word.endswith('='):
+        prio1 = -1
 
     if word.startswith('%%'):
         # If there's another % in there, this is something else, so leave it alone
@@ -358,7 +360,7 @@ class Completer(Configurable):
             for word in lst:
                 if word[:n] == text and word != "__builtins__":
                     match_append(word)
-        return matches
+        return [cast_unicode_py2(m) for m in matches]
 
     def attr_matches(self, text):
         """Compute matches when text contains a dot.
@@ -410,8 +412,7 @@ class Completer(Configurable):
             pass
         # Build match list to return
         n = len(attr)
-        res = ["%s.%s" % (expr, w) for w in words if w[:n] == attr ]
-        return res
+        return [u"%s.%s" % (expr, w) for w in words if w[:n] == attr ]
 
 
 def get__all__entries(obj):
@@ -421,7 +422,7 @@ def get__all__entries(obj):
     except:
         return []
     
-    return [w for w in words if isinstance(w, string_types)]
+    return [cast_unicode_py2(w) for w in words if isinstance(w, string_types)]
 
 
 def match_dict_keys(keys, prefix, delims):
@@ -695,9 +696,9 @@ class IPCompleter(Completer):
         # when escaped with backslash
         if text.startswith('!'):
             text = text[1:]
-            text_prefix = '!'
+            text_prefix = u'!'
         else:
-            text_prefix = ''
+            text_prefix = u''
 
         text_until_cursor = self.text_until_cursor
         # track strings with open quotes
@@ -728,7 +729,7 @@ class IPCompleter(Completer):
             text = os.path.expanduser(text)
 
         if text == "":
-            return [text_prefix + protect_filename(f) for f in self.glob("*")]
+            return [text_prefix + cast_unicode_py2(protect_filename(f)) for f in self.glob("*")]
 
         # Compute the matches from the filesystem
         m0 = self.clean_glob(text.replace('\\',''))
@@ -751,8 +752,7 @@ class IPCompleter(Completer):
                            protect_filename(f) for f in m0]
 
         # Mark directories in input list by appending '/' to their names.
-        matches = [x+'/' if os.path.isdir(x) else x for x in matches]
-        return matches
+        return [cast_unicode_py2(x+'/') if os.path.isdir(x) else x for x in matches]
 
     def magic_matches(self, text):
         """Match magics"""
@@ -773,7 +773,7 @@ class IPCompleter(Completer):
         comp = [ pre2+m for m in cell_magics if m.startswith(bare_text)]
         if not text.startswith(pre2):
             comp += [ pre+m for m in line_magics if m.startswith(bare_text)]
-        return comp
+        return [cast_unicode_py2(c) for c in comp]
 
     def python_jedi_matches(self, text, line_buffer, cursor_pos):
         """Match attributes or global Python names using Jedi."""
@@ -849,7 +849,6 @@ class IPCompleter(Completer):
                 matches = []
         else:
             matches = self.global_matches(text)
-
         return matches
 
     def _default_arguments_from_docstring(self, doc):
@@ -978,7 +977,7 @@ class IPCompleter(Completer):
 
             for namedArg in namedArgs:
                 if namedArg.startswith(text):
-                    argMatches.append("%s=" %namedArg)
+                    argMatches.append(u"%s=" %namedArg)
         return argMatches
 
     def dict_key_matches(self, text):
@@ -1164,12 +1163,12 @@ class IPCompleter(Completer):
                 res = c(event)
                 if res:
                     # first, try case sensitive match
-                    withcase = [r for r in res if r.startswith(text)]
+                    withcase = [cast_unicode_py2(r) for r in res if r.startswith(text)]
                     if withcase:
                         return withcase
                     # if none, then case insensitive ones are ok too
                     text_low = text.lower()
-                    return [r for r in res if r.lower().startswith(text_low)]
+                    return [cast_unicode_py2(r) for r in res if r.lower().startswith(text_low)]
             except TryNext:
                 pass
 

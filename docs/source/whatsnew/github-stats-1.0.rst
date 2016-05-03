@@ -1000,7 +1000,7 @@ Pull Requests (793):
 * :ghpull:`2274`: CLN: Use name to id mapping of notebooks instead of searching.
 * :ghpull:`2270`: SSHLauncher tweaks
 * :ghpull:`2269`: add missing location when disambiguating controller IP
-* :ghpull:`2263`: Allow docs to build on http://readthedocs.org/
+* :ghpull:`2263`: Allow docs to build on http://readthedocs.io/
 * :ghpull:`2256`: Adding data publication example notebook.
 * :ghpull:`2255`: better flush iopub with AsyncResults
 * :ghpull:`2261`: Fix: longest_substr([]) -> ''

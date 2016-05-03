@@ -3,9 +3,33 @@
 Issues closed in the 4.x development cycle
 ==========================================
 
-Issues closed in 4.1
+
+Issues closed in 4.2
 --------------------
 
+GitHub stats for 2015/02/02 - 2016/04/20 (since 4.1)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 10 issues and merged 22 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A4.2+>`__
+
+The following 10 authors contributed 27 commits.
+
+* Benjamin Ragan-Kelley
+* Carlos Cordoba
+* Gökhan Karabulut
+* Jonas Rauber
+* Matthias Bussonnier
+* Paul Ivanov
+* Sebastian Bank
+* Thomas A Caswell
+* Thomas Kluyver
+* Vincent Woo
+
+
+Issues closed in 4.1
+--------------------
 
 GitHub stats for 2015/08/12 - 2016/02/02 (since 4.0.0)
 

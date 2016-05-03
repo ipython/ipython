@@ -25,8 +25,6 @@ import logging
 import os
 import re
 import sys
-import traceback
-import unittest
 
 from testpath import modified_env
 
@@ -41,10 +39,9 @@ from doctest import (REPORTING_FLAGS, REPORT_ONLY_FIRST_FAILURE,
                      linecache)
 
 # Third-party modules
-import nose.core
 
 from nose.plugins import doctests, Plugin
-from nose.util import anyp, getpackage, test_address, resolve_name, tolist
+from nose.util import anyp, tolist
 
 # Our own imports
 from IPython.utils.py3compat import builtin_mod, PY3, getcwd
@@ -143,7 +140,7 @@ class DocTestFinder(doctest.DocTestFinder):
         # doctests in extension modules.
 
         # Local shorthands
-        from inspect import isroutine, isclass, ismodule
+        from inspect import isroutine, isclass
 
         # Look for tests in a module's contained objects.
         if inspect.ismodule(obj) and self._recurse:

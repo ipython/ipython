@@ -1,18 +1,10 @@
 """ History related magics and functionality """
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2011 The IPython Development Team.
-#
-#  Distributed under the terms of the BSD License.
-#
-#  The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 from __future__ import print_function
 
-# Stdlib imports
 import atexit
 import datetime
 import os
@@ -26,7 +18,6 @@ except ImportError:
         sqlite3 = None
 import threading
 
-# Our own packages
 from traitlets.config.configurable import LoggingConfigurable
 from decorator import decorator
 from IPython.utils.decorators import undoc
@@ -80,27 +71,52 @@ else:
     class OperationalError(Exception):
         "Dummy exception when sqlite could not be imported. Should never occur."
 
+# use 16kB as threshold for whether a corrupt history db should be saved
+# that should be at least 100 entries or so
+_SAVE_DB_SIZE = 16384
+
 @decorator
 def catch_corrupt_db(f, self, *a, **kw):
     """A decorator which wraps HistoryAccessor method calls to catch errors from
     a corrupt SQLite database, move the old database out of the way, and create
     a new one.
+
+    We avoid clobbering larger databases because this may be triggered due to filesystem issues,
+    not just a corrupt file.
     """
     try:
         return f(self, *a, **kw)
-    except (DatabaseError, OperationalError):
-        if os.path.isfile(self.hist_file):
-            # Try to move the file out of the way
-            base,ext = os.path.splitext(self.hist_file)
-            newpath = base + '-corrupt' + ext
-            os.rename(self.hist_file, newpath)
+    except (DatabaseError, OperationalError) as e:
+        self._corrupt_db_counter += 1
+        self.log.error("Failed to open SQLite history %s (%s).", self.hist_file, e)
+        if self.hist_file != ':memory:':
+            if self._corrupt_db_counter > self._corrupt_db_limit:
+                self.hist_file = ':memory:'
+                self.log.error("Failed to load history too many times, history will not be saved.")
+            elif os.path.isfile(self.hist_file):
+                # move the file out of the way
+                base, ext = os.path.splitext(self.hist_file)
+                size = os.stat(self.hist_file).st_size
+                if size >= _SAVE_DB_SIZE:
+                    # if there's significant content, avoid clobbering
+                    now = datetime.datetime.now().isoformat().replace(':', '.')
+                    newpath = base + '-corrupt-' + now + ext
+                    # don't clobber previous corrupt backups
+                    for i in range(100):
+                        if not os.path.isfile(newpath):
+                            break
+                        else:
+                            newpath = base + '-corrupt-' + now + (u'-%i' % i) + ext
+                else:
+                    # not much content, possibly empty; don't worry about clobbering
+                    # maybe we should just delete it?
+                    newpath = base + '-corrupt' + ext
+                os.rename(self.hist_file, newpath)
+                self.log.error("History file was moved to %s and a new file created.", newpath)
             self.init_db()
-            print("ERROR! History file wasn't a valid SQLite database.",
-            "It was moved to %s" % newpath, "and a new file created.")
             return []
-        
         else:
-            # The hist_file is probably :memory: or something else.
+            # Failed with :memory:, something serious is wrong
             raise
         
 class HistoryAccessorBase(LoggingConfigurable):
@@ -125,6 +141,11 @@ class HistoryAccessor(HistoryAccessorBase):
     
     This is intended for use by standalone history tools. IPython shells use
     HistoryManager, below, which is a subclass of this."""
+
+    # counter for init_db retries, so we don't keep trying over and over
+    _corrupt_db_counter = 0
+     # after two failures, fallback on :memory:
+    _corrupt_db_limit = 2
 
     # String holding the path to the history file
     hist_file = Unicode(config=True,
@@ -239,6 +260,8 @@ class HistoryAccessor(HistoryAccessorBase):
                         (session integer, line integer, output text,
                         PRIMARY KEY (session, line))""")
         self.db.commit()
+        # success! reset corrupt db count
+        self._corrupt_db_counter = 0
 
     def writeout_cache(self):
         """Overridden by HistoryManager to dump the cache before certain

@@ -709,10 +709,10 @@ class ListTB(TBTools):
         have_filedata = False
         Colors = self.Colors
         list = []
-        stype = Colors.excName + etype.__name__ + Colors.Normal
+        stype = py3compat.cast_unicode(Colors.excName + etype.__name__ + Colors.Normal)
         if value is None:
             # Not sure if this can still happen in Python 2.6 and above
-            list.append(py3compat.cast_unicode(stype) + '\n')
+            list.append(stype + '\n')
         else:
             if issubclass(etype, SyntaxError):
                 have_filedata = True
@@ -752,10 +752,10 @@ class ListTB(TBTools):
             except Exception:
                 s = self._some_str(value)
             if s:
-                list.append('%s%s:%s %s\n' % (str(stype), Colors.excName,
+                list.append('%s%s:%s %s\n' % (stype, Colors.excName,
                                               Colors.Normal, s))
             else:
-                list.append('%s\n' % str(stype))
+                list.append('%s\n' % stype)
 
         # sync with user hooks
         if have_filedata:
@@ -793,9 +793,9 @@ class ListTB(TBTools):
     def _some_str(self, value):
         # Lifted from traceback.py
         try:
-            return str(value)
+            return py3compat.cast_unicode(str(value))
         except:
-            return '<unprintable %s object>' % type(value).__name__
+            return u'<unprintable %s object>' % type(value).__name__
 
 
 #----------------------------------------------------------------------------
@@ -1432,6 +1432,7 @@ class SyntaxTB(ListTB):
             newtext = ulinecache.getline(value.filename, value.lineno)
             if newtext:
                 value.text = newtext
+        self.last_syntax_error = value
         return super(SyntaxTB, self).structured_traceback(etype, value, elist,
                                                           tb_offset=tb_offset, context=context)
 

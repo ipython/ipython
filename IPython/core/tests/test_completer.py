@@ -790,6 +790,7 @@ def test_nested_import_module_completer():
     _, matches = ip.complete(None, 'import IPython.co', 17)
     nt.assert_in('IPython.core', matches)
     nt.assert_not_in('import IPython.core', matches)
+    nt.assert_not_in('IPython.display', matches)
 
 def test_import_module_completer():
     ip = get_ipython()

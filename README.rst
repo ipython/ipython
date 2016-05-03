@@ -28,7 +28,7 @@ these manuals.  If you have Sphinx installed, you can build them by typing
 See the `install page <http://ipython.org/install.html>`__ to install IPython.
 
 The Notebook, Qt console and a number of other pieces are now parts of *Jupyter*.
-See the `Jupyter installation docs <http://jupyter.readthedocs.org/en/latest/install.html>`__
+See the `Jupyter installation docs <http://jupyter.readthedocs.io/en/latest/install.html>`__
 if you want to use these.
 
 Officially, IPython requires Python version 2.7, or 3.3 and above.
