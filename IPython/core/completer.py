@@ -53,6 +53,8 @@ Notes:
 # Some of this code originated from rlcompleter in the Python standard library
 # Copyright (C) 2001 Python Software Foundation, www.python.org
 
+from __future__ import print_function
+
 import __main__
 import glob
 import inspect
@@ -74,6 +76,14 @@ from IPython.utils.dir2 import dir2, get_real_method
 from IPython.utils.process import arg_split
 from IPython.utils.py3compat import builtin_mod, string_types, PY3, cast_unicode_py2
 from traitlets import CBool, Enum
+
+try:
+    import jedi
+    import jedi.api.helpers
+    import jedi.parser.user_context
+    JEDI_INSTALLED = True
+except ImportError:
+    JEDI_INSTALLED = False
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -269,6 +279,7 @@ class Completer(Configurable):
 
     greedy = CBool(False, config=True,
         help="""Activate greedy completion
+        PENDING DEPRECTION. this is now mostly taken care of with Jedi.
 
         This will enable completion on elements of lists, results of function calls, etc.,
         but can be unsafe because the code is actually evaluated on TAB.
@@ -279,7 +290,7 @@ class Completer(Configurable):
     def __init__(self, namespace=None, global_namespace=None, **kwargs):
         """Create a new completer for the command line.
 
-        Completer(namespace=ns,global_namespace=ns2) -> completer instance.
+        Completer(namespace=ns, global_namespace=ns2) -> completer instance.
 
         If unspecified, the default namespace where completions are performed
         is __main__ (technically, __main__.__dict__). Namespaces should be
@@ -339,7 +350,6 @@ class Completer(Configurable):
         defined in self.namespace or self.global_namespace that match.
 
         """
-        #print 'Completer->global_matches, txt=%r' % text # dbg
         matches = []
         match_append = matches.append
         n = len(text)
@@ -366,7 +376,6 @@ class Completer(Configurable):
 
         """
 
-        #io.rprint('Completer->attr_matches, txt=%r' % text) # dbg
         # Another option, seems to work great. Catches things like ''.<tab>
         m = re.match(r"(\S+(\.\w+)*)\.(\w*)$", text)
     
@@ -565,7 +574,10 @@ class IPCompleter(Completer):
         """
     )
     limit_to__all__ = CBool(default_value=False, config=True,
-        help="""Instruct the completer to use __all__ for the completion
+        help="""
+        DEPRECATED as of version 5.0.
+        
+        Instruct the completer to use __all__ for the completion
         
         Specifically, when completing on ``object.<tab>``.
         
@@ -574,6 +586,9 @@ class IPCompleter(Completer):
         When False [default]: the __all__ attribute is ignored 
         """
     )
+    use_jedi_completions = CBool(default_value=JEDI_INSTALLED, config=True,
+        help="""Use Jedi to generate autocompletions.
+        """)
 
     def __init__(self, shell=None, namespace=None, global_namespace=None,
                  use_readline=True, config=None, **kwargs):
@@ -640,7 +655,7 @@ class IPCompleter(Completer):
         #= re.compile(r'[\s|\[]*(\w+)(?:\s*=?\s*.*)')
 
         # All active matcher routines for completion
-        self.matchers = [self.python_matches,
+        self.matchers = [
                          self.file_matches,
                          self.magic_matches,
                          self.python_func_kw_matches,
@@ -654,7 +669,7 @@ class IPCompleter(Completer):
         """
         return self.complete(text)[1]
 
-    def _clean_glob(self,text):
+    def _clean_glob(self, text):
         return self.glob("%s*" % text)
 
     def _clean_glob_win32(self,text):
@@ -674,8 +689,6 @@ class IPCompleter(Completer):
         full completions, as is normally done).  I don't think with the
         current (as of Python 2.3) Python readline it's possible to do
         better."""
-
-        #io.rprint('Completer->file_matches: <%r>' % text) # dbg
 
         # chars that require escaping with backslash - i.e. chars
         # that readline treats incorrectly as delimiters, but we
@@ -743,7 +756,6 @@ class IPCompleter(Completer):
 
     def magic_matches(self, text):
         """Match magics"""
-        #print 'Completer->magic_matches:',text,'lb',self.text_until_cursor # dbg
         # Get all shell magics now rather than statically, so magics loaded at
         # runtime show up too.
         lsm = self.shell.magics_manager.lsmagic()
@@ -763,10 +775,62 @@ class IPCompleter(Completer):
             comp += [ pre+m for m in line_magics if m.startswith(bare_text)]
         return [cast_unicode_py2(c) for c in comp]
 
-    def python_matches(self, text):
-        """Match attributes or global python names"""
+    def python_jedi_matches(self, text, line_buffer, cursor_pos):
+        """Match attributes or global Python names using Jedi."""
+        if line_buffer.startswith('aimport ') or line_buffer.startswith('%aimport '):
+            return ()
+        namespaces = []
+        if self.namespace is None:
+            import __main__
+            namespaces.append(__main__.__dict__)
+        else:
+            namespaces.append(self.namespace)
+        if self.global_namespace is not None:
+            namespaces.append(self.global_namespace)
+
+        # cursor_pos is an it, jedi wants line and column
+
+        interpreter = jedi.Interpreter(line_buffer, namespaces, column=cursor_pos)
+        path = jedi.parser.user_context.UserContext(line_buffer, \
+                (1, len(line_buffer))).get_path_until_cursor()
+        path, dot, like = jedi.api.helpers.completion_parts(path)
+        if text.startswith('.'):
+            # text will be `.` on completions like `a[0].<tab>`
+            before = dot
+        else:
+            before = line_buffer[:len(line_buffer) - len(like)]
+
+
+        def trim_start(completion):
+            """completions need to start with `text`, trim the beginning until it does"""
+            if text in completion and not (completion.startswith(text)):
+                start_index = completion.index(text)
+                if cursor_pos:
+                     assert start_index <  cursor_pos
+                return completion[start_index:]
+            return completion
         
-        #io.rprint('Completer->python_matches, txt=%r' % text) # dbg
+        completions = interpreter.completions()
+
+        completion_text = [c.name_with_symbols for c in completions]
+
+        if self.omit__names:
+            if self.omit__names == 1:
+                # true if txt is _not_ a __ name, false otherwise:
+                no__name = lambda txt: not txt.startswith('__')
+            else:
+                # true if txt is _not_ a _ name, false otherwise:
+                no__name = lambda txt: not txt.startswith('_')
+            completion_text = filter(no__name, completion_text)
+
+
+        return [trim_start(before + c_text) for c_text in completion_text]
+
+
+    def python_matches(self ,text):
+        """Match attributes or global python names"""
+        # Jedi completion
+
         if "." in text:
             try:
                 matches = self.attr_matches(text)
@@ -1085,8 +1149,6 @@ class IPCompleter(Completer):
         event.command = cmd
         event.text_until_cursor = self.text_until_cursor
 
-        #print "\ncustom:{%s]\n" % event # dbg
-
         # for foo etc, try also to find completer for %foo
         if not cmd.startswith(self.magic_escape):
             try_magic = self.custom_completers.s_matches(
@@ -1142,8 +1204,6 @@ class IPCompleter(Completer):
         matches : list
           A list of completion matches.
         """
-        # io.rprint('\nCOMP1 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
-
         # if the cursor position isn't given, the only sane assumption we can
         # make is that it's at the end of the line (the common case)
         if cursor_pos is None:
@@ -1172,7 +1232,6 @@ class IPCompleter(Completer):
 
         self.line_buffer = line_buffer
         self.text_until_cursor = self.line_buffer[:cursor_pos]
-        # io.rprint('COMP2 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
 
         # Start with a clean slate of completions
         self.matches[:] = []
@@ -1202,10 +1261,11 @@ class IPCompleter(Completer):
         # different types of objects.  The rlcomplete() method could then
         # simply collapse the dict into a list for readline, but we'd have
         # richer completion semantics in other evironments.
+        if self.use_jedi_completions:
+            self.matches.extend(self.python_jedi_matches(text, line_buffer, cursor_pos))
 
         self.matches = sorted(set(self.matches), key=completions_sorting_key)
 
-        #io.rprint('COMP TEXT, MATCHES: %r, %r' % (text, self.matches)) # dbg
         return text, self.matches
 
     def rlcomplete(self, text, state):
