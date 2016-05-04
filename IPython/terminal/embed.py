@@ -39,8 +39,7 @@ class EmbeddedMagics(Magics):
         interfering again.
         """
 
-        kill = ask_yes_no("Are you sure you want to kill this embedded instance "
-                         "(y/n)? [y/N] ",'n')
+        kill = ask_yes_no("Are you sure you want to kill this embedded instance? [y/N] ",'n')
         if kill:
             self.shell.embedded_active = False
             print ("This embedded IPython will not reactivate anymore "
@@ -66,13 +65,25 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
     dummy_mode = Bool(False)
     exit_msg = Unicode('')
     embedded = CBool(True)
-    embedded_active = CBool(True)
     should_raise = CBool(False)
     # Like the base class display_banner is not configurable, but here it
     # is True by default.
     display_banner = CBool(True)
     exit_msg = Unicode()
-    
+
+    _inactive_locations = set()
+
+    @property
+    def embedded_active(self):
+        return self._call_location_id not in InteractiveShellEmbed._inactive_locations
+
+    @embedded_active.setter
+    def embedded_active(self, value):
+        if value :
+            if self._call_location_id in InteractiveShellEmbed._inactive_locations:
+                InteractiveShellEmbed._inactive_locations.remove(self._call_location_id)
+        else:
+            InteractiveShellEmbed._inactive_locations.add(self._call_location_id)
 
     def __init__(self, **kw):
         
@@ -81,8 +92,13 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
             warnings.warn("user_global_ns has been replaced by user_module. The\
                            parameter will be ignored, and removed in IPython 5.0", DeprecationWarning)
 
+        self._call_location_id =  kw.pop('_call_location_id', None)
+
         super(InteractiveShellEmbed,self).__init__(**kw)
 
+        if not self._call_location_id:
+            frame = sys._getframe(1)
+            self._call_location_id = '%s:%s' % (frame.f_code.co_filename, frame.f_lineno)
         # don't use the ipython crash handler so that user exceptions aren't
         # trapped
         sys.excepthook = ultratb.FormattedTB(color_scheme=self.colors,
@@ -298,7 +314,8 @@ def embed(**kwargs):
     if saved_shell_instance is not None:
         cls = type(saved_shell_instance)
         cls.clear_instance()
-    shell = InteractiveShellEmbed.instance(**kwargs)
+    frame = sys._getframe(1)
+    shell = InteractiveShellEmbed.instance(_call_location_id='%s:%s' % (frame.f_code.co_filename, frame.f_lineno), **kwargs)
     shell(header=header, stack_depth=2, compile_flags=compile_flags)
     InteractiveShellEmbed.clear_instance()
     #restore previous instance
