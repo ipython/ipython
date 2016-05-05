@@ -800,6 +800,6 @@ def test_import_module_completer():
 
 def test_from_module_completer():
     ip = get_ipython()
-    _, matches = ip.complete('B', 'from io import B')
+    _, matches = ip.complete('B', 'from io import B', 16)
     nt.assert_in('BytesIO', matches)
     nt.assert_not_in('BaseException', matches)

@@ -803,10 +803,13 @@ class IPCompleter(Completer):
 
         def trim_start(completion):
             """completions need to start with `text`, trim the beginning until it does"""
-            if text in completion and not (completion.startswith(text)):
-                start_index = completion.index(text)
+            ltext = text.lower()
+            lcomp  = completion.lower()
+            if ltext in lcomp and not (lcomp.startswith(ltext)):
+                start_index = lcomp.index(ltext)
                 if cursor_pos:
-                     assert start_index <  cursor_pos
+                    if start_index >= cursor_pos:
+                        start_index = min(start_index, cursor_pos)
                 return completion[start_index:]
             return completion
         
