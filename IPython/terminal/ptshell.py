@@ -16,14 +16,12 @@ from IPython.utils.process import abbrev_cwd
 from traitlets import Bool, CBool, Unicode, Dict, Integer
 
 from prompt_toolkit.completion import Completer, Completion
-from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER
-from prompt_toolkit.filters import HasFocus, HasSelection, Condition
+from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER, EditingMode
+from prompt_toolkit.filters import HasFocus, HasSelection, Condition, ViInsertMode, EmacsInsertMode
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop, create_prompt_layout
 from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.key_binding.manager import KeyBindingManager
-from prompt_toolkit.key_binding.vi_state import InputMode
-from prompt_toolkit.key_binding.bindings.vi import ViStateFilter
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.layout.lexers import Lexer
 from prompt_toolkit.layout.lexers import PygmentsLexer
@@ -164,8 +162,8 @@ class TerminalInteractiveShell(InteractiveShell):
             self.prompt_for_code = prompt
             return
 
-        kbmanager = KeyBindingManager.for_prompt(enable_vi_mode=self.vi_mode)
-        insert_mode = ViStateFilter(kbmanager.get_vi_state, InputMode.INSERT)
+        kbmanager = KeyBindingManager.for_prompt()
+        insert_mode = ViInsertMode() | EmacsInsertMode()
         # Ctrl+J == Enter, seemingly
         @kbmanager.registry.add_binding(Keys.ControlJ,
                             filter=(HasFocus(DEFAULT_BUFFER)
@@ -232,7 +230,10 @@ class TerminalInteractiveShell(InteractiveShell):
         self._style = self._make_style_from_name(self.highlighting_style)
         style = DynamicStyle(lambda: self._style)
 
+        editing_mode = EditingMode.VI if self.vi_mode else EditingMode.EMACS
+
         self._app = create_prompt_application(
+                            editing_mode=editing_mode,
                             key_bindings_registry=kbmanager.registry,
                             history=history,
                             completer=IPythonPTCompleter(self.Completer),
@@ -295,7 +296,8 @@ class TerminalInteractiveShell(InteractiveShell):
         self._app.layout = create_prompt_layout(**self._layout_options())
 
     def prompt_for_code(self):
-        document = self.pt_cli.run(pre_run=self.pre_prompt)
+        document = self.pt_cli.run(
+            pre_run=self.pre_prompt, reset_current_buffer=True)
         return document.text
 
     def init_io(self):
