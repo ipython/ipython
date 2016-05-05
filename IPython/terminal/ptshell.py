@@ -108,8 +108,8 @@ class TerminalInteractiveShell(InteractiveShell):
         in Unix, Control-Z/Enter in Windows). By typing 'exit' or 'quit',
         you can force a direct exit without any confirmation.""",
     )
-    vi_mode = Bool(False, config=True,
-        help="Use vi style keybindings at the prompt",
+    editing_mode = Unicode('emacs', config=True,
+        help="Shortcut style to use at the prompt. 'vi' or 'emacs'.",
     )
 
     mouse_support = Bool(False, config=True,
@@ -234,7 +234,7 @@ class TerminalInteractiveShell(InteractiveShell):
         self._style = self._make_style_from_name(self.highlighting_style)
         style = DynamicStyle(lambda: self._style)
 
-        editing_mode = EditingMode.VI if self.vi_mode else EditingMode.EMACS
+        editing_mode = getattr(EditingMode, self.editing_mode.upper())
 
         self._app = create_prompt_application(
                             editing_mode=editing_mode,
