@@ -134,6 +134,11 @@ class TerminalInteractiveShell(InteractiveShell):
     term_title = Bool(True, config=True,
         help="Automatically set the terminal title"
     )
+
+    display_completions_in_columns = Bool(False, config=True,
+        help="Display a multi column completion menu.",
+    )
+
     def _term_title_changed(self, name, new_value):
         self.init_term_title()
     
@@ -289,8 +294,8 @@ class TerminalInteractiveShell(InteractiveShell):
                 'get_prompt_tokens':self.get_prompt_tokens,
                 'get_continuation_tokens':self.get_continuation_tokens,
                 'multiline':True,
+                'display_completions_in_columns': self.display_completions_in_columns,
                 }
-
 
     def _update_layout(self):
         """
