@@ -195,7 +195,7 @@ install_requires = [
     'decorator',
     'pickleshare',
     'simplegeneric>0.8',
-    'traitlets',
+    'traitlets>=4.2',
     'prompt_toolkit>=1.0.0,<2.0.0',
     'pygments',
 ]
