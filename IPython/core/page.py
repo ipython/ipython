@@ -38,7 +38,7 @@ def display_page(strng, start=0, screen_lines=25):
     else:
         if start:
             strng = u'\n'.join(strng.splitlines()[start:])
-        data = {'text/plain': strng}
+        data = { 'text/plain': strng }
     display(data, raw=True)
 
 
@@ -56,8 +56,10 @@ def page_dumb(strng, start=0, screen_lines=25):
     """Very dumb 'pager' in Python, for when nothing else works.
 
     Only moves forward, same interface as page(), except for pager_cmd and
-    mode."""
-
+    mode.
+    """
+    if isinstance(strng, dict):
+        strng = strng.get('text/plain', '')
     out_ln  = strng.splitlines()[start:]
     screens = chop(out_ln,screen_lines-1)
     if len(screens) == 1:
