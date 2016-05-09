@@ -311,6 +311,17 @@ class Pdb(OldPdb):
                 if self.shell.readline is not None:
                     self.shell.readline.set_completer_delims(self.shell.readline_delims)
 
+    def parseline(self, line):
+        if line.startswith("!!"):
+            # Force standard behavior.
+            return super(Pdb, self).parseline(line[2:])
+        # "Smart command mode" from pdb++: don't execute commands if a variable
+        # with the same name exists.
+        cmd, arg, newline = super(Pdb, self).parseline(line)
+        if cmd in self.curframe.f_globals or cmd in self.curframe.f_locals:
+            return super(Pdb, self).parseline("!" + line)
+        return super(Pdb, self).parseline(line)
+
     def new_do_up(self, arg):
         OldPdb.do_up(self, arg)
         self.shell.set_completer_frame(self.curframe)
