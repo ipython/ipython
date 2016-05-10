@@ -32,7 +32,10 @@ class DisplayMagics(Magics):
 
     @cell_magic
     def js(self, line, cell):
-        """Run the cell block of Javascript code"""
+        """Run the cell block of Javascript code
+        
+        Alias of `%%javascript`
+        """
         self.javascript(line, cell)
 
     @cell_magic
