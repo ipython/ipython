@@ -206,7 +206,7 @@ def _file_lines(fname):
         return out
 
 
-class Pdb(OldPdb):
+class Pdb(OldPdb, object):
     """Modified Pdb class, does not load readline."""
 
     def __init__(self,color_scheme='NoColor',completekey=None,
