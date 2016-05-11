@@ -69,7 +69,7 @@ class EventManager(object):
         Any additional arguments are passed to all callbacks registered for this
         event. Exceptions raised by callbacks are caught, and a message printed.
         """
-        for func in self.callbacks[event]:
+        for func in self.callbacks[event][:]:
             try:
                 func(*args, **kwargs)
             except Exception:
