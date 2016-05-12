@@ -251,8 +251,8 @@ class TerminalInteractiveShell(InteractiveShell):
                             mouse_support=self.mouse_support,
                             **self._layout_options()
         )
-        self.pt_cli = CommandLineInterface(self._app,
-                           eventloop=create_eventloop(self.inputhook))
+        self._eventloop = create_eventloop(self.inputhook)
+        self.pt_cli = CommandLineInterface(self._app, eventloop=self._eventloop)
 
     def _make_style_from_name(self, name):
         """
@@ -382,6 +382,8 @@ class TerminalInteractiveShell(InteractiveShell):
                 break
             except KeyboardInterrupt:
                 print("\nKeyboardInterrupt escaped interact()\n")
+
+        self._eventloop.close()
 
     _inputhook = None
     def inputhook(self, context):
