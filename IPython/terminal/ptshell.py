@@ -265,7 +265,7 @@ class TerminalInteractiveShell(InteractiveShell):
             Token.Prompt: '#009900',
             Token.PromptNum: '#00ff00 bold',
         }
-        if name is 'default':
+        if name == 'default':
             style_cls = get_style_by_name('default')
             # The default theme needs to be visible on both a dark background
             # and a light background, because we can't tell what the terminal
