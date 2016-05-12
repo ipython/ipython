@@ -261,10 +261,23 @@ class TerminalInteractiveShell(InteractiveShell):
         We need that to add style for prompt ... etc. 
         """
         style_cls = get_style_by_name(name)
-        style_overrides = {
-            Token.Prompt: '#009900',
-            Token.PromptNum: '#00ff00 bold',
-        }
+        style_overrides = {}
+
+        tk = style_cls.styles.get( Token.Keyword )
+        if not style_cls.styles.get(Token.Prompt):
+            if tk:
+                style_overrides[Token.Prompt] = tk
+            else:
+                style_overrides[Token.Prompt] = '#009900'
+
+
+        tl = style_cls.styles.get( Token.Literal.Number)
+        if not style_cls.styles.get(Token.PromptNum):
+            if tl:
+                style_overrides[Token.PromptNum] = tl
+            else :
+                style_overrides[Token.PromptNum] = '#00ff00 bold'
+
         if name is 'default':
             style_cls = get_style_by_name('default')
             # The default theme needs to be visible on both a dark background
@@ -277,6 +290,8 @@ class TerminalInteractiveShell(InteractiveShell):
                 Token.Name.Function: '#2080D0',
                 Token.Name.Class: 'bold #2080D0',
                 Token.Name.Namespace: 'bold #2080D0',
+                Token.Prompt: '#009900',
+                Token.PromptNum: '#00ff00 bold',
             })
         style_overrides.update(self.highlighting_style_overrides)
         style = PygmentsStyle.from_defaults(pygments_style_cls=style_cls,
