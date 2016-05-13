@@ -42,7 +42,7 @@ from IPython.utils.contexts import preserve_keys
 from IPython.utils.capture import capture_output
 from IPython.utils.ipstruct import Struct
 from IPython.utils.module_paths import find_mod
-from IPython.utils.path import get_py_filename, unquote_filename, shellglob
+from IPython.utils.path import get_py_filename, shellglob
 from IPython.utils.timing import clock, clock2
 from warnings import warn
 from logging import error
@@ -338,12 +338,10 @@ python-profiler package from non-free.""")
         dump_file = opts.D[0]
         text_file = opts.T[0]
         if dump_file:
-            dump_file = unquote_filename(dump_file)
             prof.dump_stats(dump_file)
             print('\n*** Profile stats marshalled to file',\
                   repr(dump_file)+'.',sys_exit)
         if text_file:
-            text_file = unquote_filename(text_file)
             pfile = open(text_file,'w')
             pfile.write(output)
             pfile.close()

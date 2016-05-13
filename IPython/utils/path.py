@@ -74,10 +74,12 @@ def get_long_path_name(path):
 def unquote_filename(name, win32=(sys.platform=='win32')):
     """ On Windows, remove leading and trailing quotes from filenames.
     """
+    warn("'unquote_filename' is deprecated", DeprecationWarning)
     if win32:
         if name.startswith(("'", '"')) and name.endswith(("'", '"')):
             name = name[1:-1]
     return name
+
 
 def compress_user(path):
     """Reverse of :func:`os.path.expanduser`

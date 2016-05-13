@@ -67,7 +67,7 @@ from IPython.utils.decorators import undoc
 from IPython.utils.io import ask_yes_no
 from IPython.utils.ipstruct import Struct
 from IPython.paths import get_ipython_dir
-from IPython.utils.path import get_home_dir, get_py_filename, unquote_filename, ensure_dir_exists
+from IPython.utils.path import get_home_dir, get_py_filename, ensure_dir_exists
 from IPython.utils.process import system, getoutput
 from IPython.utils.py3compat import (builtin_mod, unicode_type, string_types,
                                      with_metaclass, iteritems)
@@ -3139,10 +3139,9 @@ class InteractiveShell(SingletonConfigurable):
         code = self.extract_input_lines(target, raw=raw)  # Grab history
         if code:
             return code
-        utarget = unquote_filename(target)
         try:
-            if utarget.startswith(('http://', 'https://')):
-                return openpy.read_py_url(utarget, skip_encoding_cookie=skip_encoding_cookie)
+            if target.startswith(('http://', 'https://')):
+                return openpy.read_py_url(target, skip_encoding_cookie=skip_encoding_cookie)
         except UnicodeDecodeError:
             if not py_only :
                 # Deferred import
@@ -3152,7 +3151,7 @@ class InteractiveShell(SingletonConfigurable):
                     from urllib import urlopen
                 response = urlopen(target)
                 return response.read().decode('latin1')
-            raise ValueError(("'%s' seem to be unreadable.") % utarget)
+            raise ValueError(("'%s' seem to be unreadable.") % target)
 
         potential_target = [target]
         try :
