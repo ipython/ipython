@@ -1,24 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Classes for handling input/output prompts.
+"""Classes for handling input/output prompts."""
 
-Authors:
-
-* Fernando Perez
-* Brian Granger
-* Thomas Kluyver
-"""
-
-#-----------------------------------------------------------------------------
-#       Copyright (C) 2008-2011 The IPython Development Team
-#       Copyright (C) 2001-2007 Fernando Perez <fperez@colorado.edu>
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) 2001-2007 Fernando Perez <fperez@colorado.edu>
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import os
 import re
@@ -31,7 +16,10 @@ from string import Formatter
 from traitlets.config.configurable import Configurable
 from IPython.core import release
 from IPython.utils import coloransi, py3compat
-from traitlets import (Unicode, Instance, Dict, Bool, Int)
+from traitlets import (
+    Unicode, Instance, Dict, Bool, Int,
+    default, observe,
+)
 
 from IPython.utils.PyColorize import LightBGColors, LinuxColors, NoColor
 
@@ -256,9 +244,10 @@ class PromptManager(Configurable):
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
 
     color_scheme_table = Instance(coloransi.ColorSchemeTable, allow_none=True)
-    color_scheme = Unicode('Linux', config=True)
-    def _color_scheme_changed(self, name, new_value):
-        self.color_scheme_table.set_active_scheme(new_value)
+    color_scheme = Unicode('Linux').tag(config=True)
+    @observe('color_scheme')
+    def _color_scheme_changed(self, change):
+        self.color_scheme_table.set_active_scheme(change['new'])
         for pname in ['in', 'in2', 'out', 'rewrite']:
             # We need to recalculate the number of invisible characters
             self.update_prompt(pname)
@@ -269,19 +258,25 @@ class PromptManager(Configurable):
         things like the current time in the prompts. Functions are only called
         if they are used in the prompt.
         """)
-    def _lazy_evaluate_fields_default(self): return lazily_evaluate.copy()
+    @default('lazy_evaluate_fields')
+    def _lazy_evaluate_fields_default(self):
+        return lazily_evaluate.copy()
 
-    in_template = Unicode('In [\\#]: ', config=True,
-        help="Input prompt.  '\\#' will be transformed to the prompt number")
-    in2_template = Unicode('   .\\D.: ', config=True,
-        help="Continuation prompt.")
-    out_template = Unicode('Out[\\#]: ', config=True,
-        help="Output prompt. '\\#' will be transformed to the prompt number")
+    in_template = Unicode('In [\\#]: ',
+        help="Input prompt.  '\\#' will be transformed to the prompt number",
+    ).tag(config=True)
+    in2_template = Unicode('   .\\D.: ',
+        help="Continuation prompt.",
+    ).tag(config=True)
+    out_template = Unicode('Out[\\#]: ',
+        help="Output prompt. '\\#' will be transformed to the prompt number",
+    ).tag(config=True)
 
-    justify = Bool(True, config=True, help="""
+    justify = Bool(True, help="""
         If True (default), each prompt will be right-aligned with the
         preceding one.
-        """)
+        """
+    ).tag(config=True)
 
     # We actually store the expanded templates here:
     templates = Dict()
@@ -293,6 +288,7 @@ class PromptManager(Configurable):
 
     # The number of characters in each prompt which don't contribute to width
     invisible_chars = Dict()
+    @default('invisible_chars')
     def _invisible_chars_default(self):
         return {'in': 0, 'in2': 0, 'out': 0, 'rewrite':0}
 
@@ -309,8 +305,8 @@ class PromptManager(Configurable):
         self.update_prompt('in2', self.in2_template)
         self.update_prompt('out', self.out_template)
         self.update_prompt('rewrite')
-        self.on_trait_change(self._update_prompt_trait, ['in_template',
-                            'in2_template', 'out_template'])
+        self.observe(self._update_prompt_trait,
+            names=['in_template', 'in2_template', 'out_template'])
 
     def update_prompt(self, name, new_template=None):
         """This is called when a prompt template is updated. It processes

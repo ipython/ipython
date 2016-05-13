@@ -10,30 +10,17 @@ To automatically restore stored variables at startup, add this to your
   c.StoreMagics.autorestore = True
 """
 from __future__ import print_function
-#-----------------------------------------------------------------------------
-#  Copyright (c) 2012, The IPython Development Team.
-#
-#  Distributed under the terms of the Modified BSD License.
-#
-#  The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-# Stdlib
 import inspect, os, sys, textwrap
 
-# Our own
 from IPython.core.error import UsageError
 from IPython.core.magic import Magics, magics_class, line_magic
 from traitlets import Bool
 from IPython.utils.py3compat import string_types
 
-#-----------------------------------------------------------------------------
-# Functions and classes
-#-----------------------------------------------------------------------------
 
 def restore_aliases(ip):
     staliases = ip.db.get('stored_aliases', {})
@@ -74,11 +61,11 @@ class StoreMagics(Magics):
 
     Provides the %store magic."""
     
-    autorestore = Bool(False, config=True, help=
+    autorestore = Bool(False, help=
         """If True, any %store-d variables will be automatically restored
         when IPython starts.
         """
-    )
+    ).tag(config=True)
     
     def __init__(self, shell):
         super(StoreMagics, self).__init__(shell=shell)

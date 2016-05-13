@@ -49,7 +49,7 @@ from IPython.core.error import InputRejected, UsageError
 from IPython.core.extensions import ExtensionManager
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.history import HistoryManager
-from IPython.core.inputsplitter import IPythonInputSplitter, ESC_MAGIC, ESC_MAGIC2
+from IPython.core.inputsplitter import ESC_MAGIC, ESC_MAGIC2
 from IPython.core.logger import Logger
 from IPython.core.macro import Macro
 from IPython.core.payload import PayloadManager
@@ -75,8 +75,10 @@ from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import (format_screen, LSString, SList,
                                 DollarFormatter)
-from traitlets import (Integer, Bool, CBool, CaselessStrEnum, Enum,
-                                     List, Dict, Unicode, Instance, Type)
+from traitlets import (
+    Integer, Bool, CaselessStrEnum, Enum, List, Dict, Unicode, Instance, Type,
+    observe, default,
+)
 from warnings import warn
 from logging import error
 import IPython.core.hooks
@@ -113,9 +115,6 @@ def no_op(*a, **kw): pass
 
 
 class SpaceInInput(Exception): pass
-
-@undoc
-class Bunch: pass
 
 
 def get_default_colors():
@@ -173,14 +172,14 @@ class InteractiveShell(SingletonConfigurable):
 
     _instance = None
     
-    ast_transformers = List([], config=True, help=
+    ast_transformers = List([], help=
         """
         A list of ast.NodeTransformer subclass instances, which will be applied
         to user input before code is run.
         """
-    )
+    ).tag(config=True)
 
-    autocall = Enum((0,1,2), default_value=0, config=True, help=
+    autocall = Enum((0,1,2), default_value=0, help=
         """
         Make IPython automatically call any callable object even if you didn't
         type explicit parentheses. For example, 'str 43' becomes 'str(43)'
@@ -189,28 +188,28 @@ class InteractiveShell(SingletonConfigurable):
         arguments on the line, and '2' for 'full' autocall, where all callable
         objects are automatically called (even if no arguments are present).
         """
-    )
+    ).tag(config=True)
     # TODO: remove all autoindent logic and put into frontends.
     # We can't do this yet because even runlines uses the autoindent.
-    autoindent = CBool(True, config=True, help=
+    autoindent = Bool(True, help=
         """
         Autoindent IPython code entered interactively.
         """
-    )
-    automagic = CBool(True, config=True, help=
+    ).tag(config=True)
+    automagic = Bool(True, help=
         """
         Enable magic commands to be called without the leading %.
         """
-    )
+    ).tag(config=True)
     
-    banner1 = Unicode(default_banner, config=True,
+    banner1 = Unicode(default_banner,
         help="""The part of the banner to be printed before the profile"""
-    )
-    banner2 = Unicode('', config=True,
+    ).tag(config=True)
+    banner2 = Unicode('',
         help="""The part of the banner to be printed after the profile"""
-    )
+    ).tag(config=True)
 
-    cache_size = Integer(1000, config=True, help=
+    cache_size = Integer(1000, help=
         """
         Set the size of the output cache.  The default is 1000, you can
         change it permanently in your config file.  Setting it to 0 completely
@@ -219,19 +218,19 @@ class InteractiveShell(SingletonConfigurable):
         issued).  This limit is defined because otherwise you'll spend more
         time re-flushing a too small cache than working
         """
-    )
-    color_info = CBool(True, config=True, help=
+    ).tag(config=True)
+    color_info = Bool(True, help=
         """
         Use colors for displaying information about objects. Because this
         information is passed through a pager (like 'less'), and some pagers
         get confused with color codes, this capability can be turned off.
         """
-    )
+    ).tag(config=True)
     colors = CaselessStrEnum(('NoColor','LightBG','Linux'),
-                             default_value=get_default_colors(), config=True,
+                             default_value=get_default_colors(),
         help="Set the color scheme (NoColor, Linux, or LightBG)."
-    )
-    colors_force = CBool(False, help=
+    ).tag(config=True)
+    colors_force = Bool(False, help=
         """
         Force use of ANSI color codes, regardless of OS and readline
         availability.
@@ -240,8 +239,8 @@ class InteractiveShell(SingletonConfigurable):
         # without readline on Win32. When the ZMQ formatting system is
         # refactored, this should be removed.
     )
-    debug = CBool(False, config=True)
-    deep_reload = CBool(False, config=True, help=
+    debug = Bool(False).tag(config=True)
+    deep_reload = Bool(False, help=
         """
         **Deprecated**
 
@@ -255,23 +254,24 @@ class InteractiveShell(SingletonConfigurable):
         deep_reload is off, IPython will use the normal reload(), but
         deep_reload will still be available as dreload().
         """
-    )
-    disable_failing_post_execute = CBool(False, config=True,
+    ).tag(config=True)
+    disable_failing_post_execute = Bool(False,
         help="Don't call post-execute functions that have failed in the past."
-    )
+    ).tag(config=True)
     display_formatter = Instance(DisplayFormatter, allow_none=True)
     displayhook_class = Type(DisplayHook)
     display_pub_class = Type(DisplayPublisher)
     data_pub_class = None
 
-    exit_now = CBool(False)
+    exit_now = Bool(False)
     exiter = Instance(ExitAutocall)
+    @default('exiter')
     def _exiter_default(self):
         return ExitAutocall(self)
     # Monotonically increasing execution counter
     execution_count = Integer(1)
     filename = Unicode("<ipython console>")
-    ipython_dir= Unicode('', config=True) # Set to get_ipython_dir() in __init__
+    ipython_dir= Unicode('').tag(config=True) # Set to get_ipython_dir() in __init__
 
     # Input splitter, to transform input line by line and detect when a block
     # is ready to be executed.
@@ -283,88 +283,91 @@ class InteractiveShell(SingletonConfigurable):
     input_transformer_manager = Instance('IPython.core.inputsplitter.IPythonInputSplitter',
                                          (), {'line_input_checker': False})
     
-    logstart = CBool(False, config=True, help=
+    logstart = Bool(False, help=
         """
         Start logging to the default log file in overwrite mode.
         Use `logappend` to specify a log file to **append** logs to.
         """
-    )
-    logfile = Unicode('', config=True, help=
+    ).tag(config=True)
+    logfile = Unicode('', help=
         """
         The name of the logfile to use.
         """
-    )
-    logappend = Unicode('', config=True, help=
+    ).tag(config=True)
+    logappend = Unicode('', help=
         """
         Start logging to the given file in append mode.
         Use `logfile` to specify a log file to **overwrite** logs to.
         """
-    )
+    ).tag(config=True)
     object_info_string_level = Enum((0,1,2), default_value=0,
-                                    config=True)
-    pdb = CBool(False, config=True, help=
+    ).tag(config=True)
+    pdb = Bool(False, help=
         """
         Automatically call the pdb debugger after every exception.
         """
-    )
-    multiline_history = CBool(sys.platform != 'win32', config=True,
+    ).tag(config=True)
+    multiline_history = Bool(sys.platform != 'win32',
         help="Save multi-line entries as one entry in readline history"
-    )
-    display_page = Bool(False, config=True,
+    ).tag(config=True)
+    display_page = Bool(False,
         help="""If True, anything that would be passed to the pager
         will be displayed as regular output instead."""
-    )
+    ).tag(config=True)
 
     # deprecated prompt traits:
     
-    prompt_in1 = Unicode('In [\\#]: ', config=True,
-        help="Deprecated, will be removed in IPython 5.0, use PromptManager.in_template")
-    prompt_in2 = Unicode('   .\\D.: ', config=True,
-        help="Deprecated, will be removed in IPython 5.0, use PromptManager.in2_template")
-    prompt_out = Unicode('Out[\\#]: ', config=True,
-        help="Deprecated, will be removed in IPython 5.0, use PromptManager.out_template")
-    prompts_pad_left = CBool(True, config=True,
-        help="Deprecated, will be removed in IPython 5.0, use PromptManager.justify")
+    prompt_in1 = Unicode('In [\\#]: ',
+        help="Deprecated, will be removed in IPython 5.0, use PromptManager.in_template"
+    ).tag(config=True)
+    prompt_in2 = Unicode('   .\\D.: ',
+        help="Deprecated, will be removed in IPython 5.0, use PromptManager.in2_template"
+    ).tag(config=True)
+    prompt_out = Unicode('Out[\\#]: ',
+        help="Deprecated, will be removed in IPython 5.0, use PromptManager.out_template"
+    ).tag(config=True)
+    prompts_pad_left = Bool(True,
+        help="Deprecated, will be removed in IPython 5.0, use PromptManager.justify"
+    ).tag(config=True)
     
-    def _prompt_trait_changed(self, name, old, new):
+    @observe('prompt_in1', 'prompt_in2', 'prompt_out', 'prompt_pad_left')
+    def _prompt_trait_changed(self, change):
         table = {
             'prompt_in1' : 'in_template',
             'prompt_in2' : 'in2_template',
             'prompt_out' : 'out_template',
             'prompts_pad_left' : 'justify',
         }
+        name = change['name']
         warn("InteractiveShell.{name} is deprecated, use PromptManager.{newname}".format(
                 name=name, newname=table[name])
         )
         # protect against weird cases where self.config may not exist:
         if self.config is not None:
             # propagate to corresponding PromptManager trait
-            setattr(self.config.PromptManager, table[name], new)
+            setattr(self.config.PromptManager, table[name], change['new'])
     
-    _prompt_in1_changed = _prompt_trait_changed
-    _prompt_in2_changed = _prompt_trait_changed
-    _prompt_out_changed = _prompt_trait_changed
-    _prompt_pad_left_changed = _prompt_trait_changed
-    
-    show_rewritten_input = CBool(True, config=True,
+    show_rewritten_input = Bool(True,
         help="Show rewritten input, e.g. for autocall."
-    )
+    ).tag(config=True)
     
-    quiet = CBool(False, config=True)
+    quiet = Bool(False).tag(config=True)
 
-    history_length = Integer(10000, config=True)
+    history_length = Integer(10000,
+        help='Total length of command history'
+    ).tag(config=True)
 
-    history_load_length = Integer(1000, config=True, help=
+    history_load_length = Integer(1000, help=
         """
         The number of saved history entries to be loaded
         into the readline buffer at startup.
         """
-    )
+    ).tag(config=True)
 
     # The readline stuff will eventually be moved to the terminal subclass
     # but for now, we can't do that as readline is welded in everywhere.
-    readline_use = CBool(True, config=True)
-    readline_remove_delims = Unicode('-/~', config=True)
+    readline_use = Bool(True).tag(config=True)
+    readline_remove_delims = Unicode('-/~').tag(config=True)
     readline_delims = Unicode() # set by init_readline()
     # don't use \M- bindings by default, because they
     # conflict with 8-bit encodings. See gh-58,gh-88
@@ -381,29 +384,31 @@ class InteractiveShell(SingletonConfigurable):
             '"\e[B": history-search-forward',
             '"\C-k": kill-line',
             '"\C-u": unix-line-discard',
-        ], config=True)
+        ]).tag(config=True)
     
     _custom_readline_config = False
     
-    def _readline_parse_and_bind_changed(self, name, old, new):
+    @observe('readline_parse_and_bind')
+    def _readline_parse_and_bind_changed(self, change):
         # notice that readline config is customized
         # indicates that it should have higher priority than inputrc
         self._custom_readline_config = True
     
     ast_node_interactivity = Enum(['all', 'last', 'last_expr', 'none'],
-                                  default_value='last_expr', config=True, 
+                                  default_value='last_expr',
                                   help="""
         'all', 'last', 'last_expr' or 'none', specifying which nodes should be
-        run interactively (displaying output from expressions).""")
+        run interactively (displaying output from expressions)."""
+    ).tag(config=True)
 
     # TODO: this part of prompt management should be moved to the frontends.
     # Use custom TraitTypes that convert '0'->'' and '\\n'->'\n'
-    separate_in = SeparateUnicode('\n', config=True)
-    separate_out = SeparateUnicode('', config=True)
-    separate_out2 = SeparateUnicode('', config=True)
-    wildcards_case_sensitive = CBool(True, config=True)
+    separate_in = SeparateUnicode('\n').tag(config=True)
+    separate_out = SeparateUnicode('').tag(config=True)
+    separate_out2 = SeparateUnicode('').tag(config=True)
+    wildcards_case_sensitive = Bool(True).tag(config=True)
     xmode = CaselessStrEnum(('Context','Plain', 'Verbose'),
-                            default_value='Context', config=True)
+                            default_value='Context').tag(config=True)
 
     # Subcomponents of InteractiveShell
     alias_manager = Instance('IPython.core.alias.AliasManager', allow_none=True)
@@ -522,9 +527,9 @@ class InteractiveShell(SingletonConfigurable):
     #-------------------------------------------------------------------------
     # Trait changed handlers
     #-------------------------------------------------------------------------
-
-    def _ipython_dir_changed(self, name, new):
-        ensure_dir_exists(new)
+    @observe('ipython_dir')
+    def _ipython_dir_changed(self, change):
+        ensure_dir_exists(change['new'])
 
     def set_autoindent(self,value=None):
         """Set the autoindent flag.
@@ -785,7 +790,7 @@ class InteractiveShell(SingletonConfigurable):
     def show_banner(self, banner=None):
         if banner is None:
             banner = self.banner
-        self.write(banner)
+        sys.stdout.write(banner)
     
     #-------------------------------------------------------------------------
     # Things related to hooks
