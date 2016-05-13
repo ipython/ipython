@@ -14,6 +14,7 @@ from __future__ import print_function
 import logging
 import os
 import sys
+import warnings
 
 from traitlets.config.loader import Config
 from traitlets.config.application import boolean_flag, catch_config_error, Application
@@ -33,10 +34,9 @@ from IPython.core.shellapp import (
 )
 from IPython.extensions.storemagic import StoreMagics
 from .ptshell import TerminalInteractiveShell
-from IPython.utils import warn
 from IPython.paths import get_ipython_dir
 from traitlets import (
-    Bool, List, Dict,
+    Bool, List, Dict, default, observe,
 )
 
 #-----------------------------------------------------------------------------
@@ -183,6 +183,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     flags = Dict(flags)
     aliases = Dict(aliases)
     classes = List()
+    @default('classes')
     def _classes_default(self):
         """This has to be in a method, for TerminalIPythonApp to be available."""
         return [
@@ -241,35 +242,37 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     # *do* autocreate requested profile, but don't create the config file.
     auto_create=Bool(True)
     # configurables
-    quick = Bool(False, config=True,
+    quick = Bool(False,
         help="""Start IPython quickly by skipping the loading of config files."""
-    )
-    def _quick_changed(self, name, old, new):
-        if new:
+    ).tag(config=True)
+    @observe('quick')
+    def _quick_changed(self, change):
+        if change['new']:
             self.load_config_file = lambda *a, **kw: None
 
-    display_banner = Bool(True, config=True,
+    display_banner = Bool(True,
         help="Whether to display a banner upon starting IPython."
-    )
+    ).tag(config=True)
 
     # if there is code of files to run from the cmd line, don't interact
     # unless the --i flag (App.force_interact) is true.
-    force_interact = Bool(False, config=True,
+    force_interact = Bool(False,
         help="""If a command or file is given via the command-line,
         e.g. 'ipython foo.py', start an interactive shell after executing the
         file or command."""
-    )
-    def _force_interact_changed(self, name, old, new):
-        if new:
+    ).tag(config=True)
+    @observe('force_interact')
+    def _force_interact_changed(self, change):
+        if change['new']:
             self.interact = True
 
-    def _file_to_run_changed(self, name, old, new):
+    @observe('file_to_run', 'code_to_run', 'module_to_run')
+    def _file_to_run_changed(self, change):
+        new = change['new']
         if new:
             self.something_to_run = True
         if new and not self.force_interact:
                 self.interact = False
-    _code_to_run_changed = _file_to_run_changed
-    _module_to_run_changed = _file_to_run_changed
 
     # internal, not-configurable
     something_to_run=Bool(False)
@@ -284,7 +287,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             # warn and transform into current syntax
             argv = argv[:] # copy, don't clobber
             idx = argv.index('-pylab')
-            warn.warn("`-pylab` flag has been deprecated.\n"
+            warnings.warn("`-pylab` flag has been deprecated.\n"
             "    Use `--matplotlib <backend>` and import pylab manually.")
             argv[idx] = '--pylab'
 
@@ -331,7 +334,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     def _pylab_changed(self, name, old, new):
         """Replace --pylab='inline' with --pylab='auto'"""
         if new == 'inline':
-            warn.warn("'inline' not available as pylab backend, "
+            warnings.warn("'inline' not available as pylab backend, "
                       "using 'auto' instead.")
             self.pylab = 'auto'
 

@@ -1,24 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Classes for handling input/output prompts.
+"""Classes for handling input/output prompts."""
 
-Authors:
-
-* Fernando Perez
-* Brian Granger
-* Thomas Kluyver
-"""
-
-#-----------------------------------------------------------------------------
-#       Copyright (C) 2008-2011 The IPython Development Team
-#       Copyright (C) 2001-2007 Fernando Perez <fperez@colorado.edu>
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) 2001-2007 Fernando Perez <fperez@colorado.edu>
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import os
 import re
@@ -31,7 +16,7 @@ from string import Formatter
 from traitlets.config.configurable import Configurable
 from IPython.core import release
 from IPython.utils import coloransi, py3compat
-from traitlets import Unicode, Instance, Dict, Bool, Int, observe
+from traitlets import Unicode, Instance, Dict, Bool, Int, observe, default
 
 from IPython.utils.PyColorize import LightBGColors, LinuxColors, NoColor
 
@@ -271,7 +256,6 @@ class PromptManager(Configurable):
         things like the current time in the prompts. Functions are only called
         if they are used in the prompt.
         """)
-    def _lazy_evaluate_fields_default(self): return lazily_evaluate.copy()
 
     in_template = Unicode('In [\\#]: ',
         help="Input prompt.  '\\#' will be transformed to the prompt number"
@@ -281,6 +265,10 @@ class PromptManager(Configurable):
     out_template = Unicode('Out[\\#]: ',
         help="Output prompt. '\\#' will be transformed to the prompt number"
         ).tag(config=True)
+
+    @default('lazy_evaluate_fields')
+    def _lazy_evaluate_fields_default(self):
+        return lazily_evaluate.copy()
 
     justify = Bool(True, help="""
         If True (default), each prompt will be right-aligned with the
@@ -297,6 +285,7 @@ class PromptManager(Configurable):
 
     # The number of characters in each prompt which don't contribute to width
     invisible_chars = Dict()
+    @default('invisible_chars')
     def _invisible_chars_default(self):
         return {'in': 0, 'in2': 0, 'out': 0, 'rewrite':0}
 
@@ -313,8 +302,8 @@ class PromptManager(Configurable):
         self.update_prompt('in2', self.in2_template)
         self.update_prompt('out', self.out_template)
         self.update_prompt('rewrite')
-        self.on_trait_change(self._update_prompt_trait, ['in_template',
-                            'in2_template', 'out_template'])
+        self.observe(self._update_prompt_trait,
+            names=['in_template', 'in2_template', 'out_template'])
 
     def update_prompt(self, name, new_template=None):
         """This is called when a prompt template is updated. It processes

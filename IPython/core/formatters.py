@@ -26,6 +26,7 @@ from IPython.lib import pretty
 from traitlets import (
     Bool, Dict, Integer, Unicode, CUnicode, ObjectName, List,
     ForwardDeclaredInstance,
+    default, observe,
 )
 from IPython.utils.py3compat import (
     with_metaclass, string_types, unicode_type,
@@ -49,29 +50,34 @@ class DisplayFormatter(Configurable):
         else:
             self.active_types = self.format_types
     
-    active_types = List(Unicode()).tag(config=True,
+    active_types = List(Unicode(),
         help="""List of currently active mime-types to display.
         You can use this to set a white-list for formats to display.
         
         Most users will not need to change this value.
-        """)
+        """).tag(config=True)
+
+    @default('active_types')
     def _active_types_default(self):
         return self.format_types
-    
-    def _active_types_changed(self, name, old, new):
+
+    @observe('active_types')
+    def _active_types_changed(self, change):
         for key, formatter in self.formatters.items():
-            if key in new:
+            if key in change['new']:
                 formatter.enabled = True
             else:
                 formatter.enabled = False
     
     ipython_display_formatter = ForwardDeclaredInstance('FormatterABC')
-    def _ipython_display_formatter_default(self):
+    @default('ipython_display_formatter')
+    def _default_formatter(self):
         return IPythonDisplayFormatter(parent=self)
     
     # A dict of formatter whose keys are format types (MIME types) and whose
     # values are subclasses of BaseFormatter.
     formatters = Dict()
+    @default('formatters')
     def _formatters_default(self):
         """Activate the default formatters."""
         formatter_classes = [
@@ -570,12 +576,12 @@ class PlainTextFormatter(BaseFormatter):
     # something.
     enabled = Bool(True).tag(config=False)
     
-    max_seq_length = Integer(pretty.MAX_SEQ_LENGTH).tag(config=True,
+    max_seq_length = Integer(pretty.MAX_SEQ_LENGTH,
         help="""Truncate large collections (lists, dicts, tuples, sets) to this size.
         
         Set to 0 to disable truncation.
         """
-    )
+    ).tag(config=True)
     
     # Look for a _repr_pretty_ methods to use for pretty printing.
     print_method = ObjectName('_repr_pretty_')
@@ -643,14 +649,17 @@ class PlainTextFormatter(BaseFormatter):
         self.float_format = fmt
 
     # Use the default pretty printers from IPython.lib.pretty.
+    @default('singleton_printers')
     def _singleton_printers_default(self):
         return pretty._singleton_pprinters.copy()
 
+    @default('type_printers')
     def _type_printers_default(self):
         d = pretty._type_pprinters.copy()
         d[float] = lambda obj,p,cycle: p.text(self.float_format%obj)
         return d
 
+    @default('deferred_printers')
     def _deferred_printers_default(self):
         return pretty._deferred_type_pprinters.copy()
 
