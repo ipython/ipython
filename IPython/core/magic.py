@@ -12,17 +12,12 @@ from __future__ import print_function
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-# Stdlib
 import os
 import re
 import sys
 import types
 from getopt import getopt, GetoptError
 
-# Our own
 from traitlets.config.configurable import Configurable
 from IPython.core import oinspect
 from IPython.core.error import UsageError
@@ -32,7 +27,7 @@ from IPython.utils.ipstruct import Struct
 from IPython.utils.process import arg_split
 from IPython.utils.py3compat import string_types, iteritems
 from IPython.utils.text import dedent
-from traitlets import Bool, Dict, Instance
+from traitlets import Bool, Dict, Instance, observe
 from logging import error
 
 #-----------------------------------------------------------------------------
@@ -303,11 +298,12 @@ class MagicsManager(Configurable):
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
 
-    auto_magic = Bool(True, config=True, help=
-        "Automatically call line magics without requiring explicit % prefix")
-
-    def _auto_magic_changed(self, name, value):
-        self.shell.automagic = value
+    auto_magic = Bool(True, help=
+        "Automatically call line magics without requiring explicit % prefix"
+    ).tag(config=True)
+    @observe('auto_magic')
+    def _auto_magic_changed(self, change):
+        self.shell.automagic = change['new']
     
     _auto_status = [
         'Automagic is OFF, % prefix IS needed for line magics.',
