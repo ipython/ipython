@@ -49,13 +49,13 @@ class ExtensionManager(Configurable):
     is added to ``sys.path`` automatically.
     """
 
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC',
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC').tag(
                      allow_none=True)
 
     def __init__(self, shell=None, **kwargs):
         super(ExtensionManager, self).__init__(shell=shell, **kwargs)
-        self.shell.on_trait_change(
-            self._on_ipython_dir_changed, 'ipython_dir'
+        self.shell.observe(
+            self._on_ipython_dir_changed, names=('ipython_dir',)
         )
         self.loaded = set()
 
@@ -63,7 +63,7 @@ class ExtensionManager(Configurable):
     def ipython_extension_dir(self):
         return os.path.join(self.shell.ipython_dir, u'extensions')
 
-    def _on_ipython_dir_changed(self):
+    def _on_ipython_dir_changed(self, change):
         ensure_dir_exists(self.ipython_extension_dir)
 
     def load_extension(self, module_str):
