@@ -31,7 +31,7 @@ from string import Formatter
 from traitlets.config.configurable import Configurable
 from IPython.core import release
 from IPython.utils import coloransi, py3compat
-from traitlets import (Unicode, Instance, Dict, Bool, Int)
+from traitlets import Unicode, Instance, Dict, Bool, Int, observe
 
 from IPython.utils.PyColorize import LightBGColors, LinuxColors, NoColor
 
@@ -256,9 +256,11 @@ class PromptManager(Configurable):
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
 
     color_scheme_table = Instance(coloransi.ColorSchemeTable, allow_none=True)
-    color_scheme = Unicode('Linux', config=True)
-    def _color_scheme_changed(self, name, new_value):
-        self.color_scheme_table.set_active_scheme(new_value)
+    color_scheme = Unicode('Linux').tag(config=True)
+
+    @observe('color_scheme')
+    def _color_scheme_changed(self, change):
+        self.color_scheme_table.set_active_scheme(change['new'])
         for pname in ['in', 'in2', 'out', 'rewrite']:
             # We need to recalculate the number of invisible characters
             self.update_prompt(pname)
@@ -271,14 +273,14 @@ class PromptManager(Configurable):
         """)
     def _lazy_evaluate_fields_default(self): return lazily_evaluate.copy()
 
-    in_template = Unicode('In [\\#]: ', config=True,
+    in_template = Unicode('In [\\#]: ').tag(config=True,
         help="Input prompt.  '\\#' will be transformed to the prompt number")
-    in2_template = Unicode('   .\\D.: ', config=True,
+    in2_template = Unicode('   .\\D.: ').tag(config=True,
         help="Continuation prompt.")
-    out_template = Unicode('Out[\\#]: ', config=True,
+    out_template = Unicode('Out[\\#]: ').tag(config=True,
         help="Output prompt. '\\#' will be transformed to the prompt number")
 
-    justify = Bool(True, config=True, help="""
+    justify = Bool(True).tag(config=True, help="""
         If True (default), each prompt will be right-aligned with the
         preceding one.
         """)
