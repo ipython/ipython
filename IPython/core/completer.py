@@ -77,13 +77,9 @@ from IPython.utils.process import arg_split
 from IPython.utils.py3compat import builtin_mod, string_types, PY3, cast_unicode_py2
 from traitlets import CBool, Enum
 
-try:
-    import jedi
-    import jedi.api.helpers
-    import jedi.parser.user_context
-    JEDI_INSTALLED = True
-except ImportError:
-    JEDI_INSTALLED = False
+import jedi
+import jedi.api.helpers
+import jedi.parser.user_context
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -586,9 +582,6 @@ class IPCompleter(Completer):
         When False [default]: the __all__ attribute is ignored 
         """
     )
-    use_jedi_completions = CBool(default_value=JEDI_INSTALLED, config=True,
-        help="""Use Jedi to generate autocompletions.
-        """)
 
     def __init__(self, shell=None, namespace=None, global_namespace=None,
                  use_readline=True, config=None, **kwargs):
@@ -832,8 +825,6 @@ class IPCompleter(Completer):
 
     def python_matches(self, text):
         """Match attributes or global python names"""
-        # Jedi completion
-
         if "." in text:
             try:
                 matches = self.attr_matches(text)
@@ -1264,8 +1255,7 @@ class IPCompleter(Completer):
         # different types of objects.  The rlcomplete() method could then
         # simply collapse the dict into a list for readline, but we'd have
         # richer completion semantics in other evironments.
-        if self.use_jedi_completions:
-            self.matches.extend(self.python_jedi_matches(text, line_buffer, cursor_pos))
+        self.matches.extend(self.python_jedi_matches(text, line_buffer, cursor_pos))
 
         self.matches = sorted(set(self.matches), key=completions_sorting_key)
 
