@@ -32,7 +32,7 @@ from IPython.core.profiledir import ProfileDir
 from IPython.utils.importstring import import_item
 from IPython.paths import get_ipython_dir, get_ipython_package_dir
 from IPython.utils import py3compat
-from traitlets import Unicode, Bool, Dict
+from traitlets import Unicode, Bool, Dict, observe
 
 #-----------------------------------------------------------------------------
 # Constants
@@ -149,7 +149,7 @@ class ProfileList(Application):
         )
     ))
 
-    ipython_dir = Unicode(get_ipython_dir(), config=True,
+    ipython_dir = Unicode(get_ipython_dir()).tag(config=True,
         help="""
         The name of the IPython directory. This directory is used for logging
         configuration (through profiles), history storage, etc. The default
@@ -211,21 +211,24 @@ class ProfileCreate(BaseIPythonApplication):
     name = u'ipython-profile'
     description = create_help
     examples = _create_examples
-    auto_create = Bool(True, config=False)
+    auto_create = Bool(True).tag(config=False)
+
     def _log_format_default(self):
         return "[%(name)s] %(message)s"
 
     def _copy_config_files_default(self):
         return True
 
-    parallel = Bool(False, config=True,
+    parallel = Bool(False).tag(config=True,
         help="whether to include parallel computing config files")
-    def _parallel_changed(self, name, old, new):
+
+    @observe('parallel')
+    def _parallel_changed(self, change):
         parallel_files = [   'ipcontroller_config.py',
                             'ipengine_config.py',
                             'ipcluster_config.py'
                         ]
-        if new:
+        if change['new']:
             for cf in parallel_files:
                 self.config_files.append(cf)
         else:
