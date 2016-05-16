@@ -76,7 +76,7 @@ from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import (format_screen, LSString, SList,
                                 DollarFormatter)
 from traitlets import (Integer, Bool, CBool, CaselessStrEnum, Enum,
-                                     List, Dict, Unicode, Instance, Type)
+                                     List, Dict, Unicode, Instance, Type, observe)
 from warnings import warn
 from logging import error
 import IPython.core.hooks
@@ -173,14 +173,14 @@ class InteractiveShell(SingletonConfigurable):
 
     _instance = None
     
-    ast_transformers = List([], config=True, help=
+    ast_transformers = List([]).tag(config=True, help=
         """
         A list of ast.NodeTransformer subclass instances, which will be applied
         to user input before code is run.
         """
     )
 
-    autocall = Enum((0,1,2), default_value=0, config=True, help=
+    autocall = Enum((0,1,2), default_value=0).tag(config=True, help=
         """
         Make IPython automatically call any callable object even if you didn't
         type explicit parentheses. For example, 'str 43' becomes 'str(43)'
@@ -192,25 +192,25 @@ class InteractiveShell(SingletonConfigurable):
     )
     # TODO: remove all autoindent logic and put into frontends.
     # We can't do this yet because even runlines uses the autoindent.
-    autoindent = CBool(True, config=True, help=
+    autoindent = CBool(True).tag(config=True, help=
         """
         Autoindent IPython code entered interactively.
         """
     )
-    automagic = CBool(True, config=True, help=
+    automagic = CBool(True).tag(config=True, help=
         """
         Enable magic commands to be called without the leading %.
         """
     )
     
-    banner1 = Unicode(default_banner, config=True,
+    banner1 = Unicode(default_banner).tag(config=True,
         help="""The part of the banner to be printed before the profile"""
     )
-    banner2 = Unicode('', config=True,
+    banner2 = Unicode('').tag(config=True,
         help="""The part of the banner to be printed after the profile"""
     )
 
-    cache_size = Integer(1000, config=True, help=
+    cache_size = Integer(1000).tag(config=True, help=
         """
         Set the size of the output cache.  The default is 1000, you can
         change it permanently in your config file.  Setting it to 0 completely
@@ -220,7 +220,7 @@ class InteractiveShell(SingletonConfigurable):
         time re-flushing a too small cache than working
         """
     )
-    color_info = CBool(True, config=True, help=
+    color_info = CBool(True).tag(config=True, help=
         """
         Use colors for displaying information about objects. Because this
         information is passed through a pager (like 'less'), and some pagers
@@ -228,7 +228,7 @@ class InteractiveShell(SingletonConfigurable):
         """
     )
     colors = CaselessStrEnum(('NoColor','LightBG','Linux'),
-                             default_value=get_default_colors(), config=True,
+                             default_value=get_default_colors()).tag(config=True,
         help="Set the color scheme (NoColor, Linux, or LightBG)."
     )
     colors_force = CBool(False, help=
@@ -240,8 +240,8 @@ class InteractiveShell(SingletonConfigurable):
         # without readline on Win32. When the ZMQ formatting system is
         # refactored, this should be removed.
     )
-    debug = CBool(False, config=True)
-    deep_reload = CBool(False, config=True, help=
+    debug = CBool(False).tag(config=True)
+    deep_reload = CBool(False).tag(config=True, help=
         """
         **Deprecated**
 
@@ -256,7 +256,7 @@ class InteractiveShell(SingletonConfigurable):
         deep_reload will still be available as dreload().
         """
     )
-    disable_failing_post_execute = CBool(False, config=True,
+    disable_failing_post_execute = CBool(False).tag(config=True,
         help="Don't call post-execute functions that have failed in the past."
     )
     display_formatter = Instance(DisplayFormatter, allow_none=True)
@@ -271,7 +271,7 @@ class InteractiveShell(SingletonConfigurable):
     # Monotonically increasing execution counter
     execution_count = Integer(1)
     filename = Unicode("<ipython console>")
-    ipython_dir= Unicode('', config=True) # Set to get_ipython_dir() in __init__
+    ipython_dir= Unicode('').tag(config=True) # Set to get_ipython_dir() in __init__
 
     # Input splitter, to transform input line by line and detect when a block
     # is ready to be executed.
@@ -283,49 +283,55 @@ class InteractiveShell(SingletonConfigurable):
     input_transformer_manager = Instance('IPython.core.inputsplitter.IPythonInputSplitter',
                                          (), {'line_input_checker': False})
     
-    logstart = CBool(False, config=True, help=
+    logstart = CBool(False).tag(config=True, help=
         """
         Start logging to the default log file in overwrite mode.
         Use `logappend` to specify a log file to **append** logs to.
         """
     )
-    logfile = Unicode('', config=True, help=
+    logfile = Unicode('').tag(config=True, help=
         """
         The name of the logfile to use.
         """
     )
-    logappend = Unicode('', config=True, help=
+    logappend = Unicode('').tag(config=True, help=
         """
         Start logging to the given file in append mode.
         Use `logfile` to specify a log file to **overwrite** logs to.
         """
     )
-    object_info_string_level = Enum((0,1,2), default_value=0,
+    object_info_string_level = Enum((0,1,2), default_value=0).tag(
                                     config=True)
-    pdb = CBool(False, config=True, help=
+    pdb = CBool(False).tag(config=True, help=
         """
         Automatically call the pdb debugger after every exception.
         """
     )
-    multiline_history = CBool(sys.platform != 'win32', config=True,
+    multiline_history = CBool(sys.platform != 'win32').tag(config=True,
         help="Save multi-line entries as one entry in readline history"
     )
-    display_page = Bool(False, config=True,
+    display_page = Bool(False).tag(config=True,
         help="""If True, anything that would be passed to the pager
         will be displayed as regular output instead."""
     )
 
     # deprecated prompt traits:
     
-    prompt_in1 = Unicode('In [\\#]: ', config=True,
+    prompt_in1 = Unicode('In [\\#]: ').tag(config=True,
         help="Deprecated, will be removed in IPython 5.0, use PromptManager.in_template")
-    prompt_in2 = Unicode('   .\\D.: ', config=True,
+    prompt_in2 = Unicode('   .\\D.: ').tag(config=True,
         help="Deprecated, will be removed in IPython 5.0, use PromptManager.in2_template")
-    prompt_out = Unicode('Out[\\#]: ', config=True,
+    prompt_out = Unicode('Out[\\#]: ').tag(config=True,
         help="Deprecated, will be removed in IPython 5.0, use PromptManager.out_template")
-    prompts_pad_left = CBool(True, config=True,
+    prompts_pad_left = CBool(True).tag(config=True,
         help="Deprecated, will be removed in IPython 5.0, use PromptManager.justify")
-    
+
+   
+    @observe('prompt_trait',
+            'prompt_in1',
+            'prompt_in2',
+            'prompt_out',
+            'prompts_pad_left')
     def _prompt_trait_changed(self, name, old, new):
         table = {
             'prompt_in1' : 'in_template',
@@ -341,20 +347,15 @@ class InteractiveShell(SingletonConfigurable):
             # propagate to corresponding PromptManager trait
             setattr(self.config.PromptManager, table[name], new)
     
-    _prompt_in1_changed = _prompt_trait_changed
-    _prompt_in2_changed = _prompt_trait_changed
-    _prompt_out_changed = _prompt_trait_changed
-    _prompt_pad_left_changed = _prompt_trait_changed
-    
-    show_rewritten_input = CBool(True, config=True,
+    show_rewritten_input = CBool(True).tag(config=True,
         help="Show rewritten input, e.g. for autocall."
     )
     
-    quiet = CBool(False, config=True)
+    quiet = CBool(False).tag(config=True)
 
-    history_length = Integer(10000, config=True)
+    history_length = Integer(10000).tag(config=True)
 
-    history_load_length = Integer(1000, config=True, help=
+    history_load_length = Integer(1000).tag(config=True, help=
         """
         The number of saved history entries to be loaded
         into the readline buffer at startup.
@@ -363,8 +364,8 @@ class InteractiveShell(SingletonConfigurable):
 
     # The readline stuff will eventually be moved to the terminal subclass
     # but for now, we can't do that as readline is welded in everywhere.
-    readline_use = CBool(True, config=True)
-    readline_remove_delims = Unicode('-/~', config=True)
+    readline_use = CBool(True).tag(config=True)
+    readline_remove_delims = Unicode('-/~').tag(config=True)
     readline_delims = Unicode() # set by init_readline()
     # don't use \M- bindings by default, because they
     # conflict with 8-bit encodings. See gh-58,gh-88
@@ -381,29 +382,30 @@ class InteractiveShell(SingletonConfigurable):
             '"\e[B": history-search-forward',
             '"\C-k": kill-line',
             '"\C-u": unix-line-discard',
-        ], config=True)
+        ]).tag(config=True)
     
     _custom_readline_config = False
-    
-    def _readline_parse_and_bind_changed(self, name, old, new):
+   
+    @observe('readline_parse_and_bind')
+    def _readline_parse_and_bind_changed(self, change):
         # notice that readline config is customized
         # indicates that it should have higher priority than inputrc
         self._custom_readline_config = True
     
     ast_node_interactivity = Enum(['all', 'last', 'last_expr', 'none'],
-                                  default_value='last_expr', config=True, 
+                                  default_value='last_expr').tag(config=True, 
                                   help="""
         'all', 'last', 'last_expr' or 'none', specifying which nodes should be
         run interactively (displaying output from expressions).""")
 
     # TODO: this part of prompt management should be moved to the frontends.
     # Use custom TraitTypes that convert '0'->'' and '\\n'->'\n'
-    separate_in = SeparateUnicode('\n', config=True)
-    separate_out = SeparateUnicode('', config=True)
-    separate_out2 = SeparateUnicode('', config=True)
-    wildcards_case_sensitive = CBool(True, config=True)
+    separate_in = SeparateUnicode('\n').tag(config=True)
+    separate_out = SeparateUnicode('').tag(config=True)
+    separate_out2 = SeparateUnicode('').tag(config=True)
+    wildcards_case_sensitive = CBool(True).tag(config=True)
     xmode = CaselessStrEnum(('Context','Plain', 'Verbose'),
-                            default_value='Context', config=True)
+                            default_value='Context').tag(config=True)
 
     # Subcomponents of InteractiveShell
     alias_manager = Instance('IPython.core.alias.AliasManager', allow_none=True)
@@ -523,8 +525,9 @@ class InteractiveShell(SingletonConfigurable):
     # Trait changed handlers
     #-------------------------------------------------------------------------
 
-    def _ipython_dir_changed(self, name, new):
-        ensure_dir_exists(new)
+    @observe('ipython_dir')
+    def _ipython_dir_changed(self, change):
+        ensure_dir_exists(change['new'])
 
     def set_autoindent(self,value=None):
         """Set the autoindent flag.
