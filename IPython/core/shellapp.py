@@ -22,7 +22,7 @@ from IPython.utils import py3compat
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.path import filefind
 from traitlets import (
-    Unicode, Instance, List, Bool, CaselessStrEnum
+    Unicode, Instance, List, Bool, CaselessStrEnum, observe
 )
 from IPython.lib.inputhook import guis
 
@@ -135,61 +135,60 @@ class InteractiveShellApp(Configurable):
       - :meth:`init_extensions`
       - :meth:`init_code`
     """
-    extensions = List(Unicode(), config=True,
+    extensions = List(Unicode()).tag(config=True,
         help="A list of dotted module names of IPython extensions to load."
     )
-    extra_extension = Unicode('', config=True,
+    extra_extension = Unicode('').tag(config=True,
         help="dotted module name of an IPython extension to load."
     )
 
-    reraise_ipython_extension_failures = Bool(
-        False,
+    reraise_ipython_extension_failures = Bool(False).tag(
         config=True,
         help="Reraise exceptions encountered loading IPython extensions?",
     )
 
     # Extensions that are always loaded (not configurable)
-    default_extensions = List(Unicode(), [u'storemagic'], config=False)
+    default_extensions = List(Unicode(), default_value=[u'storemagic']).tag(config=False)
     
-    hide_initial_ns = Bool(True, config=True,
+    hide_initial_ns = Bool(True).tag(config=True,
         help="""Should variables loaded at startup (by startup files, exec_lines, etc.)
         be hidden from tools like %who?"""
     )
 
-    exec_files = List(Unicode(), config=True,
+    exec_files = List(Unicode()).tag(config=True,
         help="""List of files to run at IPython startup."""
     )
-    exec_PYTHONSTARTUP = Bool(True, config=True,
+    exec_PYTHONSTARTUP = Bool(True).tag(config=True,
         help="""Run the file referenced by the PYTHONSTARTUP environment
         variable at IPython startup."""
     )
-    file_to_run = Unicode('', config=True,
+    file_to_run = Unicode('').tag(config=True,
         help="""A file to be run""")
 
-    exec_lines = List(Unicode(), config=True,
+    exec_lines = List(Unicode()).tag(config=True,
         help="""lines of code to run at IPython startup."""
     )
-    code_to_run = Unicode('', config=True,
+    code_to_run = Unicode('').tag(config=True,
         help="Execute the given command string."
     )
-    module_to_run = Unicode('', config=True,
+    module_to_run = Unicode('').tag(config=True,
         help="Run the module as a script."
     )
-    gui = CaselessStrEnum(gui_keys, config=True, allow_none=True,
+    gui = CaselessStrEnum(gui_keys).tag(config=True, allow_none=True,
         help="Enable GUI event loop integration with any of {0}.".format(gui_keys)
     )
-    matplotlib = CaselessStrEnum(backend_keys, allow_none=True,
+    matplotlib = CaselessStrEnum(backend_keys).tag(allow_none=True,
         config=True,
         help="""Configure matplotlib for interactive use with
         the default matplotlib backend."""
     )
-    pylab = CaselessStrEnum(backend_keys, allow_none=True,
+    pylab = CaselessStrEnum(backend_keys).tag(allow_none=True,
         config=True,
         help="""Pre-load matplotlib and numpy for interactive use,
         selecting a particular matplotlib backend and loop integration.
         """
     )
-    pylab_import_all = Bool(True, config=True,
+    pylab_import_all = Bool(True).tag(config=True,
         help="""If true, IPython will populate the user namespace with numpy, pylab, etc.
         and an ``import *`` is done from numpy and pylab, when using pylab mode.
         
@@ -202,6 +201,8 @@ class InteractiveShellApp(Configurable):
     interact = Bool(True)
     
     user_ns = Instance(dict, args=None, allow_none=True)
+
+    @observe('user_ns')
     def _user_ns_changed(self, name, old, new):
         if self.shell is not None:
             self.shell.user_ns = new
@@ -324,7 +325,7 @@ class InteractiveShellApp(Configurable):
     def _exec_file(self, fname, shell_futures=False):
         try:
             full_filename = filefind(fname, [u'.', self.ipython_dir])
-        except IOError as e:
+        except IOError:
             self.log.warning("File not found: %r"%fname)
             return
         # Make sure that the running script gets a proper sys.argv as if it
