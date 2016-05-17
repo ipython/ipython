@@ -382,8 +382,9 @@ class TerminalInteractiveShell(InteractiveShell):
                 break
             except KeyboardInterrupt:
                 print("\nKeyboardInterrupt escaped interact()\n")
-
-        self._eventloop.close()
+        
+        if hasattr(self, '_eventloop'):
+            self._eventloop.close()
 
     _inputhook = None
     def inputhook(self, context):
