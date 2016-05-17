@@ -285,6 +285,7 @@ class PromptManager(Configurable):
 
     # The number of characters in each prompt which don't contribute to width
     invisible_chars = Dict()
+
     @default('invisible_chars')
     def _invisible_chars_default(self):
         return {'in': 0, 'in2': 0, 'out': 0, 'rewrite':0}
@@ -321,7 +322,9 @@ class PromptManager(Configurable):
         invis_chars = _invisible_characters(self._render(name, color=True))
         self.invisible_chars[name] = invis_chars
 
-    def _update_prompt_trait(self, traitname, new_template):
+    def _update_prompt_trait(self, changes):
+        traitname = changes['name']
+        new_template = changes['new']
         name = traitname[:-9]   # Cut off '_template'
         self.update_prompt(name, new_template)
 
