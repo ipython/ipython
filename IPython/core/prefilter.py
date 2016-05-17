@@ -509,10 +509,12 @@ class AutocallChecker(PrefilterChecker):
 
     priority = Integer(1000).tag(config=True)
 
-    function_name_regexp = CRegExp(re_fun_name).tag(config=True,
-        help="RegExp to identify potential function names.")
-    exclude_regexp = CRegExp(re_exclude_auto).tag(config=True,
-        help="RegExp to exclude strings with this start from autocalling.")
+    function_name_regexp = CRegExp(re_fun_name,
+        help="RegExp to identify potential function names."
+        ).tag(config=True)
+    exclude_regexp = CRegExp(re_exclude_auto,
+        help="RegExp to exclude strings with this start from autocalling."
+        ).tag(config=True)
 
     def check(self, line_info):
         "Check if the initial word/function is callable and autocall is on."
