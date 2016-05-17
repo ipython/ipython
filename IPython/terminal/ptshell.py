@@ -195,11 +195,11 @@ class TerminalInteractiveShell(InteractiveShell):
                 b.insert_text('\n' + (' ' * (indent or 0)))
 
         @kbmanager.registry.add_binding(Keys.ControlC, filter=HasFocus(DEFAULT_BUFFER))
-        def _(event):
+        def _reset_buffer(event):
             event.current_buffer.reset()
 
         @kbmanager.registry.add_binding(Keys.ControlC, filter=HasFocus(SEARCH_BUFFER))
-        def _(event):
+        def _reset_search_buffer(event):
             if event.current_buffer.document.text:
                 event.current_buffer.reset()
             else:
@@ -208,7 +208,7 @@ class TerminalInteractiveShell(InteractiveShell):
         supports_suspend = Condition(lambda cli: hasattr(signal, 'SIGTSTP'))
 
         @kbmanager.registry.add_binding(Keys.ControlZ, filter=supports_suspend)
-        def _(event):
+        def _suspend_to_bg(event):
             event.cli.suspend_to_background()
 
         @Condition
@@ -223,13 +223,13 @@ class TerminalInteractiveShell(InteractiveShell):
                                     & insert_mode
                                     & cursor_in_leading_ws
                                    ))
-        def _(event):
+        def _indent_buffer(event):
             event.current_buffer.insert_text(' ' * 4)
 
         # Pre-populate history from IPython's history database
         history = InMemoryHistory()
         last_cell = u""
-        for _, _, cell in self.history_manager.get_tail(self.history_load_length,
+        for __, ___, cell in self.history_manager.get_tail(self.history_load_length,
                                                         include_latest=True):
             # Ignore blank lines and consecutive duplicates
             cell = cell.rstrip()
