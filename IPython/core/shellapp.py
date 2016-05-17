@@ -22,7 +22,7 @@ from IPython.utils import py3compat
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.path import filefind
 from traitlets import (
-    Unicode, Instance, List, Bool, CaselessStrEnum, observe
+    Unicode, Instance, List, Bool, CaselessStrEnum, observe, default
 )
 from IPython.lib.inputhook import guis
 
@@ -174,20 +174,25 @@ class InteractiveShellApp(Configurable):
     module_to_run = Unicode('').tag(config=True,
         help="Run the module as a script."
     )
-    gui = CaselessStrEnum(gui_keys).tag(config=True, allow_none=True,
+    gui = CaselessStrEnum(gui_keys, allow_none=True).tag(config=True,
         help="Enable GUI event loop integration with any of {0}.".format(gui_keys)
     )
-    matplotlib = CaselessStrEnum(backend_keys).tag(allow_none=True,
+    matplotlib = CaselessStrEnum(backend_keys, allow_none=True).tag(
         config=True,
         help="""Configure matplotlib for interactive use with
         the default matplotlib backend."""
     )
-    pylab = CaselessStrEnum(backend_keys).tag(allow_none=True,
+    pylab = CaselessStrEnum(backend_keys, allow_none=True).tag(
         config=True,
         help="""Pre-load matplotlib and numpy for interactive use,
         selecting a particular matplotlib backend and loop integration.
         """
     )
+
+    @default('pylab')
+    def _pylab_default(self):
+        return None
+
     pylab_import_all = Bool(True).tag(config=True,
         help="""If true, IPython will populate the user namespace with numpy, pylab, etc.
         and an ``import *`` is done from numpy and pylab, when using pylab mode.
