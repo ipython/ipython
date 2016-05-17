@@ -13,7 +13,7 @@ from IPython.core.interactiveshell import InteractiveShell
 from IPython.utils.py3compat import PY3, cast_unicode_py2, input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
-from traitlets import Bool, CBool, Unicode, Dict, Integer
+from traitlets import Bool, CBool, Unicode, Dict, Integer, observe
 
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER, EditingMode
@@ -91,7 +91,7 @@ class IPythonPTLexer(Lexer):
 class TerminalInteractiveShell(InteractiveShell):
     colors_force = True
 
-    space_for_menu = Integer(6, config=True, help='Number of line at the bottom of the screen '
+    space_for_menu = Integer(6).tag(config=True, help='Number of line at the bottom of the screen '
                                                   'to reserve for the completion menu')
 
     def _space_for_menu_changed(self, old, new):
@@ -99,47 +99,48 @@ class TerminalInteractiveShell(InteractiveShell):
 
     pt_cli = None
 
-    autoedit_syntax = CBool(False, config=True,
+    autoedit_syntax = CBool(False).tag(config=True,
                             help="auto editing of files with syntax errors.")
 
-    confirm_exit = CBool(True, config=True,
+    confirm_exit = CBool(True).tag(config=True,
         help="""
         Set to confirm when you try to exit IPython with an EOF (Control-D
         in Unix, Control-Z/Enter in Windows). By typing 'exit' or 'quit',
         you can force a direct exit without any confirmation.""",
     )
-    editing_mode = Unicode('emacs', config=True,
+    editing_mode = Unicode('emacs').tag(config=True,
         help="Shortcut style to use at the prompt. 'vi' or 'emacs'.",
     )
 
-    mouse_support = Bool(False, config=True,
+    mouse_support = Bool(False).tag(config=True,
         help="Enable mouse support in the prompt"
     )
 
-    highlighting_style = Unicode('default', config=True,
+    highlighting_style = Unicode('default').tag(config=True,
             help="The name of a Pygments style to use for syntax highlighting: \n %s" % ', '.join(get_all_styles())
     )
 
     def _highlighting_style_changed(self, old, new):
         self._style = self._make_style_from_name(self.highlighting_style)
 
-    highlighting_style_overrides = Dict(config=True,
+    highlighting_style_overrides = Dict().tag(config=True,
         help="Override highlighting format for specific tokens"
     )
 
-    editor = Unicode(get_default_editor(), config=True,
+    editor = Unicode(get_default_editor()).tag(config=True,
         help="Set the editor used by IPython (default to $EDITOR/vi/notepad)."
     )
     
-    term_title = Bool(True, config=True,
+    term_title = Bool(True).tag(config=True,
         help="Automatically set the terminal title"
     )
 
-    display_completions_in_columns = Bool(False, config=True,
+    display_completions_in_columns = Bool(False).tag(config=True,
         help="Display a multi column completion menu.",
     )
 
-    def _term_title_changed(self, name, new_value):
+    @observe('term_title')
+    def _term_title_changed(self, change):
         self.init_term_title()
     
     def init_term_title(self):
