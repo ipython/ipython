@@ -91,8 +91,9 @@ class IPythonPTLexer(Lexer):
 class TerminalInteractiveShell(InteractiveShell):
     colors_force = True
 
-    space_for_menu = Integer(6).tag(config=True, help='Number of line at the bottom of the screen '
-                                                  'to reserve for the completion menu')
+    space_for_menu = Integer(6, help='Number of line at the bottom of the screen '
+                                                  'to reserve for the completion menu'
+                            ).tag(config=True)
 
     def _space_for_menu_changed(self, old, new):
         self._update_layout()
@@ -108,36 +109,36 @@ class TerminalInteractiveShell(InteractiveShell):
         in Unix, Control-Z/Enter in Windows). By typing 'exit' or 'quit',
         you can force a direct exit without any confirmation.""",
     )
-    editing_mode = Unicode('emacs').tag(config=True,
+    editing_mode = Unicode('emacs',
         help="Shortcut style to use at the prompt. 'vi' or 'emacs'.",
-    )
+    ).tag(config=True)
 
-    mouse_support = Bool(False).tag(config=True,
+    mouse_support = Bool(False,
         help="Enable mouse support in the prompt"
-    )
+    ).tag(config=True)
 
-    highlighting_style = Unicode('default').tag(config=True,
+    highlighting_style = Unicode('default',
             help="The name of a Pygments style to use for syntax highlighting: \n %s" % ', '.join(get_all_styles())
-    )
+    ).tag(config=True)
 
     def _highlighting_style_changed(self, old, new):
         self._style = self._make_style_from_name(self.highlighting_style)
 
-    highlighting_style_overrides = Dict().tag(config=True,
+    highlighting_style_overrides = Dict(
         help="Override highlighting format for specific tokens"
-    )
+    ).tag(config=True)
 
-    editor = Unicode(get_default_editor()).tag(config=True,
+    editor = Unicode(get_default_editor(),
         help="Set the editor used by IPython (default to $EDITOR/vi/notepad)."
-    )
+    ).tag(config=True)
     
-    term_title = Bool(True).tag(config=True,
+    term_title = Bool(True,
         help="Automatically set the terminal title"
-    )
+    ).tag(config=True)
 
-    display_completions_in_columns = Bool(False).tag(config=True,
+    display_completions_in_columns = Bool(False,
         help="Display a multi column completion menu.",
-    )
+    ).tag(config=True)
 
     @observe('term_title')
     def _term_title_changed(self, change):
