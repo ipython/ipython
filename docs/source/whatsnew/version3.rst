@@ -2,6 +2,48 @@
  3.x Series
 ============
 
+IPython 3.2.3
+=============
+
+Fixes compatibility with Python 3.4.4.
+
+IPython 3.2.2
+=============
+
+Address vulnerabilities when files have maliciously crafted filenames (CVE-2015-6938),
+or vulnerability when opening text files with malicious binary content (CVE pending).
+
+Users are **strongly** encouraged to upgrade immediately.
+There are also a few small unicode and nbconvert-related fixes.
+
+
+IPython 3.2.1
+=============
+
+IPython 3.2.1 is a small bugfix release, primarily for cross-site security fixes in the notebook.
+Users are **strongly** encouraged to upgrade immediately.
+There are also a few small unicode and nbconvert-related fixes.
+
+See :ref:`issues_list_3` for details.
+
+
+IPython 3.2
+===========
+
+IPython 3.2 contains important security fixes. Users are **strongly** encouraged to upgrade immediately.
+
+Highlights:
+
+- Address cross-site scripting vulnerabilities CVE-2015-4706, CVE-2015-4707
+- A security improvement that set the secure attribute to login cookie to prevent them to be sent over http
+- Revert the face color of matplotlib axes in the inline backend to not be transparent.
+- Enable mathjax safe mode by default
+- Fix XSS vulnerability in JSON error messages
+- Various widget-related fixes
+
+See :ref:`issues_list_3` for details.
+
+
 IPython 3.1
 ===========
 

@@ -3,10 +3,15 @@
 Issues closed in the 2.x development cycle
 ==========================================
 
-Issues closed in 2.4.0
+Issues closed in 2.4.1
 ----------------------
 
 GitHub stats for 2014/11/01 - 2015/01/30
+
+.. note::
+
+    IPython 2.4.0 was released without a few of the backports listed below.
+    2.4.1 has the correct patches intended for 2.4.0.
 
 These lists are automatically generated, and may be incomplete or contain duplicates.
 
@@ -31,7 +36,7 @@ Pull Requests (10):
 * :ghpull:`6778`: backport nbformat v4 to 2.x
 * :ghpull:`6761`: object_info_reply field is oname, not name
 * :ghpull:`6653`: Fix IPython.utils.ansispan() to ignore stray [0m
-* :ghpull:`6706`: Correctly display prompt numbers that are 'None'
+* :ghpull:`6706`: Correctly display prompt numbers that are ``None``
 * :ghpull:`6634`: don't use contains in SelectWidget item_query
 * :ghpull:`6593`: note how to start the qtconsole
 * :ghpull:`6281`: more minor fixes to release scripts
