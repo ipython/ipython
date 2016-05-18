@@ -2339,16 +2339,9 @@ class InteractiveShell(SingletonConfigurable):
         """
         if not self.show_rewritten_input:
             return
-        
-        rw = self.prompt_manager.render('rewrite') + cmd
 
-        try:
-            # plain ascii works better w/ pyreadline, on some machines, so
-            # we use it and only print uncolored rewrite if we have unicode
-            rw = str(rw)
-            print(rw)
-        except UnicodeEncodeError:
-            print("------> " + cmd)
+        # This is overridden in TerminalInteractiveShell to use fancy prompts
+        print("------> " + cmd)
 
     #-------------------------------------------------------------------------
     # Things related to extracting values/expressions from kernel and user_ns
