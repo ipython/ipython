@@ -29,7 +29,7 @@ from pygments.token import Token
 from .debugger import TerminalPdb, Pdb
 from .pt_inputhooks import get_inputhook_func
 from .interactiveshell import get_default_editor, TerminalMagics
-from .prompts import Prompts, RichPromptDisplayHook
+from .prompts import Prompts, ClassicPrompts, RichPromptDisplayHook
 from .ptutils import IPythonPTCompleter, IPythonPTLexer
 
 _use_simple_prompt = 'IPY_TEST_SIMPLE_PROMPT' in os.environ or not sys.stdin.isatty()
@@ -104,6 +104,10 @@ class TerminalInteractiveShell(InteractiveShell):
 
     def _prompts_default(self):
         return Prompts(self)
+
+    @observe('prompts')
+    def _(self, change):
+        self._update_layout()
 
     def _displayhook_class_default(self):
         return RichPromptDisplayHook
@@ -450,6 +454,16 @@ class TerminalInteractiveShell(InteractiveShell):
         else:
             prompt = ''.join(s for t, s in tokens)
             print(prompt, cmd, sep='')
+
+    _prompts_before = None
+    def switch_doctest_mode(self, mode):
+        """Switch prompts to classic for %doctest_mode"""
+        if mode:
+            self._prompts_before = self.prompts
+            self.prompts = ClassicPrompts(self)
+        elif self._prompts_before:
+            self.prompts = self._prompts_before
+            self._prompts_before = None
 
 
 if __name__ == '__main__':

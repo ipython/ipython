@@ -41,6 +41,23 @@ class Prompts(object):
             (Token.OutPrompt, ']: '),
         ]
 
+class ClassicPrompts(Prompts):
+    def in_prompt_tokens(self, cli=None):
+        return [
+            (Token.Prompt, '>>> '),
+        ]
+
+    def continuation_prompt_tokens(self, cli=None, width=None):
+        return [
+            (Token.Prompt, '... ')
+        ]
+
+    def rewrite_prompt_tokens(self):
+        return []
+
+    def out_prompt_tokens(self):
+        return []
+
 class RichPromptDisplayHook(DisplayHook):
     """Subclass of base display hook using coloured prompt"""
     def write_output_prompt(self):

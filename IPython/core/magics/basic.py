@@ -469,8 +469,12 @@ Defaulting color scheme to 'NoColor'"""
 
             shell.magic('xmode ' + dstore.xmode)
 
+        # mode here is the state before we switch; switch_doctest_mode takes
+        # the mode we're switching to.
+        shell.switch_doctest_mode(not mode)
+
         # Store new mode and inform
-        dstore.mode = bool(1-int(mode))
+        dstore.mode = bool(not mode)
         mode_label = ['OFF','ON'][dstore.mode]
         print('Doctest mode is:', mode_label)
 

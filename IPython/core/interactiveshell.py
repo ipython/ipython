@@ -3219,6 +3219,11 @@ class InteractiveShell(SingletonConfigurable):
         self.restore_sys_module_state()
 
 
+    # Overridden in terminal subclass to change prompts
+    def switch_doctest_mode(self, mode):
+        pass
+
+
 class InteractiveShellABC(with_metaclass(abc.ABCMeta, object)):
     """An abstract base class for InteractiveShell."""
 
