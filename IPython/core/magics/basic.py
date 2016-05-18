@@ -441,10 +441,8 @@ Defaulting color scheme to 'NoColor'"""
         save_dstore('xmode',shell.InteractiveTB.mode)
         save_dstore('rc_separate_out',shell.separate_out)
         save_dstore('rc_separate_out2',shell.separate_out2)
-        save_dstore('rc_prompts_pad_left',pm.justify)
         save_dstore('rc_separate_in',shell.separate_in)
         save_dstore('rc_active_types',disp_formatter.active_types)
-        save_dstore('prompt_templates',(pm.in_template, pm.in2_template, pm.out_template))
 
         if not mode:
             # turn on
