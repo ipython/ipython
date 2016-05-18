@@ -202,13 +202,7 @@ def ipexec(fname, options=None, commands=()):
     """
     if options is None: options = []
 
-    # For these subprocess calls, eliminate all prompt printing so we only see
-    # output from script execution
-    prompt_opts = [ '--PromptManager.in_template=""',
-                    '--PromptManager.in2_template=""',
-                    '--PromptManager.out_template=""'
-    ]
-    cmdargs = default_argv() + prompt_opts + options
+    cmdargs = default_argv() + options
 
     test_dir = os.path.dirname(__file__)
 
