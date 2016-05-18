@@ -42,8 +42,11 @@ class RichPromptDisplayHook(DisplayHook):
     """Subclass of base display hook using coloured prompt"""
     def write_output_prompt(self):
         sys.stdout.write(self.shell.separate_out)
+        self.prompt_end_newline = False
         if self.do_full_cache:
             tokens = self.shell.prompts.out_prompt_tokens()
+            if tokens and tokens[-1][1].endswith('\n'):
+                self.prompt_end_newline = True
             if self.shell.pt_cli:
                 self.shell.pt_cli.print_tokens(tokens)
             else:
