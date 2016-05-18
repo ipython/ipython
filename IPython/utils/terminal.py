@@ -13,7 +13,6 @@ Authors:
 # Distributed under the terms of the Modified BSD License.
 
 import os
-import struct
 import sys
 import warnings
 try:
