@@ -291,6 +291,10 @@ else:
 
 setup_args.update(setuptools_extra_args)
 
+if os.environ.get('IPYTHON_NIGHTLY'):
+    print('Creating nightly release.')
+    setup_args['name'] = '%s-nightly'%setup_args['name']
+
 
 
 def main():

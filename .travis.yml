@@ -1,5 +1,8 @@
 # http://travis-ci.org/#!/ipython/ipython
 language: python
+env:
+    - IPYTHON_NIGHTLY=true
+    - PYPI_REPOSITORY=testpypi
 python:
     - 3.5
     - 3.4
@@ -19,3 +22,4 @@ after_success:
     - cp /tmp/ipy_coverage.xml ./
     - cp /tmp/.coverage ./
     - codecov
+    - bash .travis/nightly.sh
