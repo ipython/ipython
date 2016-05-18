@@ -113,7 +113,7 @@ class DisplayHook(Configurable):
         """
         # Use write, not print which adds an extra space.
         sys.stdout.write(self.shell.separate_out)
-        outprompt = self.shell.prompt_manager.render('out')
+        outprompt = 'Out[{}]: '.format(self.shell.execution_count)
         if self.do_full_cache:
             sys.stdout.write(outprompt)
 

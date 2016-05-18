@@ -1,4 +1,7 @@
 from pygments.token import Token
+import sys
+
+from IPython.core.displayhook import DisplayHook
 
 class Prompts(object):
     def __init__(self, shell):
@@ -34,3 +37,14 @@ class Prompts(object):
             (Token.OutPromptNum, str(self.shell.execution_count)),
             (Token.OutPrompt, ']: '),
         ]
+
+class RichPromptDisplayHook(DisplayHook):
+    """Subclass of base display hook using coloured prompt"""
+    def write_output_prompt(self):
+        sys.stdout.write(self.shell.separate_out)
+        if self.do_full_cache:
+            tokens = self.shell.prompts.out_prompt_tokens()
+            if self.shell.pt_cli:
+                self.shell.pt_cli.print_tokens(tokens)
+            else:
+                print(*(s for t, s in tokens), sep='')

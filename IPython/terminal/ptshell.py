@@ -29,7 +29,7 @@ from pygments.token import Token
 from .debugger import TerminalPdb, Pdb
 from .pt_inputhooks import get_inputhook_func
 from .interactiveshell import get_default_editor, TerminalMagics
-from .prompts import Prompts
+from .prompts import Prompts, RichPromptDisplayHook
 from .ptutils import IPythonPTCompleter, IPythonPTLexer
 
 _use_simple_prompt = 'IPY_TEST_SIMPLE_PROMPT' in os.environ or not sys.stdin.isatty()
@@ -104,7 +104,10 @@ class TerminalInteractiveShell(InteractiveShell):
 
     def _prompts_default(self):
         return Prompts(self)
-    
+
+    def _displayhook_class_default(self):
+        return RichPromptDisplayHook
+
     term_title = Bool(True,
         help="Automatically set the terminal title"
     ).tag(config=True)
@@ -228,6 +231,8 @@ class TerminalInteractiveShell(InteractiveShell):
         style_overrides = {
             Token.Prompt: '#009900',
             Token.PromptNum: '#00ff00 bold',
+            Token.OutPrompt: '#990000',
+            Token.OutPromptNum: '#ff0000 bold',
         }
         if name == 'default':
             style_cls = get_style_by_name('default')
