@@ -66,7 +66,7 @@ import sys
 import unicodedata
 import string
 
-from traitlets.config.configurable import Configurable 
+from traitlets.config.configurable import Configurable
 from IPython.core.error import TryNext
 from IPython.core.inputsplitter import ESC_MAGIC
 from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
@@ -75,7 +75,7 @@ from IPython.utils.decorators import undoc
 from IPython.utils.dir2 import dir2, get_real_method
 from IPython.utils.process import arg_split
 from IPython.utils.py3compat import builtin_mod, string_types, PY3, cast_unicode_py2
-from traitlets import CBool, Enum
+from traitlets import Bool, Enum, observe
 
 import jedi
 import jedi.api.helpers
@@ -172,7 +172,6 @@ def compress_user(path, tilde_expand, tilde_val):
         return path.replace(tilde_val, '~')
     else:
         return path
-
 
 
 def completions_sorting_key(word):
@@ -273,14 +272,14 @@ class CompletionSplitter(object):
 
 class Completer(Configurable):
 
-    greedy = CBool(False, config=True,
+    greedy = Bool(False,
         help="""Activate greedy completion
         PENDING DEPRECTION. this is now mostly taken care of with Jedi.
 
         This will enable completion on elements of lists, results of function calls, etc.,
         but can be unsafe because the code is actually evaluated on TAB.
         """
-    )
+    ).tag(config=True)
     
 
     def __init__(self, namespace=None, global_namespace=None, **kwargs):
@@ -505,7 +504,7 @@ def back_unicode_name_matches(text):
     try :
         unic = unicodedata.name(char)
         return '\\'+char,['\\'+unic]
-    except KeyError as e:
+    except KeyError:
         pass
     return u'', ()
 
@@ -532,17 +531,18 @@ def back_latex_name_matches(text):
         latex = reverse_latex_symbol[char]
         # '\\' replace the \ as well
         return '\\'+char,[latex]
-    except KeyError as e:
+    except KeyError:
         pass
     return u'', ()
 
 
 class IPCompleter(Completer):
     """Extension of the completer class with IPython-specific features"""
-
-    def _greedy_changed(self, name, old, new):
+    
+    @observe('greedy')
+    def _greedy_changed(self, change):
         """update the splitter and readline delims when greedy is changed"""
-        if new:
+        if change['new']:
             self.splitter.delims = GREEDY_DELIMS
         else:
             self.splitter.delims = DELIMS
@@ -550,14 +550,14 @@ class IPCompleter(Completer):
         if self.readline:
             self.readline.set_completer_delims(self.splitter.delims)
     
-    merge_completions = CBool(True, config=True,
+    merge_completions = Bool(True,
         help="""Whether to merge completion results into a single list
         
         If False, only the completion results from the first non-empty
         completer will be returned.
         """
-    )
-    omit__names = Enum((0,1,2), default_value=2, config=True,
+    ).tag(config=True)
+    omit__names = Enum((0,1,2), default_value=2,
         help="""Instruct the completer to omit private method names
         
         Specifically, when completing on ``object.<tab>``.
@@ -568,8 +568,8 @@ class IPCompleter(Completer):
         
         When 0: nothing will be excluded.
         """
-    )
-    limit_to__all__ = CBool(default_value=False, config=True,
+    ).tag(config=True)
+    limit_to__all__ = Bool(False,
         help="""
         DEPRECATED as of version 5.0.
         
@@ -580,8 +580,8 @@ class IPCompleter(Completer):
         When True: only those names in obj.__all__ will be included.
         
         When False [default]: the __all__ attribute is ignored 
-        """
-    )
+        """,
+    ).tag(config=True)
 
     def __init__(self, shell=None, namespace=None, global_namespace=None,
                  use_readline=True, config=None, **kwargs):
@@ -1101,7 +1101,7 @@ class IPCompleter(Completer):
                 # allow combining chars
                 if ('a'+unic).isidentifier():
                     return '\\'+s,[unic]
-            except KeyError as e:
+            except KeyError:
                 pass
         return u'', []
 

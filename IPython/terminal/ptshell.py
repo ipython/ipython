@@ -13,7 +13,7 @@ from IPython.core.interactiveshell import InteractiveShell
 from IPython.utils.py3compat import PY3, cast_unicode_py2, input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
-from traitlets import Bool, CBool, Unicode, Dict, Integer, observe
+from traitlets import Bool, Unicode, Dict, Integer, observe
 
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER, EditingMode
@@ -100,15 +100,18 @@ class TerminalInteractiveShell(InteractiveShell):
 
     pt_cli = None
 
-    autoedit_syntax = CBool(False).tag(config=True,
-                            help="auto editing of files with syntax errors.")
+    autoedit_syntax = Bool(False,
+        help="auto editing of files with syntax errors.",
+    ).tag(config=True)
 
-    confirm_exit = CBool(True).tag(config=True,
+
+    confirm_exit = Bool(True,
         help="""
         Set to confirm when you try to exit IPython with an EOF (Control-D
         in Unix, Control-Z/Enter in Windows). By typing 'exit' or 'quit',
         you can force a direct exit without any confirmation.""",
-    )
+    ).tag(config=True)
+
     editing_mode = Unicode('emacs',
         help="Shortcut style to use at the prompt. 'vi' or 'emacs'.",
     ).tag(config=True)
@@ -121,7 +124,9 @@ class TerminalInteractiveShell(InteractiveShell):
             help="The name of a Pygments style to use for syntax highlighting: \n %s" % ', '.join(get_all_styles())
     ).tag(config=True)
 
-    def _highlighting_style_changed(self, old, new):
+    
+    @observe('highlighting_style')
+    def _highlighting_style_changed(self, change):
         self._style = self._make_style_from_name(self.highlighting_style)
 
     highlighting_style_overrides = Dict(
@@ -140,11 +145,9 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Display a multi column completion menu.",
     ).tag(config=True)
 
-    @observe('term_title')
-    def _term_title_changed(self, change):
-        self.init_term_title()
     
-    def init_term_title(self):
+    @observe('term_title')
+    def init_term_title(self, change=None):
         # Enable or disable the terminal title.
         if self.term_title:
             toggle_set_term_title(True)

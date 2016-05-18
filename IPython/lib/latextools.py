@@ -39,24 +39,24 @@ class LaTeXTool(SingletonConfigurable):
         # for display style, the default ["matplotlib", "dvipng"] can
         # be used.  To NOT use dvipng so that other repr such as
         # unicode pretty printing is used, you can use ["matplotlib"].
-        config=True)
+        ).tag(config=True)
 
     use_breqn = Bool(
         True,
         help="Use breqn.sty to automatically break long equations. "
         "This configuration takes effect only for dvipng backend.",
-        config=True)
+        ).tag(config=True)
 
     packages = List(
         ['amsmath', 'amsthm', 'amssymb', 'bm'],
         help="A list of packages to use for dvipng backend. "
         "'breqn' will be automatically appended when use_breqn=True.",
-        config=True)
+        ).tag(config=True)
 
     preamble = Unicode(
         help="Additional preamble to use when generating LaTeX source "
         "for dvipng backend.",
-        config=True)
+        ).tag(config=True)
 
 
 def latex_to_png(s, encode=False, backend=None, wrap=False):

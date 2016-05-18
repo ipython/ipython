@@ -4,25 +4,10 @@ Prefiltering components.
 
 Prefilters transform user input before it is exec'd by Python.  These
 transforms are used to implement additional syntax such as !ls and %magic.
-
-Authors:
-
-* Brian Granger
-* Fernando Perez
-* Dan Milstein
-* Ville Vainio
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 from keyword import iskeyword
 import re
@@ -39,7 +24,7 @@ from IPython.core.macro import Macro
 from IPython.core.splitinput import LineInfo
 
 from traitlets import (
-    List, Integer, Unicode, CBool, Bool, Instance, CRegExp
+    List, Integer, Unicode, Bool, Instance, CRegExp
 )
 
 #-----------------------------------------------------------------------------
@@ -129,7 +114,7 @@ class PrefilterManager(Configurable):
     or :meth:`sort_transformers` method after changing the priority.
     """
 
-    multi_line_specials = CBool(True).tag(config=True)
+    multi_line_specials = Bool(True).tag(config=True)
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC', allow_none=True)
 
     def __init__(self, shell=None, **kwargs):

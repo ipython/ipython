@@ -26,7 +26,10 @@ from IPython.core.profiledir import ProfileDir, ProfileDirError
 from IPython.paths import get_ipython_dir, get_ipython_package_dir
 from IPython.utils.path import ensure_dir_exists
 from IPython.utils import py3compat
-from traitlets import List, Unicode, Type, Bool, Dict, Set, Instance, Undefined
+from traitlets import (
+    List, Unicode, Type, Bool, Dict, Set, Instance, Undefined,
+    default, observe,
+)
 
 if os.name == 'nt':
     programdata = os.environ.get('PROGRAMDATA', None)
@@ -96,11 +99,13 @@ class BaseIPythonApplication(Application):
     config_file_specified = Set()
 
     config_file_name = Unicode()
+    @default('config_file_name')
     def _config_file_name_default(self):
         return self.name.replace('-','_') + u'_config.py'
-    def _config_file_name_changed(self, name, old, new):
-        if new != old:
-            self.config_file_specified.add(new)
+    @observe('config_file_name')
+    def _config_file_name_changed(self, change):
+        if change['new'] != change['old']:
+            self.config_file_specified.add(change['new'])
 
     # The directory that contains IPython's builtin profiles.
     builtin_profile_dir = Unicode(
@@ -108,15 +113,19 @@ class BaseIPythonApplication(Application):
     )
     
     config_file_paths = List(Unicode())
+    @default('config_file_paths')
     def _config_file_paths_default(self):
         return [py3compat.getcwd()]
 
-    extra_config_file = Unicode(config=True,
+    extra_config_file = Unicode(
     help="""Path to an extra config file to load.
     
     If specified, load this config file in addition to any other IPython config.
-    """)
-    def _extra_config_file_changed(self, name, old, new):
+    """).tag(config=True)
+    @observe('extra_config_file')
+    def _extra_config_file_changed(self, change):
+        old = change['old']
+        new = change['new']
         try:
             self.config_files.remove(old)
         except ValueError:
@@ -124,30 +133,37 @@ class BaseIPythonApplication(Application):
         self.config_file_specified.add(new)
         self.config_files.append(new)
 
-    profile = Unicode(u'default', config=True,
+    profile = Unicode(u'default',
         help="""The IPython profile to use."""
-    )
-
-    def _profile_changed(self, name, old, new):
+    ).tag(config=True)
+    
+    @observe('profile')
+    def _profile_changed(self, change):
         self.builtin_profile_dir = os.path.join(
-                get_ipython_package_dir(), u'config', u'profile', new
+                get_ipython_package_dir(), u'config', u'profile', change['new']
         )
 
-    ipython_dir = Unicode(config=True,
+    ipython_dir = Unicode(
         help="""
         The name of the IPython directory. This directory is used for logging
         configuration (through profiles), history storage, etc. The default
         is usually $HOME/.ipython. This option can also be specified through
         the environment variable IPYTHONDIR.
         """
-    )
+    ).tag(config=True)
+    @default('ipython_dir')
     def _ipython_dir_default(self):
         d = get_ipython_dir()
-        self._ipython_dir_changed('ipython_dir', d, d)
+        self._ipython_dir_changed({
+            'name': 'ipython_dir',
+            'old': d,
+            'new': d,
+        })
         return d
     
     _in_init_profile_dir = False
     profile_dir = Instance(ProfileDir, allow_none=True)
+    @default('profile_dir')
     def _profile_dir_default(self):
         # avoid recursion
         if self._in_init_profile_dir:
@@ -156,26 +172,29 @@ class BaseIPythonApplication(Application):
         self.init_profile_dir()
         return self.profile_dir
 
-    overwrite = Bool(False, config=True,
-        help="""Whether to overwrite existing config files when copying""")
-    auto_create = Bool(False, config=True,
-        help="""Whether to create profile dir if it doesn't exist""")
+    overwrite = Bool(False,
+        help="""Whether to overwrite existing config files when copying"""
+    ).tag(config=True)
+    auto_create = Bool(False,
+        help="""Whether to create profile dir if it doesn't exist"""
+    ).tag(config=True)
 
     config_files = List(Unicode())
+    @default('config_files')
     def _config_files_default(self):
         return [self.config_file_name]
 
-    copy_config_files = Bool(False, config=True,
+    copy_config_files = Bool(False,
         help="""Whether to install the default config files into the profile dir.
         If a new profile is being created, and IPython contains config files for that
         profile, then they will be staged into the new directory.  Otherwise,
         default config files will be automatically generated.
-        """)
+        """).tag(config=True)
     
-    verbose_crash = Bool(False, config=True,
+    verbose_crash = Bool(False,
         help="""Create a massive crash report when IPython encounters what may be an
         internal error.  The default is to append a short message to the
-        usual traceback""")
+        usual traceback""").tag(config=True)
 
     # The class to use as the crash handler.
     crash_handler_class = Type(crashhandler.CrashHandler)
@@ -199,7 +218,6 @@ class BaseIPythonApplication(Application):
     
     def initialize_subcommand(self, subc, argv=None):
         if subc in self.deprecated_subcommands:
-            import time
             self.log.warning("Subcommand `ipython {sub}` is deprecated and will be removed "
                              "in future versions.".format(sub=subc))
             self.log.warning("You likely want to use `jupyter {sub}` in the "
@@ -225,8 +243,11 @@ class BaseIPythonApplication(Application):
             return self.crash_handler(etype, evalue, tb)
         else:
             return crashhandler.crash_handler_lite(etype, evalue, tb)
-    
-    def _ipython_dir_changed(self, name, old, new):
+
+    @observe('ipython_dir')
+    def _ipython_dir_changed(self, change):
+        old = change['old']
+        new = change['new']
         if old is not Undefined:
             str_old = py3compat.cast_bytes_py2(os.path.abspath(old),
                 sys.getfilesystemencoding()
