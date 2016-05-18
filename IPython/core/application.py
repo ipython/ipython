@@ -43,6 +43,16 @@ else:
         "/etc/ipython",
     ]
 
+_envvar = os.environ.get('IPYTHON_SUPPRESS_ERRORS')
+if _envvar in {None, ''}:
+    IPYTHON_SUPPRESS_ERRORS = None
+else:
+    if _envvar.lower() in {'1','true'}:
+        IPYTHON_SUPPRESS_ERRORS = True
+    elif _envvar.lower() in {'0','false'} :
+        IPYTHON_SUPPRESS_ERRORS = False
+    else:
+        sys.exit("Unsupported value for environment variable: 'IPYTHON_SUPPRESS_ERRORS' is set to '%s' which is none of  {'0', '1', 'false', 'true', ''}."% _envvar )
 
 # aliases and flags
 
@@ -272,18 +282,33 @@ class BaseIPythonApplication(Application):
                 self.log.error("couldn't create path %s: %s", path, e)
         self.log.debug("IPYTHONDIR set to: %s" % new)
 
-    def load_config_file(self, suppress_errors=True):
+    def load_config_file(self, suppress_errors=IPYTHON_SUPPRESS_ERRORS):
         """Load the config file.
 
         By default, errors in loading config are handled, and a warning
         printed on screen. For testing, the suppress_errors option is set
         to False, so errors will make tests fail.
+
+        `supress_errors` default value is to be `None` in which case the
+        behavior default to the one of `traitlets.Application`.
+
+        The default value can be changed :
+           - to `False` by setting 'IPYTHON_SUPPRESS_ERRORS' environment variable to '0', or 'false' (case insensitive).
+           - to `True` by setting 'IPYTHON_SUPPRESS_ERRORS' environment variable to '1' or 'true' (case insensitive).
+           - to `None` by setting 'IPYTHON_SUPPRESS_ERRORS' environment variable to '' (empty string) or leaving it unset.
+
+        Any other value are invalid, and will make IPython exit with a non-zero return code.
         """
+
+
         self.log.debug("Searching path %s for config files", self.config_file_paths)
         base_config = 'ipython_config.py'
         self.log.debug("Attempting to load config file: %s" %
                        base_config)
         try:
+            if suppress_errors is not None:
+                old_value = Application.raise_config_file_errors
+                Application.raise_config_file_errors = not suppress_errors;
             Application.load_config_file(
                 self,
                 base_config,
@@ -293,6 +318,8 @@ class BaseIPythonApplication(Application):
             # ignore errors loading parent
             self.log.debug("Config file %s not found", base_config)
             pass
+        if suppress_errors is not None:
+            Application.raise_config_file_errors = old_value
         
         for config_file_name in self.config_files:
             if not config_file_name or config_file_name == base_config:
