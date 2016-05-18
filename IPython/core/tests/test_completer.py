@@ -279,20 +279,11 @@ def test_greedy_completions():
             _,c = ip.complete('.', line=line, cursor_pos=cursor_pos)
             nt.assert_in(expect, c, message%c)
 
-        yield _, 'a[0].', 5, '.real', "Should have completed on a[0].: %s"
-        yield _, 'a[0].r', 6, '.real', "Should have completed on a[0].r: %s"
+        yield _, 'a[0].', 5, 'a[0].real', "Should have completed on a[0].: %s"
+        yield _, 'a[0].r', 6, 'a[0].real', "Should have completed on a[0].r: %s"
         
         if sys.version_info > (3,4):
-            yield _, 'a[0].from_', 10, '.from_bytes', "Should have completed on a[0].from_: %s"
-       
-
-        def _2():
-            # jedi bug, this will be empty, makeitfail for now, 
-            # once jedi is fixed, switch to assert_in
-            # https://github.com/davidhalter/jedi/issues/718
-            _,c = ip.complete('.',line='a[0].from', cursor_pos=9)
-            nt.assert_not_in('.from_bytes', c, "Should not have completed on a[0].from (jedi bug), if fails, update test to assert_in: %s"%c)
-        yield _2
+            yield _, 'a[0].from_', 10, 'a[0].from_bytes', "Should have completed on a[0].from_: %s"
 
 
 

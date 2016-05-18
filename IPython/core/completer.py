@@ -77,10 +77,6 @@ from IPython.utils.process import arg_split
 from IPython.utils.py3compat import builtin_mod, string_types, PY3, cast_unicode_py2
 from traitlets import Bool, Enum, observe
 
-import jedi
-import jedi.api.helpers
-import jedi.parser.user_context
-
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
@@ -649,6 +645,7 @@ class IPCompleter(Completer):
 
         # All active matcher routines for completion
         self.matchers = [
+                         self.python_matches,
                          self.file_matches,
                          self.magic_matches,
                          self.python_func_kw_matches,
@@ -767,60 +764,6 @@ class IPCompleter(Completer):
         if not text.startswith(pre2):
             comp += [ pre+m for m in line_magics if m.startswith(bare_text)]
         return [cast_unicode_py2(c) for c in comp]
-
-    def python_jedi_matches(self, text, line_buffer, cursor_pos):
-        """Match attributes or global Python names using Jedi."""
-        if line_buffer.startswith('aimport ') or line_buffer.startswith('%aimport '):
-            return ()
-        namespaces = []
-        if self.namespace is None:
-            import __main__
-            namespaces.append(__main__.__dict__)
-        else:
-            namespaces.append(self.namespace)
-        if self.global_namespace is not None:
-            namespaces.append(self.global_namespace)
-
-        # cursor_pos is an it, jedi wants line and column
-
-        interpreter = jedi.Interpreter(line_buffer, namespaces, column=cursor_pos)
-        path = jedi.parser.user_context.UserContext(line_buffer, \
-                (1, len(line_buffer))).get_path_until_cursor()
-        path, dot, like = jedi.api.helpers.completion_parts(path)
-        if text.startswith('.'):
-            # text will be `.` on completions like `a[0].<tab>`
-            before = dot
-        else:
-            before = line_buffer[:len(line_buffer) - len(like)]
-
-
-        def trim_start(completion):
-            """completions need to start with `text`, trim the beginning until it does"""
-            ltext = text.lower()
-            lcomp  = completion.lower()
-            if ltext in lcomp and not (lcomp.startswith(ltext)):
-                start_index = lcomp.index(ltext)
-                if cursor_pos:
-                    if start_index >= cursor_pos:
-                        start_index = min(start_index, cursor_pos)
-                return completion[start_index:]
-            return completion
-        
-        completions = interpreter.completions()
-
-        completion_text = [c.name_with_symbols for c in completions]
-
-        if self.omit__names:
-            if self.omit__names == 1:
-                # true if txt is _not_ a __ name, false otherwise:
-                no__name = lambda txt: not txt.startswith('__')
-            else:
-                # true if txt is _not_ a _ name, false otherwise:
-                no__name = lambda txt: not txt.startswith('_')
-            completion_text = filter(no__name, completion_text)
-
-
-        return [trim_start(before + c_text) for c_text in completion_text]
 
 
     def python_matches(self, text):
@@ -1255,8 +1198,6 @@ class IPCompleter(Completer):
         # different types of objects.  The rlcomplete() method could then
         # simply collapse the dict into a list for readline, but we'd have
         # richer completion semantics in other evironments.
-        self.matches.extend(self.python_jedi_matches(text, line_buffer, cursor_pos))
-
         self.matches = sorted(set(self.matches), key=completions_sorting_key)
 
         return text, self.matches
