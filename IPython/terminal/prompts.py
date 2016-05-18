@@ -1,3 +1,6 @@
+"""Terminal input and output prompts."""
+from __future__ import print_function
+
 from pygments.token import Token
 import sys
 
