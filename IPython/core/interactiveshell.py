@@ -56,7 +56,6 @@ from IPython.core.macro import Macro
 from IPython.core.payload import PayloadManager
 from IPython.core.prefilter import PrefilterManager
 from IPython.core.profiledir import ProfileDir
-from IPython.core.prompts import PromptManager
 from IPython.core.usage import default_banner
 from IPython.testing.skipdoctest import skip_doctest_py2, skip_doctest
 from IPython.utils import PyColorize
@@ -664,8 +663,6 @@ class InteractiveShell(SingletonConfigurable):
             io.stderr = io.IOStream(sys.stderr)
 
     def init_prompts(self):
-        self.prompt_manager = PromptManager(shell=self, parent=self)
-        self.configurables.append(self.prompt_manager)
         # Set system prompts, so that scripts can decide if they are running
         # interactively.
         sys.ps1 = 'In : '

@@ -356,14 +356,6 @@ Defaulting color scheme to 'NoColor'"""
                 # Will remove this check after switching to prompt_toolkit
                 new_scheme = 'NoColor'
 
-        # Set prompt colors
-        try:
-            shell.prompt_manager.color_scheme = new_scheme
-        except:
-            color_switch_err('prompt')
-        else:
-            shell.colors = \
-                   shell.prompt_manager.color_scheme_table.active_scheme_name
         # Set exception colors
         try:
             shell.InteractiveTB.set_colors(scheme = new_scheme)
@@ -435,7 +427,6 @@ Defaulting color scheme to 'NoColor'"""
 
         # Shorthands
         shell = self.shell
-        pm = shell.prompt_manager
         meta = shell.meta
         disp_formatter = self.shell.display_formatter
         ptformatter = disp_formatter.formatters['text/plain']
@@ -457,16 +448,12 @@ Defaulting color scheme to 'NoColor'"""
 
         if not mode:
             # turn on
-            pm.in_template = '>>> '
-            pm.in2_template = '... '
-            pm.out_template = ''
 
             # Prompt separators like plain python
             shell.separate_in = ''
             shell.separate_out = ''
             shell.separate_out2 = ''
 
-            pm.justify = False
 
             ptformatter.pprint = False
             disp_formatter.active_types = ['text/plain']
@@ -474,14 +461,10 @@ Defaulting color scheme to 'NoColor'"""
             shell.magic('xmode Plain')
         else:
             # turn off
-            pm.in_template, pm.in2_template, pm.out_template = dstore.prompt_templates
-
             shell.separate_in = dstore.rc_separate_in
 
             shell.separate_out = dstore.rc_separate_out
             shell.separate_out2 = dstore.rc_separate_out2
-
-            pm.justify = dstore.rc_prompts_pad_left
 
             ptformatter.pprint = dstore.rc_pprint
             disp_formatter.active_types = dstore.rc_active_types

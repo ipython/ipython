@@ -898,7 +898,6 @@ class IPythonDirective(Directive):
         if not self.state.document.current_source in self.seen_docs:
             self.shell.IP.history_manager.reset()
             self.shell.IP.execution_count = 1
-            self.shell.IP.prompt_manager.width = 0
             self.seen_docs.add(self.state.document.current_source)
 
         # and attach to shell so we don't have to pass them around
