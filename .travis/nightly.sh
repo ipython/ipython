@@ -1,6 +1,6 @@
 #!/bin/bas
 
-if (( $TRAVIS_BRANCH == "$master" )) && (( "$TRAVIS_PULL_REQUEST" == 'false' )) && (( "$TRAVIS_REPO_SLUG" == "ipython/ipython" ));
+if [[ ( "$TRAVIS_BRANCH" == "master" ) && ( "$TRAVIS_PULL_REQUEST" == 'false' ) && ( "$TRAVIS_REPO_SLUG" == "ipython/ipython" ) ]] ;
 then
   echo 'Building nightly release'
   python tools/build_release
@@ -17,5 +17,5 @@ then
   echo 'Uploading nightly'
   twine upload dist/* -r $PYPI_REPOSITORY
 else
-  echo 'Not master,not ipython/ipython repo, or in a pull request: doing nothing.'
+  echo 'Not master, not ipython/ipython repo, or in a pull request: doing nothing.'
 fi
