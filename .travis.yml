@@ -19,3 +19,6 @@ after_success:
     - cp /tmp/ipy_coverage.xml ./
     - cp /tmp/.coverage ./
     - codecov
+    - IPYTHON_NIGHTLY=$(git describe | cut -f3 -d-)
+    - PYPI_REPOSITORY=testpypi
+    - bash .travis/nightly.sh
