@@ -37,25 +37,10 @@ from IPython.utils import coloransi, py3compat
 from IPython.core.excolors import exception_colors
 from IPython.testing.skipdoctest import skip_doctest
 
-# See if we can use pydb.
-has_pydb = False
 prompt = 'ipdb> '
-#We have to check this directly from sys.argv, config struct not yet available
-if '--pydb' in sys.argv:
-    try:
-        import pydb
-        if hasattr(pydb.pydb, "runl") and pydb.version>'1.17':
-            # Version 1.17 is broken, and that's what ships with Ubuntu Edgy, so we
-            # better protect against it.
-            has_pydb = True
-    except ImportError:
-        print("Pydb (http://bashdb.sourceforge.net/pydb/) does not seem to be available")
 
-if has_pydb:
-    from pydb import Pdb as OldPdb
-    prompt = 'ipydb> '
-else:
-    from pdb import Pdb as OldPdb
+#We have to check this directly from sys.argv, config struct not yet available
+from pdb import Pdb as OldPdb
 
 # Allow the set_trace code to operate outside of an ipython instance, even if
 # it does so with some limitations.  The rest of this support is implemented in
@@ -220,14 +205,9 @@ class Pdb(OldPdb):
         except (TypeError, ValueError):
                 raise ValueError("Context must be a positive integer")
 
-        if has_pydb and completekey is None:
-            OldPdb.__init__(self,stdin=stdin,stdout=sys.stdout)
-        else:
-            OldPdb.__init__(self,completekey,stdin,stdout)
+        OldPdb.__init__(self,completekey,stdin,stdout)
 
         # IPython changes...
-        self.is_pydb = has_pydb
-
         self.shell = get_ipython()
 
         if self.shell is None:
@@ -235,26 +215,6 @@ class Pdb(OldPdb):
             from IPython.terminal.interactiveshell import \
                 TerminalInteractiveShell
             self.shell = TerminalInteractiveShell.instance()
-
-        if self.is_pydb:
-
-            # interactiveshell.py's ipalias seems to want pdb's checkline
-            # which located in pydb.fn
-            import pydb.fns
-            self.checkline = lambda filename, lineno: \
-                             pydb.fns.checkline(self, filename, lineno)
-
-            self.curframe = None
-            self.do_restart = self.new_do_restart
-
-            self.old_all_completions = self.shell.Completer.all_completions
-            self.shell.Completer.all_completions=self.all_completions
-
-            self.do_list = decorate_fn_with_doc(self.list_command_pydb,
-                                                OldPdb.do_list)
-            self.do_l     = self.do_list
-            self.do_frame = decorate_fn_with_doc(self.new_do_frame,
-                                                 OldPdb.do_frame)
 
         self.aliases = {}
 
@@ -481,12 +441,6 @@ class Pdb(OldPdb):
 
         return tpl_line % (bp_mark_color + bp_mark, num, line)
 
-
-    def list_command_pydb(self, arg):
-        """List command to use if we have a newer pydb installed"""
-        filename, first, last = OldPdb.parse_list_cmd(self, arg)
-        if filename is not None:
-            self.print_list_lines(filename, first, last)
 
     def print_list_lines(self, filename, first, last):
         """The printing (as opposed to the parsing part of a 'list'
