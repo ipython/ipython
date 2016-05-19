@@ -39,7 +39,7 @@ from pygments.lexer import (
     Lexer, DelegatingLexer, RegexLexer, do_insertions, bygroups, using,
 )
 from pygments.token import (
-    Comment, Generic, Keyword, Literal, Name, Operator, Other, Text, Error,
+    Generic, Keyword, Literal, Name, Operator, Other, Text, Error,
 )
 from pygments.util import get_bool_opt
 
@@ -83,13 +83,11 @@ def build_ipy_lexer(python3):
     # we will also have two IPython lexer classes.
     if python3:
         PyLexer = Python3Lexer
-        clsname = 'IPython3Lexer'
         name = 'IPython3'
         aliases = ['ipython3']
         doc = """IPython3 Lexer"""
     else:
         PyLexer = PythonLexer
-        clsname = 'IPythonLexer'
         name = 'IPython'
         aliases = ['ipython2', 'ipython']
         doc = """IPython Lexer"""
@@ -468,9 +466,9 @@ class IPythonConsoleLexer(Lexer):
             if insertion:
                 self.insertions.append((len(self.buffer), [insertion]))
             self.buffer += code
-        else:
-            for token in self.buffered_tokens():
-                yield token
+
+        for token in self.buffered_tokens():
+            yield token
 
 class IPyLexer(Lexer):
     """

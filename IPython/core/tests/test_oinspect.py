@@ -398,7 +398,7 @@ def test_property_sources():
 def test_property_docstring_is_in_info_for_detail_level_0():
     class A(object):
         @property
-        def foobar():
+        def foobar(self):
             """This is `foobar` property."""
             pass
 
