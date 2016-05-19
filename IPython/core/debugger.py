@@ -37,6 +37,8 @@ from IPython.utils import coloransi, py3compat
 from IPython.core.excolors import exception_colors
 from IPython.testing.skipdoctest import skip_doctest
 
+from prompt_toolkit import prompt as ptk_prompt
+
 # See if we can use pydb.
 has_pydb = False
 prompt = 'ipdb> '
@@ -285,13 +287,46 @@ class Pdb(OldPdb):
         self.parser = PyColorize.Parser()
 
         # Set the prompt - the default prompt is '(Pdb)'
-        Colors = cst.active_colors
-        if color_scheme == 'NoColor':
-            self.prompt = prompt
-        else:
-            # The colour markers are wrapped by bytes 01 and 02 so that readline
-            # can calculate the width.
-            self.prompt = u'\x01%s\x02%s\x01%s\x02' % (Colors.prompt, prompt, Colors.Normal)
+        self.prompt = prompt
+
+
+    def cmdloop(self, intro=None):
+        """Repeatedly issue a prompt, accept input, parse an initial prefix
+        off the received input, and dispatch to action methods, passing them
+        the remainder of the line as argument.
+
+        override the same methods from cmd.Cmd to provide prompt toolkit replacement. 
+        """
+        if not self.use_rawinput:
+            raise ValueError('Sorry ipdb does not support raw_input=False')
+
+        def get_prompt_tokens(cli):
+            from pygments.token import Token
+            return [(Token.Prompt, self.prompt)]
+
+        self.preloop()
+        try:
+            if intro is not None:
+                self.intro = intro
+            if self.intro:
+                self.stdout.write(str(self.intro)+"\n")
+            stop = None
+            while not stop:
+                if self.cmdqueue:
+                    line = self.cmdqueue.pop(0)
+                else:
+                    try:
+                        line = ptk_prompt(get_prompt_tokens=get_prompt_tokens)
+                    except EOFError:
+                        line = 'EOF'
+                line = self.precmd(line)
+                stop = self.onecmd(line)
+                stop = self.postcmd(stop, line)
+            self.postloop()
+        except Exception:
+            pass
+
+
 
     def set_colors(self, scheme):
         """Shorthand access to the color table scheme selector method."""
