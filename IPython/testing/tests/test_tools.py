@@ -132,3 +132,9 @@ class Test_ipexec_validate(unittest.TestCase, tt.TempFileMixin):
                    )
         out = "A\r\nB"
         tt.ipexec_validate(self.fname, expected_out=out, expected_err="C\r\nD")
+
+
+    def tearDown(self):
+        # tear down correctly the mixin,
+        # unittest.TestCase.tearDown does nothing
+        tt.TempFileMixin.tearDown(self)

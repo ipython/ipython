@@ -44,6 +44,8 @@ pjoin = path.join
 
 
 # Enable printing all warnings raise by IPython's modules
+if sys.version_info > (3,0):
+    warnings.filterwarnings('error', message='.*', category=ResourceWarning, module='.*')
 warnings.filterwarnings('default', message='.*', category=Warning, module='IPy.*')
 
 if version_info < (6,):
