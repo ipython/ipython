@@ -122,12 +122,6 @@ class Tracer(object):
             sys.excepthook = functools.partial(BdbQuit_excepthook,
                                                excepthook=sys.excepthook)
             def_colors = 'NoColor'
-            try:
-                # Limited tab completion support
-                import readline
-                readline.parse_and_bind('tab: complete')
-            except ImportError:
-                pass
         else:
             # In ipython, we use its custom exception handler mechanism
             def_colors = ip.colors
@@ -300,18 +294,10 @@ class Pdb(OldPdb, object):
         self.color_scheme_table.set_active_scheme(scheme)
 
     def interaction(self, frame, traceback):
-        self.shell.set_completer_frame(frame)
-        while True:
-            try:
-                OldPdb.interaction(self, frame, traceback)
-                break
-            except KeyboardInterrupt:
-                self.shell.write('\n' + self.shell.get_exception_only())
-                break
-            finally:
-                # Pdb sets readline delimiters, so set them back to our own
-                if self.shell.readline is not None:
-                    self.shell.readline.set_completer_delims(self.shell.readline_delims)
+        try:
+            OldPdb.interaction(self, frame, traceback)
+        except KeyboardInterrupt:
+            sys.stdout.write('\n' + self.shell.get_exception_only())
 
     def parseline(self, line):
         if line.startswith("!!"):
