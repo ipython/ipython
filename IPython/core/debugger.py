@@ -256,7 +256,7 @@ class Pdb(OldPdb, object):
         override the same methods from cmd.Cmd to provide prompt toolkit replacement. 
         """
         if not self.use_prompt_toolkit:
-            super(Pdb, self).cmdloop(intro)
+            return OldPdb.cmdloop(self, intro)
 
         if not self.use_rawinput:
             raise ValueError('Sorry ipdb does not support raw_input=False')
