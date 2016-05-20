@@ -218,6 +218,10 @@ class Pdb(OldPdb, object):
                 TerminalInteractiveShell
             self.shell = TerminalInteractiveShell.instance()
 
+        # This is icky, but I'm not currently sure how best to test if we're
+        # in a terminal shell using prompt_toolkit
+        self.use_prompt_toolkit = hasattr(self.shell, 'pt_cli')
+
         self.aliases = {}
 
         # Create color table: we copy the default one from the traceback
@@ -257,6 +261,9 @@ class Pdb(OldPdb, object):
 
         override the same methods from cmd.Cmd to provide prompt toolkit replacement. 
         """
+        if not self.use_prompt_toolkit:
+            super(Pdb, self).cmdloop(intro)
+
         if not self.use_rawinput:
             raise ValueError('Sorry ipdb does not support raw_input=False')
 
