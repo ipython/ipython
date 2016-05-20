@@ -292,7 +292,7 @@ class BaseIPythonApplication(Application):
         `supress_errors` default value is to be `None` in which case the
         behavior default to the one of `traitlets.Application`.
 
-        The default value can be changed :
+        The default value can be set :
            - to `False` by setting 'IPYTHON_SUPPRESS_ERRORS' environment variable to '0', or 'false' (case insensitive).
            - to `True` by setting 'IPYTHON_SUPPRESS_ERRORS' environment variable to '1' or 'true' (case insensitive).
            - to `None` by setting 'IPYTHON_SUPPRESS_ERRORS' environment variable to '' (empty string) or leaving it unset.
