@@ -116,7 +116,7 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Shortcut style to use at the prompt. 'vi' or 'emacs'.",
     ).tag(config=True)
 
-    mouse_support = Bool(False,
+    mouse_support = Bool(True,
         help="Enable mouse support in the prompt"
     ).tag(config=True)
 
