@@ -654,8 +654,7 @@ class IPCompleter(Completer):
 
     def all_completions(self, text):
         """
-        Wrapper around the complete method for the benefit of emacs
-        and pydb.
+        Wrapper around the complete method for the benefit of emacs.
         """
         return self.complete(text)[1]
 

@@ -31,7 +31,7 @@ from io import open as io_open
 from pickleshare import PickleShareDB
 
 from traitlets.config.configurable import SingletonConfigurable
-from IPython.core import debugger, oinspect
+from IPython.core import oinspect
 from IPython.core import magic
 from IPython.core import page
 from IPython.core import prefilter
@@ -974,7 +974,7 @@ class InteractiveShell(SingletonConfigurable):
                         'Control auto-activation of pdb at exceptions')
 
     def debugger(self,force=False):
-        """Call the pydb/pdb debugger.
+        """Call the pdb debugger.
 
         Keywords:
 
@@ -991,15 +991,9 @@ class InteractiveShell(SingletonConfigurable):
             error('No traceback has been produced, nothing to debug.')
             return
 
-        # use pydb if available
-        if debugger.has_pydb:
-            from pydb import pm
-        else:
-            # fallback to our internal debugger
-            pm = lambda : self.InteractiveTB.debugger(force=True)
 
         with self.readline_no_record:
-            pm()
+            self.InteractiveTB.debugger(force=True)
 
     #-------------------------------------------------------------------------
     # Things related to IPython's various namespaces
