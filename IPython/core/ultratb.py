@@ -925,7 +925,12 @@ class VerboseTB(TBTools):
 
         elif file.endswith(('.pyc', '.pyo')):
             # Look up the corresponding source file.
-            file = openpy.source_from_cache(file)
+            try:
+                file = openpy.source_from_cache(file)
+            except ValueError:
+                # Failed to get the source file for some reason
+                # E.g. https://github.com/ipython/ipython/issues/9486
+                return '%s %s\n' % (link, call)
 
         def linereader(file=file, lnum=[lnum], getline=ulinecache.getline):
             line = getline(file, lnum[0])
