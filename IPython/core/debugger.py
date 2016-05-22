@@ -34,8 +34,10 @@ import sys
 from IPython import get_ipython
 from IPython.utils import PyColorize, ulinecache
 from IPython.utils import coloransi, py3compat
+from IPython.core.completer import IPCompleter
 from IPython.core.excolors import exception_colors
 from IPython.testing.skipdoctest import skip_doctest
+from IPython.terminal.ptutils import IPythonPTCompleter
 
 from prompt_toolkit import prompt as ptk_prompt
 
@@ -276,9 +278,16 @@ class Pdb(OldPdb, object):
                 if self.cmdqueue:
                     line = self.cmdqueue.pop(0)
                 else:
+                    compl = IPCompleter(shell=self.shell,
+                                        namespace=self.curframe_locals,
+                                        global_namespace=self.curframe.f_globals,
+                                        use_readline=False,
+                                        parent=self.shell,
+                                       )
                     try:
                         line = ptk_prompt(get_prompt_tokens=get_prompt_tokens,
                                           history=self.shell.debugger_history,
+                                          completer=IPythonPTCompleter(compl),
                                          )
                     except EOFError:
                         line = 'EOF'

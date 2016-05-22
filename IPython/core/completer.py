@@ -652,6 +652,9 @@ class IPCompleter(Completer):
                          self.dict_key_matches,
                          ]
 
+        # This is set externally by InteractiveShell
+        self.custom_completers = None
+
     def all_completions(self, text):
         """
         Wrapper around the complete method for the benefit of emacs.
@@ -1072,6 +1075,9 @@ class IPCompleter(Completer):
         return u'', []
 
     def dispatch_custom_completer(self, text):
+        if not self.custom_completers:
+            return
+
         line = self.line_buffer
         if not line.strip():
             return None
