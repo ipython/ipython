@@ -40,6 +40,7 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.terminal.ptutils import IPythonPTCompleter
 
 from prompt_toolkit import prompt as ptk_prompt
+from prompt_toolkit.token import Token
 
 prompt = 'ipdb> '
 
@@ -248,6 +249,7 @@ class Pdb(OldPdb, object):
 
         # Set the prompt - the default prompt is '(Pdb)'
         self.prompt = prompt
+        self._ptcomp = None
 
 
     def cmdloop(self, intro=None):
@@ -264,10 +266,19 @@ class Pdb(OldPdb, object):
             raise ValueError('Sorry ipdb does not support raw_input=False')
 
         def get_prompt_tokens(cli):
-            from pygments.token import Token
             return [(Token.Prompt, self.prompt)]
 
         self.preloop()
+
+        if self._ptcomp is None:
+            compl = IPCompleter(shell=self.shell,
+                                        namespace=self.curframe_locals,
+                                        global_namespace=self.curframe.f_globals,
+                                        use_readline=False,
+                                        parent=self.shell,
+                                       )
+            self._ptcomp = IPythonPTCompleter(compl)
+
         try:
             if intro is not None:
                 self.intro = intro
@@ -278,16 +289,12 @@ class Pdb(OldPdb, object):
                 if self.cmdqueue:
                     line = self.cmdqueue.pop(0)
                 else:
-                    compl = IPCompleter(shell=self.shell,
-                                        namespace=self.curframe_locals,
-                                        global_namespace=self.curframe.f_globals,
-                                        use_readline=False,
-                                        parent=self.shell,
-                                       )
+                    self._ptcomp.ipy_completer.namespace = self.curframe_locals
+                    self._ptcomp.ipy_completer.global_namespace = self.curframe.f_globals
                     try:
                         line = ptk_prompt(get_prompt_tokens=get_prompt_tokens,
                                           history=self.shell.debugger_history,
-                                          completer=IPythonPTCompleter(compl),
+                                          completer=self._ptcomp
                                          )
                     except EOFError:
                         line = 'EOF'
@@ -323,18 +330,15 @@ class Pdb(OldPdb, object):
 
     def new_do_up(self, arg):
         OldPdb.do_up(self, arg)
-        self.shell.set_completer_frame(self.curframe)
     do_u = do_up = decorate_fn_with_doc(new_do_up, OldPdb.do_up)
 
     def new_do_down(self, arg):
         OldPdb.do_down(self, arg)
-        self.shell.set_completer_frame(self.curframe)
 
     do_d = do_down = decorate_fn_with_doc(new_do_down, OldPdb.do_down)
 
     def new_do_frame(self, arg):
         OldPdb.do_frame(self, arg)
-        self.shell.set_completer_frame(self.curframe)
 
     def new_do_quit(self, arg):
 
@@ -350,9 +354,6 @@ class Pdb(OldPdb, object):
         thing as 'quit'."""
         self.msg("Restart doesn't make sense here. Using 'quit' instead.")
         return self.do_quit(arg)
-
-    def postloop(self):
-        self.shell.set_completer_frame(None)
 
     def print_stack_trace(self, context=None):
         if context is None:
