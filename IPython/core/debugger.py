@@ -277,7 +277,9 @@ class Pdb(OldPdb, object):
                     line = self.cmdqueue.pop(0)
                 else:
                     try:
-                        line = ptk_prompt(get_prompt_tokens=get_prompt_tokens)
+                        line = ptk_prompt(get_prompt_tokens=get_prompt_tokens,
+                                          history=self.shell.debugger_history,
+                                         )
                     except EOFError:
                         line = 'EOF'
                 line = self.precmd(line)

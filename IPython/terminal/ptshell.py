@@ -100,6 +100,7 @@ class TerminalInteractiveShell(InteractiveShell):
         self._update_layout()
 
     pt_cli = None
+    debugger_history = None
 
     autoedit_syntax = Bool(False,
         help="auto editing of files with syntax errors.",
@@ -361,6 +362,8 @@ class TerminalInteractiveShell(InteractiveShell):
         self.init_prompt_toolkit_cli()
         self.init_term_title()
         self.keep_running = True
+
+        self.debugger_history = InMemoryHistory()
 
     def ask_exit(self):
         self.keep_running = False
