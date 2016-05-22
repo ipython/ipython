@@ -39,8 +39,11 @@ from IPython.core.excolors import exception_colors
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.terminal.ptutils import IPythonPTCompleter
 
-from prompt_toolkit import prompt as ptk_prompt
 from prompt_toolkit.token import Token
+from prompt_toolkit.shortcuts import create_prompt_application
+from prompt_toolkit.interface import CommandLineInterface
+from prompt_toolkit.enums import EditingMode
+
 
 prompt = 'ipdb> '
 
@@ -204,7 +207,7 @@ class Pdb(OldPdb, object):
         except (TypeError, ValueError):
                 raise ValueError("Context must be a positive integer")
 
-        OldPdb.__init__(self,completekey,stdin,stdout)
+        OldPdb.__init__(self, completekey, stdin, stdout)
 
         # IPython changes...
         self.shell = get_ipython()
@@ -217,7 +220,6 @@ class Pdb(OldPdb, object):
 
         # This is icky, but I'm not currently sure how best to test if we're
         # in a terminal shell using prompt_toolkit
-        self.use_prompt_toolkit = hasattr(self.shell, 'pt_cli')
 
         self.aliases = {}
 
@@ -250,6 +252,36 @@ class Pdb(OldPdb, object):
         # Set the prompt - the default prompt is '(Pdb)'
         self.prompt = prompt
         self._ptcomp = None
+        self.pt_init()
+
+    def pt_init(self):
+        self.use_prompt_toolkit = hasattr(self.shell, 'pt_cli')
+
+        if not self.use_prompt_toolkit:
+            return
+
+        def get_prompt_tokens(cli):
+            return [(Token.Prompt, self.prompt)]
+
+        if self._ptcomp is None:
+            compl = IPCompleter(shell=self.shell,
+                                        namespace={},
+                                        global_namespace={},
+                                        use_readline=False,
+                                        parent=self.shell,
+                                       )
+            self._ptcomp = IPythonPTCompleter(compl)
+
+        self._pt_app = create_prompt_application(
+                            editing_mode=getattr(EditingMode, self.shell.editing_mode.upper()),
+                            history=self.shell.debugger_history,
+                            completer= self._ptcomp,
+                            enable_history_search=True,
+                            mouse_support=self.shell.mouse_support,
+                            get_prompt_tokens=get_prompt_tokens
+        )
+        self.pt_cli = CommandLineInterface(self._pt_app, eventloop=self.shell._eventloop)
+
 
 
     def cmdloop(self, intro=None):
@@ -265,19 +297,9 @@ class Pdb(OldPdb, object):
         if not self.use_rawinput:
             raise ValueError('Sorry ipdb does not support raw_input=False')
 
-        def get_prompt_tokens(cli):
-            return [(Token.Prompt, self.prompt)]
 
         self.preloop()
 
-        if self._ptcomp is None:
-            compl = IPCompleter(shell=self.shell,
-                                        namespace=self.curframe_locals,
-                                        global_namespace=self.curframe.f_globals,
-                                        use_readline=False,
-                                        parent=self.shell,
-                                       )
-            self._ptcomp = IPythonPTCompleter(compl)
 
         try:
             if intro is not None:
@@ -292,10 +314,7 @@ class Pdb(OldPdb, object):
                     self._ptcomp.ipy_completer.namespace = self.curframe_locals
                     self._ptcomp.ipy_completer.global_namespace = self.curframe.f_globals
                     try:
-                        line = ptk_prompt(get_prompt_tokens=get_prompt_tokens,
-                                          history=self.shell.debugger_history,
-                                          completer=self._ptcomp
-                                         )
+                        line = self.pt_cli.run(reset_current_buffer=True).text
                     except EOFError:
                         line = 'EOF'
                 line = self.precmd(line)
@@ -303,7 +322,7 @@ class Pdb(OldPdb, object):
                 stop = self.postcmd(stop, line)
             self.postloop()
         except Exception:
-            pass
+            raise
 
 
 
