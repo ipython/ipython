@@ -809,7 +809,7 @@ class VerboseTB(TBTools):
 
     def __init__(self, color_scheme='Linux', call_pdb=False, ostream=None,
                  tb_offset=0, long_header=False, include_vars=True,
-                 check_cache=None):
+                 check_cache=None, debugger_cls = None):
         """Specify traceback offset, headers and color scheme.
 
         Define how many frames to drop from the tracebacks. Calling it with
@@ -829,6 +829,8 @@ class VerboseTB(TBTools):
         if check_cache is None:
             check_cache = linecache.checkcache
         self.check_cache = check_cache
+
+        self.debugger_cls = debugger_cls or debugger.Pdb
 
     def format_records(self, records, last_unique, recursion_repeat):
         """Format the stack frames of the traceback"""
@@ -1217,7 +1219,7 @@ class VerboseTB(TBTools):
 
         if force or self.call_pdb:
             if self.pdb is None:
-                self.pdb = debugger.Pdb(
+                self.pdb = self.debugger_cls(
                     self.color_scheme_table.active_scheme_name)
             # the system displayhook may have changed, restore the original
             # for pdb
@@ -1278,7 +1280,7 @@ class FormattedTB(VerboseTB, ListTB):
     def __init__(self, mode='Plain', color_scheme='Linux', call_pdb=False,
                  ostream=None,
                  tb_offset=0, long_header=False, include_vars=False,
-                 check_cache=None):
+                 check_cache=None, debugger_cls=None):
 
         # NEVER change the order of this list. Put new modes at the end:
         self.valid_modes = ['Plain', 'Context', 'Verbose']
@@ -1287,7 +1289,7 @@ class FormattedTB(VerboseTB, ListTB):
         VerboseTB.__init__(self, color_scheme=color_scheme, call_pdb=call_pdb,
                            ostream=ostream, tb_offset=tb_offset,
                            long_header=long_header, include_vars=include_vars,
-                           check_cache=check_cache)
+                           check_cache=check_cache, debugger_cls=debugger_cls)
 
         # Different types of tracebacks are joined with different separators to
         # form a single string.  They are taken from this dict

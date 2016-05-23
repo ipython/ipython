@@ -42,6 +42,7 @@ from IPython.core.autocall import ExitAutocall
 from IPython.core.builtin_trap import BuiltinTrap
 from IPython.core.events import EventManager, available_events
 from IPython.core.compilerop import CachingCompiler, check_linecache_ipython
+from IPython.core.debugger import Pdb
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.displayhook import DisplayHook
 from IPython.core.displaypub import DisplayPublisher
@@ -1584,6 +1585,8 @@ class InteractiveShell(SingletonConfigurable):
     # Things related to exception handling and tracebacks (not debugging)
     #-------------------------------------------------------------------------
 
+    debugger_cls = Pdb
+
     def init_traceback_handlers(self, custom_exceptions):
         # Syntax error handler.
         self.SyntaxTB = ultratb.SyntaxTB(color_scheme='NoColor')
@@ -1594,7 +1597,8 @@ class InteractiveShell(SingletonConfigurable):
         self.InteractiveTB = ultratb.AutoFormattedTB(mode = 'Plain',
                                                      color_scheme='NoColor',
                                                      tb_offset = 1,
-                                   check_cache=check_linecache_ipython)
+                                   check_cache=check_linecache_ipython,
+                                   debugger_cls=self.debugger_cls)
 
         # The instance will store a pointer to the system-wide exception hook,
         # so that runtime code (such as magics) can access it.  This is because
