@@ -211,9 +211,6 @@ class Pdb(OldPdb, object):
                 TerminalInteractiveShell
             self.shell = TerminalInteractiveShell.instance()
 
-        # This is icky, but I'm not currently sure how best to test if we're
-        # in a terminal shell using prompt_toolkit
-
         self.aliases = {}
 
         # Create color table: we copy the default one from the traceback
