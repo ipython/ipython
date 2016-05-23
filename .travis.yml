@@ -1,7 +1,6 @@
 # http://travis-ci.org/#!/ipython/ipython
 language: python
 python:
-    - 3.5
     - 3.4
     - 3.3
     - 2.7
@@ -12,10 +11,17 @@ before_install:
 install:
     - pip install pip --upgrade
     - pip install "setuptools>=18.5"
-    - pip install  --upgrade --find-links travis-wheels/wheelhouse --find-links http://ccdd0ebb5a931e58c7c5-aae005c4999d7244ac63632f8b80e089.r77.cf2.rackcdn.com --trusted-host ccdd0ebb5a931e58c7c5-aae005c4999d7244ac63632f8b80e089.r77.cf2.rackcdn.com -e file://$PWD#egg=ipython[test] 
+    - pip install  --upgrade --find-links travis-wheels/wheelhouse $EXTRA_PIP_ARGS -e file://$PWD#egg=ipython[test] $EXTRA_DEPS
     - pip install codecov
 script:
     - cd /tmp && iptest --coverage xml && cd -
+
+matrix:
+    include:
+      - python: 3.5
+        env: EXTRA_DEPS='matplotlib pillow pandas numpy' EXTRA_PIP_ARGS='--find-links http://ccdd0ebb5a931e58c7c5-aae005c4999d7244ac63632f8b80e089.r77.cf2.rackcdn.com --trusted-host ccdd0ebb5a931e58c7c5-aae005c4999d7244ac63632f8b80e089.r77.cf2.rackcdn.com'
+        
+
 after_success:
     - cp /tmp/ipy_coverage.xml ./
     - cp /tmp/.coverage ./

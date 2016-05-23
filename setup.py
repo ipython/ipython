@@ -183,7 +183,7 @@ extras_require = dict(
     qtconsole = ['qtconsole'],
     doc = ['Sphinx>=1.3'],
     terminal = [],
-    test = ['nose>=0.10.1', 'requests', 'testpath', 'pygments', 'numpy', 'matplotlib', 'pillow', 'pandas', 'nbformat', 'ipykernel'],
+    test = ['nose>=0.10.1', 'requests', 'testpath', 'pygments', 'nbformat', 'ipykernel'],
     kernel = ['ipykernel'],
     nbformat = ['nbformat'],
     notebook = ['notebook', 'ipywidgets'],
