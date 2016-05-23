@@ -182,13 +182,14 @@ extras_require = dict(
     parallel = ['ipyparallel'],
     qtconsole = ['qtconsole'],
     doc = ['Sphinx>=1.3'],
-    test = ['nose>=0.10.1', 'requests', 'testpath', 'pygments'],
     terminal = [],
+    test = ['nose>=0.10.1', 'requests', 'testpath', 'pygments', 'numpy', 'matplotlib', 'pillow', 'pandas', 'nbformat', 'ipykernel'],
     kernel = ['ipykernel'],
     nbformat = ['nbformat'],
     notebook = ['notebook', 'ipywidgets'],
     nbconvert = ['nbconvert'],
 )
+
 install_requires = [
     'setuptools>=18.5',
     'decorator',

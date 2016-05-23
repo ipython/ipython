@@ -254,22 +254,22 @@ class TestMagicRunSimple(tt.TempFileMixin):
 
         Returning from another run magic deletes the namespace"""
         # see ticket https://github.com/ipython/ipython/issues/238
-        class secondtmp(tt.TempFileMixin): pass
-        empty = secondtmp()
-        empty.mktmp('')
-        # On Windows, the filename will have \users in it, so we need to use the
-        # repr so that the \u becomes \\u.
-        src = ("ip = get_ipython()\n"
-               "for i in range(5):\n"
-               "   try:\n"
-               "       ip.magic(%r)\n"
-               "   except NameError as e:\n"
-               "       print(i)\n"
-               "       break\n" % ('run ' + empty.fname))
-        self.mktmp(src)
-        _ip.magic('run %s' % self.fname)
-        _ip.run_cell('ip == get_ipython()')
-        nt.assert_equal(_ip.user_ns['i'], 4)
+        
+        with tt.TempFileMixin() as empty:
+            empty.mktmp('')
+            # On Windows, the filename will have \users in it, so we need to use the
+            # repr so that the \u becomes \\u.
+            src = ("ip = get_ipython()\n"
+                   "for i in range(5):\n"
+                   "   try:\n"
+                   "       ip.magic(%r)\n"
+                   "   except NameError as e:\n"
+                   "       print(i)\n"
+                   "       break\n" % ('run ' + empty.fname))
+            self.mktmp(src)
+            _ip.magic('run %s' % self.fname)
+            _ip.run_cell('ip == get_ipython()')
+            nt.assert_equal(_ip.user_ns['i'], 4)
     
     def test_run_second(self):
         """Test that running a second file doesn't clobber the first, gh-3547
@@ -278,12 +278,12 @@ class TestMagicRunSimple(tt.TempFileMixin):
                    "def afunc():\n"
                    "  return avar\n")
 
-        empty = tt.TempFileMixin()
-        empty.mktmp("")
-        
-        _ip.magic('run %s' % self.fname)
-        _ip.magic('run %s' % empty.fname)
-        nt.assert_equal(_ip.user_ns['afunc'](), 1)
+        with tt.TempFileMixin() as empty:
+            empty.mktmp("")
+            
+            _ip.magic('run %s' % self.fname)
+            _ip.magic('run %s' % empty.fname)
+            nt.assert_equal(_ip.user_ns['afunc'](), 1)
 
     @dec.skip_win32
     def test_tclass(self):

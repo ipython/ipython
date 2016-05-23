@@ -10,8 +10,9 @@ before_install:
     - git clone --quiet --depth 1 https://github.com/minrk/travis-wheels travis-wheels
     - 'if [[ $GROUP != js* ]]; then COVERAGE=""; fi'
 install:
+    - pip install pip --upgrade
     - pip install "setuptools>=18.5"
-    - pip install -f travis-wheels/wheelhouse -e file://$PWD#egg=ipython[test]
+    - pip install  --upgrade --find-links travis-wheels/wheelhouse --find-links http://ccdd0ebb5a931e58c7c5-aae005c4999d7244ac63632f8b80e089.r77.cf2.rackcdn.com --trusted-host ccdd0ebb5a931e58c7c5-aae005c4999d7244ac63632f8b80e089.r77.cf2.rackcdn.com -e file://$PWD#egg=ipython[test] 
     - pip install codecov
 script:
     - cd /tmp && iptest --coverage xml && cd -
