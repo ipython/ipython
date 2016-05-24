@@ -43,16 +43,16 @@ else:
         "/etc/ipython",
     ]
 
-_envvar = os.environ.get('IPYTHON_SUPPRESS_ERRORS')
+_envvar = os.environ.get('IPYTHON_SUPPRESS_CONFIG_ERRORS')
 if _envvar in {None, ''}:
-    IPYTHON_SUPPRESS_ERRORS = None
+    IPYTHON_SUPPRESS_CONFIG_ERRORS = None
 else:
     if _envvar.lower() in {'1','true'}:
-        IPYTHON_SUPPRESS_ERRORS = True
+        IPYTHON_SUPPRESS_CONFIG_ERRORS = True
     elif _envvar.lower() in {'0','false'} :
-        IPYTHON_SUPPRESS_ERRORS = False
+        IPYTHON_SUPPRESS_CONFIG_ERRORS = False
     else:
-        sys.exit("Unsupported value for environment variable: 'IPYTHON_SUPPRESS_ERRORS' is set to '%s' which is none of  {'0', '1', 'false', 'true', ''}."% _envvar )
+        sys.exit("Unsupported value for environment variable: 'IPYTHON_SUPPRESS_CONFIG_ERRORS' is set to '%s' which is none of  {'0', '1', 'false', 'true', ''}."% _envvar )
 
 # aliases and flags
 
@@ -282,7 +282,7 @@ class BaseIPythonApplication(Application):
                 self.log.error("couldn't create path %s: %s", path, e)
         self.log.debug("IPYTHONDIR set to: %s" % new)
 
-    def load_config_file(self, suppress_errors=IPYTHON_SUPPRESS_ERRORS):
+    def load_config_file(self, suppress_errors=IPYTHON_SUPPRESS_CONFIG_ERRORS):
         """Load the config file.
 
         By default, errors in loading config are handled, and a warning
@@ -293,9 +293,9 @@ class BaseIPythonApplication(Application):
         behavior default to the one of `traitlets.Application`.
 
         The default value can be set :
-           - to `False` by setting 'IPYTHON_SUPPRESS_ERRORS' environment variable to '0', or 'false' (case insensitive).
-           - to `True` by setting 'IPYTHON_SUPPRESS_ERRORS' environment variable to '1' or 'true' (case insensitive).
-           - to `None` by setting 'IPYTHON_SUPPRESS_ERRORS' environment variable to '' (empty string) or leaving it unset.
+           - to `False` by setting 'IPYTHON_SUPPRESS_CONFIG_ERRORS' environment variable to '0', or 'false' (case insensitive).
+           - to `True` by setting 'IPYTHON_SUPPRESS_CONFIG_ERRORS' environment variable to '1' or 'true' (case insensitive).
+           - to `None` by setting 'IPYTHON_SUPPRESS_CONFIG_ERRORS' environment variable to '' (empty string) or leaving it unset.
 
         Any other value are invalid, and will make IPython exit with a non-zero return code.
         """
