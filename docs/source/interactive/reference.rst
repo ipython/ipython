@@ -265,7 +265,7 @@ This feature does not use the ``readline`` library anymore – at least for now
 file your :envvar:`INPUTRC` environment variable points to).
 
 In particular if you want to change the input mode to ``vi``, you will need to
-set the ``TerminalInteractiveShell.vi_mode`` configuration  option of IPython.
+set the ``TerminalInteractiveShell.editing_mode`` configuration  option of IPython.
 
 Session logging and restoring
 -----------------------------
