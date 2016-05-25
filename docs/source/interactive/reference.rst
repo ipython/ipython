@@ -254,61 +254,18 @@ time you restart it. By default, the history file is named
 Autoindent
 ++++++++++
 
-IPython can recognize lines ending in ':' and indent the next line,
-while also un-indenting automatically after 'raise' or 'return'.
+Starting with 5.0, IPython user `prompt_toolkit` in place of ``readline``,
+it thus can recognize lines ending in ':' and indent the next line,
+while also un-indenting automatically after 'raise' or 'return',
+and support real multi-line editing as well as syntactic coloration
+during edition.
 
-This feature uses the readline library, so it will honor your
-:file:`~/.inputrc` configuration (or whatever file your :envvar:`INPUTRC` environment variable points
-to). Adding the following lines to your :file:`.inputrc` file can make
-indenting/unindenting more convenient (M-i indents, M-u unindents)::
+This feature does not use the ``readline`` library anymore – at least for now
+– , so it will not honor your :file:`~/.inputrc` configuration (or whatever
+file your :envvar:`INPUTRC` environment variable points to).
 
-    # if you don't already have a ~/.inputrc file, you need this include:
-    $include /etc/inputrc
-    
-    $if Python 
-    "\M-i": "    "  
-    "\M-u": "\d\d\d\d"  
-    $endif
-
-Note that there are 4 spaces between the quote marks after "M-i" above.
-
-.. warning::
-
-    Setting the above indents will cause problems with unicode text entry in
-    the terminal.
-
-.. warning::
-
-    Autoindent is ON by default, but it can cause problems with the pasting of
-    multi-line indented code (the pasted code gets re-indented on each line). A
-    magic function %autoindent allows you to toggle it on/off at runtime. You
-    can also disable it permanently on in your :file:`ipython_config.py` file
-    (set TerminalInteractiveShell.autoindent=False).
-    
-    If you want to paste multiple lines in the terminal, it is recommended that
-    you use ``%paste``.
-
-
-Customizing readline behavior
-+++++++++++++++++++++++++++++
-
-All these features are based on the GNU readline library, which has an
-extremely customizable interface. Normally, readline is configured via a
-:file:`.inputrc` file. IPython respects this, and you can also customise readline
-by setting the following :doc:`configuration </config/intro>` options:
-
-    * ``InteractiveShell.readline_parse_and_bind``: this holds a list of strings to be executed
-      via a readline.parse_and_bind() command. The syntax for valid commands
-      of this kind can be found by reading the documentation for the GNU
-      readline library, as these commands are of the kind which readline
-      accepts in its configuration file.
-    * ``InteractiveShell.readline_remove_delims``: a string of characters to be removed
-      from the default word-delimiters list used by readline, so that
-      completions may be performed on strings which contain them. Do not
-      change the default value unless you know what you're doing.
-
-You will find the default values in your configuration file.
-
+In particular if you want to change the input mode to ``vi``, you will need to
+set the ``TerminalInteractiveShell.vi_mode`` configuration  option of IPython.
 
 Session logging and restoring
 -----------------------------
