@@ -55,6 +55,17 @@ under :file:`profile_default`. If you want the default config files for the
 :mod:`IPython.parallel` applications, add ``--parallel`` to the end of the
 command-line args.
 
+.. note::
+
+    By default IPython will ignore any invalid configuration files, or any
+    unknown configuration option.
+
+.. versionadded:: 5.0
+
+    IPython can be configured to abort in case of invalid configuration file.
+    To do so set the environment variable ``IPYTHON_SUPPRESS_CONFIG_ERRORS`` to
+    `'1'` or `'true'`
+
 
 Locating these files
 --------------------
