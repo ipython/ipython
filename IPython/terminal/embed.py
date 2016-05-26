@@ -196,12 +196,10 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         """
         
         if (global_ns is not None) and (module is None):
-            warnings.warn("global_ns is deprecated, and will be removed in IPython 5.0 use module instead.", DeprecationWarning)
-            module = DummyMod()
-            module.__dict__ = global_ns
+            raise DeprecationWarning("'global_ns' keyword argument is deprecated, and has been removed in IPython 5.0 use `module` keyword argument instead.")
 
         if (display_banner is not None):
-            warnings.warn("The display_banner parameter is deprecated.", DeprecationWarning)
+            warnings.warn("The display_banner parameter is deprecated since IPython 4.0", DeprecationWarning)
 
         # Get locals and globals from caller
         if ((local_ns is None or module is None or compile_flags is None)
