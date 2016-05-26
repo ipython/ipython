@@ -303,6 +303,13 @@ class TempFileMixin(object):
                 # delete it.  I have no clue why
                 pass
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.tearDown()
+
+
 pair_fail_msg = ("Testing {0}\n\n"
                 "In:\n"
                 "  {1!r}\n"
@@ -421,16 +428,6 @@ class AssertNotPrints(AssertPrints):
             return False
         finally:
             self.tee.close()
-
-@contextmanager
-def mute_warn():
-    from IPython.utils import warn
-    save_warn = warn.warn
-    warn.warn = lambda *a, **kw: None
-    try:
-        yield
-    finally:
-        warn.warn = save_warn
 
 @contextmanager
 def make_tempfile(name):
