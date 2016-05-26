@@ -2019,7 +2019,6 @@ class InteractiveShell(SingletonConfigurable):
 
         # Expose as public API from the magics manager
         self.register_magics = self.magics_manager.register
-        self.define_magic = self.magics_manager.define_magic
 
         self.register_magics(m.AutoMagics, m.BasicMagics, m.CodeMagics,
             m.ConfigMagics, m.DeprecatedMagics, m.DisplayMagics, m.ExecutionMagics,
