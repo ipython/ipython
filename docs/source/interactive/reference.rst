@@ -254,7 +254,7 @@ time you restart it. By default, the history file is named
 Autoindent
 ++++++++++
 
-Starting with 5.0, IPython user `prompt_toolkit` in place of ``readline``,
+Starting with 5.0, IPython uses `prompt_toolkit` in place of ``readline``,
 it thus can recognize lines ending in ':' and indent the next line,
 while also un-indenting automatically after 'raise' or 'return',
 and support real multi-line editing as well as syntactic coloration
