@@ -350,12 +350,12 @@ def _dreload(module, **kwargs):
     import reload explicitly from `IPython.lib.deepreload` to use it
 
     """
+    # this was marked as deprecated and for 5.0 removal, but
+    # IPython.core_builtin_trap have a Deprecation warning for 6.0, so cannot
+    # remove that now.
     warn("""
-injecting `dreload` in interactive namespace is deprecated, and will be removed in IPython 5.0. 
+injecting `dreload` in interactive namespace is deprecated since IPython 4.0. 
 Please import `reload` explicitly from `IPython.lib.deepreload`.
 """, DeprecationWarning, stacklevel=2)
     reload(module, **kwargs)
 
-# Uncomment the following to automatically activate deep reloading whenever
-# this module is imported
-#builtin_mod.reload = reload
