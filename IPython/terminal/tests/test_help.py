@@ -25,6 +25,5 @@ def test_locate_help():
 def test_locate_profile_help():
     tt.help_all_output_test("locate profile")
 
-@skip_without('nbformat')  # Requires jsonschema to be installed
 def test_trust_help():
     tt.help_all_output_test("trust")

@@ -303,6 +303,13 @@ class TempFileMixin(object):
                 # delete it.  I have no clue why
                 pass
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.tearDown()
+
+
 pair_fail_msg = ("Testing {0}\n\n"
                 "In:\n"
                 "  {1!r}\n"
