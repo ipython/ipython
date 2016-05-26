@@ -17,7 +17,7 @@ from traitlets import Bool, Unicode, Dict, Integer, observe
 
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER, EditingMode
-from prompt_toolkit.filters import HasFocus, HasSelection, Condition, ViInsertMode, EmacsInsertMode
+from prompt_toolkit.filters import HasFocus, HasSelection, Condition, ViInsertMode, EmacsInsertMode, IsDone
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop, create_prompt_layout
 from prompt_toolkit.interface import CommandLineInterface
@@ -25,6 +25,7 @@ from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.layout.lexers import Lexer
 from prompt_toolkit.layout.lexers import PygmentsLexer
+from prompt_toolkit.layout.processors import ConditionalProcessor, HighlightMatchingBracketProcessor
 from prompt_toolkit.styles import PygmentsStyle, DynamicStyle
 
 from pygments.styles import get_style_by_name, get_all_styles
@@ -145,7 +146,10 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Display a multi column completion menu.",
     ).tag(config=True)
 
-    
+    highlight_matching_brackets = Bool(False,
+        help="Highlight matching brackets .",
+    ).tag(config=True)
+
     @observe('term_title')
     def init_term_title(self, change=None):
         # Enable or disable the terminal title.
@@ -300,6 +304,13 @@ class TerminalInteractiveShell(InteractiveShell):
                 'get_continuation_tokens':self.get_continuation_tokens,
                 'multiline':True,
                 'display_completions_in_columns': self.display_completions_in_columns,
+
+                # Highlight matching brackets, but only when this setting is
+                # enabled, and only when the DEFAULT_BUFFER has the focus.
+                'extra_input_processors': [ConditionalProcessor(
+                        processor=HighlightMatchingBracketProcessor(chars='[](){}'),
+                        filter=HasFocus(DEFAULT_BUFFER) & ~IsDone() &
+                            Condition(lambda cli: self.highlight_matching_brackets))],
                 }
 
     def _update_layout(self):
