@@ -146,7 +146,7 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Display a multi column completion menu.",
     ).tag(config=True)
 
-    highlight_matching_brackets = Bool(False,
+    highlight_matching_brackets = Bool(True,
         help="Highlight matching brackets .",
     ).tag(config=True)
 
