@@ -426,25 +426,6 @@ class MagicsManager(Configurable):
         setattr(self.user_magics, magic_name, func)
         record_magic(self.magics, magic_kind, magic_name, func)
 
-    def define_magic(self, name, func):
-        """[Deprecated] Expose own function as magic function for IPython.
-
-        Will be removed in IPython 5.0
-
-        Example::
-
-            def foo_impl(self, parameter_s=''):
-                'My very own magic!. (Use docstrings, IPython reads them).'
-                print 'Magic function. Passed parameter is between < >:'
-                print '<%s>' % parameter_s
-                print 'The self object is:', self
-
-            ip.define_magic('foo',foo_impl)
-        """
-        meth = types.MethodType(func, self.user_magics)
-        setattr(self.user_magics, name, meth)
-        record_magic(self.magics, 'line', name, meth)
-
     def register_alias(self, alias_name, magic_name, magic_kind='line'):
         """Register an alias to a magic function.
 
