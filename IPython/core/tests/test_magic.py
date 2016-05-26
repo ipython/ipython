@@ -39,6 +39,8 @@ else:
     from StringIO import StringIO
 
 
+_ip = get_ipython()
+
 @magic.magics_class
 class DummyMagics(magic.Magics): pass
 
@@ -89,7 +91,6 @@ def test_config():
 
 def test_rehashx():
     # clear up everything
-    _ip = get_ipython()
     _ip.alias_manager.clear_aliases()
     del _ip.db['syscmdlist']
     
@@ -625,7 +626,6 @@ def test_extension():
         sys.path.remove(daft_path)
 
 
-@dec.skip_without('nbformat')
 def test_notebook_export_json():
     _ip = get_ipython()
     _ip.history_manager.reset()   # Clear any existing history.
