@@ -11,7 +11,7 @@ from __future__ import print_function
 import sys
 import warnings
 
-warnings.warn("The module IPython.utils.warn is deprecated, use the standard warnings module instead", DeprecationWarning)
+warnings.warn("The module IPython.utils.warn is deprecated since IPython 4.0, use the standard warnings module instead", DeprecationWarning)
 
 def warn(msg,level=2,exit_val=1):
     """Standard warning printer. Gives formatting consistency.
@@ -30,7 +30,7 @@ def warn(msg,level=2,exit_val=1):
     -exit_val (1): exit value returned by sys.exit() for a level 4
     warning. Ignored for all other levels."""
     
-    warnings.warn("The module IPython.utils.warn is deprecated, use the standard warnings module instead", DeprecationWarning)
+    warnings.warn("The module IPython.utils.warn is deprecated since IPython 4.0, use the standard warnings module instead", DeprecationWarning)
     if level>0:
         header = ['','','WARNING: ','ERROR: ','FATAL ERROR: ']
         print(header[level], msg, sep='', file=sys.stderr)

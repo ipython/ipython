@@ -89,8 +89,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         
     
         if kw.get('user_global_ns', None) is not None:
-            warnings.warn("user_global_ns has been replaced by user_module. The\
-                           parameter will be ignored, and removed in IPython 5.0", DeprecationWarning)
+            raise DeprecationWarning("Key word argument `user_global_ns` has been replaced by `user_module` since IPython 4.0.")
 
         self._call_location_id =  kw.pop('_call_location_id', None)
 
