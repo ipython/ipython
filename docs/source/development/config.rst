@@ -57,8 +57,10 @@ command-line args.
 
 .. note::
 
-    By default IPython will ignore any invalid configuration files, or any
-    unknown configuration option.
+    IPython configuration options are case sensitive, and IPython cannot
+    catch misnamed keys or invalid values.
+    
+    By default IPython will also ignore any invalid configuration files. 
 
 .. versionadded:: 5.0
 
