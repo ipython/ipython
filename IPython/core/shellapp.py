@@ -62,20 +62,6 @@ addflag('color-info', 'InteractiveShell.color_info',
     colours.""",
     "Disable using colors for info related things."
 )
-addflag('deep-reload', 'InteractiveShell.deep_reload',
-    """ **Deprecated** and will be removed in IPython 5.0.
-    
-    Enable deep (recursive) reloading by default. IPython can use the
-    deep_reload module which reloads changes in modules recursively (it
-    replaces the reload() function, so you don't need to change anything to
-    use it). deep_reload() forces a full reload of modules whose code may
-    have changed, which the default reload() function does not.  When
-    deep_reload is off, IPython will use the normal reload(), but
-    deep_reload will still be available as dreload(). This feature is off
-    by default [which means that you have both normal reload() and
-    dreload()].""",
-    "Disable deep (recursive) reloading by default."
-)
 nosep_config = Config()
 nosep_config.InteractiveShell.separate_in = ''
 nosep_config.InteractiveShell.separate_out = ''
