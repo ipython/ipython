@@ -643,14 +643,6 @@ class InteractiveShell(SingletonConfigurable):
         # IPython at a time.
         builtin_mod.__dict__['__IPYTHON__'] = True
 
-        # In 0.11 we introduced '__IPYTHON__active' as an integer we'd try to
-        # manage on enter/exit, but with all our shells it's virtually
-        # impossible to get all the cases right.  We're leaving the name in for
-        # those who adapted their codes to check for this flag, but will
-        # eventually remove it after a few more releases.
-        builtin_mod.__dict__['__IPYTHON__active'] = \
-                                          'Deprecated, check for __IPYTHON__'
-
         self.builtin_trap = BuiltinTrap(shell=self)
 
     def init_inspector(self):
