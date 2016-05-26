@@ -35,21 +35,6 @@ from IPython.utils.py3compat import (
 
 class DisplayFormatter(Configurable):
 
-    # When set to true only the default plain text formatter will be used.
-    plain_text_only = Bool(False).tag(config=True)
-    def _plain_text_only_changed(self, name, old, new):
-        warnings.warn("""DisplayFormatter.plain_text_only is deprecated.
-        
-        It will be removed in IPython 5.0
-
-        Use DisplayFormatter.active_types = ['text/plain']
-        for the same effect.
-        """, DeprecationWarning)
-        if new:
-            self.active_types = ['text/plain']
-        else:
-            self.active_types = self.format_types
-    
     active_types = List(Unicode(),
         help="""List of currently active mime-types to display.
         You can use this to set a white-list for formats to display.
