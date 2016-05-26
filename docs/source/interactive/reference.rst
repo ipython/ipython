@@ -260,8 +260,8 @@ while also un-indenting automatically after 'raise' or 'return',
 and support real multi-line editing as well as syntactic coloration
 during edition.
 
-This feature does not use the ``readline`` library anymore – at least for now
-– , so it will not honor your :file:`~/.inputrc` configuration (or whatever
+This feature does not use the ``readline`` library anymore, so it will
+not honor your :file:`~/.inputrc` configuration (or whatever
 file your :envvar:`INPUTRC` environment variable points to).
 
 In particular if you want to change the input mode to ``vi``, you will need to
