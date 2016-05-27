@@ -37,6 +37,7 @@ from IPython.utils import coloransi, py3compat
 from IPython.core.excolors import exception_colors
 from IPython.testing.skipdoctest import skip_doctest
 
+
 prompt = 'ipdb> '
 
 #We have to check this directly from sys.argv, config struct not yet available
@@ -120,12 +121,6 @@ class Tracer(object):
             sys.excepthook = functools.partial(BdbQuit_excepthook,
                                                excepthook=sys.excepthook)
             def_colors = 'NoColor'
-            try:
-                # Limited tab completion support
-                import readline
-                readline.parse_and_bind('tab: complete')
-            except ImportError:
-                pass
         else:
             # In ipython, we use its custom exception handler mechanism
             def_colors = ip.colors
@@ -205,7 +200,7 @@ class Pdb(OldPdb, object):
         except (TypeError, ValueError):
                 raise ValueError("Context must be a positive integer")
 
-        OldPdb.__init__(self,completekey,stdin,stdout)
+        OldPdb.__init__(self, completekey, stdin, stdout)
 
         # IPython changes...
         self.shell = get_ipython()
@@ -245,31 +240,17 @@ class Pdb(OldPdb, object):
         self.parser = PyColorize.Parser()
 
         # Set the prompt - the default prompt is '(Pdb)'
-        Colors = cst.active_colors
-        if color_scheme == 'NoColor':
-            self.prompt = prompt
-        else:
-            # The colour markers are wrapped by bytes 01 and 02 so that readline
-            # can calculate the width.
-            self.prompt = u'\x01%s\x02%s\x01%s\x02' % (Colors.prompt, prompt, Colors.Normal)
+        self.prompt = prompt
 
     def set_colors(self, scheme):
         """Shorthand access to the color table scheme selector method."""
         self.color_scheme_table.set_active_scheme(scheme)
 
     def interaction(self, frame, traceback):
-        self.shell.set_completer_frame(frame)
-        while True:
-            try:
-                OldPdb.interaction(self, frame, traceback)
-                break
-            except KeyboardInterrupt:
-                self.shell.write('\n' + self.shell.get_exception_only())
-                break
-            finally:
-                # Pdb sets readline delimiters, so set them back to our own
-                if self.shell.readline is not None:
-                    self.shell.readline.set_completer_delims(self.shell.readline_delims)
+        try:
+            OldPdb.interaction(self, frame, traceback)
+        except KeyboardInterrupt:
+            sys.stdout.write('\n' + self.shell.get_exception_only())
 
     def parseline(self, line):
         if line.startswith("!!"):
@@ -284,18 +265,15 @@ class Pdb(OldPdb, object):
 
     def new_do_up(self, arg):
         OldPdb.do_up(self, arg)
-        self.shell.set_completer_frame(self.curframe)
     do_u = do_up = decorate_fn_with_doc(new_do_up, OldPdb.do_up)
 
     def new_do_down(self, arg):
         OldPdb.do_down(self, arg)
-        self.shell.set_completer_frame(self.curframe)
 
     do_d = do_down = decorate_fn_with_doc(new_do_down, OldPdb.do_down)
 
     def new_do_frame(self, arg):
         OldPdb.do_frame(self, arg)
-        self.shell.set_completer_frame(self.curframe)
 
     def new_do_quit(self, arg):
 
@@ -311,9 +289,6 @@ class Pdb(OldPdb, object):
         thing as 'quit'."""
         self.msg("Restart doesn't make sense here. Using 'quit' instead.")
         return self.do_quit(arg)
-
-    def postloop(self):
-        self.shell.set_completer_frame(None)
 
     def print_stack_trace(self, context=None):
         if context is None:
