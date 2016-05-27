@@ -31,6 +31,7 @@ from .pt_inputhooks import get_inputhook_func
 from .interactiveshell import get_default_editor, TerminalMagics
 from .ptutils import IPythonPTCompleter, IPythonPTLexer
 
+_use_simple_prompt = 'IPY_TEST_SIMPLE_PROMPT' in os.environ or not sys.stdin.isatty()
 
 class TerminalInteractiveShell(InteractiveShell):
     colors_force = True
@@ -45,6 +46,18 @@ class TerminalInteractiveShell(InteractiveShell):
     pt_cli = None
     debugger_history = None
     debugger_cls = TerminalPdb
+
+    simple_prompt = Bool(_use_simple_prompt,
+        help="""Use `raw_input` for the REPL, without completion, multiline input, and prompt colors.
+
+            Useful when controlling IPython as a subprocess, and piping STDIN/OUT/ERR. Known usage are:
+            IPython own testing machinery, and emacs inferior-shell integration through elpy.
+
+            This mode default to `True` if the `IPY_TEST_SIMPLE_PROMPT`
+            environment variable is set, or the current terminal is not a tty.
+
+            """
+            ).tag(config=True)
 
     autoedit_syntax = Bool(False,
         help="auto editing of files with syntax errors.",
@@ -117,7 +130,7 @@ class TerminalInteractiveShell(InteractiveShell):
         ]
 
     def init_prompt_toolkit_cli(self):
-        if ('IPY_TEST_SIMPLE_PROMPT' in os.environ) or not sys.stdin.isatty():
+        if self.simple_prompt:
             # Fall back to plain non-interactive output for tests.
             # This is very limited, and only accepts a single line.
             def prompt():

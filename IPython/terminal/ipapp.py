@@ -102,6 +102,11 @@ addflag('autoedit-syntax', 'TerminalInteractiveShell.autoedit_syntax',
         'Turn on auto editing of files with syntax errors.',
         'Turn off auto editing of files with syntax errors.'
 )
+addflag('simple-prompt', 'TerminalInteractiveShell.simple_prompt',
+        "Force simple minimal prompt using `raw_input`",
+        "Use a rich interactive prompt with prompt_toolkit",
+)
+
 addflag('banner', 'TerminalIPythonApp.display_banner',
         "Display a banner upon starting IPython.",
         "Don't display a banner upon starting IPython."
