@@ -678,9 +678,9 @@ class Image(DisplayObject):
 
             Note that QtConsole is not able to display images if `embed` is set to `False`
         width : int
-            Width to which to constrain the image in html
+            Width in pixels to which to constrain the image in html
         height : int
-            Height to which to constrain the image in html
+            Height in pixels to which to constrain the image in html
         retina : bool
             Automatically set the width and height to half of the measured
             width and height.
