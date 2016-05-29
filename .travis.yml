@@ -1,6 +1,7 @@
 # http://travis-ci.org/#!/ipython/ipython
 language: python
 python:
+    - "nightly"
     - 3.5
     - 3.4
     - 3.3
