@@ -17,6 +17,7 @@ of subprocess utilities, and it contains tools that are common to all of them.
 import subprocess
 import shlex
 import sys
+import os
 
 from IPython.utils import py3compat
 
@@ -70,6 +71,7 @@ def process_handler(cmd, callback, stderr=subprocess.PIPE):
     # On win32, close_fds can't be true when using pipes for stdin/out/err
     close_fds = sys.platform != 'win32'
     p = subprocess.Popen(cmd, shell=isinstance(cmd, py3compat.string_types),
+                         executable=os.environ.get('SHELL'),
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=stderr,
