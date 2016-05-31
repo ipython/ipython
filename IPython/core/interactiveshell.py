@@ -1604,7 +1604,7 @@ class InteractiveShell(SingletonConfigurable):
         self.InteractiveTB.set_mode(mode=self.xmode)
 
     def set_custom_exc(self, exc_tuple, handler):
-        """set_custom_exc(exc_tuple,handler)
+        """set_custom_exc(exc_tuple, handler)
 
         Set a custom exception handler, which will be called if any of the
         exceptions in exc_tuple occur in the mainloop (specifically, in the
@@ -1647,7 +1647,7 @@ class InteractiveShell(SingletonConfigurable):
         assert type(exc_tuple)==type(()) , \
                "The custom exceptions must be given AS A TUPLE."
 
-        def dummy_handler(self,etype,value,tb,tb_offset=None):
+        def dummy_handler(self, etype, value, tb, tb_offset=None):
             print('*** Simple custom exception handler ***')
             print('Exception type :',etype)
             print('Exception value:',value)
@@ -2682,6 +2682,10 @@ class InteractiveShell(SingletonConfigurable):
                 # Compile to bytecode
                 try:
                     code_ast = compiler.ast_parse(cell, filename=cell_name)
+                except self.custom_exceptions as e:
+                    etype, value, tb = sys.exc_info()
+                    self.CustomTB(etype, value, tb)
+                    return error_before_exec(e)
                 except IndentationError as e:
                     self.showindentationerror()
                     if store_history:
