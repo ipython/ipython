@@ -26,7 +26,7 @@ from prompt_toolkit.styles import PygmentsStyle, DynamicStyle
 from pygments.styles import get_style_by_name, get_all_styles
 from pygments.token import Token
 
-from .debugger import TerminalPdb
+from .debugger import TerminalPdb, Pdb
 from .pt_inputhooks import get_inputhook_func
 from .interactiveshell import get_default_editor, TerminalMagics
 from .ptutils import IPythonPTCompleter, IPythonPTLexer
@@ -58,6 +58,14 @@ class TerminalInteractiveShell(InteractiveShell):
 
             """
             ).tag(config=True)
+
+    @observe('simple_prompt')
+    def _simple_prompt_changed(self, changes):
+        if changes['new'] == True:
+            self.debugger_cls = Pdb
+        else:
+            self.debugger_cls = TerminalPdb
+
 
     autoedit_syntax = Bool(False,
         help="auto editing of files with syntax errors.",
