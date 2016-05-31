@@ -2,52 +2,6 @@
 Specific config details
 =======================
 
-Prompts
-=======
-
-In the terminal, the format of the input and output prompts can be
-customised. This does not currently affect other frontends.
-
-The following codes in the prompt string will be substituted into the
-prompt string:
-
-======  ===================================  =====================================================
-Short   Long                                 Notes
-======  ===================================  =====================================================
-%n,\\#  {color.number}{count}{color.prompt}  history counter with bolding
-\\N     {count}                              history counter without bolding
-\\D     {dots}                               series of dots the same width as the history counter
-\\T     {time}                               current time
-\\w     {cwd}                                current working directory
-\\W     {cwd_last}                           basename of CWD
-\\Xn    {cwd_x[n]}                           Show the last n terms of the CWD. n=0 means show all.
-\\Yn    {cwd_y[n]}                           Like \Xn, but show '~' for $HOME
-\\h                                          hostname, up to the first '.'
-\\H                                          full hostname
-\\u                                          username (from the $USER environment variable)
-\\v                                          IPython version
-\\$                                          root symbol ("$" for normal user or "#" for root)
-``\\``                                       escaped '\\'
-\\n                                          newline
-\\r                                          carriage return
-n/a     {color.<Name>}                       set terminal colour - see below for list of names
-======  ===================================  =====================================================
-
-Available colour names are: Black, BlinkBlack, BlinkBlue, BlinkCyan,
-BlinkGreen, BlinkLightGray, BlinkPurple, BlinkRed, BlinkYellow, Blue,
-Brown, Cyan, DarkGray, Green, LightBlue, LightCyan, LightGray, LightGreen,
-LightPurple, LightRed, Purple, Red, White, Yellow. The selected colour
-scheme also defines the names *prompt* and *number*. Finally, the name
-*normal* resets the terminal to its default colour.
-
-So, this config::
-
-     c.PromptManager.in_template = "{color.LightGreen}{time}{color.Yellow} \u{color.normal}>>>"
-
-will produce input prompts with the time in light green, your username
-in yellow, and a ``>>>`` prompt in the default terminal colour.
-
-
 .. _termcolour:
 
 Terminal Colors
@@ -84,26 +38,9 @@ These have shown problems:
       extensions. Once Gary's readline library is installed, the normal
       WinXP/2k command prompt works perfectly.
 
-Currently the following color schemes are available:
-
-    * NoColor: uses no color escapes at all (all escapes are empty '' ''
-      strings). This 'scheme' is thus fully safe to use in any terminal.
-    * Linux: works well in Linux console type environments: dark
-      background with light fonts. It uses bright colors for
-      information, so it is difficult to read if you have a light
-      colored background.
-    * LightBG: the basic colors are similar to those in the Linux scheme
-      but darker. It is easy to read in terminals with light backgrounds.
-
 IPython uses colors for two main groups of things: prompts and
 tracebacks which are directly printed to the terminal, and the object
 introspection system which passes large sets of data through a pager.
-
-If you are seeing garbage sequences in your terminal and no colour, you
-may need to disable colours: run ``%colors NoColor`` inside IPython, or
-add this to a config file::
-
-    c.InteractiveShell.colors = 'NoColor'
 
 Colors in the pager
 -------------------

@@ -73,11 +73,6 @@ Example config file
     c.InteractiveShell.editor = 'nano'
     c.InteractiveShell.xmode = 'Context'
 
-    c.PromptManager.in_template  = 'In [\#]: '
-    c.PromptManager.in2_template = '   .\D.: '
-    c.PromptManager.out_template = 'Out[\#]: '
-    c.PromptManager.justify = True
-
     c.PrefilterManager.multi_line_specials = True
 
     c.AliasManager.user_aliases = [
