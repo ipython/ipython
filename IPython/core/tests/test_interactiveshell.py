@@ -434,6 +434,21 @@ class InteractiveShellTestCase(unittest.TestCase):
         found = ip._ofind('a.foo', [('locals', locals())])
         nt.assert_is(found['obj'], A.foo)
 
+    def test_custom_syntaxerror_exception(self):
+        called = []
+        def my_handler(shell, etype, value, tb, tb_offset=None):
+            called.append(etype)
+            shell.showtraceback((etype, value, tb), tb_offset=tb_offset)
+
+        ip.set_custom_exc((SyntaxError,), my_handler)
+        try:
+            ip.run_cell("1f")
+            # Check that this was called, and only once.
+            self.assertEqual(called, [SyntaxError])
+        finally:
+            # Reset the custom exception hook
+            ip.set_custom_exc((), None)
+
     def test_custom_exception(self):
         called = []
         def my_handler(shell, etype, value, tb, tb_offset=None):
