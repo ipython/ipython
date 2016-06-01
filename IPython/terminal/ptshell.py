@@ -45,7 +45,6 @@ class TerminalInteractiveShell(InteractiveShell):
 
     pt_cli = None
     debugger_history = None
-    debugger_cls = TerminalPdb
 
     simple_prompt = Bool(_use_simple_prompt,
         help="""Use `raw_input` for the REPL, without completion, multiline input, and prompt colors.
@@ -59,13 +58,9 @@ class TerminalInteractiveShell(InteractiveShell):
             """
             ).tag(config=True)
 
-    @observe('simple_prompt')
-    def _simple_prompt_changed(self, changes):
-        if changes['new'] == True:
-            self.debugger_cls = Pdb
-        else:
-            self.debugger_cls = TerminalPdb
-
+    @property
+    def debugger_cls(self):
+        return Pdb if self.simple_prompt else TerminalPdb
 
     autoedit_syntax = Bool(False,
         help="auto editing of files with syntax errors.",
