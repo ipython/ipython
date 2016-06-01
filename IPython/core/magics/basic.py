@@ -356,14 +356,6 @@ Defaulting color scheme to 'NoColor'"""
                 # Will remove this check after switching to prompt_toolkit
                 new_scheme = 'NoColor'
 
-        # Set prompt colors
-        try:
-            shell.prompt_manager.color_scheme = new_scheme
-        except:
-            color_switch_err('prompt')
-        else:
-            shell.colors = \
-                   shell.prompt_manager.color_scheme_table.active_scheme_name
         # Set exception colors
         try:
             shell.InteractiveTB.set_colors(scheme = new_scheme)
@@ -435,7 +427,6 @@ Defaulting color scheme to 'NoColor'"""
 
         # Shorthands
         shell = self.shell
-        pm = shell.prompt_manager
         meta = shell.meta
         disp_formatter = self.shell.display_formatter
         ptformatter = disp_formatter.formatters['text/plain']
@@ -450,23 +441,17 @@ Defaulting color scheme to 'NoColor'"""
         save_dstore('xmode',shell.InteractiveTB.mode)
         save_dstore('rc_separate_out',shell.separate_out)
         save_dstore('rc_separate_out2',shell.separate_out2)
-        save_dstore('rc_prompts_pad_left',pm.justify)
         save_dstore('rc_separate_in',shell.separate_in)
         save_dstore('rc_active_types',disp_formatter.active_types)
-        save_dstore('prompt_templates',(pm.in_template, pm.in2_template, pm.out_template))
 
         if not mode:
             # turn on
-            pm.in_template = '>>> '
-            pm.in2_template = '... '
-            pm.out_template = ''
 
             # Prompt separators like plain python
             shell.separate_in = ''
             shell.separate_out = ''
             shell.separate_out2 = ''
 
-            pm.justify = False
 
             ptformatter.pprint = False
             disp_formatter.active_types = ['text/plain']
@@ -474,22 +459,22 @@ Defaulting color scheme to 'NoColor'"""
             shell.magic('xmode Plain')
         else:
             # turn off
-            pm.in_template, pm.in2_template, pm.out_template = dstore.prompt_templates
-
             shell.separate_in = dstore.rc_separate_in
 
             shell.separate_out = dstore.rc_separate_out
             shell.separate_out2 = dstore.rc_separate_out2
-
-            pm.justify = dstore.rc_prompts_pad_left
 
             ptformatter.pprint = dstore.rc_pprint
             disp_formatter.active_types = dstore.rc_active_types
 
             shell.magic('xmode ' + dstore.xmode)
 
+        # mode here is the state before we switch; switch_doctest_mode takes
+        # the mode we're switching to.
+        shell.switch_doctest_mode(not mode)
+
         # Store new mode and inform
-        dstore.mode = bool(1-int(mode))
+        dstore.mode = bool(not mode)
         mode_label = ['OFF','ON'][dstore.mode]
         print('Doctest mode is:', mode_label)
 

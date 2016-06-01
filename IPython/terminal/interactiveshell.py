@@ -614,7 +614,7 @@ class TerminalInteractiveShell(InteractiveShell):
             self.hooks.pre_prompt_hook()
             if more:
                 try:
-                    prompt = self.prompt_manager.render('in2')
+                    prompt = '   ...: '
                 except:
                     self.showtraceback()
                 if self.autoindent:
@@ -622,7 +622,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
             else:
                 try:
-                    prompt = self.separate_in + self.prompt_manager.render('in')
+                    prompt = self.separate_in + 'In [{}]: '.format(self.execution_count)
                 except:
                     self.showtraceback()
             try:

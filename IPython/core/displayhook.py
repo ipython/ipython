@@ -113,7 +113,7 @@ class DisplayHook(Configurable):
         """
         # Use write, not print which adds an extra space.
         sys.stdout.write(self.shell.separate_out)
-        outprompt = self.shell.prompt_manager.render('out')
+        outprompt = 'Out[{}]: '.format(self.shell.execution_count)
         if self.do_full_cache:
             sys.stdout.write(outprompt)
 
@@ -149,6 +149,9 @@ class DisplayHook(Configurable):
         """
         return self.shell.display_formatter.format(result)
 
+    # This can be set to True by the write_output_prompt method in a subclass
+    prompt_end_newline = False
+
     def write_format_data(self, format_dict, md_dict=None):
         """Write the format data dict to the frontend.
 
@@ -179,8 +182,7 @@ class DisplayHook(Configurable):
             # because the expansion may add ANSI escapes that will interfere
             # with our ability to determine whether or not we should add
             # a newline.
-            prompt_template = self.shell.prompt_manager.out_template
-            if prompt_template and not prompt_template.endswith('\n'):
+            if not self.prompt_end_newline:
                 # But avoid extraneous empty lines.
                 result_repr = '\n' + result_repr
 

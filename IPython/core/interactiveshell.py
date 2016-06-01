@@ -56,7 +56,6 @@ from IPython.core.macro import Macro
 from IPython.core.payload import PayloadManager
 from IPython.core.prefilter import PrefilterManager
 from IPython.core.profiledir import ProfileDir
-from IPython.core.prompts import PromptManager
 from IPython.core.usage import default_banner
 from IPython.testing.skipdoctest import skip_doctest_py2, skip_doctest
 from IPython.utils import PyColorize
@@ -664,8 +663,6 @@ class InteractiveShell(SingletonConfigurable):
             io.stderr = io.IOStream(sys.stderr)
 
     def init_prompts(self):
-        self.prompt_manager = PromptManager(shell=self, parent=self)
-        self.configurables.append(self.prompt_manager)
         # Set system prompts, so that scripts can decide if they are running
         # interactively.
         sys.ps1 = 'In : '
@@ -2339,16 +2336,9 @@ class InteractiveShell(SingletonConfigurable):
         """
         if not self.show_rewritten_input:
             return
-        
-        rw = self.prompt_manager.render('rewrite') + cmd
 
-        try:
-            # plain ascii works better w/ pyreadline, on some machines, so
-            # we use it and only print uncolored rewrite if we have unicode
-            rw = str(rw)
-            print(rw)
-        except UnicodeEncodeError:
-            print("------> " + cmd)
+        # This is overridden in TerminalInteractiveShell to use fancy prompts
+        print("------> " + cmd)
 
     #-------------------------------------------------------------------------
     # Things related to extracting values/expressions from kernel and user_ns
@@ -3231,6 +3221,11 @@ class InteractiveShell(SingletonConfigurable):
 
     def cleanup(self):
         self.restore_sys_module_state()
+
+
+    # Overridden in terminal subclass to change prompts
+    def switch_doctest_mode(self, mode):
+        pass
 
 
 class InteractiveShellABC(with_metaclass(abc.ABCMeta, object)):

@@ -11,7 +11,7 @@ from IPython.core.interactiveshell import InteractiveShell
 from IPython.utils.py3compat import cast_unicode_py2, input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
-from traitlets import Bool, Unicode, Dict, Integer, observe
+from traitlets import Bool, Unicode, Dict, Integer, observe, Instance
 
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER, EditingMode
 from prompt_toolkit.filters import HasFocus, HasSelection, Condition, ViInsertMode, EmacsInsertMode, IsDone
@@ -29,6 +29,7 @@ from pygments.token import Token
 from .debugger import TerminalPdb, Pdb
 from .pt_inputhooks import get_inputhook_func
 from .interactiveshell import get_default_editor, TerminalMagics
+from .prompts import Prompts, ClassicPrompts, RichPromptDisplayHook
 from .ptutils import IPythonPTCompleter, IPythonPTLexer
 
 _use_simple_prompt = 'IPY_TEST_SIMPLE_PROMPT' in os.environ or not sys.stdin.isatty()
@@ -98,7 +99,19 @@ class TerminalInteractiveShell(InteractiveShell):
     editor = Unicode(get_default_editor(),
         help="Set the editor used by IPython (default to $EDITOR/vi/notepad)."
     ).tag(config=True)
-    
+
+    prompts = Instance(Prompts)
+
+    def _prompts_default(self):
+        return Prompts(self)
+
+    @observe('prompts')
+    def _(self, change):
+        self._update_layout()
+
+    def _displayhook_class_default(self):
+        return RichPromptDisplayHook
+
     term_title = Bool(True,
         help="Automatically set the terminal title"
     ).tag(config=True)
@@ -119,18 +132,6 @@ class TerminalInteractiveShell(InteractiveShell):
             set_term_title('IPython: ' + abbrev_cwd())
         else:
             toggle_set_term_title(False)
-
-    def get_prompt_tokens(self, cli):
-        return [
-            (Token.Prompt, 'In ['),
-            (Token.PromptNum, str(self.execution_count)),
-            (Token.Prompt, ']: '),
-        ]
-
-    def get_continuation_tokens(self, cli, width):
-        return [
-            (Token.Prompt, (' ' * (width - 5)) + '...: '),
-        ]
 
     def init_prompt_toolkit_cli(self):
         if self.simple_prompt:
@@ -234,6 +235,8 @@ class TerminalInteractiveShell(InteractiveShell):
         style_overrides = {
             Token.Prompt: '#009900',
             Token.PromptNum: '#00ff00 bold',
+            Token.OutPrompt: '#990000',
+            Token.OutPromptNum: '#ff0000 bold',
         }
         if name == 'default':
             style_cls = get_style_by_name('default')
@@ -261,8 +264,8 @@ class TerminalInteractiveShell(InteractiveShell):
         return {
                 'lexer':IPythonPTLexer(),
                 'reserve_space_for_menu':self.space_for_menu,
-                'get_prompt_tokens':self.get_prompt_tokens,
-                'get_continuation_tokens':self.get_continuation_tokens,
+                'get_prompt_tokens':self.prompts.in_prompt_tokens,
+                'get_continuation_tokens':self.prompts.continuation_prompt_tokens,
                 'multiline':True,
                 'display_completions_in_columns': self.display_completions_in_columns,
 
@@ -438,6 +441,29 @@ class TerminalInteractiveShell(InteractiveShell):
     # Run !system commands directly, not through pipes, so terminal programs
     # work correctly.
     system = InteractiveShell.system_raw
+
+    def auto_rewrite_input(self, cmd):
+        """Overridden from the parent class to use fancy rewriting prompt"""
+        if not self.show_rewritten_input:
+            return
+
+        tokens = self.prompts.rewrite_prompt_tokens()
+        if self.pt_cli:
+            self.pt_cli.print_tokens(tokens)
+            print(cmd)
+        else:
+            prompt = ''.join(s for t, s in tokens)
+            print(prompt, cmd, sep='')
+
+    _prompts_before = None
+    def switch_doctest_mode(self, mode):
+        """Switch prompts to classic for %doctest_mode"""
+        if mode:
+            self._prompts_before = self.prompts
+            self.prompts = ClassicPrompts(self)
+        elif self._prompts_before:
+            self.prompts = self._prompts_before
+            self._prompts_before = None
 
 
 if __name__ == '__main__':

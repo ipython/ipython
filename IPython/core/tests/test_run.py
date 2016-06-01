@@ -205,13 +205,6 @@ class TestMagicRunPass(tt.TempFileMixin):
         _ip = get_ipython()
         self.run_tmpfile()
         nt.assert_equal(type(_ip.user_ns['__builtins__']),type(sys))
-
-    def test_prompts(self):
-        """Test that prompts correctly generate after %run"""
-        self.run_tmpfile()
-        _ip = get_ipython()
-        p2 = _ip.prompt_manager.render('in2').strip()
-        nt.assert_equal(p2[:3], '...')
         
     def test_run_profile( self ):
         """Test that the option -p, which invokes the profiler, do not
