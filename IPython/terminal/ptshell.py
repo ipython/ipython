@@ -134,6 +134,7 @@ class TerminalInteractiveShell(InteractiveShell):
             toggle_set_term_title(False)
 
     def init_prompt_toolkit_cli(self):
+        self._app = None
         if self.simple_prompt:
             # Fall back to plain non-interactive output for tests.
             # This is very limited, and only accepts a single line.
@@ -282,7 +283,8 @@ class TerminalInteractiveShell(InteractiveShell):
         Ask for a re computation of the application layout, if for example ,
         some configuration options have changed.
         """
-        self._app.layout = create_prompt_layout(**self._layout_options())
+        if self._app:
+            self._app.layout = create_prompt_layout(**self._layout_options())
 
     def prompt_for_code(self):
         document = self.pt_cli.run(
