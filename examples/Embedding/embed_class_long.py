@@ -17,16 +17,34 @@ from __future__ import print_function
 
 # Try running this code both at the command line and from inside IPython (with
 # %run example-embed.py)
+
+from IPython.terminal.prompts import Prompts, Token
+
+class CustomPrompt(Prompts):
+
+    def in_prompt_tokens(self, cli=None):
+
+       return [
+            (Token.Prompt, 'In <'),
+            (Token.PromptNum, str(self.shell.execution_count)),
+            (Token.Prompt, '>: '),
+            ]
+
+    def out_prompt_tokens(self):
+       return [
+            (Token.OutPrompt, 'Out<'),
+            (Token.OutPromptNum, str(self.shell.execution_count)),
+            (Token.OutPrompt, '>: '),
+        ]
+ 
+
 from traitlets.config.loader import Config
 try:
     get_ipython
 except NameError:
     nested = 0
     cfg = Config()
-    prompt_config = cfg.PromptManager
-    prompt_config.in_template = 'In <\\#>: '
-    prompt_config.in2_template = '   .\\D.: '
-    prompt_config.out_template = 'Out<\\#>: '
+    cfg.TerminalInteractiveShell.prompts_class=CustomPrompt
 else:
     print("Running nested copies of IPython.")
     print("The prompts for the nested copy have been modified")
@@ -45,13 +63,6 @@ ipshell = InteractiveShellEmbed(config=cfg,
                        exit_msg = 'Leaving Interpreter, back to program.')
 
 # Make a second instance, you can have as many as you want.
-cfg2 = cfg.copy()
-prompt_config = cfg2.PromptManager
-prompt_config.in_template = 'In2<\\#>: '
-if not nested:
-    prompt_config.in_template = 'In2<\\#>: '
-    prompt_config.in2_template = '   .\\D.: '
-    prompt_config.out_template = 'Out<\\#>: '
 ipshell2 = InteractiveShellEmbed(config=cfg,
                         banner1 = 'Second IPython instance.')
 
@@ -95,7 +106,7 @@ print('\nBack in caller program, moving along...\n')
 
 
 # This is how the global banner and exit_msg can be reset at any point
-ipshell.banner = 'Entering interpreter - New Banner'
+ipshell.banner2 = 'Entering interpreter - New Banner'
 ipshell.exit_msg = 'Leaving interpreter - New exit_msg'
 
 def foo(m):

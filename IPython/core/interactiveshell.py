@@ -318,34 +318,25 @@ class InteractiveShell(SingletonConfigurable):
     # deprecated prompt traits:
     
     prompt_in1 = Unicode('In [\\#]: ',
-        help="Deprecated, will be removed in IPython 5.0, use PromptManager.in_template"
+        help="Deprecated since IPython 4.0 and ignored since 5.0, set IPython.terminal.ptshell.TerminalInteractiveShell.prompts object directly."
     ).tag(config=True)
     prompt_in2 = Unicode('   .\\D.: ',
-        help="Deprecated, will be removed in IPython 5.0, use PromptManager.in2_template"
+        help="Deprecated since IPython 4.0 and ignored since 5.0, set IPython.terminal.ptshell.TerminalInteractiveShell.prompts object directly."
     ).tag(config=True)
     prompt_out = Unicode('Out[\\#]: ',
-        help="Deprecated, will be removed in IPython 5.0, use PromptManager.out_template"
+        help="Deprecated since IPython 4.0 and ignored since 5.0, set IPython.terminal.ptshell.TerminalInteractiveShell.prompts object directly."
     ).tag(config=True)
     prompts_pad_left = Bool(True,
-        help="Deprecated, will be removed in IPython 5.0, use PromptManager.justify"
+        help="Deprecated since IPython 4.0 and ignored since 5.0, set IPython.terminal.ptshell.TerminalInteractiveShell.prompts object directly."
     ).tag(config=True)
     
     @observe('prompt_in1', 'prompt_in2', 'prompt_out', 'prompt_pad_left')
     def _prompt_trait_changed(self, change):
-        table = {
-            'prompt_in1' : 'in_template',
-            'prompt_in2' : 'in2_template',
-            'prompt_out' : 'out_template',
-            'prompts_pad_left' : 'justify',
-        }
         name = change['name']
-        warn("InteractiveShell.{name} is deprecated, use PromptManager.{newname}".format(
-                name=name, newname=table[name])
+        warn("InteractiveShell.{name} is deprecated since IPython 4.0 and ignored since 5.0, set IPython.terminal.ptshell.TerminalInteractiveShell.prompts object directly.".format(
+                name=name)
         )
         # protect against weird cases where self.config may not exist:
-        if self.config is not None:
-            # propagate to corresponding PromptManager trait
-            setattr(self.config.PromptManager, table[name], change['new'])
     
     show_rewritten_input = Bool(True,
         help="Show rewritten input, e.g. for autocall."
@@ -441,6 +432,9 @@ class InteractiveShell(SingletonConfigurable):
         # This is where traits with a config_key argument are updated
         # from the values on config.
         super(InteractiveShell, self).__init__(**kwargs)
+        if 'PromptManager' in self.config:
+            warn('As of IPython 5.0 `PromptManager` config will have no effect'
+                 ' and has been replaced by TerminalInteractiveShell.prompts_class')
         self.configurables = [self]
 
         # These are relatively independent and stateless

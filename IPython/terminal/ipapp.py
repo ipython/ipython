@@ -123,9 +123,7 @@ addflag('term-title', 'TerminalInteractiveShell.term_title',
 classic_config = Config()
 classic_config.InteractiveShell.cache_size = 0
 classic_config.PlainTextFormatter.pprint = False
-classic_config.PromptManager.in_template = '>>> '
-classic_config.PromptManager.in2_template = '... '
-classic_config.PromptManager.out_template = ''
+classic_config.TerminalInteractiveShell.prompts_class='IPython.terminal.prompts.ClassicPrompts'
 classic_config.InteractiveShell.separate_in = ''
 classic_config.InteractiveShell.separate_out = ''
 classic_config.InteractiveShell.separate_out2 = ''

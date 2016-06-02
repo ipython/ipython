@@ -230,9 +230,12 @@ class IPythonConsoleLexer(Lexer):
     # The regexps used to determine what is input and what is output.
     # The default prompts for IPython are:
     #
-    #     c.PromptManager.in_template  = 'In [\#]: '
-    #     c.PromptManager.in2_template = '   .\D.: '
-    #     c.PromptManager.out_template = 'Out[\#]: '
+    #    in           = 'In [#]: '
+    #    continuation = '   .D.: '
+    #    template     = 'Out[#]: '
+    #
+    # Where '#' is the 'prompt number' or 'execution count' and 'D' 
+    # D is a number of dots  matching the width of the execution count 
     #
     in1_regex = r'In \[[0-9]+\]: '
     in2_regex = r'   \.\.+\.: '

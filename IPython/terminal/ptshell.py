@@ -11,7 +11,7 @@ from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.utils.py3compat import PY3, cast_unicode_py2, input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
-from traitlets import Bool, Unicode, Dict, Integer, observe, Instance
+from traitlets import Bool, Unicode, Dict, Integer, observe, Instance, Type
 
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER, EditingMode
 from prompt_toolkit.filters import HasFocus, HasSelection, Condition, ViInsertMode, EmacsInsertMode, IsDone
@@ -118,10 +118,12 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Set the editor used by IPython (default to $EDITOR/vi/notepad)."
     ).tag(config=True)
 
+    prompts_class = Type(Prompts, config=True, help='Class used to generate Prompt token for prompt_toolkit')
+
     prompts = Instance(Prompts)
 
     def _prompts_default(self):
-        return Prompts(self)
+        return self.prompts_class(self)
 
     @observe('prompts')
     def _(self, change):
@@ -301,7 +303,7 @@ class TerminalInteractiveShell(InteractiveShell):
         Ask for a re computation of the application layout, if for example ,
         some configuration options have changed.
         """
-        if self._app:
+        if getattr(self, '._app', None):
             self._app.layout = create_prompt_layout(**self._layout_options())
 
     def prompt_for_code(self):
