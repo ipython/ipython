@@ -7,8 +7,8 @@ import signal
 from warnings import warn
 
 from IPython.core.error import TryNext
-from IPython.core.interactiveshell import InteractiveShell
-from IPython.utils.py3compat import cast_unicode_py2, input
+from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
+from IPython.utils.py3compat import PY3, cast_unicode_py2, input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
 from traitlets import Bool, Unicode, Dict, Integer, observe, Instance
@@ -27,10 +27,28 @@ from pygments.styles import get_style_by_name, get_all_styles
 from pygments.token import Token
 
 from .debugger import TerminalPdb, Pdb
+from .magics import TerminalMagics
 from .pt_inputhooks import get_inputhook_func
-from .interactiveshell import get_default_editor, TerminalMagics
 from .prompts import Prompts, ClassicPrompts, RichPromptDisplayHook
 from .ptutils import IPythonPTCompleter, IPythonPTLexer
+
+
+def get_default_editor():
+    try:
+        ed = os.environ['EDITOR']
+        if not PY3:
+            ed = ed.decode()
+        return ed
+    except KeyError:
+        pass
+    except UnicodeError:
+        warn("$EDITOR environment variable is not pure ASCII. Using platform "
+             "default editor.")
+
+    if os.name == 'posix':
+        return 'vi'  # the only one guaranteed to be there!
+    else:
+        return 'notepad' # same in Windows!
 
 _use_simple_prompt = 'IPY_TEST_SIMPLE_PROMPT' in os.environ or not sys.stdin.isatty()
 
@@ -465,6 +483,8 @@ class TerminalInteractiveShell(InteractiveShell):
             self.prompts = self._prompts_before
             self._prompts_before = None
 
+
+InteractiveShellABC.register(TerminalInteractiveShell)
 
 if __name__ == '__main__':
     TerminalInteractiveShell.instance().interact()
