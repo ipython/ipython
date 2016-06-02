@@ -121,7 +121,7 @@ def protect_filename(s):
         if sys.platform == "win32":
             return '"' + s + '"'
         else:
-            return "".join("\\" + c if c in PROTECTABLES else c for c in s)
+            return "".join(("\\" + c if c in PROTECTABLES else c) for c in s)
     else:
         return s
 

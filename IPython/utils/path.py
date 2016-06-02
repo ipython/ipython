@@ -73,6 +73,9 @@ def get_long_path_name(path):
 
 def unquote_filename(name, win32=(sys.platform=='win32')):
     """ On Windows, remove leading and trailing quotes from filenames.
+
+    This function has been deprecated and should not be used any more:
+    unquoting is now taken care of by :func:`IPython.utils.process.arg_split`.
     """
     warn("'unquote_filename' is deprecated", DeprecationWarning)
     if win32:
@@ -83,7 +86,7 @@ def unquote_filename(name, win32=(sys.platform=='win32')):
 
 def compress_user(path):
     """Reverse of :func:`os.path.expanduser`
-    """    
+    """
     path = py3compat.unicode_to_str(path, sys.getfilesystemencoding())
     home = os.path.expanduser('~')
     if path.startswith(home):
