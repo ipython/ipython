@@ -537,6 +537,50 @@ def back_latex_name_matches(text):
     return u'', ()
 
 
+def _pad_completions(line, symbol, completions):
+    """Pad completions to the same prefix.
+
+    `symbol` must be a suffix of `line`.  This is a helper to handle
+    completions that complete a suffix of `line` that is longer than just
+    `symbol`.
+
+    Returns a pair `(new_symbol, new_completions)` where `new_symbol` is a
+    suffix of `line` possibly longer than the original symbol, and each
+    completion has been left-padded to start with the new `new_symbol`.
+
+    Completions that provide a `.completed_symbol` attribute use it instead.
+    """
+    # Not a very efficient implementation.
+    completed_symbols = [
+        getattr(compl, "completed_symbol", symbol) for compl in completions]
+    stack = line[:-len(symbol)]
+    new_symbol = symbol
+    while True:
+        new_completed_symbols = []
+        for compl in completed_symbols:
+            for i in range(len(symbol), len(new_symbol) + 1):
+                if compl.startswith(new_symbol[-i:]):
+                    new_completed_symbols.append(new_symbol[:-i] + compl)
+                    break
+            else: # This completion is not paddable to the symbol.
+                break
+        else: # Everything was completed successfully.
+            # Pad the actual completions.
+            new_completions = [
+                ncs[:-len(cs)] + compl
+                for compl, cs, ncs in
+                    zip(completions, completed_symbols, new_completed_symbols)]
+            return new_symbol, new_completions
+        # A completion was not paddable.
+        if not stack:
+            raise ValueError(
+                "Completions {} (completing symbols {}) cannot be padded to "
+                "the same prefix (line: {!r}, symbol: {!r})".format(
+                    completions, completed_symbols, line, symbol))
+        new_symbol = stack[-1] + new_symbol
+        stack = stack[:-1]
+
+
 class IPCompleter(Completer):
     """Extension of the completer class with IPython-specific features"""
     
@@ -1109,13 +1153,7 @@ class IPCompleter(Completer):
             try:
                 res = c(event)
                 if res:
-                    # first, try case sensitive match
-                    withcase = [cast_unicode_py2(r) for r in res if r.startswith(text)]
-                    if withcase:
-                        return withcase
-                    # if none, then case insensitive ones are ok too
-                    text_low = text.lower()
-                    return [cast_unicode_py2(r) for r in res if r.lower().startswith(text_low)]
+                    return [cast_unicode_py2(r) for r in res]
             except TryNext:
                 pass
 
@@ -1210,7 +1248,7 @@ class IPCompleter(Completer):
         # richer completion semantics in other evironments.
         self.matches = sorted(set(self.matches), key=completions_sorting_key)
 
-        return text, self.matches
+        return _pad_completions(line_buffer, text, self.matches)
 
     def rlcomplete(self, text, state):
         """Return the state-th possible completion for 'text'.

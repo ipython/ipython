@@ -128,7 +128,7 @@ def test_unicode_completions():
         # depending on the state of the namespace, but at least no exceptions
         # should be thrown and the return value should be a pair of text, list
         # values.
-        text, matches = ip.complete(t)
+        text, matches = ip.complete(None, t)
         nt.assert_true(isinstance(text, string_types))
         nt.assert_true(isinstance(matches, list))
 

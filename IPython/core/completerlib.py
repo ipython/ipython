@@ -36,9 +36,9 @@ from time import time
 from zipimport import zipimporter
 
 # Our own imports
-from IPython.core.completer import expand_user, compress_user
+from IPython.core.completer import expand_user, compress_user, protect_filename
 from IPython.core.error import TryNext
-from IPython.utils._process_common import arg_split
+from IPython.utils.process import arg_split_native
 from IPython.utils.py3compat import string_types
 
 # FIXME: this should be pulled in with the right call via the component system
@@ -206,6 +206,7 @@ def quick_completer(cmd, completions):
 
     get_ipython().set_hook('complete_command',do_complete, str_key = cmd)
 
+
 def module_completion(line):
     """
     Returns a list containing the completion possibilities for an import line.
@@ -225,17 +226,22 @@ def module_completion(line):
     # 'from xy<tab>' or 'import xy<tab>'
     if nwords < 3 and (words[0] in {'%aimport', 'import', 'from'}) :
         if nwords == 1:
-            return get_root_modules()
-        mod = words[1].split('.')
-        if len(mod) < 2:
-            return get_root_modules()
-        completion_list = try_import('.'.join(mod[:-1]), True)
-        return ['.'.join(mod[:-1] + [el]) for el in completion_list]
+            return [module for module in get_root_modules()
+                    if module.startswith(words[1])]
+        parts = words[1].split('.')
+        if len(parts) < 2:
+            return [module for module in get_root_modules()
+                    if module.startswith(words[1])]
+        completion_list = try_import('.'.join(parts[:-1]), True)
+        modules = ['.'.join(parts[:-1] + [el]) for el in completion_list]
+        return [module for module in modules if module.startswith(words[1])]
 
     # 'from xyz import abc<tab>'
     if nwords >= 3 and words[0] == 'from':
-        mod = words[1]
-        return try_import(mod)
+        parts = words[1]
+        completion_list = try_import(parts)
+        return [name for name in completion_list
+                if name.startswith(words[-1])]
 
 #-----------------------------------------------------------------------------
 # Completers
@@ -243,7 +249,12 @@ def module_completion(line):
 # These all have the func(self, event) signature to be used as custom
 # completers
 
-def module_completer(self,event):
+class _CompletionStr(str):
+    """A subclass of str to allow attaching attributes to a completion.
+    """
+
+
+def module_completer(self, event):
     """Give completions after user has typed 'import ...' or 'from ...'"""
 
     # This works in all versions of python.  While 2.5 has
@@ -260,7 +271,7 @@ def module_completer(self,event):
 def magic_run_completer(self, event):
     """Complete files that end in .py or .ipy or .ipynb for the %run command.
     """
-    comps = arg_split(event.line, strict=False)
+    comps = arg_split_native(event.line, strict=False)
     # relpath should be the current token that we need to complete.
     if (len(comps) > 1) and (not event.line.endswith(' ')):
         relpath = comps[-1].strip("'\"")
@@ -297,9 +308,7 @@ def magic_run_completer(self, event):
 def cd_completer(self, event):
     """Completer function for cd, which only returns directories."""
     ip = get_ipython()
-    relpath = event.symbol
 
-    #print(event) # dbg
     if event.line.endswith('-b') or ' -b ' in event.line:
         # return only bookmark completions
         bkms = self.db.get('bookmarks', None)
@@ -320,19 +329,17 @@ def cd_completer(self, event):
     if event.symbol.startswith('--'):
         return ["--" + os.path.basename(d) for d in ip.user_ns['_dh']]
 
+    orig_relpath = arg_split_native(
+        event.text_until_cursor, strict=False)[-1]
     # Expand ~ in path and normalize directory separators.
-    relpath, tilde_expand, tilde_val = expand_user(relpath)
-    relpath = relpath.replace('\\','/')
+    relpath, tilde_expand, tilde_val = expand_user(orig_relpath)
 
-    found = []
-    for d in [f.replace('\\','/') + '/' for f in glob.glob(relpath+'*')
-              if os.path.isdir(f)]:
-        if ' ' in d:
-            # we don't want to deal with any of that, complex code
-            # for this is elsewhere
-            raise TryNext
-
-        found.append(d)
+    found = [_CompletionStr(compress_user(protect_filename(f + os.sep),
+                                          tilde_expand, tilde_val))
+             for f in glob.glob(relpath + '*')
+             if os.path.isdir(f)]
+    for compl in found:
+        compl.completed_symbol = protect_filename(orig_relpath)
 
     if not found:
         if os.path.isdir(relpath):
@@ -346,7 +353,8 @@ def cd_completer(self, event):
 
         raise TryNext
 
-    return [compress_user(p, tilde_expand, tilde_val) for p in found]
+    return found
+
 
 def reset_completer(self, event):
     "A completer for %reset magic"

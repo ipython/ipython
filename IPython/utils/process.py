@@ -104,3 +104,12 @@ def abbrev_cwd():
 
     return (drivepart + (
         cwd == '/' and '/' or tail))
+
+
+def arg_split_native(commandline, strict=True):
+    if sys.platform in ("win32", "cli"):
+        # Drop strictness, as it would bypass CommandLineToArgvW, which is
+        # non-strict anyways.
+        return arg_split(commandline, posix=False)
+    else:
+        return arg_split(commandline, posix=True, strict=strict)
