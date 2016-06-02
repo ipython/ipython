@@ -117,9 +117,14 @@ def has_open_quotes(s):
 
 def protect_filename(s):
     """Escape a string to protect certain characters."""
+    if set(s) & set(PROTECTABLES):
+        if sys.platform == "win32":
+            return '"' + s + '"'
+        else:
+            return "".join(("\\" + c if c in PROTECTABLES else c) for c in s)
+    else:
+        return s
 
-    return "".join([(ch in PROTECTABLES and '\\' + ch or ch)
-                    for ch in s])
 
 def expand_user(path):
     """Expand '~'-style usernames in strings.

@@ -34,7 +34,6 @@ from IPython.core.magic import  (
 )
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.openpy import source_to_unicode
-from IPython.utils.path import unquote_filename
 from IPython.utils.process import abbrev_cwd
 from IPython.utils import py3compat
 from IPython.utils.py3compat import unicode_type
@@ -324,10 +323,7 @@ class OSMagics(Magics):
 
 
         else:
-            #turn all non-space-escaping backslashes to slashes,
-            # for c:\windows\directory\names\
-            parameter_s = re.sub(r'\\(?! )','/', parameter_s)
-            opts,ps = self.parse_options(parameter_s,'qb',mode='string')
+            opts, ps = self.parse_options(parameter_s, 'qb', mode='string')
         # jump to previous
         if ps == '-':
             try:
@@ -348,8 +344,6 @@ class OSMagics(Magics):
                         raise UsageError("Bookmark '%s' not found.  "
                               "Use '%%bookmark -l' to see your bookmarks." % ps)
 
-        # strip extra quotes on Windows, because os.chdir doesn't like them
-        ps = unquote_filename(ps)
         # at this point ps should point to the target dir
         if ps:
             try:
@@ -443,7 +437,7 @@ class OSMagics(Magics):
         """
 
         dir_s = self.shell.dir_stack
-        tgt = os.path.expanduser(unquote_filename(parameter_s))
+        tgt = os.path.expanduser(parameter_s)
         cwd = py3compat.getcwd().replace(self.shell.home_dir,'~')
         if tgt:
             self.cd(parameter_s)
@@ -781,8 +775,8 @@ class OSMagics(Magics):
         The file will be overwritten unless the -a (--append) flag is specified.
         """
         args = magic_arguments.parse_argstring(self.writefile, line)
-        filename = os.path.expanduser(unquote_filename(args.filename))
-        
+        filename = os.path.expanduser(args.filename)
+
         if os.path.exists(filename):
             if args.append:
                 print("Appending to %s" % filename)

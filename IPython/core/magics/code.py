@@ -32,7 +32,7 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
 from IPython.utils.py3compat import string_types
 from IPython.utils.contexts import preserve_keys
-from IPython.utils.path import get_py_filename, unquote_filename
+from IPython.utils.path import get_py_filename
 from warnings import warn
 from logging import error
 from IPython.utils.text import get_text_list
@@ -189,7 +189,7 @@ class CodeMagics(Magics):
         append = 'a' in opts
         mode = 'a' if append else 'w'
         ext = u'.ipy' if raw else u'.py'
-        fname, codefrom = unquote_filename(args[0]), " ".join(args[1:])
+        fname, codefrom = args[0], " ".join(args[1:])
         if not fname.endswith((u'.py',u'.ipy')):
             fname += ext
         file_exists = os.path.isfile(fname)
@@ -369,7 +369,6 @@ class CodeMagics(Magics):
 
         def make_filename(arg):
             "Make a filename from the given args"
-            arg = unquote_filename(arg)
             try:
                 filename = get_py_filename(arg)
             except IOError:

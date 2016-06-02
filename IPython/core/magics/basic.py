@@ -13,7 +13,6 @@ from IPython.core.magic import Magics, magics_class, line_magic, magic_escapes
 from IPython.utils.text import format_screen, dedent, indent
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.ipstruct import Struct
-from IPython.utils.path import unquote_filename
 from IPython.utils.py3compat import unicode_type
 from warnings import warn
 from logging import error
@@ -583,7 +582,6 @@ Defaulting color scheme to 'NoColor'"""
         args = magic_arguments.parse_argstring(self.notebook, s)
 
         from nbformat import write, v4
-        args.filename = unquote_filename(args.filename)
         if args.export:
             cells = []
             hist = list(self.shell.history_manager.get_range())

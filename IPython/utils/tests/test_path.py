@@ -302,19 +302,6 @@ def test_not_writable_ipdir():
         ipdir = paths.get_ipython_dir()
     env.pop('IPYTHON_DIR', None)
 
-def test_unquote_filename():
-    for win32 in (True, False):
-        nt.assert_equal(path.unquote_filename('foo.py', win32=win32), 'foo.py')
-        nt.assert_equal(path.unquote_filename('foo bar.py', win32=win32), 'foo bar.py')
-    nt.assert_equal(path.unquote_filename('"foo.py"', win32=True), 'foo.py')
-    nt.assert_equal(path.unquote_filename('"foo bar.py"', win32=True), 'foo bar.py')
-    nt.assert_equal(path.unquote_filename("'foo.py'", win32=True), 'foo.py')
-    nt.assert_equal(path.unquote_filename("'foo bar.py'", win32=True), 'foo bar.py')
-    nt.assert_equal(path.unquote_filename('"foo.py"', win32=False), '"foo.py"')
-    nt.assert_equal(path.unquote_filename('"foo bar.py"', win32=False), '"foo bar.py"')
-    nt.assert_equal(path.unquote_filename("'foo.py'", win32=False), "'foo.py'")
-    nt.assert_equal(path.unquote_filename("'foo bar.py'", win32=False), "'foo bar.py'")
-
 @with_environment
 def test_get_py_filename():
     os.chdir(TMP_TEST_DIR)
