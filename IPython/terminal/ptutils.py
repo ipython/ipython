@@ -24,6 +24,10 @@ class IPythonPTCompleter(Completer):
         )
         start_pos = -len(used)
         for m in matches:
+            if not m:
+                # Guard against completion machinery giving us an empty string.
+                continue
+
             m = unicodedata.normalize('NFC', m)
 
             # When the first character of the completion has a zero length,
