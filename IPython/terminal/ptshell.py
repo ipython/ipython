@@ -50,7 +50,14 @@ def get_default_editor():
     else:
         return 'notepad' # same in Windows!
 
-_use_simple_prompt = 'IPY_TEST_SIMPLE_PROMPT' in os.environ or not sys.stdin.isatty()
+
+if sys.stdin and sys.stdout and sys.stderr:
+    _is_tty = (sys.stdin.isatty()) and (sys.stdout.isatty()) and  (sys.stderr.isatty())
+else:
+    _is_tty = False
+
+
+_use_simple_prompt = ('IPY_TEST_SIMPLE_PROMPT' in os.environ) or (not _is_tty)
 
 class TerminalInteractiveShell(InteractiveShell):
     colors_force = True
