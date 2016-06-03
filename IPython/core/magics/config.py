@@ -61,7 +61,6 @@ class ConfigMagics(Magics):
                 PrefilterManager
                 AliasManager
                 IPCompleter
-                PromptManager
                 DisplayFormatter
 
         To view what is configurable on a given class, just pass the class
