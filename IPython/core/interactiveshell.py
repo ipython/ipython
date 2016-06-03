@@ -166,6 +166,10 @@ class ExecutionResult(object):
         if self.error_in_exec is not None:
             raise self.error_in_exec
 
+    def __repr__(self):
+        return '<%s object at %x, execution_count=%s error_before_exec=%s error_in_exec=%s result=%s>' %\
+                (self.__class__.__qualname__, id(self), self.execution_count, self.error_before_exec, self.error_in_exec, repr(self.result))
+
 
 class InteractiveShell(SingletonConfigurable):
     """An enhanced, interactive shell for Python."""
@@ -424,6 +428,8 @@ class InteractiveShell(SingletonConfigurable):
 
     # Tracks any GUI loop loaded for pylab
     pylab_gui_select = None
+
+    last_execution_succeeded = Bool(True, help='Did last executed command succeeded')
 
     def __init__(self, ipython_dir=None, profile_dir=None,
                  user_module=None, user_ns=None,
@@ -2601,6 +2607,7 @@ class InteractiveShell(SingletonConfigurable):
         result = ExecutionResult()
 
         if (not raw_cell) or raw_cell.isspace():
+            self.last_execution_succeeded = True
             return result
         
         if silent:
@@ -2611,6 +2618,7 @@ class InteractiveShell(SingletonConfigurable):
 
         def error_before_exec(value):
             result.error_before_exec = value
+            self.last_execution_succeeded = False
             return result
 
         self.events.trigger('pre_execute')
@@ -2697,8 +2705,10 @@ class InteractiveShell(SingletonConfigurable):
 
                 # Execute the user code
                 interactivity = "none" if silent else self.ast_node_interactivity
-                self.run_ast_nodes(code_ast.body, cell_name,
+                has_raised = self.run_ast_nodes(code_ast.body, cell_name,
                    interactivity=interactivity, compiler=compiler, result=result)
+                
+                self.last_execution_succeeded = not has_raised
 
                 # Reset this so later displayed values do not modify the
                 # ExecutionResult
