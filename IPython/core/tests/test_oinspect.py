@@ -270,7 +270,8 @@ def test_info():
     nt.assert_equal(i['type_name'], 'type')
     expted_class = str(type(type))  # <class 'type'> (Python 3) or <type 'type'>
     nt.assert_equal(i['base_class'], expted_class)
-    nt.assert_equal(i['string_form'], "<class 'IPython.core.tests.test_oinspect.Call'>")
+    if sys.version_info > (3,):
+        nt.assert_regex(i['string_form'], "<class 'IPython.core.tests.test_oinspect.Call'( at 0x[0-9a-f]{1,9})?>")
     fname = __file__
     if fname.endswith(".pyc"):
         fname = fname[:-1]
