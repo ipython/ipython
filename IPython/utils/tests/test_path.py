@@ -305,25 +305,20 @@ def test_not_writable_ipdir():
 @with_environment
 def test_get_py_filename():
     os.chdir(TMP_TEST_DIR)
-    for win32 in (True, False):
-        with make_tempfile('foo.py'):
-            nt.assert_equal(path.get_py_filename('foo.py', force_win32=win32), 'foo.py')
-            nt.assert_equal(path.get_py_filename('foo', force_win32=win32), 'foo.py')
-        with make_tempfile('foo'):
-            nt.assert_equal(path.get_py_filename('foo', force_win32=win32), 'foo')
-            nt.assert_raises(IOError, path.get_py_filename, 'foo.py', force_win32=win32)
-        nt.assert_raises(IOError, path.get_py_filename, 'foo', force_win32=win32)
-        nt.assert_raises(IOError, path.get_py_filename, 'foo.py', force_win32=win32)
-        true_fn = 'foo with spaces.py'
-        with make_tempfile(true_fn):
-            nt.assert_equal(path.get_py_filename('foo with spaces', force_win32=win32), true_fn)
-            nt.assert_equal(path.get_py_filename('foo with spaces.py', force_win32=win32), true_fn)
-            if win32:
-                nt.assert_equal(path.get_py_filename('"foo with spaces.py"', force_win32=True), true_fn)
-                nt.assert_equal(path.get_py_filename("'foo with spaces.py'", force_win32=True), true_fn)
-            else:
-                nt.assert_raises(IOError, path.get_py_filename, '"foo with spaces.py"', force_win32=False)
-                nt.assert_raises(IOError, path.get_py_filename, "'foo with spaces.py'", force_win32=False)
+    with make_tempfile('foo.py'):
+        nt.assert_equal(path.get_py_filename('foo.py'), 'foo.py')
+        nt.assert_equal(path.get_py_filename('foo'), 'foo.py')
+    with make_tempfile('foo'):
+        nt.assert_equal(path.get_py_filename('foo'), 'foo')
+        nt.assert_raises(IOError, path.get_py_filename, 'foo.py')
+    nt.assert_raises(IOError, path.get_py_filename, 'foo')
+    nt.assert_raises(IOError, path.get_py_filename, 'foo.py')
+    true_fn = 'foo with spaces.py'
+    with make_tempfile(true_fn):
+        nt.assert_equal(path.get_py_filename('foo with spaces'), true_fn)
+        nt.assert_equal(path.get_py_filename('foo with spaces.py'), true_fn)
+        nt.assert_raises(IOError, path.get_py_filename, '"foo with spaces.py"')
+        nt.assert_raises(IOError, path.get_py_filename, "'foo with spaces.py'")
 
 @onlyif_unicode_paths
 def test_unicode_in_filename():

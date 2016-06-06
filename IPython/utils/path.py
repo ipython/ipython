@@ -77,7 +77,8 @@ def unquote_filename(name, win32=(sys.platform=='win32')):
     This function has been deprecated and should not be used any more:
     unquoting is now taken care of by :func:`IPython.utils.process.arg_split`.
     """
-    warn("'unquote_filename' is deprecated", DeprecationWarning)
+    warn("'unquote_filename' is deprecated since IPython 5.0 and should not "
+         "be used anymore", DeprecationWarning)
     if win32:
         if name.startswith(("'", '"')) and name.endswith(("'", '"')):
             name = name[1:-1]
@@ -98,18 +99,13 @@ def get_py_filename(name, force_win32=None):
 
     If the given name is not a file, it adds '.py' and searches again.
     Raises IOError with an informative message if the file isn't found.
-
-    On Windows, apply Windows semantics to the filename. In particular, remove
-    any quoting that has been applied to it. This option can be forced for
-    testing purposes.
     """
 
     name = os.path.expanduser(name)
-    if force_win32 is None:
-        win32 = (sys.platform == 'win32')
-    else:
-        win32 = force_win32
-    name = unquote_filename(name, win32=win32)
+    if force_win32 is not None:
+        warn("The 'force_win32' argument to 'get_py_filename' is deprecated "
+             "since IPython 5.0 and should not be used anymore",
+            DeprecationWarning)
     if not os.path.isfile(name) and not name.endswith('.py'):
         name += '.py'
     if os.path.isfile(name):
