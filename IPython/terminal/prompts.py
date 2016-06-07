@@ -6,6 +6,8 @@ import sys
 
 from IPython.core.displayhook import DisplayHook
 
+from prompt_toolkit.layout.utils import token_list_width
+
 class Prompts(object):
     def __init__(self, shell):
         self.shell = shell
@@ -18,8 +20,7 @@ class Prompts(object):
         ]
 
     def _width(self):
-        in_tokens = self.in_prompt_tokens()
-        return sum(len(s) for (t, s) in in_tokens)
+        return token_list_width(self.in_prompt_tokens())
 
     def continuation_prompt_tokens(self, cli=None, width=None):
         if width is None:
