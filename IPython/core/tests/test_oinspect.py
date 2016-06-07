@@ -341,13 +341,13 @@ if py3compat.PY3:
 @skipif(not py3compat.PY3)
 def test_definition_kwonlyargs():
     i = inspector.info(f_kwarg, oname='f_kwarg')  # analysis:ignore
-    nt.assert_equal(i['definition'], "f_kwarg(pos, *, kwonly)\n")
+    nt.assert_equal(i['definition'], "f_kwarg(pos, *, kwonly)")
 
 def test_getdoc():
     class A(object):
         """standard docstring"""
         pass
-    
+
     class B(object):
         """standard docstring"""
         def getdoc(self):

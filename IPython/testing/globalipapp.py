@@ -20,7 +20,6 @@ from __future__ import print_function
 #-----------------------------------------------------------------------------
 
 # stdlib
-import os
 import sys
 
 # our own
@@ -141,6 +140,8 @@ def start_ipython():
     
     # Override paging, so we don't require user interaction during the tests.
     def nopage(strng, start=0, screen_lines=0, pager_cmd=None):
+        if isinstance(strng, dict):
+           strng = strng.get('text/plain', '')
         print(strng)
     
     page.orig_page = page.pager_page
