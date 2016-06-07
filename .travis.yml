@@ -20,3 +20,7 @@ after_success:
     - cp /tmp/ipy_coverage.xml ./
     - cp /tmp/.coverage ./
     - codecov
+
+matrix:
+    allow_failures:
+        python: nightly
