@@ -149,11 +149,11 @@ which can be started from the Help menu.
 Security
 ********
 
-2.0 introduces a :ref:`security model <notebook_security>` for notebooks,
+2.0 introduces a security model for notebooks,
 to prevent untrusted code from executing on users' behalf when notebooks open.
 A quick summary of the model:
 
-- Trust is determined by :ref:`signing notebooks<signing_notebooks>`.
+- Trust is determined by signing notebooks.
 - Untrusted HTML output is sanitized.
 - Untrusted Javascript is never executed.
 - HTML and Javascript in Markdown are never trusted.
