@@ -19,7 +19,7 @@ file and ignore your configuration setup.
 
 Please note that some of the configuration options are not available at
 the command line, simply because they are not practical here. Look into
-your configuration files for details on those. There are separate configuration 
+your configuration files for details on those. There are separate configuration
 files for each profile, and the files look like :file:`ipython_config.py` or
 :file:`ipython_config_{frontendname}.py`.  Profile directories look like
 :file:`profile_{profilename}` and are typically installed in the :envvar:`IPYTHONDIR` directory,
@@ -95,17 +95,17 @@ the same name::
       /home/fperez
 
 The following uses the builtin :magic:`timeit` in cell mode::
-  
+
   In [10]: %%timeit x = range(10000)
       ...: min(x)
       ...: max(x)
-      ...: 
+      ...:
   1000 loops, best of 3: 438 us per loop
 
 In this case, ``x = range(10000)`` is called as the line argument, and the
 block with ``min(x)`` and ``max(x)`` is called as the cell body.  The
 :magic:`timeit` magic receives both.
-  
+
 If you have 'automagic' enabled (as it is by default), you don't need to type in
 the single ``%`` explicitly for line magics; IPython will scan its internal
 list of magic functions and call one if it exists. With automagic on you can
@@ -116,7 +116,7 @@ then just type ``cd mydir`` to go to directory 'mydir'::
 
 Cell magics *always* require an explicit ``%%`` prefix, automagic
 calling only works for line magics.
-      
+
 The automagic system has the lowest possible precedence in name searches, so
 you can freely use variables with the same names as magic commands. If a magic
 command is 'shadowed' by a variable, you will need the explicit ``%`` prefix to
@@ -146,7 +146,7 @@ use it:
     /home/fperez/ipython
 
 Line magics, if they return a value, can be assigned to a variable using the syntax
-``l = %sx ls`` (which in this particular case returns the result of `ls` as a python list).  
+``l = %sx ls`` (which in this particular case returns the result of `ls` as a python list).
 See :ref:`below <manual_capture>` for more information.
 
 Type ``%magic`` for more information, including a list of all available magic
@@ -326,9 +326,9 @@ You can assign the result of a system command to a Python variable with the
 syntax ``myfiles = !ls``. Similarly, the result of a magic (as long as it returns
 a value) can be assigned to a variable.  For example, the syntax ``myfiles = %sx ls``
 is equivalent to the above system command example (the :magic:`sx` magic runs a shell command
-and captures the output).  Each of these gets machine 
-readable output from stdout (e.g. without colours), and splits on newlines. To 
-explicitly get this sort of output without assigning to a variable, use two 
+and captures the output).  Each of these gets machine
+readable output from stdout (e.g. without colours), and splits on newlines. To
+explicitly get this sort of output without assigning to a variable, use two
 exclamation marks (``!!ls``) or the :magic:`sx` magic command without an assignment.
 (However, ``!!`` commands cannot be assigned to a variable.)
 
@@ -340,8 +340,8 @@ See :ref:`string_lists` for details.
 IPython also allows you to expand the value of python variables when
 making system calls. Wrap variables or expressions in {braces}::
 
-    In [1]: pyvar = 'Hello world' 
-    In [2]: !echo "A python variable: {pyvar}"  
+    In [1]: pyvar = 'Hello world'
+    In [2]: !echo "A python variable: {pyvar}"
     A python variable: Hello world
     In [3]: import math
     In [4]: x = 8
@@ -350,7 +350,7 @@ making system calls. Wrap variables or expressions in {braces}::
 
 For simple cases, you can alternatively prepend $ to a variable name::
 
-    In [6]: !echo $sys.argv  
+    In [6]: !echo $sys.argv
     [/home/fperez/usr/bin/ipython]
     In [7]: !echo "A system variable: $$HOME"  # Use $$ for literal $
     A system variable: /home/fperez
@@ -376,7 +376,7 @@ replaced by a positional parameter to the call to %parts::
     In [1]: %alias parts echo first %s second %s
     In [2]: parts A B
     first A second B
-    In [3]: parts A  
+    In [3]: parts A
     ERROR: Alias <parts> requires 2 arguments, 1 given.
 
 If called with no parameters, :magic:`alias` prints the table of currently
@@ -420,8 +420,8 @@ Input caching system
 --------------------
 
 IPython offers numbered prompts (In/Out) with input and output caching
-(also referred to as 'input history'). All input is saved and can be 
-retrieved as variables (besides the usual arrow key recall), in 
+(also referred to as 'input history'). All input is saved and can be
+retrieved as variables (besides the usual arrow key recall), in
 addition to the :magic:`rep` magic command that brings a history entry
 up for editing on the next command line.
 
@@ -451,7 +451,7 @@ processing). Type %macro? for more details on the macro system.
 A history function :magic:`history` allows you to see any part of your input
 history by printing a range of the _i variables.
 
-You can also search ('grep') through your history by typing 
+You can also search ('grep') through your history by typing
 ``%hist -g somestring``. This is handy for searching for URLs, IP addresses,
 etc. You can bring history entries listed by '%hist -g' up for editing
 with the %recall command, or run them immediately with :magic:`rerun`.
@@ -537,8 +537,8 @@ will confuse IPython)::
 
 but this will work::
 
-    In [5]: /zip (1,2,3),(4,5,6) 
-    ------> zip ((1,2,3),(4,5,6))  
+    In [5]: /zip (1,2,3),(4,5,6)
+    ------> zip ((1,2,3),(4,5,6))
     Out[5]: [(1, 4), (2, 5), (3, 6)]
 
 IPython tells you that it has altered your command line by displaying
@@ -648,7 +648,7 @@ them separately, for example with different options for data
 presentation. If you close and open the same instance multiple times,
 its prompt counters simply continue from each execution to the next.
 
-Please look at the docstrings in the :mod:`~IPython.frontend.terminal.embed` 
+Please look at the docstrings in the :mod:`~IPython.frontend.terminal.embed`
 module for more details on the use of this system.
 
 The following sample file illustrating how to use the embedding
@@ -682,12 +682,13 @@ For more information on the use of the pdb debugger, see :ref:`debugger-commands
 in the Python documentation.
 
 IPython extends the debugger with a few useful additions, like coloring of
-tracebacks. The debugger will adopt the color scheme selected for IPython. 
+tracebacks. The debugger will adopt the color scheme selected for IPython.
 
 The ``where`` command has also been extended to take as argument the number of
 context line to show. This allows to a many line of context on shallow stack trace:
 
 .. code::
+
     In [5]: def foo(x):
     ...:     1
     ...:     2
@@ -697,7 +698,7 @@ context line to show. This allows to a many line of context on shallow stack tra
     ...:     6
     ...:     7
     ...:
-    
+
     In[6]: foo(1)
     # ...
     ipdb> where 8
@@ -728,6 +729,7 @@ context line to show. This allows to a many line of context on shallow stack tra
 And less context on shallower Stack Trace:
 
 .. code::
+
     ipdb> where 1
     <ipython-input-13-afa180a57233>(1)<module>()
     ----> 1 foo(7)
@@ -797,7 +799,7 @@ standard Python tutorial::
     In [4]: >>> while b < 10:
        ...:     ...     print(b)
        ...:     ...     a, b = b, a+b
-       ...:     
+       ...:
     1
     1
     2
@@ -810,7 +812,7 @@ And pasting from IPython sessions works equally well::
     In [1]: In [5]: def f(x):
        ...:        ...:     "A simple function"
        ...:        ...:     return x**2
-       ...:    ...: 
+       ...:    ...:
 
     In [2]: f(3)
     Out[2]: 9
@@ -832,7 +834,7 @@ advantages of this are:
 * GUIs can be enabled and disabled dynamically at runtime.
 * The active GUI can be switched dynamically at runtime.
 * In some cases, multiple GUIs can run simultaneously with no problems.
-* There is a developer API in :mod:`IPython.lib.inputhook` for customizing 
+* There is a developer API in :mod:`IPython.lib.inputhook` for customizing
   all of these things.
 
 For users, enabling GUI event loop integration is simple.  You simple use the
@@ -862,7 +864,7 @@ form of a library, these capabilities are exposed in library form in the
 Interested developers should see the module docstrings for more information,
 but there are a few points that should be mentioned here.
 
-First, the ``PyOSInputHook`` approach only works in command line settings 
+First, the ``PyOSInputHook`` approach only works in command line settings
 where readline is activated.  The integration with various eventloops
 is handled somewhat differently (and more simply) when using the standalone
 kernel, as in the qtconsole and notebook.
@@ -918,7 +920,7 @@ neither v2 PyQt nor PySide work.
     Note that this means for ETS 4 to work with PyQt4, ``QT_API`` *must* be set
     to work with IPython's qt integration, because otherwise PyQt4 will be
     loaded in an incompatible mode.
-    
+
     It also means that you must *not* have ``QT_API`` set if you want to
     use ``--gui=qt`` with code that requires PyQt4 API v1.
 

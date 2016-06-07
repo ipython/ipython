@@ -74,12 +74,12 @@ The class can implement optional methods for each of the available prompt types:
   - ``rewrite_prompt_tokens(self)``
   - ``out_prompt_tokens(self)``
 
-Each of these methods should return a list of `(TokenType, Token)` pairs. See documentation of `prompt_toolkit` and/or `Pygments`. 
+Each of these methods should return a list of `(TokenType, Token)` pairs. See documentation of `prompt_toolkit` and/or `Pygments`.
 
 Here is an example of Prompt class that will insert the current working directory in front of a prompt:
 
 
-.. codeblock:: python 
+.. code-block:: python
 
     from IPython.terminal.prompts import Prompts, Token
     import os
@@ -92,7 +92,7 @@ Here is an example of Prompt class that will insert the current working director
 
 To set the new prompt, assign it to the `prompts` attribute of the IPython shell:
 
-.. codeblock:: python
+.. code-block:: python
 
     In[2]: ip = get_ipython()
       ...: ip.prompts = MyPrompt(ip)
@@ -101,7 +101,7 @@ To set the new prompt, assign it to the `prompts` attribute of the IPython shell
 
 
 See ``IPython/example/utils/cwd_prompt.py`` for an example of how to write an
-extensions that customise prompts. 
+extensions that customise prompts.
 
 
 Read more about the :ref:`configuration system <config_overview>` for details
@@ -225,7 +225,7 @@ First, capture output of "hg status"::
     11: build\bdist.win32\winexe\temp\_hashlib.py
     12: build\bdist.win32\winexe\temp\_socket.py
 
-Now we can just remove these files by doing 'rm $junk.s'. 
+Now we can just remove these files by doing 'rm $junk.s'.
 
 The .s, .n, .p properties
 -------------------------
