@@ -23,10 +23,10 @@ FOR %%L IN (html html_noapi pickle htmlhelp latex changes linkcheck) DO (
         )
         MD build\doctrees 2>NUL
         MD build\%1 || GOTO DIR_EXIST
-        %PYTHON% autogen_config.py && echo "Created docs for line & cell magics"
-        %PYTHON% autogen_magics.py && echo "Created docs for config options"
+        %PYTHON% autogen_config.py && ECHO Created docs for config options
+        %PYTHON% autogen_magics.py && ECHO Created docs for line ^& cell magics
         IF NOT "%1" == "html_noapi" (
-            %PYTHON% autogen_api.py && echo "Build API docs finished."
+            %PYTHON% autogen_api.py && ECHO Build API docs finished
             %SPHINXBUILD% -b %1 %ALLSPHINXOPTS% build\%1
         ) ELSE (
             %SPHINXBUILD% -b html %ALLSPHINXOPTS% build\%1
