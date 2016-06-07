@@ -672,7 +672,7 @@ class Inspector(Colorable):
 
         return mime
 
-    def pinfo(self, obj, oname='', formatter=None, info=None, detail_level=0):
+    def pinfo(self, obj, oname='', formatter=None, info=None, detail_level=0, enable_html_pager=True):
         """Show detailed information about an object.
 
         Optional arguments:
@@ -695,8 +695,9 @@ class Inspector(Colorable):
         - detail_level: if set to 1, more information is given.
         """
         info = self._get_info(obj, oname, formatter, info, detail_level)
-        if info:
-            page.page(info)
+        if not enable_html_pager:
+            del info['text/html']
+        page.page(info)
 
     def info(self, obj, oname='', formatter=None, info=None, detail_level=0):
         """DEPRECATED. Compute a dict with detailed information about an object.

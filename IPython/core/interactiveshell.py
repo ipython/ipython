@@ -73,8 +73,7 @@ from IPython.utils.py3compat import (builtin_mod, unicode_type, string_types,
                                      with_metaclass, iteritems)
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
-from IPython.utils.text import (format_screen, LSString, SList,
-                                DollarFormatter)
+from IPython.utils.text import format_screen, LSString, SList, DollarFormatter
 from IPython.utils.tempdir import TemporaryDirectory
 from traitlets import (
     Integer, Bool, CaselessStrEnum, Enum, List, Dict, Unicode, Instance, Type,
@@ -87,14 +86,14 @@ import IPython.core.hooks
 try:
     import docrepr.sphinxify as sphx
 
-    def docformat(doc):
+    def sphinxify(doc):
         with TemporaryDirectory() as dirname:
             return {
                 'text/html': sphx.sphinxify(doc, dirname),
                 'text/plain': doc
             }
 except ImportError:
-    docformat = None
+    sphinxify = None
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -278,6 +277,16 @@ class InteractiveShell(SingletonConfigurable):
     display_formatter = Instance(DisplayFormatter, allow_none=True)
     displayhook_class = Type(DisplayHook)
     display_pub_class = Type(DisplayPublisher)
+    sphinxify_docstring = Bool(False, help=
+        """
+        Enables rich html representation of docstrings. (This requires the
+        docrepr module).
+        """).tag(config=True)
+    enable_html_pager = Bool(False, help=
+        """
+        (Provisional API) enables html representation in mime bundles sent
+        to pagers.
+        """).tag(config=True)
     data_pub_class = None
 
     exit_now = Bool(False)
@@ -294,12 +303,12 @@ class InteractiveShell(SingletonConfigurable):
     # is ready to be executed.
     input_splitter = Instance('IPython.core.inputsplitter.IPythonInputSplitter',
                               (), {'line_input_checker': True})
-    
+
     # This InputSplitter instance is used to transform completed cells before
     # running them. It allows cell magics to contain blank lines.
     input_transformer_manager = Instance('IPython.core.inputsplitter.IPythonInputSplitter',
                                          (), {'line_input_checker': False})
-    
+
     logstart = Bool(False, help=
         """
         Start logging to the default log file in overwrite mode.
@@ -354,11 +363,11 @@ class InteractiveShell(SingletonConfigurable):
                 name=name)
         )
         # protect against weird cases where self.config may not exist:
-    
+
     show_rewritten_input = Bool(True,
         help="Show rewritten input, e.g. for autocall."
     ).tag(config=True)
-    
+
     quiet = Bool(False).tag(config=True)
 
     history_length = Integer(10000,
@@ -1371,7 +1380,7 @@ class InteractiveShell(SingletonConfigurable):
                 user_ns_hidden.pop(name, None)
         else:
             user_ns_hidden.update(vdict)
-    
+
     def drop_by_id(self, variables):
         """Remove a dict of variables from the user namespace, if they are the
         same as the values in the dictionary.
@@ -1537,15 +1546,20 @@ class InteractiveShell(SingletonConfigurable):
     def _inspect(self, meth, oname, namespaces=None, **kw):
         """Generic interface to the inspector system.
 
-        This function is meant to be called by pdef, pdoc & friends."""
+        This function is meant to be called by pdef, pdoc & friends.
+        """
         info = self._object_find(oname, namespaces)
+        docformat = sphinxify if self.sphinxify_docstring else None
         if info.found:
             pmethod = getattr(self.inspector, meth)
+            # TODO: only apply format_screen to the plain/text repr of the mime
+            # bundle.
             formatter = format_screen if info.ismagic else docformat
             if meth == 'pdoc':
                 pmethod(info.obj, oname, formatter)
             elif meth == 'pinfo':
-                pmethod(info.obj, oname, formatter, info, **kw)
+                pmethod(info.obj, oname, formatter, info, 
+                        enable_html_pager=self.enable_html_pager, **kw)
             else:
                 pmethod(info.obj, oname)
         else:
