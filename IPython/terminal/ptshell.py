@@ -181,6 +181,12 @@ class TerminalInteractiveShell(InteractiveShell):
         def _(event):
             b = event.current_buffer
             d = b.document
+
+            if b.complete_state:
+                cs = b.complete_state
+                b.apply_completion(cs.current_completion)
+                return
+
             if not (d.on_last_line or d.cursor_position_row >= d.line_count
                                            - d.empty_line_count_at_the_end()):
                 b.newline()
