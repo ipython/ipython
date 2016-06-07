@@ -7,13 +7,14 @@ SET SPHINXOPTS=
 SET SPHINXBUILD=sphinx-build
 SET PAPER=
 SET SRCDIR=source
+SET PYTHON=python
 
 IF "%PAPER%" == "" SET PAPER=a4
 SET ALLSPHINXOPTS=-d build\doctrees -D latex_paper_size=%PAPER% %SPHINXOPTS% %SRCDIR%
 
 FOR %%X IN (%SPHINXBUILD%.exe) DO SET P=%%~$PATH:X
 
-FOR %%L IN (html pickle htmlhelp latex changes linkcheck) DO (
+FOR %%L IN (html html_noapi pickle htmlhelp latex changes linkcheck) DO (
     IF "%1" == "%%L" (
         IF "%P%" == "" (
             ECHO.
@@ -22,7 +23,14 @@ FOR %%L IN (html pickle htmlhelp latex changes linkcheck) DO (
         )
         MD build\doctrees 2>NUL
         MD build\%1 || GOTO DIR_EXIST
-        %SPHINXBUILD% -b %1 %ALLSPHINXOPTS% build\%1
+        %PYTHON% autogen_config.py && echo "Created docs for line & cell magics"
+        %PYTHON% autogen_magics.py && echo "Created docs for config options"
+        IF NOT "%1" == "html_noapi" (
+            %PYTHON% autogen_api.py && echo "Build API docs finished."
+            %SPHINXBUILD% -b %1 %ALLSPHINXOPTS% build\%1
+        ) ELSE (
+            %SPHINXBUILD% -b html %ALLSPHINXOPTS% build\%1
+        )
         IF NOT ERRORLEVEL 0 GOTO ERROR
         ECHO.
         ECHO Build finished. Results are in build\%1.
@@ -52,13 +60,14 @@ IF "%1" == "clean" (
 ECHO.
 ECHO Please use "make [target]" where [target] is one of:
 ECHO.
-ECHO    html      to make standalone HTML files
-ECHO    jsapi     to make standalone HTML files for the Javascript API
-ECHO    pickle    to make pickle files (usable by e.g. sphinx-web)
-ECHO    htmlhelp  to make HTML files and a HTML help project
-ECHO    latex     to make LaTeX files, you can set PAPER=a4 or PAPER=letter
-ECHO    changes   to make an overview over all changed/added/deprecated items
-ECHO    linkcheck to check all external links for integrity
+ECHO    html        to make standalone HTML files
+ECHO    html_noapi  same as above, without the time consuming API docs
+ECHO    jsapi       to make standalone HTML files for the Javascript API
+ECHO    pickle      to make pickle files (usable by e.g. sphinx-web)
+ECHO    htmlhelp    to make HTML files and a HTML help project
+ECHO    latex       to make LaTeX files, you can set PAPER=a4 or PAPER=letter
+ECHO    changes     to make an overview over all changed/added/deprecated items
+ECHO    linkcheck   to check all external links for integrity
 GOTO END
 
 :DIR_EXIST
