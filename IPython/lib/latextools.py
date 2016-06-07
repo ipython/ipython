@@ -64,7 +64,7 @@ def latex_to_png(s, encode=False, backend=None, wrap=False):
 
     Parameters
     ----------
-    s : text
+    s : str
         The raw string containing valid inline LaTeX.
     encode : bool, optional
         Should the PNG data base64 encoded to make it JSON'able.

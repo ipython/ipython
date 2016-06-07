@@ -31,7 +31,7 @@ def line_at_cursor(cell, cursor_pos=0):
     Parameters
     ----------
     
-    cell: text
+    cell: str
         multiline block of text
     cursor_pos: integer
         the cursor position
