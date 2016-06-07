@@ -164,10 +164,6 @@ To use nbconvert to convert various file formats::
 See ``ipython nbconvert --help`` for more information.
 nbconvert depends on `pandoc`_ for many of the translations to and from various formats.
 
-.. seealso::
-
-    :ref:`nbconvert`
-
 .. _pandoc: http://johnmacfarlane.net/pandoc/
 
 Notebook

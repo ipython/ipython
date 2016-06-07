@@ -278,7 +278,7 @@ Backwards incompatible changes
   Adapters are included, so IPython frontends can still talk to kernels that
   implement protocol version 4.
 
-* The :ref:`notebook format <nbformat>` has been updated from version 3 to version 4.
+* The notebook format has been updated from version 3 to version 4.
   Read-only support for v4 notebooks has been backported to IPython 2.4.
   Notable changes:
   

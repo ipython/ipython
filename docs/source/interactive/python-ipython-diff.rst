@@ -179,7 +179,7 @@ The later form of expansion supports arbitrary python expression:
 The bang can also be present in the right hand side of an assignment, just
 after the equal sign, or separated from it by a white space. In which case the
 standard output of the command after the bang ``!`` will be split out into lines
-in a list-like object (:ref:`IPython Slist`) and assign to the left hand side.
+in a list-like object and assign to the left hand side.
 
 This allow you for example to put the list of files of the current working directory in a variable:
 
