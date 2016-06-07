@@ -44,6 +44,13 @@ from IPython.utils.py3compat import cast_unicode, string_types, PY3
 from IPython.utils.signatures import signature
 from IPython.utils.colorable import Colorable
 
+from pygments import highlight
+from pygments.lexers import PythonLexer
+from pygments.formatters import HtmlFormatter
+
+def pylight(code):
+    return highlight(code, PythonLexer(), HtmlFormatter(noclasses=True))
+
 # builtin docstrings to ignore
 _func_call_docstring = types.FunctionType.__call__.__doc__
 _object_init_docstring = object.__init__.__doc__
@@ -364,14 +371,6 @@ def find_source_lines(obj):
         return None
 
     return lineno
-
-from pygments import highlight
-from pygments.lexers import PythonLexer
-from pygments.formatters import HtmlFormatter
-
-def pylight(code):
-    return highlight(code, PythonLexer(), HtmlFormatter(noclasses=True))
-
 
 class Inspector(Colorable):
 
