@@ -1550,13 +1550,11 @@ class InteractiveShell(SingletonConfigurable):
         """
         info = self._object_find(oname, namespaces)
         docformat = sphinxify if self.sphinxify_docstring else None
-        print("using docformat", docformat, self.sphinxify_docstring, sphinxify)
         if info.found:
             pmethod = getattr(self.inspector, meth)
             # TODO: only apply format_screen to the plain/text repr of the mime
             # bundle.
             formatter = format_screen if info.ismagic else docformat
-            print("usingformatter", formatter)
             if meth == 'pdoc':
                 pmethod(info.obj, oname, formatter)
             elif meth == 'pinfo':
