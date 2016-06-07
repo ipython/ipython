@@ -7,7 +7,7 @@ language and what are the specific construct you can do only in IPython.
 
 Unless expressed otherwise all of the construct you will see here will raise a
 ``SyntaxError`` if run in a pure Python shell, or if executing in a Python
-script.
+script. 
 
 Each of these features are describe more in details in further part of the documentation.
 
@@ -56,7 +56,7 @@ All the following construct are valid IPython syntax:
     In [1]: %%perl magic --function
        ...: @months = ("July", "August", "September");
        ...: print $months[0];
-
+    
 
 Each of these construct is compile by IPython into valid python code and will
 do most of the time what you expect it will do. Let see each of these example
@@ -100,7 +100,7 @@ namespace will show help relative to this object:
 
 
 A double question mark will try to pull out more information about the object,
-and if possible display the python source code of this object.
+and if possible display the python source code of this object. 
 
 .. code-block:: ipython
 
@@ -143,7 +143,7 @@ Shell Assignment
 
 
 When doing interactive computing it is common to need to access the underlying shell.
-This is doable through the use of the exclamation mark ``!`` (or bang).
+This is doable through the use of the exclamation mark ``!`` (or bang). 
 
 This allow to execute simple command when present in beginning of line:
 
@@ -205,7 +205,7 @@ Magics
 Magics function are often present in the form of shell-like syntax, but are
 under the hood python function. The syntax and assignment possibility are
 similar to the one with the bang (``!``) syntax, but with more flexibility and
-power. Magic function start with a percent sign (``%``) or double percent (``%%``).
+power. Magic function start with a percent sign (``%``) or double percent (``%%``). 
 
 A magic call with a sign percent will act only one line:
 
