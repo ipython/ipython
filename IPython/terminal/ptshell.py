@@ -199,9 +199,17 @@ class TerminalInteractiveShell(InteractiveShell):
             else:
                 b.insert_text('\n' + (' ' * (indent or 0)))
 
+        # We have to set eager to True for Escape this will lead to a delay to
+        # dismiss the completer or clear the buffer until next loop, or next input character.
+        # CtrlC will act immediately.
+        @kbmanager.registry.add_binding(Keys.Escape, filter=HasFocus(DEFAULT_BUFFER), eager=True)
         @kbmanager.registry.add_binding(Keys.ControlC, filter=HasFocus(DEFAULT_BUFFER))
         def _reset_buffer(event):
-            event.current_buffer.reset()
+            b = event.current_buffer
+            if b.complete_state:
+                b.cancel_completion()
+            else:
+                b.reset()
 
         @kbmanager.registry.add_binding(Keys.ControlC, filter=HasFocus(SEARCH_BUFFER))
         def _reset_search_buffer(event):
