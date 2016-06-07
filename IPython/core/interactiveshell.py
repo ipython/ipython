@@ -95,6 +95,13 @@ try:
 except ImportError:
     sphinxify = None
 
+
+class ProvisionalWarning(DeprecationWarning):
+    """
+    Warning class for unstable features
+    """
+    pass
+
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
@@ -212,6 +219,7 @@ class InteractiveShell(SingletonConfigurable):
         Autoindent IPython code entered interactively.
         """
     ).tag(config=True)
+
     automagic = Bool(True, help=
         """
         Enable magic commands to be called without the leading %.
@@ -277,16 +285,29 @@ class InteractiveShell(SingletonConfigurable):
     display_formatter = Instance(DisplayFormatter, allow_none=True)
     displayhook_class = Type(DisplayHook)
     display_pub_class = Type(DisplayPublisher)
+    
     sphinxify_docstring = Bool(False, help=
         """
         Enables rich html representation of docstrings. (This requires the
         docrepr module).
         """).tag(config=True)
+
+    @observe("sphinxify_docstring")
+    def _sphinxify_docstring_changed(self, change):
+        if change['new'] is True:
+            warn("`sphinxify_docstring` is provisional since IPython 5.0 and might change in future versions." , ProvisionalWarning)
+
     enable_html_pager = Bool(False, help=
         """
         (Provisional API) enables html representation in mime bundles sent
         to pagers.
         """).tag(config=True)
+
+    @observe("enable_html_pager")
+    def _enable_html_pager_changed(self, change):
+        if change['new'] is True:
+            warn("`enable_html_pager` is provisional since IPython 5.0 and might change in future versions.", ProvisionalWarning)
+
     data_pub_class = None
 
     exit_now = Bool(False)
