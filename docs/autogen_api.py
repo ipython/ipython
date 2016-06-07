@@ -30,6 +30,7 @@ if __name__ == '__main__':
                                         r'\.sphinxext',
                                         # Shims
                                         r'\.kernel',
+                                        r'\.terminal\.pt_inputhooks',
                                         ]
 
     # The inputhook* modules often cause problems on import, such as trying to
@@ -37,8 +38,6 @@ if __name__ == '__main__':
     docwriter.module_skip_patterns += [ r'\.lib\.inputhook.+',
                                         r'\.ipdoctest',
                                         r'\.testing\.plugin',
-                                        # Deprecated:
-                                        r'\.core\.magics\.deprecated',
                                         # Backwards compat import for lib.lexers
                                         r'\.nbconvert\.utils\.lexers',
                                         # We document this manually.
