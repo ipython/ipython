@@ -850,7 +850,7 @@ object, do::
 
     %gui wx
 
-You can also start IPython with an event loop set up using the :option:`--gui`
+You can also start IPython with an event loop set up using the `--gui`
 flag::
 
     $ ipython --gui=qt

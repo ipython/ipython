@@ -11,6 +11,7 @@ Using IPython for interactive work
    reference
    shell
    tips
+   python-ipython-diff
 
 .. seealso::
 
