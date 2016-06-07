@@ -87,18 +87,17 @@ You can see all the relevant options with::
 
 and just like the Qt console, you can start the notebook server with pylab
 support by using::
-  
+
   ipython notebook --pylab
 
 for floating matplotlib windows or::
-  
+
   ipython notebook --pylab inline
 
 for plotting support with automatically inlined figures.  Note that it is now
 possible also to activate pylab support at runtime via ``%pylab``, so you do
 not need to make this decision when starting the server.
-  
-See :ref:`the Notebook docs <htmlnotebook>` for technical details.
+
 
 .. _two_process_console:
 
@@ -118,7 +117,7 @@ have embedded an IPython kernel.
 This is also something that we have wanted for a long time, and which is a
 culmination (as a team effort) of the work started last year during the 2010
 Google Summer of Code project.
-  
+
 Tabbed QtConsole
 ~~~~~~~~~~~~~~~~
 
@@ -168,13 +167,13 @@ the area where PyPy still lags most behind.  But for everyday interactive use
 at the terminal, with this release and PyPy 1.7, things seem to work quite well
 from our admittedly limited testing.
 
-  
+
 Other important new features
 ----------------------------
 
 * **SSH Tunnels**: In 0.11, the :mod:`IPython.parallel` Client could tunnel its
-  connections to the Controller via ssh. Now, the QtConsole :ref:`supports
-  <ssh_tunnels>` ssh tunneling, as do parallel engines.
+  connections to the Controller via ssh. Now, the QtConsole supports ssh tunneling,
+  as do parallel engines.
 
 * **relaxed command-line parsing**: 0.11 was released with overly-strict
   command-line parsing, preventing the ability to specify arguments with spaces,
@@ -288,7 +287,7 @@ Backwards incompatible changes
 
   The full path will still work, and is necessary for using custom launchers
   not in IPython's launcher module.
-  
+
   Further, MPIExec launcher names are now prefixed with just MPI, to better match
   other batch launchers, and be generally more intuitive.  The MPIExec names are
   deprecated, but continue to work.
@@ -362,7 +361,7 @@ had commits from the following 45 contributors, a mix of new and regular names
 * Timo Paulssen <timonator-at-perpetuum-immobile.de>
 * Valentin Haenel <valentin.haenel-at-gmx.de>
 * Yaroslav Halchenko <debian-at-onerussian.com>
-   
+
 .. note::
 
     This list was generated with the output of
