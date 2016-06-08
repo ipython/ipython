@@ -7,7 +7,8 @@ from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.layout.lexers import Lexer
 from prompt_toolkit.layout.lexers import PygmentsLexer
 
-from pygments.lexers import Python3Lexer, BashLexer, PythonLexer
+import pygments.lexers as pygments_lexers
+
 
 class IPythonPTCompleter(Completer):
     """Adaptor to provide IPython completions to prompt_toolkit"""
@@ -56,11 +57,32 @@ class IPythonPTLexer(Lexer):
     Wrapper around PythonLexer and BashLexer.
     """
     def __init__(self):
-        self.python_lexer = PygmentsLexer(Python3Lexer if PY3 else PythonLexer)
-        self.shell_lexer = PygmentsLexer(BashLexer)
+        l = pygments_lexers
+        self.python_lexer = PygmentsLexer(l.Python3Lexer if PY3 else l.PythonLexer)
+        self.shell_lexer = PygmentsLexer(l.BashLexer)
+
+        self.magic_lexers = {
+            'HTML': PygmentsLexer(l.HtmlLexer),
+            'html': PygmentsLexer(l.HtmlLexer),
+            'javascript': PygmentsLexer(l.JavascriptLexer),
+            'js': PygmentsLexer(l.JavascriptLexer),
+            'perl': PygmentsLexer(l.PerlLexer),
+            'ruby': PygmentsLexer(l.RubyLexer),
+            'latex': PygmentsLexer(l.TexLexer),
+        }
 
     def lex_document(self, cli, document):
-        if document.text.startswith('!'):
-            return self.shell_lexer.lex_document(cli, document)
-        else:
-            return self.python_lexer.lex_document(cli, document)
+        text = document.text.lstrip()
+
+        lexer = self.python_lexer
+
+        if text.startswith('!') or text.startswith('%%bash'):
+            lexer = self.shell_lexer
+
+        elif text.startswith('%%'):
+            for magic, l in self.magic_lexers.items():
+                if text.startswith('%%' + magic):
+                    lexer = l
+                    break
+
+        return lexer.lex_document(cli, document)
