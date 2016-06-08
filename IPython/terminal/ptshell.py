@@ -11,7 +11,7 @@ from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.utils.py3compat import PY3, cast_unicode_py2, input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
-from traitlets import Bool, Unicode, Dict, Integer, observe, Instance, Type
+from traitlets import Bool, Unicode, Dict, Integer, observe, Instance, Type, default
 
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER, EditingMode
 from prompt_toolkit.filters import HasFocus, HasSelection, Condition, ViInsertMode, EmacsInsertMode, IsDone
@@ -125,10 +125,11 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Set the editor used by IPython (default to $EDITOR/vi/notepad)."
     ).tag(config=True)
 
-    prompts_class = Type(Prompts, config=True, help='Class used to generate Prompt token for prompt_toolkit')
+    prompts_class = Type(Prompts, help='Class used to generate Prompt token for prompt_toolkit').tag(config=True)
 
     prompts = Instance(Prompts)
 
+    @default('prompts')
     def _prompts_default(self):
         return self.prompts_class(self)
 
@@ -136,6 +137,7 @@ class TerminalInteractiveShell(InteractiveShell):
     def _(self, change):
         self._update_layout()
 
+    @default('displayhook_class')
     def _displayhook_class_default(self):
         return RichPromptDisplayHook
 
