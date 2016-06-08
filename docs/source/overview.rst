@@ -20,7 +20,7 @@ has three main components:
 * An enhanced interactive Python shell.
 * A decoupled :ref:`two-process communication model <ipythonzmq>`, which
   allows for multiple clients to connect to a computation kernel, most notably
-  the web-based :ref:`notebook <htmlnotebook>`
+  the web-based notebook.
 * An architecture for interactive parallel computing.
 
 All of IPython is open source (released under the revised BSD license).

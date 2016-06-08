@@ -97,8 +97,7 @@ for floating matplotlib windows or::
 for plotting support with automatically inlined figures.  Note that it is now
 possible also to activate pylab support at runtime via ``%pylab``, so you do
 not need to make this decision when starting the server.
-  
-See :ref:`the Notebook docs <htmlnotebook>` for technical details.
+
 
 .. _two_process_console:
 
@@ -173,8 +172,8 @@ Other important new features
 ----------------------------
 
 * **SSH Tunnels**: In 0.11, the :mod:`IPython.parallel` Client could tunnel its
-  connections to the Controller via ssh. Now, the QtConsole :ref:`supports
-  <ssh_tunnels>` ssh tunneling, as do parallel engines.
+  connections to the Controller via ssh. Now, the QtConsole supports ssh tunneling,
+  as do parallel engines.
 
 * **relaxed command-line parsing**: 0.11 was released with overly-strict
   command-line parsing, preventing the ability to specify arguments with spaces,
