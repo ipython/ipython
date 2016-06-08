@@ -14,7 +14,7 @@ from IPython.utils.process import abbrev_cwd
 from traitlets import Bool, Unicode, Dict, Integer, observe, Instance, Type
 
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER, EditingMode
-from prompt_toolkit.filters import HasFocus, HasSelection, Condition, ViInsertMode, EmacsInsertMode, IsDone
+from prompt_toolkit.filters import HasFocus, HasSelection, Condition, ViInsertMode, EmacsInsertMode, IsDone, HasCompletions
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop, create_prompt_layout
 from prompt_toolkit.interface import CommandLineInterface
@@ -199,10 +199,17 @@ class TerminalInteractiveShell(InteractiveShell):
             else:
                 b.insert_text('\n' + (' ' * (indent or 0)))
 
-        # We have to set eager to True for Escape this will lead to a delay to
-        # dismiss the completer or clear the buffer until next loop, or next input character.
-        # CtrlC will act immediately.
-        @kbmanager.registry.add_binding(Keys.Escape, filter=HasFocus(DEFAULT_BUFFER), eager=True)
+        @kbmanager.registry.add_binding(Keys.ControlG, filter=(
+            HasFocus(DEFAULT_BUFFER) & HasCompletions()
+            ))
+        def _dismiss_completion(event):
+            b = event.current_buffer
+            if b.complete_state:
+                b.cancel_completion()
+
+
+
+
         @kbmanager.registry.add_binding(Keys.ControlC, filter=HasFocus(DEFAULT_BUFFER))
         def _reset_buffer(event):
             b = event.current_buffer
