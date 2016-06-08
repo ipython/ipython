@@ -294,7 +294,7 @@ class InteractiveShell(SingletonConfigurable):
 
     @observe("sphinxify_docstring")
     def _sphinxify_docstring_changed(self, change):
-        if change['new'] is True:
+        if change['new']:
             warn("`sphinxify_docstring` is provisional since IPython 5.0 and might change in future versions." , ProvisionalWarning)
 
     enable_html_pager = Bool(False, help=
@@ -305,7 +305,7 @@ class InteractiveShell(SingletonConfigurable):
 
     @observe("enable_html_pager")
     def _enable_html_pager_changed(self, change):
-        if change['new'] is True:
+        if change['new']:
             warn("`enable_html_pager` is provisional since IPython 5.0 and might change in future versions.", ProvisionalWarning)
 
     data_pub_class = None
