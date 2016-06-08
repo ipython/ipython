@@ -183,8 +183,9 @@ class TerminalInteractiveShell(InteractiveShell):
             d = b.document
 
             if b.complete_state:
-                cs = b.complete_state
-                b.apply_completion(cs.current_completion)
+                cc = b.complete_state.current_completion
+                if cc:
+                    b.apply_completion(cc)
                 return
 
             if not (d.on_last_line or d.cursor_position_row >= d.line_count
