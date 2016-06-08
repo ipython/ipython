@@ -607,7 +607,7 @@ class Inspector(Colorable):
             field = info[key]
             if field is not None:
                 formatted_field = self._mime_format(field, formatter)
-                bundle['text/plain'] += self.__head(title) + ':\n' + formatted_field['text/plain'] + '\n'
+                bundle['text/plain'] += self.__head(title + ':') + '\n' + formatted_field['text/plain'] + '\n'
                 bundle['text/html'] += '<h1>' + title + '</h1>\n' + formatted_field['text/html'] + '\n'
 
         def code_formatter(text):

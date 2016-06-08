@@ -514,6 +514,12 @@ class InteractiveShellTestCase(unittest.TestCase):
         else:
             self.assertEqual(msg, 'IPython.core.tests.test_interactiveshell.DerivedInterrupt: foo\n')
 
+    def test_inspect_text(self):
+        ip.run_cell('a = 5')
+        text = ip.object_inspect_text('a')
+        self.assertIsInstance(text, unicode_type)
+
+
 class TestSafeExecfileNonAsciiPath(unittest.TestCase):
 
     @onlyif_unicode_paths
