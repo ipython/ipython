@@ -7,7 +7,7 @@ IPython 5.0
 
 Released June, 2016
 
-IPython 5.0 now uses `promt-toolkit` for the command line interface, thus
+IPython 5.0 now uses `prompt-toolkit` for the command line interface, thus
 allowing real multi-line editing and syntactic coloration as you type. 
 
 
