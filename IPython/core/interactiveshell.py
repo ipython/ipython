@@ -365,22 +365,22 @@ class InteractiveShell(SingletonConfigurable):
     # deprecated prompt traits:
     
     prompt_in1 = Unicode('In [\\#]: ',
-        help="Deprecated since IPython 4.0 and ignored since 5.0, set IPython.terminal.ptshell.TerminalInteractiveShell.prompts object directly."
+        help="Deprecated since IPython 4.0 and ignored since 5.0, set TerminalInteractiveShell.prompts object directly."
     ).tag(config=True)
     prompt_in2 = Unicode('   .\\D.: ',
-        help="Deprecated since IPython 4.0 and ignored since 5.0, set IPython.terminal.ptshell.TerminalInteractiveShell.prompts object directly."
+        help="Deprecated since IPython 4.0 and ignored since 5.0, set TerminalInteractiveShell.prompts object directly."
     ).tag(config=True)
     prompt_out = Unicode('Out[\\#]: ',
-        help="Deprecated since IPython 4.0 and ignored since 5.0, set IPython.terminal.ptshell.TerminalInteractiveShell.prompts object directly."
+        help="Deprecated since IPython 4.0 and ignored since 5.0, set TerminalInteractiveShell.prompts object directly."
     ).tag(config=True)
     prompts_pad_left = Bool(True,
-        help="Deprecated since IPython 4.0 and ignored since 5.0, set IPython.terminal.ptshell.TerminalInteractiveShell.prompts object directly."
+        help="Deprecated since IPython 4.0 and ignored since 5.0, set TerminalInteractiveShell.prompts object directly."
     ).tag(config=True)
     
     @observe('prompt_in1', 'prompt_in2', 'prompt_out', 'prompt_pad_left')
     def _prompt_trait_changed(self, change):
         name = change['name']
-        warn("InteractiveShell.{name} is deprecated since IPython 4.0 and ignored since 5.0, set IPython.terminal.ptshell.TerminalInteractiveShell.prompts object directly.".format(
+        warn("InteractiveShell.{name} is deprecated since IPython 4.0 and ignored since 5.0, set TerminalInteractiveShell.prompts object directly.".format(
                 name=name)
         )
         # protect against weird cases where self.config may not exist:

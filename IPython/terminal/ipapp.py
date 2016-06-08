@@ -32,7 +32,7 @@ from IPython.core.shellapp import (
     InteractiveShellApp, shell_flags, shell_aliases
 )
 from IPython.extensions.storemagic import StoreMagics
-from .ptshell import TerminalInteractiveShell
+from .interactiveshell import TerminalInteractiveShell
 from IPython.paths import get_ipython_dir
 from traitlets import (
     Bool, List, Dict, default, observe,
