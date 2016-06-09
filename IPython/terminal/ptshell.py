@@ -202,6 +202,24 @@ class TerminalInteractiveShell(InteractiveShell):
             else:
                 b.insert_text('\n' + (' ' * (indent or 0)))
 
+        @kbmanager.registry.add_binding(Keys.ControlP, filter=(ViInsertMode() & HasFocus(DEFAULT_BUFFER)))
+        def _previous_history_or_previous_completion(event):
+            """
+            Control-P in vi edit mode on readline is history next, unlike default prompt toolkit.
+
+            If completer is open this still select previous completion.
+            """
+            event.current_buffer.auto_up()
+
+        @kbmanager.registry.add_binding(Keys.ControlN, filter=(ViInsertMode() & HasFocus(DEFAULT_BUFFER)))
+        def _next_history_or_next_completion(event):
+            """
+            Control-N in vi edit mode on readline is history previous, unlike default prompt toolkit.
+
+            If completer is open this still select next completion.
+            """
+            event.current_buffer.auto_down()
+
         @kbmanager.registry.add_binding(Keys.ControlG, filter=(
             HasFocus(DEFAULT_BUFFER) & HasCompletions()
             ))
@@ -209,9 +227,6 @@ class TerminalInteractiveShell(InteractiveShell):
             b = event.current_buffer
             if b.complete_state:
                 b.cancel_completion()
-
-
-
 
         @kbmanager.registry.add_binding(Keys.ControlC, filter=HasFocus(DEFAULT_BUFFER))
         def _reset_buffer(event):
