@@ -41,8 +41,7 @@ clean_api:
 
 clean: clean_api
 	-rm -rf build/* dist/*
-	-cd $(SRCDIR)/config/options; test -f generated && cat generated | xargs rm -f
-	-rm -rf $(SRCDIR)/config/options/generated
+	-rm -f $(SRCDIR)/config/options/config-generated.txt
 	-rm -f $(SRCDIR)/interactive/magics-generated.txt
 
 pdf: latex
@@ -75,7 +74,7 @@ source/interactive/magics-generated.txt: autogen_magics.py
 	$(PYTHON) autogen_magics.py
 	@echo "Created docs for line & cell magics"
 
-autoconfig: source/config/options/generated
+autoconfig: source/config/options/config-generated.txt
 
 source/config/options/generated:
 	$(PYTHON) autogen_config.py
