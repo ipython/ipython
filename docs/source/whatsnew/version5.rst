@@ -84,3 +84,25 @@ the long term if possible dynamic examples that can contain math, images,
 widgets... As stated above this is nightly experimental feature with a lot of
 (fun) problem to solve. We would be happy to get your feedback and expertise on
 it.
+
+
+Known Issues:
+-------------
+
+ - ``<Esc>`` Key does not dismiss the completer and does not clear the current
+   buffer. This is an on purpose modification due to current technical
+   limitation. Cf :ghpull:`9572`. Escape the control character which is used
+   for other shortcut, and there is no practical way to distinguish. Use Ctr-G
+   or Ctrl-C as an alternative. 
+
+ - Cannot use ``Shift-Enter`` and ``Ctrl-Enter`` to submit code in terminal. cf
+   :gh:`9587` and :gh:`9401`. In terminal there is no practical way to
+   distinguish these key sequences from a normal new line return. 
+
+ - Dialog completion pop up even with a single completion. Cf :gh:`9540`. This
+   would automatically be resolved with the next minor revision of
+   ``prompt_toolkit``
+
+ - ``PageUp`` and ``pageDown`` do not move through completion menu.
+
+
