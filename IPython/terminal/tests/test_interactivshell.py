@@ -95,6 +95,11 @@ class InteractiveShellTestCase(unittest.TestCase):
             ip.input_splitter.python_line_transforms.remove(transformer)
             ip.input_transformer_manager.python_line_transforms.remove(transformer)
 
+    def test_plain_text_only(self):
+        ip = get_ipython()
+        formatter = ip.display_formatter
+        assert formatter.active_types == ['text/plain']
+
 
 class SyntaxErrorTransformer(InputTransformer):
     def push(self, line):
