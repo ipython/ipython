@@ -626,11 +626,14 @@ class IPythonInputSplitter(InputSplitter):
 
         # We must ensure all input is pure unicode
         lines = cast_unicode(lines, self.encoding)
-        
         # ''.splitlines() --> [], but we need to push the empty line to transformers
         lines_list = lines.splitlines()
         if not lines_list:
             lines_list = ['']
+
+        # interpet trailing newline as a blank line
+        if lines.endswith('\n'):
+            lines_list += ['']
 
         # Store raw source before applying any transformations to it.  Note
         # that this must be done *after* the reset() call that would otherwise
