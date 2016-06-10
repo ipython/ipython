@@ -188,6 +188,8 @@ class TerminalInteractiveShell(InteractiveShell):
                 cc = b.complete_state.current_completion
                 if cc:
                     b.apply_completion(cc)
+                else:
+                    b.cancel_completion()
                 return
 
             if not (d.on_last_line or d.cursor_position_row >= d.line_count
