@@ -626,7 +626,6 @@ class IPythonInputSplitter(InputSplitter):
 
         # We must ensure all input is pure unicode
         lines = cast_unicode(lines, self.encoding)
-        
         # ''.splitlines() --> [], but we need to push the empty line to transformers
         lines_list = lines.splitlines()
         if not lines_list:

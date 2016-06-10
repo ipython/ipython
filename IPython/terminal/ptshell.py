@@ -202,7 +202,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 b.newline()
                 return
 
-            status, indent = self.input_splitter.check_complete(d.text)
+            status, indent = self.input_splitter.check_complete(d.text + '\n')
 
             if (status != 'incomplete') and b.accept_action.is_returnable:
                 b.accept_action.validate_and_handle(event.cli, b)
