@@ -631,10 +631,6 @@ class IPythonInputSplitter(InputSplitter):
         if not lines_list:
             lines_list = ['']
 
-        # interpet trailing newline as a blank line
-        if lines.endswith('\n'):
-            lines_list += ['']
-
         # Store raw source before applying any transformations to it.  Note
         # that this must be done *after* the reset() call that would otherwise
         # flush the buffer.
