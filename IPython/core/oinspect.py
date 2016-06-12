@@ -831,7 +831,7 @@ class Inspector(Colorable):
                 init_def = None
 
             if init_def:
-                out['init_definition'] = self.format(init_def)
+                out['init_definition'] = init_def
 
             # get the __init__ docstring
             try:
