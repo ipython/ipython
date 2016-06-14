@@ -283,7 +283,7 @@ def test_info():
     nt.assert_equal(i['source'], None)
     nt.assert_true(i['isclass'])
     _self_py2 = '' if py3compat.PY3 else 'self, '
-    nt.assert_equal(i['init_definition'], "Call(%sx, y=1)\n" % _self_py2)
+    nt.assert_equal(i['init_definition'], "Call(%sx, y=1)" % _self_py2)
     nt.assert_equal(i['init_docstring'], Call.__init__.__doc__)
 
     i = inspector.info(Call, detail_level=1)
@@ -310,12 +310,12 @@ def test_info():
 
 def test_class_signature():
     info = inspector.info(HasSignature, 'HasSignature')
-    nt.assert_equal(info['init_definition'], "HasSignature(test)\n")
+    nt.assert_equal(info['init_definition'], "HasSignature(test)")
     nt.assert_equal(info['init_docstring'], HasSignature.__init__.__doc__)
 
 def test_info_awkward():
     # Just test that this doesn't throw an error.
-    i = inspector.info(Awkward())
+    inspector.info(Awkward())
 
 def test_bool_raise():
     inspector.info(NoBoolCall())
