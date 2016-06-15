@@ -368,7 +368,10 @@ class TerminalInteractiveShell(InteractiveShell):
         if sys.platform not in {'win32', 'cli'}:
             return
 
+        import win_unicode_console
         import colorama
+
+        win_unicode_console.enable()
         colorama.init()
 
         # For some reason we make these wrappers around stdout/stderr.
