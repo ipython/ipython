@@ -36,8 +36,8 @@ since 2012, and pydb is not installable from PyPI
 
 
 
-Replacement of readline and TerminalInteractiveShell
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Replacement of readline in TerminalInteractiveShell and PDB
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 IPython 5.0 now uses ``prompt_toolkit``. The
 ``IPtyhon.terminal.interactiveshell.TerminalInteractiveShell`` now uses
@@ -45,14 +45,23 @@ IPython 5.0 now uses ``prompt_toolkit``. The
 thus changed or disappeared. The class keep the same name to avoid breaking
 user configuration for the options which names is unchanged.
 
-
-A particular side effect of not using `readline` anymore is that `.inputrc`
-settings are note effective anymore. Options having similar effects have likely
-been replaced by a configuration option on IPython itself (e.g: vi input mode).
+The usage of ``prompt_toolkit`` is accompanied by a complete removal of all
+code, using ``readline``. A particular effect of not using `readline` anymore
+is that `.inputrc` settings are note effective anymore. Options having similar
+effects have likely been replaced by a configuration option on IPython itself
+(e.g: vi input mode).
 
 The `PromptManager` class have been removed, and the prompt machinery simplified.
 See `TerminalInteractiveShell.prompts` configurable for how to setup your prompts.
 
+.. note::
+
+    During developement and beta cycle, ``TerminalInteractiveShell`` was
+    temporarly moved to ``IPtyhon.terminal.ptshell``.
+
+
+Most of the above remarks also affect `IPython.core.debugger.Pdb`, the `%debug`
+and `%pdb` magic which do not use readline anymore either.
 
 
 
