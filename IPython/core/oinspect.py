@@ -848,19 +848,26 @@ class Inspector(Colorable):
             except AttributeError:
                 init_def = None
 
-            if init_def:
-                out['init_definition'] = init_def
-
             # get the __init__ docstring
             try:
                 obj_init = obj.__init__
             except AttributeError:
                 init_ds = None
             else:
+                if init_def is None:
+                    # Get signature from init if top-level sig failed.
+                    # Can happen for built-in types (list, etc.).
+                    try:
+                        init_def = self._getdef(obj_init, oname)
+                    except AttributeError:
+                        pass
                 init_ds = getdoc(obj_init)
                 # Skip Python's auto-generated docstrings
                 if init_ds == _object_init_docstring:
                     init_ds = None
+
+            if init_def:
+                out['init_definition'] = init_def
 
             if init_ds:
                 out['init_docstring'] = init_ds

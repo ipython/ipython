@@ -419,11 +419,13 @@ def test_pdef():
     def foo(): pass
     inspector.pdef(foo, 'foo')
 
+
 def test_pinfo_nonascii():
     # See gh-1177
     from . import nonascii2
     ip.user_ns['nonascii2'] = nonascii2
     ip._inspect('pinfo', 'nonascii2', detail_level=1)
+
 
 def test_pinfo_magic():
     with AssertPrints('Docstring:'):
@@ -431,3 +433,20 @@ def test_pinfo_magic():
 
     with AssertPrints('Source:'):
         ip._inspect('pinfo', 'lsmagic', detail_level=1)
+
+
+def test_init_colors():
+    # ensure colors are not present in signature info
+    info = inspector.info(HasSignature)
+    init_def = info['init_definition']
+    nt.assert_not_in('[0m', init_def)
+
+
+def test_builtin_init():
+    info = inspector.info(list)
+    init_def = info['init_definition']
+    # Python < 3.4 can't get init definition from builtins,
+    # but still exercise the inspection in case of error-raising bugs.
+    if sys.version_info >= (3,4):
+        nt.assert_is_not_none(init_def)
+
