@@ -593,13 +593,29 @@ class Inspector(Colorable):
             else:
                 return dict(defaults, **formatted)
 
+
+    def format_mime(self, bundle):
+
+        text_plain = bundle['text/plain']
+
+        text = ''
+        heads, bodies = list(zip(*text_plain))
+        _len = max(len(h) for h in heads)
+
+        for head, body in zip(heads, bodies):
+            delim = '\n' if '\n' in body else ' '
+            text += self.__head(head+':') + (_len - len(head))*' ' +delim + body +'\n'
+
+        bundle['text/plain'] = text
+        return bundle
+
     def _get_info(self, obj, oname='', formatter=None, info=None, detail_level=0):
         """Retrieve an info dict and format it."""
 
         info = self._info(obj, oname=oname, info=info, detail_level=detail_level)
 
-        mime = {
-            'text/plain': '',
+        _mime = {
+            'text/plain': [],
             'text/html': '',
         }
 
@@ -607,7 +623,7 @@ class Inspector(Colorable):
             field = info[key]
             if field is not None:
                 formatted_field = self._mime_format(field, formatter)
-                bundle['text/plain'] += self.__head(title + ':') + '\n' + formatted_field['text/plain'] + '\n'
+                bundle['text/plain'].append((title, formatted_field['text/plain']))
                 bundle['text/html'] += '<h1>' + title + '</h1>\n' + formatted_field['text/html'] + '\n'
 
         def code_formatter(text):
@@ -617,59 +633,61 @@ class Inspector(Colorable):
             }
 
         if info['isalias']:
-            append_field(mime, 'Repr', 'string_form')
+            append_field(_mime, 'Repr', 'string_form')
 
         elif info['ismagic']:
             if detail_level > 0:
-                append_field(mime, 'Source', 'source', code_formatter)
+                append_field(_mime, 'Source', 'source', code_formatter)
             else:
-                append_field(mime, 'Docstring', 'docstring', formatter)
-            append_field(mime, 'File', 'file')
+                append_field(_mime, 'Docstring', 'docstring', formatter)
+            append_field(_mime, 'File', 'file')
 
         elif info['isclass'] or is_simple_callable(obj):
             # Functions, methods, classes
-            append_field(mime, 'Signature', 'definition', code_formatter)
-            append_field(mime, 'Init signature', 'init_definition', code_formatter)
+            append_field(_mime, 'Signature', 'definition', code_formatter)
+            append_field(_mime, 'Init signature', 'init_definition', code_formatter)
             if detail_level > 0:
-                append_field(mime, 'Source', 'source', code_formatter)
+                append_field(_mime, 'Source', 'source', code_formatter)
             else:
-                append_field(mime, 'Docstring', 'docstring', formatter)
-                append_field(mime, 'Init docstring', 'init_docstring', formatter)
+                append_field(_mime, 'Docstring', 'docstring', formatter)
+                append_field(_mime, 'Init docstring', 'init_docstring', formatter)
 
-            append_field(mime, 'File', 'file')
-            append_field(mime, 'Type', 'type_name')
+            append_field(_mime, 'File', 'file')
+            append_field(_mime, 'Type', 'type_name')
 
         else:
             # General Python objects
-            append_field(mime, 'Type', 'type_name')
+            append_field(_mime, 'Type', 'type_name')
 
             # Base class for old-style instances
             if (not py3compat.PY3) and isinstance(obj, types.InstanceType) and info['base_class']:
-                append_field(mime, 'Base Class', 'base_class')
+                append_field(_mime, 'Base Class', 'base_class')
 
-            append_field(mime, 'String form', 'string_form')
+            append_field(_mime, 'String form', 'string_form')
 
             # Namespace
             if info['namespace'] != 'Interactive':
-                append_field(mime, 'Namespace', 'namespace')
+                append_field(_mime, 'Namespace', 'namespace')
 
-            append_field(mime, 'Length', 'length')
-            append_field(mime, 'File', 'file'),
-            append_field(mime, 'Signature', 'definition', code_formatter)
+            append_field(_mime, 'Length', 'length')
+            append_field(_mime, 'File', 'file'),
+            append_field(_mime, 'Signature', 'definition', code_formatter)
 
             # Source or docstring, depending on detail level and whether
             # source found.
             if detail_level > 0:
-                append_field(mime, 'Source', 'source', code_formatter)
+                append_field(_mime, 'Source', 'source', code_formatter)
             else:
-                append_field(mime, 'Docstring', 'docstring', formatter)
+                append_field(_mime, 'Docstring', 'docstring', formatter)
 
-            append_field(mime, 'Class docstring', 'class_docstring', formatter)
-            append_field(mime, 'Init docstring', 'init_docstring', formatter)
-            append_field(mime, 'Call signature', 'call_def', code_formatter)
-            append_field(mime, 'Call docstring', 'call_docstring', formatter)
+            append_field(_mime, 'Class docstring', 'class_docstring', formatter)
+            append_field(_mime, 'Init docstring', 'init_docstring', formatter)
+            append_field(_mime, 'Call signature', 'call_def', code_formatter)
+            append_field(_mime, 'Call docstring', 'call_docstring', formatter)
 
-        return mime
+
+
+        return self.format_mime(_mime)
 
     def pinfo(self, obj, oname='', formatter=None, info=None, detail_level=0, enable_html_pager=True):
         """Show detailed information about an object.
@@ -831,7 +849,7 @@ class Inspector(Colorable):
                 init_def = None
 
             if init_def:
-                out['init_definition'] = self.format(init_def)
+                out['init_definition'] = init_def
 
             # get the __init__ docstring
             try:
