@@ -99,14 +99,7 @@ Known Issues:
    :ghissue:`9587` and :ghissue:`9401`. In terminal there is no practical way to
    distinguish these key sequences from a normal new line return. 
 
- - Dialog completion pop up even with a single completion. Cf :ghissue:`9540`. This
-   would automatically be resolved with the next minor revision of
-   ``prompt_toolkit``
-
  - ``PageUp`` and ``pageDown`` do not move through completion menu.
-
- - Custom prompt cannot make use of custom invisible escape sequences. This
-   will be automatically resolved with next version of Prompt Toolkit 
 
  - Color styles might not adapt to terminal emulator themes. This will need new
    version of Pygments to be released, and can be mitigated with custom themes. 
