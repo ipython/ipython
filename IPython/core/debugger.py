@@ -259,7 +259,15 @@ class Pdb(OldPdb, object):
         # "Smart command mode" from pdb++: don't execute commands if a variable
         # with the same name exists.
         cmd, arg, newline = super(Pdb, self).parseline(line)
-        if cmd in self.curframe.f_globals or cmd in self.curframe.f_locals:
+        # Fix for #9611: Do not trigger smart command if the command is `exit`
+        # or `quit` and it would resolve to their *global* value (the
+        # `ExitAutocall` object).  Just checking that it is not present in the
+        # locals dict is not enough as locals and globals match at the
+        # toplevel.
+        if ((cmd in self.curframe.f_locals or cmd in self.curframe.f_globals)
+                and not (cmd in ["exit", "quit"]
+                         and (self.curframe.f_locals is self.curframe.f_globals
+                              or cmd not in self.curframe.f_locals))):
             return super(Pdb, self).parseline("!" + line)
         return super(Pdb, self).parseline(line)
 
