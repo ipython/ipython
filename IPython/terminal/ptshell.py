@@ -288,7 +288,7 @@ class TerminalInteractiveShell(InteractiveShell):
                         return
                 except ClipboardEmpty:
                     return
-                event.current_buffer.insert_text(text)
+                event.current_buffer.insert_text(text.replace('\t', ' ' * 4))
 
         # Pre-populate history from IPython's history database
         history = InMemoryHistory()
