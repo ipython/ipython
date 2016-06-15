@@ -11,7 +11,7 @@ from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.utils.py3compat import PY3, cast_unicode_py2, input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
-from traitlets import Bool, Unicode, Dict, Integer, observe, Instance, Type, default
+from traitlets import Bool, Unicode, Dict, Integer, observe, Instance, Type, default, Enum
 
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER, EditingMode
 from prompt_toolkit.filters import (HasFocus, HasSelection, Condition,
@@ -24,6 +24,7 @@ from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.layout.processors import ConditionalProcessor, HighlightMatchingBracketProcessor
 from prompt_toolkit.styles import PygmentsStyle, DynamicStyle
+from prompt_toolkit.key_binding.bindings.completion import display_completions_like_readline
 
 from pygments.styles import get_style_by_name, get_all_styles
 from pygments.token import Token
@@ -147,9 +148,16 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Automatically set the terminal title"
     ).tag(config=True)
 
-    display_completions_in_columns = Bool(False,
-        help="Display a multi column completion menu.",
+    display_completions_in_columns = Bool(None,
+        help="Display a multi column completion menu.", allow_none=True
     ).tag(config=True)
+
+    @observe('display_completions_in_columns')
+    def _display_completions_in_columns_changed(self, new):
+        raise DeprecationWarning("The `display_completions_in_columns` Boolean has been replaced by the enum `display_completions`"
+                                 "with the following acceptable value: 'column', 'multicolumn','readlinelike'. ")
+
+    display_completions = Enum(('column', 'multicolumn','readlinelike'), default_value='multicolumn').tag(config=True)
 
     highlight_matching_brackets = Bool(True,
         help="Highlight matching brackets .",
@@ -273,6 +281,18 @@ class TerminalInteractiveShell(InteractiveShell):
         def _indent_buffer(event):
             event.current_buffer.insert_text(' ' * 4)
 
+
+        if self.display_completions == 'readlinelike':
+            @kbmanager.registry.add_binding(Keys.ControlI,
+                            filter=(HasFocus(DEFAULT_BUFFER)
+                                    & ~HasSelection()
+                                    & insert_mode
+                                    & ~cursor_in_leading_ws
+                                   ))
+            def _disaply_compl(ev):
+                display_completions_like_readline(ev)
+
+
         if sys.platform == 'win32':
             from IPython.lib.clipboard import (ClipboardEmpty,
                            win32_clipboard_get, tkinter_clipboard_get)
@@ -360,7 +380,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 'get_prompt_tokens':self.prompts.in_prompt_tokens,
                 'get_continuation_tokens':self.prompts.continuation_prompt_tokens,
                 'multiline':True,
-                'display_completions_in_columns': self.display_completions_in_columns,
+                'display_completions_in_columns': (self.display_completions == 'multicolumn'),
 
                 # Highlight matching brackets, but only when this setting is
                 # enabled, and only when the DEFAULT_BUFFER has the focus.
