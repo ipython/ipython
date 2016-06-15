@@ -209,7 +209,7 @@ extras_require.update({
     ':python_version == "2.7" or python_version == "3.3"': ['pathlib2'],
     ':sys_platform != "win32"': ['pexpect'],
     ':sys_platform == "darwin"': ['appnope'],
-    ':sys_platform == "win32"': ['colorama'],
+    ':sys_platform == "win32"': ['colorama', 'win_unicode_console'],
     'test:python_version == "2.7"': ['mock'],
 })
 # FIXME: re-specify above platform dependencies for pip < 6
