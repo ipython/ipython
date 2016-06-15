@@ -14,7 +14,9 @@ from IPython.utils.process import abbrev_cwd
 from traitlets import Bool, Unicode, Dict, Integer, observe, Instance, Type, default
 
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER, EditingMode
-from prompt_toolkit.filters import HasFocus, HasSelection, Condition, ViInsertMode, EmacsInsertMode, IsDone, HasCompletions
+from prompt_toolkit.filters import (HasFocus, HasSelection, Condition,
+    ViInsertMode, EmacsInsertMode, IsDone, HasCompletions)
+from prompt_toolkit.filters.cli import ViMode
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop, create_prompt_layout
 from prompt_toolkit.interface import CommandLineInterface
@@ -270,6 +272,23 @@ class TerminalInteractiveShell(InteractiveShell):
                                    ))
         def _indent_buffer(event):
             event.current_buffer.insert_text(' ' * 4)
+
+        if sys.platform == 'win32':
+            from IPython.lib.clipboard import (ClipboardEmpty,
+                           win32_clipboard_get, tkinter_clipboard_get)
+            @kbmanager.registry.add_binding(Keys.ControlV,
+                                filter=(HasFocus(DEFAULT_BUFFER) & ~ViMode()))
+            def _paste(event):
+                try:
+                    text = win32_clipboard_get()
+                except TryNext:
+                    try:
+                        text = tkinter_clipboard_get()
+                    except (TryNext, ClipboardEmpty):
+                        return
+                except ClipboardEmpty:
+                    return
+                event.current_buffer.insert_text(text.replace('\t', ' ' * 4))
 
         # Pre-populate history from IPython's history database
         history = InMemoryHistory()
