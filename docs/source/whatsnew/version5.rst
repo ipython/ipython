@@ -34,12 +34,26 @@ that same event.
 Integration with pydb has been removed since pydb development has been stopped
 since 2012, and pydb is not installable from PyPI
 
-IPython 5.0 now uses prompt_toolkit, so any setting that affects ``readline`` will
-have no effect, and has likely been replaced by a configuration option on
-IPython itself.
 
-the `PromptManager` class have been removed, and the prompt machinery simplified. 
-See `TerminalINteractiveShell.prompts` configurable for how to setup your prompts. 
+
+Replacement of readline and TerminalInteractiveShell
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+IPython 5.0 now uses ``prompt_toolkit``. The
+``IPtyhon.terminal.interactiveshell.TerminalInteractiveShell`` now uses
+``prompt_toolkit``. It is an almost complete rewrite, so many settings have
+thus changed or disappeared. The class keep the same name to avoid breaking
+user configuration for the options which names is unchanged.
+
+
+A particular side effect of not using `readline` anymore is that `.inputrc`
+settings are note effective anymore. Options having similar effects have likely
+been replaced by a configuration option on IPython itself (e.g: vi input mode).
+
+The `PromptManager` class have been removed, and the prompt machinery simplified.
+See `TerminalInteractiveShell.prompts` configurable for how to setup your prompts.
+
+
 
 
 
