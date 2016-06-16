@@ -1,4 +1,4 @@
-"""IPython terminal interface using prompt_toolkit in place of readline"""
+"""IPython terminal interface using prompt_toolkit"""
 from __future__ import print_function
 
 import os

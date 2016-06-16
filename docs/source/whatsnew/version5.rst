@@ -40,7 +40,7 @@ Replacement of readline in TerminalInteractiveShell and PDB
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 IPython 5.0 now uses ``prompt_toolkit``. The
-``IPtyhon.terminal.interactiveshell.TerminalInteractiveShell`` now uses
+``IPython.terminal.interactiveshell.TerminalInteractiveShell`` now uses
 ``prompt_toolkit``. It is an almost complete rewrite, so many settings have
 thus changed or disappeared. The class keep the same name to avoid breaking
 user configuration for the options which names is unchanged.
