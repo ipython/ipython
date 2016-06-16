@@ -13,9 +13,8 @@ import warnings
 
 from IPython.core import ultratb, compilerop
 from IPython.core.magic import Magics, magics_class, line_magic
-from IPython.core.interactiveshell import DummyMod
-from IPython.core.interactiveshell import InteractiveShell
-from IPython.terminal.ptshell import TerminalInteractiveShell
+from IPython.core.interactiveshell import DummyMod, InteractiveShell
+from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.terminal.ipapp import load_default_config
 
 from traitlets import Bool, CBool, Unicode
