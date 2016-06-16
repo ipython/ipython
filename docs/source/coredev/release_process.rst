@@ -76,18 +76,8 @@ of any file that could be problematic.
    previous build attempts.
 
 
-
-4. Run the `tools/build_release` script
----------------------------------------
-
-Running `tools/build_release` does all the file checking and building that
-the real release script will do. This makes test installations, checks that
-the build procedure runs OK, and tests other steps in the release process.
-
-We encourage creating a test build of the docs as well.
-
-5. Create and push the new tag
-------------------------------
+4. Update the release version number
+------------------------------------
 
 Edit `IPython/core/release.py` to have the current version.
 
@@ -98,8 +88,23 @@ Make sure the version number matches pep440, in particular, `rc` and `beta` are
 not separated by `.` or the `sdist` and `bdist` will appear as different
 releases. For example, a valid version number for a release candidate (rc)
 release is: ``1.3rc1``. Notice that there is no separator between the '3' and
-the 'r'.
+the 'r'. Check the environment variable `$VERSION` as well. 
 
+
+5. Run the `tools/build_release` script
+---------------------------------------
+
+Running `tools/build_release` does all the file checking and building that
+the real release script will do. This makes test installations, checks that
+the build procedure runs OK, and tests other steps in the release process.
+
+The `build_release` script will in particular verify that the version number
+match PEP 440, in order to avoid surprise at the time of build upload.
+
+We encourage creating a test build of the docs as well.
+
+6. Create and push the new tag
+------------------------------
 
 Commit the changes to release.py::
 
@@ -116,7 +121,7 @@ Update release.py back to `x.y-dev` or `x.y-maint`, and push::
     git commit -am "back to development"
     git push origin $BRANCH
 
-6. Get a fresh clone
+7. Get a fresh clone
 --------------------
 
 Get a fresh clone of the tag for building the release::
@@ -124,7 +129,7 @@ Get a fresh clone of the tag for building the release::
     cd /tmp
     git clone --depth 1 https://github.com/ipython/ipython.git -b "$VERSION"
 
-7. Run the release script
+8. Run the release script
 -------------------------
 
 Run the `release` script, this step requires having a current wheel, Python >=3.4 and Python 2.7.::
@@ -147,7 +152,7 @@ dist/*`) manually to actually upload on PyPI. Unlike setuptools, twine is able
 to upload packages over SSL.
 
 
-8. Draft a short release announcement
+9. Draft a short release announcement
 -------------------------------------
 
 The announcement should include:
@@ -158,8 +163,8 @@ The announcement should include:
 
 Post the announcement to the mailing list and or blog, and link from Twitter.
 
-9. Update milestones on GitHub
-------------------------------
+10. Update milestones on GitHub
+-------------------------------
 
 These steps will bring milestones up to date:
 
@@ -167,7 +172,7 @@ These steps will bring milestones up to date:
 - open a new milestone for the next release (x, y+1), if the milestone doesn't
   exist already
 
-10. Update the IPython website
+11. Update the IPython website
 ------------------------------
 
 The IPython website should document the new release:
@@ -176,7 +181,7 @@ The IPython website should document the new release:
 - update current version and download links
 - update links on the documentation page (especially if a major release)
 
-11. Celebrate!
+12. Celebrate!
 --------------
 
 Celebrate the release and please thank the contributors for their work. Great
