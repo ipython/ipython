@@ -76,7 +76,7 @@ source/interactive/magics-generated.txt: autogen_magics.py
 
 autoconfig: source/config/options/config-generated.txt
 
-source/config/options/generated:
+source/config/options/config-generated.txt:
 	$(PYTHON) autogen_config.py
 	@echo "Created docs for config options"
 
