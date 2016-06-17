@@ -150,8 +150,9 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Automatically set the terminal title"
     ).tag(config=True)
 
+    # Leaving that for beta/rc tester, shoudl remove for 5.0.0 final. 
     display_completions_in_columns = Bool(None,
-        help="Display a multi column completion menu.", allow_none=True
+        help="DEPRECATED", allow_none=True
     ).tag(config=True)
 
     @observe('display_completions_in_columns')
