@@ -35,6 +35,8 @@ from .pt_inputhooks import get_inputhook_func
 from .prompts import Prompts, ClassicPrompts, RichPromptDisplayHook
 from .ptutils import IPythonPTCompleter, IPythonPTLexer
 
+DISPLAY_BANNER_DEPRECATED = object()
+
 
 def get_default_editor():
     try:
@@ -455,7 +457,11 @@ class TerminalInteractiveShell(InteractiveShell):
             self.pt_cli.application.buffer.text = cast_unicode_py2(self.rl_next_input)
             self.rl_next_input = None
 
-    def interact(self):
+    def interact(self, display_banner=DISPLAY_BANNER_DEPRECATED):
+
+        if display_banner is not DISPLAY_BANNER_DEPRECATED:
+            warn('interact `display_banner` argument is deprecated since IPython 5.0. Call `show_banner()` if needed.', DeprecationWarning, stacklevel=2)
+
         while self.keep_running:
             print(self.separate_in, end='')
 
@@ -472,9 +478,11 @@ class TerminalInteractiveShell(InteractiveShell):
                     if self.autoedit_syntax and self.SyntaxTB.last_syntax_error:
                         self.edit_syntax_error()
 
-    def mainloop(self):
+    def mainloop(self, display_banner=DISPLAY_BANNER_DEPRECATED):
         # An extra layer of protection in case someone mashing Ctrl-C breaks
         # out of our internal code.
+        if display_banner is not DISPLAY_BANNER_DEPRECATED:
+            warn('mainloop `display_banner` argument is deprecated since IPython 5.0. Call `show_banner()` if needed.', DeprecationWarning, stacklevel=2)
         while True:
             try:
                 self.interact()
