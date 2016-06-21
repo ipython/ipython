@@ -64,8 +64,6 @@ Most of the above remarks also affect `IPython.core.debugger.Pdb`, the `%debug`
 and `%pdb` magic which do not use readline anymore either.
 
 
-
-
 Provisional Changes
 -------------------
 
@@ -107,6 +105,34 @@ the long term if possible dynamic examples that can contain math, images,
 widgets... As stated above this is nightly experimental feature with a lot of
 (fun) problem to solve. We would be happy to get your feedback and expertise on
 it.
+
+
+Removed Feature
+---------------
+
+ - ``TerminalInteractiveShell.autoedit_syntax`` Has been broken for many years now
+apparently. It has been removed.
+
+
+Deprecated Features
+-------------------
+
+Some deprecated feature, don't forget to enable `DeprecationWarning` as error
+of you are using IPython in Continuous Integration setup or in your testing in general:
+
+.. code::
+    :python:
+
+    import warnings
+    warnings.filterwarnings('error', '.*', DeprecationWarning, module='yourmodule.*')
+
+
+ - `hooks.fix_error_editor` seem to be unused and is pending deprecation.
+ - `IPython/core/excolors.py:ExceptionColors` is  deprecated.
+ - `IPython.core.InteractiveShell:write()` is deprecated, use `sys.stdout` instead.
+ - `IPython.core.InteractiveShell:write_err()` is deprecated, use `sys.stderr` instead.
+ - The `formatter` keyword argument to `Inspector.info` in `IPython.core.oinspec` has now no effects.
+ - The `global_ns` keyword argument of IPython Embed was deprecated, and  will now have no effect. Use `module` keyword argument instead.
 
 
 Known Issues:
