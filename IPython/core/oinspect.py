@@ -603,6 +603,7 @@ class Inspector(Colorable):
         _len = max(len(h) for h in heads)
 
         for head, body in zip(heads, bodies):
+            body = body.strip('\n')
             delim = '\n' if '\n' in body else ' '
             text += self.__head(head+':') + (_len - len(head))*' ' +delim + body +'\n'
 
