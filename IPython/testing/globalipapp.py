@@ -97,6 +97,7 @@ def start_ipython():
 
     # Create custom argv and namespaces for our IPython to be test-friendly
     config = tools.default_config()
+    config.TerminalInteractiveShell.simple_prompt = True
 
     # Create and initialize our test-friendly IPython instance.
     shell = TerminalInteractiveShell.instance(config=config,
