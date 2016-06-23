@@ -38,6 +38,28 @@ from .ptutils import IPythonPTCompleter, IPythonPTLexer
 DISPLAY_BANNER_DEPRECATED = object()
 
 
+from pygments.style import Style
+
+class _NoStyle(Style): pass
+
+
+
+_style_overrides_light_bg = {
+            Token.Prompt: '#0000ff',
+            Token.PromptNum: '#0000ee bold',
+            Token.OutPrompt: '#cc0000',
+            Token.OutPromptNum: '#bb0000 bold',
+}
+
+_style_overrides_linux = {
+            Token.Prompt: '#00cc00',
+            Token.PromptNum: '#00bb00 bold',
+            Token.OutPrompt: '#cc0000',
+            Token.OutPromptNum: '#bb0000 bold',
+}
+
+
+
 def get_default_editor():
     try:
         ed = os.environ['EDITOR']
@@ -108,14 +130,19 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Enable mouse support in the prompt"
     ).tag(config=True)
 
-    highlighting_style = Unicode('default',
+    highlighting_style = Unicode('legacy',
             help="The name of a Pygments style to use for syntax highlighting: \n %s" % ', '.join(get_all_styles())
     ).tag(config=True)
 
     
     @observe('highlighting_style')
+    @observe('colors')
     def _highlighting_style_changed(self, change):
+        self.refresh_style()
+
+    def refresh_style(self):
         self._style = self._make_style_from_name(self.highlighting_style)
+
 
     highlighting_style_overrides = Dict(
         help="Override highlighting format for specific tokens"
@@ -342,26 +369,38 @@ class TerminalInteractiveShell(InteractiveShell):
 
         We need that to add style for prompt ... etc. 
         """
-        style_cls = get_style_by_name(name)
-        style_overrides = {
-            Token.Prompt: '#009900',
-            Token.PromptNum: '#00ff00 bold',
-            Token.OutPrompt: '#990000',
-            Token.OutPromptNum: '#ff0000 bold',
-        }
-        if name == 'default':
-            style_cls = get_style_by_name('default')
-            # The default theme needs to be visible on both a dark background
-            # and a light background, because we can't tell what the terminal
-            # looks like. These tweaks to the default theme help with that.
-            style_overrides.update({
-                Token.Number: '#007700',
-                Token.Operator: 'noinherit',
-                Token.String: '#BB6622',
-                Token.Name.Function: '#2080D0',
-                Token.Name.Class: 'bold #2080D0',
-                Token.Name.Namespace: 'bold #2080D0',
-            })
+        if name == 'legacy':
+            legacy = self.colors.lower()
+            if legacy == 'linux':
+                style_cls = get_style_by_name('monokai')
+                style_overrides = _style_overrides_linux
+            elif legacy == 'lightbg':
+                style_overrides = _style_overrides_light_bg
+                style_cls = get_style_by_name('default')
+                # The default theme needs to be visible on both a dark background
+                # and a light background, because we can't tell what the terminal
+                # looks like. These tweaks to the default theme help with that.
+                style_overrides.update({
+                    Token.Number: '#007700',
+                    Token.Operator: 'noinherit',
+                    Token.String: '#BB6622',
+                    Token.Name.Function: '#2080D0',
+                    Token.Name.Class: 'bold #2080D0',
+                    Token.Name.Namespace: 'bold #2080D0',
+                })
+            elif legacy =='nocolor':
+                style_cls=_NoStyle
+                style_overrides = {}
+            else :
+                raise ValueError('Got unknown colors: ', legacy)
+        else :
+            style_cls = get_style_by_name(name)
+            style_overrides = {
+                Token.Prompt: '#009900',
+                Token.PromptNum: '#00ff00 bold',
+                Token.OutPrompt: '#990000',
+                Token.OutPromptNum: '#ff0000 bold',
+            }
         style_overrides.update(self.highlighting_style_overrides)
         style = PygmentsStyle.from_defaults(pygments_style_cls=style_cls,
                                             style_dict=style_overrides)

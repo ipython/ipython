@@ -358,6 +358,8 @@ Defaulting color scheme to 'NoColor'"""
         # Set exception colors
         try:
             shell.InteractiveTB.set_colors(scheme = new_scheme)
+            shell.colors = new_scheme
+            shell.refresh_style()
             shell.SyntaxTB.set_colors(scheme = new_scheme)
         except:
             color_switch_err('exception')

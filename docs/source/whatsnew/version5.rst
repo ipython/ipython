@@ -8,7 +8,7 @@ IPython 5.0
 Released June, 2016
 
 IPython 5.0 now uses `prompt-toolkit` for the command line interface, thus
-allowing real multi-line editing and syntactic coloration as you type. 
+allowing real multi-line editing and syntactic coloration as you type.
 
 
 When using IPython as a subprocess, like for emacs inferior-shell, IPython can
@@ -20,7 +20,7 @@ Backwards incompatible changes
 ------------------------------
 
 
-The `install_ext magic` function which was deprecated since 4.0 have now been deleted. 
+The `install_ext magic` function which was deprecated since 4.0 have now been deleted.
 You can still distribute and install extension as packages on PyPI.
 
 Update IPython event triggering to ensure callback registration and
@@ -63,6 +63,13 @@ See `TerminalInteractiveShell.prompts` configurable for how to setup your prompt
 Most of the above remarks also affect `IPython.core.debugger.Pdb`, the `%debug`
 and `%pdb` magic which do not use readline anymore either.
 
+The color handling has been slightly changed and is now exposed
+through, in particular the colors of prompts and as you type
+highlighting can be affected by :
+``TerminalInteractiveShell.highlight_style``. With default
+configuration the ``--colors`` flag and ``%colors`` magic behavior
+should be mostly unchanged. See the `colors <termcolour>`_ section of
+our documentation
 
 Provisional Changes
 -------------------
