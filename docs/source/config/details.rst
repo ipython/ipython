@@ -36,34 +36,34 @@ These have shown problems:
       WinXP/2k command prompt works perfectly.
 
 IPython uses colors for various groups of things that may be
-controlled by different configuration options: prompts, tracebacks, as
-you type in the terminal and the object introspection system which
+controlled by different configuration options: prompts, tracebacks, "as
+you type" in the terminal, and the object introspection system which
 passes large sets of data through a pager. There are various way to
 change the colors.
 
 We can distinguish the coloration into 2 main categories:
 
-- The one that affect only the terminal client.
-- The ones that also affect client connected through the Jupyter
+- The one that affects only the terminal client.
+- The ones that also affect clients connected through the Jupyter
   protocol.
 
-Traceback, debugger, and pager are highlighted kernel-side so fall
-into the second category, for historical reasons they are often
+Traceback, debugger, and pager are highlighted kernel-side so they fall
+into the second category. For historical reasons they are often
 governed by a ``colors`` attribute or configuration option that can
 take one of 3 case insensitive values: ``NoColors``, ``Linux`` and
 ``LightBG``.
 
-Colors that affect only the terminal client are governed  mainly by
+Colors that affect only the terminal client are governed mainly by
 ``TerminalInteractiveShell.highlight_style`` taking the name of a
 ``Pygments`` style.
 
 As of IPython 5.0 the color configuration works as follows:
 
   - by default, ``TerminalInteractiveShell.highlight_style`` is set to
-    ``legacy`` which **try to** emulate the colors of IPython pre 5.0,
+    ``legacy`` which **trys to** emulate the colors of IPython pre 5.0
     and respect the ``.color`` configuration option.
-    The emulation is approximative as the current version of Pygments
-    (2.1) does only support extended ANSI escape sequence, hence the
+    The emulation is an approximation of the current version of Pygments
+    (2.1) and only supports extended ANSI escape sequence, hence the
     theme cannot adapt to your terminal custom mapping if you have
     one.
 
