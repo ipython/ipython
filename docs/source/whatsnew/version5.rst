@@ -20,7 +20,7 @@ Backwards incompatible changes
 ------------------------------
 
 
-The `install_ext magic` function which was deprecated since 4.0 have now been deleted.
+The `install_ext magic` function which was deprecated since 4.0 has now been deleted.
 You can still distribute and install extension as packages on PyPI.
 
 Update IPython event triggering to ensure callback registration and
