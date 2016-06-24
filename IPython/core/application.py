@@ -13,6 +13,7 @@ object and then create the configurable objects, passing the config to them.
 # Distributed under the terms of the Modified BSD License.
 
 import atexit
+from copy import deepcopy
 import glob
 import logging
 import os
@@ -447,7 +448,9 @@ class BaseIPythonApplication(Application):
         if self.subapp is not None:
             # stop here if subapp is taking over
             return
-        cl_config = self.config
+        # save a copy of CLI config to re-load after config files
+        # so that it has highest priority
+        cl_config = deepcopy(self.config)
         self.init_profile_dir()
         self.init_config_files()
         self.load_config_file()
