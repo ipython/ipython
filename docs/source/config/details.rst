@@ -21,15 +21,12 @@ The following terminals seem to handle the color sequences fine:
     * CDE terminal (tested under Solaris). This one boldfaces light colors.
     * (X)Emacs buffers. See the :ref:`emacs` section for more details on
       using IPython with (X)Emacs.
-    * A Windows (XP/2k) command prompt with pyreadline_.
     * A Windows (XP/2k) CygWin shell. Although some users have reported
       problems; it is not clear whether there is an issue for everyone
       or only under specific configurations. If you have full color
       support under cygwin, please post to the IPython mailing list so
       this issue can be resolved for all users.
 
-.. _pyreadline: https://code.launchpad.net/pyreadline
-      
 These have shown problems:
 
     * Windows command prompt in WinXP/2k logged into a Linux machine via
@@ -38,9 +35,56 @@ These have shown problems:
       extensions. Once Gary's readline library is installed, the normal
       WinXP/2k command prompt works perfectly.
 
-IPython uses colors for two main groups of things: prompts and
-tracebacks which are directly printed to the terminal, and the object
-introspection system which passes large sets of data through a pager.
+IPython uses colors for various groups of things that may be
+controlled by different configuration options: prompts, tracebacks, "as
+you type" in the terminal, and the object introspection system which
+passes large sets of data through a pager. There are various way to
+change the colors.
+
+We can distinguish the coloration into 2 main categories:
+
+- The one that affects only the terminal client.
+- The ones that also affect clients connected through the Jupyter
+  protocol.
+
+Traceback, debugger, and pager are highlighted kernel-side so they fall
+into the second category. For historical reasons they are often
+governed by a ``colors`` attribute or configuration option that can
+take one of 3 case insensitive values: ``NoColors``, ``Linux`` and
+``LightBG``.
+
+Colors that affect only the terminal client are governed mainly by
+``TerminalInteractiveShell.highlight_style`` taking the name of a
+``Pygments`` style.
+
+As of IPython 5.0 the color configuration works as follows:
+
+  - by default, ``TerminalInteractiveShell.highlight_style`` is set to
+    ``legacy`` which **trys to** emulate the colors of IPython pre 5.0
+    and respect the ``.color`` configuration option.
+    The emulation is an approximation of the current version of Pygments
+    (2.1) and only supports extended ANSI escape sequence, hence the
+    theme cannot adapt to your terminal custom mapping if you have
+    one.
+
+    The last extra difference being that the "as you type" coloration
+    is present using the theme "default" if `color` is `LightBG`, and
+    using the theme "monokai" if `Linux`.
+
+  - if ``TerminalInteractiveShell.highlight_style`` is set to any other
+    themes, this theme is used for "as you type" highlighting. The
+    prompt highlighting is then governed by
+    ``--TerminalInteractiveShell.highlighting_style_overrides``
+
+As a summary, by default IPython 5.0 should mostly behave unchanged
+from IPython 4.x and before. Use
+``TerminalInteractiveShell.highlight_style`` and
+``--TerminalInteractiveShell.highlighting_style_overrides`` for extra
+flexibility.
+
+With default configuration `--colors=[nocolors|linux|ightbg]` as well
+as the `%colors` magic should behave identically as before.
+
 
 Colors in the pager
 -------------------
@@ -53,6 +97,9 @@ To configure your default pager to allow these:
    you always want to pass to less by default). This tells less to
    properly interpret control sequences, which is how color
    information is given to your terminal.
+
+
+
 
 .. _editors:
 
