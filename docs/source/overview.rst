@@ -1,9 +1,6 @@
 .. _overview:
 
-============
-Introduction
-============
-
+========
 Overview
 ========
 
@@ -18,10 +15,13 @@ interactive and exploratory computing.  To support this goal, IPython
 has three main components:
 
 * An enhanced interactive Python shell.
+
 * A decoupled :ref:`two-process communication model <ipythonzmq>`, which
   allows for multiple clients to connect to a computation kernel, most notably
-  the web-based notebook.
-* An architecture for interactive parallel computing.
+  the web-based notebook provided with `Jupyter <https://jupyter.org>`_.
+
+* An architecture for interactive parallel computing now part of the
+  `ipyparallel` package.
 
 All of IPython is open source (released under the revised BSD license).
 
@@ -69,8 +69,7 @@ Main features of the interactive shell
 
 * Completion in the local namespace, by typing :kbd:`TAB` at the prompt.
   This works for keywords, modules, methods, variables and files in the
-  current directory. This is supported via the readline library, and
-  full access to configuring readline's behavior is provided. 
+  current directory. This is supported via the ``prompt_toolkit`` library.
   Custom completers can be implemented easily for different purposes
   (system commands, magic arguments etc.)
 
@@ -79,7 +78,7 @@ Main features of the interactive shell
   history and caching of all input and output.
 
 * User-extensible 'magic' commands. A set of commands prefixed with
-  :samp:`%` is available for controlling IPython itself and provides
+  :samp:`%`  or :samp:`%%` is available for controlling IPython itself and provides
   directory control, namespace information and many aliases to
   common system shell commands.
 
@@ -102,8 +101,8 @@ Main features of the interactive shell
   allows you to save arbitrary Python variables. These get restored
   when you run the :samp:`%store -r` command.
 
-* Automatic indentation (optional) of code as you type (through the
-  readline library).
+* Automatic indentation and highlighting of code as you type (through the
+  `prompt_toolkit` library).
 
 * Macro system for quickly re-executing multiple lines of previous
   input with a single name via the :samp:`%macro` command. Macros can be
@@ -204,10 +203,11 @@ This decoupling allows us to have several clients connected to the same
 kernel, and even allows clients and kernels to live on different machines.
 With the exclusion of the traditional single process terminal-based IPython
 (what you start if you run ``ipython`` without any subcommands), all
-other IPython machinery uses this two-process model. This includes ``ipython
-console``,  ``ipython qtconsole``, and ``ipython notebook``.
+other IPython machinery uses this two-process model. Most of this is now part
+of the `Jupyter` project, whis includes ``jupyter console``,  ``jupyter
+qtconsole``, and ``jupyter notebook``.
 
-As an example, this means that when you start ``ipython qtconsole``, you're
+As an example, this means that when you start ``jupyter qtconsole``, you're
 really starting two processes, a kernel and a Qt-based client can send
 commands to and receive results from that kernel. If there is already a kernel
 running that you want to connect to, you can pass the  ``--existing`` flag
@@ -217,7 +217,7 @@ running, use the ``%connect_info`` magic to get the unique connection file,
 which will be something like ``--existing kernel-19732.json`` but with
 different numbers which correspond to the Process ID of the kernel.
 
-You can read more about using `ipython qtconsole 
+You can read more about using `jupyter qtconsole 
 <http://jupyter.org/qtconsole/>`_, and
 `ipython notebook <http://jupyter-notebook.readthedocs.io/en/latest/>`_. There 
 is also a :ref:`message spec <messaging>` which documents the protocol for 
@@ -231,6 +231,11 @@ and clients.
 
 Interactive parallel computing
 ==============================
+
+.. note::
+    
+    This functionality is optional and now part of the `ipyparallel
+    <http://ipyparallel.readthedocs.io/>`_ project.
 
 Increasingly, parallel computer hardware, such as multicore CPUs, clusters and
 supercomputers, is becoming ubiquitous. Over the last several years, we have
