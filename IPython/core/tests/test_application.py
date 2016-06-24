@@ -4,9 +4,15 @@
 import os
 import tempfile
 
+import nose.tools as nt
+
+from traitlets import Unicode
+
 from IPython.core.application import BaseIPythonApplication
 from IPython.testing import decorators as dec
 from IPython.utils import py3compat
+from IPython.utils.tempdir import TemporaryDirectory
+
 
 @dec.onlyif_unicode_paths
 def test_unicode_cwd():
@@ -48,3 +54,21 @@ def test_unicode_ipdir():
             os.environ["IPYTHONDIR"] = old_ipdir1
         if old_ipdir2:
             os.environ["IPYTHONDIR"] = old_ipdir2
+
+def test_cli_priority():
+    with TemporaryDirectory() as td:
+
+        class TestApp(BaseIPythonApplication):
+            test = Unicode().tag(config=True)
+
+        # Create the config file, so it tries to load it.
+        with open(os.path.join(td, 'ipython_config.py'), "w") as f:
+            f.write("c.TestApp.test = 'config file'")
+
+        app = TestApp()
+        app.initialize(['--profile-dir', td])
+        nt.assert_equal(app.test, 'config file')
+        app = TestApp()
+        app.initialize(['--profile-dir', td, '--TestApp.test=cli'])
+        nt.assert_equal(app.test, 'cli')
+
