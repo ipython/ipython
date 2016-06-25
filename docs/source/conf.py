@@ -83,9 +83,18 @@ templates_path = ['_templates']
 # The suffix of source filenames.
 source_suffix = '.rst'
 
-if iprelease['_version_extra'] == 'dev':
+def is_stable(extra):
+    for ext in {'dev', 'b', 'rc'}:
+        if ext in extra:
+            return False
+    return True
+
+if is_stable(iprelease['_version_extra']):
+    tags.add('ipystable')
+else:
+    tags.add('ipydev')
     rst_prolog = """
-    .. note::
+    .. warning::
 
         This documentation is for a development version of IPython. There may be
         significant differences from the latest stable release.
