@@ -42,6 +42,7 @@ clean_api:
 clean: clean_api
 	-rm -rf build/* dist/*
 	-rm -f $(SRCDIR)/config/options/config-generated.txt
+	-rm -f $(SRCDIR)/config/shortcuts/*.csv
 	-rm -f $(SRCDIR)/interactive/magics-generated.txt
 
 pdf: latex
@@ -59,8 +60,8 @@ dist: html
 	cp -al build/html .
 	@echo "Build finished.  Final docs are in html/"
 
-html: api autoconfig automagic
-html_noapi: clean_api autoconfig automagic
+html: api autoconfig automagic autogen_shortcuts
+html_noapi: clean_api autoconfig automagic autogen_shortcuts
 
 html html_noapi:
 	mkdir -p build/html build/doctrees
@@ -76,7 +77,7 @@ source/interactive/magics-generated.txt: autogen_magics.py
 
 autoconfig: source/config/options/config-generated.txt
 
-source/config/options/generated:
+source/config/options/config-generated.txt:
 	$(PYTHON) autogen_config.py
 	@echo "Created docs for config options"
 
@@ -85,6 +86,10 @@ api: source/api/generated/gen.txt
 source/api/generated/gen.txt:
 	$(PYTHON) autogen_api.py
 	@echo "Build API docs finished."
+
+autogen_shortcuts:
+	$(PYTHON) autogen_shortcuts.py
+	@echo "Created docs for shortcuts"
 
 pickle:
 	mkdir -p build/pickle build/doctrees
