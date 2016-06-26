@@ -209,7 +209,7 @@ extras_require.update({
     ':python_version == "2.7" or python_version == "3.3"': ['pathlib2'],
     ':sys_platform != "win32"': ['pexpect'],
     ':sys_platform == "darwin"': ['appnope'],
-    ':sys_platform == "win32"': ['colorama', 'win_unicode_console'],
+    ':sys_platform == "win32"': ['colorama', 'win_unicode_console>=0.5'],
     'test:python_version == "2.7"': ['mock'],
 })
 # FIXME: re-specify above platform dependencies for pip < 6
@@ -235,7 +235,7 @@ if not any(arg.startswith('bdist') for arg in sys.argv):
         extras_require['terminal'].append('pyreadline>=2.0')
     else:
         install_requires.append('pexpect')
-    
+
     # workaround pypa/setuptools#147, where setuptools misspells
     # platform_python_implementation as python_implementation
     if 'setuptools' in sys.modules:
