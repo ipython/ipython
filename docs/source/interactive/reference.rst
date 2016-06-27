@@ -37,7 +37,6 @@ alias to control them, but IPython lets you configure all of its objects from
 the command-line by passing the full class name and a corresponding value; type
 ``ipython --help-all`` to see this full list.  For example::
 
-::
     $ ipython --help-all
     <...snip...>
     --matplotlib=<CaselessStrEnum> (InteractiveShellApp.matplotlib)
@@ -50,12 +49,12 @@ the command-line by passing the full class name and a corresponding value; type
 
 Indicate that the following::
 
+   $ ipython --matplotlib qt
 
-  ipython --matplotlib qt
 
 is equivalent to::
 
-  ipython --TerminalIPythonApp.matplotlib='qt'
+   $ ipython --TerminalIPythonApp.matplotlib='qt'
 
 Note that in the second form, you *must* use the equal sign, as the expression
 is evaluated as an actual Python assignment.  While in the above example the
