@@ -91,7 +91,7 @@ release is: ``1.3rc1``. Notice that there is no separator between the '3' and
 the 'r'. Check the environment variable `$VERSION` as well. 
 
 
-Comment remove the `developpement` entry in `whatsnew/index.rst`. TODO, figure
+Comment remove the `development` entry in `whatsnew/index.rst`. TODO, figure
 out how to make that automatic. 
 
 5. Run the `tools/build_release` script
@@ -120,7 +120,7 @@ Create and push the tag::
     git push origin --tags
 
 Update release.py back to `x.y-dev` or `x.y-maint`, and re-add the
-`developpement` entry in `docs/source/whatsnew/index.rst` and push::
+`development` entry in `docs/source/whatsnew/index.rst` and push::
 
     git commit -am "back to development"
     git push origin $BRANCH

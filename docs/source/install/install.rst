@@ -14,10 +14,10 @@ With ``pip`` already installed :
 
     $ pip install ipython
 
-This should install IPython as well as all the other dependency required. 
+This installs IPython as well as its dependencies.
 
-If you try to use IPython with notebooks or the Qt console, you should also install
-``jupyter``.
+If you want to use IPython with notebooks or the Qt console, you should also
+install Jupyter ``pip install jupyter``.
 
 
 
@@ -44,15 +44,15 @@ Installing IPython itself
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 IPython requires several dependencies to work correctly, it is not recommended
-to install IPython and all it's dependencies manually as this can be quite long and trouble some. 
-You should likely use the python package manager ``pip`` 
+to install IPython and all its dependencies manually as this can be quite long and troublesome.
+You should use the python package manager ``pip``.
 
 Installation using pip
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Make sure you have the latest version of :mod:`pip` ( the Python package
+Make sure you have the latest version of :mod:`pip` (the Python package
 manager) installed. If you do not, head to `Pip documentation
-<https://pip.pypa.io/en/stable/installing/>`_ and install it first. 
+<https://pip.pypa.io/en/stable/installing/>`_ and install :mod:`pip` first.
 
 The quickest way to get up and running with IPython is to install it with pip:
 
@@ -81,9 +81,9 @@ Try to also avoid any usage of ``easy_install`` that can have similar undesirabl
 
 If you are installing to a location (like ``/usr/local``) that requires higher
 permissions, you may need to run the last command with :command:`sudo`. You can
-also install in user specific location by using the ``--user`` flag in conjunction with pip
+also install in user specific location by using the ``--user`` flag in conjunction with pip.
 
-To can run IPython's test suite, use the :command:`iptest` command from outside of the IPython source tree:
+To run IPython's test suite, use the :command:`iptest` command from outside of the IPython source tree:
 
 .. code-block:: bash
 
@@ -127,5 +127,6 @@ Dependencies
 IPython relies on a number of other Python packages. Installing using a package
 manager like pip or conda will ensure the necessary packages are installed. If
 you install manually, it's up to you to make sure dependencies are installed.
-They're not listed here, because they may change from release to release, and
-depending on platform so a static list will inevitably get out of date.
+They're not listed here since a static list would inevitably fall out of date as
+dependencies may change from release to release and also vary depending on
+the platform.

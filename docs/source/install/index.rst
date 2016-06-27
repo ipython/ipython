@@ -14,18 +14,16 @@ Installation
 
 
 
-This sections will guide you into `installing IPython itself <install>`_, and
-installing `kernels for jupyter <kernel_install>`_ if you are working with
-multiple version of Python, or multiple environments. 
-
-To know more, head to the next section. 
+This sections will guide you through `installing IPython itself <install>`_, and
+installing `kernels for Jupyter <kernel_install>`_ if you wish to work with
+multiple version of Python, or multiple environments.
 
 
 Quick install reminder
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Here is a quick reminder of the various commands needed if you are already
-familiar with IPython and are just searching to refresh your memory:
+Here is a quick reminder of the commands needed for installation if you are
+already familiar with IPython and are just searching to refresh your memory:
 
 Install IPython:
 

@@ -219,7 +219,7 @@ different numbers which correspond to the Process ID of the kernel.
 
 You can read more about using `jupyter qtconsole 
 <http://jupyter.org/qtconsole/>`_, and
-`ipython notebook <http://jupyter-notebook.readthedocs.io/en/latest/>`_. There 
+`jupyter notebook <http://jupyter-notebook.readthedocs.io/en/latest/>`_. There
 is also a :ref:`message spec <messaging>` which documents the protocol for 
 communication between kernels
 and clients.

@@ -15,6 +15,7 @@ IPython provides a rich toolkit to help you make the most out of using Python
 interactively.  Its main components are:
 
 * A powerful interactive Python shell
+
 * A `Jupyter <http://jupyter.org/>`_ kernel to work with Python code in Jupyter
   notebooks and other interactive frontends.
 
@@ -50,11 +51,11 @@ features:
 
 The Command line interface inherit all the above functionality and posses 
  
-* real multiline editting.
+* real multi-line editing.
  
 * syntax highlighting as you type
 
-* intgration with command line editor for a better workflow. 
+* integration with command line editor for a better workflow.
 
 The kernel also have its share of feature, when used with a compatible frontend
 it allows for:
@@ -62,7 +63,7 @@ it allows for:
 * rich display system for object allowing to display Html, Images, Latex,Sounds
   Video.
 
-* interactive widgets with the use of the ``ipywigets`` package. 
+* interactive widgets with the use of the ``ipywidgets`` package.
 
 
 This documentation will walk through most of the features of the IPython

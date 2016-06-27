@@ -126,8 +126,9 @@ Removed Feature
 Deprecated Features
 -------------------
 
-Some deprecated feature, don't forget to enable ``DeprecationWarning`` as error
-of you are using IPython in Continuous Integration setup or in your testing in general:
+Some deprecated features are listed in this section. Don't forget to enable
+``DeprecationWarning`` as an error if you are using IPython in a Continuous
+Integration setup or in your testing in general:
 
 .. code-block:: python
 
@@ -135,12 +136,12 @@ of you are using IPython in Continuous Integration setup or in your testing in g
     warnings.filterwarnings('error', '.*', DeprecationWarning, module='yourmodule.*')
 
 
-- ``hooks.fix_error_editor`` seem to be unused and is pending deprecation.
+- ``hooks.fix_error_editor`` seems unused and is pending deprecation.
 - `IPython/core/excolors.py:ExceptionColors` is  deprecated.
-- `IPython.core.InteractiveShell:write()` is deprecated, use `sys.stdout` instead.
-- `IPython.core.InteractiveShell:write_err()` is deprecated, use `sys.stderr` instead.
-- The `formatter` keyword argument to `Inspector.info` in `IPython.core.oinspec` has now no effects.
-- The `global_ns` keyword argument of IPython Embed was deprecated, and  will now have no effect. Use `module` keyword argument instead.
+- `IPython.core.InteractiveShell:write()` is deprecated; use `sys.stdout` instead.
+- `IPython.core.InteractiveShell:write_err()` is deprecated; use `sys.stderr` instead.
+- The `formatter` keyword argument to `Inspector.info` in `IPython.core.oinspec` has no effect.
+- The `global_ns` keyword argument of IPython Embed was deprecated, and has no effect. Use `module` keyword argument instead.
 
 
 Known Issues:
