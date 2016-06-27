@@ -216,12 +216,12 @@ html_additional_pages = {
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'ipythondoc'
 
-intersphinx_mapping = {'python': ('http://docs.python.org/3/', None),
-                       'rpy2': ('http://rpy.sourceforge.net/rpy2/doc-2.4/html/', None),
-                       'traitlets': ('http://traitlets.readthedocs.io/en/latest/', None),
-                       'jupyterclient': ('http://jupyter-client.readthedocs.io/en/latest/', None),
-                       'ipyparallel': ('http://ipyparallel.readthedocs.io/en/latest/', None),
-                       'jupyter': ('http://jupyter.readthedocs.io/en/latest/', None),
+intersphinx_mapping = {'python': ('https://docs.python.org/3/', None),
+                       'rpy2': ('https://rpy2.readthedocs.io/en/version_2.8.x/', None),
+                       'traitlets': ('https://traitlets.readthedocs.io/en/latest/', None),
+                       'jupyterclient': ('https://jupyter-client.readthedocs.io/en/latest/', None),
+                       'ipyparallel': ('https://ipyparallel.readthedocs.io/en/latest/', None),
+                       'jupyter': ('https://jupyter.readthedocs.io/en/latest/', None),
                       }
 
 # Options for LaTeX output
