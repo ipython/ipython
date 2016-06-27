@@ -11,20 +11,21 @@ You start IPython with the command::
 
     $ ipython [options] files
 
-If invoked with no options, it executes all the files listed in sequence
-and drops you into the interpreter while still acknowledging any options
-you may have set in your ipython_config.py. This behavior is different from
-standard Python, which when called as python -i will only execute one
-file and ignore your configuration setup.
+If invoked with no options, it executes all the files listed in sequence and
+exit. If you add the ``-i`` flag, it drops you into the interpreter while still
+acknowledging any options you may have set in your ``ipython_config.py``. This
+behavior is different from standard Python, which when called as python ``-i``
+will only execute one file and ignore your configuration setup.
 
-Please note that some of the configuration options are not available at
-the command line, simply because they are not practical here. Look into
-your configuration files for details on those. There are separate configuration
-files for each profile, and the files look like :file:`ipython_config.py` or
+Please note that some of the configuration options are not available at the
+command line, simply because they are not practical here. Look into your
+configuration files for details on those. There are separate configuration files
+for each profile, and the files look like :file:`ipython_config.py` or
 :file:`ipython_config_{frontendname}.py`.  Profile directories look like
-:file:`profile_{profilename}` and are typically installed in the :envvar:`IPYTHONDIR` directory,
-which defaults to :file:`$HOME/.ipython`. For Windows users, :envvar:`HOME`
-resolves to :file:`C:\\Users\\{YourUserName}` in most instances.
+:file:`profile_{profilename}` and are typically installed in the
+:envvar:`IPYTHONDIR` directory, which defaults to :file:`$HOME/.ipython`. For
+Windows users, :envvar:`HOME` resolves to :file:`C:\\Users\\{YourUserName}` in
+most instances.
 
 Command-line Options
 --------------------
@@ -35,6 +36,20 @@ more convenient reading).  This shows all the options that have a single-word
 alias to control them, but IPython lets you configure all of its objects from
 the command-line by passing the full class name and a corresponding value; type
 ``ipython --help-all`` to see this full list.  For example::
+
+::
+    $ ipython --help-all
+    <...snip...>
+    --matplotlib=<CaselessStrEnum> (InteractiveShellApp.matplotlib)
+        Default: None
+        Choices: ['auto', 'gtk', 'gtk3', 'inline', 'nbagg', 'notebook', 'osx', 'qt', 'qt4', 'qt5', 'tk', 'wx']
+        Configure matplotlib for interactive use with the default matplotlib
+        backend.
+    <...snip...>
+
+
+Indicate that the following::
+
 
   ipython --matplotlib qt
 
@@ -145,9 +160,9 @@ use it:
 
     /home/fperez/ipython
 
-Line magics, if they return a value, can be assigned to a variable using the syntax
-``l = %sx ls`` (which in this particular case returns the result of `ls` as a python list).
-See :ref:`below <manual_capture>` for more information.
+Line magics, if they return a value, can be assigned to a variable using the
+syntax ``l = %sx ls`` (which in this particular case returns the result of `ls`
+as a python list). See :ref:`below <manual_capture>` for more information.
 
 Type ``%magic`` for more information, including a list of all available magic
 functions at any time and their docstrings. You can also type
@@ -214,15 +229,6 @@ The dynamic object information functions (?/??, ``%pdoc``,
 ``%pfile``, ``%pdef``, ``%psource``) work on object attributes, as well as
 directly on variables. For example, after doing ``import os``, you can use
 ``os.path.abspath??``.
-
-.. _readline:
-
-Readline-based features
------------------------
-
-These features require the GNU readline library, so they won't work if your
-Python installation lacks readline support. We will first describe the default
-behavior IPython uses, and then how to change it to suit your preferences.
 
 
 Command line completion
@@ -313,8 +319,8 @@ before logging has been started.
 System shell access
 -------------------
 
-Any input line beginning with a ! character is passed verbatim (minus
-the !, of course) to the underlying operating system. For example,
+Any input line beginning with a ``!`` character is passed verbatim (minus
+the ``!``, of course) to the underlying operating system. For example,
 typing ``!ls`` will run 'ls' in the current directory.
 
 .. _manual_capture:
@@ -368,9 +374,9 @@ system shell commands. These aliases can have parameters.
 Then, typing ``alias_name params`` will execute the system command 'cmd
 params' (from your underlying operating system).
 
-You can also define aliases with parameters using %s specifiers (one per
+You can also define aliases with parameters using ``%s`` specifiers (one per
 parameter). The following example defines the parts function as an
-alias to the command 'echo first %s second %s' where each %s will be
+alias to the command ``echo first %s second %s`` where each ``%s`` will be
 replaced by a positional parameter to the call to %parts::
 
     In [1]: %alias parts echo first %s second %s
@@ -427,12 +433,14 @@ up for editing on the next command line.
 
 The following variables always exist:
 
-* _i, _ii, _iii: store previous, next previous and next-next previous inputs.
-* In, _ih : a list of all inputs; _ih[n] is the input from line n. If you
-  overwrite In with a variable of your own, you can remake the assignment to the
-  internal list with a simple ``In=_ih``.
+* ``_i``, ``_ii``, ``_iii``: store previous, next previous and next-next
+  previous inputs.
 
-Additionally, global variables named _i<n> are dynamically created (<n>
+* ``In``, ``_ih`` : a list of all inputs; ``_ih[n]`` is the input from line
+  ``n``. If you overwrite In with a variable of your own, you can remake the
+  assignment to the internal list with a simple ``In=_ih``.
+
+Additionally, global variables named ``_i<n>`` are dynamically created (``<n>``
 being the prompt counter), so ``_i<n> == _ih[<n>] == In[<n>]``.
 
 For example, what you typed at prompt 14 is available as ``_i14``, ``_ih[14]``
@@ -443,10 +451,10 @@ by printing them out: they print like a clean string, without prompt
 characters. You can also manipulate them like regular variables (they
 are strings), modify or exec them.
 
-You can also re-execute multiple lines of input easily by using the
-magic :magic:`rerun` or :magic:`macro` functions. The macro system also allows you to re-execute
-previous lines which include magic function calls (which require special
-processing). Type %macro? for more details on the macro system.
+You can also re-execute multiple lines of input easily by using the magic
+:magic:`rerun` or :magic:`macro` functions. The macro system also allows you to
+re-execute previous lines which include magic function calls (which require
+special processing). Type %macro? for more details on the macro system.
 
 A history function :magic:`history` allows you to see any part of your input
 history by printing a range of the _i variables.
