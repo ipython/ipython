@@ -34,6 +34,10 @@ if ON_RTD:
                 '__file__': fpath,
                 '__name__': '__main__',
             })
+else:
+    import sphinx_rtd_theme
+    html_theme = "sphinx_rtd_theme"
+    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
@@ -79,9 +83,18 @@ templates_path = ['_templates']
 # The suffix of source filenames.
 source_suffix = '.rst'
 
-if iprelease['_version_extra'] == 'dev':
+def is_stable(extra):
+    for ext in {'dev', 'b', 'rc'}:
+        if ext in extra:
+            return False
+    return True
+
+if is_stable(iprelease['_version_extra']):
+    tags.add('ipystable')
+else:
+    tags.add('ipydev')
     rst_prolog = """
-    .. note::
+    .. warning::
 
         This documentation is for a development version of IPython. There may be
         significant differences from the latest stable release.
@@ -148,8 +161,8 @@ default_role = 'literal'
 # The style sheet to use for HTML and HTML Help pages. A file of that name
 # must exist either in Sphinx' static/ path, or in one of the custom paths
 # given in html_static_path.
-html_style = 'default.css'
-html_favicon = 'favicon.ico'
+# html_style = 'default.css'
+
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -164,6 +177,8 @@ html_favicon = 'favicon.ico'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
+# Favicon needs the directory name
+html_favicon = '_static/favicon.ico'
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
 html_last_updated_fmt = '%b %d, %Y'

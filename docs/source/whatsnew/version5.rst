@@ -99,13 +99,15 @@ snippet:
     ip.sphinxify_docstring = True
     ip.enable_html_pager = True
 
+
 You can test the effect of various combinations of the above configuration in
 the Jupyter notebook, with things example like :
 
-.. code-block:: python
+.. code-block:: ipython
 
     import numpy as np
     np.histogram?
+
 
 This is part of an effort to make Documentation in Python richer and provide in
 the long term if possible dynamic examples that can contain math, images,
@@ -117,47 +119,47 @@ it.
 Removed Feature
 ---------------
 
- - ``TerminalInteractiveShell.autoedit_syntax`` Has been broken for many years now
-apparently. It has been removed.
+- ``TerminalInteractiveShell.autoedit_syntax`` Has been broken for many years now
+  apparently. It has been removed.
 
 
 Deprecated Features
 -------------------
 
-Some deprecated feature, don't forget to enable `DeprecationWarning` as error
-of you are using IPython in Continuous Integration setup or in your testing in general:
+Some deprecated features are listed in this section. Don't forget to enable
+``DeprecationWarning`` as an error if you are using IPython in a Continuous
+Integration setup or in your testing in general:
 
-.. code::
-    :python:
+.. code-block:: python
 
     import warnings
     warnings.filterwarnings('error', '.*', DeprecationWarning, module='yourmodule.*')
 
 
- - `hooks.fix_error_editor` seem to be unused and is pending deprecation.
- - `IPython/core/excolors.py:ExceptionColors` is  deprecated.
- - `IPython.core.InteractiveShell:write()` is deprecated, use `sys.stdout` instead.
- - `IPython.core.InteractiveShell:write_err()` is deprecated, use `sys.stderr` instead.
- - The `formatter` keyword argument to `Inspector.info` in `IPython.core.oinspec` has now no effects.
- - The `global_ns` keyword argument of IPython Embed was deprecated, and  will now have no effect. Use `module` keyword argument instead.
+- ``hooks.fix_error_editor`` seems unused and is pending deprecation.
+- `IPython/core/excolors.py:ExceptionColors` is  deprecated.
+- `IPython.core.InteractiveShell:write()` is deprecated; use `sys.stdout` instead.
+- `IPython.core.InteractiveShell:write_err()` is deprecated; use `sys.stderr` instead.
+- The `formatter` keyword argument to `Inspector.info` in `IPython.core.oinspec` has no effect.
+- The `global_ns` keyword argument of IPython Embed was deprecated, and has no effect. Use `module` keyword argument instead.
 
 
 Known Issues:
 -------------
 
- - ``<Esc>`` Key does not dismiss the completer and does not clear the current
-   buffer. This is an on purpose modification due to current technical
-   limitation. Cf :ghpull:`9572`. Escape the control character which is used
-   for other shortcut, and there is no practical way to distinguish. Use Ctr-G
-   or Ctrl-C as an alternative. 
+- ``<Esc>`` Key does not dismiss the completer and does not clear the current
+  buffer. This is an on purpose modification due to current technical
+  limitation. Cf :ghpull:`9572`. Escape the control character which is used
+  for other shortcut, and there is no practical way to distinguish. Use Ctr-G
+  or Ctrl-C as an alternative.
 
- - Cannot use ``Shift-Enter`` and ``Ctrl-Enter`` to submit code in terminal. cf
-   :ghissue:`9587` and :ghissue:`9401`. In terminal there is no practical way to
-   distinguish these key sequences from a normal new line return. 
+- Cannot use ``Shift-Enter`` and ``Ctrl-Enter`` to submit code in terminal. cf
+  :ghissue:`9587` and :ghissue:`9401`. In terminal there is no practical way to
+  distinguish these key sequences from a normal new line return.
 
- - ``PageUp`` and ``pageDown`` do not move through completion menu.
+- ``PageUp`` and ``pageDown`` do not move through completion menu.
 
- - Color styles might not adapt to terminal emulator themes. This will need new
-   version of Pygments to be released, and can be mitigated with custom themes. 
+- Color styles might not adapt to terminal emulator themes. This will need new
+  version of Pygments to be released, and can be mitigated with custom themes.
 
 
