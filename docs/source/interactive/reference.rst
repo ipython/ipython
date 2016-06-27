@@ -12,7 +12,7 @@ You start IPython with the command::
     $ ipython [options] files
 
 If invoked with no options, it executes all the files listed in sequence and
-exit. If you add the ``-i`` flag, it drops you into the interpreter while still
+exits. If you add the ``-i`` flag, it drops you into the interpreter while still
 acknowledging any options you may have set in your ``ipython_config.py``. This
 behavior is different from standard Python, which when called as python ``-i``
 will only execute one file and ignore your configuration setup.
