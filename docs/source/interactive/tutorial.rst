@@ -34,9 +34,8 @@ Tab completion
 
 Tab completion, especially for attributes, is a convenient way to explore the
 structure of any object you're dealing with. Simply type ``object_name.<TAB>``
-to view the object's attributes (see :ref:`the readline section <readline>` for
-more). Besides Python objects and keywords, tab completion also works on file
-and directory names.
+to view the object's attributes. Besides Python objects and keywords, tab
+completion also works on file and directory names.
 
 Exploring your objects
 ======================
@@ -53,15 +52,19 @@ Magic functions
 
 IPython has a set of predefined 'magic functions' that you can call with a
 command line style syntax.  There are two kinds of magics, line-oriented and
-cell-oriented.  **Line magics** are prefixed with the ``%`` character and work much
-like OS command-line calls: they get as an argument the rest of the line, where
-arguments are passed without parentheses or quotes.  **Cell magics** are
-prefixed with a double ``%%``, and they are functions that get as an argument
-not only the rest of the line, but also the lines below it in a separate
-argument.
+cell-oriented.  **Line magics** are prefixed with the ``%`` character and work
+much like OS command-line calls: they get as an argument the rest of the line,
+where arguments are passed without parentheses or quotes. **Lines magics** can
+return results and can be used in the right hand side of an assignment.  **Cell
+magics** are prefixed with a double ``%%``, and they are functions that get as
+an argument not only the rest of the line, but also the lines below it in a
+separate argument.
 
-The following examples show how to call the builtin :magic:`timeit` magic, both in
-line and cell mode::
+Magics are useful as convenient functions where Python syntax is not the most
+natural one, or when one want to embed invalid python syntax in their work flow. 
+
+The following examples show how to call the builtin :magic:`timeit` magic, both
+in line and cell mode::
 
       In [1]: %timeit range(1000)
       100000 loops, best of 3: 7.76 us per loop
@@ -73,20 +76,23 @@ line and cell mode::
 
 The builtin magics include:
 
-- Functions that work with code: :magic:`run`, :magic:`edit`, :magic:`save`, :magic:`macro`,
-  :magic:`recall`, etc.
-- Functions which affect the shell: :magic:`colors`, :magic:`xmode`, :magic:`autoindent`,
-  :magic:`automagic`, etc.
-- Other functions such as :magic:`reset`, :magic:`timeit`, :cellmagic:`writefile`, :magic:`load`, or
-  :magic:`paste`.
+- Functions that work with code: :magic:`run`, :magic:`edit`, :magic:`save`,
+  :magic:`macro`, :magic:`recall`, etc.
 
-You can always call them using the ``%`` prefix, and if you're calling a line
-magic on a line by itself, you can omit even that::
+- Functions which affect the shell: :magic:`colors`, :magic:`xmode`,
+  :magic:`autoindent`, :magic:`automagic`, etc.
+
+- Other functions such as :magic:`reset`, :magic:`timeit`,
+  :cellmagic:`writefile`, :magic:`load`, or :magic:`paste`.
+
+You can always call magics using the ``%`` prefix, and if you're calling a line
+magic on a line by itself, as long as the identifier is not defined in your
+namespace, you can omit even that::
 
     run thescript.py
 
-You can toggle this behavior by running the :magic:`automagic` magic.  Cell magics
-must always have the ``%%`` prefix.
+You can toggle this behavior by running the :magic:`automagic` magic.  Cell
+magics must always have the ``%%`` prefix.
 
 A more detailed explanation of the magic system can be obtained by calling
 ``%magic``, and for more details on any magic function, call ``%somemagic?`` to
@@ -95,18 +101,20 @@ read its docstring. To see all the available magic functions, call
 
 .. seealso::
 
-    :doc:`magics`
+    The :ref:`magic` section of the documentation goes more in depth into how
+    the magics works and how to define your own, and :doc:`magics` for a list of
+    built-in magics.
 
     `Cell magics`_ example notebook
 
 Running and Editing
 -------------------
 
-The :magic:`run` magic command allows you to run any python script and load all of
-its data directly into the interactive namespace. Since the file is re-read
+The :magic:`run` magic command allows you to run any python script and load all
+of its data directly into the interactive namespace. Since the file is re-read
 from disk each time, changes you make to it are reflected immediately (unlike
-imported modules, which have to be specifically reloaded). IPython also
-includes :ref:`dreload <dreload>`, a recursive reload function.
+imported modules, which have to be specifically reloaded). IPython also includes
+:ref:`dreload <dreload>`, a recursive reload function.
 
 ``%run`` has special flags for timing the execution of your scripts (-t), or
 for running them under the control of either Python's pdb debugger (-d) or
@@ -114,7 +122,9 @@ profiler (-p).
 
 The :magic:`edit` command gives a reasonable approximation of multiline editing,
 by invoking your favorite editor on the spot. IPython will execute the
-code you type in there as if it were typed interactively.
+code you type in there as if it were typed interactively. Note that for
+:magic:`edit` to work, the call to startup your editor has to be a blocking
+call. In a GUI environment, your editor likely will have such an option.
 
 Debugging
 ---------
@@ -122,9 +132,9 @@ Debugging
 After an exception occurs, you can call :magic:`debug` to jump into the Python
 debugger (pdb) and examine the problem. Alternatively, if you call :magic:`pdb`,
 IPython will automatically start the debugger on any uncaught exception. You can
-print variables, see code, execute statements and even walk up and down the
-call stack to track down the true source of the problem. This can be an efficient
-way to develop and debug code, in many cases eliminating the need for print
+print variables, see code, execute statements and even walk up and down the call
+stack to track down the true source of the problem. This can be an efficient way
+to develop and debug code, in many cases eliminating the need for print
 statements or external debugging tools.
 
 You can also step through a program from the beginning by calling
@@ -157,7 +167,7 @@ This will take line 3 and lines 18 to 20 from the current session, and lines
 System shell commands
 =====================
 
-To run any command at the system shell, simply prefix it with !, e.g.::
+To run any command at the system shell, simply prefix it with ``!``, e.g.::
 
     !ping www.bbc.co.uk
     
@@ -169,12 +179,13 @@ with $: ``!grep -rF $pattern ipython/*``. See :ref:`our shell section
 Define your own system aliases
 ------------------------------
 
-It's convenient to have aliases to the system commands you use most often.
-This allows you to work seamlessly from inside IPython with the same commands
-you are used to in your system shell. IPython comes with some pre-defined
-aliases and a complete system for changing directories, both via a stack (see
-:magic:`pushd`, :magic:`popd` and :magic:`dhist`) and via direct :magic:`cd`. The latter keeps a history of
-visited directories and allows you to go to any previously visited one.
+It's convenient to have aliases to the system commands you use most often. This
+allows you to work seamlessly from inside IPython with the same commands you are
+used to in your system shell. IPython comes with some pre-defined aliases and a
+complete system for changing directories, both via a stack (see :magic:`pushd`,
+:magic:`popd` and :magic:`dhist`) and via direct :magic:`cd`. The latter keeps a
+history of visited directories and allows you to go to any previously visited
+one.
 
 
 Configuration
