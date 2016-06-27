@@ -55,7 +55,7 @@ command line style syntax.  There are two kinds of magics, line-oriented and
 cell-oriented.  **Line magics** are prefixed with the ``%`` character and work
 much like OS command-line calls: they get as an argument the rest of the line,
 where arguments are passed without parentheses or quotes. **Lines magics** can
-return results and can be use in the right and side of an assignment.  **Cell
+return results and can be used in the right hand side of an assignment.  **Cell
 magics** are prefixed with a double ``%%``, and they are functions that get as
 an argument not only the rest of the line, but also the lines below it in a
 separate argument.
@@ -123,8 +123,8 @@ profiler (-p).
 The :magic:`edit` command gives a reasonable approximation of multiline editing,
 by invoking your favorite editor on the spot. IPython will execute the
 code you type in there as if it were typed interactively. Note that for
-:magic:`edit` to work, the call to startup your editor have to be a blocking
-call. In a GUI environment, your editor likely have such an option. 
+:magic:`edit` to work, the call to startup your editor has to be a blocking
+call. In a GUI environment, your editor likely will have such an option.
 
 Debugging
 ---------

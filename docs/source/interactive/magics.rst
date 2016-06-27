@@ -4,12 +4,13 @@ Built-in magic commands
 
 .. note::
 
-    To Jupyter users: Magics are specifit to the IPython kernel. Other kernels
-    may be implementing magics but this decision is a per-kernel one. To be able
-    to work, Magics need to use a syntax which is not valid in the language they
-    are implemented. IPython choosed the `%` as it is not a valid unary operator
-    in Python. It is in other languages. 
-
+    To Jupyter users: Magics are specific to and provided by the IPython kernel.
+    Whether magics are available on a kernel is a decision that is made by
+    the kernel developer on a per-kernel basis. To work properly, Magics must
+    use a syntax element which is not valid in the underlying language. For
+    example, the IPython kernel uses the `%` syntax element for magics as `%`
+    is not a valid unary operator in Python. While, the syntax element has
+    meaning in other languages.
 
 Here is the help auto generated from the docstrings of all the available magics
 function that IPython ships with. 
