@@ -195,7 +195,6 @@ install_requires = [
     'pickleshare',
     'simplegeneric>0.8',
     'traitlets',
-    'backports.shutil_get_terminal_size',
 ]
 
 # Platform-specific dependencies:
@@ -203,6 +202,7 @@ install_requires = [
 # but requires pip >= 6. pip < 6 ignores these.
 
 extras_require.update({
+    ':python_version == "2.7"': ['backports.shutil_get_terminal_size'],
     ':sys_platform != "win32"': ['pexpect'],
     ':sys_platform == "darwin"': ['appnope'],
     ':sys_platform == "darwin" and platform_python_implementation == "CPython"': ['gnureadline'],
