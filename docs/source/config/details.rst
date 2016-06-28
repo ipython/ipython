@@ -47,11 +47,10 @@ We can distinguish the coloration into 2 main categories:
 - The ones that also affect clients connected through the Jupyter
   protocol.
 
-Traceback, debugger, and pager are highlighted kernel-side so they fall
-into the second category. For historical reasons they are often
-governed by a ``colors`` attribute or configuration option that can
-take one of 3 case insensitive values: ``NoColors``, ``Linux`` and
-``LightBG``.
+Traceback, debugger, and pager are highlighted kernel-side so they fall into
+the second category. For historical reasons they are often governed by a
+``colors`` attribute or configuration option that can take one of 3 case
+insensitive values: ``Neutral``, ``NoColors``, ``Linux`` and ``LightBG``.
 
 Colors that affect only the terminal client are governed mainly by
 ``TerminalInteractiveShell.highlight_style`` taking the name of a
@@ -60,12 +59,14 @@ Colors that affect only the terminal client are governed mainly by
 As of IPython 5.0 the color configuration works as follows:
 
   - by default, ``TerminalInteractiveShell.highlight_style`` is set to
-    ``legacy`` which **trys to** emulate the colors of IPython pre 5.0
-    and respect the ``.color`` configuration option.
-    The emulation is an approximation of the current version of Pygments
-    (2.1) and only supports extended ANSI escape sequence, hence the
-    theme cannot adapt to your terminal custom mapping if you have
-    one.
+    ``legacy`` with a default colors scheme of ``Neutral`` that should be
+    readable both on light and dark background terminals.
+    
+    This setting also **trys to** emulate the colors of IPython pre 5.0 and
+    respect the ``.color`` configuration option for ``Linux`` and ``LightBG``.
+    The emulation is an approximation of the current version of Pygments (2.1)
+    and only supports extended ANSI escape sequence, hence the theme cannot
+    adapt to your terminal custom mapping if you have one.
 
     The last extra difference being that the "as you type" coloration
     is present using the theme "default" if `color` is `LightBG`, and
@@ -82,7 +83,7 @@ from IPython 4.x and before. Use
 ``--TerminalInteractiveShell.highlighting_style_overrides`` for extra
 flexibility.
 
-With default configuration `--colors=[nocolors|linux|ightbg]` as well
+With default configuration, `--colors=[nocolors|linux|lightbg]` as well
 as the `%colors` magic should behave identically as before.
 
 
