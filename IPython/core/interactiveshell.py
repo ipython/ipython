@@ -254,15 +254,6 @@ class InteractiveShell(SingletonConfigurable):
                              default_value=get_default_colors(),
         help="Set the color scheme (NoColor, Linux, or LightBG)."
     ).tag(config=True)
-    colors_force = Bool(False, help=
-        """
-        Force use of ANSI color codes, regardless of OS and readline
-        availability.
-        """
-        # FIXME: This is essentially a hack to allow ZMQShell to show colors
-        # without readline on Win32. When the ZMQ formatting system is
-        # refactored, this should be removed.
-    )
     debug = Bool(False).tag(config=True)
     deep_reload = Bool(False, help=
         """
