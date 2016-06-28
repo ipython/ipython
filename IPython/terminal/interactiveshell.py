@@ -371,28 +371,27 @@ class TerminalInteractiveShell(InteractiveShell):
         """
         if name == 'legacy':
             legacy = self.colors.lower()
-            if legacy == 'linux':
-                style_cls = get_style_by_name('monokai')
-                style_overrides = _style_overrides_linux
-            elif legacy == 'lightbg':
-                style_overrides = _style_overrides_light_bg
+            if legacy == 'nocolor':
+                style_cls = _NoStyle
+                style_overrides = {}
+            else:
                 style_cls = get_style_by_name('default')
                 # The default theme needs to be visible on both a dark background
                 # and a light background, because we can't tell what the terminal
                 # looks like. These tweaks to the default theme help with that.
-                style_overrides.update({
+                style_overrides = {
                     Token.Number: '#007700',
                     Token.Operator: 'noinherit',
                     Token.String: '#BB6622',
                     Token.Name.Function: '#2080D0',
                     Token.Name.Class: 'bold #2080D0',
                     Token.Name.Namespace: 'bold #2080D0',
-                })
-            elif legacy =='nocolor':
-                style_cls=_NoStyle
-                style_overrides = {}
-            else :
-                raise ValueError('Got unknown colors: ', legacy)
+                }
+
+            if legacy == 'linux':
+                style_overrides.update(_style_overrides_linux)
+            elif legacy == 'lightbg':
+                style_overrides.update(_style_overrides_light_bg)
         else :
             style_cls = get_style_by_name(name)
             style_overrides = {
