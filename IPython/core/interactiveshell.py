@@ -649,6 +649,10 @@ class InteractiveShell(SingletonConfigurable):
         pyformat = PyColorize.Parser().format
         self.pycolorize = lambda src: pyformat(src,'str',self.colors)
 
+    def refresh_style(self):
+        # No-op here, used in subclass
+        pass
+
     def init_pushd_popd_magic(self):
         # for pushd/popd management
         self.home_dir = get_home_dir()
