@@ -122,8 +122,8 @@ LinuxColors = ColorScheme(
     'normal'         : Colors.Normal  # color off (usu. Colors.Normal)
     } )
 
-LightBGColors = ColorScheme(
-    'LightBG',{
+NeutralColors = ColorScheme(
+    'Neutral',{
     'header'         : Colors.Red,
     token.NUMBER     : Colors.Cyan,
     token.OP         : Colors.Blue,
@@ -146,8 +146,35 @@ LightBGColors = ColorScheme(
     'normal'         : Colors.Normal  # color off (usu. Colors.Normal)
     }  )
 
+
+
+LightBGColors = ColorScheme(
+    'LightBG',{
+    'header'         : Colors.Red,
+    token.NUMBER     : Colors.Cyan,
+    token.OP         : Colors.Blue,
+    token.STRING     : Colors.Blue,
+    tokenize.COMMENT : Colors.Red,
+    token.NAME       : Colors.Normal,
+    token.ERRORTOKEN : Colors.Red,
+
+
+    _KEYWORD         : Colors.Green,
+    _TEXT            : Colors.Blue,
+
+    'in_prompt'      : InputTermColors.Blue,
+    'in_number'      : InputTermColors.LightBlue,
+    'in_prompt2'     : InputTermColors.Blue,
+    'in_normal'      : InputTermColors.Normal,  # color off (usu. Colors.Normal)
+
+    'out_prompt'     : Colors.Red,
+    'out_number'     : Colors.LightRed,
+
+    'normal'         : Colors.Normal  # color off (usu. Colors.Normal)
+    }  )
+
 # Build table of color schemes (needed by the parser)
-ANSICodeColors = ColorSchemeTable([NoColor,LinuxColors,LightBGColors],
+ANSICodeColors = ColorSchemeTable([NoColor,LinuxColors,LightBGColors, NeutralColors],
                                   _scheme_default)
 
 class Parser(Colorable):
