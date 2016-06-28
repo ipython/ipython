@@ -325,7 +325,7 @@ Currently the magic system has the following functions:""",
         """
         def color_switch_err(name):
             warn('Error changing %s color schemes.\n%s' %
-                 (name, sys.exc_info()[1]))
+                 (name, sys.exc_info()[1]), stacklevel=2)
 
 
         new_scheme = parameter_s.strip()

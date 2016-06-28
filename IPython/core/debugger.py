@@ -233,6 +233,10 @@ class Pdb(OldPdb, object):
         cst['LightBG'].colors.breakpoint_enabled = C.LightRed
         cst['LightBG'].colors.breakpoint_disabled = C.Red
 
+        cst['Neutral'].colors.prompt = C.Blue
+        cst['Neutral'].colors.breakpoint_enabled = C.LightRed
+        cst['Neutral'].colors.breakpoint_disabled = C.Red
+
         self.set_colors(color_scheme)
 
         # Add a python parser so we can syntax highlight source while
@@ -313,7 +317,7 @@ class Pdb(OldPdb, object):
         except KeyboardInterrupt:
             pass
 
-    def print_stack_entry(self,frame_lineno,prompt_prefix='\n-> ',
+    def print_stack_entry(self,frame_lineno, prompt_prefix='\n-> ',
                           context=None):
         if context is None:
             context = self.context

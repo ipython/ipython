@@ -67,6 +67,9 @@ ColorSchemeTable class. Currently the following exist:
   - LightBG: similar to Linux but swaps dark/light colors to be more readable
     in light background terminals.
 
+  - Neutral: a neutral color scheme that should be readable on both light and
+    dark background
+
 You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.

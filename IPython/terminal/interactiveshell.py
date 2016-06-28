@@ -369,6 +369,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
         We need that to add style for prompt ... etc. 
         """
+        style_overrides = {}
         if name == 'legacy':
             legacy = self.colors.lower()
             if legacy == 'linux':
@@ -376,10 +377,12 @@ class TerminalInteractiveShell(InteractiveShell):
                 style_overrides = _style_overrides_linux
             elif legacy == 'lightbg':
                 style_overrides = _style_overrides_light_bg
-                style_cls = get_style_by_name('default')
+                style_cls = get_style_by_name('pastie')
+            elif legacy == 'neutral':
                 # The default theme needs to be visible on both a dark background
                 # and a light background, because we can't tell what the terminal
                 # looks like. These tweaks to the default theme help with that.
+                style_cls = get_style_by_name('default')
                 style_overrides.update({
                     Token.Number: '#007700',
                     Token.Operator: 'noinherit',
@@ -387,6 +390,10 @@ class TerminalInteractiveShell(InteractiveShell):
                     Token.Name.Function: '#2080D0',
                     Token.Name.Class: 'bold #2080D0',
                     Token.Name.Namespace: 'bold #2080D0',
+                    Token.Prompt: '#009900',
+                    Token.PromptNum: '#00ff00 bold',
+                    Token.OutPrompt: '#990000',
+                    Token.OutPromptNum: '#ff0000 bold',
                 })
             elif legacy =='nocolor':
                 style_cls=_NoStyle
