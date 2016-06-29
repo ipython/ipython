@@ -98,6 +98,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
     pt_cli = None
     debugger_history = None
+    _pt_app = None
 
     simple_prompt = Bool(_use_simple_prompt,
         help="""Use `raw_input` for the REPL, without completion, multiline input, and prompt colors.
@@ -203,7 +204,6 @@ class TerminalInteractiveShell(InteractiveShell):
         self.display_formatter.active_types = ['text/plain']
 
     def init_prompt_toolkit_cli(self):
-        self._app = None
         if self.simple_prompt:
             # Fall back to plain non-interactive output for tests.
             # This is very limited, and only accepts a single line.
@@ -350,7 +350,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
         editing_mode = getattr(EditingMode, self.editing_mode.upper())
 
-        self._app = create_prompt_application(
+        self._pt_app = create_prompt_application(
                             editing_mode=editing_mode,
                             key_bindings_registry=kbmanager.registry,
                             history=history,
@@ -361,7 +361,7 @@ class TerminalInteractiveShell(InteractiveShell):
                             **self._layout_options()
         )
         self._eventloop = create_eventloop(self.inputhook)
-        self.pt_cli = CommandLineInterface(self._app, eventloop=self._eventloop)
+        self.pt_cli = CommandLineInterface(self._pt_app, eventloop=self._eventloop)
 
     def _make_style_from_name(self, name):
         """
@@ -439,8 +439,8 @@ class TerminalInteractiveShell(InteractiveShell):
         Ask for a re computation of the application layout, if for example ,
         some configuration options have changed.
         """
-        if getattr(self, '._app', None):
-            self._app.layout = create_prompt_layout(**self._layout_options())
+        if self._pt_app:
+            self._pt_app.layout = create_prompt_layout(**self._layout_options())
 
     def prompt_for_code(self):
         document = self.pt_cli.run(
@@ -570,6 +570,7 @@ class TerminalInteractiveShell(InteractiveShell):
         elif self._prompts_before:
             self.prompts = self._prompts_before
             self._prompts_before = None
+        self._update_layout()
 
 
 InteractiveShellABC.register(TerminalInteractiveShell)
