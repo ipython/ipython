@@ -2,89 +2,85 @@
 Specific config details
 =======================
 
+.. _custom_prompts:
+
+Custom Prompts
+==============
+
+.. versionchanged:: 5.0
+
+From IPython 5, prompts are produced as a list of Pygments tokens, which are
+tuples of (token_type, text). You can customise prompts by writing a method
+which generates a list of tokens.
+
+There are four kinds of prompt:
+
+* The **in** prompt is shown before the first line of input
+  (default like ``In [1]:``).
+* The **continuation** prompt is shown before further lines of input
+  (default like ``...:``).
+* The **rewrite** prompt is shown to highlight how special syntax has been
+  interpreted (default like ``----->``).
+* The **out** prompt is shown before the result from evaluating the input
+  (default like ``Out[1]:``).
+
+Custom prompts are supplied together as a class. If you want to customise only
+some of the prompts, inherit from :class:`IPython.terminal.prompts.Prompts`,
+which defines the defaults. The required interface is like this:
+
+.. class:: MyPrompts(shell)
+
+   Prompt style definition. *shell* is a reference to the
+   :class:`~.TerminalInteractiveShell` instance.
+
+   .. method:: in_prompt_tokens(cli=None)
+               continuation_prompt_tokens(self, cli=None, width=None)
+               rewrite_prompt_tokens()
+               out_prompt_tokens()
+
+      Return the respective prompts as lists of ``(token_type, text)`` tuples.
+
+      For continuation prompts, *width* is an integer representing the width of
+      the prompt area in terminal columns.
+
+      *cli*, where used, is the prompt_toolkit ``CommandLineInterface`` instance.
+      This is mainly for compatibility with the API prompt_toolkit expects.
+
+Inside IPython or in a startup script, you can use a custom prompts class
+by setting ``get_ipython().prompts`` to an *instance* of the class.
+In configuration, ``TerminalInteractiveShell.prompts_class`` may be set to
+either the class object, or a string of its full importable name.
+
 .. _termcolour:
 
 Terminal Colors
 ===============
 
-The default IPython configuration has most bells and whistles turned on
-(they're pretty safe). But there's one that may cause problems on some
-systems: the use of color on screen for displaying information. This is
-very useful, since IPython can show prompts and exception tracebacks
-with various colors, display syntax-highlighted source code, and in
-general make it easier to visually parse information.
+.. versionchanged:: 5.0
 
-The following terminals seem to handle the color sequences fine:
+There are two main configuration options controlling colours.
 
-    * Linux main text console, KDE Konsole, Gnome Terminal, E-term,
-      rxvt, xterm.
-    * CDE terminal (tested under Solaris). This one boldfaces light colors.
-    * (X)Emacs buffers. See the :ref:`emacs` section for more details on
-      using IPython with (X)Emacs.
-    * A Windows (XP/2k) CygWin shell. Although some users have reported
-      problems; it is not clear whether there is an issue for everyone
-      or only under specific configurations. If you have full color
-      support under cygwin, please post to the IPython mailing list so
-      this issue can be resolved for all users.
+``InteractiveShell.colors`` sets the colour of tracebacks and object info (the
+output from e.g. ``zip?``). It may also affect other things if the option below
+is set to ``'legacy'``. It has four case-insensitive values:
+``'nocolor', 'neutral', 'linux', 'lightbg'``. The default is *neutral*, which
+should be legible on either dark or light terminal backgrounds. *linux* is
+optimised for dark backgrounds and *lightbg* for light ones.
 
-These have shown problems:
+``TerminalInteractiveShell.highlight_style`` determines prompt colours and syntax
+highlighting. It takes the name of a Pygments style as a string, or the special
+value ``'legacy'`` to pick a style in accordance with ``InteractiveShell.colors``.
 
-    * Windows command prompt in WinXP/2k logged into a Linux machine via
-      telnet or ssh.
-    * Windows native command prompt in WinXP/2k, without Gary Bishop's
-      extensions. Once Gary's readline library is installed, the normal
-      WinXP/2k command prompt works perfectly.
+You can see the Pygments styles available on your system by running::
 
-IPython uses colors for various groups of things that may be
-controlled by different configuration options: prompts, tracebacks, "as
-you type" in the terminal, and the object introspection system which
-passes large sets of data through a pager. There are various way to
-change the colors.
+    import pygments
+    list(pygments.styles.get_all_styles())
 
-We can distinguish the coloration into 2 main categories:
-
-- The one that affects only the terminal client.
-- The ones that also affect clients connected through the Jupyter
-  protocol.
-
-Traceback, debugger, and pager are highlighted kernel-side so they fall
-into the second category. For historical reasons they are often
-governed by a ``colors`` attribute or configuration option that can
-take one of 3 case insensitive values: ``NoColors``, ``Linux`` and
-``LightBG``.
-
-Colors that affect only the terminal client are governed mainly by
-``TerminalInteractiveShell.highlight_style`` taking the name of a
-``Pygments`` style.
-
-As of IPython 5.0 the color configuration works as follows:
-
-  - by default, ``TerminalInteractiveShell.highlight_style`` is set to
-    ``legacy`` which **trys to** emulate the colors of IPython pre 5.0
-    and respect the ``.color`` configuration option.
-    The emulation is an approximation of the current version of Pygments
-    (2.1) and only supports extended ANSI escape sequence, hence the
-    theme cannot adapt to your terminal custom mapping if you have
-    one.
-
-    The last extra difference being that the "as you type" coloration
-    is present using the theme "default" if `color` is `LightBG`, and
-    using the theme "monokai" if `Linux`.
-
-  - if ``TerminalInteractiveShell.highlight_style`` is set to any other
-    themes, this theme is used for "as you type" highlighting. The
-    prompt highlighting is then governed by
-    ``--TerminalInteractiveShell.highlighting_style_overrides``
-
-As a summary, by default IPython 5.0 should mostly behave unchanged
-from IPython 4.x and before. Use
-``TerminalInteractiveShell.highlight_style`` and
-``--TerminalInteractiveShell.highlighting_style_overrides`` for extra
-flexibility.
-
-With default configuration `--colors=[nocolors|linux|ightbg]` as well
-as the `%colors` magic should behave identically as before.
-
+Additionally, ``TerminalInteractiveShell.highlight_style_overrides`` can override
+specific styles in the highlighting. It should be a dictionary mapping Pygments
+token types to strings defining the style. See `Pygments' documentation
+<http://pygments.org/docs/styles/#creating-own-styles>`__ for the language used
+to define styles.
 
 Colors in the pager
 -------------------
@@ -97,9 +93,6 @@ To configure your default pager to allow these:
    you always want to pass to less by default). This tells less to
    properly interpret control sequences, which is how color
    information is given to your terminal.
-
-
-
 
 .. _editors:
 

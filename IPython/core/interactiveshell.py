@@ -250,7 +250,7 @@ class InteractiveShell(SingletonConfigurable):
     ).tag(config=True)
     colors = CaselessStrEnum(('Neutral', 'NoColor','LightBG','Linux'),
                              default_value='Neutral',
-        help="Set the color scheme (NoColor, Linux, or LightBG)."
+        help="Set the color scheme (NoColor, Neutral, Linux, or LightBG)."
     ).tag(config=True)
     colors_force = Bool(False, help=
         """

@@ -5,10 +5,27 @@
 IPython 5.0
 ===========
 
-Released June, 2016
+Released July, 2016
 
-IPython 5.0 now uses ``prompt-toolkit`` for the command line interface, thus
-allowing real multi-line editing and syntactic coloration as you type.
+New terminal interface
+----------------------
+
+IPython 5 features a major upgrade to the terminal interface, bringing live
+syntax highlighting as you type, proper multiline editing and multiline paste,
+and tab completions that don't clutter up your history.
+
+.. image:: ../_images/ptshell_features.png
+    :alt: New terminal interface features
+    :align: center
+    :target: ../_images/ptshell_features.png
+
+These features are provided by the Python library `prompt_toolkit
+<http://python-prompt-toolkit.readthedocs.io/en/stable/>`__, which replaces
+``readline`` throughout our terminal interface.
+
+Relying on this pure-Python, cross platform module also makes it simpler to
+install IPython. We have removed dependencies on ``pyreadline`` for Windows and
+``gnureadline`` for Mac.
 
 
 When using IPython as a subprocess, like for emacs inferior-shell, IPython can
@@ -19,57 +36,44 @@ disabled.
 Backwards incompatible changes
 ------------------------------
 
+- The ``%install_ext`` magic function, deprecated since 4.0, has now been deleted.
+  You can distribute and install extensions as packages on PyPI.
+- Callbacks registered while an event is being handled will now only be called
+  for subsequent events; previously they could be called for the current event.
+  Similarly, callbacks removed while handling an event *will* always get that
+  event. See :ghissue:`9447` and :ghpull:`9453`.
+- Integration with pydb has been removed since pydb development has been stopped
+  since 2012, and pydb is not installable from PyPI.
+- The ``autoedit_syntax`` option has apparently been broken for many years.
+  It has been removed.
 
-The `install_ext magic` function which was deprecated since 4.0 has now been deleted.
-You can still distribute and install extensions as packages on PyPI.
+New terminal interface
+~~~~~~~~~~~~~~~~~~~~~~
 
-Update IPython event triggering to ensure callback registration and
-unregistration will only affect the set of callbacks the *next* time that event is
-triggered. See :ghissue:`9447` and :ghpull:`9453`.
+The overhaul of the terminal interface will probably cause a range of minor issues;
+this is inevitable for such a significant change. These are some that we're aware of:
 
-This is a change to the existing semantics, wherein one callback registering a
-second callback when triggered for an event would previously be invoked for
-that same event.
+IPython no longer uses readline configuration (``~/.inputrc``). We hope that
+the functionality you want (e.g. vi input mode) will be available by configuring
+IPython directly (see :doc:`/config/options/terminal`).
+If something's missing, please file an issue.
 
-Integration with pydb has been removed since pydb development has been stopped
-since 2012, and pydb is not installable from PyPI.
+The ``PromptManager`` class has been removed, and the prompt machinery simplified.
+See :ref:`custom_prompts` to customise prompts with the new machinery.
 
+:mod:`IPython.core.debugger` now provides a plainer interface.
+:mod:`IPython.terminal.debugger` contains the terminal debugger using
+prompt_toolkit.
 
+There are new options to configure the colours used in syntax highlighting.
+We have tried to integrate them with our classic  ``--colors`` option and
+``%colors`` magic, but there's a mismatch in possibilities, so some configurations
+may produce unexpected results. See :ref:`termcolour` for more information.
 
-Replacement of readline in TerminalInteractiveShell and PDB
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-IPython 5.0 now uses ``prompt_toolkit``. The
-``IPython.terminal.interactiveshell.TerminalInteractiveShell`` now uses
-``prompt_toolkit``. It is an almost complete rewrite, so many settings have
-thus changed or disappeared. The class keep the same name to avoid breaking
-user configuration for the options with names that are unchanged.
-
-The usage of ``prompt_toolkit`` is accompanied by a complete removal of all
-code, using ``readline``. A particular effect of not using `readline` anymore
-is that `.inputrc` settings are note effective anymore. Options having similar
-effects have likely been replaced by a configuration option on IPython itself
-(e.g: vi input mode).
-
-The `PromptManager` class have been removed, and the prompt machinery simplified.
-See `TerminalInteractiveShell.prompts` configurable for how to setup your prompts.
-
-.. note::
-
-    During development and beta cycle, ``TerminalInteractiveShell`` was
-    temporarly moved to ``IPython.terminal.ptshell``.
-
-
-Most of the above remarks also affect `IPython.core.debugger.Pdb`, the `%debug`
-and `%pdb` magic which do not use readline anymore either.
-
-The color handling has been slightly changed and is now exposed,
-in particular the colors of prompts and as you type
-highlighting can be affected by :
-``TerminalInteractiveShell.highlight_style``. With default
-configuration the ``--colors`` flag and ``%colors`` magic behavior
-should be mostly unchanged. See the `colors <termcolour>`_ section of
-our documentation
+The new interface is not compatible with Emacs 'inferior-shell' feature. To
+continue using this, add the ``--simple-prompt`` flag to the command Emacs
+runs. This flag disables most IPython features, relying on Emacs to provide
+things like tab completion.
 
 Provisional Changes
 -------------------
@@ -115,12 +119,6 @@ widgets... As stated above this is nightly experimental feature with a lot of
 (fun) problem to solve. We would be happy to get your feedback and expertise on
 it.
 
-
-Removed Feature
----------------
-
-- ``TerminalInteractiveShell.autoedit_syntax`` Has been broken for many years now
-  apparently. It has been removed.
 
 
 Deprecated Features
