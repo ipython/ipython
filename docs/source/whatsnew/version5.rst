@@ -27,12 +27,6 @@ Relying on this pure-Python, cross platform module also makes it simpler to
 install IPython. We have removed dependencies on ``pyreadline`` for Windows and
 ``gnureadline`` for Mac.
 
-
-When using IPython as a subprocess, like for emacs inferior-shell, IPython can
-be started with a ``--simple-prompt`` flag, which will bypass the prompt_toolkit
-input layer. In this mode, prompt color and many other features are
-disabled.
-
 Backwards incompatible changes
 ------------------------------
 
