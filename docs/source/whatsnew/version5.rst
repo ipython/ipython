@@ -44,8 +44,11 @@ Backwards incompatible changes
 New terminal interface
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The overhaul of the terminal interface will probably cause a range of minor issues;
-this is inevitable for such a significant change. These are some that we're aware of:
+The overhaul of the terminal interface will probably cause a range of minor
+issues for existing users.
+This is inevitable for such a significant change, and we've done our best to
+minimise these issues.
+Some changes that we're aware of, with suggestions on how to handle them:
 
 IPython no longer uses readline configuration (``~/.inputrc``). We hope that
 the functionality you want (e.g. vi input mode) will be available by configuring
