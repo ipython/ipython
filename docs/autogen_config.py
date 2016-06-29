@@ -11,7 +11,8 @@ generated = join(options, 'config-generated.txt')
 
 
 def write_doc(name, title, app, preamble=None):
-    with open(generated, 'a') as f:
+    filename = join(options, name+'.rst')
+    with open(filename, 'w') as f:
         f.write(title + '\n')
         f.write(('=' * len(title)) + '\n')
         f.write('\n')
@@ -21,7 +22,7 @@ def write_doc(name, title, app, preamble=None):
 
 
 if __name__ == '__main__':
-    # create empty file
+    # Touch this file for the make target
     with open(generated, 'w'):
         pass
 
