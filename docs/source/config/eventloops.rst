@@ -13,47 +13,39 @@ so different steps are needed to integrate with each.
 Event loops in the terminal
 ---------------------------
 
-In the terminal, IPython uses a blocking Python function to wait for user input.
-However, the Python C API provides a hook, :c:func:`PyOS_InputHook`, which is
-called frequently while waiting for input. This can be set to a function which
-briefly runs the event loop and then returns.
+.. versionchanged:: 5.0
 
-IPython provides Python level wrappers for setting and resetting this hook. To
-use them, subclass :class:`IPython.lib.inputhook.InputHookBase`, and define
-an ``enable(app=None)`` method, which initialises the event loop and calls
-``self.manager.set_inputhook(f)`` with a function which will briefly run the
-event loop before exiting. Decorate the class with a call to
-:func:`IPython.lib.inputhook.register`::
+   There is a new API for event loop integration using prompt_toolkit.
 
-    from IPython.lib.inputhook import register, InputHookBase
+In the terminal, IPython uses prompt_toolkit to prompt the user for input.
+prompt_toolkit provides hooks to integrate with an external event loop.
 
-    @register('clutter')
-    class ClutterInputHook(InputHookBase):
-        def enable(self, app=None):
-            self.manager.set_inputhook(inputhook_clutter)
+To integrate an event loop, define a function which runs the GUI event loop
+until there is input waiting for prompt_toolkit to process. There are two ways
+to detect this condition::
 
-You can also optionally define a ``disable()`` method, taking no arguments, if
-there are extra steps needed to clean up. IPython will take care of resetting
-the hook, whether or not you provide a disable method.
+    # Polling for input.
+    def inputhook(context):
+        while not context.input_is_ready():
+            # Replace this with the appropriate call for the event loop:
+            iterate_loop_once()
 
-The simplest way to define the hook function is just to run one iteration of the
-event loop, or to run until no events are pending. Most event loops provide some
-mechanism to do one of these things. However, the GUI may lag slightly,
-because the hook is only called every 0.1 seconds. Alternatively, the hook can
-keep running the event loop until there is input ready on stdin. IPython
-provides a function to facilitate this:
+    # Using a file descriptor to notify the event loop to stop.
+    def inputhook2(context):
+        fd = context.fileno()
+        # Replace the functions below with those for the event loop.
+        add_file_reader(fd, callback=stop_the_loop)
+        run_the_loop()
 
-.. currentmodule:: IPython.lib.inputhook
+Once you have defined this function, register it with IPython:
 
-.. function:: stdin_ready()
+.. currentmodule:: IPython.terminal.pt_inputhooks
 
-   Returns True if there is something ready to read on stdin.
-   
-   If this is the case, the hook function should return immediately.
-   
-   This is implemented for Windows and POSIX systems - on other platforms, it
-   always returns True, so that the hook always gives Python a chance to check
-   for input.
+.. function:: register(name, inputhook)
+
+   Register the function *inputhook* as the event loop integration for the
+   GUI *name*. If ``name='foo'``, then the user can enable this integration
+   by running ``%gui foo``.
 
 
 Event loops in the kernel
