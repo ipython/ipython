@@ -170,16 +170,20 @@ def select_figure_format(shell, fmt):
 
     svg_formatter = shell.display_formatter.formatters['image/svg+xml']
     png_formatter = shell.display_formatter.formatters['image/png']
+    pdf_formatter = shell.display_formatter.formatters['application/pdf']
 
     if fmt == 'png':
         svg_formatter.type_printers.pop(Figure, None)
         png_formatter.for_type(Figure, lambda fig: print_figure(fig, 'png'))
+        pdf_formatter.for_type(Figure, lambda fig: print_figure(fig, 'pdf'))
     elif fmt in ('png2x', 'retina'):
         svg_formatter.type_printers.pop(Figure, None)
         png_formatter.for_type(Figure, retina_figure)
+        pdf_formatter.for_type(Figure, lambda fig: print_figure(fig, 'pdf'))
     elif fmt == 'svg':
         png_formatter.type_printers.pop(Figure, None)
         svg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'svg'))
+        pdf_formatter.for_type(Figure, lambda fig: print_figure(fig, 'pdf'))
     else:
         raise ValueError("supported formats are: 'png', 'retina', 'svg', not %r" % fmt)
 
