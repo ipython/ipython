@@ -10,11 +10,15 @@ from __future__ import print_function
 
 import sys
 import warnings
+from IPython.utils.decorators import undoc
 
 warnings.warn("The module IPython.utils.warn is deprecated since IPython 4.0, use the standard warnings module instead", DeprecationWarning)
 
+@undoc
 def warn(msg,level=2,exit_val=1):
-    """Standard warning printer. Gives formatting consistency.
+    """Deprecated
+
+    Standard warning printer. Gives formatting consistency.
 
     Output is sent to io.stderr (sys.stderr by default).
 
@@ -39,19 +43,28 @@ def warn(msg,level=2,exit_val=1):
             sys.exit(exit_val)
 
             
+@undoc
 def info(msg):
-    """Equivalent to warn(msg,level=1)."""
+    """Deprecated 
+    
+    Equivalent to warn(msg,level=1)."""
 
     warn(msg,level=1)
 
     
+@undoc
 def error(msg):
-    """Equivalent to warn(msg,level=3)."""
+    """Deprecated 
+    
+    Equivalent to warn(msg,level=3)."""
 
     warn(msg,level=3)
 
     
+@undoc
 def fatal(msg,exit_val=1):
-    """Equivalent to warn(msg,exit_val=exit_val,level=4)."""
+    """Deprecated 
+    
+    Equivalent to warn(msg,exit_val=exit_val,level=4)."""
 
     warn(msg,exit_val=exit_val,level=4)

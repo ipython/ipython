@@ -87,7 +87,7 @@ source/api/generated/gen.txt:
 	$(PYTHON) autogen_api.py
 	@echo "Build API docs finished."
 
-autogen_shortcuts: autogen_shortcuts.py ../IPython/terminal/interactiveshell.py
+autogen_shortcuts: autogen_shortcuts.py ../IPython/terminal/interactiveshell.py source/config/shortcuts/index.rst
 	$(PYTHON) autogen_shortcuts.py
 	@echo "Created docs for shortcuts"
 
