@@ -71,13 +71,15 @@ for kb in ipy_bindings:
 
 if __name__ == '__main__':
 
+    sort_key = lambda k:(str(k[0][1]),str(k[0][0]))
+
     here = abspath(dirname(__file__))
     dest = join(here, 'source', 'config', 'shortcuts')
 
     with open(join(dest, 'single_filtered.csv'), 'w') as csv:
-        for k, v in sorted(single_filter.items()):
+        for k, v in sorted(single_filter.items(), key=sort_key):
             csv.write(':kbd:`{}`\t{}\t{}\n'.format(k[0], k[1], v))
 
     with open(join(dest, 'multi_filtered.csv'), 'w') as csv:
-        for k, v in sorted(multi_filter.items()):
+        for k, v in sorted(multi_filter.items(), key=sort_key):
             csv.write(':kbd:`{}`\t{}\t{}\n'.format(k[0], k[1], v))
