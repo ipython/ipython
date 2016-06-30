@@ -343,12 +343,6 @@ class InteractiveShellApp(Configurable):
             except:
                 self.log.warning("Unknown error in handling PYTHONSTARTUP file %s:", python_startup)
                 self.shell.showtraceback()
-            finally:
-                # Many PYTHONSTARTUP files set up the readline completions,
-                # but this is often at odds with IPython's own completions.
-                # Do not allow PYTHONSTARTUP to set up readline.
-                if self.shell.has_readline:
-                    self.shell.set_readline_completer()
         
         startup_files += glob.glob(os.path.join(startup_dir, '*.py'))
         startup_files += glob.glob(os.path.join(startup_dir, '*.ipy'))

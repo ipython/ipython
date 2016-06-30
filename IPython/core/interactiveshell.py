@@ -62,7 +62,6 @@ from IPython.utils import PyColorize
 from IPython.utils import io
 from IPython.utils import py3compat
 from IPython.utils import openpy
-from IPython.utils.contexts import NoOpContext
 from IPython.utils.decorators import undoc
 from IPython.utils.io import ask_yes_no
 from IPython.utils.ipstruct import Struct
@@ -574,9 +573,6 @@ class InteractiveShell(SingletonConfigurable):
         self.tempfiles = []
         self.tempdirs = []
 
-        # Keep track of readline usage (later set by init_readline)
-        self.has_readline = False
-
         # keep track of where we started running (mainly for crash post-mortem)
         # This is not being used anywhere currently.
         self.starting_dir = py3compat.getcwd()
@@ -659,11 +655,8 @@ class InteractiveShell(SingletonConfigurable):
         # override sys.stdout and sys.stderr themselves, you need to do that
         # *before* instantiating this class, because io holds onto
         # references to the underlying streams.
-        if (sys.platform == 'win32' or sys.platform == 'cli') and self.has_readline:
-            io.stdout = io.stderr = io.IOStream(self.readline._outputfile)
-        else:
-            io.stdout = io.IOStream(sys.stdout)
-            io.stderr = io.IOStream(sys.stderr)
+        io.stdout = io.IOStream(sys.stdout)
+        io.stderr = io.IOStream(sys.stderr)
 
     def init_prompts(self):
         # Set system prompts, so that scripts can decide if they are running
@@ -984,9 +977,7 @@ class InteractiveShell(SingletonConfigurable):
             error('No traceback has been produced, nothing to debug.')
             return
 
-
-        with self.readline_no_record:
-            self.InteractiveTB.debugger(force=True)
+        self.InteractiveTB.debugger(force=True)
 
     #-------------------------------------------------------------------------
     # Things related to IPython's various namespaces
@@ -1889,10 +1880,7 @@ class InteractiveShell(SingletonConfigurable):
 
     def init_readline(self):
         """Moved to terminal subclass, here only to simplify the init logic."""
-        self.readline = None
         # Set a number of methods that depend on readline to be no-op
-        self.readline_no_record = NoOpContext()
-        self.set_readline_completer = no_op
         self.set_custom_completer = no_op
 
     @skip_doctest
@@ -1929,7 +1917,7 @@ class InteractiveShell(SingletonConfigurable):
         self.Completer = IPCompleter(shell=self,
                                      namespace=self.user_ns,
                                      global_namespace=self.user_global_ns,
-                                     use_readline=self.has_readline,
+                                     use_readline=False,
                                      parent=self,
                                      )
         self.configurables.append(self.Completer)

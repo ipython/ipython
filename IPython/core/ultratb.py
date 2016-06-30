@@ -115,7 +115,6 @@ from inspect import getsourcefile, getfile, getmodule, \
     ismodule, isclass, ismethod, isfunction, istraceback, isframe, iscode
 
 # IPython's own modules
-# Modified pdb which doesn't damage IPython's readline handling
 from IPython import get_ipython
 from IPython.core import debugger
 from IPython.core.display_trap import DisplayTrap
