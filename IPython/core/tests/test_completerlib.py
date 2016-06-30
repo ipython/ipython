@@ -145,3 +145,19 @@ def test_import_invalid_module():
         nt.assert_equal(intersection, set())
 
         assert valid_module_names.issubset(s), valid_module_names.intersection(s)
+
+
+def test_bad_module_all():
+    """Test module with invalid __all__
+
+    https://github.com/ipython/ipython/issues/9678
+    """
+    testsdir = os.path.dirname(__file__)
+    sys.path.insert(0, testsdir)
+    try:
+        results = module_completion('from bad_all import ')
+        nt.assert_in('puppies', results)
+        for r in results:
+            nt.assert_is_instance(r, py3compat.string_types)
+    finally:
+        sys.path.remove(testsdir)
