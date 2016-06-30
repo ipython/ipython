@@ -153,7 +153,6 @@ def is_importable(module, attr, only_modules):
     else:
         return not(attr[:2] == '__' and attr[-2:] == '__')
 
-
 def try_import(mod, only_modules=False):
     try:
         m = __import__(mod)
@@ -173,9 +172,8 @@ def try_import(mod, only_modules=False):
     completions.extend(getattr(m, '__all__', []))
     if m_is_init:
         completions.extend(module_list(os.path.dirname(m.__file__)))
-    completions = set(completions)
-    if '__init__' in completions:
-        completions.remove('__init__')
+    completions = {c for c in completions if isinstance(c, string_types)}
+    completions.discard('__init__')
     return list(completions)
 
 
