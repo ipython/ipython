@@ -109,12 +109,9 @@ MAIN FEATURES
   variable names, and show you a list of the possible completions if there's
   no unambiguous one. It will also complete filenames in the current directory.
 
-  This feature requires the readline and rlcomplete modules, so it won't work
-  if your Python lacks readline support (such as under Windows).
+* Search previous command history in two ways:
 
-* Search previous command history in two ways (also requires readline):
-
-  - Start typing, and then use Ctrl-p (previous,up) and Ctrl-n (next,down) to
+  - Start typing, and then use Ctrl-p (previous, up) and Ctrl-n (next,down) to
     search through only the history items that match what you've typed so
     far. If you use Ctrl-p/Ctrl-n at a blank prompt, they just behave like
     normal arrow keys.
@@ -123,7 +120,7 @@ MAIN FEATURES
     your history for lines that match what you've typed so far, completing as
     much as it can.
 
-  - %hist: search history by index (this does *not* require readline).
+  - %hist: search history by index.
 
 * Persistent command history across sessions.
 
@@ -255,7 +252,6 @@ MAIN FEATURES
 interactive_usage_min =  """\
 An enhanced console for Python.
 Some of its features are:
-- Readline support if the readline library is present.
 - Tab completion in the local namespace.
 - Logging of input, see command-line options.
 - System shell escape via ! , eg !ls.

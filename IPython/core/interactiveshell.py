@@ -343,9 +343,6 @@ class InteractiveShell(SingletonConfigurable):
         Automatically call the pdb debugger after every exception.
         """
     ).tag(config=True)
-    multiline_history = Bool(sys.platform != 'win32',
-        help="Save multi-line entries as one entry in readline history"
-    ).tag(config=True)
     display_page = Bool(False,
         help="""If True, anything that would be passed to the pager
         will be displayed as regular output instead."""
@@ -387,40 +384,10 @@ class InteractiveShell(SingletonConfigurable):
     history_load_length = Integer(1000, help=
         """
         The number of saved history entries to be loaded
-        into the readline buffer at startup.
+        into the history buffer at startup.
         """
     ).tag(config=True)
 
-    # The readline stuff will eventually be moved to the terminal subclass
-    # but for now, we can't do that as readline is welded in everywhere.
-    readline_use = Bool(True).tag(config=True)
-    readline_remove_delims = Unicode('-/~').tag(config=True)
-    readline_delims = Unicode() # set by init_readline()
-    # don't use \M- bindings by default, because they
-    # conflict with 8-bit encodings. See gh-58,gh-88
-    readline_parse_and_bind = List([
-            'tab: complete',
-            '"\C-l": clear-screen',
-            'set show-all-if-ambiguous on',
-            '"\C-o": tab-insert',
-            '"\C-r": reverse-search-history',
-            '"\C-s": forward-search-history',
-            '"\C-p": history-search-backward',
-            '"\C-n": history-search-forward',
-            '"\e[A": history-search-backward',
-            '"\e[B": history-search-forward',
-            '"\C-k": kill-line',
-            '"\C-u": unix-line-discard',
-        ]).tag(config=True)
-    
-    _custom_readline_config = False
-    
-    @observe('readline_parse_and_bind')
-    def _readline_parse_and_bind_changed(self, change):
-        # notice that readline config is customized
-        # indicates that it should have higher priority than inputrc
-        self._custom_readline_config = True
-    
     ast_node_interactivity = Enum(['all', 'last', 'last_expr', 'none'],
                                   default_value='last_expr',
                                   help="""
