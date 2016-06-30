@@ -4,6 +4,12 @@ IPython shortcuts
 
 Available shortcut in IPython terminal.
 
+.. warnings::
+
+  This list is automatically generated, and may not hold all the available
+  shortcut. In particular, it may depends on the version of ``prompt_toolkit``
+  installed during the generation of this page.
+
 
 Single Filtered shortcuts
 =========================
