@@ -12,6 +12,7 @@ Configuring IPython
 
    intro
    options/index
+   shortcuts/index
    details
 
 .. seealso::
