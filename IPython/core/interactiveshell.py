@@ -252,15 +252,6 @@ class InteractiveShell(SingletonConfigurable):
                              default_value='Neutral',
         help="Set the color scheme (NoColor, Neutral, Linux, or LightBG)."
     ).tag(config=True)
-    colors_force = Bool(False, help=
-        """
-        Force use of ANSI color codes, regardless of OS and readline
-        availability.
-        """
-        # FIXME: This is essentially a hack to allow ZMQShell to show colors
-        # without readline on Win32. When the ZMQ formatting system is
-        # refactored, this should be removed.
-    )
     debug = Bool(False).tag(config=True)
     deep_reload = Bool(False, help=
         """
@@ -646,6 +637,10 @@ class InteractiveShell(SingletonConfigurable):
         # Python source parser/formatter for syntax highlighting
         pyformat = PyColorize.Parser().format
         self.pycolorize = lambda src: pyformat(src,'str',self.colors)
+
+    def refresh_style(self):
+        # No-op here, used in subclass
+        pass
 
     def init_pushd_popd_magic(self):
         # for pushd/popd management

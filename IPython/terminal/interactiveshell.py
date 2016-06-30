@@ -87,8 +87,6 @@ else:
 _use_simple_prompt = ('IPY_TEST_SIMPLE_PROMPT' in os.environ) or (not _is_tty)
 
 class TerminalInteractiveShell(InteractiveShell):
-    colors_force = True
-
     space_for_menu = Integer(6, help='Number of line at the bottom of the screen '
                                                   'to reserve for the completion menu'
                             ).tag(config=True)
