@@ -168,25 +168,25 @@ class CallTipWidget(QtGui.QLabel):
 
         vertical = 'bottom'
         horizontal = 'Right'
-        if point.y() + tip_height > screen_rect.height():
+        if point.y() + tip_height > screen_rect.bottom():
             point_ = text_edit.mapToGlobal(cursor_rect.topRight())
             # If tip is still off screen, check if point is in top or bottom
             # half of screen.
             if point_.y() - tip_height < padding:
                 # If point is in upper half of screen, show tip below it.
                 # otherwise above it.
-                if 2*point.y() < screen_rect.height():
+                if 2*point.y() < screen_rect.bottom():
                     vertical = 'bottom'
                 else:
                     vertical = 'top'
             else:
                 vertical = 'top'
-        if point.x() + tip_width > screen_rect.width():
+        if point.x() + tip_width > screen_rect.right():
             point_ = text_edit.mapToGlobal(cursor_rect.topRight())
             # If tip is still off-screen, check if point is in the right or
             # left half of the screen.
             if point_.x() - tip_width < padding:
-                if 2*point.x() < screen_rect.width():
+                if 2*point.x() < screen_rect.right():
                     horizontal = 'Right'
                 else:
                     horizontal = 'Left'
