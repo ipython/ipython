@@ -24,7 +24,7 @@ _ipython()
 {
     local cur=${COMP_WORDS[COMP_CWORD]}
     local prev=${COMP_WORDS[COMP_CWORD - 1]}
-    local subcommands="notebook qtconsole console kernel profile locate history nbconvert kernelspec install-nbextension trust "
+    local subcommands="kernel profile locate history kernelspec"
     local opts="help"
     if [ -z "$__ipython_complete_baseopts" ]; then
         _ipython_get_flags baseopts
@@ -46,11 +46,11 @@ _ipython()
 
     if [[ ${cur} == -* ]]; then
         case $mode in
-            "notebook" | "qtconsole" | "console" | "kernel" | "nbconvert")
+             "kernel")
                 _ipython_get_flags $mode
                 opts=$"${opts} ${baseopts}"
                 ;;
-            "locate" | "profile" | "install-nbextension" | "trust")
+            "locate" | "profile")
                 _ipython_get_flags $mode
                 ;;
             "history" | "kernelspec")
