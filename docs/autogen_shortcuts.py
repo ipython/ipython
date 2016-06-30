@@ -5,6 +5,10 @@ from IPython.terminal.interactiveshell import KeyBindingManager
 
 def name(c):
     s = c.__class__.__name__
+    if s == '_Invert':
+        return '(Not: %s)' % name(c.filter)
+    if s in log_filters.keys():
+        return '(%s: %s)' % (log_filters[s], ', '.join(name(x) for x in c.filters))
     return log_filters[s] if s in log_filters.keys() else s
 
 
@@ -32,15 +36,11 @@ def multi_filter_str(flt):
     """Yield readable conditional filter
     """
     assert hasattr(flt, 'filters'), 'Conditional filter required'
-
     yield name(flt)
-    for subfilter in flt.filters:
-        yield name(subfilter)
-        if hasattr(subfilter, 'filter'):
-            yield name(subfilter.filter)
 
 
-log_filters = dict(_AndList='(And)', _OrList='(Or)', _Invert='(Inv)')
+log_filters = dict(_AndList='And', _OrList='Or')
+log_invert =  {'_Invert'}
 
 kbm = KeyBindingManager.for_prompt()
 ipy_bindings = kbm.registry.key_bindings
