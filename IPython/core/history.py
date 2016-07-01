@@ -161,6 +161,9 @@ class HistoryAccessor(HistoryAccessorBase):
         local disk, e.g::
         
             ipython --HistoryManager.hist_file=/tmp/ipython_hist.sqlite
+
+        you can also use the specific value `:memory:` (including the colon
+        at both end but not the back ticks), to avoid creating an history file.
         
         """).tag(config=True)
     
