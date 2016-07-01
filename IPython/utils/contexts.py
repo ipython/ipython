@@ -67,7 +67,8 @@ class NoOpContext(object):
     Context manager that does nothing."""
 
     def __init__(self):
-        warnings.warn("""NoOpContext is deprecated since IPython 5.0 """)
+        warnings.warn("""NoOpContext is deprecated since IPython 5.0 """,
+                                            DeprecationWarning, stacklevel=2)
 
     def __enter__(self): pass
     def __exit__(self, type, value, traceback): pass

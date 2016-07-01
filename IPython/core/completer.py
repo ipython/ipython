@@ -1,7 +1,7 @@
 # encoding: utf-8
 """Word completion for IPython.
 
-This module stared as fork of the rlcompleter module in the Python standard
+This module started as fork of the rlcompleter module in the Python standard
 library.  The original enhancements made to rlcompleter have been sent
 upstream and were accepted as of Python 2.3,
 
