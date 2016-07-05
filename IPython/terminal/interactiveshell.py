@@ -3,28 +3,22 @@ from __future__ import print_function
 
 import os
 import sys
-import signal
 from warnings import warn
 
-from IPython.core.error import TryNext
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.utils.py3compat import PY3, cast_unicode_py2, input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
 from traitlets import Bool, Unicode, Dict, Integer, observe, Instance, Type, default, Enum
 
-from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER, EditingMode
-from prompt_toolkit.filters import (HasFocus, HasSelection, Condition,
-    ViInsertMode, EmacsInsertMode, IsDone, HasCompletions)
-from prompt_toolkit.filters.cli import ViMode
+from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
+from prompt_toolkit.filters import (HasFocus, Condition, IsDone)
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop, create_prompt_layout
 from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.key_binding.manager import KeyBindingManager
-from prompt_toolkit.keys import Keys
 from prompt_toolkit.layout.processors import ConditionalProcessor, HighlightMatchingBracketProcessor
 from prompt_toolkit.styles import PygmentsStyle, DynamicStyle
-from prompt_toolkit.key_binding.bindings.completion import display_completions_like_readline
 
 from pygments.styles import get_style_by_name, get_all_styles
 from pygments.token import Token
@@ -34,6 +28,7 @@ from .magics import TerminalMagics
 from .pt_inputhooks import get_inputhook_func
 from .prompts import Prompts, ClassicPrompts, RichPromptDisplayHook
 from .ptutils import IPythonPTCompleter, IPythonPTLexer
+from .shortcuts import register_ipython_shortcuts
 
 DISPLAY_BANNER_DEPRECATED = object()
 
@@ -210,128 +205,9 @@ class TerminalInteractiveShell(InteractiveShell):
             self.prompt_for_code = prompt
             return
 
+        # Set up keyboard shortcuts
         kbmanager = KeyBindingManager.for_prompt()
-        insert_mode = ViInsertMode() | EmacsInsertMode()
-        # Ctrl+J == Enter, seemingly
-        @kbmanager.registry.add_binding(Keys.ControlJ,
-                            filter=(HasFocus(DEFAULT_BUFFER)
-                                    & ~HasSelection()
-                                    & insert_mode
-                                   ))
-        def _(event):
-            b = event.current_buffer
-            d = b.document
-
-            if b.complete_state:
-                cc = b.complete_state.current_completion
-                if cc:
-                    b.apply_completion(cc)
-                else:
-                    b.cancel_completion()
-                return
-
-            if not (d.on_last_line or d.cursor_position_row >= d.line_count
-                                           - d.empty_line_count_at_the_end()):
-                b.newline()
-                return
-
-            status, indent = self.input_splitter.check_complete(d.text + '\n')
-
-            if (status != 'incomplete') and b.accept_action.is_returnable:
-                b.accept_action.validate_and_handle(event.cli, b)
-            else:
-                b.insert_text('\n' + (' ' * (indent or 0)))
-
-        @kbmanager.registry.add_binding(Keys.ControlP, filter=(ViInsertMode() & HasFocus(DEFAULT_BUFFER)))
-        def _previous_history_or_previous_completion(event):
-            """
-            Control-P in vi edit mode on readline is history next, unlike default prompt toolkit.
-
-            If completer is open this still select previous completion.
-            """
-            event.current_buffer.auto_up()
-
-        @kbmanager.registry.add_binding(Keys.ControlN, filter=(ViInsertMode() & HasFocus(DEFAULT_BUFFER)))
-        def _next_history_or_next_completion(event):
-            """
-            Control-N in vi edit mode on readline is history previous, unlike default prompt toolkit.
-
-            If completer is open this still select next completion.
-            """
-            event.current_buffer.auto_down()
-
-        @kbmanager.registry.add_binding(Keys.ControlG, filter=(
-            HasFocus(DEFAULT_BUFFER) & HasCompletions()
-            ))
-        def _dismiss_completion(event):
-            b = event.current_buffer
-            if b.complete_state:
-                b.cancel_completion()
-
-        @kbmanager.registry.add_binding(Keys.ControlC, filter=HasFocus(DEFAULT_BUFFER))
-        def _reset_buffer(event):
-            b = event.current_buffer
-            if b.complete_state:
-                b.cancel_completion()
-            else:
-                b.reset()
-
-        @kbmanager.registry.add_binding(Keys.ControlC, filter=HasFocus(SEARCH_BUFFER))
-        def _reset_search_buffer(event):
-            if event.current_buffer.document.text:
-                event.current_buffer.reset()
-            else:
-                event.cli.push_focus(DEFAULT_BUFFER)
-
-        supports_suspend = Condition(lambda cli: hasattr(signal, 'SIGTSTP'))
-
-        @kbmanager.registry.add_binding(Keys.ControlZ, filter=supports_suspend)
-        def _suspend_to_bg(event):
-            event.cli.suspend_to_background()
-
-        @Condition
-        def cursor_in_leading_ws(cli):
-            before = cli.application.buffer.document.current_line_before_cursor
-            return (not before) or before.isspace()
-
-        # Ctrl+I == Tab
-        @kbmanager.registry.add_binding(Keys.ControlI,
-                            filter=(HasFocus(DEFAULT_BUFFER)
-                                    & ~HasSelection()
-                                    & insert_mode
-                                    & cursor_in_leading_ws
-                                   ))
-        def _indent_buffer(event):
-            event.current_buffer.insert_text(' ' * 4)
-
-
-        if self.display_completions == 'readlinelike':
-            @kbmanager.registry.add_binding(Keys.ControlI,
-                            filter=(HasFocus(DEFAULT_BUFFER)
-                                    & ~HasSelection()
-                                    & insert_mode
-                                    & ~cursor_in_leading_ws
-                                   ))
-            def _disaply_compl(ev):
-                display_completions_like_readline(ev)
-
-
-        if sys.platform == 'win32':
-            from IPython.lib.clipboard import (ClipboardEmpty,
-                           win32_clipboard_get, tkinter_clipboard_get)
-            @kbmanager.registry.add_binding(Keys.ControlV,
-                                filter=(HasFocus(DEFAULT_BUFFER) & ~ViMode()))
-            def _paste(event):
-                try:
-                    text = win32_clipboard_get()
-                except TryNext:
-                    try:
-                        text = tkinter_clipboard_get()
-                    except (TryNext, ClipboardEmpty):
-                        return
-                except ClipboardEmpty:
-                    return
-                event.current_buffer.insert_text(text.replace('\t', ' ' * 4))
+        register_ipython_shortcuts(kbmanager.registry, self)
 
         # Pre-populate history from IPython's history database
         history = InMemoryHistory()
