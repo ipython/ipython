@@ -220,20 +220,8 @@ if not any(arg.startswith('bdist') for arg in sys.argv):
 
     if sys.platform == 'darwin':
         install_requires.extend(['appnope'])
-        have_readline = False
-        try:
-            import readline
-        except ImportError:
-            pass
-        else:
-            if 'libedit' not in readline.__doc__:
-                have_readline = True
-        if not have_readline:
-            install_requires.extend(['gnureadline'])
 
-    if sys.platform.startswith('win'):
-        extras_require['terminal'].append('pyreadline>=2.0')
-    else:
+    if not sys.platform.startswith('win'):
         install_requires.append('pexpect')
 
     # workaround pypa/setuptools#147, where setuptools misspells

@@ -140,9 +140,6 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         if dummy or (dummy != 0 and self.dummy_mode):
             return
 
-        if self.has_readline:
-            self.set_readline_completer()
-
         # self.banner is auto computed
         if header:
             self.old_banner2 = self.banner2
