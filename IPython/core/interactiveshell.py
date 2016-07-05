@@ -1879,8 +1879,12 @@ class InteractiveShell(SingletonConfigurable):
     #-------------------------------------------------------------------------
 
     def init_readline(self):
-        """Moved to terminal subclass, here only to simplify the init logic."""
+        """DEPRECATED
+        
+        Moved to terminal subclass, here only to simplify the init logic."""
         # Set a number of methods that depend on readline to be no-op
+        warnings.warn('`init_readline` is no-op since IPython 5.0 and is Deprecated',
+                DeprecationWarning, stacklevel=2)
         self.set_custom_completer = no_op
 
     @skip_doctest
