@@ -54,6 +54,8 @@ if __name__ == '__main__':
                                         r'\.nbformat',
                                         r'\.parallel',
                                         r'\.qt',
+                                        # this is deprecated.
+                                        r'\.utils\.warn',
                                         ]
     # main API is in the inputhook module, which is documented.
 

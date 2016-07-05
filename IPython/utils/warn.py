@@ -10,11 +10,9 @@ from __future__ import print_function
 
 import sys
 import warnings
-from IPython.utils.decorators import undoc
 
 warnings.warn("The module IPython.utils.warn is deprecated since IPython 4.0, use the standard warnings module instead", DeprecationWarning)
 
-@undoc
 def warn(msg,level=2,exit_val=1):
     """Deprecated
 
@@ -43,7 +41,6 @@ def warn(msg,level=2,exit_val=1):
             sys.exit(exit_val)
 
             
-@undoc
 def info(msg):
     """Deprecated 
     
@@ -52,7 +49,6 @@ def info(msg):
     warn(msg,level=1)
 
     
-@undoc
 def error(msg):
     """Deprecated 
     
@@ -61,7 +57,6 @@ def error(msg):
     warn(msg,level=3)
 
     
-@undoc
 def fatal(msg,exit_val=1):
     """Deprecated 
     
