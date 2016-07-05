@@ -24,7 +24,7 @@ _ipython()
 {
     local cur=${COMP_WORDS[COMP_CWORD]}
     local prev=${COMP_WORDS[COMP_CWORD - 1]}
-    local subcommands="notebook qtconsole console kernel profile locate history nbconvert kernelspec install-nbextension trust "
+    local subcommands="kernel profile locate history"
     local opts="help"
     if [ -z "$__ipython_complete_baseopts" ]; then
         _ipython_get_flags baseopts
@@ -46,14 +46,14 @@ _ipython()
 
     if [[ ${cur} == -* ]]; then
         case $mode in
-            "notebook" | "qtconsole" | "console" | "kernel" | "nbconvert")
+             "kernel")
                 _ipython_get_flags $mode
                 opts=$"${opts} ${baseopts}"
                 ;;
-            "locate" | "profile" | "install-nbextension" | "trust")
+            "locate" | "profile")
                 _ipython_get_flags $mode
                 ;;
-            "history" | "kernelspec")
+            "history")
                 if [[ $COMP_CWORD -ge 3 ]]; then
                     # 'history trim' and 'history clear' covered by next line
                     _ipython_get_flags $mode\ "${COMP_WORDS[2]}"
@@ -80,15 +80,6 @@ _ipython()
             opts="--"
         else
             opts="trim 	clear "
-        fi
-        local IFS=$'\t\n'
-        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-    elif [[ $mode == "kernelspec" ]]; then
-        if [[ $COMP_CWORD -ge 3 ]]; then
-            # drop into flags
-            opts="--"
-        else
-            opts="list 	install "
         fi
         local IFS=$'\t\n'
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
