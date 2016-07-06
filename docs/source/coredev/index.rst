@@ -1,15 +1,15 @@
 .. _core_developer_guide:
 
-==================================
-Guide for IPtyhon core Developpers
-==================================
+=================================
+Guide for IPython core Developers
+=================================
 
-This guide documents the development of core IPython. Alternatively,
+This guide documents the development of IPython itself.  Alternatively,
 developers of third party tools and libraries that use IPython should see the
 :doc:`../development/index`.
 
 
-For instruction on how to make a developer install see devinstall_.
+For instruction on how to make a developer install see :ref:`devinstall`.
 
 .. toctree::
    :maxdepth: 1
@@ -20,9 +20,8 @@ For instruction on how to make a developer install see devinstall_.
 Old Documentation
 =================
 
-Out of date documentation is still available and have been kept for archival
-reason.
+Out of date documentation is still available and have been kept for archival purposes.
 
-Developers working on core IPython should also consult the
+Developers working on IPython should also consult the
 `developer information <https://github.com/ipython/ipython/wiki/Dev:-Index>`_
 on the IPython GitHub wiki.
