@@ -414,7 +414,12 @@ class TerminalInteractiveShell(InteractiveShell):
 
     def enable_gui(self, gui=None):
         if gui:
-            self._inputhook = get_inputhook_func(gui)
+            if gui == 'qt':
+                from IPython.lib.inputhook import inputhook_manager
+                inputhook_manager.enable_gui('qt')
+                self._inputhook = inputhook_manager._callback
+            else:
+                self._inputhook = get_inputhook_func(gui)
         else:
             self._inputhook = None
 
