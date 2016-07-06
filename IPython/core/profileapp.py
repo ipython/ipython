@@ -223,12 +223,12 @@ class ProfileCreate(BaseIPythonApplication):
     ).tag(config=True)
 
     @observe('parallel')
-    def _parallel_changed(self, name, old, new):
+    def _parallel_changed(self, change):
         parallel_files = [   'ipcontroller_config.py',
                             'ipengine_config.py',
                             'ipcluster_config.py'
                         ]
-        if new:
+        if change['new']:
             for cf in parallel_files:
                 self.config_files.append(cf)
         else:
