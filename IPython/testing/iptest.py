@@ -364,9 +364,6 @@ def run_iptest():
     if '--with-xunit' in sys.argv and not hasattr(Xunit, 'orig_addError'):
         monkeypatch_xunit()
 
-    warnings.filterwarnings('ignore',
-        'This will be removed soon.  Use IPython.testing.util instead')
-    
     arg1 = sys.argv[1]
     if arg1 in test_sections:
         section = test_sections[arg1]

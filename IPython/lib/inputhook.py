@@ -21,6 +21,11 @@ from distutils.version import LooseVersion as V
 
 from warnings import warn
 
+
+warn("`IPython.lib.inputhook` is deprecated since IPython 5.0 and will be removed in future versions.",
+        DeprecationWarning, stacklevel=2)
+
+
 #-----------------------------------------------------------------------------
 # Constants
 #-----------------------------------------------------------------------------
