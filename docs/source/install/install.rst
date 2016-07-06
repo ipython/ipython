@@ -47,11 +47,10 @@ Dependencies
 ~~~~~~~~~~~~
 
 IPython relies on a number of other Python packages. Installing using a package
-manager like pip or conda will ensure the necessary packages are installed. If
-you install manually, it's up to you to make sure dependencies are installed.
-They're not listed here since a static list would inevitably fall out of date as
-dependencies may change from release to release and also vary depending on
-the platform.
+manager like pip or conda will ensure the necessary packages are installed.
+Manual installation without dependencies is possible, but not recommended.
+The dependencies can be viewed with package manager commands,
+such as :command:`pip show ipython` or :command:`conda info ipython`.
 
 
 Installing IPython itself
@@ -107,6 +106,7 @@ the IPython source tree:
     $ iptest
 
 .. _devinstall:
+
 Installing the development version
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -123,11 +123,9 @@ Then do:
     $ cd ipython
     $ pip install -e .
 
-The `pip install -e .` allow users and developers to be able to follow the
-development branch as it changes.
-
-This creates links in the right places and installs the command line script to
-the appropriate location. 
+The :command:`pip install -e .` command allows users and developers to follow
+the development branch as it changes by creating links in the right places and
+installing the command line scripts to the appropriate locations.
 
 Then, if you want to update your IPython at any time, do:
 
@@ -135,3 +133,10 @@ Then, if you want to update your IPython at any time, do:
 
     $ git pull
 
+If the dependencies or entrypoints have changed, you may have to run
+
+.. code-block:: bash
+
+    $ pip install -e .
+
+again, but this is infrequent.
