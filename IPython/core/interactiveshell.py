@@ -474,28 +474,16 @@ class InteractiveShell(SingletonConfigurable):
         self.init_hooks()
         self.init_events()
         self.init_pushd_popd_magic()
-        # self.init_traceback_handlers use to be here, but we moved it below
-        # because it and init_io have to come after init_readline.
         self.init_user_ns()
         self.init_logger()
         self.init_builtins()
 
         # The following was in post_config_initialization
         self.init_inspector()
-        # init_readline() must come before init_io(), because init_io uses
-        # readline related things.
-        self.init_readline()
-        # We save this here in case user code replaces raw_input, but it needs
-        # to be after init_readline(), because PyPy's readline works by replacing
-        # raw_input.
         if py3compat.PY3:
             self.raw_input_original = input
         else:
             self.raw_input_original = raw_input
-        # init_completer must come after init_readline, because it needs to
-        # know whether readline is present or not system-wide to configure the
-        # completers, since the completion machinery can now operate
-        # independently of readline (e.g. over the network)
         self.init_completer()
         # TODO: init_io() needs to happen before init_traceback handlers
         # because the traceback handlers hardcode the stdout/stderr streams.
