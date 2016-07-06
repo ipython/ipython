@@ -26,7 +26,7 @@ if ON_RTD:
     tags.add('rtd')
 
     # RTD doesn't use the Makefile, so re-run autogen_{things}.py here.
-    for name in ('config', 'api', 'magics'):
+    for name in ('config', 'api', 'magics', 'shortcuts'):
         fname = 'autogen_{}.py'.format(name)
         fpath = os.path.abspath(os.path.join('..', fname))
         with open(fpath) as f:
