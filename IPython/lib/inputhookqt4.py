@@ -75,7 +75,7 @@ def create_inputhook_qt4(mgr, app=None):
     # Otherwise create the inputhook_qt4/preprompthook_qt4 pair of
     # hooks (they both share the got_kbdint flag)
 
-    def inputhook_qt4():
+    def inputhook_qt4(context=None):
         """PyOS_InputHook python hook for Qt4.
 
         Process pending Qt events and if there's no pending keyboard
@@ -87,13 +87,15 @@ def create_inputhook_qt4(mgr, app=None):
         which will let a *second* CTRL+C be processed normally and go
         back to a clean prompt line.
         """
+
+        _stdin_ready = stdin_ready if not context else context.input_is_ready
         try:
             allow_CTRL_C()
             app = QtCore.QCoreApplication.instance()
             if not app: # shouldn't happen, but safer if it happens anyway...
                 return 0
             app.processEvents(QtCore.QEventLoop.AllEvents, 300)
-            if not stdin_ready():
+            if not _stdin_ready():
                 # Generally a program would run QCoreApplication::exec()
                 # from main() to enter and process the Qt event loop until
                 # quit() or exit() is called and the program terminates.
