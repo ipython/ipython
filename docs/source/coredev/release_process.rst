@@ -6,7 +6,7 @@ IPython release process
 
 This document contains the process that is used to create an IPython release.
 
-Conveniently, the `release` script in the `tools` directory of the `IPython`
+Conveniently, the ``release`` script in the ``tools`` directory of the ``IPython``
 repository automates most of the release process. This document serves as a
 handy reminder and checklist for the release manager.
 
@@ -14,26 +14,33 @@ handy reminder and checklist for the release manager.
 ----------------------------
 
 Set environment variables to document previous release tag, current
-release milestone, current release version, and git tag::
-
-    PREV_RELEASE=4.0.0
-    MILESTONE=4.1
-    VERSION=4.1.0
-    BRANCH=master
+release milestone, current release version, and git tag.
 
 These variables may be used later to copy/paste as answers to the script
 questions instead of typing the appropriate command when the time comes. These
 variables are not used by the scripts directly; therefore, there is no need to
-`export` the variables.
+``export`` the variables. Use the following in bash:
+
+    PREV_RELEASE=4.2.1
+    MILESTONE=5.0
+    VERSION=5.0.0
+    BRANCH=master
+
 
 2. Create GitHub stats and finish release note
 ----------------------------------------------
 
 .. note::
 
-    Before generating the GitHub stats, verify that all closed issues and
-    pull requests have `appropriate milestones <https://github.com/ipython/ipython/wiki/Dev%3A-GitHub-workflow#milestones>`_.
-    `This search <https://github.com/ipython/ipython/issues?q=is%3Aclosed+no%3Amilestone+is%3Aissue>`_
+    This step is optional if making a Beta or RC release.
+
+.. note::
+
+    Before generating the GitHub stats, verify that all closed issues and pull
+    requests have `appropriate milestones
+    <https://github.com/ipython/ipython/wiki/Dev%3A-GitHub-workflow#milestones>`_.
+    `This search
+    <https://github.com/ipython/ipython/issues?q=is%3Aclosed+no%3Amilestone+is%3Aissue>`_
     should return no results before creating the GitHub stats.
 
 If a major release:
@@ -42,20 +49,22 @@ If a major release:
 
           python tools/update_whatsnew.py
 
-    - update `docs/source/whatsnew/development.rst`, to ensure it covers
+    - update ``docs/source/whatsnew/development.rst``, to ensure it covers
       the major release features
-    - move the contents of `development.rst` to `versionX.rst` where `X` is
+
+    - move the contents of ``development.rst`` to ``versionX.rst`` where ``X`` is
       the numerical release version
+
     - generate summary of GitHub contributions, which can be done with::
 
           python tools/github_stats.py --milestone $MILESTONE > stats.rst
 
-      which may need some manual cleanup of `stats.rst`. Add the cleaned
-      `stats.rst` results to `docs/source/whatsnew/github-stats-X.rst` where
-      `X` is the numerical release version. If creating a major release, make
-      a new `github-stats-X.rst` file; if creating a minor release, the
-      content from `stats.rst` may simply be added to the top of an existing
-      `github-stats-X.rst` file.
+      which may need some manual cleanup of ``stats.rst``. Add the cleaned
+      ``stats.rst`` results to ``docs/source/whatsnew/github-stats-X.rst``
+      where ``X`` is the numerical release version. If creating a major release,
+      make a new ``github-stats-X.rst`` file; if creating a minor release, the
+      content from ``stats.rst`` may simply be added to the top of an existing
+      ``github-stats-X.rst`` file.
 
 To find duplicates and update `.mailmap`, use::
 
@@ -79,29 +88,35 @@ of any file that could be problematic.
 4. Update the release version number
 ------------------------------------
 
-Edit `IPython/core/release.py` to have the current version.
+Edit ``IPython/core/release.py`` to have the current version.
 
 in particular, update version number and ``_version_extra`` content in
 ``IPython/core/release.py``.
 
-Make sure the version number matches pep440, in particular, `rc` and `beta` are
-not separated by `.` or the `sdist` and `bdist` will appear as different
-releases. For example, a valid version number for a release candidate (rc)
-release is: ``1.3rc1``. Notice that there is no separator between the '3' and
-the 'r'. Check the environment variable `$VERSION` as well. 
+Step 5 will validate your changes automatically, but you might still want to
+make sure the version number matches pep440.
+
+In particular, ``rc`` and ``beta`` are not separated by ``.`` or the ``sdist``
+and ``bdist`` will appear as different releases. For example, a valid version
+number for a release candidate (rc) release is: ``1.3rc1``. Notice that there
+is no separator between the '3' and the 'r'. Check the environment variable
+``$VERSION`` as well.
+
+You will likely just have to modify/comment/uncomment one of the lines setting
+``_version_extra``
 
 
-Comment remove the `development` entry in `whatsnew/index.rst`. TODO, figure
-out how to make that automatic. 
+Comment remove the ``development`` entry in ``whatsnew/index.rst``. TODO, figure
+out how to make that automatic.
 
 5. Run the `tools/build_release` script
 ---------------------------------------
 
-Running `tools/build_release` does all the file checking and building that
+Running ``tools/build_release`` does all the file checking and building that
 the real release script will do. This makes test installations, checks that
 the build procedure runs OK, and tests other steps in the release process.
 
-The `build_release` script will in particular verify that the version number
+The ``build_release`` script will in particular verify that the version number
 match PEP 440, in order to avoid surprise at the time of build upload.
 
 We encourage creating a test build of the docs as well.
@@ -119,8 +134,8 @@ Create and push the tag::
     git tag -am "release $VERSION" "$VERSION"
     git push origin --tags
 
-Update release.py back to `x.y-dev` or `x.y-maint`, and re-add the
-`development` entry in `docs/source/whatsnew/index.rst` and push::
+Update release.py back to ``x.y-dev`` or ``x.y-maint``, and re-add the
+``development`` entry in ``docs/source/whatsnew/index.rst`` and push::
 
     git commit -am "back to development"
     git push origin $BRANCH
@@ -132,28 +147,37 @@ Get a fresh clone of the tag for building the release::
 
     cd /tmp
     git clone --depth 1 https://github.com/ipython/ipython.git -b "$VERSION"
+    cd ipython
+
+.. note::
+
+    You can aslo cleanup the current working repository with ``git clean -xfdi``
 
 8. Run the release script
 -------------------------
 
-Run the `release` script, this step requires having a current wheel, Python >=3.4 and Python 2.7.::
+Run the ``release`` script, this step requires having a current wheel, Python
+>=3.4 and Python 2.7.::
 
-    cd tools && ./release
+    ./tools/release
 
-This makes the tarballs, zipfiles, and wheels, and put them under the `dist/`
+This makes the tarballs, zipfiles, and wheels, and put them under the ``dist/``
 folder. Be sure to test the ``wheel`` and the ``sdist`` locally before uploading
-them to PyPI. 
+them to PyPI.
 
-Use the following to actually upload the result of the build:
+Use the following to actually upload the result of the build::
 
-    ./release upload
+    ./tools/release upload
 
-It should posts them to ``archive.ipython.org`` and registers the release
-with PyPI if you have the various authorisations. 
+It should posts them to ``archive.ipython.org``.
 
-You might need to use `twine <https://github.com/pypa/twine>`_ (`twine upload
-dist/*`) manually to actually upload on PyPI. Unlike setuptools, twine is able
+You will need to use `twine <https://github.com/pypa/twine>`_ (``twine upload
+dist/*``) manually to actually upload on PyPI. Unlike setuptools, twine is able
 to upload packages over SSL.
+
+
+PyPI/Warehouse will automatically hide previous releases. If you are uploading
+a non-stable version, make sure to log-in to PyPI and un-hide previous version.
 
 
 9. Draft a short release announcement
@@ -166,6 +190,10 @@ The announcement should include:
 - a link to upgrade or installation tips (if necessary)
 
 Post the announcement to the mailing list and or blog, and link from Twitter.
+
+.. note::
+
+    If you are doing a RC or Beta, you can likely skip the next steps.
 
 10. Update milestones on GitHub
 -------------------------------
