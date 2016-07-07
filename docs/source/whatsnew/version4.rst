@@ -7,7 +7,7 @@ IPython 4.2.1
 
 IPython 4.2.1 (July, 2016) includes various bugfixes and improvements over 4.2.0
 
-- Only requires ``backports`` package on Python 2.
+- Only requires backports packages on Python 2.
 - Bugfix(feature regression): Configuration options on CLI get precedence on configuration options. 
 
 IPython 4.2
