@@ -6,7 +6,7 @@ IPython release process
 
 This document contains the process that is used to create an IPython release.
 
-Conveniently, the `release` script in the `tools` directory of the `IPython`
+Conveniently, the ``release`` script in the ``tools`` directory of the ``IPython``
 repository automates most of the release process. This document serves as a
 handy reminder and checklist for the release manager.
 
@@ -19,7 +19,7 @@ release milestone, current release version, and git tag.
 These variables may be used later to copy/paste as answers to the script
 questions instead of typing the appropriate command when the time comes. These
 variables are not used by the scripts directly; therefore, there is no need to
-`export` the variables. Use the following in bash:
+``export`` the variables. Use the following in bash:
 
     PREV_RELEASE=4.2.1
     MILESTONE=5.0
@@ -52,7 +52,7 @@ If a major release:
     - update ``docs/source/whatsnew/development.rst``, to ensure it covers
       the major release features
 
-    - move the contents of ``development.rst`` to ``versionX.rst`` where `X` is
+    - move the contents of ``development.rst`` to ``versionX.rst`` where ``X`` is
       the numerical release version
 
     - generate summary of GitHub contributions, which can be done with::
@@ -61,7 +61,7 @@ If a major release:
 
       which may need some manual cleanup of ``stats.rst``. Add the cleaned
       ``stats.rst`` results to ``docs/source/whatsnew/github-stats-X.rst``
-      where `X` is the numerical release version. If creating a major release,
+      where ``X`` is the numerical release version. If creating a major release,
       make a new ``github-stats-X.rst`` file; if creating a minor release, the
       content from ``stats.rst`` may simply be added to the top of an existing
       ``github-stats-X.rst`` file.
