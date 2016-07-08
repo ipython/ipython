@@ -19,7 +19,9 @@ release milestone, current release version, and git tag.
 These variables may be used later to copy/paste as answers to the script
 questions instead of typing the appropriate command when the time comes. These
 variables are not used by the scripts directly; therefore, there is no need to
-``export`` the variables. Use the following in bash::
+``export`` them. The format for bash is as follows, but note that these values
+are just an example valid only for the 5.0 release; you'll need to update them
+for the release you are actually making::
 
     PREV_RELEASE=4.2.1
     MILESTONE=5.0
@@ -61,10 +63,14 @@ If a major release:
 
       which may need some manual cleanup of ``stats.rst``. Add the cleaned
       ``stats.rst`` results to ``docs/source/whatsnew/github-stats-X.rst``
-      where ``X`` is the numerical release version. If creating a major release,
-      make a new ``github-stats-X.rst`` file; if creating a minor release, the
-      content from ``stats.rst`` may simply be added to the top of an existing
-      ``github-stats-X.rst`` file.
+      where ``X`` is the numerical release version (don't forget to add it to
+      the git repo as well). If creating a major release, make a new
+      ``github-stats-X.rst`` file; if creating a minor release, the content
+      from ``stats.rst`` may simply be added to the top of an existing
+      ``github-stats-X.rst`` file.  Finally, edit
+      ``docs/source/whatsnew/index.rst`` to list the new ``github-stats-X``
+      file you just created and remove temporarily the first entry called
+      ``development`` (you'll need to add it back after release).
 
 To find duplicates and update `.mailmap`, use::
 
@@ -105,9 +111,6 @@ is no separator between the '3' and the 'r'. Check the environment variable
 You will likely just have to modify/comment/uncomment one of the lines setting
 ``_version_extra``
 
-
-Comment remove the ``development`` entry in ``whatsnew/index.rst``. TODO, figure
-out how to make that automatic.
 
 5. Run the `tools/build_release` script
 ---------------------------------------
