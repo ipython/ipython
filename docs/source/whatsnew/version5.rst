@@ -5,7 +5,7 @@
 IPython 5.0
 ===========
 
-Released July, 2016
+Released July 7, 2016
 
 New terminal interface
 ----------------------
