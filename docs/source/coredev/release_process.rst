@@ -19,7 +19,7 @@ release milestone, current release version, and git tag.
 These variables may be used later to copy/paste as answers to the script
 questions instead of typing the appropriate command when the time comes. These
 variables are not used by the scripts directly; therefore, there is no need to
-``export`` the variables. Use the following in bash:
+``export`` the variables. Use the following in bash::
 
     PREV_RELEASE=4.2.1
     MILESTONE=5.0
