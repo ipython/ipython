@@ -8,6 +8,8 @@ from prompt_toolkit.filters.cli import ViMode
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.key_binding.bindings.completion import display_completions_like_readline
 
+from IPython.utils.decorators import undoc
+
 @Condition
 def cursor_in_leading_ws(cli):
     before = cli.application.buffer.document.current_line_before_cursor
@@ -151,7 +153,7 @@ if sys.platform == 'win32':
                                        win32_clipboard_get,
                                        tkinter_clipboard_get)
 
-
+    @undoc
     def win_paste(event):
         try:
             text = win32_clipboard_get()
