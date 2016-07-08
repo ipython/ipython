@@ -1,5 +1,13 @@
+.. _issues_list_5:
 
-GitHub stats for 2016/07/05 - 2016/07/07 (tag: 5.0.0rc1)
+Issues closed in the 5.x development cycle
+==========================================
+
+
+Issues closed in 5.0
+--------------------
+
+GitHub stats for 2016/07/05 - 2016/07/07 (tag: 5.0.0)
 
 These lists are automatically generated, and may be incomplete or contain duplicates.
 
