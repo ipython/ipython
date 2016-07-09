@@ -30,6 +30,7 @@ import bdb
 import functools
 import inspect
 import sys
+import warnings
 
 from IPython import get_ipython
 from IPython.utils import PyColorize, ulinecache
@@ -62,6 +63,8 @@ def BdbQuit_excepthook(et, ev, tb, excepthook=None):
     All other exceptions are processed using the `excepthook`
     parameter.
     """
+    warnings.warn("`BdbQuit_excepthook` is deprecated since version 5.1",
+                  DeprecationWarning)
     if et==bdb.BdbQuit:
         print('Exiting Debugger.')
     elif excepthook is not None:
@@ -70,7 +73,11 @@ def BdbQuit_excepthook(et, ev, tb, excepthook=None):
         # Backwards compatibility. Raise deprecation warning?
         BdbQuit_excepthook.excepthook_ori(et,ev,tb)
 
+
 def BdbQuit_IPython_excepthook(self,et,ev,tb,tb_offset=None):
+    warnings.warn(
+        "`BdbQuit_IPython_excepthook` is deprecated since version 5.1",
+        DeprecationWarning)
     print('Exiting Debugger.')
 
 
@@ -114,6 +121,9 @@ class Tracer(object):
         step through code, set breakpoints, etc.  See the pdb documentation
         from the Python standard library for usage details.
         """
+        warnings.warn("`Tracer` is deprecated since version 5.1, directly use "
+                      "`IPython.core.debugger.Pdb.set_trace()`",
+                      DeprecationWarning)
 
         ip = get_ipython()
         if ip is None:
@@ -189,12 +199,12 @@ def _file_lines(fname):
 class Pdb(OldPdb, object):
     """Modified Pdb class, does not load readline."""
 
-    def __init__(self,color_scheme='NoColor',completekey=None,
+    def __init__(self, color_scheme=None, completekey=None,
                  stdin=None, stdout=None, context=5):
 
         # Parent constructor:
         try:
-            self.context=int(context)
+            self.context = int(context)
             if self.context <= 0:
                 raise ValueError("Context must be a positive integer")
         except (TypeError, ValueError):
@@ -210,6 +220,13 @@ class Pdb(OldPdb, object):
             from IPython.terminal.interactiveshell import \
                 TerminalInteractiveShell
             self.shell = TerminalInteractiveShell.instance()
+
+        if color_scheme is not None:
+            warnings.warn(
+                "The `color_scheme` argument is deprecated since version 5.1",
+                DeprecationWarning)
+        else:
+            color_scheme = self.shell.colors
 
         self.aliases = {}
 
@@ -249,6 +266,12 @@ class Pdb(OldPdb, object):
     def set_colors(self, scheme):
         """Shorthand access to the color table scheme selector method."""
         self.color_scheme_table.set_active_scheme(scheme)
+
+    def trace_dispatch(self, frame, event, arg):
+        try:
+            return super(Pdb, self).trace_dispatch(frame, event, arg)
+        except bdb.BdbQuit:
+            pass
 
     def interaction(self, frame, traceback):
         try:
