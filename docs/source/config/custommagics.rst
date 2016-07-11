@@ -113,21 +113,13 @@ instantiate the class yourself before registration:
     ip = get_ipython()
     magics = StatefulMagics(ip, some_data)
     ip.register_magics(magics)
-    
 
-In earlier versions, IPython had an API for the creation of line magics (cell
-magics did not exist at the time) that required you to create functions with a
-method-looking signature and to manually pass both the function and the name.
-While this API is no longer recommended, it remains indefinitely supported for
-backwards compatibility purposes.  With the old API, you'd create a magic as
-follows:
 
-.. sourcecode:: python
+.. note::
 
-    def func(self, line):
-        print("Line magic called with line:", line)
-        print("IPython object:", self.shell)
-
-    ip = get_ipython()
-    # Declare this function as the magic %mycommand
-    ip.define_magic('mycommand', func)
+   In early IPython versions 0.12 and before the line magics were
+   created using a :func:`define_magic` API function.  This API has been
+   replaced with the above in IPython 0.13 and then completely removed
+   in IPython 5.  Maintainers of IPython extensions that still use the
+   :func:`define_magic` function are advised to adjust their code
+   for the current API.
