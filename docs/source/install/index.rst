@@ -14,8 +14,8 @@ Installation
 
 
 
-This sections will guide you through `installing IPython itself <install>`_, and
-installing `kernels for Jupyter <kernel_install>`_ if you wish to work with
+This sections will guide you through :ref:`installing IPython itself <install>`, and
+installing :ref:`kernels for Jupyter <kernel_install>` if you wish to work with
 multiple version of Python, or multiple environments.
 
 
