@@ -14,7 +14,7 @@ from traitlets import Bool, Unicode, Dict, Integer, observe, Instance, Type, def
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import (HasFocus, Condition, IsDone)
 from prompt_toolkit.history import InMemoryHistory
-from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop, create_prompt_layout
+from prompt_toolkit.shortcuts import create_prompt_application, create_eventloop, create_prompt_layout, create_output
 from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.layout.processors import ConditionalProcessor, HighlightMatchingBracketProcessor
@@ -142,6 +142,13 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Override highlighting format for specific tokens"
     ).tag(config=True)
 
+    true_color = Bool(False,
+        help=("Use 24bit colors instead of 256 colors in prompt highlighting. "
+              "If your terminal supports true color, the following command "
+              "should print 'TRUECOLOR' in orange: "
+              "printf \"\\x1b[38;2;255;100;0mTRUECOLOR\\x1b[0m\\n\"")
+    ).tag(config=True)
+
     editor = Unicode(get_default_editor(),
         help="Set the editor used by IPython (default to $EDITOR/vi/notepad)."
     ).tag(config=True)
@@ -235,7 +242,9 @@ class TerminalInteractiveShell(InteractiveShell):
                             **self._layout_options()
         )
         self._eventloop = create_eventloop(self.inputhook)
-        self.pt_cli = CommandLineInterface(self._pt_app, eventloop=self._eventloop)
+        self.pt_cli = CommandLineInterface(
+            self._pt_app, eventloop=self._eventloop,
+            output=create_output(true_color=self.true_color))
 
     def _make_style_from_name(self, name):
         """
