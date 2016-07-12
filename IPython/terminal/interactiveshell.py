@@ -166,16 +166,6 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Automatically set the terminal title"
     ).tag(config=True)
 
-    # Leaving that for beta/rc tester, shoudl remove for 5.0.0 final. 
-    display_completions_in_columns = Bool(None,
-        help="DEPRECATED", allow_none=True
-    ).tag(config=True)
-
-    @observe('display_completions_in_columns')
-    def _display_completions_in_columns_changed(self, new):
-        raise DeprecationWarning("The `display_completions_in_columns` Boolean has been replaced by the enum `display_completions`"
-                                 "with the following acceptable value: 'column', 'multicolumn','readlinelike'. ")
-
     display_completions = Enum(('column', 'multicolumn','readlinelike'), default_value='multicolumn').tag(config=True)
 
     highlight_matching_brackets = Bool(True,
