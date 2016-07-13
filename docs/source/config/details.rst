@@ -159,3 +159,37 @@ With (X)EMacs >= 24, You can enable IPython in python-mode with:
 .. _`(X)Emacs`: http://www.gnu.org/software/emacs/
 .. _TextMate: http://macromates.com/
 .. _vim: http://www.vim.org/
+
+.. _custom_keyboard_shortcuts
+
+Keyboard Shortcuts
+==================
+
+.. versionchanged:: 5.0
+
+You can customise keyboard shortcuts for terminal IPython. Put code like this in
+a :ref:`startup file <startup_files>`::
+
+    from IPython import get_ipython
+    from prompt_toolkit.enums import DEFAULT_BUFFER
+    from prompt_toolkit.keys import Keys
+    from prompt_toolkit.filters import HasFocus, HasSelection, ViInsertMode, EmacsInsertMode
+
+    ip = get_ipython()
+    insert_mode = ViInsertMode() | EmacsInsertMode()
+
+    def insert_unexpected(event):
+        buf = event.current_buffer
+        buf.insert_text('The Spanish Inquisition')
+
+    # Register the shortcut if IPython is using prompt_toolkit
+    if getattr(ip, 'pt_cli'):
+        registry = ip.pt_cli.application.key_bindings_registry
+        registry.add_binding(Keys.ControlN,
+                         filter=(HasFocus(DEFAULT_BUFFER)
+                                 & ~HasSelection()
+                                 & insert_mode))(insert_unexpected)
+
+For more information on filters and what you can do with the ``event`` object,
+`see the prompt_toolkit docs
+<http://python-prompt-toolkit.readthedocs.io/en/latest/pages/building_prompts.html#adding-custom-key-bindings>`__.
