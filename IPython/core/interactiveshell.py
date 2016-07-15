@@ -82,6 +82,10 @@ from warnings import warn
 from logging import error
 import IPython.core.hooks
 
+# NoOpContext is deprecated, but ipykernel imports it from here.
+# See https://github.com/ipython/ipykernel/issues/157
+from IPython.utils.contexts import NoOpContext
+
 try:
     import docrepr.sphinxify as sphx
 
