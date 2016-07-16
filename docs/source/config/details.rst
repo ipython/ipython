@@ -67,7 +67,7 @@ is set to ``'legacy'``. It has four case-insensitive values:
 should be legible on either dark or light terminal backgrounds. *linux* is
 optimised for dark backgrounds and *lightbg* for light ones.
 
-``TerminalInteractiveShell.highlight_style`` determines prompt colours and syntax
+``TerminalInteractiveShell.highlighting_style`` determines prompt colours and syntax
 highlighting. It takes the name of a Pygments style as a string, or the special
 value ``'legacy'`` to pick a style in accordance with ``InteractiveShell.colors``.
 
@@ -76,7 +76,7 @@ You can see the Pygments styles available on your system by running::
     import pygments
     list(pygments.styles.get_all_styles())
 
-Additionally, ``TerminalInteractiveShell.highlight_style_overrides`` can override
+Additionally, ``TerminalInteractiveShell.highlighting_style_overrides`` can override
 specific styles in the highlighting. It should be a dictionary mapping Pygments
 token types to strings defining the style. See `Pygments' documentation
 <http://pygments.org/docs/styles/#creating-own-styles>`__ for the language used
