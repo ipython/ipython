@@ -58,7 +58,7 @@ def register_ipython_shortcuts(registry, shell):
 
     registry.add_binding(Keys.ControlO,
                          filter=(HasFocus(DEFAULT_BUFFER)
-                                & insert_mode))(newline_with_copy_margin)
+                                & EmacsInsertMode()))(newline_with_copy_margin)
 
     if shell.display_completions == 'readlinelike':
         registry.add_binding(Keys.ControlI,
