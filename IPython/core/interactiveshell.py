@@ -2878,7 +2878,7 @@ class InteractiveShell(SingletonConfigurable):
             if result is not None:
                 result.error_in_exec = e
             self.showtraceback(exception_only=True)
-            warn("To exit: use 'exit', 'quit', or Ctrl-D.", level=1)
+            warn("To exit: use 'exit', 'quit', or Ctrl-D.", stacklevel=1)
         except self.custom_exceptions:
             etype, value, tb = sys.exc_info()
             if result is not None:
