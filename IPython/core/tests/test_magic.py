@@ -1008,4 +1008,4 @@ def test_strip_initial_indent():
 
     nt.assert_equal(sii("  a = 1\nb = 2"), "a = 1\nb = 2")
     nt.assert_equal(sii("  a\n    b\nc"), "a\n  b\nc")
-    nt.assert_equal(sii("a\n  b\n"), "a\n  b\n")
+    nt.assert_equal(sii("a\n  b"), "a\n  b")
