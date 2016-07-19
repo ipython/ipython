@@ -801,7 +801,7 @@ python-profiler package from non-free.""")
             If the break point given by `bp_line` is not valid.
 
         """
-        deb = debugger.Pdb(self.shell.colors)
+        deb = debugger.Pdb()
         # reset Breakpoint state, which is moronically kept
         # in a class
         bdb.Breakpoint.next = 1
