@@ -138,6 +138,36 @@ def extract_symbols(code, symbols):
 
     return blocks, not_found
 
+def strip_initial_indent(lines):
+    """For %load, strip indent from lines until finding an unindented line.
+
+    https://github.com/ipython/ipython/issues/9775
+    """
+    indent_re = re.compile(r'\s+')
+
+    it = iter(lines)
+    first_line = next(it)
+    indent_match = indent_re.match(first_line)
+
+    if indent_match:
+        # First line was indented
+        indent = indent_match.group()
+        yield first_line[len(indent):]
+
+        for line in it:
+            if line.startswith(indent):
+                yield line[len(indent):]
+            else:
+                # Less indented than the first line - stop dedenting
+                yield line
+                break
+    else:
+        yield first_line
+
+    # Pass the remaining lines through without dedenting
+    for line in it:
+        yield line
+
 
 class InteractivelyDefined(Exception):
     """Exception for interactively defined variable in magic_edit"""
@@ -341,7 +371,7 @@ class CodeMagics(Magics):
             lines = contents.split('\n')
             slices = extract_code_ranges(ranges)
             contents = [lines[slice(*slc)] for slc in slices]
-            contents = '\n'.join(chain.from_iterable(contents))
+            contents = '\n'.join(strip_initial_indent(chain.from_iterable(contents)))
 
         l = len(contents)
 

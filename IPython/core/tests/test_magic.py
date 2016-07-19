@@ -1000,3 +1000,12 @@ def test_ls_magic():
         j = json_formatter(lsmagic)
     nt.assert_equal(sorted(j), ['cell', 'line'])
     nt.assert_equal(w, []) # no warnings
+
+def test_strip_initial_indent():
+    def sii(s):
+        lines = s.splitlines()
+        return '\n'.join(code.strip_initial_indent(lines))
+
+    nt.assert_equal(sii("  a = 1\nb = 2"), "a = 1\nb = 2")
+    nt.assert_equal(sii("  a\n    b\nc"), "a\n  b\nc")
+    nt.assert_equal(sii("a\n  b"), "a\n  b")
