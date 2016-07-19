@@ -63,49 +63,8 @@ switching to any of them. Type ``cd?`` for more details.
 Prompt customization
 ====================
 
-Starting at IPython 5.0 the prompt customisation is done by subclassing :class:`IPython.terminal.prompts.Prompt`.
+See :ref:`custom_prompts`.
 
-The custom ``Prompt`` receive the current IPython shell instance as first
-argument, which by default is stored as the ``shell`` attribute of the object.
-The class can implement optional methods for each of the available prompt types:
-
-  - ``in_prompt_tokens(self, cli=None)``, input prompt , default to ``In [1]``
-  - ``continuation_prompt_tokens(self, cli=None, width=None)``, continuation prompt for multi lines (default `...:`)
-  - ``rewrite_prompt_tokens(self)``
-  - ``out_prompt_tokens(self)``
-
-Each of these methods should return a list of `(TokenType, Token)` pairs. See documentation of `prompt_toolkit` and/or `Pygments`.
-
-Here is an example of Prompt class that will insert the current working directory in front of a prompt:
-
-
-.. code-block:: python
-
-    from IPython.terminal.prompts import Prompts, Token
-    import os
-
-    class MyPrompt(Prompts):
-
-         def in_prompt_tokens(self, cli=None):
-             return [(Token, os.getcwd()),
-                     (Token.Prompt, ' >>>')]
-
-To set the new prompt, assign it to the `prompts` attribute of the IPython shell:
-
-.. code-block:: python
-
-    In[2]: ip = get_ipython()
-      ...: ip.prompts = MyPrompt(ip)
-
-    ~/ >>> # it works
-
-
-See ``IPython/example/utils/cwd_prompt.py`` for an example of how to write an
-extensions that customise prompts.
-
-
-Read more about the :ref:`configuration system <config_overview>` for details
-on how to find ``ipython_config.py``.
 
 .. _string_lists:
 

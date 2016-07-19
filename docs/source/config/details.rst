@@ -46,6 +46,32 @@ which defines the defaults. The required interface is like this:
       *cli*, where used, is the prompt_toolkit ``CommandLineInterface`` instance.
       This is mainly for compatibility with the API prompt_toolkit expects.
 
+Here is an example Prompt class that will show the current working directory
+in the input prompt:
+
+.. code-block:: python
+
+    from IPython.terminal.prompts import Prompts, Token
+    import os
+
+    class MyPrompt(Prompts):
+         def in_prompt_tokens(self, cli=None):
+             return [(Token, os.getcwd()),
+                     (Token.Prompt, ' >>>')]
+
+To set the new prompt, assign it to the ``prompts`` attribute of the IPython
+shell:
+
+.. code-block:: python
+
+    In [2]: ip = get_ipython()
+       ...: ip.prompts = MyPrompt(ip)
+
+    /home/bob >>> # it works
+
+See ``IPython/example/utils/cwd_prompt.py`` for an example of how to write an
+extensions to customise prompts.
+
 Inside IPython or in a startup script, you can use a custom prompts class
 by setting ``get_ipython().prompts`` to an *instance* of the class.
 In configuration, ``TerminalInteractiveShell.prompts_class`` may be set to
