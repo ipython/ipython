@@ -28,7 +28,7 @@ except ImportError:
     except ImportError:
         profile = pstats = None
 
-from IPython.core import debugger, oinspect
+from IPython.core import oinspect
 from IPython.core import magic_arguments
 from IPython.core import page
 from IPython.core.error import UsageError
@@ -801,7 +801,11 @@ python-profiler package from non-free.""")
             If the break point given by `bp_line` is not valid.
 
         """
-        deb = debugger.Pdb()
+        deb = self.shell.InteractiveTB.pdb
+        if not deb:
+            self.shell.InteractiveTB.pdb = self.shell.InteractiveTB.debugger_cls()
+            deb = self.shell.InteractiveTB.pdb
+
         # reset Breakpoint state, which is moronically kept
         # in a class
         bdb.Breakpoint.next = 1
