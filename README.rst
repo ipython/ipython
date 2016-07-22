@@ -43,5 +43,9 @@ by typing at the terminal::
     
    $ python -m IPython
 
-Documentation and installation instructions for older version of IPython can be found on the
-`IPython website <http://ipython.org/documentation.html>`_
+Or see the `developement installation docs
+<http://ipython.readthedocs.io/en/latest/install/install.html#installing-the-development-version>`_
+for the latest revision on read the docs. 
+
+Documentation and installation instructions for older version of IPython can be
+found on the `IPython website <http://ipython.org/documentation.html>`_
