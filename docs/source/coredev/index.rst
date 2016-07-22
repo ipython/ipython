@@ -22,6 +22,8 @@ Old Documentation
 
 Out of date documentation is still available and have been kept for archival purposes.
 
-Developers working on IPython should also consult the
-`developer information <https://github.com/ipython/ipython/wiki/Dev:-Index>`_
-on the IPython GitHub wiki.
+.. note::
+
+  Developers documentation used to be on the IPython wiki, but are now out of
+  date. The wiki is though still available for historical reasons: `Old IPython
+  GitHub Wiki.  <https://github.com/ipython/ipython/wiki/Dev:-Index>`_
