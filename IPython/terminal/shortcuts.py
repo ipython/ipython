@@ -56,6 +56,10 @@ def register_ipython_shortcuts(registry, shell):
                                  & cursor_in_leading_ws
                         ))(indent_buffer)
 
+    registry.add_binding(Keys.ControlO,
+                         filter=(HasFocus(DEFAULT_BUFFER)
+                                & EmacsInsertMode()))(newline_with_copy_margin)
+
     if shell.display_completions == 'readlinelike':
         registry.add_binding(Keys.ControlI,
                              filter=(HasFocus(DEFAULT_BUFFER)
@@ -143,6 +147,20 @@ def suspend_to_bg(event):
 
 def indent_buffer(event):
     event.current_buffer.insert_text(' ' * 4)
+
+def newline_with_copy_margin(event):
+    """
+    Preserve margin and cursor position when using
+    Control-O to insert a newline in EMACS mode
+    """
+    b = event.current_buffer
+    cursor_start_pos = b.document.cursor_position_col
+    b.newline(copy_margin=True)
+    b.cursor_up(count=1)
+    cursor_end_pos = b.document.cursor_position_col
+    if cursor_start_pos != cursor_end_pos:
+        pos_diff = cursor_start_pos - cursor_end_pos
+        b.cursor_right(count=pos_diff)
 
 
 
