@@ -174,9 +174,9 @@ class TerminalInteractiveShell(InteractiveShell):
     ).tag(config=True)
 
     display_completions = Enum(('column', 'multicolumn','readlinelike'), 
-        help= ( "Options for displaying tab completions, 'column', 'multicolumn', and"
-                "'readlinelike'. These options are for `prompt_toolkit`, see `prompt_toolkit`"
-                "documentation for more information."
+        help= ( "Options for displaying tab completions, 'column', 'multicolumn', and "
+                "'readlinelike'. These options are for `prompt_toolkit`, see "
+                "`prompt_toolkit` documentation for more information."
                 ),
         default_value='multicolumn').tag(config=True)
 
