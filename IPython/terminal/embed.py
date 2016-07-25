@@ -70,6 +70,11 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
     display_banner = CBool(True)
     exit_msg = Unicode()
 
+    # When embedding, by default we don't change the terminal title
+    term_title = Bool(False,
+        help="Automatically set the terminal title"
+    ).tag(config=True)
+
     _inactive_locations = set()
 
     @property
