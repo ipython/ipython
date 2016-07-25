@@ -13,9 +13,9 @@ handy reminder and checklist for the release manager.
 During the release process, you might need the extra following dependencies:
 
  - ``keyring`` to access your GitHub authentication tokens
- - ``testpath`` to fake some file system operations
  - ``graphviz`` to generate some graphs in the documentation
-
+ 
+Make sure you have all the required dependencies to run the tests as well.
  
 
 1. Set Environment variables
@@ -80,7 +80,7 @@ If a major release:
       file you just created and remove temporarily the first entry called
       ``development`` (you'll need to add it back after release).
 
-      Make sure that the stats file have a header or it won't be rendered in
+      Make sure that the stats file has a header or it won't be rendered in
       the final documentation. 
 
 To find duplicates and update `.mailmap`, use::
@@ -233,10 +233,10 @@ The IPython website should document the new release:
 ----------------------
 
 Make sure to update readthedocs and set the latest tag as stable, as well as
-checked that previous release is still building under its own tag. 
+checking that previous release is still building under its own tag. 
 
 
-12. Celebrate!
+13. Celebrate!
 --------------
 
 Celebrate the release and please thank the contributors for their work. Great
