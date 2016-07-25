@@ -8,7 +8,15 @@ This document contains the process that is used to create an IPython release.
 
 Conveniently, the ``release`` script in the ``tools`` directory of the ``IPython``
 repository automates most of the release process. This document serves as a
-handy reminder and checklist for the release manager.
+handy reminder and checklist for the release manager. 
+
+During the release process, you might need the extra following dependencies:
+
+ - ``keyring`` to access your GitHub authentication tokens
+ - ``graphviz`` to generate some graphs in the documentation
+ 
+Make sure you have all the required dependencies to run the tests as well.
+ 
 
 1. Set Environment variables
 ----------------------------
@@ -71,6 +79,9 @@ If a major release:
       ``docs/source/whatsnew/index.rst`` to list the new ``github-stats-X``
       file you just created and remove temporarily the first entry called
       ``development`` (you'll need to add it back after release).
+
+      Make sure that the stats file has a header or it won't be rendered in
+      the final documentation. 
 
 To find duplicates and update `.mailmap`, use::
 
@@ -174,9 +185,11 @@ Use the following to actually upload the result of the build::
 
 It should posts them to ``archive.ipython.org``.
 
-You will need to use `twine <https://github.com/pypa/twine>`_ (``twine upload
-dist/*``) manually to actually upload on PyPI. Unlike setuptools, twine is able
-to upload packages over SSL.
+You will need to use `twine <https://github.com/pypa/twine>`_ ) manually to
+actually upload on PyPI. Unlike setuptools, twine is able to upload packages
+over SSL.
+
+    twine upload dist/*
 
 
 PyPI/Warehouse will automatically hide previous releases. If you are uploading
@@ -216,7 +229,14 @@ The IPython website should document the new release:
 - update current version and download links
 - update links on the documentation page (especially if a major release)
 
-12. Celebrate!
+12. Update readthedocs
+----------------------
+
+Make sure to update readthedocs and set the latest tag as stable, as well as
+checking that previous release is still building under its own tag. 
+
+
+13. Celebrate!
 --------------
 
 Celebrate the release and please thank the contributors for their work. Great

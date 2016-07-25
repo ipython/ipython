@@ -45,44 +45,45 @@ print()
 
 # Perform local backup, go to tools dir to run it.
 cd(tooldir)
-sh('./make_tarball.py')
-sh('mv ipython-*.tgz %s' % ipbackupdir)
 
-# Build release files
-sh('./build_release %s' % ipdir)
+if 'upload' in sys.argv:
+    cd(distdir)
+    print( 'Uploading distribution files to GitHub...')
 
-# Not Registering with PyPI, registering with setup.py is insecure as communication is not encrypted
-cd(ipdir)
+    for fname in os.listdir('.'):
+        # TODO: update to GitHub releases API
+        continue
+        print('uploading %s to GitHub' % fname)
+        desc = "IPython %s source distribution" % version
+        post_download("ipython/ipython", fname, description=desc)
 
-# Upload all files
-sh(sdists)
+    # Make target dir if it doesn't exist
+    print('Uploading IPython to backup site.')
+    sh('ssh %s "mkdir -p %s/release/%s" ' % (archive_user, archive_dir, version))
+    sh('scp * %s' % release_site)
 
-buildwheels()
+    print( 'Uploading backup files...')
+    cd(ipbackupdir)
+    sh('scp `ls -1tr *tgz | tail -1` %s' % backup_site)
 
-if 'upload' not in sys.argv:
-    print("`./release upload` to register and release")
+    print('Done!')
+    print('Use `twine upload dist/*` to upload the files to PyPI')
+else:
+    sh('./make_tarball.py')
+    sh('mv ipython-*.tgz %s' % ipbackupdir)
+
+    # Build release files
+    sh('./build_release %s' % ipdir)
+
+    # Not Registering with PyPI, registering with setup.py is insecure as communication is not encrypted
+    cd(ipdir)
+
+    # Upload all files
+    sh(sdists)
+
+    buildwheels()
+    print("`./release upload` to upload source distribution on github and ipython archive")
     sys.exit(0)
 
 
-print('Will not upload with setuptools as upload connection is insecure. Please use `twine upload dist/*` to upload the files to PyPI')
 
-cd(distdir)
-print( 'Uploading distribution files to GitHub...')
-
-for fname in os.listdir('.'):
-    # TODO: update to GitHub releases API
-    continue
-    print('uploading %s to GitHub' % fname)
-    desc = "IPython %s source distribution" % version
-    post_download("ipython/ipython", fname, description=desc)
-
-# Make target dir if it doesn't exist
-print('Uploading IPython to backup site.')
-sh('ssh %s "mkdir -p %s/release/%s" ' % (archive_user, archive_dir, version))
-sh('scp * %s' % release_site)
-
-print( 'Uploading backup files...')
-cd(ipbackupdir)
-sh('scp `ls -1tr *tgz | tail -1` %s' % backup_site)
-
-print('Done!')
