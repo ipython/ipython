@@ -71,3 +71,7 @@ class TerminalPdb(Pdb):
             self.postloop()
         except Exception:
             raise
+
+def set_trace():
+    TerminalPdb().set_trace()
+

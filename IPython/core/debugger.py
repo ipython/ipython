@@ -82,7 +82,10 @@ def BdbQuit_IPython_excepthook(self,et,ev,tb,tb_offset=None):
 
 
 class Tracer(object):
-    """Class for local debugging, similar to pdb.set_trace.
+    """
+    DEPRECATED
+
+    Class for local debugging, similar to pdb.set_trace.
 
     Instances of this class, when called, behave like pdb.set_trace, but
     providing IPython's enhanced capabilities.
@@ -96,7 +99,10 @@ class Tracer(object):
 
     @skip_doctest
     def __init__(self, colors=None):
-        """Create a local debugger instance.
+        """
+        DEPRECATED
+
+        Create a local debugger instance.
 
         Parameters
         ----------
@@ -197,7 +203,12 @@ def _file_lines(fname):
 
 
 class Pdb(OldPdb, object):
-    """Modified Pdb class, does not load readline."""
+    """Modified Pdb class, does not load readline.
+
+    for a standalone version that uses promtp_toolkit, see
+    `IPython.terminal.debugger.TerminalPdb` and
+    `IPython.terminal.debugger.set_trace()`
+    """
 
     def __init__(self, color_scheme=None, completekey=None,
                  stdin=None, stdout=None, context=5):
