@@ -205,7 +205,7 @@ def _file_lines(fname):
 class Pdb(OldPdb, object):
     """Modified Pdb class, does not load readline.
 
-    for a standalone version that uses promtp_toolkit, see
+    for a standalone version that uses prompt_toolkit, see
     `IPython.terminal.debugger.TerminalPdb` and
     `IPython.terminal.debugger.set_trace()`
     """
