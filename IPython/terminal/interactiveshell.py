@@ -325,14 +325,36 @@ class TerminalInteractiveShell(InteractiveShell):
             pre_run=self.pre_prompt, reset_current_buffer=True)
         return document.text
 
+    def enable_win_unicode_console(self):
+        import win_unicode_console
+
+        if PY3:
+            win_unicode_console.enable()
+        else:
+            # https://github.com/ipython/ipython/issues/9768
+            from win_unicode_console.streams import (TextStreamWrapper,
+                                 stdout_text_transcoded, stderr_text_transcoded)
+
+            class LenientStrStreamWrapper(TextStreamWrapper):
+                def write(self, s):
+                    if isinstance(s, bytes):
+                        s = s.decode(self.encoding, 'replace')
+
+                    self.base.write(s)
+
+            stdout_text_str = LenientStrStreamWrapper(stdout_text_transcoded)
+            stderr_text_str = LenientStrStreamWrapper(stderr_text_transcoded)
+
+            win_unicode_console.enable(stdout=stdout_text_str,
+                                       stderr=stderr_text_str)
+
     def init_io(self):
         if sys.platform not in {'win32', 'cli'}:
             return
 
-        import win_unicode_console
-        import colorama
+        self.enable_win_unicode_console()
 
-        win_unicode_console.enable()
+        import colorama
         colorama.init()
 
         # For some reason we make these wrappers around stdout/stderr.
