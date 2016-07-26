@@ -100,7 +100,7 @@ shell_aliases['cache-size'] = 'InteractiveShell.cache_size'
 
 class InteractiveShellApp(Configurable):
     """A Mixin for applications that start InteractiveShell instances.
-    
+
     Provides configurables for loading extensions and executing files
     as part of configuring a Shell environment.
 
@@ -126,7 +126,7 @@ class InteractiveShellApp(Configurable):
 
     # Extensions that are always loaded (not configurable)
     default_extensions = List(Unicode(), [u'storemagic']).tag(config=False)
-    
+
     hide_initial_ns = Bool(True,
         help="""Should variables loaded at startup (by startup files, exec_lines, etc.)
         be hidden from tools like %who?"""
@@ -166,7 +166,7 @@ class InteractiveShellApp(Configurable):
     pylab_import_all = Bool(True,
         help="""If true, IPython will populate the user namespace with numpy, pylab, etc.
         and an ``import *`` is done from numpy and pylab, when using pylab mode.
-        
+
         When False, pylab mode should not import any names into the user namespace.
         """
     ).tag(config=True)
@@ -174,7 +174,7 @@ class InteractiveShellApp(Configurable):
                      allow_none=True)
     # whether interact-loop should start
     interact = Bool(True)
-    
+
     user_ns = Instance(dict, args=None, allow_none=True)
     @observe('user_ns')
     def _user_ns_changed(self, change):
@@ -203,10 +203,10 @@ class InteractiveShellApp(Configurable):
         elif self.gui:
             enable = shell.enable_gui
             key = self.gui
-        
+
         if not enable:
             return
-        
+
         try:
             r = enable(key)
         except ImportError:
@@ -217,7 +217,7 @@ class InteractiveShellApp(Configurable):
             self.log.warning("GUI event loop or pylab initialization failed")
             self.shell.showtraceback()
             return
-            
+
         if isinstance(r, tuple):
             gui, backend = r[:2]
             self.log.info("Enabling GUI event loop integration, "
@@ -263,16 +263,16 @@ class InteractiveShellApp(Configurable):
         self._run_startup_files()
         self._run_exec_lines()
         self._run_exec_files()
-        
+
         # Hide variables defined here from %who etc.
         if self.hide_initial_ns:
             self.shell.user_ns_hidden.update(self.shell.user_ns)
-        
+
         # command-line execution (ipython -i script.py, ipython -m module)
         # should *not* be excluded from %whos
         self._run_cmd_line_code()
         self._run_module()
-        
+
         # flush output, so itwon't be attached to the first cell
         sys.stdout.flush()
         sys.stderr.flush()
@@ -333,7 +333,7 @@ class InteractiveShellApp(Configurable):
         """Run files from profile startup directory"""
         startup_dir = self.profile_dir.startup_dir
         startup_files = []
-        
+
         if self.exec_PYTHONSTARTUP and os.environ.get('PYTHONSTARTUP', False) and \
                 not (self.file_to_run or self.code_to_run or self.module_to_run):
             python_startup = os.environ['PYTHONSTARTUP']
@@ -343,12 +343,12 @@ class InteractiveShellApp(Configurable):
             except:
                 self.log.warning("Unknown error in handling PYTHONSTARTUP file %s:", python_startup)
                 self.shell.showtraceback()
-        
+
         startup_files += glob.glob(os.path.join(startup_dir, '*.py'))
         startup_files += glob.glob(os.path.join(startup_dir, '*.ipy'))
         if not startup_files:
             return
-        
+
         self.log.debug("Running startup files from %s...", startup_dir)
         try:
             for fname in sorted(startup_files):
@@ -388,6 +388,8 @@ class InteractiveShellApp(Configurable):
         # Like Python itself, ignore the second if the first of these is present
         elif self.file_to_run:
             fname = self.file_to_run
+            if os.path.isdir(fname):
+                fname = os.path.join(fname, "__main__.py")
             try:
                 self._exec_file(fname, shell_futures=True)
             except:
