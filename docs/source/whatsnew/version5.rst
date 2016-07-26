@@ -2,6 +2,34 @@
  5.x Series
 ============
 
+IPython 5.1
+===========
+
+* Broken ``%timeit`` on Python2 due to the use of ``__qualname__``. :ghpull:`9804`
+* Restore ``%gui qt`` to create and return a ``QApplication`` if necessary. :ghpull:`9789`
+* Don't set terminal title by default. :ghpull:`9801`
+* Preserve indentation when inserting newlines with ``Ctrl-O``. :ghpull:`9770`
+* Restore completion in debugger. :ghpull:`9785`
+* Deprecate ``IPtyhon.core.debugger.Tracer()`` in favor of simpler, newer, APIs. :ghpull:`9731`
+* Restore ``NoOpContext`` context manager removed by mistake, and add `DeprecationWarning`. :ghpull:`9765`
+* Add option allowing ``Prompt_toolkit`` to use 24bits colors. :ghpull:`9736`
+
+
+True Color feature
+------------------
+
+``prompt_toolkit`` uses pygments styles for syntax highlighting. By default, the
+colors specified in the style are approximated using a standard 256-color
+palette. ``prompt_toolkit`` also supports 24bit, a.k.a. "true", a.k.a. 16-million
+color escape sequences which enable compatible terminals to display the exact
+colors specified instead of an approximation. This true_color option exposes
+that capability in prompt_toolkit to the IPython shell.
+
+Here is a good source for the current state of true color support in various
+terminal emulators and software projects: https://gist.github.com/XVilka/8346728
+
+
+
 IPython 5.0
 ===========
 
