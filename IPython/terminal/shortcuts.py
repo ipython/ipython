@@ -26,6 +26,8 @@ def register_ipython_shortcuts(registry, shell):
                                  & insert_mode
                         ))(newline_or_execute_outer(shell))
 
+    registry.add_binding(Keys.ControlBackslash)(force_exit)
+
     registry.add_binding(Keys.ControlP,
                          filter=(ViInsertMode() & HasFocus(DEFAULT_BUFFER)
                         ))(previous_history_or_previous_completion)
@@ -144,6 +146,12 @@ def reset_search_buffer(event):
 
 def suspend_to_bg(event):
     event.cli.suspend_to_background()
+
+def force_exit(event):
+    """
+    Force exit (with a non-zero return value)
+    """
+    sys.exit("Quit")
 
 def indent_buffer(event):
     event.current_buffer.insert_text(' ' * 4)
