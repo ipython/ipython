@@ -2469,7 +2469,7 @@ class InteractiveShell(SingletonConfigurable):
         # Python inserts the script's directory into sys.path
         dname = os.path.dirname(fname)
 
-        with prepended_to_syspath(dname):
+        with prepended_to_syspath(dname), self.builtin_trap:
             try:
                 glob, loc = (where + (None, ))[:2]
                 py3compat.execfile(
