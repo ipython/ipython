@@ -85,7 +85,7 @@ import re
 import datetime
 from collections import deque
 
-from IPython.utils.py3compat import PY3, cast_unicode, string_types
+from IPython.utils.py3compat import PY3, PYPY, cast_unicode, string_types
 from IPython.utils.encoding import get_stream_enc
 
 from io import StringIO
@@ -632,7 +632,11 @@ def _super_pprint(obj, p, cycle):
     p.pretty(obj.__thisclass__)
     p.text(',')
     p.breakable()
-    p.pretty(obj.__self__)
+    if PYPY: # In PyPy, super() objects doesn't have __self__ attributes
+        dself = obj.__repr__.__self__
+        p.pretty(None if dself is obj else dself)
+    else:
+        p.pretty(obj.__self__)
     p.end_group(8, '>')
 
 

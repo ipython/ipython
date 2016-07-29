@@ -188,12 +188,14 @@ class SB(SA):
     pass
 
 def test_super_repr():
+    # "<super: module_name.SA, None>"
     output = pretty.pretty(super(SA))
-    nt.assert_in("SA", output)
+    nt.assert_regexp_matches(output, r"<super: \S+.SA, None>")
 
+    # "<super: module_name.SA, <module_name.SB at 0x...>>"
     sb = SB()
     output = pretty.pretty(super(SA, sb))
-    nt.assert_in("SA", output)
+    nt.assert_regexp_matches(output, r"<super: \S+.SA,\s+<\S+.SB at 0x\S+>>")
 
 
 def test_long_list():
