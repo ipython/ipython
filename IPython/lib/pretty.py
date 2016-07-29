@@ -605,7 +605,8 @@ def _dict_pprinter_factory(start, end, basetype=None):
 
         if cycle:
             return p.text('{...}')
-        p.begin_group(1, start)
+        step = len(start)
+        p.begin_group(step, start)
         keys = obj.keys()
         # if dict isn't large enough to be truncated, sort keys before displaying
         if not (p.max_seq_length and len(obj) >= p.max_seq_length):
@@ -621,7 +622,7 @@ def _dict_pprinter_factory(start, end, basetype=None):
             p.pretty(key)
             p.text(': ')
             p.pretty(obj[key])
-        p.end_group(1, end)
+        p.end_group(step, end)
     return inner
 
 
@@ -760,6 +761,8 @@ try:
     _type_pprinters[types.ClassType] = _type_pprint
     _type_pprinters[types.SliceType] = _repr_pprint
 except AttributeError: # Python 3
+    _type_pprinters[types.MappingProxyType] = \
+        _dict_pprinter_factory('mappingproxy({', '})')
     _type_pprinters[slice] = _repr_pprint
     
 try:
