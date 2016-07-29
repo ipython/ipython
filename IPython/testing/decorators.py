@@ -48,7 +48,7 @@ from .ipunittest import ipdoctest, ipdocstring
 from IPython.external.decorators import *
 
 # For onlyif_cmd_exists decorator
-from IPython.utils.py3compat import string_types, which, PY2, PY3
+from IPython.utils.py3compat import string_types, which, PY2, PY3, PYPY
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -336,6 +336,7 @@ skip_known_failure = knownfailureif(True,'This test is known to fail')
 known_failure_py3 = knownfailureif(sys.version_info[0] >= 3, 
                                     'This test is known to fail on Python 3.')
 
+cpython2_only = skipif(PY3 or PYPY, "This test only runs on CPython 2.")
 py2_only = skipif(PY3, "This test only runs on Python 2.")
 py3_only = skipif(PY2, "This test only runs on Python 3.")
 

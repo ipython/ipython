@@ -12,7 +12,8 @@ import types, string, ctypes
 import nose.tools as nt
 
 from IPython.lib import pretty
-from IPython.testing.decorators import skip_without, py2_only, py3_only
+from IPython.testing.decorators import (skip_without, py2_only, py3_only,
+                                        cpython2_only)
 from IPython.utils.py3compat import PY3, unicode_to_str
 
 if PY3:
@@ -483,7 +484,7 @@ def test_mappingproxy():
     for obj, expected in cases:
         nt.assert_equal(pretty.pretty(obj), expected)
 
-@py2_only
+@cpython2_only # In PyPy, types.DictProxyType is dict
 def test_dictproxy():
     # This is the dictproxy constructor itself from the Python API,
     DP = ctypes.pythonapi.PyDictProxy_New

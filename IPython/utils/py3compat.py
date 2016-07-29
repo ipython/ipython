@@ -292,6 +292,7 @@ else:
 
 
 PY2 = not PY3
+PYPY = any(k.startswith("pypy") for k in dir(sys))
 
 
 def annotate(**kwargs):
