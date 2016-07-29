@@ -588,7 +588,8 @@ class PlainTextFormatter(BaseFormatter):
     # setter for float precision, either int or direct format-string
     float_precision = CUnicode('').tag(config=True)
 
-    def _float_precision_changed(self, name, old, new):
+    @observe('float_precision')
+    def _float_precision_changed(self, change):
         """float_precision changed, set float_format accordingly.
 
         float_precision can be set by int or str.
@@ -602,6 +603,7 @@ class PlainTextFormatter(BaseFormatter):
         This parameter can be set via the '%precision' magic.
         """
 
+        new = change['new']
         if '%' in new:
             # got explicit format string
             fmt = new

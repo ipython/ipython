@@ -1,24 +1,15 @@
 """Tests for debugging machinery.
 """
 from __future__ import print_function
-#-----------------------------------------------------------------------------
-#  Copyright (c) 2012, The IPython Development Team.
-#
-#  Distributed under the terms of the Modified BSD License.
-#
-#  The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import sys
+import warnings
 
-# third-party
 import nose.tools as nt
 
-# Our own
 from IPython.core import debugger
 
 #-----------------------------------------------------------------------------
@@ -69,7 +60,9 @@ def test_longer_repr():
     nt.assert_equal(trepr(a), a_trunc)
     # The creation of our tracer modifies the repr module's repr function
     # in-place, since that global is used directly by the stdlib's pdb module.
-    debugger.Tracer()
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', DeprecationWarning)
+        debugger.Tracer()
     nt.assert_equal(trepr(a), ar)
 
 def test_ipdb_magics():

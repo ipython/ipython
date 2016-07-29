@@ -14,6 +14,7 @@ import atexit
 import os
 import sys
 import tempfile
+import warnings
 from warnings import warn
 
 from IPython.utils.decorators import undoc
@@ -81,11 +82,16 @@ class IOStream:
         pass
 
 # setup stdin/stdout/stderr to sys.stdin/sys.stdout/sys.stderr
-devnull = open(os.devnull, 'w') 
+devnull = open(os.devnull, 'w')
 atexit.register(devnull.close)
-stdin = IOStream(sys.stdin, fallback=devnull)
-stdout = IOStream(sys.stdout, fallback=devnull)
-stderr = IOStream(sys.stderr, fallback=devnull)
+
+# io.std* are deprecated, but don't show our own deprecation warnings
+# during initialization of the deprecated API.
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore', DeprecationWarning)
+    stdin = IOStream(sys.stdin, fallback=devnull)
+    stdout = IOStream(sys.stdout, fallback=devnull)
+    stderr = IOStream(sys.stderr, fallback=devnull)
 
 class Tee(object):
     """A class to duplicate an output stream to stdout/err.

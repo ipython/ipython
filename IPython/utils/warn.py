@@ -18,7 +18,7 @@ def warn(msg,level=2,exit_val=1):
 
     Standard warning printer. Gives formatting consistency.
 
-    Output is sent to io.stderr (sys.stderr by default).
+    Output is sent to sys.stderr.
 
     Options:
 

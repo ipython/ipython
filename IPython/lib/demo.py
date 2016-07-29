@@ -470,7 +470,7 @@ class Demo(object):
         if self.block_index == self.nblocks:
             mq1 = self.marquee('END OF DEMO')
             if mq1:
-                # avoid spurious print >>io.stdout,s if empty marquees are used
+                # avoid spurious print if empty marquees are used
                 print()
                 print(mq1)
                 print(self.marquee('Use <demo_name>.reset() if you want to rerun it.'))

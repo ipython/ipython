@@ -8,21 +8,12 @@ done.
 from __future__ import absolute_import
 from __future__ import print_function
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2009-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-
-# stdlib
 import sys
+import warnings
 
-# our own
 from . import tools
 
 from IPython.core import page
@@ -31,9 +22,6 @@ from IPython.utils import py3compat
 from IPython.utils.py3compat import builtin_mod
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 
-#-----------------------------------------------------------------------------
-# Functions
-#-----------------------------------------------------------------------------
 
 class StreamProxy(io.IOStream):
     """Proxy for sys.stdout/err.  This will request the stream *at call time*
@@ -46,6 +34,9 @@ class StreamProxy(io.IOStream):
     """
 
     def __init__(self, name):
+        warnings.warn("StreamProxy is deprecated and unused as of IPython 5", DeprecationWarning,
+            stacklevel=2,
+        )
         self.name=name
 
     @property
@@ -135,10 +126,6 @@ def start_ipython():
     builtin_mod._ip = _ip
     builtin_mod.get_ipython = get_ipython
 
-    # To avoid extra IPython messages during testing, suppress io.stdout/stderr
-    io.stdout = StreamProxy('stdout')
-    io.stderr = StreamProxy('stderr')
-    
     # Override paging, so we don't require user interaction during the tests.
     def nopage(strng, start=0, screen_lines=0, pager_cmd=None):
         if isinstance(strng, dict):

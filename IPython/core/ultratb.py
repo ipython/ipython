@@ -495,8 +495,8 @@ class TBTools(colorable.Colorable):
 
         # Output stream to write to.  Note that we store the original value in
         # a private attribute and then make the public ostream a property, so
-        # that we can delay accessing io.stdout until runtime.  The way
-        # things are written now, the io.stdout object is dynamically managed
+        # that we can delay accessing sys.stdout until runtime.  The way
+        # things are written now, the sys.stdout object is dynamically managed
         # so a reference to it should NEVER be stored statically.  This
         # property approach confines this detail to a single location, and all
         # subclasses can simply access self.ostream for writing.
@@ -509,7 +509,7 @@ class TBTools(colorable.Colorable):
         self.old_scheme = color_scheme  # save initial value for toggles
 
         if call_pdb:
-            self.pdb = debugger.Pdb(self.color_scheme_table.active_scheme_name)
+            self.pdb = debugger.Pdb()
         else:
             self.pdb = None
 
@@ -519,7 +519,7 @@ class TBTools(colorable.Colorable):
         Valid values are:
 
         - None: the default, which means that IPython will dynamically resolve
-          to io.stdout.  This ensures compatibility with most tools, including
+          to sys.stdout.  This ensures compatibility with most tools, including
           Windows (where plain stdout doesn't recognize ANSI escapes).
 
         - Any object with 'write' and 'flush' attributes.

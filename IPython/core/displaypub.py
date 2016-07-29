@@ -91,7 +91,7 @@ class DisplayPublisher(Configurable):
             Unused.
         """
 
-        # The default is to simply write the plain text data using io.stdout.
+        # The default is to simply write the plain text data using sys.stdout.
         if 'text/plain' in data:
             print(data['text/plain'])
 

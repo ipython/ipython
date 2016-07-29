@@ -294,14 +294,13 @@ class EmbeddedSphinxShell(object):
         IP = InteractiveShell.instance(config=config, profile_dir=profile)
         atexit.register(self.cleanup)
 
-        # io.stdout redirect must be done after instantiating InteractiveShell
-        io.stdout = self.cout
-        io.stderr = self.cout
+        sys.stdout = self.cout
+        sys.stderr = self.cout
 
         # For debugging, so we can see normal output, use this:
         #from IPython.utils.io import Tee
-        #io.stdout = Tee(self.cout, channel='stdout') # dbg
-        #io.stderr = Tee(self.cout, channel='stderr') # dbg
+        #sys.stdout = Tee(self.cout, channel='stdout') # dbg
+        #sys.stderr = Tee(self.cout, channel='stderr') # dbg
 
         # Store a few parts of IPython we'll need.
         self.IP = IP

@@ -24,13 +24,13 @@ from IPython.utils.path import filefind
 from traitlets import (
     Unicode, Instance, List, Bool, CaselessStrEnum, observe,
 )
-from IPython.lib.inputhook import guis
+from IPython.terminal import pt_inputhooks
 
 #-----------------------------------------------------------------------------
 # Aliases and Flags
 #-----------------------------------------------------------------------------
 
-gui_keys = tuple(sorted([ key for key in guis if key is not None ]))
+gui_keys = tuple(sorted(pt_inputhooks.backends) + sorted(pt_inputhooks.aliases))
 
 backend_keys = sorted(pylabtools.backends.keys())
 backend_keys.insert(0, 'auto')
