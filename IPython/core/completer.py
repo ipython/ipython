@@ -216,7 +216,11 @@ def completions_sorting_key(word):
 class Bunch(object): pass
 
 
-DELIMS = ' \t\n`!@#$^&*()=+[{]}\\|;:\'",<>?'
+if sys.platform == 'win32':
+    DELIMS = ' \t\n`!@#$^&*()=+[{]}|;\'",<>?'
+else:
+    DELIMS = ' \t\n`!@#$^&*()=+[{]}\\|;:\'",<>?'
+
 GREEDY_DELIMS = ' =\r\n'
 
 
@@ -729,7 +733,10 @@ class IPCompleter(Completer):
             return [text_prefix + cast_unicode_py2(protect_filename(f)) for f in self.glob("*")]
 
         # Compute the matches from the filesystem
-        m0 = self.clean_glob(text.replace('\\',''))
+        if sys.platform == 'win32':
+            m0 = self.clean_glob(text)
+        else:
+            m0 = self.clean_glob(text.replace('\\', ''))
 
         if has_protectables:
             # If we had protectables, we need to revert our changes to the
