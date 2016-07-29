@@ -7,7 +7,7 @@
 from __future__ import print_function
 
 from collections import Counter, defaultdict, deque, OrderedDict
-import types, string
+import types, string, ctypes
 
 import nose.tools as nt
 
@@ -482,3 +482,52 @@ def test_mappingproxy():
     ]
     for obj, expected in cases:
         nt.assert_equal(pretty.pretty(obj), expected)
+
+@py2_only
+def test_dictproxy():
+    # This is the dictproxy constructor itself from the Python API,
+    DP = ctypes.pythonapi.PyDictProxy_New
+    DP.argtypes, DP.restype = (ctypes.py_object,), ctypes.py_object
+
+    underlying_dict = {}
+    mp_recursive = DP(underlying_dict)
+    underlying_dict[0] = mp_recursive
+    underlying_dict[-3] = underlying_dict
+
+    cases = [
+        (DP({}), "dict_proxy({})"),
+        (DP({None: DP({})}), "dict_proxy({None: dict_proxy({})})"),
+        (DP({k: k.lower() for k in string.ascii_uppercase}),
+         "dict_proxy({'A': 'a',\n"
+         "            'B': 'b',\n"
+         "            'C': 'c',\n"
+         "            'D': 'd',\n"
+         "            'E': 'e',\n"
+         "            'F': 'f',\n"
+         "            'G': 'g',\n"
+         "            'H': 'h',\n"
+         "            'I': 'i',\n"
+         "            'J': 'j',\n"
+         "            'K': 'k',\n"
+         "            'L': 'l',\n"
+         "            'M': 'm',\n"
+         "            'N': 'n',\n"
+         "            'O': 'o',\n"
+         "            'P': 'p',\n"
+         "            'Q': 'q',\n"
+         "            'R': 'r',\n"
+         "            'S': 's',\n"
+         "            'T': 't',\n"
+         "            'U': 'u',\n"
+         "            'V': 'v',\n"
+         "            'W': 'w',\n"
+         "            'X': 'x',\n"
+         "            'Y': 'y',\n"
+         "            'Z': 'z'})"),
+        (mp_recursive, "dict_proxy({-3: {-3: {...}, 0: {...}}, 0: {...}})"),
+    ]
+    for obj, expected in cases:
+        nt.assert_is_instance(obj, types.DictProxyType) # Meta-test
+        nt.assert_equal(pretty.pretty(obj), expected)
+    nt.assert_equal(pretty.pretty(underlying_dict),
+                    "{-3: {...}, 0: dict_proxy({-3: {...}, 0: {...}})}")
