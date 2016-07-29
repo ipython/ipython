@@ -109,7 +109,7 @@ class DisplayHook(Configurable):
         """Write the output prompt.
 
         The default implementation simply writes the prompt to
-        ``io.stdout``.
+        ``sys.stdout``.
         """
         # Use write, not print which adds an extra space.
         sys.stdout.write(self.shell.separate_out)
@@ -156,7 +156,7 @@ class DisplayHook(Configurable):
         """Write the format data dict to the frontend.
 
         This default version of this method simply writes the plain text
-        representation of the object to ``io.stdout``. Subclasses should
+        representation of the object to ``sys.stdout``. Subclasses should
         override this method to send the entire `format_dict` to the
         frontends.
 

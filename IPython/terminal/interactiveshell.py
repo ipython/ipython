@@ -3,9 +3,11 @@ from __future__ import print_function
 
 import os
 import sys
+import warnings
 from warnings import warn
 
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
+from IPython.utils import io
 from IPython.utils.py3compat import PY3, cast_unicode_py2, input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
@@ -360,9 +362,12 @@ class TerminalInteractiveShell(InteractiveShell):
         # For some reason we make these wrappers around stdout/stderr.
         # For now, we need to reset them so all output gets coloured.
         # https://github.com/ipython/ipython/issues/8669
-        from IPython.utils import io
-        io.stdout = io.IOStream(sys.stdout)
-        io.stderr = io.IOStream(sys.stderr)
+        # io.std* are deprecated, but don't show our own deprecation warnings
+        # during initialization of the deprecated API.
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', DeprecationWarning)
+            io.stdout = io.IOStream(sys.stdout)
+            io.stderr = io.IOStream(sys.stderr)
 
     def init_magics(self):
         super(TerminalInteractiveShell, self).init_magics()

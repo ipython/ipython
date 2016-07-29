@@ -651,8 +651,12 @@ class InteractiveShell(SingletonConfigurable):
         # override sys.stdout and sys.stderr themselves, you need to do that
         # *before* instantiating this class, because io holds onto
         # references to the underlying streams.
-        io.stdout = io.IOStream(sys.stdout)
-        io.stderr = io.IOStream(sys.stderr)
+        # io.std* are deprecated, but don't show our own deprecation warnings
+        # during initialization of the deprecated API.
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', DeprecationWarning)
+            io.stdout = io.IOStream(sys.stdout)
+            io.stderr = io.IOStream(sys.stderr)
 
     def init_prompts(self):
         # Set system prompts, so that scripts can decide if they are running

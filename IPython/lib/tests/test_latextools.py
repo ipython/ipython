@@ -30,7 +30,7 @@ def check_latex_to_png_dvipng_fails_when_no_cmd(command):
             raise FindCmdError
 
     with patch.object(latextools, "find_cmd", mock_find_cmd):
-        nt.assert_equals(latextools.latex_to_png_dvipng("whatever", True),
+        nt.assert_equal(latextools.latex_to_png_dvipng("whatever", True),
                          None)
 
 
@@ -40,7 +40,7 @@ def test_latex_to_png_dvipng_runs():
     Test that latex_to_png_dvipng just runs without error.
     """
     def mock_kpsewhich(filename):
-        nt.assert_equals(filename, "breqn.sty")
+        nt.assert_equal(filename, "breqn.sty")
         return None
 
     for (s, wrap) in [(u"$$x^2$$", False), (u"x^2", True)]:
@@ -55,7 +55,7 @@ def test_latex_to_png_mpl_runs():
     Test that latex_to_png_mpl just runs without error.
     """
     def mock_kpsewhich(filename):
-        nt.assert_equals(filename, "breqn.sty")
+        nt.assert_equal(filename, "breqn.sty")
         return None
 
     for (s, wrap) in [("$x^2$", False), ("x^2", True)]:
@@ -79,7 +79,7 @@ def test_genelatex_no_wrap():
                        "(called with {0})".format(filename))
 
     with patch.object(latextools, "kpsewhich", mock_kpsewhich):
-        nt.assert_equals(
+        nt.assert_equal(
             '\n'.join(latextools.genelatex("body text", False)),
             r'''\documentclass{article}
 \usepackage{amsmath}
@@ -97,11 +97,11 @@ def test_genelatex_wrap_with_breqn():
     Test genelatex with wrap=True for the case breqn.sty is installed.
     """
     def mock_kpsewhich(filename):
-        nt.assert_equals(filename, "breqn.sty")
+        nt.assert_equal(filename, "breqn.sty")
         return "path/to/breqn.sty"
 
     with patch.object(latextools, "kpsewhich", mock_kpsewhich):
-        nt.assert_equals(
+        nt.assert_equal(
             '\n'.join(latextools.genelatex("x^2", True)),
             r'''\documentclass{article}
 \usepackage{amsmath}
@@ -122,11 +122,11 @@ def test_genelatex_wrap_without_breqn():
     Test genelatex with wrap=True for the case breqn.sty is not installed.
     """
     def mock_kpsewhich(filename):
-        nt.assert_equals(filename, "breqn.sty")
+        nt.assert_equal(filename, "breqn.sty")
         return None
 
     with patch.object(latextools, "kpsewhich", mock_kpsewhich):
-        nt.assert_equals(
+        nt.assert_equal(
             '\n'.join(latextools.genelatex("x^2", True)),
             r'''\documentclass{article}
 \usepackage{amsmath}
