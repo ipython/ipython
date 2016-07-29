@@ -670,8 +670,10 @@ def _type_pprint(obj, p, cycle):
     # Heap allocated types might not have the module attribute,
     # and others may set it to None.
 
-    # Checks for a __repr__ override in the metaclass
-    if type(obj).__repr__ is not type.__repr__:
+    # Checks for a __repr__ override in the metaclass. Can't compare the
+    # type(obj).__repr__ directly because in PyPy the representation function
+    # inherited from type isn't the same type.__repr__
+    if [m for m in _get_mro(type(obj)) if "__repr__" in vars(m)][:1] != [type]:
         _repr_pprint(obj, p, cycle)
         return
 
