@@ -6,6 +6,7 @@ import sys
 import re
 import shutil
 import types
+import platform
 
 from .encoding import DEFAULT_ENCODING
 
@@ -292,7 +293,7 @@ else:
 
 
 PY2 = not PY3
-PYPY = any(k.startswith("pypy") for k in dir(sys))
+PYPY = platform.python_implementation() == "PyPy"
 
 
 def annotate(**kwargs):
