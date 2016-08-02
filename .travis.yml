@@ -6,12 +6,29 @@ python:
     - 3.4
     - 3.3
     - 2.7
+    - pypy
 sudo: false
 before_install:
     - git clone --quiet --depth 1 https://github.com/minrk/travis-wheels travis-wheels
     - 'if [[ $GROUP != js* ]]; then COVERAGE=""; fi'
 install:
     - pip install "setuptools>=18.5"
+    # Installs PyPy (+ its Numpy). Based on @frol comment at:
+    # https://github.com/travis-ci/travis-ci/issues/5027
+    - |
+        if [ "$TRAVIS_PYTHON_VERSION" = "pypy" ]; then
+          export PYENV_ROOT="$HOME/.pyenv"
+          if [ -f "$PYENV_ROOT/bin/pyenv" ]; then
+            cd "$PYENV_ROOT" && git pull
+          else
+            rm -rf "$PYENV_ROOT" && git clone --depth 1 https://github.com/yyuu/pyenv.git "$PYENV_ROOT"
+          fi
+          export PYPY_VERSION="5.3.1"
+          "$PYENV_ROOT/bin/pyenv" install "pypy-$PYPY_VERSION"
+          virtualenv --python="$PYENV_ROOT/versions/pypy-$PYPY_VERSION/bin/python" "$HOME/virtualenvs/pypy-$PYPY_VERSION"
+          source "$HOME/virtualenvs/pypy-$PYPY_VERSION/bin/activate"
+          pip install https://bitbucket.org/pypy/numpy/get/master.zip
+        fi
     - pip install -f travis-wheels/wheelhouse -e file://$PWD#egg=ipython[test]
     - pip install codecov
 script:
@@ -23,4 +40,5 @@ after_success:
 
 matrix:
     allow_failures:
-        python: nightly
+        - python: nightly
+        - python: pypy

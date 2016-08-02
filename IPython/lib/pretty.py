@@ -85,7 +85,7 @@ import re
 import datetime
 from collections import deque
 
-from IPython.utils.py3compat import PY3, cast_unicode, string_types
+from IPython.utils.py3compat import PY3, PYPY, cast_unicode, string_types
 from IPython.utils.encoding import get_stream_enc
 
 from io import StringIO
@@ -605,7 +605,8 @@ def _dict_pprinter_factory(start, end, basetype=None):
 
         if cycle:
             return p.text('{...}')
-        p.begin_group(1, start)
+        step = len(start)
+        p.begin_group(step, start)
         keys = obj.keys()
         # if dict isn't large enough to be truncated, sort keys before displaying
         if not (p.max_seq_length and len(obj) >= p.max_seq_length):
@@ -621,7 +622,7 @@ def _dict_pprinter_factory(start, end, basetype=None):
             p.pretty(key)
             p.text(': ')
             p.pretty(obj[key])
-        p.end_group(1, end)
+        p.end_group(step, end)
     return inner
 
 
@@ -631,7 +632,11 @@ def _super_pprint(obj, p, cycle):
     p.pretty(obj.__thisclass__)
     p.text(',')
     p.breakable()
-    p.pretty(obj.__self__)
+    if PYPY: # In PyPy, super() objects don't have __self__ attributes
+        dself = obj.__repr__.__self__
+        p.pretty(None if dself is obj else dself)
+    else:
+        p.pretty(obj.__self__)
     p.end_group(8, '>')
 
 
@@ -665,8 +670,10 @@ def _type_pprint(obj, p, cycle):
     # Heap allocated types might not have the module attribute,
     # and others may set it to None.
 
-    # Checks for a __repr__ override in the metaclass
-    if type(obj).__repr__ is not type.__repr__:
+    # Checks for a __repr__ override in the metaclass. Can't compare the
+    # type(obj).__repr__ directly because in PyPy the representation function
+    # inherited from type isn't the same type.__repr__
+    if [m for m in _get_mro(type(obj)) if "__repr__" in vars(m)][:1] != [type]:
         _repr_pprint(obj, p, cycle)
         return
 
@@ -753,10 +760,15 @@ _type_pprinters = {
 }
 
 try:
-    _type_pprinters[types.DictProxyType] = _dict_pprinter_factory('<dictproxy {', '}>')
+    # In PyPy, types.DictProxyType is dict, setting the dictproxy printer
+    # using dict.setdefault avoids overwritting the dict printer
+    _type_pprinters.setdefault(types.DictProxyType,
+                               _dict_pprinter_factory('dict_proxy({', '})'))
     _type_pprinters[types.ClassType] = _type_pprint
     _type_pprinters[types.SliceType] = _repr_pprint
 except AttributeError: # Python 3
+    _type_pprinters[types.MappingProxyType] = \
+        _dict_pprinter_factory('mappingproxy({', '})')
     _type_pprinters[slice] = _repr_pprint
     
 try:

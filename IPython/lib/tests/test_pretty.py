@@ -7,11 +7,13 @@
 from __future__ import print_function
 
 from collections import Counter, defaultdict, deque, OrderedDict
+import types, string, ctypes
 
 import nose.tools as nt
 
 from IPython.lib import pretty
-from IPython.testing.decorators import skip_without, py2_only
+from IPython.testing.decorators import (skip_without, py2_only, py3_only,
+                                        cpython2_only)
 from IPython.utils.py3compat import PY3, unicode_to_str
 
 if PY3:
@@ -186,12 +188,14 @@ class SB(SA):
     pass
 
 def test_super_repr():
+    # "<super: module_name.SA, None>"
     output = pretty.pretty(super(SA))
-    nt.assert_in("SA", output)
+    nt.assert_regexp_matches(output, r"<super: \S+.SA, None>")
 
+    # "<super: module_name.SA, <module_name.SB at 0x...>>"
     sb = SB()
     output = pretty.pretty(super(SA, sb))
-    nt.assert_in("SA", output)
+    nt.assert_regexp_matches(output, r"<super: \S+.SA,\s+<\S+.SB at 0x\S+>>")
 
 
 def test_long_list():
@@ -436,3 +440,97 @@ def test_collections_counter():
     ]
     for obj, expected in cases:
         nt.assert_equal(pretty.pretty(obj), expected)
+
+@py3_only
+def test_mappingproxy():
+    MP = types.MappingProxyType
+    underlying_dict = {}
+    mp_recursive = MP(underlying_dict)
+    underlying_dict[2] = mp_recursive
+    underlying_dict[3] = underlying_dict
+
+    cases = [
+        (MP({}), "mappingproxy({})"),
+        (MP({None: MP({})}), "mappingproxy({None: mappingproxy({})})"),
+        (MP({k: k.upper() for k in string.ascii_lowercase}),
+         "mappingproxy({'a': 'A',\n"
+         "              'b': 'B',\n"
+         "              'c': 'C',\n"
+         "              'd': 'D',\n"
+         "              'e': 'E',\n"
+         "              'f': 'F',\n"
+         "              'g': 'G',\n"
+         "              'h': 'H',\n"
+         "              'i': 'I',\n"
+         "              'j': 'J',\n"
+         "              'k': 'K',\n"
+         "              'l': 'L',\n"
+         "              'm': 'M',\n"
+         "              'n': 'N',\n"
+         "              'o': 'O',\n"
+         "              'p': 'P',\n"
+         "              'q': 'Q',\n"
+         "              'r': 'R',\n"
+         "              's': 'S',\n"
+         "              't': 'T',\n"
+         "              'u': 'U',\n"
+         "              'v': 'V',\n"
+         "              'w': 'W',\n"
+         "              'x': 'X',\n"
+         "              'y': 'Y',\n"
+         "              'z': 'Z'})"),
+        (mp_recursive, "mappingproxy({2: {...}, 3: {2: {...}, 3: {...}}})"),
+        (underlying_dict,
+         "{2: mappingproxy({2: {...}, 3: {...}}), 3: {...}}"),
+    ]
+    for obj, expected in cases:
+        nt.assert_equal(pretty.pretty(obj), expected)
+
+@cpython2_only # In PyPy, types.DictProxyType is dict
+def test_dictproxy():
+    # This is the dictproxy constructor itself from the Python API,
+    DP = ctypes.pythonapi.PyDictProxy_New
+    DP.argtypes, DP.restype = (ctypes.py_object,), ctypes.py_object
+
+    underlying_dict = {}
+    mp_recursive = DP(underlying_dict)
+    underlying_dict[0] = mp_recursive
+    underlying_dict[-3] = underlying_dict
+
+    cases = [
+        (DP({}), "dict_proxy({})"),
+        (DP({None: DP({})}), "dict_proxy({None: dict_proxy({})})"),
+        (DP({k: k.lower() for k in string.ascii_uppercase}),
+         "dict_proxy({'A': 'a',\n"
+         "            'B': 'b',\n"
+         "            'C': 'c',\n"
+         "            'D': 'd',\n"
+         "            'E': 'e',\n"
+         "            'F': 'f',\n"
+         "            'G': 'g',\n"
+         "            'H': 'h',\n"
+         "            'I': 'i',\n"
+         "            'J': 'j',\n"
+         "            'K': 'k',\n"
+         "            'L': 'l',\n"
+         "            'M': 'm',\n"
+         "            'N': 'n',\n"
+         "            'O': 'o',\n"
+         "            'P': 'p',\n"
+         "            'Q': 'q',\n"
+         "            'R': 'r',\n"
+         "            'S': 's',\n"
+         "            'T': 't',\n"
+         "            'U': 'u',\n"
+         "            'V': 'v',\n"
+         "            'W': 'w',\n"
+         "            'X': 'x',\n"
+         "            'Y': 'y',\n"
+         "            'Z': 'z'})"),
+        (mp_recursive, "dict_proxy({-3: {-3: {...}, 0: {...}}, 0: {...}})"),
+    ]
+    for obj, expected in cases:
+        nt.assert_is_instance(obj, types.DictProxyType) # Meta-test
+        nt.assert_equal(pretty.pretty(obj), expected)
+    nt.assert_equal(pretty.pretty(underlying_dict),
+                    "{-3: {...}, 0: dict_proxy({-3: {...}, 0: {...}})}")
