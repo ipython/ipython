@@ -74,11 +74,17 @@ def get_default_editor():
     else:
         return 'notepad' # same in Windows!
 
-
-if sys.stdin and sys.stdout and sys.stderr:
-    _is_tty = (sys.stdin.isatty()) and (sys.stdout.isatty()) and  (sys.stderr.isatty())
+# conservatively check for tty
+# overridden streams can result in things like:
+# - sys.stdin = None
+# - no isatty method
+for _name in ('stdin', 'stdout', 'stderr'):
+    _stream = getattr(sys, _name)
+    if not _stream or not hasattr(_stream, 'isatty') or not _stream.isatty():
+        _is_tty = False
+        break
 else:
-    _is_tty = False
+    _is_tty = True
 
 
 _use_simple_prompt = ('IPY_TEST_SIMPLE_PROMPT' in os.environ) or (not _is_tty)
