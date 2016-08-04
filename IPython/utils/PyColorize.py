@@ -146,7 +146,15 @@ NeutralColors = ColorScheme(
     'normal'         : Colors.Normal  # color off (usu. Colors.Normal)
     }  )
 
+# Hack: the 'neutral' colours are not very visible on a dark background on
+# Windows. Since Windows command prompts have a dark background by default, and
+# relatively few users are likely to alter that, we will use the 'Linux' colours,
+# designed for a dark background, as the default on Windows. Changing it here
+# avoids affecting the prompt colours rendered by prompt_toolkit, where the
+# neutral defaults do work OK.
 
+if os.name == 'nt':
+    NeutralColors = LinuxColors.copy(name='Neutral')
 
 LightBGColors = ColorScheme(
     'LightBG',{
