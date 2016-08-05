@@ -12,8 +12,12 @@ import pygments.lexers as pygments_lexers
 
 class IPythonPTCompleter(Completer):
     """Adaptor to provide IPython completions to prompt_toolkit"""
-    def __init__(self, ipy_completer):
-        self.ipy_completer = ipy_completer
+    def __init__(self, shell):
+        self.shell = shell
+    
+    @property
+    def ipy_completer(self):
+        return self.shell.Completer
 
     def get_completions(self, document, complete_event):
         if not document.current_line.strip():
