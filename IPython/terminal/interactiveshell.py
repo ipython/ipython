@@ -415,6 +415,7 @@ class TerminalInteractiveShell(InteractiveShell):
         if display_banner is not DISPLAY_BANNER_DEPRECATED:
             warn('interact `display_banner` argument is deprecated since IPython 5.0. Call `show_banner()` if needed.', DeprecationWarning, stacklevel=2)
 
+        self.keep_running = True
         while self.keep_running:
             print(self.separate_in, end='')
 
@@ -440,9 +441,6 @@ class TerminalInteractiveShell(InteractiveShell):
                 break
             except KeyboardInterrupt:
                 print("\nKeyboardInterrupt escaped interact()\n")
-        
-        if hasattr(self, '_eventloop'):
-            self._eventloop.close()
 
     _inputhook = None
     def inputhook(self, context):
