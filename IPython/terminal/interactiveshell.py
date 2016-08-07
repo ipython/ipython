@@ -8,10 +8,10 @@ from warnings import warn
 
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.utils import io
-from IPython.utils.py3compat import PY3, cast_unicode_py2, input
+from IPython.utils.py3compat import PY3, cast_unicode_py2, input, string_types
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
-from traitlets import Bool, Unicode, Dict, Integer, observe, Instance, Type, default, Enum
+from traitlets import Bool, Unicode, Dict, Integer, observe, Instance, Type, default, Enum, Union
 
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import (HasFocus, Condition, IsDone)
@@ -23,6 +23,7 @@ from prompt_toolkit.layout.processors import ConditionalProcessor, HighlightMatc
 from prompt_toolkit.styles import PygmentsStyle, DynamicStyle
 
 from pygments.styles import get_style_by_name, get_all_styles
+from pygments.style import Style
 from pygments.token import Token
 
 from .debugger import TerminalPdb, Pdb
@@ -132,8 +133,9 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Enable mouse support in the prompt"
     ).tag(config=True)
 
-    highlighting_style = Unicode('legacy',
-            help="The name of a Pygments style to use for syntax highlighting: \n %s" % ', '.join(get_all_styles())
+    highlighting_style = Union([Unicode('legacy'), Type(klass=Style)],
+        help="""The name or class of a Pygments style to use for syntax
+        highlighting: \n %s""" % ', '.join(get_all_styles())
     ).tag(config=True)
 
     
@@ -143,7 +145,7 @@ class TerminalInteractiveShell(InteractiveShell):
         self.refresh_style()
 
     def refresh_style(self):
-        self._style = self._make_style_from_name(self.highlighting_style)
+        self._style = self._make_style_from_name_or_cls(self.highlighting_style)
 
 
     highlighting_style_overrides = Dict(
@@ -229,7 +231,7 @@ class TerminalInteractiveShell(InteractiveShell):
             if cell and (cell != last_cell):
                 history.append(cell)
 
-        self._style = self._make_style_from_name(self.highlighting_style)
+        self._style = self._make_style_from_name_or_cls(self.highlighting_style)
         style = DynamicStyle(lambda: self._style)
 
         editing_mode = getattr(EditingMode, self.editing_mode.upper())
@@ -249,14 +251,14 @@ class TerminalInteractiveShell(InteractiveShell):
             self._pt_app, eventloop=self._eventloop,
             output=create_output(true_color=self.true_color))
 
-    def _make_style_from_name(self, name):
+    def _make_style_from_name_or_cls(self, name_or_cls):
         """
         Small wrapper that make an IPython compatible style from a style name
 
         We need that to add style for prompt ... etc. 
         """
         style_overrides = {}
-        if name == 'legacy':
+        if name_or_cls == 'legacy':
             legacy = self.colors.lower()
             if legacy == 'linux':
                 style_cls = get_style_by_name('monokai')
@@ -287,7 +289,10 @@ class TerminalInteractiveShell(InteractiveShell):
             else :
                 raise ValueError('Got unknown colors: ', legacy)
         else :
-            style_cls = get_style_by_name(name)
+            if isinstance(name_or_cls, string_types):
+                style_cls = get_style_by_name(name_or_cls)
+            else:
+                style_cls = name_or_cls
             style_overrides = {
                 Token.Prompt: '#009900',
                 Token.PromptNum: '#00ff00 bold',
