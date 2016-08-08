@@ -238,7 +238,7 @@ class TerminalInteractiveShell(InteractiveShell):
                             editing_mode=editing_mode,
                             key_bindings_registry=kbmanager.registry,
                             history=history,
-                            completer=IPythonPTCompleter(self),
+                            completer=IPythonPTCompleter(shell=self),
                             enable_history_search=True,
                             style=style,
                             mouse_support=self.mouse_support,
