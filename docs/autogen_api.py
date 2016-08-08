@@ -56,6 +56,8 @@ if __name__ == '__main__':
                                         r'\.qt',
                                         # this is deprecated.
                                         r'\.utils\.warn',
+                                        # Private APIs (there should be a lot more here)
+                                        r'\.terminal\.ptutils',
                                         ]
     # main API is in the inputhook module, which is documented.
 
