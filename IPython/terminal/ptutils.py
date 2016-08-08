@@ -3,6 +3,7 @@ from wcwidth import wcwidth
 
 from IPython.utils.py3compat import PY3
 
+from IPython.core.completer import IPCompleter
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.layout.lexers import Lexer
 from prompt_toolkit.layout.lexers import PygmentsLexer
@@ -13,8 +14,11 @@ import pygments.lexers as pygments_lexers
 class IPythonPTCompleter(Completer):
     """Adaptor to provide IPython completions to prompt_toolkit"""
     def __init__(self, shell):
+        if isinstance(shell, IPCompleter):
+            raise TypeError("IPythonPTCompleter expects an InteractiveShell"
+                            " instance in IPython 5.1, not a Completer")
         self.shell = shell
-    
+
     @property
     def ipy_completer(self):
         return self.shell.Completer
