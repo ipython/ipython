@@ -293,3 +293,17 @@ class DisplayHook(Configurable):
         # IronPython blocks here forever
         if sys.platform != "cli":
             gc.collect()
+
+
+class CapturingDisplayHook(object):
+    def __init__(self, shell, outputs=None):
+        self.shell = shell
+        if outputs is None:
+            outputs = []
+        self.outputs = outputs
+
+    def __call__(self, result=None):
+        if result is None:
+            return
+        format_dict, md_dict = self.shell.display_formatter.format(result)
+        self.outputs.append((format_dict, md_dict))

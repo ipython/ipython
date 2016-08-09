@@ -137,6 +137,7 @@ class capture_output(object):
     def __enter__(self):
         from IPython.core.getipython import get_ipython
         from IPython.core.displaypub import CapturingDisplayPublisher
+        from IPython.core.displayhook import CapturingDisplayHook
         
         self.sys_stdout = sys.stdout
         self.sys_stderr = sys.stderr
@@ -156,7 +157,9 @@ class capture_output(object):
             self.save_display_pub = self.shell.display_pub
             self.shell.display_pub = CapturingDisplayPublisher()
             outputs = self.shell.display_pub.outputs
-            
+            self.save_display_hook = sys.displayhook
+            sys.displayhook = CapturingDisplayHook(shell=self.shell,
+                                                   outputs=outputs)
         
         return CapturedIO(stdout, stderr, outputs)
     
@@ -165,5 +168,6 @@ class capture_output(object):
         sys.stderr = self.sys_stderr
         if self.display and self.shell:
             self.shell.display_pub = self.save_display_pub
+            sys.displayhook = self.save_display_hook
 
 
