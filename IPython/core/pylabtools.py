@@ -199,7 +199,6 @@ def select_figure_formats(shell, formats, **kwargs):
     """
     import matplotlib
     from matplotlib.figure import Figure
-    from ipykernel.pylab import backend_inline
 
     svg_formatter = shell.display_formatter.formatters['image/svg+xml']
     png_formatter = shell.display_formatter.formatters['image/png']
@@ -358,7 +357,7 @@ def configure_inline_support(shell, backend):
         from ipykernel.pylab.backend_inline import InlineBackend
     except ImportError:
         return
-    from matplotlib import pyplot
+    import matplotlib
 
     cfg = InlineBackend.instance(parent=shell)
     cfg.shell = shell
@@ -372,9 +371,9 @@ def configure_inline_support(shell, backend):
         # Save rcParams that will be overwrittern
         shell._saved_rcParams = dict()
         for k in cfg.rc:
-            shell._saved_rcParams[k] = pyplot.rcParams[k]
+            shell._saved_rcParams[k] = matplotlib.rcParams[k]
         # load inline_rc
-        pyplot.rcParams.update(cfg.rc)
+        matplotlib.rcParams.update(cfg.rc)
         new_backend_name = "inline"
     else:
         from ipykernel.pylab.backend_inline import flush_figures
@@ -383,7 +382,7 @@ def configure_inline_support(shell, backend):
         except ValueError:
             pass
         if hasattr(shell, '_saved_rcParams'):
-            pyplot.rcParams.update(shell._saved_rcParams)
+            matplotlib.rcParams.update(shell._saved_rcParams)
             del shell._saved_rcParams
         new_backend_name = "other"
 
