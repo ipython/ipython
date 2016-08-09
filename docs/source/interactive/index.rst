@@ -10,7 +10,7 @@ done some work in the REPL.
 .. note::
     
     Some part of this documentation are more than a decade old so might be out
-    of date, we welcome any report of inacuracy, and Pull Requests that make
+    of date, we welcome any report of inaccuracy, and Pull Requests that make
     that up to date.
 
 .. toctree::
