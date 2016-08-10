@@ -10,7 +10,7 @@ IPython 5.1
 * Don't set terminal title by default. :ghpull:`9801`
 * Preserve indentation when inserting newlines with ``Ctrl-O``. :ghpull:`9770`
 * Restore completion in debugger. :ghpull:`9785`
-* Deprecate ``IPtyhon.core.debugger.Tracer()`` in favor of simpler, newer, APIs. :ghpull:`9731`
+* Deprecate ``IPython.core.debugger.Tracer()`` in favor of simpler, newer, APIs. :ghpull:`9731`
 * Restore ``NoOpContext`` context manager removed by mistake, and add `DeprecationWarning`. :ghpull:`9765`
 * Add option allowing ``Prompt_toolkit`` to use 24bits colors. :ghpull:`9736`
 * Fix for closing interactive matplotlib windows on OS X. :ghpull:`9854`
