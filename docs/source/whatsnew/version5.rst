@@ -10,9 +10,21 @@ IPython 5.1
 * Don't set terminal title by default. :ghpull:`9801`
 * Preserve indentation when inserting newlines with ``Ctrl-O``. :ghpull:`9770`
 * Restore completion in debugger. :ghpull:`9785`
-* Deprecate ``IPtyhon.core.debugger.Tracer()`` in favor of simpler, newer, APIs. :ghpull:`9731`
+* Deprecate ``IPython.core.debugger.Tracer()`` in favor of simpler, newer, APIs. :ghpull:`9731`
 * Restore ``NoOpContext`` context manager removed by mistake, and add `DeprecationWarning`. :ghpull:`9765`
 * Add option allowing ``Prompt_toolkit`` to use 24bits colors. :ghpull:`9736`
+* Fix for closing interactive matplotlib windows on OS X. :ghpull:`9854`
+* An embedded interactive shell instance can be used more than once. :ghpull:`9843`
+* More robust check for whether IPython is in a terminal. :ghpull:`9833`
+* Better pretty-printing of dicts on PyPy. :ghpull:`9827`
+* Some coloured output now looks better on dark background command prompts in Windows.
+  :ghpull:`9838`
+* Improved tab completion of paths on Windows . :ghpull:`9826`
+* Fix tkinter event loop integration on Python 2 with ``future`` installed. :ghpull:`9824`
+* Restore ``Ctrl-\`` as a shortcut to quit IPython.
+* Make ``get_ipython()`` accessible when modules are imported by startup files. :ghpull:`9818`
+* Add support for running directories containing a ``__main__.py`` file with the
+  ``ipython`` command. :ghpull:`9813`
 
 
 True Color feature
