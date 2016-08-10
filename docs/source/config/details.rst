@@ -77,6 +77,14 @@ by setting ``get_ipython().prompts`` to an *instance* of the class.
 In configuration, ``TerminalInteractiveShell.prompts_class`` may be set to
 either the class object, or a string of its full importable name.
 
+To include invisible terminal control sequences in a prompt, use
+``Token.ZeroWidthEscape`` as the token type. Tokens with this type are ignored
+when calculating the width.
+
+Colours in the prompt are determined by the token types and the highlighting
+style; see below for more details. The tokens used in the default prompts are
+``Prompt``, ``PromptNum``, ``OutPrompt`` and ``OutPromptNum``.
+
 .. _termcolour:
 
 Terminal Colors
