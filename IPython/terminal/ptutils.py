@@ -1,8 +1,18 @@
+"""prompt-toolkit utilities
+
+Everything in this module is a private API,
+not to be used outside IPython.
+"""
+
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 import unicodedata
 from wcwidth import wcwidth
 
 from IPython.utils.py3compat import PY3
 
+from IPython.core.completer import IPCompleter
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.layout.lexers import Lexer
 from prompt_toolkit.layout.lexers import PygmentsLexer
@@ -12,8 +22,18 @@ import pygments.lexers as pygments_lexers
 
 class IPythonPTCompleter(Completer):
     """Adaptor to provide IPython completions to prompt_toolkit"""
-    def __init__(self, ipy_completer):
-        self.ipy_completer = ipy_completer
+    def __init__(self, ipy_completer=None, shell=None):
+        if shell is None and ipy_completer is None:
+            raise TypeError("Please pass shell=an InteractiveShell instance.")
+        self._ipy_completer = ipy_completer
+        self.shell = shell
+
+    @property
+    def ipy_completer(self):
+        if self._ipy_completer:
+            return self._ipy_completer
+        else:
+            return self.shell.Completer
 
     def get_completions(self, document, complete_event):
         if not document.current_line.strip():
