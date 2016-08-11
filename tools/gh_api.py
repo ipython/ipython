@@ -66,13 +66,13 @@ def get_auth_token():
     response = requests.post('https://api.github.com/authorizations',
                             auth=(user, pw), data=json.dumps(auth_request))
     if response.status_code == 401 and \
-       response.headers.get('X-GitHub-OTP') == 'required; sms':
-        print("Your login API resquest a SMS one time password", file=sys.stderr)
-        sms_pw = getpass.getpass("SMS password: ", stream=sys.stderr)
+            'required;' in response.headers.get('X-GitHub-OTP', ''):
+        print("Your login API requested a one time password", file=sys.stderr)
+        otp = getpass.getpass("One Time Password: ", stream=sys.stderr)
         response = requests.post('https://api.github.com/authorizations',
                             auth=(user, pw), 
                             data=json.dumps(auth_request),
-                            headers={'X-GitHub-OTP':sms_pw})
+                            headers={'X-GitHub-OTP':otp})
     response.raise_for_status()
     token = json.loads(response.text)['token']
     keyring.set_password('github', fake_username, token)
