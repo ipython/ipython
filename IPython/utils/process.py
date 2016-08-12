@@ -41,6 +41,9 @@ def find_cmd(cmd):
         from IPython.utils.process import pycmd2argv
         argv = pycmd2argv(get_ipython_module_path('IPython.terminal.ipapp'))
 
+    Note, The code for pycmd2argv has been removed now as it was not used
+    anywhere. get_ipython_module_path should give us that same result.
+
     Parameters
     ----------
     cmd : str
@@ -50,41 +53,6 @@ def find_cmd(cmd):
     if path is None:
         raise FindCmdError('command could not be found: %s' % cmd)
     return path
-
-
-def is_cmd_found(cmd):
-    """Check whether executable `cmd` exists or not and return a bool."""
-    try:
-        find_cmd(cmd)
-        return True
-    except FindCmdError:
-        return False
-
-
-def pycmd2argv(cmd):
-    r"""Take the path of a python command and return a list (argv-style).
-
-    This only works on Python based command line programs and will find the
-    location of the ``python`` executable using ``sys.executable`` to make
-    sure the right version is used.
-
-    For a given path ``cmd``, this returns [cmd] if cmd's extension is .exe,
-    .com or .bat, and [, cmd] otherwise.
-
-    Parameters
-    ----------
-    cmd : string
-      The path of the command.
-
-    Returns
-    -------
-    argv-style list.
-    """
-    ext = os.path.splitext(cmd)[1]
-    if ext in ['.exe', '.com', '.bat']:
-        return [cmd]
-    else:
-        return [sys.executable, cmd]
 
 
 def abbrev_cwd():
