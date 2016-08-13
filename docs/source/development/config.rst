@@ -41,20 +41,17 @@ The next thing you need to know is what to call your configuration file. The
 basic idea is that each application has its own default configuration filename.
 The default named used by the :command:`ipython` command line program is
 :file:`ipython_config.py`, and *all* IPython applications will use this file.
-Other applications, such as the parallel :command:`ipcluster` scripts or the
-QtConsole will load their own config files *after* :file:`ipython_config.py`. To
-load a particular configuration file instead of the default, the name can be
-overridden by the ``config_file`` command line flag.
+The IPython kernel will load its own config file *after*
+:file:`ipython_config.py`. To load a particular configuration file instead of
+the default, the name can be overridden by the ``config_file`` command line
+flag.
 
 To generate the default configuration files, do::
 
     $ ipython profile create
 
 and you will have a default :file:`ipython_config.py` in your IPython directory
-under :file:`profile_default`. If you want the default config files for the
-:mod:`IPython.parallel` applications, add ``--parallel`` to the end of the
-command-line args.
-
+under :file:`profile_default`.
 .. note::
 
     IPython configuration options are case sensitive, and IPython cannot
