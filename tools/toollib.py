@@ -21,7 +21,8 @@ archive = '%s:%s' % (archive_user, archive_dir)
 sdists = './setup.py sdist --formats=gztar,zip'
 # Binary dists
 def buildwheels():
-    sh('python setupegg.py bdist_wheel')
+    for py in ('2', '3'):
+        sh('python%s setupegg.py bdist_wheel' % py)
 
 # Utility functions
 def sh(cmd):
