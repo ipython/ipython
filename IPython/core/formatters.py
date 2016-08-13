@@ -775,6 +775,23 @@ class LatexFormatter(BaseFormatter):
     print_method = ObjectName('_repr_latex_')
 
 
+class MathMLFormatter(BaseFormatter):
+    """A MathML formatter.
+
+    To define the callables that compute the MathML representation of your
+    objects, define a :meth:`_repr_mathml_` method or use the :meth:`for_type`
+    or :meth:`for_type_by_name` methods to register functions that handle
+    this.
+
+    The return value of this formatter should be a valid HTML snippet that
+    could be injected into an existing DOM. It should *not* include the
+    ```<html>`` or ```<body>`` tags.
+    """
+    format_type = Unicode('application/mathml+xml')
+
+    print_method = ObjectName('_repr_html_')
+
+
 class JSONFormatter(BaseFormatter):
     """A JSON string formatter.
 
