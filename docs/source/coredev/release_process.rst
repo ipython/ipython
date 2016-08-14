@@ -176,8 +176,10 @@ Run the ``release`` script, this step requires having a current wheel, Python
     ./tools/release
 
 This makes the tarballs, zipfiles, and wheels, and put them under the ``dist/``
-folder. Be sure to test the ``wheel`` and the ``sdist`` locally before uploading
-them to PyPI.
+folder. Be sure to test the ``wheels``  and the ``sdist`` locally before
+uploading them to PyPI. We do not use an universal wheel as each wheel,
+depending on the version of Python it is built for install an ``ipython2`` or
+``ipython3`` script. Using an universal wheel prevent this. 
 
 Use the following to actually upload the result of the build::
 
