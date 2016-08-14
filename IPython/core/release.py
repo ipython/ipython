@@ -19,8 +19,8 @@ name = 'ipython'
 # IPython version information.  An empty _version_extra corresponds to a full
 # release.  'dev' as a _version_extra string means this is a development
 # version
-_version_major = 5
-_version_minor = 2
+_version_major = 6
+_version_minor = 0
 _version_patch = 0
 _version_extra = '.dev'
 # _version_extra = 'rc1'
@@ -116,8 +116,6 @@ classifiers = [
     'Intended Audience :: Science/Research',
     'License :: OSI Approved :: BSD License',
     'Programming Language :: Python',
-    'Programming Language :: Python :: 2',
-    'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3',
     'Topic :: System :: Shells'
     ]
