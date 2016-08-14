@@ -467,8 +467,13 @@ class Markdown(TextDisplayObject):
 class Math(TextDisplayObject):
 
     def _repr_latex_(self):
-        s = self.data.strip('$')
-        return "$$%s$$" % s
+        if self.format == u'latex' or not self.format:
+            s = self.data.strip('$')
+            return "$$%s$$" % s
+        
+    def _repr_html_(self):
+        if self.format == u'mathml':
+            return self.data
 
 
 class Latex(TextDisplayObject):
