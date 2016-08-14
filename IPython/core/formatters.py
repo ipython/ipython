@@ -787,7 +787,8 @@ class MathMLFormatter(BaseFormatter):
     could be injected into an existing DOM. It should *not* include the
     ```<html>`` or ```<body>`` tags.
     """
-    format_type = Unicode('application/mathml+xml')
+    # format_type = Unicode('application/mathml+xml')
+    format_type = Unicode('text/html')
 
     print_method = ObjectName('_repr_html_')
 
