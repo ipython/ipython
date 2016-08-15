@@ -19,7 +19,7 @@ Overview
 ========
 
 Welcome to IPython.  Our full documentation is available on `ipython.readthedocs.io
-<https://ipython.readthedocs.io/en/stable/>`_ and contain information on how to install, use
+<https://ipython.readthedocs.io/en/stable/>`_ and contains information on how to install, use and
 contribute to the project.
 
 Officially, IPython requires Python version 2.7, or 3.3 and above.
@@ -32,7 +32,7 @@ if you want to use these.
 
 
 
-Developement and Instant runnimg
+Development and Instant runnimg
 ================================
 
 You can find the latest version of the development documentation on `readthedocs
@@ -43,7 +43,7 @@ by typing at the terminal::
     
    $ python -m IPython
 
-Or see the `developement installation docs
+Or see the `development installation docs
 <http://ipython.readthedocs.io/en/latest/install/install.html#installing-the-development-version>`_
 for the latest revision on read the docs. 
 
