@@ -561,7 +561,6 @@ Currently the magic system has the following functions:""",
 
         This function can export the current IPython history to a notebook file.
         For example, to export the history to "foo.ipynb" do "%notebook foo.ipynb".
-        To export the history to "foo.py" do "%notebook foo.py".
 
         The -e or --export flag is deprecated in IPython 5.2, and will be
         removed in the future.
