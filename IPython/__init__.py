@@ -30,8 +30,8 @@ import warnings
 
 # Don't forget to also update setup.py when this changes!
 v = sys.version_info
-if v[:2] < (2,7) or (v[0] >= 3 and v[:2] < (3,3)):
-    raise ImportError('IPython requires Python version 2.7 or 3.3 or above.')
+if v[:2] < (3,3):
+    raise ImportError('IPython requires Python version 3.3 or above.')
 del v
 
 # Make it easy to import extensions - they are always directly on pythonpath.
