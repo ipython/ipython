@@ -27,8 +27,8 @@ import sys
 # This check is also made in IPython/__init__, don't forget to update both when
 # changing Python version requirements.
 v = sys.version_info
-if v[:2] < (2,7) or (v[0] >= 3 and v[:2] < (3,3)):
-    error = "ERROR: IPython requires Python version 2.7 or 3.3 or above."
+if v[:2] < (3,3):
+    error = "ERROR: IPython requires Python version 3.3 or above."
     print(error, file=sys.stderr)
     sys.exit(1)
 
@@ -239,6 +239,7 @@ for key, deps in extras_require.items():
 extras_require['all'] = everything
 
 if 'setuptools' in sys.modules:
+    setuptools_extra_args['python_requires'] = '>=3.3'
     setuptools_extra_args['zip_safe'] = False
     setuptools_extra_args['entry_points'] = {
         'console_scripts': find_entry_points(),

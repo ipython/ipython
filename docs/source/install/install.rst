@@ -4,7 +4,7 @@ Installing IPython
 ==================
 
 
-IPython requires Python 2.7 or ≥ 3.3.
+IPython 6 requires Python ≥ 3.3. IPython 5.x can be installed on Python 2.
 
 
 Quick Install 
