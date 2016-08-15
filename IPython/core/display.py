@@ -473,7 +473,7 @@ class Math(TextDisplayObject):
         
     def _repr_html_(self):
         if self.format == u'mathml':
-            return self.data
+            return "<math>%s</math>" % self.data
 
 
 class Latex(TextDisplayObject):
