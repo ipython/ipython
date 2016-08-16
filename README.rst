@@ -22,8 +22,8 @@ Welcome to IPython.  Our full documentation is available on `ipython.readthedocs
 <https://ipython.readthedocs.io/en/stable/>`_ and contain information on how to install, use
 contribute to the project.
 
-Officially, IPython requires Python version 2.7, or 3.3 and above.
-IPython 1.x is the last IPython version to support Python 2.6 and 3.2.
+Officially, IPython requires Python version 3.3 and above.
+IPython 5.x is the last IPython version to support Python 2.7.
 
 The Notebook, Qt console and a number of other pieces are now parts of *Jupyter*.
 See the `Jupyter installation docs <http://jupyter.readthedocs.io/en/latest/install.html>`__

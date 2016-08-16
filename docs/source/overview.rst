@@ -232,50 +232,9 @@ and clients.
 Interactive parallel computing
 ==============================
 
-.. note::
     
-    This functionality is optional and now part of the `ipyparallel
-    <http://ipyparallel.readthedocs.io/>`_ project.
-
-Increasingly, parallel computer hardware, such as multicore CPUs, clusters and
-supercomputers, is becoming ubiquitous. Over the last several years, we have
-developed an architecture within IPython that allows such hardware to be used
-quickly and easily from Python. Moreover, this architecture is designed to
-support interactive and collaborative parallel computing.
-
-The main features of this system are:
-
-* Quickly parallelize Python code from an interactive Python/IPython session.
-
-* A flexible and dynamic process model that be deployed on anything from 
-  multicore workstations to supercomputers.
-
-* An architecture that supports many different styles of parallelism, from
-  message passing to task farming.  And all of these styles can be handled
-  interactively.
-
-* Both blocking and fully asynchronous interfaces.
-
-* High level APIs that enable many things to be parallelized in a few lines
-  of code.
-
-* Write parallel code that will run unchanged on everything from multicore
-  workstations to supercomputers.
-
-* Full integration with Message Passing libraries (MPI).
-
-* Capabilities based security model with full encryption of network connections.
-
-* Share live parallel jobs with other users securely.  We call this
-  collaborative parallel computing.
-
-* Dynamically load balanced task farming system.
-
-* Robust error handling.  Python exceptions raised in parallel execution are
-  gathered and presented to the top-level code.
-
-For more information, see our :ref:`overview <parallel_index>` of using IPython
-for parallel computing.
+This functionality is optional and now part of the `ipyparallel
+<http://ipyparallel.readthedocs.io/>`_ project.
 
 Portability and Python requirements
 -----------------------------------
