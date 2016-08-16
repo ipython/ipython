@@ -37,12 +37,8 @@ def find_cmd(cmd):
     is a risk you will find the wrong one.  Instead find those using the
     following code and looking for the application itself::
 
-        from IPython.utils.path import get_ipython_module_path
-        from IPython.utils.process import pycmd2argv
-        argv = pycmd2argv(get_ipython_module_path('IPython.terminal.ipapp'))
-
-    Note, The code for pycmd2argv has been removed now as it was not used
-    anywhere. get_ipython_module_path should give us that same result.
+        import sys
+        argv = [sys.executable, '-m', 'IPython.terminal']
 
     Parameters
     ----------
