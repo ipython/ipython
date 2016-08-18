@@ -223,8 +223,8 @@ def select_figure_formats(shell, formats, **kwargs):
     formats = set(formats)
 
     [ f.pop(Figure, None) for f in shell.display_formatter.formatters.values() ]
-
-    if matplotlib.get_backend().lower() == 'nbagg':
+    mplbackend = matplotlib.get_backend().lower()
+    if mplbackend == 'nbagg' or mplbackend == 'module://ipympl.backend_nbagg':
         formatter = shell.display_formatter.ipython_display_formatter
         formatter.for_type(Figure, _reshow_nbagg_figure)
 
