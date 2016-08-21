@@ -71,4 +71,4 @@ class RichPromptDisplayHook(DisplayHook):
             if self.shell.pt_cli:
                 self.shell.pt_cli.print_tokens(tokens)
             else:
-                print(*(s for t, s in tokens), sep='')
+                sys.stdout.write(''.join(s for t, s in tokens))
