@@ -662,7 +662,7 @@ class IPCompleter(Completer):
                          ]
 
         # This is set externally by InteractiveShell
-        self.custom_completers = None
+        # self.custom_completers = None
 
     def all_completions(self, text):
         """
