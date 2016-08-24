@@ -83,6 +83,8 @@ templates_path = ['_templates']
 # The suffix of source filenames.
 source_suffix = '.rst'
 
+rst_prolog = ''
+
 def is_stable(extra):
     for ext in {'dev', 'b', 'rc'}:
         if ext in extra:
@@ -93,13 +95,22 @@ if is_stable(iprelease['_version_extra']):
     tags.add('ipystable')
 else:
     tags.add('ipydev')
-    rst_prolog = """
-    .. warning::
+    rst_prolog += """
+.. warning::
 
-        This documentation is for a development version of IPython. There may be
-        significant differences from the latest stable release.
+    This documentation is for a development version of IPython. There may be
+    significant differences from the latest stable release.
+"""
 
-    """
+rst_prolog += """
+.. important::
+
+    This is the documentation for IPython version > 6.0 which is had
+    stopped compatibility for python version lower than 3.3. If you are
+    looking for a version of IPython compatible with python 2.7 please see
+    the documentation for the IPython 5.x LTS (Long term support branch)
+
+"""
 
 # The master toctree document.
 master_doc = 'index'
