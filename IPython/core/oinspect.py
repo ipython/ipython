@@ -372,6 +372,29 @@ def find_source_lines(obj):
 
     return lineno
 
+
+def get_class_traits_info(cls):
+    from traitlets.traitlets import HasTraits, TraitType
+
+    result = None
+
+    if issubclass(cls, HasTraits):
+        for name, value in inspect.getmembers(cls):
+            vclass = value.__class__
+            if not inspect.isclass(vclass) or not issubclass(vclass, TraitType):
+                continue
+
+            if not result: result = '\n'
+            instance_klass = ' of ' + value.__dict__['klass'].__name__ if 'klass' in value.__dict__ else ''
+            result += value.__dict__['name'] + ' (' + vclass.__name__ + instance_klass + ')'
+            help_string = value.__dict__['help'].strip()
+            if len(help_string) > 0:
+                result += ': ' + help_string
+            result += '\n'
+
+    return cast_unicode(result, get_encoding(cls)) if result else None
+
+
 class Inspector(Colorable):
 
     def __init__(self, color_table=InspectColors,
@@ -652,6 +675,7 @@ class Inspector(Colorable):
             else:
                 append_field(_mime, 'Docstring', 'docstring', formatter)
                 append_field(_mime, 'Init docstring', 'init_docstring', formatter)
+                append_field(_mime, 'Class traits', 'class_traits', formatter)
 
             append_field(_mime, 'File', 'file')
             append_field(_mime, 'Type', 'type_name')
@@ -685,8 +709,6 @@ class Inspector(Colorable):
             append_field(_mime, 'Init docstring', 'init_docstring', formatter)
             append_field(_mime, 'Call signature', 'call_def', code_formatter)
             append_field(_mime, 'Call docstring', 'call_docstring', formatter)
-
-
 
         return self.format_mime(_mime)
 
@@ -842,6 +864,8 @@ class Inspector(Colorable):
         # Constructor docstring for classes
         if inspect.isclass(obj):
             out['isclass'] = True
+
+            out['class_traits'] = get_class_traits_info(obj)
 
             # get the init signature:
             try:
