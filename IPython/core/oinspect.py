@@ -376,6 +376,11 @@ def find_source_lines(obj):
 def get_class_traits_info(cls):
     from traitlets.traitlets import HasTraits, TraitType
 
+    def _klass_str(data, key='klass'):
+        if key not in data: return ''
+        klass = data[key]
+        return ' of ' + (klass.__name__ if inspect.isclass(klass) else str(klass))
+
     result = None
 
     if issubclass(cls, HasTraits):
@@ -385,11 +390,14 @@ def get_class_traits_info(cls):
                 continue
 
             if not result: result = '\n'
-            instance_klass = ' of ' + value.__dict__['klass'].__name__ if 'klass' in value.__dict__ else ''
-            result += value.__dict__['name'] + ' (' + vclass.__name__ + instance_klass + ')'
+
+            result += value.__dict__['name']
+            result +=' (' + vclass.__name__ + _klass_str(value.__dict__) + ')'
+
             help_string = value.__dict__['help'].strip()
             if len(help_string) > 0:
                 result += ': ' + help_string
+
             result += '\n'
 
     return cast_unicode(result, get_encoding(cls)) if result else None
