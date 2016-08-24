@@ -260,21 +260,6 @@ class InteractiveShell(SingletonConfigurable):
         help="Set the color scheme (NoColor, Neutral, Linux, or LightBG)."
     ).tag(config=True)
     debug = Bool(False).tag(config=True)
-    deep_reload = Bool(False, help=
-        """
-        **Deprecated**
-
-        Will be removed in IPython 6.0
-
-        Enable deep (recursive) reloading by default. IPython can use the
-        deep_reload module which reloads changes in modules recursively (it
-        replaces the reload() function, so you don't need to change anything to
-        use it). `deep_reload` forces a full reload of modules whose code may
-        have changed, which the default reload() function does not.  When
-        deep_reload is off, IPython will use the normal reload(), but
-        deep_reload will still be available as dreload().
-        """
-    ).tag(config=True)
     disable_failing_post_execute = Bool(False,
         help="Don't call post-execute functions that have failed in the past."
     ).tag(config=True)
