@@ -32,8 +32,8 @@ if you want to use these.
 
 
 
-Development and Instant runnig
-==============================
+Development and Instant running
+===============================
 
 You can find the latest version of the development documentation on `readthedocs
 <http://ipython.readthedocs.io/en/latest/>`_. 
