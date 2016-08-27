@@ -23,6 +23,7 @@ backends = {'tk': 'TkAgg',
             'osx': 'MacOSX',
             'nbagg': 'nbAgg',
             'notebook': 'nbAgg',
+            'agg': 'agg',
             'inline' : 'module://ipykernel.pylab.backend_inline'}
 
 # We also need a reverse backends2guis mapping that will properly choose which
@@ -261,6 +262,8 @@ def find_gui_and_backend(gui=None, gui_select=None):
     if gui and gui != 'auto':
         # select backend based on requested gui
         backend = backends[gui]
+        if gui == 'agg':
+            gui = None
     else:
         # We need to read the backend from the original data structure, *not*
         # from mpl.rcParams, since a prior invocation of %matplotlib may have
