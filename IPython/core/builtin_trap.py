@@ -52,17 +52,6 @@ class BuiltinTrap(Configurable):
                               'quit': HideBuiltin,
                               'get_ipython': self.shell.get_ipython,
                               }
-        # Recursive reload function
-        try:
-            from IPython.lib import deepreload
-            if self.shell.deep_reload:
-                from warnings import warn
-                warn("Automatically replacing builtin `reload` by `deepreload.reload` is deprecated since IPython 4.0, please import `reload` explicitly from `IPython.lib.deepreload", DeprecationWarning)
-                self.auto_builtins['reload'] = deepreload._dreload
-            else:
-                self.auto_builtins['dreload']= deepreload._dreload
-        except ImportError:
-            pass
 
     def __enter__(self):
         if self._nested_level == 0:
