@@ -38,7 +38,7 @@ def find_cmd(cmd):
     following code and looking for the application itself::
 
         import sys
-        argv = [sys.executable, '-m', 'IPython.terminal']
+        argv = [sys.executable, '-m', 'IPython']
 
     Parameters
     ----------
