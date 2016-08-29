@@ -76,6 +76,20 @@ improved functionality and flexibility.
 At your system command line, type 'ipython -h' to see the command line
 options available. This document only describes interactive features.
 
+GETTING HELP
+------------
+
+Within IPython you have various way to access help:
+
+  ?         -> Introduction and overview of IPython's features (this screen).
+  object?   -> Details about 'object'.
+  object??  -> More detailed, verbose information about 'object'.
+  %quickref -> Quick reference of all IPython specific syntax and magics.
+  help      -> Access Python's own help system.
+
+If you are in terminal IPython you can quit this screen by pressing `q`.
+
+
 MAIN FEATURES
 -------------
 
@@ -325,20 +339,9 @@ The following magic functions are currently available:
 
 """
 
-quick_guide = """\
-?         -> Introduction and overview of IPython's features.
-%quickref -> Quick reference.
-help      -> Python's own help system.
-object?   -> Details about 'object', use 'object??' for extra details.
-"""
-
-default_banner_parts = [
-    'Python %s\n' % (sys.version.split('\n')[0],),
-    'Type "copyright", "credits" or "license" for more information.\n\n',
-    'IPython {version} -- An enhanced Interactive Python.\n'.format(
-        version=release.version,
-        ),
-    quick_guide
+default_banner_parts = ["Python %s\n"%sys.version.split("\n")[0],
+    "Type 'copyright', 'credits' or 'license' for more information\n" ,
+    "IPython {version} -- An enhanced Interactive Python. Type '?' for help.\n".format(version=release.version),
 ]
 
 default_banner = ''.join(default_banner_parts)
