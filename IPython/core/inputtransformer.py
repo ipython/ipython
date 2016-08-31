@@ -9,7 +9,6 @@ import re
 
 from IPython.core.splitinput import LineInfo
 from IPython.utils import tokenize2
-from IPython.utils.openpy import cookie_comment_re
 from IPython.utils.py3compat import with_metaclass, PY3
 from IPython.utils.tokenize2 import generate_tokens, untokenize, TokenError
 
@@ -504,29 +503,6 @@ def leading_indent():
             while line is not None:
                 line = (yield line)
 
-
-@CoroutineInputTransformer.wrap
-def strip_encoding_cookie():
-    """Remove encoding comment if found in first two lines
-    
-    If the first or second line has the `# coding: utf-8` comment,
-    it will be removed.
-    """
-    line = ''
-    while True:
-        line = (yield line)
-        # check comment on first two lines
-        for i in range(2):
-            if line is None:
-                break
-            if cookie_comment_re.match(line):
-                line = (yield "")
-            else:
-                line = (yield line)
-        
-        # no-op on the rest of the cell
-        while line is not None:
-            line = (yield line)
 
 _assign_pat = \
 r'''(?P<lhs>(\s*)
