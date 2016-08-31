@@ -19,7 +19,6 @@ import os
 from os.path import join as pjoin
 import random
 import sys
-import tempfile
 import textwrap
 import unittest
 
@@ -209,7 +208,7 @@ class TestMagicRunPass(tt.TempFileMixin):
     def test_run_profile( self ):
         """Test that the option -p, which invokes the profiler, do not
         crash by invoking execfile"""
-        _ip = get_ipython()
+        get_ipython()
         self.run_tmpfile_p()
 
 
@@ -368,7 +367,6 @@ tclass.py: deleting object: C-third
         with tt.AssertNotPrints('SystemExit'):
             _ip.magic('run -e %s' % self.fname)
 
-    @dec.skip_without('nbformat')  # Requires jsonschema
     def test_run_nb(self):
         """Test %run notebook.ipynb"""
         from nbformat import v4, writes
