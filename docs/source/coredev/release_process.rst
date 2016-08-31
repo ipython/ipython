@@ -172,9 +172,9 @@ Get a fresh clone of the tag for building the release::
 
 .. important::
 
-    Following releases instructions have information to release IPython 5.x and
-    6.x both on python 2 and python 3. When reasing IPython 6+, ignore the step
-    for python2. 
+    These steps cover instructions for creating releases of IPython 5.x LTS and
+    IPython 6.x. Ignore release steps for Python 2 when releasing IPython 6.x
+    which no longer supports Python 2. 
 
 Run the ``release`` script, this step requires having a current wheel, Python
 >=3.4 and Python 2.7.::
