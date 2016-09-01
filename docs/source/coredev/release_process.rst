@@ -175,7 +175,7 @@ Run the ``release`` script, this step requires having a current wheel, Python
 
     ./tools/release
 
-This makes the tarballs, zipfiles, and wheels, and put them under the ``dist/``
+This makes the tarballs and wheels, and puts them under the ``dist/``
 folder. Be sure to test the ``wheels``  and the ``sdist`` locally before
 uploading them to PyPI. We do not use an universal wheel as each wheel
 installs an ``ipython2`` or ``ipython3`` script, depending on the version of
