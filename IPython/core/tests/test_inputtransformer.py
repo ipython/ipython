@@ -78,13 +78,6 @@ syntax = \
         ('    ','    '),  # blank lines are kept intact
         ],
 
-       strip_encoding_cookie =
-       [
-        ('# -*- encoding: utf-8 -*-', ''),
-        ('# coding: latin-1', ''),
-       ],
-
-
        # Tests for the escape transformer to leave normal code alone
        escaped_noesc =
        [ ('    ', '    '),
@@ -255,20 +248,6 @@ syntax_ml = \
           ],
          ],
 
-       strip_encoding_cookie =
-       [
-        [
-            ('# -*- coding: utf-8 -*-', ''),
-            ('foo', 'foo'),
-        ],
-        [
-            ('#!/usr/bin/env python', '#!/usr/bin/env python'),
-            ('# -*- coding: latin-1 -*-', ''),
-            # only the first-two lines
-            ('# -*- coding: latin-1 -*-', '# -*- coding: latin-1 -*-'),
-        ],
-       ],
-
        multiline_datastructure_prompt =
        [ [('>>> a = [1,','a = [1,'),
           ('... 2]','2]'),
@@ -378,11 +357,6 @@ def test_ipy_prompt():
         (u'%%foo', '%%foo'),
         (u'In [1]: bar', 'In [1]: bar'),
     ], ipt.ipy_prompt)
-
-def test_coding_cookie():
-    tt.check_pairs(transform_and_reset(ipt.strip_encoding_cookie), syntax['strip_encoding_cookie'])
-    for example in syntax_ml['strip_encoding_cookie']:
-        transform_checker(example, ipt.strip_encoding_cookie)
 
 def test_assemble_logical_lines():
     tests = \

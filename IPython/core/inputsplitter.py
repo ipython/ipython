@@ -26,7 +26,6 @@ from IPython.utils.py3compat import cast_unicode
 from IPython.core.inputtransformer import (leading_indent,
                                            classic_prompt,
                                            ipy_prompt,
-                                           strip_encoding_cookie,
                                            cellmagic,
                                            assemble_logical_lines,
                                            help_end,
@@ -485,7 +484,6 @@ class IPythonInputSplitter(InputSplitter):
                                              classic_prompt(),
                                              ipy_prompt(),
                                              cellmagic(end_on_blank_line=line_input_checker),
-                                             strip_encoding_cookie(),
                                             ]
         
         self.assemble_logical_lines = assemble_logical_lines()
