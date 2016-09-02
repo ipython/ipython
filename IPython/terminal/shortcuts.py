@@ -62,6 +62,10 @@ def register_ipython_shortcuts(registry, shell):
                          filter=(HasFocus(DEFAULT_BUFFER)
                                 & EmacsInsertMode()))(newline_with_copy_margin)
 
+    registry.add_binding(Keys.F2,
+                         filter=HasFocus(DEFAULT_BUFFER)
+                        )(open_input_in_editor)
+
     if shell.display_completions == 'readlinelike':
         registry.add_binding(Keys.ControlI,
                              filter=(HasFocus(DEFAULT_BUFFER)
@@ -170,7 +174,9 @@ def newline_with_copy_margin(event):
         pos_diff = cursor_start_pos - cursor_end_pos
         b.cursor_right(count=pos_diff)
 
-
+def open_input_in_editor(event):
+    event.cli.current_buffer.tempfile_suffix = ".py"
+    event.cli.current_buffer.open_in_editor(event.cli)
 
 
 if sys.platform == 'win32':
