@@ -1164,6 +1164,9 @@ class IPCompleter(Completer):
         if cursor_pos is None:
             cursor_pos = len(line_buffer) if text is None else len(text)
 
+        if self.use_main_ns:
+            self.namespace = __main__.__dict__
+
         if PY3:
 
             base_text = text if not line_buffer else line_buffer[:cursor_pos]
