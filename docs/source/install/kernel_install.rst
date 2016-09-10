@@ -66,7 +66,7 @@ Note that this command will create new configuration for kernel in one of it's p
 * in Jupyter's env (sys.prefix/share),
 * per-user (~/.local/share or ~/Library/share)
 
-You can also create configuration in temprary location and install it in Jupyter (copy configuration files) with:
+You can also create configuration in temporary location and install it in Jupyter (copy configuration files) with:
 
 .. sourcecode:: bash
 
