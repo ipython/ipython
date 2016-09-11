@@ -75,3 +75,8 @@ class TerminalPdb(Pdb):
 def set_trace():
     TerminalPdb().set_trace()
 
+
+if __name__ == '__main__':
+    import pdb
+    pdb.Pdb = TerminalPdb
+    pdb.main()
