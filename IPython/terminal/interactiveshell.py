@@ -138,7 +138,7 @@ class TerminalInteractiveShell(InteractiveShell):
         highlighting: \n %s""" % ', '.join(get_all_styles())
     ).tag(config=True)
 
-    
+
     @observe('highlighting_style')
     @observe('colors')
     def _highlighting_style_changed(self, change):
@@ -183,7 +183,7 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Automatically set the terminal title"
     ).tag(config=True)
 
-    display_completions = Enum(('column', 'multicolumn','readlinelike'), 
+    display_completions = Enum(('column', 'multicolumn','readlinelike'),
         help= ( "Options for displaying tab completions, 'column', 'multicolumn', and "
                 "'readlinelike'. These options are for `prompt_toolkit`, see "
                 "`prompt_toolkit` documentation for more information."
@@ -230,6 +230,7 @@ class TerminalInteractiveShell(InteractiveShell):
             cell = cell.rstrip()
             if cell and (cell != last_cell):
                 history.append(cell)
+                last_cell = cell
 
         self._style = self._make_style_from_name_or_cls(self.highlighting_style)
         style = DynamicStyle(lambda: self._style)
@@ -255,7 +256,7 @@ class TerminalInteractiveShell(InteractiveShell):
         """
         Small wrapper that make an IPython compatible style from a style name
 
-        We need that to add style for prompt ... etc. 
+        We need that to add style for prompt ... etc.
         """
         style_overrides = {}
         if name_or_cls == 'legacy':
