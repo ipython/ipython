@@ -66,10 +66,15 @@ Note that this command will create new configuration for kernel in one of it's p
 * in Jupyter's env (sys.prefix/share),
 * per-user (~/.local/share or ~/Library/share)
 
-In case where you want to edit generated kernelspec configuration before installing it you can do the same with two steps approach. You can create configuration in temporary location and install it in Jupyter (copy configuration files) with:
+If you want to edit the kernelspec before installing it, you can do so in two steps.
+First, ask IPython to write its spec to a temporary location:
 
 .. sourcecode:: bash
 
     ipython kernel install --prefix /tmp
-    jupyter kernelspec install /tmp/share/jupyter/kernels/python3
 
+edit the files in /tmp/share/jupyter/kernels/python3 to your liking, then when you are ready, tell Jupyter to install it (this will copy the files into a place Jupyter will look):
+
+.. sourcecode:: bash
+
+    jupyter kernelspec install /tmp/share/jupyter/kernels/python3
