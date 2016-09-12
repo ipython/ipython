@@ -239,7 +239,8 @@ This functionality is optional and now part of the `ipyparallel
 Portability and Python requirements
 -----------------------------------
 
-As of the 2.0 release, IPython works with Python 2.7 and 3.3 or above.
+Version 6.0+ supports compatibility with Python 3.3 and higher.
+Versions 2.0 to 5.x work with Python 2.7.x releases and Python 3.3 and higher.
 Version 1.0 additionally worked with Python 2.6 and 3.2.
 Version 0.12 was the first version to fully support Python 3.
 

@@ -170,6 +170,12 @@ Get a fresh clone of the tag for building the release::
 8. Run the release script
 -------------------------
 
+.. important::
+
+    These steps cover instructions for creating releases of IPython 5.x LTS and
+    IPython 6.x. Ignore release steps for Python 2 when releasing IPython 6.x
+    which no longer supports Python 2. 
+
 Run the ``release`` script, this step requires having a current wheel, Python
 >=3.4 and Python 2.7.::
 
@@ -189,7 +195,7 @@ It should posts them to ``archive.ipython.org``.
 
 You will need to use `twine <https://github.com/pypa/twine>`_ ) manually to
 actually upload on PyPI. Unlike setuptools, twine is able to upload packages
-over SSL.
+over SSL::
 
     twine upload dist/*
 
