@@ -54,32 +54,22 @@ The ``--name`` value is used by Jupyter internally. These commands will overwrit
 any existing kernel with the same name. ``--display-name`` is what you see in
 the notebook menus.
 
-Using virtualenv you can add your new environments by linking to specific instance of your Python:
+Using virtualenv or conda envs, you can make your IPython kernel in one env available to Jupyter in a different env. To do so, run ipykernel install from the kernel's env, with --prefix pointing to the Jupyter env:
 
 .. sourcecode:: bash
 
-    python -m ipykernel install --prefix=/path/to/new_env --name python_new_env
-  
+    /path/to/kernel/env/bin/python -m ipykernel install --prefix=/path/to/jupyter/env --name 'python-my-env'
+
 Note that this command will create new configuration for kernel in one of it's prefered location (see ``jupyter --paths`` command for more details):
 
 * system-wide (e.g. /usr/local/share),
 * in Jupyter's env (sys.prefix/share),
 * per-user (~/.local/share or ~/Library/share)
 
-You can also create configuration in temporary location and install it in Jupyter (copy configuration files) with:
+In case where you want to edit generated kernelspec configuration before installing it you can do the same with two steps approach. You can create configuration in temporary location and install it in Jupyter (copy configuration files) with:
 
 .. sourcecode:: bash
 
     ipython kernel install --prefix /tmp
     jupyter kernelspec install /tmp/share/jupyter/kernels/python3
 
-**Deprecated:** You can also create configuration for new environment by new configuration's file in `~/.ipython/kernels/my_env/kernel.json` with following content::
-
-   {
-      "argv": ["~/path/to/env/bin/python", "-m", "IPython.kernel",
-         "-f", "{connection_file}"],
-      "display_name": "Python 3 (my new env)",
-      "language": "python"
-   }
-
-Please note that kernel detection in standard ``~/.ipython/`` location is supported as part of backward-compatibility and may not be provided in further versions.
