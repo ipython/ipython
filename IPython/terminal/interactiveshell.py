@@ -340,6 +340,11 @@ class TerminalInteractiveShell(InteractiveShell):
         return document.text
 
     def enable_win_unicode_console(self):
+        if sys.version_info >= (3, 6):
+            # Since PEP 528, Python uses the unicode APIs for the Windows
+            # console by default, so WUC shouldn't be needed.
+            return
+
         import win_unicode_console
 
         if PY3:
