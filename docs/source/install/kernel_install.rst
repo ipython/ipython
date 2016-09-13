@@ -53,3 +53,28 @@ For example, using conda environments:
 The ``--name`` value is used by Jupyter internally. These commands will overwrite
 any existing kernel with the same name. ``--display-name`` is what you see in
 the notebook menus.
+
+Using virtualenv or conda envs, you can make your IPython kernel in one env available to Jupyter in a different env. To do so, run ipykernel install from the kernel's env, with --prefix pointing to the Jupyter env:
+
+.. sourcecode:: bash
+
+    /path/to/kernel/env/bin/python -m ipykernel install --prefix=/path/to/jupyter/env --name 'python-my-env'
+
+Note that this command will create a new configuration for the kernel in one of the prefered location (see ``jupyter --paths`` command for more details):
+
+* system-wide (e.g. /usr/local/share),
+* in Jupyter's env (sys.prefix/share),
+* per-user (~/.local/share or ~/Library/share)
+
+If you want to edit the kernelspec before installing it, you can do so in two steps.
+First, ask IPython to write its spec to a temporary location:
+
+.. sourcecode:: bash
+
+    ipython kernel install --prefix /tmp
+
+edit the files in /tmp/share/jupyter/kernels/python3 to your liking, then when you are ready, tell Jupyter to install it (this will copy the files into a place Jupyter will look):
+
+.. sourcecode:: bash
+
+    jupyter kernelspec install /tmp/share/jupyter/kernels/python3
