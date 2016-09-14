@@ -621,3 +621,14 @@ class Pdb(OldPdb, object):
                 self.print_stack_trace()
 
         do_w = do_where
+
+
+def set_trace(frame=None, condition=True):
+	"""
+	Start debugging from `frame` if `condition` is satisfied.
+
+	If frame is not specified, debugging starts from caller's frame.
+	"""
+	if condition:
+		pdb = Pdb()
+		pdb.set_trace()
