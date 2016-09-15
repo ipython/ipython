@@ -629,5 +629,4 @@ def set_trace(frame=None):
 
     If frame is not specified, debugging starts from caller's frame.
     """
-    pdb = Pdb()
-    pdb.set_trace()
+    Pdb().set_trace(frame or sys._getframe().f_back)
