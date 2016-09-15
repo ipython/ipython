@@ -7,6 +7,8 @@ from prompt_toolkit.token import Token
 from prompt_toolkit.shortcuts import create_prompt_application
 from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.enums import EditingMode
+import sys
+
 
 class TerminalPdb(Pdb):
     def __init__(self, *args, **kwargs):
@@ -72,8 +74,14 @@ class TerminalPdb(Pdb):
         except Exception:
             raise
 
-def set_trace():
-    TerminalPdb().set_trace()
+
+def set_trace(frame=None):
+    """
+    Start debugging from `frame`.
+
+    If frame is not specified, debugging starts from caller's frame.
+    """
+    TerminalPdb().set_trace(frame or sys._getframe().f_back)
 
 
 if __name__ == '__main__':
