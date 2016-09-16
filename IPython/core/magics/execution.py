@@ -437,7 +437,7 @@ python-profiler package from non-free.""")
 
     def _debug_exec(self, code, breakpoint):
         if breakpoint:
-            (filename, bp_line) = breakpoint.split(':', 1)
+            (filename, bp_line) = breakpoint.rsplit(':', 1)
             bp_line = int(bp_line)
         else:
             (filename, bp_line) = (None, None)
