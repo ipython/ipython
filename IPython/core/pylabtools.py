@@ -97,9 +97,7 @@ def print_figure(fig, fmt='png', bbox_inches='tight', **kwargs):
     if not fig.axes and not fig.lines:
         return
 
-    dpi = rcParams['savefig.dpi']
-    if dpi == 'figure':
-        dpi = fig.dpi
+    dpi = fig.dpi
     if fmt == 'retina':
         dpi = dpi * 2
         fmt = 'png'
