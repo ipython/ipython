@@ -101,9 +101,10 @@ is set to ``'legacy'``. It has four case-insensitive values:
 should be legible on either dark or light terminal backgrounds. *linux* is
 optimised for dark backgrounds and *lightbg* for light ones.
 
-``TerminalInteractiveShell.highlighting_style`` determines prompt colours and syntax
-highlighting. It takes the name of a Pygments style as a string, or the special
-value ``'legacy'`` to pick a style in accordance with ``InteractiveShell.colors``.
+``TerminalInteractiveShell.highlighting_style`` determines prompt colours and
+syntax highlighting. It takes the name (as a string) or class (as a subclass of
+``pygments.style.Style``) of a Pygments style, or the special value ``'legacy'``
+to pick a style in accordance with ``InteractiveShell.colors``.
 
 You can see the Pygments styles available on your system by running::
 
