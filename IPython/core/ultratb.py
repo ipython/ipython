@@ -1130,6 +1130,12 @@ class VerboseTB(TBTools):
             # problems, but it generates empty tracebacks for console errors
             # (5 blanks lines) where none should be returned.
             return _fixed_getinnerframes(etb, number_of_lines_of_context, tb_offset)
+        except UnicodeDecodeError:
+            # This can occur if a file's encoding magic comment is wrong.
+            # I can't see a way to recover without duplicating a bunch of code
+            # from the stdlib traceback module. --TK
+            error('\nUnicodeDecodeError while processing traceback.\n')
+            return None
         except:
             # FIXME: I've been getting many crash reports from python 2.3
             # users, traceable to inspect.py.  If I can find a small test-case
