@@ -39,6 +39,10 @@ backend2gui['GTK'] = backend2gui['GTKCairo'] = 'gtk'
 backend2gui['GTK3Cairo'] = 'gtk3'
 backend2gui['WX'] = 'wx'
 backend2gui['CocoaAgg'] = 'osx'
+# And some backends that don't need GUI integration
+del backend2gui['nbAgg']
+del backend2gui['agg']
+del backend2gui['module://ipykernel.pylab.backend_inline']
 
 #-----------------------------------------------------------------------------
 # Matplotlib utilities
