@@ -86,5 +86,11 @@ def set_trace(frame=None):
 
 if __name__ == '__main__':
     import pdb
+    # IPython.core.debugger.Pdb.trace_dispatch shall not catch
+    # bdb.BdbQuit. When started through __main__ and an exception
+    # happened after hitting "c", this is needed in order to
+    # be able to quit the debugging session (see #9950).
+    old_trace_dispatch = pdb.Pdb.trace_dispatch
     pdb.Pdb = TerminalPdb
+    pdb.Pdb.trace_dispatch = old_trace_dispatch
     pdb.main()
