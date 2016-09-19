@@ -110,6 +110,10 @@ def report(issues, show_urls=False):
 #-----------------------------------------------------------------------------
 
 if __name__ == "__main__":
+
+    print("DEPRECATE: backport_pr.py is deprecated and is is now recommended"
+          "to install `ghpro` from PyPI.", file=sys.stderr)
+
     # deal with unicode
     if sys.version_info < (3,):
         sys.stdout = codecs.getwriter('utf8')(sys.stdout)
