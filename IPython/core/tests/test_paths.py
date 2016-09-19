@@ -17,7 +17,7 @@ from IPython import paths
 from IPython.testing.decorators import skip_win32
 from IPython.utils.tempdir import TemporaryDirectory
 
-TMP_TEST_DIR = tempfile.mkdtemp()
+TMP_TEST_DIR = os.path.realpath(tempfile.mkdtemp())
 HOME_TEST_DIR = os.path.join(TMP_TEST_DIR, "home_test_dir")
 XDG_TEST_DIR = os.path.join(HOME_TEST_DIR, "xdg_test_dir")
 XDG_CACHE_DIR = os.path.join(HOME_TEST_DIR, "xdg_cache_dir")

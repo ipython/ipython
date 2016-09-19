@@ -658,6 +658,9 @@ class Inspector(Colorable):
 
         else:
             # General Python objects
+            append_field(_mime, 'Signature', 'definition', code_formatter)
+            append_field(_mime, 'Call signature', 'call_def', code_formatter)
+            
             append_field(_mime, 'Type', 'type_name')
 
             # Base class for old-style instances
@@ -671,9 +674,8 @@ class Inspector(Colorable):
                 append_field(_mime, 'Namespace', 'namespace')
 
             append_field(_mime, 'Length', 'length')
-            append_field(_mime, 'File', 'file'),
-            append_field(_mime, 'Signature', 'definition', code_formatter)
-
+            append_field(_mime, 'File', 'file')
+            
             # Source or docstring, depending on detail level and whether
             # source found.
             if detail_level > 0:
@@ -683,10 +685,8 @@ class Inspector(Colorable):
 
             append_field(_mime, 'Class docstring', 'class_docstring', formatter)
             append_field(_mime, 'Init docstring', 'init_docstring', formatter)
-            append_field(_mime, 'Call signature', 'call_def', code_formatter)
             append_field(_mime, 'Call docstring', 'call_docstring', formatter)
-
-
+            
 
         return self.format_mime(_mime)
 

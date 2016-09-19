@@ -3,6 +3,7 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
+import argparse
 import io
 import sys
 from pprint import pformat
@@ -548,11 +549,7 @@ Currently the magic system has the following functions:""",
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
         '-e', '--export', action='store_true', default=False,
-        help='Export IPython history as a notebook. The filename argument '
-             'is used to specify the notebook name and format. For example '
-             'a filename of notebook.ipynb will result in a notebook name '
-             'of "notebook" and a format of "json". Likewise using a ".py" '
-             'file extension will write the notebook as a Python script'
+        help=argparse.SUPPRESS
     )
     @magic_arguments.argument(
         'filename', type=unicode_type,
@@ -563,22 +560,24 @@ Currently the magic system has the following functions:""",
         """Export and convert IPython notebooks.
 
         This function can export the current IPython history to a notebook file.
-        For example, to export the history to "foo.ipynb" do "%notebook -e foo.ipynb".
-        To export the history to "foo.py" do "%notebook -e foo.py".
+        For example, to export the history to "foo.ipynb" do "%notebook foo.ipynb".
+
+        The -e or --export flag is deprecated in IPython 5.2, and will be
+        removed in the future.
         """
         args = magic_arguments.parse_argstring(self.notebook, s)
 
         from nbformat import write, v4
-        if args.export:
-            cells = []
-            hist = list(self.shell.history_manager.get_range())
-            if(len(hist)<=1):
-                raise ValueError('History is empty, cannot export')
-            for session, execution_count, source in hist[:-1]:
-                cells.append(v4.new_code_cell(
-                    execution_count=execution_count,
-                    source=source
-                ))
-            nb = v4.new_notebook(cells=cells)
-            with io.open(args.filename, 'w', encoding='utf-8') as f:
-                write(nb, f, version=4)
+
+        cells = []
+        hist = list(self.shell.history_manager.get_range())
+        if(len(hist)<=1):
+            raise ValueError('History is empty, cannot export')
+        for session, execution_count, source in hist[:-1]:
+            cells.append(v4.new_code_cell(
+                execution_count=execution_count,
+                source=source
+            ))
+        nb = v4.new_notebook(cells=cells)
+        with io.open(args.filename, 'w', encoding='utf-8') as f:
+            write(nb, f, version=4)
