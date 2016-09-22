@@ -17,6 +17,33 @@ For instruction on how to make a developer install see :ref:`devinstall`.
    release_process
 
 
+Backporting Pull requests
+-------------------------
+
+All pull requests should usually be made against ``master``, if a Pull Request
+need to be backported to an earlier release; then it should be tagged with the
+correct ``milestone``. We then use `ghpro <https://pypi.python.org/pypi/ghpro>`
+to automatically list and apply the PR on other branches. For example:
+
+.. code-block:: bash
+    
+    $ backport-pr todo --milestone 5.2
+    [...snip..]
+    The following PRs have been backported
+    9848
+    9851
+    9953
+    9955
+    The following PRs should be backported:
+    9417
+    9863
+    9925
+    9947
+
+    $ backport-pr apply 5.x 9947
+    [...snip...]
+
+
 Old Documentation
 =================
 
