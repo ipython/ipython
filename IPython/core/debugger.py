@@ -227,10 +227,14 @@ class Pdb(OldPdb, object):
         self.shell = get_ipython()
 
         if self.shell is None:
+            save_main = sys.modules['__main__']
             # No IPython instance running, we must create one
             from IPython.terminal.interactiveshell import \
                 TerminalInteractiveShell
             self.shell = TerminalInteractiveShell.instance()
+            # needed by any code which calls __import__("__main__") after
+            # the debugger was entered. See also #9941.
+            sys.modules['__main__'] = save_main 
 
         if color_scheme is not None:
             warnings.warn(
