@@ -829,20 +829,10 @@ And pasting from IPython sessions works equally well::
 GUI event loop support
 ======================
 
-.. versionadded:: 0.11
-    The ``%gui`` magic and :mod:`IPython.lib.inputhook`.
-
 IPython has excellent support for working interactively with Graphical User
 Interface (GUI) toolkits, such as wxPython, PyQt4/PySide, PyGTK and Tk. This is
-implemented using Python's builtin ``PyOSInputHook`` hook. This implementation
-is extremely robust compared to our previous thread-based version. The
-advantages of this are:
-
-* GUIs can be enabled and disabled dynamically at runtime.
-* The active GUI can be switched dynamically at runtime.
-* In some cases, multiple GUIs can run simultaneously with no problems.
-* There is a developer API in :mod:`IPython.lib.inputhook` for customizing
-  all of these things.
+implemented by running the toolkit's event loop while IPython is waiting for
+input.
 
 For users, enabling GUI event loop integration is simple.  You simple use the
 :magic:`gui` magic as follows::
@@ -850,7 +840,7 @@ For users, enabling GUI event loop integration is simple.  You simple use the
     %gui [GUINAME]
 
 With no arguments, ``%gui`` removes all GUI support.  Valid ``GUINAME``
-arguments are ``wx``, ``qt``, ``gtk`` and ``tk``.
+arguments include ``wx``, ``qt``, ``qt5``, ``gtk``, ``gtk3`` and ``tk``.
 
 Thus, to use wxPython interactively and create a running :class:`wx.App`
 object, do::
@@ -865,33 +855,17 @@ flag::
 For information on IPython's matplotlib_ integration (and the ``matplotlib``
 mode) see :ref:`this section <matplotlib_support>`.
 
-For developers that want to use IPython's GUI event loop integration in the
-form of a library, these capabilities are exposed in library form in the
-:mod:`IPython.lib.inputhook` and :mod:`IPython.lib.guisupport` modules.
-Interested developers should see the module docstrings for more information,
-but there are a few points that should be mentioned here.
+For developers that want to integrate additional event loops with IPython, see
+:doc:`/config/eventloops`.
 
-First, the ``PyOSInputHook`` approach only works in command line settings
-where readline is activated.  The integration with various eventloops
-is handled somewhat differently (and more simply) when using the standalone
-kernel, as in the qtconsole and notebook.
-
-Second, when using the ``PyOSInputHook`` approach, a GUI application should
-*not* start its event loop. Instead all of this is handled by the
-``PyOSInputHook``. This means that applications that are meant to be used both
+When running inside IPython with an integrated event loop, a GUI application
+should *not* start its own event loop. This means that applications that are
+meant to be used both
 in IPython and as standalone apps need to have special code to detects how the
 application is being run. We highly recommend using IPython's support for this.
 Since the details vary slightly between toolkits, we point you to the various
-examples in our source directory :file:`examples/Embedding` that demonstrate
-these capabilities.
-
-Third, unlike previous versions of IPython, we no longer "hijack" (replace
-them with no-ops) the event loops. This is done to allow applications that
-actually need to run the real event loops to do so. This is often needed to
-process pending events at critical points.
-
-Finally, we also have a number of examples in our source directory
-:file:`examples/Embedding` that demonstrate these capabilities.
+examples in our source directory :file:`examples/IPython Kernel/gui/` that
+demonstrate these capabilities.
 
 PyQt and PySide
 ---------------
