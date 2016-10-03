@@ -239,7 +239,7 @@ class Pdb(OldPdb, object):
         if color_scheme is not None:
             warnings.warn(
                 "The `color_scheme` argument is deprecated since version 5.1",
-                DeprecationWarning)
+                DeprecationWarning, stacklevel=2)
         else:
             color_scheme = self.shell.colors
 
@@ -269,11 +269,11 @@ class Pdb(OldPdb, object):
         cst['Neutral'].colors.breakpoint_enabled = C.LightRed
         cst['Neutral'].colors.breakpoint_disabled = C.Red
 
-        self.set_colors(color_scheme)
 
         # Add a python parser so we can syntax highlight source while
         # debugging.
-        self.parser = PyColorize.Parser()
+        self.parser = PyColorize.Parser(style=color_scheme)
+        self.set_colors(color_scheme)
 
         # Set the prompt - the default prompt is '(Pdb)'
         self.prompt = prompt
@@ -281,6 +281,7 @@ class Pdb(OldPdb, object):
     def set_colors(self, scheme):
         """Shorthand access to the color table scheme selector method."""
         self.color_scheme_table.set_active_scheme(scheme)
+        self.parser.style = scheme
 
     def trace_dispatch(self, frame, event, arg):
         try:
@@ -451,9 +452,9 @@ class Pdb(OldPdb, object):
         bp_mark = ""
         bp_mark_color = ""
 
-        scheme = self.color_scheme_table.active_scheme_name
-        new_line, err = self.parser.format2(line, 'str', scheme)
-        if not err: line = new_line
+        new_line, err = self.parser.format2(line, 'str')
+        if not err:
+            line = new_line
 
         bp = None
         if lineno in self.get_file_breaks(filename):

@@ -386,28 +386,18 @@ def _fixed_getinnerframes(etb, context=1, tb_offset=0):
 # can be recognized properly by ipython.el's py-traceback-line-re
 # (SyntaxErrors have to be treated specially because they have no traceback)
 
-_parser = PyColorize.Parser()
-
 
 def _format_traceback_lines(lnum, index, lines, Colors, lvals=None, scheme=None):
     numbers_width = INDENT_SIZE - 1
     res = []
     i = lnum - index
 
-    # This lets us get fully syntax-highlighted tracebacks.
-    if scheme is None:
-        ipinst = get_ipython()
-        if ipinst is not None:
-            scheme = ipinst.colors
-        else:
-            scheme = DEFAULT_SCHEME
-
-    _line_format = _parser.format2
+    _line_format = PyColorize.Parser(style=scheme).format2
 
     for line in lines:
         line = py3compat.cast_unicode(line)
 
-        new_line, err = _line_format(line, 'str', scheme)
+        new_line, err = _line_format(line, 'str')
         if not err: line = new_line
 
         if i == lnum:
@@ -1227,8 +1217,7 @@ class VerboseTB(TBTools):
 
         if force or self.call_pdb:
             if self.pdb is None:
-                self.pdb = self.debugger_cls(
-                    self.color_scheme_table.active_scheme_name)
+                self.pdb = self.debugger_cls()
             # the system displayhook may have changed, restore the original
             # for pdb
             display_trap = DisplayTrap(hook=sys.__displayhook__)

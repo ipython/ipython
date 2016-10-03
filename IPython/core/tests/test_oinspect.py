@@ -41,9 +41,14 @@ ip = get_ipython()
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
 THIS_LINE_NUMBER = 43  # Put here the actual number of this line
-def test_find_source_lines():
-    nt.assert_equal(oinspect.find_source_lines(test_find_source_lines), 
-                    THIS_LINE_NUMBER+1)
+
+from unittest import TestCase
+
+class Test(TestCase):
+
+    def test_find_source_lines(self):
+        self.assertEqual(oinspect.find_source_lines(Test.test_find_source_lines), 
+                    THIS_LINE_NUMBER+6)
 
 
 # A couple of utilities to ensure these tests work the same from a source or a
@@ -322,7 +327,7 @@ def test_bool_raise():
 
 def test_info_serialliar():
     fib_tracker = [0]
-    i = inspector.info(SerialLiar(fib_tracker))
+    inspector.info(SerialLiar(fib_tracker))
 
     # Nested attribute access should be cut off at 100 levels deep to avoid
     # infinite loops: https://github.com/ipython/ipython/issues/9122
@@ -335,10 +340,9 @@ def test_calldef_none():
         i = inspector.info(obj)
         nt.assert_is(i['call_def'], None)
 
-if py3compat.PY3:
-    exec("def f_kwarg(pos, *, kwonly): pass")
+def f_kwarg(pos, *, kwonly):
+    pass
 
-@skipif(not py3compat.PY3)
 def test_definition_kwonlyargs():
     i = inspector.info(f_kwarg, oname='f_kwarg')  # analysis:ignore
     nt.assert_equal(i['definition'], "f_kwarg(pos, *, kwonly)")

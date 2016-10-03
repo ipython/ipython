@@ -132,7 +132,6 @@ def test_unicode_completions():
         nt.assert_true(isinstance(text, string_types))
         nt.assert_true(isinstance(matches, list))
 
-@dec.onlyif(sys.version_info[0] >= 3, 'This test only applies in Py>=3')
 def test_latex_completions():
     from IPython.core.latex_symbols import latex_symbols
     import random

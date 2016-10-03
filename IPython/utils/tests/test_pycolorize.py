@@ -49,28 +49,28 @@ class Bar(Super):
 
 def test_loop_colors():
 
-    for scheme in ('Linux', 'NoColor','LightBG', 'Neutral'):
+    for style in ('Linux', 'NoColor','LightBG', 'Neutral'):
 
         def test_unicode_colorize():
-            p = Parser()
-            f1 = p.format('1/0', 'str', scheme=scheme)
-            f2 = p.format(u'1/0', 'str', scheme=scheme)
+            p = Parser(style=style)
+            f1 = p.format('1/0', 'str')
+            f2 = p.format(u'1/0', 'str')
             nt.assert_equal(f1, f2)
 
         def test_parse_sample():
             """and test writing to a buffer"""
             buf = io.StringIO()
-            p = Parser()
-            p.format(sample, buf, scheme=scheme)
+            p = Parser(style=style)
+            p.format(sample, buf)
             buf.seek(0)
             f1 = buf.read()
 
             nt.assert_not_in('ERROR', f1)
 
         def test_parse_error():
-            p = Parser()
-            f1 = p.format(')', 'str', scheme=scheme)
-            if scheme != 'NoColor':
+            p = Parser(style=style)
+            f1 = p.format(')', 'str')
+            if style != 'NoColor':
                 nt.assert_in('ERROR', f1)
 
         yield test_unicode_colorize

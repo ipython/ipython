@@ -473,10 +473,7 @@ class InteractiveShell(SingletonConfigurable):
 
         # The following was in post_config_initialization
         self.init_inspector()
-        if py3compat.PY3:
-            self.raw_input_original = input
-        else:
-            self.raw_input_original = raw_input
+        self.raw_input_original = input
         self.init_completer()
         # TODO: init_io() needs to happen before init_traceback handlers
         # because the traceback handlers hardcode the stdout/stderr streams.
@@ -577,10 +574,12 @@ class InteractiveShell(SingletonConfigurable):
         except AttributeError:
             self.stdin_encoding = 'ascii'
 
-    def init_syntax_highlighting(self):
+
+    @observe('colors')
+    def init_syntax_highlighting(self, changes=None):
         # Python source parser/formatter for syntax highlighting
-        pyformat = PyColorize.Parser().format
-        self.pycolorize = lambda src: pyformat(src,'str',self.colors)
+        pyformat = PyColorize.Parser(style=self.colors).format
+        self.pycolorize = lambda src: pyformat(src,'str')
 
     def refresh_style(self):
         # No-op here, used in subclass
