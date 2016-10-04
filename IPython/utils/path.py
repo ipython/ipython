@@ -11,7 +11,6 @@ import sys
 import errno
 import shutil
 import random
-import tempfile
 import glob
 from warnings import warn
 from hashlib import md5
@@ -78,7 +77,7 @@ def unquote_filename(name, win32=(sys.platform=='win32')):
     unquoting is now taken care of by :func:`IPython.utils.process.arg_split`.
     """
     warn("'unquote_filename' is deprecated since IPython 5.0 and should not "
-         "be used anymore", DeprecationWarning)
+         "be used anymore", DeprecationWarning, stacklevel=2)
     if win32:
         if name.startswith(("'", '"')) and name.endswith(("'", '"')):
             name = name[1:-1]
@@ -105,7 +104,7 @@ def get_py_filename(name, force_win32=None):
     if force_win32 is not None:
         warn("The 'force_win32' argument to 'get_py_filename' is deprecated "
              "since IPython 5.0 and should not be used anymore",
-            DeprecationWarning)
+            DeprecationWarning, stacklevel=2)
     if not os.path.isfile(name) and not name.endswith('.py'):
         name += '.py'
     if os.path.isfile(name):
@@ -256,31 +255,31 @@ def get_xdg_cache_dir():
 
 @undoc
 def get_ipython_dir():
-    warn("get_ipython_dir has moved to the IPython.paths module")
+    warn("get_ipython_dir has moved to the IPython.paths module since IPython 4.0.", stacklevel=2)
     from IPython.paths import get_ipython_dir
     return get_ipython_dir()
 
 @undoc
 def get_ipython_cache_dir():
-    warn("get_ipython_cache_dir has moved to the IPython.paths module")
+    warn("get_ipython_cache_dir has moved to the IPython.paths module since IPython 4.0.", stacklevel=2)
     from IPython.paths import get_ipython_cache_dir
     return get_ipython_cache_dir()
 
 @undoc
 def get_ipython_package_dir():
-    warn("get_ipython_package_dir has moved to the IPython.paths module")
+    warn("get_ipython_package_dir has moved to the IPython.paths module since IPython 4.0.", stacklevel=2)
     from IPython.paths import get_ipython_package_dir
     return get_ipython_package_dir()
 
 @undoc
 def get_ipython_module_path(module_str):
-    warn("get_ipython_module_path has moved to the IPython.paths module")
+    warn("get_ipython_module_path has moved to the IPython.paths module since IPython 4.0.", stacklevel=2)
     from IPython.paths import get_ipython_module_path
     return get_ipython_module_path(module_str)
 
 @undoc
 def locate_profile(profile='default'):
-    warn("locate_profile has moved to the IPython.paths module")
+    warn("locate_profile has moved to the IPython.paths module since IPython 4.0.", stacklevel=2)
     from IPython.paths import locate_profile
     return locate_profile(profile=profile)
 
@@ -371,7 +370,7 @@ def target_update(target,deps,cmd):
 def filehash(path):
     """Make an MD5 hash of a file, ignoring any differences in line
     ending characters."""
-    warn("filehash() is deprecated")
+    warn("filehash() is deprecated since IPython 4.0", DeprecationWarning, stacklevel=2)
     with open(path, "rU") as f:
         return md5(py3compat.str_to_bytes(f.read())).hexdigest()
 
