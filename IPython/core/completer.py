@@ -886,8 +886,7 @@ class IPCompleter(Completer):
         # parenthesis before the cursor
         # e.g. for "foo (1+bar(x), pa<cursor>,a=1)", the candidate is "foo"
         tokens = regexp.findall(self.text_until_cursor)
-        tokens.reverse()
-        iterTokens = iter(tokens); openPar = 0
+        iterTokens = reversed(tokens); openPar = 0
 
         for token in iterTokens:
             if token == ')':
@@ -912,6 +911,25 @@ class IPCompleter(Completer):
                     break
             except StopIteration:
                 break
+
+        # Find all named arguments already assigned to, as to avoid suggesting
+        # them again
+        usedNamedArgs = set()
+        par_level = -1
+        for token, next_token in itertools.izip(tokens, tokens[1:]):
+            if token == '(':
+                par_level += 1
+            elif token == ')':
+                par_level -= 1
+
+            if par_level != 0:
+                continue
+
+            if next_token != '=':
+                continue
+
+            usedNamedArgs.add(token)
+
         # lookup the candidate callable matches either using global_matches
         # or attr_matches for dotted names
         if len(ids) == 1:
@@ -926,7 +944,8 @@ class IPCompleter(Completer):
             except:
                 continue
 
-            for namedArg in namedArgs:
+            # Remove used named arguments from the list, no need to show twice
+            for namedArg in set(namedArgs) - usedNamedArgs:
                 if namedArg.startswith(text):
                     argMatches.append(u"%s=" %namedArg)
         return argMatches
