@@ -71,10 +71,11 @@ class TimeitResult(object):
     compile_time: (float) time of statement compilation (s)
 
     """
-
-    def __init__(self, loops, repeat, all_runs, compile_time, precision):
+    def __init__(self, loops, repeat, best, worst, all_runs, compile_time, precision):
         self.loops = loops
         self.repeat = repeat
+        self.best = best
+        self.worst = worst
         self.all_runs = all_runs
         self.compile_time = compile_time
         self._precision = precision
@@ -1063,7 +1064,9 @@ python-profiler package from non-free.""")
                     break
 
         all_runs = timer.repeat(repeat, number)
-        timeit_result = TimeitResult(number, repeat, all_runs, tc, precision)
+        best = min(all_runs) / number
+        worst = max(all_runs) / number
+        timeit_result = TimeitResult(number, repeat, best, worst, all_runs, tc, precision)
 
         if not quiet :
             # Check best timing is greater than zero to avoid a
@@ -1071,9 +1074,14 @@ python-profiler package from non-free.""")
             # In cases where the slowest timing is lesser than a micosecond
             # we assume that it does not really matter if the fastest
             # timing is 4 times faster than the slowest timing or not.
-           print( timeit_result )
+            if worst > 4 * best and best > 0 and worst > 1e-6:
+                print("The slowest run took %0.2f times longer than the "
+                      "fastest. This could mean that an intermediate result "
+                      "is being cached." % (worst / best))
+           
+            print( timeit_result )
 
-           if tc > tc_min:
+            if tc > tc_min:
                 print("Compiler time: %.2f s" % tc)
         if return_result:
             return timeit_result
