@@ -91,16 +91,10 @@ class TimeitResult(object):
         return (math.fsum([(x - mean) ** 2 for x in self.timings]) / len(self.timings)) ** 0.5
 
     def __str__(self):
-        if self.loops == 1:  # No s at "loops" if only one loop
-            return (u"%s loop, average of %d: %s +- %s per loop (using standard deviation)"
-                       % (self.loops, self.repeat,
-                          _format_time(self.average, self._precision),
-                          _format_time(self.stdev, self._precision)))
-        else:
-            return (u"%s loops, average of %d: %s +- %s per loop (using standard deviation)"
-                       % (self.loops, self.repeat,
-                          _format_time(self.average, self._precision),
-                          _format_time(self.stdev, self._precision)))
+        return (u"%s loop%s, average of %d: %s +- %s per loop (using standard deviation)"
+                   % (self.loops,"" if self.loops == 1 else "s", self.repeat,
+                      _format_time(self.average, self._precision),
+                      _format_time(self.stdev, self._precision)))
 
     def _repr_pretty_(self, p , cycle):
        unic = self.__str__()
