@@ -72,27 +72,45 @@ class TimeitResult(object):
 
     """
 
-    def __init__(self, loops, repeat, average, stdev, all_runs, compile_time, precision):
+    def __init__(self, loops, repeat, all_runs, compile_time, precision):
         self.loops = loops
         self.repeat = repeat
-        self.average = average
-        self.stdev = stdev
         self.all_runs = all_runs
         self.compile_time = compile_time
         self._precision = precision
+        self.timings = [ dt / self.loops for dt in all_runs]
+        self._average = None
+        self._stdev = None
+
+    @property
+    def average(self):
+        if self._average is None:
+            self._average = math.fsum(self.timings) / len(self.timings)
+        return self._average
+
+    @property
+    def stdev(self):
+        if self._stdev is None:
+            mean = self.average
+            self._stdev = (math.fsum([(x - mean) ** 2 for x in self.timings]) / len(self.timings)) ** 0.5
+        return self._stdev
+
+    def __str__(self):
+        if self.loops == 1:  # No s at "loops" if only one loop
+            return (u"%s loop, average of %d: %s +- %s per loop (using standard deviation)"
+                       % (self.loops, self.repeat,
+                          _format_time(self.average, self._precision),
+                          _format_time(self.stdev, self._precision)))
+        else:
+            return (u"%s loops, average of %d: %s +- %s per loop (using standard deviation)"
+                       % (self.loops, self.repeat,
+                          _format_time(self.average, self._precision),
+                          _format_time(self.stdev, self._precision)))
 
     def _repr_pretty_(self, p , cycle):
-        if self.loops == 1:  # No s at "loops" if only one loop
-             unic = (u"%s loop, average of %d: %s +- %s per loop (using standard deviation)"
-                        % (self.loops, self.repeat,
-                           _format_time(self.average, self._precision),
-                           _format_time(self.stdev, self._precision)))
-        else:
-            unic = (u"%s loops, average of %d: %s +- %s per loop (using standard deviation)"
-                        % (self.loops, self.repeat,
-                           _format_time(self.average, self._precision),
-                           _format_time(self.stdev, self._precision)))
-        p.text(u'<TimeitResult : '+unic+u'>')
+       unic = self.__str__()
+       p.text(u'<TimeitResult : '+unic+u'>')
+
 
 
 class TimeitTemplateFiller(ast.NodeTransformer):
@@ -1051,17 +1069,7 @@ python-profiler package from non-free.""")
                     break
 
         all_runs = timer.repeat(repeat, number)
-        timings = [ dt / number for dt in all_runs]
-
-        def _avg(numbers):
-            return math.fsum(numbers) / len(numbers)
-
-        def _stdev(numbers):
-            mean = _avg(numbers)
-            return (math.fsum([(x - mean) ** 2 for x in numbers]) / len(numbers)) ** 0.5
-
-        average = _avg(timings)
-        stdev   = _stdev(timings)
+        timeit_result = TimeitResult(number, repeat, all_runs, tc, precision)
 
         if not quiet :
             # Check best timing is greater than zero to avoid a
@@ -1069,20 +1077,12 @@ python-profiler package from non-free.""")
             # In cases where the slowest timing is lesser than a micosecond
             # we assume that it does not really matter if the fastest
             # timing is 4 times faster than the slowest timing or not.
-            if number == 1:  # No s at "loops" if only one loop
-                print(u"%s loop, average of %d: %s +- %s per loop (using standard deviation)"
-                        % (number, repeat,
-                           _format_time(average, precision),
-                           _format_time(stdev, precision)))
-            else:
-                print(u"%s loops, average of %d: %s +- %s per loop (using standard deviation)"
-                        % (number, repeat,
-                           _format_time(average, precision),
-                           _format_time(stdev, precision)))
-            if tc > tc_min:
+           print( timeit_result )
+
+           if tc > tc_min:
                 print("Compiler time: %.2f s" % tc)
         if return_result:
-            return TimeitResult(number, repeat, average, stdev, all_runs, tc, precision)
+            return timeit_result
 
     @skip_doctest
     @needs_local_scope
