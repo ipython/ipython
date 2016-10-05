@@ -1336,7 +1336,6 @@ def parse_breakpoint(text, current_file):
 
 def _format_time(timespan, precision=3):
     """Formats the timespan in a human readable form"""
-    import math
 
     if timespan >= 60.0:
         # we have more than a minute, format that in a human readable form
