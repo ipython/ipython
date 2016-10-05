@@ -79,21 +79,15 @@ class TimeitResult(object):
         self.compile_time = compile_time
         self._precision = precision
         self.timings = [ dt / self.loops for dt in all_runs]
-        self._average = None
-        self._stdev = None
 
     @property
     def average(self):
-        if self._average is None:
-            self._average = math.fsum(self.timings) / len(self.timings)
-        return self._average
+        return math.fsum(self.timings) / len(self.timings)
 
     @property
     def stdev(self):
-        if self._stdev is None:
-            mean = self.average
-            self._stdev = (math.fsum([(x - mean) ** 2 for x in self.timings]) / len(self.timings)) ** 0.5
-        return self._stdev
+        mean = self.average
+        return self._stdev = (math.fsum([(x - mean) ** 2 for x in self.timings]) / len(self.timings)) ** 0.5
 
     def __str__(self):
         if self.loops == 1:  # No s at "loops" if only one loop
