@@ -15,6 +15,7 @@ import os
 import sys
 import time
 import timeit
+import math
 from pdb import Restart
 
 # cProfile was added in Python2.5
@@ -71,23 +72,27 @@ class TimeitResult(object):
 
     """
 
-    def __init__(self, loops, repeat, best, worst, all_runs, compile_time, precision):
+    def __init__(self, loops, repeat, average, stdev, all_runs, compile_time, precision):
         self.loops = loops
         self.repeat = repeat
-        self.best = best
-        self.worst = worst
+        self.average = average
+        self.stdev = stdev
         self.all_runs = all_runs
         self.compile_time = compile_time
         self._precision = precision
 
     def _repr_pretty_(self, p , cycle):
-         if self.loops == 1:  # No s at "loops" if only one loop
-             unic =  u"%d loop, best of %d: %s per loop" % (self.loops, self.repeat,
-                                            _format_time(self.best, self._precision))
-         else:
-             unic =  u"%d loops, best of %d: %s per loop" % (self.loops, self.repeat,
-                                            _format_time(self.best, self._precision))
-         p.text(u'<TimeitResult : '+unic+u'>')
+        if self.loops == 1:  # No s at "loops" if only one loop
+             unic = (u"%s loop, average of %d: %s +- %s per loop (using standard deviation)"
+                        % (self.loops, self.repeat,
+                           _format_time(self.average, self._precision),
+                           _format_time(self.stdev, self._precision)))
+        else:
+            unic = (u"%s loops, average of %d: %s +- %s per loop (using standard deviation)"
+                        % (self.loops, self.repeat,
+                           _format_time(self.average, self._precision),
+                           _format_time(self.stdev, self._precision)))
+        p.text(u'<TimeitResult : '+unic+u'>')
 
 
 class TimeitTemplateFiller(ast.NodeTransformer):
@@ -117,7 +122,7 @@ class TimeitTemplateFiller(ast.NodeTransformer):
 
 class Timer(timeit.Timer):
     """Timer class that explicitly uses self.inner
-    
+
     which is an undocumented implementation detail of CPython,
     not shared by PyPy.
     """
@@ -457,7 +462,7 @@ python-profiler package from non-free.""")
         """Run the named file inside IPython as a program.
 
         Usage::
-        
+
           %run [-n -i -e -G]
                [( -t [-N<N>] | -d [-b<N>] | -p [profile options] )]
                ( -m mod | file ) [args]
@@ -652,7 +657,7 @@ python-profiler package from non-free.""")
             __name__save = self.shell.user_ns['__name__']
             prog_ns['__name__'] = '__main__'
             main_mod = self.shell.user_module
-            
+
             # Since '%run foo' emulates 'python foo.py' at the cmd line, we must
             # set the __file__ global in the script's namespace
             # TK: Is this necessary in interactive mode?
@@ -852,7 +857,7 @@ python-profiler package from non-free.""")
                     continue
                 else:
                     break
-            
+
 
         except:
             etype, value, tb = sys.exc_info()
@@ -950,20 +955,20 @@ python-profiler package from non-free.""")
         ::
 
           In [1]: %timeit pass
-          10000000 loops, best of 3: 53.3 ns per loop
+          100000000 loops, average of 7: 5.48 ns +- 0.354 ns per loop (using standard deviation)
 
           In [2]: u = None
 
           In [3]: %timeit u is None
-          10000000 loops, best of 3: 184 ns per loop
+          10000000 loops, average of 7: 22.7 ns +- 2.33 ns per loop (using standard deviation)
 
           In [4]: %timeit -r 4 u == None
-          1000000 loops, best of 4: 242 ns per loop
+          10000000 loops, average of 4: 27.5 ns +- 2.91 ns per loop (using standard deviation)
 
           In [5]: import time
 
           In [6]: %timeit -n1 time.sleep(2)
-          1 loop, best of 3: 2 s per loop
+          1 loop, average of 7: 2 s +- 4.71 µs per loop (using standard deviation)
 
 
         The times reported by %timeit will be slightly higher than those
@@ -978,10 +983,11 @@ python-profiler package from non-free.""")
                                         posix=False, strict=False)
         if stmt == "" and cell is None:
             return
-        
+
         timefunc = timeit.default_timer
         number = int(getattr(opts, "n", 0))
-        repeat = int(getattr(opts, "r", timeit.default_repeat))
+        default_repeat = 7 if timeit.default_repeat < 7 else timeit.default_repeat
+        repeat = int(getattr(opts, "r", default_repeat))
         precision = int(getattr(opts, "p", 3))
         quiet = 'q' in opts
         return_result = 'o' in opts
@@ -1036,22 +1042,26 @@ python-profiler package from non-free.""")
         # This is used to check if there is a huge difference between the
         # best and worst timings.
         # Issue: https://github.com/ipython/ipython/issues/6471
-        worst_tuning = 0
         if number == 0:
             # determine number so that 0.2 <= total time < 2.0
-            number = 1
-            for _ in range(1, 10):
+            for index in range(0, 10):
+                number = 10 ** index
                 time_number = timer.timeit(number)
-                worst_tuning = max(worst_tuning, time_number / number)
                 if time_number >= 0.2:
                     break
-                number *= 10
-        all_runs = timer.repeat(repeat, number)
-        best = min(all_runs) / number
 
-        worst = max(all_runs) / number
-        if worst_tuning:
-            worst = max(worst, worst_tuning)
+        all_runs = timer.repeat(repeat, number)
+        timings = [ dt / number for dt in all_runs]
+
+        def _avg(numbers):
+            return math.fsum(numbers) / len(numbers)
+
+        def _stdev(numbers):
+            mean = _avg(numbers)
+            return (math.fsum([(x - mean) ** 2 for x in numbers]) / len(numbers)) ** 0.5
+
+        average = _avg(timings)
+        stdev   = _stdev(timings)
 
         if not quiet :
             # Check best timing is greater than zero to avoid a
@@ -1059,20 +1069,20 @@ python-profiler package from non-free.""")
             # In cases where the slowest timing is lesser than a micosecond
             # we assume that it does not really matter if the fastest
             # timing is 4 times faster than the slowest timing or not.
-            if worst > 4 * best and best > 0 and worst > 1e-6:
-                print("The slowest run took %0.2f times longer than the "
-                      "fastest. This could mean that an intermediate result "
-                      "is being cached." % (worst / best))
             if number == 1:  # No s at "loops" if only one loop
-                print(u"%d loop, best of %d: %s per loop" % (number, repeat,
-                                                              _format_time(best, precision)))
+                print(u"%s loop, average of %d: %s +- %s per loop (using standard deviation)"
+                        % (number, repeat,
+                           _format_time(average, precision),
+                           _format_time(stdev, precision)))
             else:
-                print(u"%d loops, best of %d: %s per loop" % (number, repeat,
-                                                              _format_time(best, precision)))
+                print(u"%s loops, average of %d: %s +- %s per loop (using standard deviation)"
+                        % (number, repeat,
+                           _format_time(average, precision),
+                           _format_time(stdev, precision)))
             if tc > tc_min:
                 print("Compiler time: %.2f s" % tc)
         if return_result:
-            return TimeitResult(number, repeat, best, worst, all_runs, tc, precision)
+            return TimeitResult(number, repeat, average, stdev, all_runs, tc, precision)
 
     @skip_doctest
     @needs_local_scope
@@ -1083,16 +1093,16 @@ python-profiler package from non-free.""")
         The CPU and wall clock times are printed, and the value of the
         expression (if any) is returned.  Note that under Win32, system time
         is always reported as 0, since it can not be measured.
-        
+
         This function can be used both as a line and cell magic:
 
         - In line mode you can time a single-line statement (though multiple
           ones can be chained with using semicolons).
 
-        - In cell mode, you can time the cell body (a directly 
+        - In cell mode, you can time the cell body (a directly
           following statement raises an error).
 
-        This function provides very basic timing functionality.  Use the timeit 
+        This function provides very basic timing functionality.  Use the timeit
         magic for more control over the measurement.
 
         Examples
@@ -1133,10 +1143,10 @@ python-profiler package from non-free.""")
           """
 
         # fail immediately if the given expression can't be compiled
-        
+
         if line and cell:
             raise UsageError("Can't use statement directly after '%%time'!")
-        
+
         if cell:
             expr = self.shell.input_transformer_manager.transform_cell(cell)
         else:
@@ -1186,7 +1196,7 @@ python-profiler package from non-free.""")
         cpu_user = end[0]-st[0]
         cpu_sys = end[1]-st[1]
         cpu_tot = cpu_user+cpu_sys
-        # On windows cpu_sys is always zero, so no new information to the next print 
+        # On windows cpu_sys is always zero, so no new information to the next print
         if sys.platform != 'win32':
             print("CPU times: user %s, sys: %s, total: %s" % \
                 (_format_time(cpu_user),_format_time(cpu_sys),_format_time(cpu_tot)))
@@ -1212,9 +1222,9 @@ python-profiler package from non-free.""")
           so that magics are loaded in their transformed version to valid
           Python.  If this option is given, the raw input as typed at the
           command line is used instead.
-          
-          -q: quiet macro definition.  By default, a tag line is printed 
-          to indicate the macro has been created, and then the contents of 
+
+          -q: quiet macro definition.  By default, a tag line is printed
+          to indicate the macro has been created, and then the contents of
           the macro are printed.  If this option is given, then no printout
           is produced once the macro is created.
 
@@ -1277,7 +1287,7 @@ python-profiler package from non-free.""")
             return
         macro = Macro(lines)
         self.shell.define_macro(name, macro)
-        if not ( 'q' in opts) : 
+        if not ( 'q' in opts) :
             print('Macro `%s` created. To execute, type its name (without quotes).' % name)
             print('=== Macro contents: ===')
             print(macro, end=' ')
@@ -1323,11 +1333,11 @@ def parse_breakpoint(text, current_file):
         return current_file, int(text)
     else:
         return text[:colon], int(text[colon+1:])
-    
+
 def _format_time(timespan, precision=3):
     """Formats the timespan in a human readable form"""
     import math
-    
+
     if timespan >= 60.0:
         # we have more than a minute, format that in a human readable form
         # Idea from http://snipplr.com/view/5713/
@@ -1343,13 +1353,13 @@ def _format_time(timespan, precision=3):
                 break
         return " ".join(time)
 
-    
+
     # Unfortunately the unicode 'micro' symbol can cause problems in
-    # certain terminals.  
+    # certain terminals.
     # See bug: https://bugs.launchpad.net/ipython/+bug/348466
     # Try to prevent crashes by being more secure than it needs to
     # E.g. eclipse is able to print a µ, but has no sys.stdout.encoding set.
-    units = [u"s", u"ms",u'us',"ns"] # the save value   
+    units = [u"s", u"ms",u'us',"ns"] # the save value
     if hasattr(sys.stdout, 'encoding') and sys.stdout.encoding:
         try:
             u'\xb5'.encode(sys.stdout.encoding)
@@ -1357,7 +1367,7 @@ def _format_time(timespan, precision=3):
         except:
             pass
     scaling = [1, 1e3, 1e6, 1e9]
-        
+
     if timespan > 0.0:
         order = min(-int(math.floor(math.log10(timespan)) // 3), 3)
     else:
