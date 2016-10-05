@@ -649,7 +649,7 @@ class TestAstTransform(unittest.TestCase):
             called.add(x)
         ip.push({'f':f})
         
-        with tt.AssertPrints("best of "):
+        with tt.AssertPrints("average of "):
             ip.run_line_magic("timeit", "-n1 f(1)")
         self.assertEqual(called, {-1})
         called.clear()
