@@ -122,7 +122,7 @@ class TimeitTemplateFiller(ast.NodeTransformer):
 
 class Timer(timeit.Timer):
     """Timer class that explicitly uses self.inner
-
+    
     which is an undocumented implementation detail of CPython,
     not shared by PyPy.
     """
@@ -462,7 +462,7 @@ python-profiler package from non-free.""")
         """Run the named file inside IPython as a program.
 
         Usage::
-
+        
           %run [-n -i -e -G]
                [( -t [-N<N>] | -d [-b<N>] | -p [profile options] )]
                ( -m mod | file ) [args]
@@ -657,7 +657,7 @@ python-profiler package from non-free.""")
             __name__save = self.shell.user_ns['__name__']
             prog_ns['__name__'] = '__main__'
             main_mod = self.shell.user_module
-
+            
             # Since '%run foo' emulates 'python foo.py' at the cmd line, we must
             # set the __file__ global in the script's namespace
             # TK: Is this necessary in interactive mode?
@@ -857,7 +857,7 @@ python-profiler package from non-free.""")
                     continue
                 else:
                     break
-
+            
 
         except:
             etype, value, tb = sys.exc_info()
@@ -983,7 +983,7 @@ python-profiler package from non-free.""")
                                         posix=False, strict=False)
         if stmt == "" and cell is None:
             return
-
+        
         timefunc = timeit.default_timer
         number = int(getattr(opts, "n", 0))
         default_repeat = 7 if timeit.default_repeat < 7 else timeit.default_repeat
@@ -1093,16 +1093,16 @@ python-profiler package from non-free.""")
         The CPU and wall clock times are printed, and the value of the
         expression (if any) is returned.  Note that under Win32, system time
         is always reported as 0, since it can not be measured.
-
+        
         This function can be used both as a line and cell magic:
 
         - In line mode you can time a single-line statement (though multiple
           ones can be chained with using semicolons).
 
-        - In cell mode, you can time the cell body (a directly
+        - In cell mode, you can time the cell body (a directly 
           following statement raises an error).
 
-        This function provides very basic timing functionality.  Use the timeit
+        This function provides very basic timing functionality.  Use the timeit 
         magic for more control over the measurement.
 
         Examples
@@ -1143,10 +1143,10 @@ python-profiler package from non-free.""")
           """
 
         # fail immediately if the given expression can't be compiled
-
+        
         if line and cell:
             raise UsageError("Can't use statement directly after '%%time'!")
-
+        
         if cell:
             expr = self.shell.input_transformer_manager.transform_cell(cell)
         else:
@@ -1196,7 +1196,7 @@ python-profiler package from non-free.""")
         cpu_user = end[0]-st[0]
         cpu_sys = end[1]-st[1]
         cpu_tot = cpu_user+cpu_sys
-        # On windows cpu_sys is always zero, so no new information to the next print
+        # On windows cpu_sys is always zero, so no new information to the next print 
         if sys.platform != 'win32':
             print("CPU times: user %s, sys: %s, total: %s" % \
                 (_format_time(cpu_user),_format_time(cpu_sys),_format_time(cpu_tot)))
@@ -1222,9 +1222,9 @@ python-profiler package from non-free.""")
           so that magics are loaded in their transformed version to valid
           Python.  If this option is given, the raw input as typed at the
           command line is used instead.
-
-          -q: quiet macro definition.  By default, a tag line is printed
-          to indicate the macro has been created, and then the contents of
+          
+          -q: quiet macro definition.  By default, a tag line is printed 
+          to indicate the macro has been created, and then the contents of 
           the macro are printed.  If this option is given, then no printout
           is produced once the macro is created.
 
@@ -1287,7 +1287,7 @@ python-profiler package from non-free.""")
             return
         macro = Macro(lines)
         self.shell.define_macro(name, macro)
-        if not ( 'q' in opts) :
+        if not ( 'q' in opts) : 
             print('Macro `%s` created. To execute, type its name (without quotes).' % name)
             print('=== Macro contents: ===')
             print(macro, end=' ')
@@ -1333,7 +1333,7 @@ def parse_breakpoint(text, current_file):
         return current_file, int(text)
     else:
         return text[:colon], int(text[colon+1:])
-
+    
 def _format_time(timespan, precision=3):
     """Formats the timespan in a human readable form"""
 
@@ -1352,13 +1352,13 @@ def _format_time(timespan, precision=3):
                 break
         return " ".join(time)
 
-
+    
     # Unfortunately the unicode 'micro' symbol can cause problems in
-    # certain terminals.
+    # certain terminals.  
     # See bug: https://bugs.launchpad.net/ipython/+bug/348466
     # Try to prevent crashes by being more secure than it needs to
     # E.g. eclipse is able to print a µ, but has no sys.stdout.encoding set.
-    units = [u"s", u"ms",u'us',"ns"] # the save value
+    units = [u"s", u"ms",u'us',"ns"] # the save value   
     if hasattr(sys.stdout, 'encoding') and sys.stdout.encoding:
         try:
             u'\xb5'.encode(sys.stdout.encoding)
@@ -1366,7 +1366,7 @@ def _format_time(timespan, precision=3):
         except:
             pass
     scaling = [1, 1e3, 1e6, 1e9]
-
+        
     if timespan > 0.0:
         order = min(-int(math.floor(math.log10(timespan)) // 3), 3)
     else:
