@@ -87,7 +87,7 @@ class TimeitResult(object):
     @property
     def stdev(self):
         mean = self.average
-        return self._stdev = (math.fsum([(x - mean) ** 2 for x in self.timings]) / len(self.timings)) ** 0.5
+        return (math.fsum([(x - mean) ** 2 for x in self.timings]) / len(self.timings)) ** 0.5
 
     def __str__(self):
         if self.loops == 1:  # No s at "loops" if only one loop
