@@ -81,19 +81,19 @@ That's it.
 Installation from source
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you don't want to use :command:`pip`, or don't have it installed,
+To install IPython from source,
 grab the latest stable tarball of IPython `from PyPI
 <https://pypi.python.org/pypi/ipython>`__.  Then do the following:
 
 .. code-block:: bash
 
-    $ tar -xzf ipython.tar.gz
-    $ cd ipython
-    $ pip install .
+    tar -xzf ipython-5.1.0.tar.gz
+    cd ipython-5.1.0
+    # The [test] extra ensures test dependencies are installed too:
+    pip install .[test]
 
 Do not invoke ``setup.py`` directly as this can have undesirable consequences
-for further upgrades. Try to also avoid any usage of ``easy_install`` that can
-have similar undesirable consequences.
+for further upgrades. We do not recommend using ``easy_install`` either.
 
 If you are installing to a location (like ``/usr/local``) that requires higher
 permissions, you may need to run the last command with :command:`sudo`. You can
@@ -123,7 +123,7 @@ Then do:
 
     $ git clone https://github.com/ipython/ipython.git
     $ cd ipython
-    $ pip install -e .
+    $ pip install -e .[test]
 
 The :command:`pip install -e .` command allows users and developers to follow
 the development branch as it changes by creating links in the right places and
