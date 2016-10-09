@@ -613,7 +613,7 @@ class IPCompleter(Completer):
         self.splitter = CompletionSplitter()
 
         if use_readline:
-            warnings.warn('The use_readline parameter is deprecated since IPython 6.0.',
+            warnings.warn('The use_readline parameter is deprecated and ignored since IPython 6.0.',
                           DeprecationWarning, stacklevel=2)
 
         # _greedy_changed() depends on splitter and readline being defined:
