@@ -12,9 +12,6 @@ def test_import_ipstruct():
 def test_import_PyColorize():
     from IPython.utils import PyColorize
 
-def test_import_rlineimpl():
-    from IPython.utils import rlineimpl
-
 def test_import_strdispatch():
     from IPython.utils import strdispatch
 
