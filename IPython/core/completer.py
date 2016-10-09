@@ -25,6 +25,7 @@ import re
 import sys
 import unicodedata
 import string
+import warnings
 
 from traitlets.config.configurable import Configurable
 from IPython.core.error import TryNext
@@ -589,7 +590,7 @@ class IPCompleter(Completer):
     ).tag(config=True)
 
     def __init__(self, shell=None, namespace=None, global_namespace=None,
-                 use_readline=True, config=None, **kwargs):
+                 use_readline=False, config=None, **kwargs):
         """IPCompleter() -> completer
 
         Return a completer object suitable for use by the readline library
@@ -608,20 +609,15 @@ class IPCompleter(Completer):
           both Python scopes are visible.
 
         use_readline : bool, optional
-          If true, use the readline library.  This completer can still function
-          without readline, though in that case callers must provide some extra
-          information on each call about the current line."""
+          DEPRECATED, ignored.
+        """
 
         self.magic_escape = ESC_MAGIC
         self.splitter = CompletionSplitter()
 
-        # Readline configuration, only used by the rlcompleter method.
         if use_readline:
-            # We store the right version of readline so that later code
-            import IPython.utils.rlineimpl as readline
-            self.readline = readline
-        else:
-            self.readline = None
+            warnings.warn('The use_readline parameter is deprecated since IPython 6.0.',
+                          DeprecationWarning, stacklevel=2)
 
         # _greedy_changed() depends on splitter and readline being defined:
         Completer.__init__(self, namespace=namespace, global_namespace=global_namespace,

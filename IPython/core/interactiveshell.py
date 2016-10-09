@@ -1905,7 +1905,6 @@ class InteractiveShell(SingletonConfigurable):
         self.Completer = IPCompleter(shell=self,
                                      namespace=self.user_ns,
                                      global_namespace=self.user_global_ns,
-                                     use_readline=False,
                                      parent=self,
                                      )
         self.configurables.append(self.Completer)

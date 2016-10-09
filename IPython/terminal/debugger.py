@@ -24,7 +24,6 @@ class TerminalPdb(Pdb):
             compl = IPCompleter(shell=self.shell,
                                         namespace={},
                                         global_namespace={},
-                                        use_readline=False,
                                         parent=self.shell,
                                        )
             self._ptcomp = IPythonPTCompleter(compl)
