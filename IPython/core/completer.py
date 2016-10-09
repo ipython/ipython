@@ -552,9 +552,6 @@ class IPCompleter(Completer):
             self.splitter.delims = GREEDY_DELIMS
         else:
             self.splitter.delims = DELIMS
-
-        if self.readline:
-            self.readline.set_completer_delims(self.splitter.delims)
     
     merge_completions = Bool(True,
         help="""Whether to merge completion results into a single list
