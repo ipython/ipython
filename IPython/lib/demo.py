@@ -183,7 +183,6 @@ import re
 import shlex
 import sys
 
-from IPython.utils import io
 from IPython.utils.text import marquee
 from IPython.utils import openpy
 from IPython.utils import py3compat
@@ -538,7 +537,7 @@ class LineDemo(Demo):
         self.src_blocks = src_b
 
         # also build syntax-highlighted source
-        self.src_blocks_colored = map(self.ip_colorize,self.src_blocks)
+        self.src_blocks_colored = list(map(self.ip_colorize,self.src_blocks))
 
         # ensure clean namespace and seek offset
         self.reset()
@@ -572,8 +571,8 @@ class ClearMixin(object):
         """Method called before executing each block.
 
         This one simply clears the screen."""
-        from IPython.utils.terminal import term_clear
-        term_clear()
+        from IPython.utils.terminal import _term_clear
+        _term_clear()
 
 class ClearDemo(ClearMixin,Demo):
     pass
