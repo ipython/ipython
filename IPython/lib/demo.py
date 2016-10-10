@@ -627,3 +627,43 @@ class ClearDemo(ClearMixin,Demo):
 
 class ClearIPDemo(ClearMixin,IPythonDemo):
     pass
+
+
+def slide(file_path, noclear=False, format_rst=True, formatter="terminal",
+          style="native", auto_all=False, delimiter='...'):
+    if noclear:
+        demo_class = Demo
+    else:
+        demo_class = ClearDemo
+    demo = demo_class(file_path, format_rst=format_rst, formatter=formatter,
+                      style=style, auto_all=auto_all)
+    while not demo.finished:
+        demo()
+        try:
+            py3compat.input('\n' + delimiter)
+        except KeyboardInterrupt:
+            exit(1)
+
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description='Run python demos')
+    parser.add_argument('--noclear', '-C', action='store_true',
+                        help='Do not clear terminal on each slide')
+    parser.add_argument('--rst', '-r', action='store_true',
+                        help='Highlight comments and dostrings as rst')
+    parser.add_argument('--formatter', '-f', default='terminal',
+                        help='pygments formatter name could be: terminal, '
+                        'terminal256, terminal16m')
+    parser.add_argument('--style', '-s', default='default',
+                        help='pygments style name')
+    parser.add_argument('--auto', '-a', action='store_true',
+                        help='Run all blocks automatically without'
+                        'confirmation')
+    parser.add_argument('--delimiter', '-d', default='...',
+                        help='slides delimiter added after each slide run')
+    parser.add_argument('file', nargs=1,
+                        help='python demo file')
+    args = parser.parse_args()
+    slide(args.file[0], noclear=args.noclear, format_rst=args.rst,
+          formatter=args.formatter, style=args.style, auto_all=args.auto,
+          delimiter=args.delimiter)
