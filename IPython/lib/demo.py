@@ -41,6 +41,9 @@ Subclassing
 The classes here all include a few methods meant to make customization by
 subclassing more convenient.  Their docstrings below have some more details:
 
+  - highlight(): format every block and optionally highlight comments and
+    docstring content.
+
   - marquee(): generates a marquee to provide visible on-screen markers at each
     block start and end.
 
@@ -182,8 +185,8 @@ import os
 import re
 import shlex
 import sys
+import pygments
 
-from IPython.utils import io
 from IPython.utils.text import marquee
 from IPython.utils import openpy
 from IPython.utils import py3compat
@@ -201,7 +204,8 @@ class Demo(object):
     re_auto     = re_mark('auto')
     re_auto_all = re_mark('auto_all')
 
-    def __init__(self,src,title='',arg_str='',auto_all=None):
+    def __init__(self,src,title='',arg_str='',auto_all=None, format_rst=False,
+                 formatter='terminal', style='default'):
         """Make a new demo object.  To run the demo, simply call the object.
 
         See the module docstring for full details and an example (you can use
@@ -227,6 +231,15 @@ class Demo(object):
             applies to the whole demo.  It is an attribute of the object, and
             can be changed at runtime simply by reassigning it to a boolean
             value.
+
+          - format_rst(False): a bool to enable comments and doc strings
+            formating with pygments rst lexer
+
+          - formatter('terminal'): a string of pygments formatter name to be
+            used. Useful values for terminals: terminal, terminal256,
+            terminal16m
+
+          - style('default'): a string of pygments style name to be used.
           """
         if hasattr(src, "read"):
              # It seems to be a file or a file-like object
@@ -247,16 +260,25 @@ class Demo(object):
         self.auto_all = auto_all
         self.src = src
 
-        # get a few things from ipython.  While it's a bit ugly design-wise,
-        # it ensures that things like color scheme and the like are always in
-        # sync with the ipython mode being used.  This class is only meant to
-        # be used inside ipython anyways,  so it's OK.
-        ip = get_ipython()  # this is in builtins whenever IPython is running
-        self.ip_ns       = ip.user_ns
-        self.ip_colorize = ip.pycolorize
-        self.ip_showtb   = ip.showtraceback
-        self.ip_run_cell = ip.run_cell
-        self.shell       = ip
+        self.inside_ipython = "get_ipython" in globals()
+        if self.inside_ipython:
+            # get a few things from ipython.  While it's a bit ugly design-wise,
+            # it ensures that things like color scheme and the like are always in
+            # sync with the ipython mode being used.  This class is only meant to
+            # be used inside ipython anyways,  so it's OK.
+            ip = get_ipython()  # this is in builtins whenever IPython is running
+            self.ip_ns       = ip.user_ns
+            self.ip_colorize = ip.pycolorize
+            self.ip_showtb   = ip.showtraceback
+            self.ip_run_cell = ip.run_cell
+            self.shell       = ip
+
+        self.formatter = pygments.formatters.get_formatter_by_name(formatter,
+                                                                   style=style)
+        self.python_lexer = pygments.lexers.get_lexer_by_name("py3")
+        self.format_rst = format_rst
+        if format_rst:
+            self.rst_lexer = pygments.lexers.get_lexer_by_name("rst")
 
         # load user data and initialize data structures
         self.reload()
@@ -304,7 +326,7 @@ class Demo(object):
         self.src_blocks = src_blocks
 
         # also build syntax-highlighted source
-        self.src_blocks_colored = list(map(self.ip_colorize,self.src_blocks))
+        self.src_blocks_colored = list(map(self.highlight,self.src_blocks))
 
         # ensure clean namespace and seek offset
         self.reset()
@@ -384,7 +406,7 @@ class Demo(object):
             new_block = f.read()
         # update the source and colored block
         self.src_blocks[index] = new_block
-        self.src_blocks_colored[index] = self.ip_colorize(new_block)
+        self.src_blocks_colored[index] = self.highlight(new_block)
         self.block_index = index
         # call to run with the newly edited index
         self()
@@ -463,9 +485,11 @@ class Demo(object):
                 sys.argv = save_argv
 
         except:
-            self.ip_showtb(filename=self.fname)
+            if self.inside_ipython:
+                self.ip_showtb(filename=self.fname)
         else:
-            self.ip_ns.update(self.user_ns)
+            if self.inside_ipython:
+                self.ip_ns.update(self.user_ns)
 
         if self.block_index == self.nblocks:
             mq1 = self.marquee('END OF DEMO')
@@ -489,6 +513,28 @@ class Demo(object):
     def post_cmd(self):
         """Method called after executing each block."""
         pass
+
+    def highlight(self, block):
+        """Method called on each block to highlight it content"""
+        tokens = pygments.lex(block, self.python_lexer)
+        if self.format_rst:
+            from pygments.token import Token
+            toks = []
+            for token in tokens:
+                if token[0] == Token.String.Doc and len(token[1]) > 6:
+                    toks += pygments.lex(token[1][:3], self.python_lexer)
+                    # parse doc string content by rst lexer
+                    toks += pygments.lex(token[1][3:-3], self.rst_lexer)
+                    toks += pygments.lex(token[1][-3:], self.python_lexer)
+                elif token[0] == Token.Comment.Single:
+                    toks.append((Token.Comment.Single, token[1][0]))
+                    # parse comment content by rst lexer
+                    # remove the extrat newline added by rst lexer
+                    toks += list(pygments.lex(token[1][1:], self.rst_lexer))[:-1]
+                else:
+                    toks.append(token)
+            tokens = toks
+        return pygments.format(tokens, self.formatter)
 
 
 class IPythonDemo(Demo):
@@ -538,7 +584,7 @@ class LineDemo(Demo):
         self.src_blocks = src_b
 
         # also build syntax-highlighted source
-        self.src_blocks_colored = map(self.ip_colorize,self.src_blocks)
+        self.src_blocks_colored = list(map(self.highlight,self.src_blocks))
 
         # ensure clean namespace and seek offset
         self.reset()
@@ -572,8 +618,8 @@ class ClearMixin(object):
         """Method called before executing each block.
 
         This one simply clears the screen."""
-        from IPython.utils.terminal import term_clear
-        term_clear()
+        from IPython.utils.terminal import _term_clear
+        _term_clear()
 
 class ClearDemo(ClearMixin,Demo):
     pass
@@ -581,3 +627,43 @@ class ClearDemo(ClearMixin,Demo):
 
 class ClearIPDemo(ClearMixin,IPythonDemo):
     pass
+
+
+def slide(file_path, noclear=False, format_rst=True, formatter="terminal",
+          style="native", auto_all=False, delimiter='...'):
+    if noclear:
+        demo_class = Demo
+    else:
+        demo_class = ClearDemo
+    demo = demo_class(file_path, format_rst=format_rst, formatter=formatter,
+                      style=style, auto_all=auto_all)
+    while not demo.finished:
+        demo()
+        try:
+            py3compat.input('\n' + delimiter)
+        except KeyboardInterrupt:
+            exit(1)
+
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description='Run python demos')
+    parser.add_argument('--noclear', '-C', action='store_true',
+                        help='Do not clear terminal on each slide')
+    parser.add_argument('--rst', '-r', action='store_true',
+                        help='Highlight comments and dostrings as rst')
+    parser.add_argument('--formatter', '-f', default='terminal',
+                        help='pygments formatter name could be: terminal, '
+                        'terminal256, terminal16m')
+    parser.add_argument('--style', '-s', default='default',
+                        help='pygments style name')
+    parser.add_argument('--auto', '-a', action='store_true',
+                        help='Run all blocks automatically without'
+                        'confirmation')
+    parser.add_argument('--delimiter', '-d', default='...',
+                        help='slides delimiter added after each slide run')
+    parser.add_argument('file', nargs=1,
+                        help='python demo file')
+    args = parser.parse_args()
+    slide(args.file[0], noclear=args.noclear, format_rst=args.rst,
+          formatter=args.formatter, style=args.style, auto_all=args.auto,
+          delimiter=args.delimiter)
