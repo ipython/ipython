@@ -44,6 +44,8 @@ class AutoMagics(Magics):
 
          - off, 0, False: to deactivate.
 
+         - anything else: negate previous setting.
+
         Note that magic functions have lowest priority, so if there's a
         variable whose name collides with that of a magic fn, automagic won't
         work for that function (you get the variable instead). However, if you
