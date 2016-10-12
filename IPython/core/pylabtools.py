@@ -172,6 +172,13 @@ def mpl_runner(safe_execfile):
             plt.draw()
             plt.draw_if_interactive.called = False
 
+        # re-draw everything that is stale
+        try:
+            da = plt.draw_all
+        except AttributeError:
+            pass
+        else:
+            da()
 
     return mpl_execfile
 
