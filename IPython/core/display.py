@@ -190,7 +190,7 @@ def display_pretty(*objs, **kwargs):
 
 def display_html(*objs, **kwargs):
     """Display the HTML representation of an object.
-    
+
     Note: If raw=False and the object does not have a HTML
     representation, no HTML will be shown.
 
@@ -513,13 +513,35 @@ class SVG(DisplayObject):
 
 class JSON(DisplayObject):
     """JSON expects a JSON-able dict or list
-    
+
     not an already-serialized JSON string.
-    
+
     Scalar types (None, number, string) are not allowed, only dict or list containers.
     """
     # wrap data in a property, which warns about passing already-serialized JSON
     _data = None
+    def __init__(self, data=None, url=None, filename=None, expanded=False, metadata=None):
+        """Create a JSON display object given raw data.
+
+        Parameters
+        ----------
+        data : dict or list
+            JSON data to display. Not an already-serialized JSON string.
+            Scalar types (None, number, string) are not allowed, only dict
+            or list containers.
+        url : unicode
+            A URL to download the data from.
+        filename : unicode
+            Path to a local file to load the data from.
+        expanded : boolean
+            Metadata to control whether a JSON display component is expanded.
+        metadata: dict
+            Specify extra metadata to attach to the json display object.
+        """
+        self.expanded = expanded
+        self.metadata = metadata
+        super(JSON, self).__init__(data=data, url=url, filename=filename)
+
     def _check_data(self):
         if self.data is not None and not isinstance(self.data, (dict, list)):
             raise TypeError("%s expects JSONable dict or list, not %r" % (self.__class__.__name__, self.data))
@@ -527,7 +549,7 @@ class JSON(DisplayObject):
     @property
     def data(self):
         return self._data
-    
+
     @data.setter
     def data(self, data):
         if isinstance(data, string_types):
@@ -535,8 +557,14 @@ class JSON(DisplayObject):
             data = json.loads(data)
         self._data = data
 
+    def _data_and_metadata(self):
+        md = {'expanded': self.expanded}
+        if self.metadata:
+            md.update(self.metadata)
+        return self.data, md
+
     def _repr_json_(self):
-        return self.data
+        return self._data_and_metadata()
 
 css_t = """$("head").append($("<link/>").attr({
   rel:  "stylesheet",
@@ -562,7 +590,7 @@ class Javascript(TextDisplayObject):
 
         In the Notebook, the containing element will be available as `element`,
         and jQuery will be available.  Content appended to `element` will be
-        visible in the output area. 
+        visible in the output area.
 
         Parameters
         ----------
@@ -622,7 +650,7 @@ def _pngxy(data):
 def _jpegxy(data):
     """read the (width, height) from a JPEG header"""
     # adapted from http://www.64lines.com/jpeg-width-height
-    
+
     idx = 4
     while True:
         block_size = struct.unpack('>H', data[idx:idx+2])[0]
@@ -755,10 +783,10 @@ class Image(DisplayObject):
         self.unconfined = unconfined
         self.metadata = metadata
         super(Image, self).__init__(data=data, url=url, filename=filename)
-        
+
         if retina:
             self._retina_shape()
-    
+
     def _retina_shape(self):
         """load pixel-doubled width and height from image data"""
         if not self.embed:
@@ -872,7 +900,7 @@ class Video(DisplayObject):
         elif os.path.exists(data):
             filename = data
             data = None
-        
+
         if data and not embed:
             msg = ''.join([
                 "To embed videos, you must pass embed=True ",
@@ -894,13 +922,13 @@ class Video(DisplayObject):
       Your browser does not support the <code>video</code> element.
     </video>""".format(url)
             return output
-        
+
         # Embedded videos are base64-encoded.
         mimetype = self.mimetype
         if self.filename is not None:
             if not mimetype:
                 mimetype, _ = mimetypes.guess_type(self.filename)
-            
+
             with open(self.filename, 'rb') as f:
                 video = f.read()
         else:
@@ -910,7 +938,7 @@ class Video(DisplayObject):
             b64_video = video
         else:
             b64_video = base64_encode(video).decode('ascii').rstrip()
-        
+
         output = """<video controls>
  <source src="data:{0};base64,{1}" type="{0}">
  Your browser does not support the video tag.
@@ -954,7 +982,7 @@ def set_matplotlib_formats(*formats, **kwargs):
         In [1]: set_matplotlib_formats('png', 'jpeg', quality=90)
 
     To set this in your config files use the following::
-    
+
         c.InlineBackend.figure_formats = {'png', 'jpeg'}
         c.InlineBackend.print_figure_kwargs.update({'quality' : 90})
 
@@ -979,19 +1007,19 @@ def set_matplotlib_formats(*formats, **kwargs):
 @skip_doctest
 def set_matplotlib_close(close=True):
     """Set whether the inline backend closes all figures automatically or not.
-    
+
     By default, the inline backend used in the IPython Notebook will close all
     matplotlib figures automatically after each cell is run. This means that
     plots in different cells won't interfere. Sometimes, you may want to make
     a plot in one cell and then refine it in later cells. This can be accomplished
     by::
-    
+
         In [1]: set_matplotlib_close(False)
-    
+
     To set this in your config files use the following::
-    
+
         c.InlineBackend.close_figures = False
-    
+
     Parameters
     ----------
     close : bool
@@ -1001,4 +1029,3 @@ def set_matplotlib_close(close=True):
     from ipykernel.pylab.config import InlineBackend
     cfg = InlineBackend.instance()
     cfg.close_figures = close
-
