@@ -161,7 +161,7 @@ def mpl_runner(safe_execfile):
         properly handle interactive rendering."""
 
         import matplotlib
-        import matplotlib.pylab as pylab
+        import matplotlib.pyplot as plt
 
         #print '*** Matplotlib runner ***' # dbg
         # turn off rendering until end of script
@@ -170,9 +170,17 @@ def mpl_runner(safe_execfile):
         safe_execfile(fname,*where,**kw)
         matplotlib.interactive(is_interactive)
         # make rendering call now, if the user tried to do it
-        if pylab.draw_if_interactive.called:
-            pylab.draw()
-            pylab.draw_if_interactive.called = False
+        if plt.draw_if_interactive.called:
+            plt.draw()
+            plt.draw_if_interactive.called = False
+
+        # re-draw everything that is stale
+        try:
+            da = plt.draw_all
+        except AttributeError:
+            pass
+        else:
+            da()
 
     return mpl_execfile
 
@@ -298,12 +306,12 @@ def activate_matplotlib(backend):
 
     # This must be imported last in the matplotlib series, after
     # backend/interactivity choices have been made
-    import matplotlib.pylab as pylab
+    import matplotlib.pyplot as plt
 
-    pylab.show._needmain = False
+    plt.show._needmain = False
     # We need to detect at runtime whether show() is called by the user.
     # For this, we wrap it into a decorator which adds a 'called' flag.
-    pylab.draw_if_interactive = flag_calls(pylab.draw_if_interactive)
+    plt.draw_if_interactive = flag_calls(plt.draw_if_interactive)
 
 
 def import_pylab(user_ns, import_all=True):
