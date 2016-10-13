@@ -1,0 +1,6 @@
+.git
+.git*
+.mailmap
+.travis.yml
+IPython/html/static/components/.git
+IPython/html/static/components/.gitignore
