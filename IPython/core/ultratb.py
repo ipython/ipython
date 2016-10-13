@@ -387,12 +387,10 @@ def _fixed_getinnerframes(etb, context=1, tb_offset=0):
 # (SyntaxErrors have to be treated specially because they have no traceback)
 
 
-def _format_traceback_lines(lnum, index, lines, Colors, lvals=None, scheme=None):
+def _format_traceback_lines(lnum, index, lines, Colors, lvals=None,  _line_format=(lambda x,_:x,None)):
     numbers_width = INDENT_SIZE - 1
     res = []
     i = lnum - index
-
-    _line_format = PyColorize.Parser(style=scheme).format2
 
     for line in lines:
         line = py3compat.cast_unicode(line)
@@ -586,9 +584,9 @@ class ListTB(TBTools):
     Because they are meant to be called without a full traceback (only a
     list), instances of this class can't call the interactive pdb debugger."""
 
-    def __init__(self, color_scheme='NoColor', call_pdb=False, ostream=None, parent=None):
+    def __init__(self, color_scheme='NoColor', call_pdb=False, ostream=None, parent=None, config=None):
         TBTools.__init__(self, color_scheme=color_scheme, call_pdb=call_pdb,
-                         ostream=ostream, parent=parent)
+                         ostream=ostream, parent=parent,config=config)
 
     def __call__(self, etype, value, elist):
         self.ostream.flush()
@@ -801,7 +799,8 @@ class VerboseTB(TBTools):
 
     def __init__(self, color_scheme='Linux', call_pdb=False, ostream=None,
                  tb_offset=0, long_header=False, include_vars=True,
-                 check_cache=None, debugger_cls = None):
+                 check_cache=None, debugger_cls = None,
+                 parent=None, config=None):
         """Specify traceback offset, headers and color scheme.
 
         Define how many frames to drop from the tracebacks. Calling it with
@@ -809,7 +808,7 @@ class VerboseTB(TBTools):
         their own code at the top of the traceback (VerboseTB will first
         remove that frame before printing the traceback info)."""
         TBTools.__init__(self, color_scheme=color_scheme, call_pdb=call_pdb,
-                         ostream=ostream)
+                         ostream=ostream, parent=parent, config=config)
         self.tb_offset = tb_offset
         self.long_header = long_header
         self.include_vars = include_vars
@@ -1010,9 +1009,10 @@ class VerboseTB(TBTools):
         if index is None:
             return level
         else:
+            _line_format = PyColorize.Parser(style=col_scheme, parent=self).format2
             return '%s%s' % (level, ''.join(
                 _format_traceback_lines(lnum, index, lines, Colors, lvals,
-                                        col_scheme)))
+                                         _line_format)))
 
     def prepare_chained_exception_message(self, cause):
         direct_cause = "\nThe above exception was the direct cause of the following exception:\n"
@@ -1277,7 +1277,8 @@ class FormattedTB(VerboseTB, ListTB):
     def __init__(self, mode='Plain', color_scheme='Linux', call_pdb=False,
                  ostream=None,
                  tb_offset=0, long_header=False, include_vars=False,
-                 check_cache=None, debugger_cls=None):
+                 check_cache=None, debugger_cls=None,
+                 parent=None, config=None):
 
         # NEVER change the order of this list. Put new modes at the end:
         self.valid_modes = ['Plain', 'Context', 'Verbose']
@@ -1286,7 +1287,8 @@ class FormattedTB(VerboseTB, ListTB):
         VerboseTB.__init__(self, color_scheme=color_scheme, call_pdb=call_pdb,
                            ostream=ostream, tb_offset=tb_offset,
                            long_header=long_header, include_vars=include_vars,
-                           check_cache=check_cache, debugger_cls=debugger_cls)
+                           check_cache=check_cache, debugger_cls=debugger_cls,
+                           parent=parent, config=config)
 
         # Different types of tracebacks are joined with different separators to
         # form a single string.  They are taken from this dict
@@ -1415,8 +1417,8 @@ class ColorTB(FormattedTB):
 class SyntaxTB(ListTB):
     """Extension which holds some state: the last exception value"""
 
-    def __init__(self, color_scheme='NoColor'):
-        ListTB.__init__(self, color_scheme)
+    def __init__(self, color_scheme='NoColor', parent=None, config=None):
+        ListTB.__init__(self, color_scheme, parent=parent, config=config)
         self.last_syntax_error = None
 
     def __call__(self, etype, value, elist):

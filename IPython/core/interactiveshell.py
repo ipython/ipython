@@ -578,7 +578,7 @@ class InteractiveShell(SingletonConfigurable):
     @observe('colors')
     def init_syntax_highlighting(self, changes=None):
         # Python source parser/formatter for syntax highlighting
-        pyformat = PyColorize.Parser(style=self.colors).format
+        pyformat = PyColorize.Parser(style=self.colors, parent=self).format
         self.pycolorize = lambda src: pyformat(src,'str')
 
     def refresh_style(self):
@@ -1569,7 +1569,7 @@ class InteractiveShell(SingletonConfigurable):
 
     def init_traceback_handlers(self, custom_exceptions):
         # Syntax error handler.
-        self.SyntaxTB = ultratb.SyntaxTB(color_scheme='NoColor')
+        self.SyntaxTB = ultratb.SyntaxTB(color_scheme='NoColor', parent=self)
 
         # The interactive one is initialized with an offset, meaning we always
         # want to remove the topmost item in the traceback, which is our own
@@ -1578,7 +1578,7 @@ class InteractiveShell(SingletonConfigurable):
                                                      color_scheme='NoColor',
                                                      tb_offset = 1,
                                    check_cache=check_linecache_ipython,
-                                   debugger_cls=self.debugger_cls)
+                                   debugger_cls=self.debugger_cls, parent=self)
 
         # The instance will store a pointer to the system-wide exception hook,
         # so that runtime code (such as magics) can access it.  This is because
