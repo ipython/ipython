@@ -11,7 +11,10 @@ Authors:
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-from pymongo import Connection
+try:
+    from pymongo import MongoClient
+except ImportError:
+    from pymongo import Connection as MongoClient
 
 # bson.Binary import moved
 try:
@@ -31,11 +34,11 @@ class MongoDB(BaseDB):
     """MongoDB TaskRecord backend."""
     
     connection_args = List(config=True,
-        help="""Positional arguments to be passed to pymongo.Connection.  Only
+        help="""Positional arguments to be passed to pymongo.MongoClient.  Only
         necessary if the default mongodb configuration does not point to your
         mongod instance.""")
     connection_kwargs = Dict(config=True,
-        help="""Keyword arguments to be passed to pymongo.Connection.  Only
+        help="""Keyword arguments to be passed to pymongo.MongoClient.  Only
         necessary if the default mongodb configuration does not point to your
         mongod instance."""
     )
@@ -45,12 +48,12 @@ class MongoDB(BaseDB):
         in tasks from previous sessions being available via Clients' db_query and
         get_result methods.""")
 
-    _connection = Instance(Connection) # pymongo connection
+    _connection = Instance(MongoClient) # pymongo connection
     
     def __init__(self, **kwargs):
         super(MongoDB, self).__init__(**kwargs)
         if self._connection is None:
-            self._connection = Connection(*self.connection_args, **self.connection_kwargs)
+            self._connection = MongoClient(*self.connection_args, **self.connection_kwargs)
         if not self.database:
             self.database = self.session
         self._db = self._connection[self.database]
