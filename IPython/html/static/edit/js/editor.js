@@ -22,8 +22,25 @@ function($,
 ) {
     "use strict";
 
+    var __console = window.console;
+
+    var _console = function(namespace){
+        return {
+            log: function(){
+                var ns = '['+namespace+'][log]';
+                var args = Array.prototype.slice.call(arguments);
+                args.unshift(ns);
+                //__console.log(args)
+                __console.log.apply(__console, args);
+            }
+        }
+    };
+
+    var console = _console('editor.js');
+
     var Editor = function(selector, options) {
         var that = this;
+        this.counter = 0;
         this.selector = selector;
         this.clean = false;
         this.contents = options.contents;
@@ -70,7 +87,66 @@ function($,
         lineNumbers: true,
         lineWrapping: true,
     };
+
+    var on_add = function(cm, no_ignore_local){
+        var ignore_local = !no_ignore_local;
+        return function(evts){
+            if(evts.isLocal && ignore_local){
+                return
+            }
+            var str = evts.text;
+            var from = utils.from_absolute_cursor_pos(cm, evts.index)
+            var to = from;
+            if(cm.getDoc().getValue().length > 2000){
+                return
+            }
     
+            cm.getDoc().replaceRange(str, from, to, '+remote_sync');
+        }
+    };
+
+    var on_del = function(cm, no_ignore_local){
+        var ignore_local = !no_ignore_local;
+        return function(evts){
+            if(evts.isLocal && ignore_local){
+                return
+            }
+            var from = utils.from_absolute_cursor_pos(cm, evts.index);
+            var to   = utils.from_absolute_cursor_pos(cm, evts.index+evts.text.length);
+            cm.getDoc().replaceRange('', from, to, '+remote_sync');
+        }
+    };
+    
+    var _rs = false; 
+    var resync = function(cm, truth_string){
+        if(!cm.__model){
+            console.log('__no model');
+            return
+        }
+        if(!cm.__model.createString){
+            console.log('__no model cs');
+            return
+        }
+        if(!_rs){
+            _rs=true;
+            var event_string = cm.__model.createString() ///new gapi.drive.realtime.CollaborativeString();
+            event_string.setText(cm.getDoc().getValue());
+            event_string.addEventListener(gapi.drive.realtime.EventType.TEXT_INSERTED, on_add(cm, true));
+            event_string.addEventListener(gapi.drive.realtime.EventType.TEXT_DELETED, on_del(cm, true));
+            event_string.setText(truth_string.getText());
+            setTimeout(function(){_rs=false}, 5*1000)
+        } else {
+            console.log("cannot resync yet")
+        }
+
+    }
+
+    var _h = {}
+    
+    Editor.prototype.sync = function(){
+        //resync(_h.cm, _h.string);
+    }
+
     Editor.prototype.load = function() {
         /** load the file */
         var that = this;
@@ -87,6 +163,45 @@ function($,
                 that.generation = cm.changeGeneration();
                 that.events.trigger("file_loaded.Editor", model);
                 that._clean_state();
+                if(model.event_string){
+                    cm.__model = model
+                    var string = model.event_string;
+                    _h.cm = cm;
+                    _h.string = string;
+                    string.addEventListener(gapi.drive.realtime.EventType.TEXT_INSERTED, on_add(cm));
+                    string.addEventListener(gapi.drive.realtime.EventType.TEXT_DELETED, on_del(cm));
+
+                cm.on('beforeChange', function(cm, change){
+                    that.counter = that.counter -1; 
+                    if(that.counter < 0){
+                        that.counter = 5;
+                        console.log('resync...','again');
+                        that.sync();
+                    }
+                    window.cm = cm;
+                    if(cm.getDoc().getValue().length < 2000 && change.origin == '+input' ){
+                        var index = utils.to_absolute_cursor_pos(cm, change.from)
+
+                        // handle insertion of new lines. 
+                        // 
+                        var text = change.text[0];
+                        if(change.text.length == 2){
+                            text = change.text.join('\n');
+                        }
+                        string.insertString(index, text)
+                    } else if (change.origin == '+delete' && cm.getDoc().getValue().length> 0){
+                        var startIndex = utils.to_absolute_cursor_pos(cm, change.from)
+                        var endIndex = utils.to_absolute_cursor_pos(cm, change.to)
+                        string.removeRange(startIndex, endIndex);
+                    }else if (change.origin == '+remote_sync'){
+                        console.log('got remote sync event in cm')
+                    } else {
+                        console.warn('unknown changes', change.origin, change)
+                    }
+                    
+                })
+
+                }
             }).catch(
             function(error) {
                 that.events.trigger("file_load_failed.Editor", error);
