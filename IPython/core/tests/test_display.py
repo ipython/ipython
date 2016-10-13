@@ -2,6 +2,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 import json
+import tempfile
 import os
 import warnings
 
@@ -152,4 +153,12 @@ def test_json():
         nt.assert_equal(len(w), 1)
         nt.assert_equal(j._repr_json_(), lis)
     
-    
+def test_video_embedding():
+    """use a tempfile, with dummy-data, to ensure that video embedding doesn't crash"""
+    with tempfile.NamedTemporaryFile(suffix='.mp4') as f:
+        with open(f.name,'wb') as f:
+            f.write(b'abc')
+
+        v = display.Video(f.name, embed=True)
+        html = v._repr_html_()
+        nt.assert_in('src="data:video/mp4;base64,YWJj"',html)
