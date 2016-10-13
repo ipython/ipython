@@ -66,7 +66,7 @@ def test_image_filename_defaults():
 def _get_inline_config():
     from ipykernel.pylab.config import InlineBackend
     return InlineBackend.instance()
-    
+
 @dec.skip_without('matplotlib')
 def test_set_matplotlib_close():
     cfg = _get_inline_config()
@@ -135,24 +135,32 @@ def test_displayobject_repr():
 def test_json():
     d = {'a': 5}
     lis = [d]
+    md = {'expanded': False}
+    md2 = {'expanded': True}
     j = display.JSON(d)
-    nt.assert_equal(j._repr_json_(), d)
-    
+    j2 = display.JSON(d, expanded=True)
+    nt.assert_equal(j._repr_json_(), (d, md))
+    nt.assert_equal(j2._repr_json_(), (d, md2))
+
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
         j = display.JSON(json.dumps(d))
         nt.assert_equal(len(w), 1)
-        nt.assert_equal(j._repr_json_(), d)
-    
+        nt.assert_equal(j._repr_json_(), (d, md))
+        nt.assert_equal(j2._repr_json_(), (d, md2))
+
     j = display.JSON(lis)
-    nt.assert_equal(j._repr_json_(), lis)
-    
+    j2 = display.JSON(lis, expanded=True)
+    nt.assert_equal(j._repr_json_(), (lis, md))
+    nt.assert_equal(j2._repr_json_(), (lis, md2))
+
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
         j = display.JSON(json.dumps(lis))
         nt.assert_equal(len(w), 1)
-        nt.assert_equal(j._repr_json_(), lis)
-    
+        nt.assert_equal(j._repr_json_(), (lis, md))
+        nt.assert_equal(j2._repr_json_(), (lis, md2))
+
 def test_video_embedding():
     """use a tempfile, with dummy-data, to ensure that video embedding doesn't crash"""
     v = display.Video("http://ignored")
@@ -172,15 +180,15 @@ def test_video_embedding():
         assert not v.embed
         html = v._repr_html_()
         nt.assert_not_in('src="data:', html)
-        
+
         v = display.Video(f.name, embed=True)
         html = v._repr_html_()
         nt.assert_in('src="data:video/mp4;base64,YWJj"',html)
-        
+
         v = display.Video(f.name, embed=True, mimetype='video/other')
         html = v._repr_html_()
         nt.assert_in('src="data:video/other;base64,YWJj"',html)
-        
+
         v = display.Video(b'abc', embed=True, mimetype='video/mp4')
         html = v._repr_html_()
         nt.assert_in('src="data:video/mp4;base64,YWJj"',html)
@@ -188,4 +196,3 @@ def test_video_embedding():
         v = display.Video(u'YWJj', embed=True, mimetype='video/xyz')
         html = v._repr_html_()
         nt.assert_in('src="data:video/xyz;base64,YWJj"',html)
-
