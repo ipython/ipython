@@ -649,12 +649,12 @@ class TestAstTransform(unittest.TestCase):
             called.add(x)
         ip.push({'f':f})
         
-        with tt.AssertPrints("best of "):
+        with tt.AssertPrints("average of "):
             ip.run_line_magic("timeit", "-n1 f(1)")
         self.assertEqual(called, {-1})
         called.clear()
-        
-        with tt.AssertPrints("best of "):
+
+        with tt.AssertPrints("average of "):
             ip.run_cell_magic("timeit", "-n1 f(2)", "f(3)")
         self.assertEqual(called, {-2, -3})
     
@@ -721,13 +721,13 @@ class TestAstTransform2(unittest.TestCase):
         def f(x):
             called.add(x)
         ip.push({'f':f})
-        
-        with tt.AssertPrints("best of "):
+
+        with tt.AssertPrints("average of "):
             ip.run_line_magic("timeit", "-n1 f(1)")
         self.assertEqual(called, {(1,)})
         called.clear()
-        
-        with tt.AssertPrints("best of "):
+
+        with tt.AssertPrints("average of "):
             ip.run_cell_magic("timeit", "-n1 f(2)", "f(3)")
         self.assertEqual(called, {(2,), (3,)})
 

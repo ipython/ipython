@@ -15,6 +15,7 @@ import os
 import sys
 import time
 import timeit
+import math
 from pdb import Restart
 
 # cProfile was added in Python2.5
@@ -70,7 +71,6 @@ class TimeitResult(object):
     compile_time: (float) time of statement compilation (s)
 
     """
-
     def __init__(self, loops, repeat, best, worst, all_runs, compile_time, precision):
         self.loops = loops
         self.repeat = repeat
@@ -79,15 +79,27 @@ class TimeitResult(object):
         self.all_runs = all_runs
         self.compile_time = compile_time
         self._precision = precision
+        self.timings = [ dt / self.loops for dt in all_runs]
+
+    @property
+    def average(self):
+        return math.fsum(self.timings) / len(self.timings)
+
+    @property
+    def stdev(self):
+        mean = self.average
+        return (math.fsum([(x - mean) ** 2 for x in self.timings]) / len(self.timings)) ** 0.5
+
+    def __str__(self):
+        return (u"%s loop%s, average of %d: %s +- %s per loop (using standard deviation)"
+                   % (self.loops,"" if self.loops == 1 else "s", self.repeat,
+                      _format_time(self.average, self._precision),
+                      _format_time(self.stdev, self._precision)))
 
     def _repr_pretty_(self, p , cycle):
-         if self.loops == 1:  # No s at "loops" if only one loop
-             unic =  u"%d loop, best of %d: %s per loop" % (self.loops, self.repeat,
-                                            _format_time(self.best, self._precision))
-         else:
-             unic =  u"%d loops, best of %d: %s per loop" % (self.loops, self.repeat,
-                                            _format_time(self.best, self._precision))
-         p.text(u'<TimeitResult : '+unic+u'>')
+       unic = self.__str__()
+       p.text(u'<TimeitResult : '+unic+u'>')
+
 
 
 class TimeitTemplateFiller(ast.NodeTransformer):
@@ -950,20 +962,20 @@ python-profiler package from non-free.""")
         ::
 
           In [1]: %timeit pass
-          10000000 loops, best of 3: 53.3 ns per loop
+          100000000 loops, average of 7: 5.48 ns +- 0.354 ns per loop (using standard deviation)
 
           In [2]: u = None
 
           In [3]: %timeit u is None
-          10000000 loops, best of 3: 184 ns per loop
+          10000000 loops, average of 7: 22.7 ns +- 2.33 ns per loop (using standard deviation)
 
           In [4]: %timeit -r 4 u == None
-          1000000 loops, best of 4: 242 ns per loop
+          10000000 loops, average of 4: 27.5 ns +- 2.91 ns per loop (using standard deviation)
 
           In [5]: import time
 
           In [6]: %timeit -n1 time.sleep(2)
-          1 loop, best of 3: 2 s per loop
+          1 loop, average of 7: 2 s +- 4.71 µs per loop (using standard deviation)
 
 
         The times reported by %timeit will be slightly higher than those
@@ -981,7 +993,8 @@ python-profiler package from non-free.""")
         
         timefunc = timeit.default_timer
         number = int(getattr(opts, "n", 0))
-        repeat = int(getattr(opts, "r", timeit.default_repeat))
+        default_repeat = 7 if timeit.default_repeat < 7 else timeit.default_repeat
+        repeat = int(getattr(opts, "r", default_repeat))
         precision = int(getattr(opts, "p", 3))
         quiet = 'q' in opts
         return_result = 'o' in opts
@@ -1036,22 +1049,18 @@ python-profiler package from non-free.""")
         # This is used to check if there is a huge difference between the
         # best and worst timings.
         # Issue: https://github.com/ipython/ipython/issues/6471
-        worst_tuning = 0
         if number == 0:
             # determine number so that 0.2 <= total time < 2.0
-            number = 1
-            for _ in range(1, 10):
+            for index in range(0, 10):
+                number = 10 ** index
                 time_number = timer.timeit(number)
-                worst_tuning = max(worst_tuning, time_number / number)
                 if time_number >= 0.2:
                     break
-                number *= 10
+
         all_runs = timer.repeat(repeat, number)
         best = min(all_runs) / number
-
         worst = max(all_runs) / number
-        if worst_tuning:
-            worst = max(worst, worst_tuning)
+        timeit_result = TimeitResult(number, repeat, best, worst, all_runs, tc, precision)
 
         if not quiet :
             # Check best timing is greater than zero to avoid a
@@ -1063,16 +1072,13 @@ python-profiler package from non-free.""")
                 print("The slowest run took %0.2f times longer than the "
                       "fastest. This could mean that an intermediate result "
                       "is being cached." % (worst / best))
-            if number == 1:  # No s at "loops" if only one loop
-                print(u"%d loop, best of %d: %s per loop" % (number, repeat,
-                                                              _format_time(best, precision)))
-            else:
-                print(u"%d loops, best of %d: %s per loop" % (number, repeat,
-                                                              _format_time(best, precision)))
+           
+            print( timeit_result )
+
             if tc > tc_min:
                 print("Compiler time: %.2f s" % tc)
         if return_result:
-            return TimeitResult(number, repeat, best, worst, all_runs, tc, precision)
+            return timeit_result
 
     @skip_doctest
     @needs_local_scope
@@ -1326,8 +1332,7 @@ def parse_breakpoint(text, current_file):
     
 def _format_time(timespan, precision=3):
     """Formats the timespan in a human readable form"""
-    import math
-    
+
     if timespan >= 60.0:
         # we have more than a minute, format that in a human readable form
         # Idea from http://snipplr.com/view/5713/
