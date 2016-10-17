@@ -7,6 +7,7 @@
 import os
 from shutil import copyfile
 import sys
+from importlib import import_module
 
 from traitlets.config.configurable import Configurable
 from IPython.utils.path import ensure_dir_exists
@@ -80,7 +81,7 @@ class ExtensionManager(Configurable):
         with self.shell.builtin_trap:
             if module_str not in sys.modules:
                 with prepended_to_syspath(self.ipython_extension_dir):
-                    __import__(module_str)
+                    import_module(module_str)
             mod = sys.modules[module_str]
             if self._call_load_ipython_extension(mod):
                 self.loaded.add(module_str)

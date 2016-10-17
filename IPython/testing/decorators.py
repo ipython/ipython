@@ -36,6 +36,7 @@ import os
 import tempfile
 import unittest
 import warnings
+from importlib import import_module
 
 from decorator import decorator
 
@@ -268,7 +269,7 @@ def module_not_available(module):
     available, but delay the 'import numpy' to test execution time.
     """
     try:
-        mod = __import__(module)
+        mod = import_module(module)
         mod_not_avail = False
     except ImportError:
         mod_not_avail = True

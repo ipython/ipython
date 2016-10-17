@@ -25,6 +25,7 @@ import logging
 import os
 import re
 import sys
+from importlib import import_module
 
 from testpath import modified_env
 
@@ -646,7 +647,7 @@ class ExtensionDoctest(doctests.Doctest):
         modname = os.path.splitext(mod)[0]
         try:
             sys.path.append(bpath)
-            module = __import__(modname)
+            module = import_module(modname)
             tests = list(self.loadTestsFromModule(module))
         finally:
             sys.path.pop()
