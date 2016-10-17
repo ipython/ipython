@@ -57,16 +57,10 @@ so you don't have to depend on IPython.
 
 """
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+from IPython.core.getipython import get_ipython
 
 #-----------------------------------------------------------------------------
 # wx
@@ -84,6 +78,15 @@ def get_app_wx(*args, **kwargs):
 
 def is_event_loop_running_wx(app=None):
     """Is the wx event loop running."""
+    # New way: check attribute on shell instance
+    ip = get_ipython()
+    if ip is not None:
+        if ip.active_eventloop and ip.active_eventloop == 'wx':
+            return True
+        # Fall through to checking the application, because Wx has a native way
+        # to check if the event loop is running, unlike Qt.
+
+    # Old way: check Wx application
     if app is None:
         app = get_app_wx()
     if hasattr(app, '_in_event_loop'):
@@ -118,6 +121,12 @@ def get_app_qt4(*args, **kwargs):
 
 def is_event_loop_running_qt4(app=None):
     """Is the qt4 event loop running."""
+    # New way: check attribute on shell instance
+    ip = get_ipython()
+    if ip is not None:
+        return ip.active_eventloop and ip.active_eventloop.startswith('qt')
+
+    # Old way: check attribute on QApplication singleton
     if app is None:
         app = get_app_qt4([''])
     if hasattr(app, '_in_event_loop'):
