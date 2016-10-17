@@ -2,6 +2,13 @@
  5.x Series
 ============
 
+
+IPython 5.2
+===========
+
+* restore IPython's debugger to raise on quit. :ghpull:`10009`
+
+
 IPython 5.1
 ===========
 
