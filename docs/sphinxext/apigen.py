@@ -24,6 +24,8 @@ import ast
 import inspect
 import os
 import re
+from importlib import import_module
+
 
 class Obj(object):
     '''Namespace to hold arbitrary information.'''
@@ -147,7 +149,7 @@ class ApiDocWriter(object):
         '''
         # It's also possible to imagine caching the module parsing here
         self._package_name = package_name
-        self.root_module = __import__(package_name)
+        self.root_module = import_module(package_name)
         self.root_path = self.root_module.__path__[0]
         self.written_modules = None
 

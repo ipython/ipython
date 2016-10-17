@@ -112,6 +112,7 @@ import sys
 import traceback
 import types
 import weakref
+from importlib import import_module
 
 try:
     # Reload is not defined by default in Python3.
@@ -177,7 +178,7 @@ class ModuleReloader(object):
         """
         self.mark_module_reloadable(module_name)
 
-        __import__(module_name)
+        import_module(module_name)
         top_name = module_name.split('.')[0]
         top_module = sys.modules[top_name]
         return top_module, top_name

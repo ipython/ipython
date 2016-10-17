@@ -22,6 +22,7 @@ import inspect
 import os
 import re
 import sys
+from importlib import import_module
 
 try:
     # Python >= 3.3
@@ -155,12 +156,9 @@ def is_importable(module, attr, only_modules):
 
 def try_import(mod, only_modules=False):
     try:
-        m = __import__(mod)
+        m = import_module(mod)
     except:
         return []
-    mods = mod.split('.')
-    for module in mods[1:]:
-        m = getattr(m, module)
 
     m_is_init = hasattr(m, '__file__') and '__init__' in m.__file__
 

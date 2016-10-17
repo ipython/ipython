@@ -11,6 +11,7 @@ be accessed directly from the outside
 import sys
 import types
 from functools import partial
+from importlib import import_module
 
 from IPython.utils.version import check_version
 
@@ -113,7 +114,7 @@ def has_binding(api):
     import imp
     try:
         #importing top level PyQt4/PySide module is ok...
-        mod = __import__(module_name)
+        mod = import_module(module_name)
         #...importing submodules is not
         imp.find_module('QtCore', mod.__path__)
         imp.find_module('QtGui', mod.__path__)

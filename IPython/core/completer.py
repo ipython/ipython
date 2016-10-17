@@ -26,6 +26,7 @@ import sys
 import unicodedata
 import string
 import warnings
+from importlib import import_module
 
 from traitlets.config.configurable import Configurable
 from IPython.core.error import TryNext
@@ -481,7 +482,7 @@ def _safe_isinstance(obj, module, class_name):
     """Checks if obj is an instance of module.class_name if loaded
     """
     return (module in sys.modules and
-            isinstance(obj, getattr(__import__(module), class_name)))
+            isinstance(obj, getattr(import_module(module), class_name)))
 
 
 def back_unicode_name_matches(text):

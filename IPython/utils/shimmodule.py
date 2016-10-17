@@ -5,8 +5,10 @@
 
 import sys
 import types
+from importlib import import_module
 
 from .importstring import import_item
+
 
 class ShimWarning(Warning):
     """A warning to show when a module has moved, and a shim is in its place."""
@@ -69,15 +71,15 @@ class ShimModule(types.ModuleType):
     @property
     def __spec__(self):
         """Don't produce __spec__ until requested"""
-        return __import__(self._mirror).__spec__
+        return import_module(self._mirror).__spec__
     
     def __dir__(self):
-        return dir(__import__(self._mirror))
+        return dir(import_module(self._mirror))
     
     @property
     def __all__(self):
         """Ensure __all__ is always defined"""
-        mod = __import__(self._mirror)
+        mod = import_module(self._mirror)
         try:
             return mod.__all__
         except AttributeError:
