@@ -282,12 +282,6 @@ class Pdb(OldPdb, object):
         """Shorthand access to the color table scheme selector method."""
         self.color_scheme_table.set_active_scheme(scheme)
 
-    def trace_dispatch(self, frame, event, arg):
-        try:
-            return super(Pdb, self).trace_dispatch(frame, event, arg)
-        except bdb.BdbQuit:
-            pass
-
     def interaction(self, frame, traceback):
         try:
             OldPdb.interaction(self, frame, traceback)
