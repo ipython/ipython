@@ -2907,6 +2907,8 @@ class InteractiveShell(SingletonConfigurable):
     # Things related to GUI support and pylab
     #-------------------------------------------------------------------------
 
+    active_eventloop = None
+
     def enable_gui(self, gui=None):
         raise NotImplementedError('Implement enable_gui in a subclass')
     

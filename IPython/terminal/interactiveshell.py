@@ -28,7 +28,7 @@ from pygments.token import Token
 
 from .debugger import TerminalPdb, Pdb
 from .magics import TerminalMagics
-from .pt_inputhooks import get_inputhook_func
+from .pt_inputhooks import get_inputhook_name_and_func
 from .prompts import Prompts, ClassicPrompts, RichPromptDisplayHook
 from .ptutils import IPythonPTCompleter, IPythonPTLexer
 from .shortcuts import register_ipython_shortcuts
@@ -458,11 +458,13 @@ class TerminalInteractiveShell(InteractiveShell):
         if self._inputhook is not None:
             self._inputhook(context)
 
+    active_eventloop = None
     def enable_gui(self, gui=None):
         if gui:
-            self._inputhook = get_inputhook_func(gui)
+            self.active_eventloop, self._inputhook =\
+                get_inputhook_name_and_func(gui)
         else:
-            self._inputhook = None
+            self.active_eventloop = self._inputhook = None
 
     # Run !system commands directly, not through pipes, so terminal programs
     # work correctly.
