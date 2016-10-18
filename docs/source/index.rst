@@ -49,7 +49,7 @@ features:
 * Integrated access to the pdb debugger and the Python profiler.
 
 
-The Command line interface inherit all the above functionality and posses 
+The Command line interface inherits all the above functionality and posses 
  
 * real multi-line editing.
  
