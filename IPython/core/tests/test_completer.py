@@ -370,7 +370,7 @@ def test_default_arguments_from_docstring():
     c = ip.Completer
     kwd = c._default_arguments_from_docstring(
         'min(iterable[, key=func]) -> value')
-    nt.assert_equal(kwd, ['key'])
+    nt.assert_equal(kwd, ['iterable', 'key'])
     #with cython type etc
     kwd = c._default_arguments_from_docstring(
         'Minuit.migrad(self, int ncall=10000, resume=True, int nsplit=1)\n')
