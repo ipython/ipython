@@ -642,9 +642,7 @@ class IPCompleter(Completer):
 
         #regexp to parse docstring for function signature
         self.docstring_sig_re = re.compile(r'^[\w|\s.]+\(([^)]*)\).*')
-        self.docstring_kwd_re = re.compile(r'[\s|\[]*(\w+)(?:\s*=\s*.*)')
-        #use this if positional argument name is also needed
-        #= re.compile(r'[\s|\[]*(\w+)(?:\s*=?\s*.*)')
+        self.docstring_kwd_re = re.compile(r'[\s|\[]*(\w+)(?:\s*=?\s*.*)')
 
         # All active matcher routines for completion
         self.matchers = [
