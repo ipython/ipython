@@ -25,7 +25,6 @@ A reference to the original :func:`python:reload` is stored in this module as
 This code is almost entirely based on knee.py, which is a Python
 re-implementation of hierarchical module import.
 """
-from __future__ import print_function
 #*****************************************************************************
 #       Copyright (C) 2001 Nathaniel Gray <n8gray@caltech.edu>
 #

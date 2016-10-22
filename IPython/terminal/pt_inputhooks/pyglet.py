@@ -1,6 +1,5 @@
 """Enable pyglet to be used interacively with prompt_toolkit
 """
-from __future__ import absolute_import
 
 import os
 import sys

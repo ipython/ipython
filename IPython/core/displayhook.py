@@ -7,7 +7,6 @@ This defines a callable class that IPython uses for `sys.displayhook`.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from __future__ import print_function
 
 import sys
 import io as _io

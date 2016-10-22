@@ -170,7 +170,6 @@ The following is a very simple example of a valid demo file.
     ################### END EXAMPLE DEMO <ex_demo.py> ############################
 """
 
-from __future__ import unicode_literals
 
 #*****************************************************************************
 #     Copyright (C) 2005-2006 Fernando Perez. <Fernando.Perez@colorado.edu>
@@ -179,7 +178,6 @@ from __future__ import unicode_literals
 #  the file COPYING, distributed as part of this software.
 #
 #*****************************************************************************
-from __future__ import print_function
 
 import os
 import re

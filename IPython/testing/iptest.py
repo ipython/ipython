@@ -17,7 +17,6 @@ itself from the command line. There are two ways of running this script:
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from __future__ import print_function
 
 import glob
 from io import BytesIO

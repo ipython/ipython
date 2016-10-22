@@ -12,7 +12,6 @@
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from __future__ import print_function
 from tempfile import NamedTemporaryFile, mkdtemp
 from os.path import split, join as pjoin, dirname
 

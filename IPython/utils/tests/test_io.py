@@ -4,8 +4,6 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from __future__ import print_function
-from __future__ import absolute_import
 
 import io as stdlib_io
 import os.path

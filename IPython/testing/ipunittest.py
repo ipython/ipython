@@ -22,7 +22,6 @@ Authors
 - Fernando Perez <Fernando.Perez@berkeley.edu>
 """
 
-from __future__ import absolute_import
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2009-2011  The IPython Development Team

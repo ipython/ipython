@@ -9,7 +9,6 @@
 # 
 # The original mapping of latex symbols to unicode comes from the `latex_symbols.jl` files from Julia.
 
-from __future__ import print_function
 import os, sys
 
 if not sys.version_info[0] == 3:

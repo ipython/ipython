@@ -1,6 +1,5 @@
 """Tests for debugging machinery.
 """
-from __future__ import print_function
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.

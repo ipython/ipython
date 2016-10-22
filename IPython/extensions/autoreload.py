@@ -87,7 +87,6 @@ Some of the known remaining caveats are:
 
 - C extension modules cannot be reloaded, and so cannot be autoreloaded.
 """
-from __future__ import print_function
 
 skip_doctest = True
 

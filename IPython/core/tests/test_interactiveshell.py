@@ -143,7 +143,6 @@ class InteractiveShellTestCase(unittest.TestCase):
 
     def test_future_flags(self):
         """Check that future flags are used for parsing code (gh-777)"""
-        ip.run_cell('from __future__ import print_function')
         try:
             ip.run_cell('prfunc_return_val = print(1,2, sep=" ")')
             assert 'prfunc_return_val' in ip.user_ns
@@ -151,18 +150,6 @@ class InteractiveShellTestCase(unittest.TestCase):
             # Reset compiler flags so we don't mess up other tests.
             ip.compile.reset_compiler_flags()
 
-    def test_future_unicode(self):
-        """Check that unicode_literals is imported from __future__ (gh #786)"""
-        try:
-            ip.run_cell(u'byte_str = "a"')
-            assert isinstance(ip.user_ns['byte_str'], str) # string literals are byte strings by default
-            ip.run_cell('from __future__ import unicode_literals')
-            ip.run_cell(u'unicode_str = "a"')
-            assert isinstance(ip.user_ns['unicode_str'], unicode_type) # strings literals are now unicode
-        finally:
-            # Reset compiler flags so we don't mess up other tests.
-            ip.compile.reset_compiler_flags()
-    
     def test_can_pickle(self):
         "Can we pickle objects defined interactively (GH-29)"
         ip = get_ipython()

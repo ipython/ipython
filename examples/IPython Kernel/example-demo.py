@@ -8,7 +8,6 @@ resuming execution later.
 
 This is a unicode test, åäö
 """
-from __future__ import print_function
 
 print('Hello, welcome to an interactive IPython demo.')
 print('Executing this block should require confirmation before proceeding,')

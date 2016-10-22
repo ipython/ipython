@@ -24,7 +24,6 @@ from IPython.testing.decorators import skip_win32
 
 
 _sample_embed = b"""
-from __future__ import print_function
 import IPython
 
 a = 3
@@ -74,7 +73,6 @@ def test_nest_embed():
     child = pexpect.spawn(sys.executable, ['-m', 'IPython', '--colors=nocolor'],
                           env=env)
     child.expect(ipy_prompt)
-    child.sendline("from __future__ import print_function")
     child.expect(ipy_prompt)
     child.sendline("import IPython")
     child.expect(ipy_prompt)

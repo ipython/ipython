@@ -10,7 +10,6 @@ This file is meant to be used by process.py
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-from __future__ import print_function
 
 # stdlib
 import os, sys, threading

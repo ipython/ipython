@@ -2,7 +2,6 @@
 
 Needs to be run by nose (to make ipython session available).
 """
-from __future__ import absolute_import
 
 #-----------------------------------------------------------------------------
 # Imports

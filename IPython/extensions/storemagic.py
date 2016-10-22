@@ -9,7 +9,6 @@ To automatically restore stored variables at startup, add this to your
 
   c.StoreMagics.autorestore = True
 """
-from __future__ import print_function
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.

@@ -23,7 +23,6 @@ path to module and not an open file object as well.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from __future__ import print_function
 
 # Stdlib imports
 import imp

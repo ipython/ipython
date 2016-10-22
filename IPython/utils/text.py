@@ -7,7 +7,6 @@ Inheritance diagram:
 .. inheritance-diagram:: IPython.utils.text
    :parts: 3
 """
-from __future__ import absolute_import
 
 import os
 import re

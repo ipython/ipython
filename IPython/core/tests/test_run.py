@@ -11,7 +11,6 @@ and we do so in a common test_magic file.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from __future__ import absolute_import
 
 
 import functools

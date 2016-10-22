@@ -119,7 +119,6 @@ Authors
 - VáclavŠmilauer <eudoxos-AT-arcig.cz>: Prompt generalizations.
 - Skipper Seabold, refactoring, cleanups, pure python addition
 """
-from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 # Imports

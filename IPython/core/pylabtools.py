@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Pylab (matplotlib) support utilities."""
-from __future__ import print_function
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.

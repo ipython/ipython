@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tests for the inputsplitter module."""
 
-from __future__ import print_function
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.

@@ -1,6 +1,5 @@
 """Tests for the decorators we've created for IPython.
 """
-from __future__ import print_function
 
 # Module imports
 # Std lib

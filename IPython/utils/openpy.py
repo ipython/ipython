@@ -4,7 +4,6 @@ as per PEP 263.
 
 Much of the code is taken from the tokenize module in Python 3.2.
 """
-from __future__ import absolute_import
 
 import io
 from io import TextIOWrapper, BytesIO

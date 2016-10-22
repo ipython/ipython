@@ -10,8 +10,6 @@ reference the name under which an object is being read.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from __future__ import print_function
-
 __all__ = ['Inspector','InspectColors']
 
 # stdlib modules

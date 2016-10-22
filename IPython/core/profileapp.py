@@ -9,7 +9,6 @@ Authors:
 * Min RK
 
 """
-from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008  The IPython Development Team

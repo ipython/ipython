@@ -2,7 +2,6 @@
 """Tests for completerlib.
 
 """
-from __future__ import absolute_import
 
 #-----------------------------------------------------------------------------
 # Imports

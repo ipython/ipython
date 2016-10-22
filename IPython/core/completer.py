@@ -13,7 +13,6 @@ upstream and were accepted as of Python 2.3,
 # Some of this code originated from rlcompleter in the Python standard library
 # Copyright (C) 2001 Python Software Foundation, www.python.org
 
-from __future__ import print_function
 
 import __main__
 import glob

@@ -26,7 +26,6 @@ of that repo.
 
 """
 
-from __future__ import print_function
 
 import os
 import re

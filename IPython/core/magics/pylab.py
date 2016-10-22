@@ -1,6 +1,5 @@
 """Implementation of magic functions for matplotlib/pylab support.
 """
-from __future__ import print_function
 #-----------------------------------------------------------------------------
 #  Copyright (c) 2012 The IPython Development Team.
 #

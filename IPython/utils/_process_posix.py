@@ -13,7 +13,6 @@ This file is only meant to be imported by process.py, not by end-users.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from __future__ import print_function
 
 # Stdlib
 import errno

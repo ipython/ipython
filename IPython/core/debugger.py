@@ -24,7 +24,6 @@ http://www.python.org/2.2.3/license.html"""
 #
 #
 #*****************************************************************************
-from __future__ import print_function
 
 import bdb
 import functools

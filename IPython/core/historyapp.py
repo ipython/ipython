@@ -4,7 +4,6 @@ An application for managing IPython history.
 
 To be invoked as the `ipython history` subcommand.
 """
-from __future__ import print_function
 
 import os
 import sqlite3
