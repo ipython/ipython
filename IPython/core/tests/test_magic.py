@@ -377,18 +377,6 @@ def test_time3():
                     "run = 0\n"
                     "run += 1")
 
-@dec.skipif(sys.version_info[0] >= 3, "no differences with __future__ in py3")
-def test_time_futures():
-    "Test %time with __future__ environments"
-    ip = get_ipython()
-    ip.autocall = 0
-    ip.run_cell("from __future__ import division")
-    with tt.AssertPrints('0.25'):
-        ip.run_line_magic('time', 'print(1/4)')
-    ip.compile.reset_compiler_flags()
-    with tt.AssertNotPrints('0.25'):
-        ip.run_line_magic('time', 'print(1/4)')
-
 def test_doctest_mode():
     "Toggle doctest_mode twice, it should be a no-op and run without error"
     _ip.magic('doctest_mode')
@@ -572,17 +560,6 @@ def test_timeit_return_quiet():
     with tt.AssertNotPrints("loops"):
         res = _ip.run_line_magic('timeit', '-n1 -r1 -q -o 1')
     assert (res is not None)
-
-@dec.skipif(sys.version_info[0] >= 3, "no differences with __future__ in py3")
-def test_timeit_futures():
-    "Test %timeit with __future__ environments"
-    ip = get_ipython()
-    ip.run_cell("from __future__ import division")
-    with tt.AssertPrints('0.25'):
-        ip.run_line_magic('timeit', '-n1 -r1 print(1/4)')
-    ip.compile.reset_compiler_flags()
-    with tt.AssertNotPrints('0.25'):
-        ip.run_line_magic('timeit', '-n1 -r1 print(1/4)')
 
 @dec.skipif(execution.profile is None)
 def test_prun_special_syntax():

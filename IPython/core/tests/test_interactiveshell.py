@@ -338,19 +338,6 @@ class InteractiveShellTestCase(unittest.TestCase):
         finally:
             trap.hook = save_hook
 
-    @skipif(sys.version_info[0] >= 3, "softspace removed in py3")
-    def test_print_softspace(self):
-        """Verify that softspace is handled correctly when executing multiple
-        statements.
-
-        In [1]: print 1; print 2
-        1
-        2
-
-        In [2]: print 1,; print 2
-        1 2
-        """
-        
     def test_ofind_line_magic(self):
         from IPython.core.magic import register_line_magic
         
@@ -466,22 +453,6 @@ class InteractiveShellTestCase(unittest.TestCase):
             # Reset the custom exception hook
             ip.set_custom_exc((), None)
     
-    @skipif(sys.version_info[0] >= 3, "no differences with __future__ in py3")
-    def test_future_environment(self):
-        "Can we run code with & without the shell's __future__ imports?"
-        ip.run_cell("from __future__ import division")
-        ip.run_cell("a = 1/2", shell_futures=True)
-        self.assertEqual(ip.user_ns['a'], 0.5)
-        ip.run_cell("b = 1/2", shell_futures=False)
-        self.assertEqual(ip.user_ns['b'], 0)
-        
-        ip.compile.reset_compiler_flags()
-        # This shouldn't leak to the shell's compiler
-        ip.run_cell("from __future__ import division \nc=1/2", shell_futures=False)
-        self.assertEqual(ip.user_ns['c'], 0.5)
-        ip.run_cell("d = 1/2", shell_futures=True)
-        self.assertEqual(ip.user_ns['d'], 0)
-
     def test_mktempfile(self):
         filename = ip.mktempfile()
         # Check that we can open the file again on Windows
@@ -509,10 +480,7 @@ class InteractiveShellTestCase(unittest.TestCase):
             raise DerivedInterrupt("foo")
         except KeyboardInterrupt:
             msg = ip.get_exception_only()
-        if sys.version_info[0] <= 2:
-            self.assertEqual(msg, 'DerivedInterrupt: foo\n')
-        else:
-            self.assertEqual(msg, 'IPython.core.tests.test_interactiveshell.DerivedInterrupt: foo\n')
+        self.assertEqual(msg, 'IPython.core.tests.test_interactiveshell.DerivedInterrupt: foo\n')
 
     def test_inspect_text(self):
         ip.run_cell('a = 5')

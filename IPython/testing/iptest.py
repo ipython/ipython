@@ -45,8 +45,7 @@ pjoin = path.join
 
 # Enable printing all warnings raise by IPython's modules
 warnings.filterwarnings('ignore', message='.*Matplotlib is building the font cache.*', category=UserWarning, module='.*')
-if sys.version_info > (3,0):
-    warnings.filterwarnings('error', message='.*', category=ResourceWarning, module='.*')
+warnings.filterwarnings('error', message='.*', category=ResourceWarning, module='.*')
 warnings.filterwarnings('error', message=".*{'config': True}.*", category=DeprecationWarning, module='IPy.*')
 warnings.filterwarnings('default', message='.*', category=Warning, module='IPy.*')
 

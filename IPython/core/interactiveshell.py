@@ -187,10 +187,7 @@ class ExecutionResult(object):
             raise self.error_in_exec
 
     def __repr__(self):
-        if sys.version_info > (3,):
-            name = self.__class__.__qualname__
-        else:
-            name = self.__class__.__name__
+        name = self.__class__.__qualname__
         return '<%s object at %x, execution_count=%s error_before_exec=%s error_in_exec=%s result=%s>' %\
                 (name, id(self), self.execution_count, self.error_before_exec, self.error_in_exec, repr(self.result))
 

@@ -41,8 +41,6 @@ See IPython `README.rst` file for more information:
     print(error, file=sys.stderr)
     sys.exit(1)
 
-PY3 = (sys.version_info[0] >= 3)
-
 # At least we're on the python version we need, move on.
 
 #-------------------------------------------------------------------------------

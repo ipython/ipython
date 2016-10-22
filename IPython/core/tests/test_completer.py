@@ -155,7 +155,6 @@ def test_latex_completions():
 
 
 
-@dec.onlyif(sys.version_info[0] >= 3, 'This test only apply on python3')
 def test_back_latex_completion():
     ip = get_ipython()
 
@@ -164,7 +163,6 @@ def test_back_latex_completion():
     nt.assert_equal(len(matches), 1)
     nt.assert_equal(matches[0], '\\beta')
 
-@dec.onlyif(sys.version_info[0] >= 3, 'This test only apply on python3')
 def test_back_unicode_completion():
     ip = get_ipython()
     
@@ -173,7 +171,6 @@ def test_back_unicode_completion():
     nt.assert_equal(matches[0], '\\ROMAN NUMERAL FIVE')
 
 
-@dec.onlyif(sys.version_info[0] >= 3, 'This test only apply on python3')
 def test_forward_unicode_completion():
     ip = get_ipython()
     
@@ -181,7 +178,6 @@ def test_forward_unicode_completion():
     nt.assert_equal(len(matches), 1)
     nt.assert_equal(matches[0], 'Ⅴ')
 
-@dec.onlyif(sys.version_info[0] >= 3, 'This test only apply on python3')
 @dec.knownfailureif(sys.platform == 'win32', 'Fails if there is a C:\\j... path')
 def test_no_ascii_back_completion():
     ip = get_ipython()
@@ -588,7 +584,6 @@ def test_dict_key_completion_contexts():
 
 
 
-@dec.onlyif(sys.version_info[0] >= 3, 'This test only applies in Py>=3')
 def test_dict_key_completion_bytes():
     """Test handling of bytes in dict key completion"""
     ip = get_ipython()
@@ -618,7 +613,6 @@ def test_dict_key_completion_bytes():
         nt.assert_not_in("abd", matches)
 
 
-@dec.onlyif(sys.version_info[0] < 3, 'This test only applies in Py<3')
 def test_dict_key_completion_unicode_py2():
     """Test handling of unicode in dict key completion"""
     ip = get_ipython()
@@ -679,7 +673,6 @@ def test_dict_key_completion_unicode_py2():
         nt.assert_in(u"d[u'a\u05d0b']", matches)
 
 
-@dec.onlyif(sys.version_info[0] >= 3, 'This test only applies in Py>=3')
 def test_dict_key_completion_unicode_py3():
     """Test handling of unicode in dict key completion"""
     ip = get_ipython()
