@@ -613,66 +613,6 @@ def test_dict_key_completion_bytes():
         nt.assert_not_in("abd", matches)
 
 
-def test_dict_key_completion_unicode_py2():
-    """Test handling of unicode in dict key completion"""
-    ip = get_ipython()
-    complete = ip.Completer.complete
-
-    ip.user_ns['d'] = {u'abc': None,
-                       u'a\u05d0b': None}
-
-    _, matches = complete(line_buffer="d[")
-    nt.assert_in("u'abc'", matches)
-    nt.assert_in("u'a\\u05d0b'", matches)
-
-    _, matches = complete(line_buffer="d['a")
-    nt.assert_in("abc", matches)
-    nt.assert_not_in("a\\u05d0b", matches)
-
-    _, matches = complete(line_buffer="d[u'a")
-    nt.assert_in("abc", matches)
-    nt.assert_in("a\\u05d0b", matches)
-
-    _, matches = complete(line_buffer="d[U'a")
-    nt.assert_in("abc", matches)
-    nt.assert_in("a\\u05d0b", matches)
-
-    # query using escape
-    if sys.platform != 'win32':
-        # Known failure on Windows
-        _, matches = complete(line_buffer=u"d[u'a\\u05d0")
-        nt.assert_in("u05d0b", matches)  # tokenized after \\
-
-    # query using character
-    _, matches = complete(line_buffer=u"d[u'a\u05d0")
-    nt.assert_in(u"a\u05d0b", matches)
-    
-    with greedy_completion():
-        _, matches = complete(line_buffer="d[")
-        nt.assert_in("d[u'abc']", matches)
-        nt.assert_in("d[u'a\\u05d0b']", matches)
-
-        _, matches = complete(line_buffer="d['a")
-        nt.assert_in("d['abc']", matches)
-        nt.assert_not_in("d[u'a\\u05d0b']", matches)
-
-        _, matches = complete(line_buffer="d[u'a")
-        nt.assert_in("d[u'abc']", matches)
-        nt.assert_in("d[u'a\\u05d0b']", matches)
-
-        _, matches = complete(line_buffer="d[U'a")
-        nt.assert_in("d[U'abc']", matches)
-        nt.assert_in("d[U'a\\u05d0b']", matches)
-
-        # query using escape
-        _, matches = complete(line_buffer=u"d[u'a\\u05d0")
-        nt.assert_in("d[u'a\\u05d0b']", matches)  # tokenized after \\
-
-        # query using character
-        _, matches = complete(line_buffer=u"d[u'a\u05d0")
-        nt.assert_in(u"d[u'a\u05d0b']", matches)
-
-
 def test_dict_key_completion_unicode_py3():
     """Test handling of unicode in dict key completion"""
     ip = get_ipython()
