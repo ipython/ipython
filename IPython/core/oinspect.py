@@ -31,6 +31,7 @@ except ImportError:
 # IPython's own
 from IPython.core import page
 from IPython.lib.pretty import pretty
+from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import PyColorize
 from IPython.utils import openpy
 from IPython.utils import py3compat
@@ -434,6 +435,66 @@ class Inspector(Colorable):
             self.noinfo('definition header',oname)
         else:
             print(header,self.format(output), end=' ')
+
+    # In Python 3, all classes are new-style, so they all have __init__.
+    @skip_doctest
+    def pdoc(self, obj, oname='', formatter=None):
+        """Print the docstring for any object.
+
+        Optional:
+        -formatter: a function to run the docstring through for specially
+        formatted docstrings.
+
+        Examples
+        --------
+
+        In [1]: class NoInit:
+           ...:     pass
+
+        In [2]: class NoDoc:
+           ...:     def __init__(self):
+           ...:         pass
+
+        In [3]: %pdoc NoDoc
+        No documentation found for NoDoc
+
+        In [4]: %pdoc NoInit
+        No documentation found for NoInit
+
+        In [5]: obj = NoInit()
+
+        In [6]: %pdoc obj
+        No documentation found for obj
+
+        In [5]: obj2 = NoDoc()
+
+        In [6]: %pdoc obj2
+        No documentation found for obj2
+        """
+
+        head = self.__head  # For convenience
+        lines = []
+        ds = getdoc(obj)
+        if formatter:
+            ds = formatter(ds).get('plain/text', ds)
+        if ds:
+            lines.append(head("Class docstring:"))
+            lines.append(indent(ds))
+        if inspect.isclass(obj) and hasattr(obj, '__init__'):
+            init_ds = getdoc(obj.__init__)
+            if init_ds is not None:
+                lines.append(head("Init docstring:"))
+                lines.append(indent(init_ds))
+        elif hasattr(obj,'__call__'):
+            call_ds = getdoc(obj.__call__)
+            if call_ds:
+                lines.append(head("Call docstring:"))
+                lines.append(indent(call_ds))
+
+        if not lines:
+            self.noinfo('documentation',oname)
+        else:
+            page.page('\n'.join(lines))
 
     def psource(self, obj, oname=''):
         """Print the source code for an object."""
