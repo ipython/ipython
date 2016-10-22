@@ -17,12 +17,10 @@
 
 import sys, os
 
+# http://read-the-docs.readthedocs.io/en/latest/faq.html
 ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
 
 if ON_RTD:
-    # Mock the presence of matplotlib, which we don't have on RTD
-    # see
-    # http://read-the-docs.readthedocs.io/en/latest/faq.html
     tags.add('rtd')
 
     # RTD doesn't use the Makefile, so re-run autogen_{things}.py here.
@@ -68,9 +66,6 @@ extensions = [
 
 if ON_RTD:
     # Remove extensions not currently supported on RTD
-    extensions.remove('matplotlib.sphinxext.only_directives')
-    extensions.remove('matplotlib.sphinxext.mathmpl')
-    extensions.remove('matplotlib.sphinxext.plot_directive')
     extensions.remove('IPython.sphinxext.ipython_directive')
     extensions.remove('IPython.sphinxext.ipython_console_highlighting')
 
