@@ -39,7 +39,7 @@ ip = get_ipython()
 # defined, if any code is inserted above, the following line will need to be
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
-THIS_LINE_NUMBER = 43  # Put here the actual number of this line
+THIS_LINE_NUMBER = 42  # Put here the actual number of this line
 
 from unittest import TestCase
 
