@@ -4,7 +4,7 @@
 IPython Documentation
 =====================
 
-.. htmlonly::
+.. only:: html
 
    :Release: |release|
    :Date: |today|
@@ -104,7 +104,7 @@ repository <http://github.com/ipython/ipython>`_.
      Formerly ``IPython.parallel``.
 
 
-.. htmlonly::
+.. only:: html
    * :ref:`genindex`
    * :ref:`modindex`
    * :ref:`search`
