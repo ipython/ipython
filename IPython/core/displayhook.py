@@ -45,7 +45,7 @@ class DisplayHook(Configurable):
             self.do_full_cache = 0
             cache_size = 0
             warn('caching was disabled (min value for cache size is %s).' %
-                 cache_size_min,level=3)
+                 cache_size_min,stacklevel=3)
         else:
             self.do_full_cache = 1
 
