@@ -20,7 +20,7 @@ except ImportError:
     # Python 2 backport
     from pathlib2 import Path
 
-from IPython.testing.skipdoctest import skip_doctest_py3, skip_doctest
+from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
 
 # datetime.strftime date format for ipython
@@ -517,7 +517,7 @@ class EvalFormatter(Formatter):
 # inside [], so EvalFormatter can handle slicing. Once we only support 3.4 and
 # above, it should be possible to remove FullEvalFormatter.
 
-@skip_doctest_py3
+@skip_doctest
 class FullEvalFormatter(Formatter):
     """A String Formatter that allows evaluation of simple expressions.
     
@@ -574,7 +574,7 @@ class FullEvalFormatter(Formatter):
         return u''.join(py3compat.cast_unicode(s) for s in result)
 
 
-@skip_doctest_py3
+@skip_doctest
 class DollarFormatter(FullEvalFormatter):
     """Formatter allowing Itpl style $foo replacement, for names and attribute
     access only. Standard {foo} replacement also works, and allows full
