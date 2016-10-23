@@ -12,6 +12,7 @@ import unittest
 
 from IPython.core.inputtransformer import InputTransformer
 from IPython.testing import tools as tt
+from IPython.utils import tokenize2
 
 # Decorator for interaction loop tests -----------------------------------------
 
@@ -99,6 +100,25 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip = get_ipython()
         formatter = ip.display_formatter
         assert formatter.active_types == ['text/plain']
+
+    def test_triple_quited_strings_with_backslash_issue9841(self):
+        def get_line(data=['"""\nabc\ndef\\\n"""\n']):
+            if not data:
+                raise tokenize2.TokenError
+            return data.pop()
+
+        tokens = []
+        try:
+            for intok in tokenize2.generate_tokens(get_line):
+                tokens.append(intok)
+            else:
+                assert False
+
+        except tokenize2.TokenError:
+            assert len(tokens) == 2
+            assert tokens[0][0] == tokenize2.STRING
+            assert tokens[0][1] == '"""\nabc\ndef\\\n"""'
+            assert tokens[1][0] == tokenize2.NEWLINE
 
 
 class SyntaxErrorTransformer(InputTransformer):

@@ -80,9 +80,9 @@ Single = r"[^'\\]*(?:\\.[^'\\]*)*'"
 # Tail end of " string.
 Double = r'[^"\\]*(?:\\.[^"\\]*)*"'
 # Tail end of ''' string.
-Single3 = r"[^'\\]*(?:(?:\\.|'(?!''))[^'\\]*)*'''"
+Single3 = r"[^'\\]*(?:(?:\\.|\\\n|'(?!''))[^'\\]*)*'''"
 # Tail end of """ string.
-Double3 = r'[^"\\]*(?:(?:\\.|"(?!""))[^"\\]*)*"""'
+Double3 = r'[^"\\]*(?:(?:\\.|\\\n|"(?!""))[^"\\]*)*"""'
 Triple = group("[uUbB]?[rR]?'''", '[uUbB]?[rR]?"""')
 # Single-line ' or " string.
 String = group(r"[uUbB]?[rR]?'[^\n'\\]*(?:\\.[^\n'\\]*)*'",
