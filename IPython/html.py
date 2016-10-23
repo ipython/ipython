@@ -9,7 +9,7 @@ from warnings import warn
 
 from IPython.utils.shimmodule import ShimModule, ShimWarning
 
-warn("The `IPython.html` package has been deprecated. "
+warn("The `IPython.html` module has been deprecated. "
      "You should import from `notebook` instead. "
      "`IPython.html.widgets` has moved to `ipywidgets`.", ShimWarning)
 

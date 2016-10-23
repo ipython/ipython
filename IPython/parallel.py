@@ -9,7 +9,7 @@ from warnings import warn
 
 from IPython.utils.shimmodule import ShimModule, ShimWarning
 
-warn("The `IPython.parallel` package has been deprecated. "
+warn("The `IPython.parallel` module has been deprecated. "
      "You should import from ipyparallel instead.", ShimWarning)
 
 # Unconditionally insert the shim into sys.modules so that further import calls

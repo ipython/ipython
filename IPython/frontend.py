@@ -17,7 +17,7 @@ from warnings import warn
 
 from IPython.utils.shimmodule import ShimModule, ShimWarning
 
-warn("The top-level `frontend` package has been deprecated. "
+warn("The top-level `frontend` module has been deprecated. "
      "All its subpackages have been moved to the top `IPython` level.", ShimWarning)
 
 # Unconditionally insert the shim into sys.modules so that further import calls
