@@ -142,7 +142,7 @@ class InputSplitterTestCase(unittest.TestCase):
         self.isp._store('1')
         self.isp._store('2')
         self.assertEqual(self.isp.source, '1\n2\n')
-        self.assertTrue(len(self.isp._buffer)>0)
+        self.assertEqual(len(self.isp._buffer)>0, True)
         self.assertEqual(self.isp.source_reset(), '1\n2\n')
         self.assertEqual(self.isp._buffer, [])
         self.assertEqual(self.isp.source, '')
@@ -244,39 +244,39 @@ class InputSplitterTestCase(unittest.TestCase):
 
     def test_push(self):
         isp = self.isp
-        self.assertTrue(isp.push('x=1'))
+        self.assertEqual(isp.push('x=1'), True)
 
     def test_push2(self):
         isp = self.isp
-        self.assertFalse(isp.push('if 1:'))
+        self.assertEqual(isp.push('if 1:'), False)
         for line in ['  x=1', '# a comment', '  y=2']:
             print(line)
-            self.assertTrue(isp.push(line))
+            self.assertEqual(isp.push(line), True)
 
     def test_push3(self):
         isp = self.isp
         isp.push('if True:')
         isp.push('  a = 1')
-        self.assertFalse(isp.push('b = [1,'))
+        self.assertEqual(isp.push('b = [1,'), False)
 
     def test_push_accepts_more(self):
         isp = self.isp
         isp.push('x=1')
-        self.assertFalse(isp.push_accepts_more())
+        self.assertEqual(isp.push_accepts_more(), False)
 
     def test_push_accepts_more2(self):
         isp = self.isp
         isp.push('if 1:')
-        self.assertTrue(isp.push_accepts_more())
+        self.assertEqual(isp.push_accepts_more(), True)
         isp.push('  x=1')
-        self.assertTrue(isp.push_accepts_more())
+        self.assertEqual(isp.push_accepts_more(), True)
         isp.push('')
-        self.assertFalse(isp.push_accepts_more())
+        self.assertEqual(isp.push_accepts_more(), False)
 
     def test_push_accepts_more3(self):
         isp = self.isp
         isp.push("x = (2+\n3)")
-        self.assertFalse(isp.push_accepts_more())
+        self.assertEqual(isp.push_accepts_more(), False)
 
     def test_push_accepts_more4(self):
         isp = self.isp
@@ -290,11 +290,11 @@ class InputSplitterTestCase(unittest.TestCase):
         isp.push("if 1:")
         isp.push("    x = (2+")
         isp.push("    3)")
-        self.assertTrue(isp.push_accepts_more())
+        self.assertEqual(isp.push_accepts_more(), True)
         isp.push("    y = 3")
-        self.assertTrue(isp.push_accepts_more())
+        self.assertEqual(isp.push_accepts_more(), True)
         isp.push('')
-        self.assertFalse(isp.push_accepts_more())
+        self.assertEqual(isp.push_accepts_more(), False)
 
     def test_push_accepts_more5(self):
         isp = self.isp
@@ -304,14 +304,14 @@ class InputSplitterTestCase(unittest.TestCase):
         isp.push('    raise')
         # We want to be able to add an else: block at this point, so it should
         # wait for a blank line.
-        self.assertTrue(isp.push_accepts_more())
+        self.assertEqual(isp.push_accepts_more(), True)
 
     def test_continuation(self):
         isp = self.isp
         isp.push("import os, \\")
-        self.assertTrue(isp.push_accepts_more())
+        self.assertEqual(isp.push_accepts_more(), True)
         isp.push("sys")
-        self.assertFalse(isp.push_accepts_more())
+        self.assertEqual(isp.push_accepts_more(), False)
 
     def test_syntax_error(self):
         isp = self.isp
@@ -319,7 +319,7 @@ class InputSplitterTestCase(unittest.TestCase):
         # Python can be sent to the kernel for evaluation with possible ipython
         # special-syntax conversion.
         isp.push('run foo')
-        self.assertFalse(isp.push_accepts_more())
+        self.assertEqual(isp.push_accepts_more(), False)
 
     def test_unicode(self):
         self.isp.push(u"Pérez")
@@ -331,16 +331,16 @@ class InputSplitterTestCase(unittest.TestCase):
         isp = self.isp
         # A blank line after a line continuation should not accept more
         isp.push("1 \\\n\n")
-        self.assertFalse(isp.push_accepts_more())
+        self.assertEqual(isp.push_accepts_more(), False)
         # Whitespace after a \ is a SyntaxError.  The only way to test that
         # here is to test that push doesn't accept more (as with
         # test_syntax_error() above).
         isp.push(r"1 \ ")
-        self.assertFalse(isp.push_accepts_more())
+        self.assertEqual(isp.push_accepts_more(), False)
         # Even if the line is continuable (c.f. the regular Python
         # interpreter)
         isp.push(r"(1 \ ")
-        self.assertFalse(isp.push_accepts_more())
+        self.assertEqual(isp.push_accepts_more(), False)
 
     def test_check_complete(self):
         isp = self.isp
