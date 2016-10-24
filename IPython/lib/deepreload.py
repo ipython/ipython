@@ -328,7 +328,7 @@ except AttributeError:
 
 # Replacement for reload()
 def reload(module, exclude=('sys', 'os.path', builtin_mod_name, '__main__',
-                            'numpy._globals')):
+                            'numpy', 'numpy._globals')):
     """Recursively reload all modules used in the given module.  Optionally
     takes a list of modules to exclude from reloading.  The default exclude
     list contains sys, __main__, and __builtin__, to prevent, e.g., resetting
