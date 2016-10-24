@@ -17,12 +17,10 @@
 
 import sys, os
 
+# http://read-the-docs.readthedocs.io/en/latest/faq.html
 ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
 
 if ON_RTD:
-    # Mock the presence of matplotlib, which we don't have on RTD
-    # see
-    # http://read-the-docs.readthedocs.io/en/latest/faq.html
     tags.add('rtd')
 
     # RTD doesn't use the Makefile, so re-run autogen_{things}.py here.
@@ -54,9 +52,6 @@ exec(compile(open('../../IPython/core/release.py').read(), '../../IPython/core/r
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
-    'matplotlib.sphinxext.mathmpl',
-    'matplotlib.sphinxext.only_directives',
-    'matplotlib.sphinxext.plot_directive',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.doctest',
@@ -71,9 +66,6 @@ extensions = [
 
 if ON_RTD:
     # Remove extensions not currently supported on RTD
-    extensions.remove('matplotlib.sphinxext.only_directives')
-    extensions.remove('matplotlib.sphinxext.mathmpl')
-    extensions.remove('matplotlib.sphinxext.plot_directive')
     extensions.remove('IPython.sphinxext.ipython_directive')
     extensions.remove('IPython.sphinxext.ipython_console_highlighting')
 
