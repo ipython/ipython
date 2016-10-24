@@ -4,7 +4,7 @@
   The IPython API
 ###################
 
-.. htmlonly::
+.. only:: html
 
    :Release: |version|
    :Date: |today|
