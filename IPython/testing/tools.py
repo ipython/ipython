@@ -7,16 +7,8 @@ Authors
 
 from __future__ import absolute_import
 
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2009 The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import os
 import re
@@ -26,6 +18,7 @@ import tempfile
 from contextlib import contextmanager
 from io import StringIO
 from subprocess import Popen, PIPE
+from unittest.mock import patch
 
 try:
     # These tools are used by parts of the runtime, so we make the nose
@@ -46,9 +39,6 @@ from IPython.utils.encoding import DEFAULT_ENCODING
 from . import decorators as dec
 from . import skipdoctest
 
-#-----------------------------------------------------------------------------
-# Functions and classes
-#-----------------------------------------------------------------------------
 
 # The docstring for full_path doctests differently on win32 (different path
 # separator) so just skip the doctest there.  The example remains informative.
@@ -444,6 +434,25 @@ def make_tempfile(name):
     finally:
         os.unlink(name)
 
+def fake_input(inputs):
+    """Temporarily replace the input() function to return the given values
+
+    Use as a context manager:
+
+    with fake_input(['result1', 'result2']):
+        ...
+
+    Values are returned in order. If input() is called again after the last value
+    was used, EOFError is raised.
+    """
+    it = iter(inputs)
+    def mock_input(prompt=''):
+        try:
+            return next(it)
+        except StopIteration:
+            raise EOFError('No more inputs given')
+
+    return patch('builtins.input', mock_input)
 
 def help_output_test(subcommand=''):
     """test that `ipython [subcommand] -h` works"""
