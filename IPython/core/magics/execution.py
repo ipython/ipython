@@ -624,8 +624,11 @@ python-profiler package from non-free.""")
 
         if filename.lower().endswith(('.ipy', '.ipynb')):
             with preserve_keys(self.shell.user_ns, '__file__'):
+                save_argv = sys.argv # save it for later restoring
+                sys.argv = arg_lst
                 self.shell.user_ns['__file__'] = filename
                 self.shell.safe_execfile_ipy(filename)
+                sys.argv = save_argv
             return
 
         # Control the response to exit() calls made by the script being run
