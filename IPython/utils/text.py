@@ -639,7 +639,7 @@ def _find_optimal(rlist, row_first=False, separator_size=2, displaywidth=80):
         if sumlength + separator_size * (ncols - 1) <= displaywidth:
             break
     return {'num_columns': ncols,
-            'optimal_separator_width': (displaywidth - sumlength) / (ncols - 1) if (ncols - 1) else 0,
+            'optimal_separator_width': (displaywidth - sumlength) // (ncols - 1) if (ncols - 1) else 0,
             'max_rows': max_rows,
             'column_widths': col_widths
             }
@@ -698,17 +698,12 @@ def compute_item_matrix(items, row_first=False, empty=None, *args, **kwargs) :
     ::
 
         In [1]: l = ['aaa','b','cc','d','eeeee','f','g','h','i','j','k','l']
-           ...: compute_item_matrix(l, displaywidth=12)
-        Out[1]:
-            ([['aaa', 'f', 'k'],
-            ['b', 'g', 'l'],
-            ['cc', 'h', None],
-            ['d', 'i', None],
-            ['eeeee', 'j', None]],
-            {'num_columns': 3,
-            'column_widths': [5, 1, 1],
-            'optimal_separator_width': 2,
-            'max_rows': 5})
+        In [2]: list, info = compute_item_matrix(l, displaywidth=12)
+        In [3]: list
+        Out[3]: [['aaa', 'f', 'k'], ['b', 'g', 'l'], ['cc', 'h', None], ['d', 'i', None], ['eeeee', 'j', None]]
+        In [4]: ideal = {'num_columns': 3, 'column_widths': [5, 1, 1], 'optimal_separator_width': 2, 'max_rows': 5}
+        In [5]: all((info[k] == ideal[k] for k in ideal.keys()))
+        Out[5]: True
     """
     info = _find_optimal(list(map(len, items)), row_first, *args, **kwargs)
     nrow, ncol = info['max_rows'], info['num_columns']
