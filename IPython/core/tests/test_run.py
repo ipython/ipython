@@ -207,8 +207,15 @@ class TestMagicRunPass(tt.TempFileMixin):
     def test_run_profile( self ):
         """Test that the option -p, which invokes the profiler, do not
         crash by invoking execfile"""
-        get_ipython()
         self.run_tmpfile_p()
+
+    def test_run_debug_twice(self):
+        # https://github.com/ipython/ipython/issues/10028
+        _ip = get_ipython()
+        with tt.fake_input(['c']):
+            _ip.magic('run -d %s' % self.fname)
+        with tt.fake_input(['c']):
+            _ip.magic('run -d %s' % self.fname)
 
 
 class TestMagicRunSimple(tt.TempFileMixin):
