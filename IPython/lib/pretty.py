@@ -77,7 +77,6 @@ Inheritance diagram:
             Portions (c) 2009 by Robert Kern.
 :license: BSD License.
 """
-from __future__ import print_function
 from contextlib import contextmanager
 import sys
 import types

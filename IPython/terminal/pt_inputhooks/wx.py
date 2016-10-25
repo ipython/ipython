@@ -1,6 +1,5 @@
 """Enable wxPython to be used interacively in prompt_toolkit
 """
-from __future__ import absolute_import
 
 import sys
 import signal

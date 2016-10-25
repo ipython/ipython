@@ -2,7 +2,6 @@
 """
 Utilities for working with stack frames.
 """
-from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team

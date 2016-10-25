@@ -24,7 +24,6 @@ http://www.python.org/2.2.3/license.html"""
 #
 #
 #*****************************************************************************
-from __future__ import print_function
 
 import bdb
 import functools
@@ -604,22 +603,21 @@ class Pdb(OldPdb, object):
                       ('Globals', self.curframe.f_globals)]
         self.shell.find_line_magic('psource')(arg, namespaces=namespaces)
 
-    if sys.version_info > (3, ):
-        def do_where(self, arg):
-            """w(here)
-            Print a stack trace, with the most recent frame at the bottom.
-            An arrow indicates the "current frame", which determines the
-            context of most commands. 'bt' is an alias for this command.
+    def do_where(self, arg):
+        """w(here)
+        Print a stack trace, with the most recent frame at the bottom.
+        An arrow indicates the "current frame", which determines the
+        context of most commands. 'bt' is an alias for this command.
 
-            Take a number as argument as an (optional) number of context line to
-            print"""
-            if arg:
-                context = int(arg)
-                self.print_stack_trace(context)
-            else:
-                self.print_stack_trace()
+        Take a number as argument as an (optional) number of context line to
+        print"""
+        if arg:
+            context = int(arg)
+            self.print_stack_trace(context)
+        else:
+            self.print_stack_trace()
 
-        do_w = do_where
+    do_w = do_where
 
 
 def set_trace(frame=None):

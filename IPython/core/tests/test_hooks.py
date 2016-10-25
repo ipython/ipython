@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tests for CommandChainDispatcher."""
 
-from __future__ import absolute_import
 
 #-----------------------------------------------------------------------------
 # Imports

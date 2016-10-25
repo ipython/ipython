@@ -17,7 +17,6 @@ itself from the command line. There are two ways of running this script:
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from __future__ import print_function
 
 import glob
 from io import BytesIO
@@ -45,8 +44,7 @@ pjoin = path.join
 
 # Enable printing all warnings raise by IPython's modules
 warnings.filterwarnings('ignore', message='.*Matplotlib is building the font cache.*', category=UserWarning, module='.*')
-if sys.version_info > (3,0):
-    warnings.filterwarnings('error', message='.*', category=ResourceWarning, module='.*')
+warnings.filterwarnings('error', message='.*', category=ResourceWarning, module='.*')
 warnings.filterwarnings('error', message=".*{'config': True}.*", category=DeprecationWarning, module='IPy.*')
 warnings.filterwarnings('default', message='.*', category=Warning, module='IPy.*')
 

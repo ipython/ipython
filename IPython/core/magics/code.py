@@ -1,7 +1,5 @@
 """Implementation of code management magic functions.
 """
-from __future__ import print_function
-from __future__ import absolute_import
 #-----------------------------------------------------------------------------
 #  Copyright (c) 2012 The IPython Development Team.
 #

@@ -10,7 +10,6 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-from __future__ import absolute_import, print_function
 
 import __future__
 import abc
@@ -57,7 +56,7 @@ from IPython.core.payload import PayloadManager
 from IPython.core.prefilter import PrefilterManager
 from IPython.core.profiledir import ProfileDir
 from IPython.core.usage import default_banner
-from IPython.testing.skipdoctest import skip_doctest_py2, skip_doctest
+from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import PyColorize
 from IPython.utils import io
 from IPython.utils import py3compat
@@ -187,10 +186,7 @@ class ExecutionResult(object):
             raise self.error_in_exec
 
     def __repr__(self):
-        if sys.version_info > (3,):
-            name = self.__class__.__qualname__
-        else:
-            name = self.__class__.__name__
+        name = self.__class__.__qualname__
         return '<%s object at %x, execution_count=%s error_before_exec=%s error_in_exec=%s result=%s>' %\
                 (name, id(self), self.execution_count, self.error_before_exec, self.error_in_exec, repr(self.result))
 
@@ -1922,7 +1918,6 @@ class InteractiveShell(SingletonConfigurable):
         self.set_hook('complete_command', reset_completer, str_key = '%reset')
 
 
-    @skip_doctest_py2
     def complete(self, text, line=None, cursor_pos=None):
         """Return the completed text and a list of completions.
 

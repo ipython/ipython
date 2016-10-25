@@ -16,7 +16,6 @@ modified to be compatible with Python 2.7 and 3.2+.
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-from __future__ import absolute_import, division, print_function
 import itertools
 import functools
 import re

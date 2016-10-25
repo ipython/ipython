@@ -1,6 +1,5 @@
 """GLUT Input hook for interactive use with prompt_toolkit
 """
-from __future__ import print_function
 
 
 # GLUT is quite an old library and it is difficult to ensure proper

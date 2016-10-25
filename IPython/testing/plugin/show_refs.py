@@ -2,7 +2,6 @@
 
 This is used by a companion test case.
 """
-from __future__ import print_function
 
 import gc
 

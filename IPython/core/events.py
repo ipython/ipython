@@ -12,7 +12,6 @@ events and the arguments which will be passed to them.
 
    This API is experimental in IPython 2.0, and may be revised in future versions.
 """
-from __future__ import print_function
 
 class EventManager(object):
     """Manage a collection of events and a sequence of callbacks for each.

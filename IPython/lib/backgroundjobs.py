@@ -21,7 +21,6 @@ separate implementation).
 An example notebook is provided in our documentation illustrating interactive
 use of the system.
 """
-from __future__ import print_function
 
 #*****************************************************************************
 #       Copyright (C) 2005-2006 Fernando Perez <fperez@colorado.edu>

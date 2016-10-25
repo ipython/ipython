@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """Nose-based test runner.
 """
-from __future__ import print_function
 
 from nose.core import main
 from nose.plugins.builtin import plugins

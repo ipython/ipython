@@ -93,8 +93,7 @@ def test_arg_split_win32():
 class SubProcessTestCase(TestCase, tt.TempFileMixin):
     def setUp(self):
         """Make a valid python temp file."""
-        lines = ["from __future__ import print_function",
-                 "import sys",
+        lines = [ "import sys",
                  "print('on stdout', end='', file=sys.stdout)",
                  "print('on stderr', end='', file=sys.stderr)",
                  "sys.stdout.flush()",

@@ -1,6 +1,5 @@
 """Implementation of namespace-related magic functions.
 """
-from __future__ import print_function
 #-----------------------------------------------------------------------------
 #  Copyright (c) 2012 The IPython Development Team.
 #

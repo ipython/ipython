@@ -13,8 +13,6 @@ Tests for testing.tools
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from __future__ import with_statement
-from __future__ import print_function
 
 import os
 import unittest
@@ -110,8 +108,7 @@ class Test_ipexec_validate(unittest.TestCase, tt.TempFileMixin):
     def test_exception_path(self):
         """Test exception path in exception_validate.
         """
-        self.mktmp("from __future__ import print_function\n"
-                   "import sys\n"
+        self.mktmp("import sys\n"
                    "print('A')\n"
                    "print('B')\n"
                    "print('C', file=sys.stderr)\n"
@@ -123,8 +120,7 @@ class Test_ipexec_validate(unittest.TestCase, tt.TempFileMixin):
     def test_exception_path2(self):
         """Test exception path in exception_validate, expecting windows line endings.
         """
-        self.mktmp("from __future__ import print_function\n"
-                   "import sys\n"
+        self.mktmp("import sys\n"
                    "print('A')\n"
                    "print('B')\n"
                    "print('C', file=sys.stderr)\n"

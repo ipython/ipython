@@ -4,7 +4,6 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from __future__ import print_function
 
 import os
 import re
@@ -40,7 +39,7 @@ ip = get_ipython()
 # defined, if any code is inserted above, the following line will need to be
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
-THIS_LINE_NUMBER = 43  # Put here the actual number of this line
+THIS_LINE_NUMBER = 42  # Put here the actual number of this line
 
 from unittest import TestCase
 
@@ -275,8 +274,7 @@ def test_info():
     nt.assert_equal(i['type_name'], 'type')
     expted_class = str(type(type))  # <class 'type'> (Python 3) or <type 'type'>
     nt.assert_equal(i['base_class'], expted_class)
-    if sys.version_info > (3,):
-        nt.assert_regex(i['string_form'], "<class 'IPython.core.tests.test_oinspect.Call'( at 0x[0-9a-f]{1,9})?>")
+    nt.assert_regex(i['string_form'], "<class 'IPython.core.tests.test_oinspect.Call'( at 0x[0-9a-f]{1,9})?>")
     fname = __file__
     if fname.endswith(".pyc"):
         fname = fname[:-1]

@@ -8,7 +8,6 @@ embedding which you can cut and paste in your code once you understand how
 things work.
 
 The code in this file is deliberately extra-verbose, meant for learning."""
-from __future__ import print_function
 
 # The basics to get you going:
 

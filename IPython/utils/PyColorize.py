@@ -28,9 +28,6 @@ It shows how to use the built-in keyword, token and tokenize modules to
 scan Python source code and re-emit it with no changes to its original
 formatting (which is the hard part).
 """
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 __all__ = ['ANSICodeColors','Parser']
 

@@ -35,7 +35,6 @@ PyGTK input hook for prompt_toolkit.
 Listens on the pipe prompt_toolkit sets up for a notification that it should
 return control to the terminal event loop.
 """
-from __future__ import absolute_import
 
 import gtk, gobject
 

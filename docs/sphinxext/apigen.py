@@ -17,7 +17,6 @@ NOTE: this is a modified version of a script originally shipped with the
 PyMVPA project, which we've adapted for NIPY use.  PyMVPA is an MIT-licensed
 project."""
 
-from __future__ import print_function
 
 # Stdlib imports
 import ast

@@ -10,8 +10,6 @@ reference the name under which an object is being read.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from __future__ import print_function
-
 __all__ = ['Inspector','InspectColors']
 
 # stdlib modules
@@ -31,7 +29,7 @@ except ImportError:
 # IPython's own
 from IPython.core import page
 from IPython.lib.pretty import pretty
-from IPython.testing.skipdoctest import skip_doctest_py3
+from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import PyColorize
 from IPython.utils import openpy
 from IPython.utils import py3compat
@@ -437,7 +435,7 @@ class Inspector(Colorable):
             print(header,self.format(output), end=' ')
 
     # In Python 3, all classes are new-style, so they all have __init__.
-    @skip_doctest_py3
+    @skip_doctest
     def pdoc(self, obj, oname='', formatter=None):
         """Print the docstring for any object.
 

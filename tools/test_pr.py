@@ -7,7 +7,6 @@ Python, and posts the results to Gist if any tests fail.
 Usage:
     python test_pr.py 1657
 """
-from __future__ import print_function
 
 import errno
 from glob import glob

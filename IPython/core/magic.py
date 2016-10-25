@@ -1,7 +1,6 @@
 # encoding: utf-8
 """Magic functions for InteractiveShell.
 """
-from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and

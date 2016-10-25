@@ -7,9 +7,6 @@ launch InteractiveShell instances, load extensions, etc.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from __future__ import absolute_import
-from __future__ import print_function
-
 import glob
 import os
 import sys

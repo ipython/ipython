@@ -2,7 +2,6 @@
 
 See test_run for details."""
 
-from __future__ import print_function
 
 import sys
 

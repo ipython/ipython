@@ -5,7 +5,6 @@ http://docs.python.org/2/distutils/builtdist.html#the-postinstallation-script
 
 """
 
-from __future__ import print_function
 
 import os
 import sys

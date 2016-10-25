@@ -1,6 +1,5 @@
 """Various utilities common to IPython release and maintenance tools.
 """
-from __future__ import print_function
 
 # Library imports
 import os

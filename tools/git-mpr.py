@@ -7,7 +7,6 @@ Usage:
 Type `git mpr -h` for details.
 """
 
-from __future__ import print_function
 
 import io, os
 import argparse

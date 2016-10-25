@@ -4,7 +4,6 @@ They should honor the line number argument, at least.
 
 Contributions are *very* welcome.
 """
-from __future__ import print_function
 
 import os
 import pipes

@@ -3,7 +3,6 @@
 Note: this module is named 'osm' instead of 'os' to avoid a collision with the
 builtin.
 """
-from __future__ import print_function
 #-----------------------------------------------------------------------------
 #  Copyright (c) 2012 The IPython Development Team.
 #

@@ -1,7 +1,5 @@
 """Implementation of basic magic functions."""
 
-from __future__ import print_function
-from __future__ import absolute_import
 
 import argparse
 import io

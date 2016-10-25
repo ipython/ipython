@@ -2,7 +2,6 @@
 """
 GLUT Inputhook support functions
 """
-from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
