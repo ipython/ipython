@@ -20,6 +20,7 @@ requires utilities which are not available under Windows."""
 #-----------------------------------------------------------------------------
 # Minimal Python version sanity check
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 import sys
 
