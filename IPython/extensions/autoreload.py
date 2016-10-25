@@ -56,6 +56,10 @@ The following magic commands are provided:
 
     Import module 'foo' and mark it to be autoreloaded for ``%autoreload 1``
 
+``%aimport foo bar``
+
+    Import modules 'foo', 'bar' and mark them to be autoreloaded for ``%autoreload 1``
+
 ``%aimport -foo``
 
     Mark module 'foo' to not be autoreloaded.
@@ -486,6 +490,9 @@ class AutoreloadMagics(Magics):
         %aimport foo
         Import module 'foo' and mark it to be autoreloaded for %autoreload 1
 
+        %aimport foo bar
+        Import modules 'foo', 'bar' and mark them to be autoreloaded for %autoreload 1
+
         %aimport -foo
         Mark module 'foo' to not be autoreloaded for %autoreload 1
         """
@@ -504,10 +511,11 @@ class AutoreloadMagics(Magics):
             modname = modname[1:]
             self._reloader.mark_module_skipped(modname)
         else:
-            top_module, top_name = self._reloader.aimport_module(modname)
+            for _module in modname.split():
+                top_module, top_name = self._reloader.aimport_module(_module)
 
-            # Inject module to user namespace
-            self.shell.push({top_name: top_module})
+                # Inject module to user namespace
+                self.shell.push({top_name: top_module})
 
     def pre_run_cell(self):
         if self._reloader.enabled:
