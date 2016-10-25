@@ -19,7 +19,6 @@ except ImportError:
     # Python 2 backport
     from pathlib2 import Path
 
-from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
 
 # datetime.strftime date format for ipython
@@ -516,7 +515,6 @@ class EvalFormatter(Formatter):
 # inside [], so EvalFormatter can handle slicing. Once we only support 3.4 and
 # above, it should be possible to remove FullEvalFormatter.
 
-@skip_doctest
 class FullEvalFormatter(Formatter):
     """A String Formatter that allows evaluation of simple expressions.
     
@@ -532,13 +530,13 @@ class FullEvalFormatter(Formatter):
 
         In [1]: f = FullEvalFormatter()
         In [2]: f.format('{n//4}', n=8)
-        Out[2]: u'2'
+        Out[2]: '2'
 
         In [3]: f.format('{list(range(5))[2:4]}')
-        Out[3]: u'[2, 3]'
+        Out[3]: '[2, 3]'
 
         In [4]: f.format('{3*2}')
-        Out[4]: u'6'
+        Out[4]: '6'
     """
     # copied from Formatter._vformat with minor changes to allow eval
     # and replace the format_spec code with slicing
@@ -573,7 +571,6 @@ class FullEvalFormatter(Formatter):
         return u''.join(py3compat.cast_unicode(s) for s in result)
 
 
-@skip_doctest
 class DollarFormatter(FullEvalFormatter):
     """Formatter allowing Itpl style $foo replacement, for names and attribute
     access only. Standard {foo} replacement also works, and allows full
@@ -585,13 +582,13 @@ class DollarFormatter(FullEvalFormatter):
 
         In [1]: f = DollarFormatter()
         In [2]: f.format('{n//4}', n=8)
-        Out[2]: u'2'
+        Out[2]: '2'
 
         In [3]: f.format('23 * 76 is $result', result=23*76)
-        Out[3]: u'23 * 76 is 1748'
+        Out[3]: '23 * 76 is 1748'
 
         In [4]: f.format('$a or {b}', a=1, b=2)
-        Out[4]: u'1 or 2'
+        Out[4]: '1 or 2'
     """
     _dollar_pattern = re.compile("(.*?)\$(\$?[\w\.]+)")
     def parse(self, fmt_string):
