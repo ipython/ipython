@@ -56,6 +56,8 @@ warnings.filterwarnings('error', message='.*onlyif_any_cmd_exists.*', category=D
 
 warnings.filterwarnings('error', message='.*disable_gui.*', category=DeprecationWarning, module='.*')
 
+warnings.filterwarnings('error', message='.*ExceptionColors global is deprecated.*', category=DeprecationWarning, module='.*')
+
 if version_info < (6,):
     # nose.tools renames all things from `camelCase` to `snake_case` which raise an
     # warning with the runner they also import from standard import library. (as of Dec 2015)
