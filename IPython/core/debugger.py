@@ -63,7 +63,7 @@ def BdbQuit_excepthook(et, ev, tb, excepthook=None):
     parameter.
     """
     warnings.warn("`BdbQuit_excepthook` is deprecated since version 5.1",
-                  DeprecationWarning)
+                  DeprecationWarning, stacklevel=2)
     if et==bdb.BdbQuit:
         print('Exiting Debugger.')
     elif excepthook is not None:
@@ -76,7 +76,7 @@ def BdbQuit_excepthook(et, ev, tb, excepthook=None):
 def BdbQuit_IPython_excepthook(self,et,ev,tb,tb_offset=None):
     warnings.warn(
         "`BdbQuit_IPython_excepthook` is deprecated since version 5.1",
-        DeprecationWarning)
+        DeprecationWarning, stacklevel=2)
     print('Exiting Debugger.')
 
 
@@ -128,7 +128,7 @@ class Tracer(object):
         """
         warnings.warn("`Tracer` is deprecated since version 5.1, directly use "
                       "`IPython.core.debugger.Pdb.set_trace()`",
-                      DeprecationWarning)
+                      DeprecationWarning, stacklevel=2)
 
         ip = get_ipython()
         if ip is None:
