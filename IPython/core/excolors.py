@@ -165,7 +165,8 @@ class Deprec(object):
 
     def __getattr__(self, name):
         val = getattr(self.wrapped, name)
-        warnings.warn("Using ExceptionColors global is deprecated and will be removed in IPython 6.0", DeprecationWarning)
+        warnings.warn("Using ExceptionColors global is deprecated and will be removed in IPython 6.0",
+                DeprecationWarning, stacklevel=2)
         # using getattr after warnings break ipydoctest in weird way for 3.5
         return val
 

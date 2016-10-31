@@ -658,7 +658,9 @@ guis = inputhook_manager.guihooks
 
 
 def _deprecated_disable():
-    warn("This function is deprecated since IPython 4.0 use disable_gui() instead", DeprecationWarning)
+    warn("This function is deprecated since IPython 4.0 use disable_gui() instead",
+            DeprecationWarning, stacklevel=2)
     inputhook_manager.disable_gui()
+    
 disable_wx = disable_qt4 = disable_gtk = disable_gtk3 = disable_glut = \
         disable_pyglet = disable_osx = _deprecated_disable
