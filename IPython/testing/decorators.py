@@ -68,7 +68,7 @@ def as_unittest(func):
 
 # Utility functions
 
-def apply_wrapper(wrapper,func):
+def apply_wrapper(wrapper, func):
     """Apply a wrapper to a function for decoration.
 
     This mixes Michele Simionato's decorator tool with nose's make_decorator,
@@ -77,14 +77,14 @@ def apply_wrapper(wrapper,func):
     This will ensure that wrapped functions can still be well introspected via
     IPython, for example.
     """
-    warnings.warn("The function `apply_wrapper` is deprecated and might be removed in IPython 5.0", DeprecationWarning)
-
+    warnings.warn("The function `apply_wrapper` is deprecated since IPython 4.0",
+            DeprecationWarning, stacklevel=2)
     import nose.tools
 
     return decorator(wrapper,nose.tools.make_decorator(func)(wrapper))
 
 
-def make_label_dec(label,ds=None):
+def make_label_dec(label, ds=None):
     """Factory function to create a decorator that applies one or more labels.
 
     Parameters
@@ -129,7 +129,8 @@ def make_label_dec(label,ds=None):
     True
     """
 
-    warnings.warn("The function `make_label_dec` is deprecated and might be removed in IPython 5.0", DeprecationWarning)
+    warnings.warn("The function `make_label_dec` is deprecated since IPython 4.0",
+            DeprecationWarning, stacklevel=2)
     if isinstance(label, string_types):
         labels = [label]
     else:
@@ -285,7 +286,8 @@ def decorated_dummy(dec, name):
     import IPython.testing.decorators as dec
     setup = dec.decorated_dummy(dec.skip_if_no_x11, __name__)
     """
-    warnings.warn("The function `make_label_dec` is deprecated and might be removed in IPython 5.0", DeprecationWarning)
+    warnings.warn("The function `decorated_dummy` is deprecated since IPython 4.0",
+        DeprecationWarning, stacklevel=2)
     dummy = lambda: None
     dummy.__name__ = name
     return dec(dummy)
@@ -318,7 +320,8 @@ skip_if_no_x11 = skipif(_x11_skip_cond, _x11_skip_msg)
 
 # not a decorator itself, returns a dummy function to be used as setup
 def skip_file_no_x11(name):
-    warnings.warn("The function `skip_file_no_x11` is deprecated and might be removed in IPython 5.0", DeprecationWarning)
+    warnings.warn("The function `skip_file_no_x11` is deprecated since IPython 4.0",
+            DeprecationWarning, stacklevel=2)
     return decorated_dummy(skip_if_no_x11, name) if _x11_skip_cond else None
 
 # Other skip decorators
@@ -366,7 +369,8 @@ def onlyif_any_cmd_exists(*commands):
     """
     Decorator to skip test unless at least one of `commands` is found.
     """
-    warnings.warn("The function `onlyif_any_cmd_exists` is deprecated and might be removed in IPython 5.0", DeprecationWarning)
+    warnings.warn("The function `onlyif_any_cmd_exists` is deprecated since IPython 4.0",
+            DeprecationWarning, stacklevel=2)
     for cmd in commands:
         if which(cmd):
             return null_deco
