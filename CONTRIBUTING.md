@@ -37,8 +37,8 @@ Some guidelines on contributing to IPython:
   If you're making functional changes, you can clean up the specific pieces of
   code you're working on.
 
-[Travis](http://travis-ci.org/#!/ipython/ipython) does a pretty good job testing IPython and Pull Requests,
-but it may make sense to manually perform tests (possibly with our `test_pr` script),
+[Travis](http://travis-ci.org/#!/ipython/ipython) does a pretty good job testing
+IPython and Pull Requests, but it may make sense to manually perform tests,
 particularly for PRs that affect `IPython.parallel` or Windows.
 
 For more detailed information, see our [GitHub Workflow](https://github.com/ipython/ipython/wiki/Dev:-GitHub-workflow).
