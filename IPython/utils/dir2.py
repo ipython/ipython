@@ -19,6 +19,18 @@ def safe_hasattr(obj, attr):
     except:
         return False
 
+def get_class_members(cls):
+    ret = dir(cls)
+    if safe_hasattr(cls, '__bases__'):
+        try:
+            bases = cls.__bases__
+        except AttributeError:
+            # `obj` lied claiming to have __bases__ attr, ignore
+            pass
+        else:
+            for base in bases:
+                ret.extend(get_class_members(base))
+    return ret
 
 def dir2(obj):
     """dir2(obj) -> list of strings
@@ -40,6 +52,9 @@ def dir2(obj):
     except Exception:
         # TypeError: dir(obj) does not return a list
         words = set()
+
+    if safe_hasattr(obj, '__class__'):
+        words |= set(get_class_members(obj.__class__))
 
     # filter out non-string attributes which may be stuffed by dir() calls
     # and poor coding in third-party modules
