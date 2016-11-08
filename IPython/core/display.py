@@ -26,7 +26,7 @@ __all__ = ['display', 'display_pretty', 'display_html', 'display_markdown',
 'display_javascript', 'display_pdf', 'DisplayObject', 'TextDisplayObject',
 'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'JSON', 'Javascript',
 'Image', 'clear_output', 'set_matplotlib_formats', 'set_matplotlib_close',
-'publish_display_data']
+'publish_display_data', 'update_display']
 
 #-----------------------------------------------------------------------------
 # utility functions
@@ -78,7 +78,7 @@ def _display_mimetype(mimetype, objs, raw=False, metadata=None):
 # Main functions
 #-----------------------------------------------------------------------------
 
-def publish_display_data(data, metadata=None, source=None):
+def publish_display_data(data, metadata=None, source=None, transient=None, **kwargs):
     """Publish data and metadata to all frontends.
 
     See the ``display_data`` message in the messaging documentation for
@@ -113,11 +113,15 @@ def publish_display_data(data, metadata=None, source=None):
         to specify metadata about particular representations.
     source : str, deprecated
         Unused.
+    traisient : dict
+        A dictionary of transient data.
         """
     from IPython.core.interactiveshell import InteractiveShell
     InteractiveShell.instance().display_pub.publish(
         data=data,
         metadata=metadata,
+        transient=transient,
+        **kwargs
     )
 
 def display(*objs, **kwargs):
@@ -145,11 +149,22 @@ def display(*objs, **kwargs):
         A dictionary of metadata to associate with the output.
         mime-type keys in this dictionary will be associated with the individual
         representation formats, if they exist.
+    transient : dict, optional
+        A dictionary of transient data to associate with the output.
+        Data in this dict should not be persisted to files (e.g. notebooks).
+    display_id : str, optional
+        Set an id for the display.
+        This id can be used for updating this display area later via update_display.
     """
-    raw = kwargs.get('raw', False)
-    include = kwargs.get('include')
-    exclude = kwargs.get('exclude')
-    metadata = kwargs.get('metadata')
+    raw = kwargs.pop('raw', False)
+    include = kwargs.pop('include', None)
+    exclude = kwargs.pop('exclude', None)
+    metadata = kwargs.pop('metadata', None)
+    transient = kwargs.setdefault('transient', {})
+    if 'display_id' in kwargs:
+        transient['display_id'] = kwargs.pop('display_id')
+    if kwargs.get('update') and 'display_id' not in transient:
+        raise TypeError('display_id required for update_display')
 
     from IPython.core.interactiveshell import InteractiveShell
 
@@ -158,7 +173,7 @@ def display(*objs, **kwargs):
 
     for obj in objs:
         if raw:
-            publish_display_data(data=obj, metadata=metadata)
+            publish_display_data(data=obj, metadata=metadata, **kwargs)
         else:
             format_dict, md_dict = format(obj, include=include, exclude=exclude)
             if not format_dict:
@@ -167,7 +182,14 @@ def display(*objs, **kwargs):
             if metadata:
                 # kwarg-specified metadata gets precedence
                 _merge(md_dict, metadata)
-            publish_display_data(data=format_dict, metadata=md_dict)
+            publish_display_data(data=format_dict, metadata=md_dict,
+            **kwargs)
+
+
+def update_display(*objs, **kwargs):
+    """Update an existing display"""
+    kwargs['update'] = True
+    return display(*objs, **kwargs)
 
 
 def display_pretty(*objs, **kwargs):

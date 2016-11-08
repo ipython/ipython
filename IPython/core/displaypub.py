@@ -52,7 +52,7 @@ class DisplayPublisher(Configurable):
             if not isinstance(metadata, dict):
                 raise TypeError('metadata must be a dict, got: %r' % data)
 
-    def publish(self, data, metadata=None, source=None):
+    def publish(self, data, metadata=None, source=None, **kwargs):
         """Publish data and metadata to all frontends.
 
         See the ``display_data`` message in the messaging documentation for
