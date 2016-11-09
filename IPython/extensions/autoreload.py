@@ -56,7 +56,7 @@ The following magic commands are provided:
 
     Import module 'foo' and mark it to be autoreloaded for ``%autoreload 1``
 
-``%aimport foo bar``
+``%aimport foo, bar``
 
     Import modules 'foo', 'bar' and mark them to be autoreloaded for ``%autoreload 1``
 
@@ -490,7 +490,7 @@ class AutoreloadMagics(Magics):
         %aimport foo
         Import module 'foo' and mark it to be autoreloaded for %autoreload 1
 
-        %aimport foo bar
+        %aimport foo, bar
         Import modules 'foo', 'bar' and mark them to be autoreloaded for %autoreload 1
 
         %aimport -foo
@@ -511,7 +511,7 @@ class AutoreloadMagics(Magics):
             modname = modname[1:]
             self._reloader.mark_module_skipped(modname)
         else:
-            for _module in modname.split():
+            for _module in ([_.strip() for _ in modname.split(',')]):
                 top_module, top_name = self._reloader.aimport_module(_module)
 
                 # Inject module to user namespace
