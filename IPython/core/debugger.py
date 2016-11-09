@@ -307,6 +307,14 @@ class Pdb(OldPdb, object):
             return super(Pdb, self).parseline("!" + line)
         return super(Pdb, self).parseline(line)
 
+    def emptyline(self):
+        # Fix for #9449: If the commands are conflicted with the variable,
+        # such as `n` command and `n` variable, then the emptyline behavior as
+        # `!n` which print the value of variable, it performs not as we usually
+        # expect. Just add the "!!" prefix force standard behavior.
+        if self.lastcmd:
+            return self.onecmd("!!" + self.lastcmd)
+
     def new_do_up(self, arg):
         OldPdb.do_up(self, arg)
     do_u = do_up = decorate_fn_with_doc(new_do_up, OldPdb.do_up)
