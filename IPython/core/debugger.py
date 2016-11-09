@@ -201,7 +201,7 @@ def _file_lines(fname):
         return out
 
 
-class Pdb(OldPdb, object):
+class Pdb(OldPdb):
     """Modified Pdb class, does not load readline.
 
     for a standalone version that uses prompt_toolkit, see
@@ -287,25 +287,6 @@ class Pdb(OldPdb, object):
             OldPdb.interaction(self, frame, traceback)
         except KeyboardInterrupt:
             sys.stdout.write('\n' + self.shell.get_exception_only())
-
-    def parseline(self, line):
-        if line.startswith("!!"):
-            # Force standard behavior.
-            return super(Pdb, self).parseline(line[2:])
-        # "Smart command mode" from pdb++: don't execute commands if a variable
-        # with the same name exists.
-        cmd, arg, newline = super(Pdb, self).parseline(line)
-        # Fix for #9611: Do not trigger smart command if the command is `exit`
-        # or `quit` and it would resolve to their *global* value (the
-        # `ExitAutocall` object).  Just checking that it is not present in the
-        # locals dict is not enough as locals and globals match at the
-        # toplevel.
-        if ((cmd in self.curframe.f_locals or cmd in self.curframe.f_globals)
-                and not (cmd in ["exit", "quit"]
-                         and (self.curframe.f_locals is self.curframe.f_globals
-                              or cmd not in self.curframe.f_locals))):
-            return super(Pdb, self).parseline("!" + line)
-        return super(Pdb, self).parseline(line)
 
     def new_do_up(self, arg):
         OldPdb.do_up(self, arg)
