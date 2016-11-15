@@ -2,9 +2,9 @@
 Using IPython for interactive work
 ==================================
 
-This section of IPython documentation walk you through most of the IPython
+This section of IPython documentation will walk you through most of the IPython
 functionality. You do not need to have any deep knowledge of Python to read this
-tutorial, though some section might make slightly more sens if you have already
+tutorial, though some sections might make slightly more sense if you have already
 done some work in the REPL.
 
 .. note::
