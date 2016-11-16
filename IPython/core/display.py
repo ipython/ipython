@@ -24,10 +24,9 @@ from IPython.testing.skipdoctest import skip_doctest
 __all__ = ['display', 'display_pretty', 'display_html', 'display_markdown',
 'display_svg', 'display_png', 'display_jpeg', 'display_latex', 'display_json',
 'display_javascript', 'display_pdf', 'DisplayObject', 'TextDisplayObject',
-'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'JSON', 'Javascript',
-'Image', 'clear_output', 'set_matplotlib_formats', 'set_matplotlib_close',
-'publish_display_data']
-
+'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'MathML', 'SVG',
+'JSON', 'Javascript', 'Image', 'clear_output', 'set_matplotlib_formats',
+'set_matplotlib_close', 'publish_display_data'] 
 #-----------------------------------------------------------------------------
 # utility functions
 #-----------------------------------------------------------------------------
@@ -90,6 +89,7 @@ def publish_display_data(data, metadata=None, source=None):
     * text/html
     * text/markdown
     * text/latex
+    * application/mathml+xml
     * application/json
     * application/javascript
     * image/png
@@ -466,16 +466,26 @@ class Markdown(TextDisplayObject):
 class Math(TextDisplayObject):
 
     def _repr_latex_(self):
-        s = self.data.strip('$')
-        return "$$%s$$" % s
+        if self.format == u'latex' or not self.format:
+            s = self.data.strip('$')
+            return "$$%s$$" % s
+        
+    def _repr_html_(self):
+        if self.format == u'mathml':
+            return "<math>%s</math>" % self.data
 
 
 class Latex(TextDisplayObject):
 
     def _repr_latex_(self):
         return self.data
+        
+        
+class MathML(TextDisplayObject):
 
-
+    def _repr_html_(self):
+        return self.data
+        
 class SVG(DisplayObject):
 
     # wrap data in a property, which extracts the <svg> tag, discarding
