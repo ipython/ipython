@@ -113,14 +113,22 @@ def publish_display_data(data, metadata=None, source=None, transient=None, **kwa
         to specify metadata about particular representations.
     source : str, deprecated
         Unused.
-    traisient : dict
-        A dictionary of transient data.
+    transient : dict
+        A dictionary of transient data, such as display_id.
         """
     from IPython.core.interactiveshell import InteractiveShell
-    InteractiveShell.instance().display_pub.publish(
+
+    display_pub = InteractiveShell.instance().display_pub
+
+    # only pass transient if supplied,
+    # to avoid errors with older ipykernel.
+    # TODO: We could check for ipykernel version and provide a detailed upgrade message.
+    if transient:
+        kwargs['transient'] = transient
+
+    display_pub.publish(
         data=data,
         metadata=metadata,
-        transient=transient,
         **kwargs
     )
 
