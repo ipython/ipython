@@ -10,6 +10,7 @@ try:
 except ImportError:
     from base64 import encodestring as base64_encode
 
+from binascii import b2a_hex
 import json
 import mimetypes
 import os
@@ -26,7 +27,7 @@ __all__ = ['display', 'display_pretty', 'display_html', 'display_markdown',
 'display_javascript', 'display_pdf', 'DisplayObject', 'TextDisplayObject',
 'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'JSON', 'Javascript',
 'Image', 'clear_output', 'set_matplotlib_formats', 'set_matplotlib_close',
-'publish_display_data', 'update_display']
+'publish_display_data', 'update_display', 'DisplayHandle']
 
 #-----------------------------------------------------------------------------
 # utility functions
@@ -132,6 +133,12 @@ def publish_display_data(data, metadata=None, source=None, *, transient=None, **
         **kwargs
     )
 
+
+def _new_id():
+    """Generate a new random text id with urandom"""
+    return b2a_hex(os.urandom(16)).decode('ascii')
+
+
 def display(*objs, include=None, exclude=None, metadata=None, transient=None, display_id=None, **kwargs):
     """Display a Python object in all frontends.
 
@@ -163,13 +170,23 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
     display_id : str, optional
         Set an id for the display.
         This id can be used for updating this display area later via update_display.
+        If given as True, generate a new display_id
     kwargs: additional keyword-args, optional
         Additional keyword-arguments are passed through to the display publisher.
+    
+    Returns
+    -------
+    
+    handle: DisplayHandle
+        Returns a handle on updatable displays, if display_id is given.
+        Returns None if no display_id is given (default).
     """
     raw = kwargs.pop('raw', False)
     if transient is None:
         transient = {}
     if display_id:
+        if display_id == True:
+            display_id = _new_id()
         transient['display_id'] = display_id
     if kwargs.get('update') and 'display_id' not in transient:
         raise TypeError('display_id required for update_display')
@@ -192,12 +209,13 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
             if metadata:
                 # kwarg-specified metadata gets precedence
                 _merge(md_dict, metadata)
-            publish_display_data(data=format_dict, metadata=md_dict,
-            **kwargs)
+            publish_display_data(data=format_dict, metadata=md_dict, **kwargs)
+    if display_id:
+        return DisplayHandle(display_id)
 
 
-def update_display(obj, *, display_id=None, **kwargs):
-    """Update an existing display.
+def update_display(obj, *, display_id, **kwargs):
+    """Update an existing display by id
 
     Parameters
     ----------
@@ -208,8 +226,51 @@ def update_display(obj, *, display_id=None, **kwargs):
         The id of the display to update
     """
     kwargs['update'] = True
-    return display(obj, **kwargs)
+    display(obj, display_id=display_id, **kwargs)
 
+
+class DisplayHandle(object):
+    """A handle on an updatable display
+
+    Call .update(obj) to display a new object.
+
+    Call .display(obj) to add a new instance of this display,
+    and update existing instances.
+    """
+
+    def __init__(self, display_id=None):
+        if display_id is None:
+            display_id = _new_id()
+        self.display_id = display_id
+
+    def __repr__(self):
+        return "<%s display_id=%s>" % (self.__class__.__name__, self.display_id)
+
+    def display(self, obj, **kwargs):
+        """Make a new display with my id, updating existing instances.
+        
+        Parameters
+        ----------
+        
+        obj:
+            object to display
+        **kwargs:
+            additional keyword arguments passed to display
+        """
+        display(obj, display_id=self.display_id, **kwargs)
+
+    def update(self, obj, **kwargs):
+        """Update existing displays with my id
+        
+        Parameters
+        ----------
+        
+        obj:
+            object to display
+        **kwargs:
+            additional keyword arguments passed to update_display
+        """
+        update_display(obj, display_id=self.display_id, **kwargs)
 
 
 def display_pretty(*objs, **kwargs):
