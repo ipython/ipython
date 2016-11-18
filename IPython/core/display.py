@@ -78,7 +78,7 @@ def _display_mimetype(mimetype, objs, raw=False, metadata=None):
 # Main functions
 #-----------------------------------------------------------------------------
 
-def publish_display_data(data, metadata=None, source=None, transient=None, **kwargs):
+def publish_display_data(data, metadata=None, source=None, *, transient=None, **kwargs):
     """Publish data and metadata to all frontends.
 
     See the ``display_data`` message in the messaging documentation for
@@ -132,7 +132,7 @@ def publish_display_data(data, metadata=None, source=None, transient=None, **kwa
         **kwargs
     )
 
-def display(*objs, **kwargs):
+def display(*objs, include=None, exclude=None, metadata=None, transient=None, display_id=None, **kwargs):
     """Display a Python object in all frontends.
 
     By default all representations will be computed and sent to the frontends.
@@ -163,16 +163,18 @@ def display(*objs, **kwargs):
     display_id : str, optional
         Set an id for the display.
         This id can be used for updating this display area later via update_display.
+    kwargs: additional keyword-args, optional
+        Additional keyword-arguments are passed through to the display publisher.
     """
     raw = kwargs.pop('raw', False)
-    include = kwargs.pop('include', None)
-    exclude = kwargs.pop('exclude', None)
-    metadata = kwargs.pop('metadata', None)
-    transient = kwargs.setdefault('transient', {})
-    if 'display_id' in kwargs:
-        transient['display_id'] = kwargs.pop('display_id')
+    if transient is None:
+        transient = {}
+    if display_id:
+        transient['display_id'] = display_id
     if kwargs.get('update') and 'display_id' not in transient:
         raise TypeError('display_id required for update_display')
+    if transient:
+        kwargs['transient'] = transient
 
     from IPython.core.interactiveshell import InteractiveShell
 
@@ -194,10 +196,20 @@ def display(*objs, **kwargs):
             **kwargs)
 
 
-def update_display(*objs, **kwargs):
-    """Update an existing display"""
+def update_display(obj, *, display_id=None, **kwargs):
+    """Update an existing display.
+
+    Parameters
+    ----------
+
+    obj:
+        The object with which to update the display
+    display_id: keyword-only
+        The id of the display to update
+    """
     kwargs['update'] = True
-    return display(*objs, **kwargs)
+    return display(obj, **kwargs)
+
 
 
 def display_pretty(*objs, **kwargs):
