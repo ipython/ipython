@@ -5,6 +5,8 @@ import json
 import os
 import warnings
 
+from unittest import mock
+
 import nose.tools as nt
 
 from IPython.core import display
@@ -196,3 +198,115 @@ def test_video_embedding():
         v = display.Video(u'YWJj', embed=True, mimetype='video/xyz')
         html = v._repr_html_()
         nt.assert_in('src="data:video/xyz;base64,YWJj"',html)
+
+
+def test_display_id():
+    ip = get_ipython()
+    with mock.patch.object(ip.display_pub, 'publish') as pub:
+        handle = display.display('x')
+        nt.assert_is(handle, None)
+        handle = display.display('y', display_id='secret')
+        nt.assert_is_instance(handle, display.DisplayHandle)
+        handle2 = display.display('z', display_id=True)
+        nt.assert_is_instance(handle2, display.DisplayHandle)
+    nt.assert_not_equal(handle.display_id, handle2.display_id)
+
+    nt.assert_equal(pub.call_count, 3)
+    args, kwargs = pub.call_args_list[0]
+    nt.assert_equal(args, ())
+    nt.assert_equal(kwargs, {
+        'data': {
+            'text/plain': repr('x')
+        },
+        'metadata': {},
+    })
+    args, kwargs = pub.call_args_list[1]
+    nt.assert_equal(args, ())
+    nt.assert_equal(kwargs, {
+        'data': {
+            'text/plain': repr('y')
+        },
+        'metadata': {},
+        'transient': {
+            'display_id': handle.display_id,
+        },
+    })
+    args, kwargs = pub.call_args_list[2]
+    nt.assert_equal(args, ())
+    nt.assert_equal(kwargs, {
+        'data': {
+            'text/plain': repr('z')
+        },
+        'metadata': {},
+        'transient': {
+            'display_id': handle2.display_id,
+        },
+    })
+
+
+def test_update_display():
+    ip = get_ipython()
+    with mock.patch.object(ip.display_pub, 'publish') as pub:
+        with nt.assert_raises(TypeError):
+            display.update_display('x')
+        display.update_display('x', display_id='1')
+        display.update_display('y', display_id='2')
+    args, kwargs = pub.call_args_list[0]
+    nt.assert_equal(args, ())
+    nt.assert_equal(kwargs, {
+        'data': {
+            'text/plain': repr('x')
+        },
+        'metadata': {},
+        'transient': {
+            'display_id': '1',
+        },
+        'update': True,
+    })
+    args, kwargs = pub.call_args_list[1]
+    nt.assert_equal(args, ())
+    nt.assert_equal(kwargs, {
+        'data': {
+            'text/plain': repr('y')
+        },
+        'metadata': {},
+        'transient': {
+            'display_id': '2',
+        },
+        'update': True,
+    })
+
+
+def test_display_handle():
+    ip = get_ipython()
+    handle = display.DisplayHandle()
+    nt.assert_is_instance(handle.display_id, str)
+    handle = display.DisplayHandle('my-id')
+    nt.assert_equal(handle.display_id, 'my-id')
+    with mock.patch.object(ip.display_pub, 'publish') as pub:
+        handle.display('x')
+        handle.update('y')
+
+    args, kwargs = pub.call_args_list[0]
+    nt.assert_equal(args, ())
+    nt.assert_equal(kwargs, {
+        'data': {
+            'text/plain': repr('x')
+        },
+        'metadata': {},
+        'transient': {
+            'display_id': handle.display_id,
+        }
+    })
+    args, kwargs = pub.call_args_list[1]
+    nt.assert_equal(args, ())
+    nt.assert_equal(kwargs, {
+        'data': {
+            'text/plain': repr('y')
+        },
+        'metadata': {},
+        'transient': {
+            'display_id': handle.display_id,
+        },
+        'update': True,
+    })
