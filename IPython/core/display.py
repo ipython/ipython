@@ -79,6 +79,7 @@ def _display_mimetype(mimetype, objs, raw=False, metadata=None):
 # Main functions
 #-----------------------------------------------------------------------------
 
+# use * to indicate transient is keyword-only
 def publish_display_data(data, metadata=None, source=None, *, transient=None, **kwargs):
     """Publish data and metadata to all frontends.
 
@@ -114,7 +115,7 @@ def publish_display_data(data, metadata=None, source=None, *, transient=None, **
         to specify metadata about particular representations.
     source : str, deprecated
         Unused.
-    transient : dict
+    transient : dict, keyword-only
         A dictionary of transient data, such as display_id.
         """
     from IPython.core.interactiveshell import InteractiveShell
@@ -214,6 +215,7 @@ def display(*objs, include=None, exclude=None, metadata=None, transient=None, di
         return DisplayHandle(display_id)
 
 
+# use * for keyword-only display_id arg
 def update_display(obj, *, display_id, **kwargs):
     """Update an existing display by id
 
