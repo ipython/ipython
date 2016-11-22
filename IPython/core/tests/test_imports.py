@@ -39,9 +39,6 @@ def test_import_oinspect():
 def test_import_prefilter():
     from IPython.core import prefilter
 
-def test_import_prompts():
-    from IPython.core import prompts
-
 def test_import_release():
     from IPython.core import release
 
