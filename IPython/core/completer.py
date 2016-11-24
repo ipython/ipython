@@ -843,18 +843,11 @@ class IPCompleter(Completer):
         ret += self._default_arguments_from_docstring(
                  getattr(call_obj, '__doc__', ''))
 
-        if PY3:
-            _keeps = (inspect.Parameter.KEYWORD_ONLY,
-                      inspect.Parameter.POSITIONAL_OR_KEYWORD)
-            signature = inspect.signature
-        else:
-            import IPython.utils.signatures
-            _keeps = (IPython.utils.signatures.Parameter.KEYWORD_ONLY,
-                      IPython.utils.signatures.Parameter.POSITIONAL_OR_KEYWORD)
-            signature = IPython.utils.signatures.signature
+        _keeps = (inspect.Parameter.KEYWORD_ONLY,
+                  inspect.Parameter.POSITIONAL_OR_KEYWORD)
 
         try:
-            sig = signature(call_obj)
+            sig = inspect.signature(call_obj)
             ret.extend(k for k, v in sig.parameters.items() if
                        v.kind in _keeps)
         except ValueError:

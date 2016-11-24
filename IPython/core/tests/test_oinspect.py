@@ -5,6 +5,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 
+from inspect import Signature, Parameter
 import os
 import re
 import sys
@@ -17,11 +18,11 @@ from IPython.core.magic import (Magics, magics_class, line_magic,
                                 register_line_magic, register_cell_magic,
                                 register_line_cell_magic)
 from decorator import decorator
+from IPython import get_ipython
 from IPython.testing.decorators import skipif
 from IPython.testing.tools import AssertPrints
 from IPython.utils.path import compress_user
 from IPython.utils import py3compat
-from IPython.utils.signatures import Signature, Parameter
 
 
 #-----------------------------------------------------------------------------
@@ -39,7 +40,7 @@ ip = get_ipython()
 # defined, if any code is inserted above, the following line will need to be
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
-THIS_LINE_NUMBER = 42  # Put here the actual number of this line
+THIS_LINE_NUMBER = 43  # Put here the actual number of this line
 
 from unittest import TestCase
 
@@ -68,7 +69,7 @@ def test_find_file_decorated1():
 
     @decorator
     def noop1(f):
-        def wrapper():
+        def wrapper(*a, **kw):
             return f(*a, **kw)
         return wrapper
 

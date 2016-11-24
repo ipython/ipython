@@ -1,11 +1,11 @@
-"""Function signature objects for callables.
+"""DEPRECATED: Function signature objects for callables.
 
 Use the standard library version if available, as it is more up to date.
 Fallback on backport otherwise.
 """
 
+import warnings
+warnings.warn("{} backport for Python 2 is deprecated in IPython 6, which only supports Python 3".format(__name__),
+    DeprecationWarning, stacklevel=2)
 
-try:
-    from inspect import BoundArguments, Parameter, Signature, signature
-except ImportError:
-    from ._signatures import  BoundArguments, Parameter, Signature, signature
+from inspect import BoundArguments, Parameter, Signature, signature

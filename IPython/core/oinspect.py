@@ -14,6 +14,7 @@ __all__ = ['Inspector','InspectColors']
 
 # stdlib modules
 import inspect
+from inspect import signature
 import linecache
 import warnings
 import os
@@ -39,7 +40,6 @@ from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace
 from IPython.utils.coloransi import TermColors, ColorScheme, ColorSchemeTable
 from IPython.utils.py3compat import cast_unicode, string_types, PY3
-from IPython.utils.signatures import signature
 from IPython.utils.colorable import Colorable
 
 from pygments import highlight
