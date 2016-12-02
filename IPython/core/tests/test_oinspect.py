@@ -18,7 +18,7 @@ from IPython.core.magic import (Magics, magics_class, line_magic,
                                 register_line_cell_magic)
 from decorator import decorator
 from IPython.testing.decorators import skipif
-from IPython.testing.tools import AssertPrints
+from IPython.testing.tools import AssertPrints, AssertNotPrints
 from IPython.utils.path import compress_user
 from IPython.utils import py3compat
 from IPython.utils.signatures import Signature, Parameter
@@ -406,12 +406,12 @@ def test_property_docstring_is_in_info_for_detail_level_0():
             pass
 
     ip.user_ns['a_obj'] = A()
-    nt.assert_equals(
+    nt.assert_equal(
         'This is `foobar` property.',
         ip.object_inspect('a_obj.foobar', detail_level=0)['docstring'])
 
     ip.user_ns['a_cls'] = A
-    nt.assert_equals(
+    nt.assert_equal(
         'This is `foobar` property.',
         ip.object_inspect('a_cls.foobar', detail_level=0)['docstring'])
 
@@ -427,6 +427,29 @@ def test_pinfo_nonascii():
     from . import nonascii2
     ip.user_ns['nonascii2'] = nonascii2
     ip._inspect('pinfo', 'nonascii2', detail_level=1)
+
+
+def test_pinfo_docstring_no_source():
+    """Docstring should be included with detail_level=1 if there is no source"""
+    with AssertPrints('Docstring:'):
+        ip._inspect('pinfo', 'str.format', detail_level=0)
+    with AssertPrints('Docstring:'):
+        ip._inspect('pinfo', 'str.format', detail_level=1)
+
+
+def test_pinfo_no_docstring_if_source():
+    """Docstring should not be included with detail_level=1 if source is found"""
+    def foo():
+        """foo has a docstring"""
+
+    ip.user_ns['foo'] = foo
+
+    with AssertPrints('Docstring:'):
+        ip._inspect('pinfo', 'foo', detail_level=0)
+    with AssertPrints('Source:'):
+        ip._inspect('pinfo', 'foo', detail_level=1)
+    with AssertNotPrints('Docstring:'):
+        ip._inspect('pinfo', 'foo', detail_level=1)
 
 
 def test_pinfo_magic():
