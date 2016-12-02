@@ -647,7 +647,7 @@ class Inspector(Colorable):
             # Functions, methods, classes
             append_field(_mime, 'Signature', 'definition', code_formatter)
             append_field(_mime, 'Init signature', 'init_definition', code_formatter)
-            if detail_level > 0:
+            if detail_level > 0 and info['source']:
                 append_field(_mime, 'Source', 'source', code_formatter)
             else:
                 append_field(_mime, 'Docstring', 'docstring', formatter)
