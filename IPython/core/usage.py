@@ -67,8 +67,8 @@ interactive_usage = """
 IPython -- An enhanced Interactive Python
 =========================================
 
-IPython offers fully compatible replacement for the standard Python
-interpreter with convenient shell features, special commands, command
+IPython offers a fully compatible replacement for the standard Python
+interpreter, with convenient shell features, special commands, command
 history mechanism and output results caching.
 
 At your system command line, type 'ipython -h' to see the command line
@@ -100,8 +100,8 @@ MAIN FEATURES
 
 * Dynamic object information:
 
-  Typing ?word or word? prints detailed information about an object.  Long
-  strings (docstrings, code, etc.) get snipped in the center for brevity.
+  Typing ?word or word? prints detailed information about an object. Certain
+  long strings (code, etc.) get snipped in the center for brevity.
 
   Typing ??word or word?? gives access to the full information without
   snipping long strings. Strings that are longer than the screen are printed
@@ -121,9 +121,8 @@ MAIN FEATURES
 
 * Search previous command history in multiple ways:
 
-  - Start typing, and then use Ctrl-p (previous, up) and Ctrl-n (next, down)
-    to search through the history items that match what you've typed so
-    far. At a blank prompt, Ctrl-p/Ctrl-n behave like normal arrow keys.
+  - Start typing, and then use arrow keys up/down or (Ctrl-p/Ctrl-n) to search
+    through the history items that match what you've typed so far.
 
   - Hit Ctrl-r: opens a search prompt. Begin typing and the system searches
     your history for lines that match what you've typed so far, completing as
