@@ -23,11 +23,11 @@ from IPython.utils.py3compat import (string_types, cast_bytes_py2, cast_unicode,
 from IPython.testing.skipdoctest import skip_doctest
 
 __all__ = ['display', 'display_pretty', 'display_html', 'display_markdown',
-'display_svg', 'display_png', 'display_jpeg', 'display_latex', 'display_json',
-'display_javascript', 'display_pdf', 'DisplayObject', 'TextDisplayObject',
-'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'JSON', 'Javascript',
-'Image', 'clear_output', 'set_matplotlib_formats', 'set_matplotlib_close',
-'publish_display_data', 'update_display', 'DisplayHandle']
+           'display_bmp','display_svg', 'display_png', 'display_jpeg', 'display_latex',
+           'display_json','display_javascript', 'display_pdf', 'DisplayObject',
+           'TextDisplayObject','Pretty', 'HTML', 'Markdown', 'Math', 'Latex',
+           'SVG', 'JSON', 'Javascript','Image', 'clear_output', 'set_matplotlib_formats',
+           'set_matplotlib_close', 'publish_display_data', 'update_display', 'DisplayHandle']
 
 #-----------------------------------------------------------------------------
 # utility functions
@@ -362,6 +362,22 @@ def display_png(*objs, **kwargs):
         Metadata to be associated with the specific mimetype output.
     """
     _display_mimetype('image/png', objs, **kwargs)
+
+
+def display_bmp(*objs, **kwargs):
+    """Display the BMP representation of an object.
+    Parameters
+    ----------
+    objs : tuple of objects
+        The Python objects to display, or if raw=True raw bmp data to
+        display.
+    raw : bool
+        Are the data objects raw data or Python objects that need to be
+        formatted before display? [default: False]
+    metadata : dict (optional)
+        Metadata to be associated with the specific mimetype output.
+    """
+    _display_mimetype('image/bmp', objs, **kwargs)
 
 
 def display_jpeg(*objs, **kwargs):
@@ -775,12 +791,14 @@ class Image(DisplayObject):
     _read_flags = 'rb'
     _FMT_JPEG = u'jpeg'
     _FMT_PNG = u'png'
-    _ACCEPTABLE_EMBEDDINGS = [_FMT_JPEG, _FMT_PNG]
+    _FMT_BMP = u'bmp'
+    
+    _ACCEPTABLE_EMBEDDINGS = [_FMT_JPEG, _FMT_PNG, _FMT_BMP]
 
     def __init__(self, data=None, url=None, filename=None, format=None,
                  embed=None, width=None, height=None, retina=False,
                  unconfined=False, metadata=None):
-        """Create a PNG/JPEG image object given raw data.
+        """Create a PNG/JPEG/BMP image object given raw data.
 
         When this object is returned by an input cell or passed to the
         display function, it will result in the image being displayed
@@ -798,7 +816,7 @@ class Image(DisplayObject):
             Path to a local file to load the data from.
             Images from a file are always embedded.
         format : unicode
-            The format of the image data (png/jpeg/jpg). If a filename or URL is given
+            The format of the image data (png/jpeg/jpg/bmp/bm). If a filename or URL is given
             for format will be inferred from the filename extension.
         embed : bool
             Should the image data be embedded using a data URI (True) or be
@@ -858,8 +876,10 @@ class Image(DisplayObject):
             if ext is not None:
                 if ext == u'jpg' or ext == u'jpeg':
                     format = self._FMT_JPEG
-                if ext == u'png':
+                elif ext == u'png':
                     format = self._FMT_PNG
+                elif ext == u'bmp' or ext == u'bm':
+                    format = self._FMT_BMP
                 else:
                     format = ext.lower()
             elif isinstance(data, bytes):
@@ -875,6 +895,9 @@ class Image(DisplayObject):
         if format.lower() == 'jpg':
             # jpg->jpeg
             format = self._FMT_JPEG
+        elif format.lower() == 'bm':
+            # bm->bmp
+            format = self._FMT_BMP
 
         self.format = unicode_type(format).lower()
         self.embed = embed if embed is not None else (url is None)
