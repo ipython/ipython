@@ -583,6 +583,7 @@ class Latex(TextDisplayObject):
 
 class SVG(DisplayObject):
 
+    _read_flags = 'rb'
     # wrap data in a property, which extracts the <svg> tag, discarding
     # document headers
     _data = None
