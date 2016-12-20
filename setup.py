@@ -205,6 +205,7 @@ install_requires = [
     'traitlets>=4.2',
     'prompt_toolkit>=1.0.3,<2.0.0',
     'pygments',
+    'pexpect'
 ]
 
 # Platform-specific dependencies:
