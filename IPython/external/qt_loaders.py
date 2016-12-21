@@ -179,8 +179,12 @@ def import_pyqt4(version=2):
     import sip
 
     if version is not None:
+        sip.setapi('QDate', version)
+        sip.setapi('QDateTime', version)
         sip.setapi('QString', version)
-        sip.setapi('QVariant', version)
+        sip.setapi('QTextStream', version)
+        sip.setapi('QTime', version)
+        sip.setapi('QUrl', version)
 
     from PyQt4 import QtGui, QtCore, QtSvg
 
