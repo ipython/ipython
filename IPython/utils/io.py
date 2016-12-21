@@ -207,7 +207,7 @@ def temp_pyfile(src, ext='.py'):
 
 def atomic_writing(*args, **kwargs):
     """DEPRECATED: moved to notebook.services.contents.fileio"""
-    warn("IPython.utils.io.atomic_writing has moved to notebook.services.contents.fileio")
+    warn("IPython.utils.io.atomic_writing has moved to notebook.services.contents.fileio", stacklevel=2)
     from notebook.services.contents.fileio import atomic_writing
     return atomic_writing(*args, **kwargs)
 
@@ -234,6 +234,6 @@ rprinte = raw_print_err
 
 def unicode_std_stream(stream='stdout'):
     """DEPRECATED, moved to nbconvert.utils.io"""
-    warn("IPython.utils.io.unicode_std_stream has moved to nbconvert.utils.io")
+    warn("IPython.utils.io.unicode_std_stream has moved to nbconvert.utils.io", stacklevel=2)
     from nbconvert.utils.io import unicode_std_stream
     return unicode_std_stream(stream)

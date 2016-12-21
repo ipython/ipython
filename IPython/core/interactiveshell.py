@@ -354,9 +354,10 @@ class InteractiveShell(SingletonConfigurable):
     @observe('prompt_in1', 'prompt_in2', 'prompt_out', 'prompt_pad_left')
     def _prompt_trait_changed(self, change):
         name = change['name']
-        warn("InteractiveShell.{name} is deprecated since IPython 4.0 and ignored since 5.0, set TerminalInteractiveShell.prompts object directly.".format(
-                name=name)
-        )
+        warn("InteractiveShell.{name} is deprecated since IPython 4.0"
+             " and ignored since 5.0, set TerminalInteractiveShell.prompts"
+             " object directly.".format(name=name))
+        
         # protect against weird cases where self.config may not exist:
 
     show_rewritten_input = Bool(True,
@@ -811,7 +812,7 @@ class InteractiveShell(SingletonConfigurable):
 
         if _warn_deprecated and (name in IPython.core.hooks.deprecated):
             alternative = IPython.core.hooks.deprecated[name]
-            warn("Hook {} is deprecated. Use {} instead.".format(name, alternative))
+            warn("Hook {} is deprecated. Use {} instead.".format(name, alternative), stacklevel=2)
 
         if not dp:
             dp = IPython.core.hooks.CommandChainDispatcher()
@@ -839,7 +840,7 @@ class InteractiveShell(SingletonConfigurable):
         Register a function for calling after code execution.
         """
         warn("ip.register_post_execute is deprecated, use "
-             "ip.events.register('post_run_cell', func) instead.")
+             "ip.events.register('post_run_cell', func) instead.", stacklevel=2)
         self.events.register('post_run_cell', func)
     
     def _clear_warning_registry(self):

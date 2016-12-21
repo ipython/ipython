@@ -54,7 +54,7 @@ else:
     from StringIO import StringIO
 
 #############################################################################
-### Python Source Parser (does Hilighting)
+### Python Source Parser (does Highlighting)
 #############################################################################
 
 _KEYWORD = token.NT_OFFSET + 1
