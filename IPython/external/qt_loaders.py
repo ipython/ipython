@@ -168,14 +168,21 @@ def import_pyqt4(version=2):
     Parameters
     ----------
     version : 1, 2, or None
-      Which QString/QVariant API to use. Set to None to use the system
-      default
+      Which QT API to use. Set to None to use the system default.
+      The following APIs will be set using SIP:
+
+          QDate
+          QDateTime
+          QString
+          QTextStream
+          QTime
+          QUrl
+          QVariant
 
     ImportErrors rasied within this function are non-recoverable
     """
     # The new-style string API (version=2) automatically
-    # converts QStrings to Unicode Python strings. Also, automatically unpacks
-    # QVariants to their underlying objects.
+    # converts QStrings to Unicode Python strings.
     import sip
 
     if version is not None:
@@ -185,6 +192,7 @@ def import_pyqt4(version=2):
         sip.setapi('QTextStream', version)
         sip.setapi('QTime', version)
         sip.setapi('QUrl', version)
+        sip.setapi('QVariant', version)
 
     from PyQt4 import QtGui, QtCore, QtSvg
 
