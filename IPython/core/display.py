@@ -816,7 +816,7 @@ class Image(DisplayObject):
             Path to a local file to load the data from.
             Images from a file are always embedded.
         format : unicode
-            The format of the image data (png/jpeg/jpg/bmp/bm). If a filename or URL is given
+            The format of the image data (png/jpeg/jpg/bmp). If a filename or URL is given
             for format will be inferred from the filename extension.
         embed : bool
             Should the image data be embedded using a data URI (True) or be
@@ -878,7 +878,7 @@ class Image(DisplayObject):
                     format = self._FMT_JPEG
                 elif ext == u'png':
                     format = self._FMT_PNG
-                elif ext == u'bmp' or ext == u'bm':
+                elif ext == u'bmp':
                     format = self._FMT_BMP
                 else:
                     format = ext.lower()
@@ -895,9 +895,6 @@ class Image(DisplayObject):
         if format.lower() == 'jpg':
             # jpg->jpeg
             format = self._FMT_JPEG
-        elif format.lower() == 'bm':
-            # bm->bmp
-            format = self._FMT_BMP
 
         self.format = unicode_type(format).lower()
         self.embed = embed if embed is not None else (url is None)
