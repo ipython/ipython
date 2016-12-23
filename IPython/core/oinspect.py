@@ -41,6 +41,7 @@ from IPython.utils.wildcard import list_namespace
 from IPython.utils.coloransi import TermColors, ColorScheme, ColorSchemeTable
 from IPython.utils.py3compat import cast_unicode, string_types, PY3
 from IPython.utils.colorable import Colorable
+from IPython.utils.decorators import undoc
 
 from pygments import highlight
 from pygments.lexers import PythonLexer
@@ -231,31 +232,12 @@ def format_argspec(argspec):
     return inspect.formatargspec(argspec['args'], argspec['varargs'],
                                  argspec['varkw'], argspec['defaults'])
 
-
+@undoc
 def call_tip(oinfo, format_call=True):
-    """Extract call tip data from an oinfo dict.
-
-    Parameters
-    ----------
-    oinfo : dict
-
-    format_call : bool, optional
-      If True, the call line is formatted and returned as a string.  If not, a
-      tuple of (name, argspec) is returned.
-
-    Returns
-    -------
-    call_info : None, str or (str, dict) tuple.
-      When format_call is True, the whole call information is formattted as a
-      single string.  Otherwise, the object's name and its argspec dict are
-      returned.  If no call information is available, None is returned.
-
-    docstring : str or None
-      The most relevant docstring for calling purposes is returned, if
-      available.  The priority is: call docstring for callable instances, then
-      constructor docstring for classes, then main object's docstring otherwise
-      (regular functions).
+    """DEPRECATED. Extract call tip data from an oinfo dict.
     """
+    warnings.warn('`call_tip` function is deprecated as of IPython 5.2 '
+                  'and will have no effects.', DeprecationWarning, stacklevel=2)
     # Get call definition
     argspec = oinfo.get('argspec')
     if argspec is None:
