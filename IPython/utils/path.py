@@ -87,7 +87,7 @@ def unquote_filename(name, win32=(sys.platform=='win32')):
 def compress_user(path):
     """Reverse of :func:`os.path.expanduser`
     """
-    path = py3compat.unicode_to_str(path, sys.getfilesystemencoding())
+    path = str(path)
     home = os.path.expanduser('~')
     if path.startswith(home):
         path =  "~" + path[len(home):]

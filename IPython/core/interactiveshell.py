@@ -2202,14 +2202,12 @@ class InteractiveShell(SingletonConfigurable):
             with AvoidUNCPath() as path:
                 if path is not None:
                     cmd = '"pushd %s &&"%s' % (path, cmd)
-                cmd = py3compat.unicode_to_str(cmd)
                 try:
                     ec = os.system(cmd)
                 except KeyboardInterrupt:
                     print('\n' + self.get_exception_only(), file=sys.stderr)
                     ec = -2
         else:
-            cmd = py3compat.unicode_to_str(cmd)
             # For posix the result of the subprocess.call() below is an exit
             # code, which by convention is zero for success, positive for
             # program failure.  Exit codes above 128 are reserved for signals,

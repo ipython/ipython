@@ -37,7 +37,7 @@ class Macro(object):
         self.value = code + '\n'
     
     def __str__(self):
-        return py3compat.unicode_to_str(self.value)
+        return self.value
     
     def __unicode__(self):
         return self.value
