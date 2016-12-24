@@ -121,7 +121,7 @@ def test_list_profiles_in():
     # No need to remove these directories and files, as they will get nuked in
     # the module-level teardown.
     td = tempfile.mkdtemp(dir=TMP_TEST_DIR)
-    td = py3compat.str_to_unicode(td)
+    td = str(td)
     for name in ('profile_foo', 'profile_hello', 'not_a_profile'):
         os.mkdir(os.path.join(td, name))
     if dec.unicode_paths:

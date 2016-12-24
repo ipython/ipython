@@ -19,7 +19,6 @@ import sys
 # Our own packages
 from IPython.core.magic import Magics, magics_class, line_magic
 from warnings import warn
-from IPython.utils.py3compat import str_to_unicode
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -138,7 +137,7 @@ class LoggingMagics(Magics):
                 for n in range(1,len(input_hist)-1):
                     log_write(input_hist[n].rstrip() + u'\n')
                     if n in output_hist:
-                        log_write(str_to_unicode(repr(output_hist[n])),'output')
+                        log_write(str(repr(output_hist[n])),'output')
             else:
                 logger.log_write(u'\n'.join(input_hist[1:]))
                 logger.log_write(u'\n')
