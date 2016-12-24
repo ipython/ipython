@@ -84,7 +84,7 @@ import re
 import datetime
 from collections import deque
 
-from IPython.utils.py3compat import PY3, PYPY, cast_unicode, string_types
+from IPython.utils.py3compat import PY3, PYPY, cast_unicode
 from IPython.utils.encoding import get_stream_enc
 
 from io import StringIO
@@ -679,13 +679,13 @@ def _type_pprint(obj, p, cycle):
     mod = _safe_getattr(obj, '__module__', None)
     try:
         name = obj.__qualname__
-        if not isinstance(name, string_types):
+        if not isinstance(name, str):
             # This can happen if the type implements __qualname__ as a property
             # or other descriptor in Python 2.
             raise Exception("Try __name__")
     except Exception:
         name = obj.__name__
-        if not isinstance(name, string_types):
+        if not isinstance(name, str):
             name = '<unknown type>'
 
     if mod in (None, '__builtin__', 'builtins', 'exceptions'):

@@ -217,7 +217,7 @@ def select_figure_formats(shell, formats, **kwargs):
     jpg_formatter = shell.display_formatter.formatters['image/jpeg']
     pdf_formatter = shell.display_formatter.formatters['application/pdf']
 
-    if isinstance(formats, py3compat.string_types):
+    if isinstance(formats, str):
         formats = {formats}
     # cast in case of list / tuple
     formats = set(formats)

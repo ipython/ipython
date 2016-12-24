@@ -35,7 +35,7 @@ from IPython.utils import generics
 from IPython.utils.decorators import undoc
 from IPython.utils.dir2 import dir2, get_real_method
 from IPython.utils.process import arg_split
-from IPython.utils.py3compat import builtin_mod, string_types, PY3, cast_unicode_py2
+from IPython.utils.py3compat import builtin_mod, PY3, cast_unicode_py2
 from traitlets import Bool, Enum, observe
 
 from functools import wraps
@@ -423,14 +423,14 @@ def get__all__entries(obj):
     except:
         return []
     
-    return [cast_unicode_py2(w) for w in words if isinstance(w, string_types)]
+    return [cast_unicode_py2(w) for w in words if isinstance(w, str)]
 
 
 def match_dict_keys(keys, prefix, delims):
     """Used by dict_key_matches, matching the prefix to a list of keys"""
     if not prefix:
         return None, 0, [repr(k) for k in keys
-                      if isinstance(k, (string_types, bytes))]
+                      if isinstance(k, (str, bytes))]
     quote_match = re.search('["\']', prefix)
     quote = quote_match.group()
     try:

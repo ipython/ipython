@@ -71,7 +71,7 @@ def process_handler(cmd, callback, stderr=subprocess.PIPE):
     # On win32, close_fds can't be true when using pipes for stdin/out/err
     close_fds = sys.platform != 'win32'
     # Determine if cmd should be run with system shell.
-    shell = isinstance(cmd, py3compat.string_types)
+    shell = isinstance(cmd, str)
     # On POSIX systems run shell commands with user-preferred shell.
     executable = None
     if shell and os.name == 'posix' and 'SHELL' in os.environ:

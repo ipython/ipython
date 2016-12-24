@@ -157,6 +157,6 @@ def test_bad_module_all():
         results = module_completion('from bad_all import ')
         nt.assert_in('puppies', results)
         for r in results:
-            nt.assert_is_instance(r, py3compat.string_types)
+            nt.assert_is_instance(r, str)
     finally:
         sys.path.remove(testsdir)

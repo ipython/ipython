@@ -18,7 +18,7 @@ from IPython.core import completer
 from IPython.external.decorators import knownfailureif
 from IPython.utils.tempdir import TemporaryDirectory, TemporaryWorkingDirectory
 from IPython.utils.generics import complete_object
-from IPython.utils.py3compat import string_types, unicode_type
+from IPython.utils.py3compat  import unicode_type
 from IPython.testing import decorators as dec
 
 #-----------------------------------------------------------------------------
@@ -129,7 +129,7 @@ def test_unicode_completions():
         # should be thrown and the return value should be a pair of text, list
         # values.
         text, matches = ip.complete(t)
-        nt.assert_true(isinstance(text, string_types))
+        nt.assert_true(isinstance(text, str))
         nt.assert_true(isinstance(matches, list))
 
 def test_latex_completions():

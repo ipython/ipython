@@ -72,7 +72,7 @@ class TerminalMagics(Magics):
         # Sanity checks
         if b is None:
             raise UsageError('No previous pasted block available')
-        if not isinstance(b, py3compat.string_types):
+        if not isinstance(b, str):
             raise UsageError(
                 "Variable 'pasted_block' is not a string, can't execute")
 

@@ -159,7 +159,7 @@ class SList(list):
             except IndexError:
                 return ""
 
-        if isinstance(pattern, py3compat.string_types):
+        if isinstance(pattern, str):
             pred = lambda x : re.search(pattern, x, re.IGNORECASE)
         else:
             pred = pattern
@@ -307,8 +307,10 @@ def list_strings(arg):
         Out[9]: ['A', 'list', 'of', 'strings']
     """
 
-    if isinstance(arg, py3compat.string_types): return [arg]
-    else: return arg
+    if isinstance(arg, str):
+        return [arg]
+    else:
+        return arg
 
 
 def marquee(txt='',width=78,mark='*'):

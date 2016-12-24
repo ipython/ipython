@@ -154,7 +154,7 @@ def filefind(filename, path_dirs=None):
 
     if path_dirs is None:
         path_dirs = ("",)
-    elif isinstance(path_dirs, py3compat.string_types):
+    elif isinstance(path_dirs, str):
         path_dirs = (path_dirs,)
 
     for path in path_dirs:

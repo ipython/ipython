@@ -29,7 +29,7 @@ from traitlets import (
     default, observe,
 )
 from IPython.utils.py3compat import (
-    with_metaclass, string_types, unicode_type,
+    with_metaclass, unicode_type,
 )
 
 
@@ -276,7 +276,7 @@ class BaseFormatter(Configurable):
     """
 
     format_type = Unicode('text/plain')
-    _return_type = string_types
+    _return_type = str
 
     enabled = Bool(True).tag(config=True)
 
@@ -376,7 +376,7 @@ class BaseFormatter(Configurable):
         ------
         KeyError if the type has not been registered.
         """
-        if isinstance(typ, string_types):
+        if isinstance(typ, str):
             typ_key = tuple(typ.rsplit('.',1))
             if typ_key not in self.deferred_printers:
                 # We may have it cached in the type map. We will have to
@@ -419,7 +419,7 @@ class BaseFormatter(Configurable):
             this will be the previous value (to enable restoring later).
         """
         # if string given, interpret as 'pkg.module.class_name'
-        if isinstance(typ, string_types):
+        if isinstance(typ, str):
             type_module, type_name = typ.rsplit('.', 1)
             return self.for_type_by_name(type_module, type_name, func)
         
@@ -491,7 +491,7 @@ class BaseFormatter(Configurable):
         KeyError if the type is not registered and default is not specified.
         """
         
-        if isinstance(typ, string_types):
+        if isinstance(typ, str):
             typ_key = tuple(typ.rsplit('.',1))
             if typ_key not in self.deferred_printers:
                 # We may have it cached in the type map. We will have to
@@ -804,7 +804,7 @@ class JSONFormatter(BaseFormatter):
             r, md = r
         
         # handle deprecated JSON-as-string form from IPython < 3
-        if isinstance(r, string_types):
+        if isinstance(r, str):
             warnings.warn("JSON expects JSONable list/dict containers, not JSON strings",
             FormatterWarning)
             r = json.loads(r)

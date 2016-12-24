@@ -18,7 +18,6 @@ import inspect, os, sys, textwrap
 from IPython.core.error import UsageError
 from IPython.core.magic import Magics, magics_class, line_magic
 from traitlets import Bool
-from IPython.utils.py3compat import string_types
 
 
 def restore_aliases(ip):
@@ -178,7 +177,7 @@ class StoreMagics(Magics):
                   obj.__class__.__name__, fnam))
 
 
-                if not isinstance (obj, string_types):
+                if not isinstance (obj, str):
                     from pprint import pprint
                     pprint(obj, fil)
                 else:

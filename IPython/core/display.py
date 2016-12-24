@@ -18,8 +18,7 @@ import struct
 import sys
 import warnings
 
-from IPython.utils.py3compat import (string_types, cast_bytes_py2, cast_unicode,
-                                     unicode_type)
+from IPython.utils.py3compat import cast_bytes_py2, cast_unicode, unicode_type
 from IPython.testing.skipdoctest import skip_doctest
 
 __all__ = ['display', 'display_pretty', 'display_html', 'display_markdown',
@@ -481,7 +480,7 @@ class DisplayObject(object):
         filename : unicode
             Path to a local file to load the data from.
         """
-        if data is not None and isinstance(data, string_types):
+        if data is not None and isinstance(data, str):
             if data.startswith('http') and url is None:
                 url = data
                 filename = None
@@ -539,7 +538,7 @@ class DisplayObject(object):
 class TextDisplayObject(DisplayObject):
     """Validate that display data is text"""
     def _check_data(self):
-        if self.data is not None and not isinstance(self.data, string_types):
+        if self.data is not None and not isinstance(self.data, str):
             raise TypeError("%s expects text, not %r" % (self.__class__.__name__, self.data))
 
 class Pretty(TextDisplayObject):
@@ -657,7 +656,7 @@ class JSON(DisplayObject):
 
     @data.setter
     def data(self, data):
-        if isinstance(data, string_types):
+        if isinstance(data, str):
             warnings.warn("JSON expects JSONable dict or list, not JSON strings")
             data = json.loads(data)
         self._data = data
@@ -715,11 +714,11 @@ class Javascript(TextDisplayObject):
             The full URLs of the css files should be given. A single css URL
             can also be given as a string.
         """
-        if isinstance(lib, string_types):
+        if isinstance(lib, str):
             lib = [lib]
         elif lib is None:
             lib = []
-        if isinstance(css, string_types):
+        if isinstance(css, str):
             css = [css]
         elif css is None:
             css = []
@@ -848,7 +847,7 @@ class Image(DisplayObject):
             ext = self._find_ext(url)
         elif data is None:
             raise ValueError("No image data found. Expecting filename, url, or data.")
-        elif isinstance(data, string_types) and (
+        elif isinstance(data, str) and (
             data.startswith('http') or _safe_exists(data)
         ):
             ext = self._find_ext(data)
@@ -999,7 +998,7 @@ class Video(DisplayObject):
         Video('path/to/video.mp4', embed=True)
         Video(b'raw-videodata', embed=True)
         """
-        if url is None and isinstance(data, string_types) and data.startswith(('http:', 'https:')):
+        if url is None and isinstance(data, str) and data.startswith(('http:', 'https:')):
             url = data
             data = None
         elif os.path.exists(data):
