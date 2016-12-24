@@ -619,10 +619,10 @@ def _col_chunks(l, max_rows, row_first=False):
     """Yield successive max_rows-sized column chunks from l."""
     if row_first:
         ncols = (len(l) // max_rows) + (len(l) % max_rows > 0)
-        for i in py3compat.xrange(ncols):
-            yield [l[j] for j in py3compat.xrange(i, len(l), ncols)]
+        for i in range(ncols):
+            yield [l[j] for j in range(i, len(l), ncols)]
     else:
-        for i in py3compat.xrange(0, len(l), max_rows):
+        for i in range(0, len(l), max_rows):
             yield l[i:(i + max_rows)]
 
 

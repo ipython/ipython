@@ -16,8 +16,6 @@ Utilities for timing code execution.
 
 import time
 
-from .py3compat import xrange
-
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
@@ -89,7 +87,7 @@ def timings_out(reps,func,*args,**kw):
         out = func(*args,**kw)
         tot_time = clock()-start
     else:
-        rng = xrange(reps-1) # the last time is executed separately to store output
+        rng = range(reps-1) # the last time is executed separately to store output
         start = clock()
         for dummy in rng: func(*args,**kw)
         out = func(*args,**kw)  # one last time

@@ -771,7 +771,6 @@ except AttributeError: # Python 3
     _type_pprinters[slice] = _repr_pprint
     
 try:
-    _type_pprinters[xrange] = _repr_pprint
     _type_pprinters[long] = _repr_pprint
     _type_pprinters[unicode] = _repr_pprint
 except NameError:
