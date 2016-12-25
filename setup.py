@@ -212,20 +212,15 @@ install_requires = [
 # but requires pip >= 6. pip < 6 ignores these.
 
 extras_require.update({
-    ':python_version == "2.7"': ['backports.shutil_get_terminal_size'],
-    ':python_version == "2.7" or python_version == "3.3"': ['pathlib2'],
+    ':python_version == "3.3"': ['pathlib2'],
     ':sys_platform != "win32"': ['pexpect'],
     ':sys_platform == "darwin"': ['appnope'],
     ':sys_platform == "win32"': ['colorama'],
     ':sys_platform == "win32" and python_version < "3.6"': ['win_unicode_console>=0.5'],
-    'test:python_version == "2.7"': ['mock'],
 })
 # FIXME: re-specify above platform dependencies for pip < 6
 # These would result in non-portable bdists.
 if not any(arg.startswith('bdist') for arg in sys.argv):
-    if sys.version_info < (3, 3):
-        extras_require['test'].append('mock')
-
     if sys.platform == 'darwin':
         install_requires.extend(['appnope'])
 
