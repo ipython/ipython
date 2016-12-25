@@ -206,68 +206,9 @@ class SerialLiar(object):
     def __getattr__(self, item):
         return SerialLiar(self.max_fibbing_twig, self.lies_told + 1)
 
-
-def check_calltip(obj, name, call, docstring):
-    """Generic check pattern all calltip tests will use"""
-    info = inspector.info(obj, name)
-    call_line, ds = oinspect.call_tip(info)
-    nt.assert_equal(call_line, call)
-    nt.assert_equal(ds, docstring)
-
 #-----------------------------------------------------------------------------
 # Tests
 #-----------------------------------------------------------------------------
-
-def test_calltip_class():
-    check_calltip(Call, 'Call', 'Call(x, y=1)', Call.__init__.__doc__)
-
-
-def test_calltip_instance():
-    c = Call(1)
-    check_calltip(c, 'c', 'c(*a, **kw)', c.__call__.__doc__)
-
-
-def test_calltip_method():
-    c = Call(1)
-    check_calltip(c.method, 'c.method', 'c.method(x, z=2)', c.method.__doc__)
-
-
-def test_calltip_function():
-    check_calltip(f, 'f', 'f(x, y=2, *a, **kw)', f.__doc__)
-
-
-def test_calltip_function2():
-    check_calltip(g, 'g', 'g(y, z=3, *a, **kw)', '<no docstring>')
-
-
-@skipif(sys.version_info >= (3, 5))
-def test_calltip_builtin():
-    check_calltip(sum, 'sum', None, sum.__doc__)
-
-
-def test_calltip_line_magic():
-    check_calltip(lmagic, 'lmagic', 'lmagic(line)', "A line magic")
-
-        
-def test_calltip_cell_magic():
-    check_calltip(cmagic, 'cmagic', 'cmagic(line, cell)', "A cell magic")
-
-        
-def test_calltip_line_cell_magic():
-    check_calltip(lcmagic, 'lcmagic', 'lcmagic(line, cell=None)', 
-                  "A line/cell magic")
-        
-
-def test_class_magics():
-    cm = SimpleMagics(ip)
-    ip.register_magics(cm)
-    check_calltip(cm.Clmagic, 'Clmagic', 'Clmagic(cline)',
-                  "A class-based line magic")
-    check_calltip(cm.Ccmagic, 'Ccmagic', 'Ccmagic(cline, ccell)',
-                  "A class-based cell magic")
-    check_calltip(cm.Clcmagic, 'Clcmagic', 'Clcmagic(cline, ccell=None)',
-                  "A class-based line/cell magic")
-    
 
 def test_info():
     "Check that Inspector.info fills out various fields as expected."
