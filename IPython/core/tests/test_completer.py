@@ -18,7 +18,6 @@ from IPython.core import completer
 from IPython.external.decorators import knownfailureif
 from IPython.utils.tempdir import TemporaryDirectory, TemporaryWorkingDirectory
 from IPython.utils.generics import complete_object
-from IPython.utils.py3compat  import unicode_type
 from IPython.testing import decorators as dec
 
 #-----------------------------------------------------------------------------
@@ -102,7 +101,7 @@ def test_line_split():
     check_line_split(sp, t)
     # Ensure splitting works OK with unicode by re-running the tests with
     # all inputs turned into unicode
-    check_line_split(sp, [ map(unicode_type, p) for p in t] )
+    check_line_split(sp, [ map(str, p) for p in t] )
 
 
 def test_custom_completion_error():
@@ -123,7 +122,7 @@ def test_unicode_completions():
     # Some strings that trigger different types of completion.  Check them both
     # in str and unicode forms
     s = ['ru', '%ru', 'cd /', 'floa', 'float(x)/']
-    for t in s + list(map(unicode_type, s)):
+    for t in s + list(map(str, s)):
         # We don't need to check exact completion values (they may change
         # depending on the state of the namespace, but at least no exceptions
         # should be thrown and the return value should be a pair of text, list

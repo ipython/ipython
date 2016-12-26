@@ -67,7 +67,7 @@ from IPython.utils.ipstruct import Struct
 from IPython.paths import get_ipython_dir
 from IPython.utils.path import get_home_dir, get_py_filename, ensure_dir_exists
 from IPython.utils.process import system, getoutput
-from IPython.utils.py3compat import builtin_mod, unicode_type, with_metaclass
+from IPython.utils.py3compat import builtin_mod, with_metaclass
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import format_screen, LSString, SList, DollarFormatter
@@ -2340,7 +2340,7 @@ class InteractiveShell(SingletonConfigurable):
         exc_info = {
             u'status' : 'error',
             u'traceback' : stb,
-            u'ename' : unicode_type(etype.__name__),
+            u'ename' : etype.__name__,
             u'evalue' : py3compat.safe_unicode(evalue),
         }
 

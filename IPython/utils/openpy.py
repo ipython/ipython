@@ -10,7 +10,6 @@ from io import TextIOWrapper, BytesIO
 import os.path
 import re
 
-from .py3compat import unicode_type
 
 cookie_re = re.compile(r"coding[:=]\s*([-\w.]+)", re.UNICODE)
 cookie_comment_re = re.compile(r"^\s*#.*coding[:=]\s*([-\w.]+)", re.UNICODE)
@@ -129,7 +128,7 @@ def source_to_unicode(txt, errors='replace', skip_encoding_cookie=True):
     txt can be either a bytes buffer or a string containing the source
     code.
     """
-    if isinstance(txt, unicode_type):
+    if isinstance(txt, str):
         return txt
     if isinstance(txt, bytes):
         buffer = BytesIO(txt)

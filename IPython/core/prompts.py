@@ -20,7 +20,7 @@ class LazyEvaluate(object):
         return str(self())
 
     def __unicode__(self):
-        return py3compat.unicode_type(self())
+        return self.__str__()
 
     def __format__(self, format_spec):
         return format(self(), format_spec)

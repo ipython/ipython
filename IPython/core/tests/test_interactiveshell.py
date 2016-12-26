@@ -32,7 +32,7 @@ from IPython.testing.decorators import (
 from IPython.testing import tools as tt
 from IPython.utils.process import find_cmd
 from IPython.utils import py3compat
-from IPython.utils.py3compat import unicode_type, PY3
+from IPython.utils.py3compat import PY3
 
 if PY3:
     from io import StringIO
@@ -473,7 +473,7 @@ class InteractiveShellTestCase(unittest.TestCase):
     def test_inspect_text(self):
         ip.run_cell('a = 5')
         text = ip.object_inspect_text('a')
-        self.assertIsInstance(text, unicode_type)
+        self.assertIsInstance(text, str)
 
 
 class TestSafeExecfileNonAsciiPath(unittest.TestCase):

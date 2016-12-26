@@ -18,7 +18,7 @@ import struct
 import sys
 import warnings
 
-from IPython.utils.py3compat import cast_bytes_py2, cast_unicode, unicode_type
+from IPython.utils.py3compat import cast_bytes_py2, cast_unicode
 from IPython.testing.skipdoctest import skip_doctest
 
 __all__ = ['display', 'display_pretty', 'display_html', 'display_markdown',
@@ -492,7 +492,7 @@ class DisplayObject(object):
 
         self.data = data
         self.url = url
-        self.filename = None if filename is None else unicode_type(filename)
+        self.filename = filename
 
         self.reload()
         self._check_data()
@@ -876,7 +876,7 @@ class Image(DisplayObject):
             # jpg->jpeg
             format = self._FMT_JPEG
 
-        self.format = unicode_type(format).lower()
+        self.format = format.lower()
         self.embed = embed if embed is not None else (url is None)
 
         if self.embed and self.format not in self._ACCEPTABLE_EMBEDDINGS:
@@ -953,7 +953,7 @@ class Image(DisplayObject):
             return self._data_and_metadata()
 
     def _find_ext(self, s):
-        return unicode_type(s.split('.')[-1].lower())
+        return s.split('.')[-1].lower()
 
 class Video(DisplayObject):
 
@@ -1037,7 +1037,7 @@ class Video(DisplayObject):
                 video = f.read()
         else:
             video = self.data
-        if isinstance(video, unicode_type):
+        if isinstance(video, str):
             # unicode input is already b64-encoded
             b64_video = video
         else:

@@ -5,7 +5,6 @@ import unittest
 
 from IPython.core.prompts import  LazyEvaluate
 from IPython.testing.globalipapp import get_ipython
-from IPython.utils.py3compat import unicode_type
 
 ip = get_ipython()
 
@@ -14,8 +13,7 @@ class PromptTests(unittest.TestCase):
     def test_lazy_eval_unicode(self):
         u = u'ünicødé'
         lz = LazyEvaluate(lambda : u)
-        # str(lz) would fail
-        self.assertEqual(unicode_type(lz), u)
+        self.assertEqual(str(lz), u)
         self.assertEqual(format(lz), u)
     
     def test_lazy_eval_nonascii_bytes(self):
@@ -31,7 +29,6 @@ class PromptTests(unittest.TestCase):
         lz = LazyEvaluate(lambda : f)
         
         self.assertEqual(str(lz), str(f))
-        self.assertEqual(unicode_type(lz), unicode_type(f))
         self.assertEqual(format(lz), str(f))
         self.assertEqual(format(lz, '.1'), '0.5')
 

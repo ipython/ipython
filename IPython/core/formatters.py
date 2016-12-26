@@ -29,7 +29,7 @@ from traitlets import (
     default, observe,
 )
 from IPython.utils.py3compat import (
-    with_metaclass, unicode_type,
+    with_metaclass
 )
 
 
@@ -737,7 +737,7 @@ class PNGFormatter(BaseFormatter):
 
     print_method = ObjectName('_repr_png_')
     
-    _return_type = (bytes, unicode_type)
+    _return_type = (bytes, str)
 
 
 class JPEGFormatter(BaseFormatter):
@@ -755,7 +755,7 @@ class JPEGFormatter(BaseFormatter):
 
     print_method = ObjectName('_repr_jpeg_')
 
-    _return_type = (bytes, unicode_type)
+    _return_type = (bytes, str)
 
 
 class LatexFormatter(BaseFormatter):
@@ -846,7 +846,7 @@ class PDFFormatter(BaseFormatter):
 
     print_method = ObjectName('_repr_pdf_')
 
-    _return_type = (bytes, unicode_type)
+    _return_type = (bytes, str)
 
 class IPythonDisplayFormatter(BaseFormatter):
     """A Formatter for objects that know how to display themselves.

@@ -35,7 +35,6 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.openpy import source_to_unicode
 from IPython.utils.process import abbrev_cwd
 from IPython.utils import py3compat
-from IPython.utils.py3compat import unicode_type
 from IPython.utils.terminal import set_term_title
 
 #-----------------------------------------------------------------------------
@@ -764,7 +763,7 @@ class OSMagics(Magics):
              'The file will be created if it does not exist.'
     )
     @magic_arguments.argument(
-        'filename', type=unicode_type,
+        'filename', type=str,
         help='file to write'
     )
     @cell_magic

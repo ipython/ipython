@@ -12,7 +12,6 @@ from IPython.core.magic import Magics, magics_class, line_magic, magic_escapes
 from IPython.utils.text import format_screen, dedent, indent
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.ipstruct import Struct
-from IPython.utils.py3compat import unicode_type
 from warnings import warn
 from logging import error
 
@@ -550,7 +549,7 @@ Currently the magic system has the following functions:""",
         help=argparse.SUPPRESS
     )
     @magic_arguments.argument(
-        'filename', type=unicode_type,
+        'filename', type=str,
         help='Notebook name or filename'
     )
     @line_magic
