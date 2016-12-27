@@ -187,7 +187,7 @@ class ProfileDir(LoggingConfigurable):
         is not found, a :class:`ProfileDirError` exception will be raised.
 
         The search path algorithm is:
-        1. ``py3compat.getcwd()``
+        1. ``os.getcwd()``
         2. ``ipython_dir``
 
         Parameters
@@ -199,7 +199,7 @@ class ProfileDir(LoggingConfigurable):
             will be "profile_<profile>".
         """
         dirname = u'profile_' + name
-        paths = [py3compat.getcwd(), ipython_dir]
+        paths = [os.getcwd(), ipython_dir]
         for p in paths:
             profile_dir = os.path.join(p, dirname)
             if os.path.isdir(profile_dir):

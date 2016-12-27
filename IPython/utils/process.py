@@ -52,7 +52,7 @@ def find_cmd(cmd):
 
 def abbrev_cwd():
     """ Return abbreviated version of cwd, e.g. d:mydir """
-    cwd = py3compat.getcwd().replace('\\','/')
+    cwd = os.getcwd().replace('\\','/')
     drivepart = ''
     tail = cwd
     if sys.platform == 'win32':

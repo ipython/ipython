@@ -41,7 +41,7 @@ class Test_magic_run_completer(unittest.TestCase):
         for d in self.dirs:
             os.mkdir(join(self.BASETESTDIR, d))
 
-        self.oldpath = py3compat.getcwd()
+        self.oldpath = os.getcwd()
         os.chdir(self.BASETESTDIR)
 
     def tearDown(self):
@@ -94,7 +94,7 @@ class Test_magic_run_completer_nonascii(unittest.TestCase):
         for fil in [u"aaø.py", u"a.py", u"b.py"]:
             with open(join(self.BASETESTDIR, fil), "w") as sfile:
                 sfile.write("pass\n")
-        self.oldpath = py3compat.getcwd()
+        self.oldpath = os.getcwd()
         os.chdir(self.BASETESTDIR)
 
     def tearDown(self):
