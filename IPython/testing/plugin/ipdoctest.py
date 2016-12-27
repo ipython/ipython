@@ -45,7 +45,7 @@ from nose.plugins import doctests, Plugin
 from nose.util import anyp, tolist
 
 # Our own imports
-from IPython.utils.py3compat import builtin_mod, PY3, getcwd
+from IPython.utils.py3compat import builtin_mod, PY3
 
 if PY3:
     from io import StringIO
@@ -259,7 +259,7 @@ class DocTestCase(doctests.DocTestCase):
             # Save our current directory and switch out to the one where the
             # test was originally created, in case another doctest did a
             # directory change.  We'll restore this in the finally clause.
-            curdir = getcwd()
+            curdir = os.getcwd()
             #print 'runTest in dir:', self._ori_dir  # dbg
             os.chdir(self._ori_dir)
 
