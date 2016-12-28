@@ -1182,11 +1182,19 @@ python-profiler package from non-free.""")
         wall_st = wtime()
         if mode=='eval':
             st = clock2()
-            out = eval(code, glob, local_ns)
+            try:
+                out = eval(code, glob, local_ns)
+            except:
+                self.shell.showtraceback()
+                return
             end = clock2()
         else:
             st = clock2()
-            exec(code, glob, local_ns)
+            try:
+                exec(code, glob, local_ns)
+            except:
+                self.shell.showtraceback()
+                return
             end = clock2()
             out = None
         wall_end = wtime()
