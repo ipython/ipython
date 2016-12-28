@@ -237,7 +237,7 @@ def call_tip(oinfo, format_call=True):
     """DEPRECATED. Extract call tip data from an oinfo dict.
     """
     warnings.warn('`call_tip` function is deprecated as of IPython 6.0'
-                  'and will remove in future versions.', DeprecationWarning, stacklevel=2)
+                  'and will be removed in future versions.', DeprecationWarning, stacklevel=2)
     # Get call definition
     argspec = oinfo.get('argspec')
     if argspec is None:
