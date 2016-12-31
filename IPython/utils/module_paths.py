@@ -25,25 +25,16 @@ path to module and not an open file object as well.
 #-----------------------------------------------------------------------------
 
 # Stdlib imports
-import imp
 import os
-
-# Third-party imports
-
-# Our own imports
-
-
-#-----------------------------------------------------------------------------
-# Globals and constants
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Local utilities
-#-----------------------------------------------------------------------------
+import sys
+import warnings
 
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
+
+
+
 def find_module(name, path=None):
     """imp.find_module variant that only return path of module.
     
@@ -56,6 +47,7 @@ def find_module(name, path=None):
         name of module to locate
     path : list of str
         list of paths to search for `name`. If path=None then search sys.path
+        *Deprecated on python 3.4 and above* 
 
     Returns
     -------
@@ -63,20 +55,42 @@ def find_module(name, path=None):
         Return full path of module or None if module is missing or does not have
         .py or .pyw extension
     """
-    if name is None:
-        return None
-    try:
-        file, filename, _ = imp.find_module(name, path)
-    except ImportError:
-        return None
-    if file is None:
-        return filename
-    else:
-        file.close()
-    if os.path.splitext(filename)[1] in [".py", ".pyc"]:
-        return filename
-    else:
-        return None
+    return _find_module(name, path)
+
+
+if sys.version_info >= (3,4):
+    import importlib.util
+    def _find_module(name, path):
+        if path is not None:
+            warnings.warn( "`path=` argument deprecated and ignored on python 3.4 and above", DeprecationWarning, stacklevel=2)
+        if name is None:
+            return None
+        spec = importlib.util.find_spec(name)
+        if not spec:
+            return None
+        orig = spec.origin
+        if orig.endswith('/__init__.py'):
+            return os.path.dirname(orig)
+        return orig
+
+else :
+    import imp
+
+    def _find_module(name, path):
+        if name is None:
+            return None
+        try:
+            file, filename, _ = imp.find_module(name, path)
+        except ImportError:
+            return None
+        if file is None:
+            return filename
+        else:
+            file.close()
+        if os.path.splitext(filename)[1] in [".py", ".pyc"]:
+            return filename
+        else:
+            return None
 
 def get_init(dirname):
     """Get __init__ file path for module directory
@@ -115,10 +129,25 @@ def find_mod(module_name):
     modulepath : str
         Path to module `module_name`.
     """
-    parts = module_name.split(".")
-    basepath = find_module(parts[0])
-    for submodname in parts[1:]:
-        basepath = find_module(submodname, [basepath])
-    if basepath and os.path.isdir(basepath):
-        basepath = get_init(basepath)
-    return basepath
+    return _find_mod(module_name)
+
+if sys.version_info >= (3,4):
+
+    def _find_mod(module_name):
+        spec = importlib.util.find_spec(module_name)
+        if not spec: 
+            return None
+        basepath = spec.origin
+        if basepath and os.path.isdir(basepath):
+            basepath = get_init(basepath)
+        return basepath
+else :
+
+    def _find_mod(module_name):
+        parts = module_name.split(".")
+        basepath = find_module(parts[0])
+        for submodname in parts[1:]:
+            basepath = find_module(submodname, [basepath])
+        if basepath and os.path.isdir(basepath):
+            basepath = get_init(basepath)
+        return basepath

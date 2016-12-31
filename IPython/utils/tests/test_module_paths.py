@@ -21,6 +21,7 @@ import tempfile
 from os.path import join, abspath, split
 
 from IPython.testing.tools import make_tempfile
+import IPython.testing.decorators as dec
 
 import IPython.utils.module_paths as mp
 
@@ -111,6 +112,7 @@ def test_find_module_1():
     modpath = join(TMP_TEST_DIR, "xmod")
     nt.assert_equal(mp.find_module("xmod"), modpath)
 
+@dec.skipif(sys.version_info >= (3,4))
 def test_find_module_2():
     """Testing sys.path that is empty"""
     nt.assert_is_none(mp.find_module("xmod", []))
