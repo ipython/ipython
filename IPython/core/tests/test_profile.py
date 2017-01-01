@@ -155,10 +155,11 @@ def test_list_bundled_profiles():
 def test_profile_create_ipython_dir():
     """ipython profile create respects --ipython-dir"""
     with TemporaryDirectory() as td:
-        getoutput([sys.executable, '-m', 'IPython', 'profile', 'create',
-             'foo', '--ipython-dir=%s' % td])
+        import time
+        val =  getoutput([sys.executable, '-m', 'IPython', 'profile', 'create',
+             'foo', '--ipython-dir=%s' % td ,'--debug'])
         profile_dir = os.path.join(td, 'profile_foo')
-        assert os.path.exists(profile_dir)
+        nt.assert_true(os.path.exists(profile_dir))
+        #time.sleep(5)
+        raise ValueError(val)
         ipython_config = os.path.join(profile_dir, 'ipython_config.py')
-        assert os.path.exists(ipython_config)
-        
