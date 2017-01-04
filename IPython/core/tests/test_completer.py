@@ -145,8 +145,8 @@ def test_latex_completions():
         nt.assert_equal(matches[0], latex_symbols[k])
     # Test a more complex line
     text, matches = ip.complete(u'print(\\alpha')
-    nt.assert_equals(text, u'\\alpha')
-    nt.assert_equals(matches[0], latex_symbols['\\alpha'])
+    nt.assert_equal(text, u'\\alpha')
+    nt.assert_equal(matches[0], latex_symbols['\\alpha'])
     # Test multiple matching latex symbols
     text, matches = ip.complete(u'\\al')
     nt.assert_in('\\alpha', matches)
