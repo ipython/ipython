@@ -22,14 +22,8 @@ import os
 import re
 import sys
 from importlib import import_module
+from importlib.machinery import all_suffixes
 
-try:
-    # Python >= 3.3
-    from importlib.machinery import all_suffixes
-    _suffixes = all_suffixes()
-except ImportError:
-    from imp import get_suffixes
-    _suffixes = [ s[0] for s in get_suffixes() ]
 
 # Third-party imports
 from time import time
@@ -47,6 +41,7 @@ from IPython import get_ipython
 #-----------------------------------------------------------------------------
 # Globals and constants
 #-----------------------------------------------------------------------------
+_suffixes = all_suffixes()
 
 # Time in seconds after which the rootmodules will be stored permanently in the
 # ipython ip.db database (kept in the user's .ipython dir).
