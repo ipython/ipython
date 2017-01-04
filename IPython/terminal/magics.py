@@ -26,7 +26,7 @@ def get_pasted_lines(sentinel, l_input=py3compat.input, quiet=False):
         prompt = ""
     while True:
         try:
-            l = str(l_input(prompt))
+            l = l_input(prompt)
             if l == sentinel:
                 return
             else:
