@@ -9,17 +9,13 @@ import os
 import tempfile
 import shutil
 import subprocess
+from base64 import encodebytes
 
 from IPython.utils.process import find_cmd, FindCmdError
 from traitlets.config import get_config
 from traitlets.config.configurable import SingletonConfigurable
 from traitlets import List, Bool, Unicode
 from IPython.utils.py3compat import cast_unicode, cast_unicode_py2 as u, PY3
-
-try: # Py3
-    from base64 import encodebytes
-except ImportError: # Py2
-    from base64 import encodestring as encodebytes
 
 
 class LaTeXTool(SingletonConfigurable):
