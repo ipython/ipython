@@ -7,11 +7,7 @@ import os.path
 from textwrap import dedent
 import traceback
 import unittest
-
-try:
-    from unittest import mock
-except ImportError:
-    import mock    # Python 2
+from unittest import mock
 
 from ..ultratb import ColorTB, VerboseTB, find_recursion
 

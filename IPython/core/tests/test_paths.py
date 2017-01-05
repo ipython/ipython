@@ -4,11 +4,7 @@ import shutil
 import sys
 import tempfile
 import warnings
-
-try:                    # Python 3
-    from unittest.mock import patch
-except ImportError:     # Python 2
-    from mock import patch
+from unittest.mock import patch
 
 import nose.tools as nt
 from testpath import modified_env, assert_isdir, assert_isfile
