@@ -1,10 +1,6 @@
 """Test installing editor hooks"""
 import sys
-
-try:
-    import mock
-except ImportError:
-    from unittest import mock
+from unittest import mock
 
 import nose.tools as nt
 
