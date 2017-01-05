@@ -21,11 +21,7 @@ import os
 from textwrap import dedent
 import types
 import io as stdlib_io
-
-try:
-    from itertools import izip_longest
-except ImportError:
-    from itertools import zip_longest as izip_longest
+from itertools import zip_longest 
 
 # IPython's own
 from IPython.core import page
@@ -84,7 +80,7 @@ info_fields = ['type_name', 'base_class', 'string_form', 'namespace',
 
 def object_info(**kw):
     """Make an object info dict with all fields present."""
-    infodict = dict(izip_longest(info_fields, [None]))
+    infodict = dict(zip_longest(info_fields, [None]))
     infodict.update(kw)
     return infodict
 
