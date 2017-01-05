@@ -51,13 +51,10 @@ def tkinter_clipboard_get():
     implementation that uses that toolkit.
     """
     try:
-        from tkinter import Tk, TclError  # Py 3
+        from tkinter import Tk, TclError 
     except ImportError:
-        try:
-            from Tkinter import Tk, TclError  # Py 2
-        except ImportError:
-            raise TryNext("Getting text from the clipboard on this platform "
-                          "requires Tkinter.")
+        raise TryNext("Getting text from the clipboard on this platform requires tkinter.")
+        
     root = Tk()
     root.withdraw()
     try:
