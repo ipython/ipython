@@ -8,10 +8,8 @@ In [5]: %gui tk
 In [6]: %run gui-tk.py
 """
 
-try:
-    from tkinter import *  # Python 3
-except ImportError:
-    from Tkinter import *  # Python 2
+from tkinter import * 
+
 
 class MyApp:
 
