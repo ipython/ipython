@@ -137,7 +137,7 @@ class LoggingMagics(Magics):
                 for n in range(1,len(input_hist)-1):
                     log_write(input_hist[n].rstrip() + u'\n')
                     if n in output_hist:
-                        log_write(str(repr(output_hist[n])),'output')
+                        log_write(repr(output_hist[n]),'output')
             else:
                 logger.log_write(u'\n'.join(input_hist[1:]))
                 logger.log_write(u'\n')
