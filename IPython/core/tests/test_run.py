@@ -20,11 +20,7 @@ import random
 import sys
 import textwrap
 import unittest
-
-try:
-    from unittest.mock import patch
-except ImportError:
-    from mock import patch
+from unittest.mock import patch
 
 import nose.tools as nt
 from nose import SkipTest

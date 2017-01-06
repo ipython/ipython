@@ -16,10 +16,8 @@ import shutil
 import sys
 import tempfile
 import unittest
-try:
-    from unittest import mock
-except ImportError:
-    import mock
+from unittest import mock
+
 from os.path import join
 
 import nose.tools as nt

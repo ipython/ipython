@@ -3,12 +3,7 @@
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-
-try:
-    from unittest.mock import patch
-except ImportError:
-    from mock import patch
-
+from unittest.mock import patch
 import nose.tools as nt
 
 from IPython.lib import latextools

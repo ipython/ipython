@@ -11,18 +11,11 @@ import sys
 import tempfile
 import warnings
 from contextlib import contextmanager
-
-try:  # Python 3.3+
-    from unittest.mock import patch
-except ImportError:
-    from mock import patch
-
+from unittest.mock import patch
 from os.path import join, abspath, split
 
-from nose import SkipTest
+from nose import SkipTest, with_setup
 import nose.tools as nt
-
-from nose import with_setup
 
 import IPython
 from IPython import paths

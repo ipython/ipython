@@ -1,8 +1,5 @@
 import unittest
-try:  # Python 3.3 +
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock
+from unittest.mock import Mock
 
 from IPython.core import events
 import IPython.testing.tools as tt
