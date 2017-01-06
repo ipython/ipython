@@ -28,9 +28,6 @@ from traitlets import (
     ForwardDeclaredInstance,
     default, observe,
 )
-from IPython.utils.py3compat import (
-    with_metaclass
-)
 
 
 class DisplayFormatter(Configurable):
@@ -202,7 +199,7 @@ def catch_format_error(method, self, *args, **kwargs):
     return self._check_return(r, args[0])
 
 
-class FormatterABC(with_metaclass(abc.ABCMeta, object)):
+class FormatterABC(metaclass=abc.ABCMeta):
     """ Abstract base class for Formatters.
 
     A formatter is a callable class that is responsible for computing the

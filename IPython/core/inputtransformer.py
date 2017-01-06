@@ -9,7 +9,7 @@ import re
 
 from IPython.core.splitinput import LineInfo
 from IPython.utils import tokenize2
-from IPython.utils.py3compat import with_metaclass, PY3
+from IPython.utils.py3compat import PY3
 from IPython.utils.tokenize2 import generate_tokens, untokenize, TokenError
 
 if PY3:
@@ -42,7 +42,7 @@ ESC_SEQUENCES = [ESC_SHELL, ESC_SH_CAP, ESC_HELP ,\
                  ESC_QUOTE, ESC_QUOTE2, ESC_PAREN ]
 
 
-class InputTransformer(with_metaclass(abc.ABCMeta, object)):
+class InputTransformer(metaclass=abc.ABCMeta):
     """Abstract base class for line-based input transformers."""
     
     @abc.abstractmethod
