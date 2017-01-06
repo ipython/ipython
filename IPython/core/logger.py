@@ -192,8 +192,7 @@ which already exists. But you must first start the logging process with
             write = self.logfile.write
             if kind=='input':
                 if self.timestamp:
-                    write(str(time.strftime('# %a, %d %b %Y %H:%M:%S\n',
-                                            time.localtime())))
+                    write(time.strftime('# %a, %d %b %Y %H:%M:%S\n', time.localtime()))
                 write(data)
             elif kind=='output' and self.log_output:
                 odata = u'\n'.join([u'#[Out]# %s' % s
