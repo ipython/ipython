@@ -87,7 +87,6 @@ def unquote_filename(name, win32=(sys.platform=='win32')):
 def compress_user(path):
     """Reverse of :func:`os.path.expanduser`
     """
-    path = py3compat.unicode_to_str(path, sys.getfilesystemencoding())
     home = os.path.expanduser('~')
     if path.startswith(home):
         path =  "~" + path[len(home):]
@@ -154,11 +153,11 @@ def filefind(filename, path_dirs=None):
 
     if path_dirs is None:
         path_dirs = ("",)
-    elif isinstance(path_dirs, py3compat.string_types):
+    elif isinstance(path_dirs, str):
         path_dirs = (path_dirs,)
 
     for path in path_dirs:
-        if path == '.': path = py3compat.getcwd()
+        if path == '.': path = os.getcwd()
         testname = expand_path(os.path.join(path, filename))
         if os.path.isfile(testname):
             return os.path.abspath(testname)

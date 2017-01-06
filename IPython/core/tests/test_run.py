@@ -408,7 +408,7 @@ class TestMagicRunWithPackage(unittest.TestCase):
         self.value = int(random.random() * 10000)
 
         self.tempdir = TemporaryDirectory()
-        self.__orig_cwd = py3compat.getcwd()
+        self.__orig_cwd = os.getcwd()
         sys.path.insert(0, self.tempdir.name)
 
         self.writefile(os.path.join(package, '__init__.py'), '')

@@ -33,7 +33,6 @@ from zipimport import zipimporter
 from IPython.core.completer import expand_user, compress_user
 from IPython.core.error import TryNext
 from IPython.utils._process_common import arg_split
-from IPython.utils.py3compat import string_types
 
 # FIXME: this should be pulled in with the right call via the component system
 from IPython import get_ipython
@@ -164,7 +163,7 @@ def try_import(mod, only_modules=False):
     completions.extend(getattr(m, '__all__', []))
     if m_is_init:
         completions.extend(module_list(os.path.dirname(m.__file__)))
-    completions = {c for c in completions if isinstance(c, string_types)}
+    completions = {c for c in completions if isinstance(c, str)}
     completions.discard('__init__')
     return list(completions)
 
@@ -188,7 +187,7 @@ def quick_completer(cmd, completions):
         [d:\ipython]|3> foo ba
     """
 
-    if isinstance(completions, string_types):
+    if isinstance(completions, str):
         completions = completions.split()
 
     def do_complete(self, event):

@@ -24,7 +24,6 @@ from IPython.core.inputsplitter import ESC_MAGIC, ESC_MAGIC2
 from decorator import decorator
 from IPython.utils.ipstruct import Struct
 from IPython.utils.process import arg_split
-from IPython.utils.py3compat import string_types, iteritems
 from IPython.utils.text import dedent
 from traitlets import Bool, Dict, Instance, observe
 from logging import error
@@ -192,7 +191,7 @@ def _method_magic_marker(magic_kind):
             name = func.__name__
             retval = decorator(call, func)
             record_magic(magics, magic_kind, name, name)
-        elif isinstance(arg, string_types):
+        elif isinstance(arg, str):
             # Decorator called with arguments (@foo('bar'))
             name = arg
             def mark(func, *a, **kw):
@@ -237,7 +236,7 @@ def _function_magic_marker(magic_kind):
             name = func.__name__
             ip.register_magic_function(func, magic_kind, name)
             retval = decorator(call, func)
-        elif isinstance(arg, string_types):
+        elif isinstance(arg, str):
             # Decorator called with arguments (@foo('bar'))
             name = arg
             def mark(func, *a, **kw):
@@ -344,7 +343,7 @@ class MagicsManager(Configurable):
         docs = {}
         for m_type in self.magics:
             m_docs = {}
-            for m_name, m_func in iteritems(self.magics[m_type]):
+            for m_name, m_func in self.magics[m_type].items():
                 if m_func.__doc__:
                     if brief:
                         m_docs[m_name] = m_func.__doc__.split('\n', 1)[0]
@@ -510,8 +509,8 @@ class Magics(Configurable):
         for mtype in magic_kinds:
             tab = self.magics[mtype] = {}
             cls_tab = class_magics[mtype]
-            for magic_name, meth_name in iteritems(cls_tab):
-                if isinstance(meth_name, string_types):
+            for magic_name, meth_name in cls_tab.items():
+                if isinstance(meth_name, str):
                     # it's a method name, grab it
                     tab[magic_name] = getattr(self, meth_name)
                 else:

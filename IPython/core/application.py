@@ -126,7 +126,7 @@ class BaseIPythonApplication(Application):
     config_file_paths = List(Unicode())
     @default('config_file_paths')
     def _config_file_paths_default(self):
-        return [py3compat.getcwd()]
+        return [os.getcwd()]
 
     extra_config_file = Unicode(
     help="""Path to an extra config file to load.
@@ -215,7 +215,7 @@ class BaseIPythonApplication(Application):
         super(BaseIPythonApplication, self).__init__(**kwargs)
         # ensure current working directory exists
         try:
-            py3compat.getcwd()
+            os.getcwd()
         except:
             # exit if cwd doesn't exist
             self.log.error("Current working directory doesn't exist.")

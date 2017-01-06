@@ -93,7 +93,7 @@ elif sys.platform == 'win32':
 
             try:
                 # Cannot be on network share when issuing system commands
-                curr = py3compat.getcwd()
+                curr = os.getcwd()
                 os.chdir("C:")
                 ret = os.system("title " + title)
             finally:

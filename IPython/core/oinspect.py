@@ -35,7 +35,7 @@ from IPython.utils.path import compress_user
 from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace
 from IPython.utils.coloransi import TermColors, ColorScheme, ColorSchemeTable
-from IPython.utils.py3compat import cast_unicode, string_types, PY3
+from IPython.utils.py3compat import cast_unicode, PY3
 from IPython.utils.colorable import Colorable
 from IPython.utils.decorators import undoc
 
@@ -124,7 +124,7 @@ def getdoc(obj):
         pass
     else:
         # if we get extra info, we add it to the normal docstring.
-        if isinstance(ds, string_types):
+        if isinstance(ds, str):
             return inspect.cleandoc(ds)
     try:
         docstr = inspect.getdoc(obj)

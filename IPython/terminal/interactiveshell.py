@@ -7,7 +7,7 @@ from warnings import warn
 
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.utils import io
-from IPython.utils.py3compat import PY3, cast_unicode_py2, input, string_types
+from IPython.utils.py3compat import PY3, cast_unicode_py2, input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
 from traitlets import Bool, Unicode, Dict, Integer, observe, Instance, Type, default, Enum, Union
@@ -289,7 +289,7 @@ class TerminalInteractiveShell(InteractiveShell):
             else :
                 raise ValueError('Got unknown colors: ', legacy)
         else :
-            if isinstance(name_or_cls, string_types):
+            if isinstance(name_or_cls, str):
                 style_cls = get_style_by_name(name_or_cls)
             else:
                 style_cls = name_or_cls

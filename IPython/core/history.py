@@ -487,7 +487,7 @@ class HistoryManager(HistoryAccessor):
     @default('dir_hist')
     def _dir_hist_default(self):
         try:
-            return [py3compat.getcwd()]
+            return [os.getcwd()]
         except OSError:
             return []
 
@@ -593,7 +593,7 @@ class HistoryManager(HistoryAccessor):
         optionally open a new session."""
         self.output_hist.clear()
         # The directory history can't be completely empty
-        self.dir_hist[:] = [py3compat.getcwd()]
+        self.dir_hist[:] = [os.getcwd()]
         
         if new_session:
             if self.session_number:

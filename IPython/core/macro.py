@@ -37,7 +37,7 @@ class Macro(object):
         self.value = code + '\n'
     
     def __str__(self):
-        return py3compat.unicode_to_str(self.value)
+        return self.value
     
     def __unicode__(self):
         return self.value
@@ -52,6 +52,6 @@ class Macro(object):
     def __add__(self, other):
         if isinstance(other, Macro):
             return Macro(self.value + other.value)
-        elif isinstance(other, py3compat.string_types):
+        elif isinstance(other, str):
             return Macro(self.value + other)
         raise TypeError

@@ -26,7 +26,7 @@ def get_pasted_lines(sentinel, l_input=py3compat.input, quiet=False):
         prompt = ""
     while True:
         try:
-            l = py3compat.str_to_unicode(l_input(prompt))
+            l = l_input(prompt)
             if l == sentinel:
                 return
             else:
@@ -72,7 +72,7 @@ class TerminalMagics(Magics):
         # Sanity checks
         if b is None:
             raise UsageError('No previous pasted block available')
-        if not isinstance(b, py3compat.string_types):
+        if not isinstance(b, str):
             raise UsageError(
                 "Variable 'pasted_block' is not a string, can't execute")
 

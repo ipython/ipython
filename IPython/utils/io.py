@@ -17,7 +17,7 @@ from warnings import warn
 
 from IPython.utils.decorators import undoc
 from .capture import CapturedIO, capture_output
-from .py3compat import string_types, input, PY3
+from .py3compat import input, PY3
 
 @undoc
 class IOStream:
@@ -63,7 +63,7 @@ class IOStream:
     def writelines(self, lines):
         warn('IOStream is deprecated since IPython 5.0, use sys.{stdin,stdout,stderr} instead',
              DeprecationWarning, stacklevel=2)
-        if isinstance(lines, string_types):
+        if isinstance(lines, str):
             lines = [lines]
         for line in lines:
             self.write(line)

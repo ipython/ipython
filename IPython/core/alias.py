@@ -27,7 +27,6 @@ import sys
 from traitlets.config.configurable import Configurable
 from IPython.core.error import UsageError
 
-from IPython.utils.py3compat import string_types
 from traitlets import List, Instance
 from logging import error
 
@@ -148,7 +147,7 @@ class Alias(object):
                 raise InvalidAliasError("The name %s can't be aliased "
                                         "because it is another magic command." % self.name)
 
-        if not (isinstance(self.cmd, string_types)):
+        if not (isinstance(self.cmd, str)):
             raise InvalidAliasError("An alias command must be a string, "
                                     "got: %r" % self.cmd)
 

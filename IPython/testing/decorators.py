@@ -49,7 +49,7 @@ from .ipunittest import ipdoctest, ipdocstring
 from IPython.external.decorators import *
 
 # For onlyif_cmd_exists decorator
-from IPython.utils.py3compat import string_types, which, PY2, PY3, PYPY
+from IPython.utils.py3compat import which, PY2, PY3, PYPY
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -131,7 +131,7 @@ def make_label_dec(label, ds=None):
 
     warnings.warn("The function `make_label_dec` is deprecated since IPython 4.0",
             DeprecationWarning, stacklevel=2)
-    if isinstance(label, string_types):
+    if isinstance(label, str):
         labels = [label]
     else:
         labels = label

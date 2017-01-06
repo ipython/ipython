@@ -67,8 +67,7 @@ from IPython.utils.ipstruct import Struct
 from IPython.paths import get_ipython_dir
 from IPython.utils.path import get_home_dir, get_py_filename, ensure_dir_exists
 from IPython.utils.process import system, getoutput
-from IPython.utils.py3compat import (builtin_mod, unicode_type, string_types,
-                                     with_metaclass, iteritems)
+from IPython.utils.py3compat import builtin_mod, with_metaclass
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import format_screen, LSString, SList, DollarFormatter
@@ -550,7 +549,7 @@ class InteractiveShell(SingletonConfigurable):
 
         # keep track of where we started running (mainly for crash post-mortem)
         # This is not being used anywhere currently.
-        self.starting_dir = py3compat.getcwd()
+        self.starting_dir = os.getcwd()
 
         # Indentation management
         self.indent_current_nsp = 0
@@ -733,7 +732,7 @@ class InteractiveShell(SingletonConfigurable):
     def restore_sys_module_state(self):
         """Restore the state of the sys module."""
         try:
-            for k, v in iteritems(self._orig_sys_module_state):
+            for k, v in self._orig_sys_module_state.items():
                 setattr(sys, k, v)
         except AttributeError:
             pass
@@ -1255,7 +1254,7 @@ class InteractiveShell(SingletonConfigurable):
             # Also check in output history
             ns_refs.append(self.history_manager.output_hist)
             for ns in ns_refs:
-                to_delete = [n for n, o in iteritems(ns) if o is obj]
+                to_delete = [n for n, o in ns.items() if o is obj]
                 for name in to_delete:
                     del ns[name]
 
@@ -1307,8 +1306,8 @@ class InteractiveShell(SingletonConfigurable):
         # We need a dict of name/value pairs to do namespace updates.
         if isinstance(variables, dict):
             vdict = variables
-        elif isinstance(variables, string_types+(list, tuple)):
-            if isinstance(variables, string_types):
+        elif isinstance(variables, (str, list, tuple)):
+            if isinstance(variables, str):
                 vlist = variables.split()
             else:
                 vlist = variables
@@ -1347,7 +1346,7 @@ class InteractiveShell(SingletonConfigurable):
         variables : dict
           A dictionary mapping object names (as strings) to the objects.
         """
-        for name, obj in iteritems(variables):
+        for name, obj in variables.items():
             if name in self.user_ns and self.user_ns[name] is obj:
                 del self.user_ns[name]
                 self.user_ns_hidden.pop(name, None)
@@ -1651,14 +1650,14 @@ class InteractiveShell(SingletonConfigurable):
             msg = "CustomTB must return list of strings, not %r" % stb
             if stb is None:
                 return []
-            elif isinstance(stb, string_types):
+            elif isinstance(stb, str):
                 return [stb]
             elif not isinstance(stb, list):
                 raise TypeError(msg)
             # it's a list
             for line in stb:
                 # check every element
-                if not isinstance(line, string_types):
+                if not isinstance(line, str):
                     raise TypeError(msg)
             return stb
 
@@ -2154,7 +2153,7 @@ class InteractiveShell(SingletonConfigurable):
 
         from IPython.core import macro
 
-        if isinstance(themacro, string_types):
+        if isinstance(themacro, str):
             themacro = macro.Macro(themacro)
         if not isinstance(themacro, macro.Macro):
             raise ValueError('A macro must be a string or a Macro instance.')
@@ -2203,14 +2202,12 @@ class InteractiveShell(SingletonConfigurable):
             with AvoidUNCPath() as path:
                 if path is not None:
                     cmd = '"pushd %s &&"%s' % (path, cmd)
-                cmd = py3compat.unicode_to_str(cmd)
                 try:
                     ec = os.system(cmd)
                 except KeyboardInterrupt:
                     print('\n' + self.get_exception_only(), file=sys.stderr)
                     ec = -2
         else:
-            cmd = py3compat.unicode_to_str(cmd)
             # For posix the result of the subprocess.call() below is an exit
             # code, which by convention is zero for success, positive for
             # program failure.  Exit codes above 128 are reserved for signals,
@@ -2343,7 +2340,7 @@ class InteractiveShell(SingletonConfigurable):
         exc_info = {
             u'status' : 'error',
             u'traceback' : stb,
-            u'ename' : unicode_type(etype.__name__),
+            u'ename' : etype.__name__,
             u'evalue' : py3compat.safe_unicode(evalue),
         }
 
@@ -2382,7 +2379,7 @@ class InteractiveShell(SingletonConfigurable):
         user_ns = self.user_ns
         global_ns = self.user_global_ns
         
-        for key, expr in iteritems(expressions):
+        for key, expr in expressions.items():
             try:
                 value = self._format_user_obj(eval(expr, global_ns, user_ns))
             except:
@@ -3165,7 +3162,7 @@ class InteractiveShell(SingletonConfigurable):
             raise ValueError(("'%s' was not found in history, as a file, url, "
                                 "nor in the user namespace.") % target)
 
-        if isinstance(codeobj, string_types):
+        if isinstance(codeobj, str):
             return codeobj
         elif isinstance(codeobj, Macro):
             return codeobj.value

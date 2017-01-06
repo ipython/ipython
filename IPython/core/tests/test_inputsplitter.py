@@ -15,7 +15,7 @@ from IPython.core.inputtransformer import InputTransformer
 from IPython.core.tests.test_inputtransformer import syntax, syntax_ml
 from IPython.testing import tools as tt
 from IPython.utils import py3compat
-from IPython.utils.py3compat import string_types, input
+from IPython.utils.py3compat  import input
 
 #-----------------------------------------------------------------------------
 # Semi-complete examples (also used as tests)
@@ -100,7 +100,7 @@ def test_remove_comments():
 
 def test_get_input_encoding():
     encoding = isp.get_input_encoding()
-    nt.assert_true(isinstance(encoding, string_types))
+    nt.assert_true(isinstance(encoding, str))
     # simple-minded check that at least encoding a simple string works with the
     # encoding we got.
     nt.assert_equal(u'test'.encode(encoding), b'test')

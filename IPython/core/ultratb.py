@@ -1060,7 +1060,7 @@ class VerboseTB(TBTools):
 
         if (not py3compat.PY3) and type(evalue) is types.InstanceType:
             try:
-                names = [w for w in dir(evalue) if isinstance(w, py3compat.string_types)]
+                names = [w for w in dir(evalue) if isinstance(w, str)]
             except:
                 # Every now and then, an object with funny internals blows up
                 # when dir() is called on it.  We do the best we can to report
@@ -1429,7 +1429,7 @@ class SyntaxTB(ListTB):
         # be wrong (retrieved from an outdated cache). This replaces it with
         # the current value.
         if isinstance(value, SyntaxError) \
-                and isinstance(value.filename, py3compat.string_types) \
+                and isinstance(value.filename, str) \
                 and isinstance(value.lineno, int):
             linecache.checkcache(value.filename)
             newtext = ulinecache.getline(value.filename, value.lineno)

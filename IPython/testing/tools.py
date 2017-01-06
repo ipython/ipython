@@ -354,7 +354,7 @@ class AssertPrints(object):
     """
     def __init__(self, s, channel='stdout', suppress=True):
         self.s = s
-        if isinstance(self.s, (py3compat.string_types, _re_type)):
+        if isinstance(self.s, (str, _re_type)):
             self.s = [self.s]
         self.channel = channel
         self.suppress = suppress
