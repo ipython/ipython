@@ -26,6 +26,7 @@ import os
 import re
 import sys
 from importlib import import_module
+from io import StringIO
 
 from testpath import modified_env
 
@@ -45,12 +46,7 @@ from nose.plugins import doctests, Plugin
 from nose.util import anyp, tolist
 
 # Our own imports
-from IPython.utils.py3compat import builtin_mod, PY3
-
-if PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
+from IPython.utils.py3compat import builtin_mod
 
 #-----------------------------------------------------------------------------
 # Module globals and other constants
