@@ -7,7 +7,7 @@ from warnings import warn
 
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.utils import io
-from IPython.utils.py3compat import PY3, cast_unicode_py2, input
+from IPython.utils.py3compat import cast_unicode_py2, input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
 from traitlets import Bool, Unicode, Dict, Integer, observe, Instance, Type, default, Enum, Union
@@ -59,10 +59,7 @@ _style_overrides_linux = {
 
 def get_default_editor():
     try:
-        ed = os.environ['EDITOR']
-        if not PY3:
-            ed = ed.decode()
-        return ed
+        return os.environ['EDITOR']
     except KeyError:
         pass
     except UnicodeError:
