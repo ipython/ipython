@@ -35,7 +35,7 @@ from IPython.utils import generics
 from IPython.utils.decorators import undoc
 from IPython.utils.dir2 import dir2, get_real_method
 from IPython.utils.process import arg_split
-from IPython.utils.py3compat import builtin_mod, PY3, cast_unicode_py2
+from IPython.utils.py3compat import builtin_mod, cast_unicode_py2
 from traitlets import Bool, Enum, observe
 
 from functools import wraps
@@ -1172,18 +1172,16 @@ class IPCompleter(Completer):
         if self.use_main_ns:
             self.namespace = __main__.__dict__
 
-        if PY3:
-
-            base_text = text if not line_buffer else line_buffer[:cursor_pos]
-            latex_text, latex_matches = self.latex_matches(base_text)
-            if latex_matches:
-                 return latex_text, latex_matches
-            name_text = ''
-            name_matches = []
-            for meth in (self.unicode_name_matches, back_latex_name_matches, back_unicode_name_matches):
-                name_text, name_matches = meth(base_text)
-                if name_text:
-                    return name_text, name_matches
+        base_text = text if not line_buffer else line_buffer[:cursor_pos]
+        latex_text, latex_matches = self.latex_matches(base_text)
+        if latex_matches:
+            return latex_text, latex_matches
+        name_text = ''
+        name_matches = []
+        for meth in (self.unicode_name_matches, back_latex_name_matches, back_unicode_name_matches):
+            name_text, name_matches = meth(base_text)
+            if name_text:
+                return name_text, name_matches
         
         # if text is either None or an empty string, rely on the line buffer
         if not text:
