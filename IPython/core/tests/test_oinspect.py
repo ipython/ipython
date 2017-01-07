@@ -243,15 +243,6 @@ def test_info():
     nt.assert_equal(i['init_docstring'], Call.__init__.__doc__)
     nt.assert_equal(i['call_docstring'], Call.__call__.__doc__)
 
-    # Test old-style classes, which for example may not have an __init__ method.
-    if not py3compat.PY3:
-        i = inspector.info(OldStyle)
-        nt.assert_equal(i['type_name'], 'classobj')
-
-        i = inspector.info(OldStyle())
-        nt.assert_equal(i['type_name'], 'instance')
-        nt.assert_equal(i['docstring'], OldStyle.__doc__)
-
 def test_class_signature():
     info = inspector.info(HasSignature, 'HasSignature')
     nt.assert_equal(info['init_definition'], "HasSignature(test)")
