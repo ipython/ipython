@@ -303,9 +303,6 @@ class InteractiveShellApp(Configurable):
         # were run from a system shell.
         save_argv = sys.argv
         sys.argv = [full_filename] + self.extra_args[1:]
-        # protect sys.argv from potential unicode strings on Python 2:
-        if not py3compat.PY3:
-            sys.argv = [ py3compat.cast_bytes(a) for a in sys.argv ]
         try:
             if os.path.isfile(full_filename):
                 self.log.info("Running file in user namespace: %s" %
