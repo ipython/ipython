@@ -18,18 +18,13 @@ import tempfile
 import shutil
 import random
 import time
+from io import StringIO
 
 import nose.tools as nt
 import IPython.testing.tools as tt
 
 from IPython.extensions.autoreload import AutoreloadMagics
 from IPython.core.events import EventManager, pre_run_cell
-from IPython.utils.py3compat import PY3
-
-if PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
 
 #-----------------------------------------------------------------------------
 # Test fixture
