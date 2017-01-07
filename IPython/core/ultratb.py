@@ -299,7 +299,10 @@ def getargs(co):
 
 # Monkeypatch inspect to apply our bugfix.
 def with_patch_inspect(f):
-    """decorator for monkeypatching inspect.findsource"""
+    """
+    Deprecated since IPython 6.0
+    decorator for monkeypatching inspect.findsource
+    """
 
     def wrapped(*args, **kwargs):
         save_findsource = inspect.findsource
@@ -313,16 +316,6 @@ def with_patch_inspect(f):
             inspect.getargs = save_getargs
 
     return wrapped
-
-
-if py3compat.PY3:
-    fixed_getargvalues = inspect.getargvalues
-else:
-    # Fixes for https://github.com/ipython/ipython/issues/8293
-    #       and https://github.com/ipython/ipython/issues/8205.
-    # The relevant bug is caused by failure to correctly handle anonymous tuple
-    # unpacking, which only exists in Python 2.
-    fixed_getargvalues = with_patch_inspect(inspect.getargvalues)
 
 
 def fix_frame_records_filenames(records):
@@ -879,7 +872,7 @@ class VerboseTB(TBTools):
 
         file = py3compat.cast_unicode(file, util_path.fs_encoding)
         link = tpl_link % file
-        args, varargs, varkw, locals = fixed_getargvalues(frame)
+        args, varargs, varkw, locals = inspect.getargvalues(frame)
 
         if func == '?':
             call = ''

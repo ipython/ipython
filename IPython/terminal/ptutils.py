@@ -10,8 +10,6 @@ not to be used outside IPython.
 import unicodedata
 from wcwidth import wcwidth
 
-from IPython.utils.py3compat import PY3
-
 from IPython.core.completer import IPCompleter
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.layout.lexers import Lexer
@@ -78,7 +76,7 @@ class IPythonPTLexer(Lexer):
     """
     def __init__(self):
         l = pygments_lexers
-        self.python_lexer = PygmentsLexer(l.Python3Lexer if PY3 else l.PythonLexer)
+        self.python_lexer = PygmentsLexer(l.Python3Lexer)
         self.shell_lexer = PygmentsLexer(l.BashLexer)
 
         self.magic_lexers = {
