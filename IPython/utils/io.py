@@ -17,7 +17,7 @@ from warnings import warn
 
 from IPython.utils.decorators import undoc
 from .capture import CapturedIO, capture_output
-from .py3compat import input, PY3
+from .py3compat import input
 
 @undoc
 class IOStream:
