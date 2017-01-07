@@ -516,10 +516,8 @@ class DisplayObject(object):
                 self.data = f.read()
         elif self.url is not None:
             try:
-                try:
-                    from urllib.request import urlopen  # Py3
-                except ImportError:
-                    from urllib2 import urlopen
+                # Deferred import
+                from urllib.request import urlopen
                 response = urlopen(self.url)
                 self.data = response.read()
                 # extract encoding from header, if there is one:

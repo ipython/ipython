@@ -3124,10 +3124,7 @@ class InteractiveShell(SingletonConfigurable):
         except UnicodeDecodeError:
             if not py_only :
                 # Deferred import
-                try:
-                    from urllib.request import urlopen  # Py3
-                except ImportError:
-                    from urllib import urlopen
+                from urllib.request import urlopen
                 response = urlopen(target)
                 return response.read().decode('latin1')
             raise ValueError(("'%s' seem to be unreadable.") % target)

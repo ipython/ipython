@@ -263,10 +263,9 @@ class YouTubeVideo(IFrame):
         super(YouTubeVideo, self).__init__(src, width, height, **kwargs)
     
     def _repr_jpeg_(self):
-        try:
-            from urllib.request import urlopen  # Py3
-        except ImportError:
-            from urllib2 import urlopen
+        # Deferred import
+        from urllib.request import urlopen
+
         try:
             return urlopen("https://img.youtube.com/vi/{id}/hqdefault.jpg".format(id=self.id)).read()
         except IOError:
