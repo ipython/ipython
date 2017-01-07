@@ -403,8 +403,7 @@ class Inspector(Colorable):
 
         if inspect.isclass(obj):
             header = self.__head('Class constructor information:\n')
-        elif (not py3compat.PY3) and type(obj) is types.InstanceType:
-            obj = obj.__call__
+
 
         output = self._getdef(obj,oname)
         if output is None:
@@ -636,13 +635,7 @@ class Inspector(Colorable):
             # General Python objects
             append_field(_mime, 'Signature', 'definition', code_formatter)
             append_field(_mime, 'Call signature', 'call_def', code_formatter)
-            
             append_field(_mime, 'Type', 'type_name')
-
-            # Base class for old-style instances
-            if (not py3compat.PY3) and isinstance(obj, types.InstanceType) and info['base_class']:
-                append_field(_mime, 'Base Class', 'base_class')
-
             append_field(_mime, 'String form', 'string_form')
 
             # Namespace
