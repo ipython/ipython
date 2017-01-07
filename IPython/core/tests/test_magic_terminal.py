@@ -8,17 +8,12 @@ Needs to be run by nose (to make ipython session available).
 #-----------------------------------------------------------------------------
 
 import sys
+from io import StringIO
 from unittest import TestCase
 
 import nose.tools as nt
 
 from IPython.testing import tools as tt
-from IPython.utils.py3compat import PY3
-
-if PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
 
 #-----------------------------------------------------------------------------
 # Globals
