@@ -35,7 +35,7 @@ from IPython.utils.path import compress_user
 from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace
 from IPython.utils.coloransi import TermColors, ColorScheme, ColorSchemeTable
-from IPython.utils.py3compat import cast_unicode, PY3
+from IPython.utils.py3compat import cast_unicode
 from IPython.utils.colorable import Colorable
 from IPython.utils.decorators import undoc
 
@@ -216,7 +216,7 @@ def getargspec(obj):
     if safe_hasattr(obj, '__call__') and not is_simple_callable(obj):
         obj = obj.__call__
 
-    return inspect.getfullargspec(obj) if PY3 else inspect.getargspec(obj)
+    return inspect.getfullargspec(obj)
 
 
 def format_argspec(argspec):
