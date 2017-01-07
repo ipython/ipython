@@ -227,8 +227,7 @@ def test_info():
     nt.assert_equal(i['docstring'], Call.__doc__)
     nt.assert_equal(i['source'], None)
     nt.assert_true(i['isclass'])
-    _self_py2 = '' if py3compat.PY3 else 'self, '
-    nt.assert_equal(i['init_definition'], "Call(%sx, y=1)" % _self_py2)
+    nt.assert_equal(i['init_definition'], "Call(x, y=1)")
     nt.assert_equal(i['init_docstring'], Call.__init__.__doc__)
 
     i = inspector.info(Call, detail_level=1)
