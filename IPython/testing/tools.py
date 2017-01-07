@@ -322,15 +322,7 @@ def check_pairs(func, pairs):
         assert out == expected, pair_fail_msg.format(name, inp, expected, out)
 
 
-if py3compat.PY3:
-    MyStringIO = StringIO
-else:
-    # In Python 2, stdout/stderr can have either bytes or unicode written to them,
-    # so we need a class that can handle both.
-    class MyStringIO(StringIO):
-        def write(self, s):
-            s = py3compat.cast_unicode(s, encoding=DEFAULT_ENCODING)
-            super(MyStringIO, self).write(s)
+MyStringIO = StringIO
 
 _re_type = type(re.compile(r''))
 
