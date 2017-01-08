@@ -116,7 +116,7 @@ import traceback
 import types
 import weakref
 from importlib import import_module
-
+from IPython.utils.py3compat import PY3
 try:
     # Reload is not defined by default in Python3.
     reload
@@ -124,7 +124,6 @@ except NameError:
     from imp import reload
 
 from IPython.utils import openpy
-from IPython.utils.py3compat import PY3
 
 #------------------------------------------------------------------------------
 # Autoreload functionality
@@ -356,10 +355,7 @@ def superreload(module, reload=reload, old_objects={}):
         try:
             old_objects.setdefault(key, []).append(weakref.ref(obj))
         except TypeError:
-            # weakref doesn't work for all types;
-            # create strong references for 'important' cases
-            if not PY3 and isinstance(obj, types.ClassType):
-                old_objects.setdefault(key, []).append(StrongRef(obj))
+            pass
 
     # reload module
     try:

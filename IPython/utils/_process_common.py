@@ -187,14 +187,6 @@ def arg_split(s, posix=False, strict=True):
     command-line args.
     """
 
-    # Unfortunately, python's shlex module is buggy with unicode input:
-    # http://bugs.python.org/issue1170
-    # At least encoding the input when it's unicode seems to help, but there
-    # may be more problems lurking.  Apparently this is fixed in python3.
-    is_unicode = False
-    if (not py3compat.PY3) and isinstance(s, unicode):
-        is_unicode = True
-        s = s.encode('utf-8')
     lex = shlex.shlex(s, posix=posix)
     lex.whitespace_split = True
     # Extract tokens, ensuring that things like leaving open quotes
@@ -216,8 +208,5 @@ def arg_split(s, posix=False, strict=True):
             # couldn't parse, get remaining blob as last token
             tokens.append(lex.token)
             break
-    
-    if is_unicode:
-        # Convert the tokens back to unicode.
-        tokens = [x.decode('utf-8') for x in tokens]
+
     return tokens

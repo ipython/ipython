@@ -1055,27 +1055,8 @@ class VerboseTB(TBTools):
             etype, evalue = str, sys.exc_info()[:2]
             etype_str, evalue_str = map(str, (etype, evalue))
         # ... and format it
-        exception = ['%s%s%s: %s' % (colors.excName, etype_str,
-                                     colorsnormal, py3compat.cast_unicode(evalue_str))]
-
-        if (not py3compat.PY3) and type(evalue) is types.InstanceType:
-            try:
-                names = [w for w in dir(evalue) if isinstance(w, str)]
-            except:
-                # Every now and then, an object with funny internals blows up
-                # when dir() is called on it.  We do the best we can to report
-                # the problem and continue
-                _m = '%sException reporting error (object with broken dir())%s:'
-                exception.append(_m % (colors.excName, colorsnormal))
-                etype_str, evalue_str = map(str, sys.exc_info()[:2])
-                exception.append('%s%s%s: %s' % (colors.excName, etype_str,
-                                                 colorsnormal, py3compat.cast_unicode(evalue_str)))
-                names = []
-            for name in names:
-                value = text_repr(getattr(evalue, name))
-                exception.append('\n%s%s = %s' % (indent, name, value))
-
-        return exception
+        return ['%s%s%s: %s' % (colors.excName, etype_str,
+                                colorsnormal, py3compat.cast_unicode(evalue_str))]
 
     def format_exception_as_a_whole(self, etype, evalue, etb, number_of_lines_of_context, tb_offset):
         """Formats the header, traceback and exception message for a single exception.
