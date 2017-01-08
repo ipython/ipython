@@ -120,7 +120,6 @@ from IPython.utils import PyColorize
 from IPython.utils import openpy
 from IPython.utils import path as util_path
 from IPython.utils import py3compat
-from IPython.utils import ulinecache
 from IPython.utils.data import uniq_stable
 from IPython.utils.terminal import get_terminal_size
 from logging import info, error
@@ -370,7 +369,7 @@ def _fixed_getinnerframes(etb, context=1, tb_offset=0):
         maybeStart = lnum - 1 - context // 2
         start = max(maybeStart, 0)
         end = start + context
-        lines = ulinecache.getlines(file)[start:end]
+        lines = linecache.getlines(file)[start:end]
         buf = list(records[i])
         buf[LNUM_POS] = lnum
         buf[INDEX_POS] = lnum - 1 - start
@@ -706,7 +705,7 @@ class ListTB(TBTools):
                 if not value.filename: value.filename = "<string>"
                 if value.lineno:
                     lineno = value.lineno
-                    textline = ulinecache.getline(value.filename, value.lineno)
+                    textline = linecache.getline(value.filename, value.lineno)
                 else:
                     lineno = 'unknown'
                     textline = ''
@@ -922,7 +921,7 @@ class VerboseTB(TBTools):
                 # E.g. https://github.com/ipython/ipython/issues/9486
                 return '%s %s\n' % (link, call)
 
-        def linereader(file=file, lnum=[lnum], getline=ulinecache.getline):
+        def linereader(file=file, lnum=[lnum], getline=linecache.getline):
             line = getline(file, lnum[0])
             lnum[0] += 1
             return line
@@ -1413,7 +1412,7 @@ class SyntaxTB(ListTB):
                 and isinstance(value.filename, str) \
                 and isinstance(value.lineno, int):
             linecache.checkcache(value.filename)
-            newtext = ulinecache.getline(value.filename, value.lineno)
+            newtext = linecache.getline(value.filename, value.lineno)
             if newtext:
                 value.text = newtext
         self.last_syntax_error = value
