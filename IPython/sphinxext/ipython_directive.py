@@ -133,7 +133,7 @@ import tempfile
 import ast
 import warnings
 import shutil
-
+from io import StringIO
 
 # Third-party
 from docutils.parsers.rst import directives
@@ -144,12 +144,6 @@ from traitlets.config import Config
 from IPython import InteractiveShell
 from IPython.core.profiledir import ProfileDir
 from IPython.utils import io
-from IPython.utils.py3compat import PY3
-
-if PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
 
 #-----------------------------------------------------------------------------
 # Globals

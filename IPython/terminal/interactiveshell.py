@@ -7,7 +7,7 @@ from warnings import warn
 
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.utils import io
-from IPython.utils.py3compat import PY3, cast_unicode_py2, input
+from IPython.utils.py3compat import cast_unicode_py2, input
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
 from traitlets import Bool, Unicode, Dict, Integer, observe, Instance, Type, default, Enum, Union
@@ -59,10 +59,7 @@ _style_overrides_linux = {
 
 def get_default_editor():
     try:
-        ed = os.environ['EDITOR']
-        if not PY3:
-            ed = ed.decode()
-        return ed
+        return os.environ['EDITOR']
     except KeyError:
         pass
     except UnicodeError:
@@ -345,26 +342,7 @@ class TerminalInteractiveShell(InteractiveShell):
             return
 
         import win_unicode_console
-
-        if PY3:
-            win_unicode_console.enable()
-        else:
-            # https://github.com/ipython/ipython/issues/9768
-            from win_unicode_console.streams import (TextStreamWrapper,
-                                 stdout_text_transcoded, stderr_text_transcoded)
-
-            class LenientStrStreamWrapper(TextStreamWrapper):
-                def write(self, s):
-                    if isinstance(s, bytes):
-                        s = s.decode(self.encoding, 'replace')
-
-                    self.base.write(s)
-
-            stdout_text_str = LenientStrStreamWrapper(stdout_text_transcoded)
-            stderr_text_str = LenientStrStreamWrapper(stderr_text_transcoded)
-
-            win_unicode_console.enable(stdout=stdout_text_str,
-                                       stderr=stderr_text_str)
+        win_unicode_console.enable()
 
     def init_io(self):
         if sys.platform not in {'win32', 'cli'}:

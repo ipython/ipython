@@ -13,6 +13,7 @@ import warnings
 from contextlib import contextmanager
 from unittest.mock import patch
 from os.path import join, abspath, split
+from imp import reload
 
 from nose import SkipTest, with_setup
 import nose.tools as nt
@@ -29,26 +30,18 @@ from IPython.utils.tempdir import TemporaryDirectory
 
 # Platform-dependent imports
 try:
-    import winreg as wreg  # Py 3
+    import winreg as wreg  
 except ImportError:
+    #Fake _winreg module on non-windows platforms
+    import types
+    wr_name = "winreg"
+    sys.modules[wr_name] = types.ModuleType(wr_name)
     try:
-        import _winreg as wreg  # Py 2
+        import winreg as wreg
     except ImportError:
-        #Fake _winreg module on none windows platforms
-        import types
-        wr_name = "winreg" if py3compat.PY3 else "_winreg"
-        sys.modules[wr_name] = types.ModuleType(wr_name)
-        try:
-            import winreg as wreg
-        except ImportError:
-            import _winreg as wreg
+        import _winreg as wreg
         #Add entries that needs to be stubbed by the testing code
         (wreg.OpenKey, wreg.QueryValueEx,) = (None, None)
-
-try:
-    reload
-except NameError:   # Python 3
-    from imp import reload
 
 #-----------------------------------------------------------------------------
 # Globals

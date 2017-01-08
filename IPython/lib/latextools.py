@@ -15,7 +15,7 @@ from IPython.utils.process import find_cmd, FindCmdError
 from traitlets.config import get_config
 from traitlets.config.configurable import SingletonConfigurable
 from traitlets import List, Bool, Unicode
-from IPython.utils.py3compat import cast_unicode, cast_unicode_py2 as u, PY3
+from IPython.utils.py3compat import cast_unicode, cast_unicode_py2 as u
 
 
 class LaTeXTool(SingletonConfigurable):

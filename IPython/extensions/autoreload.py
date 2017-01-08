@@ -260,12 +260,9 @@ class ModuleReloader(object):
 # superreload
 #------------------------------------------------------------------------------
 
-if PY3:
-    func_attrs = ['__code__', '__defaults__', '__doc__',
-                  '__closure__', '__globals__', '__dict__']
-else:
-    func_attrs = ['func_code', 'func_defaults', 'func_doc',
-                  'func_closure', 'func_globals', 'func_dict']
+
+func_attrs = ['__code__', '__defaults__', '__doc__',
+              '__closure__', '__globals__', '__dict__']
 
 
 def update_function(old, new):
@@ -320,18 +317,9 @@ UPDATE_RULES = [
     (lambda a, b: isinstance2(a, b, property),
      update_property),
 ]
-
-
-if PY3:
-    UPDATE_RULES.extend([(lambda a, b: isinstance2(a, b, types.MethodType),
-                          lambda a, b: update_function(a.__func__, b.__func__)),
-                        ])
-else:
-    UPDATE_RULES.extend([(lambda a, b: isinstance2(a, b, types.ClassType),
-                          update_class),
-                         (lambda a, b: isinstance2(a, b, types.MethodType),
-                          lambda a, b: update_function(a.__func__, b.__func__)),
-                        ])
+UPDATE_RULES.extend([(lambda a, b: isinstance2(a, b, types.MethodType),
+                      lambda a, b: update_function(a.__func__, b.__func__)),
+])
 
 
 def update_generic(a, b):

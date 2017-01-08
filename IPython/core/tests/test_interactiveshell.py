@@ -17,6 +17,7 @@ import sys
 import tempfile
 import unittest
 from unittest import mock
+from io import StringIO
 
 from os.path import join
 
@@ -30,12 +31,6 @@ from IPython.testing.decorators import (
 from IPython.testing import tools as tt
 from IPython.utils.process import find_cmd
 from IPython.utils import py3compat
-from IPython.utils.py3compat import PY3
-
-if PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
 
 #-----------------------------------------------------------------------------
 # Globals

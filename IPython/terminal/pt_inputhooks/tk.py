@@ -40,13 +40,8 @@ will fix it for Tk.)
 """
 import time
 
-from IPython.utils.py3compat import PY3
-
 import _tkinter
-if PY3:
-    import tkinter
-else:
-    import Tkinter as tkinter  # Python 2
+import tkinter
 
 def inputhook(inputhook_context):
     """

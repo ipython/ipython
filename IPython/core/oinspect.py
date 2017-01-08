@@ -35,7 +35,7 @@ from IPython.utils.path import compress_user
 from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace
 from IPython.utils.coloransi import TermColors, ColorScheme, ColorSchemeTable
-from IPython.utils.py3compat import cast_unicode, PY3
+from IPython.utils.py3compat import cast_unicode
 from IPython.utils.colorable import Colorable
 from IPython.utils.decorators import undoc
 
@@ -216,7 +216,7 @@ def getargspec(obj):
     if safe_hasattr(obj, '__call__') and not is_simple_callable(obj):
         obj = obj.__call__
 
-    return inspect.getfullargspec(obj) if PY3 else inspect.getargspec(obj)
+    return inspect.getfullargspec(obj)
 
 
 def format_argspec(argspec):
@@ -403,8 +403,7 @@ class Inspector(Colorable):
 
         if inspect.isclass(obj):
             header = self.__head('Class constructor information:\n')
-        elif (not py3compat.PY3) and type(obj) is types.InstanceType:
-            obj = obj.__call__
+
 
         output = self._getdef(obj,oname)
         if output is None:
@@ -636,13 +635,7 @@ class Inspector(Colorable):
             # General Python objects
             append_field(_mime, 'Signature', 'definition', code_formatter)
             append_field(_mime, 'Call signature', 'call_def', code_formatter)
-            
             append_field(_mime, 'Type', 'type_name')
-
-            # Base class for old-style instances
-            if (not py3compat.PY3) and isinstance(obj, types.InstanceType) and info['base_class']:
-                append_field(_mime, 'Base Class', 'base_class')
-
             append_field(_mime, 'String form', 'string_form')
 
             # Namespace

@@ -9,12 +9,8 @@ import os
 import sys
 import warnings
 from unittest import TestCase
-
-try:
-    from importlib import invalidate_caches   # Required from Python 3.3
-except ImportError:
-    def invalidate_caches():
-        pass
+from importlib import invalidate_caches
+from io import StringIO
 
 import nose.tools as nt
 
@@ -32,10 +28,6 @@ from IPython.utils.io import capture_output
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.process import find_cmd
 
-if py3compat.PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
 
 
 _ip = get_ipython()

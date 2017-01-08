@@ -16,7 +16,6 @@ from IPython.testing import tools as tt
 from IPython.testing.decorators import onlyif_unicode_paths
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.tempdir import TemporaryDirectory
-from IPython.utils.py3compat import PY3
 
 ip = get_ipython()
 
@@ -226,20 +225,17 @@ except Exception:
     """
 
     def test_direct_cause_error(self):
-        if PY3:
-            with tt.AssertPrints(["KeyError", "NameError", "direct cause"]):
-                ip.run_cell(self.DIRECT_CAUSE_ERROR_CODE)
+        with tt.AssertPrints(["KeyError", "NameError", "direct cause"]):
+            ip.run_cell(self.DIRECT_CAUSE_ERROR_CODE)
 
     def test_exception_during_handling_error(self):
-        if PY3:
-            with tt.AssertPrints(["KeyError", "NameError", "During handling"]):
-                ip.run_cell(self.EXCEPTION_DURING_HANDLING_CODE)
+        with tt.AssertPrints(["KeyError", "NameError", "During handling"]):
+            ip.run_cell(self.EXCEPTION_DURING_HANDLING_CODE)
 
     def test_suppress_exception_chaining(self):
-        if PY3:
-            with tt.AssertNotPrints("ZeroDivisionError"), \
-                    tt.AssertPrints("ValueError", suppress=False):
-                ip.run_cell(self.SUPPRESS_CHAINING_CODE)
+        with tt.AssertNotPrints("ZeroDivisionError"), \
+             tt.AssertPrints("ValueError", suppress=False):
+            ip.run_cell(self.SUPPRESS_CHAINING_CODE)
 
 
 class RecursionTest(unittest.TestCase):
