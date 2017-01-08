@@ -15,6 +15,7 @@ import json
 import sys
 import traceback
 import warnings
+from io import StringIO
 
 from decorator import decorator
 
@@ -655,11 +656,7 @@ class PlainTextFormatter(BaseFormatter):
         if not self.pprint:
             return repr(obj)
         else:
-            # handle str and unicode on Python 2
-            # io.StringIO only accepts unicode,
-            # cStringIO doesn't handle unicode on py2,
-            # StringIO allows str, unicode but only ascii str
-            stream = pretty.CUnicodeIO()
+            stream = StringIO()
             printer = pretty.RepresentationPrinter(stream, self.verbose,
                 self.max_width, self.newline,
                 max_seq_length=self.max_seq_length,
