@@ -6,13 +6,7 @@
 
 
 import sys
-
-from IPython.utils.py3compat import PY3
-
-if PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
+from io import StringIO
 
 #-----------------------------------------------------------------------------
 # Classes and functions

@@ -9,6 +9,7 @@ import io as stdlib_io
 import os.path
 import stat
 import sys
+from io import StringIO
 
 from subprocess import Popen, PIPE
 import unittest
@@ -17,13 +18,8 @@ import nose.tools as nt
 
 from IPython.testing.decorators import skipif, skip_win32
 from IPython.utils.io import Tee, capture_output
-from IPython.utils.py3compat import doctest_refactor_print, PY3
+from IPython.utils.py3compat import doctest_refactor_print
 from IPython.utils.tempdir import TemporaryDirectory
-
-if PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
 
 
 def test_tee_simple():

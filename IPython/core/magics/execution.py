@@ -36,7 +36,7 @@ from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic,
                                 line_cell_magic, on_off, needs_local_scope)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
-from IPython.utils.py3compat import builtin_mod, PY3
+from IPython.utils.py3compat import builtin_mod
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.capture import capture_output
 from IPython.utils.ipstruct import Struct
@@ -45,11 +45,8 @@ from IPython.utils.path import get_py_filename, shellglob
 from IPython.utils.timing import clock, clock2
 from warnings import warn
 from logging import error
+from io import StringIO
 
-if PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -652,9 +649,6 @@ python-profiler package from non-free.""")
             args = shellglob(map(os.path.expanduser,  arg_lst[1:]))
 
         sys.argv = [filename] + args  # put in the proper filename
-        # protect sys.argv from potential unicode strings on Python 2:
-        if not py3compat.PY3:
-            sys.argv = [ py3compat.cast_bytes(a) for a in sys.argv ]
 
         if 'i' in opts:
             # Run in user's interactive namespace

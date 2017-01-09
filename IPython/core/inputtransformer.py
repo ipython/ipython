@@ -6,16 +6,11 @@ This includes the machinery to recognise and transform ``%magic`` commands,
 import abc
 import functools
 import re
+from io import StringIO
 
 from IPython.core.splitinput import LineInfo
 from IPython.utils import tokenize2
-from IPython.utils.py3compat import PY3
 from IPython.utils.tokenize2 import generate_tokens, untokenize, TokenError
-
-if PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
 
 #-----------------------------------------------------------------------------
 # Globals
