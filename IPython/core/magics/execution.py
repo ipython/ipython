@@ -7,6 +7,7 @@
 
 import ast
 import bdb
+import builtins as builtin_mod
 import gc
 import itertools
 import os
@@ -35,8 +36,6 @@ from IPython.core.macro import Macro
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic,
                                 line_cell_magic, on_off, needs_local_scope)
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils import py3compat
-from IPython.utils.py3compat import builtin_mod
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.capture import capture_output
 from IPython.utils.ipstruct import Struct

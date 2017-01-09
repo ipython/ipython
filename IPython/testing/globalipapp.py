@@ -9,6 +9,7 @@ done.
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import builtins as builtin_mod
 import sys
 import warnings
 
@@ -17,7 +18,6 @@ from . import tools
 from IPython.core import page
 from IPython.utils import io
 from IPython.utils import py3compat
-from IPython.utils.py3compat import builtin_mod
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 
 

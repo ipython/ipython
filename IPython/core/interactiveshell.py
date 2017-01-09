@@ -15,6 +15,7 @@ import __future__
 import abc
 import ast
 import atexit
+import builtins as builtin_mod
 import functools
 import os
 import re
@@ -67,7 +68,6 @@ from IPython.utils.ipstruct import Struct
 from IPython.paths import get_ipython_dir
 from IPython.utils.path import get_home_dir, get_py_filename, ensure_dir_exists
 from IPython.utils.process import system, getoutput
-from IPython.utils.py3compat import builtin_mod
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
 from IPython.utils.text import format_screen, LSString, SList, DollarFormatter
