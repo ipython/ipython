@@ -36,7 +36,9 @@ See IPython `README.rst` file for more information:
 
     https://github.com/ipython/ipython/blob/master/README.rst
 
-"""
+Python {} detected.
+
+""".format(sys.version_info)
 
     print(error, file=sys.stderr)
     sys.exit(1)
