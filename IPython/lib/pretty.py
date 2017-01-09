@@ -83,11 +83,10 @@ import types
 import re
 import datetime
 from collections import deque
+from io import StringIO
 
 from IPython.utils.py3compat import PYPY, cast_unicode
 from IPython.utils.encoding import get_stream_enc
-
-from io import StringIO
 
 
 __all__ = ['pretty', 'pprint', 'PrettyPrinter', 'RepresentationPrinter',
@@ -114,7 +113,7 @@ def pretty(obj, verbose=False, max_width=79, newline='\n', max_seq_length=MAX_SE
     """
     Pretty print the object's representation.
     """
-    stream = CUnicodeIO()
+    stream = StringIO()
     printer = RepresentationPrinter(stream, verbose, max_width, newline, max_seq_length=max_seq_length)
     printer.pretty(obj)
     printer.flush()
