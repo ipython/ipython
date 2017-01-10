@@ -68,10 +68,12 @@ class RichPromptDisplayHook(DisplayHook):
 
         if self.do_full_cache:
             tokens = self.shell.prompts.out_prompt_tokens()
-            if tokens and not tokens[-1][1].endswith('\n'):
+            prompt_txt = ''.join(s for t, s in tokens)
+            if prompt_txt and not prompt_txt.endswith('\n'):
                 # Ask for a newline before multiline output
                 self.prompt_end_newline = False
+
             if self.shell.pt_cli:
                 self.shell.pt_cli.print_tokens(tokens)
             else:
-                sys.stdout.write(''.join(s for t, s in tokens))
+                sys.stdout.write(prompt_txt)
