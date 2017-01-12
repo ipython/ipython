@@ -84,7 +84,9 @@ import re
 import datetime
 from collections import deque
 from io import StringIO
+from warnings import warn
 
+from IPython.utils.decorators import undoc
 from IPython.utils.py3compat import PYPY, cast_unicode
 from IPython.utils.encoding import get_stream_enc
 
@@ -107,7 +109,13 @@ def _safe_getattr(obj, attr, default=None):
     except Exception:
         return default
 
-CUnicodeIO = StringIO
+@undoc
+class CUnicodeIO(StringIO):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        warn(("CUnicodeIO is deprecated since IPython 6.0. "
+              "Please use io.StringIO instead."),
+             DeprecationWarning, stacklevel=2)
 
 def pretty(obj, verbose=False, max_width=79, newline='\n', max_seq_length=MAX_SEQ_LENGTH):
     """
