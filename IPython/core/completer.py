@@ -15,6 +15,7 @@ upstream and were accepted as of Python 2.3,
 
 
 import __main__
+import builtins as builtin_mod
 import glob
 import inspect
 import itertools
@@ -35,7 +36,7 @@ from IPython.utils import generics
 from IPython.utils.decorators import undoc
 from IPython.utils.dir2 import dir2, get_real_method
 from IPython.utils.process import arg_split
-from IPython.utils.py3compat import builtin_mod, cast_unicode_py2
+from IPython.utils.py3compat import cast_unicode_py2
 from traitlets import Bool, Enum, observe
 
 from functools import wraps

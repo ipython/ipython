@@ -1,31 +1,14 @@
 """
-A context manager for managing things injected into :mod:`__builtin__`.
-
-Authors:
-
-* Brian Granger
-* Fernando Perez
+A context manager for managing things injected into :mod:`builtins`.
 """
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2011  The IPython Development Team.
-#
-#  Distributed under the terms of the BSD License.
-#
-#  Complete license in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+import builtins as builtin_mod
 
 from traitlets.config.configurable import Configurable
 
-from IPython.utils.py3compat import builtin_mod
 from traitlets import Instance
 
-#-----------------------------------------------------------------------------
-# Classes and functions
-#-----------------------------------------------------------------------------
 
 class __BuiltinUndefined(object): pass
 BuiltinUndefined = __BuiltinUndefined()

@@ -19,6 +19,7 @@ Limitations:
 # Module imports
 
 # From the standard library
+import builtins as builtin_mod
 import doctest
 import inspect
 import logging
@@ -44,9 +45,6 @@ from doctest import (REPORTING_FLAGS, REPORT_ONLY_FIRST_FAILURE,
 
 from nose.plugins import doctests, Plugin
 from nose.util import anyp, tolist
-
-# Our own imports
-from IPython.utils.py3compat import builtin_mod
 
 #-----------------------------------------------------------------------------
 # Module globals and other constants
