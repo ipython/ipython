@@ -86,6 +86,7 @@ from collections import deque
 from io import StringIO
 from warnings import warn
 
+from IPython.utils.decorators import undoc
 from IPython.utils.py3compat import PYPY, cast_unicode
 from IPython.utils.encoding import get_stream_enc
 
@@ -108,6 +109,7 @@ def _safe_getattr(obj, attr, default=None):
     except Exception:
         return default
 
+@undoc
 class CUnicodeIO(StringIO):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
