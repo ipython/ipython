@@ -456,7 +456,7 @@ def fake_input(inputs):
         except StopIteration:
             raise EOFError('No more inputs given')
 
-    return patch('builtins.input', mock_input)
+    return patch('%s.input' % py3compat.builtin_mod_name, mock_input)
 
 def help_output_test(subcommand=''):
     """test that `ipython [subcommand] -h` works"""
