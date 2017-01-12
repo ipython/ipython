@@ -18,7 +18,11 @@ import tempfile
 from contextlib import contextmanager
 from io import StringIO
 from subprocess import Popen, PIPE
-from unittest.mock import patch
+try:
+    from unittest.mock import patch
+except ImportError:
+    # Python 2 compatibility
+    from mock import patch
 
 try:
     # These tools are used by parts of the runtime, so we make the nose
