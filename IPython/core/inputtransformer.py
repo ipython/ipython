@@ -131,7 +131,8 @@ class TokenInputTransformer(InputTransformer):
 
     def reset_tokenizer(self):
         it = iter(self.buf)
-        self.tokenizer = generate_tokens(it.__next__)
+        nxt = it.__next__ if PY3 else it.next
+        self.tokenizer = generate_tokens(nxt)
 
     def push(self, line):
         self.buf.append(line + '\n')
