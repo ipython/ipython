@@ -127,12 +127,6 @@ def _stop_on_read(fd):
 def inputhook(context):
     """Inputhook for Cocoa (NSApp)"""
     NSApp = _NSApp()
-    window_count = msg(
-        msg(NSApp, n('windows')),
-        n('count')
-    )
-    if not window_count:
-        return
     _stop_on_read(context.fileno())
     msg(NSApp, n('run'))
     if not _triggered.is_set():
