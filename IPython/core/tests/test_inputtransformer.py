@@ -415,6 +415,11 @@ def test_assemble_python_lines():
        (u"2,", None),
        (None, u"a = [1,\n2,"),
       ],
+      [(u"a = '''", None),  # Test line continuation within a multi-line string
+       (u"abc\\", None),
+       (u"def", None),
+       (u"'''", u"a = '''\nabc\\\ndef\n'''"),
+      ],
     ] + syntax_ml['multiline_datastructure']
     for example in tests:
         transform_checker(example, ipt.assemble_python_lines)
