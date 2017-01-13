@@ -57,7 +57,7 @@ class ImportDenier(object):
     """ % (fullname, loaded_api()))
 
 ID = ImportDenier()
-sys.meta_path.append(ID)
+sys.meta_path.insert(0, ID)
 
 
 def commit_api(api):
