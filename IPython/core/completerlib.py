@@ -110,6 +110,11 @@ def get_root_modules():
     ip.db['rootmodules_cache'] maps sys.path entries to list of modules.
     """
     ip = get_ipython()
+    if ip is None:
+        # No global shell instance to store cached list of modules.
+        # Don't try to scan for modules every time.
+        return list(sys.builtin_module_names)
+
     rootmodules_cache = ip.db.get('rootmodules_cache', {})
     rootmodules = list(sys.builtin_module_names)
     start_time = time()
