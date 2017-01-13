@@ -158,13 +158,13 @@ class TokenInputTransformer(InputTransformer):
         return self.output(tokens)
     
     def output(self, tokens):
-        self.buf.clear()
+        self.buf[:] = []
         self.reset_tokenizer()
         return untokenize(self.func(tokens)).rstrip('\n')
     
     def reset(self):
         l = ''.join(self.buf)
-        self.buf.clear()
+        self.buf[:] = []
         self.reset_tokenizer()
         if l:
             return l.rstrip('\n')
