@@ -37,10 +37,14 @@ class IPythonPTCompleter(Completer):
         if not document.current_line.strip():
             return
 
-        used, matches = self.ipy_completer.complete(
-                            line_buffer=document.current_line,
-                            cursor_pos=document.cursor_position_col
-        )
+        # Some bits of our completion system may print stuff (e.g. if a module
+        # is imported). This context manager ensures that doesn't interfere with
+        # the prompt.
+        with self.shell.pt_cli.patch_stdout_context():
+            used, matches = self.ipy_completer.complete(
+                                line_buffer=document.current_line,
+                                cursor_pos=document.cursor_position_col
+            )
         start_pos = -len(used)
         for m in matches:
             if not m:
