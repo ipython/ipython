@@ -463,6 +463,6 @@ def help_all_output_test(subcommand=''):
     nt.assert_equal(rc, 0, err)
     nt.assert_not_in("Traceback", err)
     nt.assert_in("Options", out)
-    nt.assert_in("Class parameters", out)
+    nt.assert_in("Class", out)
     return out, err
 
