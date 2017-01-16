@@ -49,7 +49,7 @@ features:
 * Integrated access to the pdb debugger and the Python profiler.
 
 
-The Command line interface inherits all of the above functionalities and possess 
+The Command line interface inherits the above functionality and adds 
  
 * real multi-line editing.
  
@@ -74,7 +74,7 @@ You can find the table of content for this documentation in the left
 sidebar, allowing you to come back to previous sections or skip ahead, if needed. 
 
 
-The latest development version is always available through IPython's `GitHub
+The latest development version is always available from IPython's `GitHub
 repository <http://github.com/ipython/ipython>`_.
 
 
@@ -98,8 +98,7 @@ repository <http://github.com/ipython/ipython>`_.
 .. seealso::
 
    `Jupyter documentation <http://jupyter.readthedocs.io/en/latest/>`__
-     The Notebook code and other pieces formerly in IPython, are now part
-     of Project Jupyter.
+     The Jupyter documentation provides information about the Notebook code and other Jupyter sub-projects.
    `ipyparallel documentation <http://ipyparallel.readthedocs.io/en/latest/>`__
      Formerly ``IPython.parallel``.
 
