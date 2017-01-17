@@ -41,7 +41,9 @@ install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   - "%CMD_IN_ENV%  pip install setuptools>=18.5 --upgrade"
   - "%CMD_IN_ENV%  pip install nose coverage"
-  - "%CMD_IN_ENV%  pip install -r requires.txt"
+  - "%CMD_IN_ENV%  pip install .[test]"
+  - "%CMD_IN_ENV%  mkdir results"
+  - "%CMD_IN_ENV%  cd results"
 test_script:
-  - "%CMD_IN_ENV%  nosetests ."
+  - "%CMD_IN_ENV%  iptest --coverage xml"
   
