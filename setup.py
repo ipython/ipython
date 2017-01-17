@@ -215,7 +215,6 @@ install_requires = [
 
 extras_require.update({
     'test:python_version >= "3.4"': ['numpy'],
-    'test:python_version < "3.4"': ['numpy<1.12'],
     ':python_version == "3.3"': ['pathlib2'],
     ':sys_platform != "win32"': ['pexpect'],
     ':sys_platform == "darwin"': ['appnope'],
