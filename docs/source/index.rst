@@ -11,7 +11,7 @@ IPython Documentation
 
 Welcome to the official IPython documentation
 
-IPython provides a rich toolkit to help you make the most out of using Python
+IPython provides a rich toolkit to help you make the most of using Python
 interactively.  Its main components are:
 
 * A powerful interactive Python shell
@@ -33,7 +33,7 @@ features:
   variables and keywords, filenames and function keywords.
 
 * Extensible system of 'magic' commands for controlling the environment and
-  performing many tasks related either to IPython or the operating system.
+  performing many tasks related to IPython or the operating system.
 
 * A rich configuration system with easy switching between different setups
   (simpler than changing $PYTHONSTARTUP environment variables every time).
@@ -49,7 +49,7 @@ features:
 * Integrated access to the pdb debugger and the Python profiler.
 
 
-The Command line interface inherits all the above functionality and posses 
+The Command line interface inherits the above functionality and adds 
  
 * real multi-line editing.
  
@@ -57,21 +57,21 @@ The Command line interface inherits all the above functionality and posses
 
 * integration with command line editor for a better workflow.
 
-The kernel also have its share of feature, when used with a compatible frontend
-it allows for:
+The kernel also has its share of features. When used with a compatible frontend,
+it allows:
 
-* rich display system for object allowing to display Html, Images, Latex,Sounds
+* the object to create a rich display of Html, Images, Latex, Sound and
   Video.
 
 * interactive widgets with the use of the ``ipywidgets`` package.
 
 
-This documentation will walk through most of the features of the IPython
-command line and kernel, as well as describe the internals mechanisms in order
+This documentation will walk you through most of the features of the IPython
+command line and kernel, as well as describe the internal mechanisms in order
 to improve your Python workflow.
 
-You can always find the table of content for this documentation in the left
-sidebar, allowing you to come back on previous section if needed, or skip ahead. 
+You can find the table of content for this documentation in the left
+sidebar, allowing you to come back to previous sections or skip ahead, if needed. 
 
 
 The latest development version is always available from IPython's `GitHub
@@ -98,8 +98,7 @@ repository <http://github.com/ipython/ipython>`_.
 .. seealso::
 
    `Jupyter documentation <http://jupyter.readthedocs.io/en/latest/>`__
-     The Notebook code and many other pieces formerly in IPython are now parts
-     of Project Jupyter.
+     The Jupyter documentation provides information about the Notebook code and other Jupyter sub-projects.
    `ipyparallel documentation <http://ipyparallel.readthedocs.io/en/latest/>`__
      Formerly ``IPython.parallel``.
 
