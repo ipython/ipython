@@ -39,11 +39,6 @@ from IPython.utils.process import arg_split
 from IPython.utils.py3compat import cast_unicode_py2
 from traitlets import Bool, Enum, observe
 
-from functools import wraps
-
-#-----------------------------------------------------------------------------
-# Globals
-#-----------------------------------------------------------------------------
 
 # Public API
 __all__ = ['Completer','IPCompleter']
@@ -53,48 +48,6 @@ if sys.platform == 'win32':
 else:
     PROTECTABLES = ' ()[]{}?=\\|;:\'#*"^&'
 
-
-#-----------------------------------------------------------------------------
-# Work around BUG decorators.
-#-----------------------------------------------------------------------------
-
-def _strip_single_trailing_space(complete):
-    """
-    This is a workaround for a weird IPython/Prompt_toolkit behavior,
-    that can be removed once we rely on a slightly more recent prompt_toolkit
-    version (likely > 1.0.3). So this can likely be removed in IPython 6.0
-
-    cf https://github.com/ipython/ipython/issues/9658
-    and https://github.com/jonathanslenders/python-prompt-toolkit/pull/328
-
-    The bug is due to the fact that in PTK the completer will reinvoke itself
-    after trying to completer to the longuest common prefix of all the
-    completions, unless only one completion is available.
-
-    This logic is faulty if the completion ends with space, which can happen in
-    case like::
-
-        from foo import im<ta>
-
-    which only matching completion is `import `. Note the leading space at the
-    end. So leaving a space at the end is a reasonable request, but for now
-    we'll strip it.
-    """
-
-    @wraps(complete)
-    def comp(*args, **kwargs):
-        text, matches =  complete(*args, **kwargs)
-        if len(matches) == 1:
-            return text, [matches[0].rstrip()]
-        return text, matches
-
-    return comp
-
-
-
-#-----------------------------------------------------------------------------
-# Main functions and classes
-#-----------------------------------------------------------------------------
 
 def has_open_quotes(s):
     """Return whether a string has open quotes.
@@ -1134,7 +1087,6 @@ class IPCompleter(Completer):
 
         return None
 
-    @_strip_single_trailing_space
     def complete(self, text=None, line_buffer=None, cursor_pos=None):
         """Find completions for the given text and line context.
 

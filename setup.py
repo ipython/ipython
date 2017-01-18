@@ -205,7 +205,7 @@ install_requires = [
     'pickleshare',
     'simplegeneric>0.8',
     'traitlets>=4.2',
-    'prompt_toolkit>=1.0.3,<2.0.0',
+    'prompt_toolkit>=1.0.4,<2.0.0',
     'pygments',
 ]
 
