@@ -16,7 +16,7 @@ from string import Formatter
 try:
     from pathlib import Path
 except ImportError:
-    # Python 2 backport
+    # for Python 3.3
     from pathlib2 import Path
 
 from IPython.utils import py3compat
