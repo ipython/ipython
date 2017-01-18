@@ -159,6 +159,7 @@ def is_importable(module, attr, only_modules):
         return not(attr[:2] == '__' and attr[-2:] == '__')
 
 def try_import(mod, only_modules=False):
+    mod = mod.rstrip('.')
     try:
         m = __import__(mod)
     except:

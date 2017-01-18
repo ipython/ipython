@@ -780,6 +780,13 @@ def test_object_key_completion():
     nt.assert_in('qwerty', matches)
     nt.assert_in('qwick', matches)
 
+def test_tryimport():
+    """
+    Test that try-import don't crash on trailing dot, and import modules before
+    """
+    from IPython.core.completerlib import try_import
+    assert(try_import("IPython."))
+
 
 def test_aimport_module_completer():
     ip = get_ipython()
