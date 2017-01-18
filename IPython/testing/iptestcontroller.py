@@ -11,12 +11,9 @@ test suite.
 
 
 import argparse
-import json
 import multiprocessing.pool
 import os
 import stat
-import re
-import requests
 import shutil
 import signal
 import sys
@@ -25,13 +22,11 @@ import time
 
 from .iptest import (
     have, test_group_names as py_test_group_names, test_sections, StreamCapturer,
-    test_for,
 )
 from IPython.utils.path import compress_user
 from IPython.utils.py3compat import bytes_to_str
 from IPython.utils.sysinfo import get_sys_info
 from IPython.utils.tempdir import TemporaryDirectory
-from IPython.utils.text import strip_ansi
 
 try:
     # Python >= 3.3
@@ -49,8 +44,6 @@ except ImportError:
             time.sleep(0.1)
         if p.poll() is None:
             raise TimeoutExpired
-
-NOTEBOOK_SHUTDOWN_TIMEOUT = 10
 
 class TestController(object):
     """Run tests in a subprocess

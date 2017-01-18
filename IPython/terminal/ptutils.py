@@ -10,12 +10,16 @@ not to be used outside IPython.
 import unicodedata
 from wcwidth import wcwidth
 
-from IPython.core.completer import IPCompleter
+from IPython.core.completer import IPCompleter, provisionalcompleter, rectify_completions, cursor_to_position
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.layout.lexers import Lexer
 from prompt_toolkit.layout.lexers import PygmentsLexer
 
 import pygments.lexers as pygments_lexers
+
+_completion_sentinel = object()
+
+
 
 
 class IPythonPTCompleter(Completer):
@@ -39,35 +43,44 @@ class IPythonPTCompleter(Completer):
     def get_completions(self, document, complete_event):
         if not document.current_line.strip():
             return
-
         # Some bits of our completion system may print stuff (e.g. if a module
         # is imported). This context manager ensures that doesn't interfere with
         # the prompt.
-        with self.patch_stdout():
-            used, matches = self.ipy_completer.complete(
-                                line_buffer=document.current_line,
-                                cursor_pos=document.cursor_position_col
-            )
-        start_pos = -len(used)
-        for m in matches:
-            if not m:
+
+        with self.patch_stdout_context(), provisionalcompleter():
+            body = document.text
+            cursor_row = document.cursor_position_row
+            cursor_col = document.cursor_position_col
+            cursor_position = document.cursor_position
+            offset = cursor_to_position(body, cursor_row, cursor_col)
+            yield from self._get_completions(body, offset, cursor_position, self.ipy_completer)
+
+    @staticmethod
+    def _get_completions(body, offset, cursor_position, ipyc):
+        """
+        Private equivalent of get_completions() use only for unit_testing.
+        """
+        debug = getattr(ipyc, 'debug', False)
+        completions = rectify_completions(
+            body, ipyc.completions(body, offset), _debug=debug)
+        for c in completions:
+            if not c.text:
                 # Guard against completion machinery giving us an empty string.
                 continue
-
-            m = unicodedata.normalize('NFC', m)
-
+            text = unicodedata.normalize('NFC', c.text)
             # When the first character of the completion has a zero length,
             # then it's probably a decomposed unicode character. E.g. caused by
             # the "\dot" completion. Try to compose again with the previous
             # character.
-            if wcwidth(m[0]) == 0:
-                if document.cursor_position + start_pos > 0:
-                    char_before = document.text[document.cursor_position + start_pos - 1]
-                    m = unicodedata.normalize('NFC', char_before + m)
+            if wcwidth(text[0]) == 0:
+                if cursor_position + c.start > 0:
+                    char_before = body[c.start - 1]
+                    fixed_text = unicodedata.normalize(
+                        'NFC', char_before + text)
 
                     # Yield the modified completion instead, if this worked.
-                    if wcwidth(m[0:1]) == 1:
-                        yield Completion(m, start_position=start_pos - 1)
+                    if wcwidth(text[0:1]) == 1:
+                        yield Completion(fixed_text, start_position=c.start - offset - 1)
                         continue
 
             # TODO: Use Jedi to determine meta_text
@@ -75,7 +88,7 @@ class IPythonPTCompleter(Completer):
             # meta_text = ''
             # yield Completion(m, start_position=start_pos,
             #                  display_meta=meta_text)
-            yield Completion(m, start_position=start_pos)
+            yield Completion(c.text, start_position=c.start - offset, display_meta=c.type)
 
 class IPythonPTLexer(Lexer):
     """

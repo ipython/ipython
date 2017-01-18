@@ -1,11 +1,56 @@
 # encoding: utf-8
-"""Word completion for IPython.
+"""Completion for IPython.
 
 This module started as fork of the rlcompleter module in the Python standard
 library.  The original enhancements made to rlcompleter have been sent
 upstream and were accepted as of Python 2.3,
 
+This module now support a wide variety of completion mechanism both available
+for normal classic Python code, as well as completer for IPython specific
+Syntax like magics.
+
+Experimental
+============
+
+Starting with IPython 6.0, this module can make use of the Jedi library to
+generate completions both using static analysis of the code, and dynamically
+inspecting multiple namespaces. The APIs attached to this new mechanism is
+unstable and will raise unless use in an :any:`provisionalcompleter` context
+manager.
+
+You will find that the following are experimental:
+
+    - :any:`provisionalcompleter`
+    - :any:`IPCompleter.completions`
+    - :any:`Completion`
+    - :any:`rectify_completions`
+
+.. note::
+
+    better name for :any:`rectify_completions` ?
+
+We welcome any feedback on these new API, and we also encourage you to try this
+module in debug mode (start IPython with ``--Completer.debug=True``) in order
+to have extra logging information is :any:`jedi` is crashing, or if current
+IPython completer pending deprecations are returning results not yet handled
+by :any:`jedi`.
+
+Using Jedi for tab completion allow snippets like the following to work without
+having to execute any code:
+
+   >>> myvar = ['hello', 42]
+   ... myvar[1].bi<tab>
+
+Tab completion will be able to infer that ``myvar[1]`` is a real number without
+executing any code unlike the previously available ``IPCompleter.greedy``
+option.
+
+Be sure to update :any:`jedi` to the latest stable version or to try the
+current development version to get better completions.
 """
+
+# skip module docstests
+skip_doctest = True
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
@@ -26,19 +71,31 @@ import sys
 import unicodedata
 import string
 import warnings
+
+from contextlib import contextmanager
 from importlib import import_module
+from typing import Iterator, List
+from types import SimpleNamespace
 
 from traitlets.config.configurable import Configurable
 from IPython.core.error import TryNext
 from IPython.core.inputsplitter import ESC_MAGIC
 from IPython.core.latex_symbols import latex_symbols, reverse_latex_symbol
 from IPython.utils import generics
-from IPython.utils.decorators import undoc
 from IPython.utils.dir2 import dir2, get_real_method
 from IPython.utils.process import arg_split
 from IPython.utils.py3compat import cast_unicode_py2
 from traitlets import Bool, Enum, observe
 
+try:
+    import jedi
+    import jedi.api.helpers
+    JEDI_INSTALLED = True
+except ImportError:
+    JEDI_INSTALLED = False
+#-----------------------------------------------------------------------------
+# Globals
+#-----------------------------------------------------------------------------
 
 # Public API
 __all__ = ['Completer','IPCompleter']
@@ -47,6 +104,50 @@ if sys.platform == 'win32':
     PROTECTABLES = ' '
 else:
     PROTECTABLES = ' ()[]{}?=\\|;:\'#*"^&'
+
+
+_deprecation_readline_sentinel = object()
+
+
+class ProvisionalCompleterWarning(FutureWarning):
+    """
+    Exception raise by an experimental feature in this module.
+
+    Wrap code in :any:`provisionalcompleter` context manager if you
+    are certain you want to use an unstable feature.
+    """
+    pass
+
+warnings.filterwarnings('error', category=ProvisionalCompleterWarning)
+
+@contextmanager
+def provisionalcompleter(action='ignore'):
+    """
+
+
+    This contest manager has to be used in any place where unstable completer
+    behavior and API may be called.
+
+    >>> with provisionalcompleter():
+    ...     completer.do_experimetal_things() # works
+
+    >>> completer.do_experimental_things() # raises.
+
+    .. note:: Unstable
+
+        By using this context manager you agree that the API in use may change
+        without warning, and that you won't complain if they do so.
+
+        You also understand that if the API is not to you liking you should report
+        a bug to explain your use case upstream and improve the API and will loose
+        credibility if you complain after the API is make stable.
+
+        We'll be happy to get your feedback , feature request and improvement on
+        any of the unstable APIs !
+    """
+    with warnings.catch_warnings():
+        warnings.filterwarnings(action, category=ProvisionalCompleterWarning)
+        yield
 
 
 def has_open_quotes(s):
@@ -82,7 +183,7 @@ def protect_filename(s):
 
 
 def expand_user(path):
-    """Expand '~'-style usernames in strings.
+    """Expand ``~``-style usernames in strings.
 
     This is similar to :func:`os.path.expanduser`, but it computes and returns
     extra information that will be useful if the input was being used in
@@ -167,8 +268,135 @@ def completions_sorting_key(word):
     return prio1, word, prio2
 
 
-@undoc
-class Bunch(object): pass
+class _FakeJediCompletion:
+    """
+    This is a workaround to communicate to the UI that Jedi has crashed and to
+    report a bug. Will be used only id :any:`IPCompleter.debug` is set to true.
+
+    Added in IPython 6.0 so should likely be removed for 7.0
+
+    """
+
+    def __init__(self, name):
+
+        self.name = name
+        self.complete = name
+        self.type = 'crashed'
+        self.name_with_symbols = name
+
+    def __repr__(self):
+        return '<Fake completion object jedi has crashed>'
+
+
+class Completion:
+    """
+    Completion object used and return by IPython completers.
+
+    .. warning:: Unstable
+        
+        This function is unstable, API may change without warning.
+        It will also raise unless use in proper context manager.
+
+    This act as a middle ground :any:`Completion` object between the
+    :any:`jedi.api.classes.Completion` object and the Prompt Toolkit completion
+    object. While Jedi need a lot of information about evaluator and how the
+    code should be ran/inspected, PromptToolkit (and other frontend) mostly
+    need user facing information.
+
+    - Which range should be replaced replaced by what.
+    - Some metadata (like completion type), or meta informations to displayed to
+      the use user.
+
+    For debugging purpose we can also store the origin of the completion (``jedi``,
+    ``IPython.python_matches``, ``IPython.magics_matches``...).
+    """
+
+    def __init__(self, start: int, end: int, text: str, *, type: str=None, _origin=''):
+        warnings.warn("``Completion`` is a provisional API (as of IPython 6.0). "
+                      "It may change without warnings. "
+                      "Use in corresponding context manager.",
+                      category=ProvisionalCompleterWarning, stacklevel=2)
+
+        self.start = start
+        self.end = end
+        self.text = text
+        self.type = type
+        self._origin = _origin
+
+    def __repr__(self):
+        return '<Completion start=%s end=%s text=%r type=%r>' % (self.start, self.end, self.text, self.type or '?')
+
+    def __eq__(self, other)->Bool:
+        """
+        Equality and hash do not hash the type (as some completer may not be
+        able to infer the type), but are use to (partially) de-duplicate
+        completion.
+
+        Completely de-duplicating completion is a bit tricker that just
+        comparing as it depends on surrounding text, which Completions are not
+        aware of.
+        """
+        return self.start == other.start and \
+            self.end == other.end and \
+            self.text == other.text
+
+    def __hash__(self):
+        return hash((self.start, self.end, self.text))
+
+_IC = Iterator[Completion]
+
+def rectify_completions(text:str, completion:_IC, *, _debug=False)->_IC:
+    """
+    Rectify a set of completion to all have the same ``start`` and ``end``
+
+    .. warning:: Unstable
+
+        This function is unstable, API may change without warning.
+        It will also raise unless use in proper context manager.
+
+    Parameters
+    ----------
+    text: str
+        text that should be completed.
+    completion: Iterator[Completion]
+        iterator over the completions to rectify
+
+
+    :any:`jedi.api.classes.Completion` s returned by Jedi may not have the same start and end, though
+    the Jupyter Protocol requires them to behave like so. This will readjust
+    the completion to have the same ``start`` and ``end` by padding both
+    extremities with surrounding text.
+
+    During stabilisation should support a ``_debug`` option to log which
+    completion are return by the IPython completer and not found in Jedi in
+    order to make upstream bug report.
+    """
+    warnings.warn("`rectify_completions` is a provisional API (as of IPython 6.0). "
+                 "It may change without warnings. "
+                 "Use in corresponding context manager.",
+                  category=ProvisionalCompleterWarning, stacklevel=2)
+
+    completions = list(completion)
+    if not completions:
+        return
+    starts = (c.start for c in completions)
+    ends = (c.end for c in completions)
+
+    new_start = min(starts)
+    new_end = max(ends)
+
+    seen_jedi = set()
+    seen_python_matches = set()
+    for c in completions:
+        new_text = text[new_start:c.start] + c.text + text[c.end:new_end]
+        if c._origin == 'jedi':
+            seen_jedi.add(new_text)
+        elif c._origin == 'IPCompleter.python_matches':
+            seen_python_matches.add(new_text)
+        yield Completion(new_start, new_end, new_text, type=c.type, _origin=c._origin)
+    diff = seen_python_matches.difference(seen_jedi)
+    if diff and _debug:
+        print('IPython.python matches have extras:', diff)
 
 
 if sys.platform == 'win32':
@@ -189,7 +417,7 @@ class CompletionSplitter(object):
     entire line.
 
     What characters are used as splitting delimiters can be controlled by
-    setting the `delims` attribute (this is a property that internally
+    setting the ``delims`` attribute (this is a property that internally
     automatically builds the necessary regular expression)"""
 
     # Private interface
@@ -230,6 +458,7 @@ class CompletionSplitter(object):
         return self._delim_re.split(l)[-1]
 
 
+
 class Completer(Configurable):
 
     greedy = Bool(False,
@@ -240,7 +469,16 @@ class Completer(Configurable):
         but can be unsafe because the code is actually evaluated on TAB.
         """
     ).tag(config=True)
-    
+
+    use_jedi = Bool(default_value=JEDI_INSTALLED,
+                    help="Experimental: Use Jedi to generate autocompletions. "
+                    "Default to True if jedi is installed").tag(config=True)
+
+    debug = Bool(default_value=False,
+                 help='Enable debug for the Completer. Mostly print extra '
+                      'information for experimental jedi integration.')\
+                      .tag(config=True)
+
 
     def __init__(self, namespace=None, global_namespace=None, **kwargs):
         """Create a new completer for the command line.
@@ -254,20 +492,15 @@ class Completer(Configurable):
         An optional second namespace can be given.  This allows the completer
         to handle cases where both the local and global scopes need to be
         distinguished.
-
-        Completer instances should be used as the completion mechanism of
-        readline via the set_completer() call:
-
-        readline.set_completer(Completer(my_namespace).complete)
         """
 
         # Don't bind to namespace quite yet, but flag whether the user wants a
         # specific namespace or to use __main__.__dict__. This will allow us
         # to bind to __main__.__dict__ at completion time, not now.
         if namespace is None:
-            self.use_main_ns = 1
+            self.use_main_ns = True
         else:
-            self.use_main_ns = 0
+            self.use_main_ns = False
             self.namespace = namespace
 
         # The global namespace, if given, can be bound directly
@@ -354,13 +587,15 @@ class Completer(Configurable):
 
         if self.limit_to__all__ and hasattr(obj, '__all__'):
             words = get__all__entries(obj)
-        else: 
+        else:
             words = dir2(obj)
 
         try:
             words = generics.complete_object(obj, words)
         except TryNext:
             pass
+        except AssertionError:
+            raise
         except Exception:
             # Silence errors from completion function
             #raise # dbg
@@ -376,7 +611,7 @@ def get__all__entries(obj):
         words = getattr(obj, '__all__')
     except:
         return []
-    
+ 
     return [cast_unicode_py2(w) for w in words if isinstance(w, str)]
 
 
@@ -431,6 +666,73 @@ def match_dict_keys(keys, prefix, delims):
     return quote, token_start, matched
 
 
+def cursor_to_position(text:int, line:int, column:int)->int:
+    """
+
+    Convert the (line,column) position of the cursor in text to an offset in a
+    string.
+
+    Parameter
+    ---------
+
+    text : str
+        The text in which to calculate the cursor offset
+    line : int
+        Line of the cursor; 0-indexed
+    column : int
+        Column of the cursor 0-indexed
+
+    Return
+    ------
+        Position of the cursor in ``text``, 0-indexed.
+
+    See Also
+    --------
+    position_to_cursor: reciprocal of this function
+
+    """
+    lines = text.split('\n')
+    assert line <= len(lines), '{} <= {}'.format(str(line), str(len(lines)))
+
+    return sum(len(l) + 1 for l in lines[:line]) + column
+
+def position_to_cursor(text:str, offset:int)->(int, int):
+    """
+    Convert the position of the cursor in text (0 indexed) to a line
+    number(0-indexed) and a column number (0-indexed) pair
+
+    Position should be a valid position in ``text``.
+
+    Parameter
+    ---------
+
+    text : str
+        The text in which to calculate the cursor offset
+    offset : int
+        Position of the cursor in ``text``, 0-indexed.
+
+    Return
+    ------
+    (line, column) : (int, int)
+        Line of the cursor; 0-indexed, column of the cursor 0-indexed
+
+
+    See Also
+    --------
+    cursor_to_position : reciprocal of this function
+
+
+    """
+
+    assert 0 < offset <= len(text) , "0 < %s <= %s" % (offset , len(text))
+
+    before = text[:offset]
+    blines = before.split('\n')  # ! splitnes trim trailing \n
+    line = before.count('\n')
+    col = len(blines[-1])
+    return line, col
+
+
 def _safe_isinstance(obj, module, class_name):
     """Checks if obj is an instance of module.class_name if loaded
     """
@@ -441,7 +743,7 @@ def _safe_isinstance(obj, module, class_name):
 def back_unicode_name_matches(text):
     u"""Match unicode characters back to unicode name
     
-    This does  ☃ -> \\snowman
+    This does  ``☃`` -> ``\\snowman``
 
     Note that snowman is not a valid python3 combining character but will be expanded.
     Though it will not recombine back to the snowman character by the completion machinery.
@@ -468,10 +770,10 @@ def back_unicode_name_matches(text):
         pass
     return u'', ()
 
-def back_latex_name_matches(text):
-    u"""Match latex characters back to unicode name
+def back_latex_name_matches(text:str):
+    """Match latex characters back to unicode name
     
-    This does  ->\\sqrt
+    This does ``\\ℵ`` -> ``\\aleph``
 
     Used on Python 3 only.
     """
@@ -536,7 +838,7 @@ class IPCompleter(Completer):
         
         When True: only those names in obj.__all__ will be included.
         
-        When False [default]: the __all__ attribute is ignored 
+        When False [default]: the __all__ attribute is ignored
         """,
     ).tag(config=True)
 
@@ -548,33 +850,36 @@ class IPCompleter(Completer):
             UserWarning)
 
     def __init__(self, shell=None, namespace=None, global_namespace=None,
-                 use_readline=False, config=None, **kwargs):
+                 use_readline=_deprecation_readline_sentinel, config=None, **kwargs):
         """IPCompleter() -> completer
 
-        Return a completer object suitable for use by the readline library
-        via readline.set_completer().
+        Return a completer object.
 
-        Inputs:
+        Parameters
+        ----------
 
-        - shell: a pointer to the ipython shell itself.  This is needed
-          because this completer knows about magic functions, and those can
-          only be accessed via the ipython instance.
+        shell
+            a pointer to the ipython shell itself.  This is needed
+            because this completer knows about magic functions, and those can
+            only be accessed via the ipython instance.
 
-        - namespace: an optional dict where completions are performed.
+        namespace : dict, optional
+            an optional dict where completions are performed.
 
-        - global_namespace: secondary optional dict for completions, to
-          handle cases (such as IPython embedded inside functions) where
-          both Python scopes are visible.
-
+        global_namespace : dict, optional
+            secondary optional dict for completions, to
+            handle cases (such as IPython embedded inside functions) where
+            both Python scopes are visible.
+       
         use_readline : bool, optional
-          DEPRECATED, ignored.
+            DEPRECATED, ignored since IPython 6.0, will have no effects
         """
 
         self.magic_escape = ESC_MAGIC
         self.splitter = CompletionSplitter()
 
-        if use_readline:
-            warnings.warn('The use_readline parameter is deprecated and ignored since IPython 6.0.',
+        if use_readline is not _deprecation_readline_sentinel:
+            warnings.warn('The `use_readline` parameter is deprecated and ignored since IPython 6.0.',
                           DeprecationWarning, stacklevel=2)
 
         # _greedy_changed() depends on splitter and readline being defined:
@@ -733,6 +1038,55 @@ class IPCompleter(Completer):
             comp += [ pre+m for m in line_magics if m.startswith(bare_text)]
         return [cast_unicode_py2(c) for c in comp]
 
+    def _jedi_matches(self, cursor_column:int, cursor_line:int, text:str):
+        """
+
+        Return a list of :any:`jedi.api.Completions` object from a ``text`` and
+        cursor position.
+
+        Parameters
+        ----------
+        cursor_column : int
+            column position of the cursor in ``text``, 0-indexed.
+        cursor_line : int
+            line position of the cursor in ``text``, 0-indexed
+        text : str
+            text to complete
+
+        Debugging
+        ---------
+
+        If ``IPCompleter.debug`` is ``True`` may return a :any:`_FakeJediCompletion`
+        object containing a string with the Jedi debug information attached.
+        """
+        namespaces = [self.namespace]
+        if self.global_namespace is not None:
+            namespaces.append(self.global_namespace)
+
+        # cursor_pos is an it, jedi wants line and column
+        offset = cursor_to_position(text, cursor_line, cursor_column)
+        if offset:
+            pre = text[offset-1]
+        completion_filter = lambda x:x
+        if pre == '.':
+            if self.omit__names == 2:
+                completion_filter = lambda c:not c.name.startswith('_')
+            elif self.omit__names == 1:
+                completion_filter = lambda c:not (c.name.startswith('__') and c.name.endswith('__'))
+            elif self.omit__names == 0:
+                completion_filter = lambda x:x
+            else:
+                raise ValueError("Don't understand self.omit__names == {}".format(self.omit__names))
+
+        interpreter = jedi.Interpreter(
+            text, namespaces, column=cursor_column, line=cursor_line + 1)
+        try:
+            return filter(completion_filter, interpreter.completions())
+        except Exception as e:
+            if self.debug:
+                return [_FakeJediCompletion('Opps Jedi has crash please report a bug with the following:\n"""\n%s\ns"""' % (e))]
+            else:
+                return []
 
     def python_matches(self, text):
         """Match attributes or global python names"""
@@ -1006,12 +1360,12 @@ class IPCompleter(Completer):
         return [leading + k + suf for k in matches]
 
     def unicode_name_matches(self, text):
-        u"""Match Latex-like syntax for unicode characters base 
+        u"""Match Latex-like syntax for unicode characters base
         on the name of the character.
         
-        This does  \\GREEK SMALL LETTER ETA -> η
+        This does  ``\\GREEK SMALL LETTER ETA`` -> ``η``
 
-        Works only on valid python 3 identifier, or on combining characters that 
+        Works only on valid python 3 identifier, or on combining characters that
         will combine to form a valid identifier.
         
         Used on Python 3 only.
@@ -1029,13 +1383,11 @@ class IPCompleter(Completer):
         return u'', []
 
 
-
-
     def latex_matches(self, text):
         u"""Match Latex syntax for unicode characters.
         
-        This does both \\alp -> \\alpha and \\alpha -> α
-        
+        This does both ``\\alp`` -> ``\\alpha`` and ``\\alpha`` -> ``α``
+
         Used on Python 3 only.
         """
         slashpos = text.rfind('\\')
@@ -1062,7 +1414,7 @@ class IPCompleter(Completer):
 
         # Create a little structure to pass all the relevant information about
         # the current completion to any custom completer.
-        event = Bunch()
+        event = SimpleNamespace()
         event.line = line
         event.symbol = text
         cmd = line.split(None,1)[0]
@@ -1094,6 +1446,94 @@ class IPCompleter(Completer):
 
         return None
 
+    def completions(self, text: str, offset: int)->Iterator[Completion]:
+        """
+        Returns an iterator over the possible completions
+
+        .. warning:: Unstable
+            
+            This function is unstable, API may change without warning.
+            It will also raise unless use in proper context manager.
+
+        Parameters
+        ----------
+        
+        text:str
+            Full text of the current input, multi line string.
+        offset:int
+            Integer representing the position of the cursor in ``text``. Offset
+            is 0-based indexed.
+
+        Yields
+        ------
+            :any:`Completion` object
+
+
+        The cursor on a text can either be seen as being "in between"
+        characters or "On" a character depending on the interface visible to
+        the user. For consistency the cursor being on "in between" characters X
+        and Y is equivalent to the cursor being "on" character Y, that is to say
+        the character the cursor is on is considered as being after the cursor.
+
+        Combining characters may span more that one position in the
+        text.
+
+
+        .. note::
+
+            If ``IPCompleter.debug`` is :any:`True` will yield a ``--jedi/ipython--``
+            fake Completion token to distinguish completion returned by Jedi
+            and usual IPython completion.
+
+        """
+        warnings.warn("_complete is a provisional API (as of IPython 6.0). "
+                      "It may change without warnings. "
+                      "Use in corresponding context manager.",
+                      category=ProvisionalCompleterWarning, stacklevel=2)
+
+        # Possible Improvements / Known limitation
+        ##########################################
+        # Completions may be identical even if they have different ranges and
+        # text. For example:
+        # >>> a=1
+        # >>> a.<tab>
+        # May returns:
+        #  - `a.real` from 0 to 2
+        #  - `.real` from 1 to 2
+        # the current code does not (yet) check for such equivalence
+        seen = set()
+        for c in self._completions(text, offset):
+            if c and (c in seen):
+                continue
+            yield c
+            seen.add(c)
+
+    def _completions(self, full_text: str, offset: int)->Iterator[Completion]:
+        before = full_text[:offset]
+        cursor_line, cursor_column = position_to_cursor(full_text, offset)
+
+        matched_text, matches, matches_origin, jedi_matches = self._complete(
+            full_text=full_text, cursor_line=cursor_line, cursor_pos=cursor_column)
+
+        for jm in jedi_matches:
+            delta = len(jm.name_with_symbols) - len(jm.complete)
+            yield Completion(start=offset - delta, end=offset, text=jm.name_with_symbols, type=jm.type, _origin='jedi')
+
+
+        start_offset = before.rfind(matched_text)
+
+        # TODO:
+        # Supress this, right now just for debug.
+        if jedi_matches and matches and self.debug:
+            yield Completion(start=start_offset, end=offset, text='--jedi/ipython--', _origin='debug')
+
+        # I'm unsure if this is always true, so let's assert and see if it
+        # crash
+        assert before.endswith(matched_text)
+        for m, t in zip(matches, matches_origin):
+            yield Completion(start=start_offset, end=offset, text=m, _origin=t)
+
+
     def complete(self, text=None, line_buffer=None, cursor_pos=None):
         """Find completions for the given text and line context.
 
@@ -1123,7 +1563,38 @@ class IPCompleter(Completer):
 
         matches : list
           A list of completion matches.
+
+
+        .. note::
+
+            This API is likely to be deprecated and replaced by
+            :any:`IPCompleter.completions` in the future.
+
+
         """
+        warnings.warn('`Completer.complete` is pending deprecation since '
+                'IPython 6.0 and will be replaced by `Completer.completions`.',
+                      PendingDeprecationWarning)
+        # potential todo, FOLD the 3rd throw away argument of _complete
+        # into the first 2 one.
+        return self._complete(line_buffer=line_buffer, cursor_pos=cursor_pos, text=text, cursor_line=0)[:2]
+
+    def _complete(self, *, cursor_line, cursor_pos, line_buffer=None, text=None,
+                  full_text=None, return_jedi_results=True) -> (str, List[str], List[object]):
+        """
+
+        Like complete but can also returns raw jedi completions as well as the
+        origin of the completion text. This could (and should) be made much
+        cleaner but that will be simpler once we drop the old (and stateful)
+        :any:`complete` API.
+
+
+        With current provisional API, cursor_pos act both (depending on the
+        caller) as the offset in the ``text`` or ``line_buffer``, or as the
+        ``column`` when passing multiline strings this could/should be renamed
+        but would add extra noise.
+        """
+
         # if the cursor position isn't given, the only sane assumption we can
         # make is that it's at the end of the line (the common case)
         if cursor_pos is None:
@@ -1132,20 +1603,23 @@ class IPCompleter(Completer):
         if self.use_main_ns:
             self.namespace = __main__.__dict__
 
+        # if text is either None or an empty string, rely on the line buffer
+        if (not line_buffer) and full_text:
+            line_buffer = full_text.split('\n')[cursor_line]
+        if not text:
+            text = self.splitter.split_line(line_buffer, cursor_pos)
+
         base_text = text if not line_buffer else line_buffer[:cursor_pos]
         latex_text, latex_matches = self.latex_matches(base_text)
         if latex_matches:
-            return latex_text, latex_matches
+            return latex_text, latex_matches, ['latex_matches']*len(latex_matches), ()
         name_text = ''
         name_matches = []
         for meth in (self.unicode_name_matches, back_latex_name_matches, back_unicode_name_matches):
             name_text, name_matches = meth(base_text)
             if name_text:
-                return name_text, name_matches
+                return name_text, name_matches, [meth.__qualname__]*len(name_matches), {}
         
-        # if text is either None or an empty string, rely on the line buffer
-        if not text:
-            text = self.splitter.split_line(line_buffer, cursor_pos)
 
         # If no line buffer is given, assume the input text is all there was
         if line_buffer is None:
@@ -1155,33 +1629,55 @@ class IPCompleter(Completer):
         self.text_until_cursor = self.line_buffer[:cursor_pos]
 
         # Start with a clean slate of completions
-        self.matches[:] = []
+        matches = []
         custom_res = self.dispatch_custom_completer(text)
+        # FIXME: we should extend our api to return a dict with completions for
+        # different types of objects.  The rlcomplete() method could then
+        # simply collapse the dict into a list for readline, but we'd have
+        # richer completion semantics in other evironments.
+        completions = ()
+        if self.use_jedi and return_jedi_results:
+            if not full_text:
+                full_text = line_buffer
+            completions = self._jedi_matches(
+                cursor_pos, cursor_line, full_text)
         if custom_res is not None:
             # did custom completers produce something?
-            self.matches = custom_res
+            matches = [(m, 'custom') for m in custom_res]
         else:
             # Extend the list of completions with the results of each
             # matcher, so we return results to the user from all
             # namespaces.
             if self.merge_completions:
-                self.matches = []
+                matches = []
                 for matcher in self.matchers:
                     try:
-                        self.matches.extend(matcher(text))
+                        matches.extend([(m, matcher.__qualname__)
+                                        for m in matcher(text)])
                     except:
                         # Show the ugly traceback if the matcher causes an
                         # exception, but do NOT crash the kernel!
                         sys.excepthook(*sys.exc_info())
             else:
                 for matcher in self.matchers:
-                    self.matches = matcher(text)
-                    if self.matches:
+                    matches = [(m, matcher.__qualname__)
+                               for m in matcher(text)]
+                    if matches:
                         break
-        # FIXME: we should extend our api to return a dict with completions for
-        # different types of objects.  The rlcomplete() method could then
-        # simply collapse the dict into a list for readline, but we'd have
-        # richer completion semantics in other evironments.
-        self.matches = sorted(set(self.matches), key=completions_sorting_key)
+        seen = set()
+        filtered_matches = set()
+        for m in matches:
+            t, c = m
+            if t not in seen:
+                filtered_matches.add(m)
+                seen.add(t)
 
-        return text, self.matches
+        filtered_matches = sorted(
+            set(filtered_matches), key=lambda x: completions_sorting_key(x[0]))
+
+        matches = [m[0] for m in filtered_matches]
+        origins = [m[1] for m in filtered_matches]
+
+        self.matches = matches
+
+        return text, matches, origins, completions
