@@ -37,7 +37,7 @@ if sys.platform == 'win32':
         --------
 
         >>> get_long_path_name('c:\\docume~1')
-        u'c:\\\\Documents and Settings'
+        'c:\\\\Documents and Settings'
 
         """
         try:
