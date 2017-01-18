@@ -570,7 +570,7 @@ class FullEvalFormatter(Formatter):
                 # format the object and append to the result
                 result.append(self.format_field(obj, ''))
 
-        return u''.join(py3compat.cast_unicode(s) for s in result)
+        return ''.join(py3compat.cast_unicode(s) for s in result)
 
 
 class DollarFormatter(FullEvalFormatter):

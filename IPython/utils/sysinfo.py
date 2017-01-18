@@ -62,7 +62,7 @@ def pkg_commit_hash(pkg_path):
     repo_commit, _ = proc.communicate()
     if repo_commit:
         return 'repository', repo_commit.strip().decode('ascii')
-    return '(none found)', u'<not found>'
+    return '(none found)', '<not found>'
 
 
 def pkg_info(pkg_path):

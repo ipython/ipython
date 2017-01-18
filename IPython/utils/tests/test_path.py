@@ -251,11 +251,11 @@ def test_get_long_path_name_win32():
 
         # Make a long path. Expands the path of tmpdir prematurely as it may already have a long 
         # path component, so ensure we include the long form of it
-        long_path = os.path.join(path.get_long_path_name(tmpdir), u'this is my long path name')
+        long_path = os.path.join(path.get_long_path_name(tmpdir), 'this is my long path name')
         os.makedirs(long_path)
 
         # Test to see if the short path evaluates correctly.
-        short_path = os.path.join(tmpdir, u'THISIS~1')
+        short_path = os.path.join(tmpdir, 'THISIS~1')
         evaluated_path = path.get_long_path_name(short_path)
         nt.assert_equal(evaluated_path.lower(), long_path.lower())
 
@@ -315,7 +315,7 @@ def test_unicode_in_filename():
     """
     try:
         # these calls should not throw unicode encode exceptions
-        path.get_py_filename(u'fooéè.py',  force_win32=False)
+        path.get_py_filename('fooéè.py',  force_win32=False)
     except IOError as ex:
         str(ex)
 
@@ -398,11 +398,11 @@ def test_unescape_glob():
 
 def test_ensure_dir_exists():
     with TemporaryDirectory() as td:
-        d = os.path.join(td, u'∂ir')
+        d = os.path.join(td, '∂ir')
         path.ensure_dir_exists(d) # create it
         assert os.path.isdir(d)
         path.ensure_dir_exists(d) # no-op
-        f = os.path.join(td, u'ƒile')
+        f = os.path.join(td, 'ƒile')
         open(f, 'w').close() # touch
         with nt.assert_raises(IOError):
             path.ensure_dir_exists(f)
