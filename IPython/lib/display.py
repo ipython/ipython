@@ -251,7 +251,7 @@ class YouTubeVideo(IFrame):
         start=int(timedelta(hours=1, minutes=46, seconds=40).total_seconds())
 
     Other parameters can be provided as documented at
-    https://developers.google.com/youtube/player_parameters#parameter-subheader
+    https://developers.google.com/youtube/player_parameters#Parameters
     
     When converting the notebook using nbconvert, a jpeg representation of the video
     will be inserted in the document.

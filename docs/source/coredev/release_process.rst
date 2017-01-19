@@ -48,7 +48,7 @@ for the release you are actually making::
 
     Before generating the GitHub stats, verify that all closed issues and pull
     requests have `appropriate milestones
-    <https://github.com/ipython/ipython/wiki/Dev%3A-GitHub-workflow#milestones>`_.
+    <https://github.com/ipython/ipython/wiki/Dev:-GitHub-workflow#milestones>`_.
     `This search
     <https://github.com/ipython/ipython/issues?q=is%3Aclosed+no%3Amilestone+is%3Aissue>`_
     should return no results before creating the GitHub stats.
