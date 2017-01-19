@@ -356,12 +356,11 @@ class EmbeddedSphinxShell(object):
         # savefig somefile.png width=4in
         """
         savefig_dir = self.savefig_dir
-        source_dir = self.source_dir
         saveargs = decorator.split(' ')
         filename = saveargs[1]
-        # insert relative path to image file in source
+        # insert relative path to image file in build directory
         outfile = os.path.relpath(os.path.join(savefig_dir,filename),
-                    source_dir)
+                    self.outdir)
 
         imagerows = ['.. image:: %s'%outfile]
 
@@ -861,12 +860,12 @@ class IPythonDirective(Directive):
         exec_lines = config.ipython_execlines
         hold_count = config.ipython_holdcount
 
-        return (savefig_dir, source_dir, rgxin, rgxout,
+        return (savefig_dir, source_dir, outdir, rgxin, rgxout,
                 promptin, promptout, mplbackend, exec_lines, hold_count)
 
     def setup(self):
         # Get configuration values.
-        (savefig_dir, source_dir, rgxin, rgxout, promptin, promptout,
+        (savefig_dir, source_dir, outdir, rgxin, rgxout, promptin, promptout,
          mplbackend, exec_lines, hold_count) = self.get_config_options()
 
         if self.shell is None:
@@ -907,6 +906,7 @@ class IPythonDirective(Directive):
         self.shell.promptout = promptout
         self.shell.savefig_dir = savefig_dir
         self.shell.source_dir = source_dir
+        self.shell.outdir = outdir
         self.shell.hold_count = hold_count
 
         # setup bookmark for saving figures directory
