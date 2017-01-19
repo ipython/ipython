@@ -126,6 +126,7 @@ Authors
 
 # Stdlib
 import atexit
+import errno
 import os
 import re
 import sys
@@ -891,6 +892,13 @@ class IPythonDirective(Directive):
             self.shell.IP.history_manager.reset()
             self.shell.IP.execution_count = 1
             self.seen_docs.add(self.state.document.current_source)
+
+        # Ensure that the directory for saving figures exists
+        try:
+            os.makedirs(os.path.abspath(savefig_dir))
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
 
         # and attach to shell so we don't have to pass them around
         self.shell.rgxin = rgxin
