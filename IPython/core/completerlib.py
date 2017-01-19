@@ -152,7 +152,12 @@ def is_importable(module, attr, only_modules):
     else:
         return not(attr[:2] == '__' and attr[-2:] == '__')
 
-def try_import(mod, only_modules=False):
+
+def try_import(mod: str, only_modules=False):
+    """
+    Try to import given module and return list of potential completions.
+    """
+    mod = mod.rstrip('.')
     try:
         m = import_module(mod)
     except:
