@@ -405,7 +405,7 @@ class TerminalInteractiveShell(InteractiveShell):
         self.ask_exit()
         self._eventloop.call_from_executor(lambda: self.pt_cli.set_return_value(None))
 
-    _end_signals = (signal.SIGTERM, signal.SIGHUP)
+    _end_signals = ()
 
     @contextmanager
     def _real_handling_signals(self):
@@ -434,6 +434,7 @@ class TerminalInteractiveShell(InteractiveShell):
     def init_signals(self):
         if self.catch_signals and os.name == 'posix':
             self._maybe_handling_signals = self._real_handling_signals
+            self._end_signals = (signal.SIGTERM, signal.SIGHUP)
 
     rl_next_input = None
 
