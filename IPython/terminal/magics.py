@@ -82,8 +82,9 @@ class TerminalMagics(Magics):
 
     @line_magic
     def autoindent(self, parameter_s = ''):
-        """Toggle autoindent on/off (if available)."""
-
+        """Toggle autoindent on/off (deprecated)"""
+        print("%autoindent is deprecated since IPython 5: you can now paste "
+              "multiple lines without turning autoindentation off.")
         self.shell.set_autoindent()
         print("Automatic indentation is:",['OFF','ON'][self.shell.autoindent])
 
