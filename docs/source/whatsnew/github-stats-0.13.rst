@@ -124,7 +124,7 @@ Pull Requests (373):
 * :ghpull:`1964`: allow multiple instances of a Magic
 * :ghpull:`1991`: fix _ofind attr in %page
 * :ghpull:`1988`: check for active frontend in update_restart_checkbox
-* :ghpull:`1979`: Add support for tox (http://tox.testrun.org/) and Travis CI (http://travis-ci.org/)
+* :ghpull:`1979`: Add support for tox (https://tox.readthedocs.io/) and Travis CI (http://travis-ci.org/)
 * :ghpull:`1970`: dblclick to restore size of images
 * :ghpull:`1978`: Notebook names truncating at the first period
 * :ghpull:`1825`: second attempt at scrolled long output
@@ -542,7 +542,7 @@ Issues (742):
 * :ghissue:`1991`: fix _ofind attr in %page
 * :ghissue:`1982`: Shutdown qtconsole problem?
 * :ghissue:`1988`: check for active frontend in update_restart_checkbox
-* :ghissue:`1979`: Add support for tox (http://tox.testrun.org/) and Travis CI (http://travis-ci.org/)
+* :ghissue:`1979`: Add support for tox (https://tox.readthedocs.io/) and Travis CI (http://travis-ci.org/)
 * :ghissue:`1989`: Parallel: output of %px and %px${suffix} is inconsistent
 * :ghissue:`1966`: ValueError: packer could not serialize a simple message
 * :ghissue:`1987`: Notebook: MathJax offline install not recognized

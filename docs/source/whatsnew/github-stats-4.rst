@@ -103,7 +103,7 @@ GitHub stats for 2015/02/27 - 2015/08/11 (since 3.0)
 These lists are automatically generated, and may be incomplete or contain duplicates.
 
 We closed 35 issues and merged 125 pull requests.
-The full list can be seen `on GitHub <https://github.com/ipython/ipython/milestone/4.0>`__
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/milestone/21>`__
 
 The following 69 authors contributed 1186 commits.
 

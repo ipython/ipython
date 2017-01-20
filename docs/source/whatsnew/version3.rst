@@ -375,7 +375,7 @@ Example policies::
 Matches embeddings on any subdomain of jupyter.org, so long as they are served
 over SSL.
 
-There is a `report-uri <https://developer.mozilla.org/en-US/docs/Web/Security/CSP/CSP_policy_directives#report-uri>`_ endpoint available for logging CSP violations, located at
+There is a `report-uri <https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri>`_ endpoint available for logging CSP violations, located at
 ``/api/security/csp-report``. To use it, set ``report-uri`` as part of the CSP::
 
     c.NotebookApp.tornado_settings = {
