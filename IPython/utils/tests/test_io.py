@@ -17,7 +17,7 @@ import unittest
 import nose.tools as nt
 
 from IPython.testing.decorators import skipif, skip_win32
-from IPython.utils.io import Tee, capture_output
+from IPython.utils.io import IOStream, Tee, capture_output
 from IPython.utils.py3compat import doctest_refactor_print
 from IPython.utils.tempdir import TemporaryDirectory
 
@@ -67,6 +67,19 @@ def test_io_init():
         # __class__ is a reference to the class object in Python 3, so we can't
         # just test for string equality.
         assert 'IPython.utils.io.IOStream' in classname, classname
+
+def test_IOStream_init():
+    """IOStream initializes from a file-like object missing attributes. """
+    # Cause a failure from getattr and dir(). (Issue #6386)
+    class BadStringIO(StringIO):
+        def __dir__(self):
+            attrs = super(StringIO, self).__dir__()
+            attrs.append('name')
+            return attrs
+
+    iostream = IOStream(BadStringIO())
+    iostream.write('hi, bad iostream\n')
+    assert not hasattr(iostream, 'name')
 
 def test_capture_output():
     """capture_output() context works"""
