@@ -13,7 +13,8 @@ The code in this file is mainly lifted out of cmd.py in Python 2.2, with minor
 changes. Licensing should therefore be under the standard Python terms.  For
 details on the PSF (Python Software Foundation) standard license, see:
 
-http://www.python.org/2.2.3/license.html"""
+https://docs.python.org/2/license.html
+"""
 
 #*****************************************************************************
 #
