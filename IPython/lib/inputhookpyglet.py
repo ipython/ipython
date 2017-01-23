@@ -46,10 +46,8 @@ elif sys.platform == 'win32':
     def stdin_ready():
         return msvcrt.kbhit()
 
-
 # On linux only, window.flip() has a bug that causes an AttributeError on
-# window close.  For details, see:
-# http://groups.google.com/group/pyglet-users/browse_thread/thread/47c1aab9aa4a3d23/c22f9e819826799e?#c22f9e819826799e
+# window close.  For details, please see: http://bit.ly/2j65mal
 
 if sys.platform.startswith('linux'):
     def flip(window):
