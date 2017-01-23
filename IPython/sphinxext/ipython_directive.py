@@ -1162,7 +1162,7 @@ array([[ inf,  nan,   2.,   3.],
 
     #ipython_directive.DEBUG = True  # dbg
     #options = dict(suppress=True)  # dbg
-    options = dict()
+    options = {}
     for example in examples:
         content = example.split('\n')
         IPythonDirective('debug', arguments=None, options=options,
