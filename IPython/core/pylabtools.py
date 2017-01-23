@@ -109,13 +109,13 @@ def print_figure(fig, fmt='png', bbox_inches='tight', **kwargs):
         fmt = 'png'
     
     # build keyword args
-    kw = dict(
-        format=fmt,
-        facecolor=fig.get_facecolor(),
-        edgecolor=fig.get_edgecolor(),
-        dpi=dpi,
-        bbox_inches=bbox_inches,
-    )
+    kw = {
+        "format":fmt,
+        "facecolor":fig.get_facecolor(),
+        "edgecolor":fig.get_edgecolor(),
+        "dpi":dpi,
+        "bbox_inches":bbox_inches,
+    }
     # **kwargs get higher priority
     kw.update(kwargs)
     
@@ -134,7 +134,7 @@ def retina_figure(fig, **kwargs):
     if pngdata is None:
         return
     w, h = _pngxy(pngdata)
-    metadata = dict(width=w//2, height=h//2)
+    metadata = {"width": w//2, "height":h//2}
     return pngdata, metadata
 
 # We need a little factory function here to create the closure where
@@ -383,7 +383,7 @@ def configure_inline_support(shell, backend):
         shell.events.register('post_execute', flush_figures)
 
         # Save rcParams that will be overwrittern
-        shell._saved_rcParams = dict()
+        shell._saved_rcParams = {}
         for k in cfg.rc:
             shell._saved_rcParams[k] = matplotlib.rcParams[k]
         # load inline_rc

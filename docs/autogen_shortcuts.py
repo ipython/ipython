@@ -39,7 +39,7 @@ def multi_filter_str(flt):
     yield name(flt)
 
 
-log_filters = dict(_AndList='And', _OrList='Or')
+log_filters = {'_AndList': 'And', '_OrList': 'Or'}
 log_invert =  {'_Invert'}
 
 kbm = KeyBindingManager.for_prompt()
@@ -53,8 +53,8 @@ if common_docs:
 
 dummy_docs = list(set(dummy_docs))
 
-single_filter = dict()
-multi_filter = dict()
+single_filter = {}
+multi_filter =  {}
 for kb in ipy_bindings:
     doc = kb.handler.__doc__
     if not doc or doc in dummy_docs:

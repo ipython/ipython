@@ -1139,7 +1139,7 @@ class InteractiveShell(SingletonConfigurable):
 
         # For more details:
         # http://mail.python.org/pipermail/python-dev/2001-April/014068.html
-        ns = dict()
+        ns = {}
         
         # make global variables for user access to the histories
         ns['_ih'] = self.history_manager.input_hist_parsed
@@ -1367,7 +1367,7 @@ class InteractiveShell(SingletonConfigurable):
         if not oname.startswith(ESC_MAGIC) and \
             not oname.startswith(ESC_MAGIC2) and \
             not py3compat.isidentifier(oname, dotted=True):
-            return dict(found=False)
+            return {'found': False}
 
         if namespaces is None:
             # Namespaces to search in:
