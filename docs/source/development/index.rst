@@ -17,6 +17,5 @@ Developer's guide for third party tools and libraries
    wrapperkernels
    execution
    lexer
-   pycompat
    config
    inputhook_app
