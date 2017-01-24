@@ -540,6 +540,13 @@ class IPCompleter(Completer):
         """,
     ).tag(config=True)
 
+    @observe('limit_to__all__')
+    def _limit_to_all_changed(self, change):
+        warnings.warn('`IPython.core.IPCompleter.limit_to__all__` configuration '
+            'value has been deprecated since IPython 5.0, will be made to have '
+            'no effects and then removed in future version of IPython.',
+            UserWarning)
+
     def __init__(self, shell=None, namespace=None, global_namespace=None,
                  use_readline=False, config=None, **kwargs):
         """IPCompleter() -> completer
