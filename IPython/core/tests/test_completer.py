@@ -292,7 +292,10 @@ def test_jedi():
             completions = set(ip.Completer.completions(s, l))
             assert_not_in(Completion(l, l, comp), completions, reason)
 
-    yield _test_complete, 'jedi >0.9 should complete and not crash', 'a=1;a.', 'real'
+    import jedi
+    jedi_version = tuple(int(i) for i in jedi.__version__.split('.')[:3])
+    if jedi_version > (0,10):
+        yield _test_complete, 'jedi >0.9 should complete and not crash', 'a=1;a.', 'real'
     yield _test_complete, 'can infer first argument', 'a=(1,"foo");a[0].', 'real'
     yield _test_complete, 'can infer second argument', 'a=(1,"foo");a[1].', 'capitalize'
     yield _test_complete, 'cover duplicate completions', 'im', 'import', 0, 2
