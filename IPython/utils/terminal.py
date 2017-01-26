@@ -18,8 +18,12 @@ import warnings
 try:
     from shutil import get_terminal_size as _get_terminal_size
 except ImportError:
-    # use backport on Python 2
-    from backports.shutil_get_terminal_size import get_terminal_size as _get_terminal_size
+    try:
+        # use backport on Python 2
+        from backports.shutil_get_terminal_size import get_terminal_size as _get_terminal_size
+    except ImportError:
+        # ubuntu 16.04, python2.7, latest ipython installed in user directory via pip
+        from shutil_backports import get_terminal_size as _get_terminal_size
 
 from . import py3compat
 
