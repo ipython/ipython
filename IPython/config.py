@@ -9,7 +9,7 @@ from warnings import warn
 
 from IPython.utils.shimmodule import ShimModule, ShimWarning
 
-warn("The `IPython.config` package has been deprecated. "
+warn("The `IPython.config` module has been deprecated. "
      "You should import from traitlets.config instead.", ShimWarning)
 
 

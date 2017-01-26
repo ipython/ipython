@@ -6,7 +6,7 @@ Shim to maintain backwards compatibility with old IPython.consoleapp imports.
 
 from warnings import warn
 
-warn("The `IPython.consoleapp` package has been deprecated. "
+warn("The `IPython.consoleapp` module has been deprecated. "
      "You should import from jupyter_client.consoleapp instead.")
 
 from jupyter_client.consoleapp import *
