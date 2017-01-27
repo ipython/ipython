@@ -6,7 +6,30 @@
 IPython 5.2
 ===========
 
+Remarkable changes and fixes:
+
 * restore IPython's debugger to raise on quit. :ghpull:`10009`
+* The configuration value ``c.TerminalInteractiveShell.highlighting_style`` can
+  now directly take a class argument for custom color style. :ghpull:`9848`
+* Correctly handle matplotlib figures dpi :ghpull:`9868`
+* Deprecate ``-e`` flag for the ``%notebook`` magic that had no effects.
+  :ghpull:`9872`
+* You can now press F2 while typing at a terminal prompt to edit the contents
+  in your favourite terminal editor. Set the :envvar:`EDITOR` environment
+  variable to pick which editor is used. :ghpull:`9929`
+* sdists will now only be ``.tar.gz`` as per upstream PyPI requirements.
+  :ghpull:`9925`
+* :any:`IPython.core.debugger` have gained a ``set_trace()`` method for
+  convenience. :ghpull:`9947`
+* The 'smart command mode' added to the debugger in 5.0 was removed, as more
+  people preferred the previous behaviour. Therefore, debugger commands such as
+  ``c`` will act as debugger commands even when ``c`` is defined as a variable.
+  :ghpull:`10050`
+* Fixes OS X event loop issues at startup, :ghpull:`10150`
+* Deprecate the ``%autoindent`` magic. :ghpull:`10176`
+* Emit a :any:`DeprecationWarning` when setting the deprecated
+  ``limit_to_all`` option of the completer. :ghpull:`10198`
+
 
 
 IPython 5.1
