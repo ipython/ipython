@@ -7,6 +7,9 @@ IPython 5.2
 ===========
 
 * restore IPython's debugger to raise on quit. :ghpull:`10009`
+* Add a ``catch_signal`` configuration option to
+  :any:`TerminalInteractiveShell` and try to cleanly exit on SIGTERM and
+  SIGHUP. :ghpull:`10185`
 
 
 IPython 5.1
