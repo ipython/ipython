@@ -1,6 +1,8 @@
 """IPython terminal interface using prompt_toolkit"""
 
+from contextlib import contextmanager
 import os
+import signal
 import sys
 import warnings
 from warnings import warn
@@ -190,6 +192,10 @@ class TerminalInteractiveShell(InteractiveShell):
         help="Highlight matching brackets .",
     ).tag(config=True)
 
+    catch_signals = Bool(True,
+         help="Catch SIGTERM and SIGHUP to exit gracefully",
+    ).tag(config=True)
+
     @observe('term_title')
     def init_term_title(self, change=None):
         # Enable or disable the terminal title.
@@ -331,9 +337,12 @@ class TerminalInteractiveShell(InteractiveShell):
             self._pt_app.layout = create_prompt_layout(**self._layout_options())
 
     def prompt_for_code(self):
-        document = self.pt_cli.run(
-            pre_run=self.pre_prompt, reset_current_buffer=True)
-        return document.text
+        with self._maybe_handling_signals():
+            document = self.pt_cli.run(
+                pre_run=self.pre_prompt, reset_current_buffer=True)
+
+        if document is not None:
+            return document.text
 
     def enable_win_unicode_console(self):
         if sys.version_info >= (3, 6):
@@ -384,12 +393,48 @@ class TerminalInteractiveShell(InteractiveShell):
         super(TerminalInteractiveShell, self).__init__(*args, **kwargs)
         self.init_prompt_toolkit_cli()
         self.init_term_title()
+        self.init_signals()
         self.keep_running = True
 
         self.debugger_history = InMemoryHistory()
 
     def ask_exit(self):
         self.keep_running = False
+
+    def _sig_exit(self, signum, frame):
+        self.ask_exit()
+        self._eventloop.call_from_executor(lambda: self.pt_cli.set_return_value(None))
+
+    _end_signals = ()
+
+    @contextmanager
+    def _real_handling_signals(self):
+        """Set signal handlers while the prompt is active.
+
+        This is necessary because the terminal is stateful, so prompt_toolkit
+        needs to reset stuff before the process exits. We put the previous
+        handlers back after the prompt for user code to run.
+        """
+        prev = {}
+        for signum in self._end_signals:
+            prev[signum] = signal.signal(signum, self._sig_exit)
+
+        try:
+            yield
+        finally:
+            for signum in self._end_signals:
+                action = prev.get(signum, signal.SIG_DFL)
+                signal.signal(signum, action)
+
+    @contextmanager
+    def _maybe_handling_signals(self):
+        # This is replaced with the context manager above if catch_signals is True
+        yield
+
+    def init_signals(self):
+        if self.catch_signals and os.name == 'posix':
+            self._maybe_handling_signals = self._real_handling_signals
+            self._end_signals = (signal.SIGTERM, signal.SIGHUP)
 
     rl_next_input = None
 
