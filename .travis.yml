@@ -6,6 +6,8 @@ python:
     - 3.5
     - 3.4
     - 3.3
+    - pypy
+    
 sudo: false
 before_install:
     - git clone --quiet --depth 1 https://github.com/minrk/travis-wheels travis-wheels
