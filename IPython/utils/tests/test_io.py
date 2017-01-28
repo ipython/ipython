@@ -77,14 +77,14 @@ def test_io_init():
 def test_IOStream_init():
     """IOStream initializes from a file-like object missing attributes. """
     # Cause a failure from getattr and dir(). (Issue #6386)
-    class BadStringIO(StringIO):
+    class BadStringIO(stdlib_io.StringIO):
         def __dir__(self):
-            attrs = super(StringIO, self).__dir__()
+            attrs = super(BadStringIO, self).__dir__()
             attrs.append('name')
             return attrs
 
     iostream = IOStream(BadStringIO())
-    iostream.write('hi, bad iostream\n')
+    iostream.write(u'hi, bad iostream\n')
     assert not hasattr(iostream, 'name')
 
 def test_capture_output():
