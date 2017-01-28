@@ -17,7 +17,7 @@ import unittest
 
 import nose.tools as nt
 
-from IPython.testing.decorators import skipif, skip_win32
+from IPython.testing.decorators import skipif, skip_win32, py3_only
 from IPython.utils.io import IOStream, Tee, capture_output
 from IPython.utils.py3compat import doctest_refactor_print, PY3
 from IPython.utils.tempdir import TemporaryDirectory
@@ -74,6 +74,7 @@ def test_io_init():
         # just test for string equality.
         assert 'IPython.utils.io.IOStream' in classname, classname
 
+@py3_only
 def test_IOStream_init():
     """IOStream initializes from a file-like object missing attributes. """
     # Cause a failure from getattr and dir(). (Issue #6386)
