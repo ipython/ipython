@@ -15,11 +15,7 @@ Authors:
 import os
 import sys
 import warnings
-try:
-    from shutil import get_terminal_size as _get_terminal_size
-except ImportError:
-    # use backport on Python 2
-    from backports.shutil_get_terminal_size import get_terminal_size as _get_terminal_size
+from shutil import get_terminal_size as _get_terminal_size
 
 from . import py3compat
 
