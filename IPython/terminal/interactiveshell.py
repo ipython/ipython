@@ -450,8 +450,14 @@ class TerminalInteractiveShell(InteractiveShell):
             try:
                 self.interact()
                 break
-            except KeyboardInterrupt:
-                print("\nKeyboardInterrupt escaped interact()\n")
+            except KeyboardInterrupt as e:
+                print("\n%s escaped interact()\n" % type(e).__name__)
+                # An interrupt during the eventloop will mess up the
+                # internal state of the prompt_toolkit library.
+                # Stopping the eventloop fixes this, see
+                # https://github.com/ipython/ipython/pull/9867
+                if hasattr(self, '_eventloop'):
+                    self._eventloop.stop()
 
     _inputhook = None
     def inputhook(self, context):
