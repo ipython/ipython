@@ -3,6 +3,60 @@
 Issues closed in the 5.x development cycle
 ==========================================
 
+Issues closed in 5.2
+--------------------
+
+GitHub stats for 2016/08/13 - 2017/01/29 (tag: 5.1.0)
+
+These lists are automatically generated, and may be incomplete or contain duplicates.
+
+We closed 30 issues and merged 74 pull requests.
+The full list can be seen `on GitHub <https://github.com/ipython/ipython/issues?q=milestone%3A5.2+>`__
+
+The following 40 authors contributed 434 commits.
+
+* Adam Eury
+* anantkaushik89
+* anatoly techtonik
+* Benjamin Ragan-Kelley
+* Bibo Hao
+* Carl Smith
+* Carol Willing
+* Chilaka Ramakrishna
+* Christopher Welborn
+* Denis S. Tereshchenko
+* Diego Garcia
+* fatData
+* Fermi paradox
+* Fernando Perez
+* fuho
+* Hassan Kibirige
+* Jamshed Vesuna
+* Jens Hedegaard Nielsen
+* Jeroen Demeyer
+* kaushikanant
+* Kenneth Hoste
+* Keshav Ramaswamy
+* Kyle Kelley
+* Matteo
+* Matthias Bussonnier
+* mbyt
+* memeplex
+* Moez Bouhlel
+* Pablo Galindo
+* Paul Ivanov
+* pietvo
+* Piotr Przetacznik
+* Rounak Banik
+* sachet-mittal
+* Srinivas Reddy Thatiparthy
+* Tamir Bahar
+* Thomas A Caswell
+* Thomas Kluyver
+* tillahoffmann
+* Yuri Numerov
+
+
 Issues closed in 5.1
 --------------------
 
