@@ -429,6 +429,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 break
             except KeyboardInterrupt as e:
                 print("\n%s escaped interact()\n" % type(e).__name__)
+            finally:
                 # An interrupt during the eventloop will mess up the
                 # internal state of the prompt_toolkit library.
                 # Stopping the eventloop fixes this, see
