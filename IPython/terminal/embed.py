@@ -12,6 +12,7 @@ import sys
 import warnings
 
 from IPython.core import ultratb, compilerop
+from IPython.core import magic_arguments
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.core.interactiveshell import DummyMod, InteractiveShell
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
@@ -27,22 +28,68 @@ class KillEmbeded(Exception):pass
 class EmbeddedMagics(Magics):
 
     @line_magic
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument('-i', '--instance', action='store_true',
+                              help='Kill instance instead of call location')
+    @magic_arguments.argument('-x', '--exit', action='store_true',
+                              help='Also exit the current session')
+    @magic_arguments.argument('-y', '--yes', action='store_true',
+                              help='Do not ask confirmation')
     def kill_embedded(self, parameter_s=''):
-        """%kill_embedded : deactivate for good the current embedded IPython.
+        """%kill_embedded : deactivate for good the current embedded IPython
 
         This function (after asking for confirmation) sets an internal flag so
-        that an embedded IPython will never activate again.  This is useful to
-        permanently disable a shell that is being called inside a loop: once
-        you've figured out what you needed from it, you may then kill it and
-        the program will then continue to run without the interactive shell
-        interfering again.
+        that an embedded IPython will never activate again for the given call
+        location. This is useful to permanently disable a shell that is being
+        called inside a loop: once you've figured out what you needed from it,
+        you may then kill it and the program will then continue to run without
+        the interactive shell interfering again.
+
+
+        Kill Instance Option
+        --------------------
+
+        If for some reasons you need to kill the location where the instance is
+        created and not called, for example if you create a single instance in
+        one place and debug in many locations, you can use the ``--instance``
+        option to kill this specific instance. Like for the ``call location``
+        killing an "instance" should work even if it is recreated within a
+        loop.
+
+        .. note::
+
+            This was the default behavior before IPython 5.2
+
         """
 
-        kill = ask_yes_no("Are you sure you want to kill this embedded instance? [y/N] ",'n')
-        if kill:
-            self.shell.embedded_active = False
-            print ("This embedded IPython will not reactivate anymore "
-                   "once you exit.")
+        args = magic_arguments.parse_argstring(self.kill_embedded, parameter_s)
+        print(args)
+        if args.instance:
+            # let no ask
+            if not args.yes:
+                kill = ask_yes_no(
+                    "Are you sure you want to kill this embedded instance? [y/N] ", 'n')
+            else:
+                kill = True
+            if kill:
+                self.shell._disable_init_location()
+                print("This embedded IPython instance will not reactivate anymore "
+                      "once you exit.")
+        else:
+            if not args.yes:
+                kill = ask_yes_no(
+                    "Are you sure you want to kill this embedded call_location? [y/N] ", 'n')
+            else:
+                kill = True
+            if kill:
+                self.shell.embedded_active = False
+                print("This embedded IPython  call location will not reactivate anymore "
+                      "once you exit.")
+
+        if args.exit:
+            # Ask-exit does not really ask, it just set internals flags to exit
+            # on next loop.
+            self.shell.ask_exit()
 
 
     @line_magic
@@ -79,29 +126,37 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
 
     @property
     def embedded_active(self):
-        return self._call_location_id not in InteractiveShellEmbed._inactive_locations
+        return (self._call_location_id not in InteractiveShellEmbed._inactive_locations)\
+            and (self._init_location_id not in InteractiveShellEmbed._inactive_locations)
+
+    def _disable_init_location(self):
+        """Disable the current Instance creation location"""
+        InteractiveShellEmbed._inactive_locations.add(self._init_location_id)
 
     @embedded_active.setter
     def embedded_active(self, value):
-        if value :
-            if self._call_location_id in InteractiveShellEmbed._inactive_locations:
-                InteractiveShellEmbed._inactive_locations.remove(self._call_location_id)
+        if value:
+            InteractiveShellEmbed._inactive_locations.discard(
+                self._call_location_id)
+            InteractiveShellEmbed._inactive_locations.discard(
+                self._init_location_id)
         else:
-            InteractiveShellEmbed._inactive_locations.add(self._call_location_id)
+            InteractiveShellEmbed._inactive_locations.add(
+                self._call_location_id)
 
     def __init__(self, **kw):
-        
-    
         if kw.get('user_global_ns', None) is not None:
-            raise DeprecationWarning("Key word argument `user_global_ns` has been replaced by `user_module` since IPython 4.0.")
+            raise DeprecationWarning(
+                "Key word argument `user_global_ns` has been replaced by `user_module` since IPython 4.0.")
 
-        self._call_location_id =  kw.pop('_call_location_id', None)
+        clid = kw.pop('_init_location_id', None)
+        if not clid:
+            frame = sys._getframe(1)
+            clid = '%s:%s' % (frame.f_code.co_filename, frame.f_lineno)
+        self._init_location_id = clid
 
         super(InteractiveShellEmbed,self).__init__(**kw)
 
-        if not self._call_location_id:
-            frame = sys._getframe(1)
-            self._call_location_id = '%s:%s' % (frame.f_code.co_filename, frame.f_lineno)
         # don't use the ipython crash handler so that user exceptions aren't
         # trapped
         sys.excepthook = ultratb.FormattedTB(color_scheme=self.colors,
@@ -109,6 +164,9 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
                                              call_pdb=self.pdb)
 
     def init_sys_modules(self):
+        """
+        Explicitly overwrite :any:`IPython.core.interactiveshell` to do nothing.
+        """
         pass
 
     def init_magics(self):
@@ -116,7 +174,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         self.register_magics(EmbeddedMagics)
 
     def __call__(self, header='', local_ns=None, module=None, dummy=None,
-                 stack_depth=1, global_ns=None, compile_flags=None):
+                 stack_depth=1, global_ns=None, compile_flags=None, **kw):
         """Activate the interactive interpreter.
 
         __call__(self,header='',local_ns=None,module=None,dummy=None) -> Start
@@ -133,7 +191,16 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         can still have a specific call work by making it as IPShell(dummy=False).
         """
 
+        # we are called, set the underlying interactiveshell not to exit.
+        self.keep_running = True
+
         # If the user has turned it off, go away
+        clid = kw.pop('_call_location_id', None)
+        if not clid:
+            frame = sys._getframe(1)
+            clid = '%s:%s' % (frame.f_code.co_filename, frame.f_lineno)
+        self._call_location_id = clid
+
         if not self.embedded_active:
             return
 
@@ -312,8 +379,10 @@ def embed(**kwargs):
         cls = type(saved_shell_instance)
         cls.clear_instance()
     frame = sys._getframe(1)
-    shell = InteractiveShellEmbed.instance(_call_location_id='%s:%s' % (frame.f_code.co_filename, frame.f_lineno), **kwargs)
-    shell(header=header, stack_depth=2, compile_flags=compile_flags)
+    shell = InteractiveShellEmbed.instance(_init_location_id='%s:%s' % (
+        frame.f_code.co_filename, frame.f_lineno), **kwargs)
+    shell(header=header, stack_depth=2, compile_flags=compile_flags,
+          _call_location_id='%s:%s' % (frame.f_code.co_filename, frame.f_lineno))
     InteractiveShellEmbed.clear_instance()
     #restore previous instance
     if saved_shell_instance is not None:

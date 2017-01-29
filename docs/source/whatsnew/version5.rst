@@ -31,6 +31,23 @@ Remarkable changes and fixes:
   ``limit_to_all`` option of the completer. :ghpull:`10198`
 
 
+Changes of behavior to :any:`InteractiveShellEmbed`.
+
+:any:`InteractiveShellEmbed` interactive behavior have changed a bit in between
+5.1 and 5.2. By default ``%kill_embedded`` magic will prevent further invocation
+of the current ``call location`` instead of preventing further invocation of
+the current instance creation location. For most use case this will not change
+much for you, though previous behavior was confusing and less consistent with
+previous IPython versions.
+
+You can now deactivate instances by using ``%kill_embedded --instance`` flag,
+(or ``-i`` in short). The ``%kill_embedded`` magic also gained a
+``--yes``/``-y`` option which skip confirmation step, and  ``-x``/``--exit``
+which also exit the current embedded call without asking for confirmation.
+
+See :ghpull:`10207`.
+
+
 
 IPython 5.1
 ===========
