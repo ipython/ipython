@@ -9,7 +9,7 @@ developers of third party tools and libraries that use IPython should see the
 :doc:`../development/index`.
 
 
-For instruction on how to make a developer install see :ref:`devinstall`.
+For instructions on how to make a developer install see :ref:`devinstall`.
 
 .. toctree::
    :maxdepth: 1
@@ -22,7 +22,27 @@ Backporting Pull requests
 
 All pull requests should usually be made against ``master``, if a Pull Request
 need to be backported to an earlier release; then it should be tagged with the
-correct ``milestone``. We then use `ghpro <https://pypi.python.org/pypi/ghpro>`
+correct ``milestone``.
+
+If you are an admin on the IPython repository just mention the **backport bot** to
+do the work for you. The bot is evolving so instructions may be different. At
+the time of this writing you can use::
+
+    @meeseeksdev[bot] backport to <branchname>
+
+The bot will attempt to backport the current pull-request and issue a PR if
+possible.
+
+.. note::
+
+    The ``@`` and ``[dev]`` when mentioning the bot should be optional and can
+    be omitted.
+
+
+Backport with ghpro
+-------------------
+
+We can also use `ghpro <https://pypi.python.org/pypi/ghpro>`
 to automatically list and apply the PR on other branches. For example:
 
 .. code-block:: bash

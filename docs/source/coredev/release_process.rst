@@ -87,6 +87,9 @@ To find duplicates and update `.mailmap`, use::
 
     git log --format="%aN <%aE>" $PREV_RELEASE... | sort -u -f
 
+If a minor release you might need to do some of the above points manually, and
+forward port the changes.
+
 3. Make sure the repository is clean
 ------------------------------------
 
@@ -243,8 +246,12 @@ The IPython website should document the new release:
 Make sure to update readthedocs and set the latest tag as stable, as well as
 checking that previous release is still building under its own tag. 
 
+13. Update the Conda-Forge feedstock
+------------------------------------
 
-13. Celebrate!
+Follow the instructions on `the repository <https://github.com/conda-forge/ipython-feedstock>`_
+
+14. Celebrate!
 --------------
 
 Celebrate the release and please thank the contributors for their work. Great
