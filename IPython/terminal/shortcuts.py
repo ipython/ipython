@@ -4,7 +4,7 @@ import sys
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER
 from prompt_toolkit.filters import (HasFocus, HasSelection, Condition,
     ViInsertMode, EmacsInsertMode, HasCompletions)
-from prompt_toolkit.filters.cli import ViMode
+from prompt_toolkit.filters.cli import ViMode, ViNavigationMode
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.key_binding.bindings.completion import display_completions_like_readline
 
@@ -64,6 +64,10 @@ def register_ipython_shortcuts(registry, shell):
 
     registry.add_binding(Keys.F2,
                          filter=HasFocus(DEFAULT_BUFFER)
+                        )(open_input_in_editor)
+
+    registry.add_binding('v',
+                         filter=HasFocus(DEFAULT_BUFFER) & ViNavigationMode()
                         )(open_input_in_editor)
 
     if shell.display_completions == 'readlinelike':
