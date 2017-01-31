@@ -20,11 +20,14 @@ import pygments.lexers as pygments_lexers
 
 class IPythonPTCompleter(Completer):
     """Adaptor to provide IPython completions to prompt_toolkit"""
-    def __init__(self, ipy_completer=None, shell=None):
+    def __init__(self, ipy_completer=None, shell=None, patch_stdout=None):
         if shell is None and ipy_completer is None:
             raise TypeError("Please pass shell=an InteractiveShell instance.")
         self._ipy_completer = ipy_completer
         self.shell = shell
+        if patch_stdout is None:
+            raise TypeError("Please pass patch_stdout")
+        self.patch_stdout = patch_stdout
 
     @property
     def ipy_completer(self):
@@ -40,7 +43,7 @@ class IPythonPTCompleter(Completer):
         # Some bits of our completion system may print stuff (e.g. if a module
         # is imported). This context manager ensures that doesn't interfere with
         # the prompt.
-        with self.shell.pt_cli.patch_stdout_context():
+        with self.patch_stdout():
             used, matches = self.ipy_completer.complete(
                                 line_buffer=document.current_line,
                                 cursor_pos=document.cursor_position_col

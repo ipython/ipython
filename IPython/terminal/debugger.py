@@ -20,13 +20,16 @@ class TerminalPdb(Pdb):
         def get_prompt_tokens(cli):
             return [(Token.Prompt, self.prompt)]
 
+        def patch_stdout(**kwargs):
+            return self.pt_cli.patch_stdout_context(**kwargs)
+
         if self._ptcomp is None:
             compl = IPCompleter(shell=self.shell,
                                         namespace={},
                                         global_namespace={},
                                         parent=self.shell,
                                        )
-            self._ptcomp = IPythonPTCompleter(compl)
+            self._ptcomp = IPythonPTCompleter(compl, patch_stdout=patch_stdout)
 
         self._pt_app = create_prompt_application(
                             editing_mode=getattr(EditingMode, self.shell.editing_mode.upper()),

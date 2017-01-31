@@ -233,11 +233,15 @@ class TerminalInteractiveShell(InteractiveShell):
 
         editing_mode = getattr(EditingMode, self.editing_mode.upper())
 
+        def patch_stdout(**kwargs):
+            return self.pt_cli.patch_stdout_context(**kwargs)
+
         self._pt_app = create_prompt_application(
                             editing_mode=editing_mode,
                             key_bindings_registry=kbmanager.registry,
                             history=history,
-                            completer=IPythonPTCompleter(shell=self),
+                            completer=IPythonPTCompleter(shell=self,
+                                                    patch_stdout=patch_stdout),
                             enable_history_search=True,
                             style=style,
                             mouse_support=self.mouse_support,
