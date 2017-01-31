@@ -2,6 +2,10 @@
  5.x Series
 ============
 
+IPython 5.2.1
+=============
+
+* Fix tab completion in the debugger. :ghpull:`10223`
 
 IPython 5.2
 ===========
