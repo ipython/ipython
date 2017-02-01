@@ -406,7 +406,12 @@ class TerminalInteractiveShell(InteractiveShell):
             s = cast_unicode_py2(self.rl_next_input)
             def set_doc():
                 self.pt_cli.application.buffer.document = Document(s)
-            self.pt_cli.pre_run_callables.append(set_doc)
+            if hasattr(self.pt_cli, 'pre_run_callables'):
+                self.pt_cli.pre_run_callables.append(set_doc)
+            else:
+                # Older version of prompt_toolkit; it's OK to set the document
+                # directly here.
+                set_doc()
             self.rl_next_input = None
 
     def interact(self, display_banner=DISPLAY_BANNER_DEPRECATED):
