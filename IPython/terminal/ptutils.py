@@ -47,7 +47,7 @@ class IPythonPTCompleter(Completer):
         # is imported). This context manager ensures that doesn't interfere with
         # the prompt.
 
-        with self.patch_stdout_context(), provisionalcompleter():
+        with self.patch_stdout(), provisionalcompleter():
             body = document.text
             cursor_row = document.cursor_position_row
             cursor_col = document.cursor_position_col
