@@ -1,3 +1,9 @@
+""" This module contains classes - NamedFileInTemporaryDirectory, TemporaryWorkingDirectory.
+
+These classes add extra features such as creating a named file in temporary directory and 
+creating a context manager for the working directory which is also temporary.
+"""
+
 import os as _os
 import warnings as _warnings
 import sys as _sys
