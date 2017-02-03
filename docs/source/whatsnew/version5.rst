@@ -2,6 +2,11 @@
  5.x Series
 ============
 
+IPython 5.2.2
+=============
+
+* Fix error when starting with ``IPCompleter.limit_to__all__`` configured.
+
 IPython 5.2.1
 =============
 
