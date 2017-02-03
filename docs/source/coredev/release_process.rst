@@ -168,16 +168,10 @@ Get a fresh clone of the tag for building the release::
 
 .. note::
 
-    You can aslo cleanup the current working repository with ``git clean -xfdi``
+    You can also cleanup the current working repository with ``git clean -xfdi``
 
 8. Run the release script
 -------------------------
-
-.. important::
-
-    These steps cover instructions for creating releases of IPython 5.x LTS and
-    IPython 6.x. Ignore release steps for Python 2 when releasing IPython 6.x
-    which no longer supports Python 2. 
 
 Run the ``release`` script, this step requires having a current wheel, Python
 >=3.4 and Python 2.7.::
@@ -194,14 +188,7 @@ Use the following to actually upload the result of the build::
 
     ./tools/release upload
 
-It should posts them to ``archive.ipython.org``.
-
-You will need to use `twine <https://github.com/pypa/twine>`_ ) manually to
-actually upload on PyPI. Unlike setuptools, twine is able to upload packages
-over SSL::
-
-    twine upload dist/*
-
+It should posts them to ``archive.ipython.org`` and to PyPI.
 
 PyPI/Warehouse will automatically hide previous releases. If you are uploading
 a non-stable version, make sure to log-in to PyPI and un-hide previous version.

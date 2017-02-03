@@ -6,6 +6,7 @@ This should ONLY be run at real release time.
 from __future__ import print_function
 
 import os
+from subprocess import call
 import sys
 
 from toollib import (get_ipdir, pjoin, cd, execfile, sh, archive,
@@ -48,7 +49,7 @@ cd(tooldir)
 
 if 'upload' in sys.argv:
     cd(distdir)
-    print( 'Uploading distribution files to GitHub...')
+    #print( 'Uploading distribution files to GitHub...')
 
     for fname in os.listdir('.'):
         # TODO: update to GitHub releases API
@@ -58,31 +59,35 @@ if 'upload' in sys.argv:
         post_download("ipython/ipython", fname, description=desc)
 
     # Make target dir if it doesn't exist
-    print('Uploading IPython to backup site.')
+    print('1. Uploading IPython to archive.ipython.org')
     sh('ssh %s "mkdir -p %s/release/%s" ' % (archive_user, archive_dir, version))
     sh('scp * %s' % release_site)
 
-    print( 'Uploading backup files...')
+    print('2. Uploading backup files...')
     cd(ipbackupdir)
     sh('scp `ls -1tr *tgz | tail -1` %s' % backup_site)
 
-    print('Done!')
-    print('Use `twine upload dist/*` to upload the files to PyPI')
+    print('3. Uploading to PyPI using twine')
+    cd(distdir)
+    call(['twine', 'upload'] + os.listdir('.'))
+
 else:
+    # Build, but don't upload
+
+    # Make backup tarball
     sh('./make_tarball.py')
     sh('mv ipython-*.tgz %s' % ipbackupdir)
 
     # Build release files
     sh('./build_release %s' % ipdir)
 
-    # Not Registering with PyPI, registering with setup.py is insecure as communication is not encrypted
     cd(ipdir)
 
     # Upload all files
     sh(sdists)
 
     buildwheels()
-    print("`./release upload` to upload source distribution on github and ipython archive")
+    print("`./release upload` to upload source distribution on PyPI and ipython archive")
     sys.exit(0)
 
 
