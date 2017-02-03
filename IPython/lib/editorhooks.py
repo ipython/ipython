@@ -53,7 +53,7 @@ def install_editor(template, wait=False):
         if sys.platform.startswith('win'):
             cmd = shlex.split(cmd)
         proc = subprocess.Popen(cmd, shell=True)
-        if wait and proc.wait() != 0:
+        if proc.wait() != 0:
             raise TryNext()
         if wait:
             py3compat.input("Press Enter when done editing:")
