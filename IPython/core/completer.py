@@ -25,6 +25,7 @@ import re
 import sys
 import unicodedata
 import string
+import warnings
 
 from traitlets.config.configurable import Configurable
 from IPython.core.error import TryNext
