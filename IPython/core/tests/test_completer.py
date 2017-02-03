@@ -20,6 +20,9 @@ from IPython.utils.tempdir import TemporaryDirectory, TemporaryWorkingDirectory
 from IPython.utils.generics import complete_object
 from IPython.testing import decorators as dec
 
+from IPython.core.completer import Completion, provisionalcompleter
+from nose.tools import assert_in, assert_not_in
+
 #-----------------------------------------------------------------------------
 # Test functions
 #-----------------------------------------------------------------------------
@@ -269,23 +272,65 @@ def test_local_file_completions():
         nt.assert_true(comp.issubset(set(c)))
 
 
+def test_jedi():
+    """
+    A couple of issue we had with Jedi
+    """
+    ip = get_ipython()
+
+    def _test_complete(reason, s, comp, start=None, end=None):
+        l = len(s)
+        start = start if start is not None else l
+        end = end if end is not None else l
+        with provisionalcompleter():
+            completions = set(ip.Completer.completions(s, l))
+            assert_in(Completion(start, end, comp), completions, reason)
+
+    def _test_not_complete(reason, s, comp):
+        l = len(s)
+        with provisionalcompleter():
+            completions = set(ip.Completer.completions(s, l))
+            assert_not_in(Completion(l, l, comp), completions, reason)
+
+    import jedi
+    jedi_version = tuple(int(i) for i in jedi.__version__.split('.')[:3])
+    if jedi_version > (0,10):
+        yield _test_complete, 'jedi >0.9 should complete and not crash', 'a=1;a.', 'real'
+    yield _test_complete, 'can infer first argument', 'a=(1,"foo");a[0].', 'real'
+    yield _test_complete, 'can infer second argument', 'a=(1,"foo");a[1].', 'capitalize'
+    yield _test_complete, 'cover duplicate completions', 'im', 'import', 0, 2
+
+    yield _test_not_complete, 'does not mix types', 'a=(1,"foo");a[0].', 'capitalize'
+
+
 def test_greedy_completions():
+    """
+    Test the capability of the Greedy completer. 
+
+    Most of the test here do not really show off the greedy completer, for proof
+    each of the text bellow now pass with Jedi. The greedy completer is capable of more. 
+
+    See the :any:`test_dict_key_completion_contexts`
+
+    """
     ip = get_ipython()
     ip.ex('a=list(range(5))')
     _,c = ip.complete('.',line='a[0].')
     nt.assert_false('.real' in c,
                     "Shouldn't have completed on a[0]: %s"%c)
-    with greedy_completion():
-        def _(line, cursor_pos, expect, message):
+    with greedy_completion(), provisionalcompleter():
+        def _(line, cursor_pos, expect, message, completion):
             _,c = ip.complete('.', line=line, cursor_pos=cursor_pos)
+            with provisionalcompleter():
+                completions = ip.Completer.completions(line, cursor_pos)
             nt.assert_in(expect, c, message%c)
+            nt.assert_in(completion, completions)
 
-        yield _, 'a[0].', 5, 'a[0].real', "Should have completed on a[0].: %s"
-        yield _, 'a[0].r', 6, 'a[0].real', "Should have completed on a[0].r: %s"
-        
-        if sys.version_info > (3,4):
-            yield _, 'a[0].from_', 10, 'a[0].from_bytes', "Should have completed on a[0].from_: %s"
+        yield _, 'a[0].', 5, 'a[0].real', "Should have completed on a[0].: %s", Completion(5,5, 'real')
+        yield _, 'a[0].r', 6, 'a[0].real', "Should have completed on a[0].r: %s", Completion(5,6, 'real')
 
+        if sys.version_info > (3, 4):
+            yield _, 'a[0].from_', 10, 'a[0].from_bytes', "Should have completed on a[0].from_: %s", Completion(5, 10, 'from_bytes')
 
 
 def test_omit__names():
@@ -298,27 +343,58 @@ def test_omit__names():
     cfg = Config()
     cfg.IPCompleter.omit__names = 0
     c.update_config(cfg)
-    s,matches = c.complete('ip.')
-    nt.assert_in('ip.__str__', matches)
-    nt.assert_in('ip._hidden_attr', matches)
+    with provisionalcompleter():
+        s,matches = c.complete('ip.')
+        completions = set(c.completions('ip.', 3))
+
+        nt.assert_in('ip.__str__', matches)
+        nt.assert_in(Completion(3, 3, '__str__'), completions)
+        
+        nt.assert_in('ip._hidden_attr', matches)
+        nt.assert_in(Completion(3,3, "_hidden_attr"), completions)
+
+
     cfg = Config()
     cfg.IPCompleter.omit__names = 1
     c.update_config(cfg)
-    s,matches = c.complete('ip.')
-    nt.assert_not_in('ip.__str__', matches)
-    nt.assert_in('ip._hidden_attr', matches)
+    with provisionalcompleter():
+        s,matches = c.complete('ip.')
+        completions = set(c.completions('ip.', 3))
+
+        nt.assert_not_in('ip.__str__', matches)
+        nt.assert_not_in(Completion(3,3,'__str__'), completions)
+
+        # nt.assert_in('ip._hidden_attr', matches)
+        nt.assert_in(Completion(3,3, "_hidden_attr"), completions)
+
     cfg = Config()
     cfg.IPCompleter.omit__names = 2
     c.update_config(cfg)
-    s,matches = c.complete('ip.')
-    nt.assert_not_in('ip.__str__', matches)
-    nt.assert_not_in('ip._hidden_attr', matches)
-    s,matches = c.complete('ip._x.')
-    nt.assert_in('ip._x.keys', matches)
+    with provisionalcompleter():
+        s,matches = c.complete('ip.')
+        completions = set(c.completions('ip.', 3))
+
+        nt.assert_not_in('ip.__str__', matches)
+        nt.assert_not_in(Completion(3,3,'__str__'), completions)
+
+        nt.assert_not_in('ip._hidden_attr', matches)
+        nt.assert_not_in(Completion(3,3, "_hidden_attr"), completions)
+
+    with provisionalcompleter():
+        s,matches = c.complete('ip._x.')
+        completions = set(c.completions('ip._x.', 6))
+
+        nt.assert_in('ip._x.keys', matches)
+        nt.assert_in(Completion(6,6, "keys"), completions)
+
     del ip._hidden_attr
+    del ip._x
 
 
 def test_limit_to__all__False_ok():
+    """
+    Limit to all is deprecated, once we remove it this test can go away. 
+    """
     ip = get_ipython()
     c = ip.Completer
     ip.ex('class D: x=24')

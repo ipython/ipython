@@ -58,11 +58,24 @@ warnings.filterwarnings('error', message='.*disable_gui.*', category=Deprecation
 
 warnings.filterwarnings('error', message='.*ExceptionColors global is deprecated.*', category=DeprecationWarning, module='.*')
 
+# Jedi older versions
+warnings.filterwarnings(
+    'error', message='.*elementwise != comparison failed and.*', category=FutureWarning, module='.*')
+
 if version_info < (6,):
     # nose.tools renames all things from `camelCase` to `snake_case` which raise an
     # warning with the runner they also import from standard import library. (as of Dec 2015)
     # Ignore, let's revisit that in a couple of years for IPython 6.
-    warnings.filterwarnings('ignore', message='.*Please use assertEqual instead', category=Warning, module='IPython.*')
+    warnings.filterwarnings(
+        'ignore', message='.*Please use assertEqual instead', category=Warning, module='IPython.*')
+
+if version_info < (7,):
+    warnings.filterwarnings('ignore', message='.*Completer.complete.*',
+                            category=PendingDeprecationWarning, module='.*')
+else:
+    warnings.warn(
+        'Completer.complete was pending deprecation and should be changed to Deprecated', FutureWarning)
+
 
 
 # ------------------------------------------------------------------------------

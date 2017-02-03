@@ -104,6 +104,7 @@ repository <http://github.com/ipython/ipython>`_.
 
 
 .. only:: html
+
    * :ref:`genindex`
    * :ref:`modindex`
    * :ref:`search`
