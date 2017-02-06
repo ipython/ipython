@@ -62,6 +62,7 @@ skip_doctest = True
 import __main__
 import builtins as builtin_mod
 import glob
+import time
 import inspect
 import itertools
 import keyword
@@ -1508,16 +1509,52 @@ class IPCompleter(Completer):
             yield c
             seen.add(c)
 
-    def _completions(self, full_text: str, offset: int)->Iterator[Completion]:
+    def _completions(self, full_text: str, offset: int, *, _timeout=0.4)->Iterator[Completion]:
+        """
+        Core completion module.Same signature as :any:`completions`, with the
+        extra `timeout` parameter (in seconds).
+
+
+        Computing jedi's completion ``.type`` can be quite expensive (it is a
+        lazy property) and can require some warm-up, more warm up than just
+        computing the ``name`` of a completion. The warm-up can be :
+
+            - Long warm-up the fisrt time a module is encountered after
+            install/update: actually build parse/inference tree.
+
+            - first time the module is encountered in a session: load tree from
+            disk.
+
+        We don't want to block completions for tens of seconds so we give the
+        completer a "budget" of ``_timeout`` seconds per invocation to compute
+        completions types, the completions that have not yet been computed will
+        be marked as "unknown" an will have a chance to be computed next round
+        are things get cached.
+
+        Keep in mind that Jedi is not the only thing treating the completion so
+        keep the timeout short-ish as if we take more than 0.3 second we still
+        have lots of processing to do.
+
+        """
+        deadline = time.monotonic() + _timeout
+
+
         before = full_text[:offset]
         cursor_line, cursor_column = position_to_cursor(full_text, offset)
 
         matched_text, matches, matches_origin, jedi_matches = self._complete(
             full_text=full_text, cursor_line=cursor_line, cursor_pos=cursor_column)
 
-        for jm in jedi_matches:
+        iter_jm = iter(jedi_matches)
+        for jm in iter_jm:
             delta = len(jm.name_with_symbols) - len(jm.complete)
             yield Completion(start=offset - delta, end=offset, text=jm.name_with_symbols, type=jm.type, _origin='jedi')
+            if time.monotonic() > deadline:
+                break
+
+        for jm in iter_jm:
+            delta = len(jm.name_with_symbols) - len(jm.complete)
+            yield Completion(start=offset - delta, end=offset, text=jm.name_with_symbols+'?', type='<unknown>', _origin='jedi')
 
 
         start_offset = before.rfind(matched_text)
