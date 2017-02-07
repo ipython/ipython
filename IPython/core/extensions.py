@@ -13,6 +13,7 @@ from importlib import import_module
 
 from traitlets.config.configurable import Configurable
 from IPython.utils.path import ensure_dir_exists, compress_user
+from IPython.utils.decorators import undoc
 from traitlets import Instance
 
 try:
@@ -145,35 +146,12 @@ class ExtensionManager(Configurable):
             mod.unload_ipython_extension(self.shell)
             return True
 
+    @undoc
     def install_extension(self, url, filename=None):
-        """Download and install an IPython extension. 
-
-        If filename is given, the file will be so named (inside the extension
-        directory). Otherwise, the name from the URL will be used. The file must
-        have a .py or .zip extension; otherwise, a ValueError will be raised.
-
-        Returns the full path to the installed file.
+        """
+        Deprecated.
         """
         # Ensure the extension directory exists
-        ensure_dir_exists(self.ipython_extension_dir)
-
-        if os.path.isfile(url):
-            src_filename = os.path.basename(url)
-            copy = copyfile
-        else:
-            # Deferred imports
-            from urllib.parse import urlparse
-            from urllib.request import urlretrieve
-            src_filename = urlparse(url).path.split('/')[-1]
-            copy = urlretrieve
-
-        if filename is None:
-            filename = src_filename
-        if os.path.splitext(filename)[1] not in ('.py', '.zip'):
-            raise ValueError("The file must have a .py or .zip extension", filename)
-
-        filename = os.path.join(self.ipython_extension_dir, filename)
-        copy(url, filename)
-        return filename
-
-
+        raise DeprecationWarning(
+            '`install_extension` and the `install_ext` magic have been deprecated since IPython 4.0'
+            'Use pip or other package managers to manage ipython extensions.')
