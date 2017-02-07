@@ -86,7 +86,7 @@ from IPython.utils import generics
 from IPython.utils.dir2 import dir2, get_real_method
 from IPython.utils.process import arg_split
 from IPython.utils.py3compat import cast_unicode_py2
-from traitlets import Bool, Enum, observe
+from traitlets import Bool, Enum, observe, Int
 
 try:
     import jedi
@@ -474,6 +474,12 @@ class Completer(Configurable):
     use_jedi = Bool(default_value=JEDI_INSTALLED,
                     help="Experimental: Use Jedi to generate autocompletions. "
                     "Default to True if jedi is installed").tag(config=True)
+
+    jedi_compute_type_timeout = Int(default_value=400,
+        help="""Experimental: restrict time (in milliseconds) during which Jedi can compute types.
+        Set to 0 to stop computing types. Non-zero value lower than 100ms may hurt
+        performance by preventing jedi to build its cache.
+        """).tag(config=True)
 
     debug = Bool(default_value=False,
                  help='Enable debug for the Completer. Mostly print extra '
@@ -1503,13 +1509,13 @@ class IPCompleter(Completer):
         #  - `.real` from 1 to 2
         # the current code does not (yet) check for such equivalence
         seen = set()
-        for c in self._completions(text, offset):
+        for c in self._completions(text, offset, _timeout=self.jedi_compute_type_timeout/1000):
             if c and (c in seen):
                 continue
             yield c
             seen.add(c)
 
-    def _completions(self, full_text: str, offset: int, *, _timeout=0.4)->Iterator[Completion]:
+    def _completions(self, full_text: str, offset: int, *, _timeout)->Iterator[Completion]:
         """
         Core completion module.Same signature as :any:`completions`, with the
         extra `timeout` parameter (in seconds).
@@ -1546,15 +1552,25 @@ class IPCompleter(Completer):
             full_text=full_text, cursor_line=cursor_line, cursor_pos=cursor_column)
 
         iter_jm = iter(jedi_matches)
-        for jm in iter_jm:
-            delta = len(jm.name_with_symbols) - len(jm.complete)
-            yield Completion(start=offset - delta, end=offset, text=jm.name_with_symbols, type=jm.type, _origin='jedi')
-            if time.monotonic() > deadline:
-                break
+        if _timeout:
+            for jm in iter_jm:
+                delta = len(jm.name_with_symbols) - len(jm.complete)
+                yield Completion(start=offset - delta,
+                                 end=offset,
+                                 text=jm.name_with_symbols,
+                                 type=jm.type,
+                                 _origin='jedi')
+
+                if time.monotonic() > deadline:
+                    break
 
         for jm in iter_jm:
             delta = len(jm.name_with_symbols) - len(jm.complete)
-            yield Completion(start=offset - delta, end=offset, text=jm.name_with_symbols+'?', type='<unknown>', _origin='jedi')
+            yield Completion(start=offset - delta,
+                             end=offset,
+                             text=jm.name_with_symbols,
+                             type='<unknown>',  # don't compute type for speed
+                             _origin='jedi')
 
 
         start_offset = before.rfind(matched_text)
