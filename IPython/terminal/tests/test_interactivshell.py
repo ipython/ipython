@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
 """Tests for the TerminalInteractiveShell and related pieces."""
-#-----------------------------------------------------------------------------
-#  Copyright (C) 2011  The IPython Development Team
-#
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
-#-----------------------------------------------------------------------------
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
 
 import sys
 import unittest
 
 from IPython.core.inputtransformer import InputTransformer
 from IPython.testing import tools as tt
+from IPython.utils.capture import capture_output
 
 # Decorator for interaction loop tests -----------------------------------------
 
@@ -99,6 +96,33 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip = get_ipython()
         formatter = ip.display_formatter
         assert formatter.active_types == ['text/plain']
+        assert not formatter.ipython_display_formatter.enabled
+
+        class Test(object):
+            def __repr__(self):
+                return "<Test %i>" % id(self)
+
+            def _repr_html_(self):
+                return '<html>'
+
+        # verify that HTML repr isn't computed
+        obj = Test()
+        data, _ = formatter.format(obj)
+        self.assertEqual(data, {'text/plain': repr(obj)})
+
+        class Test2(Test):
+            def _ipython_display_(self):
+                from IPython.display import display
+                display('<custom>')
+
+        # verify that _ipython_display_ shortcut isn't called
+        obj = Test2()
+        with capture_output() as captured:
+            data, _ = formatter.format(obj)
+
+        self.assertEqual(data, {'text/plain': repr(obj)})
+        assert captured.stdout == ''
+
 
 
 class SyntaxErrorTransformer(InputTransformer):
