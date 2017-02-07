@@ -24,7 +24,7 @@ from IPython.testing.skipdoctest import skip_doctest
 __all__ = ['display', 'display_pretty', 'display_html', 'display_markdown',
 'display_svg', 'display_png', 'display_jpeg', 'display_latex', 'display_json',
 'display_javascript', 'display_pdf', 'DisplayObject', 'TextDisplayObject',
-'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'JSON', 'Javascript',
+'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'JSON', 'GeoJSON', 'Javascript',
 'Image', 'clear_output', 'set_matplotlib_formats', 'set_matplotlib_close',
 'publish_display_data', 'update_display', 'DisplayHandle']
 
@@ -679,6 +679,25 @@ lib_t1 = """$.getScript("%s", function () {
 """
 lib_t2 = """});
 """
+
+class GeoJSON(JSON):
+
+    @property
+    def data(self):
+        return self._data
+    
+    @data.setter
+    def data(self, data):
+        if isinstance(data, str):
+            data = json.loads(data)
+        self._data = data
+
+    def _ipython_display_(self):
+        bundle = {
+            'application/geo+json': self.data,
+            'text/plain': '<jupyterlab_geojson.GeoJSON object>'
+        }
+        display(bundle, raw=True)
 
 class Javascript(TextDisplayObject):
 
