@@ -1554,11 +1554,17 @@ class IPCompleter(Completer):
         iter_jm = iter(jedi_matches)
         if _timeout:
             for jm in iter_jm:
+                try:
+                    type_ = jm.type
+                except Exception:
+                    if self.debug:
+                        print("Error in Jedi getting type of ", jm)
+                    type_ = None
                 delta = len(jm.name_with_symbols) - len(jm.complete)
                 yield Completion(start=offset - delta,
                                  end=offset,
                                  text=jm.name_with_symbols,
-                                 type=jm.type,
+                                 type=type_,
                                  _origin='jedi')
 
                 if time.monotonic() > deadline:
