@@ -202,7 +202,6 @@ extras_require = dict(
 install_requires = [
     'setuptools>=18.5',
     'jedi>=0.10',
-    'typing',
     'decorator',
     'pickleshare',
     'simplegeneric>0.8',
@@ -218,6 +217,7 @@ install_requires = [
 extras_require.update({
     'test:python_version >= "3.4"': ['numpy'],
     ':python_version == "3.3"': ['pathlib2'],
+    ':python_version <= "3.4"': ['typing'],
     ':sys_platform != "win32"': ['pexpect'],
     ':sys_platform == "darwin"': ['appnope'],
     ':sys_platform == "win32"': ['colorama'],
