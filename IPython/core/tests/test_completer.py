@@ -20,7 +20,7 @@ from IPython.utils.tempdir import TemporaryDirectory, TemporaryWorkingDirectory
 from IPython.utils.generics import complete_object
 from IPython.testing import decorators as dec
 
-from IPython.core.completer import Completion, provisionalcompleter
+from IPython.core.completer import Completion, provisionalcompleter, match_dict_keys
 from nose.tools import assert_in, assert_not_in
 
 #-----------------------------------------------------------------------------
@@ -526,7 +526,28 @@ def test_magic_completion_order():
 
     # Order of user variable and line and cell magics with same name:
     text, matches = c.complete('timeit')
-    nt.assert_equal(matches, ["timeit", "%timeit","%%timeit"])
+    nt.assert_equal(matches, ["timeit", "%timeit", "%%timeit"])
+
+def test_match_dict_keys():
+    """
+    Test that match_dict_keys works on a couple of use case does return what
+    expected, and does not crash
+    """
+    delims = ' \t\n`!@#$^&*()=+[{]}\\|;:\'",<>?'
+
+
+    keys = ['foo', b'far']
+    assert match_dict_keys(keys, "b'", delims=delims)  == ("'", 2 ,['far'])
+    assert match_dict_keys(keys, "b'f", delims=delims) == ("'", 2 ,['far'])
+    assert match_dict_keys(keys, 'b"', delims=delims)  == ('"', 2 ,['far'])
+    assert match_dict_keys(keys, 'b"f', delims=delims) == ('"', 2 ,['far'])
+
+    assert match_dict_keys(keys, "'", delims=delims)  == ("'", 1 ,['foo'])
+    assert match_dict_keys(keys, "'f", delims=delims) == ("'", 1 ,['foo'])
+    assert match_dict_keys(keys, '"', delims=delims)  == ('"', 1 ,['foo'])
+    assert match_dict_keys(keys, '"f', delims=delims) == ('"', 1 ,['foo'])
+    
+    match_dict_keys
 
 
 def test_dict_key_completion_string():
