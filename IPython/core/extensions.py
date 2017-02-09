@@ -5,6 +5,9 @@
 # Distributed under the terms of the Modified BSD License.
 
 import os
+import os.path
+import warnings
+import textwrap
 from shutil import copyfile
 import sys
 from importlib import import_module
@@ -75,13 +78,34 @@ class ExtensionManager(Configurable):
         """
         if module_str in self.loaded:
             return "already loaded"
-        
+
         from IPython.utils.syspathcontext import prepended_to_syspath
-        
+
         with self.shell.builtin_trap:
             if module_str not in sys.modules:
                 with prepended_to_syspath(self.ipython_extension_dir):
-                    import_module(module_str)
+                    mod = import_module(module_str)
+                    if mod.__file__.startswith(self.ipython_extension_dir):
+                        print(textwrap.dedent(
+                        """
+                        Warning, you are attempting to load and IPython extensions from legacy
+                        location.
+                            
+                        IPythonhas been requested to load extension `{ext}` which has been found in
+                        `ipython_extension_dir` (`{dir}`).
+
+                        It is likely you previously installed an extension using the `%install_ext`
+                        mechanism which has been deprecated since IPython 4.0. Loading extensions
+                        from the above directory is still supported but will be deprecated in a
+                        future version of IPython.
+
+                        Extensions should now be installed and managed as Python packages. We
+                        recommend you update your extensions accordingly.
+
+                        Old extensions files present in `ipython_extension_dir` may cause newly
+                        installed extensions to not be recognized. Thus you may need to clean
+                        the content of above mentioned directory.
+                        """.format(dir=self.ipython_extension_dir, ext=module_str)))
             mod = sys.modules[module_str]
             if self._call_load_ipython_extension(mod):
                 self.loaded.add(module_str)
@@ -168,3 +192,5 @@ class ExtensionManager(Configurable):
         filename = os.path.join(self.ipython_extension_dir, filename)
         copy(url, filename)
         return filename
+
+
