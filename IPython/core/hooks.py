@@ -45,7 +45,7 @@ from IPython.core.error import TryNext
 # List here all the default hooks.  For now it's just the editor functions
 # but over time we'll move here all the public API for user-accessible things.
 
-__all__ = ['editor', 'fix_error_editor', 'synchronize_with_editor',
+__all__ = ['editor', 'synchronize_with_editor',
            'shutdown_hook', 'late_startup_hook',
            'show_in_pager','pre_prompt_hook',
            'pre_run_code_hook', 'clipboard_get']
@@ -83,6 +83,9 @@ def editor(self, filename, linenum=None, wait=True):
         raise TryNext()
 
 import tempfile
+from IPython.utils.decorators import undoc
+
+@undoc
 def fix_error_editor(self,filename,linenum,column,msg):
     """DEPRECATED
 
@@ -95,7 +98,7 @@ def fix_error_editor(self,filename,linenum,column,msg):
     """
 
     warnings.warn("""
-`fix_error_editor` is pending deprecation as of IPython 5.0 and will be removed
+`fix_error_editor` is deprecated as of IPython 6.0 and will be removed
 in future versions. It appears to be used only for automatically fixing syntax
 error that has been broken for a few years and has thus been removed. If you
 happend to use this function and still need it please make your voice heard on
