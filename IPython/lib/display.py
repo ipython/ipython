@@ -327,7 +327,7 @@ class FileLink(object):
             prefix to be prepended to all files to form a working link [default:
             '']
         result_html_prefix : str
-            text to append to beginning to link [default: none]
+            text to append to beginning to link [default: '']
         result_html_suffix : str
             text to append at the end of link [default: '<br>']
         """
