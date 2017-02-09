@@ -100,12 +100,14 @@ def newline_or_execute_outer(shell):
                 b.cancel_completion()
             return
 
-        if not (d.on_last_line or d.cursor_position_row >= d.line_count
-            - d.empty_line_count_at_the_end()):
-            b.newline()
-            return
+        before_text = d.text[:d.cursor_position]
+        status, indent = shell.input_splitter.check_complete(before_text + '\n')
 
-        status, indent = shell.input_splitter.check_complete(d.text + '\n')
+        if not (d.on_last_line or
+                d.cursor_position_row >= d.line_count - d.empty_line_count_at_the_end()
+                ):
+            b.insert_text('\n' + (' ' * (indent or 0)))
+            return
 
         if (status != 'incomplete') and b.accept_action.is_returnable:
             b.accept_action.validate_and_handle(event.cli, b)
