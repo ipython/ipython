@@ -18,8 +18,10 @@ For more details, see the class docstrings below.
 # Distributed under the terms of the Modified BSD License.
 import ast
 import codeop
+import io
 import re
 import sys
+import tokenize
 import warnings
 
 from IPython.utils.py3compat import cast_unicode
@@ -86,6 +88,113 @@ def num_ini_spaces(s):
         return ini_spaces.end()
     else:
         return 0
+
+# Fake token types for partial_tokenize:
+INCOMPLETE_STRING = tokenize.N_TOKENS
+IN_MULTILINE_STATEMENT = tokenize.N_TOKENS + 1
+
+# The 2 classes below have the same API as TokenInfo, but don't try to look up
+# a token type name that they won't find.
+class IncompleteString:
+    type = exact_type = INCOMPLETE_STRING
+    def __init__(self, s, start, end, line):
+        self.s = s
+        self.start = start
+        self.end = end
+        self.line = line
+
+class InMultilineStatement:
+    type = exact_type = IN_MULTILINE_STATEMENT
+    def __init__(self, pos, line):
+        self.s = ''
+        self.start = self.end = pos
+        self.line = line
+
+def partial_tokens(s):
+    """Iterate over tokens from a possibly-incomplete string of code.
+
+    This adds two special token types: INCOMPLETE_STRING and
+    IN_MULTILINE_STATEMENT. These can only occur as the last token yielded, and
+    represent the two main ways for code to be incomplete.
+    """
+    readline = io.StringIO(s).readline
+    token = tokenize.TokenInfo(tokenize.NEWLINE, '', (1, 0), (1, 0), '')
+    try:
+        for token in tokenize.generate_tokens(readline):
+            yield token
+    except tokenize.TokenError as e:
+        # catch EOF error
+        lines = s.splitlines(keepends=True)
+        end = len(lines), len(lines[-1])
+        if 'multi-line string' in e.args[0]:
+            l, c = start = token.end
+            s = lines[l-1][c:] + ''.join(lines[l:])
+            yield IncompleteString(s, start, end, lines[-1])
+        elif 'multi-line statement' in e.args[0]:
+            yield InMultilineStatement(end, lines[-1])
+        else:
+            raise
+
+def find_next_indent(code):
+    """Find the number of spaces for the next line of indentation"""
+    tokens = list(partial_tokens(code))
+    if tokens[-1].type == tokenize.ENDMARKER:
+        tokens.pop()
+    if not tokens:
+        return 0
+    while (tokens[-1].type in {tokenize.DEDENT, tokenize.NEWLINE, tokenize.COMMENT}):
+        tokens.pop()
+
+    if tokens[-1].type == INCOMPLETE_STRING:
+        # Inside a multiline string
+        return 0
+
+    # Find the indents used before
+    prev_indents = [0]
+    def _add_indent(n):
+        if n != prev_indents[-1]:
+            prev_indents.append(n)
+
+    tokiter = iter(tokens)
+    for tok in tokiter:
+        if tok.type in {tokenize.INDENT, tokenize.DEDENT}:
+            _add_indent(tok.end[1])
+        elif (tok.type == tokenize.NL):
+            try:
+                _add_indent(next(tokiter).start[1])
+            except StopIteration:
+                break
+
+    last_indent = prev_indents.pop()
+
+    # If we've just opened a multiline statement (e.g. 'a = ['), indent more
+    if tokens[-1].type == IN_MULTILINE_STATEMENT:
+        if tokens[-2].exact_type in {tokenize.LPAR, tokenize.LSQB, tokenize.LBRACE}:
+            return last_indent + 4
+        return last_indent
+
+    if tokens[-1].exact_type == tokenize.COLON:
+        # Line ends with colon - indent
+        return last_indent + 4
+
+    if last_indent:
+        # Examine the last line for dedent cues - statements like return or
+        # raise which normally end a block of code.
+        last_line_starts = 0
+        for i, tok in enumerate(tokens):
+            if tok.type == tokenize.NEWLINE:
+                last_line_starts = i + 1
+
+        last_line_tokens = tokens[last_line_starts:]
+        names = [t.string for t in last_line_tokens if t.type == tokenize.NAME]
+        if names and names[0] in {'raise', 'return', 'pass', 'break', 'continue'}:
+            # Find the most recent indentation less than the current level
+            for indent in reversed(prev_indents):
+                if indent < last_indent:
+                    return indent
+
+    return last_indent
+
 
 def last_blank(src):
     """Determine if the input source ends in a blank.
@@ -306,7 +415,7 @@ class InputSplitter(object):
         if source.endswith('\\\n'):
             return False
 
-        self._update_indent(lines)
+        self._update_indent()
         try:
             with warnings.catch_warnings():
                 warnings.simplefilter('error', SyntaxWarning)
@@ -382,55 +491,10 @@ class InputSplitter(object):
         # General fallback - accept more code
         return True
 
-    #------------------------------------------------------------------------
-    # Private interface
-    #------------------------------------------------------------------------
-
-    def _find_indent(self, line):
-        """Compute the new indentation level for a single line.
-
-        Parameters
-        ----------
-        line : str
-          A single new line of non-whitespace, non-comment Python input.
-
-        Returns
-        -------
-        indent_spaces : int
-          New value for the indent level (it may be equal to self.indent_spaces
-        if indentation doesn't change.
-
-        full_dedent : boolean
-          Whether the new line causes a full flush-left dedent.
-        """
-        indent_spaces = self.indent_spaces
-        full_dedent = self._full_dedent
-
-        inisp = num_ini_spaces(line)
-        if inisp < indent_spaces:
-            indent_spaces = inisp
-            if indent_spaces <= 0:
-                #print 'Full dedent in text',self.source # dbg
-                full_dedent = True
-
-        if line.rstrip()[-1] == ':':
-            indent_spaces += 4
-        elif dedent_re.match(line):
-            indent_spaces -= 4
-            if indent_spaces <= 0:
-                full_dedent = True
-
-        # Safety
-        if indent_spaces < 0:
-            indent_spaces = 0
-            #print 'safety' # dbg
-
-        return indent_spaces, full_dedent
-
-    def _update_indent(self, lines):
-        for line in remove_comments(lines).splitlines():
-            if line and not line.isspace():
-                self.indent_spaces, self._full_dedent = self._find_indent(line)
+    def _update_indent(self):
+        # self.source always has a trailing newline
+        self.indent_spaces = find_next_indent(self.source[:-1])
+        self._full_dedent = (self.indent_spaces == 0)
 
     def _store(self, lines, buffer=None, store='source'):
         """Store one or more lines of input.

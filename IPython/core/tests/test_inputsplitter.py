@@ -612,3 +612,30 @@ class LineModeCellMagics(CellMagicsCommon, unittest.TestCase):
         sp.push('\n')
         # In this case, a blank line should end the cell magic
         nt.assert_false(sp.push_accepts_more()) #2
+
+indentation_samples = [
+    ('a = 1', 0),
+    ('for a in b:', 4),
+    ('def f():', 4),
+    ('def f(): #comment', 4),
+    ('a = ":#not a comment"', 0),
+    ('def f():\n    a = 1', 4),
+    ('def f():\n    return 1', 0),
+    ('for a in b:\n'
+     '   if a < 0:'
+     '       continue', 3),
+    ('a = {', 4),
+    ('a = {\n'
+     '     1,', 5),
+    ('b = """123', 0),
+    ('', 0),
+    ('def f():\n    pass', 0),
+    ('class Bar:\n    def f():\n        pass', 4),
+    ('class Bar:\n    def f():\n        raise', 4),
+]
+
+def test_find_next_indent():
+    for code, exp in indentation_samples:
+        res = isp.find_next_indent(code)
+        msg = "{!r} != {!r} (expected)\n Code: {!r}".format(res, exp, code)
+        assert res == exp, msg
