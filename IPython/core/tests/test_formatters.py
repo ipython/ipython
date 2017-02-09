@@ -407,6 +407,9 @@ def test_ipython_display_formatter():
         def _ipython_display_(self):
             raise NotImplementedError
     
+    save_enabled = f.ipython_display_formatter.enabled
+    f.ipython_display_formatter.enabled = True
+    
     yes = SelfDisplaying()
     no = NotSelfDisplaying()
     
@@ -419,6 +422,9 @@ def test_ipython_display_formatter():
     nt.assert_equal(d, {})
     nt.assert_equal(md, {})
     nt.assert_equal(catcher, [yes])
+
+    f.ipython_display_formatter.enabled = save_enabled
+
 
 def test_json_as_string_deprecated():
     class JSONString(object):
