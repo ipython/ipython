@@ -1,5 +1,16 @@
+"""
+Module to define and register Terminal IPython shortcuts with
+:any:`prompt_toolkit`
+"""
+
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
+import warnings
 import signal
 import sys
+from typing import Callable
+
 
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER
 from prompt_toolkit.filters import (HasFocus, HasSelection, Condition,
@@ -60,7 +71,7 @@ def register_ipython_shortcuts(registry, shell):
 
     registry.add_binding(Keys.ControlO,
                          filter=(HasFocus(DEFAULT_BUFFER)
-                                & EmacsInsertMode()))(newline_with_copy_margin)
+                                & EmacsInsertMode()))(newline_autoindent_outer(shell.input_splitter))
 
     registry.add_binding(Keys.F2,
                          filter=HasFocus(DEFAULT_BUFFER)
@@ -166,11 +177,20 @@ def force_exit(event):
 def indent_buffer(event):
     event.current_buffer.insert_text(' ' * 4)
 
+@undoc
 def newline_with_copy_margin(event):
     """
+    DEPRECATED since IPython 6.0
+
+    See :any:`newline_autoindent_outer` for a replacement.
+
     Preserve margin and cursor position when using
     Control-O to insert a newline in EMACS mode
     """
+    warnings.warn("`newline_with_copy_margin(event)` is deprecated since IPython 6.0. "
+      "see `newline_autoindent_outer(shell)(event)` for a replacement.",
+                  DeprecationWarning, stacklevel=2)
+
     b = event.current_buffer
     cursor_start_pos = b.document.cursor_position_col
     b.newline(copy_margin=True)
@@ -179,6 +199,30 @@ def newline_with_copy_margin(event):
     if cursor_start_pos != cursor_end_pos:
         pos_diff = cursor_start_pos - cursor_end_pos
         b.cursor_right(count=pos_diff)
+
+def newline_autoindent_outer(inputsplitter) -> Callable[..., None]:
+    """
+    Return a function suitable for inserting a indented newline after the cursor.
+
+    Fancier version of deprecated ``newline_with_copy_margin`` which should
+    compute the correct indentation of the inserted line. That is to say, indent
+    by 4 extra space after a function definition, class definition, context
+    manager... And dedent by 4 space after ``pass``, ``return``, ``raise ...``.
+    """
+
+    def newline_autoindent(event):
+        """insert a newline after the cursor indented appropriately."""
+        b = event.current_buffer
+        d = b.document
+
+        if b.complete_state:
+            b.cancel_completion()
+        text = d.text[:d.cursor_position] + '\n'
+        _, indent = inputsplitter.check_complete(text)
+        b.insert_text('\n' + (' ' * (indent or 0)), move_cursor=False)
+
+    return newline_autoindent
+
 
 def open_input_in_editor(event):
     event.cli.current_buffer.tempfile_suffix = ".py"
