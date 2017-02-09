@@ -629,6 +629,9 @@ indentation_samples = [
      '     1,', 5),
     ('b = """123', 0),
     ('', 0),
+    ('def f():\n    pass', 0),
+    ('class Bar:\n    def f():\n        pass', 4),
+    ('class Bar:\n    def f():\n        raise', 4),
 ]
 
 def test_find_next_indent():
