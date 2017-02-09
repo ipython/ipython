@@ -142,7 +142,7 @@ def find_next_indent(code):
         tokens.pop()
     if not tokens:
         return 0
-    if tokens[-1].type in {tokenize.DEDENT, tokenize.NEWLINE, tokenize.COMMENT}:
+    while (tokens[-1].type in {tokenize.DEDENT, tokenize.NEWLINE, tokenize.COMMENT}):
         tokens.pop()
 
     if tokens[-1].type == INCOMPLETE_STRING:
