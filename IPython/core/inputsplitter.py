@@ -167,6 +167,7 @@ def find_next_indent(code):
 
     last_indent = prev_indents.pop()
 
+    # If we've just opened a multiline statement (e.g. 'a = ['), indent more
     if tokens[-1].type == IN_MULTILINE_STATEMENT:
         if tokens[-2].exact_type in {tokenize.LPAR, tokenize.LSQB, tokenize.LBRACE}:
             return last_indent + 4
