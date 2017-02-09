@@ -7,13 +7,12 @@
 import os
 import os.path
 import warnings
-import textwrap
 from shutil import copyfile
 import sys
 from importlib import import_module
 
 from traitlets.config.configurable import Configurable
-from IPython.utils.path import ensure_dir_exists
+from IPython.utils.path import ensure_dir_exists, compress_user
 from traitlets import Instance
 
 try:
@@ -86,26 +85,10 @@ class ExtensionManager(Configurable):
                 with prepended_to_syspath(self.ipython_extension_dir):
                     mod = import_module(module_str)
                     if mod.__file__.startswith(self.ipython_extension_dir):
-                        print(textwrap.dedent(
-                        """
-                        Warning, you are attempting to load and IPython extensions from legacy
-                        location.
-                            
-                        IPythonhas been requested to load extension `{ext}` which has been found in
-                        `ipython_extension_dir` (`{dir}`).
-
-                        It is likely you previously installed an extension using the `%install_ext`
-                        mechanism which has been deprecated since IPython 4.0. Loading extensions
-                        from the above directory is still supported but will be deprecated in a
-                        future version of IPython.
-
-                        Extensions should now be installed and managed as Python packages. We
-                        recommend you update your extensions accordingly.
-
-                        Old extensions files present in `ipython_extension_dir` may cause newly
-                        installed extensions to not be recognized. Thus you may need to clean
-                        the content of above mentioned directory.
-                        """.format(dir=self.ipython_extension_dir, ext=module_str)))
+                        print(("Loading extensions from {dir} is deprecated. "
+                               "We recommend managing extensions like any "
+                               "other Python packages, in site-packages.").format(
+                              dir=compress_user(self.ipython_extension_dir)))
             mod = sys.modules[module_str]
             if self._call_load_ipython_extension(mod):
                 self.loaded.add(module_str)
