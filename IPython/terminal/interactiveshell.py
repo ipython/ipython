@@ -290,6 +290,16 @@ class TerminalInteractiveShell(InteractiveShell):
                     Token.OutPrompt: '#990000',
                     Token.OutPromptNum: '#ff0000 bold',
                 })
+
+                # Hack: Due to limited color support on the Windows console
+                # the prompt colors will be wrong without this
+                if os.name == 'nt':
+                    style_overrides.update({
+                        Token.Prompt: '#ansidarkgreen',
+                        Token.PromptNum: '#ansigreen bold',
+                        Token.OutPrompt: '#ansidarkred',
+                        Token.OutPromptNum: '#ansired bold',
+                    })
             elif legacy =='nocolor':
                 style_cls=_NoStyle
                 style_overrides = {}
