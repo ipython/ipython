@@ -490,51 +490,6 @@ class InputSplitter(object):
         # General fallback - accept more code
         return True
 
-    #------------------------------------------------------------------------
-    # Private interface
-    #------------------------------------------------------------------------
-
-    def _find_indent(self, line):
-        """Compute the new indentation level for a single line.
-
-        Parameters
-        ----------
-        line : str
-          A single new line of non-whitespace, non-comment Python input.
-
-        Returns
-        -------
-        indent_spaces : int
-          New value for the indent level (it may be equal to self.indent_spaces
-        if indentation doesn't change.
-
-        full_dedent : boolean
-          Whether the new line causes a full flush-left dedent.
-        """
-        indent_spaces = self.indent_spaces
-        full_dedent = self._full_dedent
-
-        inisp = num_ini_spaces(line)
-        if inisp < indent_spaces:
-            indent_spaces = inisp
-            if indent_spaces <= 0:
-                #print 'Full dedent in text',self.source # dbg
-                full_dedent = True
-
-        if line.rstrip()[-1] == ':':
-            indent_spaces += 4
-        elif dedent_re.match(line):
-            indent_spaces -= 4
-            if indent_spaces <= 0:
-                full_dedent = True
-
-        # Safety
-        if indent_spaces < 0:
-            indent_spaces = 0
-            #print 'safety' # dbg
-
-        return indent_spaces, full_dedent
-
     def _update_indent(self):
         # self.source always has a trailing newline
         self.indent_spaces = find_next_indent(self.source[:-1])
