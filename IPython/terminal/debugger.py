@@ -1,13 +1,19 @@
+import signal
+import sys
+
 from IPython.core.debugger import Pdb
 
 from IPython.core.completer import IPCompleter
 from .ptutils import IPythonPTCompleter
+from .shortcuts import suspend_to_bg
 
+from prompt_toolkit.filters import Condition
+from prompt_toolkit.keys import Keys
+from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.token import Token
 from prompt_toolkit.shortcuts import create_prompt_application
 from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.enums import EditingMode
-import sys
 
 
 class TerminalPdb(Pdb):
@@ -32,8 +38,14 @@ class TerminalPdb(Pdb):
                                        )
             self._ptcomp = IPythonPTCompleter(compl, patch_stdout=patch_stdout)
 
+        kbmanager = KeyBindingManager.for_prompt()
+        supports_suspend = Condition(lambda cli: hasattr(signal, 'SIGTSTP'))
+        kbmanager.registry.add_binding(Keys.ControlZ, filter=supports_suspend
+                                      )(suspend_to_bg)
+
         self._pt_app = create_prompt_application(
                             editing_mode=getattr(EditingMode, self.shell.editing_mode.upper()),
+                            key_bindings_registry=kbmanager.registry,
                             history=self.shell.debugger_history,
                             completer= self._ptcomp,
                             enable_history_search=True,
