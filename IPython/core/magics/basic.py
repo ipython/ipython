@@ -2,6 +2,7 @@
 
 
 import argparse
+import textwrap
 import io
 import sys
 from pprint import pformat
@@ -17,7 +18,8 @@ from logging import error
 
 
 class MagicsDisplay(object):
-    def __init__(self, magics_manager):
+    def __init__(self, magics_manager, ignore=None):
+        self.ignore = ignore if ignore else []
         self.magics_manager = magics_manager
     
     def _lsmagic(self):
@@ -27,10 +29,10 @@ class MagicsDisplay(object):
         mman = self.magics_manager
         magics = mman.lsmagic()
         out = ['Available line magics:',
-               mesc + ('  '+mesc).join(sorted(magics['line'])),
+               mesc + ('  '+mesc).join(sorted([m for m,v in magics['line'].items() if (v not in self.ignore)])),
                '',
                'Available cell magics:',
-               cesc + ('  '+cesc).join(sorted(magics['cell'])),
+               cesc + ('  '+cesc).join(sorted([m for m,v in magics['cell'].items() if (v not in self.ignore)])),
                '',
                mman.auto_status()]
         return '\n'.join(out)
@@ -160,7 +162,7 @@ class BasicMagics(Magics):
     @line_magic
     def lsmagic(self, parameter_s=''):
         """List currently available magic functions."""
-        return MagicsDisplay(self.shell.magics_manager)
+        return MagicsDisplay(self.shell.magics_manager, ignore=[self.pip])
 
     def _magic_docs(self, brief=False, rest=False):
         """Return docstrings from magic functions."""
@@ -377,7 +379,24 @@ Currently the magic system has the following functions:""",
             xmode_switch_err('user')
 
     @line_magic
-    def quickref(self,arg):
+    def pip(self, args=''):
+        """
+        Intercept usage of ``pip`` in IPython and direct user to run command outside of IPython.
+        """
+        print(textwrap.dedent('''
+        The following command must be run outside of the IPython shell:
+
+            $ pip {args}
+
+        The Python package manager (pip) can only be used from outside of IPython.
+        Please reissue the `pip` command in a separate terminal or command prompt.
+
+        See the Python documentation for more informations on how to install packages:
+
+            https://docs.python.org/3/installing/'''.format(args=args)))
+
+    @line_magic
+    def quickref(self, arg):
         """ Show a quick reference sheet """
         from IPython.core.usage import quick_reference
         qr = quick_reference + self._magic_docs(brief=True)
