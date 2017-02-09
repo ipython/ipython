@@ -325,7 +325,7 @@ class FileLink(object):
             path to the file or directory that should be formatted
         url_prefix : str
             prefix to be prepended to all files to form a working link [default:
-            'files']
+            '']
         result_html_prefix : str
             text to append to beginning to link [default: none]
         result_html_suffix : str
