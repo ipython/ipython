@@ -622,8 +622,27 @@ def get__all__entries(obj):
     return [cast_unicode_py2(w) for w in words if isinstance(w, str)]
 
 
-def match_dict_keys(keys, prefix, delims):
-    """Used by dict_key_matches, matching the prefix to a list of keys"""
+def match_dict_keys(keys: List[str], prefix: str, delims: str):
+    """Used by dict_key_matches, matching the prefix to a list of keys
+
+    Parameters
+    ==========
+        keys:
+            list of keys in dictionary currently being completed.
+        prefix:
+            Part of the text already typed by the user. e.g. `mydict[b'fo`
+        delims:
+            String of delimiters to consider when finding the current key.
+
+    Returns
+    =======
+
+    A tuple of three elements: ``quote``, ``token_start``, ``matched``, with
+    ``quote`` being the quote that need to be used to close current string.
+    ``token_start`` the position where the replacement should start occurring,
+    ``matches`` a list of replacement/completion
+
+    """
     if not prefix:
         return None, 0, [repr(k) for k in keys
                       if isinstance(k, (str, bytes))]
@@ -639,7 +658,6 @@ def match_dict_keys(keys, prefix, delims):
     token_start = token_match.start()
     token_prefix = token_match.group()
 
-    # TODO: support bytes in Py3k
     matched = []
     for key in keys:
         try:
@@ -652,7 +670,7 @@ def match_dict_keys(keys, prefix, delims):
         # reformat remainder of key to begin with prefix
         rem = key[len(prefix_str):]
         # force repr wrapped in '
-        rem_repr = repr(rem + '"')
+        rem_repr = repr(rem + '"') if isinstance(rem, str) else repr(rem + b'"')
         if rem_repr.startswith('u') and prefix[0] not in 'uU':
             # Found key is unicode, but prefix is Py2 string.
             # Therefore attempt to interpret key as string.
