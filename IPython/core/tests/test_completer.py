@@ -6,6 +6,7 @@
 
 import os
 import sys
+import textwrap
 import unittest
 
 from contextlib import contextmanager
@@ -20,7 +21,8 @@ from IPython.utils.tempdir import TemporaryDirectory, TemporaryWorkingDirectory
 from IPython.utils.generics import complete_object
 from IPython.testing import decorators as dec
 
-from IPython.core.completer import Completion, provisionalcompleter, match_dict_keys
+from IPython.core.completer import (
+    Completion, provisionalcompleter, match_dict_keys, _deduplicate_completions)
 from nose.tools import assert_in, assert_not_in
 
 #-----------------------------------------------------------------------------
@@ -294,13 +296,28 @@ def test_jedi():
 
     import jedi
     jedi_version = tuple(int(i) for i in jedi.__version__.split('.')[:3])
-    if jedi_version > (0,10):
+    if jedi_version > (0, 10):
         yield _test_complete, 'jedi >0.9 should complete and not crash', 'a=1;a.', 'real'
     yield _test_complete, 'can infer first argument', 'a=(1,"foo");a[0].', 'real'
     yield _test_complete, 'can infer second argument', 'a=(1,"foo");a[1].', 'capitalize'
     yield _test_complete, 'cover duplicate completions', 'im', 'import', 0, 2
 
     yield _test_not_complete, 'does not mix types', 'a=(1,"foo");a[0].', 'capitalize'
+
+def test_deduplicate_completions():
+    """
+    Test that completions are correctly deduplicated (even if ranges are not the same)
+    """
+    ip = get_ipython()
+    ip.ex(textwrap.dedent('''
+    class Z:
+        zoo = 1
+    '''))
+    with provisionalcompleter():
+        l = list(_deduplicate_completions('Z.z', ip.Completer.completions('Z.z', 3)))
+
+    assert len(l) == 1, 'Completions (Z.z<tab>) correctly deduplicate: %s ' % l
+    assert l[0].text == 'zoo'  # and not `it.accumulate`
 
 
 def test_greedy_completions():

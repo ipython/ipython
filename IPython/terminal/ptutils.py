@@ -10,7 +10,9 @@ not to be used outside IPython.
 import unicodedata
 from wcwidth import wcwidth
 
-from IPython.core.completer import IPCompleter, provisionalcompleter, rectify_completions, cursor_to_position
+from IPython.core.completer import (
+    IPCompleter, provisionalcompleter, rectify_completions, cursor_to_position,
+    _deduplicate_completions)
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.layout.lexers import Lexer
 from prompt_toolkit.layout.lexers import PygmentsLexer
@@ -61,8 +63,8 @@ class IPythonPTCompleter(Completer):
         Private equivalent of get_completions() use only for unit_testing.
         """
         debug = getattr(ipyc, 'debug', False)
-        completions = rectify_completions(
-            body, ipyc.completions(body, offset), _debug=debug)
+        completions = _deduplicate_completions(
+            body, ipyc.completions(body, offset))
         for c in completions:
             if not c.text:
                 # Guard against completion machinery giving us an empty string.

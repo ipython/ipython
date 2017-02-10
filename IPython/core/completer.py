@@ -344,11 +344,52 @@ class Completion:
     def __hash__(self):
         return hash((self.start, self.end, self.text))
 
+
 _IC = Iterator[Completion]
 
-def rectify_completions(text:str, completion:_IC, *, _debug=False)->_IC:
+
+def _deduplicate_completions(text: str, completions: _IC)-> _IC:
     """
-    Rectify a set of completion to all have the same ``start`` and ``end``
+    Deduplicate a set of completions.
+
+    .. warning:: Unstable
+
+        This function is unstable, API may change without warning.
+
+    Parameters
+    ----------
+    text: str
+        text that should be completed.
+    completions: Iterator[Completion]
+        iterator over the completions to deduplicate
+
+
+    Completions coming from multiple sources, may be different but end up having
+    the same effect when applied to ``text``. If this is the case, this will
+    consider completions as equal and only emit the first encountered.
+
+    Not folded in `completions()` yet for debugging purpose, and to detect when
+    the IPython completer does return things that Jedi does not, but should be
+    at some point.
+    """
+    completions = list(completions)
+    if not completions:
+        return
+
+    new_start = min(c.start for c in completions)
+    new_end = max(c.end for c in completions)
+
+    seen = set()
+    for c in completions:
+        new_text = text[new_start:c.start] + c.text + text[c.end:new_end]
+        if new_text not in seen:
+            yield c
+            seen.add(new_text)
+
+
+def rectify_completions(text: str, completions: _IC, *, _debug=False)->_IC:
+    """
+    Rectify a set of completions to all have the same ``start`` and ``end``
 
     .. warning:: Unstable
 
@@ -359,7 +400,7 @@ def rectify_completions(text:str, completion:_IC, *, _debug=False)->_IC:
     ----------
     text: str
         text that should be completed.
-    completion: Iterator[Completion]
+    completions: Iterator[Completion]
         iterator over the completions to rectify
 
 
@@ -1510,22 +1551,17 @@ class IPCompleter(Completer):
             fake Completion token to distinguish completion returned by Jedi
             and usual IPython completion.
 
+        .. note::
+            
+            Completions are not completely deduplicated yet. If identical
+            completions are coming from different sources this function does not
+            ensure that each completion object will only be present once.
         """
         warnings.warn("_complete is a provisional API (as of IPython 6.0). "
                       "It may change without warnings. "
                       "Use in corresponding context manager.",
                       category=ProvisionalCompleterWarning, stacklevel=2)
 
-        # Possible Improvements / Known limitation
-        ##########################################
-        # Completions may be identical even if they have different ranges and
-        # text. For example:
-        # >>> a=1
-        # >>> a.<tab>
-        # May returns:
-        #  - `a.real` from 0 to 2
-        #  - `.real` from 1 to 2
-        # the current code does not (yet) check for such equivalence
         seen = set()
         for c in self._completions(text, offset, _timeout=self.jedi_compute_type_timeout/1000):
             if c and (c in seen):
