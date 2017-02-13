@@ -142,9 +142,9 @@ if __name__ == "__main__":
         since = datetime.utcnow() - timedelta(days=opts.days)
     else:
         if not tag:
-            tag = check_output(['git', 'describe', '--abbrev=0']).strip().decode('utf8')
+            tag = check_output(['git', 'describe', '--abbrev=0']).strip().decode()
         cmd = ['git', 'log', '-1', '--format=%ai', tag]
-        tagday, tz = check_output(cmd).strip().decode('utf8').rsplit(' ', 1)
+        tagday, tz = check_output(cmd).strip().decode().rsplit(' ', 1)
         since = datetime.strptime(tagday, "%Y-%m-%d %H:%M:%S")
         h = int(tz[1:3])
         m = int(tz[3:])
