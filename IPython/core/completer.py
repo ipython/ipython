@@ -1146,6 +1146,26 @@ class IPCompleter(Completer):
 
         interpreter = jedi.Interpreter(
             text, namespaces, column=cursor_column, line=cursor_line + 1)
+
+        try_jedi = False
+
+        try:
+            # should we check the type of the node is Error ?
+            from jedi.parser.tree import ErrorLeaf
+            next_to_last_tree = interpreter._get_module().tree_node.children[-2]
+            completing_string = False
+            if isinstance(next_to_last_tree, ErrorLeaf):
+                completing_string = interpreter._get_module().tree_node.children[-2].value[0] in {'"', "'"}
+            # if we are in a string jedi is likely not the right candidate for
+            # now. Skip it.
+            try_jedi = not completing_string
+        except Exception as e:
+            # many of things can go wrong, we are using private API just don't crash.
+            if self.debug:
+                print("Error detecting if completing a non-finished string :", e, '|')
+
+        if not try_jedi:
+            return []
         try:
             return filter(completion_filter, interpreter.completions())
         except Exception as e:
