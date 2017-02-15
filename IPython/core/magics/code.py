@@ -282,10 +282,10 @@ class CodeMagics(Magics):
               "content": code
             }
           }
-        }).encode('utf-8')
+        }).encode()
 
         response = urlopen("https://api.github.com/gists", post_data)
-        response_data = json.loads(response.read().decode('utf-8'))
+        response_data = json.loads(response.read().decode())
         return response_data['html_url']
 
     @line_magic

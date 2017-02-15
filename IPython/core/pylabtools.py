@@ -123,7 +123,7 @@ def print_figure(fig, fmt='png', bbox_inches='tight', **kwargs):
     fig.canvas.print_figure(bytes_io, **kw)
     data = bytes_io.getvalue()
     if fmt == 'svg':
-        data = data.decode('utf-8')
+        data = data.decode()
     return data
     
 def retina_figure(fig, **kwargs):

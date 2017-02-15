@@ -18,7 +18,7 @@ class PromptTests(unittest.TestCase):
     
     def test_lazy_eval_nonascii_bytes(self):
         u = u'ünicødé'
-        b = u.encode('utf8')
+        b = u.encode()
         lz = LazyEvaluate(lambda : b)
         # unicode(lz) would fail
         self.assertEqual(str(lz), str(b))

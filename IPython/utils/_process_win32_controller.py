@@ -348,11 +348,11 @@ class Win32ShellCommandController(object):
             #print("\nGot str %s\n" % repr(data), file=sys.stderr)
 
             # Encode the string to the console encoding
-            if isinstance(data, unicode): #FIXME: Python3
-                data = data.encode('utf_8')
+            if isinstance(data, str): 
+                data = data.encode()
 
             # What we have now must be a string of bytes
-            if not isinstance(data, str): #FIXME: Python3
+            if not isinstance(data, str):
                 raise RuntimeError("internal stdin function string error")
 
             # An empty string signals EOF
