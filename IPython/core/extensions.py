@@ -5,12 +5,14 @@
 # Distributed under the terms of the Modified BSD License.
 
 import os
+import os.path
+import warnings
 from shutil import copyfile
 import sys
 from importlib import import_module
 
 from traitlets.config.configurable import Configurable
-from IPython.utils.path import ensure_dir_exists
+from IPython.utils.path import ensure_dir_exists, compress_user
 from traitlets import Instance
 
 try:
@@ -75,13 +77,18 @@ class ExtensionManager(Configurable):
         """
         if module_str in self.loaded:
             return "already loaded"
-        
+
         from IPython.utils.syspathcontext import prepended_to_syspath
-        
+
         with self.shell.builtin_trap:
             if module_str not in sys.modules:
                 with prepended_to_syspath(self.ipython_extension_dir):
-                    import_module(module_str)
+                    mod = import_module(module_str)
+                    if mod.__file__.startswith(self.ipython_extension_dir):
+                        print(("Loading extensions from {dir} is deprecated. "
+                               "We recommend managing extensions like any "
+                               "other Python packages, in site-packages.").format(
+                              dir=compress_user(self.ipython_extension_dir)))
             mod = sys.modules[module_str]
             if self._call_load_ipython_extension(mod):
                 self.loaded.add(module_str)
@@ -168,3 +175,5 @@ class ExtensionManager(Configurable):
         filename = os.path.join(self.ipython_extension_dir, filename)
         copy(url, filename)
         return filename
+
+
