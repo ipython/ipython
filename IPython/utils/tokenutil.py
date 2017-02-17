@@ -84,7 +84,7 @@ def token_at_cursor(cell, cursor_pos=0):
         if end_line + 1 not in offsets:
             # keep track of offsets for each line
             lines = tok.line.splitlines(True)
-            for lineno, line in zip(range(start_line + 1, end_line + 2), lines):
+            for lineno, line in enumerate(lines, start_line + 1):
                 if lineno not in offsets:
                     offsets[lineno] = offsets[lineno-1] + len(line)
         

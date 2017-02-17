@@ -189,11 +189,11 @@ def findsource(object):
         # use the one with the least indentation, which is the one
         # that's most probably not inside a function definition.
         candidates = []
-        for i in range(len(lines)):
-            match = pat.match(lines[i])
+        for i, line in enumerate(lines):
+            match = pat.match(line)
             if match:
                 # if it's at toplevel, it's already the best one
-                if lines[i][0] == 'c':
+                if line[0] == 'c':
                     return lines, i
                 # else add whitespace to candidate list
                 candidates.append((match.group(1), i))
@@ -358,7 +358,7 @@ def _fixed_getinnerframes(etb, context=1, tb_offset=0):
 
     aux = traceback.extract_tb(etb)
     assert len(records) == len(aux)
-    for i, (file, lnum, _, _) in zip(range(len(records)), aux):
+    for i, (file, lnum, _, _) in enumerate(aux):
         maybeStart = lnum - 1 - context // 2
         start = max(maybeStart, 0)
         end = start + context
