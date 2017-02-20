@@ -649,23 +649,24 @@ python-profiler package from non-free.""")
 
         sys.argv = [filename] + args  # put in the proper filename
 
+        if 'n' in opts:
+            name = os.path.splitext(os.path.basename(filename))[0]
+        else:
+            name = '__main__'
+
         if 'i' in opts:
             # Run in user's interactive namespace
             prog_ns = self.shell.user_ns
             __name__save = self.shell.user_ns['__name__']
-            prog_ns['__name__'] = '__main__'
+            prog_ns['__name__'] = name
             main_mod = self.shell.user_module
-            
+
             # Since '%run foo' emulates 'python foo.py' at the cmd line, we must
             # set the __file__ global in the script's namespace
             # TK: Is this necessary in interactive mode?
             prog_ns['__file__'] = filename
         else:
             # Run in a fresh, empty namespace
-            if 'n' in opts:
-                name = os.path.splitext(os.path.basename(filename))[0]
-            else:
-                name = '__main__'
 
             # The shell MUST hold a reference to prog_ns so after %run
             # exits, the python deletion mechanism doesn't zero it out
