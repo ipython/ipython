@@ -117,11 +117,7 @@ import types
 import weakref
 from importlib import import_module
 from IPython.utils.py3compat import PY3
-try:
-    # Reload is not defined by default in Python3.
-    reload
-except NameError:
-    from imp import reload
+from imp import reload
 
 from IPython.utils import openpy
 
