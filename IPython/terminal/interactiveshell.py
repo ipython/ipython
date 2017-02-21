@@ -13,6 +13,7 @@ from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
 from traitlets import Bool, Unicode, Dict, Integer, observe, Instance, Type, default, Enum, Union
 
+from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import (HasFocus, Condition, IsDone)
 from prompt_toolkit.history import InMemoryHistory
@@ -434,7 +435,18 @@ class TerminalInteractiveShell(InteractiveShell):
 
     def pre_prompt(self):
         if self.rl_next_input:
-            self.pt_cli.application.buffer.text = cast_unicode_py2(self.rl_next_input)
+            # We can't set the buffer here, because it will be reset just after
+            # this. Adding a callable to pre_run_callables does what we need
+            # after the buffer is reset.
+            s = cast_unicode_py2(self.rl_next_input)
+            def set_doc():
+                self.pt_cli.application.buffer.document = Document(s)
+            if hasattr(self.pt_cli, 'pre_run_callables'):
+                self.pt_cli.pre_run_callables.append(set_doc)
+            else:
+                # Older version of prompt_toolkit; it's OK to set the document
+                # directly here.
+                set_doc()
             self.rl_next_input = None
 
     def interact(self, display_banner=DISPLAY_BANNER_DEPRECATED):
