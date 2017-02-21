@@ -2,11 +2,32 @@
  5.x Series
 ============
 
+IPython 5.3
+===========
+
+Released on January 29th, 2017. Remarkable changes and fixes:
+
+* fix a bug in ``set_next_input`` leading to crash of the terminal IPython.
+  :ghpull:`10231`, :ghissue:`10296`, :ghissue:`10229`
+* Always wait for editor inputhook for terminal IPython :ghpull:`10239`,
+  :ghpull:`10240`
+* Disable ``_ipython_display_`` in terminal :ghpull:`10249`, :ghpull:`10274`
+* Update terminal colors to be more visible by default on windows
+  :ghpull:`10260`, :ghpull:`10238`, :ghissue:`10281`
+* Add Ctrl-Z shortcut (suspend) in terminal debugger :ghpull:`10254`,
+  :ghissue:`10273`
+* Indent on new line by looking at the text before the cursor :ghpull:`10264`,
+  :ghpull:`10275`, :ghissue:`9283`
+* Update QtEventloop integration to fix some matplotlib integration issues
+  :ghpull:`10201`, :ghpull:`10311`, :ghissue:`10201`
+* Respect completions display style in terminal debugger :ghpull:`10305`,
+  :ghpull:`10313`
+
 
 IPython 5.2
 ===========
 
-Remarkable changes and fixes:
+Released on January 29th, 2017. Remarkable changes and fixes:
 
 * restore IPython's debugger to raise on quit. :ghpull:`10009`
 * The configuration value ``c.TerminalInteractiveShell.highlighting_style`` can
