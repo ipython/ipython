@@ -278,9 +278,10 @@ def update_class(old, new):
     method code objects"""
     for key in list(old.__dict__.keys()):
         old_obj = getattr(old, key)
-
         try:
             new_obj = getattr(new, key)
+            if old_obj == new_obj:
+                continue
         except AttributeError:
             # obsolete attribute: remove it
             try:
