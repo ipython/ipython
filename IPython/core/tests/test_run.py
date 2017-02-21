@@ -471,6 +471,10 @@ def test_run__name__():
         _ip.magic('run -n {}'.format(path))
         nt.assert_equal(_ip.user_ns.pop('q'), 'foo')
 
+        _ip.magic('run -i -n {}'.format(path))
+        nt.assert_equal(_ip.user_ns.pop('q'), 'foo')
+
+
 def test_run_tb():
     """Test traceback offset in %run"""
     with TemporaryDirectory() as td:
