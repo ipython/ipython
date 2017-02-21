@@ -655,7 +655,8 @@ class JSON(DisplayObject):
     @data.setter
     def data(self, data):
         if isinstance(data, str):
-            warnings.warn("JSON expects JSONable dict or list, not JSON strings")
+            if self.filename is None:
+                warnings.warn("JSON expects JSONable dict or list, not JSON strings")
             data = json.loads(data)
         self._data = data
 
@@ -689,6 +690,8 @@ class GeoJSON(JSON):
     @data.setter
     def data(self, data):
         if isinstance(data, str):
+            if self.filename is None:
+                warnings.warn("GeoJSON expects JSONable dict or list, not JSON strings")
             data = json.loads(data)
         self._data = data
 
