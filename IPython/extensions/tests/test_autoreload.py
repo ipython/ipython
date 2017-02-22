@@ -15,6 +15,7 @@
 import os
 import sys
 import tempfile
+import textwrap
 import shutil
 import random
 import time
@@ -22,6 +23,8 @@ from io import StringIO
 
 import nose.tools as nt
 import IPython.testing.tools as tt
+
+from IPython.testing.decorators import skipif
 
 from IPython.extensions.autoreload import AutoreloadMagics
 from IPython.core.events import EventManager, pre_run_cell
@@ -126,6 +129,29 @@ class Fixture(object):
 #-----------------------------------------------------------------------------
 
 class TestAutoreload(Fixture):
+
+    @skipif(sys.version_info < (3, 6))
+    def test_reload_enums(self):
+        import enum
+        mod_name, mod_fn = self.new_module(textwrap.dedent("""
+                                from enum import Enum
+                                class MyEnum(Enum):
+                                    A = 'A'
+                                    B = 'B'
+                            """))
+        self.shell.magic_autoreload("2")
+        self.shell.magic_aimport(mod_name)
+        self.write_file(mod_fn, textwrap.dedent("""
+                                from enum import Enum
+                                class MyEnum(Enum):
+                                    A = 'A'
+                                    B = 'B'
+                                    C = 'C'
+                            """))
+        with tt.AssertNotPrints(('[autoreload of %s failed:' % mod_name), channel='stderr'):
+            self.shell.run_code("pass")  # trigger another reload
+
+
     def _check_smoketest(self, use_aimport=True):
         """
         Functional test for the automatic reloader using either
