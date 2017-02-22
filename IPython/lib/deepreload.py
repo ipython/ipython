@@ -39,6 +39,7 @@ import sys
 
 from types import ModuleType
 from warnings import warn
+import types
 
 original_import = builtin_mod.__import__
 
@@ -162,6 +163,7 @@ def load_next(mod, altmod, name, buf):
 
     return result, next, buf
 
+
 # Need to keep track of what we've already reloaded to prevent cyclic evil
 found_now = {}
 
@@ -269,6 +271,12 @@ modules_reloading = {}
 
 def deep_reload_hook(m):
     """Replacement for reload()."""
+    # Hardcode this one  as it would raise a NotImplemeentedError from the
+    # bowels of Python and screw up the import machinery after.
+    # unlike other imports the `exclude` list aleady in place is not enough.
+
+    if m is types:
+        return m
     if not isinstance(m, ModuleType):
         raise TypeError("reload() argument must be module")
 
@@ -319,7 +327,7 @@ def deep_reload_hook(m):
     return newm
 
 # Save the original hooks
-original_reload = imp.reload    # Python 3
+original_reload = imp.reload
 
 # Replacement for reload()
 def reload(module, exclude=('sys', 'os.path', 'builtins', '__main__',
