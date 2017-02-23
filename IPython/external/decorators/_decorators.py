@@ -13,7 +13,6 @@ function name, setup and teardown functions and so on - see
 ``nose.tools`` for more information.
 
 """
-import warnings
 
 # IPython changes: make this work if numpy not available
 # Original code:
@@ -105,13 +104,9 @@ def knownfailureif(fail_condition, msg=None):
     """
     Make function raise KnownFailureTest exception if given condition is true.
 
-    If the condition is a callable, it is used at runtime to dynamically
-    make the decision. This is useful for tests that may require costly
-    imports, to delay the cost until the test suite is actually executed.
-
     Parameters
     ----------
-    fail_condition : bool or callable
+    fail_condition : bool
         Flag to determine whether to mark the decorated test as a known
         failure (if True) or not (if False).
     msg : str, optional
@@ -121,9 +116,8 @@ def knownfailureif(fail_condition, msg=None):
     Returns
     -------
     decorator : function
-        Decorator, which, when applied to a function, causes SkipTest
-        to be raised when `skip_condition` is True, and the function
-        to be called normally otherwise.
+        Decorator, which, when applied to a function, causes KnownFailureTest to
+        be raised when `fail_condition` is True and the test fails.
 
     Notes
     -----
@@ -134,22 +128,16 @@ def knownfailureif(fail_condition, msg=None):
     if msg is None:
         msg = 'Test skipped due to known failure'
 
-    # Allow for both boolean or callable known failure conditions.
-    if callable(fail_condition):
-        fail_val = lambda : fail_condition()
-    else:
-        fail_val = lambda : fail_condition
-
     def knownfail_decorator(f):
         # Local import to avoid a hard nose dependency and only incur the
         # import time overhead at actual test-time.
         import nose
+
         def knownfailer(*args, **kwargs):
-            if fail_val():
+            if fail_condition:
                 raise KnownFailureTest(msg)
             else:
                 return f(*args, **kwargs)
         return nose.tools.make_decorator(f)(knownfailer)
 
     return knownfail_decorator
-
