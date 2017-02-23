@@ -729,7 +729,7 @@ python-profiler package from non-free.""")
 
                         def run():
                             runner(filename, prog_ns, prog_ns,
-                                    exit_ignore=exit_ignore)
+                                    exit_ignore=exit_ignore, raise_exceptions=True)
 
                     if 't' in opts:
                         # timed execution
