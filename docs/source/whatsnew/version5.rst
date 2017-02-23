@@ -23,6 +23,15 @@ Released on January 29th, 2017. Remarkable changes and fixes:
 * Respect completions display style in terminal debugger :ghpull:`10305`,
   :ghpull:`10313`
 
+IPython 5.2.2
+=============
+
+* Fix error when starting with ``IPCompleter.limit_to__all__`` configured.
+
+IPython 5.2.1
+=============
+
+* Fix tab completion in the debugger. :ghpull:`10223`
 
 IPython 5.2
 ===========
