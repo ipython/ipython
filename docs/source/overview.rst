@@ -204,7 +204,7 @@ kernel, and even allows clients and kernels to live on different machines.
 With the exclusion of the traditional single process terminal-based IPython
 (what you start if you run ``ipython`` without any subcommands), all
 other IPython machinery uses this two-process model. Most of this is now part
-of the `Jupyter` project, whis includes ``jupyter console``,  ``jupyter
+of the `Jupyter` project, which includes ``jupyter console``,  ``jupyter
 qtconsole``, and ``jupyter notebook``.
 
 As an example, this means that when you start ``jupyter qtconsole``, you're
