@@ -709,6 +709,37 @@ class GeoJSON(DisplayObject):
             Path to a local file to load the data from.
         metadata: dict
             Specify extra metadata to attach to the json display object.
+
+        Examples
+        --------
+
+        The following will display an interactive map of Mars with a point of
+        interest on frontend that do support GeoJSON display.
+
+            >>> from IPython.display import GeoJSON
+
+            >>> GeoJSON(data={
+            ...     "type": "Feature",
+            ...     "geometry": {
+            ...         "type": "Point",
+            ...         "coordinates": [-81.327, 296.038]
+            ...     },
+            ...     "properties": {
+            ...         "name": "Inca City"
+            ...     }
+            ... },
+            ... url_template="http://s3-eu-west-1.amazonaws.com/whereonmars.cartodb.net/{basemap_id}/{z}/{x}/{y}.png",
+            ... layer_options={
+            ...     "basemap_id": "celestia_mars-shaded-16k_global",
+            ...     "attribution" : "Celestia/praesepe",
+            ...     "minZoom" : 0,
+            ...     "maxZoom" : 18,
+            ... })
+            <IPython.core.display.GeoJSON object>
+
+        In the terminal IPython, you will only see the text representation of
+        the GeoJSON object.
+
         """
         self.url_template = url_template
         self.layer_options = layer_options
