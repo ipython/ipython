@@ -77,10 +77,6 @@ def register_ipython_shortcuts(registry, shell):
                          filter=HasFocus(DEFAULT_BUFFER)
                         )(open_input_in_editor)
 
-    registry.add_binding('v',
-                         filter=HasFocus(DEFAULT_BUFFER) & ViNavigationMode()
-                        )(open_input_in_editor)
-
     if shell.display_completions == 'readlinelike':
         registry.add_binding(Keys.ControlI,
                              filter=(HasFocus(DEFAULT_BUFFER)
