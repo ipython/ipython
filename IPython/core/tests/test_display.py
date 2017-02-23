@@ -48,7 +48,7 @@ def test_geojson():
             "minZoom": 0,
             "maxZoom": 18,
         })
-    nt.assert_equal(u'<IPython.core.display.GeoJSON object>', str(g))
+    nt.assert_equal(u'<IPython.core.display.GeoJSON object>', str(gj))
 
 def test_retina_png():
     here = os.path.dirname(__file__)
