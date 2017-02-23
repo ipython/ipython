@@ -28,6 +28,28 @@ def test_image_size():
     img = display.Image(url=thisurl, unconfined=True)
     nt.assert_equal(u'<img src="%s" class="unconfined"/>' % (thisurl), img._repr_html_())
 
+
+def test_geojson():
+
+    gj = display.GeoJSON(data={
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [-81.327, 296.038]
+            },
+            "properties": {
+                "name": "Inca City"
+            }
+        },
+        url_template="http://s3-eu-west-1.amazonaws.com/whereonmars.cartodb.net/{basemap_id}/{z}/{x}/{y}.png",
+        layer_options={
+            "basemap_id": "celestia_mars-shaded-16k_global",
+            "attribution": "Celestia/praesepe",
+            "minZoom": 0,
+            "maxZoom": 18,
+        })
+    nt.assert_equal(u'<IPython.core.display.GeoJSON object>', str(g))
+
 def test_retina_png():
     here = os.path.dirname(__file__)
     img = display.Image(os.path.join(here, "2x2.png"), retina=True)
