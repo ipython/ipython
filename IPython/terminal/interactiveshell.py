@@ -192,7 +192,12 @@ class TerminalInteractiveShell(InteractiveShell):
         default_value='multicolumn').tag(config=True)
 
     highlight_matching_brackets = Bool(True,
-        help="Highlight matching brackets .",
+        help="Highlight matching brackets.",
+    ).tag(config=True)
+
+    extra_open_editor_shortcuts = Bool(False,
+        help="Enable vi (v) or Emacs (C-X C-E) shortcuts to open an external editor. "
+             "This is in addition to the F2 binding, which is always enabled."
     ).tag(config=True)
 
     @observe('term_title')
@@ -221,7 +226,9 @@ class TerminalInteractiveShell(InteractiveShell):
             return
 
         # Set up keyboard shortcuts
-        kbmanager = KeyBindingManager.for_prompt()
+        kbmanager = KeyBindingManager.for_prompt(
+            enable_open_in_editor=self.extra_open_editor_shortcuts,
+        )
         register_ipython_shortcuts(kbmanager.registry, self)
 
         # Pre-populate history from IPython's history database
