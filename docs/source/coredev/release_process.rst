@@ -165,7 +165,7 @@ Get a fresh clone of the tag for building the release::
 
 .. note::
 
-    You can aslo cleanup the current working repository with ``git clean -xfdi``
+    You can also cleanup the current working repository with ``git clean -xfdi``
 
 8. Run the release script
 -------------------------
@@ -185,14 +185,7 @@ Use the following to actually upload the result of the build::
 
     ./tools/release upload
 
-It should posts them to ``archive.ipython.org``.
-
-You will need to use `twine <https://github.com/pypa/twine>`_ ) manually to
-actually upload on PyPI. Unlike setuptools, twine is able to upload packages
-over SSL.
-
-    twine upload dist/*
-
+It should posts them to ``archive.ipython.org`` and to PyPI.
 
 PyPI/Warehouse will automatically hide previous releases. If you are uploading
 a non-stable version, make sure to log-in to PyPI and un-hide previous version.
