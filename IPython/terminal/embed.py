@@ -165,7 +165,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
 
     def init_sys_modules(self):
         """
-        Explicitly overwrite :any:`IPython.core.interactiveshell` to do nothing.
+        Explicitly overwrite :mod:`IPython.core.interactiveshell` to do nothing.
         """
         pass
 
