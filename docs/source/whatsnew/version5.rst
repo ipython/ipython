@@ -5,7 +5,7 @@
 IPython 5.3
 ===========
 
-Released on January 29th, 2017. Remarkable changes and fixes:
+Released on February 24th, 2017. Remarkable changes and fixes:
 
 * Fix a bug in ``set_next_input`` leading to a crash of terminal IPython.
   :ghpull:`10231`, :ghissue:`10296`, :ghissue:`10229`
