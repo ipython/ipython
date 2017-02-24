@@ -157,20 +157,11 @@ Update release.py back to ``x.y-dev`` or ``x.y-maint``, and re-add the
     git commit -am "back to development"
     git push origin $BRANCH
 
-7. Get a fresh clone
---------------------
+Now checkout the tag we just made::
 
-Get a fresh clone of the tag for building the release::
+    git checkout $VERSION
 
-    cd /tmp
-    git clone --depth 1 https://github.com/ipython/ipython.git -b "$VERSION"
-    cd ipython
-
-.. note::
-
-    You can also cleanup the current working repository with ``git clean -xfdi``
-
-8. Run the release script
+7. Run the release script
 -------------------------
 
 Run the ``release`` script, this step requires having a current wheel, Python
@@ -194,7 +185,7 @@ PyPI/Warehouse will automatically hide previous releases. If you are uploading
 a non-stable version, make sure to log-in to PyPI and un-hide previous version.
 
 
-9. Draft a short release announcement
+8. Draft a short release announcement
 -------------------------------------
 
 The announcement should include:
@@ -209,7 +200,7 @@ Post the announcement to the mailing list and or blog, and link from Twitter.
 
     If you are doing a RC or Beta, you can likely skip the next steps.
 
-10. Update milestones on GitHub
+9. Update milestones on GitHub
 -------------------------------
 
 These steps will bring milestones up to date:
@@ -218,7 +209,7 @@ These steps will bring milestones up to date:
 - open a new milestone for the next release (x, y+1), if the milestone doesn't
   exist already
 
-11. Update the IPython website
+10. Update the IPython website
 ------------------------------
 
 The IPython website should document the new release:
@@ -227,18 +218,18 @@ The IPython website should document the new release:
 - update current version and download links
 - update links on the documentation page (especially if a major release)
 
-12. Update readthedocs
+11. Update readthedocs
 ----------------------
 
 Make sure to update readthedocs and set the latest tag as stable, as well as
 checking that previous release is still building under its own tag. 
 
-13. Update the Conda-Forge feedstock
+12. Update the Conda-Forge feedstock
 ------------------------------------
 
 Follow the instructions on `the repository <https://github.com/conda-forge/ipython-feedstock>`_
 
-14. Celebrate!
+13. Celebrate!
 --------------
 
 Celebrate the release and please thank the contributors for their work. Great
