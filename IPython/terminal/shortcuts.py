@@ -1,6 +1,6 @@
 """
 Module to define and register Terminal IPython shortcuts with
-:any:`prompt_toolkit`
+:mod:`prompt_toolkit`
 """
 
 # Copyright (c) IPython Development Team.
