@@ -352,7 +352,7 @@ class Inspector(Colorable):
 
     def __init__(self, color_table=InspectColors,
                  code_color_table=PyColorize.ANSICodeColors,
-                 scheme='NoColor',
+                 scheme=None,
                  str_detail_level=0,
                  parent=None, config=None):
         super(Inspector, self).__init__(parent=parent, config=config)
@@ -379,8 +379,9 @@ class Inspector(Colorable):
                            self.color_table.active_colors.normal)
 
     def set_active_scheme(self, scheme):
-        self.color_table.set_active_scheme(scheme)
-        self.parser.color_table.set_active_scheme(scheme)
+        if scheme is not None:
+            self.color_table.set_active_scheme(scheme)
+            self.parser.color_table.set_active_scheme(scheme)
 
     def noinfo(self, msg, oname):
         """Generic message when no information is found."""
