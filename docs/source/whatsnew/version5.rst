@@ -63,6 +63,9 @@ Released on January 29th, 2017. Remarkable changes and fixes:
 * Deprecate the ``%autoindent`` magic. :ghpull:`10176`
 * Emit a :any:`DeprecationWarning` when setting the deprecated
   ``limit_to_all`` option of the completer. :ghpull:`10198`
+* The :cellmagic:`capture` magic can now capture the result of a cell (from an
+  expression on the last line), as well as printed and displayed output.
+  :ghpull:`9851`.
 
 
 Changes of behavior to :any:`InteractiveShellEmbed`.
