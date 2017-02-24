@@ -26,9 +26,6 @@ _version_extra = '.dev'
 # _version_extra = 'rc1'
 # _version_extra = ''  # Uncomment this for full releases
 
-# release.codename is deprecated in 2.0, will be removed in 3.0
-codename = ''
-
 # Construct full version string from these.
 _ver = [_version_major, _version_minor, _version_patch]
 
