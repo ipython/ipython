@@ -7,7 +7,7 @@ IPython 5.3
 
 Released on January 29th, 2017. Remarkable changes and fixes:
 
-* fix a bug in ``set_next_input`` leading to crash of the terminal IPython.
+* Fix a bug in ``set_next_input`` leading to a crash of terminal IPython.
   :ghpull:`10231`, :ghissue:`10296`, :ghissue:`10229`
 * Always wait for editor inputhook for terminal IPython :ghpull:`10239`,
   :ghpull:`10240`
@@ -22,6 +22,10 @@ Released on January 29th, 2017. Remarkable changes and fixes:
   :ghpull:`10201`, :ghpull:`10311`, :ghissue:`10201`
 * Respect completions display style in terminal debugger :ghpull:`10305`,
   :ghpull:`10313`
+* Add a config option ``TerminalInteractiveShell.extra_open_editor_shortcuts``
+  to enable extra shortcuts to open the input in an editor. These are :kbd:`v`
+  in vi mode, and :kbd:`C-X C-E` in emacs mode (:ghpull:`10330`).
+  The :kbd:`F2` shortcut is always enabled.
 
 IPython 5.2.2
 =============
