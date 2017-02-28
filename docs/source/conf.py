@@ -230,6 +230,7 @@ intersphinx_mapping = {'python': ('https://docs.python.org/3/', None),
                        'jupyter': ('https://jupyter.readthedocs.io/en/latest/', None),
                        'jedi': ('https://jedi.readthedocs.io/en/latest/', None),
                        'traitlets': ('https://traitlets.readthedocs.io/en/latest/', None),
+                       'ipykernel': ('https://ipykernel.readthedocs.io/en/latest/', None),
                       }
 
 # Options for LaTeX output
