@@ -754,7 +754,6 @@ def test_dict_key_completion_unicode_py3():
         
 
 
-@dec.skip_without('numpy')
 def test_struct_array_key_completion():
     """Test dict key completion applies to numpy struct arrays"""
     import numpy
@@ -780,7 +779,6 @@ def test_struct_array_key_completion():
         nt.assert_true(any(["my_df" in m for m in matches]))
 
 
-@dec.skip_without('pandas')
 def test_dataframe_key_completion():
     """Test dict key completion applies to pandas DataFrames"""
     import pandas

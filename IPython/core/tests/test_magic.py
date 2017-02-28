@@ -275,7 +275,6 @@ def test_magic_magic():
     nt.assert_in('Available', stdout)
 
 
-@dec.skipif_not_numpy
 def test_numpy_reset_array_undec():
     "Test '%reset array' functionality"
     _ip.ex('import numpy as np')

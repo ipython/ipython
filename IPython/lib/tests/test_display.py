@@ -20,7 +20,6 @@ import nose.tools as nt
 
 # Our own imports
 from IPython.lib import display
-from IPython.testing.decorators import skipif_not_numpy
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -171,7 +170,6 @@ def test_recursive_FileLinks():
     actual = actual.split('\n')
     nt.assert_equal(len(actual), 2, actual)
 
-@skipif_not_numpy
 def test_audio_from_file():
     path = pjoin(dirname(__file__), 'test.wav')
     display.Audio(filename=path)
