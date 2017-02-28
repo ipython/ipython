@@ -1684,28 +1684,28 @@ class InteractiveShell(SingletonConfigurable):
         self.custom_exceptions = exc_tuple
 
     def excepthook(self, etype, value, tb):
-      """One more defense for GUI apps that call sys.excepthook.
+        """One more defense for GUI apps that call sys.excepthook.
 
-      GUI frameworks like wxPython trap exceptions and call
-      sys.excepthook themselves.  I guess this is a feature that
-      enables them to keep running after exceptions that would
-      otherwise kill their mainloop. This is a bother for IPython
-      which excepts to catch all of the program exceptions with a try:
-      except: statement.
+        GUI frameworks like wxPython trap exceptions and call
+        sys.excepthook themselves.  I guess this is a feature that
+        enables them to keep running after exceptions that would
+        otherwise kill their mainloop. This is a bother for IPython
+        which excepts to catch all of the program exceptions with a try:
+        except: statement.
 
-      Normally, IPython sets sys.excepthook to a CrashHandler instance, so if
-      any app directly invokes sys.excepthook, it will look to the user like
-      IPython crashed.  In order to work around this, we can disable the
-      CrashHandler and replace it with this excepthook instead, which prints a
-      regular traceback using our InteractiveTB.  In this fashion, apps which
-      call sys.excepthook will generate a regular-looking exception from
-      IPython, and the CrashHandler will only be triggered by real IPython
-      crashes.
+        Normally, IPython sets sys.excepthook to a CrashHandler instance, so if
+        any app directly invokes sys.excepthook, it will look to the user like
+        IPython crashed.  In order to work around this, we can disable the
+        CrashHandler and replace it with this excepthook instead, which prints a
+        regular traceback using our InteractiveTB.  In this fashion, apps which
+        call sys.excepthook will generate a regular-looking exception from
+        IPython, and the CrashHandler will only be triggered by real IPython
+        crashes.
 
-      This hook should be used sparingly, only in places which are not likely
-      to be true IPython errors.
-      """
-      self.showtraceback((etype, value, tb), tb_offset=0)
+        This hook should be used sparingly, only in places which are not likely
+        to be true IPython errors.
+        """
+        self.showtraceback((etype, value, tb), tb_offset=0)
 
     def _get_exc_info(self, exc_tuple=None):
         """get exc_info from a given tuple, sys.exc_info() or sys.last_type etc.
