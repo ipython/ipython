@@ -527,10 +527,10 @@ class Completer(Configurable):
                       'information for experimental jedi integration.')\
                       .tag(config=True)
 
-    backslash_combining_completions = Bool(default=True, 
-        help="Control whether or not `\\thins<tab>` will attempt to rewrite using unicode"
-             "that include completion of latex commands, unicode, or re-expand "
-             "unicode to their ascii form").tag(config=True)
+    backslash_combining_completions = Bool(True, 
+        help="Enable unicode completions, e.g. \\alpha<tab> . "
+             "Includes completion of latex commands, unicode names, and expanding "
+             "unicode characters back to latex commands.").tag(config=True)
 
 
 
