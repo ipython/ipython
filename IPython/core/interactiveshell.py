@@ -139,7 +139,7 @@ class SpaceInInput(Exception): pass
 
 def get_default_colors():
     "DEPRECATED"
-    warn('get_default_color is Deprecated, since IPython 5.0 and is `Neutral` on all platforms.',
+    warn('get_default_color is deprecated since IPython 5.0, and returns `Neutral` on all platforms.',
         DeprecationWarning, stacklevel=2)
     return 'Neutral'
 
