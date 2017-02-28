@@ -2,6 +2,13 @@
  5.x Series
 ============
 
+IPython 5.4
+===========
+
+* added ``Completer.backslash_combining_completions`` boolean option to
+  deactivate backslash-tab completion that may conflict with windows path. 
+
+
 IPython 5.3
 ===========
 

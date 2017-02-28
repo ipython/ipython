@@ -527,6 +527,12 @@ class Completer(Configurable):
                       'information for experimental jedi integration.')\
                       .tag(config=True)
 
+    backslash_combining_completions = Bool(default=True, 
+        help="Control whether or not `\\thins<tab>` will attempt to rewrite using unicode"
+             "that include completion of latex commands, unicode, or re-expand "
+             "unicode to their ascii form").tag(config=True)
+
+
 
     def __init__(self, namespace=None, global_namespace=None, **kwargs):
         """Create a new completer for the command line.
@@ -1742,16 +1748,18 @@ class IPCompleter(Completer):
         if not text:
             text = self.splitter.split_line(line_buffer, cursor_pos)
 
-        base_text = text if not line_buffer else line_buffer[:cursor_pos]
-        latex_text, latex_matches = self.latex_matches(base_text)
-        if latex_matches:
-            return latex_text, latex_matches, ['latex_matches']*len(latex_matches), ()
-        name_text = ''
-        name_matches = []
-        for meth in (self.unicode_name_matches, back_latex_name_matches, back_unicode_name_matches):
-            name_text, name_matches = meth(base_text)
-            if name_text:
-                return name_text, name_matches, [meth.__qualname__]*len(name_matches), {}
+        if self.backslash_combining_completions:
+            # allow deactivation of these on windows.
+            base_text = text if not line_buffer else line_buffer[:cursor_pos]
+            latex_text, latex_matches = self.latex_matches(base_text)
+            if latex_matches:
+                return latex_text, latex_matches, ['latex_matches']*len(latex_matches), ()
+            name_text = ''
+            name_matches = []
+            for meth in (self.unicode_name_matches, back_latex_name_matches, back_unicode_name_matches):
+                name_text, name_matches = meth(base_text)
+                if name_text:
+                    return name_text, name_matches, [meth.__qualname__]*len(name_matches), {}
         
 
         # If no line buffer is given, assume the input text is all there was
