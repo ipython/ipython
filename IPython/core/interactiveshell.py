@@ -130,7 +130,8 @@ def softspace(file, newvalue):
     return oldvalue
 
 @undoc
-def no_op(*a, **kw): pass
+def no_op(*a, **kw):
+    pass
 
 
 class SpaceInInput(Exception): pass
@@ -138,8 +139,8 @@ class SpaceInInput(Exception): pass
 
 def get_default_colors():
     "DEPRECATED"
-    warn('get_default_color is Deprecated, and is `Neutral` on all platforms.',
-            DeprecationWarning, stacklevel=2)
+    warn('get_default_color is deprecated since IPython 5.0, and returns `Neutral` on all platforms.',
+        DeprecationWarning, stacklevel=2)
     return 'Neutral'
 
 
@@ -2397,7 +2398,7 @@ class InteractiveShell(SingletonConfigurable):
         with self.builtin_trap:
             return eval(expr, self.user_global_ns, self.user_ns)
 
-    def safe_execfile(self, fname, *where, **kw):
+    def safe_execfile(self, fname, *where, exit_ignore=False, raise_exceptions=False, shell_futures=False):
         """A safe version of the builtin execfile().
 
         This version will never throw an exception, but instead print
@@ -2423,10 +2424,6 @@ class InteractiveShell(SingletonConfigurable):
             __future__ imports are not shared in either direction.
 
         """
-        kw.setdefault('exit_ignore', False)
-        kw.setdefault('raise_exceptions', False)
-        kw.setdefault('shell_futures', False)
-
         fname = os.path.abspath(os.path.expanduser(fname))
 
         # Make sure we can open the file
@@ -2447,7 +2444,7 @@ class InteractiveShell(SingletonConfigurable):
                 glob, loc = (where + (None, ))[:2]
                 py3compat.execfile(
                     fname, glob, loc,
-                    self.compile if kw['shell_futures'] else None)
+                    self.compile if shell_futures else None)
             except SystemExit as status:
                 # If the call was made with 0 or None exit status (sys.exit(0)
                 # or sys.exit() ), don't bother showing a traceback, as both of
@@ -2459,12 +2456,12 @@ class InteractiveShell(SingletonConfigurable):
                 # For other exit status, we show the exception unless
                 # explicitly silenced, but only in short form.
                 if status.code:
-                    if kw['raise_exceptions']:
+                    if raise_exceptions:
                         raise
-                    if not kw['exit_ignore']:
+                    if not exit_ignore:
                         self.showtraceback(exception_only=True)
             except:
-                if kw['raise_exceptions']:
+                if raise_exceptions:
                     raise
                 # tb offset is 2 because we wrap execfile
                 self.showtraceback(tb_offset=2)
@@ -2842,7 +2839,7 @@ class InteractiveShell(SingletonConfigurable):
         # we save the original sys.excepthook in the instance, in case config
         # code (such as magics) needs access to it.
         self.sys_excepthook = old_excepthook
-        outflag = 1  # happens in more places, so it's easier as default
+        outflag = True  # happens in more places, so it's easier as default
         try:
             try:
                 self.hooks.pre_run_code_hook()
@@ -2866,7 +2863,7 @@ class InteractiveShell(SingletonConfigurable):
                 result.error_in_exec = sys.exc_info()[1]
             self.showtraceback()
         else:
-            outflag = 0
+            outflag = False
         return outflag
 
     # For backwards compatibility
