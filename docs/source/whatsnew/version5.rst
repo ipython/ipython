@@ -16,6 +16,10 @@ that allow to customize the class used to start the terminal frontend. This
 should allow user to use custom interfaces, like reviving the former readline
 interface which is now a separate package not maintained by the core team.
 
+
+* added ``Completer.backslash_combining_completions`` boolean option to
+  deactivate backslash-tab completion that may conflict with windows path. 
+
 IPython 5.3
 ===========
 

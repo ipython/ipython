@@ -239,7 +239,11 @@ class Completer(Configurable):
         but can be unsafe because the code is actually evaluated on TAB.
         """
     ).tag(config=True)
-    
+
+    backslash_combining_completions = Bool(True, 
+        help="Enable unicode completions, e.g. \\alpha<tab> . "
+             "Includes completion of latex commands, unicode names, and expanding "
+             "unicode characters back to latex commands.").tag(config=True)
 
     def __init__(self, namespace=None, global_namespace=None, **kwargs):
         """Create a new completer for the command line.
@@ -1127,12 +1131,12 @@ class IPCompleter(Completer):
         if self.use_main_ns:
             self.namespace = __main__.__dict__
 
-        if PY3:
+        if PY3 and self.backslash_combining_completions:
 
             base_text = text if not line_buffer else line_buffer[:cursor_pos]
             latex_text, latex_matches = self.latex_matches(base_text)
             if latex_matches:
-                 return latex_text, latex_matches
+                return latex_text, latex_matches
             name_text = ''
             name_matches = []
             for meth in (self.unicode_name_matches, back_latex_name_matches, back_unicode_name_matches):
