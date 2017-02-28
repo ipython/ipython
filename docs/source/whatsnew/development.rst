@@ -152,9 +152,13 @@ Functions Deprecated in 6.x Development cycle
   instead of ``IPython.utils.warn`` inbuilt :any:`warning` module is used.
 
 
-- The function `IPython.core.oinspect.py:call_tip` is unused, was marked as
+- The function ``IPython.core.oinspect.py:call_tip`` is unused, was marked as
   Deprecated (raising a Deprecation Warning) and marked for later removal
   :ghpull:`10104`
+
+- :attr:`IPython.core.InteractiveShell.autoindent` and
+  :meth:`IPython.core.InteractiveShell.set_autoindent` have been deprecated and
+  will have no effects.
 
 Backwards incompatible changes
 ------------------------------

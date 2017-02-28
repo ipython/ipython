@@ -541,24 +541,7 @@ class PrefilterHandler(Configurable):
         )
 
     def handle(self, line_info):
-        # print "normal: ", line_info
-        """Handle normal input lines. Use as a template for handlers."""
-
-        # With autoindent on, we need some way to exit the input loop, and I
-        # don't want to force the user to have to backspace all the way to
-        # clear the line.  The rule will be in this case, that either two
-        # lines of pure whitespace in a row, or a line of pure whitespace but
-        # of a size different to the indent level, will exit the input loop.
-        line = line_info.line
-        continue_prompt = line_info.continue_prompt
-
-        if (continue_prompt and
-            self.shell.autoindent and
-            line.isspace() and
-            0 < abs(len(line) - self.shell.indent_current_nsp) <= 2):
-            line = ''
-
-        return line
+        return line_info.line
 
     def __str__(self):
         return "<%s(name=%s)>" % (self.__class__.__name__, self.handler_name)

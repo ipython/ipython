@@ -103,13 +103,6 @@ class ProvisionalWarning(DeprecationWarning):
     pass
 
 #-----------------------------------------------------------------------------
-# Globals
-#-----------------------------------------------------------------------------
-
-# compiled regexps for autoindent management
-dedent_re = re.compile(r'^\s+raise|^\s+return|^\s+pass')
-
-#-----------------------------------------------------------------------------
 # Utilities
 #-----------------------------------------------------------------------------
 
@@ -212,11 +205,10 @@ class InteractiveShell(SingletonConfigurable):
         objects are automatically called (even if no arguments are present).
         """
     ).tag(config=True)
-    # TODO: remove all autoindent logic and put into frontends.
-    # We can't do this yet because even runlines uses the autoindent.
+
     autoindent = Bool(True, help=
         """
-        Autoindent IPython code entered interactively.
+        Deprecated since 6.0: Autoindent IPython code entered interactively.
         """
     ).tag(config=True)
 
@@ -505,10 +497,16 @@ class InteractiveShell(SingletonConfigurable):
     def _ipython_dir_changed(self, change):
         ensure_dir_exists(change['new'])
 
-    def set_autoindent(self,value=None):
-        """Set the autoindent flag.
+    def set_autoindent(self, value=None):
+        """Deprecated Since 6.0 : 
+            
+        Set the autoindent flag.
 
-        If called with no arguments, it acts as a toggle."""
+        If called with no arguments, it acts as a toggle.
+        """
+        warnings.warn('`InteractiveShell.set_autoindent()` has been deprecated '
+                      'since IPython 6.0 and is no longer needed.',
+                      DeprecationWarning)
         if value is None:
             self.autoindent = not self.autoindent
         else:
@@ -552,9 +550,6 @@ class InteractiveShell(SingletonConfigurable):
         # keep track of where we started running (mainly for crash post-mortem)
         # This is not being used anywhere currently.
         self.starting_dir = os.getcwd()
-
-        # Indentation management
-        self.indent_current_nsp = 0
 
         # Dict to track post-execution functions that have been registered
         self._post_execute = {}

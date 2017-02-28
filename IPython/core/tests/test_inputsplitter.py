@@ -15,7 +15,6 @@ from IPython.core.inputtransformer import InputTransformer
 from IPython.core.tests.test_inputtransformer import syntax, syntax_ml
 from IPython.testing import tools as tt
 from IPython.utils import py3compat
-from IPython.utils.py3compat  import input
 
 #-----------------------------------------------------------------------------
 # Semi-complete examples (also used as tests)
@@ -437,7 +436,6 @@ class IPythonInputTestCase(InputSplitterTestCase):
         isp = self.isp
         for example in syntax_ml.values():
 
-            out_t_parts = []
             for line_pairs in example:
                 raw = '\n'.join(r for r, _ in line_pairs if r is not None)
                 out_t = '\n'.join(t for _,t in line_pairs if t is not None)
@@ -487,44 +485,6 @@ class IPythonInputTestCase(InputSplitterTestCase):
         ]:
             out = isp.transform_cell(raw)
             self.assertEqual(out.rstrip(), expected.rstrip())
-
-#-----------------------------------------------------------------------------
-# Main - use as a script, mostly for developer experiments
-#-----------------------------------------------------------------------------
-
-if __name__ == '__main__':
-    # A simple demo for interactive experimentation.  This code will not get
-    # picked up by any test suite.
-    from IPython.core.inputsplitter import IPythonInputSplitter
-
-    # configure here the syntax to use, prompt and whether to autoindent
-    #isp, start_prompt = InputSplitter(), '>>> '
-    isp, start_prompt = IPythonInputSplitter(), 'In> '
-
-    autoindent = True
-    #autoindent = False
-
-    try:
-        while True:
-            prompt = start_prompt
-            while isp.push_accepts_more():
-                indent = ' '*isp.indent_spaces
-                if autoindent:
-                    line = indent + input(prompt+indent)
-                else:
-                    line = input(prompt)
-                isp.push(line)
-                prompt = '... '
-
-            # Here we just return input so we can use it in a test suite, but a
-            # real interpreter would instead send it for execution somewhere.
-            #src = isp.source; raise EOFError # dbg
-            raw = isp.source_raw
-            src = isp.source_reset()
-            print('Input source was:\n', src)
-            print('Raw source was:\n', raw)
-    except EOFError:
-        print('Bye')
 
 # Tests for cell magics support
 
