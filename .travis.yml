@@ -24,3 +24,21 @@ after_success:
 matrix:
     allow_failures:
         - python: nightly
+
+before_deploy:
+    - rm -rf dist/
+    - python setup.py sdist
+    - python setup.py bdist_wheel
+
+deploy:
+    provider: releases
+    api_key:
+        secure: Y/Ae9tYs5aoBU8bDjN2YrwGG6tCbezj/h3Lcmtx8HQavSbBgXnhnZVRb2snOKD7auqnqjfT/7QMm4ZyKvaOEgyggGktKqEKYHC8KOZ7yp8I5/UMDtk6j9TnXpSqqBxPiud4MDV76SfRYEQiaDoG4tGGvSfPJ9KcNjKrNvSyyxns=
+    file: dist/*
+    file_glob: true
+    skip_cleanup: true
+    on:
+        repo: ipython/ipython
+        all_branches: true  # Backports are released from e.g. 5.x branch
+        tags: true
+        python: 3.6  # Any version should work, but we only need one
