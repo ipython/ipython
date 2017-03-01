@@ -36,8 +36,6 @@ from .shortcuts import register_ipython_shortcuts
 DISPLAY_BANNER_DEPRECATED = object()
 
 
-from pygments.style import Style
-
 class _NoStyle(Style): pass
 
 
