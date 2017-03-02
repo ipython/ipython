@@ -1135,20 +1135,21 @@ class IPCompleter(Completer):
         if self.global_namespace is not None:
             namespaces.append(self.global_namespace)
 
+        completion_filter = lambda x:x
         # cursor_pos is an it, jedi wants line and column
         offset = cursor_to_position(text, cursor_line, cursor_column)
+        # filter output if we are completing for object members
         if offset:
             pre = text[offset-1]
-        completion_filter = lambda x:x
-        if pre == '.':
-            if self.omit__names == 2:
-                completion_filter = lambda c:not c.name.startswith('_')
-            elif self.omit__names == 1:
-                completion_filter = lambda c:not (c.name.startswith('__') and c.name.endswith('__'))
-            elif self.omit__names == 0:
-                completion_filter = lambda x:x
-            else:
-                raise ValueError("Don't understand self.omit__names == {}".format(self.omit__names))
+            if pre == '.':
+                if self.omit__names == 2:
+                    completion_filter = lambda c:not c.name.startswith('_')
+                elif self.omit__names == 1:
+                    completion_filter = lambda c:not (c.name.startswith('__') and c.name.endswith('__'))
+                elif self.omit__names == 0:
+                    completion_filter = lambda x:x
+                else:
+                    raise ValueError("Don't understand self.omit__names == {}".format(self.omit__names))
 
         interpreter = jedi.Interpreter(
             text, namespaces, column=cursor_column, line=cursor_line + 1)
@@ -1176,7 +1177,7 @@ class IPCompleter(Completer):
             return filter(completion_filter, interpreter.completions())
         except Exception as e:
             if self.debug:
-                return [_FakeJediCompletion('Opps Jedi has crash please report a bug with the following:\n"""\n%s\ns"""' % (e))]
+                return [_FakeJediCompletion('Oops Jedi has crashed, please report a bug with the following:\n"""\n%s\ns"""' % (e))]
             else:
                 return []
 
