@@ -118,6 +118,15 @@ of these as well to improve user experience with better error messages and
 hints.
 
 
+Configurable TerminalInteractiveShell
+-------------------------------------
+
+IPython gained a new ``c.TerminalIPythonApp.interactive_shell_class`` option
+that allow to customize the class used to start the terminal frontend. This
+should allow user to use custom interfaces, like reviving the former readline
+interface which is now a separate package not maintained by the core team.
+
+
 Miscs improvements
 ------------------
 
